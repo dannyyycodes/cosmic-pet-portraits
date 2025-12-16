@@ -52,7 +52,7 @@ const Index = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 py-20 z-10">
+      <section className="relative flex items-center justify-center px-4 pt-20 pb-8 z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Main Headline with Gold-Purple Gradient */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold leading-tight mb-6">
@@ -67,8 +67,7 @@ const Index = () => {
 
           {/* Subhead */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            <span className="text-gold font-semibold">92%</span> of owners say this reading revealed 
-            the spiritual agreement they share with their pet. It takes just{" "}
+            <span className="text-gold font-semibold">92%</span> of owners say this revealed the hidden reason behind their pet's behavior. Unlock your profile in{" "}
             <span className="text-gold">60 seconds</span>.
           </p>
 
