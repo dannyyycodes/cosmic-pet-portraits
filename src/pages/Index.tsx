@@ -1,4 +1,5 @@
 import heroNebula from "@/assets/hero-nebula.jpg";
+import trustpilotStars from "@/assets/trustpilot-stars.png";
 import { Button } from "@/components/ui/button";
 import { Star, Heart, Search, Sparkles, Check, Shield } from "lucide-react";
 
@@ -61,12 +62,12 @@ const Index = () => {
           </p>
 
           {/* Trust Badge */}
-          <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50">
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-gold text-gold" />
-              ))}
-            </div>
+          <div className="inline-flex flex-col items-center gap-2 px-5 py-3 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50">
+            <img 
+              src={trustpilotStars} 
+              alt="Trustpilot 4.9 stars" 
+              className="h-10 w-auto"
+            />
             <span className="text-sm text-foreground/80">
               Rated <strong className="text-gold">4.9/5</strong> by 2,000+ Pet Parents
             </span>
