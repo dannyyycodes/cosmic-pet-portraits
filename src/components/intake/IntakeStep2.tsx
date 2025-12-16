@@ -12,9 +12,10 @@ interface IntakeStep2Props {
   onUpdate: (data: Partial<PetData>) => void;
   onNext: () => void;
   onBack: () => void;
+  totalSteps: number;
 }
 
-export function IntakeStep2({ petData, onUpdate, onNext, onBack }: IntakeStep2Props) {
+export function IntakeStep2({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStep2Props) {
   const isValid = petData.dateOfBirth !== null;
 
   return (
@@ -27,12 +28,12 @@ export function IntakeStep2({ petData, onUpdate, onNext, onBack }: IntakeStep2Pr
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 2 of 3</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 2 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          When did their journey begin?
+          When did {petData.name}'s journey begin?
         </h1>
         <p className="text-muted-foreground text-lg">
-          The stars remember the moment {petData.name} arrived.
+          The stars remember the moment they arrived.
         </p>
       </div>
 
@@ -66,11 +67,26 @@ export function IntakeStep2({ petData, onUpdate, onNext, onBack }: IntakeStep2Pr
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">Time of Birth <span className="text-primary/60">(optional - for higher accuracy)</span></p>
+          <p className="text-sm text-muted-foreground">
+            Time of Birth <span className="text-primary/60">(For higher accuracy)</span>
+          </p>
           <Input
             type="time"
             value={petData.timeOfBirth}
             onChange={(e) => onUpdate({ timeOfBirth: e.target.value })}
+            className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Breed <span className="text-muted-foreground/60">(Optional)</span>
+          </p>
+          <Input
+            type="text"
+            placeholder="e.g., Golden Retriever, Siamese"
+            value={petData.breed}
+            onChange={(e) => onUpdate({ breed: e.target.value })}
             className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
           />
         </div>
@@ -83,7 +99,7 @@ export function IntakeStep2({ petData, onUpdate, onNext, onBack }: IntakeStep2Pr
         size="xl"
         className="w-full max-w-xs mx-auto"
       >
-        Continue
+        Continue ➝
       </Button>
     </div>
   );

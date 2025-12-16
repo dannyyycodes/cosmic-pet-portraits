@@ -1,16 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-interface IntakeStep3Props {
+interface IntakeStepEmailProps {
   petData: PetData;
   onUpdate: (data: Partial<PetData>) => void;
   onReveal: () => void;
   onBack: () => void;
+  totalSteps: number;
 }
 
-export function IntakeStep3({ petData, onUpdate, onReveal, onBack }: IntakeStep3Props) {
+export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalSteps }: IntakeStepEmailProps) {
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(petData.email);
 
   return (
@@ -23,12 +25,23 @@ export function IntakeStep3({ petData, onUpdate, onReveal, onBack }: IntakeStep3
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 3 of 3</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">Step {totalSteps} of {totalSteps}</p>
+        
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", delay: 0.2 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/30 mb-4"
+        >
+          <CheckCircle className="w-4 h-4 text-green-500" />
+          <span className="text-green-500 text-sm font-medium">Analysis Complete</span>
+        </motion.div>
+        
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          Where should we send the cosmic analysis?
+          {petData.name}'s cosmic profile is ready
         </h1>
         <p className="text-muted-foreground text-lg">
-          We'll deliver {petData.name}'s soul reading to your inbox.
+          Where should we send the results?
         </p>
       </div>
 
@@ -52,7 +65,7 @@ export function IntakeStep3({ petData, onUpdate, onReveal, onBack }: IntakeStep3
         className="w-full max-w-xs mx-auto"
       >
         <Sparkles className="w-5 h-5 mr-2" />
-        Reveal Cosmic Soul
+        Reveal Cosmic Profile
       </Button>
 
       <p className="text-xs text-muted-foreground/60">
