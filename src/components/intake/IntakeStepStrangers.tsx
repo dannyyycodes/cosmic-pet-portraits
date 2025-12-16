@@ -1,6 +1,7 @@
 import { PetData } from './IntakeWizard';
-import { ArrowLeft, PartyPopper, Eye, ShieldAlert, HeartHandshake } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getStrangerOptions, PetSpecies } from '@/lib/speciesOptions';
 
 interface IntakeStepStrangersProps {
   petData: PetData;
@@ -10,14 +11,9 @@ interface IntakeStepStrangersProps {
   totalSteps: number;
 }
 
-const strangerOptions = [
-  { id: 'greeter', label: 'The Greeter', description: 'Jumps/licks immediately', icon: PartyPopper },
-  { id: 'observer', label: 'The Observer', description: 'Watches from a distance', icon: Eye },
-  { id: 'guardian', label: 'The Guardian', description: 'Vocalizes/stands ground', icon: ShieldAlert },
-  { id: 'charmer', label: 'The Charmer', description: 'Belly up instantly', icon: HeartHandshake },
-];
-
 export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepStrangersProps) {
+  const strangerOptions = getStrangerOptions((petData.species || 'other') as PetSpecies);
+  
   const handleSelect = (strangerReaction: string) => {
     onUpdate({ strangerReaction });
     setTimeout(() => onNext(), 300);

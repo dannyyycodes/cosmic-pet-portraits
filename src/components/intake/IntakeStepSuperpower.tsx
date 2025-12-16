@@ -1,6 +1,7 @@
 import { PetData } from './IntakeWizard';
-import { ArrowLeft, Heart, Shield, Laugh, UserCheck } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getSuperpowerOptions, PetSpecies } from '@/lib/speciesOptions';
 
 interface IntakeStepSuperpowerProps {
   petData: PetData;
@@ -10,14 +11,9 @@ interface IntakeStepSuperpowerProps {
   totalSteps: number;
 }
 
-const superpowerOptions = [
-  { id: 'empathy', label: 'Empathy', description: 'Knows when I\'m sad', icon: Heart },
-  { id: 'protection', label: 'Protection', description: 'Guards our home fiercely', icon: Shield },
-  { id: 'comedian', label: 'The Comedian', description: 'Exists to make me laugh', icon: Laugh },
-  { id: 'shadow', label: 'The Shadow', description: 'Never leaves my side', icon: UserCheck },
-];
-
 export function IntakeStepSuperpower({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepSuperpowerProps) {
+  const superpowerOptions = getSuperpowerOptions((petData.species || 'other') as PetSpecies);
+  
   const handleSelect = (superpower: string) => {
     onUpdate({ superpower });
     setTimeout(() => onNext(), 300);
