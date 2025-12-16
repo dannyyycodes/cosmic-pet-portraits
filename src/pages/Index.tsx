@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Star, Sparkles, Gift, Heart, Cake } from "lucide-react";
+import { Star, Sparkles, Gift, Heart, Cake, ArrowDown } from "lucide-react";
 
 type OccasionMode = "discover" | "birthday" | "memorial" | "gift";
 
@@ -89,21 +89,32 @@ const Index = () => {
       <section className="relative flex items-center justify-center px-4 pt-20 pb-8 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Dynamic Intent Switcher - Segmented Control */}
-          <div className="inline-flex items-center p-1 mb-8 rounded-full bg-background/30 backdrop-blur-md border border-border/40">
-            {(["discover", "birthday", "memorial", "gift"] as OccasionMode[]).map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setSelectedMode(mode)}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 capitalize ${
-                  selectedMode === mode
-                    ? "bg-gold/90 text-background shadow-lg shadow-gold/20"
-                    : "text-foreground/70 hover:text-foreground hover:bg-foreground/10"
-                }`}
-              >
-                {mode}
-              </button>
-            ))}
+          {/* Dynamic Intent Switcher - Segmented Control with Arrow */}
+          <div className="relative inline-block mb-8">
+            {/* Golden Arrow + Label */}
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce-gentle">
+              <span className="text-gold text-sm font-medium whitespace-nowrap mb-1">
+                ✨ Select Occasion
+              </span>
+              <ArrowDown className="w-5 h-5 text-gold" />
+            </div>
+            
+            {/* Segmented Control */}
+            <div className="inline-flex items-center p-1 rounded-full bg-background/30 backdrop-blur-md border border-gold/40 shadow-[0_0_20px_hsl(43_69%_52%/0.2)]">
+              {(["discover", "birthday", "memorial", "gift"] as OccasionMode[]).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setSelectedMode(mode)}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 capitalize ${
+                    selectedMode === mode
+                      ? "bg-gold/90 text-background shadow-lg shadow-gold/20"
+                      : "text-foreground/70 hover:text-foreground hover:bg-foreground/10"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Main Headline with Gold-Purple Gradient */}

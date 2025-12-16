@@ -217,6 +217,10 @@
   .animate-star-twinkle {
     animation: twinkle 4s ease-in-out infinite;
   }
+
+  .animate-bounce-gentle {
+    animation: bounce-gentle 2s ease-in-out infinite;
+  }
 }
 
 @keyframes float {
@@ -276,6 +280,15 @@
   50% {
     opacity: 0.7;
     transform: scale(1.02);
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-6px);
   }
 }
 
