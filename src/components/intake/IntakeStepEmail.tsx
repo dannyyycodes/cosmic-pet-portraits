@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
+import { ModeContent } from '@/lib/occasionMode';
 import { ArrowLeft, Sparkles, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -10,9 +11,10 @@ interface IntakeStepEmailProps {
   onReveal: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalSteps }: IntakeStepEmailProps) {
+export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalSteps, modeContent }: IntakeStepEmailProps) {
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(petData.email);
 
   return (
@@ -34,14 +36,14 @@ export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalStep
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/30 mb-4"
         >
           <CheckCircle className="w-4 h-4 text-green-500" />
-          <span className="text-green-500 text-sm font-medium">Analysis Complete</span>
+          <span className="text-green-500 text-sm font-medium">{modeContent.emailBadge}</span>
         </motion.div>
         
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          {petData.name}'s cosmic profile is ready
+          {modeContent.emailTitle(petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Where should we send the results?
+          {modeContent.emailSubtitle}
         </p>
       </div>
 
@@ -65,7 +67,7 @@ export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalStep
         className="w-full max-w-xs mx-auto"
       >
         <Sparkles className="w-5 h-5 mr-2" />
-        Reveal Cosmic Profile
+        {modeContent.emailButton}
       </Button>
 
       <p className="text-xs text-muted-foreground/60">

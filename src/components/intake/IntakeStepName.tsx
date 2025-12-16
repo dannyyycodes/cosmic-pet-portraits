@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
+import { ModeContent } from '@/lib/occasionMode';
 import trustpilotStars from '@/assets/trustpilot-stars.png';
 
 interface IntakeStepNameProps {
@@ -8,9 +9,10 @@ interface IntakeStepNameProps {
   onUpdate: (data: Partial<PetData>) => void;
   onNext: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepName({ petData, onUpdate, onNext, totalSteps }: IntakeStepNameProps) {
+export function IntakeStepName({ petData, onUpdate, onNext, totalSteps, modeContent }: IntakeStepNameProps) {
   const isValid = petData.name.trim() !== '';
 
   return (
@@ -18,10 +20,10 @@ export function IntakeStepName({ petData, onUpdate, onNext, totalSteps }: Intake
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">Step 1 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          What is your pet's name?
+          {modeContent.nameTitle}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Let's begin their cosmic journey.
+          {modeContent.nameSubtitle}
         </p>
       </div>
 
