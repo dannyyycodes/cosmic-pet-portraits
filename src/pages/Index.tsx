@@ -1,5 +1,5 @@
+import { Link } from "react-router-dom";
 import heroNebula from "@/assets/hero-nebula.jpg";
-import trustpilotStars from "@/assets/trustpilot-stars.png";
 import { Button } from "@/components/ui/button";
 import { Star, Heart, Search, Sparkles, Check, Shield } from "lucide-react";
 
@@ -52,8 +52,8 @@ const Index = () => {
             their unique cosmic personality.
           </p>
 
-          <Button variant="cosmic" size="xl" className="mb-4">
-            Reveal My Pet's Free Cosmic Profile
+          <Button variant="cosmic" size="xl" className="mb-4" asChild>
+            <Link to="/intake">Reveal My Pet's Free Cosmic Profile</Link>
           </Button>
 
           <p className="text-sm text-muted-foreground/70 max-w-md mx-auto mb-8">
@@ -197,8 +197,8 @@ const Index = () => {
           </div>
 
           <div className="text-center mt-16">
-            <Button variant="cosmicOutline" size="lg">
-              Understand My Pet's True Nature
+            <Button variant="cosmicOutline" size="lg" asChild>
+              <Link to="/intake">Understand My Pet's True Nature</Link>
             </Button>
           </div>
         </div>
