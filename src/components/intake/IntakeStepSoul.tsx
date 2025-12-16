@@ -33,7 +33,7 @@ export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps }
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 3 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 7 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
           When you gaze into their eyes, what soul do you see?
         </h1>

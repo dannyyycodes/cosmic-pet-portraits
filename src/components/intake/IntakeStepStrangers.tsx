@@ -33,7 +33,7 @@ export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSt
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 5 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 9 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
           How does {petData.name} react to new people?
         </h1>

@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IntakeStep1 } from './IntakeStep1';
-import { IntakeStep2 } from './IntakeStep2';
+import { IntakeStepName } from './IntakeStepName';
+import { IntakeStepSpecies } from './IntakeStepSpecies';
+import { IntakeStepBreed } from './IntakeStepBreed';
+import { IntakeStepGender } from './IntakeStepGender';
+import { IntakeStepDOB } from './IntakeStepDOB';
+import { IntakeStepLocation } from './IntakeStepLocation';
 import { IntakeStepSoul } from './IntakeStepSoul';
 import { IntakeStepSuperpower } from './IntakeStepSuperpower';
 import { IntakeStepStrangers } from './IntakeStepStrangers';
@@ -9,13 +13,17 @@ import { IntakeStepEmail } from './IntakeStepEmail';
 import { CosmicLoading } from './CosmicLoading';
 import { MiniReport } from './MiniReport';
 
+export type PetSpecies = 'dog' | 'cat' | 'rabbit' | 'hamster' | 'guinea_pig' | 'bird' | 'fish' | 'reptile' | 'horse' | 'other' | '';
+export type PetGender = 'boy' | 'girl' | '';
+
 export interface PetData {
   name: string;
-  species: 'dog' | 'cat' | 'other' | '';
-  location: string;
+  species: PetSpecies;
+  breed: string;
+  gender: PetGender;
   dateOfBirth: Date | null;
   timeOfBirth: string;
-  breed: string;
+  location: string;
   soulType: string;
   superpower: string;
   strangerReaction: string;
@@ -29,10 +37,11 @@ export function IntakeWizard() {
   const [petData, setPetData] = useState<PetData>({
     name: '',
     species: '',
-    location: '',
+    breed: '',
+    gender: '',
     dateOfBirth: null,
     timeOfBirth: '',
-    breed: '',
+    location: '',
     soulType: '',
     superpower: '',
     strangerReaction: '',
@@ -57,7 +66,7 @@ export function IntakeWizard() {
     exit: { opacity: 0, x: -50 }
   };
 
-  const totalSteps = 6;
+  const totalSteps = 10;
 
   if (showResults) {
     return <MiniReport petData={petData} />;
@@ -75,7 +84,7 @@ export function IntakeWizard() {
           {Array.from({ length: totalSteps }, (_, i) => i + 1).map((i) => (
             <div
               key={i}
-              className={`h-1.5 w-8 rounded-full transition-all duration-300 ${
+              className={`h-1.5 w-6 rounded-full transition-all duration-300 ${
                 i <= step ? 'bg-primary' : 'bg-muted'
               }`}
             />
@@ -84,115 +93,62 @@ export function IntakeWizard() {
 
         <AnimatePresence mode="wait">
           {step === 1 && (
-            <motion.div
-              key="step1"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <IntakeStep1
-                petData={petData}
-                onUpdate={updatePetData}
-                onNext={() => setStep(2)}
-                totalSteps={totalSteps}
-              />
+            <motion.div key="step1" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepName petData={petData} onUpdate={updatePetData} onNext={() => setStep(2)} totalSteps={totalSteps} />
             </motion.div>
           )}
 
           {step === 2 && (
-            <motion.div
-              key="step2"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <IntakeStep2
-                petData={petData}
-                onUpdate={updatePetData}
-                onNext={() => setStep(3)}
-                onBack={() => setStep(1)}
-                totalSteps={totalSteps}
-              />
+            <motion.div key="step2" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepSpecies petData={petData} onUpdate={updatePetData} onNext={() => setStep(3)} onBack={() => setStep(1)} totalSteps={totalSteps} />
             </motion.div>
           )}
 
           {step === 3 && (
-            <motion.div
-              key="step3"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <IntakeStepSoul
-                petData={petData}
-                onUpdate={updatePetData}
-                onNext={() => setStep(4)}
-                onBack={() => setStep(2)}
-                totalSteps={totalSteps}
-              />
+            <motion.div key="step3" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepBreed petData={petData} onUpdate={updatePetData} onNext={() => setStep(4)} onBack={() => setStep(2)} totalSteps={totalSteps} />
             </motion.div>
           )}
 
           {step === 4 && (
-            <motion.div
-              key="step4"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <IntakeStepSuperpower
-                petData={petData}
-                onUpdate={updatePetData}
-                onNext={() => setStep(5)}
-                onBack={() => setStep(3)}
-                totalSteps={totalSteps}
-              />
+            <motion.div key="step4" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepGender petData={petData} onUpdate={updatePetData} onNext={() => setStep(5)} onBack={() => setStep(3)} totalSteps={totalSteps} />
             </motion.div>
           )}
 
           {step === 5 && (
-            <motion.div
-              key="step5"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <IntakeStepStrangers
-                petData={petData}
-                onUpdate={updatePetData}
-                onNext={() => setStep(6)}
-                onBack={() => setStep(4)}
-                totalSteps={totalSteps}
-              />
+            <motion.div key="step5" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepDOB petData={petData} onUpdate={updatePetData} onNext={() => setStep(6)} onBack={() => setStep(4)} totalSteps={totalSteps} />
             </motion.div>
           )}
 
           {step === 6 && (
-            <motion.div
-              key="step6"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              <IntakeStepEmail
-                petData={petData}
-                onUpdate={updatePetData}
-                onReveal={handleReveal}
-                onBack={() => setStep(5)}
-                totalSteps={totalSteps}
-              />
+            <motion.div key="step6" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepLocation petData={petData} onUpdate={updatePetData} onNext={() => setStep(7)} onBack={() => setStep(5)} totalSteps={totalSteps} />
+            </motion.div>
+          )}
+
+          {step === 7 && (
+            <motion.div key="step7" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepSoul petData={petData} onUpdate={updatePetData} onNext={() => setStep(8)} onBack={() => setStep(6)} totalSteps={totalSteps} />
+            </motion.div>
+          )}
+
+          {step === 8 && (
+            <motion.div key="step8" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepSuperpower petData={petData} onUpdate={updatePetData} onNext={() => setStep(9)} onBack={() => setStep(7)} totalSteps={totalSteps} />
+            </motion.div>
+          )}
+
+          {step === 9 && (
+            <motion.div key="step9" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepStrangers petData={petData} onUpdate={updatePetData} onNext={() => setStep(10)} onBack={() => setStep(8)} totalSteps={totalSteps} />
+            </motion.div>
+          )}
+
+          {step === 10 && (
+            <motion.div key="step10" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepEmail petData={petData} onUpdate={updatePetData} onReveal={handleReveal} onBack={() => setStep(9)} totalSteps={totalSteps} />
             </motion.div>
           )}
         </AnimatePresence>
