@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PetData } from './IntakeWizard';
+import { ModeContent } from '@/lib/occasionMode';
 import { CalendarIcon, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -13,9 +14,10 @@ interface IntakeStepDOBProps {
   onNext: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepDOBProps) {
+export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepDOBProps) {
   const isValid = petData.dateOfBirth !== null;
 
   return (
@@ -30,10 +32,10 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps }:
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">Step 5 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          When was {petData.name} born?
+          {modeContent.dobTitle(petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          The stars remember the moment they arrived.
+          {modeContent.dobSubtitle}
         </p>
       </div>
 

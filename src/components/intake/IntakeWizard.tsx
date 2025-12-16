@@ -12,6 +12,7 @@ import { IntakeStepStrangers } from './IntakeStepStrangers';
 import { IntakeStepEmail } from './IntakeStepEmail';
 import { CosmicLoading } from './CosmicLoading';
 import { MiniReport } from './MiniReport';
+import { OccasionMode, occasionModeContent } from '@/lib/occasionMode';
 
 export type PetSpecies = 'dog' | 'cat' | 'rabbit' | 'hamster' | 'guinea_pig' | 'bird' | 'fish' | 'reptile' | 'horse' | 'other' | '';
 export type PetGender = 'boy' | 'girl' | '';
@@ -28,9 +29,14 @@ export interface PetData {
   superpower: string;
   strangerReaction: string;
   email: string;
+  occasionMode: OccasionMode;
 }
 
-export function IntakeWizard() {
+interface IntakeWizardProps {
+  mode: OccasionMode;
+}
+
+export function IntakeWizard({ mode }: IntakeWizardProps) {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -45,8 +51,11 @@ export function IntakeWizard() {
     soulType: '',
     superpower: '',
     strangerReaction: '',
-    email: ''
+    email: '',
+    occasionMode: mode
   });
+
+  const modeContent = occasionModeContent[mode];
 
   const updatePetData = (data: Partial<PetData>) => {
     setPetData(prev => ({ ...prev, ...data }));
@@ -94,7 +103,7 @@ export function IntakeWizard() {
         <AnimatePresence mode="wait">
           {step === 1 && (
             <motion.div key="step1" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepName petData={petData} onUpdate={updatePetData} onNext={() => setStep(2)} totalSteps={totalSteps} />
+              <IntakeStepName petData={petData} onUpdate={updatePetData} onNext={() => setStep(2)} totalSteps={totalSteps} modeContent={modeContent} />
             </motion.div>
           )}
 
@@ -118,7 +127,7 @@ export function IntakeWizard() {
 
           {step === 5 && (
             <motion.div key="step5" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepDOB petData={petData} onUpdate={updatePetData} onNext={() => setStep(6)} onBack={() => setStep(4)} totalSteps={totalSteps} />
+              <IntakeStepDOB petData={petData} onUpdate={updatePetData} onNext={() => setStep(6)} onBack={() => setStep(4)} totalSteps={totalSteps} modeContent={modeContent} />
             </motion.div>
           )}
 
@@ -130,7 +139,7 @@ export function IntakeWizard() {
 
           {step === 7 && (
             <motion.div key="step7" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSoul petData={petData} onUpdate={updatePetData} onNext={() => setStep(8)} onBack={() => setStep(6)} totalSteps={totalSteps} />
+              <IntakeStepSoul petData={petData} onUpdate={updatePetData} onNext={() => setStep(8)} onBack={() => setStep(6)} totalSteps={totalSteps} modeContent={modeContent} />
             </motion.div>
           )}
 
@@ -148,7 +157,7 @@ export function IntakeWizard() {
 
           {step === 10 && (
             <motion.div key="step10" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepEmail petData={petData} onUpdate={updatePetData} onReveal={handleReveal} onBack={() => setStep(9)} totalSteps={totalSteps} />
+              <IntakeStepEmail petData={petData} onUpdate={updatePetData} onReveal={handleReveal} onBack={() => setStep(9)} totalSteps={totalSteps} modeContent={modeContent} />
             </motion.div>
           )}
         </AnimatePresence>

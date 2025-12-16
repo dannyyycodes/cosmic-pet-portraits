@@ -1,4 +1,5 @@
 import { PetData } from './IntakeWizard';
+import { ModeContent } from '@/lib/occasionMode';
 import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getSoulOptions, PetSpecies } from '@/lib/speciesOptions';
@@ -9,9 +10,10 @@ interface IntakeStepSoulProps {
   onNext: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepSoulProps) {
+export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepSoulProps) {
   const soulOptions = getSoulOptions((petData.species || 'other') as PetSpecies);
   
   const handleSelect = (soulType: string) => {
@@ -31,10 +33,10 @@ export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps }
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">Step 7 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          When you gaze into their eyes, what soul do you see?
+          {modeContent.soulTitle}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Trust your intuition about {petData.name}.
+          {modeContent.soulSubtitle(petData.name)}
         </p>
       </div>
 
