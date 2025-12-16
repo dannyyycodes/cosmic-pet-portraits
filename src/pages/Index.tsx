@@ -63,6 +63,11 @@ const Index = () => {
 
           {/* Trust Badge */}
           <div className="flex flex-col items-center gap-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50">
+              <span className="text-sm text-foreground/80">
+                Rated <strong className="text-gold">4.9/5</strong> by 2,000+ Pet Parents
+              </span>
+            </div>
             {/* Trustpilot Logo */}
             <div className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-1">
@@ -76,11 +81,6 @@ const Index = () => {
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50">
-              <span className="text-sm text-foreground/80">
-                Rated <strong className="text-gold">4.9/5</strong> by 2,000+ Pet Parents
-              </span>
             </div>
           </div>
         </div>
