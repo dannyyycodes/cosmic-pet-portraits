@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Star, Sparkles, Gift, Heart, Cake, ArrowDown } from "lucide-react";
+import { HomeTestimonials } from "@/components/HomeTestimonials";
 
 type OccasionMode = "discover" | "birthday" | "memorial" | "gift";
 
@@ -192,49 +193,7 @@ const Index = () => {
             Real stories from pet parents who discovered their companion's cosmic truth
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                text: "Shockingly accurate. I thought it was a gimmick until it literally described my cat's behaviour word for word.",
-                author: "Emily",
-                pet: "Luna",
-              },
-              {
-                text: "I didn't expect it to make me cry but it did. It felt like my dog's little soul was speaking.",
-                author: "Ella",
-                pet: "Rufus",
-              },
-              {
-                text: "It made me realise how sensitive my rabbit is. I've started giving her more quiet time and she's calmer.",
-                author: "Sophie",
-                pet: "Clover",
-              },
-            ].map((testimonial, i) => (
-              <div 
-                key={i} 
-                className="testimonial-card p-6 backdrop-blur-sm"
-              >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-gold text-gold" />
-                  ))}
-                </div>
-                <p className="text-foreground/90 leading-relaxed mb-6 italic">
-                  "{testimonial.text}"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold/30 to-[hsl(280,50%,50%)]/30 flex items-center justify-center border border-gold/30">
-                    <span className="text-sm font-semibold text-gold">
-                      {testimonial.author[0]}
-                    </span>
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    {testimonial.author} with <span className="text-gold">{testimonial.pet}</span>
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <HomeTestimonials />
         </div>
       </section>
 
