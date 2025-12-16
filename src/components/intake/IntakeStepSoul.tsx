@@ -1,6 +1,7 @@
 import { PetData } from './IntakeWizard';
-import { ArrowLeft, Brain, Flame, Sparkles, Heart } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getSoulOptions, PetSpecies } from '@/lib/speciesOptions';
 
 interface IntakeStepSoulProps {
   petData: PetData;
@@ -10,14 +11,9 @@ interface IntakeStepSoulProps {
   totalSteps: number;
 }
 
-const soulOptions = [
-  { id: 'old-soul', label: 'An Old Soul', description: 'Wise & Calm', icon: Brain },
-  { id: 'wild-spirit', label: 'A Wild Spirit', description: 'Untamed & Independent', icon: Flame },
-  { id: 'pure-joy', label: 'Pure Joy', description: 'Innocent & Playful', icon: Sparkles },
-  { id: 'deep-healer', label: 'A Deep Healer', description: 'Sensitive & Loving', icon: Heart },
-];
-
 export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepSoulProps) {
+  const soulOptions = getSoulOptions((petData.species || 'other') as PetSpecies);
+  
   const handleSelect = (soulType: string) => {
     onUpdate({ soulType });
     setTimeout(() => onNext(), 300);
