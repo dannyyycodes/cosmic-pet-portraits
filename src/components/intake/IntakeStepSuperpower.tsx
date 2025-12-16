@@ -33,7 +33,7 @@ export function IntakeStepSuperpower({ petData, onUpdate, onNext, onBack, totalS
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 4 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 8 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
           What is {petData.name}'s secret superpower?
         </h1>

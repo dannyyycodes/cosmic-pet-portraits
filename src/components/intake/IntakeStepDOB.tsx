@@ -7,7 +7,7 @@ import { CalendarIcon, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-interface IntakeStep2Props {
+interface IntakeStepDOBProps {
   petData: PetData;
   onUpdate: (data: Partial<PetData>) => void;
   onNext: () => void;
@@ -15,7 +15,7 @@ interface IntakeStep2Props {
   totalSteps: number;
 }
 
-export function IntakeStep2({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStep2Props) {
+export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepDOBProps) {
   const isValid = petData.dateOfBirth !== null;
 
   return (
@@ -28,9 +28,9 @@ export function IntakeStep2({ petData, onUpdate, onNext, onBack, totalSteps }: I
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 2 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 5 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          When did {petData.name}'s journey begin?
+          When was {petData.name} born?
         </h1>
         <p className="text-muted-foreground text-lg">
           The stars remember the moment they arrived.
@@ -74,19 +74,6 @@ export function IntakeStep2({ petData, onUpdate, onNext, onBack, totalSteps }: I
             type="time"
             value={petData.timeOfBirth}
             onChange={(e) => onUpdate({ timeOfBirth: e.target.value })}
-            className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Breed <span className="text-muted-foreground/60">(Optional)</span>
-          </p>
-          <Input
-            type="text"
-            placeholder="e.g., Golden Retriever, Siamese"
-            value={petData.breed}
-            onChange={(e) => onUpdate({ breed: e.target.value })}
             className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
           />
         </div>
