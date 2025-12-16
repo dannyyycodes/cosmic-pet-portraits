@@ -63,11 +63,20 @@ const Index = () => {
 
           {/* Trust Badge */}
           <div className="flex flex-col items-center gap-3">
-            <img 
-              src={trustpilotStars} 
-              alt="Trustpilot 4.9 stars" 
-              className="h-10 w-auto brightness-0 invert"
-            />
+            {/* Trustpilot Logo */}
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-1">
+                <Star className="w-6 h-6 fill-[#00b67a] text-[#00b67a]" />
+                <span className="text-xl font-semibold text-foreground tracking-tight">Trustpilot</span>
+              </div>
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className={`w-7 h-7 flex items-center justify-center ${i < 4 ? 'bg-[#00b67a]' : 'bg-[#dcdce6]'}`}>
+                    <Star className={`w-4 h-4 fill-white text-white ${i === 4 ? 'fill-[#dcdce6] text-[#dcdce6]' : ''}`} />
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50">
               <span className="text-sm text-foreground/80">
                 Rated <strong className="text-gold">4.9/5</strong> by 2,000+ Pet Parents
