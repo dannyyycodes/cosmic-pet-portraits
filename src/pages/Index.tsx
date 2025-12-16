@@ -1,8 +1,42 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Star, Sparkles } from "lucide-react";
+import { Star, Sparkles, Gift, Heart, Cake } from "lucide-react";
+
+type OccasionMode = "discover" | "birthday" | "memorial" | "gift";
+
+const occasionContent = {
+  discover: {
+    headline: "Do You Know Your Pet's 'Soul Contract'?",
+    subhead: "92% of owners say this reading revealed the spiritual agreement they share. Discover their true purpose in 60 seconds.",
+    buttonText: "Reveal My Pet's Soul Profile",
+    icon: Sparkles,
+  },
+  birthday: {
+    headline: "The Ultimate Cosmic Gift for Their Solar Return.",
+    subhead: "Celebrate another orbit of love. Unlock a birthday report that reveals the light they bring into your life.",
+    buttonText: "Create a Birthday Portrait",
+    icon: Cake,
+  },
+  memorial: {
+    headline: "Honor the Starlight That Never Fades.",
+    subhead: "Your bond didn't end; it evolved. Discover the eternal soul contract that connects you forever.",
+    buttonText: "Create a Memorial Tribute",
+    icon: Heart,
+  },
+  gift: {
+    headline: "The Gift Every Pet Lover Actually Wants.",
+    subhead: "Forget toys and treats. Give them a window into their pet's soul. The most meaningful, personalized surprise for any occasion.",
+    buttonText: "Send a Cosmic Gift",
+    icon: Gift,
+  },
+};
 
 const Index = () => {
+  const [selectedMode, setSelectedMode] = useState<OccasionMode>("discover");
+  const content = occasionContent[selectedMode];
+  const IconComponent = content.icon;
+
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       {/* Dynamic Cosmic Background */}
@@ -54,21 +88,34 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative flex items-center justify-center px-4 pt-20 pb-8 z-10">
         <div className="max-w-4xl mx-auto text-center">
+          
+          {/* Dynamic Intent Switcher - Segmented Control */}
+          <div className="inline-flex items-center p-1 mb-8 rounded-full bg-background/30 backdrop-blur-md border border-border/40">
+            {(["discover", "birthday", "memorial", "gift"] as OccasionMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setSelectedMode(mode)}
+                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 capitalize ${
+                  selectedMode === mode
+                    ? "bg-gold/90 text-background shadow-lg shadow-gold/20"
+                    : "text-foreground/70 hover:text-foreground hover:bg-foreground/10"
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+
           {/* Main Headline with Gold-Purple Gradient */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold leading-tight mb-6">
             <span className="text-gradient-gold-purple">
-              Do You Know Your Pet's
-            </span>
-            <br />
-            <span className="text-gradient-gold-purple italic">
-              'Soul Contract'?
+              {content.headline}
             </span>
           </h1>
 
           {/* Subhead */}
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            <span className="text-gold font-semibold">92%</span> of owners say this revealed the hidden reason behind their pet's behavior. Unlock your profile in{" "}
-            <span className="text-gold">60 seconds</span>.
+            {content.subhead}
           </p>
 
           {/* Magical CTA Button */}
@@ -76,12 +123,12 @@ const Index = () => {
             <Button 
               variant="cosmic" 
               size="xl" 
-              className="btn-magical relative z-10"
+              className={`btn-magical relative z-10 ${selectedMode === "gift" ? "btn-shimmer" : ""}`}
               asChild
             >
-              <Link to="/intake">
-                <Sparkles className="w-5 h-5 mr-2" />
-                Reveal My Pet's Soul Profile
+              <Link to={`/intake?mode=${selectedMode}`}>
+                <IconComponent className="w-5 h-5 mr-2" />
+                {content.buttonText}
               </Link>
             </Button>
           </div>
