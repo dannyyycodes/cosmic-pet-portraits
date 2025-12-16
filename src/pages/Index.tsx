@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Star, Sparkles, Lock, Shield } from "lucide-react";
+import { Star, Sparkles } from "lucide-react";
 
 const Index = () => {
   return (
@@ -54,12 +54,6 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 py-20 z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div className="mb-8 inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-gold/40 bg-background/40 backdrop-blur-sm">
-            <Sparkles className="w-4 h-4 text-gold" />
-            <span className="text-sm text-gold font-medium tracking-wide">Cosmic Pet Astrology</span>
-          </div>
-
           {/* Main Headline with Gold-Purple Gradient */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold leading-tight mb-6">
             <span className="text-gradient-gold-purple">
@@ -97,11 +91,11 @@ const Index = () => {
           <div className="flex justify-center mb-8">
             <div className="authority-seal inline-flex items-center gap-3 px-6 py-3 rounded-xl">
               <div className="relative">
-                <Lock className="w-5 h-5 text-gold" />
+                <Star className="w-5 h-5 text-gold fill-gold" />
                 <Sparkles className="w-3 h-3 text-gold absolute -top-1 -right-1" />
               </div>
               <span className="text-sm text-foreground/80">
-                Powered by <span className="text-gold font-medium">Swiss Ephemeris Data</span> & Devoted Pet Lovers
+                Powered by <span className="text-gold font-medium">Swiss Ephemeris data</span>, crafted by devoted pet lovers
               </span>
             </div>
           </div>
@@ -121,8 +115,8 @@ const Index = () => {
               </div>
               <div className="flex gap-0.5">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className={`w-7 h-7 flex items-center justify-center ${i < 4 ? 'bg-[#00b67a]' : 'bg-[#dcdce6]'}`}>
-                    <Star className={`w-4 h-4 fill-white text-white ${i === 4 ? 'fill-[#dcdce6] text-[#dcdce6]' : ''}`} />
+                  <div key={i} className="w-7 h-7 flex items-center justify-center bg-[#00b67a]">
+                    <Star className="w-4 h-4 fill-white text-white" />
                   </div>
                 ))}
               </div>
@@ -132,7 +126,7 @@ const Index = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="relative py-20 px-4 z-10">
+      <section className="relative pt-6 pb-20 px-4 z-10">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-serif text-center text-foreground mb-4">
             What Pet Parents Are Saying
