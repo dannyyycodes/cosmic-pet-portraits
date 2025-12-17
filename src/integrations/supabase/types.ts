@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pet_reports: {
+        Row: {
+          birth_date: string | null
+          birth_location: string | null
+          breed: string | null
+          created_at: string
+          email: string
+          gender: string | null
+          id: string
+          occasion_mode: string | null
+          payment_status: string | null
+          pet_name: string
+          report_content: Json | null
+          soul_type: string | null
+          species: string
+          stranger_reaction: string | null
+          stripe_session_id: string | null
+          superpower: string | null
+          updated_at: string
+        }
+        Insert: {
+          birth_date?: string | null
+          birth_location?: string | null
+          breed?: string | null
+          created_at?: string
+          email: string
+          gender?: string | null
+          id?: string
+          occasion_mode?: string | null
+          payment_status?: string | null
+          pet_name: string
+          report_content?: Json | null
+          soul_type?: string | null
+          species: string
+          stranger_reaction?: string | null
+          stripe_session_id?: string | null
+          superpower?: string | null
+          updated_at?: string
+        }
+        Update: {
+          birth_date?: string | null
+          birth_location?: string | null
+          breed?: string | null
+          created_at?: string
+          email?: string
+          gender?: string | null
+          id?: string
+          occasion_mode?: string | null
+          payment_status?: string | null
+          pet_name?: string
+          report_content?: Json | null
+          soul_type?: string | null
+          species?: string
+          stranger_reaction?: string | null
+          stripe_session_id?: string | null
+          superpower?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
