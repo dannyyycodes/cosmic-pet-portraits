@@ -37,14 +37,15 @@ serve(async (req) => {
       recipientName,
       recipientEmail,
       giftMessage,
-      totalCents 
+      totalCents,
+      includeGiftForFriend = false,
     } = await req.json();
 
     // Support both single reportId and array of reportIds
     const allReportIds = reportIds || (reportId ? [reportId] : []);
     const primaryReportId = allReportIds[0];
 
-    console.log("[CREATE-CHECKOUT] Starting checkout for reports:", allReportIds, "tier:", selectedTier);
+    console.log("[CREATE-CHECKOUT] Starting checkout for reports:", allReportIds, "tier:", selectedTier, "includeGift:", includeGiftForFriend);
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -74,7 +75,7 @@ serve(async (req) => {
     const actualPetCount = allReportIds.length || petCount;
     
     // Build line items based on tier and pet count
-    const lineItems = [{
+    const lineItems: any[] = [{
       price_data: {
         currency: "usd",
         product_data: {
@@ -82,10 +83,25 @@ serve(async (req) => {
             ? `${tier.name} × ${actualPetCount} pets`
             : tier.name,
         },
-        unit_amount: totalCents, // Use the pre-calculated total (includes discounts)
+        unit_amount: totalCents - (includeGiftForFriend ? 3500 : 0), // Subtract gift if included (handled separately)
       },
       quantity: 1,
     }];
+
+    // Add gift reading if selected
+    if (includeGiftForFriend) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "🎁 Gift Reading for a Friend",
+            description: "A cosmic pet reading gift certificate",
+          },
+          unit_amount: 3500, // $35
+        },
+        quantity: 1,
+      });
+    }
 
     const origin = req.headers.get("origin") || "https://lovable.dev";
 
@@ -120,6 +136,7 @@ serve(async (req) => {
         report_ids: allReportIds.join(","),
         pet_count: actualPetCount.toString(),
         selected_tier: selectedTier,
+        include_gift: includeGiftForFriend ? "true" : "false",
         is_gift: isGift ? "true" : "false",
         recipient_name: recipientName || "",
         recipient_email: recipientEmail || "",

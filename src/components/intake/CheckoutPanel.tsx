@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, Crown, Check, Gift, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Crown, Check, Gift, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
-import { Link } from 'react-router-dom';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -25,6 +24,7 @@ export interface CheckoutData {
   totalCents: number;
   petCount?: number;
   selectedTier: 'basic' | 'premium';
+  includeGiftForFriend?: boolean;
 }
 
 // Product tiers with fixed pricing
@@ -45,9 +45,11 @@ const TIERS = {
     features: ['Everything in Basic', 'Compatibility Analysis', 'Life Path Prediction', 'Monthly Forecasts'],
     icon: Crown,
     badge: 'MOST POPULAR',
-    savings: 20, // Save $20 compared to buying extras separately
+    savings: 20,
   },
 };
+
+const GIFT_PRICE_CENTS = 3500; // $35 for a gift reading
 
 // Volume discount calculation
 function getVolumeDiscount(petCount: number): number {
@@ -58,17 +60,28 @@ function getVolumeDiscount(petCount: number): number {
 
 export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading }: CheckoutPanelProps) {
   const [selectedTier, setSelectedTier] = useState<'basic' | 'premium'>('premium');
+  const [showGiftUpsell, setShowGiftUpsell] = useState(false);
+  const [includeGift, setIncludeGift] = useState(false);
 
   const tier = TIERS[selectedTier];
   const baseTotal = tier.priceCents * petCount;
   const volumeDiscountRate = getVolumeDiscount(petCount);
   const volumeDiscountAmount = Math.round(baseTotal * volumeDiscountRate);
-  const total = baseTotal - volumeDiscountAmount;
+  const giftAmount = includeGift ? GIFT_PRICE_CENTS : 0;
+  const total = baseTotal - volumeDiscountAmount + giftAmount;
 
   // Get all pet names for display
   const petNames = petsData?.map(p => p.name).filter(Boolean) || [petData.name];
 
-  const handleCheckout = () => {
+  const handleCheckoutClick = () => {
+    // Show gift upsell modal first
+    setShowGiftUpsell(true);
+  };
+
+  const proceedToCheckout = (withGift: boolean) => {
+    setShowGiftUpsell(false);
+    const finalTotal = baseTotal - volumeDiscountAmount + (withGift ? GIFT_PRICE_CENTS : 0);
+    
     onCheckout({
       selectedProducts: [selectedTier],
       couponId: null,
@@ -77,9 +90,10 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       recipientName: '',
       recipientEmail: '',
       giftMessage: '',
-      totalCents: total,
+      totalCents: finalTotal,
       petCount,
       selectedTier,
+      includeGiftForFriend: withGift,
     });
   };
 
@@ -224,7 +238,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         
         <div className="border-t border-border/30 pt-2 flex justify-between font-semibold">
           <span>Total</span>
-          <span className="text-primary">${(total / 100).toFixed(2)}</span>
+          <span className="text-primary">${((baseTotal - volumeDiscountAmount) / 100).toFixed(2)}</span>
         </div>
       </div>
 
@@ -240,7 +254,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
       {/* Checkout button */}
       <Button
-        onClick={handleCheckout}
+        onClick={handleCheckoutClick}
         disabled={isLoading}
         variant="gold"
         size="xl"
@@ -258,7 +272,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         ) : (
           <span className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            Reveal {petCount > 1 ? 'Their' : `${petData.name}'s`} Truth — ${(total / 100).toFixed(2)}
+            Reveal {petCount > 1 ? 'Their' : `${petData.name}'s`} Truth — ${((baseTotal - volumeDiscountAmount) / 100).toFixed(2)}
           </span>
         )}
       </Button>
@@ -268,27 +282,86 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         🔒 Secure checkout powered by Stripe
       </p>
 
-      {/* Gift upsell */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mt-4 pt-4 border-t border-border/30"
-      >
-        <Link
-          to="/gift"
-          className="group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-nebula-pink/10 to-nebula-purple/10 border border-nebula-pink/30 hover:border-nebula-pink/50 transition-all"
-        >
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center flex-shrink-0">
-            <Gift className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex-1 text-left">
-            <p className="font-semibold text-foreground text-sm">Gift a Cosmic Reading</p>
-            <p className="text-xs text-muted-foreground">The perfect gift for any pet lover</p>
-          </div>
-          <ArrowRight className="w-5 h-5 text-nebula-pink group-hover:translate-x-1 transition-transform" />
-        </Link>
-      </motion.div>
+      {/* Gift Upsell Modal */}
+      <AnimatePresence>
+        {showGiftUpsell && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+            onClick={() => setShowGiftUpsell(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl"
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setShowGiftUpsell(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Gift icon */}
+              <div className="flex justify-center mb-4">
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="w-20 h-20 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center"
+                >
+                  <Gift className="w-10 h-10 text-white" />
+                </motion.div>
+              </div>
+
+              {/* Content */}
+              <div className="text-center space-y-3 mb-6">
+                <h3 className="text-xl font-display font-bold text-foreground">
+                  Gift One to a Friend?
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  Know someone who'd love to discover their pet's cosmic truth? Add a gift reading to your order!
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-nebula-pink/10 border border-nebula-pink/30">
+                  <Gift className="w-4 h-4 text-nebula-pink" />
+                  <span className="text-sm font-medium text-foreground">Only $35 — They'll love it!</span>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="space-y-3">
+                <Button
+                  onClick={() => proceedToCheckout(true)}
+                  variant="gold"
+                  size="lg"
+                  className="w-full"
+                >
+                  <Gift className="w-5 h-5 mr-2" />
+                  Yes, Add a Gift — ${((baseTotal - volumeDiscountAmount + GIFT_PRICE_CENTS) / 100).toFixed(2)} total
+                </Button>
+                
+                <Button
+                  onClick={() => proceedToCheckout(false)}
+                  variant="ghost"
+                  size="lg"
+                  className="w-full text-muted-foreground hover:text-foreground"
+                >
+                  No thanks, continue to checkout
+                </Button>
+              </div>
+
+              {/* Social proof */}
+              <p className="text-center text-xs text-muted-foreground mt-4">
+                🎁 847 gifts sent this month
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
