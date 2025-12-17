@@ -46,25 +46,26 @@ export function SocialProofBar({ petName }: SocialProofBarProps) {
 
   return (
     <>
-      {/* Fixed corner social proof - subtle and non-intrusive */}
+      {/* Fixed corner social proof - visible but not intrusive */}
       <motion.div 
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1, duration: 0.5 }}
-        className="fixed bottom-4 left-4 z-40 flex flex-col gap-1.5 text-[10px] text-muted-foreground/70 bg-background/30 backdrop-blur-sm rounded-lg px-2.5 py-2 border border-border/20"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+        className="fixed bottom-6 left-6 z-40 flex flex-col gap-2 text-xs bg-card/80 backdrop-blur-md rounded-xl px-4 py-3 border border-primary/20 shadow-lg shadow-primary/10"
       >
-        <div className="flex items-center gap-1.5">
-          <span className="relative flex h-1.5 w-1.5">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
           </span>
-          <Eye className="w-2.5 h-2.5" />
-          <span><strong className="text-foreground/80">{viewers}</strong> viewing</span>
+          <Eye className="w-3.5 h-3.5 text-primary/70" />
+          <span className="text-muted-foreground"><strong className="text-foreground">{viewers}</strong> viewing now</span>
         </div>
         
-        <div className="flex items-center gap-1.5">
-          <Users className="w-2.5 h-2.5" />
-          <span><strong className="text-foreground/80">{recentPurchases}</strong> today</span>
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-nebula-pink/60"></span>
+          <Users className="w-3.5 h-3.5 text-primary/70" />
+          <span className="text-muted-foreground"><strong className="text-foreground">{recentPurchases}</strong> reports today</span>
         </div>
       </motion.div>
 
