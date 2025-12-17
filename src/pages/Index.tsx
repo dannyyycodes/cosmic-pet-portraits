@@ -2,7 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Star, Sparkles, Gift, Heart, Cake, ArrowDown } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
+import { HowItWorks } from "@/components/HowItWorks";
 import { HomeTestimonials } from "@/components/HomeTestimonials";
+import { FAQ } from "@/components/FAQ";
 
 type OccasionMode = "discover" | "birthday" | "memorial" | "gift";
 
@@ -40,6 +43,8 @@ const Index = () => {
 
   return (
     <main className="min-h-screen bg-background overflow-hidden">
+      <Navbar />
+      
       {/* Dynamic Cosmic Background */}
       <div className="fixed inset-0 z-0">
         {/* Base gradient */}
@@ -87,7 +92,7 @@ const Index = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative flex items-center justify-center px-4 pt-20 pb-8 z-10">
+      <section className="relative flex items-center justify-center px-4 pt-28 pb-8 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
           {/* Dynamic Intent Switcher - Segmented Control with Arrow */}
@@ -183,8 +188,11 @@ const Index = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <HowItWorks />
+
       {/* Testimonials Section */}
-      <section className="relative pt-6 pb-20 px-4 z-10">
+      <section id="testimonials" className="relative pt-6 pb-20 px-4 z-10">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-serif text-center text-foreground mb-4">
             What Pet Parents Are Saying
@@ -196,6 +204,9 @@ const Index = () => {
           <HomeTestimonials />
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <FAQ />
 
       {/* Footer */}
       <footer className="relative py-12 px-4 border-t border-border/30 z-10">
