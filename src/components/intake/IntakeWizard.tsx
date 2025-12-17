@@ -204,6 +204,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             body: {
               reportIds, // Array of report IDs
               petCount,
+              selectedTier: checkoutData.selectedTier || 'basic',
               selectedProducts: checkoutData.selectedProducts,
               couponId: checkoutData.couponId,
               giftCertificateId: checkoutData.giftCertificateId,

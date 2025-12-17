@@ -1,38 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Gift } from 'lucide-react';
+import { Sparkles, Crown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { UpsalesCard } from './UpsalesCard';
-import { CouponInput } from './CouponInput';
-import { GiftCertificateInput } from './GiftCertificateInput';
-import { GiftMessageForm } from './GiftMessageForm';
-import { OrderSummary } from './OrderSummary';
-import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
-
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  price_cents: number;
-  product_type: string;
-  features: string[];
-}
-
-interface Coupon {
-  id: string;
-  code: string;
-  discount_type: string;
-  discount_value: number;
-}
-
-interface GiftCertificate {
-  id: string;
-  code: string;
-  amount_cents: number;
-  gift_message: string | null;
-  purchaser_email: string;
-}
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -52,143 +23,64 @@ export interface CheckoutData {
   giftMessage: string;
   totalCents: number;
   petCount?: number;
+  selectedTier: 'basic' | 'premium';
 }
+
+// Product tiers with fixed pricing
+const TIERS = {
+  basic: {
+    id: 'basic',
+    name: 'Cosmic Pet Report',
+    description: "Your pet's complete astrological profile",
+    priceCents: 3500, // $35
+    features: ['Zodiac Analysis', 'Personality Traits', 'Care Tips', 'Love Language'],
+    icon: Sparkles,
+  },
+  premium: {
+    id: 'premium',
+    name: 'Premium Cosmic Report',
+    description: 'Extended report with compatibility & life path',
+    priceCents: 5000, // $50
+    features: ['Everything in Basic', 'Compatibility Analysis', 'Life Path Prediction', 'Monthly Forecasts'],
+    icon: Crown,
+    badge: 'MOST POPULAR',
+    savings: 20, // Save $20 compared to buying extras separately
+  },
+};
 
 // Volume discount calculation
 function getVolumeDiscount(petCount: number): number {
-  if (petCount >= 3) return 0.20; // 20% off
+  if (petCount >= 3) return 0.15; // 15% off
   if (petCount >= 2) return 0.10; // 10% off
   return 0;
 }
 
 export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading }: CheckoutPanelProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
-  const [appliedGift, setAppliedGift] = useState<GiftCertificate | null>(null);
-  const [isGift, setIsGift] = useState(false);
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientEmail, setRecipientEmail] = useState('');
-  const [giftMessage, setGiftMessage] = useState('');
-  const [flashSaleEndsIn, setFlashSaleEndsIn] = useState<number>(0);
-  const [showFlashSale, setShowFlashSale] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium'>('premium');
 
-  // Fetch products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const { data } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('price_cents', { ascending: true });
-      
-      if (data) {
-        const formattedProducts = data.map(p => ({
-          ...p,
-          features: Array.isArray(p.features) ? p.features : JSON.parse(p.features as string || '[]')
-        }));
-        setProducts(formattedProducts);
-        // Select base report by default
-        const baseReport = formattedProducts.find(p => p.product_type === 'base_report');
-        if (baseReport) {
-          setSelectedProducts([baseReport.id]);
-        }
-      }
-    };
-    fetchProducts();
-  }, []);
-
-  // Flash sale countdown
-  useEffect(() => {
-    if (!showFlashSale) return;
-    const timer = setInterval(() => {
-      setFlashSaleEndsIn(prev => {
-        if (prev <= 1) {
-          setShowFlashSale(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [showFlashSale]);
-
-  const handleToggleProduct = (productId: string) => {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    // For main products (base, premium, bundle), only one can be selected
-    if (['base_report', 'premium', 'bundle'].includes(product.product_type)) {
-      const otherMainIds = products
-        .filter(p => ['base_report', 'premium', 'bundle'].includes(p.product_type))
-        .map(p => p.id);
-      
-      setSelectedProducts(prev => {
-        const addons = prev.filter(id => !otherMainIds.includes(id));
-        return [...addons, productId];
-      });
-    } else {
-      // For addons, toggle
-      setSelectedProducts(prev => 
-        prev.includes(productId) 
-          ? prev.filter(id => id !== productId)
-          : [...prev, productId]
-      );
-    }
-  };
-
-  // Calculate pricing with volume discount
-  const selectedItems = products.filter(p => selectedProducts.includes(p.id));
-  const baseSubtotal = selectedItems.reduce((sum, p) => sum + p.price_cents, 0);
-  
-  // Apply volume discount to base subtotal
+  const tier = TIERS[selectedTier];
+  const baseTotal = tier.priceCents * petCount;
   const volumeDiscountRate = getVolumeDiscount(petCount);
-  const volumeDiscountAmount = Math.round(baseSubtotal * petCount * volumeDiscountRate);
-  
-  // Total before other discounts = (base price × pet count) - volume discount
-  const subtotalWithPets = (baseSubtotal * petCount) - volumeDiscountAmount;
-  const basePrice = products.find(p => p.product_type === 'base_report')?.price_cents || 3500;
-
-  // Calculate coupon discount
-  let couponDiscount = 0;
-  if (appliedCoupon) {
-    if (appliedCoupon.discount_type === 'percentage') {
-      couponDiscount = Math.round(subtotalWithPets * appliedCoupon.discount_value / 100);
-    } else {
-      couponDiscount = appliedCoupon.discount_value;
-    }
-  }
-
-  // Flash sale: 15% off if active
-  const flashSaleDiscount = showFlashSale ? Math.round(subtotalWithPets * 0.15) : 0;
-
-  const giftCertificateCredit = appliedGift?.amount_cents || 0;
-  
-  const totalDiscounts = couponDiscount + flashSaleDiscount;
-  const creditApplied = Math.min(giftCertificateCredit, subtotalWithPets - totalDiscounts);
-  const total = Math.max(0, subtotalWithPets - totalDiscounts - creditApplied);
+  const volumeDiscountAmount = Math.round(baseTotal * volumeDiscountRate);
+  const total = baseTotal - volumeDiscountAmount;
 
   // Get all pet names for display
   const petNames = petsData?.map(p => p.name).filter(Boolean) || [petData.name];
 
   const handleCheckout = () => {
     onCheckout({
-      selectedProducts,
-      couponId: appliedCoupon?.id || null,
-      giftCertificateId: appliedGift?.id || null,
-      isGift,
-      recipientName,
-      recipientEmail,
-      giftMessage,
+      selectedProducts: [selectedTier],
+      couponId: null,
+      giftCertificateId: null,
+      isGift: false,
+      recipientName: '',
+      recipientEmail: '',
+      giftMessage: '',
       totalCents: total,
       petCount,
+      selectedTier,
     });
   };
-
-  const orderItems = selectedItems.map(p => ({
-    name: petCount > 1 ? `${p.name} × ${petCount} pets` : p.name,
-    price: p.price_cents * petCount,
-  }));
 
   return (
     <motion.div
@@ -199,14 +91,12 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       {/* Emotional header */}
       <div className="text-center space-y-2 pb-4 border-b border-border/30">
         <h2 className="text-2xl font-display font-bold text-foreground">
-          {petCount > 1 
-            ? `Unlock ${petNames.join(' & ')}'s Cosmic Truth` 
-            : `Unlock ${petData.name}'s Cosmic Truth`}
+          Choose Your Reading
         </h2>
         <p className="text-muted-foreground text-sm">
           {petCount > 1 
-            ? `${petCount} readings • Save ${Math.round(volumeDiscountRate * 100)}% with multi-pet discount!`
-            : 'Join 2,000+ pet parents who discovered something profound'}
+            ? `Unlock ${petNames.join(' & ')}'s cosmic profiles`
+            : `Unlock ${petData.name}'s complete cosmic profile`}
         </p>
       </div>
 
@@ -230,48 +120,112 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       </div>
 
-      {/* Product selection */}
-      <UpsalesCard
-        products={products}
-        selectedProducts={selectedProducts}
-        onToggleProduct={handleToggleProduct}
-        basePrice={basePrice}
-      />
+      {/* Product tiers */}
+      <div className="grid gap-3">
+        {(['basic', 'premium'] as const).map((key, index) => {
+          const product = TIERS[key];
+          const isSelected = selectedTier === key;
+          const isPremium = key === 'premium';
+          const Icon = product.icon;
+          
+          return (
+            <motion.button
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              onClick={() => setSelectedTier(key)}
+              className={cn(
+                "relative w-full p-4 rounded-xl border-2 text-left transition-all duration-300",
+                isSelected 
+                  ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
+                  : "border-border/50 bg-card/30 hover:border-primary/50",
+                isPremium && "ring-2 ring-cosmic-gold/30",
+              )}
+            >
+              {/* Badge */}
+              {isPremium && (
+                <div className="absolute -top-2.5 left-4 px-2 py-0.5 bg-cosmic-gold text-cosmic-gold-foreground text-xs font-bold rounded-full">
+                  MOST POPULAR
+                </div>
+              )}
 
-      {/* Gift toggle */}
-      <GiftMessageForm
-        isGift={isGift}
-        onToggleGift={setIsGift}
-        recipientName={recipientName}
-        recipientEmail={recipientEmail}
-        giftMessage={giftMessage}
-        onUpdateRecipientName={setRecipientName}
-        onUpdateRecipientEmail={setRecipientEmail}
-        onUpdateGiftMessage={setGiftMessage}
-      />
+              <div className="flex items-start gap-3">
+                {/* Radio/Check */}
+                <div className={cn(
+                  "mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                  isSelected 
+                    ? "border-primary bg-primary" 
+                    : "border-muted-foreground/40"
+                )}>
+                  {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                </div>
 
-      {/* Discounts */}
-      <div className="space-y-2">
-        <CouponInput
-          onApplyCoupon={setAppliedCoupon}
-          appliedCoupon={appliedCoupon}
-          subtotal={subtotalWithPets}
-        />
-        <GiftCertificateInput
-          onApplyGift={setAppliedGift}
-          appliedGift={appliedGift}
-        />
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={cn(
+                      "transition-colors",
+                      isSelected ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      <Icon className="w-5 h-5" />
+                    </span>
+                    <h3 className="font-semibold text-foreground">{product.name}</h3>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground mb-2">{product.description}</p>
+                  
+                  {/* Features */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {product.features.map((feature, i) => (
+                      <span 
+                        key={i} 
+                        className="text-xs px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="text-right flex-shrink-0">
+                  <div className="text-lg font-bold text-foreground">
+                    ${(product.priceCents / 100).toFixed(2)}
+                  </div>
+                  {isPremium && (
+                    <div className="text-xs text-green-500">
+                      Save $20
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.button>
+          );
+        })}
       </div>
 
       {/* Order summary */}
-      <OrderSummary
-        items={orderItems}
-        couponDiscount={couponDiscount}
-        giftCertificateCredit={giftCertificateCredit}
-        volumeDiscount={volumeDiscountAmount}
-        flashSaleDiscount={flashSaleDiscount}
-        flashSaleEndsIn={showFlashSale ? flashSaleEndsIn : undefined}
-      />
+      <div className="rounded-xl bg-card/30 border border-border/30 p-4 space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-muted-foreground">
+            {tier.name} {petCount > 1 ? `× ${petCount} pets` : ''}
+          </span>
+          <span className="text-foreground">${(tier.priceCents * petCount / 100).toFixed(2)}</span>
+        </div>
+        
+        {volumeDiscountAmount > 0 && (
+          <div className="flex justify-between text-sm text-green-500">
+            <span>Multi-pet discount ({Math.round(volumeDiscountRate * 100)}% off)</span>
+            <span>-${(volumeDiscountAmount / 100).toFixed(2)}</span>
+          </div>
+        )}
+        
+        <div className="border-t border-border/30 pt-2 flex justify-between font-semibold">
+          <span>Total</span>
+          <span className="text-primary">${(total / 100).toFixed(2)}</span>
+        </div>
+      </div>
 
       {/* Trust signals */}
       <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground py-2">
@@ -286,7 +240,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       {/* Checkout button */}
       <Button
         onClick={handleCheckout}
-        disabled={selectedProducts.length === 0 || isLoading || (isGift && (!recipientName || !recipientEmail))}
+        disabled={isLoading}
         variant="gold"
         size="xl"
         className="w-full"
@@ -300,15 +254,10 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             />
             Processing...
           </span>
-        ) : total === 0 ? (
-          <span className="flex items-center gap-2">
-            <Gift className="w-5 h-5" />
-            Claim Your Free Reading
-          </span>
         ) : (
           <span className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            {isGift ? 'Send Gift' : `Reveal ${petData.name}'s Truth`} — ${(total / 100).toFixed(2)}
+            Reveal {petCount > 1 ? 'Their' : `${petData.name}'s`} Truth — ${(total / 100).toFixed(2)}
           </span>
         )}
       </Button>
