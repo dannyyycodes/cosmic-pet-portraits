@@ -19,7 +19,7 @@ export default function GiftPurchase() {
   const [recipientName, setRecipientName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
-  const [selectedAmount, setSelectedAmount] = useState(1497);
+  const [selectedAmount, setSelectedAmount] = useState(3500);
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePurchase = async () => {
