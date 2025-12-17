@@ -4,6 +4,8 @@ import { PetData } from './IntakeWizard';
 import { ModeContent } from '@/lib/occasionMode';
 import { ArrowLeft, Sparkles, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { SocialProofBar } from './SocialProofBar';
+import { ReportTeaser } from './ReportTeaser';
 
 interface IntakeStepEmailProps {
   petData: PetData;
@@ -18,13 +20,16 @@ export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalStep
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(petData.email);
 
   return (
-    <div className="space-y-8 text-center">
+    <div className="space-y-6 text-center">
       <button
         onClick={onBack}
         className="absolute top-8 left-8 text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="w-6 h-6" />
       </button>
+
+      {/* Social proof bar at top */}
+      <SocialProofBar petName={petData.name} />
 
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">Step {totalSteps} of {totalSteps}</p>
@@ -33,21 +38,24 @@ export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalStep
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", delay: 0.2 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/30 mb-4"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 border border-green-500/30 mb-2"
         >
           <CheckCircle className="w-4 h-4 text-green-500" />
           <span className="text-green-500 text-sm font-medium">{modeContent.emailBadge}</span>
         </motion.div>
         
-        <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
+        <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">
           {modeContent.emailTitle(petData.name)}
         </h1>
-        <p className="text-muted-foreground text-lg">
+        <p className="text-muted-foreground text-base">
           {modeContent.emailSubtitle}
         </p>
       </div>
 
-      <div className="space-y-6">
+      {/* Report teaser preview */}
+      <ReportTeaser petData={petData} />
+
+      <div className="space-y-4 pt-2">
         <div className="space-y-2">
           <Input
             type="email"
@@ -57,18 +65,18 @@ export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalStep
             className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
           />
         </div>
-      </div>
 
-      <Button
-        onClick={onReveal}
-        disabled={!isValidEmail}
-        variant="gold"
-        size="xl"
-        className="w-full max-w-xs mx-auto"
-      >
-        <Sparkles className="w-5 h-5 mr-2" />
-        {modeContent.emailButton}
-      </Button>
+        <Button
+          onClick={onReveal}
+          disabled={!isValidEmail}
+          variant="gold"
+          size="xl"
+          className="w-full max-w-xs mx-auto"
+        >
+          <Sparkles className="w-5 h-5 mr-2" />
+          {modeContent.emailButton}
+        </Button>
+      </div>
 
       <p className="text-xs text-muted-foreground/60">
         By continuing, you agree to receive your cosmic analysis and updates.

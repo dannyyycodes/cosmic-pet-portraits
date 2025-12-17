@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_referrals: {
+        Row: {
+          affiliate_id: string
+          amount_cents: number
+          commission_cents: number
+          created_at: string
+          id: string
+          paid_at: string | null
+          status: string
+          stripe_session_id: string
+        }
+        Insert: {
+          affiliate_id: string
+          amount_cents: number
+          commission_cents: number
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          status?: string
+          stripe_session_id: string
+        }
+        Update: {
+          affiliate_id?: string
+          amount_cents?: number
+          commission_cents?: number
+          created_at?: string
+          id?: string
+          paid_at?: string | null
+          status?: string
+          stripe_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_referrals_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          email: string
+          id: string
+          name: string
+          pending_balance_cents: number
+          referral_code: string
+          status: string
+          stripe_account_id: string
+          total_earnings_cents: number
+          total_referrals: number
+          updated_at: string
+        }
+        Insert: {
+          commission_rate?: number
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          pending_balance_cents?: number
+          referral_code: string
+          status?: string
+          stripe_account_id: string
+          total_earnings_cents?: number
+          total_referrals?: number
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          pending_balance_cents?: number
+          referral_code?: string
+          status?: string
+          stripe_account_id?: string
+          total_earnings_cents?: number
+          total_referrals?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pet_reports: {
         Row: {
           birth_date: string | null
