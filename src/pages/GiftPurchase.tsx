@@ -22,7 +22,9 @@ export default function GiftPurchase() {
   const [selectedAmount, setSelectedAmount] = useState(3500);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handlePurchase = async () => {
+  const handlePurchase = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    
     if (!purchaserEmail || !recipientEmail) {
       toast.error('Please fill in all required fields');
       return;
@@ -124,7 +126,7 @@ export default function GiftPurchase() {
           </div>
 
           {/* Form */}
-          <div className="space-y-4">
+          <form onSubmit={handlePurchase} className="space-y-4">
             <CosmicInput
               label="Your Email"
               type="email"
@@ -159,7 +161,32 @@ export default function GiftPurchase() {
                 className="w-full min-h-[100px] px-4 py-3 rounded-xl bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 resize-none"
               />
             </div>
-          </div>
+
+            {/* Purchase button */}
+            <Button
+              type="submit"
+              disabled={isLoading || !purchaserEmail || !recipientEmail}
+              variant="gold"
+              size="xl"
+              className="w-full"
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
+                  />
+                  Processing...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Send className="w-5 h-5" />
+                  Send Gift — ${(selectedAmount / 100).toFixed(2)}
+                </span>
+              )}
+            </Button>
+          </form>
 
           {/* How it works */}
           <div className="p-4 rounded-xl bg-card/30 border border-border/30 space-y-2">
@@ -171,31 +198,6 @@ export default function GiftPurchase() {
               <li>4. Their cosmic report is revealed instantly!</li>
             </ol>
           </div>
-
-          {/* Purchase button */}
-          <Button
-            onClick={handlePurchase}
-            disabled={isLoading || !purchaserEmail || !recipientEmail}
-            variant="gold"
-            size="xl"
-            className="w-full"
-          >
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
-                />
-                Processing...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Send className="w-5 h-5" />
-                Send Gift — ${(selectedAmount / 100).toFixed(2)}
-              </span>
-            )}
-          </Button>
 
           {/* Trust */}
           <p className="text-center text-xs text-muted-foreground">
