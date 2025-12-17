@@ -1,4 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+
+// Gift price: 50% off = $17.50
+const GIFT_PRICE_CENTS = 1750;
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
@@ -10,12 +13,16 @@ const corsHeaders = {
 // Fixed pricing tiers
 const TIERS = {
   basic: {
-    name: 'Cosmic Pet Report',
+    name: 'Cosmic Pet Reading',
     priceCents: 3500,
   },
   premium: {
-    name: 'Premium Cosmic Report',
+    name: 'Cosmic Deluxe',
     priceCents: 5000,
+  },
+  vip: {
+    name: 'Cosmic VIP Experience',
+    priceCents: 12900,
   },
 };
 
@@ -83,21 +90,21 @@ serve(async (req) => {
             ? `${tier.name} × ${actualPetCount} pets`
             : tier.name,
         },
-        unit_amount: totalCents - (includeGiftForFriend ? 3500 : 0), // Subtract gift if included (handled separately)
+        unit_amount: totalCents - (includeGiftForFriend ? GIFT_PRICE_CENTS : 0), // Subtract gift if included (handled separately)
       },
       quantity: 1,
     }];
 
-    // Add gift reading if selected
+    // Add gift reading if selected (50% off!)
     if (includeGiftForFriend) {
       lineItems.push({
         price_data: {
           currency: "usd",
           product_data: {
-            name: "🎁 Gift Reading for a Friend",
+            name: "🎁 Gift Reading for a Friend (50% OFF!)",
             description: "A cosmic pet reading gift certificate",
           },
-          unit_amount: 3500, // $35
+          unit_amount: GIFT_PRICE_CENTS, // $17.50
         },
         quantity: 1,
       });

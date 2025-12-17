@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Crown, Check, Gift, X } from 'lucide-react';
+import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
@@ -23,33 +23,47 @@ export interface CheckoutData {
   giftMessage: string;
   totalCents: number;
   petCount?: number;
-  selectedTier: 'basic' | 'premium';
+  selectedTier: 'basic' | 'premium' | 'vip';
   includeGiftForFriend?: boolean;
 }
 
-// Product tiers with fixed pricing
+// Product tiers with price anchoring - VIP is the decoy
 const TIERS = {
   basic: {
     id: 'basic',
-    name: 'Cosmic Pet Report',
-    description: "Your pet's complete astrological profile",
-    priceCents: 3500, // $35
-    features: ['Zodiac Analysis', 'Personality Traits', 'Care Tips', 'Love Language'],
+    name: 'Cosmic Pet Reading',
+    description: "Everything you need to understand your pet's soul",
+    priceCents: 3500, // $35 - target price
+    originalPriceCents: 7900, // $79 anchoring
+    features: ['Complete Zodiac Analysis', 'Personality Deep Dive', 'Care & Bonding Tips', 'Love Language Decoded', 'Instant Digital Delivery'],
     icon: Sparkles,
+    badge: 'MOST POPULAR',
+    highlight: true,
   },
   premium: {
     id: 'premium',
-    name: 'Premium Cosmic Report',
-    description: 'Extended report with compatibility & life path',
+    name: 'Cosmic Deluxe',
+    description: 'Extended insights with compatibility & forecasts',
     priceCents: 5000, // $50
-    features: ['Everything in Basic', 'Compatibility Analysis', 'Life Path Prediction', 'Monthly Forecasts'],
+    originalPriceCents: 9900, // $99 anchoring
+    features: ['Everything in Basic', 'Owner-Pet Compatibility', 'Monthly Cosmic Forecasts', 'Life Path Prediction'],
     icon: Crown,
-    badge: 'MOST POPULAR',
-    savings: 20,
+    badge: null as string | null,
+  },
+  vip: {
+    id: 'vip',
+    name: 'Cosmic VIP Experience',
+    description: 'The ultimate cosmic journey for devoted pet parents',
+    priceCents: 12900, // $129 - extreme anchor
+    originalPriceCents: 24900, // $249 anchoring
+    features: ['Everything in Deluxe', 'Yearly Updates Forever', 'Priority Cosmic Support', 'Exclusive VIP Community', 'Framed Certificate'],
+    icon: Star,
+    badge: 'BEST VALUE',
   },
 };
 
-const GIFT_PRICE_CENTS = 3500; // $35 for a gift reading
+const GIFT_PRICE_CENTS = 1750; // $17.50 - 50% off!
+const GIFT_ORIGINAL_PRICE_CENTS = 3500; // $35
 
 // Volume discount calculation
 function getVolumeDiscount(petCount: number): number {
@@ -59,28 +73,35 @@ function getVolumeDiscount(petCount: number): number {
 }
 
 export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading }: CheckoutPanelProps) {
-  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium'>('premium');
+  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | 'vip'>('basic');
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
-  const [includeGift, setIncludeGift] = useState(false);
+  const [spotsLeft, setSpotsLeft] = useState(7);
+  const [recentPurchases, setRecentPurchases] = useState(12847);
+
+  // Simulated scarcity countdown
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSpotsLeft(prev => Math.max(3, prev - (Math.random() > 0.7 ? 1 : 0)));
+    }, 30000); // Every 30 seconds chance to decrease
+    return () => clearInterval(interval);
+  }, []);
 
   const tier = TIERS[selectedTier];
   const baseTotal = tier.priceCents * petCount;
   const volumeDiscountRate = getVolumeDiscount(petCount);
   const volumeDiscountAmount = Math.round(baseTotal * volumeDiscountRate);
-  const giftAmount = includeGift ? GIFT_PRICE_CENTS : 0;
-  const total = baseTotal - volumeDiscountAmount + giftAmount;
+  const total = baseTotal - volumeDiscountAmount;
 
   // Get all pet names for display
   const petNames = petsData?.map(p => p.name).filter(Boolean) || [petData.name];
 
   const handleCheckoutClick = () => {
-    // Show gift upsell modal first
     setShowGiftUpsell(true);
   };
 
   const proceedToCheckout = (withGift: boolean) => {
     setShowGiftUpsell(false);
-    const finalTotal = baseTotal - volumeDiscountAmount + (withGift ? GIFT_PRICE_CENTS : 0);
+    const finalTotal = total + (withGift ? GIFT_PRICE_CENTS : 0);
     
     onCheckout({
       selectedProducts: [selectedTier],
@@ -101,8 +122,38 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-6"
+      className="space-y-5"
     >
+      {/* Urgency & Social Proof Header */}
+      <div className="space-y-3">
+        {/* Scarcity */}
+        <motion.div
+          animate={{ scale: [1, 1.02, 1] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-red-500/10 border border-red-500/30"
+        >
+          <Clock className="w-4 h-4 text-red-400" />
+          <span className="text-sm font-medium text-red-400">
+            Only {spotsLeft} readings left at this price today!
+          </span>
+        </motion.div>
+
+        {/* Social Proof */}
+        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Users className="w-4 h-4" />
+          <span>Join <span className="text-foreground font-semibold">{recentPurchases.toLocaleString()}</span> happy pet parents</span>
+        </div>
+      </div>
+
+      {/* Loss Aversion Message */}
+      <div className="text-center p-3 rounded-xl bg-gradient-to-r from-nebula-purple/10 to-nebula-pink/10 border border-nebula-purple/20">
+        <p className="text-sm text-foreground">
+          <Zap className="w-4 h-4 inline mr-1 text-cosmic-gold" />
+          <span className="font-medium">Don't miss {petData.name}'s cosmic window!</span>
+          <span className="text-muted-foreground"> The stars are aligned right now.</span>
+        </p>
+      </div>
+
       {/* Emotional header */}
       <div className="text-center space-y-2 pb-4 border-b border-border/30">
         <h2 className="text-2xl font-display font-bold text-foreground">
@@ -115,33 +166,16 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </p>
       </div>
 
-      {/* Value proposition cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="p-3 rounded-xl bg-card/30 border border-border/30 text-center">
-          <div className="text-2xl mb-1">💫</div>
-          <p className="text-xs text-muted-foreground">Deepen your bond</p>
-        </div>
-        <div className="p-3 rounded-xl bg-card/30 border border-border/30 text-center">
-          <div className="text-2xl mb-1">🔮</div>
-          <p className="text-xs text-muted-foreground">Understand their soul</p>
-        </div>
-        <div className="p-3 rounded-xl bg-card/30 border border-border/30 text-center">
-          <div className="text-2xl mb-1">❤️</div>
-          <p className="text-xs text-muted-foreground">Learn their love language</p>
-        </div>
-        <div className="p-3 rounded-xl bg-card/30 border border-border/30 text-center">
-          <div className="text-2xl mb-1">✨</div>
-          <p className="text-xs text-muted-foreground">Discover hidden gifts</p>
-        </div>
-      </div>
-
-      {/* Product tiers */}
+      {/* Product tiers - Price Anchoring */}
       <div className="grid gap-3">
-        {(['basic', 'premium'] as const).map((key, index) => {
+        {(['basic', 'premium', 'vip'] as const).map((key, index) => {
           const product = TIERS[key];
           const isSelected = selectedTier === key;
-          const isPremium = key === 'premium';
+          const isBasic = key === 'basic';
+          const isVip = key === 'vip';
           const Icon = product.icon;
+          const savings = product.originalPriceCents - product.priceCents;
+          const savingsPercent = Math.round((savings / product.originalPriceCents) * 100);
           
           return (
             <motion.button
@@ -155,13 +189,19 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                 isSelected 
                   ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
                   : "border-border/50 bg-card/30 hover:border-primary/50",
-                isPremium && "ring-2 ring-cosmic-gold/30",
+                isBasic && "ring-2 ring-cosmic-gold/50",
+                isVip && "opacity-80",
               )}
             >
               {/* Badge */}
-              {isPremium && (
-                <div className="absolute -top-2.5 left-4 px-2 py-0.5 bg-cosmic-gold text-cosmic-gold-foreground text-xs font-bold rounded-full">
-                  MOST POPULAR
+              {product.badge && (
+                <div className={cn(
+                  "absolute -top-2.5 left-4 px-2 py-0.5 text-xs font-bold rounded-full",
+                  isBasic 
+                    ? "bg-cosmic-gold text-cosmic-gold-foreground" 
+                    : "bg-nebula-purple text-white"
+                )}>
+                  {product.badge}
                 </div>
               )}
 
@@ -192,7 +232,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                   
                   {/* Features */}
                   <div className="flex flex-wrap gap-1.5">
-                    {product.features.map((feature, i) => (
+                    {product.features.slice(0, isSelected ? undefined : 3).map((feature, i) => (
                       <span 
                         key={i} 
                         className="text-xs px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground"
@@ -200,19 +240,29 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                         {feature}
                       </span>
                     ))}
+                    {!isSelected && product.features.length > 3 && (
+                      <span className="text-xs px-2 py-0.5 text-muted-foreground">
+                        +{product.features.length - 3} more
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                {/* Price */}
+                {/* Price with anchoring */}
                 <div className="text-right flex-shrink-0">
-                  <div className="text-lg font-bold text-foreground">
-                    ${(product.priceCents / 100).toFixed(2)}
+                  {/* Original price strikethrough */}
+                  <div className="text-sm text-muted-foreground line-through">
+                    ${(product.originalPriceCents / 100).toFixed(0)}
                   </div>
-                  {isPremium && (
-                    <div className="text-xs text-green-500">
-                      Save $20
-                    </div>
-                  )}
+                  <div className={cn(
+                    "text-xl font-bold",
+                    isBasic ? "text-cosmic-gold" : "text-foreground"
+                  )}>
+                    ${(product.priceCents / 100).toFixed(0)}
+                  </div>
+                  <div className="text-xs text-green-500 font-medium">
+                    Save {savingsPercent}%
+                  </div>
                 </div>
               </div>
             </motion.button>
@@ -226,19 +276,24 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           <span className="text-muted-foreground">
             {tier.name} {petCount > 1 ? `× ${petCount} pets` : ''}
           </span>
-          <span className="text-foreground">${(tier.priceCents * petCount / 100).toFixed(2)}</span>
+          <span className="text-muted-foreground line-through">${(tier.originalPriceCents * petCount / 100).toFixed(0)}</span>
+        </div>
+        
+        <div className="flex justify-between text-sm text-green-500">
+          <span>Special discount</span>
+          <span>-${((tier.originalPriceCents - tier.priceCents) * petCount / 100).toFixed(0)}</span>
         </div>
         
         {volumeDiscountAmount > 0 && (
           <div className="flex justify-between text-sm text-green-500">
-            <span>Multi-pet discount ({Math.round(volumeDiscountRate * 100)}% off)</span>
+            <span>Multi-pet bonus ({Math.round(volumeDiscountRate * 100)}% off)</span>
             <span>-${(volumeDiscountAmount / 100).toFixed(2)}</span>
           </div>
         )}
         
         <div className="border-t border-border/30 pt-2 flex justify-between font-semibold">
-          <span>Total</span>
-          <span className="text-primary">${((baseTotal - volumeDiscountAmount) / 100).toFixed(2)}</span>
+          <span>Your Price</span>
+          <span className="text-primary text-lg">${(total / 100).toFixed(2)}</span>
         </div>
       </div>
 
@@ -248,7 +303,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           <span className="text-green-500">✓</span> Instant delivery
         </span>
         <span className="flex items-center gap-1">
-          <span className="text-green-500">✓</span> Satisfaction guaranteed
+          <span className="text-green-500">✓</span> 100% satisfaction guaranteed
         </span>
       </div>
 
@@ -272,17 +327,17 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         ) : (
           <span className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            Reveal {petCount > 1 ? 'Their' : `${petData.name}'s`} Truth — ${((baseTotal - volumeDiscountAmount) / 100).toFixed(2)}
+            Reveal {petCount > 1 ? 'Their' : `${petData.name}'s`} Truth — ${(total / 100).toFixed(2)}
           </span>
         )}
       </Button>
 
       {/* Final reassurance */}
       <p className="text-center text-xs text-muted-foreground">
-        🔒 Secure checkout powered by Stripe
+        🔒 Secure checkout • 30-day money back guarantee
       </p>
 
-      {/* Gift Upsell Modal */}
+      {/* Gift Upsell Modal - 50% OFF */}
       <AnimatePresence>
         {showGiftUpsell && (
           <motion.div
@@ -307,8 +362,13 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                 <X className="w-5 h-5" />
               </button>
 
+              {/* Sale badge */}
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-red-500 text-white text-sm font-bold rounded-full">
+                50% OFF — LIMITED TIME
+              </div>
+
               {/* Gift icon */}
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-center mb-4 mt-2">
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ repeat: Infinity, duration: 2 }}
@@ -324,11 +384,12 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                   Gift One to a Friend?
                 </h3>
                 <p className="text-muted-foreground text-sm">
-                  Know someone who'd love to discover their pet's cosmic truth? Add a gift reading to your order!
+                  Know someone who'd love to discover their pet's cosmic truth? Get 50% off when you add a gift reading now!
                 </p>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-nebula-pink/10 border border-nebula-pink/30">
+                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-nebula-pink/20 to-nebula-purple/20 border border-nebula-pink/30">
                   <Gift className="w-4 h-4 text-nebula-pink" />
-                  <span className="text-sm font-medium text-foreground">Only $35 — They'll love it!</span>
+                  <span className="text-muted-foreground line-through text-sm">${(GIFT_ORIGINAL_PRICE_CENTS / 100).toFixed(0)}</span>
+                  <span className="text-lg font-bold text-cosmic-gold">${(GIFT_PRICE_CENTS / 100).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -341,7 +402,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                   className="w-full"
                 >
                   <Gift className="w-5 h-5 mr-2" />
-                  Yes, Add a Gift — ${((baseTotal - volumeDiscountAmount + GIFT_PRICE_CENTS) / 100).toFixed(2)} total
+                  Yes! Add Gift for ${(GIFT_PRICE_CENTS / 100).toFixed(2)}
                 </Button>
                 
                 <Button
@@ -356,7 +417,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
               {/* Social proof */}
               <p className="text-center text-xs text-muted-foreground mt-4">
-                🎁 847 gifts sent this month
+                🎁 1,284 gifts sent this week alone!
               </p>
             </motion.div>
           </motion.div>
