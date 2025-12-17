@@ -20,6 +20,15 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: "Missing Stripe configuration" }), { status: 500 });
   }
 
+  // SECURITY: Require webhook secret in production
+  if (!webhookSecret) {
+    console.error("[STRIPE-WEBHOOK] STRIPE_WEBHOOK_SECRET is required for security");
+    return new Response(JSON.stringify({ error: "Webhook not configured" }), { 
+      headers: corsHeaders, 
+      status: 500 
+    });
+  }
+
   const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -30,23 +39,27 @@ serve(async (req) => {
     const body = await req.text();
     const signature = req.headers.get("stripe-signature");
 
-    let event: Stripe.Event;
-
-    // If webhook secret is configured, verify the signature
-    if (webhookSecret && signature) {
-      try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      } catch (err) {
-        console.error("[STRIPE-WEBHOOK] Signature verification failed:", err);
-        return new Response(JSON.stringify({ error: "Webhook signature verification failed" }), { status: 400 });
-      }
-    } else {
-      // For development without webhook secret
-      event = JSON.parse(body);
-      console.log("[STRIPE-WEBHOOK] Processing unverified event (dev mode)");
+    // SECURITY: Always require and verify signature
+    if (!signature) {
+      console.error("[STRIPE-WEBHOOK] Missing stripe-signature header");
+      return new Response(JSON.stringify({ error: "Missing signature" }), { 
+        headers: corsHeaders, 
+        status: 401 
+      });
     }
 
-    console.log("[STRIPE-WEBHOOK] Received event:", event.type);
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err) {
+      console.error("[STRIPE-WEBHOOK] Signature verification failed:", err);
+      return new Response(JSON.stringify({ error: "Invalid signature" }), { 
+        headers: corsHeaders, 
+        status: 401 
+      });
+    }
+
+    console.log("[STRIPE-WEBHOOK] Verified event:", event.type);
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -55,6 +68,11 @@ serve(async (req) => {
       if (session.metadata?.type === "gift_certificate") {
         const giftCode = session.metadata.gift_code;
         
+        if (!giftCode || typeof giftCode !== 'string' || giftCode.length > 20) {
+          console.error("[STRIPE-WEBHOOK] Invalid gift code in metadata");
+          return new Response(JSON.stringify({ error: "Invalid gift code" }), { status: 400 });
+        }
+
         console.log("[STRIPE-WEBHOOK] Gift certificate payment completed:", giftCode);
 
         // Find the gift certificate by code
@@ -107,7 +125,7 @@ serve(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[STRIPE-WEBHOOK] Error:", message);
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

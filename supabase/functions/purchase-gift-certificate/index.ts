@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { z } from "https://esm.sh/zod@3.23.8";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
@@ -6,6 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Valid gift amounts (server-side truth)
+const VALID_AMOUNTS = [3500, 5000, 12900]; // $35, $50, $129
 
 function generateGiftCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -20,30 +24,31 @@ function generateGiftCode(): string {
   return code;
 }
 
+// Input validation schema
+const giftSchema = z.object({
+  purchaserEmail: z.string().email().max(255),
+  recipientEmail: z.string().email().max(255).optional().or(z.literal('')),
+  recipientName: z.string().max(100).optional().default(''),
+  giftMessage: z.string().max(500).optional().default(''),
+  amountCents: z.number().int().refine(a => VALID_AMOUNTS.includes(a), "Invalid gift amount"),
+  deliveryMethod: z.enum(['email', 'print']).optional().default('email'),
+});
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { 
-      purchaserEmail,
-      recipientEmail,
-      recipientName,
-      giftMessage,
-      amountCents,
-      deliveryMethod 
-    } = await req.json();
+    // Validate input
+    const rawInput = await req.json();
+    const input = giftSchema.parse(rawInput);
 
     console.log("[PURCHASE-GIFT] Starting gift certificate purchase", { 
-      purchaserEmail, 
-      recipientEmail, 
-      amountCents 
+      purchaserEmail: input.purchaserEmail, 
+      recipientEmail: input.recipientEmail, 
+      amountCents: input.amountCents 
     });
-
-    if (!purchaserEmail || !amountCents) {
-      throw new Error("Missing required fields: purchaserEmail and amountCents");
-    }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -73,47 +78,47 @@ serve(async (req) => {
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
-      customer_email: purchaserEmail,
+      customer_email: input.purchaserEmail,
       line_items: [
         {
           price_data: {
             currency: 'usd',
             product_data: {
               name: 'Cosmic Pet Report Gift Certificate',
-              description: recipientName 
-                ? `Gift for ${recipientName}` 
+              description: input.recipientName 
+                ? `Gift for ${input.recipientName}` 
                 : 'A magical gift for a pet lover',
             },
-            unit_amount: amountCents,
+            unit_amount: input.amountCents,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/gift-success?code=${giftCode}&delivery=${deliveryMethod || 'email'}`,
+      success_url: `${req.headers.get("origin")}/gift-success?code=${giftCode}&delivery=${input.deliveryMethod}`,
       cancel_url: `${req.headers.get("origin")}/gift`,
       metadata: {
         type: 'gift_certificate',
         gift_code: giftCode,
-        recipient_email: recipientEmail || '',
-        recipient_name: recipientName || '',
-        gift_message: giftMessage || '',
+        recipient_email: input.recipientEmail || '',
+        recipient_name: input.recipientName,
+        gift_message: input.giftMessage,
       },
     });
 
     // Create pending gift certificate record
     const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Valid for 1 year
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
     const { error: insertError } = await supabaseClient
       .from('gift_certificates')
       .insert({
         code: giftCode,
-        purchaser_email: purchaserEmail,
-        recipient_email: recipientEmail || null,
-        recipient_name: recipientName || null,
-        gift_message: giftMessage || null,
-        amount_cents: amountCents,
+        purchaser_email: input.purchaserEmail,
+        recipient_email: input.recipientEmail || null,
+        recipient_name: input.recipientName || null,
+        gift_message: input.giftMessage || null,
+        amount_cents: input.amountCents,
         stripe_session_id: session.id,
         expires_at: expiresAt.toISOString(),
       });
@@ -134,6 +139,18 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      console.error("[PURCHASE-GIFT] Validation error:", error.errors);
+      return new Response(JSON.stringify({ 
+        error: "Invalid input",
+        details: error.errors.map(e => e.message).join(", ")
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[PURCHASE-GIFT] Error:", message);
     return new Response(JSON.stringify({ error: message }), {
