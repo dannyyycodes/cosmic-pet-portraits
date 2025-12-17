@@ -31,28 +31,26 @@ export default function RedeemGift() {
   const validateCode = async (code: string) => {
     setIsValidating(true);
     try {
-      const { data, error } = await supabase
-        .from('gift_certificates')
-        .select('recipient_name, gift_message, amount_cents, is_redeemed')
-        .eq('code', code.toUpperCase())
-        .single();
+      const { data, error } = await supabase.functions.invoke('validate-gift-code', {
+        body: { code: code.toUpperCase() },
+      });
 
-      if (error || !data) {
-        toast.error('Invalid gift code. Please check and try again.');
+      if (error || data?.error) {
+        toast.error(data?.error || 'Invalid gift code. Please check and try again.');
         setGiftData(null);
         return;
       }
 
-      if (data.is_redeemed) {
-        toast.error('This gift has already been redeemed.');
+      if (!data.valid) {
+        toast.error('Invalid gift code');
         setGiftData(null);
         return;
       }
 
       setGiftData({
-        recipientName: data.recipient_name,
-        giftMessage: data.gift_message,
-        amountCents: data.amount_cents,
+        recipientName: data.recipientName,
+        giftMessage: data.giftMessage,
+        amountCents: data.amountCents,
       });
     } catch (error) {
       console.error('Validation error:', error);
