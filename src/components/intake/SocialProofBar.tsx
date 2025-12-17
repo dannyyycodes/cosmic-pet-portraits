@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Clock, Users, Flame } from 'lucide-react';
+import { Eye, Users } from 'lucide-react';
 
 interface SocialProofBarProps {
   petName: string;
@@ -9,7 +9,6 @@ interface SocialProofBarProps {
 export function SocialProofBar({ petName }: SocialProofBarProps) {
   const [viewers, setViewers] = useState(0);
   const [recentPurchases, setRecentPurchases] = useState(0);
-  const [countdown, setCountdown] = useState(15 * 60); // 15 minutes
   const [showNotification, setShowNotification] = useState(false);
 
   // Simulate live viewers (realistic fluctuation)
@@ -41,20 +40,6 @@ export function SocialProofBar({ petName }: SocialProofBarProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCountdown(prev => (prev > 0 ? prev - 1 : 15 * 60));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const petNames = ['Luna', 'Max', 'Bella', 'Charlie', 'Milo', 'Daisy', 'Oscar', 'Coco'];
   const randomPet = petNames[Math.floor(Math.random() * petNames.length)];
@@ -82,19 +67,6 @@ export function SocialProofBar({ petName }: SocialProofBarProps) {
         </div>
       </motion.div>
 
-      {/* Urgency countdown */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3 }}
-        className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-amber-500/10 border border-amber-500/20 mx-auto w-fit"
-      >
-        <Flame className="w-4 h-4 text-amber-500 animate-pulse" />
-        <span className="text-sm">
-          <strong className="text-amber-500">{formatTime(countdown)}</strong>
-          <span className="text-muted-foreground ml-1.5">left for early bird pricing</span>
-        </span>
-      </motion.div>
 
       {/* Purchase notification toast */}
       <AnimatePresence>

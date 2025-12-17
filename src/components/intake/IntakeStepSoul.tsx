@@ -1,6 +1,6 @@
 import { PetData } from './IntakeWizard';
 import { ModeContent } from '@/lib/occasionMode';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getSoulOptions, PetSpecies } from '@/lib/speciesOptions';
 
@@ -14,7 +14,11 @@ interface IntakeStepSoulProps {
 }
 
 export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepSoulProps) {
-  const soulOptions = getSoulOptions((petData.species || 'other') as PetSpecies);
+  const baseSoulOptions = getSoulOptions((petData.species || 'other') as PetSpecies);
+  const soulOptions = [
+    ...baseSoulOptions,
+    { id: 'not-sure', label: "I'm Not Sure", description: 'Multiple might fit', icon: HelpCircle },
+  ];
   
   const handleSelect = (soulType: string) => {
     onUpdate({ soulType });
