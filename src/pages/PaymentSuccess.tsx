@@ -3,14 +3,17 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
+import { EmotionalReportReveal } from '@/components/report/EmotionalReportReveal';
 import { GiftConfirmation } from '@/components/report/GiftConfirmation';
 import { toast } from 'sonner';
 
-type Stage = 'verifying' | 'generating' | 'complete' | 'gift-sent' | 'error';
+type Stage = 'verifying' | 'generating' | 'reveal' | 'complete' | 'gift-sent' | 'error';
 
 interface ReportData {
   petName: string;
+  email: string;
   report: any;
+  reportId: string;
   isGift: boolean;
   recipientName?: string;
   recipientEmail?: string;
@@ -51,21 +54,16 @@ export default function PaymentSuccess() {
 
       // Check if report already has content (already generated)
       if (petReport.report_content) {
-        // Check if this was a gift
-        const { data: orderItems } = await supabase
-          .from('order_items')
-          .select('*')
-          .eq('report_id', reportId)
-          .limit(1);
-
         const isGift = petReport.occasion_mode === 'gift';
         
         setReportData({
           petName: petReport.pet_name,
+          email: petReport.email,
           report: petReport.report_content,
+          reportId: reportId!,
           isGift,
         });
-        setStage(isGift ? 'gift-sent' : 'complete');
+        setStage(isGift ? 'gift-sent' : 'reveal');
         return;
       }
 
@@ -103,20 +101,36 @@ export default function PaymentSuccess() {
         .update({ payment_status: 'paid', stripe_session_id: sessionId })
         .eq('id', reportId);
 
-      // Check if this was a gift purchase
       const isGift = petReport.occasion_mode === 'gift';
 
       setReportData({
         petName: petReport.pet_name,
+        email: petReport.email,
         report: genData.report,
+        reportId: reportId!,
         isGift,
-        // These would come from order metadata in a real implementation
       });
 
+      // Send email with report link
+      try {
+        await supabase.functions.invoke('send-report-email', {
+          body: {
+            reportId,
+            email: petReport.email,
+            petName: petReport.pet_name,
+            sunSign: genData.report?.sunSign,
+          },
+        });
+        console.log('Report email sent successfully');
+      } catch (emailErr) {
+        console.error('Failed to send email:', emailErr);
+        // Don't fail the whole flow for email issues
+      }
+
       // Small delay for dramatic effect
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      setStage(isGift ? 'gift-sent' : 'complete');
+      setStage(isGift ? 'gift-sent' : 'reveal');
 
     } catch (err) {
       console.error('Payment success error:', err);
@@ -168,6 +182,17 @@ export default function PaymentSuccess() {
     );
   }
 
+  // Emotional reveal experience
+  if (stage === 'reveal' && reportData) {
+    return (
+      <EmotionalReportReveal
+        petName={reportData.petName}
+        report={reportData.report}
+        onComplete={() => setStage('complete')}
+      />
+    );
+  }
+
   // Gift confirmation
   if (stage === 'gift-sent' && reportData) {
     return (
@@ -180,7 +205,7 @@ export default function PaymentSuccess() {
     );
   }
 
-  // Complete - show the report
+  // Complete - show the full report
   if (stage === 'complete' && reportData) {
     return (
       <CosmicReportViewer
