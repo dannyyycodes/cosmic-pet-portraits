@@ -27,44 +27,24 @@ export default function ViewReport() {
 
   const fetchReport = async () => {
     try {
-      let query = supabase
-        .from('pet_reports')
-        .select('*');
+      const { data, error } = await supabase.functions.invoke('get-report', {
+        body: {
+          reportId: reportId || undefined,
+          giftCode: code || undefined,
+        },
+      });
 
-      if (code) {
-        // Gift certificate redemption - find by gift code
-        const { data: giftCert, error: giftError } = await supabase
-          .from('gift_certificates')
-          .select('redeemed_by_report_id')
-          .eq('code', code)
-          .single();
-
-        if (giftError || !giftCert?.redeemed_by_report_id) {
-          throw new Error('Gift certificate not found or not yet redeemed');
-        }
-
-        query = query.eq('id', giftCert.redeemed_by_report_id);
-      } else if (reportId) {
-        query = query.eq('id', reportId);
+      if (error) {
+        throw new Error(error.message || 'Failed to fetch report');
       }
 
-      const { data: report, error: fetchError } = await query.single();
-
-      if (fetchError || !report) {
-        throw new Error('Report not found');
-      }
-
-      if (!report.report_content) {
-        throw new Error('Report is still being generated. Please try again in a moment.');
-      }
-
-      if (report.payment_status !== 'paid') {
-        throw new Error('This report has not been purchased yet.');
+      if (data.error) {
+        throw new Error(data.error);
       }
 
       setReportData({
-        petName: report.pet_name,
-        report: report.report_content,
+        petName: data.petName,
+        report: data.report,
       });
     } catch (err) {
       console.error('Error fetching report:', err);
