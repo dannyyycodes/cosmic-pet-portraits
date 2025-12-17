@@ -1,6 +1,6 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Gift, CheckCircle, Mail, Copy, ArrowRight } from 'lucide-react';
+import { Gift, CheckCircle, Mail, Copy, ArrowRight, LinkIcon, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { toast } from 'sonner';
@@ -8,11 +8,37 @@ import { toast } from 'sonner';
 export default function GiftSuccess() {
   const [searchParams] = useSearchParams();
   const giftCode = searchParams.get('code') || '';
+  const deliveryMethod = searchParams.get('delivery') || 'email';
+
+  const redeemUrl = `${window.location.origin}/redeem?code=${giftCode}`;
 
   const copyCode = () => {
     navigator.clipboard.writeText(giftCode);
     toast.success('Gift code copied to clipboard!');
   };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(redeemUrl);
+    toast.success('Gift link copied to clipboard!');
+  };
+
+  const shareGift = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Cosmic Pet Report Gift',
+          text: 'I got you a Cosmic Pet Report! Discover the soul behind your pet\'s eyes.',
+          url: redeemUrl,
+        });
+      } catch (err) {
+        copyLink();
+      }
+    } else {
+      copyLink();
+    }
+  };
+
+  const isLinkDelivery = deliveryMethod === 'link';
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
@@ -39,12 +65,45 @@ export default function GiftSuccess() {
               Gift Purchased Successfully!
             </h1>
             <p className="text-muted-foreground text-lg">
-              Your cosmic gift is on its way ✨
+              {isLinkDelivery 
+                ? 'Share the link below with your lucky recipient ✨' 
+                : 'Your cosmic gift is on its way ✨'}
             </p>
           </div>
 
-          {/* Gift code display */}
-          {giftCode && (
+          {/* Gift link display for link delivery */}
+          {giftCode && isLinkDelivery && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-nebula-purple/20 border border-primary/30 space-y-4"
+            >
+              <div className="flex items-center justify-center gap-2 text-primary">
+                <LinkIcon className="w-5 h-5" />
+                <p className="text-sm font-medium">Shareable Gift Link</p>
+              </div>
+              <div className="p-3 rounded-lg bg-background/50 break-all">
+                <p className="text-sm font-mono text-foreground">{redeemUrl}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={copyLink} variant="outline" className="flex-1">
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Link
+                </Button>
+                <Button onClick={shareGift} variant="cosmic" className="flex-1">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Gift Code: <span className="font-mono font-bold">{giftCode}</span>
+              </p>
+            </motion.div>
+          )}
+
+          {/* Gift code display for email delivery */}
+          {giftCode && !isLinkDelivery && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -69,13 +128,22 @@ export default function GiftSuccess() {
           {/* What happens next */}
           <div className="p-4 rounded-xl bg-card/30 border border-border/30 space-y-3 text-left">
             <p className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Mail className="w-4 h-4 text-primary" />
+              {isLinkDelivery ? <LinkIcon className="w-4 h-4 text-primary" /> : <Mail className="w-4 h-4 text-primary" />}
               What happens next?
             </p>
             <ul className="text-sm text-muted-foreground space-y-2">
               <li>• You'll receive a confirmation email</li>
-              <li>• Your recipient will get their gift code by email</li>
-              <li>• They can redeem it anytime within 1 year</li>
+              {isLinkDelivery ? (
+                <>
+                  <li>• Share the link above with your recipient</li>
+                  <li>• They'll enter their pet's details to get the report</li>
+                </>
+              ) : (
+                <>
+                  <li>• Your recipient will get their gift code by email</li>
+                  <li>• They can redeem it anytime within 1 year</li>
+                </>
+              )}
             </ul>
           </div>
 
