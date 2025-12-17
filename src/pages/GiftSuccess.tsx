@@ -97,7 +97,7 @@ export default function GiftSuccess() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Questions? Contact us at support@petastrology.com
+            Questions? Contact us at support@furrealpaws.site
           </p>
         </motion.div>
       </div>
