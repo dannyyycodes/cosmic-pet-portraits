@@ -1,5 +1,5 @@
 import { PetData } from './IntakeWizard';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getStrangerOptions, PetSpecies } from '@/lib/speciesOptions';
 
@@ -12,7 +12,11 @@ interface IntakeStepStrangersProps {
 }
 
 export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepStrangersProps) {
-  const strangerOptions = getStrangerOptions((petData.species || 'other') as PetSpecies);
+  const baseStrangerOptions = getStrangerOptions((petData.species || 'other') as PetSpecies);
+  const strangerOptions = [
+    ...baseStrangerOptions,
+    { id: 'not-sure', label: "I'm Not Sure", description: 'Depends on the situation', icon: HelpCircle },
+  ];
   
   const handleSelect = (strangerReaction: string) => {
     onUpdate({ strangerReaction });

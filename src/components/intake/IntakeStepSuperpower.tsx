@@ -1,5 +1,5 @@
 import { PetData } from './IntakeWizard';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getSuperpowerOptions, PetSpecies } from '@/lib/speciesOptions';
 
@@ -12,7 +12,11 @@ interface IntakeStepSuperpowerProps {
 }
 
 export function IntakeStepSuperpower({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepSuperpowerProps) {
-  const superpowerOptions = getSuperpowerOptions((petData.species || 'other') as PetSpecies);
+  const baseSuperpowerOptions = getSuperpowerOptions((petData.species || 'other') as PetSpecies);
+  const superpowerOptions = [
+    ...baseSuperpowerOptions,
+    { id: 'not-sure', label: "I'm Not Sure", description: 'Multiple might fit', icon: HelpCircle },
+  ];
   
   const handleSelect = (superpower: string) => {
     onUpdate({ superpower });
