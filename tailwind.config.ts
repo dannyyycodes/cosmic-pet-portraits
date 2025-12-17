@@ -59,6 +59,10 @@ export default {
           DEFAULT: "hsl(var(--gold))",
           light: "hsl(var(--gold-light))",
         },
+        "cosmic-gold": {
+          DEFAULT: "hsl(var(--gold))",
+          foreground: "hsl(var(--background))",
+        },
         glass: {
           DEFAULT: "var(--glass-bg)",
           border: "var(--glass-border)",

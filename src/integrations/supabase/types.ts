@@ -100,6 +100,163 @@ export type Database = {
         }
         Relationships: []
       }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          current_uses: number
+          discount_type: string
+          discount_value: number
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_purchase_cents: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current_uses?: number
+          discount_type?: string
+          discount_value: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_purchase_cents?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current_uses?: number
+          discount_type?: string
+          discount_value?: number
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_purchase_cents?: number | null
+        }
+        Relationships: []
+      }
+      gift_certificates: {
+        Row: {
+          amount_cents: number
+          code: string
+          created_at: string
+          expires_at: string | null
+          gift_message: string | null
+          id: string
+          is_redeemed: boolean
+          purchaser_email: string
+          recipient_email: string | null
+          recipient_name: string | null
+          redeemed_at: string | null
+          redeemed_by_report_id: string | null
+          stripe_session_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          gift_message?: string | null
+          id?: string
+          is_redeemed?: boolean
+          purchaser_email: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          redeemed_at?: string | null
+          redeemed_by_report_id?: string | null
+          stripe_session_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          gift_message?: string | null
+          id?: string
+          is_redeemed?: boolean
+          purchaser_email?: string
+          recipient_email?: string | null
+          recipient_name?: string | null
+          redeemed_at?: string | null
+          redeemed_by_report_id?: string | null
+          stripe_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gift_certificates_redeemed_by_report_id_fkey"
+            columns: ["redeemed_by_report_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          coupon_id: string | null
+          created_at: string
+          discount_cents: number
+          gift_certificate_id: string | null
+          id: string
+          price_cents: number
+          product_id: string | null
+          report_id: string | null
+        }
+        Insert: {
+          coupon_id?: string | null
+          created_at?: string
+          discount_cents?: number
+          gift_certificate_id?: string | null
+          id?: string
+          price_cents: number
+          product_id?: string | null
+          report_id?: string | null
+        }
+        Update: {
+          coupon_id?: string | null
+          created_at?: string
+          discount_cents?: number
+          gift_certificate_id?: string | null
+          id?: string
+          price_cents?: number
+          product_id?: string | null
+          report_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_gift_certificate_id_fkey"
+            columns: ["gift_certificate_id"]
+            isOneToOne: false
+            referencedRelation: "gift_certificates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_reports: {
         Row: {
           birth_date: string | null
@@ -157,6 +314,42 @@ export type Database = {
           stripe_session_id?: string | null
           superpower?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean
+          name: string
+          price_cents: number
+          product_type: string
+          stripe_price_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price_cents: number
+          product_type: string
+          stripe_price_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price_cents?: number
+          product_type?: string
+          stripe_price_id?: string | null
         }
         Relationships: []
       }
