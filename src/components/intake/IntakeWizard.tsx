@@ -11,6 +11,7 @@ import { IntakeStepSuperpower } from './IntakeStepSuperpower';
 import { IntakeStepStrangers } from './IntakeStepStrangers';
 import { IntakeStepEmail } from './IntakeStepEmail';
 import { CosmicLoading } from './CosmicLoading';
+import { SocialProofBar } from './SocialProofBar';
 import { MiniReport } from './MiniReport';
 import { OccasionMode, occasionModeContent } from '@/lib/occasionMode';
 import { supabase } from '@/integrations/supabase/client';
@@ -227,6 +228,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Immersive starfield background */}
       <StarfieldBackground intensity={intensity} interactive />
+      
+      {/* Persistent social proof in corner */}
+      <SocialProofBar petName={petData.name} />
       
       <div className="w-full max-w-xl relative z-10">
         {/* Enhanced cosmic progress */}

@@ -42,31 +42,31 @@ export function SocialProofBar({ petName }: SocialProofBarProps) {
 
 
   const petNames = ['Luna', 'Max', 'Bella', 'Charlie', 'Milo', 'Daisy', 'Oscar', 'Coco'];
-  const randomPet = petNames[Math.floor(Math.random() * petNames.length)];
+  const [randomPet] = useState(() => petNames[Math.floor(Math.random() * petNames.length)]);
 
   return (
-    <div className="space-y-3">
-      {/* Live activity bar */}
+    <>
+      {/* Fixed corner social proof - subtle and non-intrusive */}
       <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-center gap-6 text-xs text-muted-foreground"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        className="fixed bottom-4 left-4 z-40 flex flex-col gap-1.5 text-[10px] text-muted-foreground/70 bg-background/30 backdrop-blur-sm rounded-lg px-2.5 py-2 border border-border/20"
       >
         <div className="flex items-center gap-1.5">
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
           </span>
-          <Eye className="w-3 h-3" />
-          <span><strong className="text-foreground">{viewers}</strong> viewing now</span>
+          <Eye className="w-2.5 h-2.5" />
+          <span><strong className="text-foreground/80">{viewers}</strong> viewing</span>
         </div>
         
         <div className="flex items-center gap-1.5">
-          <Users className="w-3 h-3" />
-          <span><strong className="text-foreground">{recentPurchases}</strong> reports today</span>
+          <Users className="w-2.5 h-2.5" />
+          <span><strong className="text-foreground/80">{recentPurchases}</strong> today</span>
         </div>
       </motion.div>
-
 
       {/* Purchase notification toast */}
       <AnimatePresence>
@@ -75,18 +75,18 @@ export function SocialProofBar({ petName }: SocialProofBarProps) {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed bottom-4 left-4 z-50 flex items-center gap-3 bg-card border border-border rounded-lg p-3 shadow-xl"
+            className="fixed bottom-20 left-4 z-50 flex items-center gap-3 bg-card/90 backdrop-blur-sm border border-border/30 rounded-lg p-2.5 shadow-xl max-w-[200px]"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center">
-              <span className="text-xs">🐾</span>
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center flex-shrink-0">
+              <span className="text-[10px]">🐾</span>
             </div>
-            <div className="text-sm">
-              <p className="text-foreground font-medium">Someone just unlocked {randomPet}'s report!</p>
-              <p className="text-muted-foreground text-xs">A few seconds ago</p>
+            <div className="text-[10px]">
+              <p className="text-foreground/90 font-medium">{randomPet}'s report unlocked!</p>
+              <p className="text-muted-foreground/70">just now</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
