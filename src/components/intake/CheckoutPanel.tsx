@@ -177,8 +177,38 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-5"
+      className="space-y-6"
     >
+      {/* Emotional header */}
+      <div className="text-center space-y-2 pb-4 border-b border-border/30">
+        <h2 className="text-2xl font-display font-bold text-foreground">
+          Unlock {petData.name}'s Cosmic Truth
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          Join 2,000+ pet parents who discovered something profound
+        </p>
+      </div>
+
+      {/* Value proposition cards */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="p-3 rounded-xl bg-card/30 border border-border/30 text-center">
+          <div className="text-2xl mb-1">💫</div>
+          <p className="text-xs text-muted-foreground">Deepen your bond</p>
+        </div>
+        <div className="p-3 rounded-xl bg-card/30 border border-border/30 text-center">
+          <div className="text-2xl mb-1">🔮</div>
+          <p className="text-xs text-muted-foreground">Understand their soul</p>
+        </div>
+        <div className="p-3 rounded-xl bg-card/30 border border-border/30 text-center">
+          <div className="text-2xl mb-1">❤️</div>
+          <p className="text-xs text-muted-foreground">Learn their love language</p>
+        </div>
+        <div className="p-3 rounded-xl bg-card/30 border border-border/30 text-center">
+          <div className="text-2xl mb-1">✨</div>
+          <p className="text-xs text-muted-foreground">Discover hidden gifts</p>
+        </div>
+      </div>
+
       {/* Product selection */}
       <UpsalesCard
         products={products}
@@ -222,6 +252,16 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
         flashSaleEndsIn={showFlashSale ? flashSaleEndsIn : undefined}
       />
 
+      {/* Trust signals */}
+      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground py-2">
+        <span className="flex items-center gap-1">
+          <span className="text-green-500">✓</span> Instant delivery
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="text-green-500">✓</span> Satisfaction guaranteed
+        </span>
+      </div>
+
       {/* Checkout button */}
       <Button
         onClick={handleCheckout}
@@ -247,10 +287,15 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
         ) : (
           <span className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            {isGift ? 'Send Gift' : 'Get Your Reading'} — ${(total / 100).toFixed(2)}
+            {isGift ? 'Send Gift' : `Reveal ${petData.name}'s Truth`} — ${(total / 100).toFixed(2)}
           </span>
         )}
       </Button>
+
+      {/* Final reassurance */}
+      <p className="text-center text-xs text-muted-foreground">
+        🔒 Secure checkout powered by Stripe
+      </p>
     </motion.div>
   );
 }
