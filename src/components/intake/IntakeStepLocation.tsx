@@ -14,12 +14,37 @@ interface IntakeStepLocationProps {
 }
 
 const popularLocations = [
+  // UK cities
+  { city: 'London', country: 'UK', flag: '🇬🇧' },
+  { city: 'Liverpool', country: 'UK', flag: '🇬🇧' },
+  { city: 'Manchester', country: 'UK', flag: '🇬🇧' },
+  { city: 'Birmingham', country: 'UK', flag: '🇬🇧' },
+  { city: 'Leeds', country: 'UK', flag: '🇬🇧' },
+  { city: 'Glasgow', country: 'UK', flag: '🇬🇧' },
+  { city: 'Edinburgh', country: 'UK', flag: '🇬🇧' },
+  { city: 'Bristol', country: 'UK', flag: '🇬🇧' },
+  { city: 'Cardiff', country: 'UK', flag: '🇬🇧' },
+  { city: 'Belfast', country: 'UK', flag: '🇬🇧' },
+  // USA cities
   { city: 'New York', country: 'USA', flag: '🇺🇸' },
   { city: 'Los Angeles', country: 'USA', flag: '🇺🇸' },
-  { city: 'London', country: 'UK', flag: '🇬🇧' },
+  { city: 'Chicago', country: 'USA', flag: '🇺🇸' },
+  { city: 'Houston', country: 'USA', flag: '🇺🇸' },
+  { city: 'Miami', country: 'USA', flag: '🇺🇸' },
+  { city: 'San Francisco', country: 'USA', flag: '🇺🇸' },
+  { city: 'Seattle', country: 'USA', flag: '🇺🇸' },
+  { city: 'Boston', country: 'USA', flag: '🇺🇸' },
+  // Other countries
   { city: 'Sydney', country: 'Australia', flag: '🇦🇺' },
+  { city: 'Melbourne', country: 'Australia', flag: '🇦🇺' },
   { city: 'Toronto', country: 'Canada', flag: '🇨🇦' },
+  { city: 'Vancouver', country: 'Canada', flag: '🇨🇦' },
   { city: 'Paris', country: 'France', flag: '🇫🇷' },
+  { city: 'Berlin', country: 'Germany', flag: '🇩🇪' },
+  { city: 'Amsterdam', country: 'Netherlands', flag: '🇳🇱' },
+  { city: 'Dublin', country: 'Ireland', flag: '🇮🇪' },
+  { city: 'Auckland', country: 'New Zealand', flag: '🇳🇿' },
+  { city: 'Cape Town', country: 'South Africa', flag: '🇿🇦' },
 ];
 
 export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepLocationProps) {
