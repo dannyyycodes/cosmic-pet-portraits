@@ -60,8 +60,8 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
   const [recipientName, setRecipientName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
-  const [flashSaleEndsIn, setFlashSaleEndsIn] = useState<number>(300); // 5 minutes
-  const [showFlashSale, setShowFlashSale] = useState(true);
+  const [flashSaleEndsIn, setFlashSaleEndsIn] = useState<number>(0);
+  const [showFlashSale, setShowFlashSale] = useState(false);
 
   // Fetch products
   useEffect(() => {
