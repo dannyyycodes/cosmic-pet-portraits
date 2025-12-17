@@ -118,6 +118,10 @@ const Index = () => {
             {/* Gift to a Friend */}
             <Link to="/gift" className="group">
               <div className="relative p-8 rounded-2xl border-2 border-nebula-pink/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-nebula-pink hover:bg-card/50 hover:shadow-[0_0_30px_hsl(330_70%_50%/0.3)] h-full">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-nebula-pink to-nebula-purple text-white text-xs font-medium flex items-center gap-1">
+                  <Heart className="w-3 h-3" />
+                  Perfect Gift
+                </div>
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Gift className="w-8 h-8 text-white" />
@@ -128,8 +132,8 @@ const Index = () => {
                       The perfect gift for any pet lover — meaningful & unforgettable
                     </p>
                   </div>
-                  <Button variant="outline" size="lg" className="w-full mt-2 border-nebula-pink/50 hover:bg-nebula-pink/10 hover:border-nebula-pink">
-                    <Heart className="w-4 h-4 mr-2 text-nebula-pink" />
+                  <Button size="lg" className="w-full mt-2 bg-gradient-to-r from-nebula-pink to-nebula-purple hover:from-nebula-pink/90 hover:to-nebula-purple/90 text-white border-0 shadow-lg group-hover:shadow-[0_0_20px_hsl(330_70%_50%/0.4)]">
+                    <Heart className="w-4 h-4 mr-2" />
                     Send a Gift
                   </Button>
                 </div>

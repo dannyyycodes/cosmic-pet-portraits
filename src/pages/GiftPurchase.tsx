@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Gift, Heart, Sparkles, ArrowLeft, Send, Star } from 'lucide-react';
+import { Gift, Heart, Sparkles, ArrowLeft, Send, Star, LinkIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
@@ -14,6 +14,8 @@ const giftAmounts = [
   { cents: 8000, label: 'Family Bundle', description: 'Up to 3 pets + family dynamics' },
 ];
 
+type DeliveryMethod = 'email' | 'link';
+
 export default function GiftPurchase() {
   const [purchaserEmail, setPurchaserEmail] = useState('');
   const [recipientName, setRecipientName] = useState('');
@@ -21,12 +23,18 @@ export default function GiftPurchase() {
   const [giftMessage, setGiftMessage] = useState('');
   const [selectedAmount, setSelectedAmount] = useState(3500);
   const [isLoading, setIsLoading] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email');
 
   const handlePurchase = async (e?: React.FormEvent) => {
     e?.preventDefault();
     
-    if (!purchaserEmail || !recipientEmail) {
-      toast.error('Please fill in all required fields');
+    if (!purchaserEmail) {
+      toast.error('Please enter your email');
+      return;
+    }
+    
+    if (deliveryMethod === 'email' && !recipientEmail) {
+      toast.error('Please enter recipient email');
       return;
     }
 
@@ -35,10 +43,11 @@ export default function GiftPurchase() {
       const { data, error } = await supabase.functions.invoke('purchase-gift-certificate', {
         body: {
           purchaserEmail,
-          recipientEmail,
+          recipientEmail: deliveryMethod === 'email' ? recipientEmail : null,
           recipientName,
           giftMessage,
           amountCents: selectedAmount,
+          deliveryMethod,
         },
       });
 
@@ -125,6 +134,39 @@ export default function GiftPurchase() {
             </div>
           </div>
 
+          {/* Delivery method toggle */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-foreground">How do you want to send this gift?</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDeliveryMethod('email')}
+                className={`p-4 rounded-xl border-2 transition-all text-center ${
+                  deliveryMethod === 'email'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border/50 bg-card/30 hover:border-primary/50'
+                }`}
+              >
+                <Send className="w-5 h-5 mx-auto mb-2 text-primary" />
+                <p className="text-sm font-medium text-foreground">Send via Email</p>
+                <p className="text-xs text-muted-foreground">We'll email them directly</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeliveryMethod('link')}
+                className={`p-4 rounded-xl border-2 transition-all text-center ${
+                  deliveryMethod === 'link'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border/50 bg-card/30 hover:border-primary/50'
+                }`}
+              >
+                <LinkIcon className="w-5 h-5 mx-auto mb-2 text-primary" />
+                <p className="text-sm font-medium text-foreground">Get a Link</p>
+                <p className="text-xs text-muted-foreground">Share it yourself</p>
+              </button>
+            </div>
+          </div>
+
           {/* Form */}
           <form onSubmit={handlePurchase} className="space-y-4">
             <CosmicInput
@@ -137,20 +179,22 @@ export default function GiftPurchase() {
             />
             
             <CosmicInput
-              label="Recipient's Name"
+              label="Recipient's Name (optional)"
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
               placeholder="Who's this gift for?"
             />
             
-            <CosmicInput
-              label="Recipient's Email"
-              type="email"
-              value={recipientEmail}
-              onChange={(e) => setRecipientEmail(e.target.value)}
-              placeholder="They'll receive their gift here"
-              required
-            />
+            {deliveryMethod === 'email' && (
+              <CosmicInput
+                label="Recipient's Email"
+                type="email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                placeholder="They'll receive their gift here"
+                required
+              />
+            )}
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Personal Message (optional)</label>
@@ -165,7 +209,7 @@ export default function GiftPurchase() {
             {/* Purchase button */}
             <Button
               type="submit"
-              disabled={isLoading || !purchaserEmail || !recipientEmail}
+              disabled={isLoading || !purchaserEmail || (deliveryMethod === 'email' && !recipientEmail)}
               variant="gold"
               size="xl"
               className="w-full"
@@ -181,8 +225,8 @@ export default function GiftPurchase() {
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <Send className="w-5 h-5" />
-                  Send Gift — ${(selectedAmount / 100).toFixed(2)}
+                  {deliveryMethod === 'email' ? <Send className="w-5 h-5" /> : <LinkIcon className="w-5 h-5" />}
+                  {deliveryMethod === 'email' ? 'Send Gift' : 'Get Gift Link'} — ${(selectedAmount / 100).toFixed(2)}
                 </span>
               )}
             </Button>
@@ -193,7 +237,9 @@ export default function GiftPurchase() {
             <p className="text-sm font-medium text-foreground">How it works:</p>
             <ol className="text-sm text-muted-foreground space-y-1">
               <li>1. Complete your purchase</li>
-              <li>2. Your recipient gets an email with their gift</li>
+              <li>2. {deliveryMethod === 'email' 
+                ? 'Your recipient gets an email with their gift' 
+                : 'You receive a unique gift link to share'}</li>
               <li>3. They fill in their pet's details</li>
               <li>4. Their cosmic report is revealed instantly!</li>
             </ol>

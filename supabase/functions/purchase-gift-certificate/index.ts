@@ -31,7 +31,8 @@ serve(async (req) => {
       recipientEmail,
       recipientName,
       giftMessage,
-      amountCents 
+      amountCents,
+      deliveryMethod 
     } = await req.json();
 
     console.log("[PURCHASE-GIFT] Starting gift certificate purchase", { 
@@ -89,7 +90,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/gift-success?code=${giftCode}`,
+      success_url: `${req.headers.get("origin")}/gift-success?code=${giftCode}&delivery=${deliveryMethod || 'email'}`,
       cancel_url: `${req.headers.get("origin")}/gift`,
       metadata: {
         type: 'gift_certificate',
