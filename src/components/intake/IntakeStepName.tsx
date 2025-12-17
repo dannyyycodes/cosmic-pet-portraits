@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
 import { ModeContent } from '@/lib/occasionMode';
-import trustpilotStars from '@/assets/trustpilot-stars.png';
 
 interface IntakeStepNameProps {
   petData: PetData;
@@ -47,13 +46,6 @@ export function IntakeStepName({ petData, onUpdate, onNext, totalSteps, modeCont
         Continue ➝
       </Button>
 
-      {/* Trust Badge */}
-      <div className="flex flex-col items-center gap-2 pt-4">
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-sm">Rated 4.9/5</span>
-          <img src={trustpilotStars} alt="Trustpilot" className="h-5" />
-        </div>
-      </div>
     </div>
   );
 }
