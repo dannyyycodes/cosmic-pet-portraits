@@ -63,6 +63,10 @@ export default {
           DEFAULT: "var(--glass-bg)",
           border: "var(--glass-border)",
         },
+        nebula: {
+          purple: "hsl(var(--nebula-purple))",
+          blue: "hsl(var(--nebula-blue))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
