@@ -31,13 +31,9 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
     : null;
   const signData = sign ? zodiacSigns[sign] : null;
 
-  const handleCheckout = async (checkoutData: CheckoutData) => {
-    setIsLoading(true);
-    try {
-      onReveal(checkoutData);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleCheckout = (checkoutData: CheckoutData) => {
+    // Don't manage loading state here - let IntakeWizard handle it
+    onReveal(checkoutData);
   };
 
   const elementColors: Record<string, string> = {
