@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { CosmicProgress } from '@/components/cosmic/CosmicProgress';
 import { EmotionProvider, useEmotion } from '@/contexts/EmotionContext';
+import { CheckoutData } from './CheckoutPanel';
 
 export type PetSpecies = 'dog' | 'cat' | 'rabbit' | 'hamster' | 'guinea_pig' | 'bird' | 'fish' | 'reptile' | 'horse' | 'other' | '';
 export type PetGender = 'boy' | 'girl' | '';
@@ -113,7 +114,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     setStep(prevStep);
   };
 
-  const handleReveal = async () => {
+  const handleReveal = async (checkoutData?: CheckoutData) => {
     setIsLoading(true);
     
     try {
@@ -139,6 +140,22 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       if (dbError) {
         console.error('Database error:', dbError);
         throw new Error('Failed to save pet data');
+      }
+
+      // If checkout data exists and there's a total to pay, handle payment
+      if (checkoutData && checkoutData.totalCents > 0) {
+        // Store checkout data for after payment
+        sessionStorage.setItem('pendingCheckout', JSON.stringify({
+          reportId: savedReport.id,
+          checkoutData,
+          petData: {
+            ...petData,
+            dateOfBirth: petData.dateOfBirth?.toISOString()
+          }
+        }));
+
+        // For now, proceed to generate report (in production, integrate Stripe checkout)
+        toast.info('Payment flow would redirect to Stripe here');
       }
 
       // Generate AI report

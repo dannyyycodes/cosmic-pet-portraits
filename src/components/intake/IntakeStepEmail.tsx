@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
@@ -6,18 +7,30 @@ import { ArrowLeft, Sparkles, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SocialProofBar } from './SocialProofBar';
 import { ReportTeaser } from './ReportTeaser';
+import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
 
 interface IntakeStepEmailProps {
   petData: PetData;
   onUpdate: (data: Partial<PetData>) => void;
-  onReveal: () => void;
+  onReveal: (checkoutData?: CheckoutData) => void;
   onBack: () => void;
   totalSteps: number;
   modeContent: ModeContent;
 }
 
 export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalSteps, modeContent }: IntakeStepEmailProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(petData.email);
+
+  const handleCheckout = async (checkoutData: CheckoutData) => {
+    setIsLoading(true);
+    try {
+      onReveal(checkoutData);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6 text-center">
@@ -55,28 +68,38 @@ export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalStep
       {/* Report teaser preview */}
       <ReportTeaser petData={petData} />
 
-      <div className="space-y-4 pt-2">
-        <div className="space-y-2">
-          <Input
-            type="email"
-            placeholder="your@email.com"
-            value={petData.email}
-            onChange={(e) => onUpdate({ email: e.target.value })}
-            className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
+      {!showCheckout ? (
+        <div className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <Input
+              type="email"
+              placeholder="your@email.com"
+              value={petData.email}
+              onChange={(e) => onUpdate({ email: e.target.value })}
+              className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
+            />
+          </div>
+
+          <Button
+            onClick={() => setShowCheckout(true)}
+            disabled={!isValidEmail}
+            variant="gold"
+            size="xl"
+            className="w-full max-w-xs mx-auto"
+          >
+            <Sparkles className="w-5 h-5 mr-2" />
+            {modeContent.emailButton}
+          </Button>
+        </div>
+      ) : (
+        <div className="pt-2 max-w-md mx-auto">
+          <CheckoutPanel
+            petData={petData}
+            onCheckout={handleCheckout}
+            isLoading={isLoading}
           />
         </div>
-
-        <Button
-          onClick={onReveal}
-          disabled={!isValidEmail}
-          variant="gold"
-          size="xl"
-          className="w-full max-w-xs mx-auto"
-        >
-          <Sparkles className="w-5 h-5 mr-2" />
-          {modeContent.emailButton}
-        </Button>
-      </div>
+      )}
 
       <p className="text-xs text-muted-foreground/60">
         By continuing, you agree to receive your cosmic analysis and updates.
