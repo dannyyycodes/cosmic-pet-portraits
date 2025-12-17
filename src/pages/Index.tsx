@@ -1,46 +1,13 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Star, Sparkles, Gift, Heart, Cake, ArrowDown } from "lucide-react";
+import { Star, Sparkles, Gift, Heart, Dog } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { HowItWorks } from "@/components/HowItWorks";
 import { HomeTestimonials } from "@/components/HomeTestimonials";
 import { FAQ } from "@/components/FAQ";
-
-type OccasionMode = "discover" | "birthday" | "memorial" | "gift";
-
-const occasionContent = {
-  discover: {
-    headline: "Do You Know Your Pet's 'Soul Contract'?",
-    subhead: "92% of owners say this reading revealed the spiritual agreement they share. Discover their true purpose in 60 seconds.",
-    buttonText: "Reveal My Pet's Soul Profile",
-    icon: Sparkles,
-  },
-  birthday: {
-    headline: "The Ultimate Cosmic Gift for Their Solar Return.",
-    subhead: "Celebrate another orbit of love. Unlock a birthday report that reveals the light they bring into your life.",
-    buttonText: "Create a Birthday Portrait",
-    icon: Cake,
-  },
-  memorial: {
-    headline: "Honor the Starlight That Never Fades.",
-    subhead: "Your bond didn't end; it evolved. Discover the eternal soul contract that connects you forever.",
-    buttonText: "Create a Memorial Tribute",
-    icon: Heart,
-  },
-  gift: {
-    headline: "The Gift Every Pet Lover Actually Wants.",
-    subhead: "Forget toys and treats. Give them a window into their pet's soul. The most meaningful, personalized surprise for any occasion.",
-    buttonText: "Send a Cosmic Gift",
-    icon: Gift,
-  },
-};
+import { motion } from "framer-motion";
 
 const Index = () => {
-  const [selectedMode, setSelectedMode] = useState<OccasionMode>("discover");
-  const content = occasionContent[selectedMode];
-  const IconComponent = content.icon;
-
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       <Navbar />
@@ -95,63 +62,88 @@ const Index = () => {
       <section className="relative flex items-center justify-center px-4 pt-28 pb-8 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Dynamic Intent Switcher - Segmented Control with Arrow */}
-          <div className="relative inline-block mb-8">
-            {/* Golden Arrow + Label */}
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce-gentle">
-              <span className="text-gold text-sm font-medium whitespace-nowrap mb-1">
-                ✨ Select Occasion
-              </span>
-              <ArrowDown className="w-5 h-5 text-gold" />
-            </div>
-            
-            {/* Segmented Control */}
-            <div className="inline-flex items-center p-1 rounded-full bg-background/30 backdrop-blur-md border border-gold/40 shadow-[0_0_20px_hsl(43_69%_52%/0.2)]">
-              {(["discover", "birthday", "memorial", "gift"] as OccasionMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setSelectedMode(mode)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 capitalize ${
-                    selectedMode === mode
-                      ? "bg-gold/90 text-background shadow-lg shadow-gold/20"
-                      : "text-foreground/70 hover:text-foreground hover:bg-foreground/10"
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Main Headline with Gold-Purple Gradient */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold leading-tight mb-6">
+          {/* Main Headline */}
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold leading-tight mb-6"
+          >
             <span className="text-gradient-gold-purple">
-              {content.headline}
+              Discover the Soul Behind Those Eyes
             </span>
-          </h1>
+          </motion.h1>
 
           {/* Subhead */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            {content.subhead}
-          </p>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed"
+          >
+            92% of pet parents say this cosmic reading revealed something profound about their bond. 
+            Unlock your pet's true purpose in 60 seconds.
+          </motion.p>
 
-          {/* Magical CTA Button */}
-          <div className="relative inline-block mb-6">
-            <Button 
-              variant="cosmic" 
-              size="xl" 
-              className={`btn-magical relative z-10 ${selectedMode === "gift" ? "btn-shimmer" : ""}`}
-              asChild
-            >
-              <Link to={`/intake?mode=${selectedMode}`}>
-                <IconComponent className="w-5 h-5 mr-2" />
-                {content.buttonText}
-              </Link>
-            </Button>
-          </div>
+          {/* Two CTA Cards */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12"
+          >
+            {/* Discover My Pet */}
+            <Link to="/intake?mode=discover" className="group">
+              <div className="relative p-8 rounded-2xl border-2 border-primary/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-card/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] h-full">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                  Most Popular
+                </div>
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Dog className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-display font-bold text-foreground">Discover My Pet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Unlock your companion's cosmic personality and deepen your bond
+                    </p>
+                  </div>
+                  <Button variant="cosmic" size="lg" className="w-full mt-2">
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Start Discovery
+                  </Button>
+                </div>
+              </div>
+            </Link>
+
+            {/* Gift to a Friend */}
+            <Link to="/gift" className="group">
+              <div className="relative p-8 rounded-2xl border-2 border-nebula-pink/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-nebula-pink hover:bg-card/50 hover:shadow-[0_0_30px_hsl(330_70%_50%/0.3)] h-full">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Gift className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-display font-bold text-foreground">Gift to a Friend</h3>
+                    <p className="text-sm text-muted-foreground">
+                      The perfect gift for any pet lover — meaningful & unforgettable
+                    </p>
+                  </div>
+                  <Button variant="outline" size="lg" className="w-full mt-2 border-nebula-pink/50 hover:bg-nebula-pink/10 hover:border-nebula-pink">
+                    <Heart className="w-4 h-4 mr-2 text-nebula-pink" />
+                    Send a Gift
+                  </Button>
+                </div>
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Authority Seal */}
-          <div className="flex justify-center mb-8">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex justify-center mb-8"
+          >
             <div className="authority-seal inline-flex items-center gap-3 px-6 py-3 rounded-xl">
               <div className="relative">
                 <Star className="w-5 h-5 text-gold fill-gold" />
@@ -161,10 +153,15 @@ const Index = () => {
                 Powered by <span className="text-gold font-medium">Swiss Ephemeris data</span>, crafted by devoted pet lovers
               </span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Trust Badge */}
-          <div className="flex flex-col items-center gap-3">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex flex-col items-center gap-3"
+          >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50">
               <span className="text-sm text-foreground/80">
                 Rated <strong className="text-gold">4.9/5</strong> by 2,000+ Pet Parents
@@ -184,7 +181,7 @@ const Index = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
