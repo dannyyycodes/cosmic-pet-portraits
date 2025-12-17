@@ -21,6 +21,7 @@ import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { CosmicProgress } from '@/components/cosmic/CosmicProgress';
 import { EmotionProvider, useEmotion } from '@/contexts/EmotionContext';
 import { CheckoutData } from './CheckoutPanel';
+import { saveIntakeProgress, loadIntakeProgress, clearIntakeProgress } from '@/lib/intakeStorage';
 
 export type PetSpecies = 'dog' | 'cat' | 'rabbit' | 'hamster' | 'guinea_pig' | 'bird' | 'fish' | 'reptile' | 'horse' | 'other' | '';
 export type PetGender = 'boy' | 'girl' | '';
@@ -82,17 +83,54 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
 }
 
 function IntakeWizardContent({ mode }: IntakeWizardProps) {
-  const [step, setStep] = useState(0); // Start at 0 for pet count
+  const [step, setStep] = useState(0);
   const [petCount, setPetCount] = useState(1);
   const [currentPetIndex, setCurrentPetIndex] = useState(0);
   const [petsData, setPetsData] = useState<PetData[]>([createEmptyPetData(mode)]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [cosmicReport, setCosmicReport] = useState<CosmicReport | null>(null);
+  const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
   const stepStartTime = useRef<number>(Date.now());
   const { trackAction, intensity } = useEmotion();
 
   const modeContent = occasionModeContent[mode];
+
+  // Restore saved progress on mount
+  useEffect(() => {
+    if (hasRestoredProgress) return;
+    
+    const saved = loadIntakeProgress();
+    if (saved && saved.petsData.length > 0) {
+      // Convert date strings back to Date objects
+      const restoredPets = saved.petsData.map(pet => ({
+        ...pet,
+        dateOfBirth: pet.dateOfBirth ? new Date(pet.dateOfBirth) : null,
+      }));
+      
+      setPetsData(restoredPets);
+      setCurrentPetIndex(saved.currentPetIndex);
+      setStep(saved.step);
+      setPetCount(saved.petCount);
+      
+      toast.success('Welcome back! Your progress has been restored.');
+    }
+    setHasRestoredProgress(true);
+  }, [hasRestoredProgress]);
+
+  // Save progress whenever state changes
+  useEffect(() => {
+    if (!hasRestoredProgress) return;
+    if (step === 0 && petsData[0].name === '') return; // Don't save if nothing entered
+    
+    saveIntakeProgress({
+      petsData,
+      currentPetIndex,
+      step,
+      petCount,
+      savedAt: Date.now(),
+    });
+  }, [petsData, currentPetIndex, step, petCount, hasRestoredProgress]);
 
   // Steps per pet (1-9), then email (10), then checkout (11)
   const stepsPerPet = 9;
@@ -223,6 +261,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         }
 
         if (checkoutResult?.url) {
+          // Clear saved progress before checkout
+          clearIntakeProgress();
           window.location.href = checkoutResult.url;
           return;
         }
