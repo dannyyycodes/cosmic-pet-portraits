@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { z } from "https://esm.sh/zod@3.23.8";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
@@ -11,6 +12,16 @@ const logStep = (step: string, details?: unknown) => {
   console.log(`[CREATE-AFFILIATE] ${step}`, details ? JSON.stringify(details) : '');
 };
 
+// Valid ISO country codes for Stripe Connect
+const VALID_COUNTRIES = ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'AT', 'IE', 'PT', 'FI', 'SE', 'NO', 'DK', 'CH', 'NZ', 'SG', 'HK', 'JP'];
+
+// Input validation schema
+const affiliateSchema = z.object({
+  email: z.string().email().max(255),
+  name: z.string().min(1).max(100).regex(/^[a-zA-Z\s\-']+$/, "Name contains invalid characters"),
+  country: z.string().length(2).refine(c => VALID_COUNTRIES.includes(c), "Invalid country code").optional().default('US'),
+});
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -18,6 +29,12 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
+
+    // Validate input
+    const rawInput = await req.json();
+    const input = affiliateSchema.parse(rawInput);
+
+    logStep("Input validated", { email: input.email, name: input.name, country: input.country });
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
@@ -27,41 +44,39 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { email, name, country = 'US' } = await req.json();
-    if (!email) throw new Error("Email is required");
-
-    logStep("Creating affiliate account for", { email, name });
+    logStep("Creating affiliate account for", { email: input.email, name: input.name });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
     // Create Stripe Connect Express account
     const account = await stripe.accounts.create({
       type: 'express',
-      email,
-      country,
+      email: input.email,
+      country: input.country,
       capabilities: {
         transfers: { requested: true },
       },
       business_type: 'individual',
       metadata: {
-        affiliate_name: name || email,
+        affiliate_name: input.name,
       },
     });
 
     logStep("Stripe account created", { accountId: account.id });
 
-    // Generate unique referral code
-    const referralCode = `${name?.replace(/\s/g, '').toLowerCase().slice(0, 6) || 'ref'}_${Math.random().toString(36).slice(2, 8)}`;
+    // Generate unique referral code (sanitized name)
+    const sanitizedName = input.name.replace(/[^a-zA-Z]/g, '').toLowerCase().slice(0, 6) || 'ref';
+    const referralCode = `${sanitizedName}_${Math.random().toString(36).slice(2, 8)}`;
 
     // Store affiliate in database
     const { data: affiliate, error: dbError } = await supabaseClient
       .from('affiliates')
       .insert({
-        email,
-        name: name || email,
+        email: input.email,
+        name: input.name,
         stripe_account_id: account.id,
         referral_code: referralCode,
-        commission_rate: 0.20, // 20% default commission
+        commission_rate: 0.20,
         status: 'pending',
       })
       .select()
@@ -94,6 +109,18 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      logStep("Validation error", error.errors);
+      return new Response(JSON.stringify({ 
+        error: "Invalid input",
+        details: error.errors.map(e => e.message).join(", ")
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
     const message = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message });
     return new Response(JSON.stringify({ error: message }), {

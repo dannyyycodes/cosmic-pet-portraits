@@ -1,10 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://esm.sh/zod@3.23.8";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const petDataSchema = z.object({
+  name: z.string().min(1).max(50).regex(/^[a-zA-Z\s\-']+$/, "Invalid pet name"),
+  species: z.string().min(1).max(30),
+  breed: z.string().max(100).optional().default(''),
+  gender: z.enum(['boy', 'girl']),
+  dateOfBirth: z.string().refine(d => !isNaN(Date.parse(d)), "Invalid date format"),
+  location: z.string().max(100).optional().default(''),
+  soulType: z.string().max(50).optional().default(''),
+  superpower: z.string().max(50).optional().default(''),
+  strangerReaction: z.string().max(50).optional().default(''),
+});
+
+const reportSchema = z.object({
+  petData: petDataSchema,
+  reportId: z.string().uuid().optional(),
+});
 
 // Accurate zodiac date ranges
 function getSunSign(month: number, day: number): string {
@@ -22,7 +41,6 @@ function getSunSign(month: number, day: number): string {
   return "Pisces";
 }
 
-// Element and modality from sign
 function getElement(sign: string): string {
   const fire = ["Aries", "Leo", "Sagittarius"];
   const earth = ["Taurus", "Virgo", "Capricorn"];
@@ -41,7 +59,6 @@ function getModality(sign: string): string {
   return "Mutable";
 }
 
-// Calculate name vibration (numerology)
 function calculateNameVibration(name: string): number {
   const cleanName = name.toLowerCase().replace(/[^a-z]/g, '');
   let sum = 0;
@@ -60,8 +77,13 @@ serve(async (req) => {
   }
 
   try {
-    const { petData, reportId } = await req.json();
+    // Validate input
+    const rawInput = await req.json();
+    const input = reportSchema.parse(rawInput);
+    const petData = input.petData;
     
+    console.log("[GENERATE-REPORT] Processing for:", petData.name);
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -169,7 +191,7 @@ Be specific to THIS pet, weaving in their species, breed characteristics, and th
     const reportContent = JSON.parse(aiResponse.choices[0].message.content);
 
     // Update the database record with the generated report
-    if (reportId) {
+    if (input.reportId) {
       const supabaseClient = createClient(
         Deno.env.get("SUPABASE_URL") ?? "",
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -178,7 +200,7 @@ Be specific to THIS pet, weaving in their species, breed characteristics, and th
       await supabaseClient
         .from("pet_reports")
         .update({ report_content: reportContent })
-        .eq("id", reportId);
+        .eq("id", input.reportId);
     }
 
     return new Response(JSON.stringify({ report: reportContent }), {
@@ -187,6 +209,18 @@ Be specific to THIS pet, weaving in their species, breed characteristics, and th
     });
 
   } catch (error) {
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      console.error("[GENERATE-REPORT] Validation error:", error.errors);
+      return new Response(JSON.stringify({ 
+        error: "Invalid input data",
+        details: error.errors.map(e => e.message).join(", ")
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     console.error("Error generating report:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: errorMessage }), {
