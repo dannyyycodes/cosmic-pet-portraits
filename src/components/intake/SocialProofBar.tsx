@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, Users } from 'lucide-react';
+import { Eye, Sparkles } from 'lucide-react';
 
 interface SocialProofBarProps {
   petName: string;
+  position?: 'top' | 'bottom';
 }
 
-export function SocialProofBar({ petName }: SocialProofBarProps) {
+export function SocialProofBar({ petName, position = 'top' }: SocialProofBarProps) {
   const [viewers, setViewers] = useState(0);
   const [recentPurchases, setRecentPurchases] = useState(0);
   const [showNotification, setShowNotification] = useState(false);
@@ -40,32 +41,42 @@ export function SocialProofBar({ petName }: SocialProofBarProps) {
     return () => clearInterval(interval);
   }, []);
 
-
   const petNames = ['Luna', 'Max', 'Bella', 'Charlie', 'Milo', 'Daisy', 'Oscar', 'Coco'];
   const [randomPet] = useState(() => petNames[Math.floor(Math.random() * petNames.length)]);
 
   return (
     <>
-      {/* Fixed corner social proof - visible but not intrusive */}
+      {/* Top bar social proof */}
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-        className="fixed bottom-6 left-6 z-40 flex flex-col gap-2 text-xs bg-card/80 backdrop-blur-md rounded-xl px-4 py-3 border border-primary/20 shadow-lg shadow-primary/10"
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className={`fixed ${position === 'top' ? 'top-0' : 'bottom-0'} left-0 right-0 z-50`}
       >
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          <Eye className="w-3.5 h-3.5 text-primary/70" />
-          <span className="text-muted-foreground"><strong className="text-foreground">{viewers}</strong> viewing now</span>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-nebula-pink/60"></span>
-          <Users className="w-3.5 h-3.5 text-primary/70" />
-          <span className="text-muted-foreground"><strong className="text-foreground">{recentPurchases}</strong> reports today</span>
+        <div className="bg-gradient-to-r from-primary/90 via-cosmic-gold/80 to-primary/90 backdrop-blur-md px-4 py-2">
+          <div className="max-w-xl mx-auto flex items-center justify-center gap-6 text-xs">
+            {/* Live viewers */}
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
+              </span>
+              <Eye className="w-3.5 h-3.5 text-primary-foreground/80" />
+              <span className="text-primary-foreground font-medium">
+                <strong>{viewers}</strong> viewing now
+              </span>
+            </div>
+            
+            <div className="w-px h-4 bg-primary-foreground/30" />
+            
+            {/* Reports today */}
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 text-primary-foreground/80" />
+              <span className="text-primary-foreground font-medium">
+                <strong>{recentPurchases}</strong> readings today
+              </span>
+            </div>
+          </div>
         </div>
       </motion.div>
 
@@ -73,17 +84,17 @@ export function SocialProofBar({ petName }: SocialProofBarProps) {
       <AnimatePresence>
         {showNotification && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed bottom-20 left-4 z-50 flex items-center gap-3 bg-card/90 backdrop-blur-sm border border-border/30 rounded-lg p-2.5 shadow-xl max-w-[200px]"
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -100 }}
+            className="fixed top-16 left-4 z-50 flex items-center gap-3 bg-card/95 backdrop-blur-md border border-cosmic-gold/30 rounded-xl p-3 shadow-xl shadow-cosmic-gold/10"
           >
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center flex-shrink-0">
-              <span className="text-[10px]">🐾</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cosmic-gold to-primary flex items-center justify-center flex-shrink-0">
+              <span className="text-sm">🐾</span>
             </div>
-            <div className="text-[10px]">
-              <p className="text-foreground/90 font-medium">{randomPet}'s report unlocked!</p>
-              <p className="text-muted-foreground/70">just now</p>
+            <div className="text-xs">
+              <p className="text-foreground font-medium">{randomPet}'s reading unlocked!</p>
+              <p className="text-muted-foreground">just now</p>
             </div>
           </motion.div>
         )}
