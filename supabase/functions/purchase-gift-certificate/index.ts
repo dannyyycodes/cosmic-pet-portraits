@@ -90,7 +90,7 @@ serve(async (req) => {
       ],
       mode: "payment",
       success_url: `${req.headers.get("origin")}/gift-success?code=${giftCode}`,
-      cancel_url: `${req.headers.get("origin")}/gift-canceled`,
+      cancel_url: `${req.headers.get("origin")}/gift`,
       metadata: {
         type: 'gift_certificate',
         gift_code: giftCode,

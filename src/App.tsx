@@ -8,6 +8,7 @@ import Intake from "./pages/Intake";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import ViewReport from "./pages/ViewReport";
 import GiftPurchase from "./pages/GiftPurchase";
+import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/intake" element={<Intake />} />
           <Route path="/gift" element={<GiftPurchase />} />
+          <Route path="/gift-success" element={<GiftSuccess />} />
           <Route path="/redeem" element={<RedeemGift />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/report" element={<ViewReport />} />
