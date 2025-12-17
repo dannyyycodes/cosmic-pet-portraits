@@ -14,11 +14,7 @@ interface IntakeStepSoulProps {
 }
 
 export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepSoulProps) {
-  const baseSoulOptions = getSoulOptions((petData.species || 'other') as PetSpecies);
-  const soulOptions = [
-    ...baseSoulOptions,
-    { id: 'not-sure', label: "I'm Not Sure", description: 'Multiple might fit', icon: HelpCircle },
-  ];
+  const soulOptions = getSoulOptions((petData.species || 'other') as PetSpecies);
   
   const handleSelect = (soulType: string) => {
     onUpdate({ soulType });
@@ -70,6 +66,21 @@ export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps, 
           </motion.button>
         ))}
       </div>
+
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        onClick={() => handleSelect('not-sure')}
+        className={`inline-flex items-center gap-2 text-sm transition-colors ${
+          petData.soulType === 'not-sure' 
+            ? 'text-primary' 
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <HelpCircle className="w-4 h-4" />
+        I'm not sure / multiple might fit
+      </motion.button>
     </div>
   );
 }

@@ -12,11 +12,7 @@ interface IntakeStepStrangersProps {
 }
 
 export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepStrangersProps) {
-  const baseStrangerOptions = getStrangerOptions((petData.species || 'other') as PetSpecies);
-  const strangerOptions = [
-    ...baseStrangerOptions,
-    { id: 'not-sure', label: "I'm Not Sure", description: 'Depends on the situation', icon: HelpCircle },
-  ];
+  const strangerOptions = getStrangerOptions((petData.species || 'other') as PetSpecies);
   
   const handleSelect = (strangerReaction: string) => {
     onUpdate({ strangerReaction });
@@ -68,6 +64,21 @@ export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSt
           </motion.button>
         ))}
       </div>
+
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        onClick={() => handleSelect('not-sure')}
+        className={`inline-flex items-center gap-2 text-sm transition-colors ${
+          petData.strangerReaction === 'not-sure' 
+            ? 'text-primary' 
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <HelpCircle className="w-4 h-4" />
+        I'm not sure / depends on the situation
+      </motion.button>
     </div>
   );
 }

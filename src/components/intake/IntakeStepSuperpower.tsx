@@ -12,11 +12,7 @@ interface IntakeStepSuperpowerProps {
 }
 
 export function IntakeStepSuperpower({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepSuperpowerProps) {
-  const baseSuperpowerOptions = getSuperpowerOptions((petData.species || 'other') as PetSpecies);
-  const superpowerOptions = [
-    ...baseSuperpowerOptions,
-    { id: 'not-sure', label: "I'm Not Sure", description: 'Multiple might fit', icon: HelpCircle },
-  ];
+  const superpowerOptions = getSuperpowerOptions((petData.species || 'other') as PetSpecies);
   
   const handleSelect = (superpower: string) => {
     onUpdate({ superpower });
@@ -68,6 +64,21 @@ export function IntakeStepSuperpower({ petData, onUpdate, onNext, onBack, totalS
           </motion.button>
         ))}
       </div>
+
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        onClick={() => handleSelect('not-sure')}
+        className={`inline-flex items-center gap-2 text-sm transition-colors ${
+          petData.superpower === 'not-sure' 
+            ? 'text-primary' 
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <HelpCircle className="w-4 h-4" />
+        I'm not sure / multiple might fit
+      </motion.button>
     </div>
   );
 }
