@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Crown, Check } from 'lucide-react';
+import { Sparkles, Crown, Check, Gift, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
+import { Link } from 'react-router-dom';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -266,6 +267,28 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       <p className="text-center text-xs text-muted-foreground">
         🔒 Secure checkout powered by Stripe
       </p>
+
+      {/* Gift upsell */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mt-4 pt-4 border-t border-border/30"
+      >
+        <Link
+          to="/gift"
+          className="group flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-nebula-pink/10 to-nebula-purple/10 border border-nebula-pink/30 hover:border-nebula-pink/50 transition-all"
+        >
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center flex-shrink-0">
+            <Gift className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-semibold text-foreground text-sm">Gift a Cosmic Reading</p>
+            <p className="text-xs text-muted-foreground">The perfect gift for any pet lover</p>
+          </div>
+          <ArrowRight className="w-5 h-5 text-nebula-pink group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </motion.div>
     </motion.div>
   );
 }

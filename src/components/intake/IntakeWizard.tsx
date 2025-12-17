@@ -257,7 +257,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 pt-14 relative overflow-hidden">
       <StarfieldBackground intensity={intensity} interactive />
       <SocialProofBar petName={currentPetData?.name || ''} />
       
