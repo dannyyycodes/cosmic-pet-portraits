@@ -9,9 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const giftAmounts = [
-  { cents: 1497, label: 'Basic Report', description: 'Complete cosmic profile' },
-  { cents: 2997, label: 'Premium Report', description: 'Extended insights + compatibility' },
-  { cents: 3997, label: 'Family Bundle', description: 'Up to 3 pets + family dynamics' },
+  { cents: 3500, label: 'Basic Report', description: 'Complete cosmic profile' },
+  { cents: 5500, label: 'Premium Report', description: 'Extended insights + compatibility' },
+  { cents: 8000, label: 'Family Bundle', description: 'Up to 3 pets + family dynamics' },
 ];
 
 export default function GiftPurchase() {
