@@ -212,7 +212,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               recipientName: checkoutData.recipientName,
               recipientEmail: checkoutData.recipientEmail,
               giftMessage: checkoutData.giftMessage,
-              totalCents: checkoutData.totalCents,
+              includeGiftForFriend: checkoutData.includeGiftForFriend || false,
             },
           }
         );
