@@ -45,7 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to purchaser (confirmation)
     const purchaserEmailResponse = await resend.emails.send({
-      from: "Pet Astrology <gifts@yourdomain.com>",
+      from: "Furreal Paws <onboarding@resend.dev>",
       to: [giftCert.purchaser_email],
       subject: "Your Gift Certificate Purchase Confirmation",
       html: `
@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
     // If there's a recipient email, send them the gift notification
     if (giftCert.recipient_email) {
       const recipientEmailResponse = await resend.emails.send({
-        from: "Pet Astrology <gifts@yourdomain.com>",
+        from: "Furreal Paws <onboarding@resend.dev>",
         to: [giftCert.recipient_email],
         subject: `${recipientName}, You've Received a Cosmic Gift! 🌟`,
         html: `
