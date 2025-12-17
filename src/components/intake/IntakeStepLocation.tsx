@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { PetData } from './IntakeWizard';
-import { ArrowLeft, MapPin, Locate, Sparkles } from 'lucide-react';
+import { ArrowLeft, MapPin, Locate, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface IntakeStepLocationProps {
@@ -13,53 +13,79 @@ interface IntakeStepLocationProps {
   totalSteps: number;
 }
 
-const popularLocations = [
-  // UK cities
-  { city: 'London', country: 'UK', flag: '🇬🇧' },
-  { city: 'Liverpool', country: 'UK', flag: '🇬🇧' },
-  { city: 'Manchester', country: 'UK', flag: '🇬🇧' },
-  { city: 'Birmingham', country: 'UK', flag: '🇬🇧' },
-  { city: 'Leeds', country: 'UK', flag: '🇬🇧' },
-  { city: 'Glasgow', country: 'UK', flag: '🇬🇧' },
-  { city: 'Edinburgh', country: 'UK', flag: '🇬🇧' },
-  { city: 'Bristol', country: 'UK', flag: '🇬🇧' },
-  { city: 'Cardiff', country: 'UK', flag: '🇬🇧' },
-  { city: 'Belfast', country: 'UK', flag: '🇬🇧' },
-  // USA cities
+interface LocationResult {
+  display_name: string;
+  name: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    country?: string;
+    state?: string;
+  };
+}
+
+// Famous cities worldwide for initial display
+const famousCities = [
   { city: 'New York', country: 'USA', flag: '🇺🇸' },
-  { city: 'Los Angeles', country: 'USA', flag: '🇺🇸' },
-  { city: 'Chicago', country: 'USA', flag: '🇺🇸' },
-  { city: 'Houston', country: 'USA', flag: '🇺🇸' },
-  { city: 'Miami', country: 'USA', flag: '🇺🇸' },
-  { city: 'San Francisco', country: 'USA', flag: '🇺🇸' },
-  { city: 'Seattle', country: 'USA', flag: '🇺🇸' },
-  { city: 'Boston', country: 'USA', flag: '🇺🇸' },
-  // Other countries
-  { city: 'Sydney', country: 'Australia', flag: '🇦🇺' },
-  { city: 'Melbourne', country: 'Australia', flag: '🇦🇺' },
-  { city: 'Toronto', country: 'Canada', flag: '🇨🇦' },
-  { city: 'Vancouver', country: 'Canada', flag: '🇨🇦' },
+  { city: 'London', country: 'UK', flag: '🇬🇧' },
   { city: 'Paris', country: 'France', flag: '🇫🇷' },
-  { city: 'Berlin', country: 'Germany', flag: '🇩🇪' },
-  { city: 'Amsterdam', country: 'Netherlands', flag: '🇳🇱' },
-  { city: 'Dublin', country: 'Ireland', flag: '🇮🇪' },
-  { city: 'Auckland', country: 'New Zealand', flag: '🇳🇿' },
-  { city: 'Cape Town', country: 'South Africa', flag: '🇿🇦' },
+  { city: 'Tokyo', country: 'Japan', flag: '🇯🇵' },
+  { city: 'Sydney', country: 'Australia', flag: '🇦🇺' },
+  { city: 'Dubai', country: 'UAE', flag: '🇦🇪' },
 ];
 
 export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepLocationProps) {
   const [isLocating, setIsLocating] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<LocationResult[]>([]);
+  const [showResults, setShowResults] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
+  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
   const isValid = petData.location.trim() !== '';
 
-  // Filter suggestions based on input
-  const filteredSuggestions = petData.location.trim()
-    ? popularLocations.filter(loc => 
-        loc.city.toLowerCase().includes(petData.location.toLowerCase()) ||
-        loc.country.toLowerCase().includes(petData.location.toLowerCase())
-      )
-    : popularLocations;
+  // Debounced search using Nominatim
+  useEffect(() => {
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    const query = petData.location.trim();
+    
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=6&featuretype=city`,
+          {
+            headers: {
+              'Accept-Language': 'en',
+            },
+          }
+        );
+        const data = await response.json();
+        setSearchResults(data);
+        setShowResults(true);
+      } catch (error) {
+        console.log('Location search failed');
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => {
+      if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
+      }
+    };
+  }, [petData.location]);
 
   const handleUseCurrentLocation = async () => {
     if (!navigator.geolocation) {
@@ -75,10 +101,9 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
         });
       });
 
-      // Reverse geocode using a free service
       const { latitude, longitude } = position.coords;
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`
       );
       const data = await response.json();
       
@@ -87,7 +112,7 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
       const locationString = city && country ? `${city}, ${country}` : city || country || 'Location found';
       
       onUpdate({ location: locationString });
-      setShowSuggestions(false);
+      setShowResults(false);
     } catch (error) {
       console.log('Could not get location');
     } finally {
@@ -95,9 +120,22 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
     }
   };
 
-  const selectLocation = (city: string, country: string) => {
+  const selectLocation = (displayName: string, result?: LocationResult) => {
+    // Format nicely: City, Country
+    if (result?.address) {
+      const city = result.address.city || result.address.town || result.address.village || result.name;
+      const country = result.address.country;
+      const formatted = city && country ? `${city}, ${country}` : displayName.split(',').slice(0, 2).join(',');
+      onUpdate({ location: formatted });
+    } else {
+      onUpdate({ location: displayName });
+    }
+    setShowResults(false);
+  };
+
+  const selectFamousCity = (city: string, country: string) => {
     onUpdate({ location: `${city}, ${country}` });
-    setShowSuggestions(false);
+    setShowResults(false);
   };
 
   return (
@@ -138,20 +176,27 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
               value={petData.location}
               onChange={(e) => {
                 onUpdate({ location: e.target.value });
-                setShowSuggestions(true);
               }}
               onFocus={() => {
                 setInputFocused(true);
-                setShowSuggestions(true);
+                if (petData.location.length >= 2) {
+                  setShowResults(true);
+                }
               }}
-              onBlur={() => setInputFocused(false)}
+              onBlur={() => {
+                setInputFocused(false);
+                // Delay hiding to allow click on results
+                setTimeout(() => setShowResults(false), 200);
+              }}
               className={cn(
-                "w-full h-14 pl-12 pr-4 text-lg bg-card/50 border border-border/50 rounded-xl",
+                "w-full h-14 pl-12 pr-12 text-lg bg-card/50 border border-border/50 rounded-xl",
                 "text-foreground placeholder:text-muted-foreground/50",
                 "focus:outline-none focus:border-primary/50 transition-all"
               )}
             />
-            {petData.location && (
+            {isSearching ? (
+              <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary animate-spin" />
+            ) : petData.location && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -161,6 +206,34 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
               </motion.div>
             )}
           </div>
+
+          {/* Search Results Dropdown */}
+          <AnimatePresence>
+            {showResults && searchResults.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute z-50 w-full mt-2 bg-card border border-border/50 rounded-xl shadow-lg overflow-hidden"
+              >
+                {searchResults.map((result, index) => (
+                  <button
+                    key={index}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => selectLocation(result.display_name, result)}
+                    className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-border/30 last:border-0"
+                  >
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-4 h-4 text-primary/60 flex-shrink-0" />
+                      <span className="text-foreground text-sm truncate">
+                        {result.display_name.split(',').slice(0, 3).join(',')}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Use Current Location Button */}
@@ -175,9 +248,9 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
           </span>
         </button>
 
-        {/* Quick Select Suggestions */}
+        {/* Famous Cities - only show when input is empty */}
         <AnimatePresence>
-          {showSuggestions && filteredSuggestions.length > 0 && (
+          {!petData.location && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -186,18 +259,16 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
             >
               <p className="text-xs text-muted-foreground">Quick select:</p>
               <div className="flex flex-wrap gap-2 justify-center max-w-md mx-auto">
-                {filteredSuggestions.slice(0, 6).map((loc) => (
+                {famousCities.map((loc) => (
                   <motion.button
                     key={`${loc.city}-${loc.country}`}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => selectLocation(loc.city, loc.country)}
+                    onClick={() => selectFamousCity(loc.city, loc.country)}
                     className={cn(
                       "px-3 py-2 rounded-full text-sm transition-all",
                       "border border-border/50 hover:border-primary/50",
-                      "bg-card/50 text-muted-foreground hover:text-foreground",
-                      petData.location === `${loc.city}, ${loc.country}` && 
-                        "bg-primary/20 border-primary text-foreground"
+                      "bg-card/50 text-muted-foreground hover:text-foreground"
                     )}
                   >
                     <span className="mr-1">{loc.flag}</span>
@@ -213,7 +284,7 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
         <button
           onClick={() => {
             onUpdate({ location: 'Unknown' });
-            setShowSuggestions(false);
+            setShowResults(false);
           }}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
