@@ -205,7 +205,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     
     try {
       // Save all pets to database
-      const email = petsData[0].email;
+      const email = petsData[0].email.trim(); // Trim to prevent Stripe email errors
       const reportIds: string[] = [];
 
       for (const pet of petsData) {
