@@ -9,9 +9,10 @@ interface IntakeStepNameProps {
   onNext: () => void;
   totalSteps: number;
   modeContent: ModeContent;
+  petNumber?: number;
 }
 
-export function IntakeStepName({ petData, onUpdate, onNext, totalSteps, modeContent }: IntakeStepNameProps) {
+export function IntakeStepName({ petData, onUpdate, onNext, totalSteps, modeContent, petNumber }: IntakeStepNameProps) {
   const isValid = petData.name.trim() !== '';
 
   return (
@@ -19,7 +20,7 @@ export function IntakeStepName({ petData, onUpdate, onNext, totalSteps, modeCont
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">Step 1 of {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          {modeContent.nameTitle}
+          {petNumber ? `What's pet #${petNumber}'s name?` : modeContent.nameTitle}
         </h1>
         <p className="text-muted-foreground text-lg">
           {modeContent.nameSubtitle}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IntakeStepPetCount } from './IntakeStepPetCount';
 import { IntakeStepName } from './IntakeStepName';
 import { IntakeStepSpecies } from './IntakeStepSpecies';
 import { IntakeStepBreed } from './IntakeStepBreed';
@@ -56,6 +57,21 @@ interface IntakeWizardProps {
   mode: OccasionMode;
 }
 
+const createEmptyPetData = (mode: OccasionMode): PetData => ({
+  name: '',
+  species: '',
+  breed: '',
+  gender: '',
+  dateOfBirth: null,
+  timeOfBirth: '',
+  location: '',
+  soulType: '',
+  superpower: '',
+  strangerReaction: '',
+  email: '',
+  occasionMode: mode
+});
+
 // Wrapper component with EmotionProvider
 export function IntakeWizard({ mode }: IntakeWizardProps) {
   return (
@@ -66,39 +82,50 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
 }
 
 function IntakeWizardContent({ mode }: IntakeWizardProps) {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // Start at 0 for pet count
+  const [petCount, setPetCount] = useState(1);
+  const [currentPetIndex, setCurrentPetIndex] = useState(0);
+  const [petsData, setPetsData] = useState<PetData[]>([createEmptyPetData(mode)]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [cosmicReport, setCosmicReport] = useState<CosmicReport | null>(null);
   const stepStartTime = useRef<number>(Date.now());
-  const { trackAction, intensity, getEmotionalLanguage } = useEmotion();
-  
-  const [petData, setPetData] = useState<PetData>({
-    name: '',
-    species: '',
-    breed: '',
-    gender: '',
-    dateOfBirth: null,
-    timeOfBirth: '',
-    location: '',
-    soulType: '',
-    superpower: '',
-    strangerReaction: '',
-    email: '',
-    occasionMode: mode
-  });
+  const { trackAction, intensity } = useEmotion();
 
   const modeContent = occasionModeContent[mode];
+
+  // Steps per pet (1-9), then email (10), then checkout (11)
+  const stepsPerPet = 9;
+  const totalSteps = 1 + (petCount * stepsPerPet) + 1; // pet count + pet steps + email
+
+  // Calculate current global step for progress
+  const getGlobalStep = () => {
+    if (step === 0) return 0;
+    if (step === 10) return 1 + (petCount * stepsPerPet) + 1; // Email step
+    return 1 + (currentPetIndex * stepsPerPet) + step;
+  };
 
   // Track step timing
   useEffect(() => {
     trackAction({ type: 'step_start' });
     stepStartTime.current = Date.now();
-  }, [step, trackAction]);
+  }, [step, currentPetIndex, trackAction]);
+
+  // Update pet count and initialize pet data array
+  const handlePetCountChange = (count: number) => {
+    setPetCount(count);
+    const newPetsData = Array(count).fill(null).map((_, i) => 
+      petsData[i] || createEmptyPetData(mode)
+    );
+    setPetsData(newPetsData);
+  };
+
+  const currentPetData = petsData[currentPetIndex];
 
   const updatePetData = (data: Partial<PetData>) => {
-    setPetData(prev => ({ ...prev, ...data }));
-    // Track input detail level for emotion detection
+    setPetsData(prev => prev.map((pet, i) => 
+      i === currentPetIndex ? { ...pet, ...data } : pet
+    ));
     if ('name' in data && data.name) {
       trackAction({ type: 'input_change', length: data.name.length });
     }
@@ -112,44 +139,71 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
   const handleBack = (prevStep: number) => {
     trackAction({ type: 'back_pressed' });
-    setStep(prevStep);
+    
+    // If going back from step 1 and not the first pet, go to previous pet's last step
+    if (prevStep === 0 && currentPetIndex > 0) {
+      setCurrentPetIndex(currentPetIndex - 1);
+      setStep(9);
+    } else if (prevStep === 0 && currentPetIndex === 0) {
+      setStep(0); // Go back to pet count selection
+    } else {
+      setStep(prevStep);
+    }
+  };
+
+  const handleNextPetOrEmail = () => {
+    if (currentPetIndex < petCount - 1) {
+      // Move to next pet
+      setCurrentPetIndex(currentPetIndex + 1);
+      setStep(1);
+    } else {
+      // All pets done, go to email
+      setStep(10);
+    }
   };
 
   const handleReveal = async (checkoutData?: CheckoutData) => {
     setIsLoading(true);
     
     try {
-      // Save to database first
-      const { data: savedReport, error: dbError } = await supabase
-        .from('pet_reports')
-        .insert({
-          email: petData.email,
-          pet_name: petData.name,
-          species: petData.species,
-          breed: petData.breed || null,
-          gender: petData.gender || null,
-          birth_date: petData.dateOfBirth?.toISOString().split('T')[0] || null,
-          birth_location: petData.location || null,
-          soul_type: petData.soulType || null,
-          superpower: petData.superpower || null,
-          stranger_reaction: petData.strangerReaction || null,
-          occasion_mode: petData.occasionMode,
-        })
-        .select()
-        .single();
+      // Save all pets to database
+      const email = petsData[0].email;
+      const reportIds: string[] = [];
 
-      if (dbError) {
-        console.error('Database error:', dbError);
-        throw new Error('Failed to save pet data');
+      for (const pet of petsData) {
+        const { data: savedReport, error: dbError } = await supabase
+          .from('pet_reports')
+          .insert({
+            email: email,
+            pet_name: pet.name,
+            species: pet.species,
+            breed: pet.breed || null,
+            gender: pet.gender || null,
+            birth_date: pet.dateOfBirth?.toISOString().split('T')[0] || null,
+            birth_location: pet.location || null,
+            soul_type: pet.soulType || null,
+            superpower: pet.superpower || null,
+            stranger_reaction: pet.strangerReaction || null,
+            occasion_mode: pet.occasionMode,
+          })
+          .select()
+          .single();
+
+        if (dbError) {
+          console.error('Database error:', dbError);
+          throw new Error('Failed to save pet data');
+        }
+        reportIds.push(savedReport.id);
       }
 
-      // If checkout data exists, create Stripe checkout session
-      if (checkoutData && checkoutData.selectedProducts.length > 0) {
+      // Create checkout with volume discount
+      if (checkoutData) {
         const { data: checkoutResult, error: checkoutError } = await supabase.functions.invoke(
           'create-checkout',
           {
             body: {
-              reportId: savedReport.id,
+              reportIds, // Array of report IDs
+              petCount,
               selectedProducts: checkoutData.selectedProducts,
               couponId: checkoutData.couponId,
               giftCertificateId: checkoutData.giftCertificateId,
@@ -167,31 +221,10 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           throw new Error('Failed to create checkout session');
         }
 
-        // Redirect to Stripe checkout or success page
         if (checkoutResult?.url) {
           window.location.href = checkoutResult.url;
-          return; // Don't set loading to false, page is navigating away
+          return;
         }
-      }
-
-      // Fallback: generate report directly (shouldn't happen normally)
-      const { data: reportData, error: fnError } = await supabase.functions.invoke('generate-cosmic-report', {
-        body: { 
-          petData: {
-            ...petData,
-            dateOfBirth: petData.dateOfBirth?.toISOString()
-          },
-          reportId: savedReport.id 
-        }
-      });
-
-      if (fnError) {
-        console.error('Function error:', fnError);
-        throw new Error('Failed to generate cosmic report');
-      }
-
-      if (reportData?.report) {
-        setCosmicReport(reportData.report);
       }
 
       setIsLoading(false);
@@ -209,10 +242,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     exit: { opacity: 0, x: -50 }
   };
 
-  const totalSteps = 10;
-
   if (showResults) {
-    return <MiniReport petData={petData} cosmicReport={cosmicReport} />;
+    return <MiniReport petData={petsData[0]} cosmicReport={cosmicReport} />;
   }
 
   if (isLoading) {
@@ -226,74 +257,127 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Immersive starfield background */}
       <StarfieldBackground intensity={intensity} interactive />
-      
-      {/* Persistent social proof in corner */}
-      <SocialProofBar petName={petData.name} />
+      <SocialProofBar petName={currentPetData?.name || ''} />
       
       <div className="w-full max-w-xl relative z-10">
-        {/* Enhanced cosmic progress */}
-        <CosmicProgress current={step} total={totalSteps} />
+        {/* Progress bar - only show after pet count selection */}
+        {step > 0 && (
+          <CosmicProgress current={getGlobalStep()} total={totalSteps} />
+        )}
+
+        {/* Pet indicator for multi-pet flow */}
+        {step > 0 && step < 10 && petCount > 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-4"
+          >
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary text-sm font-medium">
+              🐾 Pet {currentPetIndex + 1} of {petCount}
+              {currentPetData?.name && `: ${currentPetData.name}`}
+            </span>
+          </motion.div>
+        )}
 
         <AnimatePresence mode="wait">
+          {step === 0 && (
+            <motion.div key="step0" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepPetCount 
+                petCount={petCount} 
+                onUpdate={handlePetCountChange} 
+                onNext={() => goToStep(1)} 
+              />
+            </motion.div>
+          )}
+
           {step === 1 && (
-            <motion.div key="step1" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepName petData={petData} onUpdate={updatePetData} onNext={() => goToStep(2)} totalSteps={totalSteps} modeContent={modeContent} />
+            <motion.div key={`step1-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepName 
+                petData={currentPetData} 
+                onUpdate={updatePetData} 
+                onNext={() => goToStep(2)} 
+                totalSteps={stepsPerPet} 
+                modeContent={modeContent}
+                petNumber={petCount > 1 ? currentPetIndex + 1 : undefined}
+              />
             </motion.div>
           )}
 
           {step === 2 && (
-            <motion.div key="step2" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSpecies petData={petData} onUpdate={updatePetData} onNext={() => goToStep(3)} onBack={() => handleBack(1)} totalSteps={totalSteps} />
+            <motion.div key={`step2-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepSpecies petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(3)} onBack={() => handleBack(1)} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 3 && (
-            <motion.div key="step3" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepBreed petData={petData} onUpdate={updatePetData} onNext={() => goToStep(4)} onBack={() => handleBack(2)} totalSteps={totalSteps} />
+            <motion.div key={`step3-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepBreed petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(4)} onBack={() => handleBack(2)} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 4 && (
-            <motion.div key="step4" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepGender petData={petData} onUpdate={updatePetData} onNext={() => goToStep(5)} onBack={() => handleBack(3)} totalSteps={totalSteps} />
+            <motion.div key={`step4-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepGender petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(5)} onBack={() => handleBack(3)} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 5 && (
-            <motion.div key="step5" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepDOB petData={petData} onUpdate={updatePetData} onNext={() => goToStep(6)} onBack={() => handleBack(4)} totalSteps={totalSteps} modeContent={modeContent} />
+            <motion.div key={`step5-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepDOB petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(6)} onBack={() => handleBack(4)} totalSteps={stepsPerPet} modeContent={modeContent} />
             </motion.div>
           )}
 
           {step === 6 && (
-            <motion.div key="step6" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepLocation petData={petData} onUpdate={updatePetData} onNext={() => goToStep(7)} onBack={() => handleBack(5)} totalSteps={totalSteps} />
+            <motion.div key={`step6-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepLocation petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(7)} onBack={() => handleBack(5)} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 7 && (
-            <motion.div key="step7" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSoul petData={petData} onUpdate={updatePetData} onNext={() => goToStep(8)} onBack={() => handleBack(6)} totalSteps={totalSteps} modeContent={modeContent} />
+            <motion.div key={`step7-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepSoul petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(8)} onBack={() => handleBack(6)} totalSteps={stepsPerPet} modeContent={modeContent} />
             </motion.div>
           )}
 
           {step === 8 && (
-            <motion.div key="step8" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSuperpower petData={petData} onUpdate={updatePetData} onNext={() => goToStep(9)} onBack={() => handleBack(7)} totalSteps={totalSteps} />
+            <motion.div key={`step8-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepSuperpower petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(9)} onBack={() => handleBack(7)} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 9 && (
-            <motion.div key="step9" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepStrangers petData={petData} onUpdate={updatePetData} onNext={() => goToStep(10)} onBack={() => handleBack(8)} totalSteps={totalSteps} />
+            <motion.div key={`step9-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepStrangers 
+                petData={currentPetData} 
+                onUpdate={updatePetData} 
+                onNext={handleNextPetOrEmail} 
+                onBack={() => handleBack(8)} 
+                totalSteps={stepsPerPet} 
+              />
             </motion.div>
           )}
 
           {step === 10 && (
-            <motion.div key="step10" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepEmail petData={petData} onUpdate={updatePetData} onReveal={handleReveal} onBack={() => handleBack(9)} totalSteps={totalSteps} modeContent={modeContent} />
+            <motion.div key="step-email" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepEmail 
+                petData={currentPetData} 
+                petsData={petsData}
+                petCount={petCount}
+                onUpdate={(data) => {
+                  // Update email for all pets
+                  if (data.email) {
+                    setPetsData(prev => prev.map(pet => ({ ...pet, email: data.email! })));
+                  }
+                }} 
+                onReveal={handleReveal} 
+                onBack={() => {
+                  setCurrentPetIndex(petCount - 1);
+                  setStep(9);
+                }} 
+                totalSteps={stepsPerPet} 
+                modeContent={modeContent} 
+              />
             </motion.div>
           )}
         </AnimatePresence>

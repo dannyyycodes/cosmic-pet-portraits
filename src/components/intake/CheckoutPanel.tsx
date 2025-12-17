@@ -36,6 +36,8 @@ interface GiftCertificate {
 
 interface CheckoutPanelProps {
   petData: PetData;
+  petsData?: PetData[];
+  petCount?: number;
   onCheckout: (checkoutData: CheckoutData) => void;
   isLoading: boolean;
 }
@@ -49,9 +51,17 @@ export interface CheckoutData {
   recipientEmail: string;
   giftMessage: string;
   totalCents: number;
+  petCount?: number;
 }
 
-export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelProps) {
+// Volume discount calculation
+function getVolumeDiscount(petCount: number): number {
+  if (petCount >= 3) return 0.20; // 20% off
+  if (petCount >= 2) return 0.10; // 10% off
+  return 0;
+}
+
+export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading }: CheckoutPanelProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -127,33 +137,39 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
     }
   };
 
-  // Calculate pricing
+  // Calculate pricing with volume discount
   const selectedItems = products.filter(p => selectedProducts.includes(p.id));
-  const subtotal = selectedItems.reduce((sum, p) => sum + p.price_cents, 0);
-  const basePrice = products.find(p => p.product_type === 'base_report')?.price_cents || 1497;
+  const baseSubtotal = selectedItems.reduce((sum, p) => sum + p.price_cents, 0);
+  
+  // Apply volume discount to base subtotal
+  const volumeDiscountRate = getVolumeDiscount(petCount);
+  const volumeDiscountAmount = Math.round(baseSubtotal * petCount * volumeDiscountRate);
+  
+  // Total before other discounts = (base price × pet count) - volume discount
+  const subtotalWithPets = (baseSubtotal * petCount) - volumeDiscountAmount;
+  const basePrice = products.find(p => p.product_type === 'base_report')?.price_cents || 3500;
 
-  // Calculate discounts
+  // Calculate coupon discount
   let couponDiscount = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discount_type === 'percentage') {
-      couponDiscount = Math.round(subtotal * appliedCoupon.discount_value / 100);
+      couponDiscount = Math.round(subtotalWithPets * appliedCoupon.discount_value / 100);
     } else {
       couponDiscount = appliedCoupon.discount_value;
     }
   }
 
   // Flash sale: 15% off if active
-  const flashSaleDiscount = showFlashSale ? Math.round(subtotal * 0.15) : 0;
-
-  // Volume discount: count main products (bundle counts as 3)
-  const mainProduct = selectedItems.find(p => ['base_report', 'premium', 'bundle'].includes(p.product_type));
-  const volumeDiscount = mainProduct?.product_type === 'bundle' ? Math.round(basePrice * 0.2) : 0;
+  const flashSaleDiscount = showFlashSale ? Math.round(subtotalWithPets * 0.15) : 0;
 
   const giftCertificateCredit = appliedGift?.amount_cents || 0;
   
-  const totalDiscounts = couponDiscount + volumeDiscount + flashSaleDiscount;
-  const creditApplied = Math.min(giftCertificateCredit, subtotal - totalDiscounts);
-  const total = Math.max(0, subtotal - totalDiscounts - creditApplied);
+  const totalDiscounts = couponDiscount + flashSaleDiscount;
+  const creditApplied = Math.min(giftCertificateCredit, subtotalWithPets - totalDiscounts);
+  const total = Math.max(0, subtotalWithPets - totalDiscounts - creditApplied);
+
+  // Get all pet names for display
+  const petNames = petsData?.map(p => p.name).filter(Boolean) || [petData.name];
 
   const handleCheckout = () => {
     onCheckout({
@@ -165,12 +181,13 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
       recipientEmail,
       giftMessage,
       totalCents: total,
+      petCount,
     });
   };
 
   const orderItems = selectedItems.map(p => ({
-    name: p.name,
-    price: p.price_cents,
+    name: petCount > 1 ? `${p.name} × ${petCount} pets` : p.name,
+    price: p.price_cents * petCount,
   }));
 
   return (
@@ -182,10 +199,14 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
       {/* Emotional header */}
       <div className="text-center space-y-2 pb-4 border-b border-border/30">
         <h2 className="text-2xl font-display font-bold text-foreground">
-          Unlock {petData.name}'s Cosmic Truth
+          {petCount > 1 
+            ? `Unlock ${petNames.join(' & ')}'s Cosmic Truth` 
+            : `Unlock ${petData.name}'s Cosmic Truth`}
         </h2>
         <p className="text-muted-foreground text-sm">
-          Join 2,000+ pet parents who discovered something profound
+          {petCount > 1 
+            ? `${petCount} readings • Save ${Math.round(volumeDiscountRate * 100)}% with multi-pet discount!`
+            : 'Join 2,000+ pet parents who discovered something profound'}
         </p>
       </div>
 
@@ -234,7 +255,7 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
         <CouponInput
           onApplyCoupon={setAppliedCoupon}
           appliedCoupon={appliedCoupon}
-          subtotal={subtotal}
+          subtotal={subtotalWithPets}
         />
         <GiftCertificateInput
           onApplyGift={setAppliedGift}
@@ -247,7 +268,7 @@ export function CheckoutPanel({ petData, onCheckout, isLoading }: CheckoutPanelP
         items={orderItems}
         couponDiscount={couponDiscount}
         giftCertificateCredit={giftCertificateCredit}
-        volumeDiscount={volumeDiscount}
+        volumeDiscount={volumeDiscountAmount}
         flashSaleDiscount={flashSaleDiscount}
         flashSaleEndsIn={showFlashSale ? flashSaleEndsIn : undefined}
       />

@@ -12,6 +12,8 @@ import { getSunSign, zodiacSigns } from '@/lib/zodiac';
 
 interface IntakeStepEmailProps {
   petData: PetData;
+  petsData?: PetData[];
+  petCount?: number;
   onUpdate: (data: Partial<PetData>) => void;
   onReveal: (checkoutData?: CheckoutData) => void;
   onBack: () => void;
@@ -19,7 +21,7 @@ interface IntakeStepEmailProps {
   modeContent: ModeContent;
 }
 
-export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalSteps, modeContent }: IntakeStepEmailProps) {
+export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, totalSteps, modeContent }: IntakeStepEmailProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>('email');
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(petData.email);
@@ -257,13 +259,17 @@ export function IntakeStepEmail({ petData, onUpdate, onReveal, onBack, totalStep
                 Choose Your Reading
               </h2>
               <p className="text-sm text-muted-foreground">
-                Unlock {petData.name}'s complete cosmic profile
+                {petCount > 1 
+                  ? `Unlock cosmic profiles for all ${petCount} of your pets`
+                  : `Unlock ${petData.name}'s complete cosmic profile`}
               </p>
             </div>
 
             <div className="max-w-md mx-auto">
               <CheckoutPanel
                 petData={petData}
+                petsData={petsData}
+                petCount={petCount}
                 onCheckout={handleCheckout}
                 isLoading={isLoading}
               />
