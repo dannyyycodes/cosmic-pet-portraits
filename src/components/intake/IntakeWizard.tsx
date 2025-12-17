@@ -142,23 +142,38 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         throw new Error('Failed to save pet data');
       }
 
-      // If checkout data exists and there's a total to pay, handle payment
-      if (checkoutData && checkoutData.totalCents > 0) {
-        // Store checkout data for after payment
-        sessionStorage.setItem('pendingCheckout', JSON.stringify({
-          reportId: savedReport.id,
-          checkoutData,
-          petData: {
-            ...petData,
-            dateOfBirth: petData.dateOfBirth?.toISOString()
+      // If checkout data exists, create Stripe checkout session
+      if (checkoutData && checkoutData.selectedProducts.length > 0) {
+        const { data: checkoutResult, error: checkoutError } = await supabase.functions.invoke(
+          'create-checkout',
+          {
+            body: {
+              reportId: savedReport.id,
+              selectedProducts: checkoutData.selectedProducts,
+              couponId: checkoutData.couponId,
+              giftCertificateId: checkoutData.giftCertificateId,
+              isGift: checkoutData.isGift,
+              recipientName: checkoutData.recipientName,
+              recipientEmail: checkoutData.recipientEmail,
+              giftMessage: checkoutData.giftMessage,
+              totalCents: checkoutData.totalCents,
+            },
           }
-        }));
+        );
 
-        // For now, proceed to generate report (in production, integrate Stripe checkout)
-        toast.info('Payment flow would redirect to Stripe here');
+        if (checkoutError) {
+          console.error('Checkout error:', checkoutError);
+          throw new Error('Failed to create checkout session');
+        }
+
+        // Redirect to Stripe checkout or success page
+        if (checkoutResult?.url) {
+          window.location.href = checkoutResult.url;
+          return; // Don't set loading to false, page is navigating away
+        }
       }
 
-      // Generate AI report
+      // Fallback: generate report directly (shouldn't happen normally)
       const { data: reportData, error: fnError } = await supabase.functions.invoke('generate-cosmic-report', {
         body: { 
           petData: {
