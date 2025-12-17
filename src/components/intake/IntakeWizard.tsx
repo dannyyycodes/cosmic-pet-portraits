@@ -13,6 +13,8 @@ import { IntakeStepEmail } from './IntakeStepEmail';
 import { CosmicLoading } from './CosmicLoading';
 import { MiniReport } from './MiniReport';
 import { OccasionMode, occasionModeContent } from '@/lib/occasionMode';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export type PetSpecies = 'dog' | 'cat' | 'rabbit' | 'hamster' | 'guinea_pig' | 'bird' | 'fish' | 'reptile' | 'horse' | 'other' | '';
 export type PetGender = 'boy' | 'girl' | '';
@@ -32,6 +34,19 @@ export interface PetData {
   occasionMode: OccasionMode;
 }
 
+export interface CosmicReport {
+  sunSign: string;
+  archetype: string;
+  element: string;
+  modality: string;
+  nameVibration: number;
+  coreEssence: string;
+  soulMission: string;
+  hiddenGift: string;
+  loveLanguage: string;
+  cosmicAdvice: string;
+}
+
 interface IntakeWizardProps {
   mode: OccasionMode;
 }
@@ -40,6 +55,7 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [cosmicReport, setCosmicReport] = useState<CosmicReport | null>(null);
   const [petData, setPetData] = useState<PetData>({
     name: '',
     species: '',
@@ -61,12 +77,61 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
     setPetData(prev => ({ ...prev, ...data }));
   };
 
-  const handleReveal = () => {
+  const handleReveal = async () => {
     setIsLoading(true);
-    setTimeout(() => {
+    
+    try {
+      // Save to database first
+      const { data: savedReport, error: dbError } = await supabase
+        .from('pet_reports')
+        .insert({
+          email: petData.email,
+          pet_name: petData.name,
+          species: petData.species,
+          breed: petData.breed || null,
+          gender: petData.gender || null,
+          birth_date: petData.dateOfBirth?.toISOString().split('T')[0] || null,
+          birth_location: petData.location || null,
+          soul_type: petData.soulType || null,
+          superpower: petData.superpower || null,
+          stranger_reaction: petData.strangerReaction || null,
+          occasion_mode: petData.occasionMode,
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error('Failed to save pet data');
+      }
+
+      // Generate AI report
+      const { data: reportData, error: fnError } = await supabase.functions.invoke('generate-cosmic-report', {
+        body: { 
+          petData: {
+            ...petData,
+            dateOfBirth: petData.dateOfBirth?.toISOString()
+          },
+          reportId: savedReport.id 
+        }
+      });
+
+      if (fnError) {
+        console.error('Function error:', fnError);
+        throw new Error('Failed to generate cosmic report');
+      }
+
+      if (reportData?.report) {
+        setCosmicReport(reportData.report);
+      }
+
       setIsLoading(false);
       setShowResults(true);
-    }, 3500);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Something went wrong. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   const pageVariants = {
@@ -78,7 +143,7 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
   const totalSteps = 10;
 
   if (showResults) {
-    return <MiniReport petData={petData} />;
+    return <MiniReport petData={petData} cosmicReport={cosmicReport} />;
   }
 
   if (isLoading) {

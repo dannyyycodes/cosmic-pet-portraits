@@ -1,26 +1,35 @@
 import { motion } from 'framer-motion';
-import { PetData } from './IntakeWizard';
-import { getSunSign, zodiacSigns } from '@/lib/zodiac';
-import { Lock, Moon, ArrowUp, Sparkles, Star, Hash } from 'lucide-react';
+import { PetData, CosmicReport } from './IntakeWizard';
+import { Lock, Moon, ArrowUp, Sparkles, Star, Heart, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TestimonialCarousel } from './TestimonialCarousel';
 
 interface MiniReportProps {
   petData: PetData;
+  cosmicReport: CosmicReport | null;
 }
 
-function calculateNameVibration(name: string): number {
-  const cleanName = name.toLowerCase().replace(/[^a-z]/g, '');
-  let sum = 0;
-  for (const char of cleanName) {
-    sum += char.charCodeAt(0) - 96; // a=1, b=2, etc.
-  }
-  // Reduce to single digit (except master numbers 11, 22, 33)
-  while (sum > 9 && sum !== 11 && sum !== 22 && sum !== 33) {
-    sum = sum.toString().split('').reduce((acc, digit) => acc + parseInt(digit), 0);
-  }
-  return sum;
-}
+const elementIcons: Record<string, string> = {
+  Fire: '🔥',
+  Earth: '🌍',
+  Air: '💨',
+  Water: '💧',
+};
+
+const zodiacIcons: Record<string, string> = {
+  Aries: '♈',
+  Taurus: '♉',
+  Gemini: '♊',
+  Cancer: '♋',
+  Leo: '♌',
+  Virgo: '♍',
+  Libra: '♎',
+  Scorpio: '♏',
+  Sagittarius: '♐',
+  Capricorn: '♑',
+  Aquarius: '♒',
+  Pisces: '♓',
+};
 
 const vibrationMeanings: Record<number, string> = {
   1: "Leadership & Independence",
@@ -37,16 +46,21 @@ const vibrationMeanings: Record<number, string> = {
   33: "Master Teacher",
 };
 
-export function MiniReport({ petData }: MiniReportProps) {
-  const dob = petData.dateOfBirth!;
-  const sunSignKey = getSunSign(dob.getMonth() + 1, dob.getDate());
-  const sunSign = zodiacSigns[sunSignKey];
-  const nameVibration = calculateNameVibration(petData.name);
+export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
+  if (!cosmicReport) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading your cosmic portrait...</p>
+      </div>
+    );
+  }
+
+  const { sunSign, archetype, element, nameVibration, coreEssence, soulMission, hiddenGift, loveLanguage } = cosmicReport;
 
   const lockedItems = [
-    { icon: Moon, label: "Moon Sign (Emotional Needs)", preview: "Deep emotional patterns revealed..." },
-    { icon: ArrowUp, label: "Rising Sign (First Impressions)", preview: "How the world perceives them..." },
-    { icon: Sparkles, label: "Soul Contract (Why you met)", preview: "The cosmic reason for your bond..." },
+    { icon: Moon, label: "Moon Sign Analysis", preview: "Deep emotional patterns revealed..." },
+    { icon: ArrowUp, label: "Rising Sign Profile", preview: "How the world perceives them..." },
+    { icon: Sparkles, label: "Full Soul Contract", preview: "The cosmic reason for your bond..." },
   ];
 
   return (
@@ -86,7 +100,7 @@ export function MiniReport({ petData }: MiniReportProps) {
                   transition={{ duration: 3, repeat: Infinity }}
                 />
                 <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary to-gold flex items-center justify-center shadow-2xl shadow-primary/30">
-                  <span className="text-4xl">{sunSign.icon}</span>
+                  <span className="text-4xl">{zodiacIcons[sunSign] || '⭐'}</span>
                 </div>
               </div>
 
@@ -94,46 +108,96 @@ export function MiniReport({ petData }: MiniReportProps) {
               <div className="space-y-2">
                 <p className="text-muted-foreground text-sm uppercase tracking-widest">It's confirmed</p>
                 <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                  {petData.name} is a {sunSign.name}
+                  {petData.name} is a {sunSign}
                 </h1>
-                <p className="text-xl text-gold font-medium">{sunSign.archetype}</p>
+                <p className="text-xl text-gold font-medium">{archetype}</p>
               </div>
 
               {/* Element Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-background/50 border border-border/50">
-                <span className="text-xl">{sunSign.elementIcon}</span>
-                <span className="text-foreground/80">{sunSign.element} Element</span>
+                <span className="text-xl">{elementIcons[element] || '✨'}</span>
+                <span className="text-foreground/80">{element} Element</span>
               </div>
 
-              {/* Core Description */}
+              {/* Core Essence */}
               <div className="pt-4 border-t border-border/50">
                 <h3 className="text-sm uppercase tracking-widest text-primary/80 mb-3">The Core Truth</h3>
                 <p className="text-foreground/80 text-lg leading-relaxed">
-                  {sunSign.coreDescription}
+                  {coreEssence}
                 </p>
               </div>
             </motion.div>
 
-            {/* Numerology Card */}
+            {/* Soul Mission Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-card/40 backdrop-blur-xl border border-primary/30 rounded-2xl p-6"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/30 shrink-0">
+                  <Heart className="w-6 h-6 text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">Soul Mission</p>
+                  <p className="text-foreground/90">{soulMission}</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Hidden Gift Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+              className="bg-card/40 backdrop-blur-xl border border-gold/30 rounded-2xl p-6"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gold/20 to-gold/10 flex items-center justify-center border border-gold/30 shrink-0">
+                  <Lightbulb className="w-6 h-6 text-gold" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">Hidden Gift</p>
+                  <p className="text-foreground/90">{hiddenGift}</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Love Language Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="bg-card/40 backdrop-blur-xl border border-gold/30 rounded-2xl p-6"
+              className="bg-card/40 backdrop-blur-xl border border-tangerine/30 rounded-2xl p-6"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-tangerine/20 to-tangerine/10 flex items-center justify-center border border-tangerine/30 shrink-0">
+                  <Star className="w-6 h-6 text-tangerine" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">Love Language</p>
+                  <p className="text-foreground/90">{loveLanguage}</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Name Vibration Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.65 }}
+              className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-6"
             >
               <div className="flex items-center justify-center gap-4">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-gold/20 to-gold/10 flex items-center justify-center border border-gold/30">
-                  <Hash className="w-6 h-6 text-gold" />
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-gold/30 flex items-center justify-center">
+                  <span className="text-2xl font-display font-bold text-foreground">{nameVibration}</span>
                 </div>
                 <div className="text-left">
                   <p className="text-sm text-muted-foreground uppercase tracking-wider">Name Vibration</p>
-                  <p className="text-3xl font-display font-bold text-gold">{nameVibration}</p>
-                  <p className="text-sm text-foreground/60">{vibrationMeanings[nameVibration]}</p>
+                  <p className="text-lg font-medium text-foreground">{vibrationMeanings[nameVibration] || "Unique Energy"}</p>
                 </div>
               </div>
-              <p className="text-muted-foreground text-sm mt-4 pt-4 border-t border-border/30">
-                This vibration reveals their hidden spiritual gift.
-              </p>
             </motion.div>
           </motion.div>
         </div>
