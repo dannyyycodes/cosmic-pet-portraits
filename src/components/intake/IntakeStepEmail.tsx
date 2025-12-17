@@ -24,7 +24,15 @@ interface IntakeStepEmailProps {
 export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, totalSteps, modeContent }: IntakeStepEmailProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>('email');
-  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(petData.email);
+  
+  // Stricter email validation - must end with valid TLD characters only
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(petData.email.trim());
+  
+  // Sanitize email input - remove trailing commas, spaces, etc.
+  const handleEmailChange = (value: string) => {
+    const sanitized = value.trim().replace(/[,\s]+$/, '');
+    onUpdate({ email: sanitized });
+  };
   
   const sign = petData.dateOfBirth 
     ? getSunSign(petData.dateOfBirth.getMonth() + 1, petData.dateOfBirth.getDate()) 
@@ -100,7 +108,8 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 type="email"
                 placeholder="your@email.com"
                 value={petData.email}
-                onChange={(e) => onUpdate({ email: e.target.value })}
+                onChange={(e) => handleEmailChange(e.target.value)}
+                onBlur={(e) => handleEmailChange(e.target.value)}
                 className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
               />
 

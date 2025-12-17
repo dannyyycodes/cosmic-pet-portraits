@@ -82,6 +82,12 @@ serve(async (req) => {
       throw new Error("Report not found");
     }
 
+    // Sanitize email - remove trailing commas, spaces, and other invalid chars
+    const sanitizedEmail = report.email
+      .trim()
+      .replace(/,+$/, '') // Remove trailing commas
+      .replace(/\s+/g, ''); // Remove any whitespace
+
     // ===== SERVER-SIDE PRICE CALCULATION =====
     const tier = TIERS[input.selectedTier];
     const actualPetCount = allReportIds.length || input.petCount;
@@ -223,7 +229,7 @@ serve(async (req) => {
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
-      customer_email: report.email,
+      customer_email: sanitizedEmail,
       line_items: lineItems,
       mode: "payment",
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
