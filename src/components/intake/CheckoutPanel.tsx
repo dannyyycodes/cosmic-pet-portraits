@@ -74,9 +74,20 @@ function getVolumeDiscount(petCount: number): number {
 }
 
 export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading }: CheckoutPanelProps) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isDevMode = searchParams.get('dev') === 'true';
-  
+  const isPreviewHost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname.endsWith('lovableproject.com') ||
+      window.location.hostname.endsWith('lovable.app'));
+  const canShowTest = isDevMode || isPreviewHost;
+
+  const enableDevMode = () => {
+    const next = new URLSearchParams(searchParams);
+    next.set('dev', 'true');
+    setSearchParams(next, { replace: true });
+  };
+
   const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | 'vip'>('basic');
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
   const [spotsLeft, setSpotsLeft] = useState(7);
@@ -336,35 +347,50 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         )}
       </Button>
 
-      {/* Dev Mode Test Button */}
-      {isDevMode && (
-        <Button
-          onClick={() => {
-            const checkoutData: CheckoutData = {
-              selectedProducts: [selectedTier],
-              couponId: null,
-              giftCertificateId: null,
-              isGift: false,
-              recipientName: '',
-              recipientEmail: '',
-              giftMessage: '',
-              totalCents: 0, // Free in dev mode
-              petCount,
-              selectedTier,
-              includeGiftForFriend: false,
-            };
-            onCheckout(checkoutData);
-          }}
-          disabled={isLoading}
-          variant="outline"
-          size="lg"
-          className="w-full border-yellow-500 text-yellow-500 hover:bg-yellow-500/10"
-        >
-          <Bug className="w-4 h-4 mr-2" />
-          🧪 TEST MODE — Skip Payment
-        </Button>
-      )}
+      {/* Test Mode (preview only) */}
+      {canShowTest && (
+        <div className="space-y-2">
+          {!isDevMode && (
+            <Button
+              type="button"
+              onClick={enableDevMode}
+              disabled={isLoading}
+              variant="ghost"
+              size="sm"
+              className="w-full"
+            >
+              Enable Test Mode (adds dev=true)
+            </Button>
+          )}
 
+          <Button
+            type="button"
+            onClick={() => {
+              const checkoutData: CheckoutData = {
+                selectedProducts: [selectedTier],
+                couponId: null,
+                giftCertificateId: null,
+                isGift: false,
+                recipientName: '',
+                recipientEmail: '',
+                giftMessage: '',
+                totalCents: 0, // Free in test mode
+                petCount,
+                selectedTier,
+                includeGiftForFriend: false,
+              };
+              onCheckout(checkoutData);
+            }}
+            disabled={isLoading}
+            variant="outline"
+            size="lg"
+            className="w-full border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <Bug className="w-4 h-4 mr-2" />
+            Test: Skip Payment
+          </Button>
+        </div>
+      )}
       {/* Final reassurance */}
       <p className="text-center text-xs text-muted-foreground">
         🔒 Secure checkout • 7-day money back guarantee
