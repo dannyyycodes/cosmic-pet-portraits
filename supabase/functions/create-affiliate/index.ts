@@ -20,6 +20,12 @@ const affiliateSchema = z.object({
   email: z.string().email().max(255),
   name: z.string().min(1).max(100).regex(/^[a-zA-Z\s\-']+$/, "Name contains invalid characters"),
   country: z.string().length(2).refine(c => VALID_COUNTRIES.includes(c), "Invalid country code").optional().default('US'),
+  referralCode: z.string()
+    .min(3, "Code must be at least 3 characters")
+    .max(20, "Code must be 20 characters or less")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Only letters, numbers, underscores, and hyphens allowed")
+    .transform(s => s.toLowerCase())
+    .optional(),
 });
 
 serve(async (req) => {
@@ -65,9 +71,32 @@ serve(async (req) => {
 
     logStep("Stripe account created", { accountId: account.id });
 
-    // Generate unique referral code (sanitized name)
-    const sanitizedName = input.name.replace(/[^a-zA-Z]/g, '').toLowerCase().slice(0, 6) || 'ref';
-    const referralCode = `${sanitizedName}_${Math.random().toString(36).slice(2, 8)}`;
+    // Generate or use custom referral code
+    let referralCode: string;
+    
+    if (input.referralCode) {
+      // Check if custom code is already taken
+      const { data: existing } = await supabaseClient
+        .from('affiliates')
+        .select('id')
+        .eq('referral_code', input.referralCode)
+        .single();
+      
+      if (existing) {
+        logStep("Referral code already taken", { code: input.referralCode });
+        return new Response(JSON.stringify({ 
+          error: `The referral code "${input.referralCode}" is already taken. Please choose another.`
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+      referralCode = input.referralCode;
+    } else {
+      // Generate unique referral code (sanitized name + random)
+      const sanitizedName = input.name.replace(/[^a-zA-Z]/g, '').toLowerCase().slice(0, 6) || 'ref';
+      referralCode = `${sanitizedName}_${Math.random().toString(36).slice(2, 8)}`;
+    }
 
     // Store affiliate in database
     const { data: affiliate, error: dbError } = await supabaseClient

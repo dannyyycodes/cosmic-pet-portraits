@@ -20,6 +20,7 @@ export default function BecomeAffiliate() {
   const [step, setStep] = useState<'info' | 'form' | 'success'>('info');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [referralCode, setReferralCodeInput] = useState('');
   const [country, setCountry] = useState('US');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -33,7 +34,7 @@ export default function BecomeAffiliate() {
 
     try {
       const { data, error } = await supabase.functions.invoke('create-affiliate', {
-        body: { name, email, country },
+        body: { name, email, country, referralCode: referralCode.trim() || undefined },
       });
 
       if (error || data?.error) {
@@ -56,7 +57,7 @@ export default function BecomeAffiliate() {
 
   const copyReferralLink = () => {
     if (!result) return;
-    const link = `${window.location.origin}/?ref=${result.referralCode}`;
+    const link = `${window.location.origin}/ref/${result.referralCode}`;
     navigator.clipboard.writeText(link);
     toast.success('Referral link copied!');
   };
@@ -178,6 +179,26 @@ export default function BecomeAffiliate() {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
+                  Custom Referral Code <span className="text-muted-foreground font-normal">(optional)</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">furrealpaws.site/ref/</span>
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCodeInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+                    className="flex-1 px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+                    placeholder="petlover"
+                    maxLength={20}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  3-20 characters. Letters, numbers, underscores, hyphens only.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Country
                 </label>
                 <select
@@ -237,7 +258,7 @@ export default function BecomeAffiliate() {
               <p className="text-sm text-muted-foreground mb-2">Your Referral Link</p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-sm text-cosmic-gold break-all">
-                  {window.location.origin}/?ref={result.referralCode}
+                  {window.location.origin}/ref/{result.referralCode}
                 </code>
                 <button
                   onClick={copyReferralLink}
