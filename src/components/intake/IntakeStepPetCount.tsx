@@ -1,17 +1,28 @@
 import { motion } from 'framer-motion';
-import { Dog, Plus, Minus, Sparkles } from 'lucide-react';
+import { Dog, Plus, Minus, Sparkles, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface IntakeStepPetCountProps {
   petCount: number;
   onUpdate: (count: number) => void;
   onNext: () => void;
+  onBack?: () => void;
 }
 
-export function IntakeStepPetCount({ petCount, onUpdate, onNext }: IntakeStepPetCountProps) {
+export function IntakeStepPetCount({ petCount, onUpdate, onNext, onBack }: IntakeStepPetCountProps) {
 
   return (
     <div className="space-y-8 text-center">
+      {/* Back button */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute top-4 left-4 p-2 rounded-full hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      )}
+
       <div className="space-y-3">
         <motion.div
           initial={{ scale: 0 }}

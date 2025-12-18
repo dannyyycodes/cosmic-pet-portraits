@@ -38,7 +38,7 @@ const petDataSchema = z.object({
 const reportSchema = z.object({
   petData: petDataSchema,
   reportId: z.string().uuid().optional(),
-  occasionMode: z.enum(['discover', 'birthday', 'memorial']).optional().default('discover'),
+  occasionMode: z.enum(['discover', 'birthday', 'memorial', 'gift']).optional().default('discover'),
 });
 
 // Accurate zodiac date ranges
@@ -297,7 +297,8 @@ serve(async (req) => {
     const modeContext = {
       discover: "This is a discovery reading - help the owner truly understand their pet for the first time.",
       birthday: "This is a birthday celebration reading - honor how their pet has grown and the joy they bring.",
-      memorial: "This is a memorial reading - honor the pet's memory with love, healing, and eternal connection.",
+      memorial: "This is a memorial reading - honor the pet's memory with love, healing, and eternal connection. Use past tense language.",
+      gift: "This is a gift reading - create something beautiful that the gift recipient will treasure forever.",
     };
 
     const signTraits: Record<string, string> = {
