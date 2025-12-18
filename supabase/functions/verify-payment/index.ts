@@ -16,14 +16,23 @@ serve(async (req) => {
     const { sessionId, reportId } = await req.json();
     
     if (!sessionId || !reportId) {
-      throw new Error("Missing sessionId or reportId");
+      // SECURITY FIX: Generic error message
+      return new Response(JSON.stringify({ error: "Invalid request" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     console.log("[VERIFY-PAYMENT] Verifying session:", sessionId, "report:", reportId);
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY not configured");
+      // SECURITY FIX: Generic error - don't reveal config details
+      console.error("[VERIFY-PAYMENT] Missing STRIPE_SECRET_KEY configuration");
+      return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 503,
+      });
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
@@ -138,9 +147,9 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    // SECURITY FIX: Generic error message - log details server-side only
     console.error("[VERIFY-PAYMENT] Error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

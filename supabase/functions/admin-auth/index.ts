@@ -1,19 +1,25 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { hash, compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Simple password hashing using Web Crypto API
-async function hashPassword(password: string): Promise<string> {
+// Legacy SHA-256 hash for migration support
+async function hashPasswordLegacy(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Check if a hash is bcrypt format ($2a$, $2b$, or $2y$ prefix)
+function isBcryptHash(hash: string): boolean {
+  return hash.startsWith('$2a$') || hash.startsWith('$2b$') || hash.startsWith('$2y$');
 }
 
 const loginSchema = z.object({
@@ -122,7 +128,8 @@ serve(async (req) => {
         });
       }
 
-      const passwordHash = await hashPassword(input.password);
+      // SECURITY FIX: Use bcrypt for password hashing
+      const passwordHash = await hash(input.password);
 
       const { error: insertError } = await supabaseClient
         .from("admin_users")
@@ -147,16 +154,45 @@ serve(async (req) => {
 
     // Default: Login
     const input = loginSchema.parse(body);
-    const passwordHash = await hashPassword(input.password);
 
+    // Fetch admin by email (don't include password comparison in query)
     const { data: admin, error: fetchError } = await supabaseClient
       .from("admin_users")
-      .select("id, email")
+      .select("id, email, password_hash")
       .eq("email", input.email)
-      .eq("password_hash", passwordHash)
       .single();
 
     if (fetchError || !admin) {
+      return new Response(JSON.stringify({ error: "Invalid credentials" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // SECURITY FIX: Verify password with bcrypt, with migration support for old SHA-256 hashes
+    let isValid = false;
+    
+    if (isBcryptHash(admin.password_hash)) {
+      // New bcrypt hash - verify normally
+      isValid = await compare(input.password, admin.password_hash);
+    } else {
+      // Legacy SHA-256 hash - verify using old method
+      const legacyHash = await hashPasswordLegacy(input.password);
+      isValid = legacyHash === admin.password_hash;
+      
+      if (isValid) {
+        // Upgrade to bcrypt on successful login
+        const newHash = await hash(input.password);
+        await supabaseClient
+          .from("admin_users")
+          .update({ password_hash: newHash })
+          .eq("id", admin.id);
+        
+        console.log("[ADMIN-AUTH] Upgraded password hash to bcrypt for:", admin.email);
+      }
+    }
+
+    if (!isValid) {
       return new Response(JSON.stringify({ error: "Invalid credentials" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

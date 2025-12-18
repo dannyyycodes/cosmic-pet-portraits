@@ -14,10 +14,14 @@ serve(async (req) => {
   try {
     const { reportId, giftCode } = await req.json();
     
-    console.log("[GET-REPORT] Fetching report:", { reportId, giftCode });
+    console.log("[GET-REPORT] Fetching report:", { reportId, hasGiftCode: !!giftCode });
 
     if (!reportId && !giftCode) {
-      throw new Error("Either reportId or giftCode is required");
+      console.log("[GET-REPORT] Missing required parameters");
+      return new Response(JSON.stringify({ error: "Report not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     const supabase = createClient(
@@ -36,7 +40,12 @@ serve(async (req) => {
         .single();
 
       if (giftError || !giftCert?.redeemed_by_report_id) {
-        throw new Error("Gift certificate not found or not yet redeemed");
+        // SECURITY FIX: Generic error - don't reveal if gift code exists
+        console.log("[GET-REPORT] Gift certificate lookup failed:", giftCode);
+        return new Response(JSON.stringify({ error: "Report not available" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        });
       }
 
       targetReportId = giftCert.redeemed_by_report_id;
@@ -50,15 +59,28 @@ serve(async (req) => {
       .single();
 
     if (fetchError || !report) {
-      throw new Error("Report not found");
+      console.log("[GET-REPORT] Report not found:", targetReportId);
+      return new Response(JSON.stringify({ error: "Report not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
     }
 
+    // SECURITY FIX: Generic error for all access issues - don't reveal report state
     if (!report.report_content) {
-      throw new Error("Report is still being generated");
+      console.log("[GET-REPORT] Report content not yet generated:", targetReportId);
+      return new Response(JSON.stringify({ error: "Report not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+      });
     }
 
     if (report.payment_status !== "paid") {
-      throw new Error("This report has not been purchased yet");
+      console.log("[GET-REPORT] Report not paid:", targetReportId, report.payment_status);
+      return new Response(JSON.stringify({ error: "Report not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
     }
 
     // Return only safe data (no email)
@@ -73,11 +95,11 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    console.error("[GET-REPORT] Error:", message);
-    return new Response(JSON.stringify({ error: message }), {
+    // SECURITY FIX: Generic error message - log details server-side only
+    console.error("[GET-REPORT] Unexpected error:", error);
+    return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
+      status: 500,
     });
   }
 });
