@@ -10,7 +10,6 @@ import {
   Search,
   CheckCircle,
   XCircle,
-  Clock,
   Calendar,
   DollarSign,
   Play
@@ -38,12 +37,34 @@ export default function AdminSubscriptions() {
   const loadSubscriptions = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('horoscope_subscriptions')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+      const token = sessionStorage.getItem('admin_token');
+      if (!token) {
+        toast.error('Not authenticated');
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-data?action=subscriptions`,
+        {
+          method: 'GET',
+          headers: {
+            'X-Admin-Token': token,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Session expired. Please login again.');
+          sessionStorage.removeItem('admin_token');
+          window.location.href = '/admin/login';
+          return;
+        }
+        throw new Error('Failed to load data');
+      }
+
+      const { subscriptions: data } = await response.json();
       setSubscriptions(data || []);
       setFilteredSubscriptions(data || []);
     } catch (err) {

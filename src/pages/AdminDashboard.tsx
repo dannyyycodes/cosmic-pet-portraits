@@ -37,50 +37,58 @@ export default function AdminDashboard() {
   const loadStats = async () => {
     setIsLoading(true);
     try {
-      // Load pet reports stats
-      const { data: reports, error: reportsError } = await supabase
-        .from('pet_reports')
-        .select('id, pet_name, email, payment_status, created_at, species')
-        .order('created_at', { ascending: false });
-      
-      if (reportsError) throw reportsError;
+      const token = sessionStorage.getItem('admin_token');
+      if (!token) {
+        toast.error('Not authenticated');
+        return;
+      }
 
-      // Load subscriptions
-      const { data: subscriptions, error: subsError } = await supabase
-        .from('horoscope_subscriptions')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (subsError) throw subsError;
+      // Call admin-data Edge Function instead of direct DB queries
+      const { data, error } = await supabase.functions.invoke('admin-data', {
+        body: null,
+        headers: {
+          'X-Admin-Token': token,
+        },
+      });
 
-      // Load affiliates
-      const { data: affiliates, error: affError } = await supabase
-        .from('affiliates')
-        .select('*');
-      
-      if (affError) throw affError;
+      // Handle the response - need to pass action via URL params
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-data?action=dashboard`,
+        {
+          method: 'GET',
+          headers: {
+            'X-Admin-Token': token,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-      // Load gift certificates
-      const { data: gifts, error: giftsError } = await supabase
-        .from('gift_certificates')
-        .select('*');
-      
-      if (giftsError) throw giftsError;
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Session expired. Please login again.');
+          sessionStorage.removeItem('admin_token');
+          window.location.href = '/admin/login';
+          return;
+        }
+        throw new Error('Failed to load data');
+      }
+
+      const { reports, subscriptions, affiliates, gifts } = await response.json();
 
       // Calculate stats
-      const paidReports = reports?.filter(r => r.payment_status === 'paid') || [];
-      const activeSubscriptions = subscriptions?.filter(s => s.status === 'active') || [];
-      const activeAffiliates = affiliates?.filter(a => a.status === 'active') || [];
-      const redeemedGifts = gifts?.filter(g => g.is_redeemed) || [];
+      const paidReports = reports?.filter((r: any) => r.payment_status === 'paid') || [];
+      const activeSubscriptions = subscriptions?.filter((s: any) => s.status === 'active') || [];
+      const activeAffiliates = affiliates?.filter((a: any) => a.status === 'active') || [];
+      const redeemedGifts = gifts?.filter((g: any) => g.is_redeemed) || [];
 
       // Calculate revenue (estimate based on paid reports at $19.99)
       const reportRevenue = paidReports.length * 1999;
       const subscriptionRevenue = activeSubscriptions.length * 499;
-      const giftRevenue = gifts?.reduce((acc, g) => acc + g.amount_cents, 0) || 0;
+      const giftRevenue = gifts?.reduce((acc: number, g: any) => acc + g.amount_cents, 0) || 0;
       const totalRevenue = reportRevenue + subscriptionRevenue + giftRevenue;
 
       // Calculate pending payouts
-      const pendingPayouts = affiliates?.reduce((acc, a) => acc + a.pending_balance_cents, 0) || 0;
+      const pendingPayouts = affiliates?.reduce((acc: number, a: any) => acc + a.pending_balance_cents, 0) || 0;
 
       setStats({
         totalReports: reports?.length || 0,

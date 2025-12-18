@@ -153,6 +153,27 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_form_rate_limits: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip_address: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip_address: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string
@@ -493,6 +514,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       increment_affiliate_stats: {
         Args: { p_affiliate_id: string; p_commission_cents: number }
         Returns: undefined

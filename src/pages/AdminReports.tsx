@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
 import { CosmicButton } from '@/components/cosmic/CosmicButton';
@@ -9,7 +8,6 @@ import {
   RefreshCw, 
   Search,
   Eye,
-  Download,
   CheckCircle,
   Clock,
   XCircle
@@ -39,12 +37,34 @@ export default function AdminReports() {
   const loadReports = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('pet_reports')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+      const token = sessionStorage.getItem('admin_token');
+      if (!token) {
+        toast.error('Not authenticated');
+        return;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-data?action=reports`,
+        {
+          method: 'GET',
+          headers: {
+            'X-Admin-Token': token,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Session expired. Please login again.');
+          sessionStorage.removeItem('admin_token');
+          window.location.href = '/admin/login';
+          return;
+        }
+        throw new Error('Failed to load data');
+      }
+
+      const { reports: data } = await response.json();
       setReports(data || []);
       setFilteredReports(data || []);
     } catch (err) {
