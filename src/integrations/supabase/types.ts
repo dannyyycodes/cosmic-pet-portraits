@@ -216,6 +216,53 @@ export type Database = {
           },
         ]
       }
+      horoscope_subscriptions: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          email: string
+          id: string
+          next_send_at: string
+          pet_name: string
+          pet_report_id: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          next_send_at?: string
+          pet_name: string
+          pet_report_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          next_send_at?: string
+          pet_name?: string
+          pet_report_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horoscope_subscriptions_pet_report_id_fkey"
+            columns: ["pet_report_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           coupon_id: string | null
@@ -373,6 +420,41 @@ export type Database = {
           stripe_price_id?: string | null
         }
         Relationships: []
+      }
+      weekly_horoscopes: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          sent_at: string | null
+          subscription_id: string
+          week_start: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          sent_at?: string | null
+          subscription_id: string
+          week_start: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          sent_at?: string | null
+          subscription_id?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_horoscopes_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "horoscope_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
