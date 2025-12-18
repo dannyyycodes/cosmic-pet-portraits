@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { useState, useRef } from 'react';
 import { CosmicPetCard, calculateCardStats } from './CosmicPetCard';
+import { BirthChartWheel } from './BirthChartWheel';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -447,39 +448,31 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull }:
         </motion.div>
       </div>
 
-      {/* Birth Chart Table */}
-      <div ref={(el) => (sectionRefs.current['chart'] = el)} className="max-w-4xl mx-auto px-6 py-8">
+      {/* Birth Chart Wheel */}
+      <div ref={(el) => (sectionRefs.current['chart'] = el)} className="max-w-5xl mx-auto px-6 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="p-6 rounded-2xl bg-gradient-to-br from-card/50 to-card/30 border border-border/50"
+          className="p-6 md:p-8 rounded-2xl bg-gradient-to-br from-card/50 to-card/30 border border-border/50"
         >
-          <h2 className="text-2xl font-semibold text-foreground mb-2 flex items-center gap-2">
-            <Star className="w-6 h-6 text-cosmic-gold" />
-            {petName}'s Birth Chart
-          </h2>
-          <p className="text-muted-foreground text-sm mb-6">
-            These planetary positions were calculated from {petName}'s birth date. Each placement reveals a different facet of their cosmic personality.
-          </p>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {Object.entries(report.chartPlacements || {}).map(([planet, data]) => (
-              <div
-                key={planet}
-                className="p-3 rounded-xl bg-background/50 border border-border/30 text-center"
-              >
-                <div className="text-2xl mb-1">{data.symbol}</div>
-                <div className="text-xs text-muted-foreground capitalize">{planet}</div>
-                <div className="font-semibold text-foreground">{data.sign} {data.degree}°</div>
-              </div>
-            ))}
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold text-foreground mb-2 flex items-center justify-center gap-2">
+              <Star className="w-6 h-6 text-cosmic-gold" />
+              {petName}'s Birth Chart
+            </h2>
+            <p className="text-muted-foreground text-sm max-w-xl mx-auto">
+              These planetary positions were calculated using precise astronomical algorithms from {petName}'s birth date. Each placement reveals a different facet of their cosmic personality.
+            </p>
           </div>
+          
+          {/* Interactive Wheel Diagram */}
+          <BirthChartWheel placements={report.chartPlacements || {}} petName={petName} />
 
           {/* Elemental Balance Bar */}
-          <div className="mt-6 space-y-3">
-            <h3 className="text-sm font-medium text-foreground">Elemental Balance</h3>
-            <div className="flex gap-1 h-8 rounded-lg overflow-hidden">
+          <div className="mt-8 space-y-3">
+            <h3 className="text-sm font-medium text-foreground text-center">Elemental Balance</h3>
+            <div className="flex gap-1 h-10 rounded-lg overflow-hidden max-w-xl mx-auto">
               {Object.entries(report.elementalBalance || {}).map(([elem, percent]) => {
                 const colors: Record<string, string> = {
                   Fire: 'bg-orange-500',
@@ -490,7 +483,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull }:
                 return (
                   <div
                     key={elem}
-                    className={`${colors[elem]} flex items-center justify-center text-xs font-medium text-white`}
+                    className={`${colors[elem]} flex items-center justify-center text-xs font-medium text-white transition-all hover:opacity-90`}
                     style={{ width: `${percent}%` }}
                   >
                     {percent > 15 && `${elem} ${percent}%`}
