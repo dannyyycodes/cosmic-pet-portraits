@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { OccasionMode } from '@/lib/occasionMode';
-import { Sparkles, Cake, Heart, Gift, RotateCcw } from 'lucide-react';
+import { Sparkles, Cake, Heart, RotateCcw } from 'lucide-react';
 import { clearIntakeProgress } from '@/lib/intakeStorage';
 
 interface IntakeStepOccasionProps {
@@ -34,14 +34,6 @@ const occasions = [
     subtitle: 'Honor a beloved soul who crossed the rainbow bridge',
     gradient: 'from-blue-400 to-indigo-500',
     bgGlow: 'bg-blue-500/20',
-  },
-  {
-    id: 'gift' as OccasionMode,
-    icon: Gift,
-    title: 'Gift for Someone',
-    subtitle: "Create a cosmic gift for someone's pet",
-    gradient: 'from-rose-400 to-pink-500',
-    bgGlow: 'bg-rose-500/20',
   },
 ];
 

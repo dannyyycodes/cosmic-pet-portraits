@@ -52,10 +52,10 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
   };
 
   const revealInsights = [
-    { icon: Star, title: 'Soul Blueprint', description: `${petData.name}'s cosmic DNA and spiritual origins` },
-    { icon: Heart, title: 'Love Language', description: 'How they express and receive affection' },
-    { icon: Zap, title: 'Hidden Superpower', description: 'Their secret cosmic gift waiting to be unlocked' },
-    { icon: Eye, title: 'Life Purpose', description: 'Why they chose you as their human' },
+    { icon: Star, title: 'Soul Blueprint', description: `${petData.name}'s cosmic DNA and spiritual origins`, teaser: signData ? `As a ${signData.element} sign, ${petData.name} carries ${signData.element === 'Fire' ? 'passionate energy' : signData.element === 'Earth' ? 'grounded wisdom' : signData.element === 'Air' ? 'curious intellect' : 'deep intuition'}...` : '' },
+    { icon: Heart, title: 'Love Language', description: 'How they express and receive affection', teaser: petData.soulType === 'ancient' ? 'Their ancient soul shows love through quiet presence...' : petData.soulType === 'playful' ? 'Their playful spirit shows love through joyful energy...' : 'Their unique soul expresses love in special ways...' },
+    { icon: Zap, title: 'Hidden Superpower', description: 'Their secret cosmic gift waiting to be unlocked', teaser: petData.superpower ? `Their ${petData.superpower} ability runs deeper than you know...` : 'A powerful gift awaits discovery...' },
+    { icon: Eye, title: 'Life Purpose', description: 'Why they chose you as their human', teaser: 'The universe brought you together for a reason...' },
   ];
 
   return (
@@ -190,7 +190,38 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               </motion.div>
             )}
 
-            {/* What's included - more engaging teaser */}
+            {/* FREE Mini Reading - Real Value */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="p-5 rounded-xl bg-gradient-to-br from-cosmic-gold/10 to-amber-500/5 border border-cosmic-gold/30"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-5 h-5 text-cosmic-gold" />
+                <h3 className="font-display font-semibold text-foreground">Your Free Mini Reading</h3>
+                <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-cosmic-gold/20 text-cosmic-gold font-medium">FREE</span>
+              </div>
+              
+              <div className="space-y-3 text-sm">
+                {signData && (
+                  <>
+                    <p className="text-foreground/90">
+                      <span className="font-medium text-cosmic-gold">{petData.name}</span> is a <span className="font-medium">{sign}</span> — 
+                      {signData.element === 'Fire' && " a passionate soul with boundless energy and natural leadership. They light up every room and inspire those around them."}
+                      {signData.element === 'Earth' && " a grounded soul with deep loyalty and steady presence. They bring stability and comfort to everyone they meet."}
+                      {signData.element === 'Air' && " a curious soul with quick wit and social grace. They connect easily with others and love mental stimulation."}
+                      {signData.element === 'Water' && " an intuitive soul with deep emotional intelligence. They sense feelings before words are spoken."}
+                    </p>
+                    <p className="text-muted-foreground">
+                      As {signData.archetype}, {petData.name} approaches life with a unique perspective that makes them truly one-of-a-kind...
+                    </p>
+                  </>
+                )}
+              </div>
+            </motion.div>
+
+            {/* What's included - teaser cards */}
             <div className="space-y-4 pt-2">
               <h3 className="text-xl font-display font-semibold text-foreground text-center">
                 Your full reading reveals...
@@ -202,7 +233,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                     key={insight.title}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
+                    transition={{ delay: 0.5 + index * 0.1 }}
                     className="p-4 rounded-xl bg-gradient-to-br from-card/80 to-card/40 border border-border/50 text-left hover:border-primary/30 transition-all"
                   >
                     <div className="flex items-center gap-2 mb-2">
@@ -211,10 +242,10 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                       </div>
                       <span className="text-sm font-semibold text-foreground">{insight.title}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{insight.description}</p>
+                    <p className="text-xs text-muted-foreground mb-1 line-clamp-2">{insight.teaser}</p>
                     <div className="flex items-center gap-1 text-xs text-primary/60">
                       <Lock className="w-3 h-3" />
-                      <span>Unlock in full report</span>
+                      <span>Full details in report</span>
                     </div>
                   </motion.div>
                 ))}
@@ -225,7 +256,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
+              transition={{ delay: 0.9 }}
               className="text-center space-y-3 py-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-primary/10 border border-amber-500/20"
             >
               <div className="flex items-center justify-center gap-1 text-amber-500">
@@ -245,7 +276,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 1 }}
               className="space-y-3 pt-2"
             >
               <Button
@@ -255,7 +286,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 className="w-full max-w-sm mx-auto shadow-lg shadow-primary/20"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                Unlock Full Reading
+                Unlock Full 18-Chapter Reading
               </Button>
               
               <button
@@ -295,6 +326,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 petCount={petCount}
                 onCheckout={handleCheckout}
                 isLoading={isLoading}
+                occasionMode={petData.occasionMode}
               />
             </div>
           </motion.div>
