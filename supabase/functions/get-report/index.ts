@@ -12,12 +12,33 @@ serve(async (req) => {
   }
 
   try {
-    const { reportId, giftCode } = await req.json();
+    const { reportId, giftCode, email } = await req.json();
     
-    console.log("[GET-REPORT] Fetching report:", { reportId, hasGiftCode: !!giftCode });
+    console.log("[GET-REPORT] Fetching report:", { reportId, hasGiftCode: !!giftCode, hasEmail: !!email });
 
     if (!reportId && !giftCode) {
       console.log("[GET-REPORT] Missing required parameters");
+      return new Response(JSON.stringify({ error: "Report not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // SECURITY: Validate input formats
+    const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const GIFT_CODE_PATTERN = /^[A-Z0-9]{8,20}$/i;
+
+    if (reportId && !UUID_PATTERN.test(reportId)) {
+      console.log("[GET-REPORT] Invalid report ID format");
+      return new Response(JSON.stringify({ error: "Report not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    if (giftCode && !GIFT_CODE_PATTERN.test(giftCode)) {
+      console.log("[GET-REPORT] Invalid gift code format");
       return new Response(JSON.stringify({ error: "Report not available" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
@@ -51,10 +72,10 @@ serve(async (req) => {
       targetReportId = giftCert.redeemed_by_report_id;
     }
 
-    // Fetch the report
+    // Fetch the report - include email for verification
     const { data: report, error: fetchError } = await supabase
       .from("pet_reports")
-      .select("id, pet_name, report_content, payment_status, species, breed")
+      .select("id, pet_name, report_content, payment_status, species, breed, email")
       .eq("id", targetReportId)
       .single();
 
@@ -64,6 +85,25 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 404,
       });
+    }
+
+    // SECURITY: Verify email ownership if accessing by reportId (not gift code)
+    if (reportId && !giftCode) {
+      if (!email || !EMAIL_PATTERN.test(email)) {
+        console.log("[GET-REPORT] Email verification required for report access");
+        return new Response(JSON.stringify({ error: "Email verification required" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        });
+      }
+      
+      if (email.toLowerCase().trim() !== report.email.toLowerCase().trim()) {
+        console.log("[GET-REPORT] Email mismatch for report:", targetReportId);
+        return new Response(JSON.stringify({ error: "Report not available" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        });
+      }
     }
 
     // SECURITY FIX: Generic error for all access issues - don't reveal report state

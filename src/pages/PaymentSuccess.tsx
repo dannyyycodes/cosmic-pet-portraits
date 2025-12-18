@@ -71,6 +71,13 @@ export default function PaymentSuccess() {
         if (petReport?.payment_status === 'paid' && petReport?.report_content) {
           const isGift = petReport.occasion_mode === 'gift';
           
+          // SECURITY: Save email for later verification when viewing report
+          if (petReport.email) {
+            try {
+              sessionStorage.setItem('cosmic_report_email', petReport.email);
+            } catch {}
+          }
+          
           setReportData({
             petName: petReport.pet_name,
             email: petReport.email,

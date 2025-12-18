@@ -68,8 +68,10 @@ serve(async (req) => {
       if (session.metadata?.type === "gift_certificate") {
         const giftCode = session.metadata.gift_code;
         
-        if (!giftCode || typeof giftCode !== 'string' || giftCode.length > 20) {
-          console.error("[STRIPE-WEBHOOK] Invalid gift code in metadata");
+        // SECURITY: Strict gift code format validation
+        const GIFT_CODE_PATTERN = /^[A-Z0-9]{8,20}$/;
+        if (!giftCode || typeof giftCode !== 'string' || !GIFT_CODE_PATTERN.test(giftCode)) {
+          console.error("[STRIPE-WEBHOOK] Invalid gift code format in metadata");
           return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
         }
 
@@ -117,10 +119,23 @@ serve(async (req) => {
       } else {
         // Handle regular report purchase
         const reportIds = session.metadata?.report_ids?.split(",").filter(Boolean) || [];
-        const referralCode = session.metadata?.referral_code;
+        
+        // SECURITY: Validate referral code format
+        const REFERRAL_CODE_PATTERN = /^[A-Z0-9_-]{3,50}$/i;
+        const rawReferralCode = session.metadata?.referral_code;
+        const referralCode = rawReferralCode && REFERRAL_CODE_PATTERN.test(rawReferralCode) ? rawReferralCode : null;
+        
         const isGift = session.metadata?.is_gift === "true";
-        const recipientName = session.metadata?.recipient_name || "";
-        const recipientEmail = session.metadata?.recipient_email || "";
+        
+        // SECURITY: Validate recipient email format
+        const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const rawRecipientEmail = session.metadata?.recipient_email || "";
+        const recipientEmail = EMAIL_PATTERN.test(rawRecipientEmail) ? rawRecipientEmail : "";
+        
+        // SECURITY: Sanitize recipient name (max 100 chars, no special chars)
+        const rawRecipientName = session.metadata?.recipient_name || "";
+        const recipientName = rawRecipientName.slice(0, 100).replace(/[<>\"'&]/g, '');
+        
         const includesPortrait = session.metadata?.includes_portrait === "true";
         
         if (reportIds.length > 0) {
