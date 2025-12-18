@@ -182,7 +182,7 @@ export default function BecomeAffiliate() {
                   Custom Referral Code <span className="text-muted-foreground font-normal">(optional)</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm">furrealpaws.site/ref/</span>
+                  <span className="text-muted-foreground text-sm">astropaws.site/ref/</span>
                   <input
                     type="text"
                     value={referralCode}
