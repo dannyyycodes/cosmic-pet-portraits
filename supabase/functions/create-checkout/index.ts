@@ -66,7 +66,11 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY not configured");
+      console.error("[CREATE-CHECKOUT] Missing Stripe configuration");
+      return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 503,
+      });
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
@@ -269,19 +273,19 @@ serve(async (req) => {
   } catch (error) {
     console.error("[CREATE-CHECKOUT] Error:", error);
     
-    // Handle Zod validation errors specially
+    // SECURITY: Handle Zod validation errors - log details server-side only
     if (error instanceof z.ZodError) {
+      console.error("[CREATE-CHECKOUT] Validation errors:", error.errors);
       return new Response(JSON.stringify({ 
-        error: "Invalid input", 
-        details: error.errors.map(e => e.message).join(", ")
+        error: "Invalid request parameters"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
       });
     }
     
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
+    // SECURITY: Generic error message - never expose internal details
+    return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

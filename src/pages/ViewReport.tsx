@@ -5,6 +5,11 @@ import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
 import { CinematicReveal } from '@/components/report/CinematicReveal';
 import { toast } from 'sonner';
+import { CosmicInput } from '@/components/cosmic/CosmicInput';
+import { CosmicButton } from '@/components/cosmic/CosmicButton';
+import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+
+const EMAIL_STORAGE_KEY = 'cosmic_report_email';
 
 export default function ViewReport() {
   const [searchParams] = useSearchParams();
@@ -14,10 +19,21 @@ export default function ViewReport() {
   const [error, setError] = useState<string | null>(null);
   const [showCinematic, setShowCinematic] = useState(false);
   const [revealComplete, setRevealComplete] = useState(false);
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   const reportId = searchParams.get('id');
   const code = searchParams.get('code'); // For gift redemption
-  const skipIntro = searchParams.get('skip') === 'true';
+
+  // Try to get saved email from session storage
+  const getSavedEmail = () => {
+    try {
+      return sessionStorage.getItem(EMAIL_STORAGE_KEY) || '';
+    } catch {
+      return '';
+    }
+  };
 
   useEffect(() => {
     if (!reportId && !code) {
@@ -26,15 +42,32 @@ export default function ViewReport() {
       return;
     }
 
-    fetchReport();
+    // If accessing via gift code, no email needed
+    if (code) {
+      fetchReport();
+    } else {
+      // Check if we have saved email
+      const savedEmail = getSavedEmail();
+      if (savedEmail) {
+        setEmail(savedEmail);
+        fetchReport(savedEmail);
+      } else {
+        setNeedsEmailVerification(true);
+        setIsLoading(false);
+      }
+    }
   }, [reportId, code]);
 
-  const fetchReport = async () => {
+  const fetchReport = async (verifyEmail?: string) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
       const { data, error } = await supabase.functions.invoke('get-report', {
         body: {
           reportId: reportId || undefined,
           giftCode: code || undefined,
+          email: verifyEmail || undefined,
         },
       });
 
@@ -43,7 +76,19 @@ export default function ViewReport() {
       }
 
       if (data.error) {
+        if (data.error === 'Email verification required') {
+          setNeedsEmailVerification(true);
+          setIsLoading(false);
+          return;
+        }
         throw new Error(data.error);
+      }
+
+      // Save the verified email for future access
+      if (verifyEmail) {
+        try {
+          sessionStorage.setItem(EMAIL_STORAGE_KEY, verifyEmail);
+        } catch {}
       }
 
       setReportData({
@@ -53,6 +98,7 @@ export default function ViewReport() {
       });
 
       // Show cinematic reveal for first-time views (not returning visits)
+      const skipIntro = searchParams.get('skip') === 'true';
       const hasSeenReport = sessionStorage.getItem(`seen_report_${reportId || code}`);
       if (!hasSeenReport && !skipIntro) {
         setShowCinematic(true);
@@ -60,19 +106,91 @@ export default function ViewReport() {
       } else {
         setRevealComplete(true);
       }
+      
+      setNeedsEmailVerification(false);
     } catch (err) {
       console.error('Error fetching report:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load report');
-      toast.error('Could not load the report');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load report';
+      
+      // Check if it's an auth error - prompt for email again
+      if (errorMessage.includes('not available') || errorMessage.includes('403')) {
+        setEmailError('The email address does not match this report.');
+        setNeedsEmailVerification(true);
+      } else {
+        setError(errorMessage);
+        toast.error('Could not load the report');
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailError('');
+    
+    const trimmedEmail = email.trim().toLowerCase();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!trimmedEmail || !emailPattern.test(trimmedEmail)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+    
+    fetchReport(trimmedEmail);
   };
 
   const handleRevealComplete = () => {
     setShowCinematic(false);
     setRevealComplete(true);
   };
+
+  // Email verification prompt
+  if (needsEmailVerification && !isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-6 relative overflow-hidden">
+        <StarfieldBackground />
+        <div className="max-w-md w-full text-center relative z-10">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center">
+            <span className="text-3xl">🔮</span>
+          </div>
+          <h1 className="text-2xl font-display font-bold text-foreground mb-4">
+            Verify Your Email
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            Please enter the email address you used when purchasing this cosmic reading to view your report.
+          </p>
+          
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <CosmicInput
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setEmailError('');
+              }}
+              className={emailError ? 'border-destructive' : ''}
+            />
+            {emailError && (
+              <p className="text-sm text-destructive">{emailError}</p>
+            )}
+            <CosmicButton 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Verifying...' : 'View My Report'}
+            </CosmicButton>
+          </form>
+          
+          <p className="text-xs text-muted-foreground mt-6">
+            Can't remember your email? Check your inbox for the purchase confirmation.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <ReportGenerating petName="Loading" />;
