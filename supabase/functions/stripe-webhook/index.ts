@@ -118,9 +118,13 @@ serve(async (req) => {
         // Handle regular report purchase
         const reportIds = session.metadata?.report_ids?.split(",").filter(Boolean) || [];
         const referralCode = session.metadata?.referral_code;
+        const isGift = session.metadata?.is_gift === "true";
+        const recipientName = session.metadata?.recipient_name || "";
+        const recipientEmail = session.metadata?.recipient_email || "";
+        const includesPortrait = session.metadata?.includes_portrait === "true";
         
         if (reportIds.length > 0) {
-          console.log("[STRIPE-WEBHOOK] Processing report payment for reports:", reportIds);
+          console.log("[STRIPE-WEBHOOK] Processing report payment for reports:", reportIds, { isGift, includesPortrait });
           
           // Track referral if present
           if (referralCode) {
@@ -141,14 +145,21 @@ serve(async (req) => {
             }
           }
           
-          // Update all reports as paid
+          // Update all reports as paid - also set gift mode if applicable
+          const updateData: any = { 
+            payment_status: "paid", 
+            stripe_session_id: session.id,
+            updated_at: new Date().toISOString()
+          };
+          
+          // If sending as gift, update occasion_mode so payment-success knows
+          if (isGift) {
+            updateData.occasion_mode = 'gift';
+          }
+          
           const { error: updateError } = await supabaseClient
             .from("pet_reports")
-            .update({ 
-              payment_status: "paid", 
-              stripe_session_id: session.id,
-              updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .in("id", reportIds);
           
           if (updateError) {
@@ -235,6 +246,14 @@ serve(async (req) => {
                   const genData = await genResponse.json();
                   console.log("[STRIPE-WEBHOOK] Report generated for:", reportId);
                   
+                  // Determine email recipient - if gift, send to recipient
+                  const emailTo = isGift && recipientEmail ? recipientEmail : report.email;
+                  const emailContext = isGift ? { 
+                    isGift: true, 
+                    recipientName,
+                    giftMessage: session.metadata?.gift_message || ""
+                  } : {};
+                  
                   // Send email
                   await fetch(
                     `${supabaseUrl}/functions/v1/send-report-email`,
@@ -246,13 +265,14 @@ serve(async (req) => {
                       },
                       body: JSON.stringify({
                         reportId,
-                        email: report.email,
+                        email: emailTo,
                         petName: report.pet_name,
                         sunSign: genData.report?.sunSign,
+                        ...emailContext,
                       }),
                     }
                   );
-                  console.log("[STRIPE-WEBHOOK] Email sent for:", reportId);
+                  console.log("[STRIPE-WEBHOOK] Email sent for:", reportId, "to:", emailTo);
                 } else {
                   console.error("[STRIPE-WEBHOOK] Report generation failed for:", reportId);
                 }

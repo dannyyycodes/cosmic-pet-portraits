@@ -26,30 +26,34 @@ export interface CheckoutData {
   petCount?: number;
   selectedTier: 'basic' | 'premium' | 'vip';
   includeGiftForFriend?: boolean;
+  includesPortrait?: boolean;
 }
 
-// Product tiers with price anchoring - VIP is the decoy
+// Product tiers - $35 without portrait, $50 with AI portrait
 const TIERS = {
   basic: {
     id: 'basic',
     name: 'Cosmic Pet Reading',
-    description: "Everything you need to understand your pet's soul",
-    priceCents: 3500, // $35 - target price
+    description: "Complete 18-chapter cosmic report",
+    priceCents: 3500, // $35
     originalPriceCents: 7900, // $79 anchoring
-    features: ['Complete Zodiac Analysis', 'Personality Deep Dive', 'Care & Bonding Tips', 'Love Language Decoded', 'Instant Digital Delivery'],
+    features: ['Full 18-Section Report', 'Personality Deep Dive', 'Care & Bonding Tips', 'Love Language Decoded', 'Practical Tips & Fun Facts'],
     icon: Sparkles,
-    badge: 'MOST POPULAR',
-    highlight: true,
+    badge: null as string | null,
+    highlight: false,
+    includesPortrait: false,
   },
   premium: {
     id: 'premium',
-    name: 'Cosmic Deluxe',
-    description: 'Extended insights with compatibility & forecasts',
+    name: 'Cosmic Portrait Edition',
+    description: 'Full report + AI-generated cosmic trading card',
     priceCents: 5000, // $50
     originalPriceCents: 9900, // $99 anchoring
-    features: ['Everything in Basic', 'Owner-Pet Compatibility', 'Monthly Cosmic Forecasts', 'Life Path Prediction'],
+    features: ['Everything in Basic', '🎨 AI Cosmic Portrait Card', 'Shareable Trading Card', 'Download & Print Ready'],
     icon: Crown,
-    badge: null as string | null,
+    badge: 'MOST POPULAR',
+    highlight: true,
+    includesPortrait: true,
   },
   vip: {
     id: 'vip',
@@ -57,9 +61,11 @@ const TIERS = {
     description: 'The ultimate cosmic journey for devoted pet parents',
     priceCents: 12900, // $129 - extreme anchor
     originalPriceCents: 24900, // $249 anchoring
-    features: ['Everything in Deluxe', 'Yearly Updates Forever', 'Priority Cosmic Support', 'Exclusive VIP Community', 'Framed Certificate'],
+    features: ['Everything in Portrait Edition', 'Yearly Updates Forever', 'Priority Cosmic Support', 'Exclusive VIP Community'],
     icon: Star,
     badge: 'BEST VALUE',
+    highlight: false,
+    includesPortrait: true,
   },
 };
 
@@ -88,8 +94,12 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     setSearchParams(next, { replace: true });
   };
 
-  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | 'vip'>('basic');
+  const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | 'vip'>('premium'); // Default to premium (with portrait)
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
+  const [isGift, setIsGift] = useState(false);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientEmail, setRecipientEmail] = useState('');
+  const [giftMessage, setGiftMessage] = useState('');
   const [spotsLeft, setSpotsLeft] = useState(7);
   const [recentPurchases, setRecentPurchases] = useState(12847);
 
@@ -117,19 +127,21 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   const proceedToCheckout = (withGift: boolean) => {
     setShowGiftUpsell(false);
     const finalTotal = total + (withGift ? GIFT_PRICE_CENTS : 0);
+    const tier = TIERS[selectedTier];
     
     onCheckout({
       selectedProducts: [selectedTier],
       couponId: null,
       giftCertificateId: null,
-      isGift: false,
-      recipientName: '',
-      recipientEmail: '',
-      giftMessage: '',
+      isGift,
+      recipientName: isGift ? recipientName : '',
+      recipientEmail: isGift ? recipientEmail : '',
+      giftMessage: isGift ? giftMessage : '',
       totalCents: finalTotal,
       petCount,
       selectedTier,
       includeGiftForFriend: withGift,
+      includesPortrait: tier.includesPortrait,
     });
   };
 
@@ -204,7 +216,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                 isSelected 
                   ? "border-primary bg-primary/10 shadow-lg shadow-primary/20" 
                   : "border-border/50 bg-card/30 hover:border-primary/50",
-                isBasic && "ring-2 ring-cosmic-gold/50",
+                product.highlight && "ring-2 ring-cosmic-gold/50",
                 isVip && "opacity-80",
               )}
             >
@@ -212,7 +224,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
               {product.badge && (
                 <div className={cn(
                   "absolute -top-2.5 left-4 px-2 py-0.5 text-xs font-bold rounded-full",
-                  isBasic 
+                  product.highlight 
                     ? "bg-cosmic-gold text-cosmic-gold-foreground" 
                     : "bg-nebula-purple text-white"
                 )}>
@@ -271,7 +283,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                   </div>
                   <div className={cn(
                     "text-xl font-bold",
-                    isBasic ? "text-cosmic-gold" : "text-foreground"
+                    product.highlight ? "text-cosmic-gold" : "text-foreground"
                   )}>
                     ${(product.priceCents / 100).toFixed(0)}
                   </div>
@@ -310,6 +322,74 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           <span>Your Price</span>
           <span className="text-primary text-lg">${(total / 100).toFixed(2)}</span>
         </div>
+      </div>
+
+      {/* Gift Option Toggle */}
+      <div className="space-y-3">
+        <button
+          onClick={() => setIsGift(!isGift)}
+          className={cn(
+            "w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
+            isGift
+              ? "border-cosmic-gold bg-cosmic-gold/10"
+              : "border-border/50 bg-card/20 hover:border-cosmic-gold/30"
+          )}
+        >
+          <div className={cn(
+            "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+            isGift ? "bg-cosmic-gold text-cosmic-gold-foreground" : "bg-muted/50 text-muted-foreground"
+          )}>
+            <Gift className="w-5 h-5" />
+          </div>
+          <div className="text-left flex-1">
+            <h4 className="font-medium text-foreground">Send as a Gift</h4>
+            <p className="text-sm text-muted-foreground">
+              Include a personalized message & special reveal
+            </p>
+          </div>
+          <div className={cn(
+            "w-12 h-6 rounded-full transition-all p-0.5",
+            isGift ? "bg-cosmic-gold" : "bg-muted"
+          )}>
+            <motion.div
+              animate={{ x: isGift ? 24 : 0 }}
+              className="w-5 h-5 rounded-full bg-white shadow-sm"
+            />
+          </div>
+        </button>
+
+        {/* Gift form */}
+        {isGift && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-3 p-4 rounded-xl bg-card/30 border border-cosmic-gold/20"
+          >
+            <div className="grid gap-3">
+              <input
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                placeholder="Recipient's Name"
+                className="h-11 px-4 rounded-lg bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground"
+              />
+              <input
+                type="email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                placeholder="Recipient's Email"
+                className="h-11 px-4 rounded-lg bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground"
+              />
+              <textarea
+                value={giftMessage}
+                onChange={(e) => setGiftMessage(e.target.value)}
+                placeholder="Write a heartfelt message..."
+                className="min-h-[80px] p-4 rounded-lg bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground resize-none"
+                maxLength={200}
+              />
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Trust signals */}
