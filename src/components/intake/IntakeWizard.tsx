@@ -281,11 +281,14 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         const sanitizedSuperpower = (pet.superpower || '').trim().slice(0, 50);
         const sanitizedStrangerReaction = (pet.strangerReaction || '').trim().slice(0, 50);
 
-        console.log('[INTAKE] Saving pet report for:', sanitizedName, 'email:', email);
+        // Generate UUID client-side to avoid needing SELECT after INSERT (blocked by RLS)
+        const reportId = crypto.randomUUID();
+        console.log('[INTAKE] Saving pet report for:', sanitizedName, 'email:', email, 'id:', reportId);
         
-        const { data: savedReport, error: dbError } = await supabase
+        const { error: dbError } = await supabase
           .from('pet_reports')
           .insert({
+            id: reportId,
             email: email,
             pet_name: sanitizedName,
             species: pet.species,
@@ -297,17 +300,15 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             superpower: sanitizedSuperpower || null,
             stranger_reaction: sanitizedStrangerReaction || null,
             occasion_mode: pet.occasionMode,
-          })
-          .select()
-          .single();
+          });
 
         if (dbError) {
           console.error('[INTAKE] Database error saving report:', dbError);
           toast.error(`Failed to save ${sanitizedName}'s data: ${dbError.message}`);
           throw new Error(`Failed to save pet data: ${dbError.message}`);
         }
-        console.log('[INTAKE] Report saved with ID:', savedReport.id);
-        reportIds.push(savedReport.id);
+        console.log('[INTAKE] Report saved with ID:', reportId);
+        reportIds.push(reportId);
       }
 
       // DEV MODE: Skip Stripe checkout for testing
