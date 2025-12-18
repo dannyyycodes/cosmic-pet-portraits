@@ -219,28 +219,64 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     }
   };
 
+  // Validate all required fields before submission
+  const validatePetData = (pet: PetData): string | null => {
+    const trimmedName = pet.name.trim();
+    if (!trimmedName) return 'Pet name is required';
+    if (trimmedName.length > 50) return 'Pet name is too long';
+    if (!/^[a-zA-Z\s\-']+$/.test(trimmedName)) return 'Pet name contains invalid characters';
+    if (!pet.species) return 'Species is required';
+    if (!pet.gender || (pet.gender !== 'boy' && pet.gender !== 'girl')) return 'Gender is required';
+    if (!pet.dateOfBirth) return 'Date of birth is required';
+    return null;
+  };
+
   const handleReveal = async (checkoutData?: CheckoutData) => {
     setIsLoading(true);
     
     try {
+      // Validate all pets before proceeding
+      for (let i = 0; i < petsData.length; i++) {
+        const validationError = validatePetData(petsData[i]);
+        if (validationError) {
+          toast.error(`Pet ${i + 1}: ${validationError}`);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // Save all pets to database
       const email = petsData[0].email.trim(); // Trim to prevent Stripe email errors
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        toast.error('Please enter a valid email address');
+        setIsLoading(false);
+        return;
+      }
+
       const reportIds: string[] = [];
 
       for (const pet of petsData) {
+        // Sanitize all string fields
+        const sanitizedName = pet.name.trim().slice(0, 50);
+        const sanitizedBreed = (pet.breed || '').trim().slice(0, 100);
+        const sanitizedLocation = (pet.location || '').trim().slice(0, 100);
+        const sanitizedSoulType = (pet.soulType || '').trim().slice(0, 50);
+        const sanitizedSuperpower = (pet.superpower || '').trim().slice(0, 50);
+        const sanitizedStrangerReaction = (pet.strangerReaction || '').trim().slice(0, 50);
+
         const { data: savedReport, error: dbError } = await supabase
           .from('pet_reports')
           .insert({
             email: email,
-            pet_name: pet.name,
+            pet_name: sanitizedName,
             species: pet.species,
-            breed: pet.breed || null,
-            gender: pet.gender || null,
+            breed: sanitizedBreed || null,
+            gender: pet.gender,
             birth_date: pet.dateOfBirth?.toISOString().split('T')[0] || null,
-            birth_location: pet.location || null,
-            soul_type: pet.soulType || null,
-            superpower: pet.superpower || null,
-            stranger_reaction: pet.strangerReaction || null,
+            birth_location: sanitizedLocation || null,
+            soul_type: sanitizedSoulType || null,
+            superpower: sanitizedSuperpower || null,
+            stranger_reaction: sanitizedStrangerReaction || null,
             occasion_mode: pet.occasionMode,
           })
           .select()
