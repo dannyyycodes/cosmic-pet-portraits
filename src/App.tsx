@@ -11,7 +11,11 @@ import GiftPurchase from "./pages/GiftPurchase";
 import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";
 import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminReports from "./pages/AdminReports";
+import AdminSubscriptions from "./pages/AdminSubscriptions";
 import AdminAffiliates from "./pages/AdminAffiliates";
+import AdminGifts from "./pages/AdminGifts";
 import BecomeAffiliate from "./pages/BecomeAffiliate";
 import ReferralRedirect from "./pages/ReferralRedirect";
 import Terms from "./pages/Terms";
@@ -41,7 +45,11 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/reports" element={<AdminReports />} />
+          <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
           <Route path="/admin/affiliates" element={<AdminAffiliates />} />
+          <Route path="/admin/gifts" element={<AdminGifts />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
