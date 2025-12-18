@@ -281,6 +281,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         const sanitizedSuperpower = (pet.superpower || '').trim().slice(0, 50);
         const sanitizedStrangerReaction = (pet.strangerReaction || '').trim().slice(0, 50);
 
+        console.log('[INTAKE] Saving pet report for:', sanitizedName, 'email:', email);
+        
         const { data: savedReport, error: dbError } = await supabase
           .from('pet_reports')
           .insert({
@@ -300,9 +302,11 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           .single();
 
         if (dbError) {
-          console.error('Database error:', dbError);
-          throw new Error('Failed to save pet data');
+          console.error('[INTAKE] Database error saving report:', dbError);
+          toast.error(`Failed to save ${sanitizedName}'s data: ${dbError.message}`);
+          throw new Error(`Failed to save pet data: ${dbError.message}`);
         }
+        console.log('[INTAKE] Report saved with ID:', savedReport.id);
         reportIds.push(savedReport.id);
       }
 
@@ -342,15 +346,22 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         );
 
         if (checkoutError) {
-          console.error('Checkout error:', checkoutError);
+          console.error('[INTAKE] Checkout error:', checkoutError);
+          toast.error(`Checkout failed: ${checkoutError.message || 'Unknown error'}`);
           throw new Error('Failed to create checkout session');
         }
 
+        console.log('[INTAKE] Checkout result:', checkoutResult);
+        
         if (checkoutResult?.url) {
+          console.log('[INTAKE] Redirecting to Stripe checkout:', checkoutResult.url);
           // Clear saved progress before checkout
           clearIntakeProgress();
           window.location.href = checkoutResult.url;
           return;
+        } else {
+          console.error('[INTAKE] No checkout URL returned');
+          toast.error('Failed to get checkout URL');
         }
       }
 
