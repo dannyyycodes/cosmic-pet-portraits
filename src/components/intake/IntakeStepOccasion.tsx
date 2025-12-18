@@ -1,10 +1,13 @@
 import { motion } from 'framer-motion';
 import { OccasionMode } from '@/lib/occasionMode';
-import { Sparkles, Cake, Heart, Gift } from 'lucide-react';
+import { Sparkles, Cake, Heart, Gift, RotateCcw } from 'lucide-react';
+import { clearIntakeProgress } from '@/lib/intakeStorage';
 
 interface IntakeStepOccasionProps {
   selectedMode: OccasionMode;
   onSelect: (mode: OccasionMode) => void;
+  showRestart?: boolean;
+  onRestart?: () => void;
 }
 
 const occasions = [
@@ -42,13 +45,31 @@ const occasions = [
   },
 ];
 
-export function IntakeStepOccasion({ selectedMode, onSelect }: IntakeStepOccasionProps) {
+export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRestart }: IntakeStepOccasionProps) {
   const handleSelect = (mode: OccasionMode) => {
     setTimeout(() => onSelect(mode), 200);
   };
 
+  const handleRestart = () => {
+    clearIntakeProgress();
+    onRestart?.();
+  };
+
   return (
     <div className="text-center space-y-8">
+      {/* Restart button if there's saved progress */}
+      {showRestart && (
+        <motion.button
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={handleRestart}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-all text-sm"
+        >
+          <RotateCcw className="w-4 h-4" />
+          Start Fresh
+        </motion.button>
+      )}
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

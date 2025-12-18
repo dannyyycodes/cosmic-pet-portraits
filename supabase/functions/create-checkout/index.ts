@@ -24,6 +24,8 @@ function getVolumeDiscount(petCount: number): number {
   return 0;
 }
 
+const HOROSCOPE_MONTHLY_CENTS = 499; // $4.99/month subscription
+
 // Input validation schema
 const checkoutSchema = z.object({
   reportIds: z.array(z.string().uuid()).optional(),
@@ -229,11 +231,36 @@ serve(async (req) => {
       });
     }
 
+    // Check if horoscope subscription is included
+    const includeHoroscope = input.selectedProducts?.includes('horoscope_subscription');
+    
+    // Determine checkout mode - if subscription is included, use subscription mode
+    const checkoutMode = includeHoroscope ? "subscription" : "payment";
+    
+    // If including subscription, we need to structure line items differently
+    if (includeHoroscope) {
+      // Add the horoscope subscription as a recurring item
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "🌙 Weekly Cosmic Updates",
+            description: `Personalized horoscopes for ${report.pet_name} every week`,
+          },
+          unit_amount: HOROSCOPE_MONTHLY_CENTS,
+          recurring: {
+            interval: "month",
+          },
+        },
+        quantity: 1,
+      });
+    }
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: sanitizedEmail,
       line_items: lineItems,
-      mode: "payment",
+      mode: checkoutMode,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
       cancel_url: `${origin}/intake?canceled=true`,
       metadata: {
@@ -248,7 +275,8 @@ serve(async (req) => {
         gift_message: input.giftMessage,
         coupon_id: input.couponId || "",
         gift_certificate_id: input.giftCertificateId || "",
-        referral_code: input.referralCode || "", // Store referral code for tracking
+        referral_code: input.referralCode || "",
+        include_horoscope: includeHoroscope ? "true" : "false",
       },
     });
 

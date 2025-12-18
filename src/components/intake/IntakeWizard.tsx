@@ -432,6 +432,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               <IntakeStepOccasion 
                 selectedMode={occasionMode}
                 onSelect={handleOccasionSelect}
+                showRestart={petsData[0]?.name !== ''}
+                onRestart={() => {
+                  setPetsData([createEmptyPetData(mode)]);
+                  setPetCount(1);
+                  setCurrentPetIndex(0);
+                  setStep(0);
+                }}
               />
             </motion.div>
           )}
