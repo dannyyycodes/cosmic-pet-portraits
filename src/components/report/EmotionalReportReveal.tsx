@@ -67,12 +67,69 @@ const stages: RevealStage[] = [
   'complete',
 ];
 
+type UnknownReport = any;
+
+const asString = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
+const asNumber = (v: unknown): number | undefined => (typeof v === 'number' ? v : undefined);
+
+const normalizeRevealReport = (raw: UnknownReport): ReportContent => {
+  const sunSign = asString(raw?.chartPlacements?.sun?.sign) || asString(raw?.sunSign) || 'Aries';
+  const element = asString(raw?.dominantElement) || asString(raw?.element) || 'Fire';
+  const modality = asString(raw?.modality) || 'Mystic';
+
+  const archetype = asString(raw?.archetype?.name) || asString(raw?.archetype) || 'Cosmic Soul';
+
+  const coreEssence =
+    asString(raw?.coreEssence) ||
+    asString(raw?.solarSoulprint?.content) ||
+    asString(raw?.prologue) ||
+    'A radiant presence with a heart full of starlight.';
+
+  const soulMission =
+    asString(raw?.soulMission) ||
+    asString(raw?.destinyCompass?.content) ||
+    asString(raw?.keepersBond?.soulContract) ||
+    'To deepen your bond through presence, play, and gentle guidance.';
+
+  const hiddenGift =
+    asString(raw?.hiddenGift) ||
+    asString(raw?.wildSpirit?.content) ||
+    asString(raw?.gentleHealer?.content) ||
+    'A quiet magic that turns ordinary moments into comfort.';
+
+  const loveLanguage =
+    asString(raw?.loveLanguage) ||
+    asString(raw?.harmonyHeartbeats?.loveLanguageType) ||
+    asString(raw?.harmonyHeartbeats?.content) ||
+    'Quality time and affectionate rituals.';
+
+  const cosmicAdvice =
+    asString(raw?.cosmicAdvice) ||
+    asString(raw?.keepersBond?.dailyRitual) ||
+    asString(raw?.epilogue) ||
+    'Follow the small daily rituals that make your bond feel sacred.';
+
+  return {
+    sunSign,
+    archetype,
+    element,
+    modality,
+    nameVibration: asNumber(raw?.nameVibration) ?? 0,
+    coreEssence,
+    soulMission,
+    hiddenGift,
+    loveLanguage,
+    cosmicAdvice,
+  };
+};
+
 export function EmotionalReportReveal({ petName, report, onComplete }: EmotionalReportRevealProps) {
   const [currentStage, setCurrentStage] = useState<RevealStage>('intro');
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const stageIndex = stages.indexOf(currentStage);
-  const progress = ((stageIndex) / (stages.length - 1)) * 100;
+  const progress = (stageIndex / (stages.length - 1)) * 100;
+  const r = normalizeRevealReport(report);
 
   const advanceStage = useCallback(() => {
     const nextIndex = stageIndex + 1;
@@ -152,7 +209,7 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
                   transition={{ delay: 0.5, type: 'spring' }}
                   className="text-8xl"
                 >
-                  {signEmojis[report.sunSign] || '✨'}
+                  {signEmojis[r.sunSign] || '✨'}
                 </motion.span>
               </div>
             </motion.div>
@@ -166,14 +223,14 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
                 {petName} was born under
               </p>
               <h1 className="text-5xl font-display font-bold text-foreground mb-4">
-                {report.sunSign}
+                {r.sunSign}
               </h1>
               <div className="flex items-center justify-center gap-4 text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  {elementEmojis[report.element]} {report.element}
+                  {elementEmojis[r.element]} {r.element}
                 </span>
                 <span>•</span>
-                <span>{report.modality}</span>
+                <span>{r.modality}</span>
               </div>
             </motion.div>
 
@@ -207,7 +264,7 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
                 transition={{ delay: 0.3 }}
                 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-cosmic-gold via-primary to-nebula-pink bg-clip-text text-transparent"
               >
-                &ldquo;{report.archetype}&rdquo;
+                &ldquo;{r.archetype}&rdquo;
               </motion.h1>
             </motion.div>
 
@@ -261,7 +318,7 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-cosmic-gold/20"
             >
               <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{report.coreEssence}&rdquo;
+                &ldquo;{r.coreEssence}&rdquo;
               </p>
             </motion.div>
 
@@ -299,7 +356,7 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-primary/20"
             >
               <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{report.soulMission}&rdquo;
+                &ldquo;{r.soulMission}&rdquo;
               </p>
             </motion.div>
 
@@ -337,7 +394,7 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-nebula-pink/20"
             >
               <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{report.hiddenGift}&rdquo;
+                &ldquo;{r.hiddenGift}&rdquo;
               </p>
             </motion.div>
 
@@ -375,7 +432,7 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-red-400/20"
             >
               <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{report.loveLanguage}&rdquo;
+                &ldquo;{r.loveLanguage}&rdquo;
               </p>
             </motion.div>
 
@@ -413,7 +470,7 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-emerald-400/20"
             >
               <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{report.cosmicAdvice}&rdquo;
+                &ldquo;{r.cosmicAdvice}&rdquo;
               </p>
             </motion.div>
 
@@ -439,7 +496,7 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
             >
               <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-r from-cosmic-gold via-primary to-nebula-pink p-1">
                 <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-                  <span className="text-4xl">{signEmojis[report.sunSign] || '✨'}</span>
+                  <span className="text-4xl">{signEmojis[r.sunSign] || '✨'}</span>
                 </div>
               </div>
             </motion.div>
