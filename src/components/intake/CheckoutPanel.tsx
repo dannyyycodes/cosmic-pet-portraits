@@ -329,8 +329,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       </div>
 
-      {/* Weekly Horoscope - Coming Soon */}
-      {/* Temporarily hidden - subscription requires separate checkout flow
+      {/* Weekly Horoscope Subscription Add-on */}
       <div className="space-y-3">
         <button
           onClick={() => setIncludeHoroscope(!includeHoroscope)}
@@ -342,6 +341,14 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           )}
         >
           <div className={cn(
+            "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+            includeHoroscope
+              ? "border-nebula-purple bg-nebula-purple"
+              : "border-muted-foreground/40"
+          )}>
+            {includeHoroscope && <Check className="w-3 h-3 text-white" />}
+          </div>
+          <div className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center transition-all",
             includeHoroscope ? "bg-nebula-purple text-white" : "bg-muted/50 text-muted-foreground"
           )}>
@@ -350,15 +357,14 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           <div className="text-left flex-1">
             <div className="flex items-center gap-2">
               <h4 className="font-medium text-foreground">Weekly Cosmic Updates</h4>
-              <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-green-500/20 text-green-500">COMING SOON</span>
+              <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-nebula-purple/20 text-nebula-purple">ADD-ON</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Personalized horoscopes every week — $4.99/month
+              Personalized horoscopes every week — <span className="text-foreground font-medium">$4.99/month</span>
             </p>
           </div>
         </button>
       </div>
-      */}
 
       {/* Trust signals */}
       <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground py-2">
