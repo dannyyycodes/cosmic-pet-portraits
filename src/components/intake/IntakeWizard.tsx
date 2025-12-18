@@ -87,7 +87,11 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
 function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const [searchParams] = useSearchParams();
   const isDevMode = searchParams.get('dev') === 'true';
-  
+  const isPreviewHost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname.endsWith('lovableproject.com') ||
+      window.location.hostname.endsWith('lovable.app'));
+  const isTestMode = isDevMode || isPreviewHost;
   const [step, setStep] = useState(0);
   const [petCount, setPetCount] = useState(1);
   const [currentPetIndex, setCurrentPetIndex] = useState(0);
@@ -318,6 +322,21 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 pt-14 relative overflow-hidden">
       <StarfieldBackground intensity={intensity} interactive />
+      
+      {/* Mode Badge */}
+      <div className="fixed top-3 left-3 z-50">
+        <span
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
+            isTestMode
+              ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
+              : 'bg-green-500/20 text-green-400 border border-green-500/40'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${isTestMode ? 'bg-yellow-400' : 'bg-green-400'}`} />
+          {isTestMode ? 'Test Mode' : 'Live Mode'}
+        </span>
+      </div>
+
       <SocialProofBar petName={currentPetData?.name || ''} />
       
       <div className="w-full max-w-xl relative z-10">
