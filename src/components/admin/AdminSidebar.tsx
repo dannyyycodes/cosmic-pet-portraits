@@ -4,7 +4,6 @@ import {
   Users, 
   Mail, 
   FileText, 
-  DollarSign, 
   LogOut,
   Star,
   Gift
@@ -22,7 +21,28 @@ export function AdminSidebar() {
   const navigate = useNavigate();
   const adminEmail = sessionStorage.getItem('admin_email');
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const token = sessionStorage.getItem('admin_token');
+    
+    // Invalidate session server-side
+    if (token) {
+      try {
+        await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-auth?action=logout`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ token }),
+          }
+        );
+      } catch (e) {
+        // Continue with logout even if server call fails
+      }
+    }
+    
     sessionStorage.removeItem('admin_token');
     sessionStorage.removeItem('admin_email');
     navigate('/admin/login');

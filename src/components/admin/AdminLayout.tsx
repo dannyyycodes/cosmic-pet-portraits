@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { AdminSidebar } from './AdminSidebar';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -9,15 +11,74 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
-  const adminToken = sessionStorage.getItem('admin_token');
+  const [isValidating, setIsValidating] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    if (!adminToken) {
-      navigate('/admin/login');
-    }
-  }, [adminToken, navigate]);
+    const validateSession = async () => {
+      const adminToken = sessionStorage.getItem('admin_token');
+      
+      if (!adminToken) {
+        navigate('/admin/login');
+        return;
+      }
 
-  if (!adminToken) return null;
+      try {
+        // Validate token server-side
+        const { data, error } = await supabase.functions.invoke('admin-auth', {
+          body: { token: adminToken },
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        // Parse response - need to handle the query param
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-auth?action=validate`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ token: adminToken }),
+          }
+        );
+
+        const result = await response.json();
+
+        if (!result?.valid) {
+          sessionStorage.removeItem('admin_token');
+          sessionStorage.removeItem('admin_email');
+          navigate('/admin/login');
+          return;
+        }
+
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Session validation error:', error);
+        sessionStorage.removeItem('admin_token');
+        sessionStorage.removeItem('admin_email');
+        navigate('/admin/login');
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    validateSession();
+  }, [navigate]);
+
+  if (isValidating) {
+    return (
+      <div className="min-h-screen relative flex items-center justify-center">
+        <StarfieldBackground />
+        <div className="relative z-10 flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Validating session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen relative flex">
