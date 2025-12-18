@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { StatCard } from '@/components/admin/StatCard';
 import { CosmicButton } from '@/components/cosmic/CosmicButton';
 import { toast } from 'sonner';
 import { 
@@ -11,9 +11,8 @@ import {
   Clock, 
   CheckCircle, 
   XCircle, 
-  LogOut,
   RefreshCw,
-  ExternalLink
+  Search
 } from 'lucide-react';
 
 interface Affiliate {
@@ -28,42 +27,21 @@ interface Affiliate {
   pending_balance_cents: number;
   stripe_account_id: string;
   created_at: string;
-  pending_referrals?: number;
-  paid_referrals?: number;
-}
-
-interface Stats {
-  totalAffiliates: number;
-  activeAffiliates: number;
-  pendingAffiliates: number;
-  totalEarnings: number;
-  pendingPayouts: number;
-  totalReferrals: number;
-  totalRevenue: number;
 }
 
 export default function AdminAffiliates() {
-  const navigate = useNavigate();
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [filteredAffiliates, setFilteredAffiliates] = useState<Affiliate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingPayout, setIsProcessingPayout] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const adminToken = sessionStorage.getItem('admin_token');
-  const adminEmail = sessionStorage.getItem('admin_email');
-
-  useEffect(() => {
-    if (!adminToken) {
-      navigate('/admin/login');
-      return;
-    }
-    loadData();
-  }, [adminToken, navigate]);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // Load affiliates
       const { data: affData, error: affError } = await supabase.functions.invoke(
         'admin-affiliates?action=list',
         { headers: { 'X-Admin-Token': adminToken! } }
@@ -71,15 +49,7 @@ export default function AdminAffiliates() {
       
       if (affError) throw affError;
       setAffiliates(affData?.affiliates || []);
-
-      // Load stats
-      const { data: statsData, error: statsError } = await supabase.functions.invoke(
-        'admin-affiliates?action=stats',
-        { headers: { 'X-Admin-Token': adminToken! } }
-      );
-      
-      if (statsError) throw statsError;
-      setStats(statsData?.stats || null);
+      setFilteredAffiliates(affData?.affiliates || []);
     } catch (err) {
       console.error('Failed to load data:', err);
       toast.error('Failed to load affiliate data');
@@ -87,6 +57,28 @@ export default function AdminAffiliates() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    let filtered = affiliates;
+
+    if (searchTerm) {
+      filtered = filtered.filter(a =>
+        a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.referral_code.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(a => a.status === statusFilter);
+    }
+
+    setFilteredAffiliates(filtered);
+  }, [searchTerm, statusFilter, affiliates]);
 
   const updateStatus = async (affiliateId: string, status: string) => {
     try {
@@ -132,12 +124,6 @@ export default function AdminAffiliates() {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_token');
-    sessionStorage.removeItem('admin_email');
-    navigate('/admin/login');
-  };
-
   const formatCurrency = (cents: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -145,34 +131,36 @@ export default function AdminAffiliates() {
     }).format(cents / 100);
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <StarfieldBackground />
-        <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-cosmic-gold" />
-          <p className="mt-4 text-muted-foreground">Loading affiliate data...</p>
-        </div>
-      </div>
-    );
-  }
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const activeCount = affiliates.filter(a => a.status === 'active').length;
+  const pendingCount = affiliates.filter(a => a.status === 'pending').length;
+  const totalEarnings = affiliates.reduce((acc, a) => acc + a.total_earnings_cents, 0);
+  const pendingPayouts = affiliates.reduce((acc, a) => acc + a.pending_balance_cents, 0);
 
   return (
-    <div className="min-h-screen relative">
-      <StarfieldBackground />
-      
-      <div className="relative z-10 p-6 max-w-7xl mx-auto">
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-display font-bold text-foreground">
-              Affiliate Dashboard
-            </h1>
-            <p className="text-muted-foreground">
-              Logged in as {adminEmail}
-            </p>
+            <h1 className="text-3xl font-display font-bold text-foreground">Affiliates</h1>
+            <p className="text-muted-foreground">Manage your affiliate partners</p>
           </div>
           <div className="flex gap-3">
+            <CosmicButton
+              onClick={triggerPayouts}
+              disabled={isProcessingPayout || pendingPayouts < 1000}
+            >
+              <DollarSign className="w-4 h-4 mr-2" />
+              {isProcessingPayout ? 'Processing...' : 'Process Payouts'}
+            </CosmicButton>
             <CosmicButton
               variant="secondary"
               onClick={loadData}
@@ -181,84 +169,67 @@ export default function AdminAffiliates() {
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </CosmicButton>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-cosmic-purple/20 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-cosmic-purple" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.totalAffiliates}</p>
-                  <p className="text-xs text-muted-foreground">Total Affiliates</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.activeAffiliates}</p>
-                  <p className="text-xs text-muted-foreground">Active</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-cosmic-gold/20 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-cosmic-gold" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.totalRevenue)}</p>
-                  <p className="text-xs text-muted-foreground">Total Revenue</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.pendingPayouts)}</p>
-                  <p className="text-xs text-muted-foreground">Pending Payouts</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <StatCard
+            title="Total Affiliates"
+            value={affiliates.length}
+            icon={Users}
+            iconColor="text-cosmic-purple"
+            iconBg="bg-cosmic-purple/20"
+          />
+          <StatCard
+            title="Active"
+            value={activeCount}
+            icon={CheckCircle}
+            iconColor="text-green-400"
+            iconBg="bg-green-500/20"
+          />
+          <StatCard
+            title="Total Paid Out"
+            value={formatCurrency(totalEarnings)}
+            icon={TrendingUp}
+            iconColor="text-cosmic-gold"
+            iconBg="bg-cosmic-gold/20"
+          />
+          <StatCard
+            title="Pending Payouts"
+            value={formatCurrency(pendingPayouts)}
+            subtitle="Min $10 to payout"
+            icon={Clock}
+            iconColor="text-orange-400"
+            iconBg="bg-orange-500/20"
+          />
+        </div>
 
-        {/* Payout Button */}
-        <div className="mb-6">
-          <CosmicButton
-            onClick={triggerPayouts}
-            disabled={isProcessingPayout || (stats?.pendingPayouts || 0) < 1000}
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by name, email, or code..."
+              className="w-full pl-11 pr-4 py-3 bg-card/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-3 bg-card/50 border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
           >
-            <DollarSign className="w-4 h-4 mr-2" />
-            {isProcessingPayout ? 'Processing...' : 'Process Payouts'}
-          </CosmicButton>
-          <p className="text-xs text-muted-foreground mt-2">
-            Minimum payout: $10.00 per affiliate
-          </p>
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="inactive">Inactive</option>
+          </select>
         </div>
 
-        {/* Affiliates Table */}
+        {/* Table */}
         <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -275,14 +246,20 @@ export default function AdminAffiliates() {
                 </tr>
               </thead>
               <tbody>
-                {affiliates.length === 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-12 text-center">
+                      <RefreshCw className="w-6 h-6 animate-spin mx-auto text-cosmic-gold" />
+                    </td>
+                  </tr>
+                ) : filteredAffiliates.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
-                      No affiliates yet. Share your affiliate signup page!
+                      No affiliates found
                     </td>
                   </tr>
                 ) : (
-                  affiliates.map((affiliate) => (
+                  filteredAffiliates.map((affiliate) => (
                     <tr key={affiliate.id} className="border-b border-border/50 hover:bg-muted/20">
                       <td className="px-4 py-3">
                         <div>
@@ -357,6 +334,6 @@ export default function AdminAffiliates() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
