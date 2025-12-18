@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap } from 'lucide-react';
+import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
@@ -73,6 +74,9 @@ function getVolumeDiscount(petCount: number): number {
 }
 
 export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading }: CheckoutPanelProps) {
+  const [searchParams] = useSearchParams();
+  const isDevMode = searchParams.get('dev') === 'true';
+  
   const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | 'vip'>('basic');
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
   const [spotsLeft, setSpotsLeft] = useState(7);
@@ -331,6 +335,35 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           </span>
         )}
       </Button>
+
+      {/* Dev Mode Test Button */}
+      {isDevMode && (
+        <Button
+          onClick={() => {
+            const checkoutData: CheckoutData = {
+              selectedProducts: [selectedTier],
+              couponId: null,
+              giftCertificateId: null,
+              isGift: false,
+              recipientName: '',
+              recipientEmail: '',
+              giftMessage: '',
+              totalCents: 0, // Free in dev mode
+              petCount,
+              selectedTier,
+              includeGiftForFriend: false,
+            };
+            onCheckout(checkoutData);
+          }}
+          disabled={isLoading}
+          variant="outline"
+          size="lg"
+          className="w-full border-yellow-500 text-yellow-500 hover:bg-yellow-500/10"
+        >
+          <Bug className="w-4 h-4 mr-2" />
+          🧪 TEST MODE — Skip Payment
+        </Button>
+      )}
 
       {/* Final reassurance */}
       <p className="text-center text-xs text-muted-foreground">
