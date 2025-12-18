@@ -165,7 +165,7 @@ export default function GiftSuccess() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Questions? Contact us at support@furrealpaws.site
+            Questions? Contact us at support@astropaws.site
           </p>
         </motion.div>
       </div>
