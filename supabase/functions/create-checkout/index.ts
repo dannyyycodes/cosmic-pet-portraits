@@ -39,6 +39,7 @@ const checkoutSchema = z.object({
   giftMessage: z.string().max(500).optional().default(''),
   totalCents: z.number().optional(), // Ignored - calculated server-side
   includeGiftForFriend: z.boolean().optional().default(false),
+  referralCode: z.string().max(50).optional(), // Affiliate referral code
 });
 
 serve(async (req) => {
@@ -245,6 +246,7 @@ serve(async (req) => {
         gift_message: input.giftMessage,
         coupon_id: input.couponId || "",
         gift_certificate_id: input.giftCertificateId || "",
+        referral_code: input.referralCode || "", // Store referral code for tracking
       },
     });
 

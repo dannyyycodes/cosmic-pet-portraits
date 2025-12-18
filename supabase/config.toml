@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.send-report-email]
 verify_jwt = false
+
+[functions.admin-auth]
+verify_jwt = false
+
+[functions.admin-affiliates]
+verify_jwt = false

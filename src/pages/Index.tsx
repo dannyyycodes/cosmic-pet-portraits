@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Star, Sparkles, Gift, Heart, Dog } from "lucide-react";
@@ -6,8 +7,13 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { HomeTestimonials } from "@/components/HomeTestimonials";
 import { FAQ } from "@/components/FAQ";
 import { motion } from "framer-motion";
+import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 
 const Index = () => {
+  // Check for referral code in URL on page load
+  useEffect(() => {
+    checkAndStoreReferralFromURL();
+  }, []);
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       <Navbar />
@@ -225,6 +231,9 @@ const Index = () => {
             <a href="#" className="text-muted-foreground hover:text-gold transition-colors">
               Contact
             </a>
+            <Link to="/become-affiliate" className="text-muted-foreground hover:text-gold transition-colors">
+              Become an Affiliate
+            </Link>
           </div>
         </div>
       </footer>

@@ -10,6 +10,9 @@ import ViewReport from "./pages/ViewReport";
 import GiftPurchase from "./pages/GiftPurchase";
 import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";
+import AdminLogin from "./pages/AdminLogin";
+import AdminAffiliates from "./pages/AdminAffiliates";
+import BecomeAffiliate from "./pages/BecomeAffiliate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +31,9 @@ const App = () => (
           <Route path="/redeem" element={<RedeemGift />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/report" element={<ViewReport />} />
+          <Route path="/become-affiliate" element={<BecomeAffiliate />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/affiliates" element={<AdminAffiliates />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

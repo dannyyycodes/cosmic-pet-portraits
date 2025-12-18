@@ -22,6 +22,7 @@ import { CosmicProgress } from '@/components/cosmic/CosmicProgress';
 import { EmotionProvider, useEmotion } from '@/contexts/EmotionContext';
 import { CheckoutData } from './CheckoutPanel';
 import { saveIntakeProgress, loadIntakeProgress, clearIntakeProgress } from '@/lib/intakeStorage';
+import { getReferralCode } from '@/lib/referralTracking';
 
 export type PetSpecies = 'dog' | 'cat' | 'rabbit' | 'hamster' | 'guinea_pig' | 'bird' | 'fish' | 'reptile' | 'horse' | 'other' | '';
 export type PetGender = 'boy' | 'girl' | '';
@@ -236,6 +237,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
       // Create checkout with volume discount
       if (checkoutData) {
+        // Get referral code if present
+        const referralCode = getReferralCode();
+        
         const { data: checkoutResult, error: checkoutError } = await supabase.functions.invoke(
           'create-checkout',
           {
@@ -251,6 +255,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               recipientEmail: checkoutData.recipientEmail,
               giftMessage: checkoutData.giftMessage,
               includeGiftForFriend: checkoutData.includeGiftForFriend || false,
+              referralCode: referralCode || undefined, // Pass referral code to checkout
             },
           }
         );
