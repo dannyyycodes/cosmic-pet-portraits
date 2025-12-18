@@ -117,9 +117,29 @@ serve(async (req) => {
       } else {
         // Handle regular report purchase
         const reportIds = session.metadata?.report_ids?.split(",").filter(Boolean) || [];
+        const referralCode = session.metadata?.referral_code;
         
         if (reportIds.length > 0) {
           console.log("[STRIPE-WEBHOOK] Processing report payment for reports:", reportIds);
+          
+          // Track referral if present
+          if (referralCode) {
+            try {
+              const supabaseUrl = Deno.env.get("SUPABASE_URL");
+              await fetch(`${supabaseUrl}/functions/v1/track-referral`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  referralCode,
+                  sessionId: session.id,
+                  amount: session.amount_total || 0,
+                }),
+              });
+              console.log("[STRIPE-WEBHOOK] Referral tracked:", referralCode);
+            } catch (refErr) {
+              console.error("[STRIPE-WEBHOOK] Referral tracking failed:", refErr);
+            }
+          }
           
           // Update all reports as paid
           const { error: updateError } = await supabaseClient
