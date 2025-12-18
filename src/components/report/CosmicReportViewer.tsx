@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
-import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Eye, Target, Flame, Wind, Droplet, Mountain, Gem, User, Users, Clock, Hash, Palette, Share2, Image as ImageIcon } from 'lucide-react';
+import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Eye, Target, Flame, Wind, Droplet, Mountain, Gem, User, Users, Clock, Hash, Palette, Share2, Image as ImageIcon, Mail, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { useState, useRef } from 'react';
 import { CosmicPetCard, calculateCardStats } from './CosmicPetCard';
 import { BirthChartWheel } from './BirthChartWheel';
+import { ReportPDFDownload } from './ReportPDFDownload';
+import { SocialShareCard } from './SocialShareCard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -112,6 +114,7 @@ interface CosmicReportViewerProps {
   report: ReportContent;
   isPreview?: boolean;
   onUnlockFull?: () => void;
+  reportId?: string;
 }
 
 const elementColors: Record<string, string> = {
@@ -137,11 +140,12 @@ const sectionVariants = {
   }),
 };
 
-export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull }: CosmicReportViewerProps) {
+export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId }: CosmicReportViewerProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>();
   const [isGeneratingPortrait, setIsGeneratingPortrait] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Handle both new comprehensive format and legacy format
@@ -184,6 +188,28 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull }:
       toast.error('Could not generate portrait. Try again later.');
     } finally {
       setIsGeneratingPortrait(false);
+    }
+  };
+
+  const handleSubscribeWeekly = async () => {
+    if (!reportId) {
+      toast.error('Report ID required for subscription');
+      return;
+    }
+    setIsSubscribing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-horoscope-subscription', {
+        body: { email: '', petReportId: reportId, petName },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Subscription error:', error);
+      toast.error('Could not start subscription. Try again.');
+    } finally {
+      setIsSubscribing(false);
     }
   };
 
@@ -737,6 +763,45 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull }:
                 <Sparkles className="w-5 h-5" />
                 Unlock Full Report
               </Button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Share & Download Section */}
+        {!isPreview && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="py-12 space-y-8"
+          >
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Share & Save</h2>
+              <p className="text-muted-foreground">Keep and share {petName}'s cosmic profile</p>
+            </div>
+            
+            <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
+              <SocialShareCard
+                petName={petName}
+                sunSign={sunSign}
+                moonSign={moonSign}
+                element={element}
+                archetype={report.archetype?.name || 'Cosmic Soul'}
+              />
+              
+              <div className="flex flex-col gap-4">
+                <ReportPDFDownload petName={petName} reportContent={report} />
+                
+                <Button
+                  onClick={handleSubscribeWeekly}
+                  disabled={isSubscribing}
+                  className="gap-2"
+                  variant="outline"
+                >
+                  <Mail className="w-4 h-4" />
+                  {isSubscribing ? 'Loading...' : 'Weekly Horoscopes - $4.99/mo'}
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}

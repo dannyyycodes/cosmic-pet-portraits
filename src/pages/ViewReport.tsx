@@ -3,17 +3,21 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
+import { CinematicReveal } from '@/components/report/CinematicReveal';
 import { toast } from 'sonner';
 
 export default function ViewReport() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [reportData, setReportData] = useState<{ petName: string; report: any } | null>(null);
+  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showCinematic, setShowCinematic] = useState(false);
+  const [revealComplete, setRevealComplete] = useState(false);
 
   const reportId = searchParams.get('id');
   const code = searchParams.get('code'); // For gift redemption
+  const skipIntro = searchParams.get('skip') === 'true';
 
   useEffect(() => {
     if (!reportId && !code) {
@@ -45,7 +49,17 @@ export default function ViewReport() {
       setReportData({
         petName: data.petName,
         report: data.report,
+        reportId: reportId || data.reportId,
       });
+
+      // Show cinematic reveal for first-time views (not returning visits)
+      const hasSeenReport = sessionStorage.getItem(`seen_report_${reportId || code}`);
+      if (!hasSeenReport && !skipIntro) {
+        setShowCinematic(true);
+        sessionStorage.setItem(`seen_report_${reportId || code}`, 'true');
+      } else {
+        setRevealComplete(true);
+      }
     } catch (err) {
       console.error('Error fetching report:', err);
       setError(err instanceof Error ? err.message : 'Failed to load report');
@@ -53,6 +67,11 @@ export default function ViewReport() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRevealComplete = () => {
+    setShowCinematic(false);
+    setRevealComplete(true);
   };
 
   if (isLoading) {
@@ -82,11 +101,29 @@ export default function ViewReport() {
   }
 
   if (reportData) {
+    const sunSign = reportData.report?.chartPlacements?.sun?.sign || 'Aries';
+    const archetype = reportData.report?.archetype?.name || 'Cosmic Soul';
+    const element = reportData.report?.dominantElement || 'Fire';
+
     return (
-      <CosmicReportViewer
-        petName={reportData.petName}
-        report={reportData.report}
-      />
+      <>
+        {showCinematic && (
+          <CinematicReveal
+            petName={reportData.petName}
+            sunSign={sunSign}
+            archetype={archetype}
+            element={element}
+            onComplete={handleRevealComplete}
+          />
+        )}
+        {revealComplete && (
+          <CosmicReportViewer
+            petName={reportData.petName}
+            report={reportData.report}
+            reportId={reportData.reportId}
+          />
+        )}
+      </>
     );
   }
 
