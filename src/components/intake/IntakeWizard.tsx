@@ -412,6 +412,25 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           <CosmicProgress current={getGlobalStep()} total={totalSteps} />
         )}
 
+        {/* Occasion mode indicator - always editable */}
+        {step > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-3"
+          >
+            <button
+              onClick={() => setStep(0)}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/50 hover:bg-card/80 border border-border/50 hover:border-primary/30 text-xs text-muted-foreground hover:text-foreground transition-all"
+              title="Click to change occasion"
+            >
+              <span>{occasionMode === 'discover' ? '🔮' : occasionMode === 'birthday' ? '🎂' : occasionMode === 'memorial' ? '🌈' : '🎁'}</span>
+              <span className="capitalize">{occasionMode === 'gift' ? 'Gift' : occasionMode}</span>
+              <span className="text-primary/60">• Edit</span>
+            </button>
+          </motion.div>
+        )}
+
         {/* Pet indicator for multi-pet flow */}
         {step > 1 && step < 11 && petCount > 1 && (
           <motion.div
