@@ -97,7 +97,7 @@ serve(async (req) => {
     // Find affiliate by referral code
     const { data: affiliate, error: affError } = await supabaseClient
       .from('affiliates')
-      .select('*')
+      .select('id, commission_rate')
       .eq('referral_code', input.referralCode)
       .eq('status', 'active')
       .single();
@@ -140,14 +140,19 @@ serve(async (req) => {
       });
     }
 
-    // Update affiliate stats
-    await supabaseClient
-      .from('affiliates')
-      .update({
-        total_referrals: affiliate.total_referrals + 1,
-        total_earnings_cents: affiliate.total_earnings_cents + commissionAmount,
-      })
-      .eq('id', affiliate.id);
+    // SECURITY FIX: Use atomic increment to prevent race conditions
+    const { error: updateError } = await supabaseClient.rpc(
+      'increment_affiliate_stats',
+      {
+        p_affiliate_id: affiliate.id,
+        p_commission_cents: commissionAmount
+      }
+    );
+
+    if (updateError) {
+      logStep("Failed to update affiliate stats (atomic)", updateError);
+      // Note: referral was already recorded, so we don't fail the whole request
+    }
 
     logStep("Referral tracked successfully");
 

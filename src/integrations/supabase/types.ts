@@ -493,7 +493,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_affiliate_stats: {
+        Args: { p_affiliate_id: string; p_commission_cents: number }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -143,7 +143,12 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      // SECURITY FIX: Generic error - don't reveal config details
+      console.error("[GENERATE-REPORT] Missing AI service configuration");
+      return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Parse date and calculate all astrological positions using accurate ephemeris
