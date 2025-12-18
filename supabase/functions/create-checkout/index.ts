@@ -29,7 +29,7 @@ const checkoutSchema = z.object({
   reportIds: z.array(z.string().uuid()).optional(),
   reportId: z.string().uuid().optional(),
   petCount: z.number().int().min(1).max(10).optional().default(1),
-  selectedTier: z.enum(['basic', 'premium', 'vip']).optional().default('basic'),
+  selectedTier: z.enum(['basic', 'premium', 'vip']).optional().default('premium'),
   selectedProducts: z.array(z.string()).optional(),
   couponId: z.string().uuid().nullable().optional(),
   giftCertificateId: z.string().uuid().nullable().optional(),
@@ -39,6 +39,7 @@ const checkoutSchema = z.object({
   giftMessage: z.string().max(500).optional().default(''),
   totalCents: z.number().optional(), // Ignored - calculated server-side
   includeGiftForFriend: z.boolean().optional().default(false),
+  includesPortrait: z.boolean().optional().default(false), // Whether tier includes AI portrait
   referralCode: z.string().max(50).optional(), // Affiliate referral code
 });
 
@@ -240,6 +241,7 @@ serve(async (req) => {
         pet_count: actualPetCount.toString(),
         selected_tier: input.selectedTier,
         include_gift: input.includeGiftForFriend ? "true" : "false",
+        includes_portrait: input.includesPortrait ? "true" : "false",
         is_gift: input.isGift ? "true" : "false",
         recipient_name: input.recipientName,
         recipient_email: input.recipientEmail,
