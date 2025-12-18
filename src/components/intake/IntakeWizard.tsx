@@ -205,19 +205,19 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     setStep(nextStep);
   };
 
-  const handleBack = (prevStep: number) => {
+  const handleBack = () => {
     trackAction({ type: 'back_pressed' });
     
-    // If going back from step 2 (first pet data step) and not the first pet, go to previous pet's last step
-    if (prevStep === 1 && currentPetIndex > 0) {
+    // If on step 2 (first pet data step) and not the first pet, go to previous pet's last step
+    if (step === 2 && currentPetIndex > 0) {
       setCurrentPetIndex(currentPetIndex - 1);
       setStep(10); // Last pet data step
-    } else if (prevStep === 1 && currentPetIndex === 0) {
+    } else if (step === 2 && currentPetIndex === 0) {
       setStep(1); // Go back to pet count selection
-    } else if (prevStep === 0) {
+    } else if (step === 1) {
       setStep(0); // Go back to occasion
-    } else {
-      setStep(prevStep);
+    } else if (step > 2) {
+      setStep(step - 1); // Go to previous step
     }
   };
 
@@ -452,50 +452,50 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 totalSteps={stepsPerPet} 
                 modeContent={modeContent}
                 petNumber={petCount > 1 ? currentPetIndex + 1 : undefined}
-                onBack={() => handleBack(1)}
+                onBack={handleBack}
               />
             </motion.div>
           )}
 
           {step === 3 && (
             <motion.div key={`step3-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSpecies petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(4)} onBack={() => handleBack(2)} totalSteps={stepsPerPet} />
+              <IntakeStepSpecies petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(4)} onBack={handleBack} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 4 && (
             <motion.div key={`step4-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepBreed petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(5)} onBack={() => handleBack(3)} totalSteps={stepsPerPet} />
+              <IntakeStepBreed petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(5)} onBack={handleBack} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 5 && (
             <motion.div key={`step5-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepGender petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(6)} onBack={() => handleBack(4)} totalSteps={stepsPerPet} />
+              <IntakeStepGender petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(6)} onBack={handleBack} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 6 && (
             <motion.div key={`step6-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepDOB petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(7)} onBack={() => handleBack(5)} totalSteps={stepsPerPet} modeContent={modeContent} />
+              <IntakeStepDOB petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(7)} onBack={handleBack} totalSteps={stepsPerPet} modeContent={modeContent} />
             </motion.div>
           )}
 
           {step === 7 && (
             <motion.div key={`step7-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepLocation petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(8)} onBack={() => handleBack(6)} totalSteps={stepsPerPet} />
+              <IntakeStepLocation petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(8)} onBack={handleBack} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
           {step === 8 && (
             <motion.div key={`step8-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSoul petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(9)} onBack={() => handleBack(7)} totalSteps={stepsPerPet} modeContent={modeContent} />
+              <IntakeStepSoul petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(9)} onBack={handleBack} totalSteps={stepsPerPet} modeContent={modeContent} />
             </motion.div>
           )}
 
           {step === 9 && (
             <motion.div key={`step9-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSuperpower petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(10)} onBack={() => handleBack(8)} totalSteps={stepsPerPet} />
+              <IntakeStepSuperpower petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(10)} onBack={handleBack} totalSteps={stepsPerPet} />
             </motion.div>
           )}
 
@@ -505,7 +505,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 petData={currentPetData} 
                 onUpdate={updatePetData} 
                 onNext={handleNextPetOrEmail} 
-                onBack={() => handleBack(9)} 
+                onBack={handleBack} 
                 totalSteps={stepsPerPet} 
               />
             </motion.div>
