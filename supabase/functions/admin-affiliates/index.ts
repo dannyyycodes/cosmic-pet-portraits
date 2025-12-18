@@ -7,24 +7,75 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper function to validate admin token against database
+async function validateAdminToken(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  token: string | null
+): Promise<{ valid: boolean; adminId?: string }> {
+  if (!token) {
+    return { valid: false };
+  }
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+  const { data: session, error } = await supabase
+    .from("admin_sessions")
+    .select("admin_id, expires_at")
+    .eq("token", token)
+    .single();
+
+  if (error || !session) {
+    console.log("[ADMIN-AFFILIATES] Token not found in database");
+    return { valid: false };
+  }
+
+  // Type assertion since we know the shape of the data
+  const sessionData = session as { admin_id: string; expires_at: string };
+
+  // Check if token has expired
+  if (new Date(sessionData.expires_at) < new Date()) {
+    console.log("[ADMIN-AFFILIATES] Token expired, cleaning up");
+    await supabase.from("admin_sessions").delete().eq("token", token);
+    return { valid: false };
+  }
+
+  return { valid: true, adminId: sessionData.admin_id };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // SECURITY: Require admin token in header
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+  // SECURITY: Validate admin token against database
   const adminToken = req.headers.get("X-Admin-Token");
-  if (!adminToken || !adminToken.includes("-")) {
+  const authResult = await validateAdminToken(supabaseUrl, serviceRoleKey, adminToken);
+  
+  if (!authResult.valid) {
+    console.log("[ADMIN-AFFILIATES] Unauthorized access attempt");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+  
+  console.log("[ADMIN-AFFILIATES] Authenticated admin:", authResult.adminId);
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-  );
+  const supabaseClient = createClient(supabaseUrl, serviceRoleKey);
+  
+  if (!authResult.valid) {
+    console.log("[ADMIN-AFFILIATES] Unauthorized access attempt");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  
+  console.log("[ADMIN-AFFILIATES] Authenticated admin:", authResult.adminId);
 
   try {
     const url = new URL(req.url);
