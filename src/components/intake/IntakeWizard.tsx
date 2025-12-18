@@ -88,10 +88,13 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
 function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const isDevMode = searchParams.get('dev') === 'true';
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   const isPreviewHost =
-    typeof window !== 'undefined' &&
-    window.location.hostname.endsWith('lovableproject.com');
+    hostname === 'localhost' ||
+    hostname.endsWith('lovableproject.com') ||
+    hostname.endsWith('lovable.app');
   const isTestMode = isDevMode || isPreviewHost;
+
 
 
   const toggleDevMode = () => {
