@@ -244,7 +244,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         console.log('[DEV MODE] Skipping Stripe checkout, redirecting to success page');
         clearIntakeProgress();
         toast.success('Dev mode: Skipping payment');
-        window.location.href = `/payment-success?session_id=dev_test_${Date.now()}`;
+        const primaryReportId = reportIds[0];
+        window.location.href = `/payment-success?session_id=dev_test_${Date.now()}&report_id=${primaryReportId}`;
         return;
       }
 
