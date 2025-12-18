@@ -17,13 +17,13 @@ serve(async (req) => {
   
   if (!stripeKey) {
     console.error("[STRIPE-WEBHOOK] Missing STRIPE_SECRET_KEY");
-    return new Response(JSON.stringify({ error: "Missing Stripe configuration" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Service unavailable" }), { status: 500 });
   }
 
   // SECURITY: Require webhook secret in production
   if (!webhookSecret) {
     console.error("[STRIPE-WEBHOOK] STRIPE_WEBHOOK_SECRET is required for security");
-    return new Response(JSON.stringify({ error: "Webhook not configured" }), { 
+    return new Response(JSON.stringify({ error: "Service unavailable" }), { 
       headers: corsHeaders, 
       status: 500 
     });
@@ -42,7 +42,7 @@ serve(async (req) => {
     // SECURITY: Always require and verify signature
     if (!signature) {
       console.error("[STRIPE-WEBHOOK] Missing stripe-signature header");
-      return new Response(JSON.stringify({ error: "Missing signature" }), { 
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
         headers: corsHeaders, 
         status: 401 
       });
@@ -53,7 +53,7 @@ serve(async (req) => {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err) {
       console.error("[STRIPE-WEBHOOK] Signature verification failed:", err);
-      return new Response(JSON.stringify({ error: "Invalid signature" }), { 
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { 
         headers: corsHeaders, 
         status: 401 
       });
@@ -70,7 +70,7 @@ serve(async (req) => {
         
         if (!giftCode || typeof giftCode !== 'string' || giftCode.length > 20) {
           console.error("[STRIPE-WEBHOOK] Invalid gift code in metadata");
-          return new Response(JSON.stringify({ error: "Invalid gift code" }), { status: 400 });
+          return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
         }
 
         console.log("[STRIPE-WEBHOOK] Gift certificate payment completed:", giftCode);
@@ -84,12 +84,12 @@ serve(async (req) => {
 
         if (fetchError || !giftCert) {
           console.error("[STRIPE-WEBHOOK] Gift certificate not found:", giftCode);
-          return new Response(JSON.stringify({ error: "Gift certificate not found" }), { status: 404 });
+          return new Response(JSON.stringify({ error: "Resource not found" }), { status: 404 });
         }
 
         // Call the email sending function
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
-        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
         
         try {
           const emailResponse = await fetch(
@@ -98,7 +98,7 @@ serve(async (req) => {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${supabaseAnonKey}`,
+                "Authorization": `Bearer ${serviceRoleKey}`,
               },
               body: JSON.stringify({ giftCertificateId: giftCert.id }),
             }
@@ -113,6 +113,135 @@ serve(async (req) => {
         } catch (emailError) {
           console.error("[STRIPE-WEBHOOK] Failed to call email function:", emailError);
           // Don't fail the webhook - payment was successful, email is secondary
+        }
+      } else {
+        // Handle regular report purchase
+        const reportIds = session.metadata?.report_ids?.split(",").filter(Boolean) || [];
+        
+        if (reportIds.length > 0) {
+          console.log("[STRIPE-WEBHOOK] Processing report payment for reports:", reportIds);
+          
+          // Update all reports as paid
+          const { error: updateError } = await supabaseClient
+            .from("pet_reports")
+            .update({ 
+              payment_status: "paid", 
+              stripe_session_id: session.id,
+              updated_at: new Date().toISOString()
+            })
+            .in("id", reportIds);
+          
+          if (updateError) {
+            console.error("[STRIPE-WEBHOOK] Failed to update reports:", updateError);
+          } else {
+            console.log("[STRIPE-WEBHOOK] Reports marked as paid:", reportIds);
+          }
+          
+          // Handle coupon usage - manual increment
+          const couponId = session.metadata?.coupon_id;
+          if (couponId) {
+            try {
+              const { data: couponData } = await supabaseClient
+                .from("coupons")
+                .select("current_uses")
+                .eq("id", couponId)
+                .single();
+              
+              if (couponData) {
+                await supabaseClient
+                  .from("coupons")
+                  .update({ current_uses: couponData.current_uses + 1 })
+                  .eq("id", couponId);
+              }
+            } catch (couponError) {
+              console.error("[STRIPE-WEBHOOK] Failed to update coupon usage:", couponError);
+            }
+          }
+          
+          // Handle gift certificate redemption
+          const giftCertificateId = session.metadata?.gift_certificate_id;
+          if (giftCertificateId) {
+            await supabaseClient
+              .from("gift_certificates")
+              .update({ 
+                is_redeemed: true, 
+                redeemed_at: new Date().toISOString(),
+                redeemed_by_report_id: reportIds[0],
+              })
+              .eq("id", giftCertificateId);
+          }
+          
+          // Generate reports and send emails for each report
+          for (const reportId of reportIds) {
+            try {
+              // Fetch report data
+              const { data: report } = await supabaseClient
+                .from("pet_reports")
+                .select("*")
+                .eq("id", reportId)
+                .single();
+              
+              if (report && !report.report_content) {
+                // Build petData
+                const petData = {
+                  name: report.pet_name,
+                  species: report.species,
+                  breed: report.breed,
+                  gender: report.gender,
+                  dateOfBirth: report.birth_date,
+                  location: report.birth_location,
+                  soulType: report.soul_type,
+                  superpower: report.superpower,
+                  strangerReaction: report.stranger_reaction,
+                };
+                
+                // Generate report
+                const supabaseUrl = Deno.env.get("SUPABASE_URL");
+                const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+                
+                const genResponse = await fetch(
+                  `${supabaseUrl}/functions/v1/generate-cosmic-report`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${serviceRoleKey}`,
+                    },
+                    body: JSON.stringify({ petData, reportId }),
+                  }
+                );
+                
+                if (genResponse.ok) {
+                  const genData = await genResponse.json();
+                  console.log("[STRIPE-WEBHOOK] Report generated for:", reportId);
+                  
+                  // Send email
+                  await fetch(
+                    `${supabaseUrl}/functions/v1/send-report-email`,
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${serviceRoleKey}`,
+                      },
+                      body: JSON.stringify({
+                        reportId,
+                        email: report.email,
+                        petName: report.pet_name,
+                        sunSign: genData.report?.sunSign,
+                      }),
+                    }
+                  );
+                  console.log("[STRIPE-WEBHOOK] Email sent for:", reportId);
+                } else {
+                  console.error("[STRIPE-WEBHOOK] Report generation failed for:", reportId);
+                }
+              }
+            } catch (reportError) {
+              console.error("[STRIPE-WEBHOOK] Error processing report:", reportId, reportError);
+              // Continue with other reports
+            }
+          }
         }
       }
     }

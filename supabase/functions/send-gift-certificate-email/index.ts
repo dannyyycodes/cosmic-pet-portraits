@@ -18,10 +18,22 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // SECURITY: Require service role authorization
+  const authHeader = req.headers.get("Authorization");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
+    console.error("[SEND-GIFT-EMAIL] Unauthorized request - missing or invalid authorization");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+
   try {
     const { giftCertificateId }: GiftCertificateEmailRequest = await req.json();
     
-    console.log("Processing gift certificate email for:", giftCertificateId);
+    console.log("[SEND-GIFT-EMAIL] Processing gift certificate:", giftCertificateId?.substring(0, 8));
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -35,8 +47,11 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (fetchError || !giftCert) {
-      console.error("Error fetching gift certificate:", fetchError);
-      throw new Error("Gift certificate not found");
+      console.error("[SEND-GIFT-EMAIL] Gift certificate not found");
+      return new Response(JSON.stringify({ error: "Resource not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     const amountFormatted = (giftCert.amount_cents / 100).toFixed(2);
@@ -99,7 +114,7 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Purchaser email sent:", purchaserEmailResponse);
+    console.log("[SEND-GIFT-EMAIL] Purchaser email sent");
 
     // If there's a recipient email, send them the gift notification
     if (giftCert.recipient_email) {
@@ -160,20 +175,20 @@ const handler = async (req: Request): Promise<Response> => {
         `,
       });
 
-      console.log("Recipient email sent:", recipientEmailResponse);
+      console.log("[SEND-GIFT-EMAIL] Recipient email sent");
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: "Emails sent successfully" }),
+      JSON.stringify({ success: true }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   } catch (error: any) {
-    console.error("Error in send-gift-certificate-email:", error);
+    console.error("[SEND-GIFT-EMAIL] Error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Service unavailable" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

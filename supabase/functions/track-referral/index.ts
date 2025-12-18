@@ -31,17 +31,68 @@ serve(async (req) => {
     const rawInput = await req.json();
     const input = referralSchema.parse(rawInput);
 
-    logStep("Input validated", { referralCode: input.referralCode, amount: input.amount });
+    logStep("Input validated", { hasReferralCode: true, hasSessionId: true });
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    if (!stripeKey) {
+      logStep("Missing Stripe configuration");
+      return new Response(JSON.stringify({ error: "Service unavailable" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 503,
+      });
+    }
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    logStep("Processing referral", { referralCode: input.referralCode, sessionId: input.sessionId, amount: input.amount });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+
+    // SECURITY: Verify the Stripe session is actually paid
+    try {
+      const session = await stripe.checkout.sessions.retrieve(input.sessionId);
+      
+      if (session.payment_status !== 'paid') {
+        logStep("Session not paid", { status: session.payment_status });
+        return new Response(JSON.stringify({ 
+          success: false, 
+          reason: 'Payment not completed' 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+    } catch (stripeError) {
+      logStep("Invalid Stripe session");
+      return new Response(JSON.stringify({ 
+        success: false, 
+        reason: 'Invalid session' 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // SECURITY: Check if this session was already tracked (prevent double-dipping)
+    const { data: existingReferral } = await supabaseClient
+      .from('affiliate_referrals')
+      .select('id')
+      .eq('stripe_session_id', input.sessionId)
+      .single();
+
+    if (existingReferral) {
+      logStep("Session already tracked");
+      return new Response(JSON.stringify({ 
+        success: false, 
+        reason: 'Already tracked' 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    logStep("Processing referral");
 
     // Find affiliate by referral code
     const { data: affiliate, error: affError } = await supabaseClient
@@ -52,7 +103,7 @@ serve(async (req) => {
       .single();
 
     if (affError || !affiliate) {
-      logStep("Affiliate not found or inactive", { referralCode: input.referralCode });
+      logStep("Affiliate not found or inactive");
       return new Response(JSON.stringify({ success: false, reason: 'Invalid referral code' }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -82,8 +133,11 @@ serve(async (req) => {
       .single();
 
     if (refError) {
-      logStep("Failed to record referral", refError);
-      throw new Error("Failed to record referral");
+      logStep("Failed to record referral");
+      return new Response(JSON.stringify({ error: "Service unavailable" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
 
     // Update affiliate stats
@@ -95,7 +149,7 @@ serve(async (req) => {
       })
       .eq('id', affiliate.id);
 
-    logStep("Referral tracked successfully", { referralId: referral.id });
+    logStep("Referral tracked successfully");
 
     return new Response(JSON.stringify({
       success: true,
@@ -109,19 +163,17 @@ serve(async (req) => {
   } catch (error) {
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
-      logStep("Validation error", error.errors);
+      logStep("Validation error");
       return new Response(JSON.stringify({ 
-        error: "Invalid input",
-        details: error.errors.map(e => e.message).join(", ")
+        error: "Invalid request"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
       });
     }
 
-    const message = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message });
-    return new Response(JSON.stringify({ error: message }), {
+    logStep("ERROR");
+    return new Response(JSON.stringify({ error: "Service unavailable" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

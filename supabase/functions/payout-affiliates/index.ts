@@ -16,11 +16,29 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // SECURITY: Require service role authorization for admin functions
+  const authHeader = req.headers.get("Authorization");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
+    logStep("Unauthorized request - missing or invalid authorization");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
-    logStep("Function started");
+    logStep("Function started - authorized");
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    if (!stripeKey) {
+      logStep("Missing Stripe configuration");
+      return new Response(JSON.stringify({ error: "Service unavailable" }), {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -35,7 +53,13 @@ serve(async (req) => {
       .select('*, affiliates(*)')
       .eq('status', 'pending');
 
-    if (refError) throw new Error("Failed to fetch pending referrals");
+    if (refError) {
+      logStep("Failed to fetch pending referrals");
+      return new Response(JSON.stringify({ error: "Service unavailable" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     logStep("Found pending referrals", { count: pendingReferrals?.length || 0 });
 
@@ -82,7 +106,7 @@ serve(async (req) => {
       const account = await stripe.accounts.retrieve(affiliate.stripe_account_id);
       
       if (!account.payouts_enabled) {
-        logStep("Affiliate payouts not enabled", { affiliateId, stripeAccountId: affiliate.stripe_account_id });
+        logStep("Affiliate payouts not enabled", { affiliateId });
         continue;
       }
 
@@ -126,12 +150,12 @@ serve(async (req) => {
           affiliateId,
           amount: totalCommission,
           success: false,
-          error: msg,
+          error: "Transfer failed",
         });
       }
     }
 
-    logStep("Payout batch complete", { results: payoutResults });
+    logStep("Payout batch complete", { resultsCount: payoutResults.length });
 
     return new Response(JSON.stringify({
       success: true,
@@ -144,7 +168,7 @@ serve(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message });
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: "Service unavailable" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
