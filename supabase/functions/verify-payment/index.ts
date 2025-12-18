@@ -75,8 +75,12 @@ serve(async (req) => {
     // Verify with Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     
-    if (session.payment_status !== "paid") {
-      console.log("[VERIFY-PAYMENT] Payment not completed:", session.payment_status);
+    // For subscription mode, check payment_status OR subscription status
+    const isPaid = session.payment_status === "paid" || 
+                   (session.mode === "subscription" && session.subscription);
+    
+    if (!isPaid) {
+      console.log("[VERIFY-PAYMENT] Payment not completed:", session.payment_status, "mode:", session.mode);
       return new Response(JSON.stringify({ 
         success: false, 
         status: session.payment_status 

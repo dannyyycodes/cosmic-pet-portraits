@@ -12,6 +12,7 @@ interface CheckoutPanelProps {
   petCount?: number;
   onCheckout: (checkoutData: CheckoutData) => void;
   isLoading: boolean;
+  occasionMode?: string;
 }
 
 export interface CheckoutData {
@@ -79,7 +80,7 @@ function getVolumeDiscount(petCount: number): number {
   return 0;
 }
 
-export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading }: CheckoutPanelProps) {
+export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading, occasionMode }: CheckoutPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const isDevMode = searchParams.get('dev') === 'true';
   const isPreviewHost =
@@ -116,9 +117,16 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
   // Get all pet names for display
   const petNames = petsData?.map(p => p.name).filter(Boolean) || [petData.name];
+  
+  // Only show gift upsell for non-gift occasion modes
+  const shouldShowGiftUpsell = occasionMode !== 'gift';
 
   const handleCheckoutClick = () => {
-    setShowGiftUpsell(true);
+    if (shouldShowGiftUpsell) {
+      setShowGiftUpsell(true);
+    } else {
+      proceedToCheckout(false);
+    }
   };
 
   const proceedToCheckout = (withGift: boolean) => {
@@ -321,7 +329,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       </div>
 
-      {/* Weekly Horoscope Subscription Option */}
+      {/* Weekly Horoscope - Coming Soon */}
+      {/* Temporarily hidden - subscription requires separate checkout flow
       <div className="space-y-3">
         <button
           onClick={() => setIncludeHoroscope(!includeHoroscope)}
@@ -341,23 +350,15 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           <div className="text-left flex-1">
             <div className="flex items-center gap-2">
               <h4 className="font-medium text-foreground">Weekly Cosmic Updates</h4>
-              <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-green-500/20 text-green-500">NEW</span>
+              <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-green-500/20 text-green-500">COMING SOON</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Personalized horoscopes every week — $4.99/month
             </p>
           </div>
-          <div className={cn(
-            "w-12 h-6 rounded-full transition-all p-0.5",
-            includeHoroscope ? "bg-nebula-purple" : "bg-muted"
-          )}>
-            <motion.div
-              animate={{ x: includeHoroscope ? 24 : 0 }}
-              className="w-5 h-5 rounded-full bg-white shadow-sm"
-            />
-          </div>
         </button>
       </div>
+      */}
 
       {/* Trust signals */}
       <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground py-2">
