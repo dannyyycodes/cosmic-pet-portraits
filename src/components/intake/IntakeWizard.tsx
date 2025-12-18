@@ -85,13 +85,23 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
 }
 
 function IntakeWizardContent({ mode }: IntakeWizardProps) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isDevMode = searchParams.get('dev') === 'true';
   const isPreviewHost =
     typeof window !== 'undefined' &&
     (window.location.hostname.endsWith('lovableproject.com') ||
       window.location.hostname.endsWith('lovable.app'));
   const isTestMode = isDevMode || isPreviewHost;
+
+  const toggleDevMode = () => {
+    const next = new URLSearchParams(searchParams);
+    if (isDevMode) {
+      next.delete('dev');
+    } else {
+      next.set('dev', 'true');
+    }
+    setSearchParams(next, { replace: true });
+  };
   const [step, setStep] = useState(0);
   const [petCount, setPetCount] = useState(1);
   const [currentPetIndex, setCurrentPetIndex] = useState(0);
@@ -323,19 +333,23 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     <div className="min-h-screen bg-background flex items-center justify-center p-4 pt-14 relative overflow-hidden">
       <StarfieldBackground intensity={intensity} interactive />
       
-      {/* Mode Badge */}
-      <div className="fixed top-3 left-3 z-50">
+      {/* Mode Badge - clickable to toggle */}
+      <button
+        onClick={toggleDevMode}
+        className="fixed top-3 left-3 z-50 group"
+        title={isDevMode ? 'Click to disable dev mode' : 'Click to enable dev mode'}
+      >
         <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide transition-all cursor-pointer ${
             isTestMode
-              ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40'
-              : 'bg-green-500/20 text-green-400 border border-green-500/40'
+              ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 hover:bg-yellow-500/30'
+              : 'bg-green-500/20 text-green-400 border border-green-500/40 hover:bg-green-500/30'
           }`}
         >
           <span className={`w-2 h-2 rounded-full ${isTestMode ? 'bg-yellow-400' : 'bg-green-400'}`} />
           {isTestMode ? 'Test Mode' : 'Live Mode'}
         </span>
-      </div>
+      </button>
 
       <SocialProofBar petName={currentPetData?.name || ''} />
       
