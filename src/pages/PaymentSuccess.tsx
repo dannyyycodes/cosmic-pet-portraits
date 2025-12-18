@@ -36,35 +36,39 @@ export default function PaymentSuccess() {
       return;
     }
 
-    pollForReport();
+    verifyAndFetchReport();
   }, [sessionId, reportId]);
 
-  const pollForReport = async () => {
-    const maxAttempts = 30; // 30 attempts over ~60 seconds
-    let attempts = 0;
-    
+  const verifyAndFetchReport = async () => {
     setStage('generating');
+    
+    const maxAttempts = 20;
+    let attempts = 0;
 
-    const checkReport = async (): Promise<boolean> => {
+    const tryVerify = async (): Promise<boolean> => {
       try {
-        // Fetch the pet report using the get-report edge function (secure)
-        const { data, error: fetchError } = await supabase.functions.invoke('get-report', {
-          body: { reportId }
+        console.log('[PaymentSuccess] Verifying payment, attempt:', attempts + 1);
+        
+        // Call verify-payment function which handles everything
+        const { data, error: verifyError } = await supabase.functions.invoke('verify-payment', {
+          body: { sessionId, reportId }
         });
 
-        if (fetchError) {
-          console.error('Error fetching report:', fetchError);
+        if (verifyError) {
+          console.error('[PaymentSuccess] Verify error:', verifyError);
           return false;
         }
 
-        if (!data?.report) {
+        console.log('[PaymentSuccess] Verify response:', data);
+
+        if (!data?.success) {
+          // Payment not completed yet
           return false;
         }
 
         const petReport = data.report;
-
-        // Check if payment is confirmed and report has content
-        if (petReport.payment_status === 'paid' && petReport.report_content) {
+        
+        if (petReport?.payment_status === 'paid' && petReport?.report_content) {
           const isGift = petReport.occasion_mode === 'gift';
           
           setReportData({
@@ -81,37 +85,37 @@ export default function PaymentSuccess() {
 
         return false;
       } catch (err) {
-        console.error('Poll error:', err);
+        console.error('[PaymentSuccess] Error:', err);
         return false;
       }
     };
 
-    // Initial check
-    if (await checkReport()) {
+    // First attempt
+    if (await tryVerify()) {
       return;
     }
 
-    // Poll with increasing intervals
+    // Poll with retries
     const poll = async () => {
       attempts++;
       
       if (attempts >= maxAttempts) {
-        setError('Your payment was received but report generation is taking longer than expected. Please check your email or try refreshing the page in a few minutes.');
+        setError('Your payment was received but report generation is taking longer than expected. Please check your email or refresh the page in a few minutes.');
         setStage('error');
         return;
       }
 
-      if (await checkReport()) {
+      if (await tryVerify()) {
         return;
       }
 
-      // Exponential backoff: 2s, 2s, 2s, 3s, 3s, 4s, etc.
-      const delay = Math.min(2000 + Math.floor(attempts / 3) * 1000, 5000);
+      // Retry with delay
+      const delay = Math.min(3000 + attempts * 500, 8000);
       setTimeout(poll, delay);
     };
 
     // Start polling after initial delay
-    setTimeout(poll, 2000);
+    setTimeout(poll, 3000);
   };
 
   // Error state
