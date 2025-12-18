@@ -27,11 +27,11 @@ function generateGiftCode(): string {
 // Input validation schema
 const giftSchema = z.object({
   purchaserEmail: z.string().email().max(255),
-  recipientEmail: z.string().email().max(255).optional().or(z.literal('')),
+  recipientEmail: z.string().email().max(255).optional().or(z.literal('')).or(z.null()),
   recipientName: z.string().max(100).optional().default(''),
   giftMessage: z.string().max(500).optional().default(''),
   amountCents: z.number().int().refine(a => VALID_AMOUNTS.includes(a), "Invalid gift amount"),
-  deliveryMethod: z.enum(['email', 'print']).optional().default('email'),
+  deliveryMethod: z.enum(['email', 'link']).optional().default('email'),
 });
 
 serve(async (req) => {

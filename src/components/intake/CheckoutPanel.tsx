@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Bug } from 'lucide-react';
+import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Bug, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
@@ -96,10 +96,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
   const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | 'vip'>('premium'); // Default to premium (with portrait)
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
-  const [isGift, setIsGift] = useState(false);
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientEmail, setRecipientEmail] = useState('');
-  const [giftMessage, setGiftMessage] = useState('');
+  const [includeHoroscope, setIncludeHoroscope] = useState(false);
   const [spotsLeft, setSpotsLeft] = useState(7);
   const [recentPurchases, setRecentPurchases] = useState(12847);
 
@@ -130,13 +127,13 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     const tier = TIERS[selectedTier];
     
     onCheckout({
-      selectedProducts: [selectedTier],
+      selectedProducts: includeHoroscope ? [selectedTier, 'horoscope_subscription'] : [selectedTier],
       couponId: null,
       giftCertificateId: null,
-      isGift,
-      recipientName: isGift ? recipientName : '',
-      recipientEmail: isGift ? recipientEmail : '',
-      giftMessage: isGift ? giftMessage : '',
+      isGift: false,
+      recipientName: '',
+      recipientEmail: '',
+      giftMessage: '',
       totalCents: finalTotal,
       petCount,
       selectedTier,
@@ -324,72 +321,42 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       </div>
 
-      {/* Gift Option Toggle */}
+      {/* Weekly Horoscope Subscription Option */}
       <div className="space-y-3">
         <button
-          onClick={() => setIsGift(!isGift)}
+          onClick={() => setIncludeHoroscope(!includeHoroscope)}
           className={cn(
             "w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
-            isGift
-              ? "border-cosmic-gold bg-cosmic-gold/10"
-              : "border-border/50 bg-card/20 hover:border-cosmic-gold/30"
+            includeHoroscope
+              ? "border-nebula-purple bg-nebula-purple/10"
+              : "border-border/50 bg-card/20 hover:border-nebula-purple/30"
           )}
         >
           <div className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-            isGift ? "bg-cosmic-gold text-cosmic-gold-foreground" : "bg-muted/50 text-muted-foreground"
+            includeHoroscope ? "bg-nebula-purple text-white" : "bg-muted/50 text-muted-foreground"
           )}>
-            <Gift className="w-5 h-5" />
+            <Moon className="w-5 h-5" />
           </div>
           <div className="text-left flex-1">
-            <h4 className="font-medium text-foreground">Send as a Gift</h4>
+            <div className="flex items-center gap-2">
+              <h4 className="font-medium text-foreground">Weekly Cosmic Updates</h4>
+              <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-green-500/20 text-green-500">NEW</span>
+            </div>
             <p className="text-sm text-muted-foreground">
-              Include a personalized message & special reveal
+              Personalized horoscopes every week — $4.99/month
             </p>
           </div>
           <div className={cn(
             "w-12 h-6 rounded-full transition-all p-0.5",
-            isGift ? "bg-cosmic-gold" : "bg-muted"
+            includeHoroscope ? "bg-nebula-purple" : "bg-muted"
           )}>
             <motion.div
-              animate={{ x: isGift ? 24 : 0 }}
+              animate={{ x: includeHoroscope ? 24 : 0 }}
               className="w-5 h-5 rounded-full bg-white shadow-sm"
             />
           </div>
         </button>
-
-        {/* Gift form */}
-        {isGift && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="space-y-3 p-4 rounded-xl bg-card/30 border border-cosmic-gold/20"
-          >
-            <div className="grid gap-3">
-              <input
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                placeholder="Recipient's Name"
-                className="h-11 px-4 rounded-lg bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground"
-              />
-              <input
-                type="email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder="Recipient's Email"
-                className="h-11 px-4 rounded-lg bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground"
-              />
-              <textarea
-                value={giftMessage}
-                onChange={(e) => setGiftMessage(e.target.value)}
-                placeholder="Write a heartfelt message..."
-                className="min-h-[80px] p-4 rounded-lg bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground resize-none"
-                maxLength={200}
-              />
-            </div>
-          </motion.div>
-        )}
       </div>
 
       {/* Trust signals */}

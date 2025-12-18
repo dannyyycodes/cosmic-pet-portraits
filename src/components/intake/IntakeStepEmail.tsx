@@ -135,13 +135,23 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             exit={{ opacity: 0, y: -20 }}
             className="space-y-6"
           >
-            {/* Zodiac reveal card */}
+            {/* Celebration confetti animation */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", duration: 0.6 }}
+              className="text-center mb-4"
+            >
+              <span className="text-4xl">🎉</span>
+            </motion.div>
+
+            {/* Zodiac reveal card - Enhanced */}
             {sign && (
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", duration: 0.8 }}
-                className="relative overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-br from-card via-card to-primary/10 p-6"
+                className="relative overflow-hidden rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-card via-card to-primary/10 p-8"
               >
                 <div className="absolute inset-0 opacity-30">
                   <div className={`absolute top-0 right-0 w-40 h-40 rounded-full bg-gradient-to-br ${elementColors[signData?.element || 'Fire']} blur-3xl`} />
@@ -150,22 +160,21 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
 
                 <div className="relative z-10 text-center space-y-4">
                   <motion.div
-                    animate={{ rotate: [0, 5, -5, 0] }}
+                    animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
                     transition={{ repeat: Infinity, duration: 4 }}
-                    className={`w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${elementColors[signData?.element || 'Fire']} flex items-center justify-center shadow-xl`}
+                    className={`w-24 h-24 mx-auto rounded-full bg-gradient-to-br ${elementColors[signData?.element || 'Fire']} flex items-center justify-center shadow-2xl shadow-primary/30`}
                   >
-                    <span className="text-4xl">{signData?.icon || '✨'}</span>
+                    <span className="text-5xl">{signData?.icon || '✨'}</span>
                   </motion.div>
 
                   <div>
-                    <p className="text-xs text-primary uppercase tracking-widest mb-2">Cosmic Identity Revealed</p>
-                    <h2 className="text-3xl font-display font-bold text-foreground capitalize">
-                      {petData.name} is a {sign}
+                    <p className="text-xs text-primary uppercase tracking-widest mb-2">✨ Cosmic Identity Revealed ✨</p>
+                    <h2 className="text-4xl font-display font-bold text-foreground capitalize">
+                      {petData.name} Is A {sign}
                     </h2>
-                    <div className="flex justify-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <span className="capitalize">{signData?.element} Element</span>
-                      <span>•</span>
-                      <span>{signData?.archetype}</span>
+                    <div className="flex justify-center gap-4 mt-3 text-sm text-muted-foreground">
+                      <span className="capitalize px-3 py-1 rounded-full bg-primary/10">{signData?.element} Element</span>
+                      <span className="px-3 py-1 rounded-full bg-primary/10">{signData?.archetype}</span>
                     </div>
                   </div>
 
@@ -173,7 +182,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="text-muted-foreground italic max-w-sm mx-auto"
+                    className="text-foreground/80 italic max-w-sm mx-auto text-lg leading-relaxed"
                   >
                     "{petData.name}'s {sign} soul carries ancient wisdom that shapes every moment of connection..."
                   </motion.p>
@@ -181,9 +190,9 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               </motion.div>
             )}
 
-            {/* What's included - teaser */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">
+            {/* What's included - more engaging teaser */}
+            <div className="space-y-4 pt-2">
+              <h3 className="text-xl font-display font-semibold text-foreground text-center">
                 Your full reading reveals...
               </h3>
               
@@ -194,14 +203,16 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
-                    className="p-4 rounded-xl bg-card/50 border border-border/50 text-left"
+                    className="p-4 rounded-xl bg-gradient-to-br from-card/80 to-card/40 border border-border/50 text-left hover:border-primary/30 transition-all"
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <insight.icon className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">{insight.title}</span>
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <insight.icon className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-sm font-semibold text-foreground">{insight.title}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">{insight.description}</p>
-                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground/60">
+                    <p className="text-xs text-muted-foreground mb-2">{insight.description}</p>
+                    <div className="flex items-center gap-1 text-xs text-primary/60">
                       <Lock className="w-3 h-3" />
                       <span>Unlock in full report</span>
                     </div>
@@ -210,20 +221,27 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               </div>
             </div>
 
-            {/* Social proof */}
+            {/* Social proof with real impact */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="flex items-center justify-center gap-1 text-amber-500"
+              className="text-center space-y-3 py-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-primary/10 border border-amber-500/20"
             >
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-current" />
-              ))}
-              <span className="text-sm text-muted-foreground ml-2">12,847 pet parents love this</span>
+              <div className="flex items-center justify-center gap-1 text-amber-500">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 fill-current" />
+                ))}
+              </div>
+              <p className="text-sm text-foreground font-medium">
+                12,847 pet parents love this
+              </p>
+              <p className="text-xs text-muted-foreground italic px-4">
+                "This explained SO much about my dog's personality. It's like someone who really knows her wrote it!" — Sarah M.
+              </p>
             </motion.div>
 
-            {/* CTA to checkout */}
+            {/* CTA to checkout - more urgent */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -234,7 +252,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 onClick={() => setStage('checkout')}
                 variant="gold"
                 size="xl"
-                className="w-full max-w-xs mx-auto"
+                className="w-full max-w-sm mx-auto shadow-lg shadow-primary/20"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
                 Unlock Full Reading

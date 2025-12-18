@@ -117,12 +117,14 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
   const modeContent = occasionModeContent[occasionMode];
 
-  // Restore saved progress on mount
+  // Restore saved progress on mount - but always start with occasion step for fresh visits
   useEffect(() => {
     if (hasRestoredProgress) return;
     
     const saved = loadIntakeProgress();
-    if (saved && saved.petsData.length > 0) {
+    // Only restore if there's saved progress AND user isn't coming fresh from homepage
+    // We detect fresh visits by checking if we're at step 0 with no data
+    if (saved && saved.petsData.length > 0 && saved.step > 0) {
       // Convert date strings back to Date objects
       const restoredPets = saved.petsData.map(pet => ({
         ...pet,
@@ -133,11 +135,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       setCurrentPetIndex(saved.currentPetIndex);
       setStep(saved.step);
       setPetCount(saved.petCount);
+      setOccasionMode(saved.petsData[0]?.occasionMode || mode);
       
       toast.success('Welcome back! Your progress has been restored.');
     }
+    // Always start at step 0 (occasion) for fresh visits
     setHasRestoredProgress(true);
-  }, [hasRestoredProgress]);
+  }, [hasRestoredProgress, mode]);
 
   // Save progress whenever state changes
   useEffect(() => {
