@@ -11,13 +11,38 @@ const corsHeaders = {
 const petDataSchema = z.object({
   name: z.string().min(1).max(50).regex(/^[a-zA-Z\s\-']+$/, "Invalid pet name"),
   species: z.string().min(1).max(30),
-  breed: z.string().max(100).optional().default(''),
+  breed: z
+    .string()
+    .max(100)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? ''),
   gender: z.enum(['boy', 'girl']),
   dateOfBirth: z.string().refine(d => !isNaN(Date.parse(d)), "Invalid date format"),
-  location: z.string().max(100).optional().default(''),
-  soulType: z.string().max(50).optional().default(''),
-  superpower: z.string().max(50).optional().default(''),
-  strangerReaction: z.string().max(50).optional().default(''),
+  location: z
+    .string()
+    .max(100)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? ''),
+  soulType: z
+    .string()
+    .max(50)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? ''),
+  superpower: z
+    .string()
+    .max(50)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? ''),
+  strangerReaction: z
+    .string()
+    .max(50)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? ''),
 });
 
 const reportSchema = z.object({

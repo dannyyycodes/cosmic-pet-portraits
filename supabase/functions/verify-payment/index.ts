@@ -145,58 +145,70 @@ serve(async (req) => {
 
 async function generateReport(report: any, reportId: string, supabaseClient: any) {
   console.log("[VERIFY-PAYMENT] Generating report for:", reportId);
-  
+
   const petData = {
     name: report.pet_name,
     species: report.species,
-    breed: report.breed,
+    breed: report.breed ?? '',
     gender: report.gender,
     dateOfBirth: report.birth_date,
-    location: report.birth_location,
-    soulType: report.soul_type,
-    superpower: report.superpower,
-    strangerReaction: report.stranger_reaction,
+    location: report.birth_location ?? '',
+    soulType: report.soul_type ?? '',
+    superpower: report.superpower ?? '',
+    strangerReaction: report.stranger_reaction ?? '',
   };
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
   try {
-    const genResponse = await fetch(
-      `${supabaseUrl}/functions/v1/generate-cosmic-report`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${serviceRoleKey}`,
-        },
-        body: JSON.stringify({ petData, reportId }),
-      }
-    );
+    const genResponse = await fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({ petData, reportId }),
+    });
 
-    if (genResponse.ok) {
-      const genData = await genResponse.json();
-      console.log("[VERIFY-PAYMENT] Report generated successfully");
+    const genText = await genResponse.text();
+    let genData: any = null;
+    try {
+      genData = genText ? JSON.parse(genText) : null;
+    } catch {
+      // ignore parse errors
+    }
 
-      // Send email
-      await fetch(
-        `${supabaseUrl}/functions/v1/send-report-email`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${serviceRoleKey}`,
-          },
-          body: JSON.stringify({
-            reportId,
-            email: report.email,
-            petName: report.pet_name,
-            sunSign: genData.report?.sunSign,
-          }),
-        }
-      );
-    } else {
-      console.error("[VERIFY-PAYMENT] Report generation failed");
+    if (!genResponse.ok) {
+      console.error("[VERIFY-PAYMENT] Report generation failed", {
+        status: genResponse.status,
+        body: genText,
+      });
+      return;
+    }
+
+    console.log("[VERIFY-PAYMENT] Report generated successfully");
+
+    // Send email (best-effort)
+    const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-report-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({
+        reportId,
+        email: report.email,
+        petName: report.pet_name,
+        sunSign: genData?.report?.sunSign,
+      }),
+    });
+
+    if (!emailResponse.ok) {
+      console.error("[VERIFY-PAYMENT] Email sending failed", {
+        status: emailResponse.status,
+        body: await emailResponse.text(),
+      });
     }
   } catch (err) {
     console.error("[VERIFY-PAYMENT] Error generating report:", err);
