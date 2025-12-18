@@ -24,7 +24,11 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   email: z.string().email().max(255),
   password: z.string().min(8).max(100),
-  setupKey: z.string(), // Required setup key to create first admin
+  setupKey: z.string(),
+});
+
+const validateSchema = z.object({
+  token: z.string().min(1),
 });
 
 serve(async (req) => {
@@ -42,11 +46,61 @@ serve(async (req) => {
     const action = url.searchParams.get("action");
     const body = await req.json();
 
+    // Validate session token
+    if (action === "validate") {
+      const input = validateSchema.parse(body);
+      
+      const { data: session, error } = await supabaseClient
+        .from("admin_sessions")
+        .select("id, admin_id, expires_at")
+        .eq("token", input.token)
+        .single();
+
+      if (error || !session) {
+        return new Response(JSON.stringify({ valid: false }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Check expiry
+      if (new Date(session.expires_at) < new Date()) {
+        // Delete expired session
+        await supabaseClient
+          .from("admin_sessions")
+          .delete()
+          .eq("id", session.id);
+        
+        return new Response(JSON.stringify({ valid: false, reason: "expired" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      return new Response(JSON.stringify({ valid: true, admin_id: session.admin_id }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Logout - delete session
+    if (action === "logout") {
+      const input = validateSchema.parse(body);
+      
+      await supabaseClient
+        .from("admin_sessions")
+        .delete()
+        .eq("token", input.token);
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "register") {
-      // First admin setup - requires setup key
       const input = registerSchema.parse(body);
       
-      // Check setup key (use a secret from env)
       const setupKey = Deno.env.get("ADMIN_SETUP_KEY") || "cosmic-admin-setup-2024";
       if (input.setupKey !== setupKey) {
         return new Response(JSON.stringify({ error: "Invalid setup key" }), {
@@ -55,7 +109,6 @@ serve(async (req) => {
         });
       }
 
-      // Check if admin already exists
       const { data: existing } = await supabaseClient
         .from("admin_users")
         .select("id")
@@ -110,8 +163,30 @@ serve(async (req) => {
       });
     }
 
-    // Generate a simple session token
-    const sessionToken = crypto.randomUUID() + "-" + Date.now();
+    // Generate secure session token
+    const sessionToken = crypto.randomUUID() + "-" + crypto.randomUUID();
+    
+    // Store session in database with 24-hour expiry
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    const { error: sessionError } = await supabaseClient
+      .from("admin_sessions")
+      .insert({
+        token: sessionToken,
+        admin_id: admin.id,
+        expires_at: expiresAt.toISOString(),
+      });
+
+    if (sessionError) {
+      console.error("[ADMIN-AUTH] Session creation error:", sessionError);
+      return new Response(JSON.stringify({ error: "Failed to create session" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("[ADMIN-AUTH] Login successful for:", admin.email);
     
     return new Response(JSON.stringify({ 
       success: true, 
