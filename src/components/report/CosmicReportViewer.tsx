@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
-import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Eye, Target, Flame, Wind, Droplet, Mountain, Gem, User, Users, Clock, Hash, Palette } from 'lucide-react';
+import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Eye, Target, Flame, Wind, Droplet, Mountain, Gem, User, Users, Clock, Hash, Palette, Share2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { useState, useRef } from 'react';
+import { CosmicPetCard, calculateCardStats } from './CosmicPetCard';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Types for the comprehensive report
 interface ChartPlacement {
@@ -135,10 +138,14 @@ const sectionVariants = {
 
 export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull }: CosmicReportViewerProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [showCard, setShowCard] = useState(false);
+  const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>();
+  const [isGeneratingPortrait, setIsGeneratingPortrait] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Handle both new comprehensive format and legacy format
   const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Aries';
+  const moonSign = report.chartPlacements?.moon?.sign || 'Cancer';
   const element = report.dominantElement || report.element || 'Fire';
   const signData = zodiacSigns[sunSign.toLowerCase() as keyof typeof zodiacSigns];
   const gradientClass = elementColors[element] || elementColors.Fire;
@@ -148,6 +155,38 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull }:
     sectionRefs.current[sectionId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setActiveSection(sectionId);
   };
+
+  const handleGeneratePortrait = async () => {
+    setIsGeneratingPortrait(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-pet-portrait', {
+        body: {
+          petName,
+          species: 'pet', // Could be passed from report if available
+          breed: '',
+          sunSign,
+          element,
+          archetype: report.archetype?.name || 'Cosmic Soul',
+          style: 'pokemon'
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      
+      if (data?.imageUrl) {
+        setPetPortraitUrl(data.imageUrl);
+        toast.success('Portrait generated! Your cosmic card is complete.');
+      }
+    } catch (error) {
+      console.error('Portrait generation error:', error);
+      toast.error('Could not generate portrait. Try again later.');
+    } finally {
+      setIsGeneratingPortrait(false);
+    }
+  };
+
+  const cardStats = calculateCardStats({ ...report, petName });
 
   // Table of contents
   const tableOfContents = [
@@ -288,6 +327,95 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull }:
             {report.prologue}
           </p>
         </div>
+      </motion.div>
+
+      {/* Cosmic Trading Card Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="max-w-4xl mx-auto px-6 py-8"
+      >
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-foreground mb-2 flex items-center justify-center gap-2">
+            <Share2 className="w-6 h-6 text-cosmic-gold" />
+            Your Cosmic Trading Card
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Share your pet's stats with friends and compare cosmic powers!
+          </p>
+        </div>
+
+        {showCard ? (
+          <div className="flex justify-center">
+            <CosmicPetCard
+              petName={petName}
+              archetype={report.archetype?.name || 'Cosmic Soul'}
+              sunSign={sunSign}
+              moonSign={moonSign}
+              element={element}
+              zodiacIcon={signData?.icon || '✦'}
+              stats={cardStats}
+              auraColor={report.aura?.primary || '#FFD700'}
+              petPortraitUrl={petPortraitUrl}
+              onGeneratePortrait={handleGeneratePortrait}
+              isGeneratingPortrait={isGeneratingPortrait}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-72 h-[420px] rounded-2xl bg-gradient-to-br from-card/50 to-card/30 border border-border/50 flex flex-col items-center justify-center overflow-hidden">
+              {/* Preview sparkles */}
+              <div className="absolute inset-0">
+                {[...Array(20)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-cosmic-gold/50 rounded-full"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                    }}
+                    animate={{
+                      opacity: [0.2, 1, 0.2],
+                      scale: [0.5, 1.5, 0.5],
+                    }}
+                    transition={{
+                      duration: 2 + Math.random() * 2,
+                      repeat: Infinity,
+                      delay: Math.random() * 2,
+                    }}
+                  />
+                ))}
+              </div>
+              
+              <div className="relative z-10 text-center p-6">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-cosmic-gold/20 to-primary/20 flex items-center justify-center">
+                  <span className="text-4xl">{signData?.icon || '✦'}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{petName}'s Card</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Reveal your pet's cosmic stats in a shareable trading card format!
+                </p>
+                <div className="space-y-2 text-xs text-muted-foreground">
+                  <p>✨ 6 unique stat categories</p>
+                  <p>🎨 Element-themed design</p>
+                  <p>📱 Easy social sharing</p>
+                  <p>🖼️ Optional AI portrait</p>
+                </div>
+              </div>
+            </div>
+            
+            <Button
+              onClick={() => setShowCard(true)}
+              variant="gold"
+              size="lg"
+              className="gap-2"
+            >
+              <Sparkles className="w-5 h-5" />
+              Reveal My Cosmic Card
+            </Button>
+          </div>
+        )}
       </motion.div>
 
       {/* Table of Contents */}
