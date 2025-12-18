@@ -13,6 +13,7 @@ import RedeemGift from "./pages/RedeemGift";
 import AdminLogin from "./pages/AdminLogin";
 import AdminAffiliates from "./pages/AdminAffiliates";
 import BecomeAffiliate from "./pages/BecomeAffiliate";
+import ReferralRedirect from "./pages/ReferralRedirect";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/report" element={<ViewReport />} />
           <Route path="/become-affiliate" element={<BecomeAffiliate />} />
+          <Route path="/ref/:code" element={<ReferralRedirect />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/affiliates" element={<AdminAffiliates />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
