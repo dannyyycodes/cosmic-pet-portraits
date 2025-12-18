@@ -9,9 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const giftAmounts = [
-  { cents: 3500, label: 'Basic Report', description: 'Complete cosmic profile' },
-  { cents: 5500, label: 'Premium Report', description: 'Extended insights + compatibility' },
-  { cents: 8000, label: 'Family Bundle', description: 'Up to 3 pets + family dynamics' },
+  { cents: 3500, label: 'Cosmic Pet Reading', description: 'Full 18-chapter cosmic report' },
+  { cents: 5000, label: 'Cosmic Portrait Edition', description: 'Full report + AI cosmic portrait card' },
+  { cents: 12900, label: 'Cosmic VIP Experience', description: 'Everything + yearly updates forever' },
 ];
 
 type DeliveryMethod = 'email' | 'link';

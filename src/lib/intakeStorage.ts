@@ -1,6 +1,7 @@
 import { PetData } from '@/components/intake/IntakeWizard';
 
 const STORAGE_KEY = 'cosmic_pet_intake_progress';
+const OCCASION_KEY = 'cosmic_pet_occasion_mode';
 
 interface SavedProgress {
   petsData: PetData[];
@@ -45,6 +46,7 @@ export function loadIntakeProgress(): SavedProgress | null {
 export function clearIntakeProgress(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(OCCASION_KEY);
   } catch (e) {
     console.error('Failed to clear progress:', e);
   }
@@ -52,4 +54,29 @@ export function clearIntakeProgress(): void {
 
 export function hasIntakeProgress(): boolean {
   return loadIntakeProgress() !== null;
+}
+
+export function saveOccasionMode(mode: string): void {
+  try {
+    localStorage.setItem(OCCASION_KEY, mode);
+  } catch (e) {
+    console.error('Failed to save occasion mode:', e);
+  }
+}
+
+export function loadOccasionMode(): string | null {
+  try {
+    return localStorage.getItem(OCCASION_KEY);
+  } catch (e) {
+    console.error('Failed to load occasion mode:', e);
+    return null;
+  }
+}
+
+export function clearOccasionMode(): void {
+  try {
+    localStorage.removeItem(OCCASION_KEY);
+  } catch (e) {
+    console.error('Failed to clear occasion mode:', e);
+  }
 }
