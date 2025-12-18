@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { 
+  calculateAllPositions, 
+  getElement, 
+  getModality, 
+  getRulingPlanet,
+  type PlanetaryPositions 
+} from "./ephemeris.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,128 +48,7 @@ const reportSchema = z.object({
   occasionMode: z.enum(['discover', 'birthday', 'memorial', 'gift']).optional().default('discover'),
 });
 
-// Accurate zodiac date ranges
-function getSunSign(month: number, day: number): string {
-  if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "Aries";
-  if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "Taurus";
-  if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return "Gemini";
-  if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return "Cancer";
-  if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return "Leo";
-  if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return "Virgo";
-  if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return "Libra";
-  if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return "Scorpio";
-  if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return "Sagittarius";
-  if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return "Capricorn";
-  if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return "Aquarius";
-  return "Pisces";
-}
-
-function getElement(sign: string): string {
-  const fire = ["Aries", "Leo", "Sagittarius"];
-  const earth = ["Taurus", "Virgo", "Capricorn"];
-  const air = ["Gemini", "Libra", "Aquarius"];
-  if (fire.includes(sign)) return "Fire";
-  if (earth.includes(sign)) return "Earth";
-  if (air.includes(sign)) return "Air";
-  return "Water";
-}
-
-function getModality(sign: string): string {
-  const cardinal = ["Aries", "Cancer", "Libra", "Capricorn"];
-  const fixed = ["Taurus", "Leo", "Scorpio", "Aquarius"];
-  if (cardinal.includes(sign)) return "Cardinal";
-  if (fixed.includes(sign)) return "Fixed";
-  return "Mutable";
-}
-
-function getRulingPlanet(sign: string): string {
-  const rulers: Record<string, string> = {
-    Aries: "Mars", Taurus: "Venus", Gemini: "Mercury", Cancer: "Moon",
-    Leo: "Sun", Virgo: "Mercury", Libra: "Venus", Scorpio: "Pluto",
-    Sagittarius: "Jupiter", Capricorn: "Saturn", Aquarius: "Uranus", Pisces: "Neptune"
-  };
-  return rulers[sign] || "Sun";
-}
-
-// Calculate Moon sign (simplified - based on birth day cycle)
-function getMoonSign(sunSign: string, day: number): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const sunIndex = signs.indexOf(sunSign);
-  const offset = Math.floor((day - 1) / 2.5) % 12;
-  return signs[(sunIndex + offset) % 12];
-}
-
-// Calculate approximate Ascendant (simplified - based on birth month position)
-function getAscendant(sunSign: string, day: number): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const sunIndex = signs.indexOf(sunSign);
-  const offset = Math.floor(day / 3) % 12;
-  return signs[(sunIndex + offset + 3) % 12];
-}
-
-// Calculate Mercury position (always within 28° of Sun)
-function getMercury(sunSign: string, day: number): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const sunIndex = signs.indexOf(sunSign);
-  const offset = day < 10 ? -1 : day > 20 ? 1 : 0;
-  return signs[(sunIndex + offset + 12) % 12];
-}
-
-// Calculate Venus position
-function getVenus(sunSign: string, day: number): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const sunIndex = signs.indexOf(sunSign);
-  const offset = Math.floor((day - 1) / 7) % 3 - 1;
-  return signs[(sunIndex + offset + 12) % 12];
-}
-
-// Calculate Mars position
-function getMars(sunSign: string, day: number): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const sunIndex = signs.indexOf(sunSign);
-  const offset = Math.floor(day / 5) % 6;
-  return signs[(sunIndex + offset) % 12];
-}
-
-// Calculate North Node
-function getNorthNode(sunSign: string, day: number): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const sunIndex = signs.indexOf(sunSign);
-  const offset = Math.floor(day / 4) % 6;
-  return signs[(sunIndex + offset + 6) % 12];
-}
-
-// Get opposite sign for South Node
-function getSouthNode(northNode: string): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  return signs[(signs.indexOf(northNode) + 6) % 12];
-}
-
-// Calculate Chiron position
-function getChiron(sunSign: string, day: number): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const sunIndex = signs.indexOf(sunSign);
-  const offset = Math.floor(day / 3) % 4 + 3;
-  return signs[(sunIndex + offset) % 12];
-}
-
-// Calculate Lilith position
-function getLilith(sunSign: string, day: number): string {
-  const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-                 "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
-  const sunIndex = signs.indexOf(sunSign);
-  const offset = Math.floor(day / 2) % 5 + 4;
-  return signs[(sunIndex + offset) % 12];
-}
-
+// Name numerology calculation
 function calculateNameVibration(name: string): number {
   const cleanName = name.toLowerCase().replace(/[^a-z]/g, '');
   let sum = 0;
@@ -175,17 +61,22 @@ function calculateNameVibration(name: string): number {
   return sum;
 }
 
-function calculateDegree(day: number): number {
-  return Math.floor((day / 30) * 30) || 1;
-}
-
-// Element balance calculation
-function getElementalBalance(sun: string, moon: string, asc: string, venus: string, mars: string): Record<string, number> {
+// Element balance calculation using actual positions
+function getElementalBalance(positions: PlanetaryPositions): Record<string, number> {
   const elements = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
-  [sun, moon, asc, venus, mars].forEach(sign => {
+  const relevantPlanets = ['sun', 'moon', 'mercury', 'venus', 'mars'] as const;
+  
+  relevantPlanets.forEach(planet => {
+    const sign = positions[planet].sign;
     elements[getElement(sign) as keyof typeof elements]++;
   });
-  const total = 5;
+  
+  // Add ascendant if available
+  if (positions.ascendant) {
+    elements[getElement(positions.ascendant.sign) as keyof typeof elements]++;
+  }
+  
+  const total = positions.ascendant ? 6 : 5;
   return {
     Fire: Math.round((elements.Fire / total) * 100),
     Earth: Math.round((elements.Earth / total) * 100),
@@ -255,44 +146,61 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Parse date and calculate all astrological positions
+    // Parse date and calculate all astrological positions using accurate ephemeris
     const dob = new Date(petData.dateOfBirth);
-    const month = dob.getMonth() + 1;
-    const day = dob.getDate();
-    const degree = calculateDegree(day);
     
-    const sunSign = getSunSign(month, day);
-    const moonSign = getMoonSign(sunSign, day);
-    const ascendant = getAscendant(sunSign, day);
-    const mercury = getMercury(sunSign, day);
-    const venus = getVenus(sunSign, day);
-    const mars = getMars(sunSign, day);
-    const northNode = getNorthNode(sunSign, day);
-    const southNode = getSouthNode(northNode);
-    const chiron = getChiron(sunSign, day);
-    const lilith = getLilith(sunSign, day);
+    // Calculate true planetary positions using ephemeris
+    // Note: Without birth time, we use noon (12:00) as default
+    // Ascendant requires geographic coordinates - we'll estimate based on location or use a default
+    const positions = calculateAllPositions(dob);
+    
+    // Extract positions
+    const sunSign = positions.sun.sign;
+    const moonSign = positions.moon.sign;
+    const mercury = positions.mercury.sign;
+    const venus = positions.venus.sign;
+    const mars = positions.mars.sign;
+    const northNode = positions.northNode.sign;
+    const chiron = positions.chiron.sign;
+    const lilith = positions.lilith.sign;
+    
+    // South Node is opposite North Node
+    const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
+                   "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+    const southNode = signs[(signs.indexOf(northNode) + 6) % 12];
+    
+    // For ascendant, use an estimate based on birth time if not available
+    // Default to Sun sign offset (common approximation when birth time unknown)
+    const ascendant = positions.ascendant?.sign || positions.sun.sign;
     
     const element = getElement(sunSign);
     const modality = getModality(sunSign);
     const rulingPlanet = getRulingPlanet(sunSign);
     const nameVibration = calculateNameVibration(petData.name);
-    const elementalBalance = getElementalBalance(sunSign, moonSign, ascendant, venus, mars);
+    const elementalBalance = getElementalBalance(positions);
     const crystal = getCrystal(rulingPlanet, element);
     const aura = getAuraColor(element, rulingPlanet);
     const archetype = getSoulArchetype(sunSign, element, petData.gender, petData.species);
 
-    // Chart placements for display
+    // Chart placements for display with TRUE calculated degrees
     const chartPlacements = {
-      sun: { sign: sunSign, degree, symbol: "☉" },
-      moon: { sign: moonSign, degree: calculateDegree((day + 7) % 30 || 1), symbol: "☽" },
-      ascendant: { sign: ascendant, degree: calculateDegree((day + 3) % 30 || 1), symbol: "ASC" },
-      mercury: { sign: mercury, degree: calculateDegree((day + 5) % 30 || 1), symbol: "☿" },
-      venus: { sign: venus, degree: calculateDegree((day + 10) % 30 || 1), symbol: "♀" },
-      mars: { sign: mars, degree: calculateDegree((day + 15) % 30 || 1), symbol: "♂" },
-      northNode: { sign: northNode, degree: calculateDegree((day + 2) % 30 || 1), symbol: "☊" },
-      chiron: { sign: chiron, degree: calculateDegree((day + 8) % 30 || 1), symbol: "⚷" },
-      lilith: { sign: lilith, degree: calculateDegree((day + 12) % 30 || 1), symbol: "⚸" },
+      sun: { sign: sunSign, degree: positions.sun.degree, symbol: "☉" },
+      moon: { sign: moonSign, degree: positions.moon.degree, symbol: "☽" },
+      ascendant: { sign: ascendant, degree: positions.ascendant?.degree || 0, symbol: "ASC" },
+      mercury: { sign: mercury, degree: positions.mercury.degree, symbol: "☿" },
+      venus: { sign: venus, degree: positions.venus.degree, symbol: "♀" },
+      mars: { sign: mars, degree: positions.mars.degree, symbol: "♂" },
+      northNode: { sign: northNode, degree: positions.northNode.degree, symbol: "☊" },
+      chiron: { sign: chiron, degree: positions.chiron.degree, symbol: "⚷" },
+      lilith: { sign: lilith, degree: positions.lilith.degree, symbol: "⚸" },
     };
+    
+    console.log("[EPHEMERIS] Calculated positions:", {
+      sun: `${sunSign} ${positions.sun.degree}°`,
+      moon: `${moonSign} ${positions.moon.degree}°`,
+      venus: `${venus} ${positions.venus.degree}°`,
+      mars: `${mars} ${positions.mars.degree}°`,
+    });
 
     const modeContext = {
       discover: "This is a discovery reading - help the owner truly understand their pet for the first time.",
@@ -325,16 +233,16 @@ CRITICAL CONTEXT:
 - Pet: ${petData.name}, a ${petData.gender === 'boy' ? 'male' : 'female'} ${petData.breed || petData.species}
 - Birth: ${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
 
-CALCULATED CHART (USE THESE EXACT PLACEMENTS):
-☉ Sun: ${sunSign} ${degree}° (Core personality, vitality)
-☽ Moon: ${moonSign} (Emotional nature, comfort needs)
-ASC Ascendant: ${ascendant} (First impressions, outer demeanor)
-☿ Mercury: ${mercury} (Mind, communication style)
-♀ Venus: ${venus} (Love language, affection style)
-♂ Mars: ${mars} (Energy, drive, play style)
-☊ North Node: ${northNode} (Soul growth direction)
-⚷ Chiron: ${chiron} (Healing gifts, vulnerabilities)
-⚸ Lilith: ${lilith} (Wild spirit, independence)
+CALCULATED CHART (ACCURATE EPHEMERIS CALCULATIONS):
+☉ Sun: ${sunSign} ${positions.sun.degree}° (Core personality, vitality)
+☽ Moon: ${moonSign} ${positions.moon.degree}° (Emotional nature, comfort needs)
+ASC Ascendant: ${ascendant} ${positions.ascendant?.degree || 0}° (First impressions, outer demeanor)
+☿ Mercury: ${mercury} ${positions.mercury.degree}° (Mind, communication style)
+♀ Venus: ${venus} ${positions.venus.degree}° (Love language, affection style)
+♂ Mars: ${mars} ${positions.mars.degree}° (Energy, drive, play style)
+☊ North Node: ${northNode} ${positions.northNode.degree}° (Soul growth direction)
+⚷ Chiron: ${chiron} ${positions.chiron.degree}° (Healing gifts, vulnerabilities)
+⚸ Lilith: ${lilith} ${positions.lilith.degree}° (Wild spirit, independence)
 
 Element: ${element} | Modality: ${modality} | Ruling Planet: ${rulingPlanet}
 Elemental Balance: Fire ${elementalBalance.Fire}%, Earth ${elementalBalance.Earth}%, Air ${elementalBalance.Air}%, Water ${elementalBalance.Water}%
