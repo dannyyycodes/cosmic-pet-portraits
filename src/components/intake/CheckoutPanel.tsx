@@ -334,7 +334,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
       {/* Final reassurance */}
       <p className="text-center text-xs text-muted-foreground">
-        🔒 Secure checkout • 30-day money back guarantee
+        🔒 Secure checkout • 7-day money back guarantee
       </p>
 
       {/* Gift Upsell Modal - 50% OFF */}
