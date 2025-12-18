@@ -36,108 +36,82 @@ export default function PaymentSuccess() {
       return;
     }
 
-    verifyAndGenerate();
+    pollForReport();
   }, [sessionId, reportId]);
 
-  const verifyAndGenerate = async () => {
-    try {
-      // Fetch the pet report to get the data
-      const { data: petReport, error: fetchError } = await supabase
-        .from('pet_reports')
-        .select('*')
-        .eq('id', reportId)
-        .single();
+  const pollForReport = async () => {
+    const maxAttempts = 30; // 30 attempts over ~60 seconds
+    let attempts = 0;
+    
+    setStage('generating');
 
-      if (fetchError || !petReport) {
-        throw new Error('Report not found');
-      }
-
-      // Check if report already has content (already generated)
-      if (petReport.report_content) {
-        const isGift = petReport.occasion_mode === 'gift';
-        
-        setReportData({
-          petName: petReport.pet_name,
-          email: petReport.email,
-          report: petReport.report_content,
-          reportId: reportId!,
-          isGift,
+    const checkReport = async (): Promise<boolean> => {
+      try {
+        // Fetch the pet report using the get-report edge function (secure)
+        const { data, error: fetchError } = await supabase.functions.invoke('get-report', {
+          body: { reportId }
         });
-        setStage(isGift ? 'gift-sent' : 'reveal');
+
+        if (fetchError) {
+          console.error('Error fetching report:', fetchError);
+          return false;
+        }
+
+        if (!data?.report) {
+          return false;
+        }
+
+        const petReport = data.report;
+
+        // Check if payment is confirmed and report has content
+        if (petReport.payment_status === 'paid' && petReport.report_content) {
+          const isGift = petReport.occasion_mode === 'gift';
+          
+          setReportData({
+            petName: petReport.pet_name,
+            email: petReport.email,
+            report: petReport.report_content,
+            reportId: reportId!,
+            isGift,
+          });
+          
+          setStage(isGift ? 'gift-sent' : 'reveal');
+          return true;
+        }
+
+        return false;
+      } catch (err) {
+        console.error('Poll error:', err);
+        return false;
+      }
+    };
+
+    // Initial check
+    if (await checkReport()) {
+      return;
+    }
+
+    // Poll with increasing intervals
+    const poll = async () => {
+      attempts++;
+      
+      if (attempts >= maxAttempts) {
+        setError('Your payment was received but report generation is taking longer than expected. Please check your email or try refreshing the page in a few minutes.');
+        setStage('error');
         return;
       }
 
-      // Build petData from the report
-      const petData = {
-        name: petReport.pet_name,
-        species: petReport.species,
-        breed: petReport.breed,
-        gender: petReport.gender,
-        dateOfBirth: petReport.birth_date,
-        location: petReport.birth_location,
-        soulType: petReport.soul_type,
-        superpower: petReport.superpower,
-        strangerReaction: petReport.stranger_reaction,
-      };
-
-      setStage('generating');
-
-      // Generate the report
-      const { data: genData, error: genError } = await supabase.functions.invoke(
-        'generate-cosmic-report',
-        {
-          body: { petData, reportId },
-        }
-      );
-
-      if (genError) {
-        console.error('Report generation error:', genError);
-        throw new Error('Failed to generate report');
+      if (await checkReport()) {
+        return;
       }
 
-      // Update payment status
-      await supabase
-        .from('pet_reports')
-        .update({ payment_status: 'paid', stripe_session_id: sessionId })
-        .eq('id', reportId);
+      // Exponential backoff: 2s, 2s, 2s, 3s, 3s, 4s, etc.
+      const delay = Math.min(2000 + Math.floor(attempts / 3) * 1000, 5000);
+      setTimeout(poll, delay);
+    };
 
-      const isGift = petReport.occasion_mode === 'gift';
-
-      setReportData({
-        petName: petReport.pet_name,
-        email: petReport.email,
-        report: genData.report,
-        reportId: reportId!,
-        isGift,
-      });
-
-      // Send email with report link
-      try {
-        await supabase.functions.invoke('send-report-email', {
-          body: {
-            reportId,
-            email: petReport.email,
-            petName: petReport.pet_name,
-            sunSign: genData.report?.sunSign,
-          },
-        });
-        console.log('Report email sent successfully');
-      } catch (emailErr) {
-        console.error('Failed to send email:', emailErr);
-        // Don't fail the whole flow for email issues
-      }
-
-      // Small delay for dramatic effect
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setStage(isGift ? 'gift-sent' : 'reveal');
-
-    } catch (err) {
-      console.error('Payment success error:', err);
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-      setStage('error');
-      toast.error('Something went wrong. Please contact support.');
-    }
+    // Start polling after initial delay
+    setTimeout(poll, 2000);
   };
 
   // Error state
@@ -163,17 +137,8 @@ export default function PaymentSuccess() {
     );
   }
 
-  // Verifying payment
-  if (stage === 'verifying') {
-    return (
-      <ReportGenerating 
-        petName="Your pet" 
-      />
-    );
-  }
-
-  // Generating report
-  if (stage === 'generating') {
+  // Verifying/Generating - show loading state
+  if (stage === 'verifying' || stage === 'generating') {
     return (
       <ReportGenerating 
         petName={reportData?.petName || 'Your pet'}

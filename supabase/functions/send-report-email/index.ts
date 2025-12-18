@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -14,13 +13,28 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // SECURITY: Require service role authorization
+  const authHeader = req.headers.get("Authorization");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
+    console.error("[SEND-REPORT-EMAIL] Unauthorized request - missing or invalid authorization");
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { reportId, email, petName, sunSign } = await req.json();
     
-    console.log("[SEND-REPORT-EMAIL] Sending to:", email, "for pet:", petName);
+    console.log("[SEND-REPORT-EMAIL] Sending email for report:", reportId?.substring(0, 8));
 
     if (!email || !reportId) {
-      throw new Error("Missing required fields: email, reportId");
+      return new Response(JSON.stringify({ error: "Invalid request" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const origin = req.headers.get("origin") || "https://cosmicpetreport.com";
@@ -124,7 +138,7 @@ serve(async (req) => {
       `,
     });
 
-    console.log("[SEND-REPORT-EMAIL] Email sent:", emailResponse);
+    console.log("[SEND-REPORT-EMAIL] Email sent successfully");
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
@@ -133,8 +147,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("[SEND-REPORT-EMAIL] Error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: "Service unavailable" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
