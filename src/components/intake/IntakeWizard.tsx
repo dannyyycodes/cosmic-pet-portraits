@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IntakeStepPetCount } from './IntakeStepPetCount';
 import { IntakeStepName } from './IntakeStepName';
@@ -84,6 +85,9 @@ export function IntakeWizard({ mode }: IntakeWizardProps) {
 }
 
 function IntakeWizardContent({ mode }: IntakeWizardProps) {
+  const [searchParams] = useSearchParams();
+  const isDevMode = searchParams.get('dev') === 'true';
+  
   const [step, setStep] = useState(0);
   const [petCount, setPetCount] = useState(1);
   const [currentPetIndex, setCurrentPetIndex] = useState(0);
@@ -233,6 +237,15 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           throw new Error('Failed to save pet data');
         }
         reportIds.push(savedReport.id);
+      }
+
+      // DEV MODE: Skip Stripe checkout for testing
+      if (isDevMode) {
+        console.log('[DEV MODE] Skipping Stripe checkout, redirecting to success page');
+        clearIntakeProgress();
+        toast.success('Dev mode: Skipping payment');
+        window.location.href = `/payment-success?session_id=dev_test_${Date.now()}`;
+        return;
       }
 
       // Create checkout with volume discount
