@@ -90,9 +90,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const isDevMode = searchParams.get('dev') === 'true';
   const isPreviewHost =
     typeof window !== 'undefined' &&
-    (window.location.hostname.endsWith('lovableproject.com') ||
-      window.location.hostname.endsWith('lovable.app'));
+    window.location.hostname.endsWith('lovableproject.com');
   const isTestMode = isDevMode || isPreviewHost;
+
 
   const toggleDevMode = () => {
     const next = new URLSearchParams(searchParams);
@@ -311,11 +311,11 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         reportIds.push(reportId);
       }
 
-      // DEV MODE: Skip Stripe checkout for testing
-      if (isDevMode) {
-        console.log('[DEV MODE] Skipping Stripe checkout, redirecting to success page');
+      // TEST MODE: Skip Stripe checkout for preview/dev
+      if (isTestMode) {
+        console.log('[TEST MODE] Skipping Stripe checkout, redirecting to success page');
         clearIntakeProgress();
-        toast.success('Dev mode: Skipping payment');
+        toast.success('Test mode: Skipping payment');
         const primaryReportId = reportIds[0];
         window.location.href = `/payment-success?session_id=dev_test_${Date.now()}&report_id=${primaryReportId}`;
         return;
@@ -412,7 +412,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           }`}
         >
           <span className={`w-2 h-2 rounded-full ${isTestMode ? 'bg-yellow-400' : 'bg-green-400'}`} />
-          {isTestMode ? 'Test Mode' : 'Live Mode'}
+          {isDevMode ? 'Dev Mode' : isPreviewHost ? 'Preview Mode' : 'Live Mode'}
         </span>
       </button>
 
