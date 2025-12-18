@@ -54,6 +54,7 @@ serve(async (req) => {
       email: input.email,
       country: input.country,
       capabilities: {
+        card_payments: { requested: true },
         transfers: { requested: true },
       },
       business_type: 'individual',
