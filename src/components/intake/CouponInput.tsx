@@ -39,33 +39,36 @@ export function CouponInput({ onApplyCoupon, appliedCoupon, subtotal }: CouponIn
         .eq('is_active', true)
         .single();
 
+      // Use generic error for all failure cases to prevent code enumeration
+      const GENERIC_ERROR = 'Unable to apply this coupon code';
+
       if (fetchError || !coupon) {
-        setError('Invalid coupon code');
+        setError(GENERIC_ERROR);
         return;
       }
 
-      // Check if expired
+      // Check if expired - use generic error
       if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-        setError('This coupon has expired');
+        setError(GENERIC_ERROR);
         return;
       }
 
-      // Check max uses
+      // Check max uses - use generic error
       if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) {
-        setError('This coupon is no longer available');
+        setError(GENERIC_ERROR);
         return;
       }
 
-      // Check minimum purchase
+      // Check minimum purchase - use generic error
       if (coupon.min_purchase_cents && subtotal < coupon.min_purchase_cents) {
-        setError(`Minimum purchase of $${(coupon.min_purchase_cents / 100).toFixed(2)} required`);
+        setError(GENERIC_ERROR);
         return;
       }
 
       onApplyCoupon(coupon);
       setCode('');
     } catch (err) {
-      setError('Failed to validate coupon');
+      setError('Unable to apply this coupon code');
     } finally {
       setIsValidating(false);
     }
