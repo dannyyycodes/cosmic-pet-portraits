@@ -34,8 +34,8 @@ export default function Terms() {
           <section className="space-y-4">
             <h2 className="text-xl font-semibold text-foreground">3. Payment & Refunds</h2>
             <p>
-              All payments are processed securely through Stripe. We offer a <strong className="text-cosmic-gold">30-day money-back guarantee</strong>. 
-              If you're not completely satisfied with your pet's cosmic reading, contact us within 30 days 
+              All payments are processed securely through Stripe. We offer a <strong className="text-cosmic-gold">7-day money-back guarantee</strong>. 
+              If you're not completely satisfied with your pet's cosmic reading, contact us within 7 days 
               of purchase for a full refund.
             </p>
           </section>

@@ -5,6 +5,7 @@ import { CosmicButton } from "@/components/cosmic/CosmicButton";
 import { Link } from "react-router-dom";
 import { Mail, MessageCircle, Clock, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Contact() {
   const [name, setName] = useState("");
@@ -17,15 +18,24 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // For now, just show success - you can integrate with email service later
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast.success("Message sent! We'll get back to you within 24 hours.");
-    setName("");
-    setEmail("");
-    setSubject("");
-    setMessage("");
-    setIsSubmitting(false);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-contact-email', {
+        body: { name, email, subject, message }
+      });
+
+      if (error) throw error;
+
+      toast.success("Message sent! We'll get back to you within 24 hours.");
+      setName("");
+      setEmail("");
+      setSubject("");
+      setMessage("");
+    } catch (error: any) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message. Please try emailing us directly.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -77,7 +87,7 @@ export default function Contact() {
                   <div>
                     <h3 className="font-medium text-foreground">Money-Back Guarantee</h3>
                     <p className="text-muted-foreground">
-                      Not satisfied? Get a full refund within 30 days, no questions asked.
+                      Not satisfied? Get a full refund within 7 days, no questions asked.
                     </p>
                   </div>
                 </div>
