@@ -222,15 +222,15 @@ const Index = () => {
             © 2025 The Cosmic Pet Report.
           </p>
           <div className="flex items-center justify-center gap-6 text-sm">
-            <a href="#" className="text-muted-foreground hover:text-gold transition-colors">
+            <Link to="/terms" className="text-muted-foreground hover:text-gold transition-colors">
               Terms
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-gold transition-colors">
+            </Link>
+            <Link to="/privacy" className="text-muted-foreground hover:text-gold transition-colors">
               Privacy
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-gold transition-colors">
+            </Link>
+            <Link to="/contact" className="text-muted-foreground hover:text-gold transition-colors">
               Contact
-            </a>
+            </Link>
             <Link to="/become-affiliate" className="text-muted-foreground hover:text-gold transition-colors">
               Become an Affiliate
             </Link>
