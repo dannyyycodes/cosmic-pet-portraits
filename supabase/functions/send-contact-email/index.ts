@@ -178,6 +178,20 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Confirmation email sent:", confirmationEmailResponse);
 
+    // Trigger AI auto-reply asynchronously (don't wait for it)
+    fetch(`${supabaseUrl}/functions/v1/ai-support-reply`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({ name, email, subject, message }),
+    }).then(res => {
+      console.log("AI support reply triggered:", res.status);
+    }).catch(err => {
+      console.error("AI support reply error:", err);
+    });
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: {
