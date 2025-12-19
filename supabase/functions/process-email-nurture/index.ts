@@ -10,38 +10,38 @@ const corsHeaders = {
 // Email campaign configurations
 const CAMPAIGNS = {
   welcome_1: {
-    delayHours: 0.5, // 30 minutes after signup
-    subject: (petName: string) => `✨ ${petName}'s cosmic journey begins!`,
+    delayHours: 0.5,
+    subject: (petName: string) => `Welcome - let's finish ${petName}'s reading`,
     nextStage: 'welcome_2_pending',
   },
   welcome_2: {
-    delayHours: 24, // 1 day after welcome_1
-    subject: (petName: string) => `🌟 Did you know about ${petName}'s hidden cosmic gifts?`,
+    delayHours: 24,
+    subject: (petName: string) => `Something interesting about ${petName}`,
     nextStage: 'welcome_3_pending',
   },
   welcome_3: {
-    delayHours: 72, // 3 days after welcome_2
-    subject: (petName: string) => `🔮 Special offer: Unlock ${petName}'s full cosmic profile`,
+    delayHours: 72,
+    subject: (petName: string) => `15% off ${petName}'s reading`,
     nextStage: 'nurtured',
   },
   abandoned_cart: {
-    delayHours: 3, // 3 hours after abandonment
-    subject: (petName: string) => `🐾 ${petName} is waiting for their cosmic reading!`,
+    delayHours: 3,
+    subject: (petName: string) => `You were almost done`,
     nextStage: 'abandoned_reminded',
   },
   post_purchase_1: {
-    delayHours: 24, // 1 day after purchase
-    subject: (petName: string) => `💫 How to get the most from ${petName}'s cosmic reading`,
+    delayHours: 24,
+    subject: (petName: string) => `Thanks for getting ${petName}'s reading`,
     nextStage: 'post_purchase_2_pending',
   },
   post_purchase_2: {
-    delayHours: 168, // 7 days after purchase
-    subject: (petName: string) => `🎁 Share the cosmic love: Gift a reading for a friend!`,
+    delayHours: 168,
+    subject: (petName: string) => `Know someone who'd love this?`,
     nextStage: 'nurtured',
   },
   re_engagement: {
-    delayHours: 720, // 30 days inactive
-    subject: (petName: string) => `✨ We miss you and ${petName}! Here's something special...`,
+    delayHours: 720,
+    subject: (petName: string) => `Been a while - here's 20% off`,
     nextStage: 'nurtured',
   },
 };
@@ -55,53 +55,52 @@ async function generateEmailContent(
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   
   const prompts: Record<string, string> = {
-    welcome_1: `Write a warm, cosmic-themed welcome email for a pet astrology service. The pet's name is "${petName}". 
-    - Keep it brief (3-4 paragraphs)
-    - Use cosmic/astrology language
-    - Mention they started exploring their pet's cosmic profile
-    - Include a CTA to complete their reading
-    - Use emojis sparingly`,
+    welcome_1: `Write a brief welcome email for someone who started a pet astrology intake. Pet name: "${petName}".
+    - 2-3 short paragraphs max
+    - Warm but not over the top
+    - Mention they can finish anytime
+    - Simple CTA to continue
+    - No emojis in body text`,
     
-    welcome_2: `Write a follow-up nurture email for a pet astrology service. The pet's name is "${petName}".
-    - Share 2-3 fun facts about what astrology reveals about pets
-    - Tease what their reading will reveal
-    - Create curiosity about ${petName}'s zodiac traits
-    - Include a CTA to get their reading`,
+    welcome_2: `Write a short follow-up email about pet personality insights. Pet name: "${petName}".
+    - 2 paragraphs max
+    - Share one interesting fact about how astrology relates to pet behavior
+    - Natural, conversational tone
+    - CTA to get their reading`,
     
-    welcome_3: `Write a final nurture email with a special offer for a pet astrology service. The pet's name is "${petName}".
-    - Create urgency (limited time offer)
-    - Mention 15% off with code COSMIC15
-    - Highlight the value of the reading
-    - Strong CTA to purchase`,
+    welcome_3: `Write a final reminder email with a discount offer. Pet name: "${petName}".
+    - Brief and direct
+    - 15% off with code COSMIC15
+    - Creates gentle urgency without being pushy
+    - Clear CTA`,
     
-    abandoned_cart: `Write an abandoned cart recovery email for a pet astrology service. The pet's name is "${petName}".
-    - Gentle reminder they left before completing
-    - Mention their cosmic profile is almost ready
-    - Address potential concerns (quick process, secure payment)
-    - Clear CTA to continue`,
+    abandoned_cart: `Write a short recovery email. Pet name: "${petName}".
+    - One paragraph
+    - Friendly reminder, not guilt-trippy
+    - They were close to finishing
+    - CTA to continue where they left off`,
     
-    post_purchase_1: `Write a post-purchase email for a pet astrology service. The pet's name is "${petName}" and they got the ${tier || 'standard'} reading.
-    - Thank them for their purchase
-    - Give tips on how to use their reading
-    - Mention they can share on social media
-    - Encourage them to read it with their pet`,
+    post_purchase_1: `Write a thank you email after purchase. Pet name: "${petName}", tier: ${tier || 'standard'}.
+    - Express genuine thanks
+    - One tip for getting the most from their reading
+    - Encourage them to reach out with questions`,
     
-    post_purchase_2: `Write a follow-up email encouraging gifting for a pet astrology service. The pet's name is "${petName}".
-    - Ask if they enjoyed their reading
-    - Suggest gifting to a friend with a pet
-    - Mention the gift feature (50% off gifts)
-    - Warm, friendly tone`,
+    post_purchase_2: `Write a follow-up about gifting. Pet name: "${petName}".
+    - Ask how they're enjoying it
+    - Mention they can gift readings to friends
+    - 10% off gifts with code SHAREIT
+    - Brief and friendly`,
     
-    re_engagement: `Write a re-engagement email for a pet astrology service. The pet's name is "${petName}".
-    - It's been a while since we connected
-    - Mention new features or updates
-    - Offer a special comeback discount (20% off with code WELCOME_BACK)
-    - Warm, not pushy`,
+    re_engagement: `Write a re-engagement email. Pet name: "${petName}".
+    - It's been a while
+    - Mention any new features if applicable
+    - 20% off with code WELCOME_BACK
+    - Warm, not desperate`,
   };
 
   const prompt = prompts[campaignType] || prompts.welcome_1;
   const campaignConfig = CAMPAIGNS[campaignType as keyof typeof CAMPAIGNS];
-  const subject = campaignConfig?.subject(petName) || `A cosmic message for ${petName}`;
+  const subject = campaignConfig?.subject(petName) || `About ${petName}`;
 
   try {
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -115,7 +114,19 @@ async function generateEmailContent(
         messages: [
           {
             role: "system",
-            content: `You are an email copywriter for AstroPets, a pet astrology service. Write engaging, cosmic-themed emails that feel personal and magical. Output ONLY the email body HTML (no subject line, no markdown code blocks). Use inline CSS for styling. Keep emails mobile-friendly. Always include a prominent CTA button linking to https://astropets.cloud/intake`,
+            content: `You are writing emails for AstroPets, a pet astrology service. 
+
+CRITICAL RULES:
+- Write like a human, not a marketer
+- No emojis in body text (subject line is fine)
+- No exclamation points except maybe one
+- Short paragraphs (2-3 sentences max)
+- Conversational but professional
+- No cosmic/celestial language overload - use sparingly
+- No "we're so excited" or similar phrases
+- Output ONLY the email body HTML with inline CSS
+- Use simple, clean styling - dark background (#0f0a1a), white text, muted gray for secondary text
+- Include one clear CTA button linking to https://astropets.cloud/intake`,
           },
           { role: "user", content: prompt },
         ],
@@ -136,7 +147,6 @@ async function generateEmailContent(
     };
   } catch (error) {
     console.error("[EMAIL-NURTURE] Error generating content:", error);
-    // Fallback to simple template
     return {
       subject,
       html: wrapEmailTemplate(getFallbackContent(campaignType, petName), petName),
@@ -152,22 +162,20 @@ function wrapEmailTemplate(content: string, petName: string): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #0f0a1e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="color: #a78bfa; font-size: 28px; margin: 0;">🌟 AstroPets</h1>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #0f0a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 560px; margin: 0 auto; padding: 48px 24px;">
     
-    <div style="background: linear-gradient(145deg, #1a1033, #0d0620); border-radius: 16px; padding: 30px; border: 1px solid rgba(167, 139, 250, 0.2);">
+    <div style="margin-bottom: 32px;">
       ${content}
     </div>
     
-    <div style="text-align: center; margin-top: 30px; color: #6b7280; font-size: 12px;">
-      <p>🐾 Cosmic wisdom for your beloved companion</p>
-      <p style="margin-top: 15px;">
-        <a href="https://astropets.cloud/unsubscribe?email={email}" style="color: #6b7280;">Unsubscribe</a>
+    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 40px; padding-top: 24px; text-align: center;">
+      <p style="color: #505060; font-size: 12px; margin: 0 0 12px 0;">
+        AstroPets
       </p>
-      <p>© 2024 AstroPets. All rights reserved.</p>
+      <p style="margin: 0;">
+        <a href="https://astropets.cloud/unsubscribe?email={email}" style="color: #505060; font-size: 11px; text-decoration: underline;">Unsubscribe</a>
+      </p>
     </div>
   </div>
 </body>
@@ -177,30 +185,28 @@ function wrapEmailTemplate(content: string, petName: string): string {
 function getFallbackContent(campaignType: string, petName: string): string {
   const fallbacks: Record<string, string> = {
     welcome_1: `
-      <h2 style="color: #e2e8f0; margin-top: 0;">Welcome to the cosmic family! ✨</h2>
-      <p style="color: #cbd5e1; line-height: 1.6;">
-        We're thrilled you've started exploring ${petName}'s cosmic profile. The stars have so much to reveal about your beloved companion!
+      <p style="color: #e0e0e0; font-size: 15px; line-height: 1.6; margin: 0 0 16px 0;">
+        Thanks for starting ${petName}'s profile. You can pick up where you left off anytime.
       </p>
-      <p style="color: #cbd5e1; line-height: 1.6;">
-        Complete your reading to discover ${petName}'s zodiac personality, hidden gifts, and cosmic purpose.
+      <p style="color: #a0a0b0; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">
+        The full reading covers their personality traits, how they show love, and tips for bonding.
       </p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="https://astropets.cloud/intake" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; padding: 14px 32px; border-radius: 30px; text-decoration: none; font-weight: 600;">
-          Continue ${petName}'s Reading →
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="https://astropets.cloud/intake" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+          Continue ${petName}'s Reading
         </a>
       </div>
     `,
     abandoned_cart: `
-      <h2 style="color: #e2e8f0; margin-top: 0;">Don't leave ${petName} waiting! 🐾</h2>
-      <p style="color: #cbd5e1; line-height: 1.6;">
-        You were so close to unlocking ${petName}'s cosmic secrets! Their personalized reading is almost ready.
+      <p style="color: #e0e0e0; font-size: 15px; line-height: 1.6; margin: 0 0 16px 0;">
+        Looks like you got pretty far with ${petName}'s reading but didn't finish.
       </p>
-      <p style="color: #cbd5e1; line-height: 1.6;">
-        It only takes 2 minutes to complete. Come back and discover what the stars have in store!
+      <p style="color: #a0a0b0; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">
+        Your progress is saved if you want to pick back up.
       </p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="https://astropets.cloud/intake" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; padding: 14px 32px; border-radius: 30px; text-decoration: none; font-weight: 600;">
-          Complete My Reading →
+      <div style="text-align: center; margin: 24px 0;">
+        <a href="https://astropets.cloud/intake" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+          Finish My Reading
         </a>
       </div>
     `,
