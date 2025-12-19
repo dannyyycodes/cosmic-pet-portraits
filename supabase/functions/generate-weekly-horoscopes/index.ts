@@ -79,38 +79,48 @@ serve(async (req) => {
             messages: [
               {
                 role: "system",
-                content: `You are a mystical pet astrologer creating personalized weekly horoscopes. Write in a warm, engaging, magical tone. The horoscope should feel personal to this specific pet.`
+                content: `You are a mystical pet astrologer creating deeply personalized weekly horoscopes. Write in a warm, engaging, magical tone. Each horoscope should feel unique and personal to this specific pet's cosmic blueprint.`
               },
               {
                 role: "user",
-                content: `Create a weekly horoscope for a pet named "${sub.pet_name}" (${petReport.species || "pet"}).
+                content: `Create a detailed weekly horoscope for a pet named "${sub.pet_name}" (${petReport.species || "pet"}).
 
 Astrological Profile:
-- Sun Sign: ${sunSign}
-- Moon Sign: ${moonSign}  
+- Sun Sign: ${sunSign} (core personality)
+- Moon Sign: ${moonSign} (emotional nature)
 - Dominant Element: ${element}
-- Archetype: ${reportContent.archetype?.name || "Cosmic Soul"}
+- Soul Archetype: ${reportContent.archetype?.name || "Cosmic Soul"}
+- Superpower: ${reportContent.superpower || "intuition"}
 
-Generate a JSON response with:
+Generate a rich JSON response with:
 {
-  "theme": "One word theme for the week",
-  "overview": "2-3 sentence overview of the week's energies (max 100 words)",
-  "luckyDay": "Day of the week",
-  "luckyActivity": "Best activity for this pet this week",
-  "cosmicAdvice": "Specific personalized advice for the pet owner (max 50 words)",
-  "energyForecast": {
-    "monday": "Brief energy note",
-    "tuesday": "Brief energy note",
-    "wednesday": "Brief energy note",
-    "thursday": "Brief energy note",
-    "friday": "Brief energy note",
-    "saturday": "Brief energy note",
-    "sunday": "Brief energy note"
+  "theme": "One evocative word theme for the week",
+  "overview": "3-4 sentence overview of the week's energies specific to this pet (max 120 words)",
+  "luckyDay": "Best day of the week",
+  "luckyActivity": "Specific activity perfect for this pet this week",
+  "unluckyDay": "Day to be extra gentle with them",
+  "moodPredictions": {
+    "overall": "Overall mood tendency this week (playful/calm/adventurous/cuddly/independent)",
+    "peakEnergy": "Day and time when energy peaks",
+    "restNeeds": "When they'll need extra rest"
   },
-  "affirmation": "A pet-themed affirmation for the week"
+  "energyForecast": {
+    "monday": "1-sentence energy + emoji",
+    "tuesday": "1-sentence energy + emoji", 
+    "wednesday": "1-sentence energy + emoji",
+    "thursday": "1-sentence energy + emoji",
+    "friday": "1-sentence energy + emoji",
+    "saturday": "1-sentence energy + emoji",
+    "sunday": "1-sentence energy + emoji"
+  },
+  "cosmicAdvice": "Specific personalized advice for the pet owner (max 60 words)",
+  "bonusInsight": "A surprising or delightful observation about ${sub.pet_name}'s cosmic nature this week",
+  "photoPrompt": "Fun photo challenge for the owner to capture ${sub.pet_name}'s cosmic energy",
+  "compatibilityTip": "How ${sub.pet_name} will interact with other pets/humans this week",
+  "affirmation": "A magical pet-themed affirmation for the week"
 }
 
-Make it feel magical, personal, and actionable!`
+Make it feel magical, deeply personal, actionable, and shareable!`
               }
             ],
           }),
@@ -223,34 +233,84 @@ function generateHoroscopeEmail(petName: string, content: any, sunSign: string, 
       <p style="color: #e0e0e0; line-height: 1.8; font-size: 16px; margin: 0;">${content.overview}</p>
     </div>
     
-    <!-- Lucky Day & Activity -->
-    <div style="display: flex; background-color: #150d25;">
+    <!-- Mood Predictions -->
+    ${content.moodPredictions ? `
+    <div style="background-color: #150d25; padding: 20px;">
+      <h3 style="color: white; margin: 0 0 15px; font-size: 16px;">🌙 Mood Forecast</h3>
+      <div style="display: grid; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #1a1030; border-radius: 8px;">
+          <span style="color: #a0a0a0; font-size: 13px;">Overall Vibe</span>
+          <span style="color: ${accentColor}; font-size: 13px; font-weight: bold;">${content.moodPredictions.overall}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #1a1030; border-radius: 8px;">
+          <span style="color: #a0a0a0; font-size: 13px;">⚡ Peak Energy</span>
+          <span style="color: #22c55e; font-size: 13px;">${content.moodPredictions.peakEnergy}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: #1a1030; border-radius: 8px;">
+          <span style="color: #a0a0a0; font-size: 13px;">😴 Rest Needed</span>
+          <span style="color: #f59e0b; font-size: 13px;">${content.moodPredictions.restNeeds}</span>
+        </div>
+      </div>
+    </div>
+    ` : ''}
+    
+    <!-- Lucky & Unlucky Days -->
+    <div style="display: flex; background-color: #1a1030; margin-top: 2px;">
       <div style="flex: 1; padding: 20px; text-align: center; border-right: 1px solid #2d1f4a;">
         <p style="color: #a0a0a0; margin: 0 0 5px; font-size: 11px; text-transform: uppercase;">Lucky Day</p>
-        <p style="color: white; margin: 0; font-size: 18px; font-weight: bold;">🌟 ${content.luckyDay}</p>
+        <p style="color: #22c55e; margin: 0; font-size: 18px; font-weight: bold;">🌟 ${content.luckyDay}</p>
+      </div>
+      <div style="flex: 1; padding: 20px; text-align: center; border-right: 1px solid #2d1f4a;">
+        <p style="color: #a0a0a0; margin: 0 0 5px; font-size: 11px; text-transform: uppercase;">Go Easy Day</p>
+        <p style="color: #f59e0b; margin: 0; font-size: 18px; font-weight: bold;">🌸 ${content.unluckyDay || 'N/A'}</p>
       </div>
       <div style="flex: 1; padding: 20px; text-align: center;">
         <p style="color: #a0a0a0; margin: 0 0 5px; font-size: 11px; text-transform: uppercase;">Lucky Activity</p>
-        <p style="color: white; margin: 0; font-size: 18px; font-weight: bold;">🎯 ${content.luckyActivity}</p>
+        <p style="color: white; margin: 0; font-size: 16px; font-weight: bold;">🎯 ${content.luckyActivity}</p>
       </div>
     </div>
     
     <!-- Daily Energy -->
-    <div style="background-color: #1a1030; padding: 25px;">
+    <div style="background-color: #150d25; padding: 25px; margin-top: 2px;">
       <h3 style="color: white; margin: 0 0 15px; font-size: 16px;">📅 Daily Energy Guide</h3>
       ${Object.entries(content.energyForecast || {}).map(([day, energy]) => `
-        <div style="display: flex; padding: 8px 0; border-bottom: 1px solid #2d1f4a;">
-          <span style="color: ${accentColor}; width: 100px; font-size: 14px; text-transform: capitalize;">${day}</span>
-          <span style="color: #c0c0c0; font-size: 14px;">${energy}</span>
+        <div style="display: flex; padding: 10px 0; border-bottom: 1px solid #2d1f4a;">
+          <span style="color: ${accentColor}; width: 100px; font-size: 14px; text-transform: capitalize; font-weight: bold;">${day}</span>
+          <span style="color: #c0c0c0; font-size: 14px; flex: 1;">${energy}</span>
         </div>
       `).join('')}
     </div>
+    
+    <!-- Bonus Insight -->
+    ${content.bonusInsight ? `
+    <div style="background: linear-gradient(135deg, #f59e0b22 0%, #f59e0b11 100%); padding: 20px; margin-top: 2px; border-left: 4px solid #f59e0b;">
+      <h3 style="color: #f59e0b; margin: 0 0 8px; font-size: 14px;">💡 Cosmic Insight</h3>
+      <p style="color: #e0e0e0; margin: 0; font-size: 14px; line-height: 1.6;">${content.bonusInsight}</p>
+    </div>
+    ` : ''}
+    
+    <!-- Compatibility Tip -->
+    ${content.compatibilityTip ? `
+    <div style="background-color: #1a1030; padding: 20px; margin-top: 2px;">
+      <h3 style="color: white; margin: 0 0 8px; font-size: 14px;">💕 Social Forecast</h3>
+      <p style="color: #c0c0c0; margin: 0; font-size: 14px; line-height: 1.6;">${content.compatibilityTip}</p>
+    </div>
+    ` : ''}
     
     <!-- Cosmic Advice -->
     <div style="background: linear-gradient(135deg, ${accentColor}33 0%, ${accentColor}11 100%); padding: 25px; margin-top: 2px;">
       <h3 style="color: white; margin: 0 0 10px; font-size: 14px;">💫 Cosmic Advice for ${petName}'s Human</h3>
       <p style="color: #e0e0e0; margin: 0; font-size: 15px; line-height: 1.6;">${content.cosmicAdvice}</p>
     </div>
+    
+    <!-- Photo Challenge -->
+    ${content.photoPrompt ? `
+    <div style="background: linear-gradient(135deg, #ec489922 0%, #ec489911 100%); padding: 20px; margin-top: 2px; text-align: center;">
+      <h3 style="color: #ec4899; margin: 0 0 8px; font-size: 14px;">📸 Photo Challenge of the Week</h3>
+      <p style="color: #e0e0e0; margin: 0; font-size: 15px; font-style: italic;">"${content.photoPrompt}"</p>
+      <p style="color: #a0a0a0; margin: 10px 0 0; font-size: 12px;">Share on social with #CosmicPaws</p>
+    </div>
+    ` : ''}
     
     <!-- Affirmation -->
     <div style="background-color: #0f0a1f; padding: 30px; text-align: center; border-radius: 0 0 20px 20px;">
@@ -260,7 +320,7 @@ function generateHoroscopeEmail(petName: string, content: any, sunSign: string, 
     
     <!-- Footer -->
     <div style="text-align: center; padding: 30px 20px;">
-      <p style="color: #666; font-size: 12px; margin: 0;">Sent with cosmic love from Cosmic Paws ✨</p>
+      <p style="color: #666; font-size: 12px; margin: 0;">Sent with cosmic love from AstroPets ✨</p>
       <p style="color: #444; font-size: 11px; margin: 10px 0 0;">
         <a href="{{{unsubscribe_url}}}" style="color: #666;">Unsubscribe</a>
       </p>
