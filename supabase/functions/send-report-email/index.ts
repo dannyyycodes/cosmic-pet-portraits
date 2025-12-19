@@ -43,7 +43,7 @@ serve(async (req) => {
     const emailResponse = await resend.emails.send({
       from: "AstroPets <hello@astropets.cloud>",
       to: [email],
-      subject: `✨ ${petName}'s Cosmic Portrait is Ready!`,
+      subject: `${petName}'s Cosmic Reading is Ready`,
       html: `
 <!DOCTYPE html>
 <html>
@@ -51,84 +51,46 @@ serve(async (req) => {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; background-color: #0f0a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 560px; margin: 0 auto; padding: 48px 24px;">
     
-    <!-- Header -->
-    <div style="text-align: center; margin-bottom: 40px;">
-      <div style="font-size: 48px; margin-bottom: 16px;">🌟</div>
-      <h1 style="color: #f5deb3; font-size: 28px; margin: 0 0 8px 0; font-weight: 600;">
-        The Stars Have Spoken
-      </h1>
-      <p style="color: #a0a0b0; font-size: 16px; margin: 0;">
-        ${petName}'s cosmic portrait awaits you
+    <p style="color: #a0a0b0; font-size: 14px; margin: 0 0 32px 0; text-align: center;">
+      Your pet's reading is complete
+    </p>
+
+    <h1 style="color: #ffffff; font-size: 28px; font-weight: 600; margin: 0 0 16px 0; text-align: center; line-height: 1.3;">
+      ${petName}'s cosmic profile is ready to explore
+    </h1>
+    
+    <p style="color: #a0a0b0; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">
+      We've mapped out ${petName}'s personality traits, hidden gifts, and what makes them truly special.
+    </p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 15px;">
+        View ${petName}'s Reading
+      </a>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 24px; margin: 32px 0;">
+      <p style="color: #e0e0e0; font-size: 14px; font-weight: 500; margin: 0 0 16px 0;">
+        What you'll discover:
       </p>
+      <ul style="color: #a0a0b0; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
+        <li>Their core personality and what drives them</li>
+        <li>How they show and receive love</li>
+        <li>Tips for deeper bonding based on their nature</li>
+      </ul>
     </div>
 
-    <!-- Main Card -->
-    <div style="background: rgba(255,255,255,0.05); border-radius: 24px; padding: 32px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 32px;">
-      
-      <div style="text-align: center; margin-bottom: 24px;">
-        <div style="display: inline-block; background: linear-gradient(135deg, #ff6b9d 0%, #c44dff 100%); padding: 12px 24px; border-radius: 100px; margin-bottom: 16px;">
-          <span style="color: white; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-            ${sunSign || 'Cosmic'} ${sunSign ? '♈' : '✨'}
-          </span>
-        </div>
-        
-        <h2 style="color: white; font-size: 24px; margin: 0 0 8px 0;">
-          ${petName}'s Soul Revealed
-        </h2>
-        <p style="color: #a0a0b0; font-size: 14px; margin: 0;">
-          Discover their hidden gifts, love language, and cosmic wisdom
-        </p>
-      </div>
+    <p style="color: #707080; font-size: 13px; margin: 32px 0 0 0; text-align: center; line-height: 1.6;">
+      Save this email to access the reading anytime.<br>
+      Questions? Just reply to this email.
+    </p>
 
-      <!-- CTA Button -->
-      <div style="text-align: center;">
-        <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #f5a623 0%, #f5c563 100%); color: #1a1a2e; text-decoration: none; padding: 16px 48px; border-radius: 100px; font-weight: 600; font-size: 16px; box-shadow: 0 8px 32px rgba(245, 166, 35, 0.3);">
-          ✨ View ${petName}'s Portrait
-        </a>
-      </div>
-    </div>
-
-    <!-- Features -->
-    <div style="display: grid; gap: 16px; margin-bottom: 32px;">
-      <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05);">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 24px;">💫</span>
-          <div>
-            <div style="color: white; font-weight: 500;">Core Essence</div>
-            <div style="color: #a0a0b0; font-size: 13px;">Their true nature revealed</div>
-          </div>
-        </div>
-      </div>
-      <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05);">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 24px;">❤️</span>
-          <div>
-            <div style="color: white; font-weight: 500;">Love Language</div>
-            <div style="color: #a0a0b0; font-size: 13px;">How they give & receive love</div>
-          </div>
-        </div>
-      </div>
-      <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.05);">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 24px;">🔮</span>
-          <div>
-            <div style="color: white; font-weight: 500;">Cosmic Wisdom</div>
-            <div style="color: #a0a0b0; font-size: 13px;">Guidance for deeper bonding</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div style="text-align: center; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1);">
-      <p style="color: #707080; font-size: 13px; margin: 0 0 8px 0;">
-        Save this email to access ${petName}'s portrait anytime
-      </p>
+    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 40px; padding-top: 24px; text-align: center;">
       <p style="color: #505060; font-size: 12px; margin: 0;">
-        The Cosmic Pet Report • Revealing the souls of our furry friends
+        AstroPets
       </p>
     </div>
 

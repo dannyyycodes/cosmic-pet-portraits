@@ -62,55 +62,57 @@ const handler = async (req: Request): Promise<Response> => {
     const purchaserEmailResponse = await resend.emails.send({
       from: "AstroPets <hello@astropets.cloud>",
       to: [giftCert.purchaser_email],
-      subject: "Your Gift Certificate Purchase Confirmation",
+      subject: "Your Gift Certificate is Ready",
       html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #e0e0e0; margin: 0; padding: 20px; }
-            .container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1); }
-            .header { text-align: center; margin-bottom: 30px; }
-            .header h1 { color: #c4a7e7; margin: 0; font-size: 28px; }
-            .stars { font-size: 24px; margin: 10px 0; }
-            .gift-code { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; }
-            .gift-code h2 { margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; opacity: 0.8; }
-            .gift-code .code { font-size: 28px; font-weight: bold; letter-spacing: 3px; font-family: monospace; }
-            .amount { font-size: 24px; color: #c4a7e7; text-align: center; margin: 20px 0; }
-            .details { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .footer { text-align: center; margin-top: 30px; opacity: 0.7; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="stars">✨🌟✨</div>
-              <h1>Gift Certificate Confirmed!</h1>
-            </div>
-            
-            <p>Thank you for your purchase! Here are the details of your cosmic gift:</p>
-            
-            <div class="gift-code">
-              <h2>Gift Code</h2>
-              <div class="code">${giftCert.code}</div>
-            </div>
-            
-            <div class="amount">$${amountFormatted} Gift Certificate</div>
-            
-            <div class="details">
-              <p><strong>Recipient:</strong> ${recipientName}</p>
-              ${giftCert.recipient_email ? `<p><strong>Recipient Email:</strong> ${giftCert.recipient_email}</p>` : ''}
-              <p><strong>Your Message:</strong> "${giftMessage}"</p>
-            </div>
-            
-            ${giftCert.recipient_email ? '<p>We\'ve sent an email to the recipient with their gift code.</p>' : '<p>Share this code with your gift recipient so they can redeem their cosmic pet reading!</p>'}
-            
-            <div class="footer">
-              <p>Thank you for spreading cosmic joy! 🐾✨</p>
-            </div>
-          </div>
-        </body>
-        </html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f0a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 560px; margin: 0 auto; padding: 48px 24px;">
+    
+    <h1 style="color: #ffffff; font-size: 24px; font-weight: 600; margin: 0 0 24px 0; text-align: center;">
+      Thanks for your purchase
+    </h1>
+    
+    <p style="color: #a0a0b0; font-size: 15px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">
+      Here's the gift code for ${recipientName}:
+    </p>
+
+    <div style="background: linear-gradient(135deg, #6b4fa0 0%, #8b5cf6 100%); border-radius: 12px; padding: 24px; text-align: center; margin: 0 0 24px 0;">
+      <p style="color: rgba(255,255,255,0.7); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px 0;">
+        Gift Code
+      </p>
+      <p style="color: white; font-size: 24px; font-weight: 700; letter-spacing: 2px; font-family: monospace; margin: 0;">
+        ${giftCert.code}
+      </p>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 20px; margin: 0 0 24px 0;">
+      <p style="color: #e0e0e0; font-size: 14px; margin: 0 0 8px 0;">
+        <strong>To:</strong> ${recipientName}
+      </p>
+      ${giftCert.recipient_email ? `<p style="color: #a0a0b0; font-size: 14px; margin: 0 0 12px 0;">${giftCert.recipient_email}</p>` : ''}
+      <p style="color: #a0a0b0; font-size: 14px; font-style: italic; margin: 0;">
+        "${giftMessage}"
+      </p>
+    </div>
+
+    <p style="color: #707080; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
+      ${giftCert.recipient_email ? "We've sent the code to them directly." : "Share this code with your recipient so they can redeem their reading."}
+    </p>
+
+    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 40px; padding-top: 24px; text-align: center;">
+      <p style="color: #505060; font-size: 12px; margin: 0;">
+        AstroPets
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>
       `,
     });
 
@@ -121,57 +123,59 @@ const handler = async (req: Request): Promise<Response> => {
       const recipientEmailResponse = await resend.emails.send({
         from: "AstroPets <hello@astropets.cloud>",
         to: [giftCert.recipient_email],
-        subject: `${recipientName}, You've Received a Cosmic Gift! 🌟`,
+        subject: `${recipientName}, you've received a gift`,
         html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <style>
-              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #e0e0e0; margin: 0; padding: 20px; }
-              .container { max-width: 600px; margin: 0 auto; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 40px; border: 1px solid rgba(255,255,255,0.1); }
-              .header { text-align: center; margin-bottom: 30px; }
-              .header h1 { color: #c4a7e7; margin: 0; font-size: 28px; }
-              .stars { font-size: 32px; margin: 10px 0; }
-              .message-box { background: rgba(196, 167, 231, 0.1); border-left: 4px solid #c4a7e7; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; font-style: italic; }
-              .gift-code { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 25px; border-radius: 12px; text-align: center; margin: 25px 0; }
-              .gift-code h2 { margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; opacity: 0.8; }
-              .gift-code .code { font-size: 32px; font-weight: bold; letter-spacing: 4px; font-family: monospace; }
-              .amount { font-size: 28px; color: #c4a7e7; text-align: center; margin: 25px 0; }
-              .cta { text-align: center; margin: 30px 0; }
-              .cta a { display: inline-block; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 16px; }
-              .footer { text-align: center; margin-top: 30px; opacity: 0.7; font-size: 14px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <div class="stars">🎁✨🌟✨🎁</div>
-                <h1>You've Received a Cosmic Gift!</h1>
-              </div>
-              
-              <p>Hello ${recipientName}!</p>
-              
-              <p>Someone special has gifted you a Pet Astrology reading - a cosmic journey to discover your pet's celestial personality!</p>
-              
-              <div class="message-box">
-                <p>"${giftMessage}"</p>
-              </div>
-              
-              <div class="gift-code">
-                <h2>Your Gift Code</h2>
-                <div class="code">${giftCert.code}</div>
-              </div>
-              
-              <div class="amount">$${amountFormatted} Value</div>
-              
-              <p>Use this code at checkout to unlock your pet's cosmic reading. Discover their zodiac traits, personality insights, and celestial compatibility!</p>
-              
-              <div class="footer">
-                <p>May the stars guide your pet's journey! 🐾🌙</p>
-              </div>
-            </div>
-          </body>
-          </html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f0a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 560px; margin: 0 auto; padding: 48px 24px;">
+    
+    <h1 style="color: #ffffff; font-size: 24px; font-weight: 600; margin: 0 0 16px 0; text-align: center;">
+      Hi ${recipientName},
+    </h1>
+    
+    <p style="color: #a0a0b0; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+      Someone gifted you a personalized pet astrology reading.
+    </p>
+
+    <div style="background: rgba(139, 92, 246, 0.1); border-left: 3px solid #8b5cf6; padding: 16px 20px; margin: 0 0 32px 0; border-radius: 0 8px 8px 0;">
+      <p style="color: #e0e0e0; font-size: 15px; font-style: italic; margin: 0; line-height: 1.5;">
+        "${giftMessage}"
+      </p>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #6b4fa0 0%, #8b5cf6 100%); border-radius: 12px; padding: 24px; text-align: center; margin: 0 0 32px 0;">
+      <p style="color: rgba(255,255,255,0.7); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px 0;">
+        Your Gift Code
+      </p>
+      <p style="color: white; font-size: 24px; font-weight: 700; letter-spacing: 2px; font-family: monospace; margin: 0;">
+        ${giftCert.code}
+      </p>
+    </div>
+
+    <p style="color: #a0a0b0; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+      Use this code to get a detailed reading about your pet's personality, how they show love, and tips for a stronger bond.
+    </p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="https://astropets.cloud/redeem?code=${giftCert.code}" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 15px;">
+        Redeem Your Gift
+      </a>
+    </div>
+
+    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 40px; padding-top: 24px; text-align: center;">
+      <p style="color: #505060; font-size: 12px; margin: 0;">
+        AstroPets
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>
         `,
       });
 
