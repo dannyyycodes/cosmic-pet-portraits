@@ -330,6 +330,29 @@ serve(async (req) => {
                     }
                   );
                   console.log("[STRIPE-WEBHOOK] Email sent for:", reportId, "to:", emailTo);
+                  
+                  // Track purchase for email marketing (non-gift only)
+                  if (!isGift && report.email) {
+                    const tier = includesPortrait ? 'premium' : 'basic';
+                    try {
+                      await fetch(`${supabaseUrl}/functions/v1/track-subscriber`, {
+                        method: "POST",
+                        headers: { 
+                          "Content-Type": "application/json",
+                          "Authorization": `Bearer ${serviceRoleKey}`,
+                        },
+                        body: JSON.stringify({
+                          email: report.email,
+                          event: 'purchase_completed',
+                          petName: report.pet_name,
+                          tier,
+                        }),
+                      });
+                      console.log("[STRIPE-WEBHOOK] Purchase tracked for email marketing:", report.email);
+                    } catch (trackError) {
+                      console.error("[STRIPE-WEBHOOK] Failed to track purchase:", trackError);
+                    }
+                  }
                 } else {
                   console.error("[STRIPE-WEBHOOK] Report generation failed for:", reportId);
                 }
