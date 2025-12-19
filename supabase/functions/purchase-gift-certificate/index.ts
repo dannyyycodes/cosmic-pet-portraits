@@ -12,14 +12,18 @@ const corsHeaders = {
 const VALID_AMOUNTS = [3500, 5000, 12900]; // $35, $50, $129
 
 function generateGiftCode(): string {
+  // Use cryptographically secure random values
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const randomBytes = new Uint8Array(8);
+  crypto.getRandomValues(randomBytes);
+  
   let code = 'GIFT-';
   for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars[randomBytes[i] % chars.length];
   }
   code += '-';
-  for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  for (let i = 4; i < 8; i++) {
+    code += chars[randomBytes[i] % chars.length];
   }
   return code;
 }
