@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
@@ -9,6 +9,8 @@ import { SocialProofBar } from './SocialProofBar';
 import { ReportTeaser } from './ReportTeaser';
 import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
 import { getSunSign, zodiacSigns } from '@/lib/zodiac';
+import { supabase } from '@/integrations/supabase/client';
+import { getReferralCode } from '@/lib/referralTracking';
 
 interface IntakeStepEmailProps {
   petData: PetData;
@@ -81,6 +83,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
   const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>(giftCode ? 'email' : 'email');
   const astrologyFacts = getSpeciesAstrologyFacts(petData.species);
   const [factIndex, setFactIndex] = useState(Math.floor(Math.random() * astrologyFacts.length));
+  const hasTrackedEmail = useRef(false);
   
   // Stricter email validation - must end with valid TLD characters only
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(petData.email.trim());
@@ -89,6 +92,26 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
   const handleEmailChange = (value: string) => {
     const sanitized = value.trim().replace(/[,\s]+$/, '');
     onUpdate({ email: sanitized });
+  };
+
+  // Track subscriber when moving to reveal stage
+  const handleProceedToReveal = async () => {
+    // Only track once per session
+    if (!hasTrackedEmail.current && isValidEmail) {
+      hasTrackedEmail.current = true;
+      
+      // Track subscriber asynchronously - don't block UI
+      supabase.functions.invoke('track-subscriber', {
+        body: { 
+          email: petData.email.trim(),
+          event: 'intake_started',
+          petName: petData.name,
+          referralCode: getReferralCode(),
+        },
+      }).catch(console.error); // Silent fail - don't interrupt flow
+    }
+    
+    setStage('reveal');
   };
   
   const sign = petData.dateOfBirth 
@@ -187,7 +210,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               />
 
               <Button
-                onClick={() => setStage('reveal')}
+                onClick={handleProceedToReveal}
                 disabled={!isValidEmail}
                 variant="gold"
                 size="xl"
