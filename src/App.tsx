@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { CookieConsent } from "@/components/CookieConsent";
 import Index from "./pages/Index";
 import Intake from "./pages/Intake";
@@ -12,6 +13,8 @@ import ViewReport from "./pages/ViewReport";
 import GiftPurchase from "./pages/GiftPurchase";
 import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";
+import Auth from "./pages/Auth";
+import MyReports from "./pages/MyReports";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminReports from "./pages/AdminReports";
@@ -31,35 +34,39 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <CookieConsent />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/intake" element={<Intake />} />
-            <Route path="/gift" element={<GiftPurchase />} />
-            <Route path="/gift-success" element={<GiftSuccess />} />
-            <Route path="/redeem" element={<RedeemGift />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/report" element={<ViewReport />} />
-            <Route path="/become-affiliate" element={<BecomeAffiliate />} />
-            <Route path="/ref/:code" element={<ReferralRedirect />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
-            <Route path="/admin/affiliates" element={<AdminAffiliates />} />
-            <Route path="/admin/gifts" element={<AdminGifts />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <CookieConsent />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/intake" element={<Intake />} />
+              <Route path="/gift" element={<GiftPurchase />} />
+              <Route path="/gift-success" element={<GiftSuccess />} />
+              <Route path="/redeem" element={<RedeemGift />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/report" element={<ViewReport />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/my-reports" element={<MyReports />} />
+              <Route path="/become-affiliate" element={<BecomeAffiliate />} />
+              <Route path="/ref/:code" element={<ReferralRedirect />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+              <Route path="/admin/affiliates" element={<AdminAffiliates />} />
+              <Route path="/admin/gifts" element={<AdminGifts />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </LanguageProvider>
   </QueryClientProvider>
 );

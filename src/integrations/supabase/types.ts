@@ -397,6 +397,7 @@ export type Database = {
           stripe_session_id: string | null
           superpower: string | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           birth_date?: string | null
@@ -416,6 +417,7 @@ export type Database = {
           stripe_session_id?: string | null
           superpower?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           birth_date?: string | null
@@ -435,6 +437,7 @@ export type Database = {
           stripe_session_id?: string | null
           superpower?: string | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -471,6 +474,30 @@ export type Database = {
           price_cents?: number
           product_type?: string
           stripe_price_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
         }
         Relationships: []
       }
