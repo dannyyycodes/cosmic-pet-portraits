@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.track-subscriber]
 verify_jwt = false
+
+[functions.unsubscribe]
+verify_jwt = false
