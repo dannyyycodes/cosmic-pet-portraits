@@ -19,8 +19,10 @@ const GIFT_PRICE_CENTS = 1750; // 50% off gift
 
 // Volume discount calculation - SERVER-SIDE
 function getVolumeDiscount(petCount: number): number {
-  if (petCount >= 3) return 0.15;
-  if (petCount >= 2) return 0.10;
+  if (petCount >= 5) return 0.50; // 50% off for 5+ pets
+  if (petCount >= 4) return 0.40; // 40% off for 4 pets
+  if (petCount >= 3) return 0.30; // 30% off for 3 pets
+  if (petCount >= 2) return 0.20; // 20% off for 2 pets
   return 0;
 }
 
