@@ -46,7 +46,7 @@ const reportSchema = z.object({
   petData: petDataSchema,
   reportId: z.string().uuid().optional(),
   occasionMode: z.enum(['discover', 'birthday', 'memorial', 'gift']).optional().default('discover'),
-  language: z.enum(['en', 'es', 'de', 'fr', 'pt']).optional().default('en'),
+  language: z.enum(['en', 'es', 'pt', 'fr', 'ar', 'de']).optional().default('en'),
 });
 
 // Name numerology calculation
@@ -147,6 +147,7 @@ serve(async (req) => {
       de: 'German', 
       fr: 'French',
       pt: 'Portuguese',
+      ar: 'Arabic',
     };
     const targetLanguage = languageNames[language] || 'English';
     

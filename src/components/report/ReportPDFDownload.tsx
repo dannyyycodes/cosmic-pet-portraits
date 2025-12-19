@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ReportPDFDownloadProps {
   petName: string;
@@ -10,11 +11,11 @@ interface ReportPDFDownloadProps {
 
 export function ReportPDFDownload({ petName, reportContent }: ReportPDFDownloadProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const { t } = useLanguage();
 
   const generatePDF = async () => {
     setIsGenerating(true);
     try {
-      // Dynamic import for pdf generation
       const { jsPDF } = await import('jspdf');
       
       const doc = new jsPDF({
@@ -25,202 +26,401 @@ export function ReportPDFDownload({ petName, reportContent }: ReportPDFDownloadP
 
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 20;
+      const margin = 15;
+      const contentWidth = pageWidth - margin * 2;
       let y = margin;
 
-      // Helper functions
-      const addNewPageIfNeeded = (requiredSpace: number) => {
-        if (y + requiredSpace > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
+      // Colors
+      const colors = {
+        bg: [15, 10, 31] as [number, number, number],
+        bgLight: [25, 18, 45] as [number, number, number],
+        accent: [168, 85, 247] as [number, number, number],
+        accentLight: [200, 140, 255] as [number, number, number],
+        gold: [255, 215, 0] as [number, number, number],
+        text: [240, 240, 240] as [number, number, number],
+        textMuted: [160, 160, 180] as [number, number, number],
+        green: [34, 197, 94] as [number, number, number],
+      };
+
+      // Helper: new page with background
+      const addPageWithBg = () => {
+        doc.addPage();
+        doc.setFillColor(...colors.bg);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+        y = margin;
+      };
+
+      // Helper: check space and add page if needed
+      const checkSpace = (needed: number) => {
+        if (y + needed > pageHeight - margin) {
+          addPageWithBg();
           return true;
         }
         return false;
       };
 
-      const centerText = (text: string, yPos: number, fontSize: number = 12) => {
-        doc.setFontSize(fontSize);
+      // Helper: center text
+      const centerText = (text: string, yPos: number) => {
         const textWidth = doc.getTextWidth(text);
         doc.text(text, (pageWidth - textWidth) / 2, yPos);
       };
 
-      // Background gradient effect (simplified)
-      doc.setFillColor(15, 10, 31);
+      // Helper: wrap text with proper line handling
+      const wrapText = (text: string, maxWidth: number): string[] => {
+        if (!text) return [];
+        return doc.splitTextToSize(String(text), maxWidth);
+      };
+
+      // === PAGE 1: Cover ===
+      doc.setFillColor(...colors.bg);
       doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-      // Title Section
-      doc.setTextColor(168, 85, 247);
-      doc.setFontSize(12);
-      centerText('✧ COSMIC PET ASTROLOGY ✧', y, 12);
-      y += 15;
+      // Decorative header line
+      doc.setFillColor(...colors.accent);
+      doc.rect(0, 0, pageWidth, 3, 'F');
 
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(32);
-      centerText(petName, y, 32);
-      y += 12;
+      y = 40;
 
-      doc.setTextColor(168, 85, 247);
-      doc.setFontSize(14);
-      centerText(reportContent.archetype?.name || 'Cosmic Soul', y, 14);
+      // Title
+      doc.setTextColor(...colors.accentLight);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      centerText('✧ COSMIC PET ASTROLOGY ✧', y);
       y += 20;
 
-      // Sun, Moon, Rising
-      const sunSign = reportContent.chartPlacements?.sun?.sign || 'Aries';
-      const moonSign = reportContent.chartPlacements?.moon?.sign || 'Cancer';
-      const rising = reportContent.chartPlacements?.ascendant?.sign || 'Leo';
-      const element = reportContent.dominantElement || 'Fire';
-
-      doc.setTextColor(200, 200, 200);
-      doc.setFontSize(11);
-      centerText(`☉ ${sunSign} Sun  •  ☽ ${moonSign} Moon  •  ↑ ${rising} Rising  •  ${element} Dominant`, y, 11);
+      // Pet name
+      doc.setTextColor(...colors.text);
+      doc.setFontSize(36);
+      doc.setFont('helvetica', 'bold');
+      centerText(petName.toUpperCase(), y);
       y += 15;
 
-      // Divider
-      doc.setDrawColor(168, 85, 247);
-      doc.setLineWidth(0.5);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 10;
+      // Archetype
+      if (reportContent.archetype?.name) {
+        doc.setTextColor(...colors.gold);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'italic');
+        centerText(reportContent.archetype.name, y);
+        y += 25;
+      }
+
+      // Chart summary box
+      const sunSign = reportContent.chartPlacements?.sun?.sign || 'Unknown';
+      const moonSign = reportContent.chartPlacements?.moon?.sign || 'Unknown';
+      const rising = reportContent.chartPlacements?.ascendant?.sign || 'Unknown';
+
+      doc.setFillColor(...colors.bgLight);
+      doc.roundedRect(margin, y, contentWidth, 25, 4, 4, 'F');
+      
+      doc.setTextColor(...colors.text);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      centerText(`☉ ${sunSign} Sun  •  ☽ ${moonSign} Moon  •  ↑ ${rising} Rising`, y + 15);
+      y += 35;
 
       // Prologue
       if (reportContent.prologue) {
-        doc.setTextColor(180, 180, 180);
+        doc.setFillColor(...colors.bgLight);
+        doc.roundedRect(margin, y, contentWidth, 50, 4, 4, 'F');
+        
+        doc.setTextColor(...colors.textMuted);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'italic');
-        const prologueLines = doc.splitTextToSize(reportContent.prologue, pageWidth - margin * 2);
-        doc.text(prologueLines, margin, y);
-        y += prologueLines.length * 5 + 10;
-        doc.setFont('helvetica', 'normal');
+        const prologueLines = wrapText(reportContent.prologue, contentWidth - 16);
+        let prologueY = y + 10;
+        for (const line of prologueLines.slice(0, 6)) {
+          doc.text(line, margin + 8, prologueY);
+          prologueY += 6;
+        }
+        y += 60;
       }
 
-      // Section renderer
-      const renderSection = (title: string, icon: string, section: any) => {
-        if (!section) return;
+      // Elemental balance
+      if (reportContent.elementalBalance) {
+        y += 10;
+        doc.setTextColor(...colors.accentLight);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        centerText('✦ Elemental Balance ✦', y);
+        y += 12;
+
+        const elements = ['Fire', 'Earth', 'Air', 'Water'];
+        const elementSymbols: Record<string, string> = {
+          Fire: '🔥',
+          Earth: '🌍',
+          Air: '💨',
+          Water: '💧'
+        };
         
-        addNewPageIfNeeded(50);
+        const barWidth = (contentWidth - 30) / 4;
+        elements.forEach((el, i) => {
+          const x = margin + 15 + (i * barWidth);
+          const pct = reportContent.elementalBalance[el] || 0;
+          
+          doc.setTextColor(...colors.textMuted);
+          doc.setFontSize(9);
+          doc.text(`${elementSymbols[el]} ${pct}%`, x, y);
+        });
+        y += 20;
+      }
+
+      // Cosmic nickname
+      if (reportContent.cosmicNickname?.nickname) {
+        doc.setFillColor(...colors.bgLight);
+        doc.roundedRect(margin, y, contentWidth, 20, 4, 4, 'F');
         
-        // Section title
-        doc.setFillColor(30, 20, 50);
-        doc.roundedRect(margin - 5, y - 5, pageWidth - margin * 2 + 10, 12, 3, 3, 'F');
-        
-        doc.setTextColor(168, 85, 247);
+        doc.setTextColor(...colors.gold);
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${icon} ${title}`, margin, y + 4);
+        centerText(`"${reportContent.cosmicNickname.nickname}"`, y + 13);
+        y += 30;
+      }
+
+      // === CONTENT PAGES ===
+      const renderSection = (section: any, icon: string, fallbackTitle: string) => {
+        if (!section) return;
+        
+        checkSpace(60);
+
+        // Section header
+        doc.setFillColor(...colors.bgLight);
+        doc.roundedRect(margin, y, contentWidth, 10, 3, 3, 'F');
+        
+        doc.setTextColor(...colors.accent);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        const title = section.title || fallbackTitle;
+        doc.text(`${icon}  ${title}`, margin + 5, y + 7);
         y += 15;
 
-        // Section content
+        // Planet explanation
+        if (section.planetExplanation) {
+          doc.setTextColor(...colors.textMuted);
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'italic');
+          const explLines = wrapText(section.planetExplanation, contentWidth - 10);
+          for (const line of explLines.slice(0, 2)) {
+            doc.text(line, margin + 3, y);
+            y += 5;
+          }
+          y += 3;
+        }
+
+        // Main content
         if (section.content) {
-          doc.setTextColor(220, 220, 220);
+          doc.setTextColor(...colors.text);
           doc.setFontSize(10);
           doc.setFont('helvetica', 'normal');
-          const contentLines = doc.splitTextToSize(section.content, pageWidth - margin * 2);
-          
+          const contentLines = wrapText(section.content, contentWidth - 6);
           for (const line of contentLines) {
-            addNewPageIfNeeded(6);
-            doc.text(line, margin, y);
+            checkSpace(6);
+            doc.text(line, margin + 3, y);
             y += 5;
           }
           y += 5;
         }
 
-        // Why This Matters
-        if (section.whyThisMatters) {
-          addNewPageIfNeeded(20);
-          doc.setTextColor(168, 85, 247);
+        // Relatable moment
+        if (section.relatable_moment) {
+          checkSpace(20);
+          doc.setTextColor(...colors.accentLight);
           doc.setFontSize(9);
-          doc.setFont('helvetica', 'bold');
-          doc.text('Why This Matters:', margin, y);
-          y += 5;
-          doc.setTextColor(180, 180, 180);
-          doc.setFont('helvetica', 'normal');
-          const matterLines = doc.splitTextToSize(section.whyThisMatters, pageWidth - margin * 2);
-          doc.text(matterLines, margin, y);
-          y += matterLines.length * 4 + 5;
+          doc.setFont('helvetica', 'italic');
+          const momentLines = wrapText(`"${section.relatable_moment}"`, contentWidth - 10);
+          for (const line of momentLines.slice(0, 2)) {
+            doc.text(line, margin + 5, y);
+            y += 5;
+          }
+          y += 3;
         }
 
-        // Practical Tip
+        // Practical tip
         if (section.practicalTip) {
-          addNewPageIfNeeded(20);
-          doc.setTextColor(34, 197, 94);
+          checkSpace(20);
+          doc.setTextColor(...colors.green);
           doc.setFontSize(9);
           doc.setFont('helvetica', 'bold');
-          doc.text('💡 Practical Tip:', margin, y);
+          doc.text('💡 Tip:', margin + 3, y);
           y += 5;
-          doc.setTextColor(180, 180, 180);
+          doc.setTextColor(...colors.textMuted);
           doc.setFont('helvetica', 'normal');
-          const tipLines = doc.splitTextToSize(section.practicalTip, pageWidth - margin * 2);
-          doc.text(tipLines, margin, y);
-          y += tipLines.length * 4 + 10;
+          const tipLines = wrapText(section.practicalTip, contentWidth - 15);
+          for (const line of tipLines.slice(0, 3)) {
+            doc.text(line, margin + 8, y);
+            y += 5;
+          }
         }
+
+        y += 10;
       };
 
-      // Render all sections
+      // Render main sections
+      addPageWithBg();
+      
       const sections = [
-        { title: 'Solar Soulprint', icon: '☉', data: reportContent.solarSoulprint },
-        { title: 'Lunar Heart', icon: '☽', data: reportContent.lunarHeart },
-        { title: 'Cosmic Curiosity', icon: '☿', data: reportContent.cosmicCuriosity },
-        { title: 'Harmony & Heartbeats', icon: '♀', data: reportContent.harmonyHeartbeats },
-        { title: 'Spirit of Motion', icon: '♂', data: reportContent.spiritOfMotion },
-        { title: 'Starlit Gaze', icon: '↑', data: reportContent.starlitGaze },
-        { title: 'Destiny Compass', icon: '☊', data: reportContent.destinyCompass },
-        { title: 'Gentle Healer', icon: '⚷', data: reportContent.gentleHealer },
-        { title: 'Wild Spirit', icon: '⚸', data: reportContent.wildSpirit },
-        { title: 'Elemental Nature', icon: '✦', data: reportContent.elementalNature },
+        { data: reportContent.solarSoulprint, icon: '☉', title: 'Solar Soulprint' },
+        { data: reportContent.lunarHeart, icon: '☽', title: 'Lunar Heart' },
+        { data: reportContent.cosmicCuriosity, icon: '☿', title: 'Cosmic Curiosity' },
+        { data: reportContent.harmonyHeartbeats, icon: '♀', title: 'Harmony & Heartbeats' },
+        { data: reportContent.spiritOfMotion, icon: '♂', title: 'Spirit of Motion' },
+        { data: reportContent.starlitGaze, icon: '↑', title: 'Starlit Gaze' },
+        { data: reportContent.destinyCompass, icon: '☊', title: 'Destiny Compass' },
+        { data: reportContent.gentleHealer, icon: '⚷', title: 'Gentle Healer' },
+        { data: reportContent.wildSpirit, icon: '⚸', title: 'Wild Spirit' },
       ];
 
       for (const section of sections) {
-        renderSection(section.title, section.icon, section.data);
+        renderSection(section.data, section.icon, section.title);
       }
 
-      // Lucky Elements Page
-      addNewPageIfNeeded(60);
-      doc.setFillColor(30, 20, 50);
-      doc.roundedRect(margin - 5, y - 5, pageWidth - margin * 2 + 10, 50, 5, 5, 'F');
-      
-      doc.setTextColor(255, 215, 0);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      centerText('✨ Lucky Elements ✨', y + 5, 14);
-      y += 15;
-
-      if (reportContent.luckyElements) {
-        const lucky = reportContent.luckyElements;
-        doc.setTextColor(220, 220, 220);
+      // === FUN SECTIONS ===
+      if (reportContent.memePersonality) {
+        checkSpace(50);
+        doc.setFillColor(...colors.bgLight);
+        doc.roundedRect(margin, y, contentWidth, 8, 3, 3, 'F');
+        doc.setTextColor(...colors.gold);
         doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        centerText(`Lucky Number: ${lucky.luckyNumber}  •  Lucky Day: ${lucky.luckyDay}`, y, 11);
-        y += 8;
-        centerText(`Lucky Color: ${lucky.luckyColor}  •  Power Time: ${lucky.powerTime}`, y, 11);
-        y += 15;
+        doc.setFont('helvetica', 'bold');
+        doc.text('😼 ' + (reportContent.memePersonality.title || 'Internet Personality'), margin + 5, y + 6);
+        y += 12;
+
+        if (reportContent.memePersonality.type) {
+          doc.setTextColor(...colors.accent);
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text(reportContent.memePersonality.type, margin + 5, y);
+          y += 8;
+        }
+
+        if (reportContent.memePersonality.description) {
+          doc.setTextColor(...colors.text);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          const descLines = wrapText(reportContent.memePersonality.description, contentWidth - 10);
+          for (const line of descLines.slice(0, 3)) {
+            doc.text(line, margin + 5, y);
+            y += 5;
+          }
+        }
+        y += 10;
       }
 
-      // Epilogue
-      if (reportContent.epilogue) {
-        addNewPageIfNeeded(40);
-        doc.setDrawColor(168, 85, 247);
-        doc.line(margin, y, pageWidth - margin, y);
-        y += 10;
+      // Top 5 Crimes
+      if (reportContent.topFiveCrimes?.crimes) {
+        checkSpace(60);
+        doc.setFillColor(...colors.bgLight);
+        doc.roundedRect(margin, y, contentWidth, 8, 3, 3, 'F');
+        doc.setTextColor(...colors.gold);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('🚨 ' + (reportContent.topFiveCrimes.title || 'Criminal Record'), margin + 5, y + 6);
+        y += 14;
+
+        doc.setTextColor(...colors.text);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
         
-        doc.setTextColor(180, 180, 180);
+        const crimes = reportContent.topFiveCrimes.crimes.slice(0, 5);
+        crimes.forEach((crime: string, i: number) => {
+          checkSpace(12);
+          const crimeLines = wrapText(`${i + 1}. ${crime}`, contentWidth - 15);
+          for (const line of crimeLines.slice(0, 2)) {
+            doc.text(line, margin + 5, y);
+            y += 5;
+          }
+          y += 2;
+        });
+        y += 5;
+      }
+
+      // Dating Profile
+      if (reportContent.datingProfile) {
+        checkSpace(50);
+        doc.setFillColor(...colors.bgLight);
+        doc.roundedRect(margin, y, contentWidth, 8, 3, 3, 'F');
+        doc.setTextColor(...colors.gold);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('💕 ' + (reportContent.datingProfile.title || 'Dating Profile'), margin + 5, y + 6);
+        y += 14;
+
+        if (reportContent.datingProfile.headline) {
+          doc.setTextColor(...colors.accent);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`"${reportContent.datingProfile.headline}"`, margin + 5, y);
+          y += 8;
+        }
+
+        if (reportContent.datingProfile.bio) {
+          doc.setTextColor(...colors.text);
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          const bioLines = wrapText(reportContent.datingProfile.bio, contentWidth - 10);
+          for (const line of bioLines.slice(0, 4)) {
+            doc.text(line, margin + 5, y);
+            y += 5;
+          }
+        }
+        y += 10;
+      }
+
+      // === LUCKY ELEMENTS ===
+      if (reportContent.luckyElements) {
+        checkSpace(45);
+        doc.setFillColor(40, 30, 60);
+        doc.roundedRect(margin, y, contentWidth, 35, 5, 5, 'F');
+        
+        doc.setTextColor(...colors.gold);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        centerText('✨ Lucky Elements ✨', y + 12);
+        
+        const lucky = reportContent.luckyElements;
+        doc.setTextColor(...colors.text);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        centerText(`Number: ${lucky.luckyNumber || '?'}  •  Day: ${lucky.luckyDay || '?'}  •  Color: ${lucky.luckyColor || '?'}`, y + 24);
+        y += 45;
+      }
+
+      // === EPILOGUE ===
+      if (reportContent.epilogue) {
+        checkSpace(40);
+        doc.setDrawColor(...colors.accent);
+        doc.setLineWidth(0.3);
+        doc.line(margin + 20, y, pageWidth - margin - 20, y);
+        y += 10;
+
+        doc.setTextColor(...colors.textMuted);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'italic');
-        const epilogueLines = doc.splitTextToSize(reportContent.epilogue, pageWidth - margin * 2);
-        doc.text(epilogueLines, margin, y);
+        const epilogueLines = wrapText(reportContent.epilogue, contentWidth - 20);
+        for (const line of epilogueLines.slice(0, 5)) {
+          checkSpace(6);
+          centerText(line, y);
+          y += 6;
+        }
       }
 
-      // Footer on last page
-      doc.setTextColor(100, 100, 100);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Generated by Cosmic Paws • cosmicpaws.com', margin, pageHeight - 10);
-      doc.text(new Date().toLocaleDateString(), pageWidth - margin - 20, pageHeight - 10);
+      // Footer on all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setTextColor(100, 100, 120);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text('AstroPets • Cosmic Pet Astrology', margin, pageHeight - 8);
+        doc.text(`${i} / ${totalPages}`, pageWidth - margin - 10, pageHeight - 8);
+      }
 
       // Save
-      doc.save(`${petName.toLowerCase().replace(/\s+/g, '-')}-cosmic-report.pdf`);
-      toast.success('PDF downloaded successfully!');
+      const fileName = `${petName.toLowerCase().replace(/\s+/g, '-')}-cosmic-report.pdf`;
+      doc.save(fileName);
+      toast.success(t('report.pdfSuccess') || 'PDF downloaded successfully!');
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast.error('Failed to generate PDF. Please try again.');
+      toast.error(t('report.pdfError') || 'Failed to generate PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -236,12 +436,12 @@ export function ReportPDFDownload({ petName, reportContent }: ReportPDFDownloadP
       {isGenerating ? (
         <>
           <Loader2 className="w-4 h-4 animate-spin" />
-          Generating PDF...
+          {t('report.generatingPdf') || 'Generating PDF...'}
         </>
       ) : (
         <>
           <Download className="w-4 h-4" />
-          Download PDF
+          {t('report.downloadPdf') || 'Download PDF'}
         </>
       )}
     </Button>
