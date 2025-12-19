@@ -144,7 +144,7 @@ async function sendGiftEmailsBestEffort(params: {
   // Purchaser confirmation
   try {
     await resend.emails.send({
-      from: "Furreal Paws <onboarding@resend.dev>",
+      from: "AstroPets <hello@astropets.cloud>",
       to: [params.input.purchaserEmail],
       subject: `Gift code: ${params.giftCode}`,
       html: buildPurchaserEmailHtml({
@@ -165,7 +165,7 @@ async function sendGiftEmailsBestEffort(params: {
   if (params.input.deliveryMethod === "email" && recipientEmail) {
     try {
       await resend.emails.send({
-        from: "Furreal Paws <onboarding@resend.dev>",
+        from: "AstroPets <hello@astropets.cloud>",
         to: [recipientEmail],
         subject: `${recipientName}, your gift code is ${params.giftCode}`,
         html: buildRecipientEmailHtml({

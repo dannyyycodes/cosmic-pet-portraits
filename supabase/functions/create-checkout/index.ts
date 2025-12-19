@@ -45,6 +45,8 @@ const checkoutSchema = z.object({
   includeGiftForFriend: z.boolean().optional().default(false),
   includesPortrait: z.boolean().optional().default(false), // Whether tier includes AI portrait
   referralCode: z.string().max(50).optional(), // Affiliate referral code
+  includeHoroscope: z.boolean().optional().default(false), // Weekly horoscope add-on
+  giftCode: z.string().max(20).optional(), // Gift code to redeem (e.g., GIFT-XXXX-XXXX)
 });
 
 serve(async (req) => {
@@ -141,13 +143,35 @@ serve(async (req) => {
       }
     }
     
-    // Apply gift certificate if provided
+    // Apply gift certificate if provided (by ID or by code)
     let giftCertificateDiscount = 0;
-    if (input.giftCertificateId) {
+    let giftCertificateId: string | null = input.giftCertificateId || null;
+    
+    // If gift code is provided (from URL), look it up
+    if (input.giftCode && !giftCertificateId) {
+      const { data: giftByCode, error: codeError } = await supabaseClient
+        .from("gift_certificates")
+        .select("*")
+        .eq("code", input.giftCode.toUpperCase())
+        .eq("is_redeemed", false)
+        .single();
+      
+      if (!codeError && giftByCode) {
+        // Check expiration
+        if (!giftByCode.expires_at || new Date(giftByCode.expires_at) > new Date()) {
+          giftCertificateId = giftByCode.id;
+          giftCertificateDiscount = giftByCode.amount_cents;
+          console.log("[CREATE-CHECKOUT] Gift code applied:", input.giftCode, "value:", giftByCode.amount_cents);
+        }
+      }
+    }
+    
+    // If gift certificate ID is provided, look it up
+    if (giftCertificateId && giftCertificateDiscount === 0) {
       const { data: giftCert, error: giftError } = await supabaseClient
         .from("gift_certificates")
         .select("*")
-        .eq("id", input.giftCertificateId)
+        .eq("id", giftCertificateId)
         .eq("is_redeemed", false)
         .single();
       
@@ -188,7 +212,7 @@ serve(async (req) => {
       }
 
       // Mark gift certificate as redeemed
-      if (input.giftCertificateId) {
+      if (giftCertificateId) {
         await supabaseClient
           .from("gift_certificates")
           .update({ 
@@ -196,7 +220,7 @@ serve(async (req) => {
             redeemed_at: new Date().toISOString(),
             redeemed_by_report_id: primaryReportId,
           })
-          .eq("id", input.giftCertificateId);
+          .eq("id", giftCertificateId);
       }
 
       return new Response(JSON.stringify({ 
@@ -261,7 +285,9 @@ serve(async (req) => {
         coupon_id: input.couponId || "",
         gift_certificate_id: input.giftCertificateId || "",
         referral_code: input.referralCode || "",
-        include_horoscope: "false", // Subscription feature coming soon
+        include_horoscope: input.includeHoroscope ? "true" : "false",
+        // VIP tier includes horoscope for free
+        vip_horoscope: input.selectedTier === "vip" ? "true" : "false",
       },
     });
 

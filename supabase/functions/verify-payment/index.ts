@@ -206,7 +206,6 @@ serve(async (req) => {
         .eq("id", id);
     }
 
-
     // Generate reports for each
     for (const id of reportIds) {
       const { data: report } = await supabaseClient
@@ -217,6 +216,51 @@ serve(async (req) => {
 
       if (report && !report.report_content) {
         await generateReport(report, id, supabaseClient);
+      }
+    }
+
+    // Create horoscope subscriptions if selected or VIP tier
+    const includeHoroscope = session.metadata?.include_horoscope === "true";
+    const isVip = session.metadata?.vip_horoscope === "true" || session.metadata?.selected_tier === "vip";
+    
+    if (includeHoroscope || isVip) {
+      console.log("[VERIFY-PAYMENT] Creating horoscope subscriptions", { includeHoroscope, isVip });
+      
+      for (const id of reportIds) {
+        const { data: petReport } = await supabaseClient
+          .from("pet_reports")
+          .select("email, pet_name")
+          .eq("id", id)
+          .single();
+        
+        if (petReport) {
+          // Check if subscription already exists
+          const { data: existingSub } = await supabaseClient
+            .from("horoscope_subscriptions")
+            .select("id")
+            .eq("pet_report_id", id)
+            .single();
+          
+          if (!existingSub) {
+            // Create horoscope subscription (active immediately for VIP, or paid add-on)
+            const { error: subError } = await supabaseClient
+              .from("horoscope_subscriptions")
+              .insert({
+                email: petReport.email,
+                pet_name: petReport.pet_name,
+                pet_report_id: id,
+                status: "active",
+                stripe_subscription_id: isVip ? `vip_included_${sessionId}` : null,
+                next_send_at: new Date().toISOString(),
+              });
+            
+            if (subError) {
+              console.error("[VERIFY-PAYMENT] Failed to create horoscope subscription:", subError);
+            } else {
+              console.log("[VERIFY-PAYMENT] Horoscope subscription created for:", petReport.pet_name);
+            }
+          }
+        }
       }
     }
 
@@ -240,6 +284,7 @@ serve(async (req) => {
       reportIds: reportIds,
       includeGift,
       giftCode,
+      horoscopeEnabled: includeHoroscope || isVip,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

@@ -128,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification to support
     const supportEmailResponse = await resend.emails.send({
-      from: "AstroPets Contact <onboarding@resend.dev>",
+      from: "AstroPets <hello@astropets.cloud>",
       to: ["support@astropets.cloud"],
       subject: `[${safeSubjectLabel}] New contact from ${safeName}`,
       html: `
@@ -148,7 +148,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation to customer
     const confirmationEmailResponse = await resend.emails.send({
-      from: "AstroPets <onboarding@resend.dev>",
+      from: "AstroPets <hello@astropets.cloud>",
       to: [email],
       subject: "We received your message! ✨",
       html: `

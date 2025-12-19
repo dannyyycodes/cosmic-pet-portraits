@@ -30,6 +30,7 @@ export interface CheckoutData {
   includeGiftForFriend?: boolean;
   includesPortrait?: boolean;
   petPhotoUrl?: string | null;
+  includeHoroscope?: boolean;
 }
 
 // Product tiers - $35 without portrait, $50 with AI portrait
@@ -161,6 +162,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       includeGiftForFriend: withGift,
       includesPortrait: tier.includesPortrait,
       petPhotoUrl: tier.includesPortrait ? petPhotoUrl : null,
+      includeHoroscope: includeHoroscope || selectedTier === 'vip', // VIP always includes horoscope
     });
   };
 
