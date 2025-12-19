@@ -54,12 +54,6 @@ serve(async (req) => {
       amountCents: input.amountCents 
     });
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY is not configured");
-    }
-
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -80,37 +74,7 @@ serve(async (req) => {
       attempts++;
     }
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer_email: input.purchaserEmail,
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Cosmic Pet Report Gift Certificate',
-              description: input.recipientName 
-                ? `Gift for ${input.recipientName}` 
-                : 'A magical gift for a pet lover',
-            },
-            unit_amount: input.amountCents,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${req.headers.get("origin")}/gift-success?code=${giftCode}&delivery=${input.deliveryMethod}`,
-      cancel_url: `${req.headers.get("origin")}/gift`,
-      metadata: {
-        type: 'gift_certificate',
-        gift_code: giftCode,
-        recipient_email: input.recipientEmail || '',
-        recipient_name: input.recipientName,
-        gift_message: input.giftMessage,
-      },
-    });
-
-    // Create pending gift certificate record
+    // Create gift certificate record (skip Stripe for testing)
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
@@ -123,7 +87,7 @@ serve(async (req) => {
         recipient_name: input.recipientName || null,
         gift_message: input.giftMessage || null,
         amount_cents: input.amountCents,
-        stripe_session_id: session.id,
+        stripe_session_id: null, // No Stripe session for testing
         expires_at: expiresAt.toISOString(),
       });
 
@@ -132,10 +96,13 @@ serve(async (req) => {
       throw new Error("Failed to create gift certificate");
     }
 
-    console.log("[PURCHASE-GIFT] Gift certificate created", { giftCode, sessionId: session.id });
+    console.log("[PURCHASE-GIFT] Gift certificate created (test mode)", { giftCode });
+
+    // Redirect directly to success page (bypass Stripe)
+    const successUrl = `${req.headers.get("origin")}/gift-success?code=${giftCode}&delivery=${input.deliveryMethod}`;
 
     return new Response(JSON.stringify({ 
-      url: session.url,
+      url: successUrl,
       giftCode,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
