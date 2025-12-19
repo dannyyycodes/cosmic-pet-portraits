@@ -1,21 +1,43 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Download, Share2, Home, Star, Heart } from 'lucide-react';
+import { Sparkles, Share2, Home, Star, Heart, Gift, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+interface GiftInfo {
+  includeGift: boolean;
+  giftCode: string | null;
+}
 
 interface AllReportsCompleteProps {
   petNames: string[];
   onViewReports: () => void;
+  giftInfo?: GiftInfo;
 }
 
-export function AllReportsComplete({ petNames, onViewReports }: AllReportsCompleteProps) {
+export function AllReportsComplete({ petNames, onViewReports, giftInfo }: AllReportsCompleteProps) {
   const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
   
   const petListText = petNames.length === 1 
     ? petNames[0] 
     : petNames.length === 2 
       ? `${petNames[0]} and ${petNames[1]}`
       : `${petNames.slice(0, -1).join(', ')}, and ${petNames[petNames.length - 1]}`;
+
+  const redeemUrl = giftInfo?.giftCode 
+    ? `${window.location.origin}/redeem-gift?code=${giftInfo.giftCode}`
+    : '';
+
+  const copyGiftLink = () => {
+    if (redeemUrl) {
+      navigator.clipboard.writeText(redeemUrl);
+      setCopied(true);
+      toast.success('Gift link copied!');
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -151,6 +173,43 @@ export function AllReportsComplete({ petNames, onViewReports }: AllReportsComple
               <div className="text-sm text-muted-foreground">Love</div>
             </div>
           </motion.div>
+
+          {/* Gift Certificate Section - Show if gift was included */}
+          {giftInfo?.includeGift && giftInfo?.giftCode && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+              className="mb-6 p-5 rounded-2xl bg-gradient-to-r from-cosmic-gold/20 to-nebula-pink/20 border border-cosmic-gold/30"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Gift className="w-5 h-5 text-cosmic-gold" />
+                <h3 className="font-semibold text-foreground">Your Gift Reading is Ready!</h3>
+              </div>
+              
+              <p className="text-sm text-muted-foreground mb-4">
+                You added a gift reading for a friend. Share the link below with them so they can get their own cosmic pet reading!
+              </p>
+              
+              <div className="flex gap-2">
+                <div className="flex-1 px-3 py-2 bg-background/50 rounded-lg border border-border/50 font-mono text-sm truncate">
+                  {redeemUrl}
+                </div>
+                <Button
+                  onClick={copyGiftLink}
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
+              
+              <p className="text-xs text-muted-foreground mt-3">
+                This gift code is worth $35 and never expires. They can use it for any pet!
+              </p>
+            </motion.div>
+          )}
 
           {/* Actions */}
           <motion.div
