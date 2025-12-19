@@ -8,8 +8,11 @@ import { HomeTestimonials } from "@/components/HomeTestimonials";
 import { FAQ } from "@/components/FAQ";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
+  const { t } = useLanguage();
+  
   // Check for referral code in URL on page load
   useEffect(() => {
     checkAndStoreReferralFromURL();
@@ -75,7 +78,7 @@ const Index = () => {
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold leading-tight mb-6"
           >
             <span className="text-gradient-gold-purple">
-              Discover the Soul Behind Those Eyes
+              {t('hero.title')}
             </span>
           </motion.h1>
 
@@ -86,8 +89,7 @@ const Index = () => {
             transition={{ delay: 0.1 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed"
           >
-            92% of pet parents say this cosmic reading revealed something profound about their bond. 
-            Unlock your pet's true purpose in 60 seconds.
+            {t('hero.subtitle')}
           </motion.p>
 
           {/* Two CTA Cards */}
@@ -101,21 +103,21 @@ const Index = () => {
             <Link to="/intake?mode=discover" className="group">
               <div className="relative p-8 rounded-2xl border-2 border-primary/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-card/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] h-full">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                  Most Popular
+                  {t('hero.mostPopular')}
                 </div>
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Dog className="w-8 h-8 text-white" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-xl font-display font-bold text-foreground">Discover My Pet</h3>
+                    <h3 className="text-xl font-display font-bold text-foreground">{t('hero.discoverMyPet')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Unlock your companion's cosmic personality and deepen your bond
+                      {t('hero.discoverDesc')}
                     </p>
                   </div>
                   <Button variant="cosmic" size="lg" className="w-full mt-2">
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Start Discovery
+                    {t('hero.startDiscovery')}
                   </Button>
                 </div>
               </div>
@@ -126,21 +128,21 @@ const Index = () => {
               <div className="relative p-8 rounded-2xl border-2 border-nebula-pink/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-nebula-pink hover:bg-card/50 hover:shadow-[0_0_30px_hsl(330_70%_50%/0.3)] h-full">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-nebula-pink to-nebula-purple text-white text-xs font-medium flex items-center gap-1">
                   <Heart className="w-3 h-3" />
-                  Perfect Gift
+                  {t('hero.perfectGift')}
                 </div>
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
                     <Gift className="w-8 h-8 text-white" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-xl font-display font-bold text-foreground">Gift to a Friend</h3>
+                    <h3 className="text-xl font-display font-bold text-foreground">{t('hero.giftToFriend')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      The perfect gift for any pet lover — meaningful & unforgettable
+                      {t('hero.giftDesc')}
                     </p>
                   </div>
                   <Button size="lg" className="w-full mt-2 bg-gradient-to-r from-nebula-pink to-nebula-purple hover:from-nebula-pink/90 hover:to-nebula-purple/90 text-white border-0 shadow-lg group-hover:shadow-[0_0_20px_hsl(330_70%_50%/0.4)]">
                     <Heart className="w-4 h-4 mr-2" />
-                    Send a Gift
+                    {t('hero.sendGift')}
                   </Button>
                 </div>
               </div>
@@ -160,7 +162,7 @@ const Index = () => {
                 <Sparkles className="w-3 h-3 text-gold absolute -top-1 -right-1" />
               </div>
               <span className="text-sm text-foreground/80">
-                Powered by <span className="text-gold font-medium">Swiss Ephemeris data</span>, crafted by devoted pet lovers
+                {t('hero.poweredBy')} <span className="text-gold font-medium">{t('hero.swissEphemeris')}</span>{t('hero.craftedBy')}
               </span>
             </div>
           </motion.div>
@@ -174,7 +176,7 @@ const Index = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50">
               <span className="text-sm text-foreground/80">
-                Rated <strong className="text-gold">4.9/5</strong> by 2,000+ Pet Parents
+                {t('hero.ratedBy')} <strong className="text-gold">4.9/5</strong> {t('hero.byPetParents')}
               </span>
             </div>
             {/* Trustpilot Logo */}
@@ -202,10 +204,10 @@ const Index = () => {
       <section id="testimonials" className="relative pt-6 pb-20 px-4 z-10">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl sm:text-4xl font-serif text-center text-foreground mb-4">
-            What Pet Parents Are Saying
+            {t('testimonials.title')}
           </h2>
           <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
-            Real stories from pet parents who discovered their companion's cosmic truth
+            {t('testimonials.subtitle')}
           </p>
 
           <HomeTestimonials />
@@ -219,20 +221,20 @@ const Index = () => {
       <footer className="relative py-12 px-4 border-t border-border/30 z-10">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-muted-foreground/60 text-sm mb-4">
-            © 2025 The Cosmic Pet Report.
+            {t('footer.copyright')}
           </p>
           <div className="flex items-center justify-center gap-6 text-sm">
             <Link to="/terms" className="text-muted-foreground hover:text-gold transition-colors">
-              Terms
+              {t('footer.terms')}
             </Link>
             <Link to="/privacy" className="text-muted-foreground hover:text-gold transition-colors">
-              Privacy
+              {t('footer.privacy')}
             </Link>
             <Link to="/contact" className="text-muted-foreground hover:text-gold transition-colors">
-              Contact
+              {t('footer.contact')}
             </Link>
             <Link to="/become-affiliate" className="text-muted-foreground hover:text-gold transition-colors">
-              Become an Affiliate
+              {t('footer.becomeAffiliate')}
             </Link>
           </div>
         </div>
