@@ -7,19 +7,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Pricing options
+const PRICES = {
+  monthly: "price_1Sfi1vEFEZSdxrGttpk4iUEa", // $4.99/month
+  yearly: "price_1SgAP6EFEZSdxrGtiHMgxqx2",   // $39.99/year (33% off)
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, petReportId, petName } = await req.json();
+    const { email, petReportId, petName, plan = "monthly" } = await req.json();
     
     if (!email || !petReportId || !petName) {
       throw new Error("Missing required fields: email, petReportId, petName");
     }
 
-    console.log("[HOROSCOPE-SUB] Creating subscription for:", { email, petName, petReportId });
+    console.log("[HOROSCOPE-SUB] Creating subscription for:", { email, petName, petReportId, plan });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
@@ -38,16 +44,26 @@ serve(async (req) => {
       console.log("[HOROSCOPE-SUB] Created new customer:", customerId);
     }
 
-    // Create checkout session for subscription
+    const priceId = plan === "yearly" ? PRICES.yearly : PRICES.monthly;
+    
+    // Create checkout session for subscription with 7-day free trial
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
         {
-          price: "price_1Sfi1vEFEZSdxrGttpk4iUEa", // $4.99/month subscription
+          price: priceId,
           quantity: 1,
         },
       ],
       mode: "subscription",
+      subscription_data: {
+        trial_period_days: 7, // 7-day free trial
+        metadata: {
+          petReportId,
+          petName,
+          email,
+        },
+      },
       success_url: `${req.headers.get("origin")}/horoscope-success?session_id={CHECKOUT_SESSION_ID}&pet=${encodeURIComponent(petName)}`,
       cancel_url: `${req.headers.get("origin")}/view-report?reportId=${petReportId}`,
       metadata: {
@@ -55,6 +71,7 @@ serve(async (req) => {
         petName,
         email,
         type: "horoscope_subscription",
+        plan,
       },
     });
 
