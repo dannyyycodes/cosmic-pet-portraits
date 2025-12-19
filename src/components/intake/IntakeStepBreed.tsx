@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
 import { ArrowLeft } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntakeStepBreedProps {
   petData: PetData;
@@ -11,22 +12,24 @@ interface IntakeStepBreedProps {
   totalSteps: number;
 }
 
-const getBreedPlaceholder = (species: string) => {
-  switch (species) {
-    case 'dog': return 'e.g., Golden Retriever, Labrador';
-    case 'cat': return 'e.g., Siamese, Persian';
-    case 'rabbit': return 'e.g., Holland Lop, Lionhead';
-    case 'hamster': return 'e.g., Syrian, Dwarf';
-    case 'guinea_pig': return 'e.g., American, Abyssinian';
-    case 'bird': return 'e.g., Cockatiel, Budgie';
-    case 'fish': return 'e.g., Betta, Goldfish';
-    case 'reptile': return 'e.g., Bearded Dragon, Gecko';
-    case 'horse': return 'e.g., Arabian, Quarter Horse';
-    default: return 'Enter breed or type';
-  }
-};
-
 export function IntakeStepBreed({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepBreedProps) {
+  const { t } = useLanguage();
+  
+  const getBreedPlaceholder = (species: string) => {
+    switch (species) {
+      case 'dog': return t('intake.breed.placeholderDog');
+      case 'cat': return t('intake.breed.placeholderCat');
+      case 'rabbit': return t('intake.breed.placeholderRabbit');
+      case 'hamster': return t('intake.breed.placeholderHamster');
+      case 'guinea_pig': return t('intake.breed.placeholderGuineaPig');
+      case 'bird': return t('intake.breed.placeholderBird');
+      case 'fish': return t('intake.breed.placeholderFish');
+      case 'reptile': return t('intake.breed.placeholderReptile');
+      case 'horse': return t('intake.breed.placeholderHorse');
+      default: return t('intake.breed.placeholderDefault');
+    }
+  };
+
   return (
     <div className="space-y-8 text-center">
       <button
@@ -37,12 +40,12 @@ export function IntakeStepBreed({ petData, onUpdate, onNext, onBack, totalSteps 
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 3 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 3 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          What breed is {petData.name}?
+          {t('intake.breed.title').replace('{name}', petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          This helps us refine their cosmic profile.
+          {t('intake.breed.subtitle')}
         </p>
       </div>
 
@@ -54,7 +57,7 @@ export function IntakeStepBreed({ petData, onUpdate, onNext, onBack, totalSteps 
           onChange={(e) => onUpdate({ breed: e.target.value })}
           className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
         />
-        <p className="text-xs text-muted-foreground/60">Leave blank if unknown or mixed breed</p>
+        <p className="text-xs text-muted-foreground/60">{t('intake.breed.hint')}</p>
       </div>
 
       <Button
@@ -63,7 +66,7 @@ export function IntakeStepBreed({ petData, onUpdate, onNext, onBack, totalSteps 
         size="xl"
         className="w-full max-w-xs mx-auto"
       >
-        Continue ➝
+        {t('intake.continue')} ➝
       </Button>
     </div>
   );

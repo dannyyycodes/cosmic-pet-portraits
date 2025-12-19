@@ -3,6 +3,7 @@ import { ModeContent } from '@/lib/occasionMode';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getSoulOptions, PetSpecies } from '@/lib/speciesOptions';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntakeStepSoulProps {
   petData: PetData;
@@ -14,6 +15,7 @@ interface IntakeStepSoulProps {
 }
 
 export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepSoulProps) {
+  const { t } = useLanguage();
   const soulOptions = getSoulOptions((petData.species || 'other') as PetSpecies);
   
   const handleSelect = (soulType: string) => {
@@ -31,7 +33,7 @@ export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps, 
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 7 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 7 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
           {modeContent.soulTitle}
         </h1>
@@ -79,7 +81,7 @@ export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps, 
         }`}
       >
         <HelpCircle className="w-4 h-4" />
-        I'm not sure / multiple might fit
+        {t('intake.soul.notSure')}
       </motion.button>
     </div>
   );

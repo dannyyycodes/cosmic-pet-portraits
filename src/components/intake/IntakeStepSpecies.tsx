@@ -1,6 +1,7 @@
 import { PetData, PetSpecies } from './IntakeWizard';
 import { ArrowLeft, Dog, Cat, Rabbit, Bird, Fish, HelpCircle, Rat, Turtle } from 'lucide-react';
 import { PiHorseBold } from 'react-icons/pi';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntakeStepSpeciesProps {
   petData: PetData;
@@ -10,20 +11,22 @@ interface IntakeStepSpeciesProps {
   totalSteps: number;
 }
 
-const speciesOptions: { id: PetSpecies; label: string; icon: React.ReactNode }[] = [
-  { id: 'dog', label: 'Dog', icon: <Dog className="w-6 h-6" /> },
-  { id: 'cat', label: 'Cat', icon: <Cat className="w-6 h-6" /> },
-  { id: 'rabbit', label: 'Rabbit', icon: <Rabbit className="w-6 h-6" /> },
-  { id: 'hamster', label: 'Hamster', icon: <Rat className="w-6 h-6" /> },
-  { id: 'guinea_pig', label: 'Guinea Pig', icon: <Rat className="w-6 h-6" /> },
-  { id: 'bird', label: 'Bird', icon: <Bird className="w-6 h-6" /> },
-  { id: 'fish', label: 'Fish', icon: <Fish className="w-6 h-6" /> },
-  { id: 'reptile', label: 'Reptile', icon: <Turtle className="w-6 h-6" /> },
-  { id: 'horse', label: 'Horse', icon: <PiHorseBold className="w-6 h-6" /> },
-  { id: 'other', label: 'Other', icon: <HelpCircle className="w-6 h-6" /> },
-];
-
 export function IntakeStepSpecies({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepSpeciesProps) {
+  const { t } = useLanguage();
+  
+  const speciesOptions: { id: PetSpecies; labelKey: string; icon: React.ReactNode }[] = [
+    { id: 'dog', labelKey: 'intake.species.dog', icon: <Dog className="w-6 h-6" /> },
+    { id: 'cat', labelKey: 'intake.species.cat', icon: <Cat className="w-6 h-6" /> },
+    { id: 'rabbit', labelKey: 'intake.species.rabbit', icon: <Rabbit className="w-6 h-6" /> },
+    { id: 'hamster', labelKey: 'intake.species.hamster', icon: <Rat className="w-6 h-6" /> },
+    { id: 'guinea_pig', labelKey: 'intake.species.guineaPig', icon: <Rat className="w-6 h-6" /> },
+    { id: 'bird', labelKey: 'intake.species.bird', icon: <Bird className="w-6 h-6" /> },
+    { id: 'fish', labelKey: 'intake.species.fish', icon: <Fish className="w-6 h-6" /> },
+    { id: 'reptile', labelKey: 'intake.species.reptile', icon: <Turtle className="w-6 h-6" /> },
+    { id: 'horse', labelKey: 'intake.species.horse', icon: <PiHorseBold className="w-6 h-6" /> },
+    { id: 'other', labelKey: 'intake.species.other', icon: <HelpCircle className="w-6 h-6" /> },
+  ];
+
   const handleSelect = (species: PetSpecies) => {
     onUpdate({ species });
     setTimeout(() => onNext(), 300);
@@ -39,12 +42,12 @@ export function IntakeStepSpecies({ petData, onUpdate, onNext, onBack, totalStep
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 2 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 2 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          What kind of pet is {petData.name}?
+          {t('intake.species.title').replace('{name}', petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Select their species below.
+          {t('intake.species.subtitle')}
         </p>
       </div>
 
@@ -60,7 +63,7 @@ export function IntakeStepSpecies({ petData, onUpdate, onNext, onBack, totalStep
             }`}
           >
             {option.icon}
-            <span className="font-medium text-sm">{option.label}</span>
+            <span className="font-medium text-sm">{t(option.labelKey)}</span>
           </button>
         ))}
       </div>

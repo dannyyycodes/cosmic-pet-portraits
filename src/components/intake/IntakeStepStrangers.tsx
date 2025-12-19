@@ -2,6 +2,7 @@ import { PetData } from './IntakeWizard';
 import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getStrangerOptions, PetSpecies } from '@/lib/speciesOptions';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntakeStepStrangersProps {
   petData: PetData;
@@ -12,6 +13,7 @@ interface IntakeStepStrangersProps {
 }
 
 export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepStrangersProps) {
+  const { t } = useLanguage();
   const strangerOptions = getStrangerOptions((petData.species || 'other') as PetSpecies);
   
   const handleSelect = (strangerReaction: string) => {
@@ -29,12 +31,12 @@ export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSt
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 9 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 9 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          How does {petData.name} react to new people?
+          {t('intake.strangers.title').replace('{name}', petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          First impressions reveal deep truths.
+          {t('intake.strangers.subtitle')}
         </p>
       </div>
 
@@ -77,7 +79,7 @@ export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSt
         }`}
       >
         <HelpCircle className="w-4 h-4" />
-        I'm not sure / depends on the situation
+        {t('intake.strangers.notSure')}
       </motion.button>
     </div>
   );

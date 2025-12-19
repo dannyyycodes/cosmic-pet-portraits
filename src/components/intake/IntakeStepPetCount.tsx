@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Dog, Plus, Minus, Sparkles, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntakeStepPetCountProps {
   petCount: number;
@@ -10,10 +11,10 @@ interface IntakeStepPetCountProps {
 }
 
 export function IntakeStepPetCount({ petCount, onUpdate, onNext, onBack }: IntakeStepPetCountProps) {
+  const { t } = useLanguage();
 
   return (
     <div className="space-y-8 text-center">
-      {/* Back button */}
       {onBack && (
         <button
           onClick={onBack}
@@ -33,14 +34,13 @@ export function IntakeStepPetCount({ petCount, onUpdate, onNext, onBack }: Intak
           <Dog className="w-10 h-10 text-white" />
         </motion.div>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          How many cosmic companions?
+          {t('intake.petCount.title')}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Get a personalized reading for each of your pets
+          {t('intake.petCount.subtitle')}
         </p>
       </div>
 
-      {/* Pet counter */}
       <div className="flex items-center justify-center gap-6">
         <button
           onClick={() => onUpdate(Math.max(1, petCount - 1))}
@@ -75,7 +75,7 @@ export function IntakeStepPetCount({ petCount, onUpdate, onNext, onBack }: Intak
         className="w-full max-w-sm mx-auto"
       >
         <Sparkles className="w-5 h-5 mr-2" />
-        {petCount === 1 ? "Let's Begin" : `Continue with ${petCount} Pets`}
+        {petCount === 1 ? t('intake.petCount.beginSingle') : t('intake.petCount.beginMulti').replace('{count}', String(petCount))}
       </Button>
     </div>
   );
