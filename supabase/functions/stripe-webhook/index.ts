@@ -342,6 +342,30 @@ serve(async (req) => {
         }
       }
     }
+    
+    // Handle subscription cancellation
+    if (event.type === "customer.subscription.deleted" || event.type === "customer.subscription.updated") {
+      const subscription = event.data.object as Stripe.Subscription;
+      
+      if (event.type === "customer.subscription.deleted" || subscription.status === "canceled") {
+        console.log("[STRIPE-WEBHOOK] Subscription cancelled:", subscription.id);
+        
+        // Update horoscope subscription status
+        const { error: updateError } = await supabaseClient
+          .from("horoscope_subscriptions")
+          .update({ 
+            status: "cancelled",
+            cancelled_at: new Date().toISOString()
+          })
+          .eq("stripe_subscription_id", subscription.id);
+        
+        if (updateError) {
+          console.error("[STRIPE-WEBHOOK] Failed to update subscription status:", updateError);
+        } else {
+          console.log("[STRIPE-WEBHOOK] Horoscope subscription marked as cancelled");
+        }
+      }
+    }
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
