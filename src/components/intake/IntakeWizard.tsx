@@ -118,10 +118,32 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const [showResults, setShowResults] = useState(false);
   const [cosmicReport, setCosmicReport] = useState<CosmicReport | null>(null);
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
+  const [giftCodeFromUrl, setGiftCodeFromUrl] = useState<string | null>(null);
+  const [giftData, setGiftData] = useState<{ amountCents: number; giftMessage?: string } | null>(null);
   const stepStartTime = useRef<number>(Date.now());
   const { trackAction, intensity } = useEmotion();
   const { t, language } = useLanguage();
   const { user } = useAuth();
+
+  // Check for gift code in URL
+  useEffect(() => {
+    const giftCode = searchParams.get('gift');
+    if (giftCode) {
+      setGiftCodeFromUrl(giftCode);
+      // Validate the gift code
+      supabase.functions.invoke('validate-gift-code', {
+        body: { code: giftCode.toUpperCase() },
+      }).then(({ data, error }) => {
+        if (!error && data?.valid) {
+          setGiftData({
+            amountCents: data.amountCents,
+            giftMessage: data.giftMessage,
+          });
+          toast.success(`Gift code applied! Value: $${(data.amountCents / 100).toFixed(2)}`);
+        }
+      });
+    }
+  }, [searchParams]);
 
   const modeContent = occasionModeContent[occasionMode];
 
@@ -352,6 +374,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               giftMessage: checkoutData.giftMessage,
               includeGiftForFriend: checkoutData.includeGiftForFriend || false,
               referralCode: referralCode || undefined, // Pass referral code to checkout
+              includeHoroscope: checkoutData.includeHoroscope || false, // Weekly horoscope add-on
+              includesPortrait: checkoutData.includesPortrait || false,
+              giftCode: giftCodeFromUrl || undefined, // Gift code to redeem
             },
           }
         );

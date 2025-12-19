@@ -149,7 +149,7 @@ Make it feel magical, personal, and actionable!`
         const emailHtml = generateHoroscopeEmail(sub.pet_name, horoscopeContent, sunSign, element);
         
         const { error: emailError } = await resend.emails.send({
-          from: "Cosmic Paws <horoscopes@resend.dev>",
+          from: "AstroPets <hello@astropets.cloud>",
           to: [sub.email],
           subject: `✨ ${sub.pet_name}'s Weekly Cosmic Forecast`,
           html: emailHtml,

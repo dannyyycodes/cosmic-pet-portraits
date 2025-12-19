@@ -41,7 +41,7 @@ serve(async (req) => {
     const reportUrl = `${origin}/report?id=${reportId}`;
 
     const emailResponse = await resend.emails.send({
-      from: "Cosmic Pet Report <hello@cosmicpetreport.com>",
+      from: "AstroPets <hello@astropets.cloud>",
       to: [email],
       subject: `✨ ${petName}'s Cosmic Portrait is Ready!`,
       html: `
