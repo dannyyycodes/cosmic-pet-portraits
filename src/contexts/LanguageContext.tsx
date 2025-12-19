@@ -394,6 +394,12 @@ const translations: Record<Language, Record<string, string>> = {
     'paymentSuccess.errorMissing': 'Missing payment information. Please try again.',
     'paymentSuccess.errorTimeout': 'Your payment was received but report generation is taking longer than expected. Please check your email or refresh the page in a few minutes.',
     'paymentSuccess.yourPet': 'Your pet',
+    
+    // Report PDF
+    'report.downloadPdf': 'Download PDF',
+    'report.generatingPdf': 'Generating PDF...',
+    'report.pdfSuccess': 'PDF downloaded successfully!',
+    'report.pdfError': 'Failed to generate PDF. Please try again.',
   },
   
   // ========== SPANISH ==========
@@ -738,6 +744,12 @@ const translations: Record<Language, Record<string, string>> = {
     'paymentSuccess.errorMissing': 'Falta información de pago. Por favor intenta de nuevo.',
     'paymentSuccess.errorTimeout': 'Tu pago fue recibido pero la generación del informe está tardando más de lo esperado. Por favor revisa tu email o actualiza la página en unos minutos.',
     'paymentSuccess.yourPet': 'Tu mascota',
+    
+    // Report PDF
+    'report.downloadPdf': 'Descargar PDF',
+    'report.generatingPdf': 'Generando PDF...',
+    'report.pdfSuccess': '¡PDF descargado con éxito!',
+    'report.pdfError': 'Error al generar PDF. Por favor intenta de nuevo.',
   },
   
   // ========== PORTUGUESE ==========
@@ -1082,6 +1094,12 @@ const translations: Record<Language, Record<string, string>> = {
     'paymentSuccess.errorMissing': 'Faltam informações de pagamento. Por favor tente novamente.',
     'paymentSuccess.errorTimeout': 'Seu pagamento foi recebido mas a geração do relatório está demorando mais do que o esperado. Por favor verifique seu email ou atualize a página em alguns minutos.',
     'paymentSuccess.yourPet': 'Seu pet',
+    
+    // Report PDF
+    'report.downloadPdf': 'Baixar PDF',
+    'report.generatingPdf': 'Gerando PDF...',
+    'report.pdfSuccess': 'PDF baixado com sucesso!',
+    'report.pdfError': 'Falha ao gerar PDF. Por favor tente novamente.',
   },
   
   // ========== FRENCH ==========
@@ -1426,6 +1444,12 @@ const translations: Record<Language, Record<string, string>> = {
     'paymentSuccess.errorMissing': 'Informations de paiement manquantes. Veuillez réessayer.',
     'paymentSuccess.errorTimeout': 'Votre paiement a été reçu mais la génération du rapport prend plus de temps que prévu. Veuillez vérifier votre email ou rafraîchir la page dans quelques minutes.',
     'paymentSuccess.yourPet': 'Votre animal',
+    
+    // Report PDF
+    'report.downloadPdf': 'Télécharger PDF',
+    'report.generatingPdf': 'Génération du PDF...',
+    'report.pdfSuccess': 'PDF téléchargé avec succès !',
+    'report.pdfError': 'Échec de la génération du PDF. Veuillez réessayer.',
   },
   
   // ========== ARABIC ==========
@@ -1770,6 +1794,12 @@ const translations: Record<Language, Record<string, string>> = {
     'paymentSuccess.errorMissing': 'معلومات الدفع مفقودة. يرجى المحاولة مرة أخرى.',
     'paymentSuccess.errorTimeout': 'تم استلام دفعتك لكن إنشاء التقرير يستغرق وقتًا أطول من المتوقع. يرجى التحقق من بريدك الإلكتروني أو تحديث الصفحة بعد بضع دقائق.',
     'paymentSuccess.yourPet': 'حيوانك الأليف',
+    
+    // Report PDF
+    'report.downloadPdf': 'تحميل PDF',
+    'report.generatingPdf': 'جاري إنشاء PDF...',
+    'report.pdfSuccess': 'تم تحميل PDF بنجاح!',
+    'report.pdfError': 'فشل في إنشاء PDF. يرجى المحاولة مرة أخرى.',
   },
 };
 
