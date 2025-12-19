@@ -75,7 +75,7 @@ export function IntakeStepPetCount({ petCount, onUpdate, onNext, onBack }: Intak
         className="w-full max-w-sm mx-auto"
       >
         <Sparkles className="w-5 h-5 mr-2" />
-        {petCount === 1 ? t('intake.petCount.beginSingle') : t('intake.petCount.beginMulti').replace('{count}', String(petCount))}
+        {petCount === 1 ? t('intake.petCount.letsBegin') : t('intake.petCount.continueWith').replace('{count}', String(petCount))}
       </Button>
     </div>
   );
