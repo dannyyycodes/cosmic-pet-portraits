@@ -340,6 +340,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.goBackHome': 'Go Back Home',
     'common.oops': 'Oops! Something went wrong',
     'common.back': 'Back',
+    'common.edit': 'Edit',
     'common.returnHome': 'Return to homepage',
     
     // Affiliate
@@ -678,6 +679,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.goBackHome': 'Volver al Inicio',
     'common.oops': '¡Ups! Algo salió mal',
     'common.back': 'Atrás',
+    'common.edit': 'Editar',
     'common.returnHome': 'Volver a la página principal',
     
     'affiliate.badge': 'Programa de Afiliados',
@@ -1014,6 +1016,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.goBackHome': 'Voltar ao Início',
     'common.oops': 'Ops! Algo deu errado',
     'common.back': 'Voltar',
+    'common.edit': 'Editar',
     'common.returnHome': 'Voltar à página inicial',
     
     'affiliate.badge': 'Programa de Afiliados',
@@ -1350,6 +1353,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.goBackHome': 'Retour à l\'Accueil',
     'common.oops': 'Oups! Quelque chose s\'est mal passé',
     'common.back': 'Retour',
+    'common.edit': 'Modifier',
     'common.returnHome': 'Retour à la page d\'accueil',
     
     'affiliate.badge': 'Programme d\'Affiliation',
@@ -1686,6 +1690,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.goBackHome': 'العودة للرئيسية',
     'common.oops': 'عذراً! حدث خطأ ما',
     'common.back': 'رجوع',
+    'common.edit': 'تعديل',
     'common.returnHome': 'العودة للصفحة الرئيسية',
     
     'affiliate.badge': 'برنامج الشراكة',

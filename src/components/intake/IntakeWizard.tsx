@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { CosmicProgress } from '@/components/cosmic/CosmicProgress';
 import { EmotionProvider, useEmotion } from '@/contexts/EmotionContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { CheckoutData } from './CheckoutPanel';
 import { saveIntakeProgress, loadIntakeProgress, clearIntakeProgress } from '@/lib/intakeStorage';
 import { getReferralCode } from '@/lib/referralTracking';
@@ -117,6 +118,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
   const stepStartTime = useRef<number>(Date.now());
   const { trackAction, intensity } = useEmotion();
+  const { t } = useLanguage();
 
   const modeContent = occasionModeContent[occasionMode];
 
@@ -440,8 +442,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               title="Click to change occasion"
             >
               <span>{occasionMode === 'discover' ? '🔮' : occasionMode === 'birthday' ? '🎂' : occasionMode === 'memorial' ? '🌈' : '🎁'}</span>
-              <span className="capitalize">{occasionMode === 'gift' ? 'Gift' : occasionMode}</span>
-              <span className="text-primary/60">• Edit</span>
+              <span className="capitalize">{t(`intake.occasion.${occasionMode}`)}</span>
+              <span className="text-primary/60">• {t('common.edit')}</span>
             </button>
           </motion.div>
         )}
