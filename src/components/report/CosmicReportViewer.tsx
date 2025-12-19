@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Eye, Target, Flame, Wind, Droplet, Mountain, Gem, User, Users, Clock, Hash, Palette, Share2, Image as ImageIcon, Mail, Calendar } from 'lucide-react';
+import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Eye, Target, Flame, Wind, Droplet, Mountain, Gem, User, Users, Clock, Hash, Palette, Share2, Image as ImageIcon, Mail, Calendar, ChevronRight, Home, PartyPopper } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { useState, useRef } from 'react';
@@ -124,6 +124,8 @@ interface CosmicReportViewerProps {
   allReports?: ReportData[];
   currentIndex?: number;
   onSwitchReport?: (index: number) => void;
+  onNextPet?: () => void;
+  onAllComplete?: () => void;
 }
 
 const elementColors: Record<string, string> = {
@@ -149,7 +151,7 @@ const sectionVariants = {
   }),
 };
 
-export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, allReports, currentIndex = 0, onSwitchReport }: CosmicReportViewerProps) {
+export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete }: CosmicReportViewerProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>();
@@ -857,6 +859,58 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
             <p className="text-lg text-muted-foreground leading-relaxed italic max-w-2xl mx-auto">
               {report.epilogue}
             </p>
+          </motion.div>
+        )}
+
+        {/* Next Pet / All Complete Footer */}
+        {(hasMultipleReports || onAllComplete) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="pt-8 pb-4 border-t border-border/50"
+          >
+            <div className="text-center space-y-6">
+              {hasMultipleReports && (
+                <p className="text-muted-foreground">
+                  Report {currentIndex + 1} of {allReports!.length} complete
+                </p>
+              )}
+              
+              {hasMultipleReports && currentIndex < allReports!.length - 1 ? (
+                <div className="space-y-4">
+                  <p className="text-lg text-foreground">
+                    Ready to see <span className="font-semibold text-primary">{allReports![currentIndex + 1].petName}</span>&apos;s cosmic secrets?
+                  </p>
+                  <Button
+                    onClick={onNextPet}
+                    variant="cosmic"
+                    size="xl"
+                    className="gap-2"
+                  >
+                    <span>View {allReports![currentIndex + 1].petName}&apos;s Report</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-lg text-foreground">
+                    {hasMultipleReports 
+                      ? "You've viewed all your cosmic pet reports! 🌟" 
+                      : `${petName}'s cosmic journey awaits! 🌟`}
+                  </p>
+                  <Button
+                    onClick={onAllComplete}
+                    variant="gold"
+                    size="xl"
+                    className="gap-2"
+                  >
+                    <PartyPopper className="w-5 h-5" />
+                    <span>Complete Journey</span>
+                  </Button>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </div>
