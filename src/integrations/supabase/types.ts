@@ -387,10 +387,12 @@ export type Database = {
           email: string
           gender: string | null
           id: string
+          language: string | null
           occasion_mode: string | null
           payment_status: string | null
           pet_name: string
           report_content: Json | null
+          share_token: string | null
           soul_type: string | null
           species: string
           stranger_reaction: string | null
@@ -407,10 +409,12 @@ export type Database = {
           email: string
           gender?: string | null
           id?: string
+          language?: string | null
           occasion_mode?: string | null
           payment_status?: string | null
           pet_name: string
           report_content?: Json | null
+          share_token?: string | null
           soul_type?: string | null
           species: string
           stranger_reaction?: string | null
@@ -427,10 +431,12 @@ export type Database = {
           email?: string
           gender?: string | null
           id?: string
+          language?: string | null
           occasion_mode?: string | null
           payment_status?: string | null
           pet_name?: string
           report_content?: Json | null
+          share_token?: string | null
           soul_type?: string | null
           species?: string
           stranger_reaction?: string | null

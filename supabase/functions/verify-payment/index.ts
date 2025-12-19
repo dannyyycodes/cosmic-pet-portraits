@@ -71,14 +71,25 @@ serve(async (req) => {
       const reportIds = allPetReports?.map((r: any) => r.id) || [reportId];
       console.log("[VERIFY-PAYMENT] Dev mode - found reports:", reportIds.length);
 
-      // Update all reports as paid
-      await supabaseClient
-        .from("pet_reports")
-        .update({ 
-          payment_status: "paid",
-          updated_at: new Date().toISOString()
-        })
-        .in("id", reportIds);
+      // Generate share tokens for each report
+      const generateShareToken = () => {
+        const bytes = new Uint8Array(12);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      };
+
+      // Update all reports as paid with share tokens
+      for (const id of reportIds) {
+        const shareToken = generateShareToken();
+        await supabaseClient
+          .from("pet_reports")
+          .update({ 
+            payment_status: "paid",
+            share_token: shareToken,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", id);
+      }
       
       // Generate reports for each pet
       for (const id of reportIds) {
@@ -174,19 +185,27 @@ serve(async (req) => {
       }
     }
 
-    // Update all reports as paid
-    const { error: updateError } = await supabaseClient
-      .from("pet_reports")
-      .update({ 
-        payment_status: "paid", 
-        stripe_session_id: sessionId,
-        updated_at: new Date().toISOString()
-      })
-      .in("id", reportIds);
+    // Generate share tokens for each report
+    const generateShareToken = () => {
+      const bytes = new Uint8Array(12);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    };
 
-    if (updateError) {
-      console.error("[VERIFY-PAYMENT] Failed to update reports:", updateError);
+    // Update all reports as paid with share tokens
+    for (const id of reportIds) {
+      const shareToken = generateShareToken();
+      await supabaseClient
+        .from("pet_reports")
+        .update({ 
+          payment_status: "paid", 
+          stripe_session_id: sessionId,
+          share_token: shareToken,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", id);
     }
+
 
     // Generate reports for each
     for (const id of reportIds) {

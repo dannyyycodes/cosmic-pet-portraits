@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Eye, Target, Flame, Wind, Droplet, Mountain, Gem, User, Users, Clock, Hash, Palette, Share2, Image as ImageIcon, Mail, Calendar, ChevronRight, Home, PartyPopper } from 'lucide-react';
+import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Eye, Target, Flame, Wind, Droplet, Mountain, Gem, User, Users, Clock, Hash, Palette, Share2, Image as ImageIcon, Mail, Calendar, ChevronRight, Home, PartyPopper, Copy, Check, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { useState, useRef } from 'react';
@@ -121,6 +121,7 @@ interface CosmicReportViewerProps {
   isPreview?: boolean;
   onUnlockFull?: () => void;
   reportId?: string;
+  shareToken?: string;
   allReports?: ReportData[];
   currentIndex?: number;
   onSwitchReport?: (index: number) => void;
@@ -151,12 +152,13 @@ const sectionVariants = {
   }),
 };
 
-export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete }: CosmicReportViewerProps) {
+export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, shareToken, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete }: CosmicReportViewerProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>();
   const [isGeneratingPortrait, setIsGeneratingPortrait] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
   const hasMultipleReports = allReports && allReports.length > 1;
@@ -228,7 +230,25 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
 
   const cardStats = calculateCardStats({ ...report, petName });
 
-  // Table of contents
+  // Generate shareable link
+  const getShareLink = () => {
+    if (shareToken) {
+      return `${window.location.origin}/report?share=${shareToken}`;
+    }
+    return null;
+  };
+
+  const handleCopyShareLink = async () => {
+    const shareLink = getShareLink();
+    if (shareLink) {
+      await navigator.clipboard.writeText(shareLink);
+      setLinkCopied(true);
+      toast.success('Share link copied! Send it to friends and family.');
+      setTimeout(() => setLinkCopied(false), 3000);
+    } else {
+      toast.error('Share link not available');
+    }
+  };
   const tableOfContents = [
     { id: 'chart', label: 'Birth Chart', icon: '✧' },
     { id: 'solar', label: 'Solar Soulprint', icon: '☉' },
@@ -375,6 +395,26 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
               {element} Dominant
             </span>
           </motion.div>
+
+          {/* Share Button */}
+          {shareToken && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="mt-6"
+            >
+              <Button
+                onClick={handleCopyShareLink}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                {linkCopied ? <Check className="w-4 h-4" /> : <Link className="w-4 h-4" />}
+                {linkCopied ? 'Link Copied!' : 'Share This Report'}
+              </Button>
+            </motion.div>
+          )}
         </div>
       </div>
 

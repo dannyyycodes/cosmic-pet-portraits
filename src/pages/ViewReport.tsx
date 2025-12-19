@@ -15,7 +15,7 @@ export default function ViewReport() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string } | null>(null);
+  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string; shareToken?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showCinematic, setShowCinematic] = useState(false);
   const [revealComplete, setRevealComplete] = useState(false);
@@ -25,6 +25,7 @@ export default function ViewReport() {
 
   const reportId = searchParams.get('id');
   const code = searchParams.get('code'); // For gift redemption
+  const shareToken = searchParams.get('share'); // For public share links
 
   // Try to get saved email from session storage
   const getSavedEmail = () => {
@@ -36,14 +37,14 @@ export default function ViewReport() {
   };
 
   useEffect(() => {
-    if (!reportId && !code) {
+    if (!reportId && !code && !shareToken) {
       setError('Invalid link');
       setIsLoading(false);
       return;
     }
 
-    // If accessing via gift code, no email needed
-    if (code) {
+    // If accessing via gift code or share token, no email needed
+    if (code || shareToken) {
       fetchReport();
     } else {
       // Check if we have saved email
@@ -56,7 +57,7 @@ export default function ViewReport() {
         setIsLoading(false);
       }
     }
-  }, [reportId, code]);
+  }, [reportId, code, shareToken]);
 
   const fetchReport = async (verifyEmail?: string) => {
     setIsLoading(true);
@@ -67,6 +68,7 @@ export default function ViewReport() {
         body: {
           reportId: reportId || undefined,
           giftCode: code || undefined,
+          shareToken: shareToken || undefined,
           email: verifyEmail || undefined,
         },
       });
@@ -95,6 +97,7 @@ export default function ViewReport() {
         petName: data.petName,
         report: data.report,
         reportId: reportId || data.reportId,
+        shareToken: data.shareToken,
       });
 
       // Show cinematic reveal for first-time views (not returning visits)
@@ -239,6 +242,7 @@ export default function ViewReport() {
             petName={reportData.petName}
             report={reportData.report}
             reportId={reportData.reportId}
+            shareToken={reportData.shareToken}
           />
         )}
       </>
