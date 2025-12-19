@@ -5,13 +5,14 @@ import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
 import { EmotionalReportReveal } from '@/components/report/EmotionalReportReveal';
 import { GiftConfirmation } from '@/components/report/GiftConfirmation';
+import { AllReportsComplete } from '@/components/report/AllReportsComplete';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-type Stage = 'verifying' | 'generating' | 'reveal' | 'complete' | 'gift-sent' | 'error' | 'ready-next';
+type Stage = 'verifying' | 'generating' | 'reveal' | 'complete' | 'gift-sent' | 'error' | 'ready-next' | 'celebration';
 
 interface ReportData {
   petName: string;
@@ -154,6 +155,16 @@ export default function PaymentSuccess() {
     setStage('complete');
   };
 
+  const handleAllComplete = () => {
+    setStage('celebration');
+  };
+
+  const handleNextPetFromViewer = () => {
+    if (currentReportIndex < allReports.length - 1) {
+      setCurrentReportIndex(prev => prev + 1);
+    }
+  };
+
   // Error state
   if (stage === 'error') {
     return (
@@ -264,6 +275,18 @@ export default function PaymentSuccess() {
         allReports={hasMultipleReports ? allReports : undefined}
         currentIndex={currentReportIndex}
         onSwitchReport={setCurrentReportIndex}
+        onNextPet={handleNextPetFromViewer}
+        onAllComplete={handleAllComplete}
+      />
+    );
+  }
+
+  // Celebration - all reports viewed
+  if (stage === 'celebration') {
+    return (
+      <AllReportsComplete
+        petNames={allReports.map(r => r.petName)}
+        onViewReports={handleViewAllReports}
       />
     );
   }
