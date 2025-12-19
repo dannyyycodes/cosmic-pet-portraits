@@ -174,6 +174,30 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_history: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_refund_request: boolean | null
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_refund_request?: boolean | null
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_refund_request?: boolean | null
+          subject?: string
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           code: string
@@ -610,6 +634,42 @@ export type Database = {
           email?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      scheduled_emails: {
+        Row: {
+          ai_response: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          original_message: string
+          send_at: string
+          sent_at: string | null
+          subject: string
+        }
+        Insert: {
+          ai_response: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          original_message: string
+          send_at: string
+          sent_at?: string | null
+          subject: string
+        }
+        Update: {
+          ai_response?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          original_message?: string
+          send_at?: string
+          sent_at?: string | null
+          subject?: string
         }
         Relationships: []
       }
