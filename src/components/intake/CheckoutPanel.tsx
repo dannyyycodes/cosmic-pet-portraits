@@ -5,6 +5,7 @@ import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Bug, Moon } f
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
+import { PetPhotoUpload } from './PetPhotoUpload';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -28,6 +29,7 @@ export interface CheckoutData {
   selectedTier: 'basic' | 'premium' | 'vip';
   includeGiftForFriend?: boolean;
   includesPortrait?: boolean;
+  petPhotoUrl?: string | null;
 }
 
 // Product tiers - $35 without portrait, $50 with AI portrait
@@ -100,6 +102,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   const [includeHoroscope, setIncludeHoroscope] = useState(false);
   const [spotsLeft, setSpotsLeft] = useState(7);
   const [recentPurchases, setRecentPurchases] = useState(12847);
+  const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
 
   // Simulated scarcity countdown
   useEffect(() => {
@@ -147,8 +150,12 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       selectedTier,
       includeGiftForFriend: withGift,
       includesPortrait: tier.includesPortrait,
+      petPhotoUrl: tier.includesPortrait ? petPhotoUrl : null,
     });
   };
+
+  // Check if portrait tier is selected
+  const showPhotoUpload = selectedTier === 'premium' || selectedTier === 'vip';
 
   return (
     <motion.div
@@ -301,6 +308,26 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           );
         })}
       </div>
+
+      {/* Pet Photo Upload for Portrait Tiers */}
+      <AnimatePresence>
+        {showPhotoUpload && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 rounded-xl bg-gradient-to-r from-nebula-purple/10 to-cosmic-gold/10 border border-nebula-purple/30">
+              <PetPhotoUpload
+                petName={petData.name || 'your pet'}
+                onPhotoUploaded={setPetPhotoUrl}
+                photoUrl={petPhotoUrl}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Order summary */}
       <div className="rounded-xl bg-card/30 border border-border/30 p-4 space-y-2">
