@@ -1,32 +1,35 @@
 import { PawPrint, Stars, FileText } from "lucide-react";
-
-const steps = [
-  {
-    icon: PawPrint,
-    title: "Tell Us About Your Pet",
-    description: "Share your pet's birth date, species, and a few details about their personality. Takes just 60 seconds.",
-  },
-  {
-    icon: Stars,
-    title: "We Map Their Stars",
-    description: "Using Swiss Ephemeris data, we calculate their unique cosmic blueprint and soul contract with you.",
-  },
-  {
-    icon: FileText,
-    title: "Receive Your Report",
-    description: "Get a beautifully crafted, personalized report that reveals your pet's true spiritual nature.",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function HowItWorks() {
+  const { t } = useLanguage();
+  
+  const steps = [
+    {
+      icon: PawPrint,
+      titleKey: 'howItWorks.step1.title',
+      descKey: 'howItWorks.step1.desc',
+    },
+    {
+      icon: Stars,
+      titleKey: 'howItWorks.step2.title',
+      descKey: 'howItWorks.step2.desc',
+    },
+    {
+      icon: FileText,
+      titleKey: 'howItWorks.step3.title',
+      descKey: 'howItWorks.step3.desc',
+    },
+  ];
+
   return (
     <section id="how-it-works" className="relative py-20 px-4 z-10">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl sm:text-4xl font-serif text-center text-foreground mb-4">
-          How It Works
+          {t('howItWorks.title')}
         </h2>
         <p className="text-center text-muted-foreground mb-16 max-w-xl mx-auto">
-          Discover your pet's cosmic truth in three simple steps
+          {t('howItWorks.subtitle')}
         </p>
 
         <div className="grid md:grid-cols-3 gap-8">
@@ -52,10 +55,10 @@ export function HowItWorks() {
                 </div>
                 
                 <h3 className="text-xl font-serif text-foreground mb-3">
-                  {step.title}
+                  {t(step.titleKey)}
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  {step.description}
+                  {t(step.descKey)}
                 </p>
               </div>
             </div>
