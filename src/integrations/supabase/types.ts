@@ -213,6 +213,112 @@ export type Database = {
         }
         Relationships: []
       }
+      email_campaigns: {
+        Row: {
+          ai_generated: boolean
+          campaign_type: string
+          content_preview: string | null
+          id: string
+          sent_at: string
+          subject: string
+          subscriber_id: string | null
+        }
+        Insert: {
+          ai_generated?: boolean
+          campaign_type: string
+          content_preview?: string | null
+          id?: string
+          sent_at?: string
+          subject: string
+          subscriber_id?: string | null
+        }
+        Update: {
+          ai_generated?: boolean
+          campaign_type?: string
+          content_preview?: string | null
+          id?: string
+          sent_at?: string
+          subject?: string
+          subscriber_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "email_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          emails_sent: number
+          id: string
+          intake_started_at: string | null
+          is_subscribed: boolean
+          journey_stage: string
+          last_email_sent_at: string | null
+          last_email_type: string | null
+          pet_name: string | null
+          pet_report_id: string | null
+          purchase_completed_at: string | null
+          referral_code: string | null
+          source: string | null
+          tier_purchased: string | null
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          emails_sent?: number
+          id?: string
+          intake_started_at?: string | null
+          is_subscribed?: boolean
+          journey_stage?: string
+          last_email_sent_at?: string | null
+          last_email_type?: string | null
+          pet_name?: string | null
+          pet_report_id?: string | null
+          purchase_completed_at?: string | null
+          referral_code?: string | null
+          source?: string | null
+          tier_purchased?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          emails_sent?: number
+          id?: string
+          intake_started_at?: string | null
+          is_subscribed?: boolean
+          journey_stage?: string
+          last_email_sent_at?: string | null
+          last_email_type?: string | null
+          pet_name?: string | null
+          pet_report_id?: string | null
+          purchase_completed_at?: string | null
+          referral_code?: string | null
+          source?: string | null
+          tier_purchased?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_subscribers_pet_report_id_fkey"
+            columns: ["pet_report_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gift_certificates: {
         Row: {
           amount_cents: number

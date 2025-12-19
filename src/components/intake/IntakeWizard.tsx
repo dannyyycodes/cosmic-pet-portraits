@@ -17,6 +17,7 @@ import { IntakeStepEmail } from './IntakeStepEmail';
 import { CosmicLoading } from './CosmicLoading';
 import { SocialProofBar } from './SocialProofBar';
 import { MiniReport } from './MiniReport';
+import { GiftWelcome } from './GiftWelcome';
 import { OccasionMode, occasionModeContent } from '@/lib/occasionMode';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -119,11 +120,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const [cosmicReport, setCosmicReport] = useState<CosmicReport | null>(null);
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
   const [giftCodeFromUrl, setGiftCodeFromUrl] = useState<string | null>(null);
+  const [showGiftWelcome, setShowGiftWelcome] = useState(false);
   const [giftData, setGiftData] = useState<{ 
     amountCents: number; 
     giftMessage?: string;
     recipientName?: string;
     giftedTier?: 'basic' | 'premium' | 'vip';
+    includesPortrait?: boolean;
   } | null>(null);
   const stepStartTime = useRef<number>(Date.now());
   const { trackAction, intensity } = useEmotion();
@@ -135,6 +138,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     const giftCode = searchParams.get('gift');
     if (giftCode) {
       setGiftCodeFromUrl(giftCode);
+      setShowGiftWelcome(true);
       // Validate the gift code
       supabase.functions.invoke('validate-gift-code', {
         body: { code: giftCode.toUpperCase() },
@@ -145,8 +149,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             giftMessage: data.giftMessage,
             recipientName: data.recipientName,
             giftedTier: data.giftedTier,
+            includesPortrait: data.includesPortrait,
           });
-          toast.success(`Gift code applied! You received a ${data.giftedTier === 'vip' ? 'VIP' : data.giftedTier === 'premium' ? 'Portrait Edition' : 'Standard'} reading.`);
+          // Set pet count to 1 for gifts (gifts are always for 1 pet)
+          setPetCount(1);
+        } else {
+          setShowGiftWelcome(false);
+          toast.error(data?.error || 'Invalid gift code');
         }
       });
     }
@@ -559,7 +568,26 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         )}
 
         <AnimatePresence mode="wait">
-          {step === 0 && (
+          {/* Gift Welcome Screen - shown before everything else for gift recipients */}
+          {showGiftWelcome && giftData && (
+            <motion.div key="gift-welcome" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <GiftWelcome
+                recipientName={giftData.recipientName}
+                giftMessage={giftData.giftMessage}
+                giftedTier={giftData.giftedTier || 'basic'}
+                includesPortrait={giftData.includesPortrait}
+                onContinue={() => {
+                  setShowGiftWelcome(false);
+                  setOccasionMode('gift');
+                  setPetsData(prev => prev.map(pet => ({ ...pet, occasionMode: 'gift' })));
+                  // Skip to name step (step 2), bypassing occasion and pet count
+                  setStep(2);
+                }}
+              />
+            </motion.div>
+          )}
+
+          {!showGiftWelcome && step === 0 && (
             <motion.div key="step-occasion" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepOccasion 
                 selectedMode={occasionMode}
@@ -575,7 +603,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             </motion.div>
           )}
 
-          {step === 1 && (
+          {!showGiftWelcome && step === 1 && !giftCodeFromUrl && (
             <motion.div key="step-petcount" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepPetCount 
                 petCount={petCount} 
