@@ -19,6 +19,7 @@ import { SocialProofBar } from './SocialProofBar';
 import { MiniReport } from './MiniReport';
 import { OccasionMode, occasionModeContent } from '@/lib/occasionMode';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { CosmicProgress } from '@/components/cosmic/CosmicProgress';
@@ -119,7 +120,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
   const stepStartTime = useRef<number>(Date.now());
   const { trackAction, intensity } = useEmotion();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const { user } = useAuth();
 
   const modeContent = occasionModeContent[occasionMode];
 
@@ -306,6 +308,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             superpower: sanitizedSuperpower || null,
             stranger_reaction: sanitizedStrangerReaction || null,
             occasion_mode: pet.occasionMode,
+            user_id: user?.id || null,
+            language: language,
           });
 
         if (dbError) {

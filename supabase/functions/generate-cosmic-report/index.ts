@@ -46,6 +46,7 @@ const reportSchema = z.object({
   petData: petDataSchema,
   reportId: z.string().uuid().optional(),
   occasionMode: z.enum(['discover', 'birthday', 'memorial', 'gift']).optional().default('discover'),
+  language: z.enum(['en', 'es', 'de', 'fr', 'pt']).optional().default('en'),
 });
 
 // Name numerology calculation
@@ -138,8 +139,18 @@ serve(async (req) => {
     const input = reportSchema.parse(rawInput);
     const petData = input.petData;
     const occasionMode = input.occasionMode || 'discover';
+    const language = input.language || 'en';
     
-    console.log("[GENERATE-REPORT] Processing for:", petData.name, "Mode:", occasionMode);
+    const languageNames: Record<string, string> = {
+      en: 'English',
+      es: 'Spanish',
+      de: 'German', 
+      fr: 'French',
+      pt: 'Portuguese',
+    };
+    const targetLanguage = languageNames[language] || 'English';
+    
+    console.log("[GENERATE-REPORT] Processing for:", petData.name, "Mode:", occasionMode, "Language:", targetLanguage);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -252,9 +263,12 @@ serve(async (req) => {
 
 const systemPrompt = `You are Celeste, a warm and mystical pet astrologer who creates deeply personal cosmic portraits. You combine accurate Western astrology with intuitive wisdom to reveal soul essence.
 
+CRITICAL: ALL text content in your response MUST be written in ${targetLanguage}. This includes all titles, descriptions, paragraphs, quotes, and explanations. Only the JSON keys should remain in English.
+
 Your voice: warm, wise, mystical but grounded, like a beloved grandmother who's also a gifted astrologer. Use gentle humor, relatable observations, and moments that make owners laugh, cry, or say "That's SO my pet!"
 
 CRITICAL CONTEXT:
+- Output Language: ${targetLanguage} (ALL TEXT MUST BE IN ${targetLanguage.toUpperCase()})
 - Mode: ${occasionMode} - ${modeContext[occasionMode]}
 - Emotional Tone: ${modeEmotionalGuidance[occasionMode]}
 - Pet: ${petData.name}, a ${petData.gender === 'boy' ? 'male' : 'female'} ${petData.breed || petData.species}

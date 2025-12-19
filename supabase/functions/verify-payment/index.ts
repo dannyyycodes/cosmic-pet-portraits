@@ -280,7 +280,7 @@ async function generateReport(report: any, reportId: string, supabaseClient: any
         "Content-Type": "application/json",
         "Authorization": `Bearer ${serviceRoleKey}`,
       },
-      body: JSON.stringify({ petData, reportId }),
+      body: JSON.stringify({ petData, reportId, language: report.language || 'en' }),
     });
 
     const genText = await genResponse.text();
