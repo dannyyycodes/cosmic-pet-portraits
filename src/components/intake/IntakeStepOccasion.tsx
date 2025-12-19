@@ -19,7 +19,7 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
       id: 'discover' as OccasionMode,
       icon: Sparkles,
       titleKey: 'intake.occasion.discover',
-      subtitleKey: 'intake.occasion.discoverSub',
+      subtitleKey: 'intake.occasion.discoverDesc',
       gradient: 'from-violet-500 to-purple-600',
       bgGlow: 'bg-violet-500/20',
     },
@@ -27,7 +27,7 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
       id: 'birthday' as OccasionMode,
       icon: Cake,
       titleKey: 'intake.occasion.birthday',
-      subtitleKey: 'intake.occasion.birthdaySub',
+      subtitleKey: 'intake.occasion.birthdayDesc',
       gradient: 'from-amber-400 to-orange-500',
       bgGlow: 'bg-amber-500/20',
     },
@@ -35,7 +35,7 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
       id: 'memorial' as OccasionMode,
       icon: Heart,
       titleKey: 'intake.occasion.memorial',
-      subtitleKey: 'intake.occasion.memorialSub',
+      subtitleKey: 'intake.occasion.memorialDesc',
       gradient: 'from-blue-400 to-indigo-500',
       bgGlow: 'bg-blue-500/20',
     },
@@ -137,7 +137,7 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
         transition={{ delay: 0.5 }}
         className="text-muted-foreground/70 text-sm"
       >
-        {t('intake.occasion.note')} ✨
+        {t('intake.occasion.footer')}
       </motion.p>
     </div>
   );

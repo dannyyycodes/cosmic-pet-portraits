@@ -131,6 +131,12 @@ serve(async (req) => {
       }
     }
 
+    // Fetch ALL reports for multi-pet orders
+    const { data: allReports } = await supabaseClient
+      .from("pet_reports")
+      .select("*")
+      .in("id", reportIds);
+
     // Fetch the primary report
     const { data: finalReport } = await supabaseClient
       .from("pet_reports")
@@ -140,7 +146,9 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      report: finalReport 
+      report: finalReport,
+      allReports: allReports || [finalReport], // Return all reports for multi-pet
+      reportIds: reportIds
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

@@ -109,12 +109,21 @@ interface ReportContent {
   cosmicAdvice?: string;
 }
 
+interface ReportData {
+  petName: string;
+  report: any;
+  reportId: string;
+}
+
 interface CosmicReportViewerProps {
   petName: string;
   report: ReportContent;
   isPreview?: boolean;
   onUnlockFull?: () => void;
   reportId?: string;
+  allReports?: ReportData[];
+  currentIndex?: number;
+  onSwitchReport?: (index: number) => void;
 }
 
 const elementColors: Record<string, string> = {
@@ -140,13 +149,15 @@ const sectionVariants = {
   }),
 };
 
-export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId }: CosmicReportViewerProps) {
+export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, allReports, currentIndex = 0, onSwitchReport }: CosmicReportViewerProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>();
   const [isGeneratingPortrait, setIsGeneratingPortrait] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  
+  const hasMultipleReports = allReports && allReports.length > 1;
 
   // Handle both new comprehensive format and legacy format
   const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Aries';
@@ -246,6 +257,30 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Multi-pet selector bar */}
+      {hasMultipleReports && onSwitchReport && (
+        <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
+          <div className="max-w-4xl mx-auto px-6 py-3">
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <span className="text-muted-foreground text-sm mr-2">View Reports:</span>
+              {allReports.map((r, idx) => (
+                <button
+                  key={r.reportId}
+                  onClick={() => onSwitchReport(idx)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    idx === currentIndex
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  🐾 {r.petName}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Hero section */}
       <div className="relative overflow-hidden">
         <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-10`} />
