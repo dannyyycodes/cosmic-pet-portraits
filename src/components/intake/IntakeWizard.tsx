@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 import { IntakeStepOccasion } from './IntakeStepOccasion';
 import { IntakeStepPetCount } from './IntakeStepPetCount';
 import { IntakeStepName } from './IntakeStepName';
@@ -399,6 +400,16 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     );
   }
 
+  const handleStartFresh = () => {
+    clearIntakeProgress();
+    setPetsData([createEmptyPetData(mode)]);
+    setCurrentPetIndex(0);
+    setPetCount(1);
+    setOccasionMode(mode);
+    setStep(0);
+    toast.success('Starting fresh! Create a new reading.');
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 pt-14 relative overflow-hidden">
       <StarfieldBackground intensity={intensity} interactive />
@@ -420,6 +431,18 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           {isDevMode ? 'Dev Mode' : isPreviewHost ? 'Preview Mode' : 'Live Mode'}
         </span>
       </button>
+      
+      {/* Start Fresh Button - only show when there's saved progress */}
+      {step > 0 && (
+        <button
+          onClick={handleStartFresh}
+          className="fixed top-3 right-3 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-card/80 text-muted-foreground border border-border/50 hover:bg-destructive/20 hover:text-destructive hover:border-destructive/30 transition-all"
+          title="Clear all data and start over"
+        >
+          <X className="w-3 h-3" />
+          Start Fresh
+        </button>
+      )}
 
       <SocialProofBar petName={currentPetData?.name || ''} />
       

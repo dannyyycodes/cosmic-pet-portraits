@@ -9,7 +9,7 @@ import { AllReportsComplete } from '@/components/report/AllReportsComplete';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronRight, Sparkles, Gift, Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 type Stage = 'verifying' | 'generating' | 'reveal' | 'complete' | 'gift-sent' | 'error' | 'ready-next' | 'celebration';
@@ -24,6 +24,11 @@ interface ReportData {
   recipientEmail?: string;
 }
 
+interface GiftInfo {
+  includeGift: boolean;
+  giftCode: string | null;
+}
+
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -32,6 +37,7 @@ export default function PaymentSuccess() {
   const [allReports, setAllReports] = useState<ReportData[]>([]);
   const [currentReportIndex, setCurrentReportIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [giftInfo, setGiftInfo] = useState<GiftInfo>({ includeGift: false, giftCode: null });
 
   const sessionId = searchParams.get('session_id');
   const reportId = searchParams.get('report_id');
@@ -99,6 +105,11 @@ export default function PaymentSuccess() {
             try {
               sessionStorage.setItem('cosmic_report_email', processedReports[0].email);
             } catch {}
+          }
+          
+          // Capture gift info if present
+          if (data.includeGift && data.giftCode) {
+            setGiftInfo({ includeGift: true, giftCode: data.giftCode });
           }
           
           setAllReports(processedReports);
@@ -287,6 +298,7 @@ export default function PaymentSuccess() {
       <AllReportsComplete
         petNames={allReports.map(r => r.petName)}
         onViewReports={handleViewAllReports}
+        giftInfo={giftInfo}
       />
     );
   }

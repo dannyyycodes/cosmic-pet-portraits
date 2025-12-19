@@ -135,6 +135,44 @@ serve(async (req) => {
 
     // Get report IDs from session metadata
     const reportIds = session.metadata?.report_ids?.split(",").filter(Boolean) || [reportId];
+    
+    // Check if gift was included
+    const includeGift = session.metadata?.include_gift === "true";
+    let giftCode: string | null = null;
+
+    // If gift was included, create a gift certificate for the friend
+    if (includeGift) {
+      // Generate a secure gift code
+      const randomBytes = new Uint8Array(8);
+      crypto.getRandomValues(randomBytes);
+      giftCode = "GIFT-" + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase().slice(0, 12);
+      
+      // Get purchaser email from primary report
+      const { data: primaryReport } = await supabaseClient
+        .from("pet_reports")
+        .select("email")
+        .eq("id", reportId)
+        .single();
+      
+      if (primaryReport?.email) {
+        // Create gift certificate
+        const { error: giftError } = await supabaseClient
+          .from("gift_certificates")
+          .insert({
+            code: giftCode,
+            amount_cents: 3500, // $35 basic report value
+            purchaser_email: primaryReport.email,
+            stripe_session_id: sessionId,
+          });
+        
+        if (giftError) {
+          console.error("[VERIFY-PAYMENT] Failed to create gift certificate:", giftError);
+          giftCode = null;
+        } else {
+          console.log("[VERIFY-PAYMENT] Gift certificate created:", giftCode);
+        }
+      }
+    }
 
     // Update all reports as paid
     const { error: updateError } = await supabaseClient
@@ -180,7 +218,9 @@ serve(async (req) => {
       success: true, 
       report: finalReport,
       allReports: allReports || [finalReport], // Return all reports for multi-pet
-      reportIds: reportIds
+      reportIds: reportIds,
+      includeGift,
+      giftCode,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
