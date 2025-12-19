@@ -59,3 +59,9 @@ verify_jwt = false
 
 [functions.translate]
 verify_jwt = false
+
+[functions.redeem-gift]
+verify_jwt = false
+
+[functions.ai-support-reply]
+verify_jwt = false
