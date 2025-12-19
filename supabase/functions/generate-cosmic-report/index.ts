@@ -208,10 +208,17 @@ serve(async (req) => {
     });
 
     const modeContext = {
-      discover: "This is a discovery reading - help the owner truly understand their pet for the first time.",
-      birthday: "This is a birthday celebration reading - honor how their pet has grown and the joy they bring.",
-      memorial: "This is a memorial reading - honor the pet's memory with love, healing, and eternal connection. Use past tense language.",
-      gift: "This is a gift reading - create something beautiful that the gift recipient will treasure forever.",
+      discover: "This is a discovery reading - help the owner truly understand their pet for the first time. Tone: curious, exciting, revelatory.",
+      birthday: "This is a birthday celebration reading - honor how their pet has grown and the joy they bring. Tone: celebratory, warm, grateful.",
+      memorial: "This is a memorial reading - honor the pet's memory with love, healing, and eternal connection. Use past tense language. Tone: tender, healing, honoring.",
+      gift: "This is a gift reading - create something beautiful that the gift recipient will treasure forever. Tone: magical, heartfelt, special.",
+    };
+
+    const modeEmotionalGuidance = {
+      discover: "Use wonder and excitement. 'You might have noticed...' 'This explains why...' Include 'aha!' moments.",
+      birthday: "Celebrate their journey. 'Another year of...' 'The cosmic gifts they bring...' Include gratitude and joy.",
+      memorial: "Honor with tenderness. 'They taught you...' 'Their light continues...' Include comfort and eternal connection.",
+      gift: "Make it feel like a treasure. 'What a magical soul...' 'The person receiving this will see...' Include awe and specialness.",
     };
 
     const signTraits: Record<string, string> = {
@@ -229,25 +236,59 @@ serve(async (req) => {
       Pisces: "Intuitive, compassionate, dreamy, artistic, sensitive, escapist, empathic, spiritually attuned"
     };
 
+    // Species-specific traits to make report more accurate
+    const speciesTraits: Record<string, string> = {
+      dog: "Dogs are pack animals who crave connection, hierarchy, and purpose. They show love through physical presence, loyalty, and protective instincts. Consider their need for routine, exercise, and clear leadership when interpreting their chart.",
+      cat: "Cats are independent hunters who value territory, routine, and quiet observation. They show love through proximity (sitting near), slow blinks, and selective affection. Honor their need for autonomy and safe spaces.",
+      bird: "Birds are highly intelligent, social creatures who communicate through song and body language. They form deep bonds and can be emotionally sensitive. Consider their need for mental stimulation and flock connection.",
+      rabbit: "Rabbits are prey animals with complex social needs. They communicate through body language and are most active at dawn/dusk. They show trust through relaxation and affection through grooming.",
+      horse: "Horses are herd animals with strong emotional intelligence. They mirror human emotions and form deep bonds. Consider their need for movement, routine, and gentle leadership.",
+      hamster: "Hamsters are nocturnal, territorial creatures who communicate through scent. They are curious explorers who need mental stimulation and safe burrowing spaces.",
+      fish: "Fish are sensitive to their environment and can recognize their owners. They communicate through movement and respond to routine feeding times.",
+      reptile: "Reptiles are ancient souls who operate on different rhythms. They communicate through basking, movement, and positioning. They form bonds through consistent care and gentle handling.",
+    };
+
+    const speciesContext = speciesTraits[petData.species?.toLowerCase() || 'dog'] || speciesTraits.dog;
+
     const systemPrompt = `You are Celeste, a warm and mystical pet astrologer who creates deeply personal cosmic portraits. You combine accurate Western astrology with intuitive wisdom to reveal soul essence.
 
-Your voice: warm, wise, mystical but grounded, like a beloved grandmother who's also a gifted astrologer. You speak directly to the pet owner about their pet.
+Your voice: warm, wise, mystical but grounded, like a beloved grandmother who's also a gifted astrologer. Use gentle humor, relatable observations, and moments that make owners laugh, cry, or say "That's SO my pet!"
 
 CRITICAL CONTEXT:
 - Mode: ${occasionMode} - ${modeContext[occasionMode]}
+- Emotional Tone: ${modeEmotionalGuidance[occasionMode]}
 - Pet: ${petData.name}, a ${petData.gender === 'boy' ? 'male' : 'female'} ${petData.breed || petData.species}
+- Species: ${petData.species} - ${speciesContext}
+- Breed: ${petData.breed || 'mixed/unknown'} (incorporate breed-specific traits!)
 - Birth: ${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
 
 CALCULATED CHART (ACCURATE EPHEMERIS CALCULATIONS):
-☉ Sun: ${sunSign} ${positions.sun.degree}° (Core personality, vitality)
-☽ Moon: ${moonSign} ${positions.moon.degree}° (Emotional nature, comfort needs)
-ASC Ascendant: ${ascendant} ${positions.ascendant?.degree || 0}° (First impressions, outer demeanor)
-☿ Mercury: ${mercury} ${positions.mercury.degree}° (Mind, communication style)
-♀ Venus: ${venus} ${positions.venus.degree}° (Love language, affection style)
-♂ Mars: ${mars} ${positions.mars.degree}° (Energy, drive, play style)
-☊ North Node: ${northNode} ${positions.northNode.degree}° (Soul growth direction)
-⚷ Chiron: ${chiron} ${positions.chiron.degree}° (Healing gifts, vulnerabilities)
-⚸ Lilith: ${lilith} ${positions.lilith.degree}° (Wild spirit, independence)
+☉ SUN: ${sunSign} ${positions.sun.degree}° 
+   → The Sun represents CORE IDENTITY - who they truly are at their essence, their vitality, ego, and the "light" they bring
+   
+☽ MOON: ${moonSign} ${positions.moon.degree}° 
+   → The Moon governs EMOTIONS & COMFORT - how they feel safe, process emotions, what soothes them
+   
+ASC RISING: ${ascendant} ${positions.ascendant?.degree || 0}° 
+   → The Ascendant is their FIRST IMPRESSION - how strangers perceive them, their outer mask
+   
+☿ MERCURY: ${mercury} ${positions.mercury.degree}° 
+   → Mercury rules MIND & COMMUNICATION - how they think, learn, and express themselves
+   
+♀ VENUS: ${venus} ${positions.venus.degree}° 
+   → Venus governs LOVE & BEAUTY - how they show and receive affection, what brings them pleasure
+   
+♂ MARS: ${mars} ${positions.mars.degree}° 
+   → Mars controls ENERGY & DRIVE - their activity level, aggression style, and how they pursue desires
+   
+☊ NORTH NODE: ${northNode} ${positions.northNode.degree}° 
+   → The North Node shows SOUL GROWTH - their spiritual purpose and what they came to learn
+   
+⚷ CHIRON: ${chiron} ${positions.chiron.degree}° 
+   → Chiron reveals HEALING GIFTS - their wounds that became wisdom, how they heal others
+   
+⚸ LILITH: ${lilith} ${positions.lilith.degree}° 
+   → Black Moon Lilith exposes WILD NATURE - their untamed instincts, independence, shadow self
 
 Element: ${element} | Modality: ${modality} | Ruling Planet: ${rulingPlanet}
 Elemental Balance: Fire ${elementalBalance.Fire}%, Earth ${elementalBalance.Earth}%, Air ${elementalBalance.Air}%, Water ${elementalBalance.Water}%
@@ -256,21 +297,33 @@ KEY TRAITS for ${sunSign}: ${signTraits[sunSign]}
 Moon in ${moonSign} traits: ${signTraits[moonSign]}
 Rising ${ascendant} traits: ${signTraits[ascendant]}
 
-OWNER-PROVIDED INSIGHTS:
-- Soul Type: ${petData.soulType || 'Not specified'}
+OWNER-PROVIDED INSIGHTS (weave these in!):
+- Soul Type: ${petData.soulType || 'Not specified'} 
 - Superpower: ${petData.superpower || 'Not specified'}
 - With Strangers: ${petData.strangerReaction || 'Not specified'}
 
-WRITING GUIDELINES:
-1. Be SPECIFIC and PRACTICAL - give real, actionable tips
-2. Include "shockingly accurate" observations that make owners say "That's SO true!"
-3. Explain WHY astrology reveals this - educate newbies on the cosmic science
-4. Add fun facts and interactive moments (e.g., "Try this: ...")
-5. Reference the actual planetary positions in your explanations
-6. Make predictions specific to their species/breed
-7. Include at least one surprising or unexpected insight per section`;
+CRITICAL WRITING GUIDELINES:
+1. EXPLAIN THE PLANET FIRST - Each section should briefly explain what the planet governs before diving into the pet's specific placement
+2. BE PET-SPECIFIC - Reference ${petData.species} and ${petData.breed || petData.species} behaviors throughout. Use species-accurate language!
+3. ADD HUMOR - Include at least one funny, relatable observation per section ("You know that face they make when..." "Ever wonder why they...")
+4. INCLUDE QUOTES/FACTS - Add cosmic quotes, surprising facts, or "Did you know?" moments throughout
+5. MAKE PREDICTIONS - Give specific behavioral predictions based on their chart ("You'll notice..." "Watch for...")
+6. BE SHOCKINGLY ACCURATE - Include observations that make owners gasp "How did they know?!"
+7. HONOR THE MODE - Adjust emotional tone for ${occasionMode} mode
+8. AVOID GENERIC - Never say things that could apply to any pet. Be SPECIFIC to THIS chart.
+9. BLEND BREED + ASTROLOGY - How do their ${petData.breed || petData.species} traits amplify or balance their chart?
+10. CREATE MOMENTS - Include "Try this:" suggestions and interactive challenges`;
 
-    const userPrompt = `Generate a comprehensive cosmic portrait for ${petData.name} with this JSON structure. Each section should be 3-5 sentences with practical insights:
+    const userPrompt = `Generate a comprehensive cosmic portrait for ${petData.name} the ${petData.breed || petData.species} with this JSON structure. 
+
+IMPORTANT: Each section should:
+- Start with a brief planet explanation (1-2 sentences on what this planet governs)
+- Include specific ${petData.species} behaviors that match their placement
+- Have at least one funny/relatable moment
+- Include one surprising fact or cosmic quote
+- Feel deeply personal and emotionally resonant for ${occasionMode} mode
+
+JSON Structure:
 
 {
   "chartPlacements": ${JSON.stringify(chartPlacements)},
@@ -280,104 +333,114 @@ WRITING GUIDELINES:
   "aura": ${JSON.stringify(aura)},
   "archetype": ${JSON.stringify(archetype)},
   
-  "prologue": "A 3-4 sentence mystical opening about ${petData.name}'s cosmic origins. Set the tone of wonder and reveal why this report matters.",
+  "prologue": "A 3-4 sentence mystical opening about ${petData.name}'s cosmic origins. Include one humorous/relatable moment. Set the tone of wonder and reveal why this ${petData.species}'s report matters.",
   
   "solarSoulprint": {
-    "title": "Solar Soulprint: The Light They ${occasionMode === 'memorial' ? 'Brought' : 'Bring'}",
-    "content": "3-4 sentences about their ${sunSign} Sun core personality - their vitality, confidence, and the personality that brightens their world. Include a specific behavioral prediction.",
-    "whyThisMatters": "1-2 sentences explaining what the Sun represents in astrology and why it reveals their essence.",
+    "title": "☉ Solar Soulprint: The Light They ${occasionMode === 'memorial' ? 'Brought' : 'Bring'}",
+    "planetExplanation": "1-2 sentences explaining what the Sun represents in astrology - core identity, vitality, ego, the essence of who they ARE.",
+    "content": "3-4 sentences about their ${sunSign} Sun core personality. Include specific ${petData.species} behaviors that match this sign. Make it feel like you KNOW this ${petData.breed || petData.species}.",
+    "relatable_moment": "One funny 'you know that moment when...' observation specific to ${sunSign} ${petData.species}s. Make them laugh!",
     "practicalTip": "One specific, actionable tip for the owner based on this placement.",
-    "funFact": "One surprising fact about ${sunSign} pets specifically."
+    "cosmicQuote": "A relevant quote about this Sun sign energy or a cosmic fun fact."
   },
   
   "lunarHeart": {
-    "title": "Lunar Heart: The Way They ${occasionMode === 'memorial' ? 'Felt' : 'Feel'} Love",
-    "content": "3-4 sentences about their ${moonSign} Moon - how they express emotion, find comfort, and their emotional rhythm.",
-    "whyThisMatters": "1-2 sentences on what the Moon reveals about emotional needs.",
-    "practicalTip": "How to comfort them or meet their emotional needs.",
-    "interactiveChallenge": "A specific thing to try with ${petData.name} this week to deepen emotional connection."
+    "title": "☽ Lunar Heart: The Way They ${occasionMode === 'memorial' ? 'Felt' : 'Feel'} Love",
+    "planetExplanation": "1-2 sentences explaining what the Moon governs - emotions, comfort needs, what makes them feel SAFE and loved.",
+    "content": "3-4 sentences about their ${moonSign} Moon - how they express emotion, find comfort. Be specific to ${petData.species} emotional expressions!",
+    "relatable_moment": "A 'have you noticed when...' moment about how ${moonSign} ${petData.species}s show they need comfort.",
+    "practicalTip": "How to comfort them or meet their emotional needs - specific to their Moon sign.",
+    "interactiveChallenge": "Try this: A specific thing to do with ${petData.name} this week to deepen emotional connection."
   },
   
   "cosmicCuriosity": {
-    "title": "Cosmic Curiosity: Thoughts, Signals & Play",
-    "content": "3-4 sentences about their ${mercury} Mercury - how they think, learn, and communicate.",
-    "whyThisMatters": "What Mercury reveals about intelligence and learning style.",
-    "practicalTip": "Best way to train or mentally stimulate them.",
-    "funFact": "Something surprising about how ${petData.species}s with Mercury in ${mercury} learn."
+    "title": "☿ Cosmic Curiosity: Thoughts, Signals & Play",
+    "planetExplanation": "1-2 sentences explaining what Mercury rules - the mind, communication, how they think and learn.",
+    "content": "3-4 sentences about their ${mercury} Mercury - how they think, learn, and communicate. Reference ${petData.species}-specific intelligence!",
+    "relatable_moment": "A funny observation about how this Mercury placement shows up ('Ever notice how they seem to...').",
+    "practicalTip": "Best way to train or mentally stimulate a ${petData.species} with Mercury in ${mercury}.",
+    "didYouKnow": "Something surprising about ${petData.species} intelligence or communication that relates to Mercury."
   },
   
   "harmonyHeartbeats": {
-    "title": "Harmony & Heartbeats: Their Love Language",
-    "content": "3-4 sentences about their ${venus} Venus - how they bond, show affection, and what they find beautiful.",
-    "whyThisMatters": "What Venus reveals about love and connection.",
-    "practicalTip": "The #1 way to make them feel loved.",
+    "title": "♀ Harmony & Heartbeats: Their Love Language",
+    "planetExplanation": "1-2 sentences explaining what Venus governs - love, beauty, pleasure, how they give and receive affection.",
+    "content": "3-4 sentences about their ${venus} Venus - how they bond, show affection. Be specific to how ${petData.species}s show love!",
+    "relatable_moment": "A sweet or funny moment about how ${venus} Venus ${petData.species}s express love ('The way they...').",
+    "practicalTip": "The #1 way to make a ${venus} Venus ${petData.species} feel loved.",
     "loveLanguageType": "One of: Physical Touch, Quality Time, Acts of Service, Gifts, Words of Affirmation"
   },
   
   "spiritOfMotion": {
-    "title": "Spirit of Motion: Fire, Focus & Instinct",
-    "content": "3-4 sentences about their ${mars} Mars - their drive, energy level, play style, and instincts.",
-    "whyThisMatters": "What Mars reveals about energy and motivation.",
-    "practicalTip": "Best activities and exercise for their Mars placement.",
-    "energyLevel": "A rating from 1-10 with explanation."
+    "title": "♂ Spirit of Motion: Fire, Focus & Instinct",
+    "planetExplanation": "1-2 sentences explaining what Mars controls - energy, drive, aggression, how they pursue what they want.",
+    "content": "3-4 sentences about their ${mars} Mars - their energy level, play style, instincts. Match to ${petData.species} energy patterns!",
+    "relatable_moment": "A funny observation about their Mars energy ('You've probably noticed the zoomies at...' or 'That burst of energy when...').",
+    "practicalTip": "Best activities and exercise for a ${petData.species} with Mars in ${mars}.",
+    "energyLevel": "A rating from 1-10 with humorous explanation."
   },
   
   "starlitGaze": {
-    "title": "Starlit Gaze: First Impressions & Aura",
-    "content": "3-4 sentences about their ${ascendant} Ascendant - how strangers perceive them, their outer demeanor.",
-    "whyThisMatters": "What the Rising sign reveals about outer personality.",
-    "practicalTip": "How to introduce them to new people/animals based on this.",
-    "firstImpressionPrediction": "What strangers likely think when first meeting ${petData.name}."
+    "title": "ASC Starlit Gaze: First Impressions & Aura",
+    "planetExplanation": "1-2 sentences explaining what the Ascendant/Rising sign reveals - the mask, first impressions, how strangers see them.",
+    "content": "3-4 sentences about their ${ascendant} Rising - how strangers perceive them, their outer demeanor specific to ${petData.species}s.",
+    "relatable_moment": "A funny or relatable observation about first meetings ('When people first meet them, they always say...').",
+    "practicalTip": "How to introduce them to new people/animals based on their Rising sign.",
+    "firstImpressionPrediction": "What strangers likely think in the first 10 seconds of meeting ${petData.name}."
   },
   
   "destinyCompass": {
-    "title": "Destiny Compass: Growth & Soul Lessons",
+    "title": "☊ Destiny Compass: Growth & Soul Lessons",
+    "planetExplanation": "1-2 sentences explaining what the North Node represents - soul growth direction, karmic lessons, spiritual purpose.",
     "content": "3-4 sentences about their ${northNode} North Node - their soul growth direction and what they came to learn.",
     "southNode": "${southNode}",
-    "pastLifeHint": "A mystical hint about their soul's past journey.",
-    "growthOpportunity": "The main lesson or growth area for ${petData.name}.",
-    "practicalTip": "How to support their soul evolution."
+    "pastLifeHint": "A mystical, emotionally resonant hint about their soul's past journey.",
+    "growthOpportunity": "The main lesson or growth area for ${petData.name} - make it meaningful.",
+    "cosmicWisdom": "A profound observation about their soul contract with you."
   },
   
   "gentleHealer": {
-    "title": "Gentle Healer: Wounds, Wisdom & Empathy",
-    "content": "3-4 sentences about their ${chiron} Chiron - their healing gifts and vulnerabilities.",
-    "whyThisMatters": "What Chiron reveals about healing and empathy.",
-    "healingGift": "The specific way ${petData.name} heals others.",
-    "vulnerabilityNote": "What might be a sensitive area for them."
+    "title": "⚷ Gentle Healer: Wounds, Wisdom & Empathy",
+    "planetExplanation": "1-2 sentences explaining what Chiron reveals - the wounded healer, how our wounds become our wisdom.",
+    "content": "3-4 sentences about their ${chiron} Chiron - their healing gifts and vulnerabilities. Make it emotionally touching.",
+    "relatable_moment": "A moment where ${petData.name} likely showed their healing gift ('Have you noticed how they come to you when...').",
+    "healingGift": "The specific way ${petData.name} heals others - be specific and emotional.",
+    "vulnerabilityNote": "What might be a sensitive area for them - handle with tenderness."
   },
   
   "wildSpirit": {
-    "title": "Wild Spirit: Freedom, Mystery & Power",
-    "content": "3-4 sentences about their ${lilith} Lilith - their untamed essence, independence, and mysterious side.",
-    "whyThisMatters": "What Black Moon Lilith reveals about wild nature.",
-    "secretDesire": "Their deepest, most instinctual desire.",
-    "practicalTip": "How to honor their wild side."
+    "title": "⚸ Wild Spirit: Freedom, Mystery & Power",
+    "planetExplanation": "1-2 sentences explaining what Black Moon Lilith reveals - wild instincts, untamed nature, independence.",
+    "content": "3-4 sentences about their ${lilith} Lilith - their untamed essence, mysterious side. Celebrate their wild ${petData.species} nature!",
+    "relatable_moment": "A funny observation about their independent streak ('That look they give when you try to...').",
+    "secretDesire": "Their deepest, most instinctual ${petData.species} desire.",
+    "practicalTip": "How to honor their wild side without chaos."
   },
   
   "elementalNature": {
-    "title": "Elemental Nature: Fire, Earth, Air, Water",
-    "content": "3-4 sentences analyzing their elemental balance and temperament.",
+    "title": "✦ Elemental Nature: Fire, Earth, Air, Water",
+    "content": "3-4 sentences analyzing their elemental balance. Relate to ${petData.species} temperament patterns.",
     "dominantElement": "${element}",
     "balance": ${JSON.stringify(elementalBalance)},
-    "temperamentInsight": "What this balance reveals about their overall temperament.",
-    "elementalAdvice": "How to balance any elemental deficiencies."
+    "temperamentInsight": "What this balance reveals about their overall temperament - be specific to ${petData.species}s.",
+    "elementalAdvice": "How to balance any elemental deficiencies in their environment.",
+    "funFact": "A cosmic fact about ${element} element ${petData.species}s."
   },
   
   "celestialChoreography": {
-    "title": "Celestial Choreography: How Their Stars Dance",
-    "content": "3-4 sentences about how their planetary positions interact.",
-    "harmoniousAspect": "One area where their chart creates natural ease.",
-    "growthAspect": "One area of creative tension that drives growth.",
-    "uniquePattern": "Something truly unique about their chart combination."
+    "title": "✶ Celestial Choreography: How Their Stars Dance",
+    "content": "3-4 sentences about how their planetary positions create unique patterns and tensions.",
+    "harmoniousAspect": "One area where their chart creates natural ease - make it relatable.",
+    "growthAspect": "One area of creative tension that drives growth - frame positively.",
+    "uniquePattern": "Something truly unique about THIS specific chart combination - the 'only 1 in 10,000' insight."
   },
   
   "earthlyExpression": {
-    "title": "Earthly Expression: Body, Breed & Being",
-    "content": "3-4 sentences combining their astrology with their ${petData.breed || petData.species} characteristics.",
-    "breedAstrologyBlend": "How their breed traits amplify or balance their astrological traits.",
-    "physicalPrediction": "A specific physical or behavioral trait this combination creates.",
-    "practicalTip": "Care advice specific to this astro-breed combination."
+    "title": "🐾 Earthly Expression: Body, Breed & Being",
+    "content": "3-4 sentences combining their astrology with their ${petData.breed || petData.species} characteristics. This is where breed knowledge shines!",
+    "breedAstrologyBlend": "How their ${petData.breed || petData.species} traits amplify or balance their astrological traits - be specific!",
+    "physicalPrediction": "A specific physical or behavioral trait this astro-breed combination creates.",
+    "practicalTip": "Care advice specific to this unique astro-breed combination."
   },
   
   "luminousField": {
