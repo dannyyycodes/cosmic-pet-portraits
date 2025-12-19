@@ -1,13 +1,25 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, User, LogOut } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLanguage();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/30">
@@ -36,14 +48,43 @@ export function Navbar() {
             </a>
           </div>
 
-          {/* Right side: Language + CTA */}
+          {/* Right side: Language + Auth/CTA */}
           <div className="hidden md:flex items-center gap-4">
             <LanguageSelector variant="minimal" />
-            <Button variant="cosmic" size="sm" asChild>
-              <Link to="/intake?mode=discover">
-                {t('nav.getReading')}
-              </Link>
-            </Button>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <User className="w-4 h-4" />
+                    My Account
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link to="/my-reports" className="flex items-center gap-2 cursor-pointer">
+                      <Sparkles className="w-4 h-4" />
+                      My Reports
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+                <Button variant="cosmic" size="sm" asChild>
+                  <Link to="/intake?mode=discover">
+                    {t('nav.getReading')}
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -84,11 +125,42 @@ export function Navbar() {
             >
               {t('nav.faq')}
             </a>
-            <Button variant="cosmic" size="sm" className="w-full" asChild>
-              <Link to="/intake?mode=discover" onClick={() => setIsOpen(false)}>
-                {t('nav.getReading')}
-              </Link>
-            </Button>
+            
+            {user ? (
+              <>
+                <Link 
+                  to="/my-reports" 
+                  className="block text-foreground hover:text-gold transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  My Reports
+                </Link>
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setIsOpen(false);
+                  }}
+                  className="block text-foreground hover:text-gold transition-colors w-full text-left"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/auth" 
+                  className="block text-foreground hover:text-gold transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Button variant="cosmic" size="sm" className="w-full" asChild>
+                  <Link to="/intake?mode=discover" onClick={() => setIsOpen(false)}>
+                    {t('nav.getReading')}
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
