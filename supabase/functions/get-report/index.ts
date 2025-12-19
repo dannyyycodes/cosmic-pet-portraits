@@ -12,11 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    const { reportId, giftCode, email } = await req.json();
+    const { reportId, giftCode, email, shareToken } = await req.json();
     
-    console.log("[GET-REPORT] Fetching report:", { reportId, hasGiftCode: !!giftCode, hasEmail: !!email });
+    console.log("[GET-REPORT] Fetching report:", { reportId, hasGiftCode: !!giftCode, hasEmail: !!email, hasShareToken: !!shareToken });
 
-    if (!reportId && !giftCode) {
+    if (!reportId && !giftCode && !shareToken) {
       console.log("[GET-REPORT] Missing required parameters");
       return new Response(JSON.stringify({ error: "Report not available" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -28,6 +28,7 @@ serve(async (req) => {
     const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const GIFT_CODE_PATTERN = /^[A-Z0-9]{8,20}$/i;
+    const SHARE_TOKEN_PATTERN = /^[a-zA-Z0-9]{16,32}$/;
 
     if (reportId && !UUID_PATTERN.test(reportId)) {
       console.log("[GET-REPORT] Invalid report ID format");
@@ -45,12 +46,41 @@ serve(async (req) => {
       });
     }
 
+    if (shareToken && !SHARE_TOKEN_PATTERN.test(shareToken)) {
+      console.log("[GET-REPORT] Invalid share token format");
+      return new Response(JSON.stringify({ error: "Report not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     let targetReportId = reportId;
+    let isPublicAccess = false;
+
+    // If using share token, find the report (public access - no email required)
+    if (shareToken) {
+      const { data: tokenReport, error: tokenError } = await supabase
+        .from("pet_reports")
+        .select("id")
+        .eq("share_token", shareToken)
+        .single();
+
+      if (tokenError || !tokenReport) {
+        console.log("[GET-REPORT] Share token lookup failed:", shareToken);
+        return new Response(JSON.stringify({ error: "Report not available" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+
+      targetReportId = tokenReport.id;
+      isPublicAccess = true;
+    }
 
     // If using gift code, find the associated report
     if (giftCode) {
@@ -61,7 +91,6 @@ serve(async (req) => {
         .single();
 
       if (giftError || !giftCert?.redeemed_by_report_id) {
-        // SECURITY FIX: Generic error - don't reveal if gift code exists
         console.log("[GET-REPORT] Gift certificate lookup failed:", giftCode);
         return new Response(JSON.stringify({ error: "Report not available" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -70,12 +99,13 @@ serve(async (req) => {
       }
 
       targetReportId = giftCert.redeemed_by_report_id;
+      isPublicAccess = true; // Gift code also provides public access
     }
 
-    // Fetch the report - include email for verification
+    // Fetch the report - include email for verification and share_token
     const { data: report, error: fetchError } = await supabase
       .from("pet_reports")
-      .select("id, pet_name, report_content, payment_status, species, breed, email")
+      .select("id, pet_name, report_content, payment_status, species, breed, email, share_token")
       .eq("id", targetReportId)
       .single();
 
@@ -87,8 +117,8 @@ serve(async (req) => {
       });
     }
 
-    // SECURITY: Verify email ownership if accessing by reportId (not gift code)
-    if (reportId && !giftCode) {
+    // SECURITY: Verify email ownership if accessing by reportId (not share token or gift code)
+    if (reportId && !isPublicAccess) {
       if (!email || !EMAIL_PATTERN.test(email)) {
         console.log("[GET-REPORT] Email verification required for report access");
         return new Response(JSON.stringify({ error: "Email verification required" }), {
@@ -123,12 +153,14 @@ serve(async (req) => {
       });
     }
 
-    // Return only safe data (no email)
+    // Return only safe data (no email, include share token for owners)
     return new Response(JSON.stringify({
       petName: report.pet_name,
       report: report.report_content,
       species: report.species,
       breed: report.breed,
+      reportId: report.id,
+      shareToken: report.share_token, // Include for owner to share
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
