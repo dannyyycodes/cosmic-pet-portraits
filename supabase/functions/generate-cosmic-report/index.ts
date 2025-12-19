@@ -250,7 +250,7 @@ serve(async (req) => {
 
     const speciesContext = speciesTraits[petData.species?.toLowerCase() || 'dog'] || speciesTraits.dog;
 
-    const systemPrompt = `You are Celeste, a warm and mystical pet astrologer who creates deeply personal cosmic portraits. You combine accurate Western astrology with intuitive wisdom to reveal soul essence.
+const systemPrompt = `You are Celeste, a warm and mystical pet astrologer who creates deeply personal cosmic portraits. You combine accurate Western astrology with intuitive wisdom to reveal soul essence.
 
 Your voice: warm, wise, mystical but grounded, like a beloved grandmother who's also a gifted astrologer. Use gentle humor, relatable observations, and moments that make owners laugh, cry, or say "That's SO my pet!"
 
@@ -302,26 +302,40 @@ OWNER-PROVIDED INSIGHTS (weave these in!):
 - Superpower: ${petData.superpower || 'Not specified'}
 - With Strangers: ${petData.strangerReaction || 'Not specified'}
 
+MEME PERSONALITY TYPES (choose one that fits their chart):
+- The Chaos Goblin (unpredictable energy, mischief-maker)
+- The Cuddly Dictator (affectionate but demanding)
+- The Dramatic Diva (theatrical reactions to everything)
+- The Chill Philosopher (zen, unbothered energy)
+- The Velcro Shadow (follows you everywhere)
+- The Chaotic Good (means well, causes mayhem)
+- The Snack Assassin (food-obsessed mastermind)
+- The Couch Potato Royalty (lazy but entitled)
+- The Adventure Seeker (always ready for action)
+- The Silent Judge (watches everything, says nothing)
+
 CRITICAL WRITING GUIDELINES:
-1. EXPLAIN THE PLANET FIRST - Each section should briefly explain what the planet governs before diving into the pet's specific placement
-2. BE PET-SPECIFIC - Reference ${petData.species} and ${petData.breed || petData.species} behaviors throughout. Use species-accurate language!
-3. ADD HUMOR - Include at least one funny, relatable observation per section ("You know that face they make when..." "Ever wonder why they...")
-4. INCLUDE QUOTES/FACTS - Add cosmic quotes, surprising facts, or "Did you know?" moments throughout
-5. MAKE PREDICTIONS - Give specific behavioral predictions based on their chart ("You'll notice..." "Watch for...")
+1. TELL A STORY - The report should flow like a narrative, building from introduction to deep insights to fun revelations
+2. EXPLAIN THE PLANET FIRST - Each section should briefly explain what the planet governs
+3. BE PET-SPECIFIC - Reference ${petData.species} and ${petData.breed || petData.species} behaviors throughout
+4. ADD HUMOR - Include at least one funny, relatable observation per section
+5. MAKE IT SHAREABLE - The fun sections (meme personality, crimes, dating profile) should make people want to share
 6. BE SHOCKINGLY ACCURATE - Include observations that make owners gasp "How did they know?!"
 7. HONOR THE MODE - Adjust emotional tone for ${occasionMode} mode
 8. AVOID GENERIC - Never say things that could apply to any pet. Be SPECIFIC to THIS chart.
-9. BLEND BREED + ASTROLOGY - How do their ${petData.breed || petData.species} traits amplify or balance their chart?
-10. CREATE MOMENTS - Include "Try this:" suggestions and interactive challenges`;
+9. CREATE EMOTIONAL MOMENTS - The monologue and quirk sections should tug heartstrings
+10. END WITH IMPACT - The shareable summary should capture their essence in a memorable way`;
 
     const userPrompt = `Generate a comprehensive cosmic portrait for ${petData.name} the ${petData.breed || petData.species} with this JSON structure. 
 
-IMPORTANT: Each section should:
-- Start with a brief planet explanation (1-2 sentences on what this planet governs)
-- Include specific ${petData.species} behaviors that match their placement
-- Have at least one funny/relatable moment
-- Include one surprising fact or cosmic quote
-- Feel deeply personal and emotionally resonant for ${occasionMode} mode
+THE REPORT SHOULD FLOW LIKE A STORY:
+1. CHAPTER 1 - THE ARRIVAL: Introduction & first impressions (prologue, cosmicNickname, firstMeeting)
+2. CHAPTER 2 - THE SOUL REVEALED: Core planetary insights (all planet sections)
+3. CHAPTER 3 - THE LIGHTER SIDE: Fun, shareable, meme-worthy content
+4. CHAPTER 4 - THE DEEP DIVE: Emotional connection & healing
+5. CHAPTER 5 - THE BOND: Keeper's connection & closing
+
+IMPORTANT: Each section should feel deeply personal, specific to THIS ${petData.species}, and emotionally resonant for ${occasionMode} mode.
 
 JSON Structure:
 
@@ -333,152 +347,235 @@ JSON Structure:
   "aura": ${JSON.stringify(aura)},
   "archetype": ${JSON.stringify(archetype)},
   
-  "prologue": "A 3-4 sentence mystical opening about ${petData.name}'s cosmic origins. Include one humorous/relatable moment. Set the tone of wonder and reveal why this ${petData.species}'s report matters.",
+  "prologue": "A 3-4 sentence mystical opening about ${petData.name}'s cosmic origins. Include one humorous/relatable moment. Set the tone of wonder.",
+  
+  "cosmicNickname": {
+    "nickname": "A short, sticky 2-3 word cosmic nickname based on their ${sunSign} Sun + ${moonSign} Moon combination (e.g., 'The Velvet Thunder', 'The Gentle Storm', 'The Sparkle Tyrant')",
+    "explanation": "1-2 sentences on why this nickname fits their Sun-Moon combo perfectly"
+  },
+  
+  "firstMeeting": {
+    "title": "✨ First Impressions: Meeting ${petData.name}",
+    "paragraph": "A 3-4 sentence vivid description written as if you just met ${petData.name} in real life. Describe what you'd notice first - their energy, their eyes, the way they approach you. Make it feel like a first encounter in a novel. Be specific to ${petData.species}s!"
+  },
   
   "solarSoulprint": {
     "title": "☉ Solar Soulprint: The Light They ${occasionMode === 'memorial' ? 'Brought' : 'Bring'}",
-    "planetExplanation": "1-2 sentences explaining what the Sun represents in astrology - core identity, vitality, ego, the essence of who they ARE.",
-    "content": "3-4 sentences about their ${sunSign} Sun core personality. Include specific ${petData.species} behaviors that match this sign. Make it feel like you KNOW this ${petData.breed || petData.species}.",
-    "relatable_moment": "One funny 'you know that moment when...' observation specific to ${sunSign} ${petData.species}s. Make them laugh!",
-    "practicalTip": "One specific, actionable tip for the owner based on this placement.",
-    "cosmicQuote": "A relevant quote about this Sun sign energy or a cosmic fun fact."
+    "planetExplanation": "1-2 sentences explaining what the Sun represents - core identity, vitality, ego.",
+    "content": "3-4 sentences about their ${sunSign} Sun core personality with specific ${petData.species} behaviors.",
+    "relatable_moment": "One funny 'you know that moment when...' observation specific to ${sunSign} ${petData.species}s.",
+    "practicalTip": "One specific, actionable tip based on this placement.",
+    "cosmicQuote": "A relevant quote about this Sun sign energy."
   },
   
   "lunarHeart": {
     "title": "☽ Lunar Heart: The Way They ${occasionMode === 'memorial' ? 'Felt' : 'Feel'} Love",
-    "planetExplanation": "1-2 sentences explaining what the Moon governs - emotions, comfort needs, what makes them feel SAFE and loved.",
-    "content": "3-4 sentences about their ${moonSign} Moon - how they express emotion, find comfort. Be specific to ${petData.species} emotional expressions!",
-    "relatable_moment": "A 'have you noticed when...' moment about how ${moonSign} ${petData.species}s show they need comfort.",
-    "practicalTip": "How to comfort them or meet their emotional needs - specific to their Moon sign.",
-    "interactiveChallenge": "Try this: A specific thing to do with ${petData.name} this week to deepen emotional connection."
+    "planetExplanation": "1-2 sentences explaining what the Moon governs - emotions, comfort needs.",
+    "content": "3-4 sentences about their ${moonSign} Moon emotional nature.",
+    "relatable_moment": "A 'have you noticed when...' moment about ${moonSign} comfort-seeking.",
+    "practicalTip": "How to comfort them specific to their Moon sign.",
+    "interactiveChallenge": "Try this: A specific bonding activity for this week."
   },
   
   "cosmicCuriosity": {
-    "title": "☿ Cosmic Curiosity: Thoughts, Signals & Play",
-    "planetExplanation": "1-2 sentences explaining what Mercury rules - the mind, communication, how they think and learn.",
-    "content": "3-4 sentences about their ${mercury} Mercury - how they think, learn, and communicate. Reference ${petData.species}-specific intelligence!",
-    "relatable_moment": "A funny observation about how this Mercury placement shows up ('Ever notice how they seem to...').",
-    "practicalTip": "Best way to train or mentally stimulate a ${petData.species} with Mercury in ${mercury}.",
-    "didYouKnow": "Something surprising about ${petData.species} intelligence or communication that relates to Mercury."
+    "title": "☿ Cosmic Curiosity: Thoughts & Signals",
+    "planetExplanation": "1-2 sentences on Mercury ruling mind and communication.",
+    "content": "3-4 sentences about their ${mercury} Mercury - thinking and learning style.",
+    "relatable_moment": "A funny observation about how they communicate.",
+    "practicalTip": "Best way to train or stimulate a ${mercury} Mercury ${petData.species}.",
+    "didYouKnow": "Something surprising about ${petData.species} intelligence."
   },
   
   "harmonyHeartbeats": {
     "title": "♀ Harmony & Heartbeats: Their Love Language",
-    "planetExplanation": "1-2 sentences explaining what Venus governs - love, beauty, pleasure, how they give and receive affection.",
-    "content": "3-4 sentences about their ${venus} Venus - how they bond, show affection. Be specific to how ${petData.species}s show love!",
-    "relatable_moment": "A sweet or funny moment about how ${venus} Venus ${petData.species}s express love ('The way they...').",
-    "practicalTip": "The #1 way to make a ${venus} Venus ${petData.species} feel loved.",
-    "loveLanguageType": "One of: Physical Touch, Quality Time, Acts of Service, Gifts, Words of Affirmation"
+    "planetExplanation": "1-2 sentences on Venus governing love and pleasure.",
+    "content": "3-4 sentences about their ${venus} Venus love style.",
+    "relatable_moment": "A sweet moment about how they show love.",
+    "practicalTip": "The #1 way to make them feel loved.",
+    "loveLanguageType": "One of: Physical Touch, Quality Time, Acts of Service, Gifts, Words of Affirmation",
+    "loveLanguageExplanation": "2 sentences explaining how they express and receive this love language as a ${petData.species}"
   },
   
   "spiritOfMotion": {
     "title": "♂ Spirit of Motion: Fire, Focus & Instinct",
-    "planetExplanation": "1-2 sentences explaining what Mars controls - energy, drive, aggression, how they pursue what they want.",
-    "content": "3-4 sentences about their ${mars} Mars - their energy level, play style, instincts. Match to ${petData.species} energy patterns!",
-    "relatable_moment": "A funny observation about their Mars energy ('You've probably noticed the zoomies at...' or 'That burst of energy when...').",
-    "practicalTip": "Best activities and exercise for a ${petData.species} with Mars in ${mars}.",
+    "planetExplanation": "1-2 sentences on Mars controlling energy and drive.",
+    "content": "3-4 sentences about their ${mars} Mars energy and play style.",
+    "relatable_moment": "A funny observation about their energy bursts.",
+    "practicalTip": "Best activities for a ${mars} Mars ${petData.species}.",
     "energyLevel": "A rating from 1-10 with humorous explanation."
   },
   
   "starlitGaze": {
-    "title": "ASC Starlit Gaze: First Impressions & Aura",
-    "planetExplanation": "1-2 sentences explaining what the Ascendant/Rising sign reveals - the mask, first impressions, how strangers see them.",
-    "content": "3-4 sentences about their ${ascendant} Rising - how strangers perceive them, their outer demeanor specific to ${petData.species}s.",
-    "relatable_moment": "A funny or relatable observation about first meetings ('When people first meet them, they always say...').",
-    "practicalTip": "How to introduce them to new people/animals based on their Rising sign.",
-    "firstImpressionPrediction": "What strangers likely think in the first 10 seconds of meeting ${petData.name}."
+    "title": "ASC Starlit Gaze: First Impressions",
+    "planetExplanation": "1-2 sentences on the Rising sign as the outer mask.",
+    "content": "3-4 sentences about their ${ascendant} Rising outer demeanor.",
+    "relatable_moment": "What people always say when they first meet them.",
+    "practicalTip": "How to introduce them to new people/animals.",
+    "firstImpressionPrediction": "What strangers think in the first 10 seconds."
   },
   
   "destinyCompass": {
-    "title": "☊ Destiny Compass: Growth & Soul Lessons",
-    "planetExplanation": "1-2 sentences explaining what the North Node represents - soul growth direction, karmic lessons, spiritual purpose.",
-    "content": "3-4 sentences about their ${northNode} North Node - their soul growth direction and what they came to learn.",
+    "title": "☊ Destiny Compass: Soul Lessons",
+    "planetExplanation": "1-2 sentences on the North Node as soul direction.",
+    "content": "3-4 sentences about their ${northNode} North Node soul purpose.",
     "southNode": "${southNode}",
-    "pastLifeHint": "A mystical, emotionally resonant hint about their soul's past journey.",
-    "growthOpportunity": "The main lesson or growth area for ${petData.name} - make it meaningful.",
+    "pastLifeHint": "A mystical hint about their soul's past journey.",
+    "growthOpportunity": "The main lesson they came to learn.",
     "cosmicWisdom": "A profound observation about their soul contract with you."
   },
   
   "gentleHealer": {
-    "title": "⚷ Gentle Healer: Wounds, Wisdom & Empathy",
-    "planetExplanation": "1-2 sentences explaining what Chiron reveals - the wounded healer, how our wounds become our wisdom.",
-    "content": "3-4 sentences about their ${chiron} Chiron - their healing gifts and vulnerabilities. Make it emotionally touching.",
-    "relatable_moment": "A moment where ${petData.name} likely showed their healing gift ('Have you noticed how they come to you when...').",
-    "healingGift": "The specific way ${petData.name} heals others - be specific and emotional.",
-    "vulnerabilityNote": "What might be a sensitive area for them - handle with tenderness."
+    "title": "⚷ Gentle Healer: Wounds & Wisdom",
+    "planetExplanation": "1-2 sentences on Chiron as the wounded healer.",
+    "content": "3-4 sentences about their ${chiron} Chiron healing gifts.",
+    "relatable_moment": "A moment where they showed their healing gift.",
+    "healingGift": "The specific way they heal others.",
+    "vulnerabilityNote": "A sensitive area for them - handle with tenderness."
   },
   
   "wildSpirit": {
-    "title": "⚸ Wild Spirit: Freedom, Mystery & Power",
-    "planetExplanation": "1-2 sentences explaining what Black Moon Lilith reveals - wild instincts, untamed nature, independence.",
-    "content": "3-4 sentences about their ${lilith} Lilith - their untamed essence, mysterious side. Celebrate their wild ${petData.species} nature!",
-    "relatable_moment": "A funny observation about their independent streak ('That look they give when you try to...').",
-    "secretDesire": "Their deepest, most instinctual ${petData.species} desire.",
-    "practicalTip": "How to honor their wild side without chaos."
+    "title": "⚸ Wild Spirit: Freedom & Mystery",
+    "planetExplanation": "1-2 sentences on Lilith as wild nature.",
+    "content": "3-4 sentences about their ${lilith} Lilith untamed essence.",
+    "relatable_moment": "A funny observation about their independent streak.",
+    "secretDesire": "Their deepest instinctual ${petData.species} desire.",
+    "practicalTip": "How to honor their wild side."
+  },
+  
+  "memePersonality": {
+    "title": "😼 Internet Personality: Their Meme Energy",
+    "type": "Choose one: The Chaos Goblin, The Cuddly Dictator, The Dramatic Diva, The Chill Philosopher, The Velcro Shadow, The Chaotic Good, The Snack Assassin, The Couch Potato Royalty, The Adventure Seeker, or The Silent Judge",
+    "description": "2-3 sentences explaining why they embody this meme archetype based on their chart",
+    "signatureMove": "Their most iconic behavior that captures this energy",
+    "relatableQuote": "A funny quote from their perspective that fits this personality"
+  },
+  
+  "topFiveCrimes": {
+    "title": "🚨 Criminal Record: Top 5 Crimes",
+    "crimes": [
+      "Crime #1 with funny description specific to their chart and ${petData.species} nature",
+      "Crime #2 - be specific and hilarious",
+      "Crime #3 - reference their planetary placements",
+      "Crime #4 - make it relatable to all ${petData.species} owners",
+      "Crime #5 - the most egregious offense"
+    ],
+    "verdict": "A humorous one-line verdict on their criminal career"
+  },
+  
+  "datingProfile": {
+    "title": "💕 Dating Profile",
+    "headline": "A funny, attention-grabbing headline (like on a dating app)",
+    "bio": "A 3-4 sentence dating profile bio written from ${petData.name}'s perspective. Include their interests, what they're looking for, and deal-breakers. Be funny!",
+    "greenFlags": ["3 green flags as a companion"],
+    "redFlags": ["2 playful 'red flags' that are actually endearing quirks"]
+  },
+  
+  "dreamJob": {
+    "title": "💼 Dream Career",
+    "job": "If ${petData.name} had a job, what would it be? Based on their chart.",
+    "whyPerfect": "2 sentences explaining why this job suits their Sun, Moon, and Mars.",
+    "workStyle": "How they'd behave at this job (funny observations)",
+    "reasonForFiring": "The humorous reason they'd eventually get fired"
+  },
+  
+  "villainOriginStory": {
+    "title": "🦹 Villain Origin Story",
+    "trigger": "The one thing that turns ${petData.name} into their 'villain mode' (based on their Mars and Lilith)",
+    "dramaticResponse": "How they react when triggered - describe the drama",
+    "secretMotivation": "The surprisingly sweet reason behind their dramatic behavior",
+    "redemptionArc": "How they come back from villain mode (usually involves treats or cuddles)"
+  },
+  
+  "quirkDecoder": {
+    "title": "🔮 Quirk Decoder: Why They Do That Weird Thing",
+    "quirk1": {
+      "behavior": "A common ${petData.species} behavior that puzzles owners",
+      "cosmicExplanation": "Why they do it according to their chart",
+      "whatItReallyMeans": "The sweet truth behind it"
+    },
+    "quirk2": {
+      "behavior": "Another quirky behavior",
+      "cosmicExplanation": "The astrological reason",
+      "whatItReallyMeans": "What they're trying to tell you"
+    }
+  },
+  
+  "petMonologue": {
+    "title": "🎤 If ${petData.name} Could Talk for 60 Seconds",
+    "monologue": "A 5-7 sentence monologue from ${petData.name}'s perspective. Start with 'Listen, I need you to understand something...' Include gratitude, a complaint or two, a secret, and end with something that makes the owner tear up. Reference their chart placements and ${petData.species} nature. Make it emotionally powerful.",
+    "postScript": "A funny P.S. about something trivial (like treats or their favorite spot)"
   },
   
   "elementalNature": {
-    "title": "✦ Elemental Nature: Fire, Earth, Air, Water",
-    "content": "3-4 sentences analyzing their elemental balance. Relate to ${petData.species} temperament patterns.",
+    "title": "✦ Elemental Nature",
+    "content": "3-4 sentences analyzing their elemental balance.",
     "dominantElement": "${element}",
     "balance": ${JSON.stringify(elementalBalance)},
-    "temperamentInsight": "What this balance reveals about their overall temperament - be specific to ${petData.species}s.",
-    "elementalAdvice": "How to balance any elemental deficiencies in their environment.",
+    "temperamentInsight": "What this reveals about their temperament.",
+    "elementalAdvice": "How to balance their environment.",
     "funFact": "A cosmic fact about ${element} element ${petData.species}s."
   },
   
   "celestialChoreography": {
-    "title": "✶ Celestial Choreography: How Their Stars Dance",
-    "content": "3-4 sentences about how their planetary positions create unique patterns and tensions.",
-    "harmoniousAspect": "One area where their chart creates natural ease - make it relatable.",
-    "growthAspect": "One area of creative tension that drives growth - frame positively.",
-    "uniquePattern": "Something truly unique about THIS specific chart combination - the 'only 1 in 10,000' insight."
+    "title": "✶ Celestial Choreography",
+    "content": "3-4 sentences about their unique planetary patterns.",
+    "harmoniousAspect": "One area of natural ease.",
+    "growthAspect": "One area of creative tension.",
+    "uniquePattern": "Something truly unique about THIS chart."
   },
   
   "earthlyExpression": {
-    "title": "🐾 Earthly Expression: Body, Breed & Being",
-    "content": "3-4 sentences combining their astrology with their ${petData.breed || petData.species} characteristics. This is where breed knowledge shines!",
-    "breedAstrologyBlend": "How their ${petData.breed || petData.species} traits amplify or balance their astrological traits - be specific!",
-    "physicalPrediction": "A specific physical or behavioral trait this astro-breed combination creates.",
-    "practicalTip": "Care advice specific to this unique astro-breed combination."
+    "title": "🐾 Earthly Expression: Body & Breed",
+    "content": "3-4 sentences blending astrology with ${petData.breed || petData.species} traits.",
+    "breedAstrologyBlend": "How their breed amplifies or balances their chart.",
+    "physicalPrediction": "A specific physical or behavioral trait this combo creates.",
+    "practicalTip": "Care advice for this astro-breed combination."
   },
   
   "luminousField": {
-    "title": "Luminous Field: The Colors of Their Spirit",
-    "content": "2-3 sentences about their energy field and aura colors.",
+    "title": "Luminous Field: Spirit Colors",
+    "content": "2-3 sentences about their energy field.",
     "primaryColor": "${aura.primary}",
     "secondaryColor": "${aura.secondary}",
     "auraMeaning": "${aura.meaning}",
-    "howToSense": "A way to tune into or sense ${petData.name}'s aura."
+    "howToSense": "A way to tune into their aura."
   },
   
   "celestialGem": {
-    "title": "Celestial Gem: Their Guiding Stone",
+    "title": "Celestial Gem: Guiding Stone",
     "crystalName": "${crystal.name}",
     "crystalColor": "${crystal.color}",
     "crystalMeaning": "${crystal.meaning}",
     "howToUse": "Practical ways to use this crystal with ${petData.name}.",
-    "placement": "Where to place the crystal for maximum benefit."
+    "placement": "Where to place the crystal."
   },
   
   "eternalArchetype": {
-    "title": "Eternal Archetype: The Role Their Soul Plays",
+    "title": "Eternal Archetype",
     "archetypeName": "${archetype.name}",
     "archetypeDescription": "${archetype.description}",
-    "archetypeStory": "2-3 sentences expanding on what this archetype means for ${petData.name}.",
-    "archetypeLesson": "The main teaching this archetype brings to your life."
+    "archetypeStory": "2-3 sentences expanding on this archetype.",
+    "archetypeLesson": "The main teaching they bring to your life."
   },
   
   "keepersBond": {
-    "title": "The Keeper's Bond: Caring for a Cosmic Soul",
-    "content": "3-4 sentences about the human-pet soul connection and why you found each other.",
-    "mirrorQuality": "What quality ${petData.name} mirrors in you.",
-    "soulContract": "The cosmic agreement between you two.",
+    "title": "The Keeper's Bond",
+    "content": "3-4 sentences about the soul connection between you.",
+    "mirrorQuality": "What ${petData.name} mirrors in you.",
+    "soulContract": "The cosmic agreement between you.",
     "dailyRitual": "A simple daily ritual to honor your bond.",
     "affirmation": "An affirmation for your relationship."
   },
   
-  "epilogue": "A 3-4 sentence beautiful closing blessing appropriate for ${occasionMode} mode. Leave them feeling moved and connected.",
+  "shareableCard": {
+    "title": "✨ ${petData.name}'s Cosmic Summary",
+    "cosmicNickname": "Same nickname from earlier",
+    "sixKeyTraits": ["6 key personality traits, each 2-3 words max"],
+    "signatureLine": "A one-sentence memorable description perfect for sharing",
+    "zodiacEmoji": "A relevant emoji combo for their sign"
+  },
+  
+  "epilogue": "A 3-4 sentence beautiful closing blessing for ${occasionMode} mode. Leave them feeling moved.",
   
   "compatibilityNotes": {
     "bestPlaymates": ["Two zodiac signs that would be great playmate matches"],
@@ -494,7 +591,7 @@ JSON Structure:
   }
 }
 
-Make every section feel personal, specific, and magical. Include surprising insights that make owners feel truly seen.`;
+Make every section feel personal, specific, and magical. The fun sections should make people want to screenshot and share!`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
