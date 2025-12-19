@@ -215,34 +215,20 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </p>
       </div>
 
-      {/* Volume Discount Banner - show when applicable or as incentive */}
-      {petCount >= 2 ? (
+      {/* Volume Discount Applied - only show when applicable */}
+      {petCount >= 2 && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-3 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30"
+          className="p-2 rounded-lg bg-green-500/10 border border-green-500/20"
         >
           <div className="flex items-center justify-center gap-2">
-            <Users className="w-4 h-4 text-green-400" />
-            <span className="text-sm font-medium text-green-400">
+            <Users className="w-3.5 h-3.5 text-green-400" />
+            <span className="text-xs font-medium text-green-400">
               🎉 {Math.round(volumeDiscountRate * 100)}% Multi-Pet Discount Applied!
             </span>
           </div>
         </motion.div>
-      ) : (
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
-          <p className="text-xs text-center text-muted-foreground mb-2">
-            <Users className="w-3.5 h-3.5 inline mr-1" />
-            Add more pets for bigger savings:
-          </p>
-          <div className="flex justify-center gap-2 flex-wrap">
-            {VOLUME_DISCOUNTS.map((tier) => (
-              <span key={tier.pets} className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">
-                {tier.pets} pets = {tier.discount}% off
-              </span>
-            ))}
-          </div>
-        </div>
       )}
 
       {/* Product tiers - Price Anchoring */}
@@ -396,51 +382,79 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       </div>
 
-      {/* Weekly Horoscope Subscription Add-on */}
-      <div className="space-y-3">
+      {/* Weekly Horoscope Subscription Add-on - Better Marketing */}
+      <div className="space-y-2">
         <button
           onClick={() => setIncludeHoroscope(!includeHoroscope)}
           className={cn(
-            "w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
+            "w-full p-4 rounded-xl border-2 transition-all text-left",
             includeHoroscope
-              ? "border-nebula-purple bg-nebula-purple/10"
+              ? "border-nebula-purple bg-gradient-to-r from-nebula-purple/20 to-nebula-pink/10"
               : "border-border/50 bg-card/20 hover:border-nebula-purple/30"
           )}
         >
-          <div className={cn(
-            "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
-            includeHoroscope
-              ? "border-nebula-purple bg-nebula-purple"
-              : "border-muted-foreground/40"
-          )}>
-            {includeHoroscope && <Check className="w-3 h-3 text-white" />}
-          </div>
-          <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-            includeHoroscope ? "bg-nebula-purple text-white" : "bg-muted/50 text-muted-foreground"
-          )}>
-            <Moon className="w-5 h-5" />
-          </div>
-          <div className="text-left flex-1">
-            <div className="flex items-center gap-2">
-              <h4 className="font-medium text-foreground">Weekly Cosmic Updates</h4>
-              <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-nebula-purple/20 text-nebula-purple">ADD-ON</span>
+          <div className="flex items-start gap-3">
+            <div className={cn(
+              "w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+              includeHoroscope
+                ? "border-nebula-purple bg-nebula-purple"
+                : "border-muted-foreground/40"
+            )}>
+              {includeHoroscope && <Check className="w-3 h-3 text-white" />}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Personalized horoscopes every week — <span className="text-foreground font-medium">$4.99/month</span>
-            </p>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Moon className={cn("w-5 h-5", includeHoroscope ? "text-nebula-purple" : "text-muted-foreground")} />
+                <h4 className="font-semibold text-foreground">Weekly Cosmic Care Guide</h4>
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-nebula-purple to-nebula-pink text-white">RECOMMENDED</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">
+                <span className="text-foreground font-medium">Know exactly what {petData.name} needs</span> each week based on cosmic energies.
+              </p>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-muted-foreground mb-2">
+                <span className="flex items-center gap-1">
+                  <span className="text-green-500">✓</span> Energy level predictions
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="text-green-500">✓</span> Best bonding days
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="text-green-500">✓</span> Mood forecasts
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="text-green-500">✓</span> Health awareness alerts
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm">
+                  <span className="text-muted-foreground line-through text-xs">$9.99/mo</span>
+                  <span className="text-foreground font-bold ml-1">$4.99/month</span>
+                </p>
+                <span className="text-xs text-nebula-purple font-medium">Cancel anytime</span>
+              </div>
+            </div>
           </div>
         </button>
+        <p className="text-[10px] text-center text-muted-foreground italic">
+          "The weekly updates helped me understand why Luna gets anxious before storms!" — Maria T.
+        </p>
       </div>
 
-      {/* Trust signals */}
-      <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground py-2">
-        <span className="flex items-center gap-1">
-          <span className="text-green-500">✓</span> Instant delivery
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="text-green-500">✓</span> 100% satisfaction guaranteed
-        </span>
+      {/* Trust signals + Volume discount small print */}
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <span className="text-green-500">✓</span> Instant delivery
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="text-green-500">✓</span> 100% satisfaction guaranteed
+          </span>
+        </div>
+        {petCount === 1 && (
+          <p className="text-[10px] text-center text-muted-foreground/70">
+            Multi-pet savings: 2 pets 20% off • 3 pets 30% off • 4 pets 40% off • 5+ pets 50% off
+          </p>
+        )}
       </div>
 
       {/* Checkout button */}
