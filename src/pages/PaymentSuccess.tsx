@@ -6,6 +6,7 @@ import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
 import { EmotionalReportReveal } from '@/components/report/EmotionalReportReveal';
 import { GiftConfirmation } from '@/components/report/GiftConfirmation';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Stage = 'verifying' | 'generating' | 'reveal' | 'complete' | 'gift-sent' | 'error';
 
@@ -22,6 +23,7 @@ interface ReportData {
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [stage, setStage] = useState<Stage>('verifying');
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export default function PaymentSuccess() {
 
   useEffect(() => {
     if (!sessionId || !reportId) {
-      setError('Missing payment information. Please try again.');
+      setError(t('paymentSuccess.errorMissing'));
       setStage('error');
       return;
     }
@@ -107,7 +109,7 @@ export default function PaymentSuccess() {
       attempts++;
       
       if (attempts >= maxAttempts) {
-        setError('Your payment was received but report generation is taking longer than expected. Please check your email or refresh the page in a few minutes.');
+        setError(t('paymentSuccess.errorTimeout'));
         setStage('error');
         return;
       }
@@ -134,14 +136,14 @@ export default function PaymentSuccess() {
             <span className="text-3xl">😿</span>
           </div>
           <h1 className="text-2xl font-display font-bold text-foreground mb-4">
-            Oops! Something went wrong
+            {t('common.oops')}
           </h1>
           <p className="text-muted-foreground mb-6">{error}</p>
           <button
             onClick={() => navigate('/')}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
           >
-            Go Back Home
+            {t('common.goBackHome')}
           </button>
         </div>
       </div>

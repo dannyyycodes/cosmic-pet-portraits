@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
-import { CosmicInput } from '@/components/cosmic/CosmicInput';
 import { CosmicButton } from '@/components/cosmic/CosmicButton';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Sparkles, 
   DollarSign, 
@@ -17,6 +17,7 @@ import {
 
 export default function BecomeAffiliate() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [step, setStep] = useState<'info' | 'form' | 'success'>('info');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,7 +39,7 @@ export default function BecomeAffiliate() {
       });
 
       if (error || data?.error) {
-        toast.error(data?.error || 'Failed to create affiliate account');
+        toast.error(data?.error || t('affiliate.errorCreate'));
         return;
       }
 
@@ -47,9 +48,9 @@ export default function BecomeAffiliate() {
         onboardingUrl: data.onboardingUrl,
       });
       setStep('success');
-      toast.success('Application submitted! Complete Stripe setup to start earning.');
+      toast.success(t('affiliate.successToast'));
     } catch (err) {
-      toast.error('Something went wrong. Please try again.');
+      toast.error(t('affiliate.errorGeneric'));
     } finally {
       setIsLoading(false);
     }
@@ -59,13 +60,13 @@ export default function BecomeAffiliate() {
     if (!result) return;
     const link = `${window.location.origin}/ref/${result.referralCode}`;
     navigator.clipboard.writeText(link);
-    toast.success('Referral link copied!');
+    toast.success(t('affiliate.linkCopied'));
   };
 
   const benefits = [
-    { icon: DollarSign, title: '35% Commission', desc: 'Earn on every sale you refer' },
-    { icon: LinkIcon, title: 'Unique Link', desc: '30-day cookie tracking' },
-    { icon: TrendingUp, title: 'Monthly Payouts', desc: 'Direct to your bank via Stripe' },
+    { icon: DollarSign, titleKey: 'affiliate.benefit1Title', descKey: 'affiliate.benefit1Desc' },
+    { icon: LinkIcon, titleKey: 'affiliate.benefit2Title', descKey: 'affiliate.benefit2Desc' },
+    { icon: TrendingUp, titleKey: 'affiliate.benefit3Title', descKey: 'affiliate.benefit3Desc' },
   ];
 
   return (
@@ -77,13 +78,13 @@ export default function BecomeAffiliate() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-cosmic-gold/20 rounded-full mb-4">
             <Sparkles className="w-4 h-4 text-cosmic-gold" />
-            <span className="text-cosmic-gold text-sm font-medium">Affiliate Program</span>
+            <span className="text-cosmic-gold text-sm font-medium">{t('affiliate.badge')}</span>
           </div>
           <h1 className="text-4xl font-display font-bold text-foreground mb-4">
-            Earn While You Share
+            {t('affiliate.title')}
           </h1>
           <p className="text-lg text-muted-foreground">
-            Join our affiliate program and earn 35% commission on every pet reading you refer
+            {t('affiliate.subtitle')}
           </p>
         </div>
 
@@ -94,41 +95,41 @@ export default function BecomeAffiliate() {
             <div className="grid md:grid-cols-3 gap-4">
               {benefits.map((benefit) => (
                 <div
-                  key={benefit.title}
+                  key={benefit.titleKey}
                   className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 text-center"
                 >
                   <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-cosmic-purple/20 flex items-center justify-center">
                     <benefit.icon className="w-6 h-6 text-cosmic-purple" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-1">{benefit.title}</h3>
-                  <p className="text-sm text-muted-foreground">{benefit.desc}</p>
+                  <h3 className="font-semibold text-foreground mb-1">{t(benefit.titleKey)}</h3>
+                  <p className="text-sm text-muted-foreground">{t(benefit.descKey)}</p>
                 </div>
               ))}
             </div>
 
             {/* How it works */}
             <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-4">How It Works</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-4">{t('affiliate.howItWorks')}</h2>
               <ol className="space-y-4">
                 <li className="flex gap-4">
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-cosmic-gold/20 text-cosmic-gold flex items-center justify-center font-bold">1</span>
                   <div>
-                    <p className="font-medium text-foreground">Sign up & connect Stripe</p>
-                    <p className="text-sm text-muted-foreground">Create your account and set up payouts</p>
+                    <p className="font-medium text-foreground">{t('affiliate.step1Title')}</p>
+                    <p className="text-sm text-muted-foreground">{t('affiliate.step1Desc')}</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-cosmic-gold/20 text-cosmic-gold flex items-center justify-center font-bold">2</span>
                   <div>
-                    <p className="font-medium text-foreground">Share your unique link</p>
-                    <p className="text-sm text-muted-foreground">Post on social media, blogs, or share with friends</p>
+                    <p className="font-medium text-foreground">{t('affiliate.step2Title')}</p>
+                    <p className="text-sm text-muted-foreground">{t('affiliate.step2Desc')}</p>
                   </div>
                 </li>
                 <li className="flex gap-4">
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-cosmic-gold/20 text-cosmic-gold flex items-center justify-center font-bold">3</span>
                   <div>
-                    <p className="font-medium text-foreground">Earn 35% on every sale</p>
-                    <p className="text-sm text-muted-foreground">Commissions tracked for 30 days after click</p>
+                    <p className="font-medium text-foreground">{t('affiliate.step3Title')}</p>
+                    <p className="text-sm text-muted-foreground">{t('affiliate.step3Desc')}</p>
                   </div>
                 </li>
               </ol>
@@ -137,7 +138,7 @@ export default function BecomeAffiliate() {
             <div className="text-center">
               <CosmicButton onClick={() => setStep('form')} size="lg">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Apply Now
+                {t('affiliate.applyNow')}
               </CosmicButton>
             </div>
           </div>
@@ -146,26 +147,26 @@ export default function BecomeAffiliate() {
         {/* Form Step */}
         {step === 'form' && (
           <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-8">
-            <h2 className="text-2xl font-semibold text-foreground mb-6">Affiliate Application</h2>
+            <h2 className="text-2xl font-semibold text-foreground mb-6">{t('affiliate.applicationTitle')}</h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Full Name
+                  {t('affiliate.fullName')}
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
-                  placeholder="Your full name"
+                  placeholder={t('affiliate.fullNamePlaceholder')}
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Email Address
+                  {t('affiliate.emailAddress')}
                 </label>
                 <input
                   type="email"
@@ -179,7 +180,7 @@ export default function BecomeAffiliate() {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Custom Referral Code <span className="text-muted-foreground font-normal">(optional)</span>
+                  {t('affiliate.customCode')} <span className="text-muted-foreground font-normal">{t('affiliate.customCodeOptional')}</span>
                 </label>
                 <div className="flex items-center gap-2">
                   <span className="text-muted-foreground text-sm">astropaws.site/ref/</span>
@@ -193,13 +194,13 @@ export default function BecomeAffiliate() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  3-20 characters. Letters, numbers, underscores, hyphens only.
+                  {t('affiliate.customCodeHint')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Country
+                  {t('affiliate.country')}
                 </label>
                 <select
                   value={country}
@@ -225,16 +226,16 @@ export default function BecomeAffiliate() {
                   onClick={() => setStep('info')}
                   className="px-6 py-3 border border-border rounded-xl text-foreground hover:bg-muted/50 transition-colors"
                 >
-                  Back
+                  {t('common.back')}
                 </button>
                 <CosmicButton type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? 'Creating account...' : 'Create Affiliate Account'}
+                  {isLoading ? t('affiliate.creating') : t('affiliate.createAccount')}
                 </CosmicButton>
               </div>
             </form>
 
             <p className="text-xs text-muted-foreground mt-4 text-center">
-              By signing up, you agree to our affiliate terms. Payouts require Stripe account setup.
+              {t('affiliate.termsNote')}
             </p>
           </div>
         )}
@@ -247,15 +248,15 @@ export default function BecomeAffiliate() {
             </div>
             
             <h2 className="text-2xl font-semibold text-foreground mb-2">
-              Application Submitted!
+              {t('affiliate.successTitle')}
             </h2>
             <p className="text-muted-foreground mb-8">
-              Complete your Stripe setup to start earning commissions
+              {t('affiliate.successSubtitle')}
             </p>
 
             {/* Referral Link */}
             <div className="bg-background border border-border rounded-xl p-4 mb-6">
-              <p className="text-sm text-muted-foreground mb-2">Your Referral Link</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('affiliate.yourLink')}</p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 text-sm text-cosmic-gold break-all">
                   {window.location.origin}/ref/{result.referralCode}
@@ -272,10 +273,10 @@ export default function BecomeAffiliate() {
             {/* Important: Complete Stripe */}
             <div className="bg-cosmic-gold/10 border border-cosmic-gold/30 rounded-xl p-4 mb-6">
               <p className="text-sm text-foreground font-medium mb-2">
-                ⚠️ Important: Complete Stripe Setup
+                ⚠️ {t('affiliate.stripeImportant')}
               </p>
               <p className="text-sm text-muted-foreground mb-4">
-                You must complete Stripe onboarding to receive payouts
+                {t('affiliate.stripeNote')}
               </p>
               <a
                 href={result.onboardingUrl}
@@ -283,7 +284,7 @@ export default function BecomeAffiliate() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-cosmic-gold text-cosmic-deep font-semibold rounded-xl hover:bg-cosmic-gold/90 transition-colors"
               >
-                Complete Stripe Setup
+                {t('affiliate.completeStripe')}
                 <ExternalLink className="w-4 h-4" />
               </a>
             </div>
@@ -292,7 +293,7 @@ export default function BecomeAffiliate() {
               onClick={() => navigate('/')}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              Return to homepage
+              {t('common.returnHome')}
             </button>
           </div>
         )}
