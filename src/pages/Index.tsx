@@ -49,8 +49,8 @@ const Index = () => {
           }}
         />
 
-        {/* Floating Star Particles */}
-        {[...Array(80)].map((_, i) => (
+        {/* Floating Star Particles - reduced on mobile for performance */}
+        {[...Array(typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 60)].map((_, i) => (
           <div
             key={i}
             className="absolute rounded-full bg-starlight"
