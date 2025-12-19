@@ -128,8 +128,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification to support
     const supportEmailResponse = await resend.emails.send({
-      from: "Astropaws Contact <onboarding@resend.dev>",
-      to: ["support@astropaws.site"],
+      from: "AstroPets Contact <onboarding@resend.dev>",
+      to: ["support@astropets.cloud"],
       subject: `[${safeSubjectLabel}] New contact from ${safeName}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -148,7 +148,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation to customer
     const confirmationEmailResponse = await resend.emails.send({
-      from: "Astropaws <onboarding@resend.dev>",
+      from: "AstroPets <onboarding@resend.dev>",
       to: [email],
       subject: "We received your message! ✨",
       html: `
@@ -165,12 +165,12 @@ const handler = async (req: Request): Promise<Response> => {
           </div>
           
           <p style="color: #333; line-height: 1.6;">
-            In the meantime, feel free to check out our <a href="https://astropaws.site/#faq" style="color: #d4af37;">FAQ section</a> for quick answers.
+            In the meantime, feel free to check out our <a href="https://astropets.cloud/#faq" style="color: #d4af37;">FAQ section</a> for quick answers.
           </p>
           
           <p style="color: #666; font-size: 14px; margin-top: 30px;">
             With cosmic love,<br>
-            The Astropaws Team ✨
+            The AstroPets Team ✨
           </p>
         </div>
       `,

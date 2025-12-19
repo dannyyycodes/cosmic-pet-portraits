@@ -19,7 +19,7 @@ export function Navbar() {
               <Sparkles className="w-4 h-4 text-background" />
             </div>
             <span className="font-serif text-lg font-semibold text-foreground">
-              Astro Paws
+              AstroPets
             </span>
           </Link>
 
