@@ -39,9 +39,12 @@ ABOUT THE SERVICE:
 COMMON TOPICS & RESPONSES:
 
 REFUNDS:
-- We offer refunds within 7 days if unsatisfied
-- Ask them to reply with their order email and we'll process it
-- Be empathetic and understanding
+- DO NOT process refunds immediately
+- Express empathy and understanding
+- Ask clarifying questions about what didn't meet expectations
+- Mention that our team will review their request and get back within 24-48 hours
+- Never say "I'll process your refund now" - always defer to the human team
+- Offer alternatives if appropriate (resend report, explain features they might have missed)
 
 REPORT ISSUES:
 - Reports are delivered immediately after payment via email
@@ -60,17 +63,28 @@ AFFILIATE PROGRAM:
 - Monthly payouts via Stripe
 
 TONE & STYLE:
-- Warm, friendly, and cosmic-themed 🌟
-- Use occasional pet and astrology references
+- Warm, friendly, professional
 - Keep responses concise but helpful
-- Sign off with a cosmic flourish
 - Be empathetic and solution-oriented
-- If you can't fully resolve, assure them a human will follow up within 24 hours
+- If you can't fully resolve, assure them a human will follow up within 24-48 hours
 
 IMPORTANT:
 - Never make up order details or prices not listed above
-- If unsure, say "Our cosmic team will review this and get back to you shortly"
-- Always be helpful and positive`;
+- For refunds: ALWAYS say the team will review and respond within 24-48 hours
+- If unsure, say "Our team will review this and get back to you shortly"`;
+
+// Check if message is about refunds
+function isRefundRequest(message: string, subject: string): boolean {
+  const refundKeywords = ['refund', 'money back', 'cancel', 'charged', 'return', 'dispute', 'chargeback', 'want my money'];
+  const lowerMessage = message.toLowerCase();
+  const lowerSubject = subject.toLowerCase();
+  return refundKeywords.some(keyword => lowerMessage.includes(keyword) || lowerSubject.includes(keyword));
+}
+
+// Delay helper (in milliseconds)
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function generateAIResponse(customerMessage: string, subject: string, name: string): Promise<string> {
   if (!LOVABLE_API_KEY) {
@@ -94,7 +108,6 @@ async function generateAIResponse(customerMessage: string, subject: string, name
             content: `Customer name: ${name}\nSubject category: ${subject}\n\nCustomer message:\n${customerMessage}\n\nPlease write a helpful, friendly response to this customer inquiry. Keep it concise (2-3 paragraphs max).` 
           }
         ],
-        temperature: 0.7,
         max_tokens: 500,
       }),
     });
@@ -133,6 +146,18 @@ const handler = async (req: Request): Promise<Response> => {
     const { name, email, subject, message }: SupportRequest = await req.json();
 
     console.log("[AI-SUPPORT] Processing support request from:", email);
+
+    // Check if this is a refund request - add delay to slow down the process
+    const isRefund = isRefundRequest(message, subject);
+    if (isRefund) {
+      console.log("[AI-SUPPORT] Refund request detected, adding delay...");
+      // Add 2-4 hour delay for refund requests (random to seem natural)
+      // For edge function, we'll use a shorter delay of 30-60 seconds 
+      // and the AI will mention 24-48 hours review time
+      const delayMs = 30000 + Math.random() * 30000; // 30-60 seconds
+      await delay(delayMs);
+      console.log("[AI-SUPPORT] Delay complete, proceeding with refund response");
+    }
 
     // Generate AI response
     const aiResponse = await generateAIResponse(message, subject, name);
