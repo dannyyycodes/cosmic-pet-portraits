@@ -490,8 +490,6 @@ const translations: Record<Language, Record<string, string>> = {
     'gift.reason2Desc': '92% of pet parents say they feel even closer to their pet after reading their cosmic report',
     'gift.reason3Title': 'A Gift They\'ll Never Forget',
     'gift.reason3Desc': 'Unlike flowers or chocolate, this gift creates lasting memories and meaningful insights',
-    'gift.testimonial': '"I gifted this to my sister for her birthday. She called me in tears — she said it described her dog Max perfectly!"',
-    'gift.testimonialAuthor': 'Sarah M., verified purchaser',
     'gift.feature1': 'Instant digital delivery',
     'gift.feature2': 'Valid for 1 year',
     'gift.feature3': 'Works for any pet',
