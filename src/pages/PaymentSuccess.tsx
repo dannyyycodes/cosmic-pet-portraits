@@ -29,6 +29,11 @@ interface GiftInfo {
   giftCode: string | null;
 }
 
+interface GiftedInfo {
+  isGifted: boolean;
+  giftedTier: 'basic' | 'premium' | 'vip' | null;
+}
+
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -38,13 +43,23 @@ export default function PaymentSuccess() {
   const [currentReportIndex, setCurrentReportIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [giftInfo, setGiftInfo] = useState<GiftInfo>({ includeGift: false, giftCode: null });
+  const [giftedInfo, setGiftedInfo] = useState<GiftedInfo>({ isGifted: false, giftedTier: null });
 
   const sessionId = searchParams.get('session_id');
   const reportId = searchParams.get('report_id');
+  const isGiftedParam = searchParams.get('gifted') === 'true';
+  const giftedTierParam = searchParams.get('gifted_tier') as 'basic' | 'premium' | 'vip' | null;
 
   const currentReport = allReports[currentReportIndex];
   const hasMultipleReports = allReports.length > 1;
   const isLastReport = currentReportIndex === allReports.length - 1;
+
+  // Set gifted info from URL params
+  useEffect(() => {
+    if (isGiftedParam) {
+      setGiftedInfo({ isGifted: true, giftedTier: giftedTierParam });
+    }
+  }, [isGiftedParam, giftedTierParam]);
 
   useEffect(() => {
     if (!sessionId || !reportId) {
@@ -299,6 +314,7 @@ export default function PaymentSuccess() {
         petNames={allReports.map(r => r.petName)}
         onViewReports={handleViewAllReports}
         giftInfo={giftInfo}
+        giftedInfo={giftedInfo}
       />
     );
   }

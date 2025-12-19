@@ -10,13 +10,19 @@ interface GiftInfo {
   giftCode: string | null;
 }
 
+interface GiftedInfo {
+  isGifted: boolean;
+  giftedTier: 'basic' | 'premium' | 'vip' | null;
+}
+
 interface AllReportsCompleteProps {
   petNames: string[];
   onViewReports: () => void;
   giftInfo?: GiftInfo;
+  giftedInfo?: GiftedInfo;
 }
 
-export function AllReportsComplete({ petNames, onViewReports, giftInfo }: AllReportsCompleteProps) {
+export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedInfo }: AllReportsCompleteProps) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   
@@ -208,6 +214,63 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo }: AllRep
               <p className="text-xs text-muted-foreground mt-3">
                 This gift code is worth $35 and never expires. They can use it for any pet!
               </p>
+            </motion.div>
+          )}
+
+          {/* Gifted Upsells - Show relevant options based on gifted tier */}
+          {giftedInfo?.isGifted && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+              className="mb-6 space-y-3"
+            >
+              <p className="text-sm text-muted-foreground mb-4">
+                🎁 You received this reading as a gift! Here's what you can do next:
+              </p>
+              
+              {/* Gift for a friend - always show */}
+              <Button
+                onClick={() => navigate('/gift')}
+                variant="outline"
+                className="w-full justify-start gap-3 p-4 h-auto"
+              >
+                <Gift className="w-5 h-5 text-cosmic-gold shrink-0" />
+                <div className="text-left">
+                  <p className="font-medium">Gift a Reading to a Friend</p>
+                  <p className="text-xs text-muted-foreground">Share the cosmic love with someone special</p>
+                </div>
+              </Button>
+
+              {/* Weekly horoscope - show if not VIP (VIP already includes it) */}
+              {giftedInfo.giftedTier !== 'vip' && (
+                <Button
+                  onClick={() => navigate('/intake?mode=discover&upsell=horoscope')}
+                  variant="outline"
+                  className="w-full justify-start gap-3 p-4 h-auto"
+                >
+                  <Star className="w-5 h-5 text-primary shrink-0" />
+                  <div className="text-left">
+                    <p className="font-medium">Get Weekly Horoscopes</p>
+                    <p className="text-xs text-muted-foreground">$4.99/month - personalized cosmic guidance</p>
+                  </div>
+                </Button>
+              )}
+
+              {/* Upgrade to VIP - show only if basic or premium */}
+              {giftedInfo.giftedTier === 'basic' && (
+                <Button
+                  onClick={() => navigate('/intake?mode=discover&upsell=portrait')}
+                  variant="outline"
+                  className="w-full justify-start gap-3 p-4 h-auto"
+                >
+                  <Sparkles className="w-5 h-5 text-nebula-pink shrink-0" />
+                  <div className="text-left">
+                    <p className="font-medium">Add Cosmic Portrait</p>
+                    <p className="text-xs text-muted-foreground">Get an AI-generated cosmic trading card</p>
+                  </div>
+                </Button>
+              )}
             </motion.div>
           )}
 

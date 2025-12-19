@@ -19,6 +19,8 @@ interface IntakeStepEmailProps {
   onBack: () => void;
   totalSteps: number;
   modeContent: ModeContent;
+  giftCode?: string | null;
+  giftedTier?: 'basic' | 'premium' | 'vip' | null;
 }
 
 // Species-specific astrology facts that build belief
@@ -73,9 +75,10 @@ const getSpeciesAstrologyFacts = (species: string) => {
   return speciesAstrologyFacts[normalized] || speciesAstrologyFacts.default;
 };
 
-export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, totalSteps, modeContent }: IntakeStepEmailProps) {
+export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, totalSteps, modeContent, giftCode, giftedTier }: IntakeStepEmailProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>('email');
+  // If gift code is present, skip checkout stage entirely
+  const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>(giftCode ? 'email' : 'email');
   const astrologyFacts = getSpeciesAstrologyFacts(petData.species);
   const [factIndex, setFactIndex] = useState(Math.floor(Math.random() * astrologyFacts.length));
   
@@ -446,30 +449,46 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               </p>
             </motion.div>
 
-            {/* CTA to checkout - more urgent */}
+            {/* CTA to checkout - or direct reveal for gift recipients */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.3 }}
               className="space-y-3 pt-2"
             >
-              <Button
-                onClick={() => setStage('checkout')}
-                variant="gold"
-                size="xl"
-                className="w-full max-w-sm mx-auto shadow-lg shadow-primary/20"
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                Unlock {petData.name}'s Full Cosmic Truth
-              </Button>
-              
-              <button
-                onClick={() => setStage('checkout')}
-                className="flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
-              >
-                <span>See pricing options</span>
-                <ChevronDown className="w-4 h-4" />
-              </button>
+              {giftCode ? (
+                // Gift recipients skip checkout entirely
+                <Button
+                  onClick={() => onReveal()}
+                  variant="gold"
+                  size="xl"
+                  className="w-full max-w-sm mx-auto shadow-lg shadow-primary/20"
+                  disabled={isLoading}
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  {isLoading ? 'Generating...' : `🎁 Reveal ${petData.name}'s Gifted Reading`}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    onClick={() => setStage('checkout')}
+                    variant="gold"
+                    size="xl"
+                    className="w-full max-w-sm mx-auto shadow-lg shadow-primary/20"
+                  >
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Unlock {petData.name}'s Full Cosmic Truth
+                  </Button>
+                  
+                  <button
+                    onClick={() => setStage('checkout')}
+                    className="flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
+                  >
+                    <span>See pricing options</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
