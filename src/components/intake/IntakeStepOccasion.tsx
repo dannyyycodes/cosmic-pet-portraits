@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { OccasionMode } from '@/lib/occasionMode';
-import { Sparkles, Cake, Heart, RotateCcw } from 'lucide-react';
+import { Sparkles, Cake, Heart, RotateCcw, Star, Palette, Calendar, Clock } from 'lucide-react';
 import { clearIntakeProgress } from '@/lib/intakeStorage';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -20,6 +20,8 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
       icon: Sparkles,
       titleKey: 'intake.occasion.discover',
       subtitleKey: 'intake.occasion.discoverDesc',
+      details: 'Explore their zodiac sign, personality traits, hidden gifts, and cosmic purpose.',
+      features: ['Full birth chart analysis', 'Personality insights', 'Care & bonding tips'],
       gradient: 'from-violet-500 to-purple-600',
       bgGlow: 'bg-violet-500/20',
     },
@@ -28,6 +30,8 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
       icon: Cake,
       titleKey: 'intake.occasion.birthday',
       subtitleKey: 'intake.occasion.birthdayDesc',
+      details: 'Celebrate their special day with a personalized cosmic birthday portrait.',
+      features: ['Birthday-themed reading', 'Year ahead predictions', 'Shareable celebration card'],
       gradient: 'from-amber-400 to-orange-500',
       bgGlow: 'bg-amber-500/20',
     },
@@ -36,6 +40,8 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
       icon: Heart,
       titleKey: 'intake.occasion.memorial',
       subtitleKey: 'intake.occasion.memorialDesc',
+      details: 'Honor their beautiful spirit with a heartfelt tribute to their cosmic soul.',
+      features: ['Eternal soul portrait', 'Memory keepsake', 'Legacy of love tribute'],
       gradient: 'from-blue-400 to-indigo-500',
       bgGlow: 'bg-blue-500/20',
     },
@@ -81,7 +87,7 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {occasions.map((occasion, index) => {
           const Icon = occasion.icon;
           const isSelected = selectedMode === occasion.id;
@@ -101,18 +107,34 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
             >
               <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity ${occasion.bgGlow} blur-xl`} />
               
-              <div className="relative z-10 space-y-3">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${occasion.gradient} flex items-center justify-center shadow-lg`}>
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold text-foreground text-lg">
-                    {t(occasion.titleKey)}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    {t(occasion.subtitleKey)}
-                  </p>
+              <div className="relative z-10">
+                <div className="flex items-start gap-4">
+                  <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${occasion.gradient} flex items-center justify-center shadow-lg shrink-0`}>
+                    <Icon className="w-7 h-7 text-white" />
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground text-lg">
+                      {t(occasion.titleKey)}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mt-0.5">
+                      {t(occasion.subtitleKey)}
+                    </p>
+                    <p className="text-foreground/80 text-sm mt-2">
+                      {occasion.details}
+                    </p>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {occasion.features.map((feature) => (
+                        <span
+                          key={feature}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground text-xs"
+                        >
+                          <Star className="w-3 h-3" />
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -131,14 +153,21 @@ export function IntakeStepOccasion({ selectedMode, onSelect, showRestart, onRest
         })}
       </div>
 
-      <motion.p
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="text-muted-foreground/70 text-sm"
+        className="flex items-center justify-center gap-6 text-muted-foreground/70 text-sm"
       >
-        {t('intake.occasion.footer')}
-      </motion.p>
+        <span className="flex items-center gap-1.5">
+          <Clock className="w-4 h-4" />
+          2 minutes to complete
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Palette className="w-4 h-4" />
+          Personalized reading
+        </span>
+      </motion.div>
     </div>
   );
 }
