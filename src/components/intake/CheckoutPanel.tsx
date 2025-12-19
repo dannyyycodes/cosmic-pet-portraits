@@ -77,10 +77,20 @@ const GIFT_ORIGINAL_PRICE_CENTS = 3500; // $35
 
 // Volume discount calculation
 function getVolumeDiscount(petCount: number): number {
-  if (petCount >= 3) return 0.15; // 15% off
-  if (petCount >= 2) return 0.10; // 10% off
+  if (petCount >= 5) return 0.50; // 50% off for 5+ pets
+  if (petCount >= 4) return 0.40; // 40% off for 4 pets
+  if (petCount >= 3) return 0.30; // 30% off for 3 pets
+  if (petCount >= 2) return 0.20; // 20% off for 2 pets
   return 0;
 }
+
+// Volume discount tiers for display
+const VOLUME_DISCOUNTS = [
+  { pets: 2, discount: 20 },
+  { pets: 3, discount: 30 },
+  { pets: 4, discount: 40 },
+  { pets: '5+', discount: 50 },
+];
 
 export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading, occasionMode }: CheckoutPanelProps) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -204,6 +214,36 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             : `Unlock ${petData.name}'s complete cosmic profile`}
         </p>
       </div>
+
+      {/* Volume Discount Banner - show when applicable or as incentive */}
+      {petCount >= 2 ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-3 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <Users className="w-4 h-4 text-green-400" />
+            <span className="text-sm font-medium text-green-400">
+              🎉 {Math.round(volumeDiscountRate * 100)}% Multi-Pet Discount Applied!
+            </span>
+          </div>
+        </motion.div>
+      ) : (
+        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+          <p className="text-xs text-center text-muted-foreground mb-2">
+            <Users className="w-3.5 h-3.5 inline mr-1" />
+            Add more pets for bigger savings:
+          </p>
+          <div className="flex justify-center gap-2 flex-wrap">
+            {VOLUME_DISCOUNTS.map((tier) => (
+              <span key={tier.pets} className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 border border-green-500/20">
+                {tier.pets} pets = {tier.discount}% off
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Product tiers - Price Anchoring */}
       <div className="grid gap-3">
