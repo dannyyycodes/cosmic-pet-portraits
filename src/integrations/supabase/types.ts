@@ -474,6 +474,33 @@ export type Database = {
         }
         Relationships: []
       }
+      translation_cache: {
+        Row: {
+          created_at: string
+          id: string
+          source_text: string
+          target_language: string
+          translated_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          source_text: string
+          target_language: string
+          translated_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          source_text?: string
+          target_language?: string
+          translated_text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       weekly_horoscopes: {
         Row: {
           content: Json
