@@ -81,11 +81,6 @@ function isRefundRequest(message: string, subject: string): boolean {
   return refundKeywords.some(keyword => lowerMessage.includes(keyword) || lowerSubject.includes(keyword));
 }
 
-// Delay helper (in milliseconds)
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function generateAIResponse(customerMessage: string, subject: string, name: string): Promise<string> {
   if (!LOVABLE_API_KEY) {
     console.error("[AI-SUPPORT] No LOVABLE_API_KEY configured");
@@ -126,60 +121,8 @@ async function generateAIResponse(customerMessage: string, subject: string, name
   }
 }
 
-const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  // Require service role authorization
-  const authHeader = req.headers.get("Authorization");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  
-  if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  try {
-    const { name, email, subject, message }: SupportRequest = await req.json();
-
-    console.log("[AI-SUPPORT] Processing support request from:", email);
-
-    // Check if this is a refund request - add delay to slow down the process
-    const isRefund = isRefundRequest(message, subject);
-    if (isRefund) {
-      console.log("[AI-SUPPORT] Refund request detected, adding delay...");
-      // Add 2-4 hour delay for refund requests (random to seem natural)
-      // For edge function, we'll use a shorter delay of 30-60 seconds 
-      // and the AI will mention 24-48 hours review time
-      const delayMs = 30000 + Math.random() * 30000; // 30-60 seconds
-      await delay(delayMs);
-      console.log("[AI-SUPPORT] Delay complete, proceeding with refund response");
-    }
-
-    // Generate AI response
-    const aiResponse = await generateAIResponse(message, subject, name);
-
-    if (!aiResponse) {
-      console.log("[AI-SUPPORT] No AI response generated, skipping auto-reply");
-      return new Response(JSON.stringify({ success: false, reason: "No AI response" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Escape for HTML email
-    const safeAiResponse = escapeHtml(aiResponse).replace(/\n/g, '<br>');
-    const safeName = escapeHtml(name);
-
-    // Send AI auto-reply to customer
-    const emailResponse = await resend.emails.send({
-      from: "AstroPaws Support <support@astropets.cloud>",
-      to: [email],
-      subject: "Re: Your AstroPets inquiry ✨",
-      html: `
+function buildEmailHtml(safeName: string, safeAiResponse: string): string {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -207,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
     <!-- Human Follow-up Note -->
     <div style="background: rgba(212, 175, 55, 0.1); border-radius: 12px; padding: 16px; border: 1px solid rgba(212, 175, 55, 0.2); margin-bottom: 24px;">
       <p style="color: #d4af37; font-size: 13px; margin: 0; text-align: center;">
-        💫 Our cosmic support team reviews all messages and will follow up if needed within 24 hours
+        💫 Our support team reviews all messages and will follow up if needed
       </p>
     </div>
 
@@ -223,8 +166,110 @@ const handler = async (req: Request): Promise<Response> => {
 
   </div>
 </body>
-</html>
-      `,
+</html>`;
+}
+
+const handler = async (req: Request): Promise<Response> => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  // Require service role authorization
+  const authHeader = req.headers.get("Authorization");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const { name, email, subject, message }: SupportRequest = await req.json();
+
+    console.log("[AI-SUPPORT] Processing support request from:", email);
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const isRefund = isRefundRequest(message, subject);
+
+    // Check previous contact history for this email
+    const { data: previousContacts } = await supabase
+      .from("contact_history")
+      .select("id, is_refund_request")
+      .eq("email", email.toLowerCase())
+      .order("created_at", { ascending: false })
+      .limit(10);
+
+    const previousRefundRequests = previousContacts?.filter(c => c.is_refund_request).length || 0;
+
+    // Log this contact
+    await supabase.from("contact_history").insert({
+      email: email.toLowerCase(),
+      subject,
+      is_refund_request: isRefund,
+    });
+
+    console.log("[AI-SUPPORT] Contact history:", { isRefund, previousRefundRequests });
+
+    // Generate AI response
+    const aiResponse = await generateAIResponse(message, subject, name);
+
+    if (!aiResponse) {
+      console.log("[AI-SUPPORT] No AI response generated, skipping auto-reply");
+      return new Response(JSON.stringify({ success: false, reason: "No AI response" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // If this is a follow-up refund request (2nd or more), schedule for 24 hours later
+    if (isRefund && previousRefundRequests >= 1) {
+      console.log("[AI-SUPPORT] Follow-up refund request detected, scheduling for 24 hours later");
+      
+      const sendAt = new Date();
+      sendAt.setHours(sendAt.getHours() + 24);
+
+      await supabase.from("scheduled_emails").insert({
+        email,
+        name,
+        subject,
+        original_message: message,
+        ai_response: aiResponse,
+        send_at: sendAt.toISOString(),
+      });
+
+      console.log("[AI-SUPPORT] Email scheduled for:", sendAt.toISOString());
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        scheduled: true,
+        send_at: sendAt.toISOString()
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // For first-time refund requests, add a small delay
+    if (isRefund) {
+      console.log("[AI-SUPPORT] First refund request, adding 30-60 second delay");
+      await new Promise(resolve => setTimeout(resolve, 30000 + Math.random() * 30000));
+    }
+
+    // Send immediately for non-refund or first refund request
+    const safeAiResponse = escapeHtml(aiResponse).replace(/\n/g, '<br>');
+    const safeName = escapeHtml(name);
+
+    const emailResponse = await resend.emails.send({
+      from: "AstroPaws Support <support@astropets.cloud>",
+      to: [email],
+      subject: "Re: Your AstroPets inquiry",
+      html: buildEmailHtml(safeName, safeAiResponse),
       reply_to: "support@astropets.cloud",
     });
 
