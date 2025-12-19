@@ -4,8 +4,10 @@ import { Gift, CheckCircle, Mail, Copy, ArrowRight, LinkIcon, Share2 } from 'luc
 import { Button } from '@/components/ui/button';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function GiftSuccess() {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const giftCode = searchParams.get('code') || '';
   const deliveryMethod = searchParams.get('delivery') || 'email';
@@ -14,20 +16,20 @@ export default function GiftSuccess() {
 
   const copyCode = () => {
     navigator.clipboard.writeText(giftCode);
-    toast.success('Gift code copied to clipboard!');
+    toast.success(t('giftSuccess.codeCopied'));
   };
 
   const copyLink = () => {
     navigator.clipboard.writeText(redeemUrl);
-    toast.success('Gift link copied to clipboard!');
+    toast.success(t('giftSuccess.linkCopied'));
   };
 
   const shareGift = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Cosmic Pet Report Gift',
-          text: 'I got you a Cosmic Pet Report! Discover the soul behind your pet\'s eyes.',
+          title: t('giftSuccess.shareTitle'),
+          text: t('giftSuccess.shareText'),
           url: redeemUrl,
         });
       } catch (err) {
@@ -50,7 +52,6 @@ export default function GiftSuccess() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8 text-center"
         >
-          {/* Success icon */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -62,16 +63,15 @@ export default function GiftSuccess() {
 
           <div className="space-y-3">
             <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-              Gift Purchased Successfully!
+              {t('giftSuccess.title')}
             </h1>
             <p className="text-muted-foreground text-lg">
               {isLinkDelivery 
-                ? 'Share the link below with your lucky recipient ✨' 
-                : 'Your cosmic gift is on its way ✨'}
+                ? t('giftSuccess.subtitleLink')
+                : t('giftSuccess.subtitleEmail')}
             </p>
           </div>
 
-          {/* Gift link display for link delivery */}
           {giftCode && isLinkDelivery && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -81,7 +81,7 @@ export default function GiftSuccess() {
             >
               <div className="flex items-center justify-center gap-2 text-primary">
                 <LinkIcon className="w-5 h-5" />
-                <p className="text-sm font-medium">Shareable Gift Link</p>
+                <p className="text-sm font-medium">{t('giftSuccess.shareableLink')}</p>
               </div>
               <div className="p-3 rounded-lg bg-background/50 break-all">
                 <p className="text-sm font-mono text-foreground">{redeemUrl}</p>
@@ -89,20 +89,19 @@ export default function GiftSuccess() {
               <div className="flex gap-2">
                 <Button onClick={copyLink} variant="outline" className="flex-1">
                   <Copy className="w-4 h-4 mr-2" />
-                  Copy Link
+                  {t('giftSuccess.copyLink')}
                 </Button>
                 <Button onClick={shareGift} variant="cosmic" className="flex-1">
                   <Share2 className="w-4 h-4 mr-2" />
-                  Share
+                  {t('giftSuccess.share')}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Gift Code: <span className="font-mono font-bold">{giftCode}</span>
+                {t('giftSuccess.giftCode')}: <span className="font-mono font-bold">{giftCode}</span>
               </p>
             </motion.div>
           )}
 
-          {/* Gift code display for email delivery */}
           {giftCode && !isLinkDelivery && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -110,7 +109,7 @@ export default function GiftSuccess() {
               transition={{ delay: 0.3 }}
               className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 to-nebula-purple/20 border border-primary/30"
             >
-              <p className="text-sm text-muted-foreground mb-2">Gift Code</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('giftSuccess.giftCode')}</p>
               <div className="flex items-center justify-center gap-3">
                 <p className="text-2xl font-mono font-bold text-foreground tracking-widest">
                   {giftCode}
@@ -125,47 +124,45 @@ export default function GiftSuccess() {
             </motion.div>
           )}
 
-          {/* What happens next */}
           <div className="p-4 rounded-xl bg-card/30 border border-border/30 space-y-3 text-left">
             <p className="text-sm font-medium text-foreground flex items-center gap-2">
               {isLinkDelivery ? <LinkIcon className="w-4 h-4 text-primary" /> : <Mail className="w-4 h-4 text-primary" />}
-              What happens next?
+              {t('giftSuccess.whatsNext')}
             </p>
             <ul className="text-sm text-muted-foreground space-y-2">
-              <li>• You'll receive a confirmation email</li>
+              <li>• {t('giftSuccess.step1')}</li>
               {isLinkDelivery ? (
                 <>
-                  <li>• Share the link above with your recipient</li>
-                  <li>• They'll enter their pet's details to get the report</li>
+                  <li>• {t('giftSuccess.step2Link')}</li>
+                  <li>• {t('giftSuccess.step3Link')}</li>
                 </>
               ) : (
                 <>
-                  <li>• Your recipient will get their gift code by email</li>
-                  <li>• They can redeem it anytime within 1 year</li>
+                  <li>• {t('giftSuccess.step2Email')}</li>
+                  <li>• {t('giftSuccess.step3Email')}</li>
                 </>
               )}
             </ul>
           </div>
 
-          {/* Actions */}
           <div className="space-y-3">
             <Link to="/gift" className="block">
               <Button variant="cosmic" size="lg" className="w-full">
                 <Gift className="w-5 h-5 mr-2" />
-                Purchase Another Gift
+                {t('giftSuccess.purchaseAnother')}
               </Button>
             </Link>
             
             <Link to="/" className="block">
               <Button variant="ghost" className="w-full">
-                Back to Home
+                {t('nav.backHome')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Questions? Contact us at support@astropaws.site
+            {t('giftSuccess.questions')}
           </p>
         </motion.div>
       </div>
