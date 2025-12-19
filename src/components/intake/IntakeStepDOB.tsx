@@ -9,6 +9,7 @@ import { format, setMonth, setYear, subYears, subMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntakeStepDOBProps {
   petData: PetData;
@@ -19,22 +20,11 @@ interface IntakeStepDOBProps {
   modeContent: ModeContent;
 }
 
-const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
-
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
-const timePresets = [
-  { label: 'Morning', value: '09:00', icon: '🌅' },
-  { label: 'Afternoon', value: '14:00', icon: '☀️' },
-  { label: 'Evening', value: '19:00', icon: '🌆' },
-  { label: 'Night', value: '23:00', icon: '🌙' },
-];
-
 export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepDOBProps) {
+  const { t } = useLanguage();
   const [calendarDate, setCalendarDate] = useState<Date>(petData.dateOfBirth || new Date());
   const [showTimeInput, setShowTimeInput] = useState(!!petData.timeOfBirth);
   const [useEstimate, setUseEstimate] = useState(false);
@@ -43,7 +33,19 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
   
   const isValid = petData.dateOfBirth !== null;
 
-  // Calculate estimated date when years/months change
+  const months = [
+    t('months.january'), t('months.february'), t('months.march'), t('months.april'),
+    t('months.may'), t('months.june'), t('months.july'), t('months.august'),
+    t('months.september'), t('months.october'), t('months.november'), t('months.december')
+  ];
+
+  const timePresets = [
+    { label: t('intake.dob.morning'), value: '09:00', icon: '🌅' },
+    { label: t('intake.dob.afternoon'), value: '14:00', icon: '☀️' },
+    { label: t('intake.dob.evening'), value: '19:00', icon: '🌆' },
+    { label: t('intake.dob.night'), value: '23:00', icon: '🌙' },
+  ];
+
   useEffect(() => {
     if (useEstimate && (estimateYears || estimateMonths)) {
       const yearsNum = parseInt(estimateYears) || 0;
@@ -95,7 +97,7 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 5 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 5 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
           {modeContent.dobTitle(petData.name)}
         </h1>
@@ -104,7 +106,6 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
         </p>
       </div>
 
-      {/* Toggle between exact date and estimate */}
       <div className="flex justify-center gap-2">
         <button
           onClick={switchToExact}
@@ -116,7 +117,7 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
           )}
         >
           <CalendarIcon className="w-4 h-4 inline mr-2" />
-          I know the date
+          {t('intake.dob.knowDate')}
         </button>
         <button
           onClick={switchToEstimate}
@@ -128,7 +129,7 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
           )}
         >
           <HelpCircle className="w-4 h-4 inline mr-2" />
-          Estimate age
+          {t('intake.dob.estimateAge')}
         </button>
       </div>
 
@@ -142,20 +143,18 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
               exit={{ opacity: 0, y: -10 }}
               className="space-y-3"
             >
-              {/* Date Selection */}
               <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                 <CalendarIcon className="w-4 h-4" />
-                Date of Birth
+                {t('intake.dob.dateOfBirth')}
               </p>
               
-              {/* Month/Year Quick Selectors */}
               <div className="flex gap-3 justify-center">
                 <Select
                   value={calendarDate.getMonth().toString()}
                   onValueChange={handleMonthChange}
                 >
                   <SelectTrigger className="w-[140px] h-12 bg-card/50 border-border/50">
-                    <SelectValue placeholder="Month" />
+                    <SelectValue placeholder={t('intake.dob.month')} />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     {months.map((month, i) => (
@@ -171,7 +170,7 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
                   onValueChange={handleYearChange}
                 >
                   <SelectTrigger className="w-[100px] h-12 bg-card/50 border-border/50">
-                    <SelectValue placeholder="Year" />
+                    <SelectValue placeholder={t('intake.dob.year')} />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border max-h-[200px]">
                     {years.map((year) => (
@@ -183,7 +182,6 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
                 </Select>
               </div>
 
-              {/* Calendar */}
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -197,7 +195,7 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
                     {petData.dateOfBirth ? (
                       <span className="text-foreground">{format(petData.dateOfBirth, "MMMM d, yyyy")}</span>
                     ) : (
-                      <span className="text-muted-foreground">Tap to select day</span>
+                      <span className="text-muted-foreground">{t('intake.dob.tapToSelect')}</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -224,20 +222,20 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
               className="space-y-4"
             >
               <p className="text-sm text-muted-foreground">
-                How old is {petData.name}?
+                {t('intake.dob.howOld', { name: petData.name })}
               </p>
               
               <div className="flex gap-4 justify-center items-end">
                 <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground">Years</label>
+                  <label className="text-xs text-muted-foreground">{t('intake.dob.years')}</label>
                   <Select value={estimateYears} onValueChange={setEstimateYears}>
                     <SelectTrigger className="w-[100px] h-12 bg-card/50 border-border/50">
-                      <SelectValue placeholder="Years" />
+                      <SelectValue placeholder={t('intake.dob.years')} />
                     </SelectTrigger>
                     <SelectContent className="bg-card border-border max-h-[200px]">
                       {Array.from({ length: 26 }, (_, i) => (
                         <SelectItem key={i} value={i.toString()}>
-                          {i} {i === 1 ? 'year' : 'years'}
+                          {i} {i === 1 ? t('intake.dob.yearSingular') : t('intake.dob.years')}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -245,15 +243,15 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
                 </div>
                 
                 <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground">Months</label>
+                  <label className="text-xs text-muted-foreground">{t('intake.dob.months')}</label>
                   <Select value={estimateMonths} onValueChange={setEstimateMonths}>
                     <SelectTrigger className="w-[110px] h-12 bg-card/50 border-border/50">
-                      <SelectValue placeholder="Months" />
+                      <SelectValue placeholder={t('intake.dob.months')} />
                     </SelectTrigger>
                     <SelectContent className="bg-card border-border">
                       {Array.from({ length: 12 }, (_, i) => (
                         <SelectItem key={i} value={i.toString()}>
-                          {i} {i === 1 ? 'month' : 'months'}
+                          {i} {i === 1 ? t('intake.dob.monthSingular') : t('intake.dob.months')}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -267,14 +265,13 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
                   animate={{ opacity: 1 }}
                   className="text-sm text-primary/80"
                 >
-                  Estimated birth: ~{format(petData.dateOfBirth, "MMMM yyyy")}
+                  {t('intake.dob.estimatedBirth')}: ~{format(petData.dateOfBirth, "MMMM yyyy")}
                 </motion.p>
               )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Time Selection - only show for exact date */}
         {!useEstimate && (
           <AnimatePresence>
             {!showTimeInput ? (
@@ -286,7 +283,7 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
                 className="flex items-center justify-center gap-2 text-primary/70 hover:text-primary transition-colors mx-auto"
               >
                 <Sparkles className="w-4 h-4" />
-                <span className="text-sm">Add birth time for extra accuracy</span>
+                <span className="text-sm">{t('intake.dob.addTimeAccuracy')}</span>
               </motion.button>
             ) : (
               <motion.div
@@ -297,10 +294,9 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
               >
                 <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
                   <Clock className="w-4 h-4" />
-                  Time of Birth <span className="text-primary/60">(approximate is fine)</span>
+                  {t('intake.dob.timeOfBirth')} <span className="text-primary/60">({t('intake.dob.approximateFine')})</span>
                 </p>
                 
-                {/* Time Presets */}
                 <div className="flex flex-wrap gap-2 justify-center">
                   {timePresets.map((preset) => (
                     <button
@@ -320,9 +316,8 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
                   ))}
                 </div>
                 
-                {/* Custom Time Input */}
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-muted-foreground text-sm">or exact time:</span>
+                  <span className="text-muted-foreground text-sm">{t('intake.dob.orExactTime')}:</span>
                   <input
                     type="time"
                     value={petData.timeOfBirth}
@@ -338,7 +333,7 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
                   }}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Skip time
+                  {t('intake.dob.skipTime')}
                 </button>
               </motion.div>
             )}
@@ -353,7 +348,7 @@ export function IntakeStepDOB({ petData, onUpdate, onNext, onBack, totalSteps, m
         size="xl"
         className="w-full max-w-xs mx-auto"
       >
-        Continue ➝
+        {t('intake.continue')} ➝
       </Button>
     </motion.div>
   );

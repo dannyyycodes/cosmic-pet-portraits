@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Locate, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntakeStepLocationProps {
   petData: PetData;
@@ -25,7 +26,6 @@ interface LocationResult {
   };
 }
 
-// Famous cities worldwide for initial display
 const famousCities = [
   { city: 'New York', country: 'USA', flag: '🇺🇸' },
   { city: 'London', country: 'UK', flag: '🇬🇧' },
@@ -36,6 +36,7 @@ const famousCities = [
 ];
 
 export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepLocationProps) {
+  const { t } = useLanguage();
   const [isLocating, setIsLocating] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<LocationResult[]>([]);
@@ -44,7 +45,6 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
   const isValid = petData.location.trim() !== '';
 
-  // Debounced search using Nominatim
   useEffect(() => {
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
@@ -109,7 +109,7 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
       
       const city = data.address?.city || data.address?.town || data.address?.village || '';
       const country = data.address?.country || '';
-      const locationString = city && country ? `${city}, ${country}` : city || country || 'Location found';
+      const locationString = city && country ? `${city}, ${country}` : city || country || t('intake.location.locationFound');
       
       onUpdate({ location: locationString });
       setShowResults(false);
@@ -121,7 +121,6 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
   };
 
   const selectLocation = (displayName: string, result?: LocationResult) => {
-    // Format nicely: City, Country
     if (result?.address) {
       const city = result.address.city || result.address.town || result.address.village || result.name;
       const country = result.address.country;
@@ -153,17 +152,16 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 6 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 6 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          Where was {petData.name} born?
+          {t('intake.location.title', { name: petData.name })}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Location helps us map the cosmic energies present at birth.
+          {t('intake.location.subtitle')}
         </p>
       </div>
 
       <div className="space-y-4">
-        {/* Location Input */}
         <div className="relative max-w-sm mx-auto">
           <div className={cn(
             "relative rounded-xl transition-all duration-300",
@@ -172,7 +170,7 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/60" />
             <input
               type="text"
-              placeholder="Start typing city name..."
+              placeholder={t('intake.location.placeholder')}
               value={petData.location}
               onChange={(e) => {
                 onUpdate({ location: e.target.value });
@@ -185,7 +183,6 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
               }}
               onBlur={() => {
                 setInputFocused(false);
-                // Delay hiding to allow click on results
                 setTimeout(() => setShowResults(false), 200);
               }}
               className={cn(
@@ -207,7 +204,6 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
             )}
           </div>
 
-          {/* Search Results Dropdown */}
           <AnimatePresence>
             {showResults && searchResults.length > 0 && (
               <motion.div
@@ -236,7 +232,6 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
           </AnimatePresence>
         </div>
 
-        {/* Use Current Location Button */}
         <button
           onClick={handleUseCurrentLocation}
           disabled={isLocating}
@@ -244,11 +239,10 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
         >
           <Locate className={cn("w-4 h-4", isLocating && "animate-pulse")} />
           <span className="text-sm">
-            {isLocating ? 'Finding location...' : 'Use my current location'}
+            {isLocating ? t('intake.location.finding') : t('intake.location.useCurrent')}
           </span>
         </button>
 
-        {/* Famous Cities - only show when input is empty */}
         <AnimatePresence>
           {!petData.location && (
             <motion.div
@@ -257,7 +251,7 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
               exit={{ opacity: 0, y: -10 }}
               className="space-y-2"
             >
-              <p className="text-xs text-muted-foreground">Quick select:</p>
+              <p className="text-xs text-muted-foreground">{t('intake.location.quickSelect')}:</p>
               <div className="flex flex-wrap gap-2 justify-center max-w-md mx-auto">
                 {famousCities.map((loc) => (
                   <motion.button
@@ -280,15 +274,14 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
           )}
         </AnimatePresence>
 
-        {/* Don't know option */}
         <button
           onClick={() => {
-            onUpdate({ location: 'Unknown' });
+            onUpdate({ location: t('intake.location.unknown') });
             setShowResults(false);
           }}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          I don't know the birthplace
+          {t('intake.location.dontKnow')}
         </button>
       </div>
 
@@ -299,7 +292,7 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
         size="xl"
         className="w-full max-w-xs mx-auto"
       >
-        Continue ➝
+        {t('intake.continue')} ➝
       </Button>
     </motion.div>
   );

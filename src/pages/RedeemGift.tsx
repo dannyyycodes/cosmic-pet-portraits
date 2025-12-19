@@ -7,8 +7,10 @@ import { CosmicInput } from '@/components/cosmic/CosmicInput';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function RedeemGift() {
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const codeFromUrl = searchParams.get('code') || '';
@@ -21,7 +23,6 @@ export default function RedeemGift() {
     amountCents: number;
   } | null>(null);
 
-  // Auto-validate if code is in URL
   useEffect(() => {
     if (codeFromUrl) {
       validateCode(codeFromUrl);
@@ -36,13 +37,13 @@ export default function RedeemGift() {
       });
 
       if (error || data?.error) {
-        toast.error(data?.error || 'Invalid gift code. Please check and try again.');
+        toast.error(t('redeem.invalidCode'));
         setGiftData(null);
         return;
       }
 
       if (!data.valid) {
-        toast.error('Invalid gift code');
+        toast.error(t('redeem.invalidCode'));
         setGiftData(null);
         return;
       }
@@ -54,14 +55,13 @@ export default function RedeemGift() {
       });
     } catch (error) {
       console.error('Validation error:', error);
-      toast.error('Something went wrong. Please try again.');
+      toast.error(t('redeem.errorGeneric'));
     } finally {
       setIsValidating(false);
     }
   };
 
   const handleContinue = () => {
-    // Navigate to intake with gift code
     navigate(`/intake?mode=discover&gift=${giftCode.toUpperCase()}`);
   };
 
@@ -75,7 +75,6 @@ export default function RedeemGift() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8 text-center"
         >
-          {/* Gift icon */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -89,16 +88,16 @@ export default function RedeemGift() {
             <>
               <div className="space-y-3">
                 <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                  Redeem Your Cosmic Gift
+                  {t('redeem.title')}
                 </h1>
                 <p className="text-muted-foreground">
-                  Enter your gift code to unlock your pet's cosmic profile
+                  {t('redeem.subtitle')}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <CosmicInput
-                  label="Gift Code"
+                  label={t('redeem.codeLabel')}
                   value={giftCode}
                   onChange={(e) => setGiftCode(e.target.value.toUpperCase())}
                   placeholder="GIFT-XXXX-XXXX"
@@ -119,12 +118,12 @@ export default function RedeemGift() {
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                         className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
                       />
-                      Validating...
+                      {t('redeem.validating')}
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
                       <Sparkles className="w-5 h-5" />
-                      Validate Code
+                      {t('redeem.validateButton')}
                     </span>
                   )}
                 </Button>
@@ -140,15 +139,14 @@ export default function RedeemGift() {
                 <div className="space-y-3">
                   <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
                     {giftData.recipientName 
-                      ? `${giftData.recipientName}, You've Received a Gift!` 
-                      : "You've Received a Cosmic Gift!"}
+                      ? t('redeem.receivedTitleName', { name: giftData.recipientName })
+                      : t('redeem.receivedTitle')}
                   </h1>
                   <p className="text-muted-foreground">
-                    Someone special wants you to discover your pet's cosmic truth
+                    {t('redeem.receivedSubtitle')}
                   </p>
                 </div>
 
-                {/* Gift message */}
                 {giftData.giftMessage && (
                   <div className="p-6 rounded-2xl bg-card/50 border border-primary/20 space-y-3">
                     <Heart className="w-6 h-6 text-nebula-pink mx-auto" />
@@ -156,21 +154,20 @@ export default function RedeemGift() {
                   </div>
                 )}
 
-                {/* What you get */}
                 <div className="p-4 rounded-xl bg-card/30 border border-border/30 text-left space-y-3">
-                  <p className="text-sm font-medium text-foreground text-center">Your gift includes:</p>
+                  <p className="text-sm font-medium text-foreground text-center">{t('redeem.includes')}</p>
                   <ul className="text-sm text-muted-foreground space-y-2">
                     <li className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-gold" />
-                      Complete cosmic personality profile
+                      {t('redeem.feature1')}
                     </li>
                     <li className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-gold" />
-                      Soul mission & hidden gifts
+                      {t('redeem.feature2')}
                     </li>
                     <li className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-gold" />
-                      Love language & care insights
+                      {t('redeem.feature3')}
                     </li>
                   </ul>
                 </div>
@@ -182,13 +179,13 @@ export default function RedeemGift() {
                   className="w-full"
                 >
                   <span className="flex items-center gap-2">
-                    Tell Us About Your Pet
+                    {t('redeem.continueButton')}
                     <ArrowRight className="w-5 h-5" />
                   </span>
                 </Button>
 
                 <p className="text-xs text-muted-foreground">
-                  Just answer a few quick questions about your pet to unlock their reading
+                  {t('redeem.instructions')}
                 </p>
               </motion.div>
             </>
