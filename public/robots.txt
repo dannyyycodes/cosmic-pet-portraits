@@ -12,3 +12,9 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://astropets.cloud/sitemap.xml
+
+# Block admin pages from crawling
+Disallow: /admin
+Disallow: /admin/
