@@ -45,36 +45,68 @@ serve(async (req) => {
     if (sessionId.startsWith('dev_test_')) {
       console.log("[VERIFY-PAYMENT] Dev mode - skipping Stripe verification");
       
-      // Update report as paid
+      // First get the primary report to find the email
+      const { data: primaryReport } = await supabaseClient
+        .from("pet_reports")
+        .select("*")
+        .eq("id", reportId)
+        .single();
+
+      if (!primaryReport) {
+        return new Response(JSON.stringify({ error: "Report not found" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+
+      // Find all reports with the same email created within last 10 minutes (multi-pet order)
+      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      const { data: allPetReports } = await supabaseClient
+        .from("pet_reports")
+        .select("*")
+        .eq("email", primaryReport.email)
+        .gte("created_at", tenMinutesAgo)
+        .order("created_at", { ascending: true });
+
+      const reportIds = allPetReports?.map((r: any) => r.id) || [reportId];
+      console.log("[VERIFY-PAYMENT] Dev mode - found reports:", reportIds.length);
+
+      // Update all reports as paid
       await supabaseClient
         .from("pet_reports")
         .update({ 
           payment_status: "paid",
           updated_at: new Date().toISOString()
         })
-        .eq("id", reportId);
+        .in("id", reportIds);
       
-      // Generate report if needed
-      const { data: report } = await supabaseClient
-        .from("pet_reports")
-        .select("*")
-        .eq("id", reportId)
-        .single();
+      // Generate reports for each pet
+      for (const id of reportIds) {
+        const { data: report } = await supabaseClient
+          .from("pet_reports")
+          .select("*")
+          .eq("id", id)
+          .single();
 
-      if (report && !report.report_content) {
-        await generateReport(report, reportId, supabaseClient);
+        if (report && !report.report_content) {
+          await generateReport(report, id, supabaseClient);
+        }
       }
 
-      // Fetch updated report
-      const { data: updatedReport } = await supabaseClient
+      // Fetch ALL updated reports
+      const { data: allReports } = await supabaseClient
         .from("pet_reports")
         .select("*")
-        .eq("id", reportId)
-        .single();
+        .in("id", reportIds)
+        .order("created_at", { ascending: true });
+
+      const updatedPrimaryReport = allReports?.find((r: any) => r.id === reportId) || allReports?.[0];
 
       return new Response(JSON.stringify({ 
         success: true, 
-        report: updatedReport 
+        report: updatedPrimaryReport,
+        allReports: allReports || [updatedPrimaryReport],
+        reportIds: reportIds
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
