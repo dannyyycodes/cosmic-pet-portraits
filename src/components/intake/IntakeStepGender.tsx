@@ -1,6 +1,7 @@
 import { PetData, PetGender } from './IntakeWizard';
 import { ArrowLeft } from 'lucide-react';
 import { FaMars, FaVenus } from 'react-icons/fa';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface IntakeStepGenderProps {
   petData: PetData;
@@ -11,6 +12,8 @@ interface IntakeStepGenderProps {
 }
 
 export function IntakeStepGender({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepGenderProps) {
+  const { t } = useLanguage();
+  
   const handleSelect = (gender: PetGender) => {
     onUpdate({ gender });
     setTimeout(() => onNext(), 300);
@@ -26,12 +29,12 @@ export function IntakeStepGender({ petData, onUpdate, onNext, onBack, totalSteps
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">Step 4 of {totalSteps}</p>
+        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 4 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          Is {petData.name} a boy or girl?
+          {t('intake.gender.title').replace('{name}', petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          This influences their cosmic energy pattern.
+          {t('intake.gender.subtitle')}
         </p>
       </div>
 
@@ -45,7 +48,7 @@ export function IntakeStepGender({ petData, onUpdate, onNext, onBack, totalSteps
           }`}
         >
           <FaMars className="w-10 h-10" />
-          <span className="font-medium text-lg">Boy</span>
+          <span className="font-medium text-lg">{t('intake.gender.boy')}</span>
         </button>
         <button
           onClick={() => handleSelect('girl')}
@@ -56,7 +59,7 @@ export function IntakeStepGender({ petData, onUpdate, onNext, onBack, totalSteps
           }`}
         >
           <FaVenus className="w-10 h-10" />
-          <span className="font-medium text-lg">Girl</span>
+          <span className="font-medium text-lg">{t('intake.gender.girl')}</span>
         </button>
       </div>
     </div>

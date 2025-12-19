@@ -199,10 +199,40 @@ const translations: Record<Language, Record<string, string>> = {
     'intake.email.button': 'See My Preview',
     
     // Intake - Common
-    'intake.continue': 'Continue ➝',
+    'intake.continue': 'Continue',
     'intake.back': 'Back',
     'intake.pet': 'Pet {current} of {total}',
     'intake.edit': 'Edit',
+    'intake.step': 'Step',
+    'intake.of': 'of',
+    
+    // Intake - Occasion (additional)
+    'intake.occasion.discoverSub': "Unlock your pet's cosmic personality",
+    'intake.occasion.birthdaySub': 'Honor another orbit around the sun',
+    'intake.occasion.memorialSub': 'Honor a beloved soul who crossed the rainbow bridge',
+    'intake.occasion.note': 'Each journey is crafted with care to match your unique situation',
+    
+    // Intake - Pet Count (additional)
+    'intake.petCount.beginSingle': "Let's Begin",
+    'intake.petCount.beginMulti': 'Continue with {count} Pets',
+    
+    // Intake - Name (additional)
+    'intake.name.titleMulti': "What's pet #{number}'s name?",
+    'intake.name.errorLength': 'Name must be {max} characters or less',
+    'intake.name.errorChars': 'Only letters, spaces, hyphens, and apostrophes allowed',
+    
+    // Intake - Breed placeholders
+    'intake.breed.placeholderDog': 'e.g., Golden Retriever, Labrador',
+    'intake.breed.placeholderCat': 'e.g., Siamese, Persian',
+    'intake.breed.placeholderRabbit': 'e.g., Holland Lop, Lionhead',
+    'intake.breed.placeholderHamster': 'e.g., Syrian, Dwarf',
+    'intake.breed.placeholderGuineaPig': 'e.g., American, Abyssinian',
+    'intake.breed.placeholderBird': 'e.g., Cockatiel, Budgie',
+    'intake.breed.placeholderFish': 'e.g., Betta, Goldfish',
+    'intake.breed.placeholderReptile': 'e.g., Bearded Dragon, Gecko',
+    'intake.breed.placeholderHorse': 'e.g., Arabian, Quarter Horse',
+    'intake.breed.placeholderDefault': 'Enter breed or type',
+    'intake.breed.hint': 'Leave blank if unknown or mixed breed',
     
     // Checkout
     'checkout.title': 'Choose Your Reading',
@@ -531,10 +561,40 @@ const translations: Record<Language, Record<string, string>> = {
     'intake.email.button': 'Ver Mi Vista Previa',
     
     // Intake - Common
-    'intake.continue': 'Continuar ➝',
+    'intake.continue': 'Continuar',
     'intake.back': 'Atrás',
     'intake.pet': 'Mascota {current} de {total}',
     'intake.edit': 'Editar',
+    'intake.step': 'Paso',
+    'intake.of': 'de',
+    
+    // Intake - Occasion (additional)
+    'intake.occasion.discoverSub': 'Descubre la personalidad cósmica de tu mascota',
+    'intake.occasion.birthdaySub': 'Celebra otra órbita alrededor del sol',
+    'intake.occasion.memorialSub': 'Honra a un alma querida que cruzó el puente del arcoíris',
+    'intake.occasion.note': 'Cada viaje está diseñado con cuidado para tu situación única',
+    
+    // Intake - Pet Count (additional)
+    'intake.petCount.beginSingle': 'Comencemos',
+    'intake.petCount.beginMulti': 'Continuar con {count} Mascotas',
+    
+    // Intake - Name (additional)
+    'intake.name.titleMulti': '¿Cómo se llama la mascota #{number}?',
+    'intake.name.errorLength': 'El nombre debe tener {max} caracteres o menos',
+    'intake.name.errorChars': 'Solo se permiten letras, espacios, guiones y apóstrofes',
+    
+    // Intake - Breed placeholders
+    'intake.breed.placeholderDog': 'ej., Golden Retriever, Labrador',
+    'intake.breed.placeholderCat': 'ej., Siamés, Persa',
+    'intake.breed.placeholderRabbit': 'ej., Holland Lop, Lionhead',
+    'intake.breed.placeholderHamster': 'ej., Sirio, Enano',
+    'intake.breed.placeholderGuineaPig': 'ej., Americano, Abisinio',
+    'intake.breed.placeholderBird': 'ej., Cocatiel, Periquito',
+    'intake.breed.placeholderFish': 'ej., Betta, Goldfish',
+    'intake.breed.placeholderReptile': 'ej., Dragón Barbudo, Gecko',
+    'intake.breed.placeholderHorse': 'ej., Árabe, Quarter Horse',
+    'intake.breed.placeholderDefault': 'Ingresa la raza o tipo',
+    'intake.breed.hint': 'Déjalo en blanco si es desconocido o mestizo',
     
     // Checkout
     'checkout.title': 'Elige Tu Lectura',
@@ -863,10 +923,40 @@ const translations: Record<Language, Record<string, string>> = {
     'intake.email.button': 'Ver Minha Prévia',
     
     // Intake - Common
-    'intake.continue': 'Continuar ➝',
+    'intake.continue': 'Continuar',
     'intake.back': 'Voltar',
     'intake.pet': 'Pet {current} de {total}',
     'intake.edit': 'Editar',
+    'intake.step': 'Passo',
+    'intake.of': 'de',
+    
+    // Intake - Occasion (additional)
+    'intake.occasion.discoverSub': 'Descubra a personalidade cósmica do seu pet',
+    'intake.occasion.birthdaySub': 'Celebre mais uma órbita ao redor do sol',
+    'intake.occasion.memorialSub': 'Homenageie uma alma querida que cruzou a ponte do arco-íris',
+    'intake.occasion.note': 'Cada jornada é criada com carinho para sua situação única',
+    
+    // Intake - Pet Count (additional)
+    'intake.petCount.beginSingle': 'Vamos Começar',
+    'intake.petCount.beginMulti': 'Continuar com {count} Pets',
+    
+    // Intake - Name (additional)
+    'intake.name.titleMulti': 'Qual é o nome do pet #{number}?',
+    'intake.name.errorLength': 'O nome deve ter {max} caracteres ou menos',
+    'intake.name.errorChars': 'Apenas letras, espaços, hífens e apóstrofos são permitidos',
+    
+    // Intake - Breed placeholders
+    'intake.breed.placeholderDog': 'ex., Golden Retriever, Labrador',
+    'intake.breed.placeholderCat': 'ex., Siamês, Persa',
+    'intake.breed.placeholderRabbit': 'ex., Holland Lop, Lionhead',
+    'intake.breed.placeholderHamster': 'ex., Sírio, Anão',
+    'intake.breed.placeholderGuineaPig': 'ex., Americano, Abissínio',
+    'intake.breed.placeholderBird': 'ex., Calopsita, Periquito',
+    'intake.breed.placeholderFish': 'ex., Betta, Peixe-dourado',
+    'intake.breed.placeholderReptile': 'ex., Dragão Barbudo, Gecko',
+    'intake.breed.placeholderHorse': 'ex., Árabe, Quarto de Milha',
+    'intake.breed.placeholderDefault': 'Digite a raça ou tipo',
+    'intake.breed.hint': 'Deixe em branco se desconhecido ou mestiço',
     
     // Checkout
     'checkout.title': 'Escolha Sua Leitura',
@@ -1195,10 +1285,40 @@ const translations: Record<Language, Record<string, string>> = {
     'intake.email.button': 'Voir Mon Aperçu',
     
     // Intake - Common
-    'intake.continue': 'Continuer ➝',
+    'intake.continue': 'Continuer',
     'intake.back': 'Retour',
     'intake.pet': 'Animal {current} sur {total}',
     'intake.edit': 'Modifier',
+    'intake.step': 'Étape',
+    'intake.of': 'sur',
+    
+    // Intake - Occasion (additional)
+    'intake.occasion.discoverSub': 'Découvrez la personnalité cosmique de votre animal',
+    'intake.occasion.birthdaySub': 'Célébrez une autre orbite autour du soleil',
+    'intake.occasion.memorialSub': 'Honorez une âme aimée qui a traversé le pont arc-en-ciel',
+    'intake.occasion.note': 'Chaque voyage est conçu avec soin pour votre situation unique',
+    
+    // Intake - Pet Count (additional)
+    'intake.petCount.beginSingle': 'Commençons',
+    'intake.petCount.beginMulti': 'Continuer avec {count} Animaux',
+    
+    // Intake - Name (additional)
+    'intake.name.titleMulti': 'Quel est le nom de l\'animal #{number}?',
+    'intake.name.errorLength': 'Le nom doit contenir {max} caractères ou moins',
+    'intake.name.errorChars': 'Seules les lettres, espaces, tirets et apostrophes sont autorisés',
+    
+    // Intake - Breed placeholders
+    'intake.breed.placeholderDog': 'ex., Golden Retriever, Labrador',
+    'intake.breed.placeholderCat': 'ex., Siamois, Persan',
+    'intake.breed.placeholderRabbit': 'ex., Holland Lop, Lionhead',
+    'intake.breed.placeholderHamster': 'ex., Syrien, Nain',
+    'intake.breed.placeholderGuineaPig': 'ex., Américain, Abyssinien',
+    'intake.breed.placeholderBird': 'ex., Calopsitte, Perruche',
+    'intake.breed.placeholderFish': 'ex., Betta, Poisson rouge',
+    'intake.breed.placeholderReptile': 'ex., Dragon Barbu, Gecko',
+    'intake.breed.placeholderHorse': 'ex., Arabe, Quarter Horse',
+    'intake.breed.placeholderDefault': 'Entrez la race ou le type',
+    'intake.breed.hint': 'Laissez vide si inconnu ou croisé',
     
     // Checkout
     'checkout.title': 'Choisissez Votre Lecture',
@@ -1527,10 +1647,40 @@ const translations: Record<Language, Record<string, string>> = {
     'intake.email.button': 'مشاهدة المعاينة',
     
     // Intake - Common
-    'intake.continue': 'متابعة ➝',
+    'intake.continue': 'متابعة',
     'intake.back': 'رجوع',
     'intake.pet': 'الحيوان {current} من {total}',
     'intake.edit': 'تعديل',
+    'intake.step': 'الخطوة',
+    'intake.of': 'من',
+    
+    // Intake - Occasion (additional)
+    'intake.occasion.discoverSub': 'اكتشف شخصية حيوانك الكونية',
+    'intake.occasion.birthdaySub': 'احتفل بمدار آخر حول الشمس',
+    'intake.occasion.memorialSub': 'أكرم روحاً محبوبة عبرت جسر قوس قزح',
+    'intake.occasion.note': 'كل رحلة مصممة بعناية لتناسب وضعك الفريد',
+    
+    // Intake - Pet Count (additional)
+    'intake.petCount.beginSingle': 'لنبدأ',
+    'intake.petCount.beginMulti': 'متابعة مع {count} حيوانات',
+    
+    // Intake - Name (additional)
+    'intake.name.titleMulti': 'ما اسم الحيوان #{number}؟',
+    'intake.name.errorLength': 'يجب أن يكون الاسم {max} حرفاً أو أقل',
+    'intake.name.errorChars': 'يُسمح فقط بالأحرف والمسافات والشرطات والفواصل العليا',
+    
+    // Intake - Breed placeholders
+    'intake.breed.placeholderDog': 'مثال، جولدن ريتريفر، لابرادور',
+    'intake.breed.placeholderCat': 'مثال، سيامي، فارسي',
+    'intake.breed.placeholderRabbit': 'مثال، هولاند لوب، ليون هيد',
+    'intake.breed.placeholderHamster': 'مثال، سوري، قزم',
+    'intake.breed.placeholderGuineaPig': 'مثال، أمريكي، حبشي',
+    'intake.breed.placeholderBird': 'مثال، كوكاتيل، بادجي',
+    'intake.breed.placeholderFish': 'مثال، بيتا، سمكة ذهبية',
+    'intake.breed.placeholderReptile': 'مثال، تنين ملتحي، جيكو',
+    'intake.breed.placeholderHorse': 'مثال، عربي، كوارتر هورس',
+    'intake.breed.placeholderDefault': 'أدخل السلالة أو النوع',
+    'intake.breed.hint': 'اتركه فارغاً إذا كان غير معروف أو هجين',
     
     // Checkout
     'checkout.title': 'اختر قراءتك',
