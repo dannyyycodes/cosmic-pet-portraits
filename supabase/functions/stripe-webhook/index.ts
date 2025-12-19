@@ -64,8 +64,50 @@ serve(async (req) => {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       
+      // Check if this is a horoscope subscription
+      if (session.metadata?.type === "horoscope_subscription") {
+        const { petReportId, petName, email, plan } = session.metadata;
+        
+        console.log("[STRIPE-WEBHOOK] Horoscope subscription completed:", { email, petName, plan });
+        
+        // Create the subscription record in database
+        const { error: subError } = await supabaseClient
+          .from("horoscope_subscriptions")
+          .insert({
+            email,
+            pet_name: petName,
+            pet_report_id: petReportId,
+            status: "active",
+            stripe_subscription_id: session.subscription as string,
+            stripe_customer_id: session.customer as string,
+            next_send_at: new Date().toISOString(), // Send first one immediately
+          });
+        
+        if (subError) {
+          console.error("[STRIPE-WEBHOOK] Failed to create horoscope subscription:", subError);
+        } else {
+          console.log("[STRIPE-WEBHOOK] Horoscope subscription created successfully");
+          
+          // Trigger immediate first horoscope generation
+          const supabaseUrl = Deno.env.get("SUPABASE_URL");
+          const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+          
+          try {
+            await fetch(`${supabaseUrl}/functions/v1/generate-weekly-horoscopes`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${serviceRoleKey}`,
+              },
+            });
+            console.log("[STRIPE-WEBHOOK] Triggered first horoscope generation");
+          } catch (triggerError) {
+            console.error("[STRIPE-WEBHOOK] Failed to trigger horoscope:", triggerError);
+          }
+        }
+      }
       // Check if this is a gift certificate purchase
-      if (session.metadata?.type === "gift_certificate") {
+      else if (session.metadata?.type === "gift_certificate") {
         const giftCode = session.metadata.gift_code;
         
         // SECURITY: Strict gift code format validation
