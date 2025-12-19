@@ -60,12 +60,24 @@ serve(async (req) => {
       });
     }
 
+    // Determine what tier was gifted based on amount
+    // Basic: $35 (3500 cents), Premium: $50 (5000 cents), VIP: $129 (12900 cents)
+    let giftedTier = 'basic';
+    if (data.amount_cents >= 12900) {
+      giftedTier = 'vip';
+    } else if (data.amount_cents >= 5000) {
+      giftedTier = 'premium';
+    }
+
     // Return only necessary data (no emails)
     return new Response(JSON.stringify({
       valid: true,
       recipientName: data.recipient_name,
       giftMessage: data.gift_message,
       amountCents: data.amount_cents,
+      giftedTier,
+      includesPortrait: giftedTier === 'premium' || giftedTier === 'vip',
+      includesVip: giftedTier === 'vip',
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

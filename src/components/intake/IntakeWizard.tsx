@@ -119,7 +119,12 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const [cosmicReport, setCosmicReport] = useState<CosmicReport | null>(null);
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
   const [giftCodeFromUrl, setGiftCodeFromUrl] = useState<string | null>(null);
-  const [giftData, setGiftData] = useState<{ amountCents: number; giftMessage?: string } | null>(null);
+  const [giftData, setGiftData] = useState<{ 
+    amountCents: number; 
+    giftMessage?: string;
+    recipientName?: string;
+    giftedTier?: 'basic' | 'premium' | 'vip';
+  } | null>(null);
   const stepStartTime = useRef<number>(Date.now());
   const { trackAction, intensity } = useEmotion();
   const { t, language } = useLanguage();
@@ -138,8 +143,10 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           setGiftData({
             amountCents: data.amountCents,
             giftMessage: data.giftMessage,
+            recipientName: data.recipientName,
+            giftedTier: data.giftedTier,
           });
-          toast.success(`Gift code applied! Value: $${(data.amountCents / 100).toFixed(2)}`);
+          toast.success(`Gift code applied! You received a ${data.giftedTier === 'vip' ? 'VIP' : data.giftedTier === 'premium' ? 'Portrait Edition' : 'Standard'} reading.`);
         }
       });
     }
@@ -343,12 +350,50 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         reportIds.push(reportId);
       }
 
+      const primaryReportId = reportIds[0];
+
+      // GIFT REDEMPTION: If a gift code is present and validated, skip checkout entirely
+      if (giftCodeFromUrl && giftData) {
+        console.log('[INTAKE] Gift code detected, redeeming:', giftCodeFromUrl);
+        
+        const { data: redeemResult, error: redeemError } = await supabase.functions.invoke(
+          'redeem-gift',
+          {
+            body: {
+              giftCode: giftCodeFromUrl.toUpperCase(),
+              reportId: primaryReportId,
+            },
+          }
+        );
+
+        if (redeemError || !redeemResult?.success) {
+          console.error('[INTAKE] Gift redemption error:', redeemError || redeemResult?.error);
+          toast.error(redeemResult?.error || 'Failed to redeem gift. Please try again.');
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('[INTAKE] Gift redeemed successfully:', redeemResult);
+        clearIntakeProgress();
+        toast.success('🎁 Gift redeemed! Generating your cosmic report...');
+        
+        // Redirect to payment success which will generate the report
+        // Include gift info so the success page shows appropriate upsells
+        const giftParams = new URLSearchParams({
+          session_id: `gift_${giftCodeFromUrl}`,
+          report_id: primaryReportId,
+          gifted: 'true',
+          gifted_tier: redeemResult.giftedTier || 'basic',
+        });
+        window.location.href = `/payment-success?${giftParams.toString()}`;
+        return;
+      }
+
       // TEST MODE: Skip Stripe checkout for preview/dev
       if (isTestMode) {
         console.log('[TEST MODE] Skipping Stripe checkout, redirecting to success page');
         clearIntakeProgress();
         toast.success('Test mode: Skipping payment');
-        const primaryReportId = reportIds[0];
         window.location.href = `/payment-success?session_id=dev_test_${Date.now()}&report_id=${primaryReportId}`;
         return;
       }
@@ -376,7 +421,6 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               referralCode: referralCode || undefined, // Pass referral code to checkout
               includeHoroscope: checkoutData.includeHoroscope || false, // Weekly horoscope add-on
               includesPortrait: checkoutData.includesPortrait || false,
-              giftCode: giftCodeFromUrl || undefined, // Gift code to redeem
             },
           }
         );
@@ -628,7 +672,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                   setStep(10);
                 }} 
                 totalSteps={stepsPerPet}
-                modeContent={modeContent} 
+                modeContent={modeContent}
+                giftCode={giftCodeFromUrl}
+                giftedTier={giftData?.giftedTier}
               />
             </motion.div>
           )}
