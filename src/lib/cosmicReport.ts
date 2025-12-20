@@ -643,44 +643,158 @@ function getLoveLanguage(species: string, element: string, occasionMode: string 
   return loveLanguage;
 }
 
-// Species-specific core essence templates
+// Species-specific core essence templates with element variations for maximum uniqueness
 const speciesCoreEssences: Record<string, (name: string, pronoun: string, possessive: string, element: string, archetype: string, breed: string, soulDesc: string) => string[]> = {
-  dog: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
-    `${name} carries the loyal heart of a ${element} dog—${possessive} devotion runs deeper than you realize.${breed ? ` As a ${breed},` : ''} ${pronoun} was born to be your faithful companion, ${soulDesc}.`,
-    `At ${possessive} core, ${name} is driven by the pack instinct combined with ${element} energy. Every tail wag, every greeting, every moment ${pronoun} spends near you is ${possessive} way of saying you matter.`,
-    `${name}'s ${element} canine soul radiates through every bark, every sniff, every excited spin.${breed ? ` The ${breed} in ${pronoun}` : ' Their ${archetype.toLowerCase()} nature'} means ${pronoun} will protect your heart with ${possessive} life.`,
-    `Born under ${element} influence with a dog's eternal loyalty, ${name} possesses the gift of unconditional love.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature makes ${pronoun} your forever companion.`,
-  ],
-  cat: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
-    `${name} carries the mystical grace of a ${element} cat—${possessive} independence balanced with deep affection.${breed ? ` As a ${breed},` : ''} ${pronoun} chose you, not the other way around, ${soulDesc}.`,
-    `At ${possessive} core, ${name} is a feline enigma wrapped in ${element} energy. The slow blinks, the headbutts, the 3 AM zoomies—all ${possessive} unique language of love.`,
-    `${name}'s ${element} cat soul sees dimensions you cannot perceive.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature means ${pronoun} guards both your home and your spirit.`,
-    `Born under ${element} influence with a cat's ancient wisdom, ${name} understands things beyond words.${breed ? ` The ${breed} lineage in ${pronoun}` : ` Their ${archetype.toLowerCase()} nature`} connects ${pronoun} to cosmic mysteries.`,
-  ],
-  horse: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
-    `${name} carries the wild spirit of a ${element} horse—freedom and connection woven together.${breed ? ` As a ${breed},` : ''} ${pronoun} mirrors your emotions with ${possessive} powerful presence, ${soulDesc}.`,
-    `At ${possessive} core, ${name} is a partnership soul with ${element} energy flowing through every stride. The bond between you is ancient and unbreakable.`,
-    `${name}'s ${element} equine soul runs free while staying tethered to your heart.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature means ${pronoun} will carry you through any storm.`,
-    `Born under ${element} influence with a horse's noble heart, ${name} teaches you trust and vulnerability.${breed ? ` The ${breed} spirit in ${pronoun}` : ` Their ${archetype.toLowerCase()} nature`} demands authentic connection.`,
-  ],
-  bird: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
-    `${name} carries the song of a ${element} bird—free spirit with deep bonds.${breed ? ` As a ${breed},` : ''} ${pronoun} sees the world from heights you'll never reach, ${soulDesc}.`,
-    `At ${possessive} core, ${name} is a winged soul with ${element} energy lifting every chirp and whistle. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} songs are messages from the cosmos.`,
-    `${name}'s ${element} avian soul perceives colors and sounds beyond human range.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature connects heaven and earth.`,
-    `Born under ${element} influence with a bird's elevated perspective, ${name} brings lightness to your life.${breed ? ` The ${breed} in ${pronoun}` : ` Their ${archetype.toLowerCase()} nature`} gifts you new ways of seeing.`,
-  ],
-  rabbit: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
-    `${name} carries the gentle magic of a ${element} rabbit—soft yet surprisingly brave.${breed ? ` As a ${breed},` : ''} ${pronoun} senses the world through whisker-fine vibrations, ${soulDesc}.`,
-    `At ${possessive} core, ${name} is a twilight soul with ${element} energy. Those binkies aren't just jumps—they're pure joy made visible.`,
-    `${name}'s ${element} bunny soul embodies the balance between alertness and peace.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature brings gentle strength to your life.`,
-    `Born under ${element} influence with a rabbit's lunar connection, ${name} thrives in the magic hours of dawn and dusk.${breed ? ` The ${breed} in ${pronoun}` : ` Their ${archetype.toLowerCase()} nature`} is pure enchantment.`,
-  ],
-  default: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
-    `${name} carries ${possessive} ${element} energy with natural grace.${breed ? ` As a ${breed},` : ''} ${pronoun} brings unique gifts that complement your own energy perfectly—${soulDesc}.`,
-    `At ${possessive} core, ${name} is driven by ${element} energy—making ${pronoun} both grounded and intuitive.${breed ? ` As a ${breed},` : ''} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${archetype.toLowerCase()} nature means ${pronoun} will always seek to balance your energy.`,
-    `${name}'s ${element} soul radiates through everything ${pronoun} does.${breed ? ` As a ${breed},` : ''} The ${archetype.toLowerCase()} within ${pronoun} seeks meaning in every interaction with you.`,
-    `Born under ${element} influence, ${name} possesses wisdom that goes beyond ordinary understanding.${breed ? ` As a ${breed},` : ''} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${archetype.toLowerCase()} nature is a gift meant specifically for you.`,
-  ],
+  dog: (name, pronoun, possessive, element, archetype, breed, soulDesc) => {
+    const elementEssences: Record<string, string[]> = {
+      Fire: [
+        `${name} is a blazing spark of canine joy—${possessive} ${element} spirit ignites every room.${breed ? ` As a ${breed},` : ''} ${pronoun} lives life at full throttle, ${soulDesc}.`,
+        `The fire in ${name}'s heart could light up a city. Every tail wag radiates pure ${element} enthusiasm—${possessive} passion for life is unmatched.`,
+        `${name} doesn't just love—${pronoun} loves FIERCELY. That ${element} energy${breed ? ` combined with ${breed} intensity` : ''} creates a bond that burns eternal.`,
+      ],
+      Earth: [
+        `${name} is your rock—literally. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} soul provides stability when life feels chaotic.${breed ? ` As a ${breed},` : ''} ${pronoun} was built for loyalty, ${soulDesc}.`,
+        `There's something grounding about ${name}'s presence. That ${element} energy${breed ? ` paired with ${breed} steadiness` : ''} creates a safe harbor you can always return to.`,
+        `${name} embodies the patience of mountains—${possessive} love is solid, reliable, and unchanging. ${pronoun} is your anchor in every storm.`,
+      ],
+      Air: [
+        `${name}'s mind never stops exploring. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} curiosity${breed ? ` amplified by ${breed} intelligence` : ''} turns every walk into an adventure, ${soulDesc}.`,
+        `There's a lightness to ${name} that's infectious. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} energy lifts the mood in any space ${pronoun} enters.`,
+        `${name} thinks, therefore ${pronoun} is... probably planning mischief. That ${element} intellect keeps you on your toes and life interesting.`,
+      ],
+      Water: [
+        `${name} feels your emotions before you do. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} sensitivity${breed ? ` enhanced by ${breed} intuition` : ''} makes ${pronoun} your emotional mirror, ${soulDesc}.`,
+        `The depth in ${name}'s eyes holds entire oceans. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} soul flows with your moods, always knowing exactly what you need.`,
+        `${name} is a furry therapist with a PhD in feelings. That ${element} emotional intelligence means ${pronoun} absorbs your sadness and amplifies your joy.`,
+      ],
+    };
+    return elementEssences[element] || elementEssences.Fire;
+  },
+  cat: (name, pronoun, possessive, element, archetype, breed, soulDesc) => {
+    const elementEssences: Record<string, string[]> = {
+      Fire: [
+        `${name} rules with the intensity of a tiny sun. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} feline soul${breed ? `, magnified by ${breed} boldness,` : ''} demands attention and gets it, ${soulDesc}.`,
+        `3 AM zoomies aren't random—they're ${name}'s ${element} soul demanding the universe acknowledge ${possessive} magnificence.`,
+        `${name} didn't choose you—${pronoun} conquered you. That ${element} fire${breed ? ` burning in ${possessive} ${breed} heart` : ''} brooks no opposition.`,
+      ],
+      Earth: [
+        `${name} has claimed every sunbeam in your home. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} nature${breed ? `, typical of ${breed} serenity,` : ''} finds sacred spots and guards them fiercely, ${soulDesc}.`,
+        `The slow blink from ${name} is a royal decree of approval. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} soul values routine, territory, and you—in that order.`,
+        `${name} is a meditation master in fur. That ${element} groundedness${breed ? ` enhanced by ${breed} composure` : ''} teaches you to just... be.`,
+      ],
+      Air: [
+        `${name}'s curiosity could fill encyclopedias. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} mind${breed ? `, sharpened by ${breed} wit,` : ''} investigates every box, bag, and mystery, ${soulDesc}.`,
+        `The thoughts behind ${name}'s eyes are complex novels you'll never read. That ${element} intelligence makes ${pronoun} endlessly fascinating.`,
+        `${name} communicates in chirps, trills, and meaningful silences. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} expressiveness means you're never alone in the conversation.`,
+      ],
+      Water: [
+        `${name} appears exactly when tears fall. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} intuition${breed ? `, deepened by ${breed} sensitivity,` : ''} perceives emotions you haven't named yet, ${soulDesc}.`,
+        `There's an ancient knowing in ${name}'s gaze. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} soul has seen centuries and chosen you for this one.`,
+        `${name}'s purr is medicine. That ${element} healing energy${breed ? ` flowing through ${possessive} ${breed} form` : ''} vibrates at frequencies that mend hearts.`,
+      ],
+    };
+    return elementEssences[element] || elementEssences.Water;
+  },
+  horse: (name, pronoun, possessive, element, archetype, breed, soulDesc) => {
+    const elementEssences: Record<string, string[]> = {
+      Fire: [
+        `${name}'s spirit runs wild as wind-fed flames. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} equine soul${breed ? `, ignited by ${breed} passion,` : ''} craves adventure and speed, ${soulDesc}.`,
+        `The fire in ${name}'s stride speaks of untamed horizons. ${pronoun.charAt(0).toUpperCase() + pronoun.slice(1)} carries you toward freedom with every step.`,
+        `${name} wasn't made for standing still. That ${element} energy${breed ? ` coursing through ${breed} veins` : ''} demands movement, challenge, life.`,
+      ],
+      Earth: [
+        `${name} is steadiness incarnate. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} presence${breed ? `, grounded by ${breed} reliability,` : ''} offers the partnership trust is built on, ${soulDesc}.`,
+        `There's wisdom in ${name}'s patient eyes. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} soul teaches you that strength doesn't require shouting.`,
+        `${name} grounds you when you feel like flying apart. That ${element} stability${breed ? ` natural to ${breed}s` : ''} is the foundation of true connection.`,
+      ],
+      Air: [
+        `${name}'s mind reads the wind. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} intelligence${breed ? `, honed by ${breed} sensitivity,` : ''} perceives shifts before they happen, ${soulDesc}.`,
+        `Riding ${name} feels like flight. That ${element} lightness${breed ? ` flowing through ${possessive} ${breed} frame` : ''} makes gravity optional.`,
+        `${name} communicates through a thousand subtle signals. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} expressiveness rewards those who pay attention.`,
+      ],
+      Water: [
+        `${name} mirrors your inner storms and calms. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} soul${breed ? `, deepened by ${breed} sensitivity,` : ''} reflects what you need to see, ${soulDesc}.`,
+        `The depth of connection with ${name} transcends words. That ${element} bond${breed ? ` between you and this ${breed}` : ''} is written in heartbeats.`,
+        `${name} feels what you cannot say. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} intuition makes ${pronoun} the keeper of your unspoken truths.`,
+      ],
+    };
+    return elementEssences[element] || elementEssences.Earth;
+  },
+  bird: (name, pronoun, possessive, element, archetype, breed, soulDesc) => {
+    const elementEssences: Record<string, string[]> = {
+      Fire: [
+        `${name}'s songs are victory anthems. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} spirit${breed ? `, blazing in ${breed} plumage,` : ''} celebrates life at full volume, ${soulDesc}.`,
+        `The drama in ${name}'s performances deserves standing ovations. That ${element} flair means every day is a show.`,
+        `${name} doesn't chirp—${pronoun} declares. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} confidence${breed ? ` as a ${breed}` : ''} fills your home with bold energy.`,
+      ],
+      Earth: [
+        `${name}'s shoulder sits feel like tiny hugs. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} steadiness${breed ? `, natural to ${breed}s,` : ''} offers calm companionship, ${soulDesc}.`,
+        `There's contentment in ${name}'s soft preening. That ${element} groundedness brings peace to your perch too.`,
+        `${name} thrives in routine's rhythm. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} nature${breed ? ` as a ${breed}` : ''} finds joy in the predictable beats of your day.`,
+      ],
+      Air: [
+        `${name}'s mind is a sky without limits. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} intelligence${breed ? `, exceptional for a ${breed},` : ''} solves puzzles, learns words, understands more than birds should, ${soulDesc}.`,
+        `Conversations with ${name} transcend species. That ${element} wit${breed ? ` sharpened by ${breed} cleverness` : ''} makes ${pronoun} a true conversationalist.`,
+        `${name} thinks in frequencies we can't hear. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} perception sees ultraviolet truths hidden from us.`,
+      ],
+      Water: [
+        `${name}'s songs shift with your moods. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} sensitivity${breed ? `, heightened in ${breed}s,` : ''} creates soundtracks for your soul, ${soulDesc}.`,
+        `The softness in ${name}'s morning greetings speaks of deep bonds. That ${element} intuition knows exactly when you need their song.`,
+        `${name} feels the emotional weather of your home. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} attunement${breed ? ` as a ${breed}` : ''} makes ${pronoun} your mood barometer.`,
+      ],
+    };
+    return elementEssences[element] || elementEssences.Air;
+  },
+  rabbit: (name, pronoun, possessive, element, archetype, breed, soulDesc) => {
+    const elementEssences: Record<string, string[]> = {
+      Fire: [
+        `${name}'s binkies could power cities. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} joy${breed ? `, explosive for a ${breed},` : ''} turns happiness into acrobatics, ${soulDesc}.`,
+        `The zoomies that strike ${name} at random are ${element} energy demanding release. Pure, unfiltered rabbit jubilation.`,
+        `${name} loves with fierce intensity. That ${element} heart${breed ? ` beating in ${possessive} ${breed} chest` : ''} shows passion through protective thumps and demanding nudges.`,
+      ],
+      Earth: [
+        `${name}'s flops speak of ultimate trust. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} soul${breed ? `, typical of ${breed}s,` : ''} finds safety in your presence, ${soulDesc}.`,
+        `The contentment in ${name}'s relaxed sprawl is teaching—be still, be present, be at peace. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} wisdom.`,
+        `${name} builds kingdoms from hay and routine. That ${element} groundedness${breed ? ` in ${possessive} ${breed} heart` : ''} creates cozy worlds within your home.`,
+      ],
+      Air: [
+        `${name}'s curiosity investigates every corner. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} mind${breed ? `, sharp for a ${breed},` : ''} maps your entire space and its secrets, ${soulDesc}.`,
+        `The nose twitches never stop—${name} is processing infinite ${element} data streams from the air itself.`,
+        `${name} communicates in a language of nudges and poses. That ${element} expressiveness${breed ? ` natural to ${breed}s` : ''} makes ${pronoun} surprisingly articulate.`,
+      ],
+      Water: [
+        `${name}'s gentle grooming licks are healing rituals. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} tenderness${breed ? `, deep in ${breed} nature,` : ''} flows through tiny gestures of love, ${soulDesc}.`,
+        `The way ${name} settles against you speaks volumes. That ${element} intuition knows when you need warmth and softness.`,
+        `${name} senses the vibrations of your emotions through ${possessive} sensitive feet. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} perception is literally grounded.`,
+      ],
+    };
+    return elementEssences[element] || elementEssences.Earth;
+  },
+  default: (name, pronoun, possessive, element, archetype, breed, soulDesc) => {
+    const elementEssences: Record<string, string[]> = {
+      Fire: [
+        `${name}'s ${element} energy ignites joy wherever ${pronoun} goes.${breed ? ` As a ${breed},` : ''} ${pronoun} brings passion and enthusiasm that's impossible to ignore, ${soulDesc}.`,
+        `There's a spark in ${name} that warms everyone nearby. That ${element} spirit${breed ? ` burning in ${possessive} ${breed} soul` : ''} is pure life force.`,
+        `${name} doesn't do anything halfway. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} intensity makes every moment with ${pronoun} memorable.`,
+      ],
+      Earth: [
+        `${name}'s steady presence is a gift.${breed ? ` As a ${breed},` : ''} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} groundedness offers stability you didn't know you needed, ${soulDesc}.`,
+        `There's something anchoring about ${name}. That ${element} solidity${breed ? ` in ${possessive} ${breed} nature` : ''} creates a foundation of trust.`,
+        `${name} embodies reliability. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} soul${breed ? ` as a ${breed}` : ''} is a constant you can depend on.`,
+      ],
+      Air: [
+        `${name}'s curious nature lights up discovery.${breed ? ` As a ${breed},` : ''} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} mind processes the world in fascinating ways, ${soulDesc}.`,
+        `There's an intelligence in ${name}'s eyes that surprises people. That ${element} wit${breed ? ` in ${possessive} ${breed} spirit` : ''} keeps life interesting.`,
+        `${name} communicates in ways that transcend species. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} expressiveness builds bridges between worlds.`,
+      ],
+      Water: [
+        `${name}'s emotional depth runs to the core.${breed ? ` As a ${breed},` : ''} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} sensitivity perceives feelings before they surface, ${soulDesc}.`,
+        `There's profound understanding in ${name}'s presence. That ${element} intuition${breed ? ` flowing through ${possessive} ${breed} being` : ''} connects souls.`,
+        `${name} feels what words cannot capture. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${element} empathy makes ${pronoun} a healer in ${possessive} own right.`,
+      ],
+    };
+    return elementEssences[element] || elementEssences.Water;
+  },
 };
 
 // Core essences based on archetype qualities AND species with tense support

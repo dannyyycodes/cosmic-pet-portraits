@@ -302,7 +302,7 @@ serve(async (req) => {
       line_items: lineItems,
       mode: checkoutMode,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
-      cancel_url: `${origin}/intake?canceled=true`,
+      cancel_url: `${origin}/intake?checkout=true`,
       metadata: {
         report_ids: allReportIds.join(","),
         pet_count: actualPetCount.toString(),

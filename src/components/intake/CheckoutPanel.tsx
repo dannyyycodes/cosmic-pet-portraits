@@ -390,7 +390,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       </div>
 
-      {/* Weekly Horoscope Subscription Add-on - Better Marketing */}
+      {/* Weekly Horoscope Subscription Add-on - Emotional Benefits Focus */}
       <div className="space-y-2">
         <button
           onClick={() => setIncludeHoroscope(!includeHoroscope)}
@@ -413,31 +413,31 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <Moon className={cn("w-5 h-5", includeHoroscope ? "text-nebula-purple" : "text-muted-foreground")} />
-                <h4 className="font-semibold text-foreground">Weekly Cosmic Insights</h4>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-nebula-purple to-nebula-pink text-white">50% OFF</span>
+                <h4 className="font-semibold text-foreground">Weekly Cosmic Updates</h4>
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-nebula-purple to-nebula-pink text-white">LAUNCH SPECIAL</span>
               </div>
               <p className="text-sm text-muted-foreground mb-2">
-                <span className="text-foreground font-medium">Stop guessing, start understanding.</span> Every Sunday, get personalized insights for {petCount > 1 ? 'your pets' : petData.name}.
+                <span className="text-foreground font-medium">Deepen your bond every week.</span> Receive personalized insights that help you understand {petCount > 1 ? 'each of your pets' : petData.name} on a whole new level.
               </p>
               <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-muted-foreground mb-2">
                 <span className="flex items-center gap-1">
-                  <span className="text-green-500">✓</span> "High energy day" alerts
+                  <span className="text-green-500">✓</span> Understand their moods better
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="text-green-500">✓</span> Best days for vet visits
+                  <span className="text-green-500">✓</span> Know their best play days
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="text-green-500">✓</span> Mood shift warnings
+                  <span className="text-green-500">✓</span> Strengthen your connection
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="text-green-500">✓</span> Bonding activity ideas
+                  <span className="text-green-500">✓</span> Weekly bonding tips
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-sm">
-                  <span className="text-muted-foreground line-through text-xs">$9.99/mo</span>
-                  <span className="text-foreground font-bold ml-1">$4.99/month</span>
-                  {petCount > 1 && <span className="text-xs text-muted-foreground ml-1">(covers all {petCount} pets)</span>}
+                  <span className="text-muted-foreground line-through text-xs">${((499 * petCount) / 100).toFixed(2)}/mo</span>
+                  <span className="text-foreground font-bold ml-1">${((499 * petCount) / 100).toFixed(2)}/month</span>
+                  {petCount > 1 && <span className="text-xs text-muted-foreground ml-1">({petCount} pets)</span>}
                 </p>
                 <span className="text-xs text-nebula-purple font-medium">Cancel anytime</span>
               </div>
@@ -445,7 +445,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           </div>
         </button>
         <p className="text-[10px] text-center text-muted-foreground italic">
-          "I used to wonder why Max was grumpy on Mondays. Now I just check my email!" — Jessica R.
+          "Now I finally understand why Luna gets extra cuddly some weeks—it's cosmic!" — Maria T.
         </p>
       </div>
 
