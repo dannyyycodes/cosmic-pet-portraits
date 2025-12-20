@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Sparkles, Gift, Heart, Dog, Zap, Clock } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { HowItWorks } from "@/components/HowItWorks";
-import { HomeTestimonials } from "@/components/HomeTestimonials";
+import { PremiumTestimonials } from "@/components/PremiumTestimonials";
 import { FAQ } from "@/components/FAQ";
 import { SocialProofBar } from "@/components/SocialProofBar";
 import { UrgencyBanner } from "@/components/UrgencyBanner";
@@ -236,19 +236,8 @@ const Index = () => {
       {/* How It Works Section */}
       <HowItWorks />
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="relative pt-6 pb-20 px-4 z-10">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-serif text-center text-foreground mb-4">
-            {t('testimonials.title')}
-          </h2>
-          <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
-            {t('testimonials.subtitle')}
-          </p>
-
-          <HomeTestimonials />
-        </div>
-      </section>
+      {/* Premium Testimonials Section */}
+      <PremiumTestimonials />
 
       {/* FAQ Section */}
       <FAQ />
