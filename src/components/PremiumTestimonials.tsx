@@ -102,39 +102,39 @@ export function PremiumTestimonials() {
     {
       name: "Mia",
       pet: "Bruno",
-      text: "I ordered Bruno's report thinking it would just be a cute thing. I was completely caught off guard by how accurate it was. The personality breakdown was so specific to him — not generic at all. I've never seen anything like this.",
-      highlight: "I was completely caught off guard by how accurate it was",
+      text: "I read the first paragraph and my jaw dropped. It described Bruno's exact quirks — how he tilts his head when confused, his fear of thunder, everything. My husband thought I wrote it myself. This isn't a gimmick. It's genuinely uncanny.",
+      highlight: "My husband thought I wrote it myself",
       image: customer1,
-      tag: "Most Accurate",
+      tag: "Scary Accurate",
       tagIcon: <Sparkles className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-primary to-gold text-primary-foreground"
     },
     {
       name: "Mark",
       pet: "Mr. Whiskers",
-      text: "I got this for my sister and her cat. She actually cried when she read it, happy tears of course. She said it was the most thoughtful gift she's ever received. Now I'm buying one for every pet parent I know.",
-      highlight: "She actually cried when she read it — happy tears",
+      text: "Bought this as a last-minute birthday gift for my sister. She called me SOBBING. She said 'How did they know all of this about Whiskers?' Best $19 I've ever spent. I've now gifted 7 more to friends and family.",
+      highlight: "She called me SOBBING with joy",
       image: customer4,
-      tag: "Perfect Gift",
+      tag: "Gift That Made Her Cry",
       tagIcon: <Gift className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-nebula-pink to-nebula-purple text-white"
     },
     {
       name: "Sarah",
       pet: "Rex",
-      text: "This report totally changed how I see my dog Rex. I thought he was just being stubborn on walks, but the cosmic personality analysis explained his needs perfectly. We bond so much better now.",
-      highlight: "This report totally changed how I see my dog",
+      text: "I was skeptical — like REALLY skeptical. But my friend wouldn't stop talking about hers. So I tried it. The report explained why Rex gets anxious at 6pm every day (I had no idea!). Changed how I handle his evenings. He's calmer now.",
+      highlight: "Changed how I handle his evenings. He's calmer now.",
       image: customer5,
-      tag: "Life-Changing",
+      tag: "Skeptic Turned Believer",
       tagIcon: <Heart className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-gold to-tangerine text-primary-foreground"
     },
   ];
 
   const miniTestimonials = [
-    { name: "Chloe", pet: "Luna", text: "5 friends asked for the link!", image: customer3 },
-    { name: "The Patels", pet: "Ginger", text: "It reads like a story about our dog", image: customer6 },
-    { name: "David R.", pet: "", text: "This isn't just fluffy horoscope stuff", image: customer2 },
+    { name: "Chloe L.", text: "Sent it to 5 friends — they all bought one", image: customer3 },
+    { name: "The Patels", text: "Our whole family read it together!", image: customer6 },
+    { name: "David R.", text: "Way more legit than I expected", image: customer2 },
   ];
 
   return (
@@ -179,26 +179,26 @@ export function PremiumTestimonials() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="flex flex-wrap justify-center gap-4"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
         >
           {miniTestimonials.map((t, i) => (
             <div 
               key={i}
-              className="flex items-center gap-3 bg-card/40 backdrop-blur-sm border border-border/50 rounded-full px-4 py-2"
+              className="flex items-center gap-3 bg-card/60 backdrop-blur-sm border border-border/50 rounded-xl p-4"
             >
               <img 
                 src={t.image} 
                 alt={t.name}
-                className="w-8 h-8 rounded-full object-cover border border-gold/30"
+                className="w-12 h-12 rounded-full object-cover border-2 border-gold/30 shrink-0"
               />
-              <div className="flex items-center gap-2">
-                <div className="flex gap-0.5">
+              <div className="min-w-0">
+                <div className="flex gap-0.5 mb-1">
                   {[...Array(5)].map((_, j) => (
                     <Star key={j} className="w-3 h-3 fill-gold text-gold" />
                   ))}
                 </div>
-                <span className="text-sm text-foreground/80">"{t.text}"</span>
-                <span className="text-xs text-muted-foreground">— {t.name}</span>
+                <p className="text-sm text-foreground font-medium leading-tight">"{t.text}"</p>
+                <p className="text-xs text-muted-foreground mt-1">— {t.name}</p>
               </div>
             </div>
           ))}
