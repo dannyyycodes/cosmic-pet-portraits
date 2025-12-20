@@ -10,6 +10,7 @@ import { SocialProofBar } from "@/components/SocialProofBar";
 import { UrgencyBanner } from "@/components/UrgencyBanner";
 import { LiveActivityIndicator } from "@/components/LiveActivityIndicator";
 import { MoneyBackBadge } from "@/components/MoneyBackBadge";
+import { VSLPresentation } from "@/components/VSLPresentation";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -230,6 +231,26 @@ const Index = () => {
               </p>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      {/* VSL Presentation Section */}
+      <section className="relative py-16 px-4 z-10">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-8"
+          >
+            <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
+              Watch: The Secret Your Pet's Been Keeping
+            </h2>
+            <p className="text-muted-foreground">
+              60 seconds that will change how you see your pet forever
+            </p>
+          </motion.div>
+          <VSLPresentation />
         </div>
       </section>
 
