@@ -377,7 +377,7 @@ serve(async (req) => {
                   
                   // Track purchase for email marketing (non-gift only)
                   if (!isGift && report.email) {
-                    const tier = includesPortrait ? 'premium' : 'basic';
+                    const selectedTier = session.metadata?.selected_tier || (includesPortrait ? 'premium' : 'basic');
                     try {
                       await fetch(`${supabaseUrl}/functions/v1/track-subscriber`, {
                         method: "POST",
@@ -389,12 +389,40 @@ serve(async (req) => {
                           email: report.email,
                           event: 'purchase_completed',
                           petName: report.pet_name,
-                          tier,
+                          tier: selectedTier,
                         }),
                       });
                       console.log("[STRIPE-WEBHOOK] Purchase tracked for email marketing:", report.email);
+                      
+                      // Send VIP welcome email if VIP tier
+                      if (selectedTier === 'vip') {
+                        console.log("[STRIPE-WEBHOOK] Sending VIP welcome email for:", reportId);
+                        
+                        // Get latest report data with portrait
+                        const { data: latestReport } = await supabaseClient
+                          .from("pet_reports")
+                          .select("portrait_url")
+                          .eq("id", reportId)
+                          .single();
+                        
+                        await fetch(`${supabaseUrl}/functions/v1/send-vip-email`, {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${serviceRoleKey}`,
+                          },
+                          body: JSON.stringify({
+                            reportId,
+                            email: report.email,
+                            petName: report.pet_name,
+                            sunSign: genData.report?.chartPlacements?.sun?.sign || genData.report?.sunSign,
+                            portraitUrl: latestReport?.portrait_url || null,
+                          }),
+                        });
+                        console.log("[STRIPE-WEBHOOK] VIP welcome email sent for:", reportId);
+                      }
                     } catch (trackError) {
-                      console.error("[STRIPE-WEBHOOK] Failed to track purchase:", trackError);
+                      console.error("[STRIPE-WEBHOOK] Failed to track/send VIP email:", trackError);
                     }
                   }
                 } else {

@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { HowItWorks } from "@/components/HowItWorks";
 import { HomeTestimonials } from "@/components/HomeTestimonials";
 import { FAQ } from "@/components/FAQ";
+import { SocialProofBar } from "@/components/SocialProofBar";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,6 +21,7 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       <Navbar />
+      <SocialProofBar />
       
       {/* Dynamic Cosmic Background */}
       <div className="fixed inset-0 z-0">

@@ -183,9 +183,34 @@ serve(async (req) => {
       }
     }
     
+    // Apply VIP customer referral discount ($5 off if referred by VIP customer)
+    let customerReferralDiscount = 0;
+    if (input.referralCode && input.referralCode.startsWith("VIP-")) {
+      // Check if this referral code exists
+      const { data: referrer } = await supabaseClient
+        .from("email_subscribers")
+        .select("email, referral_code")
+        .eq("referral_code", input.referralCode)
+        .single();
+      
+      if (referrer && referrer.email.toLowerCase() !== sanitizedEmail.toLowerCase()) {
+        // Check if already referred
+        const { data: existingRef } = await supabaseClient
+          .from("customer_referrals")
+          .select("id")
+          .eq("referred_email", sanitizedEmail.toLowerCase())
+          .single();
+        
+        if (!existingRef) {
+          customerReferralDiscount = 500; // $5 off
+          console.log("[CREATE-CHECKOUT] VIP referral discount applied:", input.referralCode);
+        }
+      }
+    }
+    
     // Calculate final total (never negative)
     const calculatedTotal = Math.max(0, 
-      baseTotal - volumeDiscount - couponDiscount - giftCertificateDiscount + giftAmount
+      baseTotal - volumeDiscount - couponDiscount - giftCertificateDiscount - customerReferralDiscount + giftAmount
     );
 
     console.log("[CREATE-CHECKOUT] Server-calculated price:", {
@@ -193,6 +218,7 @@ serve(async (req) => {
       volumeDiscount,
       couponDiscount,
       giftCertificateDiscount,
+      customerReferralDiscount,
       giftAmount,
       calculatedTotal,
     });

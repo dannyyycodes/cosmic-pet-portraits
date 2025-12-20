@@ -80,3 +80,12 @@ verify_jwt = false
 
 [functions.send-scheduled-emails]
 verify_jwt = false
+
+[functions.cancel-subscription]
+verify_jwt = false
+
+[functions.send-vip-email]
+verify_jwt = false
+
+[functions.track-customer-referral]
+verify_jwt = false
