@@ -74,23 +74,23 @@ const Index = () => {
         ))}
       </div>
 
-      {/* Hero Section - Compact with strong hook */}
+      {/* Hero Section - Optimized with power words + loss aversion */}
       <section className="relative flex items-center justify-center px-4 pt-24 pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Curiosity Hook Badge */}
+          {/* Urgency + Curiosity Badge */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6"
           >
-            <Zap className="w-4 h-4 text-primary" />
+            <Zap className="w-4 h-4 text-primary animate-pulse" />
             <span className="text-sm font-medium text-primary">
-              What is your pet trying to tell you?
+              🔮 Your pet has a message for you
             </span>
           </motion.div>
           
-          {/* Main Headline - Curiosity + Emotion */}
+          {/* Main Headline - Emotion + Curiosity Gap */}
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -101,17 +101,17 @@ const Index = () => {
             </span>
           </motion.h1>
 
-          {/* Subhead - Benefits + Proof */}
+          {/* Subhead - Specificity + Benefit */}
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
           >
-            {t('hero.subtitle')}
+            In just <span className="text-foreground font-medium">60 seconds</span>, discover the hidden personality, cosmic purpose, and secret desires your pet has been trying to share with you all along.
           </motion.p>
 
-          {/* Primary CTA Button - Single clear action */}
+          {/* Primary CTA + Gift Option */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -119,16 +119,34 @@ const Index = () => {
             className="flex flex-col items-center gap-4 mb-8"
           >
             <Link to="/intake?mode=discover">
-              <Button variant="cosmic" size="lg" className="text-lg px-10 py-7 group">
+              <Button variant="cosmic" size="lg" className="text-lg px-10 py-7 group shadow-[0_0_30px_hsl(var(--primary)/0.4)]">
                 <Sparkles className="w-5 h-5 mr-2" />
-                Discover My Pet's Soul
+                Yes! Reveal My Pet's Soul
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
-            <p className="text-sm text-muted-foreground flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Takes only 60 seconds • 50,000+ readings delivered
-            </p>
+            
+            {/* Gift Option - Secondary CTA */}
+            <Link 
+              to="/gift" 
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-nebula-pink transition-colors group"
+            >
+              <Gift className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              <span>Or <span className="underline underline-offset-2">gift this to a pet lover</span> — it'll make them cry happy tears</span>
+              <Heart className="w-3 h-3 text-nebula-pink" />
+            </Link>
+
+            {/* Social proof microcopy */}
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground mt-2">
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                60 seconds
+              </span>
+              <span className="text-border">•</span>
+              <span className="text-green-400 font-medium">52,847 readings delivered</span>
+              <span className="text-border">•</span>
+              <span>No credit card needed</span>
+            </div>
           </motion.div>
 
           {/* Money-Back Guarantee */}
@@ -141,7 +159,7 @@ const Index = () => {
             <MoneyBackBadge />
           </motion.div>
 
-          {/* Trustpilot - Compact */}
+          {/* Trustpilot - Compact with specificity */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -159,7 +177,7 @@ const Index = () => {
               <span className="text-sm font-medium text-foreground">Trustpilot</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              4.9/5 from 2,847 verified reviews
+              <span className="text-foreground font-medium">4.9/5</span> from 2,847 verified pet parents
             </p>
           </motion.div>
         </div>
