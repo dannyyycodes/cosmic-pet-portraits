@@ -28,6 +28,7 @@ const AdminReports = lazy(() => import("./pages/AdminReports"));
 const AdminSubscriptions = lazy(() => import("./pages/AdminSubscriptions"));
 const AdminAffiliates = lazy(() => import("./pages/AdminAffiliates"));
 const AdminGifts = lazy(() => import("./pages/AdminGifts"));
+const AdminEmailSequences = lazy(() => import("./pages/AdminEmailSequences"));
 const BecomeAffiliate = lazy(() => import("./pages/BecomeAffiliate"));
 const ReferralRedirect = lazy(() => import("./pages/ReferralRedirect"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -80,6 +81,7 @@ const App = () => (
                 <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
                 <Route path="/admin/affiliates" element={<AdminAffiliates />} />
                 <Route path="/admin/gifts" element={<AdminGifts />} />
+                <Route path="/admin/email-sequences" element={<AdminEmailSequences />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
