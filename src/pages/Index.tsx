@@ -144,8 +144,6 @@ const Index = () => {
               </span>
               <span className="text-border">•</span>
               <span className="text-green-400 font-medium">52,847 readings delivered</span>
-              <span className="text-border">•</span>
-              <span>No credit card needed</span>
             </div>
           </motion.div>
 
