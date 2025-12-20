@@ -47,11 +47,11 @@ serve(async (req) => {
     );
 
     // Fetch all data in parallel
-    const [reportsResult, affiliateResult, giftsResult, subscriberResult] = await Promise.all([
+    const [reportsResult, affiliateResult, giftsResult, subscriberResult, subscriptionsResult] = await Promise.all([
       // Pet reports for this user
       supabaseAdmin
         .from("pet_reports")
-        .select("id, pet_name, species, breed, birth_date, payment_status, created_at, share_token")
+        .select("id, pet_name, species, breed, birth_date, payment_status, created_at, share_token, portrait_url")
         .or(`email.eq.${email},user_id.eq.${userId}`)
         .eq("payment_status", "paid")
         .order("created_at", { ascending: false }),
@@ -66,7 +66,7 @@ serve(async (req) => {
       // Gift certificates purchased
       supabaseAdmin
         .from("gift_certificates")
-        .select("id, code, amount_cents, recipient_name, recipient_email, is_redeemed, created_at")
+        .select("id, code, amount_cents, recipient_name, recipient_email, is_redeemed, created_at, gift_tier, gift_message")
         .eq("purchaser_email", email)
         .order("created_at", { ascending: false }),
       
@@ -76,17 +76,26 @@ serve(async (req) => {
         .select("id, is_subscribed, journey_stage, created_at")
         .eq("email", email)
         .maybeSingle(),
+
+      // Horoscope subscriptions
+      supabaseAdmin
+        .from("horoscope_subscriptions")
+        .select("id, pet_name, status, created_at, cancelled_at, next_send_at, pet_report_id")
+        .eq("email", email)
+        .order("created_at", { ascending: false }),
     ]);
 
     if (reportsResult.error) console.error("[CUSTOMER-DATA] Reports error:", reportsResult.error);
     if (affiliateResult.error) console.error("[CUSTOMER-DATA] Affiliate error:", affiliateResult.error);
     if (giftsResult.error) console.error("[CUSTOMER-DATA] Gifts error:", giftsResult.error);
     if (subscriberResult.error) console.error("[CUSTOMER-DATA] Subscriber error:", subscriberResult.error);
+    if (subscriptionsResult.error) console.error("[CUSTOMER-DATA] Subscriptions error:", subscriptionsResult.error);
 
     const response = {
       reports: reportsResult.data || [],
       affiliate: affiliateResult.data,
       gifts: giftsResult.data || [],
+      subscriptions: subscriptionsResult.data || [],
       emailPreferences: subscriberResult.data ? {
         isSubscribed: subscriberResult.data.is_subscribed,
         subscribedAt: subscriberResult.data.created_at,
@@ -97,6 +106,7 @@ serve(async (req) => {
       reports: response.reports.length,
       isAffiliate: !!response.affiliate,
       gifts: response.gifts.length,
+      subscriptions: response.subscriptions.length,
       hasEmailPrefs: !!response.emailPreferences,
     });
 

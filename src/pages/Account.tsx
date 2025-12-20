@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { 
   FileText, 
   Gift, 
@@ -18,7 +19,10 @@ import {
   ExternalLink, 
   Copy,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Calendar,
+  Star,
+  XCircle
 } from "lucide-react";
 
 interface CustomerData {
@@ -31,6 +35,7 @@ interface CustomerData {
     payment_status: string;
     created_at: string;
     share_token: string | null;
+    portrait_url: string | null;
   }>;
   affiliate: {
     id: string;
@@ -49,6 +54,17 @@ interface CustomerData {
     recipient_email: string | null;
     is_redeemed: boolean;
     created_at: string;
+    gift_tier: string | null;
+    gift_message: string | null;
+  }>;
+  subscriptions: Array<{
+    id: string;
+    pet_name: string;
+    status: string;
+    created_at: string;
+    cancelled_at: string | null;
+    next_send_at: string;
+    pet_report_id: string | null;
   }>;
   emailPreferences: {
     isSubscribed: boolean;
@@ -64,6 +80,7 @@ const Account = () => {
   const [dataLoading, setDataLoading] = useState(true);
   const [emailSubscribed, setEmailSubscribed] = useState(true);
   const [updatingEmail, setUpdatingEmail] = useState(false);
+  const [cancellingSubId, setCancellingSubId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -131,9 +148,53 @@ const Account = () => {
     toast({ title: `${label} copied!` });
   };
 
+  const handleCancelSubscription = async (subscriptionId: string) => {
+    setCancellingSubId(subscriptionId);
+    try {
+      const { error } = await supabase.functions.invoke("cancel-subscription", {
+        body: { subscriptionId },
+      });
+
+      if (error) throw error;
+
+      // Update local state
+      setCustomerData(prev => prev ? {
+        ...prev,
+        subscriptions: prev.subscriptions.map(sub =>
+          sub.id === subscriptionId 
+            ? { ...sub, status: 'cancelled', cancelled_at: new Date().toISOString() }
+            : sub
+        ),
+      } : null);
+
+      toast({
+        title: "Subscription cancelled",
+        description: "You will no longer receive weekly horoscopes for this pet.",
+      });
+    } catch (err) {
+      console.error("Error cancelling subscription:", err);
+      toast({
+        title: "Error",
+        description: "Failed to cancel subscription. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCancellingSubId(null);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const getTierLabel = (tier: string | null, amount: number) => {
+    if (tier === 'vip') return 'VIP Experience';
+    if (tier === 'portrait') return 'Portrait Package';
+    if (tier === 'essential') return 'Essential Reading';
+    if (amount >= 12900) return 'VIP Experience';
+    if (amount >= 5000) return 'Portrait Package';
+    return 'Essential Reading';
   };
 
   if (loading || dataLoading) {
@@ -162,10 +223,14 @@ const Account = () => {
         </div>
 
         <Tabs defaultValue="reports" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur">
+          <TabsList className="grid w-full grid-cols-5 bg-card/50 backdrop-blur">
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Reports</span>
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              <span className="hidden sm:inline">Horoscopes</span>
             </TabsTrigger>
             <TabsTrigger value="gifts" className="flex items-center gap-2">
               <Gift className="w-4 h-4" />
@@ -220,6 +285,86 @@ const Account = () => {
                           <ExternalLink className="w-4 h-4 mr-1" />
                           View
                         </CosmicButton>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Subscriptions Tab */}
+          <TabsContent value="subscriptions" className="space-y-4">
+            <Card className="bg-card/50 backdrop-blur border-border/50">
+              <CardHeader>
+                <CardTitle>Weekly Horoscopes</CardTitle>
+                <CardDescription>Your active horoscope subscriptions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {customerData?.subscriptions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Star className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground mb-4">No horoscope subscriptions</p>
+                    <p className="text-sm text-muted-foreground">
+                      Weekly horoscopes are included with Portrait and VIP gift tiers
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {customerData?.subscriptions.map((sub) => (
+                      <div 
+                        key={sub.id}
+                        className="flex items-center justify-between p-4 rounded-lg bg-background/50 border border-border/30"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-foreground">{sub.pet_name}</h3>
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              sub.status === 'active' 
+                                ? "bg-green-500/20 text-green-400" 
+                                : "bg-muted text-muted-foreground"
+                            }`}>
+                              {sub.status === 'active' ? 'Active' : 'Cancelled'}
+                            </span>
+                          </div>
+                          {sub.status === 'active' && (
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                              <Calendar className="w-3 h-3" />
+                              Next: {new Date(sub.next_send_at).toLocaleDateString()}
+                            </div>
+                          )}
+                          {sub.cancelled_at && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Cancelled on {new Date(sub.cancelled_at).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {sub.pet_report_id && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => navigate(`/report?id=${sub.pet_report_id}`)}
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          )}
+                          {sub.status === 'active' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleCancelSubscription(sub.id)}
+                              disabled={cancellingSubId === sub.id}
+                              className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                            >
+                              {cancellingSubId === sub.id ? (
+                                <span className="animate-pulse">...</span>
+                              ) : (
+                                <XCircle className="w-4 h-4" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
