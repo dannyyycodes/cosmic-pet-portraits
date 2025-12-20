@@ -354,15 +354,118 @@ const speciesHiddenGifts: Record<string, string[]> = {
   ],
 };
 
-// Love languages based on element
-const elementLoveLanguages: Record<string, string> = {
-  Fire: "Active play and adventure. They show love through excitement and energy.",
-  Earth: "Physical presence and routine. They show love through reliable companionship.",
-  Air: "Verbal interaction and variety. They show love through playful engagement.",
-  Water: "Deep emotional connection. They show love through intuitive understanding.",
+// Love languages based on element AND species for maximum personalization
+const speciesLoveLanguages: Record<string, Record<string, string>> = {
+  dog: {
+    Fire: "Energetic play sessions and outdoor adventures. Your dog shows love through excited greetings and shared activities.",
+    Earth: "Loyal companionship and physical presence. Your dog shows love by always being at your feet, guarding your space.",
+    Air: "Interactive games and social outings. Your dog shows love through playful engagement and meeting new friends.",
+    Water: "Deep emotional bonding and quiet cuddle time. Your dog shows love by sensing your moods and staying close.",
+  },
+  cat: {
+    Fire: "Sudden bursts of play and chase games. Your cat shows love through dramatic performances and energetic zoomies.",
+    Earth: "Claiming your space as theirs. Your cat shows love by sleeping on your things, slow blinks, and routine rituals.",
+    Air: "Curious exploration and conversational meows. Your cat shows love through chatty interactions and showing you interesting finds.",
+    Water: "Quiet companionship and intuitive presence. Your cat shows love by appearing when you're sad and purring away your pain.",
+  },
+  horse: {
+    Fire: "Spirited rides and groundwork challenges. Your horse shows love through eager responses and willing partnership.",
+    Earth: "Calm grooming sessions and steady routines. Your horse shows love through patient presence and quiet trust.",
+    Air: "Trail adventures and new experiences. Your horse shows love through curiosity about your activities and gentle nudges.",
+    Water: "Deep emotional mirroring and silent understanding. Your horse shows love by sensing your energy before you speak.",
+  },
+  bird: {
+    Fire: "Energetic songs and bold interactions. Your bird shows love through dramatic displays and eager greetings.",
+    Earth: "Gentle preening and shoulder time. Your bird shows love through quiet companionship and relaxed presence near you.",
+    Air: "Chatty conversations and learning new words. Your bird shows love through mimicking your voice and interactive play.",
+    Water: "Soft chirps and intuitive closeness. Your bird shows love by sensing when you need gentle company.",
+  },
+  rabbit: {
+    Fire: "Zoomy binkies and excited running circles around you. Your rabbit shows love through pure expressions of joy.",
+    Earth: "Flopping contentedly near you and accepting pets. Your rabbit shows love through relaxed vulnerability in your presence.",
+    Air: "Curious investigation and playful nudges. Your rabbit shows love by exploring with you and seeking your attention.",
+    Water: "Gentle grooming licks and pressed-close cuddles. Your rabbit shows love through tender moments of connection.",
+  },
+  hamster: {
+    Fire: "Enthusiastic wheel running when you're near. Your hamster shows love through excited activity in your presence.",
+    Earth: "Accepting treats from your hand and building nests you can see. Your hamster shows love through growing trust.",
+    Air: "Curious exploration when you let them out. Your hamster shows love through excited investigations of your space.",
+    Water: "Peaceful sleep when they can see you. Your hamster shows love by feeling safe enough to rest near you.",
+  },
+  guinea_pig: {
+    Fire: "Excited wheeks and popcorning at your arrival. Your guinea pig shows love through vocal celebrations.",
+    Earth: "Relaxed munching in your presence. Your guinea pig shows love by eating comfortably around you—a sign of deep trust.",
+    Air: "Chatty conversations and social squeaks. Your guinea pig shows love through constant communication with you.",
+    Water: "Gentle purring and burrowing into your lap. Your guinea pig shows love through seeking comfort in your warmth.",
+  },
+  fish: {
+    Fire: "Eager feeding time swims and active displays. Your fish shows love through excited recognition of your approach.",
+    Earth: "Calm presence in their favorite spots. Your fish shows love by establishing comfortable routines around your schedule.",
+    Air: "Curious investigation of anything new. Your fish shows love by interacting with your finger at the glass.",
+    Water: "Graceful synchronized movements. Your fish shows love through creating peaceful beauty in your space.",
+  },
+  reptile: {
+    Fire: "Alert engagement when you approach. Your reptile shows love through perking up at your presence.",
+    Earth: "Relaxed basking in your company. Your reptile shows love by feeling secure enough to thermoregulate near you.",
+    Air: "Curious tongue flicks and exploration. Your reptile shows love through investigating your scent with interest.",
+    Water: "Calm stillness in your presence. Your reptile shows love by reducing defensive behavior around you.",
+  },
+  default: {
+    Fire: "Active engagement and excited responses. They show love through energetic displays of joy.",
+    Earth: "Physical closeness and routine presence. They show love through reliable companionship.",
+    Air: "Curious interaction and playful engagement. They show love through exploring the world with you.",
+    Water: "Deep emotional connection and intuitive sensing. They show love through understanding you.",
+  },
 };
 
-// Core essences based on archetype qualities
+// Helper to get species-specific love language
+function getLoveLanguage(species: string, element: string): string {
+  const normalizedSpecies = species?.toLowerCase() || 'default';
+  const speciesLanguages = speciesLoveLanguages[normalizedSpecies] || speciesLoveLanguages.default;
+  return speciesLanguages[element] || speciesLanguages.Earth || speciesLoveLanguages.default.Earth;
+}
+
+// Species-specific core essence templates
+const speciesCoreEssences: Record<string, (name: string, pronoun: string, possessive: string, element: string, archetype: string, breed: string, soulDesc: string) => string[]> = {
+  dog: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
+    `${name} carries the loyal heart of a ${element} dog—${possessive} devotion runs deeper than you realize.${breed ? ` As a ${breed},` : ''} ${pronoun} was born to be your faithful companion, ${soulDesc}.`,
+    `At ${possessive} core, ${name} is driven by the pack instinct combined with ${element} energy. Every tail wag, every greeting, every moment ${pronoun} spends near you is ${possessive} way of saying you matter.`,
+    `${name}'s ${element} canine soul radiates through every bark, every sniff, every excited spin.${breed ? ` The ${breed} in ${pronoun}` : ' Their ${archetype.toLowerCase()} nature'} means ${pronoun} will protect your heart with ${possessive} life.`,
+    `Born under ${element} influence with a dog's eternal loyalty, ${name} possesses the gift of unconditional love.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature makes ${pronoun} your forever companion.`,
+  ],
+  cat: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
+    `${name} carries the mystical grace of a ${element} cat—${possessive} independence balanced with deep affection.${breed ? ` As a ${breed},` : ''} ${pronoun} chose you, not the other way around, ${soulDesc}.`,
+    `At ${possessive} core, ${name} is a feline enigma wrapped in ${element} energy. The slow blinks, the headbutts, the 3 AM zoomies—all ${possessive} unique language of love.`,
+    `${name}'s ${element} cat soul sees dimensions you cannot perceive.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature means ${pronoun} guards both your home and your spirit.`,
+    `Born under ${element} influence with a cat's ancient wisdom, ${name} understands things beyond words.${breed ? ` The ${breed} lineage in ${pronoun}` : ` Their ${archetype.toLowerCase()} nature`} connects ${pronoun} to cosmic mysteries.`,
+  ],
+  horse: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
+    `${name} carries the wild spirit of a ${element} horse—freedom and connection woven together.${breed ? ` As a ${breed},` : ''} ${pronoun} mirrors your emotions with ${possessive} powerful presence, ${soulDesc}.`,
+    `At ${possessive} core, ${name} is a partnership soul with ${element} energy flowing through every stride. The bond between you is ancient and unbreakable.`,
+    `${name}'s ${element} equine soul runs free while staying tethered to your heart.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature means ${pronoun} will carry you through any storm.`,
+    `Born under ${element} influence with a horse's noble heart, ${name} teaches you trust and vulnerability.${breed ? ` The ${breed} spirit in ${pronoun}` : ` Their ${archetype.toLowerCase()} nature`} demands authentic connection.`,
+  ],
+  bird: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
+    `${name} carries the song of a ${element} bird—free spirit with deep bonds.${breed ? ` As a ${breed},` : ''} ${pronoun} sees the world from heights you'll never reach, ${soulDesc}.`,
+    `At ${possessive} core, ${name} is a winged soul with ${element} energy lifting every chirp and whistle. ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} songs are messages from the cosmos.`,
+    `${name}'s ${element} avian soul perceives colors and sounds beyond human range.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature connects heaven and earth.`,
+    `Born under ${element} influence with a bird's elevated perspective, ${name} brings lightness to your life.${breed ? ` The ${breed} in ${pronoun}` : ` Their ${archetype.toLowerCase()} nature`} gifts you new ways of seeing.`,
+  ],
+  rabbit: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
+    `${name} carries the gentle magic of a ${element} rabbit—soft yet surprisingly brave.${breed ? ` As a ${breed},` : ''} ${pronoun} senses the world through whisker-fine vibrations, ${soulDesc}.`,
+    `At ${possessive} core, ${name} is a twilight soul with ${element} energy. Those binkies aren't just jumps—they're pure joy made visible.`,
+    `${name}'s ${element} bunny soul embodies the balance between alertness and peace.${breed ? ` As a ${breed},` : ''} ${possessive} ${archetype.toLowerCase()} nature brings gentle strength to your life.`,
+    `Born under ${element} influence with a rabbit's lunar connection, ${name} thrives in the magic hours of dawn and dusk.${breed ? ` The ${breed} in ${pronoun}` : ` Their ${archetype.toLowerCase()} nature`} is pure enchantment.`,
+  ],
+  default: (name, pronoun, possessive, element, archetype, breed, soulDesc) => [
+    `${name} carries ${possessive} ${element} energy with natural grace.${breed ? ` As a ${breed},` : ''} ${pronoun} brings unique gifts that complement your own energy perfectly—${soulDesc}.`,
+    `At ${possessive} core, ${name} is driven by ${element} energy—making ${pronoun} both grounded and intuitive.${breed ? ` As a ${breed},` : ''} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${archetype.toLowerCase()} nature means ${pronoun} will always seek to balance your energy.`,
+    `${name}'s ${element} soul radiates through everything ${pronoun} does.${breed ? ` As a ${breed},` : ''} The ${archetype.toLowerCase()} within ${pronoun} seeks meaning in every interaction with you.`,
+    `Born under ${element} influence, ${name} possesses wisdom that goes beyond ordinary understanding.${breed ? ` As a ${breed},` : ''} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${archetype.toLowerCase()} nature is a gift meant specifically for you.`,
+  ],
+};
+
+// Core essences based on archetype qualities AND species
 function getCoreEssence(petData: PetData, archetype: string, element: string): string {
   const { name, gender, species, breed, soulType } = petData;
   const pronoun = gender === 'girl' ? 'she' : gender === 'boy' ? 'he' : 'they';
@@ -373,14 +476,9 @@ function getCoreEssence(petData: PetData, archetype: string, element: string): s
     ? soulTypeDescriptors[soulType.toLowerCase()] || soulType
     : `${archetype.toLowerCase()} nature`;
   
-  const breedMention = breed ? ` As a ${breed},` : '';
-  
-  const essences = [
-    `${name} carries ${possessive} ${element} energy with natural grace.${breedMention} ${pronoun} brings unique gifts that complement your own energy perfectly—a ${soulDescription}.`,
-    `At ${possessive} core, ${name} is driven by ${element} energy—making ${pronoun} both grounded and intuitive.${breedMention} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${archetype.toLowerCase()} nature means ${pronoun} will always seek to balance your energy.`,
-    `${name}'s ${element} soul radiates through everything ${pronoun} does.${breedMention} The ${archetype.toLowerCase()} within ${pronoun} seeks meaning in every interaction with you.`,
-    `Born under ${element} influence, ${name} possesses wisdom that goes beyond ordinary understanding.${breedMention} ${possessive.charAt(0).toUpperCase() + possessive.slice(1)} ${archetype.toLowerCase()} nature is a gift meant specifically for you.`,
-  ];
+  const normalizedSpecies = species?.toLowerCase() || 'default';
+  const essenceGenerator = speciesCoreEssences[normalizedSpecies] || speciesCoreEssences.default;
+  const essences = essenceGenerator(name, pronoun, possessive, element, archetype, breed || '', soulDescription);
   
   const index = calculateNameVibration(name) % essences.length;
   return essences[index];
@@ -487,7 +585,7 @@ export function generateCosmicReport(petData: PetData): CosmicReport {
     coreEssence: getCoreEssence(petData, archetype, element),
     soulMission: soulMissions[soulMissionIndex],
     hiddenGift: hiddenGifts[hiddenGiftIndex],
-    loveLanguage: elementLoveLanguages[element] || elementLoveLanguages.Earth,
+    loveLanguage: getLoveLanguage(species, element),
     cosmicAdvice: getCosmicAdvice(petData, element),
     breedInsight,
     ownerInsight,
