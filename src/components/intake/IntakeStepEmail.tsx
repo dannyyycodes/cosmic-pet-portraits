@@ -83,6 +83,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
   const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>(giftCode ? 'email' : 'email');
   const astrologyFacts = getSpeciesAstrologyFacts(petData.species);
   const [factIndex, setFactIndex] = useState(Math.floor(Math.random() * astrologyFacts.length));
+  const [selectedPetIndex, setSelectedPetIndex] = useState(0);
   const hasTrackedEmail = useRef(false);
   
   // Stricter email validation - must end with valid TLD characters only
@@ -330,185 +331,112 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               })}
             </div>
 
-            {/* FREE Mini Reading - Shows ALL pets */}
+            {/* FREE Mini Reading - Tabbed for multi-pet */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="p-5 rounded-xl bg-gradient-to-br from-cosmic-gold/10 to-amber-500/5 border border-cosmic-gold/30"
+              className="rounded-xl bg-gradient-to-br from-cosmic-gold/10 to-amber-500/5 border border-cosmic-gold/30 overflow-hidden"
             >
-              <div className="flex items-center gap-2 mb-3">
+              {/* Header */}
+              <div className="flex items-center gap-2 p-4 pb-0">
                 <Sparkles className="w-5 h-5 text-cosmic-gold" />
                 <h3 className="font-display font-semibold text-foreground">
-                  {allPets.length > 1 ? 'Your Free Cosmic Mini-Readings' : 'Your Free Cosmic Mini-Reading'}
+                  Your Free Mini-Reading
                 </h3>
                 <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-cosmic-gold/20 text-cosmic-gold font-medium">FREE</span>
               </div>
               
-              <div className="space-y-4 text-sm text-left">
-                {allPets.map((pet, index) => {
+              {/* Pet Tabs for multiple pets */}
+              {allPets.length > 1 && (
+                <div className="flex gap-1 px-4 pt-3">
+                  {allPets.map((pet, index) => {
+                    const { signData: petSignData } = getPetSignData(pet);
+                    return (
+                      <button
+                        key={`pet-tab-${index}`}
+                        onClick={() => setSelectedPetIndex(index)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                          selectedPetIndex === index
+                            ? 'bg-cosmic-gold/20 text-cosmic-gold border border-cosmic-gold/30'
+                            : 'bg-card/30 text-muted-foreground hover:bg-card/50'
+                        }`}
+                      >
+                        <span className="text-sm">{petSignData?.icon || '⭐'}</span>
+                        <span>{pet.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {/* Single Pet Reading Display */}
+              <div className="p-4 text-sm text-left">
+                {(() => {
+                  const pet = allPets[selectedPetIndex] || allPets[0];
                   const { sign: petSign, signData: petSignData } = getPetSignData(pet);
                   if (!petSignData) return null;
                   
                   return (
-                    <div key={`mini-reading-${index}`} className="space-y-3">
-                      {allPets.length > 1 && (
-                        <div className="flex items-center gap-2 pt-2 first:pt-0">
-                          <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${elementColors[petSignData.element]} flex items-center justify-center`}>
-                            <span className="text-sm">{petSignData.icon}</span>
-                          </div>
-                          <span className="font-medium text-foreground">{pet.name}</span>
-                        </div>
-                      )}
-                      
-                      {/* Element Deep Dive */}
-                      <div className="p-3 rounded-lg bg-card/30 space-y-2">
-                        <p className="font-medium text-foreground flex items-center gap-2">
-                          <span className="text-lg">{petSignData.element === 'Fire' ? '🔥' : petSignData.element === 'Earth' ? '🌍' : petSignData.element === 'Air' ? '💨' : '💧'}</span>
-                          {petSignData.element} Element Profile
-                        </p>
-                        <p className="text-foreground/90">
-                          <span className="font-medium text-cosmic-gold">{pet.name}</span>'s greatest strength is their <span className="font-medium">{elementTraits[petSignData.element]?.strength}</span>. 
-                          Their challenge? <span className="text-muted-foreground">{elementTraits[petSignData.element]?.challenge}</span>.
-                        </p>
-                        <p className="text-muted-foreground text-xs">
-                          What they need most: <span className="text-foreground">{elementTraits[petSignData.element]?.need}</span>
+                    <div className="space-y-4">
+                      {/* Personalized Hook - Emotional */}
+                      <div className="p-4 rounded-xl bg-card/40 border border-primary/20">
+                        <p className="text-foreground text-base leading-relaxed">
+                          <span className="font-semibold text-cosmic-gold">{pet.name}</span> isn't just any {petData.species}. 
+                          As a <span className="font-medium">{petSign}</span> with <span className="font-medium">{petSignData.element}</span> energy, 
+                          {petSignData.element === 'Fire' && " they carry a flame in their soul that lights up your darkest days. But that same fire means they feel rejection more deeply than you'd ever guess..."}
+                          {petSignData.element === 'Earth' && " their loyalty runs deeper than the roots of an ancient tree. When they curl up beside you, they're offering you their entire world..."}
+                          {petSignData.element === 'Air' && " their mind is always dancing with curiosity. That look in their eyes? It's them trying to understand the mysteries of your heart..."}
+                          {petSignData.element === 'Water' && " they feel your emotions before you do. When you're sad, they know. When you're happy, they celebrate with you in ways you might not even notice..."}
                         </p>
                       </div>
 
-                      {/* Personalized Insight */}
-                      <p className="text-foreground/90">
-                        As a <span className="font-medium">{petSign}</span>, {pet.name} experiences the world through a lens of 
-                        {petSignData.element === 'Fire' && " passionate energy. They're natural leaders who light up every room—but beneath that confidence lies a sensitive soul who fears being overlooked."}
-                        {petSignData.element === 'Earth' && " grounded stability. They crave routine and security—but their deep loyalty means they feel abandonment more intensely than other pets."}
-                        {petSignData.element === 'Air' && " curious exploration. They need constant mental stimulation—but their social nature masks a fear of being truly alone."}
-                        {petSignData.element === 'Water' && " emotional depth. They sense your moods before you do—but this sensitivity makes them absorb stress around them."}
-                      </p>
-
-                      {/* Soul Type Integration */}
-                      {pet.soulType && (
-                        <p className="text-muted-foreground italic">
-                          Combined with their {pet.soulType} soul nature, this creates a unique cosmic signature that influences everything from their sleep patterns to how they bond with you...
+                      {/* One Powerful Insight with Humor */}
+                      <div className="space-y-2">
+                        <p className="text-xs text-primary font-medium uppercase tracking-wider">🔮 One Truth About {pet.name}</p>
+                        <p className="text-foreground/90 italic">
+                          {petSign === 'Aries' && `${pet.name} thinks they're in charge. (They're not wrong.) Their biggest fear? Being ignored. Try that "look away" trick when they misbehave—it's cosmic torture for them.`}
+                          {petSign === 'Taurus' && `${pet.name} has probably claimed "their spot" on the couch. Move it at your peril. Their secret? They'd do anything for a good belly rub and routine.`}
+                          {petSign === 'Gemini' && `${pet.name} gets bored faster than you can say "fetch." Two personalities in one adorable package. Keep it interesting or they'll find their own entertainment (RIP your shoes).`}
+                          {petSign === 'Cancer' && `${pet.name} remembers EVERYTHING. That time you left them at the vet? Filed away forever. They love you so much it almost hurts them.`}
+                          {petSign === 'Leo' && `${pet.name} knows they're the main character. The drama? Intentional. They secretly check if you're watching before doing anything cute.`}
+                          {petSign === 'Virgo' && `${pet.name} judges you. Lovingly. That stare when you don't follow their routine? Pure disappointment. They're the most helpful soul you'll ever meet.`}
+                          {petSign === 'Libra' && `${pet.name} hates conflict so much they'll literally leave the room. Their mission? Keeping everyone happy. They're basically a furry diplomat.`}
+                          {petSign === 'Scorpio' && `${pet.name} has depths you'll never fully understand. Those intense eyes? They're reading your soul. Betray their trust and they'll remember forever.`}
+                          {petSign === 'Sagittarius' && `${pet.name}'s attention span is... squirrel! They're eternal optimists who treat every walk like a grand adventure. Freedom is their love language.`}
+                          {petSign === 'Capricorn' && `${pet.name} is basically a tiny CEO. They have goals. They have standards. They judge other pets. They're secretly proud of you.`}
+                          {petSign === 'Aquarius' && `${pet.name} does things their own way. Always. They're the pet that makes you question "is this normal?" (It is, for them.)`}
+                          {petSign === 'Pisces' && `${pet.name} dreams in cosmic frequencies. Sometimes they stare at nothing—they're seeing things you can't. They absorb your stress, so protect this gentle soul.`}
                         </p>
-                      )}
-                      
-                      {allPets.length > 1 && index < allPets.length - 1 && (
-                        <div className="border-b border-border/30 mt-4" />
-                      )}
+                      </div>
+
+                      {/* Emotional FOMO - What's Missing */}
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-nebula-purple/10 border border-nebula-purple/20">
+                        <Lock className="w-5 h-5 text-nebula-purple flex-shrink-0" />
+                        <p className="text-sm text-foreground/80">
+                          Your full 18-chapter report reveals <span className="font-medium">why {pet.name} does that ONE weird thing</span>, their hidden fears, and how to speak their love language...
+                        </p>
+                      </div>
                     </div>
                   );
-                })}
+                })()}
               </div>
             </motion.div>
 
-            {/* Astrology Fact - Builds Belief */}
+            {/* Single Testimonial - Social Proof */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="p-4 rounded-xl bg-nebula-purple/10 border border-nebula-purple/30"
+              className="flex items-center gap-3 p-3 rounded-xl bg-card/30 border border-border/30"
             >
-              <div className="flex items-start gap-3 text-left">
-                <span className="text-2xl">{astrologyFacts[factIndex].icon}</span>
-                <div>
-                  <p className="text-xs text-nebula-purple uppercase tracking-wider mb-1">Did You Know?</p>
-                  <p className="text-sm text-foreground/90">{astrologyFacts[factIndex].fact}</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Blurred Report Teaser - FOMO */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="relative overflow-hidden rounded-xl border border-border/50 p-4"
-            >
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background z-10" />
-              <div className="blur-sm opacity-60 text-left space-y-2">
-                <p className="text-xs text-primary font-medium">Chapter 5: Hidden Fears & Comfort Needs</p>
-                <p className="text-sm text-foreground">
-                  {petData.name}'s deepest fear stems from their {signData?.element || 'cosmic'} nature. When they feel ████████, 
-                  they will often ████████ as a coping mechanism. The best way to comfort them is to ████████...
-                </p>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center z-20">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-background/90 border border-primary/30">
-                  <Lock className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Unlock Full Report</span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* What You'd Miss - FOMO List */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="p-4 rounded-xl bg-red-500/5 border border-red-500/20"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <h4 className="text-sm font-semibold text-foreground">Without the full report, you'll never know...</h4>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-xs text-left">
-                {whatYoudMiss.map((item, i) => (
-                  <div key={i} className="flex items-start gap-1.5 text-muted-foreground">
-                    <span className="text-red-400/60">✗</span>
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* What's included - teaser cards */}
-            <div className="space-y-3 pt-2">
-              <h3 className="text-lg font-display font-semibold text-foreground text-center">
-                Your full 18-chapter reading reveals...
-              </h3>
-              
-              <div className="grid grid-cols-2 gap-2">
-                {revealInsights.map((insight, index) => (
-                  <motion.div
-                    key={insight.title}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.9 + index * 0.1 }}
-                    className="p-3 rounded-xl bg-gradient-to-br from-card/80 to-card/40 border border-border/50 text-left hover:border-primary/30 transition-all"
-                  >
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <insight.icon className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                      <span className="text-xs font-semibold text-foreground">{insight.title}</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground line-clamp-2">{insight.teaser}</p>
-                    <div className="flex items-center gap-1 text-[10px] text-primary/60 mt-1">
-                      <Lock className="w-2.5 h-2.5" />
-                      <span>Full details in report</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Social proof with real impact */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2 }}
-              className="text-center space-y-2 py-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-primary/10 border border-amber-500/20"
-            >
-              <div className="flex items-center justify-center gap-1 text-amber-500">
+              <div className="flex gap-0.5 text-amber-500">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
+                  <Star key={i} className="w-3 h-3 fill-current" />
                 ))}
               </div>
-              <p className="text-sm text-foreground font-medium">
-                12,847 pet parents discovered their pet's cosmic truth
-              </p>
-              <p className="text-xs text-muted-foreground italic px-4">
-                "This explained SO much about my dog's personality. It's like someone who really knows her wrote it!" — Sarah M.
+              <p className="text-xs text-muted-foreground italic flex-1">
+                "Explained SO much about my {petData.species}'s quirks!" — Sarah M.
               </p>
             </motion.div>
 
