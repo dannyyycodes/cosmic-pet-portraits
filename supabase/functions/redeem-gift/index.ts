@@ -14,6 +14,7 @@ const redeemSchema = z.object({
     .max(20)
     .regex(/^GIFT-[A-Z0-9]{4}-[A-Z0-9]{4}$/, "Invalid gift code format"),
   reportId: z.string().uuid(),
+  petPhotoUrl: z.string().url().optional(),
 });
 
 serve(async (req) => {
@@ -96,13 +97,19 @@ serve(async (req) => {
       });
     }
 
-    // Update the report as paid
+    // Update the report as paid and save pet photo URL if provided
+    const updateData: any = { 
+      payment_status: "paid",
+      stripe_session_id: `gift_${gift.code}`,
+    };
+    
+    if (input.petPhotoUrl) {
+      updateData.pet_photo_url = input.petPhotoUrl;
+    }
+    
     const { error: reportError } = await supabase
       .from("pet_reports")
-      .update({ 
-        payment_status: "paid",
-        stripe_session_id: `gift_${gift.code}`,
-      })
+      .update(updateData)
       .eq("id", input.reportId);
 
     if (reportError) {

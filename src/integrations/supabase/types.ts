@@ -524,6 +524,8 @@ export type Database = {
           occasion_mode: string | null
           payment_status: string | null
           pet_name: string
+          pet_photo_url: string | null
+          portrait_url: string | null
           report_content: Json | null
           share_token: string | null
           soul_type: string | null
@@ -546,6 +548,8 @@ export type Database = {
           occasion_mode?: string | null
           payment_status?: string | null
           pet_name: string
+          pet_photo_url?: string | null
+          portrait_url?: string | null
           report_content?: Json | null
           share_token?: string | null
           soul_type?: string | null
@@ -568,6 +572,8 @@ export type Database = {
           occasion_mode?: string | null
           payment_status?: string | null
           pet_name?: string
+          pet_photo_url?: string | null
+          portrait_url?: string | null
           report_content?: Json | null
           share_token?: string | null
           soul_type?: string | null

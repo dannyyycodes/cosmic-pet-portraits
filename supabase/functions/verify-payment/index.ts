@@ -100,7 +100,7 @@ serve(async (req) => {
           .single();
 
         if (report && !report.report_content) {
-          await generateReport(report, id, supabaseClient);
+          await generateReport(report, id, supabaseClient, true); // Dev mode includes portrait
         }
       }
 
@@ -215,7 +215,8 @@ serve(async (req) => {
         .single();
 
       if (report && !report.report_content) {
-        await generateReport(report, id, supabaseClient);
+        const includesPortrait = session.metadata?.includes_portrait === "true" || session.metadata?.selected_tier === "vip";
+        await generateReport(report, id, supabaseClient, includesPortrait);
       }
     }
 
@@ -300,7 +301,7 @@ serve(async (req) => {
   }
 });
 
-async function generateReport(report: any, reportId: string, supabaseClient: any) {
+async function generateReport(report: any, reportId: string, supabaseClient: any, includesPortrait = false) {
   console.log("[VERIFY-PAYMENT] Generating report for:", reportId);
 
   const petData = {
@@ -345,6 +346,50 @@ async function generateReport(report: any, reportId: string, supabaseClient: any
     }
 
     console.log("[VERIFY-PAYMENT] Report generated successfully");
+
+    // Generate AI portrait if tier includes it and pet photo is available
+    if (includesPortrait && report.pet_photo_url) {
+      try {
+        console.log("[VERIFY-PAYMENT] Generating AI portrait for:", reportId);
+        const portraitResponse = await fetch(
+          `${supabaseUrl}/functions/v1/generate-pet-portrait`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({
+              petName: report.pet_name,
+              species: report.species || 'pet',
+              breed: report.breed || '',
+              sunSign: genData?.report?.chartPlacements?.sun?.sign || genData?.report?.sunSign || 'Leo',
+              element: genData?.report?.dominantElement || 'Fire',
+              archetype: genData?.report?.archetype?.name || 'Cosmic Soul',
+              style: 'pokemon',
+              petImageUrl: report.pet_photo_url,
+            }),
+          }
+        );
+
+        if (portraitResponse.ok) {
+          const portraitData = await portraitResponse.json();
+          if (portraitData.imageUrl) {
+            // Save portrait URL to database
+            await supabaseClient
+              .from("pet_reports")
+              .update({ portrait_url: portraitData.imageUrl })
+              .eq("id", reportId);
+            console.log("[VERIFY-PAYMENT] AI portrait saved for:", reportId);
+          }
+        } else {
+          console.error("[VERIFY-PAYMENT] Portrait generation failed:", await portraitResponse.text());
+        }
+      } catch (portraitError) {
+        console.error("[VERIFY-PAYMENT] Portrait generation error:", portraitError);
+        // Non-fatal - continue
+      }
+    }
 
     // Send email (best-effort)
     const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-report-email`, {
