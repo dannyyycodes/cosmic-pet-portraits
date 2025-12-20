@@ -284,8 +284,8 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 </div>
               </Button>
 
-              {/* Weekly horoscope - show if not VIP (VIP already includes it) */}
-              {giftedInfo.giftedTier !== 'vip' && (
+              {/* Weekly horoscope - show if not VIP and not already purchased */}
+              {giftedInfo.giftedTier !== 'vip' && !horoscopeInfo?.enabled && (
                 <Button
                   onClick={() => navigate('/intake?mode=discover&upsell=horoscope')}
                   variant="outline"
