@@ -237,6 +237,53 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_email: string
+          referred_report_id: string | null
+          referred_rewarded: boolean
+          referrer_code: string
+          referrer_email: string
+          referrer_rewarded: boolean
+          reward_type: string
+          reward_value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_email: string
+          referred_report_id?: string | null
+          referred_rewarded?: boolean
+          referrer_code: string
+          referrer_email: string
+          referrer_rewarded?: boolean
+          reward_type?: string
+          reward_value?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_email?: string
+          referred_report_id?: string | null
+          referred_rewarded?: boolean
+          referrer_code?: string
+          referrer_email?: string
+          referrer_rewarded?: boolean
+          reward_type?: string
+          reward_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_referrals_referred_report_id_fkey"
+            columns: ["referred_report_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_campaigns: {
         Row: {
           ai_generated: boolean
