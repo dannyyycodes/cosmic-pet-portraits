@@ -1,12 +1,15 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Star, Sparkles, Gift, Heart, Dog } from "lucide-react";
+import { Star, Sparkles, Gift, Heart, Dog, Zap, Clock } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { HowItWorks } from "@/components/HowItWorks";
 import { HomeTestimonials } from "@/components/HomeTestimonials";
 import { FAQ } from "@/components/FAQ";
 import { SocialProofBar } from "@/components/SocialProofBar";
+import { UrgencyBanner } from "@/components/UrgencyBanner";
+import { LiveActivityIndicator } from "@/components/LiveActivityIndicator";
+import { MoneyBackBadge } from "@/components/MoneyBackBadge";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -20,6 +23,7 @@ const Index = () => {
   }, []);
   return (
     <main className="min-h-screen bg-background overflow-hidden">
+      <UrgencyBanner />
       <Navbar />
       <SocialProofBar />
       
@@ -70,10 +74,22 @@ const Index = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative flex items-center justify-center px-4 pt-28 pb-8 z-10">
+      <section className="relative flex items-center justify-center px-4 pt-24 pb-8 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Main Headline */}
+          {/* Curiosity Hook Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6"
+          >
+            <Zap className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">
+              What is your pet trying to tell you?
+            </span>
+          </motion.div>
+          
+          {/* Main Headline - Curiosity + Emotion */}
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -84,22 +100,32 @@ const Index = () => {
             </span>
           </motion.h1>
 
-          {/* Subhead */}
+          {/* Subhead - Benefits + Proof */}
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed"
+            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
           >
             {t('hero.subtitle')}
           </motion.p>
+
+          {/* Live Activity Indicator */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
+            className="mb-8"
+          >
+            <LiveActivityIndicator />
+          </motion.div>
 
           {/* Two CTA Cards */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-8"
           >
             {/* Discover My Pet */}
             <Link to="/intake?mode=discover" className="group">
@@ -117,10 +143,14 @@ const Index = () => {
                       {t('hero.discoverDesc')}
                     </p>
                   </div>
-                  <Button variant="cosmic" size="lg" className="w-full mt-2">
+                  <Button variant="cosmic" size="lg" className="w-full mt-2 group-hover:scale-[1.02] transition-transform">
                     <Sparkles className="w-4 h-4 mr-2" />
-                    {t('hero.startDiscovery')}
+                    Unlock Their Secret Soul →
                   </Button>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Takes only 60 seconds
+                  </p>
                 </div>
               </div>
             </Link>
@@ -139,25 +169,39 @@ const Index = () => {
                   <div className="space-y-2">
                     <h3 className="text-xl font-display font-bold text-foreground">{t('hero.giftToFriend')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {t('hero.giftDesc')}
+                      A gift they'll never forget — watch them cry happy tears
                     </p>
                   </div>
-                  <Button size="lg" className="w-full mt-2 bg-gradient-to-r from-nebula-pink to-nebula-purple hover:from-nebula-pink/90 hover:to-nebula-purple/90 text-white border-0 shadow-lg group-hover:shadow-[0_0_20px_hsl(330_70%_50%/0.4)]">
+                  <Button size="lg" className="w-full mt-2 bg-gradient-to-r from-nebula-pink to-nebula-purple hover:from-nebula-pink/90 hover:to-nebula-purple/90 text-white border-0 shadow-lg group-hover:shadow-[0_0_20px_hsl(330_70%_50%/0.4)] group-hover:scale-[1.02] transition-transform">
                     <Heart className="w-4 h-4 mr-2" />
-                    {t('hero.sendGift')}
+                    Send the Perfect Gift →
                   </Button>
+                  <p className="text-xs text-muted-foreground">
+                    ✨ Instant digital delivery
+                  </p>
                 </div>
               </div>
             </Link>
           </motion.div>
 
-          {/* Authority Seal */}
+          {/* Money-Back Guarantee */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
             className="flex justify-center mb-8"
           >
+            <MoneyBackBadge />
+          </motion.div>
+
+          {/* Trust Badges Row */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex flex-col items-center gap-4"
+          >
+            {/* Authority Seal */}
             <div className="authority-seal inline-flex items-center gap-3 px-6 py-3 rounded-xl">
               <div className="relative">
                 <Star className="w-5 h-5 text-gold fill-gold" />
@@ -167,20 +211,7 @@ const Index = () => {
                 {t('hero.poweredBy')} <span className="text-gold font-medium">{t('hero.swissEphemeris')}</span>{t('hero.craftedBy')}
               </span>
             </div>
-          </motion.div>
 
-          {/* Trust Badge */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="flex flex-col items-center gap-3"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-background/40 backdrop-blur-sm border border-border/50">
-              <span className="text-sm text-foreground/80">
-                {t('hero.ratedBy')} <strong className="text-gold">4.9/5</strong> {t('hero.byPetParents')}
-              </span>
-            </div>
             {/* Trustpilot Logo */}
             <div className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-1">
@@ -194,6 +225,9 @@ const Index = () => {
                   </div>
                 ))}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Based on 2,847 verified reviews
+              </p>
             </div>
           </motion.div>
         </div>
