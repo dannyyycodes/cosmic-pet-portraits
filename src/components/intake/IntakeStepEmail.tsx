@@ -7,6 +7,7 @@ import { ArrowLeft, Sparkles, CheckCircle, ChevronDown, Lock, Star, Heart, Zap, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { SocialProofBar } from './SocialProofBar';
 import { ReportTeaser } from './ReportTeaser';
+import { PremiumPreview } from './PremiumPreview';
 import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
 import { getSunSign, zodiacSigns } from '@/lib/zodiac';
 import { supabase } from '@/integrations/supabase/client';
@@ -602,7 +603,32 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               </p>
             </motion.div>
 
-            {/* CTA to checkout - or direct reveal for gift recipients */}
+            {/* Blurred Premium Preview - Birth Charts, Pokemon Cards, etc */}
+            {!giftCode && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+              >
+                <PremiumPreview
+                  petName={allPets[selectedPetIndex]?.name || petData.name}
+                  sunSign={(() => {
+                    const pet = allPets[selectedPetIndex] || petData;
+                    return pet.dateOfBirth 
+                      ? getSunSign(pet.dateOfBirth.getMonth() + 1, pet.dateOfBirth.getDate()) || 'Aries'
+                      : 'Aries';
+                  })()}
+                  element={(() => {
+                    const pet = allPets[selectedPetIndex] || petData;
+                    const sign = pet.dateOfBirth 
+                      ? getSunSign(pet.dateOfBirth.getMonth() + 1, pet.dateOfBirth.getDate())
+                      : null;
+                    return sign ? (zodiacSigns[sign]?.element || 'Fire') : 'Fire';
+                  })()}
+                  onUnlock={() => setStage('checkout')}
+                />
+              </motion.div>
+            )}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
