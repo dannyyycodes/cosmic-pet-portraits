@@ -47,7 +47,14 @@ const checkoutSchema = z.object({
   referralCode: z.string().max(50).optional(), // Affiliate referral code
   includeHoroscope: z.boolean().optional().default(false), // Weekly horoscope add-on
   giftCode: z.string().max(20).optional(), // Gift code to redeem (e.g., GIFT-XXXX-XXXX)
-  petPhotoUrl: z.string().url().max(2048).optional(), // Pet photo for portrait generation
+  petPhotoUrl: z.string().url().max(2048).optional(), // Pet photo for portrait generation (legacy single pet)
+  // NEW: Per-pet tier selection
+  petTiers: z.record(z.string(), z.enum(['basic', 'premium', 'vip'])).optional(),
+  // NEW: Per-pet photo URLs (key is pet index as string)
+  petPhotos: z.record(z.string(), z.object({
+    url: z.string().url().max(2048),
+    processingMode: z.string().optional(),
+  })).optional(),
 });
 
 serve(async (req) => {
@@ -102,11 +109,17 @@ serve(async (req) => {
       .replace(/\s+/g, ''); // Remove any whitespace
 
     // ===== SERVER-SIDE PRICE CALCULATION =====
-    const tier = TIERS[input.selectedTier];
+    // Support per-pet tiers if provided
+    const petTiers = input.petTiers || {};
     const actualPetCount = allReportIds.length || input.petCount;
     
-    // Base price
-    const baseTotal = tier.priceCents * actualPetCount;
+    // Calculate base total with per-pet tiers
+    let baseTotal = 0;
+    for (let i = 0; i < actualPetCount; i++) {
+      const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
+      const tier = TIERS[tierKey as keyof typeof TIERS] || TIERS.premium;
+      baseTotal += tier.priceCents;
+    }
     
     // Volume discount
     const volumeDiscountRate = getVolumeDiscount(actualPetCount);
@@ -230,11 +243,16 @@ serve(async (req) => {
     if (calculatedTotal === 0) {
       console.log("[CREATE-CHECKOUT] Order is free, skipping Stripe");
       
-      // Update all reports as paid and save pet photo if provided
-      for (const id of allReportIds) {
+      // Update all reports as paid and save per-pet photo URLs if provided
+      for (let i = 0; i < allReportIds.length; i++) {
+        const id = allReportIds[i];
+        const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
+        const tierIncludesPortrait = tierKey === 'premium' || tierKey === 'vip';
+        const petPhoto = input.petPhotos?.[String(i)];
+        
         const updateData: Record<string, unknown> = { payment_status: "paid" };
-        if (input.petPhotoUrl && id === primaryReportId) {
-          updateData.pet_photo_url = input.petPhotoUrl;
+        if (tierIncludesPortrait && petPhoto?.url) {
+          updateData.pet_photo_url = petPhoto.url;
         }
         await supabaseClient
           .from("pet_reports")
@@ -262,15 +280,29 @@ serve(async (req) => {
       });
     }
 
-    // Build line items
+    // Build line items - show breakdown by tier
     const mainItemAmount = calculatedTotal - giftAmount;
+    
+    // Describe the order based on tiers
+    const tierCounts = { basic: 0, premium: 0, vip: 0 };
+    for (let i = 0; i < actualPetCount; i++) {
+      const tierKey = (petTiers[String(i)] || input.selectedTier || 'premium') as keyof typeof tierCounts;
+      tierCounts[tierKey]++;
+    }
+    
+    const orderDesc = Object.entries(tierCounts)
+      .filter(([_, count]) => count > 0)
+      .map(([tier, count]) => `${count}× ${TIERS[tier as keyof typeof TIERS].name}`)
+      .join(' + ');
+    
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [{
       price_data: {
         currency: "usd",
         product_data: {
           name: actualPetCount > 1 
-            ? `${tier.name} × ${actualPetCount} pets`
-            : tier.name,
+            ? `Cosmic Pet Readings (${actualPetCount} pets)`
+            : TIERS[input.selectedTier].name,
+          description: actualPetCount > 1 ? orderDesc : undefined,
         },
         unit_amount: mainItemAmount,
       },
@@ -296,6 +328,10 @@ serve(async (req) => {
     // For now, we handle one-time payments only to avoid Stripe mode conflicts
     const checkoutMode = "payment";
 
+    // Determine if any pet has portrait tier
+    const anyPetHasPortrait = Object.values(petTiers).some(t => t === 'premium' || t === 'vip') || 
+      input.selectedTier === 'premium' || input.selectedTier === 'vip';
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: sanitizedEmail,
@@ -307,8 +343,10 @@ serve(async (req) => {
         report_ids: allReportIds.join(","),
         pet_count: actualPetCount.toString(),
         selected_tier: input.selectedTier,
+        pet_tiers: JSON.stringify(petTiers), // Store per-pet tiers
+        pet_photos: JSON.stringify(input.petPhotos || {}), // Store per-pet photos
         include_gift: input.includeGiftForFriend ? "true" : "false",
-        includes_portrait: input.includesPortrait ? "true" : "false",
+        includes_portrait: anyPetHasPortrait ? "true" : "false",
         is_gift: input.isGift ? "true" : "false",
         recipient_name: input.recipientName,
         recipient_email: input.recipientEmail,
@@ -318,8 +356,8 @@ serve(async (req) => {
         referral_code: input.referralCode || "",
         include_horoscope: input.includeHoroscope ? "true" : "false",
         // VIP tier includes horoscope for free
-        vip_horoscope: input.selectedTier === "vip" ? "true" : "false",
-        pet_photo_url: input.petPhotoUrl || "",
+        vip_horoscope: Object.values(petTiers).some(t => t === 'vip') || input.selectedTier === "vip" ? "true" : "false",
+        pet_photo_url: input.petPhotoUrl || "", // Legacy single photo
       },
     });
 
