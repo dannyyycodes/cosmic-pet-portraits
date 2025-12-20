@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
-import { FcGoogle } from 'react-icons/fc';
+
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -119,22 +119,6 @@ export default function Auth() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/my-reports`,
-        },
-      });
-      if (error) {
-        toast.error(error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getTitle = () => {
     if (mode === 'forgot') return resetSent ? 'Check Your Email' : 'Reset Password';
@@ -201,31 +185,7 @@ export default function Auth() {
               transition={{ delay: 0.2 }}
               className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6"
             >
-              {/* Google Sign In - only show for login/signup */}
-              {mode !== 'forgot' && (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="lg"
-                    className="w-full gap-3 mb-4"
-                    onClick={handleGoogleSignIn}
-                    disabled={loading}
-                  >
-                    <FcGoogle className="w-5 h-5" />
-                    Continue with Google
-                  </Button>
-                  
-                  <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-border/50"></div>
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card/50 px-2 text-muted-foreground">or</span>
-                    </div>
-                  </div>
-                </>
-              )}
+              {/* Email/Password authentication */}
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
