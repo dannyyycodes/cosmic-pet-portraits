@@ -225,26 +225,28 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
               />
 
-              <Button
-                onClick={handleProceedToReveal}
-                disabled={!isValidEmail}
-                variant="gold"
-                size="xl"
-                className="w-full max-w-xs mx-auto"
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                {modeContent.emailButton}
-              </Button>
-              
-              {/* Add Another Pet Option */}
-              {onAddAnotherPet && (
-                <button
-                  onClick={onAddAnotherPet}
-                  className="text-primary/70 hover:text-primary underline text-sm transition-colors mt-3"
+              <div className="flex flex-col items-center gap-3">
+                <Button
+                  onClick={handleProceedToReveal}
+                  disabled={!isValidEmail}
+                  variant="gold"
+                  size="xl"
+                  className="w-full max-w-xs"
                 >
-                  + Add another pet to this order
-                </button>
-              )}
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  {modeContent.emailButton}
+                </Button>
+                
+                {/* Add Another Pet Option - on its own line below */}
+                {onAddAnotherPet && (
+                  <button
+                    onClick={onAddAnotherPet}
+                    className="text-primary/70 hover:text-primary underline text-sm transition-colors"
+                  >
+                    + Add another pet to this order
+                  </button>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
