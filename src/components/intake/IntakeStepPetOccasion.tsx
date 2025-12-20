@@ -24,24 +24,24 @@ export function IntakeStepPetOccasion({
     {
       id: 'discover' as OccasionMode,
       icon: Sparkles,
-      title: 'Discover their soul',
-      subtitle: 'Uncover cosmic personality & traits',
+      title: 'Discover their cosmic soul',
+      subtitle: 'Uncover your pet\'s zodiac sign, personality traits, hidden gifts, and cosmic purpose. Perfect for deepening your bond.',
       gradient: 'from-violet-500 to-purple-600',
       bgGlow: 'bg-violet-500/20',
     },
     {
       id: 'birthday' as OccasionMode,
       icon: Cake,
-      title: 'Birthday celebration',
-      subtitle: 'Honor their special day',
+      title: 'Celebrate their birthday',
+      subtitle: 'Honor another beautiful orbit around the sun with a personalized birthday portrait and year-ahead predictions.',
       gradient: 'from-amber-400 to-orange-500',
       bgGlow: 'bg-amber-500/20',
     },
     {
       id: 'memorial' as OccasionMode,
       icon: Heart,
-      title: 'Memorial tribute',
-      subtitle: 'Celebrate a beloved spirit',
+      title: 'Honor their memory',
+      subtitle: 'Create a heartfelt tribute celebrating the beautiful spirit who touched your life. A keepsake to treasure forever.',
       gradient: 'from-blue-400 to-indigo-500',
       bgGlow: 'bg-blue-500/20',
     },
@@ -50,9 +50,6 @@ export function IntakeStepPetOccasion({
   const handleSelect = (mode: OccasionMode) => {
     setTimeout(() => onSelect(mode), 150);
   };
-
-  const displayName = petName || (petNumber ? `your pet` : 'your beloved companion');
-  const hasName = !!petName;
 
   return (
     <div className="text-center space-y-6">
@@ -63,16 +60,13 @@ export function IntakeStepPetOccasion({
       >
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm">
           <Star className="w-4 h-4" />
-          <span>Choose Your Journey</span>
+          <span>{petNumber ? `Pet ${petNumber}` : 'Your Journey'}</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-          {hasName 
-            ? `What would you love to discover about ${petName}?`
-            : `What would you love to discover?`
-          }
+          What brings you here today?
         </h1>
         <p className="text-muted-foreground text-base max-w-md mx-auto">
-          Every soul deserves their own special reading
+          {petName ? `Choose the perfect reading for ${petName}` : 'Choose the perfect reading for your companion'}
         </p>
       </motion.div>
 
