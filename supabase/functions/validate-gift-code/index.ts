@@ -7,12 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Input validation schema
+// Input validation schema - flexible to support various gift code formats
 const validateSchema = z.object({
   code: z.string()
-    .min(10)
-    .max(20)
-    .regex(/^GIFT-[A-Z0-9]{4}-[A-Z0-9]{4}$/, "Invalid gift code format"),
+    .min(8)
+    .max(30)
+    .regex(/^GIFT-[A-Z0-9-]+$/, "Invalid gift code format"),
 });
 
 serve(async (req) => {
