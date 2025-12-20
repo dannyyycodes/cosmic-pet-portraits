@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 
 // Lazy loaded pages (less frequently accessed)
 const Auth = lazy(() => import("./pages/Auth"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const MyReports = lazy(() => import("./pages/MyReports"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -64,6 +65,7 @@ const App = () => (
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/report" element={<ViewReport />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/my-reports" element={<MyReports />} />
                 <Route path="/become-affiliate" element={<BecomeAffiliate />} />
                 <Route path="/ref/:code" element={<ReferralRedirect />} />
