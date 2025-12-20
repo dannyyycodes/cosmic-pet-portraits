@@ -73,6 +73,32 @@ IMPORTANT:
 - For refunds: ALWAYS say the team will review and respond within 24-48 hours
 - If unsure, say "Our team will review this and get back to you shortly"`;
 
+const FEEDBACK_REQUEST_PROMPT = `You are AstroPaws, the friendly AI support assistant for AstroPets.
+
+The customer has requested a refund for the second time. We need to understand why they want a refund so we can improve our product.
+
+Write a warm, empathetic email that:
+1. Acknowledges their continued concern and thanks them for their patience
+2. Asks them to share specific feedback on what didn't meet their expectations
+3. Asks what we could have done differently or how we could improve the product
+4. Assures them that once we understand their concerns, we'll process their refund promptly
+5. Keep it concise and genuine - not corporate sounding
+
+The tone should be curious and caring, not defensive. We genuinely want to learn and improve.`;
+
+const REFUND_CONFIRMATION_PROMPT = `You are AstroPaws, the friendly AI support assistant for AstroPets.
+
+The customer has responded to our feedback request about their refund. Now we need to confirm we're processing their refund.
+
+Write a brief, warm email that:
+1. Thanks them sincerely for sharing their feedback
+2. Confirms their refund is being processed and they'll see it in 5-10 business days
+3. Mentions we're taking their feedback to heart to improve
+4. Wishes them and their pet well
+5. Keep it short and genuine
+
+Be gracious - we want them to leave with a positive feeling even if the product wasn't for them.`;
+
 // Check if message is about refunds
 function isRefundRequest(message: string, subject: string): boolean {
   const refundKeywords = ['refund', 'money back', 'cancel', 'charged', 'return', 'dispute', 'chargeback', 'want my money'];
@@ -81,7 +107,7 @@ function isRefundRequest(message: string, subject: string): boolean {
   return refundKeywords.some(keyword => lowerMessage.includes(keyword) || lowerSubject.includes(keyword));
 }
 
-async function generateAIResponse(customerMessage: string, subject: string, name: string): Promise<string> {
+async function generateAIResponse(customerMessage: string, subject: string, name: string, systemPrompt: string): Promise<string> {
   if (!LOVABLE_API_KEY) {
     console.error("[AI-SUPPORT] No LOVABLE_API_KEY configured");
     return "";
@@ -97,7 +123,7 @@ async function generateAIResponse(customerMessage: string, subject: string, name
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           { 
             role: "user", 
             content: `Customer name: ${name}\nSubject category: ${subject}\n\nCustomer message:\n${customerMessage}\n\nPlease write a helpful, friendly response to this customer inquiry. Keep it concise (2-3 paragraphs max).` 
@@ -200,7 +226,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Check previous contact history for this email
     const { data: previousContacts } = await supabase
       .from("contact_history")
-      .select("id, is_refund_request")
+      .select("id, is_refund_request, created_at")
       .eq("email", email.toLowerCase())
       .order("created_at", { ascending: false })
       .limit(10);
@@ -216,8 +242,57 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("[AI-SUPPORT] Contact history:", { isRefund, previousRefundRequests });
 
-    // Generate AI response
-    const aiResponse = await generateAIResponse(message, subject, name);
+    let aiResponse = "";
+    let emailSubject = "Re: Your AstroPets inquiry";
+
+    // Determine which response flow based on refund request count
+    if (isRefund && previousRefundRequests >= 2) {
+      // 3rd+ refund email: Process refund confirmation
+      console.log("[AI-SUPPORT] 3rd refund request - sending refund confirmation");
+      aiResponse = await generateAIResponse(message, subject, name, REFUND_CONFIRMATION_PROMPT);
+      emailSubject = "Your refund is being processed 💫";
+      
+    } else if (isRefund && previousRefundRequests === 1) {
+      // 2nd refund email: Ask for feedback (scheduled for 24 hours later)
+      console.log("[AI-SUPPORT] 2nd refund request - scheduling feedback request for 24 hours later");
+      
+      aiResponse = await generateAIResponse(message, subject, name, FEEDBACK_REQUEST_PROMPT);
+      
+      if (!aiResponse) {
+        return new Response(JSON.stringify({ success: false, reason: "No AI response" }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const sendAt = new Date();
+      sendAt.setHours(sendAt.getHours() + 24);
+
+      await supabase.from("scheduled_emails").insert({
+        email,
+        name,
+        subject: "We'd love to understand your experience 🐾",
+        original_message: message,
+        ai_response: aiResponse,
+        send_at: sendAt.toISOString(),
+      });
+
+      console.log("[AI-SUPPORT] Feedback request email scheduled for:", sendAt.toISOString());
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        scheduled: true,
+        type: "feedback_request",
+        send_at: sendAt.toISOString()
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+      
+    } else {
+      // 1st email (refund or non-refund): Standard response
+      aiResponse = await generateAIResponse(message, subject, name, SYSTEM_PROMPT);
+    }
 
     if (!aiResponse) {
       console.log("[AI-SUPPORT] No AI response generated, skipping auto-reply");
@@ -227,55 +302,30 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // If this is a follow-up refund request (2nd or more), schedule for 24 hours later
-    if (isRefund && previousRefundRequests >= 1) {
-      console.log("[AI-SUPPORT] Follow-up refund request detected, scheduling for 24 hours later");
-      
-      const sendAt = new Date();
-      sendAt.setHours(sendAt.getHours() + 24);
-
-      await supabase.from("scheduled_emails").insert({
-        email,
-        name,
-        subject,
-        original_message: message,
-        ai_response: aiResponse,
-        send_at: sendAt.toISOString(),
-      });
-
-      console.log("[AI-SUPPORT] Email scheduled for:", sendAt.toISOString());
-
-      return new Response(JSON.stringify({ 
-        success: true, 
-        scheduled: true,
-        send_at: sendAt.toISOString()
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     // For first-time refund requests, add a small delay
-    if (isRefund) {
+    if (isRefund && previousRefundRequests === 0) {
       console.log("[AI-SUPPORT] First refund request, adding 30-60 second delay");
       await new Promise(resolve => setTimeout(resolve, 30000 + Math.random() * 30000));
     }
 
-    // Send immediately for non-refund or first refund request
+    // Send the email
     const safeAiResponse = escapeHtml(aiResponse).replace(/\n/g, '<br>');
     const safeName = escapeHtml(name);
 
     const emailResponse = await resend.emails.send({
       from: "AstroPaws Support <support@astropets.cloud>",
       to: [email],
-      subject: "Re: Your AstroPets inquiry",
+      subject: emailSubject,
       html: buildEmailHtml(safeName, safeAiResponse),
       reply_to: "support@astropets.cloud",
     });
 
     console.log("[AI-SUPPORT] Auto-reply sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ 
+      success: true,
+      type: isRefund && previousRefundRequests >= 2 ? "refund_confirmation" : "standard"
+    }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
