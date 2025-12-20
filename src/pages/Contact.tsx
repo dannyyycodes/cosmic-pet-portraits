@@ -65,8 +65,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-medium text-foreground">{t('contact.email')}</h3>
-                    <a href="mailto:support@astropets.cloud" className="text-cosmic-gold hover:underline">
-                      support@astropets.cloud
+                    <a href="mailto:hello@astropets.cloud" className="text-cosmic-gold hover:underline">
+                      hello@astropets.cloud
                     </a>
                   </div>
                 </div>

@@ -129,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send notification to support
     const supportEmailResponse = await resend.emails.send({
       from: "AstroPets <hello@astropets.cloud>",
-      to: ["support@astropets.cloud"],
+      to: ["hello@astropets.cloud"],
       subject: `[${safeSubjectLabel}] New contact from ${safeName}`,
       html: `
         <h2>New Contact Form Submission</h2>
