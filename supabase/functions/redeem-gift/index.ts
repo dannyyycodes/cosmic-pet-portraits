@@ -130,11 +130,47 @@ serve(async (req) => {
       }
     }
 
+    // For Portrait and VIP tiers, auto-enroll in weekly horoscope
+    const includesWeeklyHoroscope = giftedTier === 'portrait' || giftedTier === 'vip';
+    if (includesWeeklyHoroscope) {
+      // Get the pet report to get name and email
+      const { data: report } = await supabase
+        .from("pet_reports")
+        .select("pet_name, email")
+        .eq("id", input.reportId)
+        .single();
+
+      if (report) {
+        // Calculate next Monday for first horoscope
+        const nextMonday = new Date();
+        nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
+        nextMonday.setHours(9, 0, 0, 0);
+
+        const { error: subError } = await supabase
+          .from("horoscope_subscriptions")
+          .insert({
+            email: report.email,
+            pet_name: report.pet_name,
+            pet_report_id: input.reportId,
+            status: "active",
+            next_send_at: nextMonday.toISOString(),
+          });
+
+        if (subError) {
+          console.error("[REDEEM-GIFT] Failed to create horoscope subscription:", subError);
+          // Non-fatal - continue with redemption
+        } else {
+          console.log("[REDEEM-GIFT] Auto-enrolled in weekly horoscope:", report.email);
+        }
+      }
+    }
+
     console.log("[REDEEM-GIFT] Gift successfully redeemed:", {
       giftCode: input.giftCode,
       reportId: input.reportId,
       giftedTier,
       amountCents: gift.amount_cents,
+      includesWeeklyHoroscope,
     });
 
     return new Response(JSON.stringify({
@@ -146,6 +182,7 @@ serve(async (req) => {
       giftMessage: gift.gift_message,
       includesVip: giftedTier === 'vip',
       includesPortrait: giftedTier === 'portrait' || giftedTier === 'vip',
+      includesWeeklyHoroscope,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

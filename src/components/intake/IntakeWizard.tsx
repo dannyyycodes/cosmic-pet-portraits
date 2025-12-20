@@ -14,6 +14,7 @@ import { IntakeStepSoul } from './IntakeStepSoul';
 import { IntakeStepSuperpower } from './IntakeStepSuperpower';
 import { IntakeStepStrangers } from './IntakeStepStrangers';
 import { IntakeStepEmail } from './IntakeStepEmail';
+import { IntakeStepPhoto } from './IntakeStepPhoto';
 import { CosmicLoading } from './CosmicLoading';
 import { SocialProofBar } from './SocialProofBar';
 import { MiniReport } from './MiniReport';
@@ -46,6 +47,7 @@ export interface PetData {
   strangerReaction: string;
   email: string;
   occasionMode: OccasionMode;
+  photoUrl?: string | null;
 }
 
 export interface CosmicReport {
@@ -77,7 +79,8 @@ const createEmptyPetData = (mode: OccasionMode): PetData => ({
   superpower: '',
   strangerReaction: '',
   email: '',
-  occasionMode: mode
+  occasionMode: mode,
+  photoUrl: null,
 });
 
 // Wrapper component with EmotionProvider
@@ -125,8 +128,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     amountCents: number; 
     giftMessage?: string;
     recipientName?: string;
-    giftedTier?: 'basic' | 'premium' | 'vip';
+    giftedTier?: 'essential' | 'portrait' | 'vip' | 'basic' | 'premium';
     includesPortrait?: boolean;
+    includesWeeklyHoroscope?: boolean;
   } | null>(null);
   const stepStartTime = useRef<number>(Date.now());
   const { trackAction, intensity } = useEmotion();
@@ -148,8 +152,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             amountCents: data.amountCents,
             giftMessage: data.giftMessage,
             recipientName: data.recipientName,
-            giftedTier: data.giftedTier,
+            giftedTier: data.giftTier || data.giftedTier,
             includesPortrait: data.includesPortrait,
+            includesWeeklyHoroscope: data.includesWeeklyHoroscope,
           });
           // Set pet count to 1 for gifts (gifts are always for 1 pet)
           setPetCount(1);
@@ -694,7 +699,14 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                     setPetsData(prev => prev.map(pet => ({ ...pet, email: data.email! })));
                   }
                 }} 
-                onReveal={handleReveal} 
+                onReveal={(checkoutData) => {
+                  // For gift redemptions with portrait included, go to photo step first
+                  if (giftCodeFromUrl && giftData?.includesPortrait) {
+                    goToStep(12);
+                  } else {
+                    handleReveal(checkoutData);
+                  }
+                }}
                 onBack={() => {
                   setCurrentPetIndex(petCount - 1);
                   setStep(10);
@@ -703,6 +715,21 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 modeContent={modeContent}
                 giftCode={giftCodeFromUrl}
                 giftedTier={giftData?.giftedTier}
+              />
+            </motion.div>
+          )}
+
+          {/* Photo upload step - only for portrait/VIP gift recipients */}
+          {step === 12 && giftCodeFromUrl && giftData?.includesPortrait && (
+            <motion.div key="step-photo" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepPhoto
+                petName={currentPetData.name}
+                photoUrl={currentPetData.photoUrl || null}
+                onPhotoChange={(url) => updatePetData({ photoUrl: url })}
+                onNext={() => handleReveal()}
+                onBack={() => setStep(11)}
+                onSkip={() => handleReveal()}
+                isRequired={false}
               />
             </motion.div>
           )}

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 interface GiftWelcomeProps {
   recipientName?: string;
   giftMessage?: string;
-  giftedTier: 'basic' | 'premium' | 'vip';
+  giftedTier: 'essential' | 'portrait' | 'vip' | 'basic' | 'premium'; // Support both old and new tier names
   includesPortrait?: boolean;
   onContinue: () => void;
 }
@@ -17,27 +17,30 @@ export function GiftWelcome({
   includesPortrait,
   onContinue 
 }: GiftWelcomeProps) {
-  const tierLabels = {
-    basic: 'Cosmic Pet Reading',
-    premium: 'Portrait Edition Reading',
-    vip: 'VIP Cosmic Experience',
+  // Normalize tier names (support old and new naming)
+  const normalizedTier = giftedTier === 'basic' ? 'essential' : giftedTier === 'premium' ? 'portrait' : giftedTier;
+  
+  const tierLabels: Record<string, string> = {
+    essential: 'Cosmic Pet Reading',
+    portrait: 'Cosmic Portrait Edition',
+    vip: 'Cosmic VIP Experience',
   };
 
-  const tierFeatures = {
-    basic: [
-      'Complete astrological profile',
+  const tierFeatures: Record<string, string[]> = {
+    essential: [
+      'Complete 18-chapter cosmic report',
       'Personality insights & care tips',
       'Cosmic compatibility traits',
     ],
-    premium: [
-      'Everything in Standard',
-      'AI-generated pet portrait',
-      'Extended personality analysis',
+    portrait: [
+      'Everything in Essential Reading',
+      'AI-generated pet portrait card',
+      'Weekly cosmic horoscope emails',
     ],
     vip: [
       'Everything in Portrait Edition',
-      'Weekly horoscope subscription',
-      'Priority cosmic support',
+      'Yearly cosmic updates for life',
+      'VIP priority support',
     ],
   };
 
@@ -78,7 +81,7 @@ export function GiftWelcome({
         </h1>
         
         <p className="text-muted-foreground text-lg">
-          Someone special has gifted you a <span className="text-primary font-semibold">{tierLabels[giftedTier]}</span> for your beloved pet.
+          Someone special has gifted you a <span className="text-primary font-semibold">{tierLabels[normalizedTier] || tierLabels.essential}</span> for your beloved pet.
         </p>
       </motion.div>
 
@@ -105,7 +108,7 @@ export function GiftWelcome({
           Your gift includes:
         </h3>
         <ul className="space-y-2">
-          {tierFeatures[giftedTier].map((feature, index) => (
+          {(tierFeatures[normalizedTier] || tierFeatures.essential).map((feature, index) => (
             <motion.li
               key={feature}
               initial={{ opacity: 0, x: -20 }}
