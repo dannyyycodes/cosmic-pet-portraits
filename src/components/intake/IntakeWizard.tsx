@@ -182,10 +182,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const modeContent = occasionModeContent[currentPetMode];
 
   // Restore saved progress on mount - but always start with occasion step for fresh visits
+  // Also handle checkout=true from Stripe cancel redirect
   useEffect(() => {
     if (hasRestoredProgress) return;
     
+    const isCheckoutReturn = searchParams.get('checkout') === 'true';
     const saved = loadIntakeProgress();
+    
     // Only restore if there's saved progress AND user isn't coming fresh from homepage
     // We detect fresh visits by checking if we're at step 0 with no data
     if (saved && saved.petsData.length > 0 && saved.step > 0) {
@@ -201,11 +204,20 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       setPetCount(saved.petCount);
       setOccasionMode(saved.petsData[0]?.occasionMode || mode);
       
-      toast.success('Welcome back! Your progress has been restored.');
+      // If returning from Stripe checkout, go directly to results/checkout view
+      if (isCheckoutReturn) {
+        setShowResults(true);
+        // Clean up the URL
+        const next = new URLSearchParams(searchParams);
+        next.delete('checkout');
+        setSearchParams(next, { replace: true });
+      } else {
+        toast.success('Welcome back! Your progress has been restored.');
+      }
     }
     // Always start at step 0 (occasion) for fresh visits
     setHasRestoredProgress(true);
-  }, [hasRestoredProgress, mode]);
+  }, [hasRestoredProgress, mode, searchParams, setSearchParams]);
 
   // Save progress whenever state changes
   useEffect(() => {
