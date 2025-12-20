@@ -6,9 +6,20 @@ import { Button } from '@/components/ui/button';
 import { TestimonialCarousel } from './TestimonialCarousel';
 import { generateCosmicReport, CosmicReport } from '@/lib/cosmicReport';
 import { cn } from '@/lib/utils';
+import { OccasionMode } from '@/lib/occasionMode';
 
 interface MultiPetMiniReportProps {
   petsData: PetData[];
+}
+
+// Helper to check if occasion is memorial
+function isMemorialMode(petData: PetData): boolean {
+  return petData.occasionMode === 'memorial';
+}
+
+// Helper to check if occasion is birthday
+function isBirthdayMode(petData: PetData): boolean {
+  return petData.occasionMode === 'birthday';
 }
 
 const zodiacIcons: Record<string, string> = {
@@ -98,8 +109,34 @@ function getSpeciesFact(species: string, petName: string): string {
 }
 
 function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData; cosmicReport: CosmicReport; isActive: boolean }) {
-  const { sunSign, archetype, element, nameVibration, coreEssence, soulMission, hiddenGift, loveLanguage, breedInsight, ownerInsight, personalityType } = cosmicReport;
+  const { sunSign, archetype, element, nameVibration, coreEssence, soulMission, hiddenGift, loveLanguage, breedInsight, ownerInsight, personalityType, occasionMode } = cosmicReport;
   const speciesFact = getSpeciesFact(petData.species, petData.name);
+  const isMemorial = occasionMode === 'memorial';
+  const isBirthday = occasionMode === 'birthday';
+
+  // Occasion-specific header text
+  const getConfirmationText = () => {
+    if (isMemorial) return "Forever remembered";
+    if (isBirthday) return "Birthday Star Revealed";
+    return "It's confirmed";
+  };
+
+  const getSignText = () => {
+    if (isMemorial) return `${petData.name} was a ${sunSign}`;
+    return `${petData.name} is a ${sunSign}`;
+  };
+
+  const getSectionTitle = (title: string) => {
+    if (isMemorial) {
+      switch (title) {
+        case 'Soul Mission': return 'Soul Legacy';
+        case 'Hidden Gift': return 'Gift They Shared';
+        case 'Love Language': return 'How They Loved';
+        default: return title;
+      }
+    }
+    return title;
+  };
 
   return (
     <motion.div
@@ -116,27 +153,42 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2 }}
-        className="bg-card/60 backdrop-blur-xl border border-border/50 rounded-3xl p-8 space-y-6"
+        className={cn(
+          "bg-card/60 backdrop-blur-xl border rounded-3xl p-8 space-y-6",
+          isMemorial ? "border-purple-500/30" : "border-border/50"
+        )}
       >
         {/* Zodiac Icon */}
         <div className="relative mx-auto w-24 h-24">
           <motion.div
-            className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-gold/30 blur-xl"
+            className={cn(
+              "absolute inset-0 rounded-full blur-xl",
+              isMemorial ? "bg-gradient-to-br from-purple-500/30 to-pink-500/30" : "bg-gradient-to-br from-primary/30 to-gold/30"
+            )}
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 3, repeat: Infinity }}
           />
-          <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary to-gold flex items-center justify-center shadow-2xl shadow-primary/30">
+          <div className={cn(
+            "relative w-full h-full rounded-full flex items-center justify-center shadow-2xl",
+            isMemorial ? "bg-gradient-to-br from-purple-600 to-pink-500 shadow-purple-500/30" : "bg-gradient-to-br from-primary to-gold shadow-primary/30"
+          )}>
             <span className="text-4xl">{zodiacIcons[sunSign] || '⭐'}</span>
           </div>
         </div>
 
         {/* Name & Sign */}
         <div className="space-y-2 text-center">
-          <p className="text-muted-foreground text-sm uppercase tracking-widest">It's confirmed</p>
+          <p className={cn(
+            "text-sm uppercase tracking-widest",
+            isMemorial ? "text-purple-400" : "text-muted-foreground"
+          )}>{getConfirmationText()}</p>
           <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-            {petData.name} is a {sunSign}
+            {getSignText()}
           </h1>
-          <p className="text-xl text-gold font-medium">{archetype}</p>
+          <p className={cn(
+            "text-xl font-medium",
+            isMemorial ? "text-purple-300" : "text-gold"
+          )}>{archetype}</p>
           {personalityType && (
             <p className="text-sm text-primary/80 font-medium">"{personalityType}"</p>
           )}
@@ -155,7 +207,10 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
 
         {/* Core Essence */}
         <div className="pt-4 border-t border-border/50">
-          <h3 className="text-sm uppercase tracking-widest text-primary/80 mb-3 text-center">The Core Truth</h3>
+          <h3 className={cn(
+            "text-sm uppercase tracking-widest mb-3 text-center",
+            isMemorial ? "text-purple-400" : "text-primary/80"
+          )}>{isMemorial ? "Their Core Truth" : "The Core Truth"}</h3>
           <p className="text-foreground/80 text-lg leading-relaxed text-center">
             {coreEssence}
           </p>
@@ -167,14 +222,22 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-card/40 backdrop-blur-xl border border-primary/30 rounded-2xl p-6"
+        className={cn(
+          "bg-card/40 backdrop-blur-xl border rounded-2xl p-6",
+          isMemorial ? "border-purple-500/30" : "border-primary/30"
+        )}
       >
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center border border-primary/30 shrink-0">
-            <Heart className="w-6 h-6 text-primary" />
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
+            isMemorial 
+              ? "bg-gradient-to-br from-purple-500/20 to-purple-500/10 border border-purple-500/30" 
+              : "bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30"
+          )}>
+            <Heart className={cn("w-6 h-6", isMemorial ? "text-purple-400" : "text-primary")} />
           </div>
           <div className="text-left">
-            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">Soul Mission</p>
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">{getSectionTitle('Soul Mission')}</p>
             <p className="text-foreground/90">{soulMission}</p>
           </div>
         </div>
@@ -192,7 +255,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
             <Lightbulb className="w-6 h-6 text-gold" />
           </div>
           <div className="text-left">
-            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">Hidden Gift</p>
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">{getSectionTitle('Hidden Gift')}</p>
             <p className="text-foreground/90">{hiddenGift}</p>
           </div>
         </div>
@@ -210,7 +273,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
             <Star className="w-6 h-6 text-tangerine" />
           </div>
           <div className="text-left">
-            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">Love Language</p>
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">{getSectionTitle('Love Language')}</p>
             <p className="text-foreground/90">{loveLanguage}</p>
           </div>
         </div>
@@ -309,17 +372,32 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
   const goToPrevPet = () => setCurrentPetIndex(prev => Math.max(0, prev - 1));
   const goToNextPet = () => setCurrentPetIndex(prev => Math.min(petsData.length - 1, prev + 1));
 
+  // Check if any pet is in memorial mode
+  const hasMemorialPet = petsData.some(pet => pet.occasionMode === 'memorial');
+  const hasBirthdayPet = petsData.some(pet => pet.occasionMode === 'birthday');
+  
+  const getHeroBadgeText = () => {
+    if (hasMemorialPet && petsData.length === 1) return "💜 Memorial Tribute Complete";
+    if (hasMemorialPet) return `💜 Memorial & Cosmic Analysis Complete for ${petsData.length} Pets`;
+    if (hasBirthdayPet && petsData.length === 1) return "🎂 Birthday Portrait Complete";
+    if (hasBirthdayPet) return `🎂 Birthday & Cosmic Analysis Complete for ${petsData.length} Pets`;
+    return `✨ Cosmic Analysis Complete for ${petsData.length} ${petsData.length === 1 ? 'Pet' : 'Pets'}`;
+  };
+  
   const lockedItems = [
-    { icon: Moon, label: "Moon Sign Analysis", preview: "Deep emotional patterns revealed..." },
-    { icon: ArrowUp, label: "Rising Sign Profile", preview: "How the world perceives them..." },
-    { icon: Sparkles, label: "Full Soul Contract", preview: "The cosmic reason for your bond..." },
+    { icon: Moon, label: hasMemorialPet ? "Moon Sign Memories" : "Moon Sign Analysis", preview: hasMemorialPet ? "Their emotional depths remembered..." : "Deep emotional patterns revealed..." },
+    { icon: ArrowUp, label: hasMemorialPet ? "How They Were Seen" : "Rising Sign Profile", preview: hasMemorialPet ? "The impression they left on everyone..." : "How the world perceives them..." },
+    { icon: Sparkles, label: hasMemorialPet ? "Eternal Soul Bond" : "Full Soul Contract", preview: hasMemorialPet ? "Why they chose you for this lifetime..." : "The cosmic reason for your bond..." },
   ];
 
   return (
     <div className="min-h-screen bg-background pb-32">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background" />
+        <div className={cn(
+          "absolute inset-0 bg-gradient-to-b via-background to-background",
+          hasMemorialPet ? "from-purple-500/10" : "from-primary/10"
+        )} />
         
         <div className="relative z-10 max-w-2xl mx-auto px-4 pt-12 pb-8">
           <motion.div
@@ -332,10 +410,16 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring" }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 border border-primary/30"
+              className={cn(
+                "inline-flex items-center gap-2 px-4 py-2 rounded-full border",
+                hasMemorialPet ? "bg-purple-500/20 border-purple-500/30" : "bg-primary/20 border-primary/30"
+              )}
             >
-              <span className="text-primary text-sm font-medium">
-                ✨ Cosmic Analysis Complete for {petsData.length} {petsData.length === 1 ? 'Pet' : 'Pets'}
+              <span className={cn(
+                "text-sm font-medium",
+                hasMemorialPet ? "text-purple-300" : "text-primary"
+              )}>
+                {getHeroBadgeText()}
               </span>
             </motion.div>
 
