@@ -382,7 +382,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                       {/* Personalized Hook - Emotional */}
                       <div className="p-4 rounded-xl bg-card/40 border border-primary/20">
                         <p className="text-foreground text-base leading-relaxed">
-                          <span className="font-semibold text-cosmic-gold">{pet.name}</span> isn't just any {petData.species}. 
+                          <span className="font-semibold text-cosmic-gold">{pet.name}</span> isn't just any {pet.species}.
                           As a <span className="font-medium">{petSign}</span> with <span className="font-medium">{petSignData.element}</span> energy, 
                           {petSignData.element === 'Fire' && " they carry a flame in their soul that lights up your darkest days. But that same fire means they feel rejection more deeply than you'd ever guess..."}
                           {petSignData.element === 'Earth' && " their loyalty runs deeper than the roots of an ancient tree. When they curl up beside you, they're offering you their entire world..."}
@@ -436,7 +436,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 ))}
               </div>
               <p className="text-xs text-muted-foreground italic flex-1">
-                "Explained SO much about my {petData.species}'s quirks!" — Sarah M.
+                "Explained SO much about my {allPets[selectedPetIndex]?.species || 'pet'}'s quirks!" — Sarah M.
               </p>
             </motion.div>
 
