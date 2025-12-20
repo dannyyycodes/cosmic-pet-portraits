@@ -414,7 +414,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                       <div className="flex items-center gap-3 p-3 rounded-lg bg-nebula-purple/10 border border-nebula-purple/20">
                         <Lock className="w-5 h-5 text-nebula-purple flex-shrink-0" />
                         <p className="text-sm text-foreground/80">
-                          Your full 18-chapter report reveals <span className="font-medium">why {pet.name} does that ONE weird thing</span>, their hidden fears, and how to speak their love language...
+                          <span className="font-medium">But wait—there's so much more.</span> What's {pet.name}'s secret fear? Why do they do <em>that</em> thing? How do they actually want to be loved? The full reading reveals everything... 
                         </p>
                       </div>
                     </div>

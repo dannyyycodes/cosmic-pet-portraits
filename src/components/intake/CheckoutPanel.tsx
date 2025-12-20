@@ -28,6 +28,7 @@ export interface CheckoutData {
   petCount?: number;
   selectedTier: 'basic' | 'premium' | 'vip';
   includeGiftForFriend?: boolean;
+  giftTierForFriend?: 'basic' | 'premium' | 'vip';
   includesPortrait?: boolean;
   petPhotoUrl?: string | null;
   includeHoroscope?: boolean;
@@ -73,8 +74,12 @@ const TIERS = {
   },
 };
 
-const GIFT_PRICE_CENTS = 1750; // $17.50 - 50% off!
-const GIFT_ORIGINAL_PRICE_CENTS = 3500; // $35
+// Gift tiers - 50% off all tiers for friends
+const GIFT_TIERS = {
+  basic: { priceCents: 1750, originalCents: 3500, name: 'Cosmic Pet Reading' },
+  premium: { priceCents: 2500, originalCents: 5000, name: 'Cosmic Portrait Edition' },
+  vip: { priceCents: 6450, originalCents: 12900, name: 'Cosmic VIP Experience' },
+};
 
 // Volume discount calculation
 function getVolumeDiscount(petCount: number): number {
@@ -110,10 +115,16 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
   const [selectedTier, setSelectedTier] = useState<'basic' | 'premium' | 'vip'>('premium'); // Default to premium (with portrait)
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
+  const [selectedGiftTier, setSelectedGiftTier] = useState<'basic' | 'premium' | 'vip'>('basic');
   const [includeHoroscope, setIncludeHoroscope] = useState(false);
   const [spotsLeft, setSpotsLeft] = useState(7);
   const [recentPurchases, setRecentPurchases] = useState(12847);
   const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
+  
+  // Calculate how many pets need weekly updates (exclude memorial pets)
+  const nonMemorialPets = petsData?.filter(p => p.occasionMode !== 'memorial') || (petData.occasionMode !== 'memorial' ? [petData] : []);
+  const subscriptionPetCount = Math.max(1, nonMemorialPets.length);
+  const subscriptionPetNames = nonMemorialPets.map(p => p.name).filter(Boolean).join(' & ');
 
   // Simulated scarcity countdown
   useEffect(() => {
@@ -145,7 +156,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
   const proceedToCheckout = (withGift: boolean) => {
     setShowGiftUpsell(false);
-    const finalTotal = total + (withGift ? GIFT_PRICE_CENTS : 0);
+    const giftPrice = withGift ? GIFT_TIERS[selectedGiftTier].priceCents : 0;
+    const finalTotal = total + giftPrice;
     const tier = TIERS[selectedTier];
     
     onCheckout({
@@ -160,6 +172,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       petCount,
       selectedTier,
       includeGiftForFriend: withGift,
+      giftTierForFriend: withGift ? selectedGiftTier : undefined,
       includesPortrait: tier.includesPortrait,
       petPhotoUrl: tier.includesPortrait ? petPhotoUrl : null,
       includeHoroscope: includeHoroscope || selectedTier === 'vip', // VIP always includes horoscope
@@ -383,30 +396,31 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <Moon className={cn("w-5 h-5", includeHoroscope ? "text-nebula-purple" : "text-muted-foreground")} />
-                <h4 className="font-semibold text-foreground">Weekly Cosmic Care Guide</h4>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-nebula-purple to-nebula-pink text-white">RECOMMENDED</span>
+                <h4 className="font-semibold text-foreground">Weekly Cosmic Insights</h4>
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-nebula-purple to-nebula-pink text-white">50% OFF</span>
               </div>
               <p className="text-sm text-muted-foreground mb-2">
-                <span className="text-foreground font-medium">Know exactly what {petData.name} needs</span> each week based on cosmic energies.
+                <span className="text-foreground font-medium">Stop guessing, start understanding.</span> Every Sunday, get personalized insights for {petCount > 1 ? 'your pets' : petData.name}.
               </p>
               <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-muted-foreground mb-2">
                 <span className="flex items-center gap-1">
-                  <span className="text-green-500">✓</span> Energy level predictions
+                  <span className="text-green-500">✓</span> "High energy day" alerts
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="text-green-500">✓</span> Best bonding days
+                  <span className="text-green-500">✓</span> Best days for vet visits
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="text-green-500">✓</span> Mood forecasts
+                  <span className="text-green-500">✓</span> Mood shift warnings
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="text-green-500">✓</span> Health awareness alerts
+                  <span className="text-green-500">✓</span> Bonding activity ideas
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-sm">
                   <span className="text-muted-foreground line-through text-xs">$9.99/mo</span>
                   <span className="text-foreground font-bold ml-1">$4.99/month</span>
+                  {petCount > 1 && <span className="text-xs text-muted-foreground ml-1">(covers all {petCount} pets)</span>}
                 </p>
                 <span className="text-xs text-nebula-purple font-medium">Cancel anytime</span>
               </div>
@@ -414,7 +428,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           </div>
         </button>
         <p className="text-[10px] text-center text-muted-foreground italic">
-          "The weekly updates helped me understand why Luna gets anxious before storms!" — Maria T.
+          "I used to wonder why Max was grumpy on Mondays. Now I just check my email!" — Jessica R.
         </p>
       </div>
 
@@ -509,7 +523,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         🔒 Secure checkout • 7-day money back guarantee
       </p>
 
-      {/* Gift Upsell Modal - 50% OFF */}
+      {/* Gift Upsell Modal - 50% OFF with Tier Selection */}
       <AnimatePresence>
         {showGiftUpsell && (
           <motion.div
@@ -524,7 +538,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl"
+              className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
             >
               {/* Close button */}
               <button
@@ -536,7 +550,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
               {/* Sale badge */}
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-red-500 text-white text-sm font-bold rounded-full">
-                50% OFF — LIMITED TIME
+                50% OFF ALL TIERS
               </div>
 
               {/* Gift icon */}
@@ -544,25 +558,55 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ repeat: Infinity, duration: 2 }}
-                  className="w-20 h-20 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center"
+                  className="w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center"
                 >
-                  <Gift className="w-10 h-10 text-white" />
+                  <Gift className="w-8 h-8 text-white" />
                 </motion.div>
               </div>
 
               {/* Content */}
-              <div className="text-center space-y-3 mb-6">
+              <div className="text-center space-y-2 mb-4">
                 <h3 className="text-xl font-display font-bold text-foreground">
                   Gift One to a Friend?
                 </h3>
                 <p className="text-muted-foreground text-sm">
-                  Know someone who'd love to discover their pet's cosmic truth? Get 50% off when you add a gift reading now!
+                  Know someone who'd love this? All tiers are 50% off!
                 </p>
-                <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-nebula-pink/20 to-nebula-purple/20 border border-nebula-pink/30">
-                  <Gift className="w-4 h-4 text-nebula-pink" />
-                  <span className="text-muted-foreground line-through text-sm">${(GIFT_ORIGINAL_PRICE_CENTS / 100).toFixed(0)}</span>
-                  <span className="text-lg font-bold text-cosmic-gold">${(GIFT_PRICE_CENTS / 100).toFixed(2)}</span>
-                </div>
+              </div>
+
+              {/* Gift Tier Selection */}
+              <div className="space-y-2 mb-4">
+                {(['basic', 'premium', 'vip'] as const).map((giftTier) => {
+                  const tierInfo = GIFT_TIERS[giftTier];
+                  const isSelected = selectedGiftTier === giftTier;
+                  const Icon = TIERS[giftTier].icon;
+                  
+                  return (
+                    <button
+                      key={giftTier}
+                      onClick={() => setSelectedGiftTier(giftTier)}
+                      className={cn(
+                        "w-full p-3 rounded-lg border-2 text-left transition-all flex items-center gap-3",
+                        isSelected 
+                          ? "border-nebula-purple bg-nebula-purple/10" 
+                          : "border-border/50 bg-card/30 hover:border-nebula-purple/50"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                        isSelected ? "border-nebula-purple bg-nebula-purple" : "border-muted-foreground/40"
+                      )}>
+                        {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                      </div>
+                      <Icon className={cn("w-4 h-4", isSelected ? "text-nebula-purple" : "text-muted-foreground")} />
+                      <span className="flex-1 text-sm font-medium text-foreground">{tierInfo.name}</span>
+                      <div className="text-right">
+                        <span className="text-xs text-muted-foreground line-through">${(tierInfo.originalCents / 100).toFixed(0)}</span>
+                        <span className="text-sm font-bold text-cosmic-gold ml-1">${(tierInfo.priceCents / 100).toFixed(2)}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Buttons */}
@@ -574,7 +618,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                   className="w-full"
                 >
                   <Gift className="w-5 h-5 mr-2" />
-                  Yes! Add Gift for ${(GIFT_PRICE_CENTS / 100).toFixed(2)}
+                  Add {GIFT_TIERS[selectedGiftTier].name} — ${(GIFT_TIERS[selectedGiftTier].priceCents / 100).toFixed(2)}
                 </Button>
                 
                 <Button

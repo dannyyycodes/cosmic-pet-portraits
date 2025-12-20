@@ -238,8 +238,8 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               
               <p className="text-sm text-muted-foreground mb-3">
                 {horoscopeInfo.petNames.length === 1 
-                  ? `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames[0]} every Monday!`
-                  : `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames.join(' and ')} every Monday!`
+                  ? `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames[0]} every Sunday!`
+                  : `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames.join(' and ')} every Sunday!`
                 }
               </p>
               
