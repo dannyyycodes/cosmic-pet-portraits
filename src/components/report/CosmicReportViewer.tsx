@@ -3,6 +3,7 @@ import { Star, Heart, Sparkles, Sun, Moon, Compass, Gift, MessageCircle, Zap, Ey
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { useState, useRef } from 'react';
+import { OccasionMode } from '@/lib/occasionMode';
 import { CosmicPetCard, calculateCardStats } from './CosmicPetCard';
 import { ViralPetCard } from './ViralPetCard';
 import { BirthChartWheel } from './BirthChartWheel';
@@ -129,6 +130,7 @@ interface CosmicReportViewerProps {
   onSwitchReport?: (index: number) => void;
   onNextPet?: () => void;
   onAllComplete?: () => void;
+  occasionMode?: string;
 }
 
 const elementColors: Record<string, string> = {
@@ -154,7 +156,7 @@ const sectionVariants = {
   }),
 };
 
-export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, shareToken, portraitUrl, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete }: CosmicReportViewerProps) {
+export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, shareToken, portraitUrl, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete, occasionMode = 'discover' }: CosmicReportViewerProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>(portraitUrl);
@@ -466,6 +468,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
               auraColor={report.aura?.primary || '#FFD700'}
               petPortraitUrl={petPortraitUrl}
               shareUrl={getShareLink() || undefined}
+              occasionMode={occasionMode as OccasionMode}
             />
           </div>
         ) : (

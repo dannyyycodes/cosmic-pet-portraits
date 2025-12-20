@@ -102,10 +102,10 @@ serve(async (req) => {
       isPublicAccess = true; // Gift code also provides public access
     }
 
-    // Fetch the report - include email for verification, share_token, and portrait data
+    // Fetch the report - include email for verification, share_token, portrait data, and occasion_mode
     const { data: report, error: fetchError } = await supabase
       .from("pet_reports")
-      .select("id, pet_name, report_content, payment_status, species, breed, email, share_token, pet_photo_url, portrait_url")
+      .select("id, pet_name, report_content, payment_status, species, breed, email, share_token, pet_photo_url, portrait_url, occasion_mode")
       .eq("id", targetReportId)
       .single();
 
@@ -163,6 +163,7 @@ serve(async (req) => {
       shareToken: report.share_token, // Include for owner to share
       petPhotoUrl: report.pet_photo_url,
       portraitUrl: report.portrait_url,
+      occasionMode: report.occasion_mode || 'discover',
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
