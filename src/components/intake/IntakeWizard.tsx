@@ -1,7 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, RotateCcw } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { IntakeStepPetCount } from './IntakeStepPetCount';
 import { IntakeStepPetOccasion } from './IntakeStepPetOccasion';
 import { IntakeStepName } from './IntakeStepName';
@@ -538,16 +549,36 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         </span>
       </button>
       
-      {/* Start Fresh Button - only show when there's saved progress */}
+      {/* Start Again Button with confirmation - only show when there's saved progress */}
       {step > 0 && (
-        <button
-          onClick={handleStartFresh}
-          className="fixed top-3 right-3 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-card/80 text-muted-foreground border border-border/50 hover:bg-destructive/20 hover:text-destructive hover:border-destructive/30 transition-all"
-          title="Clear all data and start over"
-        >
-          <X className="w-3 h-3" />
-          Start Fresh
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              className="fixed top-3 right-3 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-card/80 text-muted-foreground border border-border/50 hover:bg-card hover:text-foreground transition-all opacity-60 hover:opacity-100"
+              title="Start over with a new pet"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Start Again
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-card border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Start a new reading?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will clear all your current progress and pet information. You'll need to enter everything again from the beginning.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-muted hover:bg-muted/80">Keep Going</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleStartFresh}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Yes, Start Over
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
 
       <SocialProofBar petName={currentPetData?.name || ''} />
