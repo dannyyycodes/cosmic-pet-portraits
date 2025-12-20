@@ -1,27 +1,37 @@
 import { motion } from 'framer-motion';
-import { Dog, Plus, Minus, Sparkles, ArrowLeft } from 'lucide-react';
+import { Dog, Plus, Minus, Sparkles, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { clearIntakeProgress } from '@/lib/intakeStorage';
 
 interface IntakeStepPetCountProps {
   petCount: number;
   onUpdate: (count: number) => void;
   onNext: () => void;
-  onBack?: () => void;
+  showRestart?: boolean;
+  onRestart?: () => void;
 }
 
-export function IntakeStepPetCount({ petCount, onUpdate, onNext, onBack }: IntakeStepPetCountProps) {
+export function IntakeStepPetCount({ petCount, onUpdate, onNext, showRestart, onRestart }: IntakeStepPetCountProps) {
   const { t } = useLanguage();
+
+  const handleRestart = () => {
+    clearIntakeProgress();
+    onRestart?.();
+  };
 
   return (
     <div className="space-y-8 text-center">
-      {onBack && (
-        <button
-          onClick={onBack}
-          className="absolute top-4 left-4 p-2 rounded-full hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground"
+      {showRestart && (
+        <motion.button
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={handleRestart}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-all text-sm"
         >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+          <RotateCcw className="w-4 h-4" />
+          {t('intake.occasion.startFresh')}
+        </motion.button>
       )}
 
       <div className="space-y-3">

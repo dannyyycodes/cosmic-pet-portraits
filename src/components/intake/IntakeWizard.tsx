@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { IntakeStepOccasion } from './IntakeStepOccasion';
 import { IntakeStepPetCount } from './IntakeStepPetCount';
+import { IntakeStepPetOccasion } from './IntakeStepPetOccasion';
 import { IntakeStepName } from './IntakeStepName';
 import { IntakeStepSpecies } from './IntakeStepSpecies';
 import { IntakeStepBreed } from './IntakeStepBreed';
@@ -166,7 +166,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     }
   }, [searchParams]);
 
-  const modeContent = occasionModeContent[occasionMode];
+  // Get mode content for current pet (each pet can have different occasion)
+  const currentPetMode = petsData[currentPetIndex]?.occasionMode || occasionMode;
+  const modeContent = occasionModeContent[currentPetMode];
 
   // Restore saved progress on mount - but always start with occasion step for fresh visits
   useEffect(() => {
@@ -208,17 +210,17 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     });
   }, [petsData, currentPetIndex, step, petCount, hasRestoredProgress]);
 
-  // Steps: 0=occasion, 1=pet count, 2-10=pet data (9 steps), 11=email
-  const stepsPerPet = 9;
-  const totalSteps = 2 + (petCount * stepsPerPet) + 1; // occasion + pet count + pet steps + email
+  // Steps: 0=pet count, 1=pet occasion, 2-10=pet data (9 steps), 11=email
+  // Pet data steps now: 1=occasion, 2=name, 3=species, 4=breed, 5=gender, 6=dob, 7=location, 8=soul, 9=superpower, 10=strangers
+  const stepsPerPet = 10; // occasion + 9 data steps
+  const totalSteps = 1 + (petCount * stepsPerPet) + 1; // pet count + pet steps + email
 
   // Calculate current global step for progress
   const getGlobalStep = () => {
-    if (step === 0) return 0; // Occasion
-    if (step === 1) return 1; // Pet count
-    if (step === 11) return 2 + (petCount * stepsPerPet); // Email step
-    // Pet data steps (2-10 per pet)
-    return 2 + (currentPetIndex * stepsPerPet) + (step - 2);
+    if (step === 0) return 0; // Pet count
+    if (step === 11) return 1 + (petCount * stepsPerPet); // Email step
+    // Pet data steps (1-10 per pet)
+    return 1 + (currentPetIndex * stepsPerPet) + (step - 1);
   };
 
   // Track step timing
@@ -227,11 +229,10 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     stepStartTime.current = Date.now();
   }, [step, currentPetIndex, trackAction]);
 
-  // Update occasion mode and update all pets
-  const handleOccasionSelect = (newMode: OccasionMode) => {
-    setOccasionMode(newMode);
-    setPetsData(prev => prev.map(pet => ({ ...pet, occasionMode: newMode })));
-    goToStep(1);
+  // Handle per-pet occasion selection
+  const handlePetOccasionSelect = (newMode: OccasionMode) => {
+    updatePetData({ occasionMode: newMode });
+    goToStep(2); // Go to name step
   };
 
   // Update pet count and initialize pet data array
@@ -263,24 +264,22 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const handleBack = () => {
     trackAction({ type: 'back_pressed' });
     
-    // If on step 2 (first pet data step) and not the first pet, go to previous pet's last step
-    if (step === 2 && currentPetIndex > 0) {
+    // If on step 1 (per-pet occasion) and not the first pet, go to previous pet's last step
+    if (step === 1 && currentPetIndex > 0) {
       setCurrentPetIndex(currentPetIndex - 1);
       setStep(10); // Last pet data step
-    } else if (step === 2 && currentPetIndex === 0) {
-      setStep(1); // Go back to pet count selection
-    } else if (step === 1) {
-      setStep(0); // Go back to occasion
-    } else if (step > 2) {
+    } else if (step === 1 && currentPetIndex === 0) {
+      setStep(0); // Go back to pet count selection
+    } else if (step > 1) {
       setStep(step - 1); // Go to previous step
     }
   };
 
   const handleNextPetOrEmail = () => {
     if (currentPetIndex < petCount - 1) {
-      // Move to next pet
+      // Move to next pet - start at occasion selection for that pet
       setCurrentPetIndex(currentPetIndex + 1);
-      setStep(2); // First pet data step
+      setStep(1); // Per-pet occasion step
     } else {
       // All pets done, go to email
       setStep(11);
@@ -553,27 +552,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           <CosmicProgress current={getGlobalStep()} total={totalSteps} />
         )}
 
-        {/* Occasion mode indicator - always editable */}
-        {step > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-3"
-          >
-            <button
-              onClick={() => setStep(0)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/50 hover:bg-card/80 border border-border/50 hover:border-primary/30 text-xs text-muted-foreground hover:text-foreground transition-all"
-              title="Click to change occasion"
-            >
-              <span>{occasionMode === 'discover' ? '🔮' : occasionMode === 'birthday' ? '🎂' : occasionMode === 'memorial' ? '🌈' : '🎁'}</span>
-              <span className="capitalize">{t(`intake.occasion.${occasionMode}`)}</span>
-              <span className="text-primary/60">• {t('common.edit')}</span>
-            </button>
-          </motion.div>
-        )}
-
-        {/* Pet indicator for multi-pet flow */}
-        {step > 1 && step < 11 && petCount > 1 && (
+        {/* Pet indicator for multi-pet flow - show occasion per pet */}
+        {step >= 1 && step < 11 && petCount > 1 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -582,6 +562,11 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary text-sm font-medium">
               🐾 Pet {currentPetIndex + 1} of {petCount}
               {currentPetData?.name && `: ${currentPetData.name}`}
+              {currentPetData?.occasionMode && step > 1 && (
+                <span className="opacity-70">
+                  ({currentPetData.occasionMode === 'discover' ? '🔮' : currentPetData.occasionMode === 'birthday' ? '🎂' : currentPetData.occasionMode === 'memorial' ? '🌈' : '🎁'})
+                </span>
+              )}
             </span>
           </motion.div>
         )}
@@ -606,11 +591,12 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             </motion.div>
           )}
 
-          {!showGiftWelcome && step === 0 && (
-            <motion.div key="step-occasion" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepOccasion 
-                selectedMode={occasionMode}
-                onSelect={handleOccasionSelect}
+          {!showGiftWelcome && step === 0 && !giftCodeFromUrl && (
+            <motion.div key="step-petcount" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepPetCount 
+                petCount={petCount} 
+                onUpdate={handlePetCountChange} 
+                onNext={() => goToStep(1)}
                 showRestart={petsData[0]?.name !== ''}
                 onRestart={() => {
                   setPetsData([createEmptyPetData(mode)]);
@@ -623,12 +609,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           )}
 
           {!showGiftWelcome && step === 1 && !giftCodeFromUrl && (
-            <motion.div key="step-petcount" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepPetCount 
-                petCount={petCount} 
-                onUpdate={handlePetCountChange} 
-                onNext={() => goToStep(2)}
-                onBack={() => goToStep(0)}
+            <motion.div key={`step-occasion-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepPetOccasion 
+                petName={currentPetData?.name}
+                petNumber={petCount > 1 ? currentPetIndex + 1 : undefined}
+                selectedMode={currentPetData?.occasionMode || 'discover'}
+                onSelect={handlePetOccasionSelect}
+                onBack={handleBack}
               />
             </motion.div>
           )}
