@@ -36,30 +36,30 @@ export function LiveActivityIndicator() {
   }, []);
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+    <div className="fixed bottom-4 left-4 z-50 flex flex-col gap-2 text-xs">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/30"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background/80 backdrop-blur-md border border-border/50 shadow-lg"
       >
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
         </span>
-        <Eye className="w-3.5 h-3.5 text-green-400" />
-        <span className="text-green-400 font-medium">
-          {viewersCount} people viewing
+        <Eye className="w-3 h-3 text-red-400" />
+        <span className="text-foreground/90 font-medium">
+          {viewersCount} watching
         </span>
       </motion.div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1 }}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background/80 backdrop-blur-md border border-border/50 shadow-lg"
       >
-        <Users className="w-3.5 h-3.5 text-primary" />
-        <span className="text-primary font-medium">
+        <Users className="w-3 h-3 text-primary" />
+        <span className="text-foreground/90 font-medium">
           {purchasesToday} readings today
         </span>
       </motion.div>
