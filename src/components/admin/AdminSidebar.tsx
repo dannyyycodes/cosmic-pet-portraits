@@ -6,7 +6,8 @@ import {
   FileText, 
   LogOut,
   Star,
-  Gift
+  Gift,
+  Tag
 } from 'lucide-react';
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
   { title: 'Subscriptions', path: '/admin/subscriptions', icon: Mail },
   { title: 'Affiliates', path: '/admin/affiliates', icon: Users },
   { title: 'Gift Certificates', path: '/admin/gifts', icon: Gift },
+  { title: 'Coupons', path: '/admin/coupons', icon: Tag },
 ];
 
 export function AdminSidebar() {
