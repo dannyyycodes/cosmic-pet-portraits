@@ -1,24 +1,29 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Mail, Lock, ArrowLeft, Sparkles } from 'lucide-react';
+import { Star, Mail, Lock, ArrowLeft, Sparkles, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { FcGoogle } from 'react-icons/fc';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
+type AuthMode = 'login' | 'signup' | 'forgot';
+
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
   const { signIn, signUp, user } = useAuth();
@@ -28,9 +33,24 @@ export default function Auth() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
+      // Link any existing reports to this user
+      linkUserReports();
       navigate('/my-reports');
     }
   }, [user, navigate]);
+
+  const linkUserReports = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.functions.invoke('link-user-reports', {
+          headers: { Authorization: `Bearer ${session.access_token}` }
+        });
+      }
+    } catch (error) {
+      console.error('Error linking reports:', error);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -40,9 +60,11 @@ export default function Auth() {
       newErrors.email = emailResult.error.errors[0].message;
     }
     
-    const passwordResult = passwordSchema.safeParse(password);
-    if (!passwordResult.success) {
-      newErrors.password = passwordResult.error.errors[0].message;
+    if (mode !== 'forgot') {
+      const passwordResult = passwordSchema.safeParse(password);
+      if (!passwordResult.success) {
+        newErrors.password = passwordResult.error.errors[0].message;
+      }
     }
     
     setErrors(newErrors);
@@ -57,7 +79,17 @@ export default function Auth() {
     setLoading(true);
     
     try {
-      if (isLogin) {
+      if (mode === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) {
+          toast.error(error.message);
+        } else {
+          setResetSent(true);
+          toast.success('Check your email for a password reset link');
+        }
+      } else if (mode === 'login') {
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
@@ -87,6 +119,39 @@ export default function Auth() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/my-reports`,
+        },
+      });
+      if (error) {
+        toast.error(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTitle = () => {
+    if (mode === 'forgot') return resetSent ? 'Check Your Email' : 'Reset Password';
+    return mode === 'login' ? 'Welcome Back' : 'Create Account';
+  };
+
+  const getDescription = () => {
+    if (mode === 'forgot') {
+      return resetSent 
+        ? 'We sent you a link to reset your password' 
+        : 'Enter your email to receive a reset link';
+    }
+    return mode === 'login' 
+      ? 'Sign in to view your cosmic reports' 
+      : 'Join AstroPets to save your reports';
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <StarfieldBackground />
@@ -99,11 +164,11 @@ export default function Auth() {
         >
           {/* Back button */}
           <button
-            onClick={() => navigate('/')}
+            onClick={() => mode === 'forgot' ? setMode('login') : navigate('/')}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>{t('nav.backHome')}</span>
+            <span>{mode === 'forgot' ? 'Back to Sign In' : t('nav.backHome')}</span>
           </button>
           
           {/* Logo */}
@@ -114,97 +179,159 @@ export default function Auth() {
               transition={{ delay: 0.1, type: 'spring' }}
               className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-cosmic-gold to-primary flex items-center justify-center"
             >
-              <Star className="w-8 h-8 text-white fill-white" />
+              {resetSent ? (
+                <Check className="w-8 h-8 text-white" />
+              ) : (
+                <Star className="w-8 h-8 text-white fill-white" />
+              )}
             </motion.div>
             <h1 className="text-3xl font-display font-bold text-foreground">
-              {isLogin ? 'Welcome Back' : 'Create Account'}
+              {getTitle()}
             </h1>
             <p className="text-muted-foreground mt-2">
-              {isLogin 
-                ? 'Sign in to view your cosmic reports' 
-                : 'Join AstroPets to save your reports'}
+              {getDescription()}
             </p>
           </div>
 
           {/* Form Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6"
-          >
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                {errors.email && (
-                  <p className="text-sm text-red-500">{errors.email}</p>
-                )}
-              </div>
+          {!resetSent && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6"
+            >
+              {/* Google Sign In - only show for login/signup */}
+              {mode !== 'forgot' && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    className="w-full gap-3 mb-4"
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                  >
+                    <FcGoogle className="w-5 h-5" />
+                    Continue with Google
+                  </Button>
+                  
+                  <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border/50"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card/50 px-2 text-muted-foreground">or</span>
+                    </div>
+                  </div>
+                </>
+              )}
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                  />
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-sm text-red-500">{errors.email}</p>
+                  )}
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password}</p>
-                )}
-              </div>
 
+                {mode !== 'forgot' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    {errors.password && (
+                      <p className="text-sm text-red-500">{errors.password}</p>
+                    )}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="cosmic"
+                  size="lg"
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <motion.span
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                      </motion.span>
+                      {mode === 'forgot' ? 'Sending...' : mode === 'login' ? 'Signing in...' : 'Creating account...'}
+                    </span>
+                  ) : (
+                    mode === 'forgot' ? 'Send Reset Link' : mode === 'login' ? 'Sign In' : 'Create Account'
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-6 space-y-3 text-center">
+                {mode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => setMode('forgot')}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors block w-full"
+                  >
+                    Forgot your password?
+                  </button>
+                )}
+                
+                <button
+                  type="button"
+                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {mode === 'login' 
+                    ? "Don't have an account? Sign up" 
+                    : 'Already have an account? Sign in'}
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Reset sent state */}
+          {resetSent && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 text-center"
+            >
+              <p className="text-muted-foreground mb-4">
+                Didn't receive the email? Check your spam folder or
+              </p>
               <Button
-                type="submit"
-                variant="cosmic"
-                size="lg"
-                className="w-full"
-                disabled={loading}
+                variant="outline"
+                onClick={() => setResetSent(false)}
               >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    >
-                      <Sparkles className="w-4 h-4" />
-                    </motion.span>
-                    {isLogin ? 'Signing in...' : 'Creating account...'}
-                  </span>
-                ) : (
-                  isLogin ? 'Sign In' : 'Create Account'
-                )}
+                Try again
               </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                {isLogin 
-                  ? "Don't have an account? Sign up" 
-                  : 'Already have an account? Sign in'}
-              </button>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </div>
