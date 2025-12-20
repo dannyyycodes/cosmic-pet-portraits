@@ -87,11 +87,11 @@ export function SocialProofBar() {
     <AnimatePresence>
       {isVisible && currentPurchase && (
         <motion.div
-          initial={{ opacity: 0, y: 50, x: -20 }}
+          initial={{ opacity: 0, y: 50, x: 20 }}
           animate={{ opacity: 1, y: 0, x: 0 }}
-          exit={{ opacity: 0, y: 20, x: -20 }}
+          exit={{ opacity: 0, y: 20, x: 20 }}
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          className="fixed bottom-4 left-4 z-50 max-w-xs"
+          className="fixed bottom-4 right-4 z-50 max-w-xs"
         >
           <div className="bg-card/95 backdrop-blur-md border border-border/50 rounded-xl p-4 shadow-xl">
             <div className="flex items-center gap-3">

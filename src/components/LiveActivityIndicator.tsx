@@ -36,7 +36,7 @@ export function LiveActivityIndicator() {
   }, []);
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex flex-col gap-2 text-xs">
+    <div className="fixed bottom-20 left-4 z-40 flex flex-col gap-2 text-xs">
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
