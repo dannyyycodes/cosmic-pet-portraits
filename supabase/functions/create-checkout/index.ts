@@ -15,7 +15,12 @@ const TIERS = {
   vip: { name: 'Cosmic VIP Experience', priceCents: 12900 },
 } as const;
 
-const GIFT_PRICE_CENTS = 1750; // 50% off gift
+// Gift tiers - 50% off all tiers for friends
+const GIFT_TIERS = {
+  basic: { priceCents: 1750, name: 'Gift: Cosmic Pet Reading' },
+  premium: { priceCents: 2500, name: 'Gift: Cosmic Portrait Edition' },
+  vip: { priceCents: 6450, name: 'Gift: Cosmic VIP Experience' },
+} as const;
 
 // Volume discount calculation - SERVER-SIDE (must match frontend CheckoutPanel)
 function getVolumeDiscount(petCount: number): number {
@@ -43,6 +48,7 @@ const checkoutSchema = z.object({
   giftMessage: z.string().max(500).optional().default(''),
   totalCents: z.number().optional(), // Ignored - calculated server-side
   includeGiftForFriend: z.boolean().optional().default(false),
+  giftTierForFriend: z.enum(['basic', 'premium', 'vip']).optional().default('basic'),
   includesPortrait: z.boolean().optional().default(false), // Whether tier includes AI portrait
   referralCode: z.string().max(50).optional(), // Affiliate referral code
   includeHoroscope: z.boolean().optional().default(false), // Weekly horoscope add-on
@@ -125,8 +131,9 @@ serve(async (req) => {
     const volumeDiscountRate = getVolumeDiscount(actualPetCount);
     const volumeDiscount = Math.round(baseTotal * volumeDiscountRate);
     
-    // Gift add-on
-    const giftAmount = input.includeGiftForFriend ? GIFT_PRICE_CENTS : 0;
+    // Gift add-on - use selected gift tier
+    const giftTier = input.giftTierForFriend || 'basic';
+    const giftAmount = input.includeGiftForFriend ? GIFT_TIERS[giftTier].priceCents : 0;
     
     // Apply coupon discount if provided
     let couponDiscount = 0;
@@ -311,14 +318,16 @@ serve(async (req) => {
 
     // Add gift reading if selected
     if (input.includeGiftForFriend) {
+      const giftTierSelected = input.giftTierForFriend || 'basic';
+      const giftInfo = GIFT_TIERS[giftTierSelected];
       lineItems.push({
         price_data: {
           currency: "usd",
           product_data: {
-            name: "🎁 Gift Reading for a Friend (50% OFF!)",
+            name: `🎁 ${giftInfo.name} (50% OFF!)`,
             description: "A cosmic pet reading gift certificate",
           },
-          unit_amount: GIFT_PRICE_CENTS,
+          unit_amount: giftInfo.priceCents,
         },
         quantity: 1,
       });
@@ -346,6 +355,7 @@ serve(async (req) => {
         pet_tiers: JSON.stringify(petTiers), // Store per-pet tiers
         pet_photos: JSON.stringify(input.petPhotos || {}), // Store per-pet photos
         include_gift: input.includeGiftForFriend ? "true" : "false",
+        gift_tier_for_friend: input.includeGiftForFriend ? (input.giftTierForFriend || 'basic') : "",
         includes_portrait: anyPetHasPortrait ? "true" : "false",
         is_gift: input.isGift ? "true" : "false",
         recipient_name: input.recipientName,

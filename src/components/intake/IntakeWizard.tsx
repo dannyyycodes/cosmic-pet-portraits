@@ -490,10 +490,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               recipientEmail: checkoutData.recipientEmail,
               giftMessage: checkoutData.giftMessage,
               includeGiftForFriend: checkoutData.includeGiftForFriend || false,
+              giftTierForFriend: checkoutData.giftTierForFriend || 'basic',
               referralCode: referralCode || undefined, // Pass referral code to checkout
               includeHoroscope: checkoutData.includeHoroscope || false, // Weekly horoscope add-on
               includesPortrait: checkoutData.includesPortrait || false,
               petPhotoUrl: checkoutData.petPhotoUrl || undefined, // Pass photo URL for portrait generation
+              petTiers: checkoutData.petTiers || {}, // Per-pet tier selection
+              petPhotos: checkoutData.petPhotos || {}, // Per-pet photo URLs
             },
           }
         );
