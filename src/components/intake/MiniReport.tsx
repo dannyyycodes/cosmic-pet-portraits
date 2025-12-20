@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { PetData, CosmicReport } from './IntakeWizard';
-import { Lock, Moon, ArrowUp, Sparkles, Star, Heart, Lightbulb, AlertTriangle } from 'lucide-react';
+import { Lock, Moon, ArrowUp, Sparkles, Star, Heart, Lightbulb, AlertTriangle, Zap, Users, Activity, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TestimonialCarousel } from './TestimonialCarousel';
 
@@ -275,11 +275,103 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
               </div>
             </motion.div>
 
+            {/* NEW: Cosmic Compatibility Score - High Value Preview */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.68 }}
+              className="bg-gradient-to-br from-primary/20 via-card/60 to-gold/20 backdrop-blur-xl border border-primary/40 rounded-2xl p-6 relative overflow-hidden"
+            >
+              <div className="absolute top-2 right-2 px-2 py-0.5 bg-primary/30 rounded-full text-[10px] text-primary font-medium">
+                EXCLUSIVE PREVIEW
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-gold flex items-center justify-center">
+                    <span className="text-3xl font-bold text-primary-foreground">
+                      {Math.floor(75 + (nameVibration * 2))}%
+                    </span>
+                  </div>
+                  <motion.div
+                    className="absolute inset-0 rounded-full border-4 border-gold/50"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users className="w-4 h-4 text-gold" />
+                    <p className="text-sm text-muted-foreground uppercase tracking-wider">You & {petData.name}</p>
+                  </div>
+                  <p className="text-lg font-semibold text-foreground">Cosmic Compatibility</p>
+                  <p className="text-xs text-muted-foreground mt-1">Your souls are deeply connected...</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* NEW: Personality Breakdown Preview */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.72 }}
+              className="bg-card/40 backdrop-blur-xl border border-border/50 rounded-2xl p-6"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Activity className="w-5 h-5 text-primary" />
+                <p className="text-sm text-muted-foreground uppercase tracking-wider">Personality Breakdown</p>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { trait: "Adventurous Spirit", value: 65 + (nameVibration * 3), color: "from-primary to-tangerine" },
+                  { trait: "Emotional Depth", value: 78 + (nameVibration), color: "from-nebula-purple to-nebula-pink" },
+                  { trait: "Intuitive Power", value: 82 + nameVibration, color: "from-gold to-gold-light" },
+                ].map((item, idx) => (
+                  <div key={idx}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-foreground/80">{item.trait}</span>
+                      <span className="text-gold font-medium">{Math.min(item.value, 99)}%</span>
+                    </div>
+                    <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(item.value, 99)}%` }}
+                        transition={{ delay: 0.8 + idx * 0.1, duration: 0.8 }}
+                        className={`h-full rounded-full bg-gradient-to-r ${item.color}`}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <div className="pt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                  <Lock className="w-3 h-3" />
+                  <span>12 more personality traits in full report...</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* NEW: Quick Insights Grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.76 }}
+              className="grid grid-cols-2 gap-3"
+            >
+              <div className="bg-card/40 border border-border/50 rounded-xl p-4 text-center">
+                <Zap className="w-6 h-6 text-primary mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">Best Play Time</p>
+                <p className="text-sm font-semibold text-foreground">{element === 'Fire' ? 'Morning' : element === 'Earth' ? 'Afternoon' : element === 'Air' ? 'Anytime' : 'Evening'}</p>
+              </div>
+              <div className="bg-card/40 border border-border/50 rounded-xl p-4 text-center">
+                <TrendingUp className="w-6 h-6 text-gold mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">Lucky Day</p>
+                <p className="text-sm font-semibold text-foreground">{['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][nameVibration % 7]}</p>
+              </div>
+            </motion.div>
+
             {/* Did You Know - Species Specific */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
+              transition={{ delay: 0.8 }}
               className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 backdrop-blur-xl border border-amber-500/30 rounded-2xl p-5"
             >
               <div className="flex items-start gap-3">
