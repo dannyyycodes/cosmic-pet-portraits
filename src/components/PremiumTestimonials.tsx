@@ -38,40 +38,40 @@ function FeaturedTestimonial({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay, duration: 0.5 }}
-      className="relative group"
+      className="relative group pt-4"
     >
-      <div className="relative bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-border/50 rounded-3xl p-8 h-full overflow-hidden transition-all duration-500 hover:border-gold/40 hover:shadow-[0_0_40px_hsl(43_69%_52%/0.15)]">
+      {/* Tag badge - positioned above card */}
+      <div className={`absolute top-0 left-6 z-10 px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 ${tagColor}`}>
+        {tagIcon}
+        {tag}
+      </div>
+      
+      <div className="relative bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-xl border border-border/50 rounded-3xl p-8 h-full transition-all duration-500 hover:border-gold/40 hover:shadow-[0_0_40px_hsl(43_69%_52%/0.15)]">
         {/* Background glow on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        
-        {/* Tag badge */}
-        <div className={`absolute -top-3 left-6 px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 ${tagColor}`}>
-          {tagIcon}
-          {tag}
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl" />
         
         {/* Quote icon */}
         <Quote className="absolute top-6 right-6 w-10 h-10 text-gold/10" />
         
         {/* Stars */}
-        <div className="flex gap-1 mb-6">
+        <div className="flex gap-1 mb-6 relative z-10">
           {[...Array(5)].map((_, i) => (
             <Star key={i} className="w-5 h-5 fill-gold text-gold" />
           ))}
         </div>
 
         {/* Highlight quote */}
-        <p className="text-xl md:text-2xl font-serif font-medium text-gold mb-4 leading-relaxed">
+        <p className="text-xl md:text-2xl font-serif font-medium text-gold mb-4 leading-relaxed relative z-10">
           "{highlight}"
         </p>
 
         {/* Full text */}
-        <p className="text-foreground/70 leading-relaxed mb-8 text-sm md:text-base">
+        <p className="text-foreground/70 leading-relaxed mb-8 text-sm md:text-base relative z-10">
           {text}
         </p>
 
         {/* Author */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative z-10">
           <div className="relative">
             <img 
               src={image} 
@@ -102,8 +102,8 @@ export function PremiumTestimonials() {
     {
       name: "Mia",
       pet: "Bruno",
-      text: "I read the first paragraph and my jaw dropped. It described Bruno's exact quirks — how he tilts his head when confused, his fear of thunder, everything. My husband thought I wrote it myself. This isn't a gimmick. It's genuinely uncanny.",
-      highlight: "My husband thought I wrote it myself",
+      text: "I read the first paragraph and my jaw dropped. It described Bruno's exact little habits — how he tilts his head when he's confused, his thing with thunder, all of it. My husband was like 'did you write this?' Honestly didn't expect it to be this good.",
+      highlight: "My husband was like 'did you write this?'",
       image: customer1,
       tag: "Scary Accurate",
       tagIcon: <Sparkles className="w-3 h-3" />,
@@ -112,8 +112,8 @@ export function PremiumTestimonials() {
     {
       name: "Mark",
       pet: "Mr. Whiskers",
-      text: "Bought this as a last-minute birthday gift for my sister. She called me SOBBING. She said 'How did they know all of this about Whiskers?' Best $19 I've ever spent. I've now gifted 7 more to friends and family.",
-      highlight: "She called me SOBBING with joy",
+      text: "Got this last minute for my sister's birthday. She rang me crying! She kept saying 'how do they know all this about Whiskers?' Honestly best £15 I've spent. Already bought 4 more for mates.",
+      highlight: "She rang me crying!",
       image: customer4,
       tag: "Gift That Made Her Cry",
       tagIcon: <Gift className="w-3 h-3" />,
@@ -122,8 +122,8 @@ export function PremiumTestimonials() {
     {
       name: "Sarah",
       pet: "Rex",
-      text: "I was skeptical — like REALLY skeptical. But my friend wouldn't stop talking about hers. So I tried it. The report explained why Rex gets anxious at 6pm every day (I had no idea!). Changed how I handle his evenings. He's calmer now.",
-      highlight: "Changed how I handle his evenings. He's calmer now.",
+      text: "I was proper skeptical tbh. But my mate wouldn't shut up about hers so I gave it a go. The report explained why Rex gets weird at 6pm every day (never noticed before!). Changed how I do his evenings now. He's way less stressed.",
+      highlight: "He's way less stressed now",
       image: customer5,
       tag: "Skeptic Turned Believer",
       tagIcon: <Heart className="w-3 h-3" />,
