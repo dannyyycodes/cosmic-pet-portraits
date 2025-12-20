@@ -34,6 +34,11 @@ interface GiftedInfo {
   giftedTier: 'basic' | 'premium' | 'vip' | null;
 }
 
+interface HoroscopeInfo {
+  enabled: boolean;
+  petNames: string[];
+}
+
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -44,6 +49,7 @@ export default function PaymentSuccess() {
   const [error, setError] = useState<string | null>(null);
   const [giftInfo, setGiftInfo] = useState<GiftInfo>({ includeGift: false, giftCode: null });
   const [giftedInfo, setGiftedInfo] = useState<GiftedInfo>({ isGifted: false, giftedTier: null });
+  const [horoscopeInfo, setHoroscopeInfo] = useState<HoroscopeInfo>({ enabled: false, petNames: [] });
 
   const sessionId = searchParams.get('session_id');
   const reportId = searchParams.get('report_id');
@@ -125,6 +131,14 @@ export default function PaymentSuccess() {
           // Capture gift info if present
           if (data.includeGift && data.giftCode) {
             setGiftInfo({ includeGift: true, giftCode: data.giftCode });
+          }
+          
+          // Capture horoscope subscription info
+          if (data.horoscopeEnabled) {
+            setHoroscopeInfo({ 
+              enabled: true, 
+              petNames: processedReports.map(r => r.petName) 
+            });
           }
           
           setAllReports(processedReports);
@@ -315,6 +329,7 @@ export default function PaymentSuccess() {
         onViewReports={handleViewAllReports}
         giftInfo={giftInfo}
         giftedInfo={giftedInfo}
+        horoscopeInfo={horoscopeInfo}
       />
     );
   }

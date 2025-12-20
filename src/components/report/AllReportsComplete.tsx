@@ -15,14 +15,20 @@ interface GiftedInfo {
   giftedTier: 'basic' | 'premium' | 'vip' | null;
 }
 
+interface HoroscopeInfo {
+  enabled: boolean;
+  petNames: string[];
+}
+
 interface AllReportsCompleteProps {
   petNames: string[];
   onViewReports: () => void;
   giftInfo?: GiftInfo;
   giftedInfo?: GiftedInfo;
+  horoscopeInfo?: HoroscopeInfo;
 }
 
-export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedInfo }: AllReportsCompleteProps) {
+export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedInfo, horoscopeInfo }: AllReportsCompleteProps) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   
@@ -213,6 +219,42 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               
               <p className="text-xs text-muted-foreground mt-3">
                 This gift code is worth $35 and never expires. They can use it for any pet!
+              </p>
+            </motion.div>
+          )}
+
+          {/* Weekly Horoscope Confirmation - Show if horoscope was added */}
+          {horoscopeInfo?.enabled && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.58 }}
+              className="mb-6 p-5 rounded-2xl bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Star className="w-5 h-5 text-primary fill-primary" />
+                <h3 className="font-semibold text-foreground">Weekly Horoscopes Activated! 🌟</h3>
+              </div>
+              
+              <p className="text-sm text-muted-foreground mb-3">
+                {horoscopeInfo.petNames.length === 1 
+                  ? `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames[0]} every Monday!`
+                  : `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames.join(' and ')} every Monday!`
+                }
+              </p>
+              
+              <div className="bg-background/50 rounded-lg p-3 border border-border/50">
+                <p className="text-sm font-medium text-foreground mb-2">What to expect:</p>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li>✦ Weekly cosmic forecast tailored to your pet's chart</li>
+                  <li>✦ Energy predictions for each day</li>
+                  <li>✦ Best times for activities, vet visits, and bonding</li>
+                  <li>✦ Special cosmic event alerts (eclipses, retrogrades)</li>
+                </ul>
+              </div>
+              
+              <p className="text-xs text-muted-foreground mt-3">
+                Your first horoscope will arrive within the next few days!
               </p>
             </motion.div>
           )}
