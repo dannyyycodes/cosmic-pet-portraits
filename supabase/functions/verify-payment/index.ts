@@ -123,7 +123,7 @@ serve(async (req) => {
           .eq("id", id);
       }
       
-      // Generate reports for each pet
+      // Generate reports for each pet (wait for all to complete before fetching final data)
       for (let i = 0; i < reportIds.length; i++) {
         const id = reportIds[i];
         const tierKey = petTiersFromBody[String(i)] || selectedTierParam || 'premium';
@@ -136,6 +136,7 @@ serve(async (req) => {
           .single();
 
         if (report && !report.report_content) {
+          // Wait for report generation (including portrait) to complete
           await generateReport(report, id, supabaseClient, includesPortrait);
         }
       }
