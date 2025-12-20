@@ -106,7 +106,7 @@ serve(async (req) => {
         name: input.name,
         stripe_account_id: account.id,
         referral_code: referralCode,
-        commission_rate: 0.20,
+        commission_rate: 0.25,
         status: 'pending',
       })
       .select()
