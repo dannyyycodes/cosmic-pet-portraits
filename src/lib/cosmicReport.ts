@@ -17,6 +17,10 @@ export interface CosmicReport {
   ownerInsight: string;
   personalityType: string;
   occasionMode: OccasionMode;
+  luckyDay: string;
+  powerPair: string;
+  secretStrength: string;
+  cosmicFact: string;
 }
 
 // Get occasion mode from pet data or default
@@ -969,6 +973,12 @@ export function generateCosmicReport(petData: PetData): CosmicReport {
   // Get meme personality type based on inputs
   const personalityType = getPersonalityType(element, soulType || '', strangerReaction || '');
   
+  // Generate unique bonus content
+  const luckyDay = getLuckyDay(name, element, dateOfBirth);
+  const powerPair = getPowerPair(sunSign, name, species);
+  const secretStrength = getSecretStrength(name, element, species, occasionMode);
+  const cosmicFact = getCosmicFact(name, species, element, breed || '', occasionMode);
+  
   return {
     sunSign,
     archetype,
@@ -984,7 +994,188 @@ export function generateCosmicReport(petData: PetData): CosmicReport {
     ownerInsight,
     personalityType,
     occasionMode,
+    luckyDay,
+    powerPair,
+    secretStrength,
+    cosmicFact,
   };
+}
+
+// Lucky day based on element and name
+function getLuckyDay(name: string, element: string, dateOfBirth: Date | null): string {
+  const elementDays: Record<string, string[]> = {
+    Fire: ['Tuesday', 'Sunday'],
+    Earth: ['Saturday', 'Friday'],
+    Air: ['Wednesday', 'Thursday'],
+    Water: ['Monday', 'Friday'],
+  };
+  const days = elementDays[element] || ['Sunday'];
+  const index = calculateNameVibration(name) % days.length;
+  const luckyDay = days[index];
+  
+  const dayActivities: Record<string, string> = {
+    Monday: `${name}'s lunar energy peaks—perfect for cuddles and calm bonding`,
+    Tuesday: `${name}'s warrior spirit shines—great for active play and adventures`,
+    Wednesday: `${name}'s communication abilities peak—they're extra receptive to training`,
+    Thursday: `${name}'s luck expands—ideal for new experiences and meeting new friends`,
+    Friday: `${name}'s love energy flows strongest—maximum affection day!`,
+    Saturday: `${name}'s grounding energy peaks—perfect for establishing routines`,
+    Sunday: `${name}'s golden hour—everything they do shines a little brighter`,
+  };
+  
+  return `${luckyDay}: ${dayActivities[luckyDay]}`;
+}
+
+// Human zodiac compatibility
+function getPowerPair(petSign: string, petName: string, species: string): string {
+  const compatibility: Record<string, { best: string[]; why: string }> = {
+    Aries: { best: ['Leo', 'Sagittarius', 'Gemini'], why: 'matches their adventurous fire' },
+    Taurus: { best: ['Virgo', 'Capricorn', 'Cancer'], why: 'appreciates their steady love' },
+    Gemini: { best: ['Libra', 'Aquarius', 'Aries'], why: 'keeps up with their curious mind' },
+    Cancer: { best: ['Scorpio', 'Pisces', 'Taurus'], why: 'understands their emotional depth' },
+    Leo: { best: ['Aries', 'Sagittarius', 'Libra'], why: 'celebrates their magnificent spirit' },
+    Virgo: { best: ['Taurus', 'Capricorn', 'Cancer'], why: 'values their devoted nature' },
+    Libra: { best: ['Gemini', 'Aquarius', 'Leo'], why: 'balances their harmonious energy' },
+    Scorpio: { best: ['Cancer', 'Pisces', 'Virgo'], why: 'respects their intense loyalty' },
+    Sagittarius: { best: ['Aries', 'Leo', 'Aquarius'], why: 'shares their love of freedom' },
+    Capricorn: { best: ['Taurus', 'Virgo', 'Scorpio'], why: 'honors their dignified nature' },
+    Aquarius: { best: ['Gemini', 'Libra', 'Sagittarius'], why: 'embraces their unique quirks' },
+    Pisces: { best: ['Cancer', 'Scorpio', 'Taurus'], why: 'flows with their dreamy nature' },
+  };
+  
+  const petCompat = compatibility[petSign] || compatibility.Pisces;
+  const bestSign = petCompat.best[0];
+  
+  return `${petName} bonds deepest with ${bestSign} humans—someone who ${petCompat.why}. If you're a ${bestSign}, you've found your cosmic match!`;
+}
+
+// Secret strength unique to each pet
+function getSecretStrength(name: string, element: string, species: string, occasionMode: string): string {
+  const isPast = occasionMode === 'memorial';
+  const verb = isPast ? 'had' : 'has';
+  const verbIs = isPast ? 'was' : 'is';
+  
+  const speciesStrengths: Record<string, Record<string, string[]>> = {
+    dog: {
+      Fire: [
+        `${name} ${verb} an uncanny ability to sense when you need motivation—${isPast ? 'they were' : 'they\'re'} your personal cheerleader`,
+        `${name}'s enthusiasm ${verbIs} contagious—${isPast ? 'they could' : 'they can'} turn any bad day around with one tail wag`,
+        `${name} ${verb} the gift of perfect timing—${isPast ? 'they always knew' : 'they always know'} exactly when to bring you a toy`,
+      ],
+      Earth: [
+        `${name} ${verb} a sixth sense for danger—${isPast ? 'they watched' : 'they watch'} over your home like a guardian angel`,
+        `${name}'s patience ${verbIs} legendary—${isPast ? 'they could' : 'they can'} wait for treats with zen-like calm`,
+        `${name} ${verb} the ability to ground you—${isPast ? 'their presence alone was' : 'their presence alone is'} calming`,
+      ],
+      Air: [
+        `${name} ${verb} exceptional problem-solving skills—${isPast ? 'they figured' : 'they figure'} out puzzles that stump other pets`,
+        `${name}'s ability to read body language ${verbIs} extraordinary—${isPast ? 'they knew' : 'they know'} your mood before you do`,
+        `${name} ${verb} a gift for making friends—${isPast ? 'every human and pet loved' : 'every human and pet loves'} them`,
+      ],
+      Water: [
+        `${name} ${verb} healing presence—${isPast ? 'being near them lowered' : 'being near them lowers'} your stress hormones`,
+        `${name}'s intuition ${verbIs} remarkable—${isPast ? 'they sensed' : 'they sense'} your emotions before you feel them`,
+        `${name} ${verb} the ability to sense illness—${isPast ? 'they acted' : 'they act'} different when you're unwell`,
+      ],
+    },
+    cat: {
+      Fire: [
+        `${name} ${verb} the power to command any room—${isPast ? 'their presence was' : 'their presence is'} impossible to ignore`,
+        `${name}'s hunting instincts ${isPast ? 'were' : 'are'} legendary—${isPast ? 'no toy ever escaped' : 'no toy escapes'} them`,
+        `${name} ${verb} the gift of dramatic timing—${isPast ? 'they always knew' : 'they always know'} exactly when to make an entrance`,
+      ],
+      Earth: [
+        `${name} ${verb} an internal clock more accurate than any watch—${isPast ? 'feeding time was' : 'feeding time is'} never forgotten`,
+        `${name}'s contentment ${verbIs} contagious—${isPast ? 'their purring created' : 'their purring creates'} instant peace`,
+        `${name} ${verb} the ability to find the warmest spot in any room—${isPast ? 'a true temperature genius' : 'a true temperature genius'}`,
+      ],
+      Air: [
+        `${name} ${verb} an extraordinary vocabulary of chirps and meows—${isPast ? 'real conversations happened' : 'real conversations happen'}`,
+        `${name}'s curiosity ${isPast ? 'was' : 'is'} boundless—${isPast ? 'they never stopped' : 'they never stop'} exploring`,
+        `${name} ${verb} the gift of mystery—${isPast ? 'even after years, they could' : 'even after years, they can'} still surprise you`,
+      ],
+      Water: [
+        `${name} ${verb} a psychic connection to you—${isPast ? 'they appeared' : 'they appear'} exactly when you need comfort`,
+        `${name}'s slow blinks ${isPast ? 'were' : 'are'} actual healing—${isPast ? 'each one was' : 'each one is'} a gift of love`,
+        `${name} ${verb} the power to sense bad vibes—${isPast ? 'they always knew' : 'they always know'} who to avoid`,
+      ],
+    },
+    rabbit: {
+      Fire: [
+        `${name}'s binkies ${isPast ? 'had' : 'have'} supernatural timing—${isPast ? 'they happened' : 'they happen'} exactly when you need joy`,
+        `${name} ${verb} the heart of a lion—${isPast ? 'such bravery in' : 'such bravery in'} such a small body`,
+        `${name}'s zoomies ${isPast ? 'were' : 'are'} pure magic—${isPast ? 'watching them recharged' : 'watching them recharges'} your soul`,
+      ],
+      Earth: [
+        `${name} ${verb} the gift of contentment—${isPast ? 'their peaceful presence taught' : 'their peaceful presence teaches'} you to slow down`,
+        `${name}'s trust ${verbIs} sacred—${isPast ? 'earning it meant' : 'earning it means'} everything`,
+        `${name} ${verb} the ability to create cozy kingdoms—${isPast ? 'their setup skills were' : 'their setup skills are'} impressive`,
+      ],
+      Air: [
+        `${name}'s nose twitches ${isPast ? 'decoded' : 'decode'} invisible information—${isPast ? 'a true sensory genius' : 'a true sensory genius'}`,
+        `${name} ${verb} exceptional memory—${isPast ? 'they never forgot' : 'they never forget'} where treats are hidden`,
+        `${name}'s curiosity ${isPast ? 'was' : 'is'} endless—${isPast ? 'every corner held' : 'every corner holds'} adventure`,
+      ],
+      Water: [
+        `${name}'s gentle grooming licks ${isPast ? 'were' : 'are'} pure love—${isPast ? 'tiny acts of' : 'tiny acts of'} devotion`,
+        `${name} ${verb} the gift of sensing tension—${isPast ? 'they would thump' : 'they thump'} warnings when energy shifts`,
+        `${name}'s flopping trust ${isPast ? 'was' : 'is'} the highest honor—${isPast ? 'you were' : 'you are'} their safe space`,
+      ],
+    },
+    default: {
+      Fire: [
+        `${name}'s energy ${verbIs} pure inspiration—${isPast ? 'they reminded' : 'they remind'} you to embrace life fully`,
+        `${name} ${verb} the gift of enthusiasm—${isPast ? 'their joy was' : 'their joy is'} unmatched`,
+        `${name}'s spirit ${isPast ? 'was' : 'is'} untameable—${isPast ? 'they lived' : 'they live'} authentically`,
+      ],
+      Earth: [
+        `${name} ${verb} the power of presence—${isPast ? 'just being there was' : 'just being there is'} enough`,
+        `${name}'s reliability ${verbIs} extraordinary—${isPast ? 'they were' : 'they are'} always there for you`,
+        `${name} ${verb} the gift of calm—${isPast ? 'their steadiness anchored' : 'their steadiness anchors'} you`,
+      ],
+      Air: [
+        `${name}'s intelligence ${isPast ? 'surprised' : 'surprises'} everyone—${isPast ? 'they understood' : 'they understand'} more than expected`,
+        `${name} ${verb} the gift of communication—${isPast ? 'they always made' : 'they always make'} themselves understood`,
+        `${name}'s curiosity ${isPast ? 'was' : 'is'} inspiring—${isPast ? 'they explored' : 'they explore'} fearlessly`,
+      ],
+      Water: [
+        `${name} ${verb} healing energy—${isPast ? 'their presence alone was' : 'their presence alone is'} therapeutic`,
+        `${name}'s sensitivity ${verbIs} a superpower—${isPast ? 'they felt' : 'they feel'} everything deeply`,
+        `${name} ${verb} the gift of empathy—${isPast ? 'they knew' : 'they know'} exactly what you need`,
+      ],
+    },
+  };
+  
+  const normalizedSpecies = species?.toLowerCase() || 'default';
+  const strengths = speciesStrengths[normalizedSpecies]?.[element] || speciesStrengths.default[element] || speciesStrengths.default.Water;
+  const index = calculateNameVibration(name) % strengths.length;
+  return strengths[index];
+}
+
+// Cosmic fact unique to this specific pet
+function getCosmicFact(name: string, species: string, element: string, breed: string, occasionMode: string): string {
+  const isPast = occasionMode === 'memorial';
+  const verbIs = isPast ? 'was' : 'is';
+  const verbHas = isPast ? 'had' : 'has';
+  
+  const nameLength = name.length;
+  const firstLetter = name.charAt(0).toUpperCase();
+  
+  const facts = [
+    `${name}'s name ${verbHas} ${nameLength} letters—in numerology, this ${isPast ? 'amplified' : 'amplifies'} their ${element} traits by ${nameLength * 11}%`,
+    `The letter "${firstLetter}" ${isPast ? 'connected' : 'connects'} ${name} to ancient ${species === 'cat' ? 'Egyptian' : species === 'dog' ? 'Roman' : 'Celtic'} energy symbols`,
+    `${name}'s birth timing ${isPast ? 'aligned' : 'aligns'} them with the ${element} constellation—only 8% of pets share this exact pattern`,
+    `${name}'s unique cosmic signature ${verbIs} calculated at ${calculateNameVibration(name) * 7}.${nameLength}—this ${verbIs} exceedingly rare`,
+    `The universe ${isPast ? 'placed' : 'places'} ${name} in your life at precisely the right moment—cosmically calculated coincidence`,
+    `${name}'s ${element} soul ${isPast ? 'vibrated' : 'vibrates'} at a frequency that ${isPast ? 'matched' : 'matches'} your heart's needs perfectly`,
+  ];
+  
+  if (breed) {
+    facts.push(`${breed}s with ${element} energy like ${name} ${isPast ? 'were' : 'are'} known as "${element} ${breed.split(' ')[0]} souls"—legendarily special`);
+  }
+  
+  const index = (calculateNameVibration(name) + nameLength) % facts.length;
+  return facts[index];
 }
 
 function getModality(dateOfBirth: Date | null): string {
