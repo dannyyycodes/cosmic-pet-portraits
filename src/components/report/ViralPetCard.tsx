@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { Star, Heart, Zap, Shield, Sparkles, Download, Share2, Check, PartyPopper, Flame, Crown, Ghost, Music } from 'lucide-react';
+import { Star, Heart, Zap, Shield, Sparkles, Download, Share2, Check, PartyPopper, Flame, Crown, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import { OccasionMode } from '@/lib/occasionMode';
+import { StoryCardExport } from './StoryCardExport';
 
 interface CardStats {
   vitality: number;
@@ -166,6 +167,7 @@ export function ViralPetCard({
   species = 'pet',
 }: ViralPetCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const storyRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [cardImage, setCardImage] = useState<string | null>(null);
@@ -200,27 +202,34 @@ export function ViralPetCard({
   }, [petName, stats, petPortraitUrl, occasionMode]);
 
   const handleDownload = async (format: 'square' | 'story' = 'square') => {
-    if (!cardRef.current) return;
     setIsExporting(true);
     
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      const targetRef = format === 'story' ? storyRef.current : cardRef.current;
+      if (!targetRef) {
+        throw new Error('Card element not found');
+      }
+
+      const canvas = await html2canvas(targetRef, {
         backgroundColor: '#0a0a1f',
-        scale: 3,
+        scale: 3, // High resolution for crisp output
         useCORS: true,
         logging: false,
       });
       
-      // For story format, we'd need to pad to 9:16 - for now just download square
       const link = document.createElement('a');
-      link.download = `${petName.toLowerCase().replace(/\s+/g, '-')}-cosmic-card${format === 'story' ? '-story' : ''}.png`;
+      link.download = `${petName.toLowerCase().replace(/\s+/g, '-')}-cosmic-${format === 'story' ? 'story' : 'card'}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      toast.success(`Card downloaded! Perfect for ${format === 'story' ? 'TikTok, Reels & Shorts' : 'all platforms'} ✨`);
+      toast.success(
+        format === 'story' 
+          ? '📱 Story downloaded! Perfect for TikTok, Reels & Shorts' 
+          : '✨ Card downloaded! Share it everywhere'
+      );
     } catch (error) {
       console.error('Error exporting card:', error);
-      toast.error('Failed to download card');
+      toast.error('Failed to download. Try again!');
     } finally {
       setIsExporting(false);
     }
@@ -307,6 +316,24 @@ export function ViralPetCard({
 
   return (
     <div className="flex flex-col items-center gap-6">
+      {/* Hidden Story Card for 9:16 export - positioned off-screen */}
+      <div className="fixed -left-[9999px] -top-[9999px]" aria-hidden="true">
+        <StoryCardExport
+          ref={storyRef}
+          petName={petName}
+          archetype={archetype}
+          sunSign={sunSign}
+          moonSign={moonSign}
+          element={element}
+          zodiacIcon={zodiacIcon}
+          stats={stats}
+          auraColor={auraColor}
+          petPortraitUrl={petPortraitUrl}
+          occasionMode={occasionMode}
+          viralCaption={viralCaption}
+        />
+      </div>
+      
       {/* The Card - Optimized for Social (works as 1:1 for feed posts) */}
       <motion.div
         ref={cardRef}
