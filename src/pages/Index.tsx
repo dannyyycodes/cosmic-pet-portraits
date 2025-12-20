@@ -10,6 +10,7 @@ import { SocialProofBar } from "@/components/SocialProofBar";
 import { UrgencyBanner } from "@/components/UrgencyBanner";
 import { LiveActivityIndicator } from "@/components/LiveActivityIndicator";
 import { MoneyBackBadge } from "@/components/MoneyBackBadge";
+import { CTASection } from "@/components/CTASection";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -73,8 +74,8 @@ const Index = () => {
         ))}
       </div>
 
-      {/* Hero Section */}
-      <section className="relative flex items-center justify-center px-4 pt-24 pb-8 z-10">
+      {/* Hero Section - Compact with strong hook */}
+      <section className="relative flex items-center justify-center px-4 pt-24 pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
           {/* Curiosity Hook Badge */}
@@ -110,69 +111,24 @@ const Index = () => {
             {t('hero.subtitle')}
           </motion.p>
 
-
-          {/* Two CTA Cards */}
-          <motion.div 
+          {/* Primary CTA Button - Single clear action */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-8"
+            className="flex flex-col items-center gap-4 mb-8"
           >
-            {/* Discover My Pet */}
-            <Link to="/intake?mode=discover" className="group">
-              <div className="relative p-8 rounded-2xl border-2 border-primary/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-card/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] h-full">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                  {t('hero.mostPopular')}
-                </div>
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Dog className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-display font-bold text-foreground">{t('hero.discoverMyPet')}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t('hero.discoverDesc')}
-                    </p>
-                  </div>
-                  <Button variant="cosmic" size="lg" className="w-full mt-2 group-hover:scale-[1.02] transition-transform">
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Unlock Their Secret Soul →
-                  </Button>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Takes only 60 seconds
-                  </p>
-                </div>
-              </div>
+            <Link to="/intake?mode=discover">
+              <Button variant="cosmic" size="lg" className="text-lg px-10 py-7 group">
+                <Sparkles className="w-5 h-5 mr-2" />
+                Discover My Pet's Soul
+                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              </Button>
             </Link>
-
-            {/* Gift to a Friend */}
-            <Link to="/gift" className="group">
-              <div className="relative p-8 rounded-2xl border-2 border-nebula-pink/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-nebula-pink hover:bg-card/50 hover:shadow-[0_0_30px_hsl(330_70%_50%/0.3)] h-full">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-nebula-pink to-nebula-purple text-white text-xs font-medium flex items-center gap-1">
-                  <Heart className="w-3 h-3" />
-                  {t('hero.perfectGift')}
-                </div>
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Gift className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-display font-bold text-foreground">{t('hero.giftToFriend')}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      A gift they'll never forget — watch them cry happy tears
-                    </p>
-                  </div>
-                  <Button size="lg" className="w-full mt-2 bg-gradient-to-r from-nebula-pink to-nebula-purple hover:from-nebula-pink/90 hover:to-nebula-purple/90 text-white border-0 shadow-lg group-hover:shadow-[0_0_20px_hsl(330_70%_50%/0.4)] group-hover:scale-[1.02] transition-transform">
-                    <Heart className="w-4 h-4 mr-2" />
-                    Send the Perfect Gift →
-                  </Button>
-                  <p className="text-xs text-muted-foreground">
-                    ✨ Instant digital delivery
-                  </p>
-                </div>
-              </div>
-            </Link>
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Takes only 60 seconds • 50,000+ readings delivered
+            </p>
           </motion.div>
 
           {/* Money-Back Guarantee */}
@@ -180,46 +136,31 @@ const Index = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="flex justify-center mb-8"
+            className="flex justify-center mb-6"
           >
             <MoneyBackBadge />
           </motion.div>
 
-          {/* Trust Badges Row */}
+          {/* Trustpilot - Compact */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-col items-center gap-4"
+            className="flex flex-col items-center gap-2"
           >
-            {/* Authority Seal */}
-            <div className="authority-seal inline-flex items-center gap-3 px-6 py-3 rounded-xl">
-              <div className="relative">
-                <Star className="w-5 h-5 text-gold fill-gold" />
-                <Sparkles className="w-3 h-3 text-gold absolute -top-1 -right-1" />
-              </div>
-              <span className="text-sm text-foreground/80">
-                {t('hero.poweredBy')} <span className="text-gold font-medium">{t('hero.swissEphemeris')}</span>{t('hero.craftedBy')}
-              </span>
-            </div>
-
-            {/* Trustpilot Logo */}
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex items-center gap-1">
-                <Star className="w-6 h-6 fill-[#00b67a] text-[#00b67a]" />
-                <span className="text-xl font-semibold text-foreground tracking-tight">Trustpilot</span>
-              </div>
+            <div className="flex items-center gap-2">
               <div className="flex gap-0.5">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="w-7 h-7 flex items-center justify-center bg-[#00b67a]">
-                    <Star className="w-4 h-4 fill-white text-white" />
+                  <div key={i} className="w-5 h-5 flex items-center justify-center bg-[#00b67a]">
+                    <Star className="w-3 h-3 fill-white text-white" />
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Based on 2,847 verified reviews
-              </p>
+              <span className="text-sm font-medium text-foreground">Trustpilot</span>
             </div>
+            <p className="text-xs text-muted-foreground">
+              4.9/5 from 2,847 verified reviews
+            </p>
           </motion.div>
         </div>
       </section>
@@ -227,14 +168,102 @@ const Index = () => {
       {/* Live Activity Indicator - Twitch-style floating */}
       <LiveActivityIndicator />
 
-      {/* How It Works Section */}
-      <HowItWorks />
-
-      {/* Premium Testimonials Section */}
+      {/* SOCIAL PROOF FIRST - Testimonials (Psychology: reduces skepticism immediately) */}
       <PremiumTestimonials />
 
-      {/* FAQ Section */}
+      {/* Mid-page CTA - Capture warm leads */}
+      <CTASection variant="mid" />
+
+      {/* How It Works Section - Reduces friction */}
+      <HowItWorks />
+
+      {/* Two Options Cards - For those who want to explore */}
+      <section className="relative py-16 px-4 z-10">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
+              Choose Your Path
+            </h2>
+            <p className="text-muted-foreground">
+              A reading for you, or a gift that will make someone cry happy tears
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Discover My Pet */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <Link to="/intake?mode=discover" className="group block">
+                <div className="relative p-8 rounded-2xl border-2 border-primary/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-card/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] h-full">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                    {t('hero.mostPopular')}
+                  </div>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Dog className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="space-y-2 text-center">
+                      <h3 className="text-xl font-display font-bold text-foreground">{t('hero.discoverMyPet')}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {t('hero.discoverDesc')}
+                      </p>
+                    </div>
+                    <Button variant="cosmic" size="lg" className="w-full mt-2 group-hover:scale-[1.02] transition-transform">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Start Now →
+                    </Button>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Gift to a Friend */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <Link to="/gift" className="group block">
+                <div className="relative p-8 rounded-2xl border-2 border-nebula-pink/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-nebula-pink hover:bg-card/50 hover:shadow-[0_0_30px_hsl(330_70%_50%/0.3)] h-full">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-nebula-pink to-nebula-purple text-white text-xs font-medium flex items-center gap-1">
+                    <Heart className="w-3 h-3" />
+                    {t('hero.perfectGift')}
+                  </div>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Gift className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="space-y-2 text-center">
+                      <h3 className="text-xl font-display font-bold text-foreground">{t('hero.giftToFriend')}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        A gift they'll never forget
+                      </p>
+                    </div>
+                    <Button size="lg" className="w-full mt-2 bg-gradient-to-r from-nebula-pink to-nebula-purple hover:from-nebula-pink/90 hover:to-nebula-purple/90 text-white border-0 shadow-lg group-hover:scale-[1.02] transition-transform">
+                      <Heart className="w-4 h-4 mr-2" />
+                      Send Gift →
+                    </Button>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section - Handle objections */}
       <FAQ />
+
+      {/* Final CTA - Urgency + Last chance */}
+      <CTASection variant="final" />
 
       {/* Footer */}
       <footer className="relative py-12 px-4 border-t border-border/30 z-10">
