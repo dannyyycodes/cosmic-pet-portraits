@@ -313,11 +313,11 @@ const handler = async (req: Request): Promise<Response> => {
     const safeName = escapeHtml(name);
 
     const emailResponse = await resend.emails.send({
-      from: "AstroPaws Support <support@astropets.cloud>",
+      from: "AstroPaws Support <hello@astropets.cloud>",
       to: [email],
       subject: emailSubject,
       html: buildEmailHtml(safeName, safeAiResponse),
-      reply_to: "support@astropets.cloud",
+      reply_to: "hello@astropets.cloud",
     });
 
     console.log("[AI-SUPPORT] Auto-reply sent successfully:", emailResponse);
