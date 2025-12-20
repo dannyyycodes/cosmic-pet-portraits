@@ -1,5 +1,6 @@
 import { getSunSign, zodiacSigns } from './zodiac';
 import { PetData } from '@/components/intake/IntakeWizard';
+import { OccasionMode, occasionModeContent } from './occasionMode';
 
 export interface CosmicReport {
   sunSign: string;
@@ -15,6 +16,16 @@ export interface CosmicReport {
   breedInsight: string;
   ownerInsight: string;
   personalityType: string;
+  occasionMode: OccasionMode;
+}
+
+// Get occasion mode from pet data or default
+function getOccasionMode(petData: PetData): OccasionMode {
+  const mode = petData.occasionMode as OccasionMode;
+  if (mode && ['discover', 'birthday', 'memorial', 'gift'].includes(mode)) {
+    return mode;
+  }
+  return 'discover';
 }
 
 // Calculate numerology value for a name
@@ -89,14 +100,17 @@ const breedTraits: Record<string, { traits: string; cosmicNote: string }> = {
   'lionhead': { traits: 'friendly, playful, fluffy, big-personality', cosmicNote: 'Lions in bunny bodies—their manes crown them as royalty.' },
 };
 
-// Get breed-specific insight
-function getBreedInsight(breed: string, name: string): string {
+// Verb type for tense handling
+type VerbTense = { is: string; has: string; does: string; loves: string; brings: string; makes: string; feels: string; shows: string; reacts: string; greets: string; };
+
+// Get breed-specific insight with tense
+function getBreedInsight(breed: string, name: string, verb: VerbTense = { is: 'is', has: 'has', does: 'does', loves: 'loves', brings: 'brings', makes: 'makes', feels: 'feels', shows: 'shows', reacts: 'reacts', greets: 'greets' }): string {
   if (!breed) return '';
   
   const breedLower = breed.toLowerCase();
   for (const [key, data] of Object.entries(breedTraits)) {
     if (breedLower.includes(key) || key.includes(breedLower.split(' ')[0])) {
-      return `As a ${breed}, ${name} naturally embodies ${data.traits}. ${data.cosmicNote}`;
+      return `As a ${breed}, ${name} naturally ${verb.is === 'was' ? 'embodied' : 'embodies'} ${data.traits}. ${data.cosmicNote}`;
     }
   }
   return '';
@@ -138,17 +152,19 @@ const strangerDescriptors: Record<string, string> = {
   'aloof': 'acknowledges strangers when they choose—their attention is a gift',
 };
 
-// Generate owner insight from provided data
-function getOwnerInsight(petData: PetData): string {
+// Generate owner insight from provided data with tense support
+function getOwnerInsight(petData: PetData, verb: VerbTense = { is: 'is', has: 'has', does: 'does', loves: 'loves', brings: 'brings', makes: 'makes', feels: 'feels', shows: 'shows', reacts: 'reacts', greets: 'greets' }): string {
   const { name, soulType, superpower, strangerReaction } = petData;
   const insights: string[] = [];
+  const isPast = verb.is === 'was';
   
   // Check soul type
   if (soulType) {
     const soulLower = soulType.toLowerCase();
     for (const [key, desc] of Object.entries(soulTypeDescriptors)) {
       if (soulLower.includes(key.split(' ')[0]) || soulLower.includes(key.split('-')[0])) {
-        insights.push(`${name} ${desc}`);
+        const pastDesc = desc.replace('carries', 'carried').replace('is ', 'was ').replace('has ', 'had ').replace('intuitively knows', 'intuitively knew').replace('lives', 'lived').replace('embodies', 'embodied');
+        insights.push(`${name} ${isPast ? pastDesc : desc}`);
         break;
       }
     }
@@ -159,7 +175,8 @@ function getOwnerInsight(petData: PetData): string {
     const powerLower = superpower.toLowerCase();
     for (const [key, desc] of Object.entries(superpowerDescriptors)) {
       if (powerLower.includes(key.split(' ')[0])) {
-        insights.push(`${name} ${desc}`);
+        const pastDesc = desc.replace('seems', 'seemed').replace('is ', 'was ').replace('has ', 'had ').replace('loves', 'loved').replace('senses', 'sensed').replace('radiates', 'radiated');
+        insights.push(`${name} ${isPast ? pastDesc : desc}`);
         break;
       }
     }
@@ -170,7 +187,8 @@ function getOwnerInsight(petData: PetData): string {
     const reactionLower = strangerReaction.toLowerCase();
     for (const [key, desc] of Object.entries(strangerDescriptors)) {
       if (reactionLower.includes(key)) {
-        insights.push(`With strangers, ${name} ${desc}`);
+        const pastDesc = desc.replace('is ', 'was ').replace('balances', 'balanced').replace('welcomes', 'welcomed').replace('greets', 'greeted').replace('acknowledges', 'acknowledged');
+        insights.push(`With strangers, ${name} ${isPast ? pastDesc : desc}`);
         break;
       }
     }
@@ -206,152 +224,334 @@ function getPersonalityType(element: string, soulType: string, strangerReaction:
   return types[key as keyof typeof types] || 'The Unique Soul';
 }
 
-// Species-specific soul missions
-const speciesSoulMissions: Record<string, string[]> = {
-  dog: [
-    "To teach you unconditional loyalty and the joy of simple pleasures.",
-    "To remind you that every greeting deserves full enthusiasm.",
-    "To show you how to live fully in each moment without regret.",
-    "To demonstrate that trust, once earned, creates unbreakable bonds.",
-    "To protect your heart and fill your home with unwavering devotion.",
-  ],
-  cat: [
-    "To teach you the sacred art of independence within connection.",
-    "To remind you that self-care is not selfish—it's essential.",
-    "To show you that mystery and affection can coexist beautifully.",
-    "To demonstrate that choosing to love is more meaningful than obligation.",
-    "To bring ancient wisdom and quiet companionship to your life.",
-  ],
-  horse: [
-    "To teach you the power of freedom combined with deep partnership.",
-    "To carry you through life's journeys with grace and strength.",
-    "To show you that vulnerability and power are not opposites.",
-    "To remind you of the wild spirit that lives within all beings.",
-    "To demonstrate that true connection requires mutual respect.",
-  ],
-  bird: [
-    "To teach you that expression and song lift the spirit daily.",
-    "To remind you to see life from new perspectives and heights.",
-    "To show you the beauty of living colorfully and authentically.",
-    "To bring melody and lightness to your everyday existence.",
-    "To demonstrate that freedom and home can coexist in harmony.",
-  ],
-  rabbit: [
-    "To teach you the balance between alertness and peaceful rest.",
-    "To show you that gentleness is its own form of strength.",
-    "To bring soft comfort and quiet joy to your sanctuary.",
-    "To remind you that small creatures carry vast amounts of love.",
-    "To demonstrate the magic found in twilight hours of dawn and dusk.",
-  ],
-  hamster: [
-    "To teach you that boundless energy comes in small packages.",
-    "To show you the joy of building cozy spaces and storing treasures.",
-    "To remind you that nighttime holds its own special magic.",
-    "To bring delightful entertainment and curious wonder to your days.",
-    "To demonstrate that size has nothing to do with heart.",
-  ],
-  guinea_pig: [
-    "To teach you that vocal expression brings communities together.",
-    "To show you the joy of simple pleasures and fresh vegetables.",
-    "To remind you that companionship makes everything better.",
-    "To bring gentle energy and happy sounds to your home.",
-    "To demonstrate that popcorning is the purest expression of joy.",
-  ],
-  fish: [
-    "To teach you the calming power of flowing movement.",
-    "To create a living meditation in your space.",
-    "To show you that beauty exists in silent, graceful moments.",
-    "To remind you of the vast mysteries beneath the surface.",
-    "To bring serenity and wonder to your environment.",
-  ],
-  reptile: [
-    "To teach you patience and the wisdom of ancient beings.",
-    "To show you that basking in warmth is necessary for growth.",
-    "To remind you of the power of transformation and renewal.",
-    "To bring prehistoric wisdom into your modern world.",
-    "To demonstrate that cold-blooded doesn't mean cold-hearted.",
-  ],
-  default: [
-    "To teach you lessons that only they can share.",
-    "To bring unique joy and wisdom to your life journey.",
-    "To show you perspectives you never knew existed.",
-    "To remind you of the profound bond between all living beings.",
-    "To fill your days with their own special magic.",
-  ],
+// Species-specific soul missions with occasion variants
+const speciesSoulMissions: Record<string, Record<string, string[]>> = {
+  dog: {
+    present: [
+      "To teach you unconditional loyalty and the joy of simple pleasures.",
+      "To remind you that every greeting deserves full enthusiasm.",
+      "To show you how to live fully in each moment without regret.",
+      "To demonstrate that trust, once earned, creates unbreakable bonds.",
+      "To protect your heart and fill your home with unwavering devotion.",
+    ],
+    past: [
+      "They taught you what unconditional loyalty truly means.",
+      "They showed you that every moment together was worth celebrating.",
+      "They demonstrated how to live fully and love without reservation.",
+      "They proved that the bonds of trust last beyond this lifetime.",
+      "They protected your heart and filled your home with unwavering devotion.",
+    ],
+    birthday: [
+      "To celebrate another year of unconditional love and joyful greetings!",
+      "To mark another orbit of pure enthusiasm and loyal companionship!",
+      "To honor another year of living fully in every precious moment together!",
+      "To celebrate the gift of trust and the unbreakable bond you share!",
+      "To rejoice in another year of devotion that fills your home with love!",
+    ],
+  },
+  cat: {
+    present: [
+      "To teach you the sacred art of independence within connection.",
+      "To remind you that self-care is not selfish—it's essential.",
+      "To show you that mystery and affection can coexist beautifully.",
+      "To demonstrate that choosing to love is more meaningful than obligation.",
+      "To bring ancient wisdom and quiet companionship to your life.",
+    ],
+    past: [
+      "They taught you the sacred balance of independence and deep connection.",
+      "They reminded you that taking care of yourself matters deeply.",
+      "They showed you that mystery and love can coexist beautifully.",
+      "They chose to love you—and that choice meant everything.",
+      "They brought ancient wisdom and quiet grace into your life.",
+    ],
+    birthday: [
+      "To celebrate another year of elegant independence and chosen affection!",
+      "To honor another orbit of teaching you the art of graceful self-care!",
+      "To mark another year of mysterious charm and genuine connection!",
+      "To rejoice in another year of being chosen by this beautiful soul!",
+      "To celebrate the ancient wisdom they bring to your modern life!",
+    ],
+  },
+  horse: {
+    present: [
+      "To teach you the power of freedom combined with deep partnership.",
+      "To carry you through life's journeys with grace and strength.",
+      "To show you that vulnerability and power are not opposites.",
+      "To remind you of the wild spirit that lives within all beings.",
+      "To demonstrate that true connection requires mutual respect.",
+    ],
+    past: [
+      "They taught you that freedom and partnership can coexist beautifully.",
+      "They carried you through life's journeys with grace and unwavering strength.",
+      "They showed you that being vulnerable is the truest form of power.",
+      "They reminded you of the wild, free spirit that lives in us all.",
+      "They demonstrated what true connection built on mutual respect looks like.",
+    ],
+    birthday: [
+      "To celebrate another year of freedom, partnership, and wild spirit!",
+      "To honor another orbit of graceful journeys together!",
+      "To mark another year of powerful connection and gentle vulnerability!",
+      "To rejoice in another year with this magnificent free spirit!",
+      "To celebrate the mutual respect and deep bond you share!",
+    ],
+  },
+  bird: {
+    present: [
+      "To teach you that expression and song lift the spirit daily.",
+      "To remind you to see life from new perspectives and heights.",
+      "To show you the beauty of living colorfully and authentically.",
+      "To bring melody and lightness to your everyday existence.",
+      "To demonstrate that freedom and home can coexist in harmony.",
+    ],
+    past: [
+      "They taught you that expression and song can lift any spirit.",
+      "They showed you life from perspectives you never imagined.",
+      "They lived colorfully and authentically, inspiring you to do the same.",
+      "They brought melody and lightness that still echoes in your heart.",
+      "They proved that freedom and belonging can exist in perfect harmony.",
+    ],
+    birthday: [
+      "To celebrate another year of beautiful songs and lifted spirits!",
+      "To honor another orbit of seeing the world from new heights!",
+      "To mark another year of colorful, authentic living!",
+      "To rejoice in another year of melody and lightness!",
+      "To celebrate the harmony of freedom and home they embody!",
+    ],
+  },
+  rabbit: {
+    present: [
+      "To teach you the balance between alertness and peaceful rest.",
+      "To show you that gentleness is its own form of strength.",
+      "To bring soft comfort and quiet joy to your sanctuary.",
+      "To remind you that small creatures carry vast amounts of love.",
+      "To demonstrate the magic found in twilight hours of dawn and dusk.",
+    ],
+    past: [
+      "They taught you the beautiful balance of alertness and peaceful rest.",
+      "They showed you that gentleness carries its own quiet strength.",
+      "They brought soft comfort and joy to your sanctuary.",
+      "They proved that small creatures carry the biggest love.",
+      "They shared the magic of twilight hours with you.",
+    ],
+    birthday: [
+      "To celebrate another year of gentle binkies and peaceful presence!",
+      "To honor another orbit of soft strength and quiet joy!",
+      "To mark another year of comfort and sanctuary together!",
+      "To rejoice in the vast love carried in this small, precious being!",
+      "To celebrate the twilight magic you share!",
+    ],
+  },
+  hamster: {
+    present: [
+      "To teach you that boundless energy comes in small packages.",
+      "To show you the joy of building cozy spaces and storing treasures.",
+      "To remind you that nighttime holds its own special magic.",
+      "To bring delightful entertainment and curious wonder to your days.",
+      "To demonstrate that size has nothing to do with heart.",
+    ],
+    past: [
+      "They taught you that the smallest beings can have the biggest energy.",
+      "They showed you joy in building cozy spaces and treasuring the little things.",
+      "They reminded you of the magic that happens after dark.",
+      "They brought endless entertainment and wonder to your life.",
+      "They proved that size has nothing to do with the size of one's heart.",
+    ],
+    birthday: [
+      "To celebrate another year of boundless energy and tiny adventures!",
+      "To honor another orbit of cozy nest-building and treasure collecting!",
+      "To mark another year of nighttime magic and wheel-spinning joy!",
+      "To rejoice in the entertainment and wonder they bring!",
+      "To celebrate the enormous heart in this tiny package!",
+    ],
+  },
+  guinea_pig: {
+    present: [
+      "To teach you that vocal expression brings communities together.",
+      "To show you the joy of simple pleasures and fresh vegetables.",
+      "To remind you that companionship makes everything better.",
+      "To bring gentle energy and happy sounds to your home.",
+      "To demonstrate that popcorning is the purest expression of joy.",
+    ],
+    past: [
+      "They taught you that expressing yourself builds beautiful connections.",
+      "They showed you joy in the simplest pleasures.",
+      "They reminded you how much better life is with companionship.",
+      "They filled your home with gentle energy and happy wheeks.",
+      "They showed you what pure joy looks like through their popcorning.",
+    ],
+    birthday: [
+      "To celebrate another year of happy wheeks and joyful popcorning!",
+      "To honor another orbit of simple pleasures and veggie treats!",
+      "To mark another year of precious companionship!",
+      "To rejoice in the gentle, happy energy they bring!",
+      "To celebrate pure, unbridled joy in its most adorable form!",
+    ],
+  },
+  fish: {
+    present: [
+      "To teach you the calming power of flowing movement.",
+      "To create a living meditation in your space.",
+      "To show you that beauty exists in silent, graceful moments.",
+      "To remind you of the vast mysteries beneath the surface.",
+      "To bring serenity and wonder to your environment.",
+    ],
+    past: [
+      "They taught you the calming power of graceful, flowing movement.",
+      "They created a living meditation that brought you peace.",
+      "They showed you beauty in silent, graceful moments.",
+      "They reminded you of the mysteries that exist beneath the surface.",
+      "They brought serenity and wonder into your everyday life.",
+    ],
+    birthday: [
+      "To celebrate another year of graceful swimming and peaceful presence!",
+      "To honor another orbit of living meditation and calm!",
+      "To mark another year of silent beauty and gentle wonder!",
+      "To rejoice in the mysterious depths of this aquatic soul!",
+      "To celebrate the serenity they bring to your world!",
+    ],
+  },
+  reptile: {
+    present: [
+      "To teach you patience and the wisdom of ancient beings.",
+      "To show you that basking in warmth is necessary for growth.",
+      "To remind you of the power of transformation and renewal.",
+      "To bring prehistoric wisdom into your modern world.",
+      "To demonstrate that cold-blooded doesn't mean cold-hearted.",
+    ],
+    past: [
+      "They taught you patience and shared the wisdom of ancient beings.",
+      "They showed you the importance of basking in life's warmth.",
+      "They reminded you of the power of transformation and renewal.",
+      "They brought prehistoric wisdom into your world.",
+      "They proved that a cold-blooded exterior hides a warm spirit.",
+    ],
+    birthday: [
+      "To celebrate another year of ancient wisdom and patient grace!",
+      "To honor another orbit of basking in life's warmth together!",
+      "To mark another year of transformation and growth!",
+      "To rejoice in the prehistoric soul who shares your modern life!",
+      "To celebrate the warm heart beneath those scales!",
+    ],
+  },
+  default: {
+    present: [
+      "To teach you lessons that only they can share.",
+      "To bring unique joy and wisdom to your life journey.",
+      "To show you perspectives you never knew existed.",
+      "To remind you of the profound bond between all living beings.",
+      "To fill your days with their own special magic.",
+    ],
+    past: [
+      "They taught you lessons no one else could have shared.",
+      "They brought unique joy and wisdom to your journey.",
+      "They showed you perspectives you never knew existed.",
+      "They reminded you of the profound bonds between all living beings.",
+      "They filled your days with their own irreplaceable magic.",
+    ],
+    birthday: [
+      "To celebrate another year of unique lessons and special bonds!",
+      "To honor another orbit of joy and wisdom shared!",
+      "To mark another year of new perspectives and growth together!",
+      "To rejoice in the profound connection you share!",
+      "To celebrate the special magic they bring to every day!",
+    ],
+  },
 };
 
-// Species-specific hidden gifts
-const speciesHiddenGifts: Record<string, string[]> = {
-  dog: [
-    "The ability to sense your emotions before you fully feel them.",
-    "A sixth sense for danger that protects the entire household.",
-    "The power to turn any stranger into a friend with one tail wag.",
-    "An internal clock more precise than any alarm you own.",
-    "The gift of making you feel like the most important person on Earth.",
-  ],
-  cat: [
-    "The power to heal through the vibration of their purr.",
-    "An uncanny ability to find the one person who doesn't like cats.",
-    "The gift of knowing exactly when you need comfort most.",
-    "Mastery over the art of appearing in impossible places.",
-    "The ability to make you laugh even on your darkest days.",
-  ],
-  horse: [
-    "The power to sense the rider's confidence—or lack of it.",
-    "An ancient connection to wind and wild spirits.",
-    "The gift of grounding restless human energy.",
-    "The ability to remember every trail ever traveled.",
-    "A therapeutic presence that heals without words.",
-  ],
-  bird: [
-    "The power to learn and mimic the sounds they love most.",
-    "An internal compass that knows magnetic north.",
-    "The gift of dawn song that transforms morning energy.",
-    "The ability to see colors humans cannot perceive.",
-    "A talent for knowing when a storm approaches.",
-  ],
-  rabbit: [
-    "The power to sense vibrations through the earth itself.",
-    "Nearly 360-degree vision that misses nothing.",
-    "The gift of binky joy that lifts every heart nearby.",
-    "An ability to create cozy spaces wherever they go.",
-    "The power to communicate volumes with ear position alone.",
-  ],
-  hamster: [
-    "Cheek pouches that hold three times their head size in treats.",
-    "The ability to navigate mazes with remarkable memory.",
-    "The gift of entertainment through endless wheel running.",
-    "The power to make any tube a grand adventure.",
-    "An internal body clock perfectly tuned to twilight hours.",
-  ],
-  guinea_pig: [
-    "The power of wheeks that can be heard rooms away.",
-    "An ability to recognize their human's footsteps.",
-    "The gift of popcorning that spreads contagious joy.",
-    "A social intelligence that craves herd connection.",
-    "The power to melt hearts with their round, curious faces.",
-  ],
-  fish: [
-    "The power to sense water pressure changes before storms.",
-    "A lateral line that feels movement through walls.",
-    "The gift of schooling together as one unified being.",
-    "The ability to remember faces of those who feed them.",
-    "The power to create hypnotic calm in those who watch.",
-  ],
-  reptile: [
-    "A third eye (parietal eye) that senses light and shadow.",
-    "The power of regeneration that few creatures possess.",
-    "The gift of temperature sensitivity beyond human perception.",
-    "The ability to go weeks between meals with grace.",
-    "Ancient DNA carrying 300 million years of wisdom.",
-  ],
-  default: [
-    "A unique gift that science has yet to fully understand.",
-    "The power to sense emotions in their environment.",
-    "The gift of bringing calm to chaotic moments.",
-    "An ability to form bonds that transcend species.",
-    "A mysterious connection to cosmic energies.",
-  ],
+// Species-specific hidden gifts with occasion variants
+const speciesHiddenGifts: Record<string, Record<string, string[]>> = {
+  dog: {
+    present: [
+      "The ability to sense your emotions before you fully feel them.",
+      "A sixth sense for danger that protects the entire household.",
+      "The power to turn any stranger into a friend with one tail wag.",
+      "An internal clock more precise than any alarm you own.",
+      "The gift of making you feel like the most important person on Earth.",
+    ],
+    past: [
+      "The ability to sense your emotions before you even felt them yourself.",
+      "A sixth sense for danger that always protected your household.",
+      "The power to turn any stranger into a friend with one tail wag.",
+      "An internal clock more precise than any alarm you ever owned.",
+      "The gift of making you feel like the most important person on Earth.",
+    ],
+    birthday: [
+      "Another year of sensing your emotions before you even feel them!",
+      "Celebrating their sixth sense that keeps protecting your household!",
+      "Another year of turning strangers into friends with that magical tail wag!",
+      "Honoring their internal clock that's more precise than any alarm!",
+      "Celebrating the gift of always making you feel important!",
+    ],
+  },
+  cat: {
+    present: [
+      "The power to heal through the vibration of their purr.",
+      "An uncanny ability to find the one person who doesn't like cats.",
+      "The gift of knowing exactly when you need comfort most.",
+      "Mastery over the art of appearing in impossible places.",
+      "The ability to make you laugh even on your darkest days.",
+    ],
+    past: [
+      "The power to heal through the vibration of their purr.",
+      "An uncanny ability to find the one person who didn't like cats.",
+      "The gift of knowing exactly when you needed comfort most.",
+      "Mastery over appearing in the most impossible places.",
+      "The ability to make you laugh even on your darkest days.",
+    ],
+    birthday: [
+      "Another year of healing purrs and magical vibrations!",
+      "Celebrating their uncanny cat-detector abilities!",
+      "Honoring their gift of knowing when you need comfort!",
+      "Another year of appearing in impossible places!",
+      "Celebrating the laughter they bring to every day!",
+    ],
+  },
+  horse: {
+    present: [
+      "The power to sense the rider's confidence—or lack of it.",
+      "An ancient connection to wind and wild spirits.",
+      "The gift of grounding restless human energy.",
+      "The ability to remember every trail ever traveled.",
+      "A therapeutic presence that heals without words.",
+    ],
+    past: [
+      "The power to sense your confidence—or lack of it—instantly.",
+      "An ancient connection to wind and wild spirits.",
+      "The gift of grounding your restless energy.",
+      "The ability to remember every trail you traveled together.",
+      "A therapeutic presence that healed without words.",
+    ],
+    birthday: [
+      "Another year of sensing and responding to your every emotion!",
+      "Celebrating their wild spirit and ancient wisdom!",
+      "Honoring their gift of grounding your energy!",
+      "Another year of remembering every trail together!",
+      "Celebrating their healing presence in your life!",
+    ],
+  },
+  default: {
+    present: [
+      "A unique gift that science has yet to fully understand.",
+      "The power to sense emotions in their environment.",
+      "The gift of bringing calm to chaotic moments.",
+      "An ability to form bonds that transcend species.",
+      "A mysterious connection to cosmic energies.",
+    ],
+    past: [
+      "A unique gift that science could never fully explain.",
+      "The power to sense emotions in their environment.",
+      "The gift of bringing calm to the most chaotic moments.",
+      "An ability to form bonds that transcended species.",
+      "A mysterious connection to cosmic energies.",
+    ],
+    birthday: [
+      "Another year of gifts that defy understanding!",
+      "Celebrating their power to sense emotions around them!",
+      "Honoring the calm they bring to chaos!",
+      "Another year of bonds that transcend everything!",
+      "Celebrating their cosmic connection!",
+    ],
+  },
 };
 
 // Love languages based on element AND species for maximum personalization
@@ -418,11 +618,29 @@ const speciesLoveLanguages: Record<string, Record<string, string>> = {
   },
 };
 
-// Helper to get species-specific love language
-function getLoveLanguage(species: string, element: string): string {
+// Helper to get species-specific love language with occasion support
+function getLoveLanguage(species: string, element: string, occasionMode: string = 'discover'): string {
   const normalizedSpecies = species?.toLowerCase() || 'default';
   const speciesLanguages = speciesLoveLanguages[normalizedSpecies] || speciesLoveLanguages.default;
-  return speciesLanguages[element] || speciesLanguages.Earth || speciesLoveLanguages.default.Earth;
+  let loveLanguage = speciesLanguages[element] || speciesLanguages.Earth || speciesLoveLanguages.default.Earth;
+  
+  // Convert to past tense for memorial
+  if (occasionMode === 'memorial') {
+    loveLanguage = loveLanguage
+      .replace(/shows love/g, 'showed love')
+      .replace(/Your dog shows/g, 'Your dog showed')
+      .replace(/Your cat shows/g, 'Your cat showed')
+      .replace(/Your horse shows/g, 'Your horse showed')
+      .replace(/Your bird shows/g, 'Your bird showed')
+      .replace(/Your rabbit shows/g, 'Your rabbit showed')
+      .replace(/Your hamster shows/g, 'Your hamster showed')
+      .replace(/Your guinea pig shows/g, 'Your guinea pig showed')
+      .replace(/Your fish shows/g, 'Your fish showed')
+      .replace(/Your reptile shows/g, 'Your reptile showed')
+      .replace(/They show love/g, 'They showed love');
+  }
+  
+  return loveLanguage;
 }
 
 // Species-specific core essence templates
@@ -465,9 +683,10 @@ const speciesCoreEssences: Record<string, (name: string, pronoun: string, posses
   ],
 };
 
-// Core essences based on archetype qualities AND species
-function getCoreEssence(petData: PetData, archetype: string, element: string): string {
+// Core essences based on archetype qualities AND species with tense support
+function getCoreEssence(petData: PetData, archetype: string, element: string, verb: VerbTense = { is: 'is', has: 'has', does: 'does', loves: 'loves', brings: 'brings', makes: 'makes', feels: 'feels', shows: 'shows', reacts: 'reacts', greets: 'greets' }): string {
   const { name, gender, species, breed, soulType } = petData;
+  const isPast = verb.is === 'was';
   const pronoun = gender === 'girl' ? 'she' : gender === 'boy' ? 'he' : 'they';
   const possessive = gender === 'girl' ? 'her' : gender === 'boy' ? 'his' : 'their';
   
@@ -478,60 +697,113 @@ function getCoreEssence(petData: PetData, archetype: string, element: string): s
   
   const normalizedSpecies = species?.toLowerCase() || 'default';
   const essenceGenerator = speciesCoreEssences[normalizedSpecies] || speciesCoreEssences.default;
-  const essences = essenceGenerator(name, pronoun, possessive, element, archetype, breed || '', soulDescription);
+  let essences = essenceGenerator(name, pronoun, possessive, element, archetype, breed || '', soulDescription);
+  
+  // Convert to past tense for memorial
+  if (isPast) {
+    essences = essences.map(e => e
+      .replace(/ carries /g, ' carried ')
+      .replace(/ is /g, ' was ')
+      .replace(/ brings /g, ' brought ')
+      .replace(/ sees /g, ' saw ')
+      .replace(/ runs /g, ' ran ')
+      .replace(/ teaches /g, ' taught ')
+      .replace(/ possesses /g, ' possessed ')
+      .replace(/ radiates /g, ' radiated ')
+      .replace(/ embodies /g, ' embodied ')
+      .replace(/ thrives /g, ' thrived ')
+      .replace(/ senses /g, ' sensed ')
+      .replace(/ mirrors /g, ' mirrored ')
+      .replace(/ guards /g, ' guarded ')
+      .replace(/ connects /g, ' connected ')
+      .replace(/ understands /g, ' understood ')
+      .replace(/ gifts /g, ' gifted ')
+      .replace(/was born to be/g, 'was born to be')
+      .replace(/will protect/g, 'protected')
+      .replace(/will carry/g, 'carried')
+      .replace(/will always seek/g, 'always sought')
+      .replace(/makes /g, 'made ')
+      .replace(/demands /g, 'demanded ')
+    );
+  }
   
   const index = calculateNameVibration(name) % essences.length;
   return essences[index];
 }
 
-// Generate cosmic advice based on pet data (now uses owner inputs)
-function getCosmicAdvice(petData: PetData, element: string): string {
+// Generate cosmic advice based on pet data with tense support
+function getCosmicAdvice(petData: PetData, element: string, verb: VerbTense = { is: 'is', has: 'has', does: 'does', loves: 'loves', brings: 'brings', makes: 'makes', feels: 'feels', shows: 'shows', reacts: 'reacts', greets: 'greets' }): string {
   const { name, soulType, superpower, strangerReaction } = petData;
+  const isPast = verb.is === 'was';
   
   const advices: string[] = [];
   
   // Superpower-based advice
   if (superpower?.toLowerCase().includes('healing') || superpower?.toLowerCase().includes('healer')) {
-    advices.push(`Let ${name} be near when you're stressed—they actively absorb negative energy to help heal you.`);
+    advices.push(isPast 
+      ? `Remember how ${name} was always there when you were stressed—they actively absorbed negative energy to help heal you.`
+      : `Let ${name} be near when you're stressed—they actively absorb negative energy to help heal you.`);
   } else if (superpower?.toLowerCase().includes('telepathy')) {
-    advices.push(`Pay attention when ${name} acts unusual—they're often responding to thoughts you haven't voiced yet.`);
+    advices.push(isPast
+      ? `${name} always seemed to know what you were thinking—responding to thoughts you hadn't even voiced yet.`
+      : `Pay attention when ${name} acts unusual—they're often responding to thoughts you haven't voiced yet.`);
   } else if (superpower?.toLowerCase().includes('love')) {
-    advices.push(`${name}'s unconditional love is their superpower—accept it fully without feeling you must earn it.`);
+    advices.push(isPast
+      ? `${name}'s unconditional love was their greatest superpower—a gift you carry in your heart forever.`
+      : `${name}'s unconditional love is their superpower—accept it fully without feeling you must earn it.`);
   }
   
   // Stranger-based advice
   if (strangerReaction?.toLowerCase().includes('shy') || strangerReaction?.toLowerCase().includes('hiding')) {
-    advices.push(`Give ${name} space with new people—their trust is a precious gift that must be earned slowly.`);
+    advices.push(isPast
+      ? `${name}'s trust was a precious gift—you were one of the chosen few who earned it.`
+      : `Give ${name} space with new people—their trust is a precious gift that must be earned slowly.`);
   } else if (strangerReaction?.toLowerCase().includes('protect')) {
-    advices.push(`Honor ${name}'s protective instincts—they take their guardian role seriously.`);
+    advices.push(isPast
+      ? `${name} took their guardian role seriously—always watching over those they loved.`
+      : `Honor ${name}'s protective instincts—they take their guardian role seriously.`);
   }
   
   // Soul type advice
   if (soulType?.toLowerCase().includes('old')) {
-    advices.push(`Respect ${name}'s quiet wisdom. They don't need constant entertainment—they value peaceful presence.`);
+    advices.push(isPast
+      ? `${name}'s quiet wisdom taught you things no words could express. Their peaceful presence remains with you.`
+      : `Respect ${name}'s quiet wisdom. They don't need constant entertainment—they value peaceful presence.`);
   } else if (soulType?.toLowerCase().includes('playful')) {
-    advices.push(`Never stop playing with ${name}! Their youthful spirit is their greatest gift to you.`);
+    advices.push(isPast
+      ? `${name}'s youthful spirit was contagious—they reminded you how to play and find joy in simple moments.`
+      : `Never stop playing with ${name}! Their youthful spirit is their greatest gift to you.`);
   }
   
   // Fall back to element-based advice
   if (advices.length === 0) {
     switch (element) {
       case 'Fire':
-        advices.push(`Give ${name} plenty of active play time—their Fire soul needs to burn bright through movement and adventure.`);
+        advices.push(isPast
+          ? `${name}'s Fire soul burned bright through every adventure you shared—that flame lives on in your memories.`
+          : `Give ${name} plenty of active play time—their Fire soul needs to burn bright through movement and adventure.`);
         break;
       case 'Earth':
-        advices.push(`Maintain consistent routines for ${name}—their Earth soul finds security in predictable rhythms.`);
+        advices.push(isPast
+          ? `${name}'s Earth soul found joy in your steady presence—your routines together created lasting bonds.`
+          : `Maintain consistent routines for ${name}—their Earth soul finds security in predictable rhythms.`);
         break;
       case 'Air':
-        advices.push(`Keep ${name} mentally stimulated with new experiences—their Air soul craves variety and discovery.`);
+        advices.push(isPast
+          ? `${name}'s Air soul loved every new experience you shared—their curiosity expanded your world too.`
+          : `Keep ${name} mentally stimulated with new experiences—their Air soul craves variety and discovery.`);
         break;
       case 'Water':
-        advices.push(`Create calm, safe spaces for ${name}—their Water soul needs environments where emotions can flow freely.`);
+        advices.push(isPast
+          ? `${name}'s Water soul understood your emotions deeply—they created safe space for your feelings to flow.`
+          : `Create calm, safe spaces for ${name}—their Water soul needs environments where emotions can flow freely.`);
         break;
     }
   }
   
-  return advices[0] || `Trust your bond with ${name}. Your connection transcends ordinary understanding.`;
+  return advices[0] || (isPast 
+    ? `The bond you shared with ${name} transcends ordinary understanding—their spirit remains with you.`
+    : `Trust your bond with ${name}. Your connection transcends ordinary understanding.`);
 }
 
 /**
@@ -557,10 +829,17 @@ export function generateCosmicReport(petData: PetData): CosmicReport {
   const element = zodiacData.element;
   const nameVibration = calculateNameVibration(name);
   
-  // Get species-specific content
+  // Get occasion mode for tense-specific content
+  const occasionMode = getOccasionMode(petData);
+  const modeContent = occasionModeContent[occasionMode];
+  const occasionKey = occasionMode === 'memorial' ? 'past' : occasionMode === 'birthday' ? 'birthday' : 'present';
+  
+  // Get species-specific content with occasion-appropriate tense
   const normalizedSpecies = species?.toLowerCase() || 'default';
-  const soulMissions = speciesSoulMissions[normalizedSpecies] || speciesSoulMissions.default;
-  const hiddenGifts = speciesHiddenGifts[normalizedSpecies] || speciesHiddenGifts.default;
+  const speciesMissions = speciesSoulMissions[normalizedSpecies] || speciesSoulMissions.default;
+  const soulMissions = speciesMissions[occasionKey] || speciesMissions.present;
+  const speciesGifts = speciesHiddenGifts[normalizedSpecies] || speciesHiddenGifts.default;
+  const hiddenGifts = speciesGifts[occasionKey] || speciesGifts.present;
   
   // Use name vibration and DOB to select unique content consistently
   const seed = nameVibration + (dateOfBirth?.getDate() || 1);
@@ -568,10 +847,10 @@ export function generateCosmicReport(petData: PetData): CosmicReport {
   const hiddenGiftIndex = (seed + 1) % hiddenGifts.length;
   
   // Get breed-specific insight
-  const breedInsight = getBreedInsight(breed || '', name);
+  const breedInsight = getBreedInsight(breed || '', name, modeContent.verb);
   
-  // Get owner-provided insight
-  const ownerInsight = getOwnerInsight(petData);
+  // Get owner-provided insight with correct tense
+  const ownerInsight = getOwnerInsight(petData, modeContent.verb);
   
   // Get meme personality type based on inputs
   const personalityType = getPersonalityType(element, soulType || '', strangerReaction || '');
@@ -582,14 +861,15 @@ export function generateCosmicReport(petData: PetData): CosmicReport {
     element,
     modality: getModality(dateOfBirth),
     nameVibration,
-    coreEssence: getCoreEssence(petData, archetype, element),
+    coreEssence: getCoreEssence(petData, archetype, element, modeContent.verb),
     soulMission: soulMissions[soulMissionIndex],
     hiddenGift: hiddenGifts[hiddenGiftIndex],
-    loveLanguage: getLoveLanguage(species, element),
-    cosmicAdvice: getCosmicAdvice(petData, element),
+    loveLanguage: getLoveLanguage(species, element, occasionMode),
+    cosmicAdvice: getCosmicAdvice(petData, element, modeContent.verb),
     breedInsight,
     ownerInsight,
     personalityType,
+    occasionMode,
   };
 }
 
