@@ -429,33 +429,140 @@ serve(async (req) => {
       strangerReaction: petData.strangerReaction || '',
     };
     
-    // Map owner inputs to personality descriptors
+    // Map owner inputs to personality descriptors - matches actual IDs from speciesOptions.ts
     const soulTypeDescriptors: Record<string, string> = {
-      'old soul': 'This pet has an ancient, wise quality - they seem to understand more than they let on. They may prefer calm environments and deep connections over constant stimulation.',
-      'playful spirit': 'This pet is eternally young at heart - full of joy, mischief, and enthusiasm. They bring lightness to heavy moments and find fun in everything.',
-      'guardian': 'This pet has a protective, watchful nature - they take their role as family protector seriously. They are alert to threats and deeply loyal.',
-      'healer': 'This pet has an intuitive sense of when others need comfort - they appear when you are sad, stressed, or unwell. They absorb and transmute emotional energy.',
-      'adventurer': 'This pet lives for exploration and new experiences - they are curious, brave, and always ready for the next discovery.',
-      'zen master': 'This pet embodies calm presence - they teach by example how to simply BE. They are grounded, peaceful, and unfazed by chaos.',
+      // Dog soul types
+      'loyal-guardian': 'This pet is a devoted protector with unwavering loyalty - they take their role as family guardian seriously and are always watchful over those they love.',
+      'playful-pup': 'This pet is eternally young at heart - full of boundless energy, enthusiasm, and a zest for fun. They find joy in every moment.',
+      'old-soul': 'This pet has an ancient, wise quality - they seem to understand more than they let on. They prefer calm environments and deep connections.',
+      'gentle-heart': 'This pet is incredibly sensitive and loving - they feel emotions deeply and offer soft, unconditional affection to those around them.',
+      // Cat soul types
+      'mysterious-sage': 'This pet carries an air of mystery and ancient wisdom - enigmatic and knowing, they seem connected to realms beyond our understanding.',
+      'wild-hunter': 'This pet has an untamed, fierce spirit - independent and self-reliant, they embody the wild essence of their ancestors.',
+      'lap-royalty': 'This pet is regal and demands the finer things - they expect to be treated as the royalty they know themselves to be, while bestowing affection on their terms.',
+      'curious-explorer': 'This pet is driven by endless curiosity - adventurous and playful, they must investigate every corner and discover every secret.',
+      // Rabbit soul types
+      'gentle-spirit': 'This pet is soft and sensitive - a tender soul who responds to gentleness and creates peace wherever they go.',
+      'curious-hopper': 'This pet is inquisitive and alert - always investigating, always exploring, with a bright and curious mind.',
+      'zen-bunny': 'This pet embodies calm presence - peaceful, grounded, and teaching by example how to simply BE.',
+      'social-fluff': 'This pet thrives on connection - friendly and affectionate, they love being part of the family and seek closeness.',
+      // Small pet soul types
+      'busy-bee': 'This pet is constantly active and industrious - always working on something, full of purpose and energy.',
+      'cozy-soul': 'This pet loves comfort and warmth above all - a homebody who appreciates the simple pleasures of cozy spaces.',
+      'curious-nibbler': 'This pet investigates the world through taste and touch - alert and investigative, nothing escapes their notice.',
+      'social-squeaker': 'This pet is chatty and friendly - communicative and social, they express themselves vocally and seek interaction.',
+      // Bird soul types
+      'free-spirit': 'This pet embodies freedom and adventure - independent and wild at heart, they cannot be contained.',
+      'songster': 'This pet expresses themselves through music - vocal and expressive, their songs carry their emotions.',
+      'curious-mind': 'This pet is intelligent and playful - a quick learner who loves mental stimulation and problem-solving.',
+      'bonded-heart': 'This pet forms deep, devoted bonds - fiercely loyal and affectionate to their chosen person.',
+      // Fish soul types
+      'serene-swimmer': 'This pet brings peace and tranquility - calming to observe, they embody flow and grace.',
+      'bold-explorer': 'This pet is curious and active - always investigating their environment and unafraid to venture forth.',
+      'zen-master': 'This pet is tranquil and meditative - a living embodiment of peace and mindfulness.',
+      'social-schooler': 'This pet is community-oriented - they thrive with companions and value connection.',
+      // Reptile soul types
+      'ancient-soul': 'This pet carries the wisdom of ages - patient and wise, they operate on a different, deeper timeline.',
+      'sun-seeker': 'This pet is warmth-loving and content - they know how to find their bliss and soak in life\'s pleasures.',
+      'silent-observer': 'This pet is watchful and calm - they take in everything with quiet awareness.',
+      // Horse soul types
+      'noble-spirit': 'This pet is proud and dignified - they carry themselves with grace and command respect.',
+      'free-runner': 'This pet is wild and untamed - they need space and freedom to express their powerful spirit.',
+      'gentle-giant': 'This pet is kind and nurturing despite their size - tender-hearted and protective.',
+      'wise-companion': 'This pet is intuitive and deeply bonded - they understand their human on a profound level.',
+      // Generic fallbacks
+      'pure-joy': 'This pet is innocent and playful - a pure spirit who brings light and happiness to every moment.',
+      'deep-healer': 'This pet has an intuitive sense of when others need comfort - they appear when you are sad or unwell.',
     };
     
     const superpowerDescriptors: Record<string, string> = {
-      'telepathy': 'They seem to read minds - knowing what you need before you do. Watch for moments where they respond to your thoughts.',
-      'healing presence': 'Their presence alone is healing - they naturally soothe anxiety, sadness, and stress. They are drawn to those who need comfort.',
-      'comic relief': 'They have impeccable comedic timing - they know exactly when to be silly to break tension. Laughter follows them.',
-      'unconditional love': 'Their love has no conditions - they accept you completely, flaws and all. This is their gift to everyone they meet.',
-      'emotional radar': 'They sense emotions others miss - they are the first to notice when something is wrong. They are emotional barometers.',
-      'adventure catalyst': 'They inspire spontaneity and adventure - life is more exciting with them. They push you out of comfort zones.',
-      'calming presence': 'They radiate peace - stress melts in their presence. They are living, breathing meditation teachers.',
+      // Dog superpowers
+      'empathy': 'They sense emotions deeply - they know when you\'re sad, stressed, or happy, and respond with perfect emotional attunement.',
+      'protection': 'They are natural guardians - fiercely protective of their family and home, always alert to potential threats.',
+      'comedian': 'They have impeccable comedic timing - they know exactly when to be silly, and laughter follows them everywhere.',
+      'shadow': 'They are your constant companion - never leaving your side, always present, your living shadow of devotion.',
+      // Cat superpowers
+      'stress-reliever': 'Their purrs are literal healing vibrations - scientifically proven to lower blood pressure and soothe anxiety.',
+      'pest-control': 'They keep your home critter-free - their presence alone is enough to deter unwanted guests.',
+      'entertainment': 'Their antics are endlessly amusing - they provide hours of entertainment with their unpredictable behavior.',
+      'warmth-giver': 'They are the perfect lap warmer - seeking out warmth and sharing it generously.',
+      // Rabbit superpowers
+      'joy-hopper': 'Their binkies (jumps of joy) brighten any day - pure expressions of happiness that are contagious.',
+      'gentle-healer': 'Their soft presence soothes wounded hearts - just being near them brings comfort.',
+      'curious-entertainer': 'Their endless exploration is captivating - always investigating something new.',
+      // Small pet superpowers
+      'night-companion': 'They keep you company during late hours - their nocturnal nature means you\'re never alone at night.',
+      'mood-lifter': 'Their adorable features (cheek pouches, whiskers) bring instant joy - impossible to be sad around them.',
+      'routine-keeper': 'They remind you of schedules - their internal clocks are remarkably accurate.',
+      'cozy-comfort': 'Small but mighty in comfort - their presence brings outsized warmth to your life.',
+      // Bird superpowers
+      'morning-singer': 'They wake you with song - natural alarm clocks who greet each day with music.',
+      'mimicry-master': 'They copy sounds perfectly - uncannily accurate impressions that delight and amaze.',
+      'alert-system': 'They announce all visitors - nothing gets past their watchful awareness.',
+      'conversation-partner': 'They are always ready to chat - responsive and communicative companions.',
+      // Fish superpowers
+      'meditation-aid': 'Watching them swim is naturally calming - living meditation that reduces stress.',
+      'stress-reducer': 'Studies show they lower blood pressure - their presence is literally healing.',
+      'ambient-beauty': 'They are living art - bringing color and movement to any space.',
+      'routine-anchor': 'Feeding time grounds you - they create rhythm and ritual in daily life.',
+      // Reptile superpowers
+      'conversation-starter': 'Everyone wants to know about them - they make you more interesting by association.',
+      'zen-presence': 'They teach patience through example - slow, deliberate, unfazed by chaos.',
+      'low-key-companion': 'Calm and undemanding - they offer presence without pressure.',
+      'unique-bond': 'The connection is special and rare - few understand the bond you share.',
+      // Horse superpowers
+      'therapy-presence': 'They heal through connection - proven therapeutic partners for emotional growth.',
+      'freedom-giver': 'Riding them feels like flying - they offer escape and exhilaration.',
+      'confidence-builder': 'They make you feel powerful - sitting atop them transforms self-perception.',
+      'intuitive-reader': 'They sense every mood shift - deeply attuned to human emotion.',
+      // Generic fallbacks
+      'joy-bringer': 'They exist to make you smile - bringing pure joy to every interaction.',
+      'calm-presence': 'They radiate peace - stress melts in their presence.',
+      'loyal-companion': 'They are always by your side - devoted and true.',
     };
     
     const strangerDescriptors: Record<string, string> = {
-      'shy and hiding': 'They are cautious with new people - preferring to observe from a safe distance before engaging. Trust is earned, not given freely.',
-      'cautious but curious': 'They balance wariness with interest - they want to investigate but on their terms. They warm up gradually.',
-      'friendly and social': 'They welcome everyone - strangers are just friends they have not met. They bring instant warmth to new situations.',
-      'excited and overwhelming': 'Their enthusiasm is boundless - they greet everyone like a long-lost friend. Their joy is contagious but sometimes too much.',
-      'protective and alert': 'They are watchful guardians - strangers must prove themselves worthy. They take protection seriously.',
-      'indifferent royalty': 'They acknowledge strangers when they choose to - not because they are unfriendly, but because their attention is a gift they bestow selectively.',
+      // Dog stranger reactions
+      'greeter': 'They greet everyone enthusiastically - jumping, licking, tail wagging. Strangers are just friends they haven\'t met!',
+      'observer': 'They watch carefully from a distance first - assessing before engaging. Trust is earned, not given freely.',
+      'guardian': 'They bark and stand their ground - protective instincts kick in when strangers approach their territory.',
+      'charmer': 'They immediately roll over for belly rubs - using their cuteness to win everyone over instantly.',
+      // Cat stranger reactions
+      'hider': 'They vanish under furniture - preferring to observe from a safe hidden spot until they decide it\'s safe.',
+      'investigator': 'They approach cautiously for a sniff inspection - gathering information before making judgments.',
+      'social-butterfly': 'They love all attention - friendly with everyone, seeking pets and admiration from any willing hand.',
+      'royalty': 'They ignore strangers completely - their attention is a gift they bestow only on the worthy.',
+      // Rabbit stranger reactions
+      'thumper': 'They thump in warning - their alarm system alerts everyone that something new has arrived.',
+      'curious-one': 'They approach slowly to investigate - cautiously curious, gathering information.',
+      'freezer': 'They stay very still - becoming a statue until they assess the threat level.',
+      'friendly-flop': 'Relaxed around everyone - secure enough to flop comfortably even with new people.',
+      // Small pet stranger reactions
+      'squeaker': 'They vocalize excitedly - whether in alarm or greeting, they have something to say!',
+      'curious-sniff': 'They investigate new scents - every stranger brings new smells to catalog.',
+      'popcorner': 'They jump around excitedly - their popcorning shows pure enthusiasm.',
+      // Bird stranger reactions
+      'alarm-caller': 'Loud warning calls announce all visitors - their alert system is impossible to ignore.',
+      'show-off': 'They perform for attention - dancing, talking, or displaying to impress the new audience.',
+      'quiet-observer': 'They watch silently - taking everything in without giving much away.',
+      'talker': 'They try to communicate - engaging verbally with whoever will listen.',
+      // Fish stranger reactions
+      'glass-surfer': 'They swim to the front of the tank - curious about the new faces outside their world.',
+      'unbothered': 'They continue as normal - unfazed by activity outside their aquatic realm.',
+      'feeder-expecter': 'They think any approach means food - hope springs eternal!',
+      // Reptile stranger reactions
+      'basker': 'They continue basking unbothered - priorities are clear, and warming up comes first.',
+      'alert-watcher': 'They freeze and watch intently - assessing the situation with prehistoric patience.',
+      'explorer': 'They come to investigate - curious about anything new in their environment.',
+      // Horse stranger reactions
+      'friendly-nickerer': 'They greet with soft sounds - welcoming nickers that invite connection.',
+      'cautious-one': 'They keep their distance at first - warming up gradually as trust builds.',
+      'protector': 'Ears back, on alert - they take protection of their space seriously.',
+      'attention-seeker': 'They approach looking for treats - knowing strangers often come bearing gifts.',
+      // Generic fallbacks
+      'friendly': 'They approach with curiosity - open and welcoming to new people.',
+      'shy': 'They retreat or hide - preferring the safety of familiar territory.',
+      'indifferent': 'They carry on unbothered - confident in their own world.',
     };
     
     // Build enhanced insight context
@@ -463,27 +570,24 @@ serve(async (req) => {
 OWNER-PROVIDED PERSONALITY INSIGHTS (CRITICAL - These are firsthand observations from the owner. Weave these throughout the report!):`;
     
     if (ownerInsights.soulType) {
-      const descriptor = Object.entries(soulTypeDescriptors).find(([key]) => 
-        ownerInsights.soulType.toLowerCase().includes(key.split(' ')[0].toLowerCase())
-      )?.[1] || `The owner perceives their pet as "${ownerInsights.soulType}" - incorporate this into their cosmic profile.`;
+      const descriptor = soulTypeDescriptors[ownerInsights.soulType] || 
+        `The owner perceives their pet as "${ownerInsights.soulType}" - incorporate this into their cosmic profile.`;
       enhancedInsights += `
 - Soul Type: "${ownerInsights.soulType}" 
   Interpretation: ${descriptor}`;
     }
     
     if (ownerInsights.superpower) {
-      const descriptor = Object.entries(superpowerDescriptors).find(([key]) => 
-        ownerInsights.superpower.toLowerCase().includes(key.split(' ')[0].toLowerCase())
-      )?.[1] || `Their special gift is "${ownerInsights.superpower}" - this should be highlighted as their cosmic superpower.`;
+      const descriptor = superpowerDescriptors[ownerInsights.superpower] || 
+        `Their special gift is "${ownerInsights.superpower}" - this should be highlighted as their cosmic superpower.`;
       enhancedInsights += `
 - Superpower: "${ownerInsights.superpower}"
   Interpretation: ${descriptor}`;
     }
     
     if (ownerInsights.strangerReaction) {
-      const descriptor = Object.entries(strangerDescriptors).find(([key]) => 
-        ownerInsights.strangerReaction.toLowerCase().includes(key.split(' ')[0].toLowerCase())
-      )?.[1] || `With strangers, they are "${ownerInsights.strangerReaction}" - use this for the Rising/First Impression section.`;
+      const descriptor = strangerDescriptors[ownerInsights.strangerReaction] || 
+        `With strangers, they are "${ownerInsights.strangerReaction}" - use this for the Rising/First Impression section.`;
       enhancedInsights += `
 - Stranger Reaction: "${ownerInsights.strangerReaction}"
   Interpretation: ${descriptor} (This directly informs their Rising Sign expression!)`;
