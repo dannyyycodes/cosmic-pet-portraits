@@ -287,13 +287,23 @@ export function MultiPetPhotoUpload({ petsData, petPhotos, onPhotoChange }: Mult
       <div className="flex items-center gap-2 mb-2">
         <Camera className="w-4 h-4 text-nebula-purple" />
         <span className="text-sm font-medium text-foreground">
-          Upload Photos for AI Portraits
+          Upload Photos for Your Cards
         </span>
       </div>
       
-      <p className="text-xs text-muted-foreground mb-3">
-        Upload a photo for each pet to create their cosmic portrait. You can choose to use photos as-is or apply AI transformations.
-      </p>
+      <div className="bg-card/50 border border-border/50 rounded-lg p-3 mb-3">
+        <p className="text-xs text-foreground font-medium mb-2">📸 After uploading, you'll choose:</p>
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="flex items-center gap-1.5 text-green-400">
+            <Image className="w-3 h-3" />
+            <span><strong>Use As-Is</strong> – Keep original photo</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-nebula-purple">
+            <Wand2 className="w-3 h-3" />
+            <span><strong>AI Transform</strong> – Cosmic/Pokemon style</span>
+          </div>
+        </div>
+      </div>
 
       <div className="space-y-2">
         {petsData.map((pet, index) => (

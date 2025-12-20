@@ -17,7 +17,7 @@ import { IntakeStepEmail } from './IntakeStepEmail';
 import { IntakeStepPhoto } from './IntakeStepPhoto';
 import { CosmicLoading } from './CosmicLoading';
 import { SocialProofBar } from './SocialProofBar';
-import { MiniReport } from './MiniReport';
+import { MultiPetMiniReport } from './MultiPetMiniReport';
 import { GiftWelcome } from './GiftWelcome';
 import { OccasionMode, occasionModeContent } from '@/lib/occasionMode';
 import { supabase } from '@/integrations/supabase/client';
@@ -493,7 +493,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   };
 
   if (showResults) {
-    return <MiniReport petData={petsData[0]} cosmicReport={cosmicReport} />;
+    return <MultiPetMiniReport petsData={petsData} />;
   }
 
   if (isLoading) {
