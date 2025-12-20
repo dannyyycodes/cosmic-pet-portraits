@@ -109,7 +109,7 @@ function getSpeciesFact(species: string, petName: string): string {
 }
 
 function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData; cosmicReport: CosmicReport; isActive: boolean }) {
-  const { sunSign, archetype, element, nameVibration, coreEssence, soulMission, hiddenGift, loveLanguage, breedInsight, ownerInsight, personalityType, occasionMode } = cosmicReport;
+  const { sunSign, archetype, element, nameVibration, coreEssence, soulMission, hiddenGift, loveLanguage, breedInsight, ownerInsight, personalityType, occasionMode, luckyDay, powerPair, secretStrength, cosmicFact } = cosmicReport;
   const speciesFact = getSpeciesFact(petData.species, petData.name);
   const isMemorial = occasionMode === 'memorial';
   const isBirthday = occasionMode === 'birthday';
@@ -336,23 +336,91 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
         </div>
       </motion.div>
 
-      {/* Did You Know - Species Specific */}
+      {/* Secret Strength - NEW UNIQUE */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.55 }}
+        className={cn(
+          "bg-card/40 backdrop-blur-xl border rounded-2xl p-6",
+          isMemorial ? "border-purple-400/30" : "border-emerald-500/30"
+        )}
+      >
+        <div className="flex items-start gap-4">
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex items-center justify-center border shrink-0",
+            isMemorial 
+              ? "bg-gradient-to-br from-purple-500/20 to-purple-500/10 border-purple-500/30"
+              : "bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 border-emerald-500/30"
+          )}>
+            <Zap className={cn("w-6 h-6", isMemorial ? "text-purple-400" : "text-emerald-400")} />
+          </div>
+          <div className="text-left">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              {isMemorial ? "Their Secret Strength" : "Secret Strength"}
+            </p>
+            <p className="text-foreground/90">{secretStrength}</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Lucky Day - NEW UNIQUE */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="bg-card/40 backdrop-blur-xl border border-indigo-500/30 rounded-2xl p-6"
+      >
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/10 flex items-center justify-center border border-indigo-500/30 shrink-0">
+            <span className="text-2xl">🌟</span>
+          </div>
+          <div className="text-left">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              {isMemorial ? "Their Lucky Day Was" : "Lucky Day"}
+            </p>
+            <p className="text-foreground/90">{luckyDay}</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Power Pair (Human Compatibility) - NEW UNIQUE */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65 }}
+        className="bg-gradient-to-r from-pink-500/10 to-rose-500/10 backdrop-blur-xl border border-pink-500/30 rounded-2xl p-6"
+      >
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/20 to-rose-500/10 flex items-center justify-center border border-pink-500/30 shrink-0">
+            <Users className="w-6 h-6 text-pink-400" />
+          </div>
+          <div className="text-left">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
+              {isMemorial ? "Soul Connection" : "Power Pair"}
+            </p>
+            <p className="text-foreground/90 text-sm">{powerPair}</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Cosmic Fact - Personalized */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
         className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 backdrop-blur-xl border border-amber-500/30 rounded-2xl p-5"
       >
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-            <span className="text-lg">💡</span>
+            <Fingerprint className="w-5 h-5 text-amber-400" />
           </div>
           <div>
             <p className="text-sm text-amber-500/90 uppercase tracking-wider font-medium mb-1">
-              Did You Know About {petData.species === 'dog' ? 'Dogs' : petData.species === 'cat' ? 'Cats' : petData.species === 'horse' ? 'Horses' : 'Your Pet'}?
+              {isMemorial ? `${petData.name}'s Cosmic Signature` : "Cosmic Signature"}
             </p>
             <p className="text-foreground/90 text-sm leading-relaxed">
-              {speciesFact}
+              {cosmicFact}
             </p>
           </div>
         </div>
@@ -384,10 +452,13 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
     return `✨ Cosmic Analysis Complete for ${petsData.length} ${petsData.length === 1 ? 'Pet' : 'Pets'}`;
   };
   
+  // Use first pet's name for personalization
+  const firstName = petsData[0]?.name || 'your pet';
+  
   const lockedItems = [
-    { icon: Moon, label: hasMemorialPet ? "Moon Sign Memories" : "Moon Sign Analysis", preview: hasMemorialPet ? "Their emotional depths remembered..." : "Deep emotional patterns revealed..." },
-    { icon: ArrowUp, label: hasMemorialPet ? "How They Were Seen" : "Rising Sign Profile", preview: hasMemorialPet ? "The impression they left on everyone..." : "How the world perceives them..." },
-    { icon: Sparkles, label: hasMemorialPet ? "Eternal Soul Bond" : "Full Soul Contract", preview: hasMemorialPet ? "Why they chose you for this lifetime..." : "The cosmic reason for your bond..." },
+    { icon: Moon, label: hasMemorialPet ? "Moon Sign Memories" : "Moon Sign Analysis", preview: hasMemorialPet ? `How ${firstName} processed deep emotions...` : `How ${firstName} processes deep emotions...` },
+    { icon: ArrowUp, label: hasMemorialPet ? "How They Were Seen" : "Rising Sign Profile", preview: hasMemorialPet ? `The unique aura ${firstName} radiated...` : `The unique aura ${firstName} radiates to others...` },
+    { icon: Sparkles, label: hasMemorialPet ? "Eternal Soul Bond" : "Full Soul Contract", preview: hasMemorialPet ? `Why ${firstName} chose you for this lifetime...` : `The cosmic reason ${firstName} found you...` },
   ];
 
   return (
@@ -503,19 +574,42 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
-          className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/30 rounded-2xl p-5"
+          className={cn(
+            "border rounded-2xl p-5",
+            hasMemorialPet 
+              ? "bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/30"
+              : "bg-gradient-to-r from-red-500/10 to-orange-500/10 border-red-500/30"
+          )}
         >
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className={cn("w-5 h-5 flex-shrink-0 mt-0.5", hasMemorialPet ? "text-purple-400" : "text-red-400")} />
             <div>
-              <p className="font-medium text-foreground mb-1">Without the full report, you'll never know...</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                <p>❌ Why they act differently on full moons</p>
-                <p>❌ Their ideal bonding activities based on their chart</p>
-                <p>❌ Hidden health patterns to watch for</p>
-                <p>❌ Their deepest fears and how to comfort them</p>
-                <p>❌ The reason behind that ONE weird habit</p>
-                <p>❌ How to speak their cosmic love language</p>
+              <p className="font-medium text-foreground mb-1">
+                {hasMemorialPet 
+                  ? `Without the full tribute, these memories of ${firstName} stay locked away...`
+                  : `Without the full report, you'll never truly understand ${firstName}...`
+                }
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                {hasMemorialPet ? (
+                  <>
+                    <p>❌ The complete story of {firstName}'s soul purpose</p>
+                    <p>❌ Why they behaved that one special way</p>
+                    <p>❌ Their messages for you from beyond</p>
+                    <p>❌ How to carry their spirit forward</p>
+                    <p>❌ Their lasting gifts to your soul</p>
+                    <p>❌ Signs they may send you now</p>
+                  </>
+                ) : (
+                  <>
+                    <p>❌ Why {firstName} acts weird during full moons</p>
+                    <p>❌ {firstName}'s ideal bonding activities</p>
+                    <p>❌ Hidden health patterns to watch for</p>
+                    <p>❌ {firstName}'s deepest fears & how to comfort them</p>
+                    <p>❌ The reason behind THAT weird habit</p>
+                    <p>❌ How to speak {firstName}'s cosmic love language</p>
+                  </>
+                )}
               </div>
             </div>
           </div>
