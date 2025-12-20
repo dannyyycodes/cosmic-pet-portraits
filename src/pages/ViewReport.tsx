@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
 import { CinematicReveal } from '@/components/report/CinematicReveal';
+import { TestimonialPrompt } from '@/components/report/TestimonialPrompt';
 import { toast } from 'sonner';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
 import { CosmicButton } from '@/components/cosmic/CosmicButton';
@@ -15,13 +16,14 @@ export default function ViewReport() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string; shareToken?: string; petPhotoUrl?: string; portraitUrl?: string; occasionMode?: string; hasActiveHoroscope?: boolean } | null>(null);
+  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string; shareToken?: string; petPhotoUrl?: string; portraitUrl?: string; occasionMode?: string; hasActiveHoroscope?: boolean; species?: string; email?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showCinematic, setShowCinematic] = useState(false);
   const [revealComplete, setRevealComplete] = useState(false);
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [showTestimonialPrompt, setShowTestimonialPrompt] = useState(false);
 
   const reportId = searchParams.get('id');
   const code = searchParams.get('code'); // For gift redemption
@@ -102,6 +104,8 @@ export default function ViewReport() {
         portraitUrl: data.portraitUrl,
         occasionMode: data.occasionMode || 'discover',
         hasActiveHoroscope: data.hasActiveHoroscope || false,
+        species: data.species || 'pet',
+        email: verifyEmail || data.email || '',
       });
 
       // Show cinematic reveal for first-time views (not returning visits)
@@ -150,6 +154,14 @@ export default function ViewReport() {
   const handleRevealComplete = () => {
     setShowCinematic(false);
     setRevealComplete(true);
+    
+    // Show testimonial prompt after 30 seconds of viewing
+    const hasSubmittedTestimonial = localStorage.getItem(`testimonial_submitted_${reportId || code}`);
+    if (!hasSubmittedTestimonial) {
+      setTimeout(() => {
+        setShowTestimonialPrompt(true);
+      }, 30000); // 30 seconds delay
+    }
   };
 
   // Email verification prompt
@@ -242,15 +254,26 @@ export default function ViewReport() {
           />
         )}
         {revealComplete && (
-          <CosmicReportViewer
-            petName={reportData.petName}
-            report={reportData.report}
-            reportId={reportData.reportId}
-            shareToken={reportData.shareToken}
-            portraitUrl={reportData.portraitUrl}
-            occasionMode={reportData.occasionMode}
-            hasActiveHoroscope={reportData.hasActiveHoroscope}
-          />
+          <>
+            <CosmicReportViewer
+              petName={reportData.petName}
+              report={reportData.report}
+              reportId={reportData.reportId}
+              shareToken={reportData.shareToken}
+              portraitUrl={reportData.portraitUrl}
+              occasionMode={reportData.occasionMode}
+              hasActiveHoroscope={reportData.hasActiveHoroscope}
+            />
+            {showTestimonialPrompt && reportData.reportId && reportData.email && (
+              <TestimonialPrompt
+                reportId={reportData.reportId}
+                petName={reportData.petName}
+                species={reportData.species || 'pet'}
+                email={reportData.email}
+                onClose={() => setShowTestimonialPrompt(false)}
+              />
+            )}
+          </>
         )}
       </>
     );

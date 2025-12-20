@@ -166,7 +166,7 @@ serve(async (req) => {
       hasActiveHoroscope = true;
     }
 
-    // Return only safe data (no email, include share token for owners)
+    // Return only safe data (include email for testimonial submission if owner)
     return new Response(JSON.stringify({
       petName: report.pet_name,
       report: report.report_content,
@@ -178,6 +178,8 @@ serve(async (req) => {
       portraitUrl: report.portrait_url,
       occasionMode: report.occasion_mode || 'discover',
       hasActiveHoroscope,
+      // Include email for testimonial submission (only if owner accessed via email verification)
+      email: !isPublicAccess ? report.email : undefined,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

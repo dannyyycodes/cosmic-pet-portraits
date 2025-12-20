@@ -732,6 +732,65 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          created_at: string
+          email: string
+          favorite_feature: string | null
+          id: string
+          improvement_feedback: string | null
+          is_approved: boolean | null
+          is_featured: boolean | null
+          pet_name: string
+          photo_consent: boolean | null
+          rating: number
+          report_id: string | null
+          review_text: string | null
+          species: string | null
+          would_recommend: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          favorite_feature?: string | null
+          id?: string
+          improvement_feedback?: string | null
+          is_approved?: boolean | null
+          is_featured?: boolean | null
+          pet_name: string
+          photo_consent?: boolean | null
+          rating: number
+          report_id?: string | null
+          review_text?: string | null
+          species?: string | null
+          would_recommend?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          favorite_feature?: string | null
+          id?: string
+          improvement_feedback?: string | null
+          is_approved?: boolean | null
+          is_featured?: boolean | null
+          pet_name?: string
+          photo_consent?: boolean | null
+          rating?: number
+          report_id?: string | null
+          review_text?: string | null
+          species?: string | null
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "testimonials_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       translation_cache: {
         Row: {
           created_at: string
