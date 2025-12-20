@@ -350,6 +350,7 @@ export type Database = {
           created_at: string
           expires_at: string | null
           gift_message: string | null
+          gift_tier: string | null
           id: string
           is_redeemed: boolean
           purchaser_email: string
@@ -365,6 +366,7 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           gift_message?: string | null
+          gift_tier?: string | null
           id?: string
           is_redeemed?: boolean
           purchaser_email: string
@@ -380,6 +382,7 @@ export type Database = {
           created_at?: string
           expires_at?: string | null
           gift_message?: string | null
+          gift_tier?: string | null
           id?: string
           is_redeemed?: boolean
           purchaser_email?: string

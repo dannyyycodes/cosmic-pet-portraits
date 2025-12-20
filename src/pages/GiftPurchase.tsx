@@ -22,9 +22,9 @@ export default function GiftPurchase() {
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email');
 
   const giftAmounts = [
-    { cents: 3500, label: t('gift.tier1Name'), description: t('gift.tier1Desc') },
-    { cents: 5000, label: t('gift.tier2Name'), description: t('gift.tier2Desc') },
-    { cents: 12900, label: t('gift.tier3Name'), description: t('gift.tier3Desc') },
+    { cents: 3500, tier: 'essential', label: t('gift.tier1Name'), description: t('gift.tier1Desc') },
+    { cents: 5000, tier: 'portrait', label: t('gift.tier2Name'), description: t('gift.tier2Desc') },
+    { cents: 12900, tier: 'vip', label: t('gift.tier3Name'), description: t('gift.tier3Desc') },
   ];
 
   const handlePurchase = async (e?: React.FormEvent) => {
