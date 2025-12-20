@@ -108,6 +108,70 @@ const elementGradients: Record<string, { from: string; to: string; glow: string 
   Water: { from: '#06b6d4', to: '#8b5cf6', glow: 'rgba(6, 182, 212, 0.5)' },
 };
 
+// Get personality traits based on stats - fun and shareable
+const getPersonalityTraits = (stats: CardStats, occasionMode: OccasionMode, petName: string): { trait: string; icon: string; description: string }[] => {
+  const traits: { trait: string; icon: string; description: string }[] = [];
+  
+  // Find top 3 stats
+  const sortedStats = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+  const topStats = sortedStats.slice(0, 3);
+  
+  const traitMappings: Record<string, { trait: string; icon: string; description: string }[]> = {
+    vitality: [
+      { trait: 'Zoomies Champion', icon: '⚡', description: 'Bursts of chaotic energy' },
+      { trait: 'Unstoppable Force', icon: '💥', description: 'Never runs out of battery' },
+    ],
+    empathy: [
+      { trait: 'Emotional Support Pro', icon: '💝', description: 'Knows when you need cuddles' },
+      { trait: 'Soul Reader', icon: '👁️', description: 'Senses feelings from 3 rooms away' },
+    ],
+    curiosity: [
+      { trait: 'Professional Investigator', icon: '🔍', description: 'What was that sound?!' },
+      { trait: 'Chaos Explorer', icon: '🗺️', description: 'Must touch everything' },
+    ],
+    charm: [
+      { trait: 'Treat Negotiator', icon: '🍖', description: 'Could get away with crimes' },
+      { trait: 'Heart Stealer', icon: '💘', description: 'Weaponized cuteness' },
+    ],
+    energy: [
+      { trait: 'Perpetual Motion', icon: '🌀', description: 'Sleep? Never heard of it' },
+      { trait: 'Chaos Engine', icon: '🔥', description: '100% battery always' },
+    ],
+    mystery: [
+      { trait: 'Keeper of Secrets', icon: '🌙', description: 'Knows things. Won\'t tell.' },
+      { trait: 'Midnight Philosopher', icon: '🦉', description: 'Stares into the void' },
+    ],
+  };
+  
+  // Memorial-specific traits
+  if (occasionMode === 'memorial') {
+    return [
+      { trait: 'Guardian Angel', icon: '👼', description: 'Watching over you always' },
+      { trait: 'Forever Beloved', icon: '💫', description: 'Eternal pawprints on hearts' },
+      { trait: 'Star Walker', icon: '⭐', description: 'Now among the constellations' },
+    ];
+  }
+  
+  // Birthday-specific traits
+  if (occasionMode === 'birthday') {
+    return [
+      { trait: 'Birthday Royal', icon: '👑', description: 'Today\'s main character' },
+      { trait: 'Treat Collector', icon: '🎂', description: 'Accepting all offerings' },
+      { trait: 'Party Animal', icon: '🎉', description: 'Born to celebrate' },
+    ];
+  }
+  
+  topStats.forEach(([stat]) => {
+    const options = traitMappings[stat];
+    if (options) {
+      const randomIndex = Math.floor((petName.charCodeAt(0) || 0) % options.length);
+      traits.push(options[randomIndex]);
+    }
+  });
+  
+  return traits;
+};
+
 // Funny/engaging captions based on stats
 const getViralCaption = (stats: CardStats, occasionMode: OccasionMode, petName: string): string => {
   const theme = occasionThemes[occasionMode];
@@ -131,25 +195,23 @@ const getViralCaption = (stats: CardStats, occasionMode: OccasionMode, petName: 
   const statCaption = statCaptions[highestStat[0]]?.[Math.floor(Math.random() * 2)] || randomPhrase;
   
   return occasionMode === 'birthday' 
-    ? `🎂 ${petName} is ${Math.floor(Math.random() * 8) + 1} and still the main character 🎂`
+    ? `🎂 ${petName} is having their BEST day ever 🎂`
     : statCaption;
 };
 
-const StatBar = ({ label, value, icon: Icon, color }: { label: string; value: number; icon: typeof Star; color: string }) => (
-  <div className="flex items-center gap-1.5">
-    <Icon className="w-3 h-3" style={{ color }} />
-    <span className="text-[9px] uppercase tracking-wider text-white/60 w-12">{label}</span>
-    <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: `${value}%` }}
-        transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
-        className="h-full rounded-full"
-        style={{ background: `linear-gradient(90deg, ${color}, ${color}dd)` }}
-      />
+// Trait display component (replaces stat bars)
+const TraitBadge = ({ trait, icon, description }: { trait: string; icon: string; description: string }) => (
+  <motion.div 
+    initial={{ opacity: 0, x: -10 }}
+    animate={{ opacity: 1, x: 0 }}
+    className="flex items-center gap-3 p-2 rounded-lg bg-white/5 border border-white/10"
+  >
+    <span className="text-xl flex-shrink-0">{icon}</span>
+    <div className="min-w-0">
+      <p className="text-sm font-bold text-white truncate">{trait}</p>
+      <p className="text-[10px] text-white/60 truncate">{description}</p>
     </div>
-    <span className="text-[10px] font-bold text-white w-5 text-right">{value}</span>
-  </div>
+  </motion.div>
 );
 
 export function ViralPetCard({
@@ -172,6 +234,7 @@ export function ViralPetCard({
   const [copied, setCopied] = useState(false);
   const [cardImage, setCardImage] = useState<string | null>(null);
   const [viralCaption] = useState(() => getViralCaption(stats, occasionMode, petName));
+  const [personalityTraits] = useState(() => getPersonalityTraits(stats, occasionMode, petName));
 
   const theme = occasionThemes[occasionMode];
   const colors = occasionMode === 'memorial' || occasionMode === 'birthday' 
@@ -523,14 +586,18 @@ export function ViralPetCard({
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="px-4 pb-4 space-y-1.5">
-            <StatBar label="Vitality" value={stats.vitality} icon={Zap} color="#facc15" />
-            <StatBar label="Empathy" value={stats.empathy} icon={Heart} color="#f472b6" />
-            <StatBar label="Curiosity" value={stats.curiosity} icon={Star} color="#38bdf8" />
-            <StatBar label="Charm" value={stats.charm} icon={Sparkles} color="#c084fc" />
-            <StatBar label="Energy" value={stats.energy} icon={Zap} color="#fb923c" />
-            <StatBar label="Mystery" value={stats.mystery} icon={Shield} color="#818cf8" />
+          {/* Personality Traits (replaces numbered stats) */}
+          <div className="px-4 pb-4 space-y-2">
+            {personalityTraits.map((trait, index) => (
+              <motion.div
+                key={trait.trait}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
+              >
+                <TraitBadge {...trait} />
+              </motion.div>
+            ))}
           </div>
 
           {/* Footer */}

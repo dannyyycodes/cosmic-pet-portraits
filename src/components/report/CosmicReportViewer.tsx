@@ -131,6 +131,7 @@ interface CosmicReportViewerProps {
   onNextPet?: () => void;
   onAllComplete?: () => void;
   occasionMode?: string;
+  hasActiveHoroscope?: boolean;
 }
 
 const elementColors: Record<string, string> = {
@@ -156,7 +157,7 @@ const sectionVariants = {
   }),
 };
 
-export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, shareToken, portraitUrl, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete, occasionMode = 'discover' }: CosmicReportViewerProps) {
+export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, shareToken, portraitUrl, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete, occasionMode = 'discover', hasActiveHoroscope = false }: CosmicReportViewerProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>(portraitUrl);
@@ -874,15 +875,25 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
               <div className="flex flex-col gap-4">
                 <ReportPDFDownload petName={petName} reportContent={report} />
                 
-                <Button
-                  onClick={handleSubscribeWeekly}
-                  disabled={isSubscribing}
-                  className="gap-2"
-                  variant="outline"
-                >
-                  <Mail className="w-4 h-4" />
-                  {isSubscribing ? 'Loading...' : 'Weekly Horoscopes - $4.99/mo'}
-                </Button>
+                {/* Only show horoscope upsell if not already purchased */}
+                {!hasActiveHoroscope && (
+                  <Button
+                    onClick={handleSubscribeWeekly}
+                    disabled={isSubscribing}
+                    className="gap-2"
+                    variant="outline"
+                  >
+                    <Mail className="w-4 h-4" />
+                    {isSubscribing ? 'Loading...' : 'Weekly Horoscopes - $4.99/mo'}
+                  </Button>
+                )}
+                
+                {hasActiveHoroscope && (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
+                    <Check className="w-4 h-4" />
+                    Weekly Horoscopes Active
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
