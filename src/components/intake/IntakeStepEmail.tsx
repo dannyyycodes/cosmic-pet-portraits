@@ -22,7 +22,7 @@ interface IntakeStepEmailProps {
   totalSteps: number;
   modeContent: ModeContent;
   giftCode?: string | null;
-  giftedTier?: 'basic' | 'premium' | 'vip' | null;
+  giftedTier?: 'essential' | 'portrait' | 'vip' | 'basic' | 'premium' | null;
 }
 
 // Species-specific astrology facts that build belief

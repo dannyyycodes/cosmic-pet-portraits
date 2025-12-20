@@ -34,7 +34,7 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from("gift_certificates")
-      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at")
+      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier")
       .eq("code", input.code.toUpperCase())
       .single();
 
@@ -60,13 +60,17 @@ serve(async (req) => {
       });
     }
 
-    // Determine what tier was gifted based on amount
-    // Basic: $35 (3500 cents), Premium: $50 (5000 cents), VIP: $129 (12900 cents)
-    let giftedTier = 'basic';
-    if (data.amount_cents >= 12900) {
-      giftedTier = 'vip';
-    } else if (data.amount_cents >= 5000) {
-      giftedTier = 'premium';
+    // Use stored gift_tier if available, otherwise derive from amount
+    let giftedTier = data.gift_tier;
+    if (!giftedTier) {
+      // Fallback for old gift certificates without tier column
+      if (data.amount_cents >= 12900) {
+        giftedTier = 'vip';
+      } else if (data.amount_cents >= 5000) {
+        giftedTier = 'portrait';
+      } else {
+        giftedTier = 'essential';
+      }
     }
 
     // Return only necessary data (no emails)
@@ -75,9 +79,11 @@ serve(async (req) => {
       recipientName: data.recipient_name,
       giftMessage: data.gift_message,
       amountCents: data.amount_cents,
-      giftedTier,
-      includesPortrait: giftedTier === 'premium' || giftedTier === 'vip',
+      giftTier: giftedTier,
+      giftedTier, // Keep for backward compatibility
+      includesPortrait: giftedTier === 'portrait' || giftedTier === 'vip',
       includesVip: giftedTier === 'vip',
+      includesWeeklyHoroscope: giftedTier === 'portrait' || giftedTier === 'vip',
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
