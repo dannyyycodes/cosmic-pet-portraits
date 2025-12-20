@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PetData } from './IntakeWizard';
-import { Lock, Moon, ArrowUp, Sparkles, Star, Heart, Lightbulb, AlertTriangle, Zap, Users, Activity, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Lock, Moon, ArrowUp, Sparkles, Star, Heart, Lightbulb, Zap, Users, Activity, ChevronLeft, ChevronRight, Fingerprint, PawPrint, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TestimonialCarousel } from './TestimonialCarousel';
 import { generateCosmicReport, CosmicReport } from '@/lib/cosmicReport';
@@ -67,6 +67,11 @@ const speciesFacts: Record<string, string[]> = {
     "A hamster's cheek pouches can expand to three times the size of their head, storing abundance.",
     "Hamsters are crepuscular, most active during the magical twilight hours of dawn and dusk.",
   ],
+  guinea_pig: [
+    "Guinea pigs 'popcorn' when happy—an irresistible expression of pure cosmic joy.",
+    "They communicate through 11 different vocalizations, each carrying its own emotional frequency.",
+    "Guinea pigs need companionship to thrive—their souls are designed for connection.",
+  ],
   fish: [
     "Fish can feel vibrations through their lateral line, sensing energy waves we cannot perceive.",
     "Goldfish have a memory span of months, not seconds—they remember their cosmic companions.",
@@ -76,11 +81,6 @@ const speciesFacts: Record<string, string[]> = {
     "Reptiles are cold-blooded, meaning they literally absorb the sun's cosmic energy to survive.",
     "Many reptiles have a 'third eye' (parietal eye) that senses light and shadows from above.",
     "Reptiles have existed for over 300 million years, carrying ancient cosmic wisdom in their DNA.",
-  ],
-  guinea_pig: [
-    "Guinea pigs 'popcorn' when happy—an irresistible expression of pure cosmic joy.",
-    "They communicate through 11 different vocalizations, each carrying its own emotional frequency.",
-    "Guinea pigs need companionship to thrive—their souls are designed for connection.",
   ],
   default: [
     "Your pet's eyes contain light receptors that may perceive wavelengths humans cannot see.",
@@ -93,13 +93,12 @@ const speciesFacts: Record<string, string[]> = {
 function getSpeciesFact(species: string, petName: string): string {
   const normalizedSpecies = species?.toLowerCase() || 'default';
   const facts = speciesFacts[normalizedSpecies] || speciesFacts.default;
-  // Use pet name to consistently select same fact
   const index = petName.length % facts.length;
   return facts[index];
 }
 
 function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData; cosmicReport: CosmicReport; isActive: boolean }) {
-  const { sunSign, archetype, element, nameVibration, coreEssence, soulMission, hiddenGift, loveLanguage } = cosmicReport;
+  const { sunSign, archetype, element, nameVibration, coreEssence, soulMission, hiddenGift, loveLanguage, breedInsight, ownerInsight, personalityType } = cosmicReport;
   const speciesFact = getSpeciesFact(petData.species, petData.name);
 
   return (
@@ -138,8 +137,11 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
             {petData.name} is a {sunSign}
           </h1>
           <p className="text-xl text-gold font-medium">{archetype}</p>
+          {personalityType && (
+            <p className="text-sm text-primary/80 font-medium">"{personalityType}"</p>
+          )}
           <p className="text-sm text-muted-foreground capitalize">
-            {petData.species} • {petData.gender === 'boy' ? 'Male' : petData.gender === 'girl' ? 'Female' : 'Pet'}
+            {petData.breed ? `${petData.breed} • ` : ''}{petData.species} • {petData.gender === 'boy' ? 'Male' : petData.gender === 'girl' ? 'Female' : 'Pet'}
           </p>
         </div>
 
