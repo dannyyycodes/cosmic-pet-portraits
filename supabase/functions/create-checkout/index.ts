@@ -47,6 +47,7 @@ const checkoutSchema = z.object({
   referralCode: z.string().max(50).optional(), // Affiliate referral code
   includeHoroscope: z.boolean().optional().default(false), // Weekly horoscope add-on
   giftCode: z.string().max(20).optional(), // Gift code to redeem (e.g., GIFT-XXXX-XXXX)
+  petPhotoUrl: z.string().url().max(2048).optional(), // Pet photo for portrait generation
 });
 
 serve(async (req) => {
@@ -314,6 +315,7 @@ serve(async (req) => {
         include_horoscope: input.includeHoroscope ? "true" : "false",
         // VIP tier includes horoscope for free
         vip_horoscope: input.selectedTier === "vip" ? "true" : "false",
+        pet_photo_url: input.petPhotoUrl || "",
       },
     });
 

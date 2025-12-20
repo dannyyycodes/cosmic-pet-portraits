@@ -292,7 +292,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     const trimmedName = pet.name.trim();
     if (!trimmedName) return 'Pet name is required';
     if (trimmedName.length > 50) return 'Pet name is too long';
-    if (!/^[a-zA-Z\s\-']+$/.test(trimmedName)) return 'Pet name contains invalid characters';
+    // Allow letters, numbers, spaces, hyphens, apostrophes, and unicode characters
+    if (!/^[\p{L}\p{N}\s\-'\.]+$/u.test(trimmedName)) return 'Pet name contains invalid characters';
     if (!pet.species) return 'Species is required';
     if (!pet.gender || (pet.gender !== 'boy' && pet.gender !== 'girl')) return 'Gender is required';
     if (!pet.dateOfBirth) return 'Date of birth is required';
@@ -417,6 +418,15 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
       // Create checkout with volume discount
       if (checkoutData) {
+        // If portrait is included and photo was uploaded, save it to the report
+        if (checkoutData.includesPortrait && checkoutData.petPhotoUrl) {
+          console.log('[INTAKE] Saving pet photo URL to report:', primaryReportId);
+          await supabase
+            .from('pet_reports')
+            .update({ pet_photo_url: checkoutData.petPhotoUrl })
+            .eq('id', primaryReportId);
+        }
+
         // Get referral code if present
         const referralCode = getReferralCode();
         
@@ -438,6 +448,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               referralCode: referralCode || undefined, // Pass referral code to checkout
               includeHoroscope: checkoutData.includeHoroscope || false, // Weekly horoscope add-on
               includesPortrait: checkoutData.includesPortrait || false,
+              petPhotoUrl: checkoutData.petPhotoUrl || undefined, // Pass photo URL for portrait generation
             },
           }
         );
