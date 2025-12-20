@@ -30,6 +30,7 @@ import { CosmicLoading } from './CosmicLoading';
 import { SocialProofBar } from './SocialProofBar';
 import { MultiPetMiniReport } from './MultiPetMiniReport';
 import { GiftWelcome } from './GiftWelcome';
+import { DevPanel } from './DevPanel';
 import { OccasionMode, occasionModeContent } from '@/lib/occasionMode';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -797,6 +798,74 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Dev Panel - only visible in test/dev mode */}
+      {isTestMode && (
+        <DevPanel
+          step={step}
+          currentPetIndex={currentPetIndex}
+          petCount={petCount}
+          petsData={petsData}
+          onSetStep={setStep}
+          onSetPetIndex={setCurrentPetIndex}
+          onSetPetCount={(count) => {
+            setPetCount(count);
+            const newPets = Array(count).fill(null).map((_, i) => petsData[i] || createEmptyPetData(occasionMode));
+            setPetsData(newPets);
+          }}
+          onUpdatePetsData={setPetsData}
+          onSkipToCheckout={() => {
+            // Fill data if empty and go to email step
+            if (!petsData[0].name) {
+              const email = `test${Date.now()}@example.com`;
+              const pets = Array(petCount).fill(null).map((_, i) => {
+                const species = ['dog', 'cat', 'rabbit'][i % 3] as PetSpecies;
+                return {
+                  name: ['Luna', 'Max', 'Bella'][i % 3],
+                  species,
+                  breed: 'Mixed',
+                  gender: (i % 2 === 0 ? 'girl' : 'boy') as PetGender,
+                  dateOfBirth: new Date(2020, 5, 15),
+                  timeOfBirth: '10:30',
+                  location: 'New York, NY',
+                  soulType: 'adventurer',
+                  superpower: 'zoomies',
+                  strangerReaction: 'friendly',
+                  email,
+                  occasionMode: occasionMode,
+                  photoUrl: null,
+                };
+              });
+              setPetsData(pets);
+            }
+            setStep(11);
+          }}
+          onSkipToResults={() => {
+            // Fill data if empty and trigger results
+            const email = `test${Date.now()}@example.com`;
+            const pets = Array(petCount).fill(null).map((_, i) => {
+              const species = ['dog', 'cat', 'rabbit'][i % 3] as PetSpecies;
+              return {
+                name: petsData[i]?.name || ['Luna', 'Max', 'Bella'][i % 3],
+                species: petsData[i]?.species || species,
+                breed: petsData[i]?.breed || 'Mixed',
+                gender: (petsData[i]?.gender || (i % 2 === 0 ? 'girl' : 'boy')) as PetGender,
+                dateOfBirth: petsData[i]?.dateOfBirth || new Date(2020, 5, 15),
+                timeOfBirth: petsData[i]?.timeOfBirth || '10:30',
+                location: petsData[i]?.location || 'New York, NY',
+                soulType: petsData[i]?.soulType || 'adventurer',
+                superpower: petsData[i]?.superpower || 'zoomies',
+                strangerReaction: petsData[i]?.strangerReaction || 'friendly',
+                email: petsData[i]?.email || email,
+                occasionMode: petsData[i]?.occasionMode || occasionMode,
+                photoUrl: petsData[i]?.photoUrl || null,
+              };
+            });
+            setPetsData(pets);
+            setShowResults(true);
+          }}
+        />
+      )}
     </div>
   );
 }
