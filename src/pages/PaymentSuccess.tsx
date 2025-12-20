@@ -55,6 +55,12 @@ export default function PaymentSuccess() {
   const reportId = searchParams.get('report_id');
   const isGiftedParam = searchParams.get('gifted') === 'true';
   const giftedTierParam = searchParams.get('gifted_tier') as 'basic' | 'premium' | 'vip' | null;
+  
+  // Dev mode checkout options passed via URL
+  const includeGiftParam = searchParams.get('include_gift') === 'true';
+  const includeHoroscopeParam = searchParams.get('include_horoscope') === 'true';
+  const selectedTierParam = searchParams.get('selected_tier');
+  const includesPortraitParam = searchParams.get('includes_portrait') === 'true';
 
   const currentReport = allReports[currentReportIndex];
   const hasMultipleReports = allReports.length > 1;
@@ -88,7 +94,15 @@ export default function PaymentSuccess() {
         console.log('[PaymentSuccess] Verifying payment, attempt:', attempts + 1);
         
         const { data, error: verifyError } = await supabase.functions.invoke('verify-payment', {
-          body: { sessionId, reportId }
+          body: { 
+            sessionId, 
+            reportId,
+            // Pass dev mode options if present
+            includeGift: includeGiftParam,
+            includeHoroscope: includeHoroscopeParam,
+            selectedTier: selectedTierParam,
+            includesPortrait: includesPortraitParam,
+          }
         });
 
         if (verifyError) {

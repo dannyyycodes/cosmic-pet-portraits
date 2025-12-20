@@ -113,9 +113,21 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
     
     setStage('reveal');
   };
+
+  // Get sign data for a specific pet
+  const getPetSignData = (pet: PetData) => {
+    const petSign = pet.dateOfBirth 
+      ? getSunSign(pet.dateOfBirth.getMonth() + 1, pet.dateOfBirth.getDate()) 
+      : null;
+    return { sign: petSign, signData: petSign ? zodiacSigns[petSign] : null };
+  };
   
-  const sign = petData.dateOfBirth 
-    ? getSunSign(petData.dateOfBirth.getMonth() + 1, petData.dateOfBirth.getDate()) 
+  // Use first pet for primary display, but show all pets
+  const primaryPet = petsData && petsData.length > 0 ? petsData[0] : petData;
+  const allPets = petsData && petsData.length > 1 ? petsData : [petData];
+  
+  const sign = primaryPet.dateOfBirth 
+    ? getSunSign(primaryPet.dateOfBirth.getMonth() + 1, primaryPet.dateOfBirth.getDate()) 
     : null;
   const signData = sign ? zodiacSigns[sign] : null;
 
@@ -241,76 +253,84 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               <span className="text-4xl">🎉</span>
             </motion.div>
 
-            {/* Zodiac reveal card - Enhanced */}
-            {sign && (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", duration: 0.8 }}
-                className="relative overflow-hidden rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-card via-card to-primary/10 p-6"
-              >
-                <div className="absolute inset-0 opacity-30">
-                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full bg-gradient-to-br ${elementColors[signData?.element || 'Fire']} blur-3xl`} />
-                  <div className={`absolute bottom-0 left-0 w-32 h-32 rounded-full bg-gradient-to-br ${elementColors[signData?.element || 'Fire']} blur-2xl`} />
-                </div>
-
-                <div className="relative z-10 text-center space-y-3">
+            {/* Zodiac reveal cards - Show ALL pets */}
+            <div className="space-y-4">
+              {allPets.map((pet, index) => {
+                const { sign: petSign, signData: petSignData } = getPetSignData(pet);
+                if (!petSign || !petSignData) return null;
+                
+                return (
                   <motion.div
-                    animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
-                    transition={{ repeat: Infinity, duration: 4 }}
-                    className={`w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${elementColors[signData?.element || 'Fire']} flex items-center justify-center shadow-2xl shadow-primary/30`}
+                    key={`pet-reveal-${index}`}
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", duration: 0.8, delay: index * 0.2 }}
+                    className="relative overflow-hidden rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-card via-card to-primary/10 p-6"
                   >
-                    <span className="text-4xl">{signData?.icon || '✨'}</span>
+                    <div className="absolute inset-0 opacity-30">
+                      <div className={`absolute top-0 right-0 w-40 h-40 rounded-full bg-gradient-to-br ${elementColors[petSignData?.element || 'Fire']} blur-3xl`} />
+                      <div className={`absolute bottom-0 left-0 w-32 h-32 rounded-full bg-gradient-to-br ${elementColors[petSignData?.element || 'Fire']} blur-2xl`} />
+                    </div>
+
+                    <div className="relative z-10 text-center space-y-3">
+                      <motion.div
+                        animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
+                        transition={{ repeat: Infinity, duration: 4 }}
+                        className={`w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${elementColors[petSignData?.element || 'Fire']} flex items-center justify-center shadow-2xl shadow-primary/30`}
+                      >
+                        <span className="text-4xl">{petSignData?.icon || '✨'}</span>
+                      </motion.div>
+
+                      <div>
+                        <p className="text-xs text-primary uppercase tracking-widest mb-1">✨ Cosmic Identity Revealed ✨</p>
+                        <h2 className="text-3xl font-display font-bold text-foreground capitalize">
+                          {pet.name} Is A {petSign}
+                        </h2>
+                        <div className="flex justify-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <span className="capitalize px-2 py-1 rounded-full bg-primary/10">{petSignData?.element} Element</span>
+                          <span className="px-2 py-1 rounded-full bg-primary/10">{petSignData?.archetype}</span>
+                        </div>
+                      </div>
+
+                      {/* Shareable Soul Snapshot Card */}
+                      <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-background/80 to-background/60 border border-border/50">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs text-primary font-medium uppercase tracking-wider">Soul Snapshot</span>
+                          <div className="flex gap-2">
+                            <button className="p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title="Share">
+                              <Share2 className="w-3.5 h-3.5 text-primary" />
+                            </button>
+                            <button className="p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title="Download">
+                              <Download className="w-3.5 h-3.5 text-primary" />
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div className="p-2 rounded-lg bg-card/50">
+                            <Sun className="w-4 h-4 mx-auto mb-1 text-cosmic-gold" />
+                            <p className="text-[10px] text-muted-foreground">Sun</p>
+                            <p className="text-xs font-medium text-foreground capitalize">{petSign}</p>
+                          </div>
+                          <div className="p-2 rounded-lg bg-card/50">
+                            <div className="w-4 h-4 mx-auto mb-1 text-lg">{petSignData?.element === 'Fire' ? '🔥' : petSignData?.element === 'Earth' ? '🌍' : petSignData?.element === 'Air' ? '💨' : '💧'}</div>
+                            <p className="text-[10px] text-muted-foreground">Element</p>
+                            <p className="text-xs font-medium text-foreground">{petSignData?.element}</p>
+                          </div>
+                          <div className="p-2 rounded-lg bg-card/50">
+                            <Moon className="w-4 h-4 mx-auto mb-1 text-nebula-purple" />
+                            <p className="text-[10px] text-muted-foreground">Type</p>
+                            <p className="text-xs font-medium text-foreground">{petSignData?.archetype?.split(' ')[1] || 'Soul'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
+                );
+              })}
+            </div>
 
-                  <div>
-                    <p className="text-xs text-primary uppercase tracking-widest mb-1">✨ Cosmic Identity Revealed ✨</p>
-                    <h2 className="text-3xl font-display font-bold text-foreground capitalize">
-                      {petData.name} Is A {sign}
-                    </h2>
-                    <div className="flex justify-center gap-2 mt-2 text-xs text-muted-foreground">
-                      <span className="capitalize px-2 py-1 rounded-full bg-primary/10">{signData?.element} Element</span>
-                      <span className="px-2 py-1 rounded-full bg-primary/10">{signData?.archetype}</span>
-                    </div>
-                  </div>
-
-                  {/* Shareable Soul Snapshot Card */}
-                  <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-background/80 to-background/60 border border-border/50">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-primary font-medium uppercase tracking-wider">Soul Snapshot</span>
-                      <div className="flex gap-2">
-                        <button className="p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title="Share">
-                          <Share2 className="w-3.5 h-3.5 text-primary" />
-                        </button>
-                        <button className="p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors" title="Download">
-                          <Download className="w-3.5 h-3.5 text-primary" />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="p-2 rounded-lg bg-card/50">
-                        <Sun className="w-4 h-4 mx-auto mb-1 text-cosmic-gold" />
-                        <p className="text-[10px] text-muted-foreground">Sun</p>
-                        <p className="text-xs font-medium text-foreground capitalize">{sign}</p>
-                      </div>
-                      <div className="p-2 rounded-lg bg-card/50">
-                        <div className="w-4 h-4 mx-auto mb-1 text-lg">{signData?.element === 'Fire' ? '🔥' : signData?.element === 'Earth' ? '🌍' : signData?.element === 'Air' ? '💨' : '💧'}</div>
-                        <p className="text-[10px] text-muted-foreground">Element</p>
-                        <p className="text-xs font-medium text-foreground">{signData?.element}</p>
-                      </div>
-                      <div className="p-2 rounded-lg bg-card/50">
-                        <Moon className="w-4 h-4 mx-auto mb-1 text-nebula-purple" />
-                        <p className="text-[10px] text-muted-foreground">Type</p>
-                        <p className="text-xs font-medium text-foreground">{signData?.archetype?.split(' ')[1] || 'Soul'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* FREE Mini Reading - MUCH More Value */}
+            {/* FREE Mini Reading - Shows ALL pets */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -319,45 +339,65 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             >
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-cosmic-gold" />
-                <h3 className="font-display font-semibold text-foreground">Your Free Cosmic Mini-Reading</h3>
+                <h3 className="font-display font-semibold text-foreground">
+                  {allPets.length > 1 ? 'Your Free Cosmic Mini-Readings' : 'Your Free Cosmic Mini-Reading'}
+                </h3>
                 <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-cosmic-gold/20 text-cosmic-gold font-medium">FREE</span>
               </div>
               
               <div className="space-y-4 text-sm text-left">
-                {signData && (
-                  <>
-                    {/* Element Deep Dive */}
-                    <div className="p-3 rounded-lg bg-card/30 space-y-2">
-                      <p className="font-medium text-foreground flex items-center gap-2">
-                        <span className="text-lg">{signData.element === 'Fire' ? '🔥' : signData.element === 'Earth' ? '🌍' : signData.element === 'Air' ? '💨' : '💧'}</span>
-                        {signData.element} Element Profile
-                      </p>
+                {allPets.map((pet, index) => {
+                  const { sign: petSign, signData: petSignData } = getPetSignData(pet);
+                  if (!petSignData) return null;
+                  
+                  return (
+                    <div key={`mini-reading-${index}`} className="space-y-3">
+                      {allPets.length > 1 && (
+                        <div className="flex items-center gap-2 pt-2 first:pt-0">
+                          <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${elementColors[petSignData.element]} flex items-center justify-center`}>
+                            <span className="text-sm">{petSignData.icon}</span>
+                          </div>
+                          <span className="font-medium text-foreground">{pet.name}</span>
+                        </div>
+                      )}
+                      
+                      {/* Element Deep Dive */}
+                      <div className="p-3 rounded-lg bg-card/30 space-y-2">
+                        <p className="font-medium text-foreground flex items-center gap-2">
+                          <span className="text-lg">{petSignData.element === 'Fire' ? '🔥' : petSignData.element === 'Earth' ? '🌍' : petSignData.element === 'Air' ? '💨' : '💧'}</span>
+                          {petSignData.element} Element Profile
+                        </p>
+                        <p className="text-foreground/90">
+                          <span className="font-medium text-cosmic-gold">{pet.name}</span>'s greatest strength is their <span className="font-medium">{elementTraits[petSignData.element]?.strength}</span>. 
+                          Their challenge? <span className="text-muted-foreground">{elementTraits[petSignData.element]?.challenge}</span>.
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          What they need most: <span className="text-foreground">{elementTraits[petSignData.element]?.need}</span>
+                        </p>
+                      </div>
+
+                      {/* Personalized Insight */}
                       <p className="text-foreground/90">
-                        <span className="font-medium text-cosmic-gold">{petData.name}</span>'s greatest strength is their <span className="font-medium">{elementTraits[signData.element]?.strength}</span>. 
-                        Their challenge? <span className="text-muted-foreground">{elementTraits[signData.element]?.challenge}</span>.
+                        As a <span className="font-medium">{petSign}</span>, {pet.name} experiences the world through a lens of 
+                        {petSignData.element === 'Fire' && " passionate energy. They're natural leaders who light up every room—but beneath that confidence lies a sensitive soul who fears being overlooked."}
+                        {petSignData.element === 'Earth' && " grounded stability. They crave routine and security—but their deep loyalty means they feel abandonment more intensely than other pets."}
+                        {petSignData.element === 'Air' && " curious exploration. They need constant mental stimulation—but their social nature masks a fear of being truly alone."}
+                        {petSignData.element === 'Water' && " emotional depth. They sense your moods before you do—but this sensitivity makes them absorb stress around them."}
                       </p>
-                      <p className="text-muted-foreground text-xs">
-                        What they need most: <span className="text-foreground">{elementTraits[signData.element]?.need}</span>
-                      </p>
+
+                      {/* Soul Type Integration */}
+                      {pet.soulType && (
+                        <p className="text-muted-foreground italic">
+                          Combined with their {pet.soulType} soul nature, this creates a unique cosmic signature that influences everything from their sleep patterns to how they bond with you...
+                        </p>
+                      )}
+                      
+                      {allPets.length > 1 && index < allPets.length - 1 && (
+                        <div className="border-b border-border/30 mt-4" />
+                      )}
                     </div>
-
-                    {/* Personalized Insight */}
-                    <p className="text-foreground/90">
-                      As a <span className="font-medium">{sign}</span>, {petData.name} experiences the world through a lens of 
-                      {signData.element === 'Fire' && " passionate energy. They're natural leaders who light up every room—but beneath that confidence lies a sensitive soul who fears being overlooked."}
-                      {signData.element === 'Earth' && " grounded stability. They crave routine and security—but their deep loyalty means they feel abandonment more intensely than other pets."}
-                      {signData.element === 'Air' && " curious exploration. They need constant mental stimulation—but their social nature masks a fear of being truly alone."}
-                      {signData.element === 'Water' && " emotional depth. They sense your moods before you do—but this sensitivity makes them absorb stress around them."}
-                    </p>
-
-                    {/* Soul Type Integration */}
-                    {petData.soulType && (
-                      <p className="text-muted-foreground italic">
-                        Combined with their {petData.soulType} soul nature, this creates a unique cosmic signature that influences everything from their sleep patterns to how they bond with you...
-                      </p>
-                    )}
-                  </>
-                )}
+                  );
+                })}
               </div>
             </motion.div>
 

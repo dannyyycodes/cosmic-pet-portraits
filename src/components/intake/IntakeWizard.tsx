@@ -411,7 +411,28 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         console.log('[TEST MODE] Skipping Stripe checkout, redirecting to success page');
         clearIntakeProgress();
         toast.success('Test mode: Skipping payment');
-        window.location.href = `/payment-success?session_id=dev_test_${Date.now()}&report_id=${primaryReportId}`;
+        
+        // Build URL params with checkout options for dev mode
+        const devParams = new URLSearchParams({
+          session_id: `dev_test_${Date.now()}`,
+          report_id: primaryReportId,
+        });
+        
+        // Pass checkout options through URL for dev mode
+        if (checkoutData?.includeGiftForFriend) {
+          devParams.set('include_gift', 'true');
+        }
+        if (checkoutData?.includeHoroscope || checkoutData?.selectedTier === 'vip') {
+          devParams.set('include_horoscope', 'true');
+        }
+        if (checkoutData?.selectedTier) {
+          devParams.set('selected_tier', checkoutData.selectedTier);
+        }
+        if (checkoutData?.includesPortrait) {
+          devParams.set('includes_portrait', 'true');
+        }
+        
+        window.location.href = `/payment-success?${devParams.toString()}`;
         return;
       }
 

@@ -13,7 +13,16 @@ serve(async (req) => {
   }
 
   try {
-    const { sessionId, reportId } = await req.json();
+    const body = await req.json();
+    const { 
+      sessionId, 
+      reportId,
+      // Dev mode options passed from frontend
+      includeGift: includeGiftFromBody,
+      includeHoroscope: includeHoroscopeFromBody,
+      selectedTier: selectedTierFromBody,
+      includesPortrait: includesPortraitFromBody,
+    } = body;
     
     if (!sessionId || !reportId) {
       // SECURITY FIX: Generic error message
@@ -44,6 +53,12 @@ serve(async (req) => {
     // Handle dev mode sessions
     if (sessionId.startsWith('dev_test_')) {
       console.log("[VERIFY-PAYMENT] Dev mode - skipping Stripe verification");
+      
+      // Get checkout options from request body (passed from frontend)
+      const includeGiftParam = includeGiftFromBody === true;
+      const includeHoroscopeParam = includeHoroscopeFromBody === true;
+      const selectedTierParam = selectedTierFromBody;
+      const includesPortraitParam = includesPortraitFromBody === true;
       
       // First get the primary report to find the email
       const { data: primaryReport } = await supabaseClient
@@ -92,6 +107,7 @@ serve(async (req) => {
       }
       
       // Generate reports for each pet
+      const includesPortrait = includesPortraitParam || selectedTierParam === 'premium' || selectedTierParam === 'vip';
       for (const id of reportIds) {
         const { data: report } = await supabaseClient
           .from("pet_reports")
@@ -100,7 +116,72 @@ serve(async (req) => {
           .single();
 
         if (report && !report.report_content) {
-          await generateReport(report, id, supabaseClient, true); // Dev mode includes portrait
+          await generateReport(report, id, supabaseClient, includesPortrait);
+        }
+      }
+
+      // Handle gift for friend in dev mode
+      let giftCode: string | null = null;
+      if (includeGiftParam) {
+        const randomBytes = new Uint8Array(8);
+        crypto.getRandomValues(randomBytes);
+        giftCode = "GIFT-" + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase().slice(0, 12);
+        
+        const { error: giftError } = await supabaseClient
+          .from("gift_certificates")
+          .insert({
+            code: giftCode,
+            amount_cents: 3500,
+            purchaser_email: primaryReport.email,
+            stripe_session_id: sessionId,
+          });
+        
+        if (giftError) {
+          console.error("[VERIFY-PAYMENT] Failed to create gift certificate:", giftError);
+          giftCode = null;
+        } else {
+          console.log("[VERIFY-PAYMENT] Dev mode - Gift certificate created:", giftCode);
+        }
+      }
+
+      // Handle horoscope subscription in dev mode
+      const horoscopeEnabled = includeHoroscopeParam || selectedTierParam === 'vip';
+      if (horoscopeEnabled) {
+        console.log("[VERIFY-PAYMENT] Dev mode - Creating horoscope subscriptions");
+        
+        for (const id of reportIds) {
+          const { data: petReport } = await supabaseClient
+            .from("pet_reports")
+            .select("email, pet_name")
+            .eq("id", id)
+            .single();
+          
+          if (petReport) {
+            const { data: existingSub } = await supabaseClient
+              .from("horoscope_subscriptions")
+              .select("id")
+              .eq("pet_report_id", id)
+              .single();
+            
+            if (!existingSub) {
+              const { error: subError } = await supabaseClient
+                .from("horoscope_subscriptions")
+                .insert({
+                  email: petReport.email,
+                  pet_name: petReport.pet_name,
+                  pet_report_id: id,
+                  status: "active",
+                  stripe_subscription_id: `dev_horoscope_${sessionId}`,
+                  next_send_at: new Date().toISOString(),
+                });
+              
+              if (subError) {
+                console.error("[VERIFY-PAYMENT] Failed to create horoscope subscription:", subError);
+              } else {
+                console.log("[VERIFY-PAYMENT] Dev mode - Horoscope subscription created for:", petReport.pet_name);
+              }
+            }
+          }
         }
       }
 
@@ -117,7 +198,10 @@ serve(async (req) => {
         success: true, 
         report: updatedPrimaryReport,
         allReports: allReports || [updatedPrimaryReport],
-        reportIds: reportIds
+        reportIds: reportIds,
+        includeGift: includeGiftParam,
+        giftCode,
+        horoscopeEnabled,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
