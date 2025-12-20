@@ -8,8 +8,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Valid gift amounts (server-side truth)
-const VALID_AMOUNTS = [3500, 5000, 12900]; // $35, $50, $129
+// Valid gift tiers with amounts (server-side truth)
+const GIFT_TIERS = {
+  essential: { cents: 3500, name: 'Essential Reading' },
+  portrait: { cents: 5000, name: 'Cosmic Portrait Edition' },
+  vip: { cents: 12900, name: 'Cosmic VIP Experience' },
+} as const;
+
+type GiftTier = keyof typeof GIFT_TIERS;
+
+const VALID_AMOUNTS: number[] = Object.values(GIFT_TIERS).map(t => t.cents);
+
+function getTierFromAmount(cents: number): GiftTier {
+  if (cents === 12900) return 'vip';
+  if (cents === 5000) return 'portrait';
+  return 'essential';
+}
 
 function generateGiftCode(): string {
   // Use cryptographically secure random values
@@ -224,6 +238,8 @@ serve(async (req) => {
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
+    const giftTier = getTierFromAmount(input.amountCents);
+    
     const { data: inserted, error: insertError } = await supabaseClient
       .from("gift_certificates")
       .insert({
@@ -233,11 +249,14 @@ serve(async (req) => {
         recipient_name: input.recipientName || null,
         gift_message: input.giftMessage || null,
         amount_cents: input.amountCents,
+        gift_tier: giftTier,
         stripe_session_id: null, // No Stripe session for testing
         expires_at: expiresAt.toISOString(),
       })
       .select("id")
       .single();
+    
+    console.log("[PURCHASE-GIFT] Gift tier assigned:", giftTier);
 
     if (insertError) {
       console.error("[PURCHASE-GIFT] Failed to create gift certificate record", insertError);

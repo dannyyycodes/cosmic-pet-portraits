@@ -117,13 +117,17 @@ serve(async (req) => {
       });
     }
 
-    // Determine what tier was gifted based on amount
-    // Basic: $35 (3500 cents), Premium: $50 (5000 cents), VIP: $129 (12900 cents)
-    let giftedTier = 'basic';
-    if (gift.amount_cents >= 12900) {
-      giftedTier = 'vip';
-    } else if (gift.amount_cents >= 5000) {
-      giftedTier = 'premium';
+    // Use the stored gift_tier if available, otherwise derive from amount
+    let giftedTier = gift.gift_tier;
+    if (!giftedTier) {
+      // Fallback for old gift certificates without tier
+      if (gift.amount_cents >= 12900) {
+        giftedTier = 'vip';
+      } else if (gift.amount_cents >= 5000) {
+        giftedTier = 'portrait';
+      } else {
+        giftedTier = 'essential';
+      }
     }
 
     console.log("[REDEEM-GIFT] Gift successfully redeemed:", {
@@ -137,10 +141,11 @@ serve(async (req) => {
       success: true,
       reportId: input.reportId,
       giftedTier,
+      giftTier: giftedTier, // Explicit tier name for frontend
       recipientName: gift.recipient_name,
       giftMessage: gift.gift_message,
       includesVip: giftedTier === 'vip',
-      includesPortrait: giftedTier === 'premium' || giftedTier === 'vip',
+      includesPortrait: giftedTier === 'portrait' || giftedTier === 'vip',
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
