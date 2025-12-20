@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Sparkles, Share2, Eye, LogOut, Home, ArrowRight } from 'lucide-react';
+import { Star, Sparkles, Share2, Eye, LogOut, Home, ArrowRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,34 +35,31 @@ export default function MyReports() {
     }
   }, [user, authLoading, navigate]);
 
-  // Fetch reports - check both user_id and email, and both "paid" and "completed" status
+  // Fetch reports
   useEffect(() => {
     const fetchReports = async () => {
       if (!user) return;
-      
-      // First try to link any unlinked reports
-      await supabase.functions.invoke('link-user-reports').catch(console.error);
-      
-      // Now fetch reports - use OR condition for user_id and email
-      const { data, error } = await supabase
-        .from('pet_reports')
-        .select('id, pet_name, species, breed, birth_date, created_at, payment_status')
-        .eq('user_id', user.id)
-        .in('payment_status', ['completed', 'paid'])
-        .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching reports:', error);
-        toast.error('Failed to load reports');
-      } else {
-        setReports(data || []);
+      try {
+        // Ensure any guest purchases get linked to this account
+        await supabase.functions.invoke('link-user-reports');
+
+        // Use backend function (service access) to avoid any client-side visibility issues
+        const { data, error } = await supabase.functions.invoke('customer-data');
+        if (error) throw error;
+
+        const next = (data?.reports || []) as PetReport[];
+        const paidReports = next.filter(r => r.payment_status === 'paid' || r.payment_status === 'completed');
+        setReports(paidReports);
+      } catch (err) {
+        console.error('Error fetching reports:', err);
+        toast.error('Failed to load your reports');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    if (user) {
-      fetchReports();
-    }
+    if (user) fetchReports();
   }, [user]);
 
   const handleSignOut = async () => {
@@ -144,6 +141,14 @@ export default function MyReports() {
                 Home
               </Button>
               <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/account')}
+              >
+                <User className="w-4 h-4 mr-2" />
+                Account
+              </Button>
+              <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleSignOut}
@@ -166,17 +171,46 @@ export default function MyReports() {
               </div>
               <h2 className="text-xl font-semibold text-foreground mb-2">No Reports Yet</h2>
               <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-                Discover the cosmic secrets of your beloved pets by creating your first report.
+                If you purchased before creating an account, tap “Sync purchases” and we’ll pull them in.
               </p>
-              <Button
-                variant="cosmic"
-                size="lg"
-                onClick={() => navigate('/intake')}
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                Get Your First Report
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+              <div className="flex flex-col items-center gap-3">
+                <Button
+                  variant="cosmic"
+                  size="lg"
+                  onClick={() => navigate('/intake')}
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Get Your First Report
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    setLoading(true);
+                    try {
+                      await supabase.functions.invoke('link-user-reports');
+                      const { data } = await supabase.functions.invoke('customer-data');
+                      const next = (data?.reports || []) as PetReport[];
+                      const paidReports = next.filter(r => r.payment_status === 'paid' || r.payment_status === 'completed');
+                      setReports(paidReports);
+                    } catch (e) {
+                      toast.error('Could not sync purchases');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                >
+                  Sync purchases
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/account')}
+                >
+                  View gifts, referrals & weekly updates
+                </Button>
+              </div>
             </motion.div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
