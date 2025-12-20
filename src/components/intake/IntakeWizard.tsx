@@ -549,41 +549,44 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         </span>
       </button>
       
-      {/* Start Again Button with confirmation - only show when there's saved progress */}
-      {step > 0 && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button
-              className="fixed top-3 right-3 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-card/80 text-muted-foreground border border-border/50 hover:bg-card hover:text-foreground transition-all opacity-60 hover:opacity-100"
-              title="Start over with a new pet"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Start Again
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="bg-card border-border">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Start a new reading?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will clear all your current progress and pet information. You'll need to enter everything again from the beginning.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-muted hover:bg-muted/80">Keep Going</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleStartFresh}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Yes, Start Over
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
 
       <SocialProofBar petName={currentPetData?.name || ''} />
       
       <div className="w-full max-w-xl relative z-10">
+        {/* Start Again (moved into the questionnaire card area so it's always visible) */}
+        {step > 0 && (
+          <div className="flex justify-end mb-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium bg-card/70 text-muted-foreground border border-border/50 hover:bg-card hover:text-foreground transition-colors"
+                  title="Start over with a new pet"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Start Again
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-card border-border">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Start a new reading?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will clear all your current progress and pet information. You'll need to enter everything again from the beginning.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-muted hover:bg-muted/80">Keep Going</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleStartFresh}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Yes, Start Over
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        )}
+
         {/* Progress bar - only show after occasion selection */}
         {step > 0 && (
           <CosmicProgress current={getGlobalStep()} total={totalSteps} />
