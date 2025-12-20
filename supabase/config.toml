@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.track-customer-referral]
 verify_jwt = false
+
+[functions.elevenlabs-tts]
+verify_jwt = false
