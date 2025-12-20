@@ -2,79 +2,108 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote } from 'lucide-react';
 
+// Original uploaded images (shown first)
+import miaImg from '@/assets/testimonials/mia.jpg';
+import davidImg from '@/assets/testimonials/david.jpg';
+import chloeImg from '@/assets/testimonials/chloe.jpg';
+import markImg from '@/assets/testimonials/mark.jpg';
+import sarahImg from '@/assets/testimonials/sarah.jpg';
+import patelsImg from '@/assets/testimonials/patels.jpg';
+import jamesImg from '@/assets/testimonials/james.jpg';
+import granImg from '@/assets/testimonials/gran.jpg';
+import emmaImg from '@/assets/testimonials/emma.jpg';
+
+// Generated images (shown after, less prominent)
 import customer1 from '@/assets/testimonials/customer-1.png';
 import customer2 from '@/assets/testimonials/customer-2.png';
 import customer3 from '@/assets/testimonials/customer-3.jpg';
-import customer4 from '@/assets/testimonials/customer-4.jpg';
-import customer5 from '@/assets/testimonials/customer-5.jpg';
-import customer6 from '@/assets/testimonials/customer-6.jpg';
-import customer7 from '@/assets/testimonials/customer-7.jpg';
-import customer8 from '@/assets/testimonials/customer-8.jpg';
-import customer9 from '@/assets/testimonials/customer-9.jpg';
 
 const testimonials = [
+  // Original uploaded images first
   {
     name: "Mia",
     pet: "Bruno",
     text: "I ordered Bruno's report thinking it would just be a cute thing. I was completely caught off guard by how accurate it was. It didn't feel generic at all.",
-    image: customer1,
+    image: miaImg,
     highlight: "Completely caught off guard by how accurate it was"
   },
   {
     name: "David R.",
     pet: "",
     text: "You can tell the astrology part is the real deal here. This isn't just fluffy horoscope stuff. The way they track the timing and the chart actually makes sense.",
-    image: customer2,
+    image: davidImg,
     highlight: "This isn't just fluffy horoscope stuff"
   },
   {
     name: "Chloe",
     pet: "Luna",
     text: "I shared a bit from my cat Luna's report in my group chat and then like five people asked for the link. Seriously, if you're thinking about it, just get it.",
-    image: customer3,
+    image: chloeImg,
     highlight: "Five people asked for the link"
   },
   {
     name: "Mark",
     pet: "Mr. Whiskers",
     text: "I got this for my sister and her cat. She actually cried when she read it, happy tears of course. She said it was the most thoughtful gift.",
-    image: customer4,
+    image: markImg,
     highlight: "She actually cried when she read it"
   },
   {
     name: "Sarah",
     pet: "Rex",
     text: "This report totally changed how I see my dog Rex. I thought he was just being stubborn on walks, but it explained his needs and his breed's temperament.",
-    image: customer5,
+    image: sarahImg,
     highlight: "Totally changed how I see my dog"
   },
   {
     name: "The Patel Family",
     pet: "Ginger",
     text: "It reads like a story about our dog, Ginger. It wasn't cheesy or silly, it was just really nicely written and felt true to her.",
-    image: customer6,
+    image: patelsImg,
     highlight: "It reads like a story about our dog"
   },
   {
     name: "Jamie",
     pet: "River",
     text: "My partner is a huge skeptic about anything like this. They read the part about our dog River's personality and just got quiet. Then they said, 'Okay, that's actually really accurate.'",
-    image: customer7,
+    image: jamesImg,
     highlight: "Even my skeptic partner was impressed"
   },
   {
     name: "Linda K.",
     pet: "Buddy",
     text: "I ordered the memorial version for my dog Buddy. It was exactly what I needed. It wasn't too heavy or too simple, it was just right.",
-    image: customer8,
+    image: granImg,
     highlight: "It was exactly what I needed"
   },
   {
     name: "Elena",
     pet: "Moose",
     text: "I keep going back to read my dog Moose's report. Most things you buy online you forget about, but this one has little details that I notice in real life.",
-    image: customer9,
+    image: emmaImg,
     highlight: "I keep going back to read it"
+  },
+  // Generated images (less prominent, shown later)
+  {
+    name: "Alex",
+    pet: "Biscuit",
+    text: "The cosmic insights about Biscuit were spot on. Really helped me understand why she acts the way she does during full moons!",
+    image: customer1,
+    highlight: "Spot on cosmic insights"
+  },
+  {
+    name: "Jordan",
+    pet: "Maple",
+    text: "Such a unique gift idea. My whole family loved reading Maple's personality breakdown together.",
+    image: customer2,
+    highlight: "A unique gift the whole family loved"
+  },
+  {
+    name: "Taylor",
+    pet: "Ziggy",
+    text: "I was skeptical at first but Ziggy's chart explained so much about his quirky behavior. Worth every penny.",
+    image: customer3,
+    highlight: "Explained so much about his quirky behavior"
   },
 ];
 
