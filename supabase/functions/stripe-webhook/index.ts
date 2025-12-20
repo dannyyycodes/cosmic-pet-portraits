@@ -262,10 +262,10 @@ serve(async (req) => {
           // Generate reports and send emails for each report
           for (const reportId of reportIds) {
             try {
-              // Fetch report data
+              // Fetch report data including pet photo URL
               const { data: report } = await supabaseClient
                 .from("pet_reports")
-                .select("*")
+                .select("*, pet_photo_url")
                 .eq("id", reportId)
                 .single();
               
@@ -302,6 +302,50 @@ serve(async (req) => {
                 if (genResponse.ok) {
                   const genData = await genResponse.json();
                   console.log("[STRIPE-WEBHOOK] Report generated for:", reportId);
+                  
+                  // Generate AI portrait if tier includes it and pet photo is available
+                  if (includesPortrait && report.pet_photo_url) {
+                    try {
+                      console.log("[STRIPE-WEBHOOK] Generating AI portrait for:", reportId);
+                      const portraitResponse = await fetch(
+                        `${supabaseUrl}/functions/v1/generate-pet-portrait`,
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${serviceRoleKey}`,
+                          },
+                          body: JSON.stringify({
+                            petName: report.pet_name,
+                            species: report.species || 'pet',
+                            breed: report.breed || '',
+                            sunSign: genData.report?.chartPlacements?.sun?.sign || genData.report?.sunSign || 'Leo',
+                            element: genData.report?.dominantElement || 'Fire',
+                            archetype: genData.report?.archetype?.name || 'Cosmic Soul',
+                            style: 'pokemon',
+                            petImageUrl: report.pet_photo_url,
+                          }),
+                        }
+                      );
+
+                      if (portraitResponse.ok) {
+                        const portraitData = await portraitResponse.json();
+                        if (portraitData.imageUrl) {
+                          // Save portrait URL to database
+                          await supabaseClient
+                            .from("pet_reports")
+                            .update({ portrait_url: portraitData.imageUrl })
+                            .eq("id", reportId);
+                          console.log("[STRIPE-WEBHOOK] AI portrait saved for:", reportId);
+                        }
+                      } else {
+                        console.error("[STRIPE-WEBHOOK] Portrait generation failed:", await portraitResponse.text());
+                      }
+                    } catch (portraitError) {
+                      console.error("[STRIPE-WEBHOOK] Portrait generation error:", portraitError);
+                      // Non-fatal - continue with email
+                    }
+                  }
                   
                   // Determine email recipient - if gift, send to recipient
                   const emailTo = isGift && recipientEmail ? recipientEmail : report.email;

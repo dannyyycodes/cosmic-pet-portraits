@@ -122,6 +122,7 @@ interface CosmicReportViewerProps {
   onUnlockFull?: () => void;
   reportId?: string;
   shareToken?: string;
+  portraitUrl?: string;
   allReports?: ReportData[];
   currentIndex?: number;
   onSwitchReport?: (index: number) => void;
@@ -152,16 +153,17 @@ const sectionVariants = {
   }),
 };
 
-export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, shareToken, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete }: CosmicReportViewerProps) {
+export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, reportId, shareToken, portraitUrl, allReports, currentIndex = 0, onSwitchReport, onNextPet, onAllComplete }: CosmicReportViewerProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showCard, setShowCard] = useState(false);
-  const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>();
+  const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>(portraitUrl);
   const [isGeneratingPortrait, setIsGeneratingPortrait] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   
   const hasMultipleReports = allReports && allReports.length > 1;
+
 
   // Handle both new comprehensive format and legacy format
   const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Aries';

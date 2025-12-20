@@ -365,6 +365,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       }
 
       const primaryReportId = reportIds[0];
+      const primaryPetData = petsData[0];
 
       // GIFT REDEMPTION: If a gift code is present and validated, skip checkout entirely
       if (giftCodeFromUrl && giftData) {
@@ -376,6 +377,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             body: {
               giftCode: giftCodeFromUrl.toUpperCase(),
               reportId: primaryReportId,
+              petPhotoUrl: primaryPetData.photoUrl || undefined,
             },
           }
         );
@@ -398,6 +400,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           report_id: primaryReportId,
           gifted: 'true',
           gifted_tier: redeemResult.giftedTier || 'basic',
+          includes_portrait: redeemResult.includesPortrait ? 'true' : 'false',
         });
         window.location.href = `/payment-success?${giftParams.toString()}`;
         return;
