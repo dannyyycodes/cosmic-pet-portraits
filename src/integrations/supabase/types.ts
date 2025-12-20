@@ -562,6 +562,7 @@ export type Database = {
         Row: {
           birth_date: string | null
           birth_location: string | null
+          birth_time: string | null
           breed: string | null
           created_at: string
           email: string
@@ -586,6 +587,7 @@ export type Database = {
         Insert: {
           birth_date?: string | null
           birth_location?: string | null
+          birth_time?: string | null
           breed?: string | null
           created_at?: string
           email: string
@@ -610,6 +612,7 @@ export type Database = {
         Update: {
           birth_date?: string | null
           birth_location?: string | null
+          birth_time?: string | null
           breed?: string | null
           created_at?: string
           email?: string

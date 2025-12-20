@@ -15,6 +15,7 @@ const petReportSchema = z.object({
   breed: z.string().max(100).nullable().optional(),
   gender: z.string().max(20).nullable().optional(),
   birth_date: z.string().nullable().optional(), // ISO date string
+  birth_time: z.string().max(10).nullable().optional(), // HH:MM format
   birth_location: z.string().max(100).nullable().optional(),
   soul_type: z.string().max(50).nullable().optional(),
   superpower: z.string().max(50).nullable().optional(),
@@ -73,6 +74,7 @@ serve(async (req) => {
           breed: pet.breed?.trim() || null,
           gender: pet.gender || null,
           birth_date: pet.birth_date || null,
+          birth_time: pet.birth_time || null, // Store birth time
           birth_location: pet.birth_location?.trim() || null,
           soul_type: pet.soul_type?.trim() || null,
           superpower: pet.superpower?.trim() || null,

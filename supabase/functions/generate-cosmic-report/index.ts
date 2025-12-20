@@ -36,6 +36,7 @@ const petDataSchema = z.object({
       fallback.setFullYear(fallback.getFullYear() - 1);
       return fallback.toISOString();
     }),
+  birthTime: safeString(10), // HH:MM format for more accurate Moon/Ascendant
   location: safeString(100),
   soulType: safeString(50),
   superpower: safeString(50),
@@ -166,9 +167,26 @@ serve(async (req) => {
     // Parse date and calculate all astrological positions using accurate ephemeris
     const dob = new Date(petData.dateOfBirth);
     
-    // Calculate true planetary positions using ephemeris
-    // Note: Without birth time, we use noon (12:00) as default
-    // Ascendant requires geographic coordinates - we'll estimate based on location or use a default
+    // If birth time is provided, use it for more accurate Moon and Ascendant
+    let birthHour = 12; // Default to noon if no time provided
+    let birthMinute = 0;
+    let birthTimeNote = "Birth time unknown - using noon for calculations. Moon sign may vary by ±1 sign.";
+    
+    if (petData.birthTime && petData.birthTime.includes(':')) {
+      const [hours, minutes] = petData.birthTime.split(':').map(Number);
+      if (!isNaN(hours) && hours >= 0 && hours < 24) {
+        birthHour = hours;
+        birthMinute = minutes || 0;
+        birthTimeNote = `Birth time: ${petData.birthTime} - Moon and Ascendant are more accurate!`;
+      }
+    }
+    
+    // Set the time on the date object
+    dob.setHours(birthHour, birthMinute, 0, 0);
+    
+    console.log("[GENERATE-REPORT]", birthTimeNote);
+    
+    // Calculate true planetary positions using ephemeris with birth time
     const positions = calculateAllPositions(dob);
     
     // Extract positions
@@ -256,11 +274,162 @@ serve(async (req) => {
       rabbit: "Rabbits are prey animals with complex social needs. They communicate through body language and are most active at dawn/dusk. They show trust through relaxation and affection through grooming.",
       horse: "Horses are herd animals with strong emotional intelligence. They mirror human emotions and form deep bonds. Consider their need for movement, routine, and gentle leadership.",
       hamster: "Hamsters are nocturnal, territorial creatures who communicate through scent. They are curious explorers who need mental stimulation and safe burrowing spaces.",
+      guinea_pig: "Guinea pigs are highly social, vocal animals who thrive in pairs. They communicate through 'wheeks', purrs, and chirps. They show love through soft vocalizations and seeking closeness.",
       fish: "Fish are sensitive to their environment and can recognize their owners. They communicate through movement and respond to routine feeding times.",
       reptile: "Reptiles are ancient souls who operate on different rhythms. They communicate through basking, movement, and positioning. They form bonds through consistent care and gentle handling.",
     };
-
+    
+    // Breed-specific traits for common breeds (dogs and cats primarily)
+    const breedTraits: Record<string, string> = {
+      // Dogs - High energy/Working breeds
+      'labrador': 'Labradors are friendly, outgoing, and high-spirited. They are food-motivated, water-loving, and eternally optimistic. Known for their soft mouths and retrieval instincts.',
+      'golden retriever': 'Golden Retrievers are devoted, intelligent, and friendly. They are people-pleasers who thrive on companionship. Known for their gentle temperament and love of carrying things.',
+      'german shepherd': 'German Shepherds are loyal, confident, and courageous. They are highly trainable and protective. Known for their intelligence and strong work ethic.',
+      'border collie': 'Border Collies are brilliant, energetic, and intense. They need mental stimulation and jobs to do. Known for their "eye" and herding instincts.',
+      'husky': 'Huskies are independent, mischievous, and vocal. They are escape artists who love to run. Known for their dramatic vocalizations and stubborn streak.',
+      'siberian husky': 'Siberian Huskies are independent, mischievous, and vocal. They are escape artists who love to run. Known for their dramatic vocalizations and stubborn streak.',
+      'australian shepherd': 'Aussies are energetic, intelligent, and protective. They need lots of exercise and mental stimulation. Known for their herding instincts and loyalty.',
+      'beagle': 'Beagles are curious, merry, and nose-driven. They follow scents obsessively. Known for their vocal nature and food motivation.',
+      'boxer': 'Boxers are playful, loyal, and eternally puppy-like. They are clownish and expressive. Known for their "kidney bean" wiggles and jumping.',
+      'bulldog': 'Bulldogs are calm, courageous, and stubborn. They are couch potatoes who snore loudly. Known for their determination and gentle nature.',
+      'french bulldog': 'Frenchies are playful, adaptable, and attention-loving. They are excellent companions. Known for their bat ears and goofy personalities.',
+      'poodle': 'Poodles are intelligent, active, and elegant. They are highly trainable and proud. Known for their hypoallergenic coats and circus-worthy tricks.',
+      'rottweiler': 'Rottweilers are confident, loyal, and protective. They are devoted guardians. Known for their strength and gentle nature with family.',
+      'dachshund': 'Dachshunds are curious, brave, and stubborn. They are big dogs in small bodies. Known for their burrowing instincts and determination.',
+      'yorkshire terrier': 'Yorkies are feisty, affectionate, and spirited. They are bold despite their size. Known for their sassiness and lap-dog nature.',
+      'yorkie': 'Yorkies are feisty, affectionate, and spirited. They are bold despite their size. Known for their sassiness and lap-dog nature.',
+      'shih tzu': 'Shih Tzus are affectionate, outgoing, and playful. They are royal lap dogs at heart. Known for their friendly nature and flowing coats.',
+      'chihuahua': 'Chihuahuas are loyal, sassy, and confident. They bond intensely to one person. Known for their trembling and big personalities.',
+      'pomeranian': 'Pomeranians are extroverted, vivacious, and bold. They think they are much bigger. Known for their fluffy coats and commanding presence.',
+      'cavalier king charles spaniel': 'Cavaliers are affectionate, gentle, and adaptable. They are the ultimate lap dogs. Known for their soulful eyes and sweet temperament.',
+      'corgi': 'Corgis are intelligent, alert, and active. They are surprisingly athletic. Known for their short legs, herding instincts, and sploot.',
+      'pembroke welsh corgi': 'Pembroke Corgis are intelligent, alert, and active. They are surprisingly athletic. Known for their short legs, herding instincts, and sploot.',
+      'jack russell': 'Jack Russells are energetic, fearless, and clever. They have endless stamina. Known for their jumping ability and intense focus.',
+      'pit bull': 'Pit Bulls are loyal, affectionate, and eager to please. They are gentle with family. Known for their strength and smile.',
+      'american pit bull': 'American Pit Bulls are loyal, affectionate, and eager to please. They are gentle with family. Known for their strength and smile.',
+      'maltese': 'Maltese are gentle, playful, and charming. They are devoted companions. Known for their silky white coats and sweet disposition.',
+      'great dane': 'Great Danes are friendly, patient, and dependable. They are gentle giants. Known for their size and couch-potato tendencies.',
+      'doberman': 'Dobermans are loyal, fearless, and alert. They are elegant and powerful. Known for their intelligence and protective instincts.',
+      
+      // Cats
+      'persian': 'Persians are calm, sweet, and gentle. They prefer serene environments. Known for their flat faces and luxurious coats.',
+      'maine coon': 'Maine Coons are gentle, intelligent, and dog-like. They love water and follow their humans. Known for their size and chirping vocalizations.',
+      'siamese': 'Siamese are vocal, social, and opinionated. They form intense bonds. Known for their striking blue eyes and constant commentary.',
+      'ragdoll': 'Ragdolls are gentle, affectionate, and relaxed. They go limp when held. Known for their docile nature and blue eyes.',
+      'bengal': 'Bengals are active, intelligent, and wild-looking. They need lots of stimulation. Known for their leopard spots and love of water.',
+      'british shorthair': 'British Shorthairs are calm, easygoing, and independent. They are dignified companions. Known for their round faces and plush coats.',
+      'abyssinian': 'Abyssinians are curious, playful, and athletic. They love heights and exploration. Known for their ticked coats and dog-like loyalty.',
+      'scottish fold': 'Scottish Folds are sweet, gentle, and adaptable. They are laid-back companions. Known for their folded ears and owl-like appearance.',
+      'sphynx': 'Sphynx cats are energetic, mischievous, and attention-seeking. They crave warmth and contact. Known for their hairless bodies and extrovert personalities.',
+      'tabby': 'Tabby cats are often friendly, outgoing, and adaptable. They are the classic cat. Known for their M-shaped forehead marking.',
+      'tuxedo': 'Tuxedo cats are often playful, vocal, and intelligent. They have big personalities. Known for their formal black and white coloring.',
+      'calico': 'Calico cats are often sassy, independent, and spirited. They have strong personalities. Known for their tri-color coats.',
+      'orange tabby': 'Orange tabbies are often friendly, affectionate, and food-motivated. They are typically bold and confident. Known for their social nature.',
+      
+      // Horses
+      'arabian': 'Arabian horses are intelligent, spirited, and loyal. They have incredible endurance. Known for their dished faces and high tail carriage.',
+      'quarter horse': 'Quarter Horses are calm, versatile, and athletic. They are great all-rounders. Known for their muscular build and gentle disposition.',
+      'thoroughbred': 'Thoroughbreds are athletic, sensitive, and intelligent. They are high-energy horses. Known for their speed and competitive spirit.',
+      'mustang': 'Mustangs are independent, hardy, and intelligent. They have strong survival instincts. Known for their wild heritage and adaptability.',
+      
+      // Birds
+      'cockatiel': 'Cockatiels are affectionate, musical, and gentle. They love to whistle and sing. Known for their crests and cheek patches.',
+      'budgie': 'Budgies are playful, social, and talkative. They can learn many words. Known for their colorful plumage and chatter.',
+      'parakeet': 'Parakeets are playful, social, and talkative. They can learn many words. Known for their colorful plumage and chatter.',
+      'african grey': 'African Greys are brilliant, sensitive, and vocal. They are exceptional talkers. Known for their intelligence and emotional depth.',
+      'cockatoo': 'Cockatoos are affectionate, loud, and demanding. They crave attention. Known for their crests and dramatic personalities.',
+      'macaw': 'Macaws are intelligent, playful, and stunning. They are lifelong companions. Known for their size, colors, and vocalizations.',
+      
+      // Rabbits
+      'holland lop': 'Holland Lops are sweet, playful, and gentle. They are compact and cuddly. Known for their floppy ears and friendly nature.',
+      'netherland dwarf': 'Netherland Dwarfs are energetic, curious, and sometimes sassy. They are tiny but bold. Known for their baby faces and spunk.',
+      'mini rex': 'Mini Rex rabbits are calm, curious, and velvety. They love being petted. Known for their plush, rex-furred coats.',
+      'lionhead': 'Lionhead rabbits are friendly, playful, and fluffy. They have big personalities. Known for their mane of fur around their heads.',
+    };
+    
     const speciesContext = speciesTraits[petData.species?.toLowerCase() || 'dog'] || speciesTraits.dog;
+    
+    // Find breed-specific traits if available
+    const breedLower = (petData.breed || '').toLowerCase();
+    let breedContext = '';
+    for (const [breedKey, traits] of Object.entries(breedTraits)) {
+      if (breedLower.includes(breedKey) || breedKey.includes(breedLower)) {
+        breedContext = traits;
+        break;
+      }
+    }
+    
+    // Create enhanced owner insights section
+    const ownerInsights = {
+      soulType: petData.soulType || '',
+      superpower: petData.superpower || '',
+      strangerReaction: petData.strangerReaction || '',
+    };
+    
+    // Map owner inputs to personality descriptors
+    const soulTypeDescriptors: Record<string, string> = {
+      'old soul': 'This pet has an ancient, wise quality - they seem to understand more than they let on. They may prefer calm environments and deep connections over constant stimulation.',
+      'playful spirit': 'This pet is eternally young at heart - full of joy, mischief, and enthusiasm. They bring lightness to heavy moments and find fun in everything.',
+      'guardian': 'This pet has a protective, watchful nature - they take their role as family protector seriously. They are alert to threats and deeply loyal.',
+      'healer': 'This pet has an intuitive sense of when others need comfort - they appear when you are sad, stressed, or unwell. They absorb and transmute emotional energy.',
+      'adventurer': 'This pet lives for exploration and new experiences - they are curious, brave, and always ready for the next discovery.',
+      'zen master': 'This pet embodies calm presence - they teach by example how to simply BE. They are grounded, peaceful, and unfazed by chaos.',
+    };
+    
+    const superpowerDescriptors: Record<string, string> = {
+      'telepathy': 'They seem to read minds - knowing what you need before you do. Watch for moments where they respond to your thoughts.',
+      'healing presence': 'Their presence alone is healing - they naturally soothe anxiety, sadness, and stress. They are drawn to those who need comfort.',
+      'comic relief': 'They have impeccable comedic timing - they know exactly when to be silly to break tension. Laughter follows them.',
+      'unconditional love': 'Their love has no conditions - they accept you completely, flaws and all. This is their gift to everyone they meet.',
+      'emotional radar': 'They sense emotions others miss - they are the first to notice when something is wrong. They are emotional barometers.',
+      'adventure catalyst': 'They inspire spontaneity and adventure - life is more exciting with them. They push you out of comfort zones.',
+      'calming presence': 'They radiate peace - stress melts in their presence. They are living, breathing meditation teachers.',
+    };
+    
+    const strangerDescriptors: Record<string, string> = {
+      'shy and hiding': 'They are cautious with new people - preferring to observe from a safe distance before engaging. Trust is earned, not given freely.',
+      'cautious but curious': 'They balance wariness with interest - they want to investigate but on their terms. They warm up gradually.',
+      'friendly and social': 'They welcome everyone - strangers are just friends they have not met. They bring instant warmth to new situations.',
+      'excited and overwhelming': 'Their enthusiasm is boundless - they greet everyone like a long-lost friend. Their joy is contagious but sometimes too much.',
+      'protective and alert': 'They are watchful guardians - strangers must prove themselves worthy. They take protection seriously.',
+      'indifferent royalty': 'They acknowledge strangers when they choose to - not because they are unfriendly, but because their attention is a gift they bestow selectively.',
+    };
+    
+    // Build enhanced insight context
+    let enhancedInsights = `
+OWNER-PROVIDED PERSONALITY INSIGHTS (CRITICAL - These are firsthand observations from the owner. Weave these throughout the report!):`;
+    
+    if (ownerInsights.soulType) {
+      const descriptor = Object.entries(soulTypeDescriptors).find(([key]) => 
+        ownerInsights.soulType.toLowerCase().includes(key.split(' ')[0].toLowerCase())
+      )?.[1] || `The owner perceives their pet as "${ownerInsights.soulType}" - incorporate this into their cosmic profile.`;
+      enhancedInsights += `
+- Soul Type: "${ownerInsights.soulType}" 
+  Interpretation: ${descriptor}`;
+    }
+    
+    if (ownerInsights.superpower) {
+      const descriptor = Object.entries(superpowerDescriptors).find(([key]) => 
+        ownerInsights.superpower.toLowerCase().includes(key.split(' ')[0].toLowerCase())
+      )?.[1] || `Their special gift is "${ownerInsights.superpower}" - this should be highlighted as their cosmic superpower.`;
+      enhancedInsights += `
+- Superpower: "${ownerInsights.superpower}"
+  Interpretation: ${descriptor}`;
+    }
+    
+    if (ownerInsights.strangerReaction) {
+      const descriptor = Object.entries(strangerDescriptors).find(([key]) => 
+        ownerInsights.strangerReaction.toLowerCase().includes(key.split(' ')[0].toLowerCase())
+      )?.[1] || `With strangers, they are "${ownerInsights.strangerReaction}" - use this for the Rising/First Impression section.`;
+      enhancedInsights += `
+- Stranger Reaction: "${ownerInsights.strangerReaction}"
+  Interpretation: ${descriptor} (This directly informs their Rising Sign expression!)`;
+    }
+    
+    if (!ownerInsights.soulType && !ownerInsights.superpower && !ownerInsights.strangerReaction) {
+      enhancedInsights += `
+No specific personality insights provided - rely on astrological placements and species/breed traits.`;
+    }
 
 const systemPrompt = `You are Celeste, a warm and mystical pet astrologer who creates deeply personal cosmic portraits. You combine accurate Western astrology with intuitive wisdom to reveal soul essence.
 
@@ -274,8 +443,9 @@ CRITICAL CONTEXT:
 - Emotional Tone: ${modeEmotionalGuidance[occasionMode]}
 - Pet: ${petData.name}, a ${petData.gender === 'boy' ? 'male' : 'female'} ${petData.breed || petData.species}
 - Species: ${petData.species} - ${speciesContext}
-- Breed: ${petData.breed || 'mixed/unknown'} (incorporate breed-specific traits!)
-- Birth: ${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+- Breed: ${petData.breed || 'mixed/unknown'}${breedContext ? ` - ${breedContext}` : ' (use general species traits)'}
+- Birth: ${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}${petData.birthTime ? ` at ${petData.birthTime}` : ' (time unknown)'}
+- ${birthTimeNote}
 
 CALCULATED CHART (ACCURATE EPHEMERIS CALCULATIONS):
 ☉ SUN: ${sunSign} ${positions.sun.degree}° 
@@ -312,10 +482,7 @@ KEY TRAITS for ${sunSign}: ${signTraits[sunSign]}
 Moon in ${moonSign} traits: ${signTraits[moonSign]}
 Rising ${ascendant} traits: ${signTraits[ascendant]}
 
-OWNER-PROVIDED INSIGHTS (weave these in!):
-- Soul Type: ${petData.soulType || 'Not specified'} 
-- Superpower: ${petData.superpower || 'Not specified'}
-- With Strangers: ${petData.strangerReaction || 'Not specified'}
+${enhancedInsights}
 
 MEME PERSONALITY TYPES (choose one that fits their chart):
 - The Chaos Goblin (unpredictable energy, mischief-maker)

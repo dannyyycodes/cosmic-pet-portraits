@@ -329,6 +329,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         breed: (pet.breed || '').trim().slice(0, 100) || null,
         gender: pet.gender || null,
         birth_date: pet.dateOfBirth?.toISOString().split('T')[0] || null,
+        birth_time: pet.timeOfBirth || null, // Pass birth time for accurate Moon/Ascendant
         birth_location: (pet.location || '').trim().slice(0, 100) || null,
         soul_type: (pet.soulType || '').trim().slice(0, 50) || null,
         superpower: (pet.superpower || '').trim().slice(0, 50) || null,
