@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Gift, Heart, Sparkles, ArrowLeft, Send, Star, LinkIcon, CheckCircle, Quote } from 'lucide-react';
+import { Gift, Heart, Sparkles, ArrowLeft, Send, Star, LinkIcon, CheckCircle, Quote, Shield, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
@@ -22,9 +22,9 @@ export default function GiftPurchase() {
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email');
 
   const giftAmounts = [
-    { cents: 3500, tier: 'essential', label: t('gift.tier1Name'), description: t('gift.tier1Desc') },
-    { cents: 5000, tier: 'portrait', label: t('gift.tier2Name'), description: t('gift.tier2Desc') },
-    { cents: 12900, tier: 'vip', label: t('gift.tier3Name'), description: t('gift.tier3Desc') },
+    { cents: 3500, tier: 'essential', label: t('gift.tier1Name'), description: t('gift.tier1Desc'), popular: false },
+    { cents: 5000, tier: 'portrait', label: t('gift.tier2Name'), description: t('gift.tier2Desc'), popular: true },
+    { cents: 12900, tier: 'vip', label: t('gift.tier3Name'), description: t('gift.tier3Desc'), popular: false },
   ];
 
   const handlePurchase = async (e?: React.FormEvent) => {
@@ -82,97 +82,136 @@ export default function GiftPurchase() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-8"
         >
+          {/* Hero Section */}
           <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple mb-2">
-              <Gift className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", delay: 0.2 }}
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-nebula-pink via-nebula-purple to-primary shadow-2xl shadow-nebula-purple/30"
+            >
+              <Gift className="w-10 h-10 text-white" />
+            </motion.div>
+            <h1 className="text-3xl md:text-4xl font-display font-bold bg-gradient-to-r from-foreground via-nebula-purple to-nebula-pink bg-clip-text text-transparent">
               {t('gift.title')}
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-lg max-w-md mx-auto">
               {t('gift.subtitle')}
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-nebula-pink/10 to-nebula-purple/10 border border-nebula-pink/20 space-y-4">
+          {/* Why It's Perfect */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="p-6 rounded-2xl bg-gradient-to-br from-nebula-pink/15 to-nebula-purple/15 border border-nebula-pink/30 backdrop-blur-sm space-y-4"
+          >
             <h2 className="text-lg font-display font-semibold text-foreground flex items-center gap-2">
               <Heart className="w-5 h-5 text-nebula-pink" />
               {t('gift.whyPerfect')}
             </h2>
             <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">{t('gift.reason1Title')}</p>
-                  <p className="text-xs text-muted-foreground">{t('gift.reason1Desc')}</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">{t('gift.reason2Title')}</p>
-                  <p className="text-xs text-muted-foreground">{t('gift.reason2Desc')}</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">{t('gift.reason3Title')}</p>
-                  <p className="text-xs text-muted-foreground">{t('gift.reason3Desc')}</p>
-                </div>
-              </li>
+              {[1, 2, 3].map((i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{t(`gift.reason${i}Title`)}</p>
+                    <p className="text-xs text-muted-foreground">{t(`gift.reason${i}Desc`)}</p>
+                  </div>
+                </li>
+              ))}
             </ul>
-          </div>
+          </motion.div>
 
-          <div className="relative p-5 rounded-2xl bg-card/40 border border-border/40">
-            <Quote className="absolute top-4 left-4 w-6 h-6 text-gold/30" />
-            <div className="pl-6">
+          {/* Testimonial */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="relative p-5 rounded-2xl bg-card/50 border border-border/50 backdrop-blur-sm"
+          >
+            <Quote className="absolute top-4 left-4 w-8 h-8 text-gold/20" />
+            <div className="pl-8">
               <p className="text-sm italic text-foreground/90 mb-3">
                 {t('gift.testimonial')}
               </p>
-              <p className="text-xs text-muted-foreground">— {t('gift.testimonialAuthor')}</p>
+              <p className="text-xs text-gold font-medium">— {t('gift.testimonialAuthor')}</p>
             </div>
-          </div>
+          </motion.div>
 
+          {/* Features Grid */}
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 rounded-xl bg-card/30 border border-border/30">
-              <Sparkles className="w-5 h-5 text-gold mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">{t('gift.feature1')}</p>
-            </div>
-            <div className="p-3 rounded-xl bg-card/30 border border-border/30">
-              <Star className="w-5 h-5 text-nebula-purple mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">{t('gift.feature2')}</p>
-            </div>
-            <div className="p-3 rounded-xl bg-card/30 border border-border/30">
-              <Heart className="w-5 h-5 text-nebula-pink mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">{t('gift.feature3')}</p>
-            </div>
+            {[
+              { icon: Sparkles, color: 'text-gold', key: 'feature1' },
+              { icon: Star, color: 'text-nebula-purple', key: 'feature2' },
+              { icon: Heart, color: 'text-nebula-pink', key: 'feature3' },
+            ].map((feature, i) => (
+              <motion.div 
+                key={feature.key}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.05 }}
+                className="p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm hover:bg-card/60 transition-colors"
+              >
+                <feature.icon className={`w-6 h-6 ${feature.color} mx-auto mb-2`} />
+                <p className="text-xs text-muted-foreground">{t(`gift.${feature.key}`)}</p>
+              </motion.div>
+            ))}
           </div>
 
-          <div className="space-y-3">
+          {/* Gift Amount Selection */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="space-y-3"
+          >
             <label className="text-sm font-medium text-foreground">{t('gift.selectAmount')}</label>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {giftAmounts.map((amount) => (
                 <button
                   key={amount.cents}
                   onClick={() => setSelectedAmount(amount.cents)}
-                  className={`w-full p-4 rounded-xl border-2 transition-all text-left flex items-center justify-between ${
+                  className={`relative w-full p-5 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
                     selectedAmount === amount.cents
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border/50 bg-card/30 hover:border-primary/50'
+                      ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
+                      : 'border-border/50 bg-card/40 hover:border-primary/50 hover:bg-card/60'
                   }`}
                 >
-                  <div>
-                    <p className="font-medium text-foreground">{amount.label}</p>
-                    <p className="text-sm text-muted-foreground">{amount.description}</p>
+                  {amount.popular && (
+                    <span className="absolute -top-2.5 right-4 px-3 py-0.5 text-xs font-bold bg-gradient-to-r from-gold to-amber-500 text-background rounded-full">
+                      Most Popular
+                    </span>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      selectedAmount === amount.cents ? 'border-primary bg-primary' : 'border-muted-foreground/50'
+                    }`}>
+                      {selectedAmount === amount.cents && (
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{amount.label}</p>
+                      <p className="text-sm text-muted-foreground">{amount.description}</p>
+                    </div>
                   </div>
-                  <span className="text-lg font-bold text-primary">${(amount.cents / 100).toFixed(2)}</span>
+                  <span className={`text-xl font-bold ${selectedAmount === amount.cents ? 'text-primary' : 'text-foreground'}`}>
+                    ${(amount.cents / 100).toFixed(0)}
+                  </span>
                 </button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          <div className="space-y-3">
+          {/* Delivery Method */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="space-y-3"
+          >
             <label className="text-sm font-medium text-foreground">{t('gift.deliveryMethod')}</label>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -180,31 +219,38 @@ export default function GiftPurchase() {
                 onClick={() => setDeliveryMethod('email')}
                 className={`p-4 rounded-xl border-2 transition-all text-center ${
                   deliveryMethod === 'email'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border/50 bg-card/30 hover:border-primary/50'
+                    ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
+                    : 'border-border/50 bg-card/40 hover:border-primary/50'
                 }`}
               >
-                <Send className="w-5 h-5 mx-auto mb-2 text-primary" />
+                <Send className={`w-6 h-6 mx-auto mb-2 ${deliveryMethod === 'email' ? 'text-primary' : 'text-muted-foreground'}`} />
                 <p className="text-sm font-medium text-foreground">{t('gift.sendEmail')}</p>
-                <p className="text-xs text-muted-foreground">{t('gift.sendEmailDesc')}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('gift.sendEmailDesc')}</p>
               </button>
               <button
                 type="button"
                 onClick={() => setDeliveryMethod('link')}
                 className={`p-4 rounded-xl border-2 transition-all text-center ${
                   deliveryMethod === 'link'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border/50 bg-card/30 hover:border-primary/50'
+                    ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
+                    : 'border-border/50 bg-card/40 hover:border-primary/50'
                 }`}
               >
-                <LinkIcon className="w-5 h-5 mx-auto mb-2 text-primary" />
+                <LinkIcon className={`w-6 h-6 mx-auto mb-2 ${deliveryMethod === 'link' ? 'text-primary' : 'text-muted-foreground'}`} />
                 <p className="text-sm font-medium text-foreground">{t('gift.getLink')}</p>
-                <p className="text-xs text-muted-foreground">{t('gift.getLinkDesc')}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('gift.getLinkDesc')}</p>
               </button>
             </div>
-          </div>
+          </motion.div>
 
-          <form onSubmit={handlePurchase} className="space-y-4">
+          {/* Form */}
+          <motion.form 
+            onSubmit={handlePurchase} 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="space-y-4"
+          >
             <CosmicInput
               label={t('gift.yourEmail')}
               type="email"
@@ -238,7 +284,7 @@ export default function GiftPurchase() {
                 value={giftMessage}
                 onChange={(e) => setGiftMessage(e.target.value)}
                 placeholder={t('gift.personalMessagePlaceholder')}
-                className="w-full min-h-[100px] px-4 py-3 rounded-xl bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 resize-none"
+                className="w-full min-h-[100px] px-4 py-3 rounded-xl bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 resize-none transition-all"
               />
             </div>
 
@@ -247,7 +293,7 @@ export default function GiftPurchase() {
               disabled={isLoading || !purchaserEmail || (deliveryMethod === 'email' && !recipientEmail)}
               variant="gold"
               size="xl"
-              className="w-full"
+              className="w-full shadow-xl shadow-gold/20"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -261,20 +307,28 @@ export default function GiftPurchase() {
               ) : (
                 <span className="flex items-center gap-2">
                   {deliveryMethod === 'email' ? <Send className="w-5 h-5" /> : <LinkIcon className="w-5 h-5" />}
-                  {deliveryMethod === 'email' ? t('gift.sendGift') : t('gift.getGiftLink')} — ${(selectedAmount / 100).toFixed(2)}
+                  {deliveryMethod === 'email' ? t('gift.sendGift') : t('gift.getGiftLink')} — ${(selectedAmount / 100).toFixed(0)}
                 </span>
               )}
             </Button>
-          </form>
+          </motion.form>
 
-          <div className="text-center space-y-2">
-            <p className="text-xs text-muted-foreground">
-              {t('gift.securePayment')}
-            </p>
-            <p className="text-xs text-gold">
-              💛 {t('gift.socialProof')}
-            </p>
-          </div>
+          {/* Trust Badges */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex items-center justify-center gap-6 text-center"
+          >
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Shield className="w-4 h-4 text-green-400" />
+              <span className="text-xs">{t('gift.securePayment')}</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="w-4 h-4 text-gold" />
+              <span className="text-xs">{t('gift.socialProof')}</span>
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </div>
