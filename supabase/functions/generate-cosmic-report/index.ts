@@ -130,6 +130,49 @@ function getSoulArchetype(sunSign: string, element: string, gender: string, spec
   return archetypes[`${element}-${gender}`] || archetypes["Fire-boy"];
 }
 
+// Geocoding function to convert location string to coordinates
+async function geocodeLocation(location: string): Promise<{ lat: number; lon: number; displayName: string } | null> {
+  if (!location || location.trim().length < 2) {
+    return null;
+  }
+  
+  try {
+    // Use OpenStreetMap Nominatim API (free, no API key required)
+    const encodedLocation = encodeURIComponent(location.trim());
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodedLocation}&format=json&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'PetCosmicReport/1.0 (pet astrology app)',
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      console.log("[GEOCODE] Nominatim API error:", response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    if (data && data.length > 0) {
+      const result = data[0];
+      console.log("[GEOCODE] Found location:", result.display_name, "Lat:", result.lat, "Lon:", result.lon);
+      return {
+        lat: parseFloat(result.lat),
+        lon: parseFloat(result.lon),
+        displayName: result.display_name,
+      };
+    }
+    
+    console.log("[GEOCODE] No results for:", location);
+    return null;
+  } catch (error) {
+    console.error("[GEOCODE] Error geocoding location:", error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -177,7 +220,7 @@ serve(async (req) => {
       if (!isNaN(hours) && hours >= 0 && hours < 24) {
         birthHour = hours;
         birthMinute = minutes || 0;
-        birthTimeNote = `Birth time: ${petData.birthTime} - Moon and Ascendant are more accurate!`;
+        birthTimeNote = `Birth time: ${petData.birthTime} - Moon and Ascendant calculations are more accurate!`;
       }
     }
     
@@ -186,8 +229,25 @@ serve(async (req) => {
     
     console.log("[GENERATE-REPORT]", birthTimeNote);
     
-    // Calculate true planetary positions using ephemeris with birth time
-    const positions = calculateAllPositions(dob);
+    // Geocode the birth location for accurate Ascendant calculation
+    let birthCoords: { lat: number; lon: number; displayName: string } | null = null;
+    let locationNote = "Birth location unknown - Ascendant defaults to Sun sign.";
+    
+    if (petData.location) {
+      birthCoords = await geocodeLocation(petData.location);
+      if (birthCoords) {
+        locationNote = `Birth location: ${birthCoords.displayName} (${birthCoords.lat.toFixed(2)}°, ${birthCoords.lon.toFixed(2)}°) - TRUE Ascendant calculated!`;
+      } else {
+        locationNote = `Location "${petData.location}" could not be geocoded - Ascendant defaults to Sun sign.`;
+      }
+    }
+    
+    console.log("[GENERATE-REPORT]", locationNote);
+    
+    // Calculate true planetary positions using ephemeris with birth time and location
+    const positions = birthCoords 
+      ? calculateAllPositions(dob, birthCoords.lat, birthCoords.lon)
+      : calculateAllPositions(dob);
     
     // Extract positions
     const sunSign = positions.sun.sign;
@@ -204,9 +264,12 @@ serve(async (req) => {
                    "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
     const southNode = signs[(signs.indexOf(northNode) + 6) % 12];
     
-    // For ascendant, use an estimate based on birth time if not available
-    // Default to Sun sign offset (common approximation when birth time unknown)
+    // For ascendant - use true calculated value if we have coordinates, otherwise default to Sun sign
+    const hasRealAscendant = !!positions.ascendant && !!birthCoords;
     const ascendant = positions.ascendant?.sign || positions.sun.sign;
+    const ascendantNote = hasRealAscendant 
+      ? `TRUE Ascendant calculated from birth time (${petData.birthTime || 'noon'}) and location (${birthCoords?.displayName})`
+      : "Ascendant estimated (no birth time/location) - defaults to Sun sign. For accurate Rising sign, birth time and location are needed.";
     
     const element = getElement(sunSign);
     const modality = getModality(sunSign);
@@ -445,16 +508,18 @@ CRITICAL CONTEXT:
 - Species: ${petData.species} - ${speciesContext}
 - Breed: ${petData.breed || 'mixed/unknown'}${breedContext ? ` - ${breedContext}` : ' (use general species traits)'}
 - Birth: ${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}${petData.birthTime ? ` at ${petData.birthTime}` : ' (time unknown)'}
+- Location: ${birthCoords ? birthCoords.displayName : petData.location || 'Unknown'}
 - ${birthTimeNote}
+- ${ascendantNote}
 
 CALCULATED CHART (ACCURATE EPHEMERIS CALCULATIONS):
 ☉ SUN: ${sunSign} ${positions.sun.degree}° 
    → The Sun represents CORE IDENTITY - who they truly are at their essence, their vitality, ego, and the "light" they bring
    
-☽ MOON: ${moonSign} ${positions.moon.degree}° 
+☽ MOON: ${moonSign} ${positions.moon.degree}° (${petData.birthTime ? 'accurate with birth time' : 'may vary ±1 sign without birth time'})
    → The Moon governs EMOTIONS & COMFORT - how they feel safe, process emotions, what soothes them
    
-ASC RISING: ${ascendant} ${positions.ascendant?.degree || 0}° 
+ASC RISING: ${ascendant} ${positions.ascendant?.degree || 0}° ${hasRealAscendant ? '✓ TRUE ASCENDANT' : '(estimated - no birth time/location)'}
    → The Ascendant is their FIRST IMPRESSION - how strangers perceive them, their outer mask
    
 ☿ MERCURY: ${mercury} ${positions.mercury.degree}° 
