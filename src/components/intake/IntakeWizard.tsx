@@ -321,48 +321,38 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         return;
       }
 
-      const reportIds: string[] = [];
+      // Prepare pet data for the edge function
+      const petsPayload = petsData.map(pet => ({
+        email: email,
+        pet_name: pet.name.trim().slice(0, 50),
+        species: pet.species,
+        breed: (pet.breed || '').trim().slice(0, 100) || null,
+        gender: pet.gender || null,
+        birth_date: pet.dateOfBirth?.toISOString().split('T')[0] || null,
+        birth_location: (pet.location || '').trim().slice(0, 100) || null,
+        soul_type: (pet.soulType || '').trim().slice(0, 50) || null,
+        superpower: (pet.superpower || '').trim().slice(0, 50) || null,
+        stranger_reaction: (pet.strangerReaction || '').trim().slice(0, 50) || null,
+        occasion_mode: pet.occasionMode || null,
+        language: language,
+      }));
 
-      for (const pet of petsData) {
-        // Sanitize all string fields
-        const sanitizedName = pet.name.trim().slice(0, 50);
-        const sanitizedBreed = (pet.breed || '').trim().slice(0, 100);
-        const sanitizedLocation = (pet.location || '').trim().slice(0, 100);
-        const sanitizedSoulType = (pet.soulType || '').trim().slice(0, 50);
-        const sanitizedSuperpower = (pet.superpower || '').trim().slice(0, 50);
-        const sanitizedStrangerReaction = (pet.strangerReaction || '').trim().slice(0, 50);
+      console.log('[INTAKE] Creating reports via edge function for', petsPayload.length, 'pets');
+      
+      const { data: intakeResult, error: intakeError } = await supabase.functions.invoke(
+        'create-intake-report',
+        { body: { pets: petsPayload } }
+      );
 
-        // Generate UUID client-side to avoid needing SELECT after INSERT (blocked by RLS)
-        const reportId = crypto.randomUUID();
-        console.log('[INTAKE] Saving pet report for:', sanitizedName, 'email:', email, 'id:', reportId);
-        
-        const { error: dbError } = await supabase
-          .from('pet_reports')
-          .insert({
-            id: reportId,
-            email: email,
-            pet_name: sanitizedName,
-            species: pet.species,
-            breed: sanitizedBreed || null,
-            gender: pet.gender,
-            birth_date: pet.dateOfBirth?.toISOString().split('T')[0] || null,
-            birth_location: sanitizedLocation || null,
-            soul_type: sanitizedSoulType || null,
-            superpower: sanitizedSuperpower || null,
-            stranger_reaction: sanitizedStrangerReaction || null,
-            occasion_mode: pet.occasionMode,
-            user_id: user?.id || null,
-            language: language,
-          });
-
-        if (dbError) {
-          console.error('[INTAKE] Database error saving report:', dbError);
-          toast.error(`Failed to save ${sanitizedName}'s data: ${dbError.message}`);
-          throw new Error(`Failed to save pet data: ${dbError.message}`);
-        }
-        console.log('[INTAKE] Report saved with ID:', reportId);
-        reportIds.push(reportId);
+      if (intakeError || !intakeResult?.reportIds) {
+        console.error('[INTAKE] Edge function error:', intakeError || intakeResult);
+        toast.error('Failed to save pet data. Please try again.');
+        setIsLoading(false);
+        return;
       }
+
+      const reportIds: string[] = intakeResult.reportIds;
+      console.log('[INTAKE] Reports created:', reportIds);
 
       const primaryReportId = reportIds[0];
       const primaryPetData = petsData[0];
@@ -438,14 +428,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
       // Create checkout with volume discount
       if (checkoutData) {
-        // If portrait is included and photo was uploaded, save it to the report
-        if (checkoutData.includesPortrait && checkoutData.petPhotoUrl) {
-          console.log('[INTAKE] Saving pet photo URL to report:', primaryReportId);
-          await supabase
-            .from('pet_reports')
-            .update({ pet_photo_url: checkoutData.petPhotoUrl })
-            .eq('id', primaryReportId);
-        }
+        // Photo URL is passed to checkout and saved via edge function
+        // No need to save directly here - it goes through create-checkout
 
         // Get referral code if present
         const referralCode = getReferralCode();

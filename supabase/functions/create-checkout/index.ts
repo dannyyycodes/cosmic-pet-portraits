@@ -230,11 +230,15 @@ serve(async (req) => {
     if (calculatedTotal === 0) {
       console.log("[CREATE-CHECKOUT] Order is free, skipping Stripe");
       
-      // Update all reports as paid
+      // Update all reports as paid and save pet photo if provided
       for (const id of allReportIds) {
+        const updateData: Record<string, unknown> = { payment_status: "paid" };
+        if (input.petPhotoUrl && id === primaryReportId) {
+          updateData.pet_photo_url = input.petPhotoUrl;
+        }
         await supabaseClient
           .from("pet_reports")
-          .update({ payment_status: "paid" })
+          .update(updateData)
           .eq("id", id);
       }
 
