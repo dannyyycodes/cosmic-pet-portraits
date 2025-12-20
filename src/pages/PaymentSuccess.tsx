@@ -331,6 +331,7 @@ export default function PaymentSuccess() {
         onSwitchReport={setCurrentReportIndex}
         onNextPet={handleNextPetFromViewer}
         onAllComplete={handleAllComplete}
+        hasActiveHoroscope={horoscopeInfo.enabled}
       />
     );
   }

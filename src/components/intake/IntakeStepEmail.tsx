@@ -21,6 +21,7 @@ interface IntakeStepEmailProps {
   onUpdate: (data: Partial<PetData>) => void;
   onReveal: (checkoutData?: CheckoutData) => void;
   onBack: () => void;
+  onAddAnotherPet?: () => void;
   totalSteps: number;
   modeContent: ModeContent;
   giftCode?: string | null;
@@ -79,7 +80,7 @@ const getSpeciesAstrologyFacts = (species: string) => {
   return speciesAstrologyFacts[normalized] || speciesAstrologyFacts.default;
 };
 
-export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, totalSteps, modeContent, giftCode, giftedTier }: IntakeStepEmailProps) {
+export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, onAddAnotherPet, totalSteps, modeContent, giftCode, giftedTier }: IntakeStepEmailProps) {
   const [isLoading, setIsLoading] = useState(false);
   // If gift code is present, skip checkout stage entirely
   const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>(giftCode ? 'email' : 'email');
@@ -234,6 +235,16 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 <Sparkles className="w-5 h-5 mr-2" />
                 {modeContent.emailButton}
               </Button>
+              
+              {/* Add Another Pet Option */}
+              {onAddAnotherPet && (
+                <button
+                  onClick={onAddAnotherPet}
+                  className="text-primary/70 hover:text-primary underline text-sm transition-colors mt-3"
+                >
+                  + Add another pet to this order
+                </button>
+              )}
             </div>
           </motion.div>
         )}

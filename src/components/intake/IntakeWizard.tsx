@@ -764,7 +764,15 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 onBack={() => {
                   setCurrentPetIndex(petCount - 1);
                   setStep(10);
-                }} 
+                }}
+                onAddAnotherPet={() => {
+                  // Add a new pet slot and go to occasion step for the new pet
+                  const newPetCount = petCount + 1;
+                  setPetCount(newPetCount);
+                  setPetsData(prev => [...prev, createEmptyPetData(occasionMode)]);
+                  setCurrentPetIndex(newPetCount - 1);
+                  setStep(1); // Go to occasion selection for the new pet
+                }}
                 totalSteps={stepsPerPet}
                 modeContent={modeContent}
                 giftCode={giftCodeFromUrl}

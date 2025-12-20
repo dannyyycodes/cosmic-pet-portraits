@@ -335,13 +335,13 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             
             <div className="flex gap-3">
               <Button
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/my-reports')}
                 variant="outline"
                 size="lg"
                 className="flex-1"
               >
-                <Home className="w-4 h-4 mr-2" />
-                Home
+                <Star className="w-4 h-4 mr-2" />
+                My Reports
               </Button>
               <Button
                 variant="outline"
@@ -361,6 +361,13 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 Share
               </Button>
             </div>
+            
+            <button
+              onClick={() => navigate('/')}
+              className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline transition-colors"
+            >
+              Return Home
+            </button>
           </motion.div>
 
           {/* Footer message */}
