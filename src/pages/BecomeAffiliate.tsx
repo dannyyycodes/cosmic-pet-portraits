@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { CosmicButton } from '@/components/cosmic/CosmicButton';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { motion } from 'framer-motion';
 import { 
   Sparkles, 
   DollarSign, 
@@ -12,7 +14,11 @@ import {
   TrendingUp,
   CheckCircle,
   Copy,
-  ExternalLink
+  ExternalLink,
+  ArrowLeft,
+  Users,
+  Percent,
+  Zap
 } from 'lucide-react';
 
 export default function BecomeAffiliate() {
@@ -64,90 +70,149 @@ export default function BecomeAffiliate() {
   };
 
   const benefits = [
-    { icon: DollarSign, titleKey: 'affiliate.benefit1Title', descKey: 'affiliate.benefit1Desc' },
-    { icon: LinkIcon, titleKey: 'affiliate.benefit2Title', descKey: 'affiliate.benefit2Desc' },
-    { icon: TrendingUp, titleKey: 'affiliate.benefit3Title', descKey: 'affiliate.benefit3Desc' },
+    { icon: Percent, titleKey: 'affiliate.benefit1Title', descKey: 'affiliate.benefit1Desc', color: 'from-green-400 to-emerald-600' },
+    { icon: LinkIcon, titleKey: 'affiliate.benefit2Title', descKey: 'affiliate.benefit2Desc', color: 'from-nebula-purple to-primary' },
+    { icon: TrendingUp, titleKey: 'affiliate.benefit3Title', descKey: 'affiliate.benefit3Desc', color: 'from-gold to-amber-500' },
   ];
 
   return (
-    <div className="min-h-screen relative">
-      <StarfieldBackground />
+    <div className="min-h-screen relative overflow-hidden">
+      <StarfieldBackground intensity="calm" />
       
       <div className="relative z-10 p-6 max-w-2xl mx-auto py-12">
+        {/* Back Link */}
+        <Link 
+          to="/"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {t('nav.backHome')}
+        </Link>
+
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-cosmic-gold/20 rounded-full mb-4">
-            <Sparkles className="w-4 h-4 text-cosmic-gold" />
-            <span className="text-cosmic-gold text-sm font-medium">{t('affiliate.badge')}</span>
-          </div>
-          <h1 className="text-4xl font-display font-bold text-foreground mb-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-10"
+        >
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-gold/20 to-amber-500/20 border border-gold/30 rounded-full mb-6"
+          >
+            <Sparkles className="w-4 h-4 text-gold" />
+            <span className="text-gold text-sm font-semibold">{t('affiliate.badge')}</span>
+          </motion.div>
+          <h1 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-foreground via-gold to-foreground bg-clip-text text-transparent mb-4">
             {t('affiliate.title')}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground max-w-md mx-auto">
             {t('affiliate.subtitle')}
           </p>
-        </div>
+        </motion.div>
 
         {/* Info Step */}
         {step === 'info' && (
-          <div className="space-y-8">
-            {/* Benefits */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="space-y-8"
+          >
+            {/* Benefits Grid */}
             <div className="grid md:grid-cols-3 gap-4">
-              {benefits.map((benefit) => (
-                <div
+              {benefits.map((benefit, i) => (
+                <motion.div
                   key={benefit.titleKey}
-                  className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.1 }}
+                  className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 text-center hover:border-gold/30 transition-colors group"
                 >
-                  <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-cosmic-purple/20 flex items-center justify-center">
-                    <benefit.icon className="w-6 h-6 text-cosmic-purple" />
+                  <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${benefit.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                    <benefit.icon className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="font-semibold text-foreground mb-1">{t(benefit.titleKey)}</h3>
+                  <h3 className="font-semibold text-foreground mb-2">{t(benefit.titleKey)}</h3>
                   <p className="text-sm text-muted-foreground">{t(benefit.descKey)}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
 
-            {/* How it works */}
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-4">{t('affiliate.howItWorks')}</h2>
-              <ol className="space-y-4">
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-cosmic-gold/20 text-cosmic-gold flex items-center justify-center font-bold">1</span>
-                  <div>
-                    <p className="font-medium text-foreground">{t('affiliate.step1Title')}</p>
-                    <p className="text-sm text-muted-foreground">{t('affiliate.step1Desc')}</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-cosmic-gold/20 text-cosmic-gold flex items-center justify-center font-bold">2</span>
-                  <div>
-                    <p className="font-medium text-foreground">{t('affiliate.step2Title')}</p>
-                    <p className="text-sm text-muted-foreground">{t('affiliate.step2Desc')}</p>
-                  </div>
-                </li>
-                <li className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-cosmic-gold/20 text-cosmic-gold flex items-center justify-center font-bold">3</span>
-                  <div>
-                    <p className="font-medium text-foreground">{t('affiliate.step3Title')}</p>
-                    <p className="text-sm text-muted-foreground">{t('affiliate.step3Desc')}</p>
-                  </div>
-                </li>
-              </ol>
-            </div>
+            {/* Stats Banner */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex justify-center gap-8 p-6 rounded-2xl bg-gradient-to-r from-gold/10 via-amber-500/5 to-gold/10 border border-gold/20"
+            >
+              <div className="text-center">
+                <p className="text-3xl font-bold text-gold">50%</p>
+                <p className="text-sm text-muted-foreground">Commission</p>
+              </div>
+              <div className="w-px bg-border/50" />
+              <div className="text-center">
+                <p className="text-3xl font-bold text-foreground">Lifetime</p>
+                <p className="text-sm text-muted-foreground">Cookie Duration</p>
+              </div>
+              <div className="w-px bg-border/50" />
+              <div className="text-center">
+                <p className="text-3xl font-bold text-foreground">Weekly</p>
+                <p className="text-sm text-muted-foreground">Payouts</p>
+              </div>
+            </motion.div>
 
-            <div className="text-center">
-              <CosmicButton onClick={() => setStep('form')} size="lg">
-                <Sparkles className="w-4 h-4 mr-2" />
+            {/* How it works */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8"
+            >
+              <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-gold" />
+                {t('affiliate.howItWorks')}
+              </h2>
+              <ol className="space-y-5">
+                {[1, 2, 3].map((num) => (
+                  <li key={num} className="flex gap-4">
+                    <span className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-gold/30 to-amber-500/30 border border-gold/40 text-gold flex items-center justify-center font-bold text-lg">
+                      {num}
+                    </span>
+                    <div>
+                      <p className="font-medium text-foreground">{t(`affiliate.step${num}Title`)}</p>
+                      <p className="text-sm text-muted-foreground">{t(`affiliate.step${num}Desc`)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="text-center"
+            >
+              <Button onClick={() => setStep('form')} variant="gold" size="xl" className="shadow-xl shadow-gold/20">
+                <Sparkles className="w-5 h-5 mr-2" />
                 {t('affiliate.applyNow')}
-              </CosmicButton>
-            </div>
-          </div>
+              </Button>
+            </motion.div>
+          </motion.div>
         )}
 
         {/* Form Step */}
         {step === 'form' && (
-          <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-8">
-            <h2 className="text-2xl font-semibold text-foreground mb-6">{t('affiliate.applicationTitle')}</h2>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8"
+          >
+            <h2 className="text-2xl font-semibold text-foreground mb-6 flex items-center gap-2">
+              <Users className="w-6 h-6 text-primary" />
+              {t('affiliate.applicationTitle')}
+            </h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -158,7 +223,7 @@ export default function BecomeAffiliate() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+                  className="w-full px-4 py-3.5 bg-background/80 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all"
                   placeholder={t('affiliate.fullNamePlaceholder')}
                   required
                 />
@@ -172,7 +237,7 @@ export default function BecomeAffiliate() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+                  className="w-full px-4 py-3.5 bg-background/80 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all"
                   placeholder="you@example.com"
                   required
                 />
@@ -183,17 +248,17 @@ export default function BecomeAffiliate() {
                   {t('affiliate.customCode')} <span className="text-muted-foreground font-normal">{t('affiliate.customCodeOptional')}</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm">astropets.cloud/ref/</span>
+                  <span className="text-muted-foreground text-sm whitespace-nowrap">astropets.cloud/ref/</span>
                   <input
                     type="text"
                     value={referralCode}
                     onChange={(e) => setReferralCodeInput(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
-                    className="flex-1 px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+                    className="flex-1 px-4 py-3.5 bg-background/80 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all font-mono"
                     placeholder="petlover"
                     maxLength={20}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-2">
                   {t('affiliate.customCodeHint')}
                 </p>
               </div>
@@ -205,7 +270,7 @@ export default function BecomeAffiliate() {
                 <select
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+                  className="w-full px-4 py-3.5 bg-background/80 border border-border/50 rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all"
                   required
                 >
                   <option value="US">United States</option>
@@ -220,32 +285,53 @@ export default function BecomeAffiliate() {
                 </select>
               </div>
 
-              <div className="flex gap-4">
-                <button
+              <div className="flex gap-4 pt-2">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setStep('info')}
-                  className="px-6 py-3 border border-border rounded-xl text-foreground hover:bg-muted/50 transition-colors"
+                  className="px-6"
                 >
                   {t('common.back')}
-                </button>
-                <CosmicButton type="submit" className="flex-1" disabled={isLoading}>
-                  {isLoading ? t('affiliate.creating') : t('affiliate.createAccount')}
-                </CosmicButton>
+                </Button>
+                <Button type="submit" variant="gold" className="flex-1" disabled={isLoading}>
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
+                      />
+                      {t('affiliate.creating')}
+                    </span>
+                  ) : (
+                    t('affiliate.createAccount')
+                  )}
+                </Button>
               </div>
             </form>
 
-            <p className="text-xs text-muted-foreground mt-4 text-center">
+            <p className="text-xs text-muted-foreground mt-6 text-center">
               {t('affiliate.termsNote')}
             </p>
-          </div>
+          </motion.div>
         )}
 
         {/* Success Step */}
         {step === 'success' && result && (
-          <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-500/20 flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-green-500" />
-            </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 text-center"
+          >
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", delay: 0.1 }}
+              className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-2xl shadow-green-500/30"
+            >
+              <CheckCircle className="w-10 h-10 text-white" />
+            </motion.div>
             
             <h2 className="text-2xl font-semibold text-foreground mb-2">
               {t('affiliate.successTitle')}
@@ -255,25 +341,26 @@ export default function BecomeAffiliate() {
             </p>
 
             {/* Referral Link */}
-            <div className="bg-background border border-border rounded-xl p-4 mb-6">
-              <p className="text-sm text-muted-foreground mb-2">{t('affiliate.yourLink')}</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 text-sm text-cosmic-gold break-all">
+            <div className="bg-background/80 border border-border/50 rounded-xl p-5 mb-6">
+              <p className="text-sm text-muted-foreground mb-3">{t('affiliate.yourLink')}</p>
+              <div className="flex items-center gap-3 p-3 bg-card/50 rounded-lg border border-border/30">
+                <code className="flex-1 text-sm text-gold break-all font-mono">
                   {window.location.origin}/ref/{result.referralCode}
                 </code>
                 <button
                   onClick={copyReferralLink}
-                  className="p-2 hover:bg-muted rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-muted rounded-lg transition-colors border border-border/50"
                 >
-                  <Copy className="w-4 h-4 text-muted-foreground" />
+                  <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                 </button>
               </div>
             </div>
 
             {/* Important: Complete Stripe */}
-            <div className="bg-cosmic-gold/10 border border-cosmic-gold/30 rounded-xl p-4 mb-6">
-              <p className="text-sm text-foreground font-medium mb-2">
-                ⚠️ {t('affiliate.stripeImportant')}
+            <div className="bg-gradient-to-r from-gold/15 to-amber-500/15 border border-gold/30 rounded-xl p-6 mb-6">
+              <p className="text-sm text-foreground font-semibold mb-2 flex items-center justify-center gap-2">
+                <DollarSign className="w-4 h-4 text-gold" />
+                {t('affiliate.stripeImportant')}
               </p>
               <p className="text-sm text-muted-foreground mb-4">
                 {t('affiliate.stripeNote')}
@@ -282,10 +369,11 @@ export default function BecomeAffiliate() {
                 href={result.onboardingUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-cosmic-gold text-cosmic-deep font-semibold rounded-xl hover:bg-cosmic-gold/90 transition-colors"
               >
-                {t('affiliate.completeStripe')}
-                <ExternalLink className="w-4 h-4" />
+                <Button variant="gold" size="lg" className="w-full shadow-lg shadow-gold/20">
+                  {t('affiliate.completeStripe')}
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </Button>
               </a>
             </div>
 
@@ -295,7 +383,7 @@ export default function BecomeAffiliate() {
             >
               {t('common.returnHome')}
             </button>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
