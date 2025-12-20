@@ -51,7 +51,8 @@ export function IntakeStepPetOccasion({
     setTimeout(() => onSelect(mode), 150);
   };
 
-  const displayName = petName || (petNumber ? `Pet ${petNumber}` : 'this pet');
+  const displayName = petName || (petNumber ? `your pet` : 'your beloved companion');
+  const hasName = !!petName;
 
   return (
     <div className="text-center space-y-6">
@@ -62,13 +63,16 @@ export function IntakeStepPetOccasion({
       >
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm">
           <Star className="w-4 h-4" />
-          <span>Reading Type</span>
+          <span>Choose Your Journey</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-          What type of reading for {displayName}?
+          {hasName 
+            ? `What would you love to discover about ${petName}?`
+            : `What would you love to discover?`
+          }
         </h1>
         <p className="text-muted-foreground text-base max-w-md mx-auto">
-          Each pet can have a different reading type
+          Every soul deserves their own special reading
         </p>
       </motion.div>
 
