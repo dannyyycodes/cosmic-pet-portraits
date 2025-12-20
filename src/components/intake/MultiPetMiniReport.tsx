@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PetData } from './IntakeWizard';
-import { Lock, Moon, ArrowUp, Sparkles, Star, Heart, Lightbulb, Zap, Users, Activity, ChevronLeft, ChevronRight, Fingerprint, PawPrint, AlertTriangle } from 'lucide-react';
+import { Lock, Moon, ArrowUp, Sparkles, Star, Heart, Lightbulb, Zap, Users, Activity, ChevronLeft, ChevronRight, Fingerprint, PawPrint, AlertTriangle, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { TestimonialCarousel } from './TestimonialCarousel';
+import { PersonalizedTestimonials } from './PersonalizedTestimonials';
+import { PremiumPreview } from './PremiumPreview';
+import { ProgressBar } from './ProgressBar';
 import { generateCosmicReport, CosmicReport } from '@/lib/cosmicReport';
 import { cn } from '@/lib/utils';
 import { OccasionMode } from '@/lib/occasionMode';
@@ -463,6 +465,9 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
 
   return (
     <div className="min-h-screen bg-background pb-32">
+      {/* Progress Bar */}
+      <ProgressBar percentage={18} petName={firstName} />
+      
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className={cn(
@@ -554,7 +559,22 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
         </div>
       </div>
 
-      {/* Testimonials */}
+      {/* Premium Preview Section */}
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.75 }}
+        >
+          <PremiumPreview 
+            petName={firstName}
+            sunSign={currentReport.sunSign}
+            element={currentReport.element}
+          />
+        </motion.div>
+      </div>
+
+      {/* Personalized Testimonials */}
       <div className="max-w-2xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0 }}
@@ -562,9 +582,13 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
           transition={{ delay: 0.8 }}
         >
           <h2 className="text-xl font-display font-semibold text-foreground text-center mb-6">
-            What Others Discovered
+            What Other {currentReport.sunSign} Pet Owners Discovered
           </h2>
-          <TestimonialCarousel />
+          <PersonalizedTestimonials 
+            petSign={currentReport.sunSign}
+            petSpecies={currentPet.species}
+            petName={firstName}
+          />
         </motion.div>
       </div>
 
