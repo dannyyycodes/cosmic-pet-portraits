@@ -175,39 +175,15 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       animate={{ opacity: 1 }}
       className="space-y-5"
     >
-      {/* Urgency & Social Proof Header */}
-      <div className="space-y-3">
-        {/* Scarcity */}
-        <motion.div
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-red-500/10 border border-red-500/30"
-        >
-          <Clock className="w-4 h-4 text-red-400" />
-          <span className="text-sm font-medium text-red-400">
-            Only {spotsLeft} readings left at this price today!
-          </span>
-        </motion.div>
-
-        {/* Social Proof */}
-        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Users className="w-4 h-4" />
-          <span>Join <span className="text-foreground font-semibold">{recentPurchases.toLocaleString()}</span> happy pet parents</span>
-        </div>
+      {/* Social Proof - Simplified */}
+      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-2">
+        <Users className="w-4 h-4" />
+        <span><span className="text-foreground font-semibold">{recentPurchases.toLocaleString()}</span> happy pet parents</span>
       </div>
 
-      {/* Loss Aversion Message */}
-      <div className="text-center p-3 rounded-xl bg-gradient-to-r from-nebula-purple/10 to-nebula-pink/10 border border-nebula-purple/20">
-        <p className="text-sm text-foreground">
-          <Zap className="w-4 h-4 inline mr-1 text-cosmic-gold" />
-          <span className="font-medium">Don't miss {petData.name}'s cosmic window!</span>
-          <span className="text-muted-foreground"> The stars are aligned right now.</span>
-        </p>
-      </div>
-
-      {/* Emotional header */}
-      <div className="text-center space-y-2 pb-4 border-b border-border/30">
-        <h2 className="text-2xl font-display font-bold text-foreground">
+      {/* Header */}
+      <div className="text-center space-y-1 pb-3 border-b border-border/30">
+        <h2 className="text-xl font-display font-bold text-foreground">
           Choose Your Reading
         </h2>
         <p className="text-muted-foreground text-sm">
