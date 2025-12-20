@@ -2,15 +2,21 @@ import { motion } from 'framer-motion';
 import { Star, Quote, CheckCircle2, Heart, Sparkles, Gift } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import customer1 from '@/assets/testimonials/customer-1.png';
-import customer2 from '@/assets/testimonials/customer-2.png';
-import customer3 from '@/assets/testimonials/customer-3.jpg';
-import customer4 from '@/assets/testimonials/customer-4.jpg';
-import customer5 from '@/assets/testimonials/customer-5.jpg';
-import customer6 from '@/assets/testimonials/customer-6.jpg';
-import customer7 from '@/assets/testimonials/customer-7.jpg';
-import customer8 from '@/assets/testimonials/customer-8.jpg';
-import customer9 from '@/assets/testimonials/customer-9.jpg';
+// Featured testimonial images
+import miaImg from '@/assets/testimonials/mia.jpg';
+import markImg from '@/assets/testimonials/mark.jpg';
+import sarahImg from '@/assets/testimonials/sarah.jpg';
+import jamesImg from '@/assets/testimonials/james.jpg';
+import priyaImg from '@/assets/testimonials/priya.jpg';
+import granImg from '@/assets/testimonials/gran.jpg';
+
+// Mini testimonial images
+import chloeImg from '@/assets/testimonials/chloe.jpg';
+import patelsImg from '@/assets/testimonials/patels.jpg';
+import davidImg from '@/assets/testimonials/david.jpg';
+import emmaImg from '@/assets/testimonials/emma.jpg';
+import nguyensImg from '@/assets/testimonials/nguyens.jpg';
+import bobImg from '@/assets/testimonials/bob.jpg';
 
 interface FeaturedTestimonialProps {
   name: string;
@@ -107,7 +113,7 @@ export function PremiumTestimonials() {
       pet: "Bruno the Labrador",
       text: "I read the first paragraph and my jaw dropped. It described Bruno's exact little habits — how he tilts his head when he's confused, his thing with thunder, all of it. My husband was like 'did you write this?' Honestly didn't expect it to be this good.",
       highlight: "My husband was like 'did you write this?'",
-      image: customer1,
+      image: miaImg,
       tag: "Scary Accurate",
       tagIcon: <Sparkles className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-primary to-gold text-primary-foreground"
@@ -117,7 +123,7 @@ export function PremiumTestimonials() {
       pet: "Mr. Whiskers the Cat",
       text: "Got this last minute for my sister's birthday. She rang me crying! She kept saying 'how do they know all this about Whiskers?' Honestly best £15 I've spent. Already bought 4 more for mates.",
       highlight: "She rang me crying!",
-      image: customer4,
+      image: markImg,
       tag: "Gift That Made Her Cry",
       tagIcon: <Gift className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-nebula-pink to-nebula-purple text-white"
@@ -127,7 +133,7 @@ export function PremiumTestimonials() {
       pet: "Rex the German Shepherd",
       text: "I was proper skeptical tbh. But my mate wouldn't shut up about hers so I gave it a go. The report explained why Rex gets weird at 6pm every day (never noticed before!). Changed how I do his evenings now. He's way less stressed.",
       highlight: "He's way less stressed now",
-      image: customer5,
+      image: sarahImg,
       tag: "Skeptic Turned Believer",
       tagIcon: <Heart className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-gold to-tangerine text-primary-foreground"
@@ -137,7 +143,7 @@ export function PremiumTestimonials() {
       pet: "Biscuit the Rabbit",
       text: "Never thought I'd get something like this for a rabbit but my daughter begged me. Turns out Biscuit is a 'grounded earth soul' which explains why he hates being picked up! We leave him be now and he's so much happier.",
       highlight: "Explains why he hates being picked up!",
-      image: customer7,
+      image: jamesImg,
       tag: "Works for Rabbits Too",
       tagIcon: <Sparkles className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
@@ -147,7 +153,7 @@ export function PremiumTestimonials() {
       pet: "Coco the Cockatiel",
       text: "My mum got this for Coco and we couldn't stop laughing at how spot on it was. It said he needs 'an audience' and that's literally him — screams when no one's watching! We put his cage in the lounge now.",
       highlight: "Screams when no one's watching — literally him!",
-      image: customer8,
+      image: priyaImg,
       tag: "Bird Parents Love It",
       tagIcon: <Heart className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
@@ -157,7 +163,7 @@ export function PremiumTestimonials() {
       pet: "Duchess the Persian Cat",
       text: "My grandson got this for my 75th birthday. I've had cats my whole life but never understood Duchess like I do now. She's an 'old soul' apparently — makes perfect sense. Best gift I've had in years.",
       highlight: "Best gift I've had in years",
-      image: customer9,
+      image: granImg,
       tag: "Multi-Generational Love",
       tagIcon: <Gift className="w-3 h-3" />,
       tagColor: "bg-gradient-to-r from-purple-500 to-violet-600 text-white"
@@ -165,12 +171,12 @@ export function PremiumTestimonials() {
   ];
 
   const miniTestimonials = [
-    { name: "Chloe L.", text: "Sent it to 5 friends — they all bought one", image: customer3 },
-    { name: "The Patels", text: "Our whole family read it together!", image: customer6 },
-    { name: "David R.", text: "Way more legit than I expected", image: customer2 },
-    { name: "Emma T.", text: "Did one for my horse — nailed it!", image: customer7 },
-    { name: "The Nguyens", text: "Got all 3 pets done. No regrets", image: customer8 },
-    { name: "Bob, 68", text: "My daughter showed me how to order. Worth it!", image: customer9 },
+    { name: "Chloe L.", text: "Sent it to 5 friends — they all bought one", image: chloeImg },
+    { name: "The Patels", text: "Our whole family read it together!", image: patelsImg },
+    { name: "David R.", text: "Way more legit than I expected", image: davidImg },
+    { name: "Emma T.", text: "Did one for my horse — nailed it!", image: emmaImg },
+    { name: "The Nguyens", text: "Got all 3 pets done. No regrets", image: nguyensImg },
+    { name: "Bob, 68", text: "My daughter showed me how to order. Worth it!", image: bobImg },
   ];
 
   return (
