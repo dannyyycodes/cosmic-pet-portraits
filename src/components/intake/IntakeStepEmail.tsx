@@ -603,7 +603,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               </p>
             </motion.div>
 
-            {/* Blurred Premium Preview - Birth Charts, Pokemon Cards, etc */}
+            {/* Blurred Premium Preview - Birth Charts, Collector Cards, etc */}
             {!giftCode && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
