@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
 import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ModeContent } from '@/lib/occasionMode';
 
 interface IntakeStepBreedProps {
   petData: PetData;
@@ -10,9 +11,10 @@ interface IntakeStepBreedProps {
   onNext: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepBreed({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepBreedProps) {
+export function IntakeStepBreed({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepBreedProps) {
   const { t } = useLanguage();
   
   const getBreedPlaceholder = (species: string) => {
@@ -42,10 +44,10 @@ export function IntakeStepBreed({ petData, onUpdate, onNext, onBack, totalSteps 
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 3 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          {t('intake.breed.title').replace('{name}', petData.name)}
+          {modeContent.breedTitle(petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          {t('intake.breed.subtitle')}
+          {modeContent.breedSubtitle}
         </p>
       </div>
 

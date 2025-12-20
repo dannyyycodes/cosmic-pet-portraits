@@ -220,17 +220,17 @@ serve(async (req) => {
     });
 
     const modeContext = {
-      discover: "This is a discovery reading - help the owner truly understand their pet for the first time. Tone: curious, exciting, revelatory.",
-      birthday: "This is a birthday celebration reading - honor how their pet has grown and the joy they bring. Tone: celebratory, warm, grateful.",
-      memorial: "This is a memorial reading - honor the pet's memory with love, healing, and eternal connection. Use past tense language. Tone: tender, healing, honoring.",
-      gift: "This is a gift reading - create something beautiful that the gift recipient will treasure forever. Tone: magical, heartfelt, special.",
+      discover: "This is a discovery reading - help the owner truly understand their pet for the first time. Tone: curious, exciting, revelatory. Use PRESENT TENSE throughout (is, loves, brings, has).",
+      birthday: "This is a birthday celebration reading - honor how their pet has grown and the joy they bring. Tone: celebratory, warm, grateful. Use PRESENT TENSE throughout (is, loves, brings, has).",
+      memorial: "This is a MEMORIAL reading - the pet has PASSED AWAY. Honor their memory with love, healing, and eternal connection. CRITICAL: Use PAST TENSE throughout the ENTIRE report (was, loved, brought, had, felt, showed). Never use present tense when describing the pet - they are no longer with us. Focus on cherished memories and the lasting impact they had.",
+      gift: "This is a gift reading - create something beautiful that the gift recipient will treasure forever. Tone: magical, heartfelt, special. Use PRESENT TENSE throughout (is, loves, brings, has).",
     };
 
     const modeEmotionalGuidance = {
-      discover: "Use wonder and excitement. 'You might have noticed...' 'This explains why...' Include 'aha!' moments.",
-      birthday: "Celebrate their journey. 'Another year of...' 'The cosmic gifts they bring...' Include gratitude and joy.",
-      memorial: "Honor with tenderness. 'They taught you...' 'Their light continues...' Include comfort and eternal connection.",
-      gift: "Make it feel like a treasure. 'What a magical soul...' 'The person receiving this will see...' Include awe and specialness.",
+      discover: "Use wonder and excitement. 'You might have noticed...' 'This explains why...' Include 'aha!' moments. Present tense: '${petData.name} IS... ${petData.name} LOVES...'",
+      birthday: "Celebrate their journey. 'Another year of...' 'The cosmic gifts they bring...' Include gratitude and joy. Present tense: '${petData.name} IS... ${petData.name} BRINGS...'",
+      memorial: "Honor with tenderness and PAST TENSE. '${petData.name} WAS...' '${petData.name} LOVED...' 'They BROUGHT...' 'Their light continues to shine in your heart...' Focus on: what they taught you, how they made you feel, the memories you cherish, and the eternal bond that transcends physical presence.",
+      gift: "Make it feel like a treasure. 'What a magical soul...' 'The person receiving this will see...' Include awe and specialness. Present tense: '${petData.name} IS... ${petData.name} LOVES...'",
     };
 
     const signTraits: Record<string, string> = {

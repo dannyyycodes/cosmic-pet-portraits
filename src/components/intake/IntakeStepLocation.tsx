@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ModeContent } from '@/lib/occasionMode';
 
 interface IntakeStepLocationProps {
   petData: PetData;
@@ -12,6 +13,7 @@ interface IntakeStepLocationProps {
   onNext: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
 interface LocationResult {
@@ -35,7 +37,7 @@ const famousCities = [
   { city: 'Dubai', country: 'UAE', flag: '🇦🇪' },
 ];
 
-export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepLocationProps) {
+export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepLocationProps) {
   const { t } = useLanguage();
   const [isLocating, setIsLocating] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -154,10 +156,10 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 6 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          {t('intake.location.title', { name: petData.name })}
+          {modeContent.locationTitle(petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          {t('intake.location.subtitle')}
+          {modeContent.locationSubtitle}
         </p>
       </div>
 

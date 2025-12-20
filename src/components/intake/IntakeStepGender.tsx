@@ -2,6 +2,7 @@ import { PetData, PetGender } from './IntakeWizard';
 import { ArrowLeft } from 'lucide-react';
 import { FaMars, FaVenus } from 'react-icons/fa';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ModeContent } from '@/lib/occasionMode';
 
 interface IntakeStepGenderProps {
   petData: PetData;
@@ -9,9 +10,10 @@ interface IntakeStepGenderProps {
   onNext: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepGender({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepGenderProps) {
+export function IntakeStepGender({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepGenderProps) {
   const { t } = useLanguage();
   
   const handleSelect = (gender: PetGender) => {
@@ -31,10 +33,10 @@ export function IntakeStepGender({ petData, onUpdate, onNext, onBack, totalSteps
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 4 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          {t('intake.gender.title').replace('{name}', petData.name)}
+          {modeContent.genderTitle(petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          {t('intake.gender.subtitle')}
+          {modeContent.genderSubtitle}
         </p>
       </div>
 
