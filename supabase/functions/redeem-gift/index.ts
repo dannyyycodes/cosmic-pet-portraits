@@ -137,17 +137,20 @@ serve(async (req) => {
       }
     }
 
-    // For Portrait and VIP tiers, auto-enroll in weekly horoscope
+    // Check if tier includes portrait
+    const includesPortrait = giftedTier === 'portrait' || giftedTier === 'vip';
     const includesWeeklyHoroscope = giftedTier === 'portrait' || giftedTier === 'vip';
-    if (includesWeeklyHoroscope) {
-      // Get the pet report to get name and email
-      const { data: report } = await supabase
-        .from("pet_reports")
-        .select("pet_name, email")
-        .eq("id", input.reportId)
-        .single();
+    
+    // Get the pet report for additional processing
+    const { data: report } = await supabase
+      .from("pet_reports")
+      .select("pet_name, email, species, breed, pet_photo_url, report_content")
+      .eq("id", input.reportId)
+      .single();
 
-      if (report) {
+    if (report) {
+      // For Portrait and VIP tiers, auto-enroll in weekly horoscope
+      if (includesWeeklyHoroscope) {
         // Calculate next Monday for first horoscope
         const nextMonday = new Date();
         nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
@@ -165,9 +168,71 @@ serve(async (req) => {
 
         if (subError) {
           console.error("[REDEEM-GIFT] Failed to create horoscope subscription:", subError);
-          // Non-fatal - continue with redemption
         } else {
           console.log("[REDEEM-GIFT] Auto-enrolled in weekly horoscope:", report.email);
+        }
+      }
+      
+      // For Portrait and VIP tiers, trigger AI portrait generation if photo available
+      const photoUrl = input.petPhotoUrl || report.pet_photo_url;
+      if (includesPortrait && photoUrl) {
+        console.log("[REDEEM-GIFT] Triggering AI portrait generation for:", input.reportId);
+        
+        try {
+          const supabaseUrl = Deno.env.get("SUPABASE_URL");
+          const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+          
+          // Get zodiac info from report content if available
+          const reportContent = report.report_content as any;
+          const sunSign = reportContent?.chartPlacements?.sun?.sign || reportContent?.sunSign || 'Leo';
+          const element = reportContent?.dominantElement || 'Fire';
+          const archetype = reportContent?.archetype?.name || 'Cosmic Soul';
+          
+          const portraitResponse = await fetch(
+            `${supabaseUrl}/functions/v1/generate-pet-portrait`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${serviceRoleKey}`,
+              },
+              body: JSON.stringify({
+                petName: report.pet_name,
+                species: report.species || 'pet',
+                breed: report.breed || '',
+                sunSign,
+                element,
+                archetype,
+                style: 'pokemon',
+                petImageUrl: photoUrl,
+              }),
+            }
+          );
+
+          if (portraitResponse.ok) {
+            const portraitData = await portraitResponse.json();
+            if (portraitData.imageUrl) {
+              // Save portrait URL to database
+              const { error: portraitUpdateError } = await supabase
+                .from("pet_reports")
+                .update({ portrait_url: portraitData.imageUrl })
+                .eq("id", input.reportId);
+              
+              if (portraitUpdateError) {
+                console.error("[REDEEM-GIFT] Failed to save portrait URL:", portraitUpdateError);
+              } else {
+                console.log("[REDEEM-GIFT] AI portrait saved for:", input.reportId, "URL length:", portraitData.imageUrl?.length);
+              }
+            } else {
+              console.error("[REDEEM-GIFT] No imageUrl in portrait response");
+            }
+          } else {
+            const errorText = await portraitResponse.text();
+            console.error("[REDEEM-GIFT] Portrait generation failed:", errorText);
+          }
+        } catch (portraitError) {
+          console.error("[REDEEM-GIFT] Failed to generate portrait:", portraitError);
+          // Non-fatal - continue with redemption
         }
       }
     }

@@ -1,9 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Helper to convert base64 to Uint8Array
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,7 +22,7 @@ serve(async (req) => {
   }
 
   try {
-    const { petName, species, breed, sunSign, element, archetype, style, petImageUrl } = await req.json();
+    const { petName, species, breed, sunSign, element, archetype, style, petImageUrl, reportId } = await req.json();
     
     console.log("[GENERATE-PORTRAIT] Creating portrait for:", petName, "with image:", !!petImageUrl);
 
@@ -170,9 +181,59 @@ serve(async (req) => {
       throw new Error("No image generated");
     }
 
-    // Return the base64 image URL directly
+    // If it's a base64 data URL, upload to Supabase Storage
+    let finalImageUrl = imageUrl;
+    if (imageUrl.startsWith('data:image/')) {
+      console.log("[GENERATE-PORTRAIT] Uploading base64 image to storage");
+      
+      try {
+        const supabase = createClient(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+        );
+        
+        // Parse the data URL
+        const matches = imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+        if (matches) {
+          const extension = matches[1];
+          const base64Data = matches[2];
+          const imageBytes = base64ToUint8Array(base64Data);
+          
+          // Generate unique filename
+          const timestamp = Date.now();
+          const randomId = crypto.randomUUID().slice(0, 8);
+          const fileName = `portraits/${reportId || 'unknown'}/${timestamp}-${randomId}.${extension}`;
+          
+          // Upload to storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('pet-photos')
+            .upload(fileName, imageBytes, {
+              contentType: `image/${extension}`,
+              upsert: true,
+            });
+          
+          if (uploadError) {
+            console.error("[GENERATE-PORTRAIT] Storage upload failed:", uploadError);
+            // Fall back to returning base64 (may not work for large images)
+          } else {
+            // Get public URL
+            const { data: publicUrlData } = supabase.storage
+              .from('pet-photos')
+              .getPublicUrl(fileName);
+            
+            finalImageUrl = publicUrlData.publicUrl;
+            console.log("[GENERATE-PORTRAIT] Image uploaded to storage:", finalImageUrl);
+          }
+        }
+      } catch (uploadErr) {
+        console.error("[GENERATE-PORTRAIT] Failed to upload to storage:", uploadErr);
+        // Fall back to base64 URL
+      }
+    }
+
+    // Return the final image URL (either storage URL or original)
     return new Response(JSON.stringify({ 
-      imageUrl,
+      imageUrl: finalImageUrl,
       prompt,
       usedPetImage: !!petImageUrl
     }), {
