@@ -3,30 +3,31 @@ import { Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-import customer1 from '@/assets/testimonials/customer-1.png';
-import customer2 from '@/assets/testimonials/customer-2.png';
-import customer3 from '@/assets/testimonials/customer-3.jpg';
-import customer4 from '@/assets/testimonials/customer-4.jpg';
-import customer5 from '@/assets/testimonials/customer-5.jpg';
-import customer6 from '@/assets/testimonials/customer-6.jpg';
-import customer7 from '@/assets/testimonials/customer-7.jpg';
-import customer8 from '@/assets/testimonials/customer-8.jpg';
-import customer9 from '@/assets/testimonials/customer-9.jpg';
+// Original uploaded images (shown first)
+import miaImg from '@/assets/testimonials/mia.jpg';
+import davidImg from '@/assets/testimonials/david.jpg';
+import chloeImg from '@/assets/testimonials/chloe.jpg';
+import markImg from '@/assets/testimonials/mark.jpg';
+import sarahImg from '@/assets/testimonials/sarah.jpg';
+import patelsImg from '@/assets/testimonials/patels.jpg';
+import jamesImg from '@/assets/testimonials/james.jpg';
+import granImg from '@/assets/testimonials/gran.jpg';
+import emmaImg from '@/assets/testimonials/emma.jpg';
 
 export function HomeTestimonials() {
   const { t } = useLanguage();
   const [startIndex, setStartIndex] = useState(0);
 
   const testimonials = [
-    { name: "Mia", pet: "Bruno", textKey: "testimonial.1", image: customer1 },
-    { name: "David R.", pet: "", textKey: "testimonial.2", image: customer2 },
-    { name: "Chloe", pet: "Luna", textKey: "testimonial.3", image: customer3 },
-    { name: "Mark", pet: "Mr. Whiskers", textKey: "testimonial.4", image: customer4 },
-    { name: "Sarah", pet: "Rex", textKey: "testimonial.5", image: customer5 },
-    { name: "The Patel Family", pet: "Ginger", textKey: "testimonial.6", image: customer6 },
-    { name: "Jamie", pet: "River", textKey: "testimonial.7", image: customer7 },
-    { name: "Linda K.", pet: "Buddy", textKey: "testimonial.8", image: customer8 },
-    { name: "Elena", pet: "Moose", textKey: "testimonial.9", image: customer9 },
+    { name: "Mia", pet: "Bruno", textKey: "testimonial.1", image: miaImg },
+    { name: "David R.", pet: "", textKey: "testimonial.2", image: davidImg },
+    { name: "Chloe", pet: "Luna", textKey: "testimonial.3", image: chloeImg },
+    { name: "Mark", pet: "Mr. Whiskers", textKey: "testimonial.4", image: markImg },
+    { name: "Sarah", pet: "Rex", textKey: "testimonial.5", image: sarahImg },
+    { name: "The Patel Family", pet: "Ginger", textKey: "testimonial.6", image: patelsImg },
+    { name: "Jamie", pet: "River", textKey: "testimonial.7", image: jamesImg },
+    { name: "Linda K.", pet: "Buddy", textKey: "testimonial.8", image: granImg },
+    { name: "Elena", pet: "Moose", textKey: "testimonial.9", image: emmaImg },
   ];
 
   useEffect(() => {

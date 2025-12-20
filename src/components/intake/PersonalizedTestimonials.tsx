@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote } from 'lucide-react';
 
-import customer1 from '@/assets/testimonials/customer-1.png';
-import customer2 from '@/assets/testimonials/customer-2.png';
-import customer3 from '@/assets/testimonials/customer-3.jpg';
-import customer4 from '@/assets/testimonials/customer-4.jpg';
-import customer5 from '@/assets/testimonials/customer-5.jpg';
-import customer6 from '@/assets/testimonials/customer-6.jpg';
-import customer7 from '@/assets/testimonials/customer-7.jpg';
-import customer8 from '@/assets/testimonials/customer-8.jpg';
-import customer9 from '@/assets/testimonials/customer-9.jpg';
+// Original uploaded images (shown first)
+import miaImg from '@/assets/testimonials/mia.jpg';
+import sarahImg from '@/assets/testimonials/sarah.jpg';
+import patelsImg from '@/assets/testimonials/patels.jpg';
+import chloeImg from '@/assets/testimonials/chloe.jpg';
+import markImg from '@/assets/testimonials/mark.jpg';
+import jamesImg from '@/assets/testimonials/james.jpg';
+import emmaImg from '@/assets/testimonials/emma.jpg';
+import davidImg from '@/assets/testimonials/david.jpg';
+import granImg from '@/assets/testimonials/gran.jpg';
 
 interface Testimonial {
   name: string;
@@ -22,7 +23,7 @@ interface Testimonial {
   highlight: string;
 }
 
-// All testimonials with zodiac and species info
+// All testimonials with zodiac and species info - original images first
 const allTestimonials: Testimonial[] = [
   {
     name: "Mia",
@@ -30,7 +31,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Aries",
     species: "dog",
     text: "I ordered Bruno's report thinking it would just be a cute thing. I was completely caught off guard by how accurate it was. The Aries energy described him PERFECTLY.",
-    image: customer1,
+    image: miaImg,
     highlight: "The Aries energy described him PERFECTLY"
   },
   {
@@ -39,7 +40,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Leo",
     species: "dog",
     text: "This report totally changed how I see my dog Rex. As a Leo, no wonder he demands all the attention! It explained his personality so well.",
-    image: customer5,
+    image: sarahImg,
     highlight: "As a Leo, no wonder he demands attention"
   },
   {
@@ -48,7 +49,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Taurus",
     species: "dog",
     text: "It reads like a story about our Taurus dog, Ginger. Her love of routine and treats finally makes cosmic sense!",
-    image: customer6,
+    image: patelsImg,
     highlight: "Her love of routine finally makes cosmic sense"
   },
   {
@@ -57,7 +58,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Pisces",
     species: "cat",
     text: "My Pisces cat Luna is SO dreamy and intuitive, just like the report said. I shared it in my group chat and five people asked for the link!",
-    image: customer3,
+    image: chloeImg,
     highlight: "My Pisces cat is SO dreamy and intuitive"
   },
   {
@@ -66,7 +67,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Scorpio",
     species: "cat",
     text: "Mr. Whiskers is a Scorpio and the report NAILED his mysterious, intense personality. My sister cried happy tears reading it.",
-    image: customer4,
+    image: markImg,
     highlight: "NAILED his mysterious, intense personality"
   },
   {
@@ -75,7 +76,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Capricorn",
     species: "cat",
     text: "My Capricorn cat Shadow is described as 'ambitious and dignified' - so true! Even my skeptic partner said it was shockingly accurate.",
-    image: customer7,
+    image: jamesImg,
     highlight: "Even my skeptic partner was impressed"
   },
   {
@@ -84,7 +85,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Cancer",
     species: "dog",
     text: "Cancer dogs are described as deeply emotional and protective - that's my Moose 100%. I keep going back to read his report.",
-    image: customer9,
+    image: emmaImg,
     highlight: "Cancer dogs are deeply emotional - that's my Moose"
   },
   {
@@ -93,7 +94,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Gemini",
     species: "dog",
     text: "Bella's Gemini chart explained her two personalities perfectly - one minute cuddly, next minute chaos. Real astrology, not fluff.",
-    image: customer2,
+    image: davidImg,
     highlight: "Explained her two personalities perfectly"
   },
   {
@@ -102,7 +103,7 @@ const allTestimonials: Testimonial[] = [
     petSign: "Virgo",
     species: "dog",
     text: "I ordered the memorial version for my Virgo dog Buddy. It captured his gentle, helpful nature perfectly. Exactly what I needed.",
-    image: customer8,
+    image: granImg,
     highlight: "Captured his gentle nature perfectly"
   },
 ];
