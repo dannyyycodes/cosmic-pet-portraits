@@ -15,7 +15,7 @@ export default function ViewReport() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string; shareToken?: string; petPhotoUrl?: string; portraitUrl?: string; occasionMode?: string } | null>(null);
+  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string; shareToken?: string; petPhotoUrl?: string; portraitUrl?: string; occasionMode?: string; hasActiveHoroscope?: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showCinematic, setShowCinematic] = useState(false);
   const [revealComplete, setRevealComplete] = useState(false);
@@ -101,6 +101,7 @@ export default function ViewReport() {
         petPhotoUrl: data.petPhotoUrl,
         portraitUrl: data.portraitUrl,
         occasionMode: data.occasionMode || 'discover',
+        hasActiveHoroscope: data.hasActiveHoroscope || false,
       });
 
       // Show cinematic reveal for first-time views (not returning visits)
@@ -248,6 +249,7 @@ export default function ViewReport() {
             shareToken={reportData.shareToken}
             portraitUrl={reportData.portraitUrl}
             occasionMode={reportData.occasionMode}
+            hasActiveHoroscope={reportData.hasActiveHoroscope}
           />
         )}
       </>

@@ -153,6 +153,19 @@ serve(async (req) => {
       });
     }
 
+    // Check for active horoscope subscription
+    let hasActiveHoroscope = false;
+    const { data: horoscopeSub } = await supabase
+      .from("horoscope_subscriptions")
+      .select("id, status")
+      .eq("pet_report_id", targetReportId)
+      .eq("status", "active")
+      .maybeSingle();
+    
+    if (horoscopeSub) {
+      hasActiveHoroscope = true;
+    }
+
     // Return only safe data (no email, include share token for owners)
     return new Response(JSON.stringify({
       petName: report.pet_name,
@@ -164,6 +177,7 @@ serve(async (req) => {
       petPhotoUrl: report.pet_photo_url,
       portraitUrl: report.portrait_url,
       occasionMode: report.occasion_mode || 'discover',
+      hasActiveHoroscope,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
