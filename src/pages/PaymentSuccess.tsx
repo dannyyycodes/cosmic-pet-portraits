@@ -22,6 +22,8 @@ interface ReportData {
   isGift: boolean;
   recipientName?: string;
   recipientEmail?: string;
+  portraitUrl?: string;
+  petPhotoUrl?: string;
 }
 
 interface GiftInfo {
@@ -154,6 +156,8 @@ export default function PaymentSuccess() {
               report: petReport.report_content,
               reportId: petReport.id,
               isGift,
+              portraitUrl: petReport.portrait_url,
+              petPhotoUrl: petReport.pet_photo_url,
             });
           }
         }
@@ -350,6 +354,7 @@ export default function PaymentSuccess() {
       <CosmicReportViewer
         petName={currentReport?.petName || allReports[0].petName}
         report={currentReport?.report || allReports[0].report}
+        portraitUrl={currentReport?.portraitUrl || currentReport?.petPhotoUrl}
         allReports={hasMultipleReports ? allReports : undefined}
         currentIndex={currentReportIndex}
         onSwitchReport={setCurrentReportIndex}
