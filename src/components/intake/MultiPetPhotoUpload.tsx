@@ -35,8 +35,8 @@ const PROCESSING_OPTIONS: { id: PhotoProcessingMode; label: string; description:
   },
   { 
     id: 'pokemon', 
-    label: 'Pokemon Style', 
-    description: 'Anime-inspired character card',
+    label: 'Collector Card', 
+    description: 'Trading card character style',
     icon: <Wand2 className="w-4 h-4" />
   },
   { 
@@ -300,7 +300,7 @@ export function MultiPetPhotoUpload({ petsData, petPhotos, onPhotoChange }: Mult
           </div>
           <div className="flex items-center gap-1.5 text-nebula-purple">
             <Wand2 className="w-3 h-3" />
-            <span><strong>AI Transform</strong> – Cosmic/Pokemon style</span>
+            <span><strong>AI Transform</strong> – Cosmic/Collector style</span>
           </div>
         </div>
       </div>

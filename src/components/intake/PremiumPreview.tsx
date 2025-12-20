@@ -139,7 +139,7 @@ export function PremiumPreview({ petName, sunSign, element, onUnlock }: PremiumP
         </div>
       </motion.div>
 
-      {/* Blurred Pokemon Card Preview */}
+      {/* Blurred Cosmic Collector Card Preview */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -147,7 +147,7 @@ export function PremiumPreview({ petName, sunSign, element, onUnlock }: PremiumP
         className="relative group"
       >
         <div className="relative rounded-2xl overflow-hidden border border-gold/30 bg-gradient-to-br from-amber-500/10 via-background to-orange-500/10 p-6">
-          {/* Blurred Pokemon-style card */}
+          {/* Blurred collector-style card */}
           <div className="relative blur-[6px] pointer-events-none">
             <div className="max-w-[220px] mx-auto rounded-xl overflow-hidden" style={{ aspectRatio: '63/88' }}>
               <div 
@@ -212,8 +212,8 @@ export function PremiumPreview({ petName, sunSign, element, onUnlock }: PremiumP
             >
               <Crown className="w-10 h-10 text-amber-400 mb-3" />
             </motion.div>
-            <p className="text-foreground font-semibold text-lg">Shareable Pokemon Card</p>
-            <p className="text-muted-foreground text-sm mb-4">Holographic with unique moves</p>
+            <p className="text-foreground font-semibold text-lg">Cosmic Collector Card</p>
+            <p className="text-muted-foreground text-sm mb-4">Holographic with unique powers</p>
             <Button variant="outline" size="sm" className="border-gold/50 text-gold hover:bg-gold/10" onClick={onUnlock}>
               <Star className="w-4 h-4 mr-2" />
               Unlock Card

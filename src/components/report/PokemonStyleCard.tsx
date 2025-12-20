@@ -30,7 +30,7 @@ interface PokemonStyleCardProps {
   species?: string;
 }
 
-// Pokemon type colors based on element
+// Cosmic card type colors based on element
 const elementTypeColors: Record<string, { primary: string; secondary: string; text: string }> = {
   Fire: { primary: '#F97316', secondary: '#FED7AA', text: '#7C2D12' },
   Earth: { primary: '#22C55E', secondary: '#BBF7D0', text: '#14532D' },
@@ -38,7 +38,7 @@ const elementTypeColors: Record<string, { primary: string; secondary: string; te
   Water: { primary: '#0EA5E9', secondary: '#BAE6FD', text: '#0C4A6E' },
 };
 
-// Occasion-specific themes for Pokemon cards
+// Occasion-specific themes for cosmic collector cards
 const occasionThemes: Record<OccasionMode, {
   cardType: string;
   specialAbility: string;
@@ -178,11 +178,11 @@ export function PokemonStyleCard({
       });
       
       const link = document.createElement('a');
-      link.download = `${petName.toLowerCase().replace(/\s+/g, '-')}-pokemon-card.png`;
+      link.download = `${petName.toLowerCase().replace(/\s+/g, '-')}-cosmic-card.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      toast.success('Pokemon card downloaded! 🎴');
+      toast.success('Cosmic card downloaded! 🎴');
     } catch (error) {
       console.error('Error exporting card:', error);
       toast.error('Failed to download. Try again!');
@@ -193,14 +193,14 @@ export function PokemonStyleCard({
 
   const handleShare = async () => {
     const text = occasionMode === 'memorial'
-      ? `👼 ${petName} - Guardian Angel Card 👼\n\n"${theme.flavorText}"\n\n🌟 HP: ∞ | Type: ${element}\n✨ Ability: ${moves.ability}\n\n#PokemonCard #ForeverLoved #RainbowBridge\n\n${shareUrl || 'astropets.cloud'}`
+      ? `👼 ${petName} - Guardian Angel Card 👼\n\n"${theme.flavorText}"\n\n🌟 HP: ∞ | Type: ${element}\n✨ Ability: ${moves.ability}\n\n#CosmicCard #ForeverLoved #RainbowBridge\n\n${shareUrl || 'astropets.cloud'}`
       : occasionMode === 'birthday'
-        ? `🎂 ${petName}'s BIRTHDAY CARD! 🎂\n\n"${theme.flavorText}"\n\n💪 HP: ${totalHP} | Type: ${element}\n🎉 Special Move: ${moves.attack2.name}!\n\n#PokemonCard #PetBirthday #LegendaryPet\n\n${shareUrl || 'astropets.cloud'}`
-        : `✨ Check out ${petName}'s Pokemon Card! ✨\n\n💪 HP: ${totalHP} | Type: ${element}\n⚡ ${moves.attack1.name}: ${moves.attack1.damage} DMG\n🔥 ${moves.attack2.name}: ${moves.attack2.damage} DMG\n\n#PokemonCard #CosmicPets #PetCard\n\n${shareUrl || 'astropets.cloud'}`;
+        ? `🎂 ${petName}'s BIRTHDAY CARD! 🎂\n\n"${theme.flavorText}"\n\n💪 HP: ${totalHP} | Type: ${element}\n🎉 Special Move: ${moves.attack2.name}!\n\n#CosmicCard #PetBirthday #LegendaryPet\n\n${shareUrl || 'astropets.cloud'}`
+        : `✨ Check out ${petName}'s Cosmic Card! ✨\n\n💪 HP: ${totalHP} | Type: ${element}\n⚡ ${moves.attack1.name}: ${moves.attack1.damage} DMG\n🔥 ${moves.attack2.name}: ${moves.attack2.damage} DMG\n\n#CosmicCard #CosmicPets #PetCard\n\n${shareUrl || 'astropets.cloud'}`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: `${petName}'s Pokemon Card`, text, url: shareUrl || 'https://astropets.cloud' });
+        await navigator.share({ title: `${petName}'s Cosmic Card`, text, url: shareUrl || 'https://astropets.cloud' });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
           await navigator.clipboard.writeText(text);
@@ -250,7 +250,7 @@ export function PokemonStyleCard({
 
   return (
     <div className="flex flex-col items-center gap-6">
-      {/* The Pokemon Card */}
+      {/* The Cosmic Collector Card */}
       <motion.div
         ref={cardRef}
         onMouseMove={handleMouseMove}
