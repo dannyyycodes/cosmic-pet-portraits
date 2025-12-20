@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { useState, useRef } from 'react';
 import { CosmicPetCard, calculateCardStats } from './CosmicPetCard';
+import { ViralPetCard } from './ViralPetCard';
 import { BirthChartWheel } from './BirthChartWheel';
 import { ReportPDFDownload } from './ReportPDFDownload';
 import { SocialShareCard } from './SocialShareCard';
@@ -454,7 +455,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
 
         {showCard ? (
           <div className="flex justify-center">
-            <CosmicPetCard
+            <ViralPetCard
               petName={petName}
               archetype={report.archetype?.name || 'Cosmic Soul'}
               sunSign={sunSign}
@@ -464,8 +465,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
               stats={cardStats}
               auraColor={report.aura?.primary || '#FFD700'}
               petPortraitUrl={petPortraitUrl}
-              onGeneratePortrait={handleGeneratePortrait}
-              isGeneratingPortrait={isGeneratingPortrait}
+              shareUrl={getShareLink() || undefined}
             />
           </div>
         ) : (
