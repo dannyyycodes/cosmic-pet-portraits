@@ -1,25 +1,89 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
-import { hash, compare } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Legacy SHA-256 hash for migration support
-async function hashPasswordLegacy(password: string): Promise<string> {
+// Secure password hashing using PBKDF2 (Web Crypto API - works in Edge Functions)
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: salt,
+      iterations: 100000,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    256
+  );
+  
+  const hashArray = new Uint8Array(derivedBits);
+  const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, "0")).join("");
+  const hashHex = Array.from(hashArray).map(b => b.toString(16).padStart(2, "0")).join("");
+  
+  return `pbkdf2:${saltHex}:${hashHex}`;
+}
+
+async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  // Handle PBKDF2 format
+  if (storedHash.startsWith('pbkdf2:')) {
+    const parts = storedHash.split(':');
+    if (parts.length !== 3) return false;
+    
+    const saltHex = parts[1];
+    const expectedHashHex = parts[2];
+    
+    // Convert salt from hex to Uint8Array
+    const salt = new Uint8Array(saltHex.match(/.{2}/g)!.map(byte => parseInt(byte, 16)));
+    
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
+    
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt: salt,
+        iterations: 100000,
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      256
+    );
+    
+    const hashArray = new Uint8Array(derivedBits);
+    const hashHex = Array.from(hashArray).map(b => b.toString(16).padStart(2, "0")).join("");
+    
+    return hashHex === expectedHashHex;
+  }
+  
+  // Legacy SHA-256 hash (for migration)
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-}
-
-// Check if a hash is bcrypt format ($2a$, $2b$, or $2y$ prefix)
-function isBcryptHash(hash: string): boolean {
-  return hash.startsWith('$2a$') || hash.startsWith('$2b$') || hash.startsWith('$2y$');
+  const legacyHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  
+  return legacyHash === storedHash;
 }
 
 const loginSchema = z.object({
@@ -107,8 +171,10 @@ serve(async (req) => {
     if (action === "register") {
       const input = registerSchema.parse(body);
       
-      const setupKey = Deno.env.get("ADMIN_SETUP_KEY") || "cosmic-admin-setup-2024";
-      if (input.setupKey !== setupKey) {
+      // Trim setup key to handle whitespace
+      const setupKey = (Deno.env.get("ADMIN_SETUP_KEY") || "cosmic-admin-setup-2024").trim();
+      if (input.setupKey.trim() !== setupKey) {
+        console.log("[ADMIN-AUTH] Setup key mismatch");
         return new Response(JSON.stringify({ error: "Invalid setup key" }), {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -128,8 +194,8 @@ serve(async (req) => {
         });
       }
 
-      // SECURITY FIX: Use bcrypt for password hashing
-      const passwordHash = await hash(input.password);
+      // Use PBKDF2 for password hashing
+      const passwordHash = await hashPassword(input.password);
 
       const { error: insertError } = await supabaseClient
         .from("admin_users")
@@ -146,6 +212,7 @@ serve(async (req) => {
         });
       }
 
+      console.log("[ADMIN-AUTH] Admin registered:", input.email);
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -155,7 +222,7 @@ serve(async (req) => {
     // Default: Login
     const input = loginSchema.parse(body);
 
-    // Fetch admin by email (don't include password comparison in query)
+    // Fetch admin by email
     const { data: admin, error: fetchError } = await supabaseClient
       .from("admin_users")
       .select("id, email, password_hash")
@@ -169,27 +236,18 @@ serve(async (req) => {
       });
     }
 
-    // SECURITY FIX: Verify password with bcrypt, with migration support for old SHA-256 hashes
-    let isValid = false;
+    // Verify password
+    const isValid = await verifyPassword(input.password, admin.password_hash);
     
-    if (isBcryptHash(admin.password_hash)) {
-      // New bcrypt hash - verify normally
-      isValid = await compare(input.password, admin.password_hash);
-    } else {
-      // Legacy SHA-256 hash - verify using old method
-      const legacyHash = await hashPasswordLegacy(input.password);
-      isValid = legacyHash === admin.password_hash;
+    // If using legacy hash and valid, upgrade to PBKDF2
+    if (isValid && !admin.password_hash.startsWith('pbkdf2:')) {
+      const newHash = await hashPassword(input.password);
+      await supabaseClient
+        .from("admin_users")
+        .update({ password_hash: newHash })
+        .eq("id", admin.id);
       
-      if (isValid) {
-        // Upgrade to bcrypt on successful login
-        const newHash = await hash(input.password);
-        await supabaseClient
-          .from("admin_users")
-          .update({ password_hash: newHash })
-          .eq("id", admin.id);
-        
-        console.log("[ADMIN-AUTH] Upgraded password hash to bcrypt for:", admin.email);
-      }
+      console.log("[ADMIN-AUTH] Upgraded password hash to PBKDF2 for:", admin.email);
     }
 
     if (!isValid) {
