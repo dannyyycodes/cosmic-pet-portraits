@@ -5,7 +5,7 @@ import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Bug, Moon } f
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
-import { PetPhotoUpload } from './PetPhotoUpload';
+import { MultiPetPhotoUpload, PetPhotoData } from './MultiPetPhotoUpload';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -31,6 +31,7 @@ export interface CheckoutData {
   giftTierForFriend?: 'basic' | 'premium' | 'vip';
   includesPortrait?: boolean;
   petPhotoUrl?: string | null;
+  petPhotos?: Record<number, PetPhotoData>;
   includeHoroscope?: boolean;
 }
 
@@ -119,7 +120,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   const [includeHoroscope, setIncludeHoroscope] = useState(false);
   const [spotsLeft, setSpotsLeft] = useState(7);
   const [recentPurchases, setRecentPurchases] = useState(12847);
-  const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
+  const [petPhotos, setPetPhotos] = useState<Record<number, PetPhotoData>>({});
   
   // Calculate how many pets need weekly updates (exclude memorial pets)
   const nonMemorialPets = petsData?.filter(p => p.occasionMode !== 'memorial') || (petData.occasionMode !== 'memorial' ? [petData] : []);
@@ -160,6 +161,9 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     const finalTotal = total + giftPrice;
     const tier = TIERS[selectedTier];
     
+    // Get the first pet's photo URL for backward compatibility
+    const firstPetPhoto = petPhotos[0];
+    
     onCheckout({
       selectedProducts: includeHoroscope ? [selectedTier, 'horoscope_subscription'] : [selectedTier],
       couponId: null,
@@ -174,8 +178,21 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       includeGiftForFriend: withGift,
       giftTierForFriend: withGift ? selectedGiftTier : undefined,
       includesPortrait: tier.includesPortrait,
-      petPhotoUrl: tier.includesPortrait ? petPhotoUrl : null,
-      includeHoroscope: includeHoroscope || selectedTier === 'vip', // VIP always includes horoscope
+      petPhotoUrl: tier.includesPortrait && firstPetPhoto ? firstPetPhoto.url : null,
+      petPhotos: tier.includesPortrait ? petPhotos : undefined,
+      includeHoroscope: includeHoroscope || selectedTier === 'vip',
+    });
+  };
+  
+  const handlePhotoChange = (petIndex: number, photo: PetPhotoData | null) => {
+    setPetPhotos(prev => {
+      const updated = { ...prev };
+      if (photo) {
+        updated[petIndex] = photo;
+      } else {
+        delete updated[petIndex];
+      }
+      return updated;
     });
   };
 
@@ -336,10 +353,10 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             className="overflow-hidden"
           >
             <div className="p-4 rounded-xl bg-gradient-to-r from-nebula-purple/10 to-cosmic-gold/10 border border-nebula-purple/30">
-              <PetPhotoUpload
-                petName={petData.name || 'your pet'}
-                onPhotoUploaded={setPetPhotoUrl}
-                photoUrl={petPhotoUrl}
+              <MultiPetPhotoUpload
+                petsData={petsData || [petData]}
+                petPhotos={petPhotos}
+                onPhotoChange={handlePhotoChange}
               />
             </div>
           </motion.div>
