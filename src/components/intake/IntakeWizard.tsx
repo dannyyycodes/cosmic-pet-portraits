@@ -447,6 +447,22 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           devParams.set('includes_portrait', 'true');
         }
         
+        // Store petPhotos and petTiers in sessionStorage for dev mode (too big for URL)
+        if (checkoutData?.petPhotos && Object.keys(checkoutData.petPhotos).length > 0) {
+          try {
+            sessionStorage.setItem('dev_checkout_petPhotos', JSON.stringify(checkoutData.petPhotos));
+          } catch (e) {
+            console.warn('Could not store petPhotos in sessionStorage:', e);
+          }
+        }
+        if (checkoutData?.petTiers && Object.keys(checkoutData.petTiers).length > 0) {
+          try {
+            sessionStorage.setItem('dev_checkout_petTiers', JSON.stringify(checkoutData.petTiers));
+          } catch (e) {
+            console.warn('Could not store petTiers in sessionStorage:', e);
+          }
+        }
+        
         window.location.href = `/payment-success?${devParams.toString()}`;
         return;
       }

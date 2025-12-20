@@ -60,6 +60,10 @@ serve(async (req) => {
       const selectedTierParam = selectedTierFromBody;
       const includesPortraitParam = includesPortraitFromBody === true;
       
+      // Parse pet photos and pet tiers from request body
+      const petPhotosFromBody = body.petPhotos || {};
+      const petTiersFromBody = body.petTiers || {};
+      
       // First get the primary report to find the email
       const { data: primaryReport } = await supabaseClient
         .from("pet_reports")
@@ -84,7 +88,7 @@ serve(async (req) => {
         .order("created_at", { ascending: true });
 
       const reportIds = allPetReports?.map((r: any) => r.id) || [reportId];
-      console.log("[VERIFY-PAYMENT] Dev mode - found reports:", reportIds.length);
+      console.log("[VERIFY-PAYMENT] Dev mode - found reports:", reportIds.length, "petPhotos:", Object.keys(petPhotosFromBody));
 
       // Generate share tokens for each report
       const generateShareToken = () => {
@@ -93,22 +97,38 @@ serve(async (req) => {
         return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
       };
 
-      // Update all reports as paid with share tokens
-      for (const id of reportIds) {
+      // Update all reports as paid with share tokens AND save pet photos
+      for (let i = 0; i < reportIds.length; i++) {
+        const id = reportIds[i];
         const shareToken = generateShareToken();
+        const tierKey = petTiersFromBody[String(i)] || selectedTierParam || 'premium';
+        const tierIncludesPortrait = tierKey === 'premium' || tierKey === 'vip';
+        const petPhoto = petPhotosFromBody[String(i)];
+        
+        const updateData: Record<string, unknown> = { 
+          payment_status: "paid",
+          share_token: shareToken,
+          updated_at: new Date().toISOString()
+        };
+        
+        // Save pet photo URL if tier includes portrait
+        if (tierIncludesPortrait && petPhoto?.url) {
+          updateData.pet_photo_url = petPhoto.url;
+          console.log("[VERIFY-PAYMENT] Dev mode - saving pet photo for report:", id);
+        }
+        
         await supabaseClient
           .from("pet_reports")
-          .update({ 
-            payment_status: "paid",
-            share_token: shareToken,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq("id", id);
       }
       
       // Generate reports for each pet
-      const includesPortrait = includesPortraitParam || selectedTierParam === 'premium' || selectedTierParam === 'vip';
-      for (const id of reportIds) {
+      for (let i = 0; i < reportIds.length; i++) {
+        const id = reportIds[i];
+        const tierKey = petTiersFromBody[String(i)] || selectedTierParam || 'premium';
+        const includesPortrait = tierKey === 'premium' || tierKey === 'vip';
+        
         const { data: report } = await supabaseClient
           .from("pet_reports")
           .select("*")

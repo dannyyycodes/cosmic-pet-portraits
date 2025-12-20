@@ -88,6 +88,27 @@ export default function PaymentSuccess() {
     
     const maxAttempts = 20;
     let attempts = 0;
+    
+    // Retrieve dev mode petPhotos and petTiers from sessionStorage
+    let petPhotosFromStorage: Record<string, { url: string; processingMode?: string }> = {};
+    let petTiersFromStorage: Record<string, 'basic' | 'premium' | 'vip'> = {};
+    
+    if (sessionId?.startsWith('dev_test_')) {
+      try {
+        const storedPhotos = sessionStorage.getItem('dev_checkout_petPhotos');
+        const storedTiers = sessionStorage.getItem('dev_checkout_petTiers');
+        if (storedPhotos) {
+          petPhotosFromStorage = JSON.parse(storedPhotos);
+          sessionStorage.removeItem('dev_checkout_petPhotos');
+        }
+        if (storedTiers) {
+          petTiersFromStorage = JSON.parse(storedTiers);
+          sessionStorage.removeItem('dev_checkout_petTiers');
+        }
+      } catch (e) {
+        console.warn('Could not retrieve dev mode data from sessionStorage:', e);
+      }
+    }
 
     const tryVerify = async (): Promise<boolean> => {
       try {
@@ -102,6 +123,9 @@ export default function PaymentSuccess() {
             includeHoroscope: includeHoroscopeParam,
             selectedTier: selectedTierParam,
             includesPortrait: includesPortraitParam,
+            // Pass pet photos and tiers for dev mode
+            petPhotos: petPhotosFromStorage,
+            petTiers: petTiersFromStorage,
           }
         });
 
@@ -345,6 +369,7 @@ export default function PaymentSuccess() {
         giftInfo={giftInfo}
         giftedInfo={giftedInfo}
         horoscopeInfo={horoscopeInfo}
+        purchaseEmail={allReports[0]?.email}
       />
     );
   }

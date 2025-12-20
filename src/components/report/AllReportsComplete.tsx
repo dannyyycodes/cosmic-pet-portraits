@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Share2, Home, Star, Heart, Gift, Copy, Check } from 'lucide-react';
+import { Sparkles, Share2, Star, Heart, Gift, Copy, Check, User, Lock, Mail, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GiftInfo {
   includeGift: boolean;
@@ -26,11 +29,33 @@ interface AllReportsCompleteProps {
   giftInfo?: GiftInfo;
   giftedInfo?: GiftedInfo;
   horoscopeInfo?: HoroscopeInfo;
+  purchaseEmail?: string;
 }
 
-export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedInfo, horoscopeInfo }: AllReportsCompleteProps) {
+export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedInfo, horoscopeInfo, purchaseEmail }: AllReportsCompleteProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const [password, setPassword] = useState('');
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  
+  // Get the email from sessionStorage if not passed as prop
+  const email = purchaseEmail || (() => {
+    try {
+      return sessionStorage.getItem('cosmic_report_email') || '';
+    } catch {
+      return '';
+    }
+  })();
+  
+  // Show signup prompt for non-logged-in users after a short delay
+  useEffect(() => {
+    if (!user && email) {
+      const timer = setTimeout(() => setShowSignupPrompt(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [user, email]);
   
   const petListText = petNames.length === 1 
     ? petNames[0] 
@@ -49,6 +74,51 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
       toast.success('Gift link copied!');
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleCreateAccount = async () => {
+    if (!email || password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    
+    setIsCreatingAccount(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/account`,
+        }
+      });
+      
+      if (error) {
+        if (error.message.includes('already registered')) {
+          // User already has an account, try to sign them in
+          const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInError) {
+            toast.error('This email already has an account. Please use your existing password.');
+          } else {
+            toast.success('Welcome back! Signed in successfully.');
+            navigate('/account');
+          }
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.success('Account created! Redirecting to your dashboard...');
+        // Navigate to account page which shows reports, subscriptions, and gifts
+        setTimeout(() => navigate('/account'), 1000);
+      }
+    } catch (err) {
+      toast.error('Failed to create account. Please try again.');
+    } finally {
+      setIsCreatingAccount(false);
+    }
+  };
+
+  const skipSignup = () => {
+    setShowSignupPrompt(false);
   };
 
   return (
@@ -316,6 +386,74 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             </motion.div>
           )}
 
+          {/* Account Signup Prompt - show for non-logged-in users */}
+          {showSignupPrompt && !user && email && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+              className="mb-6 p-5 rounded-2xl bg-gradient-to-r from-primary/20 to-nebula-purple/20 border border-primary/30"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <UserPlus className="w-5 h-5 text-primary" />
+                <h3 className="font-semibold text-foreground">Create Your Account</h3>
+              </div>
+              
+              <p className="text-sm text-muted-foreground mb-4">
+                Save your reports, manage subscriptions, and access gifts anytime!
+              </p>
+              
+              <div className="space-y-3">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    value={email}
+                    disabled
+                    className="pl-10 bg-background/50 text-muted-foreground"
+                  />
+                </div>
+                
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    placeholder="Create a password (6+ characters)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <Button
+                  onClick={handleCreateAccount}
+                  disabled={isCreatingAccount || password.length < 6}
+                  variant="cosmic"
+                  className="w-full"
+                >
+                  {isCreatingAccount ? (
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </span>
+                  ) : (
+                    <>
+                      <User className="w-4 h-4 mr-2" />
+                      Create Account
+                    </>
+                  )}
+                </Button>
+                
+                <button
+                  onClick={skipSignup}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-center"
+                >
+                  Skip for now
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {/* Actions */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -335,13 +473,13 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             
             <div className="flex gap-3">
               <Button
-                onClick={() => navigate('/my-reports')}
+                onClick={() => user ? navigate('/account') : navigate('/my-reports')}
                 variant="outline"
                 size="lg"
                 className="flex-1"
               >
                 <Star className="w-4 h-4 mr-2" />
-                My Reports
+                {user ? 'My Account' : 'My Reports'}
               </Button>
               <Button
                 variant="outline"
