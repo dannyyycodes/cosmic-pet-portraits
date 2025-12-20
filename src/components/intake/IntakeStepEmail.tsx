@@ -10,6 +10,7 @@ import { ReportTeaser } from './ReportTeaser';
 import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
 import { getSunSign, zodiacSigns } from '@/lib/zodiac';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { getReferralCode } from '@/lib/referralTracking';
 
 interface IntakeStepEmailProps {
@@ -377,44 +378,205 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                   const { sign: petSign, signData: petSignData } = getPetSignData(pet);
                   if (!petSignData) return null;
                   
+                  const occasionMode = pet.occasionMode || 'discover';
+                  const isMemorial = occasionMode === 'memorial';
+                  const isBirthday = occasionMode === 'birthday';
+                  const species = pet.species?.toLowerCase() || 'pet';
+                  const element = petSignData.element;
+                  
+                  // Generate occasion-aware + species-specific hook
+                  const getPersonalizedHook = () => {
+                    // Memorial mode - past tense, honoring
+                    if (isMemorial) {
+                      const memorialHooks: Record<string, Record<string, string>> = {
+                        Fire: {
+                          dog: `wasn't just any dog. As a ${petSign} with ${element} energy, ${pet.name} burned bright—their tail wagging with a passion that could melt any bad day. That warmth you still feel? It's their spirit, forever beside you.`,
+                          cat: `wasn't just any cat. As a ${petSign} with ${element} energy, ${pet.name} had a fierce independence that masked how deeply they loved. When they chose to curl up with you, it meant everything.`,
+                          bird: `wasn't just any bird. As a ${petSign} with ${element} energy, ${pet.name}'s song filled your home with wild, beautiful energy. Their spirit was untameable—and so is your love for them.`,
+                          rabbit: `wasn't just any rabbit. As a ${petSign} with ${element} energy, ${pet.name} had a boldness rare in their kind. Those sudden bursts of joy? Pure cosmic fire, forever imprinted on your heart.`,
+                          horse: `wasn't just any horse. As a ${petSign} with ${element} energy, ${pet.name} ran with the wind itself. Their spirited nature was matched only by their loyalty to you.`,
+                          default: `wasn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name} blazed through life with passion. Their fire still warms you from the other side.`,
+                        },
+                        Earth: {
+                          dog: `wasn't just any dog. As a ${petSign} with ${element} energy, ${pet.name}'s loyalty ran deeper than the oldest mountains. When they laid their head on your lap, they were giving you their whole world.`,
+                          cat: `wasn't just any cat. As a ${petSign} with ${element} energy, ${pet.name} was your anchor—steady, patient, always there. Their quiet presence was a gift you'll carry forever.`,
+                          bird: `wasn't just any bird. As a ${petSign} with ${element} energy, ${pet.name} brought stability and routine to your days. Their dependable nature was a comfort that echoes still.`,
+                          rabbit: `wasn't just any rabbit. As a ${petSign} with ${element} energy, ${pet.name} found their spot and made it sacred. Their gentle, grounding presence remains with you.`,
+                          horse: `wasn't just any horse. As a ${petSign} with ${element} energy, ${pet.name} was solid as the earth beneath their hooves. Their steadfast companionship shaped who you are.`,
+                          default: `wasn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name}'s grounded presence was a constant in your life. That stability lives on in your memories.`,
+                        },
+                        Air: {
+                          dog: `wasn't just any dog. As a ${petSign} with ${element} energy, ${pet.name}'s curious spirit led them on endless adventures—always sniffing out the next discovery. Their wonder for life was contagious.`,
+                          cat: `wasn't just any cat. As a ${petSign} with ${element} energy, ${pet.name}'s mind was always working, watching, wondering. Those intelligent eyes saw straight through to your soul.`,
+                          bird: `wasn't just any bird. As a ${petSign} with ${element} energy, ${pet.name} was born to soar. Their songs carried messages from places only they could go. That melody still echoes.`,
+                          rabbit: `wasn't just any rabbit. As a ${petSign} with ${element} energy, ${pet.name} was quick-witted and endlessly curious. Their playful spirit brought lightness to every day.`,
+                          horse: `wasn't just any horse. As a ${petSign} with ${element} energy, ${pet.name}'s spirit was free as the wind. Their intelligence and grace were gifts beyond measure.`,
+                          default: `wasn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name}'s curious mind was always exploring. Their spirit of discovery lives on through you.`,
+                        },
+                        Water: {
+                          dog: `wasn't just any dog. As a ${petSign} with ${element} energy, ${pet.name} felt every emotion you ever had—often before you did. Their empathy was a superpower, and they used it to heal you.`,
+                          cat: `wasn't just any cat. As a ${petSign} with ${element} energy, ${pet.name} sensed your moods like the tide senses the moon. On your hardest days, they were there—always.`,
+                          bird: `wasn't just any bird. As a ${petSign} with ${element} energy, ${pet.name} sang songs that touched something deep within you. Their intuitive nature was a rare gift.`,
+                          rabbit: `wasn't just any rabbit. As a ${petSign} with ${element} energy, ${pet.name}'s gentle soul absorbed your worries. Their calming presence was pure medicine.`,
+                          horse: `wasn't just any horse. As a ${petSign} with ${element} energy, ${pet.name} understood you without words. Their emotional depth created a bond beyond explanation.`,
+                          default: `wasn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name} felt the world deeply. Their emotional wisdom touched everyone who knew them.`,
+                        },
+                      };
+                      return memorialHooks[element]?.[species] || memorialHooks[element]?.default || memorialHooks.Fire.default;
+                    }
+                    
+                    // Birthday mode - celebratory, excited
+                    if (isBirthday) {
+                      const birthdayHooks: Record<string, Record<string, string>> = {
+                        Fire: {
+                          dog: `is celebrating another year of pure chaotic joy! As a ${petSign} with ${element} energy, ${pet.name} approaches birthdays like they approach everything—with maximum enthusiasm and zero chill. 🎂`,
+                          cat: `is officially a year wiser (and they already thought they knew everything). As a ${petSign} with ${element} energy, ${pet.name}'s birthday wish probably involves world domination. And treats.`,
+                          bird: `is singing their birthday anthem! As a ${petSign} with ${element} energy, ${pet.name} brings dramatic energy to everything—including aging gracefully. 🎉`,
+                          rabbit: `is doing birthday binkies! As a ${petSign} with ${element} energy, ${pet.name}'s excitement is contagious. Another year of adorable mischief awaits.`,
+                          horse: `is prancing into their birthday year! As a ${petSign} with ${element} energy, ${pet.name}'s spirited celebration can't be contained.`,
+                          default: `is having their cosmic birthday! As a ${petSign} with ${element} energy, ${pet.name} brings passion to every celebration. 🎂`,
+                        },
+                        Earth: {
+                          dog: `deserves all the birthday snuggles! As a ${petSign} with ${element} energy, ${pet.name}'s birthday wish is simple: your undivided attention and maybe extra treats.`,
+                          cat: `is graciously accepting birthday tributes. As a ${petSign} with ${element} energy, ${pet.name} expects nothing less than the royal treatment today.`,
+                          bird: `is celebrating another year of beautiful routine! As a ${petSign} with ${element} energy, ${pet.name} appreciates the simple pleasures—like birthday millet spray.`,
+                          rabbit: `is accepting birthday pets at their favorite spot. As a ${petSign} with ${element} energy, ${pet.name}'s ideal celebration is peaceful and cozy.`,
+                          horse: `stands proud on their birthday! As a ${petSign} with ${element} energy, ${pet.name}'s steadfast heart has grown another year stronger.`,
+                          default: `is celebrating with grounded joy! As a ${petSign} with ${element} energy, ${pet.name} appreciates the simple magic of another year with you.`,
+                        },
+                        Air: {
+                          dog: `is already planning birthday zoomies! As a ${petSign} with ${element} energy, ${pet.name}'s birthday brain is going a million miles an hour.`,
+                          cat: `is contemplating the meaning of birthdays. As a ${petSign} with ${element} energy, ${pet.name}'s curious mind wonders why there's only one per year.`,
+                          bird: `is chattering about their special day! As a ${petSign} with ${element} energy, ${pet.name} has opinions about their birthday—lots of them.`,
+                          rabbit: `is extra curious about their birthday! As a ${petSign} with ${element} energy, ${pet.name} is investigating every present and decoration.`,
+                          horse: `is feeling free on their birthday! As a ${petSign} with ${element} energy, ${pet.name}'s birthday wish involves open fields and adventure.`,
+                          default: `is buzzing with birthday excitement! As a ${petSign} with ${element} energy, ${pet.name}'s curious spirit makes every celebration an adventure.`,
+                        },
+                        Water: {
+                          dog: `is feeling all the birthday emotions! As a ${petSign} with ${element} energy, ${pet.name} can sense how much you love them—and it's overwhelming (in the best way).`,
+                          cat: `is absorbing all the birthday love. As a ${petSign} with ${element} energy, ${pet.name} pretends not to care, but they feel every ounce of affection.`,
+                          bird: `is singing birthday feelings! As a ${petSign} with ${element} energy, ${pet.name}'s emotional depth makes this day extra meaningful.`,
+                          rabbit: `is soaking in birthday cuddles. As a ${petSign} with ${element} energy, ${pet.name} feels the love radiating from everyone.`,
+                          horse: `is emotionally moved by their birthday celebration. As a ${petSign} with ${element} energy, ${pet.name}'s deep bond with you shines brightest today.`,
+                          default: `is floating on birthday love! As a ${petSign} with ${element} energy, ${pet.name} feels the emotional significance of another year together.`,
+                        },
+                      };
+                      return birthdayHooks[element]?.[species] || birthdayHooks[element]?.default || birthdayHooks.Fire.default;
+                    }
+                    
+                    // Default/Discover mode - present tense, discovery-focused
+                    const discoverHooks: Record<string, Record<string, string>> = {
+                      Fire: {
+                        dog: `isn't just any dog. As a ${petSign} with ${element} energy, ${pet.name} attacks life with the enthusiasm of a thousand suns. That tail wag? It's pure cosmic fire—and it means they chose you as their person.`,
+                        cat: `isn't just any cat. As a ${petSign} with ${element} energy, ${pet.name} has a fierce spirit that refuses to be ignored. When they give you attention, you've earned it.`,
+                        bird: `isn't just any bird. As a ${petSign} with ${element} energy, ${pet.name} fills your home with bold, untameable energy. Their spirit burns bright in every song.`,
+                        rabbit: `isn't just any rabbit. As a ${petSign} with ${element} energy, ${pet.name} has a wild streak that surprises everyone. Those binkies? Pure cosmic fire.`,
+                        horse: `isn't just any horse. As a ${petSign} with ${element} energy, ${pet.name} runs like the wind carries fire. Their passion is matched only by their courage.`,
+                        hamster: `isn't just any hamster. As a ${petSign} with ${element} energy, ${pet.name} runs that wheel like they're training for the cosmic Olympics. Pure determination in a tiny package.`,
+                        default: `isn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name} brings passionate intensity to everything. That fire in their eyes? It's real.`,
+                      },
+                      Earth: {
+                        dog: `isn't just any dog. As a ${petSign} with ${element} energy, ${pet.name}'s loyalty runs deeper than the oldest oak's roots. When they lean against you, they're saying "you're my whole world."`,
+                        cat: `isn't just any cat. As a ${petSign} with ${element} energy, ${pet.name} is your steady anchor. They've claimed their spot, established their routine, and heaven help anyone who disrupts it.`,
+                        bird: `isn't just any bird. As a ${petSign} with ${element} energy, ${pet.name} brings grounding stability to your days. Their predictable rhythms are a meditation.`,
+                        rabbit: `isn't just any rabbit. As a ${petSign} with ${element} energy, ${pet.name} has staked out their territory with quiet determination. Their patience is unmatched.`,
+                        horse: `isn't just any horse. As a ${petSign} with ${element} energy, ${pet.name} stands solid as the mountains. Their dependability is a rare gift.`,
+                        hamster: `isn't just any hamster. As a ${petSign} with ${element} energy, ${pet.name} takes their burrowing seriously. That nest? An architectural masterpiece of comfort.`,
+                        default: `isn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name}'s grounded presence brings stability to your life. They're your rock.`,
+                      },
+                      Air: {
+                        dog: `isn't just any dog. As a ${petSign} with ${element} energy, ${pet.name}'s mind is always three steps ahead—calculating the fastest route to the treat, the park, and your heart.`,
+                        cat: `isn't just any cat. As a ${petSign} with ${element} energy, ${pet.name} sees everything and judges accordingly. That calculating stare? They're decoding the universe.`,
+                        bird: `isn't just any bird. As a ${petSign} with ${element} energy, ${pet.name} was born to communicate. Every chirp, every song carries a message meant for you.`,
+                        rabbit: `isn't just any rabbit. As a ${petSign} with ${element} energy, ${pet.name}'s curiosity knows no bounds. They've investigated every inch of their domain.`,
+                        horse: `isn't just any horse. As a ${petSign} with ${element} energy, ${pet.name}'s intelligence is almost intimidating. They read situations before you do.`,
+                        hamster: `isn't just any hamster. As a ${petSign} with ${element} energy, ${pet.name} has escape plans you haven't even discovered yet. That curious mind never rests.`,
+                        default: `isn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name}'s curious mind is always working. They see what others miss.`,
+                      },
+                      Water: {
+                        dog: `isn't just any dog. As a ${petSign} with ${element} energy, ${pet.name} feels your emotions before you do. They know when you need a nudge, a cuddle, or just their presence.`,
+                        cat: `isn't just any cat. As a ${petSign} with ${element} energy, ${pet.name} absorbs the emotional temperature of every room. On your worst days, they're mysteriously there.`,
+                        bird: `isn't just any bird. As a ${petSign} with ${element} energy, ${pet.name}'s songs respond to your moods. They're more attuned to you than you realize.`,
+                        rabbit: `isn't just any rabbit. As a ${petSign} with ${element} energy, ${pet.name}'s gentle soul picks up on everything. They process emotions through those wise eyes.`,
+                        horse: `isn't just any horse. As a ${petSign} with ${element} energy, ${pet.name} understands you without words. The connection runs deeper than logic.`,
+                        hamster: `isn't just any hamster. As a ${petSign} with ${element} energy, ${pet.name} has surprisingly deep moods. They sense more than their tiny size suggests.`,
+                        default: `isn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name} feels the world deeply. Their empathy is their superpower.`,
+                      },
+                    };
+                    return discoverHooks[element]?.[species] || discoverHooks[element]?.default || discoverHooks.Fire.default;
+                  };
+                  
+                  // Generate occasion-aware truth
+                  const getTruth = () => {
+                    const verb = isMemorial ? 'thought' : 'thinks';
+                    const verb2 = isMemorial ? 'claimed' : 'has claimed';
+                    const verb3 = isMemorial ? 'got' : 'gets';
+                    const verb4 = isMemorial ? 'remembered' : 'remembers';
+                    const verb5 = isMemorial ? 'knew' : 'knows';
+                    
+                    const truths: Record<string, string> = {
+                      Aries: `${pet.name} ${verb} they're in charge. (They ${isMemorial ? "weren't" : "aren't"} wrong.) Their biggest fear? Being ignored.`,
+                      Taurus: `${pet.name} ${verb2} "their spot." Move it at your peril. Their secret? They ${isMemorial ? "would've done" : "would do"} anything for a good belly rub.`,
+                      Gemini: `${pet.name} ${verb3} bored faster than you can blink. Two personalities in one adorable package.`,
+                      Cancer: `${pet.name} ${verb4} EVERYTHING. Every moment you shared ${isMemorial ? "was" : "is"} filed away. They ${isMemorial ? "loved" : "love"} you so much it almost ${isMemorial ? "hurt" : "hurts"} them.`,
+                      Leo: `${pet.name} ${verb5} they're the main character. The drama? Intentional. They ${isMemorial ? "always checked" : "secretly check"} if you're watching.`,
+                      Virgo: `${pet.name} ${isMemorial ? "judged" : "judges"} you. Lovingly. That stare when you ${isMemorial ? "didn't" : "don't"} follow routine? Pure disappointment.`,
+                      Libra: `${pet.name} ${isMemorial ? "hated" : "hates"} conflict so much they ${isMemorial ? "would" : "will"} literally leave the room. Basically a furry diplomat.`,
+                      Scorpio: `${pet.name} ${isMemorial ? "had" : "has"} depths you'll never fully understand. Those intense eyes? They ${isMemorial ? "were" : "are"} reading your soul.`,
+                      Sagittarius: `${pet.name}'s attention span ${isMemorial ? "was" : "is"}... squirrel! ${isMemorial ? "They were" : "They're"} eternal optimists. Freedom ${isMemorial ? "was" : "is"} their love language.`,
+                      Capricorn: `${pet.name} ${isMemorial ? "was" : "is"} basically a tiny CEO. They ${isMemorial ? "had" : "have"} goals. They ${isMemorial ? "had" : "have"} standards. They ${isMemorial ? "were" : "are"} secretly proud of you.`,
+                      Aquarius: `${pet.name} ${isMemorial ? "did" : "does"} things their own way. Always. They ${isMemorial ? "made" : "make"} you question "is this normal?" (It ${isMemorial ? "was" : "is"}, for them.)`,
+                      Pisces: `${pet.name} ${isMemorial ? "dreamed" : "dreams"} in cosmic frequencies. Sometimes they ${isMemorial ? "stared" : "stare"} at nothing—they ${isMemorial ? "were" : "are"} seeing things you can't.`,
+                    };
+                    return truths[petSign || 'Aries'];
+                  };
+                  
+                  // Get occasion-aware FOMO text
+                  const getFomoText = () => {
+                    if (isMemorial) {
+                      return `There's so much more to understand about ${pet.name}'s soul. What was their deepest gift to you? What cosmic lessons did they teach? The full memorial tribute reveals the eternal bond...`;
+                    }
+                    if (isBirthday) {
+                      return `But wait—the birthday secrets go deeper! What's ${pet.name}'s birthday wish? What cosmic gifts does this year hold? The full birthday portrait reveals all... 🎁`;
+                    }
+                    return `But wait—there's so much more. What's ${pet.name}'s secret fear? Why do they do that thing? How do they actually want to be loved? The full reading reveals everything...`;
+                  };
+                  
                   return (
                     <div className="space-y-4">
-                      {/* Personalized Hook - Emotional */}
-                      <div className="p-4 rounded-xl bg-card/40 border border-primary/20">
+                      {/* Personalized Hook - Occasion-Aware */}
+                      <div className={cn(
+                        "p-4 rounded-xl border",
+                        isMemorial ? "bg-purple-500/10 border-purple-500/20" : "bg-card/40 border-primary/20"
+                      )}>
                         <p className="text-foreground text-base leading-relaxed">
-                          <span className="font-semibold text-cosmic-gold">{pet.name}</span> isn't just any {pet.species}.
-                          As a <span className="font-medium">{petSign}</span> with <span className="font-medium">{petSignData.element}</span> energy, 
-                          {petSignData.element === 'Fire' && " they carry a flame in their soul that lights up your darkest days. But that same fire means they feel rejection more deeply than you'd ever guess..."}
-                          {petSignData.element === 'Earth' && " their loyalty runs deeper than the roots of an ancient tree. When they curl up beside you, they're offering you their entire world..."}
-                          {petSignData.element === 'Air' && " their mind is always dancing with curiosity. That look in their eyes? It's them trying to understand the mysteries of your heart..."}
-                          {petSignData.element === 'Water' && " they feel your emotions before you do. When you're sad, they know. When you're happy, they celebrate with you in ways you might not even notice..."}
+                          <span className={cn("font-semibold", isMemorial ? "text-purple-400" : "text-cosmic-gold")}>{pet.name}</span> {getPersonalizedHook()}
                         </p>
                       </div>
 
-                      {/* One Powerful Insight with Humor */}
+                      {/* One Powerful Insight - Occasion-Aware */}
                       <div className="space-y-2">
-                        <p className="text-xs text-primary font-medium uppercase tracking-wider">🔮 One Truth About {pet.name}</p>
+                        <p className={cn(
+                          "text-xs font-medium uppercase tracking-wider",
+                          isMemorial ? "text-purple-400" : "text-primary"
+                        )}>
+                          {isMemorial ? `💜 Remembering ${pet.name}'s Truth` : isBirthday ? `🎂 Birthday Truth About ${pet.name}` : `🔮 One Truth About ${pet.name}`}
+                        </p>
                         <p className="text-foreground/90 italic">
-                          {petSign === 'Aries' && `${pet.name} thinks they're in charge. (They're not wrong.) Their biggest fear? Being ignored. Try that "look away" trick when they misbehave—it's cosmic torture for them.`}
-                          {petSign === 'Taurus' && `${pet.name} has probably claimed "their spot" on the couch. Move it at your peril. Their secret? They'd do anything for a good belly rub and routine.`}
-                          {petSign === 'Gemini' && `${pet.name} gets bored faster than you can say "fetch." Two personalities in one adorable package. Keep it interesting or they'll find their own entertainment (RIP your shoes).`}
-                          {petSign === 'Cancer' && `${pet.name} remembers EVERYTHING. That time you left them at the vet? Filed away forever. They love you so much it almost hurts them.`}
-                          {petSign === 'Leo' && `${pet.name} knows they're the main character. The drama? Intentional. They secretly check if you're watching before doing anything cute.`}
-                          {petSign === 'Virgo' && `${pet.name} judges you. Lovingly. That stare when you don't follow their routine? Pure disappointment. They're the most helpful soul you'll ever meet.`}
-                          {petSign === 'Libra' && `${pet.name} hates conflict so much they'll literally leave the room. Their mission? Keeping everyone happy. They're basically a furry diplomat.`}
-                          {petSign === 'Scorpio' && `${pet.name} has depths you'll never fully understand. Those intense eyes? They're reading your soul. Betray their trust and they'll remember forever.`}
-                          {petSign === 'Sagittarius' && `${pet.name}'s attention span is... squirrel! They're eternal optimists who treat every walk like a grand adventure. Freedom is their love language.`}
-                          {petSign === 'Capricorn' && `${pet.name} is basically a tiny CEO. They have goals. They have standards. They judge other pets. They're secretly proud of you.`}
-                          {petSign === 'Aquarius' && `${pet.name} does things their own way. Always. They're the pet that makes you question "is this normal?" (It is, for them.)`}
-                          {petSign === 'Pisces' && `${pet.name} dreams in cosmic frequencies. Sometimes they stare at nothing—they're seeing things you can't. They absorb your stress, so protect this gentle soul.`}
+                          {getTruth()}
                         </p>
                       </div>
 
-                      {/* Emotional FOMO - What's Missing */}
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-nebula-purple/10 border border-nebula-purple/20">
-                        <Lock className="w-5 h-5 text-nebula-purple flex-shrink-0" />
+                      {/* Emotional FOMO - Occasion-Aware */}
+                      <div className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg border",
+                        isMemorial 
+                          ? "bg-purple-500/10 border-purple-500/20" 
+                          : "bg-nebula-purple/10 border-nebula-purple/20"
+                      )}>
+                        <Lock className={cn("w-5 h-5 flex-shrink-0", isMemorial ? "text-purple-400" : "text-nebula-purple")} />
                         <p className="text-sm text-foreground/80">
-                          <span className="font-medium">But wait—there's so much more.</span> What's {pet.name}'s secret fear? Why do they do <em>that</em> thing? How do they actually want to be loved? The full reading reveals everything... 
+                          <span className="font-medium">{getFomoText()}</span>
                         </p>
                       </div>
                     </div>
