@@ -5,7 +5,7 @@ import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Bug, Moon, Ca
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
-import { MultiPetPhotoUpload, PetPhotoData } from './MultiPetPhotoUpload';
+import { MultiPetPhotoUpload, PetPhotoData, PhotoProcessingMode } from './MultiPetPhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -37,6 +37,8 @@ export interface CheckoutData {
   includeHoroscope?: boolean;
   // NEW: Per-pet tier selection
   petTiers?: Record<number, 'basic' | 'premium' | 'vip'>;
+  // Per-pet horoscope subscription selection
+  petHoroscopes?: Record<number, boolean>;
 }
 
 // Product tiers - $35 without portrait, $50 with AI portrait
@@ -117,13 +119,20 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
   const [selectedGiftTier, setSelectedGiftTier] = useState<'basic' | 'premium' | 'vip'>('basic');
-  const [includeHoroscope, setIncludeHoroscope] = useState(false);
   const [spotsLeft, setSpotsLeft] = useState(7);
   const [recentPurchases, setRecentPurchases] = useState(12847);
   const [petPhotos, setPetPhotos] = useState<Record<number, PetPhotoData>>({});
   
-  // Calculate how many pets need weekly updates (exclude memorial pets)
+  // Per-pet horoscope subscription selection (only for non-memorial, non-VIP pets)
   const nonMemorialPets = allPets.filter(p => p.occasionMode !== 'memorial');
+  const [petHoroscopes, setPetHoroscopes] = useState<Record<number, boolean>>(() => {
+    const initial: Record<number, boolean> = {};
+    allPets.forEach((pet, idx) => {
+      // Only enable by default for non-memorial pets
+      initial[idx] = pet.occasionMode !== 'memorial';
+    });
+    return initial;
+  });
   const subscriptionPetCount = Math.max(1, nonMemorialPets.length);
 
   // Simulated scarcity countdown
@@ -202,8 +211,11 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     Object.values(petTiers).forEach(t => tierCounts[t]++);
     const dominantTier = tierCounts.vip > 0 ? 'vip' : tierCounts.premium > 0 ? 'premium' : 'basic';
     
+    // Check if any pets have horoscope enabled
+    const anyPetHasHoroscope = Object.values(petHoroscopes).some(Boolean) || hasVipPet;
+    
     onCheckout({
-      selectedProducts: includeHoroscope || hasVipPet ? [dominantTier, 'horoscope_subscription'] : [dominantTier],
+      selectedProducts: anyPetHasHoroscope ? [dominantTier, 'horoscope_subscription'] : [dominantTier],
       couponId: null,
       giftCertificateId: null,
       isGift: false,
@@ -218,8 +230,9 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       includesPortrait: anyPetNeedsPortrait,
       petPhotoUrl: firstPetPhoto?.url || null,
       petPhotos: petPhotos,
-      includeHoroscope: includeHoroscope || hasVipPet,
+      includeHoroscope: anyPetHasHoroscope,
       petTiers: petTiers,
+      petHoroscopes: petHoroscopes,
     });
   };
   
@@ -483,46 +496,76 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       </div>
 
-      {/* Weekly Horoscope Subscription Add-on */}
+      {/* Per-Pet Weekly Horoscope Subscription Selection */}
       {!hasVipPet && nonMemorialPets.length > 0 && (
-        <div className="space-y-2">
-          <button
-            onClick={() => setIncludeHoroscope(!includeHoroscope)}
-            className={cn(
-              "w-full p-4 rounded-xl border-2 transition-all text-left",
-              includeHoroscope
-                ? "border-nebula-purple bg-gradient-to-r from-nebula-purple/20 to-nebula-pink/10"
-                : "border-border/50 bg-card/20 hover:border-nebula-purple/30"
-            )}
-          >
-            <div className="flex items-start gap-3">
-              <div className={cn(
-                "w-5 h-5 mt-0.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                includeHoroscope
-                  ? "border-nebula-purple bg-nebula-purple"
-                  : "border-muted-foreground/40"
-              )}>
-                {includeHoroscope && <Check className="w-3 h-3 text-white" />}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Moon className={cn("w-5 h-5", includeHoroscope ? "text-nebula-purple" : "text-muted-foreground")} />
-                  <h4 className="font-semibold text-foreground">Weekly Cosmic Updates</h4>
-                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-nebula-purple to-nebula-pink text-white">LAUNCH SPECIAL</span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Personalized weekly insights for all your pets
-                </p>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm">
-                    <span className="text-foreground font-bold">${((499 * subscriptionPetCount) / 100).toFixed(2)}/month</span>
-                    {subscriptionPetCount > 1 && <span className="text-xs text-muted-foreground ml-1">({subscriptionPetCount} pets)</span>}
-                  </p>
-                  <span className="text-xs text-nebula-purple font-medium">Cancel anytime</span>
-                </div>
-              </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Moon className="w-4 h-4 text-nebula-purple" />
+            <span className="text-sm font-medium text-foreground">Weekly Cosmic Updates</span>
+            <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-nebula-purple to-nebula-pink text-white">LAUNCH SPECIAL</span>
+          </div>
+          
+          <p className="text-xs text-muted-foreground">
+            Select which pets receive personalized weekly horoscopes ($4.99/month per pet):
+          </p>
+          
+          <div className="space-y-2">
+            {allPets.map((pet, petIndex) => {
+              const isMemorial = pet.occasionMode === 'memorial';
+              const isVip = petTiers[petIndex] === 'vip';
+              const isEnabled = petHoroscopes[petIndex] || isVip;
+              
+              if (isMemorial) return null;
+              
+              return (
+                <button
+                  key={petIndex}
+                  onClick={() => {
+                    if (!isVip) {
+                      setPetHoroscopes(prev => ({ ...prev, [petIndex]: !prev[petIndex] }));
+                    }
+                  }}
+                  disabled={isVip}
+                  className={cn(
+                    "w-full p-3 rounded-lg border-2 transition-all text-left flex items-center gap-3",
+                    isEnabled
+                      ? "border-nebula-purple bg-nebula-purple/10"
+                      : "border-border/50 bg-card/20 hover:border-nebula-purple/30",
+                    isVip && "opacity-70 cursor-not-allowed"
+                  )}
+                >
+                  <div className={cn(
+                    "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                    isEnabled
+                      ? "border-nebula-purple bg-nebula-purple"
+                      : "border-muted-foreground/40"
+                  )}>
+                    {isEnabled && <Check className="w-3 h-3 text-white" />}
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-medium text-foreground">{pet.name || `Pet ${petIndex + 1}`}</span>
+                    {isVip && (
+                      <span className="ml-2 text-xs text-cosmic-gold">(included with VIP)</span>
+                    )}
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {isVip ? 'Free' : '$4.99/mo'}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          
+          {Object.values(petHoroscopes).some(Boolean) && (
+            <div className="flex items-center justify-between text-sm p-2 rounded-lg bg-nebula-purple/10 border border-nebula-purple/30">
+              <span className="text-muted-foreground">Weekly updates total:</span>
+              <span className="font-bold text-nebula-purple">
+                ${((499 * Object.values(petHoroscopes).filter(Boolean).length) / 100).toFixed(2)}/month
+              </span>
             </div>
-          </button>
+          )}
+          
+          <p className="text-xs text-center text-nebula-purple font-medium">Cancel anytime</p>
         </div>
       )}
 
@@ -746,7 +789,36 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   );
 }
 
-// Inline single pet photo upload for checkout context
+// Processing mode options for cosmic cards
+const PROCESSING_OPTIONS: { id: PhotoProcessingMode; label: string; description: string }[] = [
+  { 
+    id: 'original', 
+    label: 'Use As-Is', 
+    description: 'Keep original photo'
+  },
+  { 
+    id: 'cosmic', 
+    label: 'Cosmic Portrait', 
+    description: 'Celestial card style'
+  },
+  { 
+    id: 'pokemon', 
+    label: 'Collector Card', 
+    description: 'Trading card style'
+  },
+  { 
+    id: 'watercolor', 
+    label: 'Watercolor', 
+    description: 'Artistic painting style'
+  },
+  { 
+    id: 'neon', 
+    label: 'Neon Glow', 
+    description: 'Cyberpunk neon style'
+  },
+];
+
+// Inline single pet photo upload for checkout context with full drag-drop and style options
 function SinglePetPhotoUploadInline({ 
   petName, 
   petIndex,
@@ -760,6 +832,8 @@ function SinglePetPhotoUploadInline({
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [tempPhotoUrl, setTempPhotoUrl] = useState<string | null>(null);
 
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -791,8 +865,9 @@ function SinglePetPhotoUploadInline({
         .from('pet-photos')
         .getPublicUrl(filename);
 
-      onPhotoChange({ url: urlData.publicUrl, processingMode: 'pokemon' });
-      toast.success(`${petName}'s photo uploaded!`);
+      setTempPhotoUrl(urlData.publicUrl);
+      setShowOptions(true);
+      toast.success(`${petName}'s photo uploaded! Now choose a style.`);
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload photo. Please try again.');
@@ -808,61 +883,171 @@ function SinglePetPhotoUploadInline({
     if (file) handleFileSelect(file);
   };
 
+  const handleSelectMode = (mode: PhotoProcessingMode) => {
+    if (tempPhotoUrl) {
+      onPhotoChange({ url: tempPhotoUrl, processingMode: mode });
+      setShowOptions(false);
+      setTempPhotoUrl(null);
+    }
+  };
+
+  const removePhoto = () => {
+    onPhotoChange(null);
+    setTempPhotoUrl(null);
+    setShowOptions(false);
+  };
+
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg bg-card/30 border border-border/30">
-      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
-        {petIndex + 1}
-      </div>
-      <span className="font-medium text-sm text-foreground flex-1">{petName}</span>
-      
-      {photoData ? (
-        <div className="flex items-center gap-2">
-          <img src={photoData.url} alt={petName} className="w-8 h-8 rounded object-cover" />
-          <button
-            onClick={() => onPhotoChange(null)}
-            className="text-xs text-muted-foreground hover:text-destructive"
-          >
-            <X className="w-4 h-4" />
-          </button>
+    <div className="p-3 rounded-lg bg-card/30 border border-border/30 space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+          {petIndex + 1}
         </div>
-      ) : (
-        <>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileSelect(file);
-            }}
-            className="hidden"
-            id={`checkout-photo-${petIndex}`}
-          />
-          <label
-            htmlFor={`checkout-photo-${petIndex}`}
-            onDrop={handleDrop}
-            onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
-            onDragLeave={() => setDragActive(false)}
-            className={cn(
-              "px-3 py-1.5 rounded-lg border cursor-pointer transition-all text-xs font-medium flex items-center gap-1.5",
-              dragActive
-                ? "border-nebula-purple bg-nebula-purple/20 text-nebula-purple"
-                : "border-border/50 bg-card/20 text-muted-foreground hover:border-nebula-purple/50",
-              isUploading && "opacity-50 cursor-wait"
-            )}
+        <span className="font-medium text-sm text-foreground flex-1">{petName}</span>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {photoData ? (
+          <motion.div
+            key="preview"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="relative rounded-lg overflow-hidden border-2 border-nebula-purple/50"
           >
-            {isUploading ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-3 h-3 border border-current border-t-transparent rounded-full"
-              />
-            ) : (
-              <Camera className="w-3 h-3" />
-            )}
-            {isUploading ? 'Uploading...' : 'Upload'}
-          </label>
-        </>
-      )}
+            <img
+              src={photoData.url}
+              alt={`${petName}'s photo`}
+              className="w-full h-28 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            
+            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs text-white">
+                <Check className="w-3 h-3 text-green-400" />
+                <span className="px-2 py-0.5 rounded-full bg-nebula-purple/80 text-white">
+                  {PROCESSING_OPTIONS.find(o => o.id === photoData.processingMode)?.label}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={removePhoto}
+                className="text-white hover:bg-white/20 h-6 px-2"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+          </motion.div>
+        ) : showOptions && tempPhotoUrl ? (
+          <motion.div
+            key="options"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-2"
+          >
+            <div className="relative rounded-lg overflow-hidden h-20">
+              <img src={tempPhotoUrl} alt="Preview" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+            </div>
+            
+            <p className="text-xs text-muted-foreground text-center">
+              Choose how to use this photo:
+            </p>
+            
+            {/* Primary options */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleSelectMode('original')}
+                className="p-2 rounded-lg border-2 text-left transition-all border-green-500/50 bg-green-500/10 hover:bg-green-500/20"
+              >
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <Sparkles className="w-3 h-3 text-green-500" />
+                  <span className="text-xs font-medium">Use As-Is</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Keep original photo</p>
+              </button>
+              <button
+                onClick={() => handleSelectMode('cosmic')}
+                className="p-2 rounded-lg border-2 text-left transition-all border-nebula-purple/50 bg-nebula-purple/10 hover:bg-nebula-purple/20"
+              >
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <Sparkles className="w-3 h-3 text-nebula-purple" />
+                  <span className="text-xs font-medium">Cosmic Portrait</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">Celestial card style</p>
+              </button>
+            </div>
+            
+            {/* More AI style options */}
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground text-center">More AI styles:</p>
+              <div className="flex gap-1.5 justify-center flex-wrap">
+                {PROCESSING_OPTIONS.slice(2).map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => handleSelectMode(option.id)}
+                    className="px-2 py-1 rounded-full border border-border/50 bg-card/50 hover:bg-nebula-purple/20 hover:border-nebula-purple/50 transition-all text-[10px]"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="upload"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileSelect(file);
+              }}
+              className="hidden"
+              id={`checkout-photo-${petIndex}`}
+            />
+            <label
+              htmlFor={`checkout-photo-${petIndex}`}
+              onDrop={handleDrop}
+              onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+              onDragLeave={() => setDragActive(false)}
+              className={cn(
+                "block w-full h-24 rounded-lg border-2 border-dashed cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-1",
+                dragActive
+                  ? "border-nebula-purple bg-nebula-purple/20"
+                  : "border-border/50 bg-card/20 hover:border-nebula-purple/50 hover:bg-nebula-purple/5",
+                isUploading && "opacity-50 cursor-wait"
+              )}
+            >
+              {isUploading ? (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-6 h-6 border-2 border-nebula-purple border-t-transparent rounded-full"
+                  />
+                  <span className="text-xs text-muted-foreground">Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <Camera className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {dragActive ? 'Drop photo here!' : 'Click or drag photo'}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground/70">JPG, PNG up to 10MB</span>
+                </>
+              )}
+            </label>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
