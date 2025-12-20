@@ -35,16 +35,20 @@ export default function MyReports() {
     }
   }, [user, authLoading, navigate]);
 
-  // Fetch reports
+  // Fetch reports - check both user_id and email, and both "paid" and "completed" status
   useEffect(() => {
     const fetchReports = async () => {
       if (!user) return;
       
+      // First try to link any unlinked reports
+      await supabase.functions.invoke('link-user-reports').catch(console.error);
+      
+      // Now fetch reports - use OR condition for user_id and email
       const { data, error } = await supabase
         .from('pet_reports')
         .select('id, pet_name, species, breed, birth_date, created_at, payment_status')
         .eq('user_id', user.id)
-        .eq('payment_status', 'completed')
+        .in('payment_status', ['completed', 'paid'])
         .order('created_at', { ascending: false });
 
       if (error) {

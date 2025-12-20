@@ -25,6 +25,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Link any existing reports to this user on sign in/up
+        if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+          // Defer the supabase call to avoid deadlock
+          setTimeout(() => {
+            supabase.functions.invoke('link-user-reports').then(({ data, error }) => {
+              if (data?.linked > 0) {
+                console.log(`Linked ${data.linked} reports to account: ${data.petNames}`);
+              }
+            }).catch(console.error);
+          }, 0);
+        }
       }
     );
 
