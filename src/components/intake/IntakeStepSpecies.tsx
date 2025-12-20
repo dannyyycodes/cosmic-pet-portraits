@@ -2,6 +2,7 @@ import { PetData, PetSpecies } from './IntakeWizard';
 import { ArrowLeft, Dog, Cat, Rabbit, Bird, Fish, HelpCircle, Rat, Turtle } from 'lucide-react';
 import { PiHorseBold } from 'react-icons/pi';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ModeContent } from '@/lib/occasionMode';
 
 interface IntakeStepSpeciesProps {
   petData: PetData;
@@ -9,9 +10,10 @@ interface IntakeStepSpeciesProps {
   onNext: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepSpecies({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepSpeciesProps) {
+export function IntakeStepSpecies({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepSpeciesProps) {
   const { t } = useLanguage();
   
   const speciesOptions: { id: PetSpecies; labelKey: string; icon: React.ReactNode }[] = [
@@ -44,10 +46,10 @@ export function IntakeStepSpecies({ petData, onUpdate, onNext, onBack, totalStep
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 2 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          {t('intake.species.title').replace('{name}', petData.name)}
+          {modeContent.speciesTitle(petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          {t('intake.species.subtitle')}
+          {modeContent.speciesSubtitle}
         </p>
       </div>
 

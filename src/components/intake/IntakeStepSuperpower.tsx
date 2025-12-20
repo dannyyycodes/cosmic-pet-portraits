@@ -3,6 +3,7 @@ import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getSuperpowerOptions, PetSpecies } from '@/lib/speciesOptions';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ModeContent } from '@/lib/occasionMode';
 
 interface IntakeStepSuperpowerProps {
   petData: PetData;
@@ -10,9 +11,10 @@ interface IntakeStepSuperpowerProps {
   onNext: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepSuperpower({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepSuperpowerProps) {
+export function IntakeStepSuperpower({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepSuperpowerProps) {
   const { t } = useLanguage();
   const superpowerOptions = getSuperpowerOptions((petData.species || 'other') as PetSpecies);
   
@@ -33,10 +35,10 @@ export function IntakeStepSuperpower({ petData, onUpdate, onNext, onBack, totalS
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 8 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          {t('intake.superpower.title').replace('{name}', petData.name)}
+          {modeContent.superpowerTitle(petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          {t('intake.superpower.subtitle')}
+          {modeContent.superpowerSubtitle}
         </p>
       </div>
 

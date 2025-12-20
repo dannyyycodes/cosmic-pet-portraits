@@ -3,6 +3,7 @@ import { ArrowLeft, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getStrangerOptions, PetSpecies } from '@/lib/speciesOptions';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ModeContent } from '@/lib/occasionMode';
 
 interface IntakeStepStrangersProps {
   petData: PetData;
@@ -10,9 +11,10 @@ interface IntakeStepStrangersProps {
   onNext: () => void;
   onBack: () => void;
   totalSteps: number;
+  modeContent: ModeContent;
 }
 
-export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSteps }: IntakeStepStrangersProps) {
+export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepStrangersProps) {
   const { t } = useLanguage();
   const strangerOptions = getStrangerOptions((petData.species || 'other') as PetSpecies);
   
@@ -33,10 +35,10 @@ export function IntakeStepStrangers({ petData, onUpdate, onNext, onBack, totalSt
       <div className="space-y-3">
         <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 9 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-          {t('intake.strangers.title').replace('{name}', petData.name)}
+          {modeContent.strangersTitle(petData.name)}
         </h1>
         <p className="text-muted-foreground text-lg">
-          {t('intake.strangers.subtitle')}
+          {modeContent.strangersSubtitle}
         </p>
       </div>
 
