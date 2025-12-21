@@ -354,11 +354,16 @@ export default function GiftPurchase() {
             transition={{ delay: 0.25 }}
             className="space-y-4"
           >
-            <div className="flex items-center gap-2">
-              <PawPrint className="w-5 h-5 text-primary" />
-              <label className="text-lg font-display font-semibold text-foreground">
-                {multiRecipient ? 'Add gifts for each recipient' : 'How many pets does your loved one have?'}
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <PawPrint className="w-5 h-5 text-primary" />
+                <label className="text-lg font-display font-semibold text-foreground">
+                  Gift Readings
+                </label>
+              </div>
+              <span className="text-sm text-muted-foreground bg-card/50 px-3 py-1 rounded-full">
+                {petCount} {petCount === 1 ? 'gift' : 'gifts'}
+              </span>
             </div>
 
             <div className="space-y-3">
@@ -373,12 +378,19 @@ export default function GiftPurchase() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+                        <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center text-xs font-bold text-white">
                           {index + 1}
                         </span>
-                        <span className="text-sm font-medium text-foreground">
-                          {multiRecipient ? `Gift ${index + 1}` : (index === 0 ? "First pet" : index === 1 ? "Second pet" : index === 2 ? "Third pet" : `Pet ${index + 1}`)}
-                        </span>
+                        <div>
+                          <span className="text-sm font-medium text-foreground">
+                            Gift #{index + 1}
+                          </span>
+                          {multiRecipient && pet.recipientEmail && (
+                            <p className="text-xs text-primary truncate max-w-[150px]">
+                              → {pet.recipientName || pet.recipientEmail}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       {giftPets.length > 1 && (
                         <button
@@ -392,7 +404,7 @@ export default function GiftPurchase() {
                     </div>
                     
                     {/* Tier Selection */}
-                    <div className="flex gap-2 mb-3">
+                    <div className="flex gap-2">
                       {(Object.entries(TIERS) as [GiftTier, typeof TIERS.essential][]).map(([key, tier]) => (
                         <button
                           key={key}
@@ -416,7 +428,8 @@ export default function GiftPurchase() {
 
                     {/* Per-pet recipient info when in multi-recipient mode */}
                     {multiRecipient && deliveryMethod === 'email' && (
-                      <div className="space-y-2 pt-3 border-t border-border/30">
+                      <div className="space-y-2 pt-3 mt-3 border-t border-border/30">
+                        <p className="text-xs text-muted-foreground font-medium">Send this gift to:</p>
                         <div className="grid grid-cols-2 gap-2">
                           <input
                             type="text"
@@ -450,7 +463,7 @@ export default function GiftPurchase() {
                   className="w-full p-4 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all flex items-center justify-center gap-2 text-primary"
                 >
                   <Plus className="w-5 h-5" />
-                  <span className="font-medium">{multiRecipient ? 'Add another gift' : 'Add another pet'}</span>
+                  <span className="font-medium">Add another gift</span>
                   {discount < 0.50 && giftPets.length >= 1 && (
                     <span className="text-xs text-green-400 ml-1">
                       +{Math.round((getVolumeDiscount(giftPets.length + 1) - discount) * 100)}% more savings
@@ -461,36 +474,72 @@ export default function GiftPurchase() {
             </div>
           </motion.div>
 
-          {/* Price Summary */}
+          {/* Order Summary - Clear breakdown of what's being sent */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="p-4 rounded-xl bg-gradient-to-br from-gold/10 to-amber-500/5 border border-gold/30 space-y-2"
+            className="p-5 rounded-2xl bg-gradient-to-br from-gold/10 to-amber-500/5 border border-gold/30 space-y-4"
           >
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                {petCount} {petCount === 1 ? 'reading' : 'readings'}
-                {multiRecipient && uniqueRecipientCount > 1 && (
-                  <span className="text-primary ml-1">• {uniqueRecipientCount} recipients</span>
-                )}
-              </span>
-              <span className="text-foreground">${(pricing.baseTotal / 100).toFixed(2)}</span>
+            <div className="flex items-center gap-2 pb-3 border-b border-gold/20">
+              <Gift className="w-5 h-5 text-gold" />
+              <h3 className="font-display font-semibold text-foreground">Order Summary</h3>
             </div>
-            {discount > 0 && (
+
+            {/* Gift breakdown */}
+            <div className="space-y-2">
+              {giftPets.map((pet, index) => (
+                <div key={pet.id} className="flex justify-between items-center text-sm py-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+                      {index + 1}
+                    </span>
+                    <span className="text-foreground">{TIERS[pet.tier].label}</span>
+                    {multiRecipient && pet.recipientEmail && (
+                      <span className="text-xs text-primary">→ {pet.recipientName || pet.recipientEmail.split('@')[0]}</span>
+                    )}
+                  </div>
+                  <span className="text-muted-foreground">${(TIERS[pet.tier].cents / 100).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-gold/20">
               <div className="flex justify-between text-sm">
-                <span className="text-green-400">Volume discount ({Math.round(discount * 100)}% off)</span>
-                <span className="text-green-400">-${(pricing.discountAmount / 100).toFixed(2)}</span>
+                <span className="text-muted-foreground">Subtotal ({petCount} {petCount === 1 ? 'gift' : 'gifts'})</span>
+                <span className="text-foreground">${(pricing.baseTotal / 100).toFixed(2)}</span>
               </div>
-            )}
-            <div className="flex justify-between text-lg font-bold pt-2 border-t border-gold/20">
-              <span className="text-foreground">Total</span>
-              <span className="text-gold">${(pricing.finalTotal / 100).toFixed(2)}</span>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-green-400 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Volume discount ({Math.round(discount * 100)}% off)
+                  </span>
+                  <span className="text-green-400">-${(pricing.discountAmount / 100).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-xl font-bold pt-3 border-t border-gold/20">
+                <span className="text-foreground">Total</span>
+                <span className="text-gold">${(pricing.finalTotal / 100).toFixed(2)}</span>
+              </div>
             </div>
-            {petCount > 1 && (
-              <p className="text-xs text-muted-foreground text-center">
-                You save ${(pricing.discountAmount / 100).toFixed(2)}!
-              </p>
+
+            {/* Recipient summary */}
+            {deliveryMethod === 'email' && (
+              <div className="pt-3 border-t border-gold/20">
+                <div className="flex items-center gap-2 text-sm">
+                  <Send className="w-4 h-4 text-primary" />
+                  {multiRecipient ? (
+                    <span className="text-muted-foreground">
+                      Sending to <span className="text-primary font-medium">{uniqueRecipientCount} {uniqueRecipientCount === 1 ? 'recipient' : 'different recipients'}</span>
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      All gifts go to <span className="text-primary font-medium">{singleRecipientName || singleRecipientEmail || '1 recipient'}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
           </motion.div>
 
