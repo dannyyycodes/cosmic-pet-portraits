@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, Heart, Sparkles, ArrowLeft, Send, Star, LinkIcon, CheckCircle, Quote, Plus, Trash2, PawPrint } from 'lucide-react';
+import { Gift, Heart, Sparkles, ArrowLeft, Send, Star, LinkIcon, CheckCircle, Quote, Plus, Trash2, PawPrint, Users, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
@@ -15,6 +15,8 @@ type GiftTier = 'essential' | 'portrait' | 'vip';
 interface GiftPet {
   id: string;
   tier: GiftTier;
+  recipientName?: string;
+  recipientEmail?: string;
 }
 
 const TIERS = {
@@ -114,13 +116,18 @@ function GiftTestimonials() {
 export default function GiftPurchase() {
   const { t } = useLanguage();
   const [purchaserEmail, setPurchaserEmail] = useState('');
-  const [recipientName, setRecipientName] = useState('');
-  const [recipientEmail, setRecipientEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email');
   
-  // Multi-pet with individual tier selection
+  // Multi-recipient mode toggle
+  const [multiRecipient, setMultiRecipient] = useState(false);
+  
+  // Single recipient (when multiRecipient is false)
+  const [singleRecipientName, setSingleRecipientName] = useState('');
+  const [singleRecipientEmail, setSingleRecipientEmail] = useState('');
+  
+  // Multi-pet with individual tier and optional recipient selection
   const [giftPets, setGiftPets] = useState<GiftPet[]>([
     { id: crypto.randomUUID(), tier: 'portrait' }
   ]);
@@ -141,6 +148,10 @@ export default function GiftPurchase() {
     setGiftPets(giftPets.map(p => p.id === id ? { ...p, tier } : p));
   };
 
+  const updatePetRecipient = (id: string, field: 'recipientName' | 'recipientEmail', value: string) => {
+    setGiftPets(giftPets.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
   const petCount = giftPets.length;
   const discount = getVolumeDiscount(petCount);
   
@@ -151,6 +162,13 @@ export default function GiftPurchase() {
     return { baseTotal, discountAmount, finalTotal };
   }, [giftPets, discount]);
 
+  // Count unique recipients for display
+  const uniqueRecipientCount = useMemo(() => {
+    if (!multiRecipient) return 1;
+    const emails = new Set(giftPets.map(p => p.recipientEmail?.toLowerCase().trim()).filter(Boolean));
+    return Math.max(emails.size, 1);
+  }, [giftPets, multiRecipient]);
+
   const handlePurchase = async (e?: React.FormEvent) => {
     e?.preventDefault();
     
@@ -159,21 +177,40 @@ export default function GiftPurchase() {
       return;
     }
     
-    if (deliveryMethod === 'email' && !recipientEmail) {
-      toast.error(t('gift.errorRecipientEmail'));
-      return;
+    if (deliveryMethod === 'email') {
+      if (multiRecipient) {
+        // Check each pet has a recipient email
+        const missingRecipient = giftPets.some(p => !p.recipientEmail?.trim());
+        if (missingRecipient) {
+          toast.error('Please enter an email for each gift recipient');
+          return;
+        }
+      } else {
+        if (!singleRecipientEmail) {
+          toast.error(t('gift.errorRecipientEmail'));
+          return;
+        }
+      }
     }
 
     setIsLoading(true);
     try {
+      // Prepare pets with recipient info
+      const petsWithRecipients = giftPets.map(pet => ({
+        ...pet,
+        recipientName: multiRecipient ? pet.recipientName : singleRecipientName,
+        recipientEmail: multiRecipient ? pet.recipientEmail : singleRecipientEmail,
+      }));
+
       const { data, error } = await supabase.functions.invoke('purchase-gift-certificate', {
         body: {
           purchaserEmail,
-          recipientEmail: deliveryMethod === 'email' ? recipientEmail : null,
-          recipientName,
+          recipientEmail: multiRecipient ? null : (deliveryMethod === 'email' ? singleRecipientEmail : null),
+          recipientName: multiRecipient ? null : singleRecipientName,
           giftMessage,
-          giftPets, // Send individual pet tiers
+          giftPets: petsWithRecipients,
           deliveryMethod,
+          multiRecipient,
         },
       });
 
@@ -271,6 +308,45 @@ export default function GiftPurchase() {
             ))}
           </div>
 
+          {/* Recipient Mode Toggle - only show when multiple pets */}
+          {giftPets.length > 1 && deliveryMethod === 'email' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-3"
+            >
+              <label className="text-sm font-medium text-foreground">Who are these gifts for?</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMultiRecipient(false)}
+                  className={`p-4 rounded-xl border-2 transition-all text-center ${
+                    !multiRecipient
+                      ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
+                      : 'border-border/50 bg-card/40 hover:border-primary/50'
+                  }`}
+                >
+                  <User className={`w-6 h-6 mx-auto mb-2 ${!multiRecipient ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className="text-sm font-medium text-foreground">One person</p>
+                  <p className="text-xs text-muted-foreground mt-1">All pets go to same recipient</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMultiRecipient(true)}
+                  className={`p-4 rounded-xl border-2 transition-all text-center ${
+                    multiRecipient
+                      ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
+                      : 'border-border/50 bg-card/40 hover:border-primary/50'
+                  }`}
+                >
+                  <Users className={`w-6 h-6 mx-auto mb-2 ${multiRecipient ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className="text-sm font-medium text-foreground">Multiple people</p>
+                  <p className="text-xs text-muted-foreground mt-1">Different recipients per pet</p>
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {/* Pet Selection */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -281,7 +357,7 @@ export default function GiftPurchase() {
             <div className="flex items-center gap-2">
               <PawPrint className="w-5 h-5 text-primary" />
               <label className="text-lg font-display font-semibold text-foreground">
-                How many pets does your loved one have?
+                {multiRecipient ? 'Add gifts for each recipient' : 'How many pets does your loved one have?'}
               </label>
             </div>
 
@@ -301,7 +377,7 @@ export default function GiftPurchase() {
                           {index + 1}
                         </span>
                         <span className="text-sm font-medium text-foreground">
-                          {index === 0 ? "First pet" : index === 1 ? "Second pet" : index === 2 ? "Third pet" : `Pet ${index + 1}`}
+                          {multiRecipient ? `Gift ${index + 1}` : (index === 0 ? "First pet" : index === 1 ? "Second pet" : index === 2 ? "Third pet" : `Pet ${index + 1}`)}
                         </span>
                       </div>
                       {giftPets.length > 1 && (
@@ -315,7 +391,8 @@ export default function GiftPurchase() {
                       )}
                     </div>
                     
-                    <div className="flex gap-2">
+                    {/* Tier Selection */}
+                    <div className="flex gap-2 mb-3">
                       {(Object.entries(TIERS) as [GiftTier, typeof TIERS.essential][]).map(([key, tier]) => (
                         <button
                           key={key}
@@ -336,6 +413,29 @@ export default function GiftPurchase() {
                         </button>
                       ))}
                     </div>
+
+                    {/* Per-pet recipient info when in multi-recipient mode */}
+                    {multiRecipient && deliveryMethod === 'email' && (
+                      <div className="space-y-2 pt-3 border-t border-border/30">
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            value={pet.recipientName || ''}
+                            onChange={(e) => updatePetRecipient(pet.id, 'recipientName', e.target.value)}
+                            placeholder="Recipient name"
+                            className="px-3 py-2 text-sm rounded-lg bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
+                          />
+                          <input
+                            type="email"
+                            value={pet.recipientEmail || ''}
+                            onChange={(e) => updatePetRecipient(pet.id, 'recipientEmail', e.target.value)}
+                            placeholder="recipient@email.com"
+                            required
+                            className="px-3 py-2 text-sm rounded-lg bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -350,7 +450,7 @@ export default function GiftPurchase() {
                   className="w-full p-4 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all flex items-center justify-center gap-2 text-primary"
                 >
                   <Plus className="w-5 h-5" />
-                  <span className="font-medium">Add another pet</span>
+                  <span className="font-medium">{multiRecipient ? 'Add another gift' : 'Add another pet'}</span>
                   {discount < 0.50 && giftPets.length >= 1 && (
                     <span className="text-xs text-green-400 ml-1">
                       +{Math.round((getVolumeDiscount(giftPets.length + 1) - discount) * 100)}% more savings
@@ -371,6 +471,9 @@ export default function GiftPurchase() {
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">
                 {petCount} {petCount === 1 ? 'reading' : 'readings'}
+                {multiRecipient && uniqueRecipientCount > 1 && (
+                  <span className="text-primary ml-1">• {uniqueRecipientCount} recipients</span>
+                )}
               </span>
               <span className="text-foreground">${(pricing.baseTotal / 100).toFixed(2)}</span>
             </div>
@@ -415,7 +518,10 @@ export default function GiftPurchase() {
               </button>
               <button
                 type="button"
-                onClick={() => setDeliveryMethod('link')}
+                onClick={() => {
+                  setDeliveryMethod('link');
+                  setMultiRecipient(false); // Reset to single mode for link delivery
+                }}
                 className={`p-4 rounded-xl border-2 transition-all text-center ${
                   deliveryMethod === 'link'
                     ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
@@ -446,22 +552,27 @@ export default function GiftPurchase() {
               required
             />
             
-            <CosmicInput
-              label={t('gift.recipientName')}
-              value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
-              placeholder={t('gift.recipientNamePlaceholder')}
-            />
-            
-            {deliveryMethod === 'email' && (
-              <CosmicInput
-                label={t('gift.recipientEmail')}
-                type="email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder={t('gift.recipientEmailPlaceholder')}
-                required
-              />
+            {/* Single recipient fields - only show when NOT in multi-recipient mode */}
+            {!multiRecipient && (
+              <>
+                <CosmicInput
+                  label={t('gift.recipientName')}
+                  value={singleRecipientName}
+                  onChange={(e) => setSingleRecipientName(e.target.value)}
+                  placeholder={t('gift.recipientNamePlaceholder')}
+                />
+                
+                {deliveryMethod === 'email' && (
+                  <CosmicInput
+                    label={t('gift.recipientEmail')}
+                    type="email"
+                    value={singleRecipientEmail}
+                    onChange={(e) => setSingleRecipientEmail(e.target.value)}
+                    placeholder={t('gift.recipientEmailPlaceholder')}
+                    required
+                  />
+                )}
+              </>
             )}
             
             <div className="space-y-2">

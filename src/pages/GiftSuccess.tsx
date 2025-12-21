@@ -1,6 +1,6 @@
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Gift, CheckCircle, Mail, Copy, ArrowRight, LinkIcon, Share2, Sparkles, PartyPopper } from 'lucide-react';
+import { Gift, CheckCircle, Mail, Copy, ArrowRight, LinkIcon, Share2, Sparkles, PartyPopper, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { toast } from 'sonner';
@@ -11,8 +11,10 @@ export default function GiftSuccess() {
   const [searchParams] = useSearchParams();
   const giftCode = searchParams.get('code') || '';
   const deliveryMethod = searchParams.get('delivery') || 'email';
+  const recipientCount = parseInt(searchParams.get('count') || '1', 10);
 
   const redeemUrl = `${window.location.origin}/redeem?code=${giftCode}`;
+  const isMultiRecipient = recipientCount > 1;
 
   const copyCode = () => {
     navigator.clipboard.writeText(giftCode);
@@ -92,11 +94,28 @@ export default function GiftSuccess() {
               {t('giftSuccess.title')}
             </h1>
             <p className="text-muted-foreground text-lg">
-              {isLinkDelivery 
-                ? t('giftSuccess.subtitleLink')
-                : t('giftSuccess.subtitleEmail')}
+              {isMultiRecipient 
+                ? `${recipientCount} cosmic gifts are on their way!`
+                : isLinkDelivery 
+                  ? t('giftSuccess.subtitleLink')
+                  : t('giftSuccess.subtitleEmail')}
             </p>
           </motion.div>
+
+          {/* Multi-recipient indicator */}
+          {isMultiRecipient && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.35 }}
+              className="flex items-center justify-center gap-2 text-primary"
+            >
+              <Users className="w-5 h-5" />
+              <span className="text-sm font-medium">
+                Separate emails sent to {recipientCount} recipients
+              </span>
+            </motion.div>
+          )}
 
           {/* Link Delivery Card */}
           {giftCode && isLinkDelivery && (
@@ -139,7 +158,9 @@ export default function GiftSuccess() {
               transition={{ delay: 0.4 }}
               className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 via-nebula-purple/15 to-nebula-pink/20 border border-primary/30 backdrop-blur-sm"
             >
-              <p className="text-sm text-muted-foreground mb-3">{t('giftSuccess.giftCode')}</p>
+              <p className="text-sm text-muted-foreground mb-3">
+                {isMultiRecipient ? 'Primary gift code' : t('giftSuccess.giftCode')}
+              </p>
               <div className="flex items-center justify-center gap-4 p-4 rounded-xl bg-background/60 border border-border/50">
                 <p className="text-2xl md:text-3xl font-mono font-bold text-foreground tracking-widest">
                   {giftCode}
@@ -153,7 +174,9 @@ export default function GiftSuccess() {
               </div>
               <p className="text-xs text-green-400 mt-3 flex items-center justify-center gap-2">
                 <Mail className="w-4 h-4" />
-                Email sent to recipient
+                {isMultiRecipient 
+                  ? `Emails sent to ${recipientCount} recipients`
+                  : 'Email sent to recipient'}
               </p>
             </motion.div>
           )}
@@ -189,7 +212,9 @@ export default function GiftSuccess() {
                 <>
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 font-bold">2.</span>
-                    {t('giftSuccess.step2Email')}
+                    {isMultiRecipient 
+                      ? 'Each recipient gets their own unique gift code via email'
+                      : t('giftSuccess.step2Email')}
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-400 font-bold">3.</span>
