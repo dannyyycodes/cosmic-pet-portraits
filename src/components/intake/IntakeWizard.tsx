@@ -154,7 +154,10 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     const giftCode = searchParams.get('gift');
     if (giftCode) {
       setGiftCodeFromUrl(giftCode);
-      setShowGiftWelcome(true);
+      // Skip the GiftWelcome screen since user already saw it on RedeemGift page
+      // Go straight to pet name entry
+      setShowGiftWelcome(false);
+      
       // Validate the gift code
       supabase.functions.invoke('validate-gift-code', {
         body: { code: giftCode.toUpperCase() },
@@ -170,9 +173,15 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           });
           // Set pet count to 1 for gifts (gifts are always for 1 pet)
           setPetCount(1);
+          // Set occasion mode to 'discover' for gift recipients (they're discovering their pet's reading)
+          setOccasionMode('discover');
+          setPetsData(prev => prev.map(pet => ({ ...pet, occasionMode: 'discover' })));
+          // Skip directly to name step (step 2), bypassing pet count and occasion selection
+          setStep(2);
         } else {
-          setShowGiftWelcome(false);
           toast.error(data?.error || 'Invalid gift code');
+          // Redirect back to redeem page on error
+          window.location.href = '/redeem';
         }
       });
     }
