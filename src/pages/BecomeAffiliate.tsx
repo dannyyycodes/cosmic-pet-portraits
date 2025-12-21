@@ -144,21 +144,19 @@ export default function BecomeAffiliate() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="flex justify-center gap-8 p-6 rounded-2xl bg-gradient-to-r from-gold/10 via-amber-500/5 to-gold/10 border border-gold/20"
+              className="grid grid-cols-3 gap-2 sm:gap-6 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-gold/10 via-amber-500/5 to-gold/10 border border-gold/20"
             >
               <div className="text-center">
-                <p className="text-3xl font-bold text-gold">50%</p>
-                <p className="text-sm text-muted-foreground">Commission</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gold">50%</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Commission</p>
               </div>
-              <div className="w-px bg-border/50" />
-              <div className="text-center">
-                <p className="text-3xl font-bold text-foreground">Lifetime</p>
-                <p className="text-sm text-muted-foreground">Cookie Duration</p>
+              <div className="text-center border-x border-border/50">
+                <p className="text-2xl sm:text-3xl font-bold text-foreground">Lifetime</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Cookie</p>
               </div>
-              <div className="w-px bg-border/50" />
               <div className="text-center">
-                <p className="text-3xl font-bold text-foreground">Weekly</p>
-                <p className="text-sm text-muted-foreground">Payouts</p>
+                <p className="text-2xl sm:text-3xl font-bold text-foreground">Weekly</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Payouts</p>
               </div>
             </motion.div>
 
