@@ -229,6 +229,81 @@ serve(async (req) => {
       });
     }
 
+    // Handle gift redemption sessions (already paid via gift certificate)
+    if (sessionId.startsWith('gift_')) {
+      console.log("[VERIFY-PAYMENT] Gift redemption - skipping Stripe verification");
+      
+      // Get the report
+      const { data: report } = await supabaseClient
+        .from("pet_reports")
+        .select("*")
+        .eq("id", reportId)
+        .single();
+
+      if (!report) {
+        return new Response(JSON.stringify({ error: "Report not found" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+
+      // Generate share token if not present
+      const generateShareToken = () => {
+        const bytes = new Uint8Array(12);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      };
+
+      const shareToken = report.share_token || generateShareToken();
+
+      // Update report with share token if needed
+      if (!report.share_token) {
+        await supabaseClient
+          .from("pet_reports")
+          .update({ 
+            share_token: shareToken,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", reportId);
+      }
+
+      // Generate report if not already generated
+      if (!report.report_content) {
+        // Gift redemptions get the tier from the gift certificate
+        const giftCode = sessionId.replace('gift_', '');
+        const { data: giftCert } = await supabaseClient
+          .from("gift_certificates")
+          .select("gift_tier")
+          .eq("code", giftCode)
+          .single();
+        
+        const tier = giftCert?.gift_tier || 'premium';
+        const includesPortrait = tier === 'premium' || tier === 'vip';
+        
+        await generateReport(report, reportId, supabaseClient, includesPortrait);
+      }
+
+      // Fetch the updated report
+      const { data: finalReport } = await supabaseClient
+        .from("pet_reports")
+        .select("*")
+        .eq("id", reportId)
+        .single();
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        report: finalReport,
+        allReports: [finalReport],
+        reportIds: [reportId],
+        includeGift: false,
+        giftCode: null,
+        horoscopeEnabled: false,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Verify with Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     
