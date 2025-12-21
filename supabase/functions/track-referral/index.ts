@@ -50,6 +50,7 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
     // SECURITY: Verify the Stripe session is actually paid
+    let customerEmail: string | null = null;
     try {
       const session = await stripe.checkout.sessions.retrieve(input.sessionId);
       
@@ -63,6 +64,9 @@ serve(async (req) => {
           status: 400,
         });
       }
+      
+      // Get customer email for self-referral check
+      customerEmail = session.customer_email || session.customer_details?.email || null;
     } catch (stripeError) {
       logStep("Invalid Stripe session");
       return new Response(JSON.stringify({ 
@@ -97,7 +101,7 @@ serve(async (req) => {
     // Find affiliate by referral code
     const { data: affiliate, error: affError } = await supabaseClient
       .from('affiliates')
-      .select('id, commission_rate')
+      .select('id, commission_rate, email')
       .eq('referral_code', input.referralCode)
       .eq('status', 'active')
       .single();
@@ -107,6 +111,18 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: false, reason: 'Invalid referral code' }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
+      });
+    }
+
+    // SECURITY: Prevent self-referral abuse
+    if (customerEmail && affiliate.email.toLowerCase() === customerEmail.toLowerCase()) {
+      logStep("Self-referral blocked", { affiliateEmail: affiliate.email });
+      return new Response(JSON.stringify({ 
+        success: false, 
+        reason: 'Self-referral not allowed' 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
       });
     }
 
