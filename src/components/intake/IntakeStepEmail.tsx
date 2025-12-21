@@ -5,7 +5,7 @@ import { PetData } from './IntakeWizard';
 import { ModeContent } from '@/lib/occasionMode';
 import { ArrowLeft, Sparkles, CheckCircle, ChevronDown, Lock, Star, Heart, Zap, Eye, Share2, Download, Moon, Sun, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SocialProofBar } from './SocialProofBar';
+
 import { ReportTeaser } from './ReportTeaser';
 import { PremiumPreview } from './PremiumPreview';
 import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
@@ -192,8 +192,6 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             exit={{ opacity: 0, y: -20 }}
             className="space-y-6"
           >
-            {/* Hide sales tactics for gift recipients */}
-            {!giftCode && <SocialProofBar petName={petData.name} />}
 
             <div className="space-y-3">
               <p className="text-primary/80 text-sm uppercase tracking-widest">Step {totalSteps} of {totalSteps}</p>
