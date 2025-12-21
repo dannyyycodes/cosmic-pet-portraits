@@ -160,12 +160,41 @@ serve(async (req) => {
       }
     }
 
-    // Check if tier includes portrait
-    const includesPortrait = giftedTier === 'portrait' || giftedTier === 'vip';
-    const includesWeeklyHoroscope = giftedTier === 'portrait' || giftedTier === 'vip';
+    // Parse per-pet tier info from gift_pets_json
+    const giftPetsJson = gift.gift_pets_json as { id: string; tier: string }[] | null;
+    
+    // Determine which pet indices have portrait/vip tier
+    const portraitPetIndices = new Set<number>();
+    if (giftPetsJson && Array.isArray(giftPetsJson)) {
+      giftPetsJson.forEach((pet, idx) => {
+        if (pet.tier === 'portrait' || pet.tier === 'vip') {
+          portraitPetIndices.add(idx);
+        }
+      });
+    }
+    
+    // For legacy gifts without per-pet info, use global tier
+    const legacyIncludesPortrait = giftedTier === 'portrait' || giftedTier === 'vip';
+    const hasAnyPortrait = portraitPetIndices.size > 0 || legacyIncludesPortrait;
+    
+    console.log("[REDEEM-GIFT] Per-pet tier info:", {
+      giftPetsJson,
+      portraitPetIndices: Array.from(portraitPetIndices),
+      legacyIncludesPortrait,
+      hasAnyPortrait,
+    });
     
     // Process ALL pet reports for horoscopes and portraits
-    for (const reportId of allReportIds) {
+    for (let i = 0; i < allReportIds.length; i++) {
+      const reportId = allReportIds[i];
+      
+      // Determine if THIS pet gets portrait based on per-pet tier
+      const petTier = giftPetsJson?.[i]?.tier || giftedTier;
+      const thisPetIncludesPortrait = petTier === 'portrait' || petTier === 'vip';
+      const thisPetIncludesHoroscope = petTier === 'portrait' || petTier === 'vip';
+      
+      console.log(`[REDEEM-GIFT] Processing report ${i}:`, { reportId, petTier, thisPetIncludesPortrait, thisPetIncludesHoroscope });
+      
       const { data: report } = await supabase
         .from("pet_reports")
         .select("pet_name, email, species, breed, pet_photo_url, report_content")
@@ -177,8 +206,8 @@ serve(async (req) => {
         continue;
       }
 
-      // For Portrait and VIP tiers, auto-enroll in weekly horoscope (only once per email)
-      if (includesWeeklyHoroscope) {
+      // For Portrait and VIP tiers, auto-enroll in weekly horoscope (only once per email/report)
+      if (thisPetIncludesHoroscope) {
         // Check if subscription already exists for this email
         const { data: existingSub } = await supabase
           .from("horoscope_subscriptions")
@@ -216,7 +245,7 @@ serve(async (req) => {
                        (reportId === primaryReportId ? input.petPhotoUrl : null) || 
                        report.pet_photo_url;
       
-      if (includesPortrait && photoUrl) {
+      if (thisPetIncludesPortrait && photoUrl) {
         console.log("[REDEEM-GIFT] Triggering AI portrait generation for:", reportId);
         
         try {
@@ -275,6 +304,8 @@ serve(async (req) => {
           console.error("[REDEEM-GIFT] Failed to generate portrait:", portraitError);
           // Non-fatal - continue with redemption
         }
+      } else if (thisPetIncludesPortrait && !photoUrl) {
+        console.log("[REDEEM-GIFT] Pet", i, "has portrait tier but no photo uploaded");
       }
     }
 
@@ -284,7 +315,8 @@ serve(async (req) => {
       petCount: allReportIds.length,
       giftedTier,
       amountCents: gift.amount_cents,
-      includesWeeklyHoroscope,
+      hasAnyPortrait,
+      portraitPetIndices: Array.from(portraitPetIndices),
     });
 
     return new Response(JSON.stringify({
@@ -296,9 +328,9 @@ serve(async (req) => {
       giftTier: giftedTier, // Explicit tier name for frontend
       recipientName: gift.recipient_name,
       giftMessage: gift.gift_message,
-      includesVip: giftedTier === 'vip',
-      includesPortrait: giftedTier === 'portrait' || giftedTier === 'vip',
-      includesWeeklyHoroscope,
+      includesVip: giftedTier === 'vip' || (giftPetsJson?.some(p => p.tier === 'vip') ?? false),
+      includesPortrait: hasAnyPortrait,
+      includesWeeklyHoroscope: hasAnyPortrait,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
