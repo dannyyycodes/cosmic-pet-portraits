@@ -175,7 +175,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           setPetCount(1);
           // Set occasion mode to 'discover' for gift recipients (they're discovering their pet's reading)
           setOccasionMode('discover');
-          setPetsData(prev => prev.map(pet => ({ ...pet, occasionMode: 'discover' })));
+          // Reset petsData to a single pet only to prevent validation errors
+          setPetsData([createEmptyPetData('discover')]);
           // Skip directly to name step (step 2), bypassing pet count and occasion selection
           setStep(2);
         } else {

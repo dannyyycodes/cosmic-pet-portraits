@@ -71,10 +71,31 @@ export default function RedeemGift() {
     navigate(`/intake?mode=discover&gift=${giftCode.toUpperCase()}`);
   };
 
+  const getTierName = () => {
+    switch (giftData?.giftTier) {
+      case 'vip': return 'VIP Cosmic Experience';
+      case 'portrait': return 'Portrait Reading';
+      case 'essential': return 'Essential Reading';
+      case 'premium': return 'Premium Reading';
+      default: return 'Cosmic Pet Reading';
+    }
+  };
+
+  const getTierDescription = () => {
+    switch (giftData?.giftTier) {
+      case 'vip': return 'The complete cosmic experience with AI portrait, weekly horoscopes, and full personality analysis';
+      case 'portrait': return 'A beautiful AI-generated cosmic portrait plus complete personality reading';
+      case 'essential': return 'A deep dive into your pet\'s cosmic personality and soul blueprint';
+      case 'premium': return 'An enhanced cosmic reading with additional insights';
+      default: return 'Discover the cosmic secrets of your beloved companion';
+    }
+  };
+
   const getTierFeatures = () => {
     const features = [
-      { icon: Star, text: t('redeem.feature1'), included: true },
-      { icon: Wand2, text: t('redeem.feature2'), included: true },
+      { icon: Star, text: 'Complete Personality Profile', included: true },
+      { icon: Wand2, text: 'Soul Blueprint & Life Purpose', included: true },
+      { icon: Heart, text: 'Love Language Analysis', included: true },
     ];
     
     if (giftData?.includesPortrait) {
@@ -82,7 +103,7 @@ export default function RedeemGift() {
     }
     
     if (giftData?.includesVip) {
-      features.push({ icon: Sparkles, text: 'VIP Cosmic Experience', included: true });
+      features.push({ icon: Sparkles, text: 'Weekly Horoscope Subscription', included: true });
     }
     
     return features;
@@ -187,20 +208,20 @@ export default function RedeemGift() {
                     className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-nebula-pink/20 to-nebula-purple/20 border border-nebula-pink/30 rounded-full"
                   >
                     <Sparkles className="w-4 h-4 text-gold" />
-                    <span className="text-sm font-medium text-gold">Gift Unlocked!</span>
+                    <span className="text-sm font-medium text-gold">A Special Gift For You!</span>
                   </motion.div>
                   
                   <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
                     {giftData.recipientName 
-                      ? `Hello, ${giftData.recipientName}!`
-                      : 'A Cosmic Gift Awaits!'}
+                      ? `Hello ${giftData.recipientName}!`
+                      : 'You\'ve Received a Gift!'}
                   </h1>
-                  <p className="text-muted-foreground">
-                    Someone special has gifted you a cosmic reading!
+                  <p className="text-muted-foreground text-lg">
+                    Someone who cares about you has gifted you a cosmic reading for your pet
                   </p>
                 </div>
 
-                {/* Personal Message */}
+                {/* Personal Message - More prominent */}
                 {giftData.giftMessage && (
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
@@ -208,19 +229,40 @@ export default function RedeemGift() {
                     transition={{ delay: 0.2 }}
                     className="p-6 rounded-2xl bg-gradient-to-br from-nebula-pink/15 to-nebula-purple/15 border border-nebula-pink/30 backdrop-blur-sm space-y-3"
                   >
-                    <Heart className="w-6 h-6 text-nebula-pink mx-auto" />
-                    <p className="text-foreground italic text-lg">"{giftData.giftMessage}"</p>
+                    <div className="flex items-center justify-center gap-2 text-nebula-pink">
+                      <Heart className="w-5 h-5" />
+                      <span className="text-sm font-medium uppercase tracking-wide">Personal Message</span>
+                      <Heart className="w-5 h-5" />
+                    </div>
+                    <p className="text-foreground italic text-lg leading-relaxed">"{giftData.giftMessage}"</p>
                   </motion.div>
                 )}
+
+                {/* What They've Been Gifted - Clear and Prominent */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="p-6 rounded-xl bg-gradient-to-br from-gold/10 to-amber-500/5 border border-gold/30 backdrop-blur-sm text-center space-y-4"
+                >
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/20 mb-2">
+                    <Gift className="w-8 h-8 text-gold" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gold uppercase tracking-widest mb-1">You've Been Gifted</p>
+                    <h2 className="text-2xl font-display font-bold text-foreground">{getTierName()}</h2>
+                    <p className="text-sm text-muted-foreground mt-2">{getTierDescription()}</p>
+                  </div>
+                </motion.div>
 
                 {/* Features Included */}
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
+                  transition={{ delay: 0.4 }}
                   className="p-5 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm text-left space-y-4"
                 >
-                  <p className="text-sm font-semibold text-foreground text-center">{t('redeem.includes')}</p>
+                  <p className="text-sm font-semibold text-foreground text-center">Your Gift Includes:</p>
                   <ul className="space-y-3">
                     {getTierFeatures().map((feature, i) => (
                       <li key={i} className="flex items-center gap-3">
@@ -233,6 +275,18 @@ export default function RedeemGift() {
                   </ul>
                 </motion.div>
 
+                {/* How it Works - Brief */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-center space-y-2"
+                >
+                  <p className="text-sm text-muted-foreground">
+                    Simply tell us about your pet and we'll generate their personalized cosmic reading
+                  </p>
+                </motion.div>
+
                 <Button
                   onClick={handleContinue}
                   variant="gold"
@@ -240,13 +294,13 @@ export default function RedeemGift() {
                   className="w-full shadow-xl shadow-gold/20"
                 >
                   <span className="flex items-center gap-2">
-                    {t('redeem.continueButton')}
+                    Enter Pet Details
                     <ArrowRight className="w-5 h-5" />
                   </span>
                 </Button>
 
                 <p className="text-xs text-muted-foreground">
-                  {t('redeem.instructions')}
+                  Takes about 2 minutes • Your reading will be ready instantly
                 </p>
               </motion.div>
             </>
