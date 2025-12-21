@@ -34,7 +34,7 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from("gift_certificates")
-      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier, pet_count")
+      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier, pet_count, gift_pets_json")
       .eq("code", input.code.toUpperCase())
       .single();
 
@@ -73,6 +73,22 @@ serve(async (req) => {
       }
     }
 
+    // Parse per-pet tier info if available
+    const giftPetsJson = data.gift_pets_json as { id: string; tier: string }[] | null;
+    
+    // Determine which pets have portrait tier
+    let portraitPetIndices: number[] = [];
+    if (giftPetsJson && Array.isArray(giftPetsJson)) {
+      portraitPetIndices = giftPetsJson
+        .map((pet, idx) => (pet.tier === 'portrait' || pet.tier === 'vip') ? idx : -1)
+        .filter(idx => idx !== -1);
+    }
+    
+    // Check if ANY pet has portrait/VIP tier
+    const hasAnyPortrait = giftPetsJson 
+      ? giftPetsJson.some(pet => pet.tier === 'portrait' || pet.tier === 'vip')
+      : (giftedTier === 'portrait' || giftedTier === 'vip');
+
     // Return only necessary data (no emails)
     return new Response(JSON.stringify({
       valid: true,
@@ -82,9 +98,11 @@ serve(async (req) => {
       giftTier: giftedTier,
       giftedTier, // Keep for backward compatibility
       petCount: data.pet_count || 1,
-      includesPortrait: giftedTier === 'portrait' || giftedTier === 'vip',
-      includesVip: giftedTier === 'vip',
-      includesWeeklyHoroscope: giftedTier === 'portrait' || giftedTier === 'vip',
+      giftPets: giftPetsJson, // Per-pet tier info
+      portraitPetIndices, // Which pets get portraits
+      includesPortrait: hasAnyPortrait,
+      includesVip: giftedTier === 'vip' || (giftPetsJson?.some(p => p.tier === 'vip') ?? false),
+      includesWeeklyHoroscope: hasAnyPortrait,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

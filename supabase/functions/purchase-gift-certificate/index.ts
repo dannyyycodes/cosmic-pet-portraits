@@ -214,6 +214,7 @@ serve(async (req) => {
         amount_cents: finalTotal,
         gift_tier: primaryTier,
         pet_count: petCount,
+        gift_pets_json: giftPets, // Store full pet config in DB
         stripe_session_id: session.id,
         expires_at: expiresAt.toISOString(),
       });
