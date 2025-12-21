@@ -22,6 +22,7 @@ export default function RedeemGift() {
     giftMessage: string | null;
     amountCents: number;
     giftTier?: string;
+    petCount?: number;
     includesPortrait?: boolean;
     includesVip?: boolean;
   } | null>(null);
@@ -56,6 +57,7 @@ export default function RedeemGift() {
         giftMessage: data.giftMessage,
         amountCents: data.amountCents,
         giftTier: data.giftTier,
+        petCount: data.petCount || 1,
         includesPortrait: data.includesPortrait,
         includesVip: data.includesVip,
       });
@@ -68,7 +70,8 @@ export default function RedeemGift() {
   };
 
   const handleContinue = () => {
-    navigate(`/intake?mode=discover&gift=${giftCode.toUpperCase()}`);
+    const petCountParam = giftData?.petCount && giftData.petCount > 1 ? `&pets=${giftData.petCount}` : '';
+    navigate(`/intake?mode=discover&gift=${giftCode.toUpperCase()}${petCountParam}`);
   };
 
   const getTierName = () => {
@@ -82,12 +85,13 @@ export default function RedeemGift() {
   };
 
   const getTierDescription = () => {
+    const petText = (giftData?.petCount || 1) > 1 ? ` for ${giftData?.petCount} pets` : '';
     switch (giftData?.giftTier) {
-      case 'vip': return 'The complete cosmic experience with AI portrait, weekly horoscopes, and full personality analysis';
-      case 'portrait': return 'A beautiful AI-generated cosmic portrait plus complete personality reading';
-      case 'essential': return 'A deep dive into your pet\'s cosmic personality and soul blueprint';
-      case 'premium': return 'An enhanced cosmic reading with additional insights';
-      default: return 'Discover the cosmic secrets of your beloved companion';
+      case 'vip': return `The complete cosmic experience with AI portrait, weekly horoscopes, and full personality analysis${petText}`;
+      case 'portrait': return `A beautiful AI-generated cosmic portrait plus complete personality reading${petText}`;
+      case 'essential': return `A deep dive into your pet's cosmic personality and soul blueprint${petText}`;
+      case 'premium': return `An enhanced cosmic reading with additional insights${petText}`;
+      default: return `Discover the cosmic secrets of your beloved companion${petText}`;
     }
   };
 

@@ -34,7 +34,7 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from("gift_certificates")
-      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier")
+      .select("recipient_name, gift_message, amount_cents, is_redeemed, expires_at, gift_tier, pet_count")
       .eq("code", input.code.toUpperCase())
       .single();
 
@@ -81,6 +81,7 @@ serve(async (req) => {
       amountCents: data.amount_cents,
       giftTier: giftedTier,
       giftedTier, // Keep for backward compatibility
+      petCount: data.pet_count || 1,
       includesPortrait: giftedTier === 'portrait' || giftedTier === 'vip',
       includesVip: giftedTier === 'vip',
       includesWeeklyHoroscope: giftedTier === 'portrait' || giftedTier === 'vip',

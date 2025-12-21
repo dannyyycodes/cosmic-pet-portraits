@@ -141,6 +141,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     giftMessage?: string;
     recipientName?: string;
     giftedTier?: 'essential' | 'portrait' | 'vip' | 'basic' | 'premium';
+    petCount?: number;
     includesPortrait?: boolean;
     includesWeeklyHoroscope?: boolean;
   } | null>(null);
@@ -152,6 +153,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   // Check for gift code in URL
   useEffect(() => {
     const giftCode = searchParams.get('gift');
+    const giftPetCount = parseInt(searchParams.get('pets') || '1', 10);
+    
     if (giftCode) {
       setGiftCodeFromUrl(giftCode);
       // Skip the GiftWelcome screen since user already saw it on RedeemGift page
@@ -163,20 +166,25 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         body: { code: giftCode.toUpperCase() },
       }).then(({ data, error }) => {
         if (!error && data?.valid) {
+          const petCount = data.petCount || giftPetCount || 1;
+          
           setGiftData({
             amountCents: data.amountCents,
             giftMessage: data.giftMessage,
             recipientName: data.recipientName,
             giftedTier: data.giftTier || data.giftedTier,
+            petCount,
             includesPortrait: data.includesPortrait,
             includesWeeklyHoroscope: data.includesWeeklyHoroscope,
           });
-          // Set pet count to 1 for gifts (gifts are always for 1 pet)
-          setPetCount(1);
+          
+          // Set pet count from gift certificate
+          setPetCount(petCount);
           // Set occasion mode to 'discover' for gift recipients (they're discovering their pet's reading)
           setOccasionMode('discover');
-          // Reset petsData to a single pet only to prevent validation errors
-          setPetsData([createEmptyPetData('discover')]);
+          // Initialize petsData array with correct number of pets
+          const newPetsData = Array(petCount).fill(null).map(() => createEmptyPetData('discover'));
+          setPetsData(newPetsData);
           // Skip directly to name step (step 2), bypassing pet count and occasion selection
           setStep(2);
         } else {
