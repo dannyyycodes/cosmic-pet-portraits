@@ -59,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
     const giftMessage = giftCert.gift_message || "Enjoy your cosmic pet reading!";
 
     // Send email to purchaser (confirmation)
-    const purchaserEmailResponse = await resend.emails.send({
+    const purchaserEmailResult = await resend.emails.send({
       from: "AstroPets <hello@astropets.cloud>",
       to: [giftCert.purchaser_email],
       subject: "Your Gift Certificate is Ready",
@@ -116,11 +116,23 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("[SEND-GIFT-EMAIL] Purchaser email sent");
+    const purchaserResendError = (purchaserEmailResult as any)?.error;
+    if (purchaserResendError) {
+      console.error("[SEND-GIFT-EMAIL] Purchaser email provider error:", purchaserResendError);
+      return new Response(JSON.stringify({ error: "Email delivery failed" }), {
+        status: 502,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    console.log("[SEND-GIFT-EMAIL] Purchaser email accepted by provider", {
+      to: giftCert.purchaser_email,
+      id: (purchaserEmailResult as any)?.id,
+    });
 
     // If there's a recipient email, send them the gift notification
     if (giftCert.recipient_email) {
-      const recipientEmailResponse = await resend.emails.send({
+      const recipientEmailResult = await resend.emails.send({
         from: "AstroPets <hello@astropets.cloud>",
         to: [giftCert.recipient_email],
         subject: `${recipientName}, you've received a gift`,
@@ -179,16 +191,22 @@ const handler = async (req: Request): Promise<Response> => {
         `,
       });
 
-      console.log("[SEND-GIFT-EMAIL] Recipient email sent");
+      const recipientResendError = (recipientEmailResult as any)?.error;
+      if (recipientResendError) {
+        console.error("[SEND-GIFT-EMAIL] Recipient email provider error:", recipientResendError);
+        // Purchaser email already sent; don't fail the whole request.
+      } else {
+        console.log("[SEND-GIFT-EMAIL] Recipient email accepted by provider", {
+          to: giftCert.recipient_email,
+          id: (recipientEmailResult as any)?.id,
+        });
+      }
     }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (error: any) {
     console.error("[SEND-GIFT-EMAIL] Error:", error);
     return new Response(
