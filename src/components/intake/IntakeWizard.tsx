@@ -402,15 +402,25 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
       // GIFT REDEMPTION: If a gift code is present and validated, skip checkout entirely
       if (giftCodeFromUrl && giftData) {
-        console.log('[INTAKE] Gift code detected, redeeming:', giftCodeFromUrl);
+        console.log('[INTAKE] Gift code detected, redeeming:', giftCodeFromUrl, 'for', reportIds.length, 'pets');
+        
+        // Build petPhotoUrls map for multi-pet gifts
+        const petPhotoUrls: Record<string, string> = {};
+        petsData.forEach((pet, i) => {
+          if (pet.photoUrl && reportIds[i]) {
+            petPhotoUrls[reportIds[i]] = pet.photoUrl;
+          }
+        });
         
         const { data: redeemResult, error: redeemError } = await supabase.functions.invoke(
           'redeem-gift',
           {
             body: {
               giftCode: giftCodeFromUrl.toUpperCase(),
-              reportId: primaryReportId,
-              petPhotoUrl: primaryPetData.photoUrl || undefined,
+              reportId: primaryReportId, // For backwards compat
+              reportIds: reportIds, // All report IDs for multi-pet gifts
+              petPhotoUrl: primaryPetData.photoUrl || undefined, // For backwards compat
+              petPhotoUrls: Object.keys(petPhotoUrls).length > 0 ? petPhotoUrls : undefined,
             },
           }
         );
@@ -424,9 +434,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
         console.log('[INTAKE] Gift redeemed successfully:', redeemResult);
         clearIntakeProgress();
-        toast.success('🎁 Gift redeemed! Generating your cosmic report...');
+        toast.success(`🎁 Gift redeemed! Generating ${reportIds.length > 1 ? `${reportIds.length} cosmic reports` : 'your cosmic report'}...`);
         
-        // Redirect to payment success which will generate the report
+        // Redirect to payment success which will generate the report(s)
         // Include gift info so the success page shows appropriate upsells
         const giftParams = new URLSearchParams({
           session_id: `gift_${giftCodeFromUrl}`,
@@ -435,6 +445,12 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           gifted_tier: redeemResult.giftedTier || 'basic',
           includes_portrait: redeemResult.includesPortrait ? 'true' : 'false',
         });
+        
+        // Add all report IDs for multi-pet flow
+        if (reportIds.length > 1) {
+          giftParams.set('report_ids', reportIds.join(','));
+        }
+        
         window.location.href = `/payment-success?${giftParams.toString()}`;
         return;
       }
