@@ -20,9 +20,10 @@ type GiftTier = keyof typeof GIFT_TIERS;
 // Volume discount tiers (must match frontend)
 const VOLUME_DISCOUNTS = [
   { minPets: 1, discount: 0 },
-  { minPets: 2, discount: 10 },
-  { minPets: 3, discount: 15 },
-  { minPets: 5, discount: 20 },
+  { minPets: 2, discount: 20 },
+  { minPets: 3, discount: 30 },
+  { minPets: 4, discount: 40 },
+  { minPets: 5, discount: 50 },
 ];
 
 function getVolumeDiscount(petCount: number): number {
