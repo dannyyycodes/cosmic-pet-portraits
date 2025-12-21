@@ -12,6 +12,7 @@ import { LiveActivityIndicator } from "@/components/LiveActivityIndicator";
 import { MoneyBackBadge } from "@/components/MoneyBackBadge";
 import { CTASection } from "@/components/CTASection";
 import { Snowfall } from "@/components/Snowfall";
+import { ChristmasDecorations } from "@/components/ChristmasDecorations";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -25,8 +26,9 @@ const Index = () => {
   }, []);
   return (
     <main className="min-h-screen bg-background overflow-hidden">
-      {/* Christmas Snowfall Effect */}
+      {/* Christmas Effects */}
       <Snowfall />
+      <ChristmasDecorations />
       <UrgencyBanner />
       <Navbar />
       <SocialProofBar />
@@ -140,19 +142,12 @@ const Index = () => {
               <Heart className="w-3 h-3 text-red-400" />
             </Link>
 
-            {/* Social proof microcopy */}
-            <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground mt-2">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                60 seconds
-              </span>
-              <span className="text-border">•</span>
-              <span className="text-green-400 font-medium">52,847 readings delivered</span>
-            </div>
+            {/* Live Activity - Now inline and Christmas themed */}
+            <LiveActivityIndicator />
           </motion.div>
 
           {/* Money-Back Guarantee */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -185,10 +180,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Live Activity Indicator - Twitch-style floating */}
-      <LiveActivityIndicator />
-
-      {/* SOCIAL PROOF FIRST - Testimonials (Psychology: reduces skepticism immediately) */}
+      {/* Removed floating LiveActivityIndicator - now inline in hero */}
       <PremiumTestimonials />
 
       {/* Mid-page CTA - Capture warm leads */}

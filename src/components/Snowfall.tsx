@@ -14,16 +14,17 @@ export function Snowfall() {
 
   useEffect(() => {
     const flakes: Snowflake[] = [];
-    const count = typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 50;
+    // Reduced count for better mobile performance
+    const count = typeof window !== 'undefined' && window.innerWidth < 768 ? 15 : 35;
     
     for (let i = 0; i < count; i++) {
       flakes.push({
         id: i,
         left: Math.random() * 100,
-        size: Math.random() * 4 + 2,
-        duration: Math.random() * 10 + 10,
-        delay: Math.random() * 10,
-        opacity: Math.random() * 0.6 + 0.3,
+        size: Math.random() * 3 + 2,
+        duration: Math.random() * 12 + 12,
+        delay: Math.random() * 8,
+        opacity: Math.random() * 0.4 + 0.2,
       });
     }
     setSnowflakes(flakes);
@@ -34,7 +35,7 @@ export function Snowfall() {
       {snowflakes.map((flake) => (
         <div
           key={flake.id}
-          className="absolute rounded-full bg-white"
+          className="absolute rounded-full bg-white will-change-transform"
           style={{
             left: `${flake.left}%`,
             width: `${flake.size}px`,
@@ -42,17 +43,19 @@ export function Snowfall() {
             opacity: flake.opacity,
             animation: `snowfall ${flake.duration}s linear infinite`,
             animationDelay: `${flake.delay}s`,
-            boxShadow: '0 0 4px rgba(255,255,255,0.5)',
           }}
         />
       ))}
       <style>{`
         @keyframes snowfall {
           0% {
-            transform: translateY(-10px) rotate(0deg);
+            transform: translateY(-10px) translateX(0);
+          }
+          50% {
+            transform: translateY(50vh) translateX(10px);
           }
           100% {
-            transform: translateY(100vh) rotate(360deg);
+            transform: translateY(100vh) translateX(-10px);
           }
         }
       `}</style>
