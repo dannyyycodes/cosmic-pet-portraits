@@ -8,10 +8,11 @@ interface ReportGeneratingProps {
 
 export function ReportGenerating({ petName, sunSign }: ReportGeneratingProps) {
   const steps = [
-    { label: 'Reading the stars...', delay: 0 },
-    { label: `Consulting ${petName}'s birth chart...`, delay: 2 },
-    { label: 'Channeling cosmic wisdom...', delay: 4 },
-    { label: 'Weaving your personal portrait...', delay: 6 },
+    { label: 'Calculating planetary positions...', delay: 0 },
+    { label: `Mapping ${petName}'s natal chart...`, delay: 2 },
+    { label: 'Analyzing cosmic alignments...', delay: 4 },
+    { label: 'Interpreting celestial influences...', delay: 6 },
+    { label: 'Crafting your personalized portrait...', delay: 8 },
   ];
 
   return (
@@ -127,8 +128,23 @@ export function ReportGenerating({ petName, sunSign }: ReportGeneratingProps) {
             className="h-full bg-gradient-to-r from-primary via-cosmic-gold to-nebula-purple"
             initial={{ width: '0%' }}
             animate={{ width: '100%' }}
-            transition={{ duration: 8, ease: 'easeInOut' }}
+            transition={{ duration: 12, ease: 'easeInOut' }}
           />
+        </motion.div>
+
+        {/* Time notice */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2 }}
+          className="mt-6 space-y-2"
+        >
+          <p className="text-sm text-muted-foreground">
+            ✨ This may take a few moments...
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            We're performing advanced astrological calculations using {petName}'s exact birth data to create a truly unique cosmic portrait.
+          </p>
         </motion.div>
       </div>
     </div>
