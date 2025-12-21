@@ -569,6 +569,7 @@ async function generateReport(report: any, reportId: string, supabaseClient: any
               archetype: genData?.report?.archetype?.name || 'Cosmic Soul',
               style: 'pokemon',
               petImageUrl: report.pet_photo_url,
+              reportId: reportId,
             }),
           }
         );

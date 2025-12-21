@@ -56,7 +56,7 @@ serve(async (req) => {
       // IMAGE-TO-IMAGE: Transform the user's actual pet photo
       console.log("[GENERATE-PORTRAIT] Using image-to-image transformation");
       
-      prompt = `${chosenStyle}. This is a ${breed || species} (${species}) with ${sunSign} zodiac energy, known as "${archetype}". ${elementEffect}. Keep the pet's unique features, markings, colors, and characteristics recognizable while transforming the style. Make it look magical, heroic, and powerful. High quality digital art, expressive eyes, clean stylized background with magical effects. The final image should be a beautiful, collectible card-worthy transformation of this specific pet.`;
+      prompt = `${chosenStyle}. This is a ${breed || species} (${species}) with ${sunSign} zodiac energy, known as "${archetype}". ${elementEffect}. Keep the pet's unique features, markings, colors, and characteristics recognizable while transforming the style. Make it look magical, heroic, and powerful. High quality digital art, expressive eyes, clean stylized background with magical effects. The final image should be a beautiful, collectible card-worthy transformation of this specific pet. IMPORTANT: Do NOT include any text, words, letters, numbers, or writing anywhere in the image. No labels, no captions, no watermarks.`;
 
       console.log("[GENERATE-PORTRAIT] Edit prompt:", prompt);
 
@@ -123,7 +123,7 @@ serve(async (req) => {
       // TEXT-TO-IMAGE: Generate from description only (fallback)
       console.log("[GENERATE-PORTRAIT] Using text-to-image generation (no pet photo provided)");
       
-      prompt = `Create a stunning ${chosenStyle} portrait of a ${breed || species} (${species}). The pet should look majestic and magical, embodying the ${sunSign} zodiac energy. ${elementEffect}. The pet is known as "${archetype}". Make it look like a collectible trading card character - heroic, adorable, and powerful. High quality digital art, detailed fur/features, expressive eyes, centered composition, clean background with magical effects.`;
+      prompt = `Create a stunning ${chosenStyle} portrait of a ${breed || species} (${species}). The pet should look majestic and magical, embodying the ${sunSign} zodiac energy. ${elementEffect}. The pet is known as "${archetype}". Make it look like a collectible trading card character - heroic, adorable, and powerful. High quality digital art, detailed fur/features, expressive eyes, centered composition, clean background with magical effects. IMPORTANT: Do NOT include any text, words, letters, numbers, or writing anywhere in the image. No labels, no captions, no watermarks.`;
 
       console.log("[GENERATE-PORTRAIT] Generate prompt:", prompt);
 

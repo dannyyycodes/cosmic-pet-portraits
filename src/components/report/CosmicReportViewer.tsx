@@ -193,7 +193,8 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
           sunSign,
           element,
           archetype: report.archetype?.name || 'Cosmic Soul',
-          style: 'pokemon'
+          style: 'pokemon',
+          reportId: reportId
         }
       });
 
