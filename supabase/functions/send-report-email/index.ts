@@ -40,7 +40,7 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "https://cosmicpetreport.com";
     const reportUrl = `${origin}/report?id=${reportId}`;
 
-    const emailResponse = await resend.emails.send({
+    const emailResult = await resend.emails.send({
       from: "AstroPets <hello@astropets.cloud>",
       to: [email],
       subject: `${petName}'s Cosmic Reading is Ready`,
@@ -100,7 +100,20 @@ serve(async (req) => {
       `,
     });
 
-    console.log("[SEND-REPORT-EMAIL] Email sent successfully");
+    const resendError = (emailResult as any)?.error;
+    if (resendError) {
+      console.error("[SEND-REPORT-EMAIL] Resend error:", resendError);
+      return new Response(JSON.stringify({ error: "Email delivery failed" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log("[SEND-REPORT-EMAIL] Email accepted by provider", {
+      reportId: reportId?.substring(0, 8),
+      to: email,
+      id: (emailResult as any)?.id,
+    });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
