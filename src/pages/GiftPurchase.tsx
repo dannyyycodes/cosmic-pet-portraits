@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2, ChevronRight, Users, User, Sparkles } from 'lucide-react';
+import { Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2, ChevronRight, Users, User, Sparkles, Heart, Star, Quote, Shield, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
@@ -19,10 +19,33 @@ interface GiftRecipient {
 }
 
 const TIERS = {
-  essential: { cents: 3500, label: 'Essential', description: 'Core cosmic reading' },
-  portrait: { cents: 5000, label: 'Portrait', description: 'With AI portrait' },
-  vip: { cents: 12900, label: 'VIP', description: 'Full cosmic package' },
+  essential: { 
+    cents: 3500, 
+    label: 'Essential', 
+    description: 'Core cosmic reading',
+    features: ['Birth chart analysis', 'Personality insights', 'Cosmic compatibility']
+  },
+  portrait: { 
+    cents: 5000, 
+    label: 'Portrait', 
+    description: 'Most popular',
+    features: ['Everything in Essential', 'AI-generated portrait', 'Shareable pet card'],
+    popular: true
+  },
+  vip: { 
+    cents: 12900, 
+    label: 'VIP', 
+    description: 'Ultimate gift',
+    features: ['Everything in Portrait', 'Weekly horoscopes', 'Priority support']
+  },
 } as const;
+
+const TESTIMONIALS = [
+  { quote: "My sister literally cried reading her cat's report. Best gift ever!", author: "Sarah M.", rating: 5 },
+  { quote: "Got this for my mom's birthday - she reads it to her dog every night now!", author: "David K.", rating: 5 },
+  { quote: "Gifted to 4 friends last Christmas. They still talk about it!", author: "Jessica L.", rating: 5 },
+  { quote: "My dad was skeptical but ended up LOVING his cat's reading!", author: "Michael R.", rating: 5 },
+];
 
 const getVolumeDiscount = (count: number): number => {
   if (count >= 5) return 0.50;
@@ -31,6 +54,46 @@ const getVolumeDiscount = (count: number): number => {
   if (count >= 2) return 0.20;
   return 0;
 };
+
+function TestimonialBanner() {
+  const [index, setIndex] = useState(0);
+  
+  useEffect(() => {
+    const timer = setInterval(() => setIndex(i => (i + 1) % TESTIMONIALS.length), 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <motion.div 
+      className="p-4 rounded-xl bg-card/50 border border-border/30 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="flex items-start gap-3"
+        >
+          <Quote className="w-5 h-5 text-gold/50 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-foreground/90 italic mb-2">"{TESTIMONIALS[index].quote}"</p>
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-3 h-3 fill-gold text-gold" />
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">— {TESTIMONIALS[index].author}</span>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
+  );
+}
 
 export default function GiftPurchase() {
   const { t } = useLanguage();
@@ -186,13 +249,33 @@ export default function GiftPurchase() {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-6"
             >
-              <div className="text-center">
+              {/* Why it's a perfect gift */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-nebula-pink/10 to-nebula-purple/10 border border-nebula-pink/20 space-y-3">
+                <h3 className="font-display font-semibold text-foreground flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-nebula-pink" />
+                  Why Pet Lovers Adore This Gift
+                </h3>
+                <div className="grid grid-cols-1 gap-2">
+                  {[
+                    { icon: Sparkles, text: "Deeply personal & one-of-a-kind", color: "text-gold" },
+                    { icon: Heart, text: "Shows you truly know what they love", color: "text-nebula-pink" },
+                    { icon: Star, text: "Beautifully crafted cosmic insights", color: "text-primary" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm">
+                      <item.icon className={`w-4 h-4 ${item.color}`} />
+                      <span className="text-foreground/90">{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Testimonial */}
+              <TestimonialBanner />
+
+              <div className="text-center pt-2">
                 <h2 className="text-xl font-display font-semibold text-foreground mb-2">
                   How many gifts are you sending?
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  Choose whether you're gifting to one person or multiple people
-                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -213,16 +296,33 @@ export default function GiftPurchase() {
                 <button
                   type="button"
                   onClick={() => setGiftType('multiple')}
-                  className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                  className={`p-6 rounded-2xl border-2 transition-all text-center relative overflow-hidden ${
                     giftType === 'multiple'
                       ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
                       : 'border-border/50 bg-card/40 hover:border-primary/50'
                   }`}
                 >
+                  <div className="absolute top-2 right-2 px-2 py-0.5 bg-green-500/20 rounded-full">
+                    <span className="text-[10px] font-bold text-green-400">SAVE UP TO 50%</span>
+                  </div>
                   <Users className={`w-10 h-10 mx-auto mb-3 ${giftType === 'multiple' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <p className="text-lg font-semibold text-foreground">Multiple People</p>
-                  <p className="text-sm text-muted-foreground mt-1">Different recipients</p>
+                  <p className="text-sm text-muted-foreground mt-1">Great for holidays!</p>
                 </button>
+              </div>
+
+              {/* Trust badges */}
+              <div className="flex items-center justify-center gap-6 py-2">
+                {[
+                  { icon: Shield, text: "Secure checkout" },
+                  { icon: Clock, text: "Instant delivery" },
+                  { icon: Gift, text: "Valid 1 year" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <item.icon className="w-3.5 h-3.5" />
+                    <span>{item.text}</span>
+                  </div>
+                ))}
               </div>
 
               {giftType && (
@@ -328,24 +428,41 @@ export default function GiftPurchase() {
 
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">Choose package</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(Object.entries(TIERS) as [GiftTier, typeof TIERS.essential][]).map(([key, tier]) => (
+                    <div className="space-y-2">
+                      {(Object.entries(TIERS) as [GiftTier, typeof TIERS.portrait][]).map(([key, tier]) => (
                         <button
                           key={key}
                           type="button"
                           onClick={() => updateRecipient(singleRecipient.id, 'tier', key)}
-                          className={`p-3 rounded-xl border-2 transition-all text-center ${
+                          className={`w-full p-4 rounded-xl border-2 transition-all text-left relative ${
                             singleRecipient.tier === key
-                              ? 'border-primary bg-primary/10'
+                              ? 'border-primary bg-primary/10 shadow-md'
                               : 'border-border/30 bg-background/30 hover:border-primary/30'
-                          }`}
+                          } ${'popular' in tier && tier.popular ? 'ring-2 ring-gold/30' : ''}`}
                         >
-                          <p className={`text-xs font-medium ${singleRecipient.tier === key ? 'text-primary' : 'text-muted-foreground'}`}>
-                            {tier.label}
-                          </p>
-                          <p className={`text-lg font-bold ${singleRecipient.tier === key ? 'text-foreground' : 'text-foreground/70'}`}>
-                            ${tier.cents / 100}
-                          </p>
+                          {'popular' in tier && tier.popular && (
+                            <span className="absolute -top-2.5 left-4 px-2 py-0.5 bg-gold text-background text-[10px] font-bold rounded-full">
+                              MOST POPULAR
+                            </span>
+                          )}
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className={`font-semibold ${singleRecipient.tier === key ? 'text-foreground' : 'text-foreground/80'}`}>
+                                {tier.label}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{tier.description}</p>
+                            </div>
+                            <p className={`text-xl font-bold ${singleRecipient.tier === key ? 'text-primary' : 'text-foreground/70'}`}>
+                              ${tier.cents / 100}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {tier.features.map((f, i) => (
+                              <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-background/50 text-muted-foreground">
+                                {f}
+                              </span>
+                            ))}
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -403,17 +520,22 @@ export default function GiftPurchase() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-2">
-                        {(Object.entries(TIERS) as [GiftTier, typeof TIERS.essential][]).map(([key, tier]) => (
+                        {(Object.entries(TIERS) as [GiftTier, typeof TIERS.portrait][]).map(([key, tier]) => (
                           <button
                             key={key}
                             type="button"
                             onClick={() => updateRecipient(recipient.id, 'tier', key)}
-                            className={`p-2 rounded-lg border transition-all text-center ${
+                            className={`p-2 rounded-lg border transition-all text-center relative ${
                               recipient.tier === key
                                 ? 'border-primary bg-primary/10'
                                 : 'border-border/30 bg-background/30 hover:border-primary/30'
-                            }`}
+                            } ${'popular' in tier && tier.popular ? 'ring-1 ring-gold/30' : ''}`}
                           >
+                            {'popular' in tier && tier.popular && (
+                              <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0 bg-gold text-background text-[8px] font-bold rounded-full">
+                                BEST
+                              </span>
+                            )}
                             <p className={`text-xs font-medium ${recipient.tier === key ? 'text-primary' : 'text-muted-foreground'}`}>
                               {tier.label}
                             </p>
@@ -551,6 +673,14 @@ export default function GiftPurchase() {
                 </div>
               </div>
 
+              {/* Money-back guarantee */}
+              <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-3">
+                <Shield className="w-5 h-5 text-green-400 shrink-0" />
+                <p className="text-xs text-foreground/80">
+                  <span className="font-semibold text-green-400">100% Satisfaction Guarantee</span> — If they don't love it, we'll refund you. No questions asked.
+                </p>
+              </div>
+
               <Button
                 onClick={handlePurchase}
                 disabled={isLoading || !purchaserEmail.includes('@')}
@@ -564,15 +694,25 @@ export default function GiftPurchase() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <Gift className="w-5 h-5" />
-                    Pay ${(pricing.finalTotal / 100).toFixed(2)}
+                    Complete Purchase — ${(pricing.finalTotal / 100).toFixed(2)}
                   </span>
                 )}
               </Button>
 
-              <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                Secure checkout • Gift valid for 1 year
-              </p>
+              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                  Secure checkout
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  Instant delivery
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Gift className="w-3.5 h-3.5" />
+                  Valid 1 year
+                </span>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
