@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Star, Sparkles, Gift, Heart, Dog, Zap, Clock, TreePine } from "lucide-react";
+import { Star, Sparkles, Gift, Dog } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { HowItWorks } from "@/components/HowItWorks";
 import { PremiumTestimonials } from "@/components/PremiumTestimonials";
@@ -12,8 +12,6 @@ import { UrgencyBanner } from "@/components/UrgencyBanner";
 import { MoneyBackBadge } from "@/components/MoneyBackBadge";
 import { CTASection } from "@/components/CTASection";
 import { Snowfall } from "@/components/Snowfall";
-import { ChristmasDecorations } from "@/components/ChristmasDecorations";
-import { FestivePets } from "@/components/FestivePets";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,11 +25,8 @@ const Index = () => {
   }, []);
   return (
     <main className="min-h-screen bg-background overflow-hidden">
-      {/* Christmas Effects */}
+      {/* Subtle Christmas Effects */}
       <Snowfall />
-      <ChristmasDecorations />
-      <FestivePets />
-      <UrgencyBanner />
       <Navbar />
       <SocialProofBar />
       
@@ -85,20 +80,19 @@ const Index = () => {
       <section className="relative flex items-center justify-center px-4 pt-24 pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Christmas Badge */}
+          {/* Holiday Badge - Subtle */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-500/20 to-green-500/20 border border-red-500/40 mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6"
           >
-            <TreePine className="w-4 h-4 text-green-400 animate-pulse" />
+            <Gift className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">
-              🎄 The #1 Christmas Gift for Pet Lovers
+              Holiday Special — Perfect Gift for Pet Lovers
             </span>
-            <Gift className="w-4 h-4 text-red-400" />
           </motion.div>
           
-          {/* Main Headline - Emotion + Curiosity Gap */}
+          {/* Main Headline */}
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -109,17 +103,17 @@ const Index = () => {
             </span>
           </motion.h1>
 
-          {/* Subhead - Specificity + Benefit */}
+          {/* Subhead - Clear & Professional */}
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
           >
-            In just <span className="text-foreground font-medium">60 seconds</span>, discover the hidden personality, cosmic purpose, and secret desires your pet has been trying to share with you all along.
+            Discover your pet's unique personality traits, cosmic influences, and hidden quirks with our personalized astrological reading — takes just <span className="text-foreground font-medium">60 seconds</span>.
           </motion.p>
 
-          {/* Primary CTA + Gift Option */}
+          {/* Primary CTA */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -127,21 +121,22 @@ const Index = () => {
             className="flex flex-col items-center gap-4 mb-8"
           >
             <Link to="/intake?mode=discover">
-              <Button variant="cosmic" size="lg" className="text-lg px-10 py-7 group shadow-[0_0_30px_hsl(var(--primary)/0.4)]">
+              <Button variant="cosmic" size="lg" className="text-lg px-10 py-7 group shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
                 <Sparkles className="w-5 h-5 mr-2" />
-                Yes! Reveal My Pet's Soul
+                Get My Pet's Reading
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
             
-            {/* Gift Option - Christmas Enhanced */}
+            {/* Gift Option - Professional Style */}
             <Link to="/gift">
               <Button 
+                variant="outline"
                 size="lg" 
-                className="text-lg px-8 py-6 bg-gradient-to-r from-red-500 to-green-600 hover:from-red-600 hover:to-green-700 text-white border-0 shadow-[0_0_25px_rgba(239,68,68,0.4)] group"
+                className="text-lg px-8 py-6 border-primary/40 hover:bg-primary/10 group"
               >
-                <Gift className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                🎁 Send as Christmas Gift
+                <Gift className="w-5 h-5 mr-2" />
+                Send as a Gift
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
@@ -200,14 +195,11 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-center mb-10"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/20 border border-red-500/30 mb-4">
-              <span className="text-sm text-red-300">🎄 Holiday Special</span>
-            </div>
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
-              Give the Gift of Understanding
+              Choose Your Path
             </h2>
             <p className="text-muted-foreground">
-              A magical reading for your pet, or the perfect Christmas gift for any pet lover
+              Get a reading for your own pet, or send as a thoughtful gift
             </p>
           </motion.div>
 
@@ -219,13 +211,13 @@ const Index = () => {
               viewport={{ once: true }}
             >
               <Link to="/intake?mode=discover" className="group block">
-                <div className="relative p-8 rounded-2xl border-2 border-primary/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-card/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.3)] h-full">
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                <div className="relative p-8 rounded-2xl border border-primary/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-card/50 h-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
                     {t('hero.mostPopular')}
                   </div>
                   <div className="flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Dog className="w-8 h-8 text-white" />
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center">
+                      <Dog className="w-7 h-7 text-white" />
                     </div>
                     <div className="space-y-2 text-center">
                       <h3 className="text-xl font-display font-bold text-foreground">{t('hero.discoverMyPet')}</h3>
@@ -233,9 +225,9 @@ const Index = () => {
                         {t('hero.discoverDesc')}
                       </p>
                     </div>
-                    <Button variant="cosmic" size="lg" className="w-full mt-2 group-hover:scale-[1.02] transition-transform">
+                    <Button variant="cosmic" size="lg" className="w-full mt-2">
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Start Now →
+                      Start Reading →
                     </Button>
                   </div>
                 </div>
@@ -249,24 +241,23 @@ const Index = () => {
               viewport={{ once: true }}
             >
               <Link to="/gift" className="group block">
-                <div className="relative p-8 rounded-2xl border-2 border-red-500/40 bg-gradient-to-br from-red-500/10 to-green-500/10 backdrop-blur-sm transition-all duration-300 hover:border-red-500/60 hover:shadow-[0_0_30px_rgba(239,68,68,0.3)] h-full">
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-red-500 to-green-600 text-white text-xs font-medium flex items-center gap-1">
-                    <TreePine className="w-3 h-3" />
-                    🎄 Christmas Gift
+                <div className="relative p-8 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:bg-card/50 h-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                    Great Gift Idea
                   </div>
                   <div className="flex flex-col items-center gap-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-green-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Gift className="w-8 h-8 text-white" />
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/80 to-nebula-purple/80 flex items-center justify-center">
+                      <Gift className="w-7 h-7 text-white" />
                     </div>
                     <div className="space-y-2 text-center">
-                      <h3 className="text-xl font-display font-bold text-foreground">🎁 {t('hero.giftToFriend')}</h3>
+                      <h3 className="text-xl font-display font-bold text-foreground">{t('hero.giftToFriend')}</h3>
                       <p className="text-sm text-muted-foreground">
-                        The perfect Christmas surprise — arrives instantly!
+                        The perfect gift for any pet lover — instant delivery
                       </p>
                     </div>
-                    <Button size="lg" className="w-full mt-2 bg-gradient-to-r from-red-500 to-green-600 hover:from-red-600 hover:to-green-700 text-white border-0 shadow-lg group-hover:scale-[1.02] transition-transform">
+                    <Button variant="outline" size="lg" className="w-full mt-2 border-primary/40 hover:bg-primary/10">
                       <Gift className="w-4 h-4 mr-2" />
-                      Send Christmas Gift →
+                      Send as Gift →
                     </Button>
                   </div>
                 </div>
