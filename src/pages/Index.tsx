@@ -13,6 +13,7 @@ import { MoneyBackBadge } from "@/components/MoneyBackBadge";
 import { CTASection } from "@/components/CTASection";
 import { Snowfall } from "@/components/Snowfall";
 import { ChristmasDecorations } from "@/components/ChristmasDecorations";
+import { FestivePets } from "@/components/FestivePets";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -29,6 +30,7 @@ const Index = () => {
       {/* Christmas Effects */}
       <Snowfall />
       <ChristmasDecorations />
+      <FestivePets />
       <UrgencyBanner />
       <Navbar />
       <SocialProofBar />
