@@ -3,16 +3,19 @@ import { motion } from 'framer-motion';
 export function ChristmasDecorations() {
   return (
     <>
-      {/* Christmas Tree - Left Side */}
+      {/* Christmas Tree - Left Side - Responsive */}
       <motion.div
-        initial={{ opacity: 0, x: -50 }}
+        initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.5 }}
-        className="fixed left-0 bottom-0 z-10 pointer-events-none hidden lg:block"
+        className="fixed left-0 bottom-0 z-10 pointer-events-none"
       >
         <div className="relative">
-          {/* Tree */}
-          <svg width="180" height="280" viewBox="0 0 180 280" className="opacity-80">
+          {/* Tree - smaller on mobile */}
+          <svg 
+            className="w-24 h-36 sm:w-32 sm:h-48 md:w-44 md:h-64 lg:w-[180px] lg:h-[280px] opacity-70 sm:opacity-80"
+            viewBox="0 0 180 280"
+          >
             {/* Tree layers */}
             <polygon points="90,20 30,100 150,100" fill="url(#treeGradient)" />
             <polygon points="90,60 20,150 160,150" fill="url(#treeGradient)" />
@@ -31,13 +34,10 @@ export function ChristmasDecorations() {
             <circle cx="35" cy="190" r="7" fill="#FFD700" />
             <circle cx="90" cy="185" r="6" fill="#00BFFF" />
             <circle cx="145" cy="180" r="7" fill="#FF69B4" />
-            <circle cx="55" cy="195" r="5" fill="#32CD32" />
-            <circle cx="125" cy="195" r="6" fill="#FF0000" />
-            {/* Lights garland */}
+            {/* Lights */}
             <circle cx="50" cy="110" r="3" fill="#FFFF00" className="animate-pulse" />
             <circle cx="130" cy="115" r="3" fill="#FF00FF" className="animate-pulse" style={{ animationDelay: '0.3s' }} />
             <circle cx="40" cy="165" r="3" fill="#00FF00" className="animate-pulse" style={{ animationDelay: '0.6s' }} />
-            <circle cx="140" cy="160" r="3" fill="#FFFF00" className="animate-pulse" style={{ animationDelay: '0.9s' }} />
             
             <defs>
               <linearGradient id="treeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -47,17 +47,17 @@ export function ChristmasDecorations() {
             </defs>
           </svg>
           
-          {/* Presents under tree */}
-          <div className="absolute bottom-10 left-12 flex gap-2">
-            <div className="w-8 h-8 bg-red-500 rounded-sm relative">
-              <div className="absolute inset-x-0 top-1/2 h-1 bg-yellow-400 -translate-y-1/2" />
-              <div className="absolute inset-y-0 left-1/2 w-1 bg-yellow-400 -translate-x-1/2" />
+          {/* Presents under tree - hidden on smallest screens */}
+          <div className="absolute bottom-2 left-3 sm:bottom-4 sm:left-6 md:bottom-8 md:left-10 flex gap-1 sm:gap-2">
+            <div className="w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 bg-red-500 rounded-sm relative">
+              <div className="absolute inset-x-0 top-1/2 h-0.5 sm:h-1 bg-yellow-400 -translate-y-1/2" />
+              <div className="absolute inset-y-0 left-1/2 w-0.5 sm:w-1 bg-yellow-400 -translate-x-1/2" />
             </div>
-            <div className="w-6 h-10 bg-blue-500 rounded-sm relative">
-              <div className="absolute inset-x-0 top-1/2 h-1 bg-white -translate-y-1/2" />
-              <div className="absolute inset-y-0 left-1/2 w-1 bg-white -translate-x-1/2" />
+            <div className="w-3 h-5 sm:w-5 sm:h-8 md:w-6 md:h-10 bg-blue-500 rounded-sm relative hidden sm:block">
+              <div className="absolute inset-x-0 top-1/2 h-0.5 sm:h-1 bg-white -translate-y-1/2" />
+              <div className="absolute inset-y-0 left-1/2 w-0.5 sm:w-1 bg-white -translate-x-1/2" />
             </div>
-            <div className="w-10 h-6 bg-green-600 rounded-sm relative">
+            <div className="w-5 h-3 sm:w-8 sm:h-5 md:w-10 md:h-6 bg-green-600 rounded-sm relative hidden md:block">
               <div className="absolute inset-x-0 top-1/2 h-1 bg-red-400 -translate-y-1/2" />
               <div className="absolute inset-y-0 left-1/2 w-1 bg-red-400 -translate-x-1/2" />
             </div>
@@ -65,65 +65,69 @@ export function ChristmasDecorations() {
         </div>
       </motion.div>
 
-      {/* Santa on Right Side */}
+      {/* Santa on Right Side - Responsive */}
       <motion.div
-        initial={{ opacity: 0, x: 50 }}
+        initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.8, delay: 0.7 }}
-        className="fixed right-4 bottom-4 z-10 pointer-events-none hidden lg:block"
+        className="fixed right-2 sm:right-4 bottom-2 sm:bottom-4 z-10 pointer-events-none"
       >
-        <div className="text-6xl animate-bounce" style={{ animationDuration: '3s' }}>
+        <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl animate-bounce" style={{ animationDuration: '3s' }}>
           🎅
         </div>
       </motion.div>
 
-      {/* Floating Christmas Elements */}
-      <div className="fixed top-32 right-8 z-10 pointer-events-none hidden md:block">
+      {/* Corner decorations - smaller on mobile */}
+      <div className="fixed top-16 sm:top-20 right-2 sm:right-4 z-10 pointer-events-none opacity-60 sm:opacity-70">
         <motion.div
-          animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+          animate={{ y: [0, -5, 0], rotate: [0, 5, -5, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="text-4xl"
+          className="text-xl sm:text-2xl md:text-3xl"
         >
           🎄
         </motion.div>
       </div>
 
-      <div className="fixed top-48 left-8 z-10 pointer-events-none hidden md:block">
+      <div className="fixed top-28 sm:top-32 left-2 sm:left-4 z-10 pointer-events-none opacity-60 sm:opacity-70">
         <motion.div
-          animate={{ y: [0, -8, 0], scale: [1, 1.1, 1] }}
+          animate={{ y: [0, -5, 0], scale: [1, 1.1, 1] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="text-3xl"
+          className="text-xl sm:text-2xl md:text-3xl"
         >
           🎁
         </motion.div>
       </div>
 
-      <div className="fixed top-64 right-16 z-10 pointer-events-none hidden lg:block">
+      {/* Snowflake - desktop only for performance */}
+      <div className="fixed top-48 right-12 z-10 pointer-events-none hidden md:block">
         <motion.div
           animate={{ rotate: [0, 360] }}
           transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          className="text-3xl"
+          className="text-2xl lg:text-3xl opacity-60"
         >
           ❄️
         </motion.div>
       </div>
 
-      {/* Holly decoration in corners */}
-      <div className="fixed top-20 left-4 z-10 pointer-events-none hidden md:block opacity-70">
-        <span className="text-2xl">🎄</span>
-      </div>
-      <div className="fixed top-20 right-4 z-10 pointer-events-none hidden md:block opacity-70">
-        <span className="text-2xl">🎄</span>
-      </div>
-
-      {/* Candy canes */}
-      <div className="fixed bottom-32 right-8 z-10 pointer-events-none hidden md:block">
+      {/* Candy cane - tablet+ only */}
+      <div className="fixed bottom-24 sm:bottom-32 right-4 sm:right-8 z-10 pointer-events-none hidden sm:block">
         <motion.div
           animate={{ rotate: [-10, 10, -10] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="text-4xl"
+          className="text-2xl sm:text-3xl md:text-4xl opacity-70"
         >
           🍬
+        </motion.div>
+      </div>
+
+      {/* Additional mobile-friendly decorations */}
+      <div className="fixed top-40 right-3 z-10 pointer-events-none sm:hidden">
+        <motion.div
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="text-lg opacity-50"
+        >
+          ⭐
         </motion.div>
       </div>
     </>

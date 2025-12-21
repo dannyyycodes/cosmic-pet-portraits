@@ -14,17 +14,18 @@ export function Snowfall() {
 
   useEffect(() => {
     const flakes: Snowflake[] = [];
-    // Reduced count for better mobile performance
-    const count = typeof window !== 'undefined' && window.innerWidth < 768 ? 15 : 35;
+    // Performance optimized: fewer on mobile, more on desktop
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const count = isMobile ? 20 : 40;
     
     for (let i = 0; i < count; i++) {
       flakes.push({
         id: i,
         left: Math.random() * 100,
-        size: Math.random() * 3 + 2,
-        duration: Math.random() * 12 + 12,
-        delay: Math.random() * 8,
-        opacity: Math.random() * 0.4 + 0.2,
+        size: isMobile ? Math.random() * 2 + 2 : Math.random() * 3 + 2,
+        duration: Math.random() * 10 + 15, // Slower = smoother
+        delay: Math.random() * 10,
+        opacity: Math.random() * 0.5 + 0.3,
       });
     }
     setSnowflakes(flakes);
@@ -35,7 +36,7 @@ export function Snowfall() {
       {snowflakes.map((flake) => (
         <div
           key={flake.id}
-          className="absolute rounded-full bg-white will-change-transform"
+          className="absolute rounded-full bg-white/90"
           style={{
             left: `${flake.left}%`,
             width: `${flake.size}px`,
@@ -43,19 +44,26 @@ export function Snowfall() {
             opacity: flake.opacity,
             animation: `snowfall ${flake.duration}s linear infinite`,
             animationDelay: `${flake.delay}s`,
+            boxShadow: '0 0 3px rgba(255,255,255,0.5)',
           }}
         />
       ))}
       <style>{`
         @keyframes snowfall {
           0% {
-            transform: translateY(-10px) translateX(0);
+            transform: translateY(-20px) translateX(0);
+          }
+          25% {
+            transform: translateY(25vh) translateX(5px);
           }
           50% {
-            transform: translateY(50vh) translateX(10px);
+            transform: translateY(50vh) translateX(-5px);
+          }
+          75% {
+            transform: translateY(75vh) translateX(5px);
           }
           100% {
-            transform: translateY(100vh) translateX(-10px);
+            transform: translateY(105vh) translateX(0);
           }
         }
       `}</style>
