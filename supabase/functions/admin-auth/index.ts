@@ -113,8 +113,9 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const action = url.searchParams.get("action");
     const body = await req.json();
+    // Support action from query string or body
+    const action = url.searchParams.get("action") || body.action;
 
     // Validate session token
     if (action === "validate") {

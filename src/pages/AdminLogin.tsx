@@ -47,8 +47,8 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('admin-auth?action=register', {
-        body: { email, password, setupKey },
+      const { data, error } = await supabase.functions.invoke('admin-auth', {
+        body: { email, password, setupKey, action: 'register' },
       });
 
       if (error || data?.error) {
