@@ -55,6 +55,7 @@ export default function PaymentSuccess() {
 
   const sessionId = searchParams.get('session_id');
   const reportId = searchParams.get('report_id');
+  const reportIdsParam = searchParams.get('report_ids'); // For multi-pet gifts
   const isGiftedParam = searchParams.get('gifted') === 'true';
   const giftedTierParam = searchParams.get('gifted_tier') as 'basic' | 'premium' | 'vip' | null;
   const isGiftRedemption = sessionId?.startsWith('gift_') || isGiftedParam;
@@ -121,6 +122,7 @@ export default function PaymentSuccess() {
           body: { 
             sessionId, 
             reportId,
+            report_ids: reportIdsParam, // For multi-pet gifts
             // Pass dev mode options if present
             includeGift: includeGiftParam,
             includeHoroscope: includeHoroscopeParam,

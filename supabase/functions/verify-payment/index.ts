@@ -233,71 +233,92 @@ serve(async (req) => {
     if (sessionId.startsWith('gift_')) {
       console.log("[VERIFY-PAYMENT] Gift redemption - skipping Stripe verification");
       
-      // Get the report
-      const { data: report } = await supabaseClient
-        .from("pet_reports")
-        .select("*")
-        .eq("id", reportId)
+      // For multi-pet gifts, get report_ids from the request body or URL
+      const reportIdsFromBody = body.report_ids?.split(',').filter(Boolean) || [reportId];
+      const allReportIds = reportIdsFromBody.length > 1 ? reportIdsFromBody : [reportId];
+      
+      console.log("[VERIFY-PAYMENT] Gift redemption - processing", allReportIds.length, "reports");
+      
+      // Get the gift certificate to determine per-pet tiers
+      const giftCode = sessionId.replace('gift_', '');
+      const { data: giftCert } = await supabaseClient
+        .from("gift_certificates")
+        .select("gift_tier, gift_pets_json")
+        .eq("code", giftCode)
         .single();
-
-      if (!report) {
-        return new Response(JSON.stringify({ error: "Report not found" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 404,
-        });
-      }
-
-      // Generate share token if not present
+      
+      const giftPetsJson = giftCert?.gift_pets_json as { id: string; tier: string }[] | null;
+      const globalTier = giftCert?.gift_tier || 'premium';
+      
+      // Generate share token helper
       const generateShareToken = () => {
         const bytes = new Uint8Array(12);
         crypto.getRandomValues(bytes);
         return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
       };
-
-      const shareToken = report.share_token || generateShareToken();
-
-      // Update report with share token if needed
-      if (!report.share_token) {
-        await supabaseClient
+      
+      // Process each report
+      for (let i = 0; i < allReportIds.length; i++) {
+        const id = allReportIds[i];
+        
+        // Determine this pet's tier from gift_pets_json or fallback to global
+        const petTier = giftPetsJson?.[i]?.tier || globalTier;
+        const includesPortrait = petTier === 'portrait' || petTier === 'vip';
+        
+        console.log(`[VERIFY-PAYMENT] Processing report ${i}:`, { id, petTier, includesPortrait });
+        
+        // Get the report
+        const { data: report } = await supabaseClient
           .from("pet_reports")
-          .update({ 
-            share_token: shareToken,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", reportId);
-      }
-
-      // Generate report if not already generated
-      if (!report.report_content) {
-        // Gift redemptions get the tier from the gift certificate
-        const giftCode = sessionId.replace('gift_', '');
-        const { data: giftCert } = await supabaseClient
-          .from("gift_certificates")
-          .select("gift_tier")
-          .eq("code", giftCode)
+          .select("*")
+          .eq("id", id)
           .single();
+
+        if (!report) {
+          console.log("[VERIFY-PAYMENT] Report not found:", id);
+          continue;
+        }
         
-        const tier = giftCert?.gift_tier || 'premium';
-        const includesPortrait = tier === 'premium' || tier === 'vip';
-        
-        await generateReport(report, reportId, supabaseClient, includesPortrait);
+        // Update report with share token if needed
+        if (!report.share_token) {
+          const shareToken = generateShareToken();
+          await supabaseClient
+            .from("pet_reports")
+            .update({ 
+              share_token: shareToken,
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", id);
+        }
+
+        // Generate report if not already generated
+        if (!report.report_content) {
+          await generateReport(report, id, supabaseClient, includesPortrait);
+        }
       }
 
-      // Fetch the updated report
-      const { data: finalReport } = await supabaseClient
+      // Fetch ALL updated reports
+      const { data: allReports } = await supabaseClient
         .from("pet_reports")
         .select("*")
-        .eq("id", reportId)
-        .single();
+        .in("id", allReportIds)
+        .order("created_at", { ascending: true });
+      
+      // Check if any pet has horoscope subscription
+      const hasAnyPortrait = giftPetsJson 
+        ? giftPetsJson.some(p => p.tier === 'portrait' || p.tier === 'vip')
+        : (globalTier === 'portrait' || globalTier === 'vip');
+
+      const primaryReport = allReports?.find((r: any) => r.id === reportId) || allReports?.[0];
 
       return new Response(JSON.stringify({ 
         success: true, 
-        report: finalReport,
-        allReports: [finalReport],
-        reportIds: [reportId],
+        report: primaryReport,
+        allReports: allReports || [primaryReport],
+        reportIds: allReportIds,
         includeGift: false,
         giftCode: null,
-        horoscopeEnabled: false,
+        horoscopeEnabled: hasAnyPortrait,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
