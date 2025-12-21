@@ -275,6 +275,7 @@ serve(async (req) => {
                 archetype,
                 style: 'pokemon',
                 petImageUrl: photoUrl,
+                reportId: reportId,
               }),
             }
           );
