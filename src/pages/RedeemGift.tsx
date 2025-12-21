@@ -70,9 +70,9 @@ export default function RedeemGift() {
   };
 
   const handleContinue = () => {
-    // Always pass pet count for gift flow
+    // Navigate to dedicated gift intake route (always starts fresh)
     const petCount = giftData?.petCount || 1;
-    navigate(`/intake?mode=discover&gift=${giftCode.toUpperCase()}&pets=${petCount}`);
+    navigate(`/redeem-intake?gift=${giftCode.toUpperCase()}&pets=${petCount}`);
   };
 
   const getTierName = () => {

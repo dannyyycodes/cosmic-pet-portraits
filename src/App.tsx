@@ -16,6 +16,7 @@ import ViewReport from "./pages/ViewReport";
 import GiftPurchase from "./pages/GiftPurchase";
 import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";
+import GiftIntake from "./pages/GiftIntake";
 import NotFound from "./pages/NotFound";
 
 // Lazy loaded pages (less frequently accessed)
@@ -65,6 +66,7 @@ const App = () => (
                 <Route path="/gift" element={<GiftPurchase />} />
                 <Route path="/gift-success" element={<GiftSuccess />} />
                 <Route path="/redeem" element={<RedeemGift />} />
+                <Route path="/redeem-intake" element={<GiftIntake />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/report" element={<ViewReport />} />
                 <Route path="/auth" element={<Auth />} />
