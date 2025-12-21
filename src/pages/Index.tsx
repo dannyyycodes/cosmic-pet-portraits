@@ -28,7 +28,6 @@ const Index = () => {
       {/* Subtle Christmas Effects */}
       <Snowfall />
       <Navbar />
-      <SocialProofBar />
       
       {/* Dynamic Cosmic Background */}
       <div className="fixed inset-0 z-0">
