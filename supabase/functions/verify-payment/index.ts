@@ -511,6 +511,7 @@ async function generateReport(report: any, reportId: string, supabaseClient: any
     breed: report.breed ?? '',
     gender: report.gender,
     dateOfBirth: report.birth_date,
+    birthTime: report.birth_time ?? '',
     location: report.birth_location ?? '',
     soulType: report.soul_type ?? '',
     superpower: report.superpower ?? '',
@@ -520,80 +521,163 @@ async function generateReport(report: any, reportId: string, supabaseClient: any
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
+  // Set timeout for external calls to prevent hanging
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout (edge function limit is 60s)
+
   try {
+    console.log("[VERIFY-PAYMENT] Calling generate-cosmic-report...");
     const genResponse = await fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${serviceRoleKey}`,
       },
-      body: JSON.stringify({ petData, reportId, language: report.language || 'en' }),
+      body: JSON.stringify({ 
+        petData, 
+        reportId, 
+        language: report.language || 'en',
+        occasionMode: report.occasion_mode || 'discover',
+      }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     const genText = await genResponse.text();
     let genData: any = null;
     try {
       genData = genText ? JSON.parse(genText) : null;
     } catch {
-      // ignore parse errors
+      console.error("[VERIFY-PAYMENT] Failed to parse report response:", genText?.substring(0, 200));
     }
 
     if (!genResponse.ok) {
       console.error("[VERIFY-PAYMENT] Report generation failed", {
         status: genResponse.status,
-        body: genText,
+        body: genText?.substring(0, 500),
       });
+      // Mark report with error status for visibility
+      await supabaseClient
+        .from("pet_reports")
+        .update({ 
+          report_content: { error: "Generation failed - please contact support", status: genResponse.status },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", reportId);
       return;
     }
 
-    console.log("[VERIFY-PAYMENT] Report generated successfully");
+    console.log("[VERIFY-PAYMENT] Report generated successfully for:", reportId);
 
     // Generate AI portrait if tier includes it and pet photo is available
+    // Use background task pattern to avoid timeout
     if (includesPortrait && report.pet_photo_url) {
-      try {
-        console.log("[VERIFY-PAYMENT] Generating AI portrait for:", reportId);
-        const portraitResponse = await fetch(
-          `${supabaseUrl}/functions/v1/generate-pet-portrait`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${serviceRoleKey}`,
-            },
-            body: JSON.stringify({
-              petName: report.pet_name,
-              species: report.species || 'pet',
-              breed: report.breed || '',
-              sunSign: genData?.report?.chartPlacements?.sun?.sign || genData?.report?.sunSign || 'Leo',
-              element: genData?.report?.dominantElement || 'Fire',
-              archetype: genData?.report?.archetype?.name || 'Cosmic Soul',
-              style: 'pokemon',
-              petImageUrl: report.pet_photo_url,
-              reportId: reportId,
-            }),
-          }
-        );
-
-        if (portraitResponse.ok) {
-          const portraitData = await portraitResponse.json();
-          if (portraitData.imageUrl) {
-            // Save portrait URL to database
-            await supabaseClient
-              .from("pet_reports")
-              .update({ portrait_url: portraitData.imageUrl })
-              .eq("id", reportId);
-            console.log("[VERIFY-PAYMENT] AI portrait saved for:", reportId);
-          }
-        } else {
-          console.error("[VERIFY-PAYMENT] Portrait generation failed:", await portraitResponse.text());
-        }
-      } catch (portraitError) {
-        console.error("[VERIFY-PAYMENT] Portrait generation error:", portraitError);
-        // Non-fatal - continue
-      }
+      console.log("[VERIFY-PAYMENT] Triggering AI portrait for:", reportId);
+      
+      // Fire and forget - don't await to prevent timeout
+      generatePortraitBackground(
+        supabaseUrl!,
+        serviceRoleKey!,
+        reportId,
+        report,
+        genData,
+        supabaseClient
+      ).catch(err => {
+        console.error("[VERIFY-PAYMENT] Background portrait error:", err);
+      });
     }
 
-    // Send email (best-effort)
+    // Send email (fire and forget to prevent timeout)
+    sendEmailBackground(
+      supabaseUrl!,
+      serviceRoleKey!,
+      reportId,
+      report.email,
+      report.pet_name,
+      genData?.report?.sunSign
+    ).catch(err => {
+      console.error("[VERIFY-PAYMENT] Background email error:", err);
+    });
+
+  } catch (err) {
+    clearTimeout(timeoutId);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error("[VERIFY-PAYMENT] Error generating report:", errorMessage);
+    
+    // Check if it was a timeout
+    if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
+      console.error("[VERIFY-PAYMENT] Request timed out for:", reportId);
+      await supabaseClient
+        .from("pet_reports")
+        .update({ 
+          report_content: { error: "Report generation timed out - retrying in background", timeout: true },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", reportId);
+    }
+  }
+}
+
+// Background portrait generation - runs after main response
+async function generatePortraitBackground(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  reportId: string,
+  report: any,
+  genData: any,
+  supabaseClient: any
+) {
+  try {
+    const portraitResponse = await fetch(
+      `${supabaseUrl}/functions/v1/generate-pet-portrait`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${serviceRoleKey}`,
+        },
+        body: JSON.stringify({
+          petName: report.pet_name,
+          species: report.species || 'pet',
+          breed: report.breed || '',
+          sunSign: genData?.report?.chartPlacements?.sun?.sign || genData?.report?.sunSign || 'Leo',
+          element: genData?.report?.dominantElement || 'Fire',
+          archetype: genData?.report?.archetype?.name || 'Cosmic Soul',
+          style: 'pokemon',
+          petImageUrl: report.pet_photo_url,
+          reportId: reportId,
+        }),
+      }
+    );
+
+    if (portraitResponse.ok) {
+      const portraitData = await portraitResponse.json();
+      if (portraitData.imageUrl) {
+        await supabaseClient
+          .from("pet_reports")
+          .update({ portrait_url: portraitData.imageUrl })
+          .eq("id", reportId);
+        console.log("[VERIFY-PAYMENT] AI portrait saved for:", reportId);
+      }
+    } else {
+      console.error("[VERIFY-PAYMENT] Portrait generation failed:", await portraitResponse.text());
+    }
+  } catch (portraitError) {
+    console.error("[VERIFY-PAYMENT] Portrait generation error:", portraitError);
+  }
+}
+
+// Background email sending
+async function sendEmailBackground(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  reportId: string,
+  email: string,
+  petName: string,
+  sunSign?: string
+) {
+  try {
     const emailResponse = await fetch(`${supabaseUrl}/functions/v1/send-report-email`, {
       method: "POST",
       headers: {
@@ -602,9 +686,9 @@ async function generateReport(report: any, reportId: string, supabaseClient: any
       },
       body: JSON.stringify({
         reportId,
-        email: report.email,
-        petName: report.pet_name,
-        sunSign: genData?.report?.sunSign,
+        email,
+        petName,
+        sunSign,
       }),
     });
 
@@ -613,8 +697,10 @@ async function generateReport(report: any, reportId: string, supabaseClient: any
         status: emailResponse.status,
         body: await emailResponse.text(),
       });
+    } else {
+      console.log("[VERIFY-PAYMENT] Email sent successfully for:", reportId);
     }
   } catch (err) {
-    console.error("[VERIFY-PAYMENT] Error generating report:", err);
+    console.error("[VERIFY-PAYMENT] Error sending email:", err);
   }
 }
