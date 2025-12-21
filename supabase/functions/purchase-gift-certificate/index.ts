@@ -126,7 +126,8 @@ serve(async (req) => {
       success_url: `${origin}/gift-success?code=${giftCode}&delivery=${input.deliveryMethod}`,
       cancel_url: `${origin}/gift`,
       metadata: {
-        giftCode,
+        type: "gift_certificate",
+        gift_code: giftCode,
         giftTier,
         recipientEmail: input.recipientEmail || "",
         recipientName: input.recipientName || "",
