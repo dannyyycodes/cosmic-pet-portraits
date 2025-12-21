@@ -113,8 +113,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     hostname.endsWith('lovableproject.com') ||
     hostname.endsWith('lovable.app');
   const isTestMode = isDevMode || isPreviewHost;
-
-
+  const isGiftFlow = Boolean(searchParams.get('gift'));
 
   const toggleDevMode = () => {
     const next = new URLSearchParams(searchParams);
@@ -204,25 +203,31 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   // Also handle checkout=true from Stripe cancel redirect
   useEffect(() => {
     if (hasRestoredProgress) return;
-    
+
+    // Gift redemptions should always start fresh (saved progress can break the multi-pet gift flow)
+    if (isGiftFlow) {
+      clearIntakeProgress();
+      setHasRestoredProgress(true);
+      return;
+    }
+
     const isCheckoutReturn = searchParams.get('checkout') === 'true';
     const saved = loadIntakeProgress();
-    
-    // Only restore if there's saved progress AND user isn't coming fresh from homepage
-    // We detect fresh visits by checking if we're at step 0 with no data
+
+    // Only restore if there's saved progress
     if (saved && saved.petsData.length > 0 && saved.step > 0) {
       // Convert date strings back to Date objects
-      const restoredPets = saved.petsData.map(pet => ({
+      const restoredPets = saved.petsData.map((pet) => ({
         ...pet,
         dateOfBirth: pet.dateOfBirth ? new Date(pet.dateOfBirth) : null,
       }));
-      
+
       setPetsData(restoredPets);
       setCurrentPetIndex(saved.currentPetIndex);
       setStep(saved.step);
       setPetCount(saved.petCount);
       setOccasionMode(saved.petsData[0]?.occasionMode || mode);
-      
+
       // If returning from Stripe checkout, go directly to results/checkout view
       if (isCheckoutReturn) {
         setShowResults(true);
@@ -234,9 +239,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         toast.success('Welcome back! Your progress has been restored.');
       }
     }
-    // Always start at step 0 (occasion) for fresh visits
+
     setHasRestoredProgress(true);
-  }, [hasRestoredProgress, mode, searchParams, setSearchParams]);
+  }, [hasRestoredProgress, isGiftFlow, mode, searchParams, setSearchParams]);
 
   // Save progress whenever state changes
   useEffect(() => {
@@ -288,6 +293,30 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
   const currentPetData = petsData[currentPetIndex];
 
+  // Defensive: ensure multi-pet arrays are always the right length (prevents "blank" screens)
+  useEffect(() => {
+    if (currentPetIndex >= petCount) {
+      setCurrentPetIndex(Math.max(0, petCount - 1));
+      return;
+    }
+
+    if (!petsData[currentPetIndex] || petsData.length < petCount) {
+      setPetsData((prev) => {
+        const next = [...prev];
+
+        while (next.length < petCount) {
+          next.push(createEmptyPetData(isGiftFlow ? 'discover' : occasionMode));
+        }
+
+        if (!next[currentPetIndex]) {
+          next[currentPetIndex] = createEmptyPetData(isGiftFlow ? 'discover' : occasionMode);
+        }
+
+        return next;
+      });
+    }
+  }, [currentPetIndex, petCount, petsData, isGiftFlow, occasionMode]);
+
   const updatePetData = (data: Partial<PetData>) => {
     setPetsData(prev => prev.map((pet, i) => 
       i === currentPetIndex ? { ...pet, ...data } : pet
@@ -319,11 +348,21 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
   const handleNextPetOrEmail = () => {
     if (currentPetIndex < petCount - 1) {
-      // Move to next pet
-      setCurrentPetIndex(currentPetIndex + 1);
-      // For gift redemptions, skip occasion selection and go straight to name
-      // Normal flow goes to occasion selection (step 1)
-      setStep(giftCodeFromUrl ? 2 : 1);
+      const nextIndex = currentPetIndex + 1;
+
+      // Ensure the next pet slot exists before rendering its steps
+      setPetsData((prev) => {
+        if (prev[nextIndex]) return prev;
+        const next = [...prev];
+        while (next.length <= nextIndex) {
+          next.push(createEmptyPetData(isGiftFlow ? 'discover' : occasionMode));
+        }
+        return next;
+      });
+
+      setCurrentPetIndex(nextIndex);
+      // Gift flow skips per-pet occasion selection
+      setStep(isGiftFlow ? 2 : 1);
     } else {
       // All pets done, go to email
       setStep(11);
@@ -619,7 +658,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       
 
       {/* Hide social proof bar during gift redemption flow */}
-      {!giftCodeFromUrl && <SocialProofBar petName={currentPetData?.name || ''} />}
+      {!isGiftFlow && <SocialProofBar petName={currentPetData?.name || ''} />}
       
       <div className="w-full max-w-xl relative z-10">
         {/* Start Again (moved into the questionnaire card area so it's always visible) */}
