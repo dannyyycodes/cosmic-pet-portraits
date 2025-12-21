@@ -264,12 +264,28 @@ export default function PaymentSuccess() {
             {t('common.oops')}
           </h1>
           <p className="text-muted-foreground mb-6">{error}</p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
-          >
-            {t('common.goBackHome')}
-          </button>
+          <div className="space-y-3">
+            <Button
+              onClick={() => {
+                setStage('generating');
+                setError(null);
+                verifyAndFetchReport();
+              }}
+              variant="cosmic"
+              className="w-full"
+            >
+              Try Again
+            </Button>
+            <button
+              onClick={() => navigate('/')}
+              className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors block w-full"
+            >
+              {t('common.goBackHome')}
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-6">
+            If this persists, please contact support@astropets.cloud
+          </p>
         </div>
       </div>
     );
