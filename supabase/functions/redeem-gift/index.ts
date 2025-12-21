@@ -13,8 +13,10 @@ const redeemSchema = z.object({
     .min(8)
     .max(30)
     .regex(/^GIFT-[A-Z0-9-]+$/, "Invalid gift code format"),
-  reportId: z.string().uuid(),
+  reportId: z.string().uuid(), // Primary report ID (backwards compat)
+  reportIds: z.array(z.string().uuid()).optional(), // All report IDs for multi-pet gifts
   petPhotoUrl: z.string().url().optional(),
+  petPhotoUrls: z.record(z.string().url()).optional(), // Map of reportId -> photoUrl for multi-pet
 });
 
 serve(async (req) => {
@@ -26,7 +28,11 @@ serve(async (req) => {
     const rawInput = await req.json();
     const input = redeemSchema.parse(rawInput);
     
-    console.log("[REDEEM-GIFT] Attempting to redeem gift code for report:", input.reportId);
+    // Support both single reportId and array of reportIds
+    const allReportIds = input.reportIds || [input.reportId];
+    const primaryReportId = allReportIds[0];
+    
+    console.log("[REDEEM-GIFT] Attempting to redeem gift code for", allReportIds.length, "reports:", allReportIds);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -75,13 +81,26 @@ serve(async (req) => {
       });
     }
 
+    // Validate pet count matches gift pet count
+    const giftPetCount = gift.pet_count || 1;
+    if (allReportIds.length > giftPetCount) {
+      console.log("[REDEEM-GIFT] Too many reports for gift:", allReportIds.length, "vs", giftPetCount);
+      return new Response(JSON.stringify({ 
+        error: `This gift covers ${giftPetCount} pet${giftPetCount > 1 ? 's' : ''}, but ${allReportIds.length} were submitted`,
+        success: false 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
     // Mark gift as redeemed IMMEDIATELY (prevent race conditions)
     const { error: updateError } = await supabase
       .from("gift_certificates")
       .update({ 
         is_redeemed: true, 
         redeemed_at: new Date().toISOString(),
-        redeemed_by_report_id: input.reportId,
+        redeemed_by_report_id: primaryReportId,
       })
       .eq("id", gift.id)
       .eq("is_redeemed", false); // Double-check it wasn't redeemed in a race
@@ -97,31 +116,35 @@ serve(async (req) => {
       });
     }
 
-    // Update the report as paid and save pet photo URL if provided
-    const updateData: any = { 
-      payment_status: "paid",
-      stripe_session_id: `gift_${gift.code}`,
-    };
+    // Update ALL reports as paid
+    console.log("[REDEEM-GIFT] Marking", allReportIds.length, "reports as paid");
     
-    if (input.petPhotoUrl) {
-      updateData.pet_photo_url = input.petPhotoUrl;
-    }
-    
-    const { error: reportError } = await supabase
-      .from("pet_reports")
-      .update(updateData)
-      .eq("id", input.reportId);
+    for (let i = 0; i < allReportIds.length; i++) {
+      const reportId = allReportIds[i];
+      const updateData: any = { 
+        payment_status: "paid",
+        stripe_session_id: `gift_${gift.code}`,
+      };
+      
+      // Apply photo URL for each pet if provided
+      if (input.petPhotoUrls && input.petPhotoUrls[reportId]) {
+        updateData.pet_photo_url = input.petPhotoUrls[reportId];
+      } else if (i === 0 && input.petPhotoUrl) {
+        // Fallback: apply single photo to first pet for backwards compat
+        updateData.pet_photo_url = input.petPhotoUrl;
+      }
+      
+      const { error: reportError } = await supabase
+        .from("pet_reports")
+        .update(updateData)
+        .eq("id", reportId);
 
-    if (reportError) {
-      console.error("[REDEEM-GIFT] Failed to update report:", reportError);
-      // Note: Gift is already marked as redeemed - support may need to help
-      return new Response(JSON.stringify({ 
-        error: "Gift redeemed but report update failed. Please contact support.",
-        success: false 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      });
+      if (reportError) {
+        console.error("[REDEEM-GIFT] Failed to update report:", reportId, reportError);
+        // Continue with other reports, don't fail the whole redemption
+      } else {
+        console.log("[REDEEM-GIFT] Report marked as paid:", reportId);
+      }
     }
 
     // Use the stored gift_tier if available, otherwise derive from amount
@@ -141,42 +164,60 @@ serve(async (req) => {
     const includesPortrait = giftedTier === 'portrait' || giftedTier === 'vip';
     const includesWeeklyHoroscope = giftedTier === 'portrait' || giftedTier === 'vip';
     
-    // Get the pet report for additional processing
-    const { data: report } = await supabase
-      .from("pet_reports")
-      .select("pet_name, email, species, breed, pet_photo_url, report_content")
-      .eq("id", input.reportId)
-      .single();
+    // Process ALL pet reports for horoscopes and portraits
+    for (const reportId of allReportIds) {
+      const { data: report } = await supabase
+        .from("pet_reports")
+        .select("pet_name, email, species, breed, pet_photo_url, report_content")
+        .eq("id", reportId)
+        .single();
 
-    if (report) {
-      // For Portrait and VIP tiers, auto-enroll in weekly horoscope
+      if (!report) {
+        console.log("[REDEEM-GIFT] Report not found:", reportId);
+        continue;
+      }
+
+      // For Portrait and VIP tiers, auto-enroll in weekly horoscope (only once per email)
       if (includesWeeklyHoroscope) {
-        // Calculate next Monday for first horoscope
-        const nextMonday = new Date();
-        nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
-        nextMonday.setHours(9, 0, 0, 0);
-
-        const { error: subError } = await supabase
+        // Check if subscription already exists for this email
+        const { data: existingSub } = await supabase
           .from("horoscope_subscriptions")
-          .insert({
-            email: report.email,
-            pet_name: report.pet_name,
-            pet_report_id: input.reportId,
-            status: "active",
-            next_send_at: nextMonday.toISOString(),
-          });
+          .select("id")
+          .eq("email", report.email)
+          .eq("pet_report_id", reportId)
+          .single();
 
-        if (subError) {
-          console.error("[REDEEM-GIFT] Failed to create horoscope subscription:", subError);
-        } else {
-          console.log("[REDEEM-GIFT] Auto-enrolled in weekly horoscope:", report.email);
+        if (!existingSub) {
+          // Calculate next Monday for first horoscope
+          const nextMonday = new Date();
+          nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
+          nextMonday.setHours(9, 0, 0, 0);
+
+          const { error: subError } = await supabase
+            .from("horoscope_subscriptions")
+            .insert({
+              email: report.email,
+              pet_name: report.pet_name,
+              pet_report_id: reportId,
+              status: "active",
+              next_send_at: nextMonday.toISOString(),
+            });
+
+          if (subError) {
+            console.error("[REDEEM-GIFT] Failed to create horoscope subscription for:", reportId, subError);
+          } else {
+            console.log("[REDEEM-GIFT] Auto-enrolled in weekly horoscope:", report.email, report.pet_name);
+          }
         }
       }
       
       // For Portrait and VIP tiers, trigger AI portrait generation if photo available
-      const photoUrl = input.petPhotoUrl || report.pet_photo_url;
+      const photoUrl = (input.petPhotoUrls && input.petPhotoUrls[reportId]) || 
+                       (reportId === primaryReportId ? input.petPhotoUrl : null) || 
+                       report.pet_photo_url;
+      
       if (includesPortrait && photoUrl) {
-        console.log("[REDEEM-GIFT] Triggering AI portrait generation for:", input.reportId);
+        console.log("[REDEEM-GIFT] Triggering AI portrait generation for:", reportId);
         
         try {
           const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -216,12 +257,12 @@ serve(async (req) => {
               const { error: portraitUpdateError } = await supabase
                 .from("pet_reports")
                 .update({ portrait_url: portraitData.imageUrl })
-                .eq("id", input.reportId);
+                .eq("id", reportId);
               
               if (portraitUpdateError) {
                 console.error("[REDEEM-GIFT] Failed to save portrait URL:", portraitUpdateError);
               } else {
-                console.log("[REDEEM-GIFT] AI portrait saved for:", input.reportId, "URL length:", portraitData.imageUrl?.length);
+                console.log("[REDEEM-GIFT] AI portrait saved for:", reportId);
               }
             } else {
               console.error("[REDEEM-GIFT] No imageUrl in portrait response");
@@ -239,7 +280,8 @@ serve(async (req) => {
 
     console.log("[REDEEM-GIFT] Gift successfully redeemed:", {
       giftCode: input.giftCode,
-      reportId: input.reportId,
+      reportIds: allReportIds,
+      petCount: allReportIds.length,
       giftedTier,
       amountCents: gift.amount_cents,
       includesWeeklyHoroscope,
@@ -247,7 +289,9 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      reportId: input.reportId,
+      reportId: primaryReportId,
+      reportIds: allReportIds,
+      petCount: allReportIds.length,
       giftedTier,
       giftTier: giftedTier, // Explicit tier name for frontend
       recipientName: gift.recipient_name,
