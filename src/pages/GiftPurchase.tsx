@@ -403,7 +403,7 @@ export default function GiftPurchase() {
               <textarea
                 value={giftMessage}
                 onChange={(e) => setGiftMessage(e.target.value)}
-                placeholder={t('gift.messagePlaceholder')}
+                placeholder={t('gift.personalMessagePlaceholder')}
                 className="w-full px-4 py-3 rounded-xl bg-card/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground placeholder:text-muted-foreground"
                 rows={3}
                 maxLength={500}
