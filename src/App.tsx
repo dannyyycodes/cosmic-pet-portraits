@@ -39,6 +39,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const Account = lazy(() => import("./pages/Account"));
+const AffiliateMediaKit = lazy(() => import("./pages/AffiliateMediaKit"));
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
                 <Route path="/my-reports" element={<MyReports />} />
                 <Route path="/become-affiliate" element={<BecomeAffiliate />} />
                 <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
+                <Route path="/affiliate/media-kit" element={<AffiliateMediaKit />} />
                 <Route path="/ref/:code" element={<ReferralRedirect />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
