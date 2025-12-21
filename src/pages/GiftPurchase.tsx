@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Gift, Heart, Sparkles, ArrowLeft, Send, Star, LinkIcon, CheckCircle, Quote, Shield, Users, Minus, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Gift, Heart, Sparkles, ArrowLeft, Send, Star, LinkIcon, CheckCircle, Quote, Minus, Plus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
@@ -10,23 +10,26 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type DeliveryMethod = 'email' | 'link';
+type GiftTier = 'essential' | 'portrait' | 'vip';
 
-// Volume discount tiers
-const VOLUME_DISCOUNTS = [
-  { minPets: 1, discount: 0, label: '' },
-  { minPets: 2, discount: 20, label: '20% off' },
-  { minPets: 3, discount: 30, label: '30% off' },
-  { minPets: 4, discount: 40, label: '40% off' },
-  { minPets: 5, discount: 50, label: '50% off' },
-];
+interface GiftPet {
+  id: string;
+  tier: GiftTier;
+}
 
-const getVolumeDiscount = (petCount: number) => {
-  for (let i = VOLUME_DISCOUNTS.length - 1; i >= 0; i--) {
-    if (petCount >= VOLUME_DISCOUNTS[i].minPets) {
-      return VOLUME_DISCOUNTS[i];
-    }
-  }
-  return VOLUME_DISCOUNTS[0];
+const TIERS = {
+  essential: { cents: 3500, label: 'Essential', description: 'Core cosmic reading' },
+  portrait: { cents: 5000, label: 'Portrait Edition', description: 'Includes AI portrait' },
+  vip: { cents: 12900, label: 'VIP Experience', description: 'Full cosmic package' },
+} as const;
+
+// Volume discounts based on total pet count
+const getVolumeDiscount = (petCount: number): number => {
+  if (petCount >= 5) return 0.50;
+  if (petCount >= 4) return 0.40;
+  if (petCount >= 3) return 0.30;
+  if (petCount >= 2) return 0.20;
+  return 0;
 };
 
 export default function GiftPurchase() {
@@ -35,32 +38,39 @@ export default function GiftPurchase() {
   const [recipientName, setRecipientName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
-  const [selectedTier, setSelectedTier] = useState<'essential' | 'portrait' | 'vip'>('portrait');
-  const [petCount, setPetCount] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email');
+  
+  // Multi-pet with individual tier selection
+  const [giftPets, setGiftPets] = useState<GiftPet[]>([
+    { id: crypto.randomUUID(), tier: 'portrait' }
+  ]);
 
-  const giftTiers = [
-    { tier: 'essential' as const, baseCents: 3500, label: t('gift.tier1Name'), description: t('gift.tier1Desc'), popular: false },
-    { tier: 'portrait' as const, baseCents: 5000, label: t('gift.tier2Name'), description: t('gift.tier2Desc'), popular: true },
-    { tier: 'vip' as const, baseCents: 12900, label: t('gift.tier3Name'), description: t('gift.tier3Desc'), popular: false },
-  ];
+  const addPet = () => {
+    if (giftPets.length < 10) {
+      setGiftPets([...giftPets, { id: crypto.randomUUID(), tier: 'portrait' }]);
+    }
+  };
 
-  const selectedTierData = giftTiers.find(t => t.tier === selectedTier)!;
-  const volumeDiscount = getVolumeDiscount(petCount);
+  const removePet = (id: string) => {
+    if (giftPets.length > 1) {
+      setGiftPets(giftPets.filter(p => p.id !== id));
+    }
+  };
+
+  const updatePetTier = (id: string, tier: GiftTier) => {
+    setGiftPets(giftPets.map(p => p.id === id ? { ...p, tier } : p));
+  };
+
+  const petCount = giftPets.length;
+  const discount = getVolumeDiscount(petCount);
   
   const pricing = useMemo(() => {
-    const baseTotal = selectedTierData.baseCents * petCount;
-    const discountAmount = Math.round(baseTotal * (volumeDiscount.discount / 100));
+    const baseTotal = giftPets.reduce((sum, pet) => sum + TIERS[pet.tier].cents, 0);
+    const discountAmount = Math.round(baseTotal * discount);
     const finalTotal = baseTotal - discountAmount;
-    const perPetPrice = Math.round(finalTotal / petCount);
-    return { baseTotal, discountAmount, finalTotal, perPetPrice };
-  }, [selectedTierData.baseCents, petCount, volumeDiscount.discount]);
-
-  const handlePetCountChange = (delta: number) => {
-    const newCount = Math.max(1, Math.min(10, petCount + delta));
-    setPetCount(newCount);
-  };
+    return { baseTotal, discountAmount, finalTotal };
+  }, [giftPets, discount]);
 
   const handlePurchase = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -83,8 +93,7 @@ export default function GiftPurchase() {
           recipientEmail: deliveryMethod === 'email' ? recipientEmail : null,
           recipientName,
           giftMessage,
-          tier: selectedTier,
-          petCount,
+          giftPets, // Send individual pet tiers
           deliveryMethod,
         },
       });
@@ -135,6 +144,17 @@ export default function GiftPurchase() {
               {t('gift.subtitle')}
             </p>
           </div>
+
+          {/* Volume Discount Banner */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-4 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20"
+          >
+            <p className="text-sm font-medium text-center text-green-400">
+              🎁 Multi-Pet Savings: 2 pets = 20% off • 3 = 30% • 4 = 40% • 5+ = 50% off
+            </p>
+          </motion.div>
 
           {/* Why It's Perfect */}
           <motion.div 
@@ -196,110 +216,82 @@ export default function GiftPurchase() {
             ))}
           </div>
 
-          {/* Gift Tier Selection */}
+          {/* Pet Selection - Mix & Match */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="space-y-3"
+            className="space-y-4"
           >
-            <label className="text-sm font-medium text-foreground">{t('gift.selectAmount')}</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-foreground">Select readings to gift</label>
+              {discount > 0 && (
+                <span className="px-2 py-1 rounded-full bg-green-500/20 text-xs font-bold text-green-400">
+                  {Math.round(discount * 100)}% off applied
+                </span>
+              )}
+            </div>
+
             <div className="space-y-3">
-              {giftTiers.map((tier) => (
-                <button
-                  key={tier.tier}
-                  onClick={() => setSelectedTier(tier.tier)}
-                  className={`relative w-full p-5 rounded-xl border-2 transition-all text-left flex items-center justify-between group ${
-                    selectedTier === tier.tier
-                      ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
-                      : 'border-border/50 bg-card/40 hover:border-primary/50 hover:bg-card/60'
-                  }`}
-                >
-                  {tier.popular && (
-                    <span className="absolute -top-2.5 right-4 px-3 py-0.5 text-xs font-bold bg-gradient-to-r from-gold to-amber-500 text-background rounded-full">
-                      Most Popular
-                    </span>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      selectedTier === tier.tier ? 'border-primary bg-primary' : 'border-muted-foreground/50'
-                    }`}>
-                      {selectedTier === tier.tier && (
-                        <CheckCircle className="w-3 h-3 text-white" />
+              <AnimatePresence>
+                {giftPets.map((pet, index) => (
+                  <motion.div
+                    key={pet.id}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="p-4 rounded-xl border-2 border-border/50 bg-card/40 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-muted-foreground">Pet {index + 1}</span>
+                      {giftPets.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePet(pet.id)}
+                          className="p-1.5 rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       )}
                     </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{tier.label}</p>
-                      <p className="text-sm text-muted-foreground">{tier.description}</p>
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                      {(Object.entries(TIERS) as [GiftTier, typeof TIERS.essential][]).map(([key, tier]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => updatePetTier(pet.id, key)}
+                          className={`p-3 rounded-lg border-2 transition-all text-center ${
+                            pet.tier === key
+                              ? 'border-primary bg-primary/15 shadow-lg shadow-primary/10'
+                              : 'border-border/30 bg-card/30 hover:border-primary/30'
+                          }`}
+                        >
+                          <p className={`text-sm font-semibold ${pet.tier === key ? 'text-primary' : 'text-foreground'}`}>
+                            {tier.label}
+                          </p>
+                          <p className="text-lg font-bold text-foreground">${tier.cents / 100}</p>
+                        </button>
+                      ))}
                     </div>
-                  </div>
-                  <span className={`text-xl font-bold ${selectedTier === tier.tier ? 'text-primary' : 'text-foreground'}`}>
-                    ${(tier.baseCents / 100).toFixed(0)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Pet Count Selection */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.28 }}
-            className="space-y-3"
-          >
-            <label className="text-sm font-medium text-foreground">How many pet readings to gift?</label>
-            <div className="p-5 rounded-xl border-2 border-border/50 bg-card/40 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handlePetCountChange(-1)}
-                    disabled={petCount <= 1}
-                    className="w-10 h-10 rounded-full border-2 border-border/50 bg-card/50 flex items-center justify-center hover:border-primary/50 hover:bg-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <div className="text-center min-w-[60px]">
-                    <span className="text-3xl font-bold text-foreground">{petCount}</span>
-                    <p className="text-xs text-muted-foreground">{petCount === 1 ? 'pet' : 'pets'}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handlePetCountChange(1)}
-                    disabled={petCount >= 10}
-                    className="w-10 h-10 rounded-full border-2 border-border/50 bg-card/50 flex items-center justify-center hover:border-primary/50 hover:bg-card transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                
-                {volumeDiscount.discount > 0 && (
-                  <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="px-3 py-1.5 rounded-full bg-green-500/20 border border-green-500/30"
-                  >
-                    <span className="text-sm font-bold text-green-400">{volumeDiscount.label}</span>
                   </motion.div>
-                )}
-              </div>
-              
-              {/* Volume Discount Tiers Preview */}
-              <div className="flex flex-wrap gap-2 justify-center pt-2 border-t border-border/30">
-                {VOLUME_DISCOUNTS.slice(1).map((tier) => (
-                  <div 
-                    key={tier.minPets}
-                    className={`px-2 py-1 rounded-md text-xs transition-colors ${
-                      petCount >= tier.minPets 
-                        ? 'bg-green-500/20 text-green-400' 
-                        : 'bg-card/30 text-muted-foreground'
-                    }`}
-                  >
-                    {tier.minPets}+ pets: {tier.label}
-                  </div>
                 ))}
-              </div>
+              </AnimatePresence>
+
+              {/* Add Pet Button */}
+              {giftPets.length < 10 && (
+                <button
+                  type="button"
+                  onClick={addPet}
+                  className="w-full p-4 rounded-xl border-2 border-dashed border-border/50 bg-card/20 hover:border-primary/50 hover:bg-card/40 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span className="font-medium">Add another pet</span>
+                  {giftPets.length === 1 && (
+                    <span className="text-xs text-green-400 ml-2">(20% off with 2+)</span>
+                  )}
+                </button>
+              )}
             </div>
           </motion.div>
 
@@ -311,12 +303,14 @@ export default function GiftPurchase() {
             className="p-4 rounded-xl bg-gradient-to-br from-gold/10 to-amber-500/5 border border-gold/30 space-y-2"
           >
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{petCount}x {selectedTierData.label}</span>
+              <span className="text-muted-foreground">
+                {petCount} {petCount === 1 ? 'reading' : 'readings'}
+              </span>
               <span className="text-foreground">${(pricing.baseTotal / 100).toFixed(2)}</span>
             </div>
-            {volumeDiscount.discount > 0 && (
+            {discount > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-green-400">Volume discount ({volumeDiscount.discount}% off)</span>
+                <span className="text-green-400">Volume discount ({Math.round(discount * 100)}% off)</span>
                 <span className="text-green-400">-${(pricing.discountAmount / 100).toFixed(2)}</span>
               </div>
             )}
@@ -326,7 +320,7 @@ export default function GiftPurchase() {
             </div>
             {petCount > 1 && (
               <p className="text-xs text-muted-foreground text-center">
-                (${(pricing.perPetPrice / 100).toFixed(2)} per pet)
+                You save ${(pricing.discountAmount / 100).toFixed(2)}!
               </p>
             )}
           </motion.div>
@@ -409,51 +403,47 @@ export default function GiftPurchase() {
               <textarea
                 value={giftMessage}
                 onChange={(e) => setGiftMessage(e.target.value)}
-                placeholder={t('gift.personalMessagePlaceholder')}
-                className="w-full min-h-[100px] px-4 py-3 rounded-xl bg-card/50 border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 resize-none transition-all"
+                placeholder={t('gift.messagePlaceholder')}
+                className="w-full px-4 py-3 rounded-xl bg-card/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground placeholder:text-muted-foreground"
+                rows={3}
+                maxLength={500}
               />
+              <p className="text-xs text-muted-foreground text-right">{giftMessage.length}/500</p>
             </div>
 
             <Button
               type="submit"
-              disabled={isLoading || !purchaserEmail || (deliveryMethod === 'email' && !recipientEmail)}
-              variant="gold"
-              size="xl"
-              className="w-full shadow-xl shadow-gold/20"
+              disabled={isLoading}
+              className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-nebula-pink via-nebula-purple to-primary hover:opacity-90 transition-opacity shadow-xl shadow-nebula-purple/30"
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
-                  />
-                  {t('gift.processing')}
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Processing...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  {deliveryMethod === 'email' ? <Send className="w-5 h-5" /> : <LinkIcon className="w-5 h-5" />}
-                  {deliveryMethod === 'email' ? t('gift.sendGift') : t('gift.getGiftLink')} — ${(pricing.finalTotal / 100).toFixed(2)}
+                  <Gift className="w-5 h-5" />
+                  Purchase Gift — ${(pricing.finalTotal / 100).toFixed(2)}
                 </span>
               )}
             </Button>
           </motion.form>
 
-          {/* Trust Badges */}
+          {/* Trust Badge */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="flex items-center justify-center gap-6 text-center"
+            className="text-center space-y-2"
           >
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Shield className="w-4 h-4 text-green-400" />
-              <span className="text-xs">{t('gift.securePayment')}</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Users className="w-4 h-4 text-gold" />
-              <span className="text-xs">{t('gift.socialProof')}</span>
-            </div>
+            <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-400" />
+              {t('gift.securePayment')}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t('gift.validFor')}
+            </p>
           </motion.div>
         </motion.div>
       </div>
