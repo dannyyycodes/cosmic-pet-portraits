@@ -31,6 +31,7 @@ const AdminGifts = lazy(() => import("./pages/AdminGifts"));
 const AdminCoupons = lazy(() => import("./pages/AdminCoupons"));
 const AdminEmailSequences = lazy(() => import("./pages/AdminEmailSequences"));
 const BecomeAffiliate = lazy(() => import("./pages/BecomeAffiliate"));
+const AffiliateDashboard = lazy(() => import("./pages/AffiliateDashboard"));
 const ReferralRedirect = lazy(() => import("./pages/ReferralRedirect"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -70,6 +71,7 @@ const App = () => (
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/my-reports" element={<MyReports />} />
                 <Route path="/become-affiliate" element={<BecomeAffiliate />} />
+                <Route path="/affiliate/dashboard" element={<AffiliateDashboard />} />
                 <Route path="/ref/:code" element={<ReferralRedirect />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
