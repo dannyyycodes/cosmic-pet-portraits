@@ -16,7 +16,7 @@ export default function ViewReport() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string; shareToken?: string; petPhotoUrl?: string; portraitUrl?: string; occasionMode?: string; hasActiveHoroscope?: boolean; species?: string; email?: string } | null>(null);
+  const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string; shareToken?: string; petPhotoUrl?: string; portraitUrl?: string; occasionMode?: string; hasActiveHoroscope?: boolean; species?: string; email?: string; hasError?: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showCinematic, setShowCinematic] = useState(false);
   const [revealComplete, setRevealComplete] = useState(false);
@@ -86,6 +86,20 @@ export default function ViewReport() {
           return;
         }
         throw new Error(data.error);
+      }
+
+      // Check if report has an error state (generation failed)
+      if (data.report?.error) {
+        console.log('[ViewReport] Report has error state:', data.report.error);
+        setError(data.report.error);
+        setReportData({
+          petName: data.petName,
+          report: null,
+          reportId: reportId || data.reportId,
+          hasError: true,
+        });
+        setIsLoading(false);
+        return;
       }
 
       // Save the verified email for future access
@@ -215,23 +229,50 @@ export default function ViewReport() {
     return <ReportGenerating petName="Loading" />;
   }
 
-  if (error) {
+  // Report generation failed - show retry option
+  if (reportData?.hasError || error) {
+    const isTimeout = error?.includes('timeout') || reportData?.report?.timeout;
+    const errorMessage = error || reportData?.report?.error || 'Something went wrong';
+    
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-6">
-        <div className="max-w-md text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-muted/30 flex items-center justify-center">
-            <span className="text-3xl">🔮</span>
+      <div className="min-h-screen flex items-center justify-center bg-background px-6 relative overflow-hidden">
+        <StarfieldBackground />
+        <div className="max-w-md text-center relative z-10">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-destructive/20 flex items-center justify-center">
+            <span className="text-3xl">{isTimeout ? '⏳' : '😿'}</span>
           </div>
           <h1 className="text-2xl font-display font-bold text-foreground mb-4">
-            Report Not Found
+            {isTimeout ? 'Report Still Generating' : 'Report Not Available'}
           </h1>
-          <p className="text-muted-foreground mb-6">{error}</p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
-          >
-            Get Your Own Reading
-          </button>
+          <p className="text-muted-foreground mb-6">
+            {isTimeout 
+              ? `${reportData?.petName || 'Your pet'}'s cosmic reading is taking a bit longer than usual. Please try again in a moment.`
+              : errorMessage
+            }
+          </p>
+          <div className="space-y-3">
+            <CosmicButton
+              onClick={() => {
+                setError(null);
+                setReportData(null);
+                fetchReport(email || getSavedEmail());
+              }}
+              className="w-full"
+            >
+              {isTimeout ? 'Check Again' : 'Try Again'}
+            </CosmicButton>
+            <button
+              onClick={() => navigate('/')}
+              className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+            >
+              Go back home
+            </button>
+          </div>
+          {isTimeout && (
+            <p className="text-xs text-muted-foreground mt-6">
+              If this persists, please contact support@astropets.cloud
+            </p>
+          )}
         </div>
       </div>
     );
