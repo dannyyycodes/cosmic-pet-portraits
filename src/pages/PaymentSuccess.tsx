@@ -57,6 +57,7 @@ export default function PaymentSuccess() {
   const reportId = searchParams.get('report_id');
   const isGiftedParam = searchParams.get('gifted') === 'true';
   const giftedTierParam = searchParams.get('gifted_tier') as 'basic' | 'premium' | 'vip' | null;
+  const isGiftRedemption = sessionId?.startsWith('gift_') || isGiftedParam;
   
   // Dev mode checkout options passed via URL
   const includeGiftParam = searchParams.get('include_gift') === 'true';
@@ -148,14 +149,16 @@ export default function PaymentSuccess() {
 
         for (const petReport of reports) {
           if (petReport?.payment_status === 'paid' && petReport?.report_content) {
-            const isGift = petReport.occasion_mode === 'gift';
+            // isGift means the report is being SENT as a gift (occasion_mode === 'gift')
+            // isGiftRedemption means the user is RECEIVING/REDEEMING a gift (should see their own report)
+            const isGiftBeingSent = petReport.occasion_mode === 'gift' && !isGiftRedemption;
             
             processedReports.push({
               petName: petReport.pet_name,
               email: petReport.email,
               report: petReport.report_content,
               reportId: petReport.id,
-              isGift,
+              isGift: isGiftBeingSent,
               portraitUrl: petReport.portrait_url,
               petPhotoUrl: petReport.pet_photo_url,
             });
