@@ -79,7 +79,14 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const action = url.searchParams.get("action");
+    // Support action from query string or body
+    let body: Record<string, unknown> = {};
+    try {
+      body = await req.json();
+    } catch {
+      // No body or invalid JSON is fine for some actions
+    }
+    const action = url.searchParams.get("action") || (body.action as string) || null;
 
     // List all affiliates
     if (action === "list" || !action) {
@@ -140,10 +147,10 @@ serve(async (req) => {
 
     // Update affiliate status
     if (action === "update-status") {
-      const body = await req.json();
-      const { affiliateId, status } = body;
+      const { affiliateId, status } = body as { affiliateId?: string; status?: string };
+      const validStatuses = ["active", "pending", "inactive"];
 
-      if (!affiliateId || !["active", "pending", "inactive"].includes(status)) {
+      if (!affiliateId || !status || !validStatuses.includes(status)) {
         return new Response(JSON.stringify({ error: "Invalid parameters" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -165,8 +172,7 @@ serve(async (req) => {
 
     // Update commission rate
     if (action === "update-commission") {
-      const body = await req.json();
-      const { affiliateId, commissionRate } = body;
+      const { affiliateId, commissionRate } = body as { affiliateId?: string; commissionRate?: number };
 
       if (!affiliateId || typeof commissionRate !== "number" || commissionRate < 0 || commissionRate > 1) {
         return new Response(JSON.stringify({ error: "Invalid parameters" }), {

@@ -48,8 +48,8 @@ export default function AdminAffiliates() {
     setIsLoading(true);
     try {
       const { data: affData, error: affError } = await supabase.functions.invoke(
-        'admin-affiliates?action=list',
-        { headers: { 'X-Admin-Token': adminToken! } }
+        'admin-affiliates',
+        { headers: { 'X-Admin-Token': adminToken! }, body: { action: 'list' } }
       );
       if (affError) throw affError;
       setAffiliates(affData?.affiliates || []);
@@ -80,9 +80,9 @@ export default function AdminAffiliates() {
 
   const updateStatus = async (affiliateId: string, status: string) => {
     try {
-      const { error } = await supabase.functions.invoke('admin-affiliates?action=update-status', {
+      const { error } = await supabase.functions.invoke('admin-affiliates', {
         headers: { 'X-Admin-Token': adminToken! },
-        body: { affiliateId, status },
+        body: { action: 'update-status', affiliateId, status },
       });
       if (error) throw error;
       toast.success(`Affiliate ${status === 'active' ? 'approved' : 'updated'}`);
@@ -99,9 +99,9 @@ export default function AdminAffiliates() {
       return;
     }
     try {
-      const { error } = await supabase.functions.invoke('admin-affiliates?action=update-commission', {
+      const { error } = await supabase.functions.invoke('admin-affiliates', {
         headers: { 'X-Admin-Token': adminToken! },
-        body: { affiliateId, commissionRate: rate },
+        body: { action: 'update-commission', affiliateId, commissionRate: rate },
       });
       if (error) throw error;
       toast.success('Commission rate updated!');
@@ -115,8 +115,9 @@ export default function AdminAffiliates() {
   const triggerPayouts = async () => {
     setIsProcessingPayout(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-affiliates?action=trigger-payout', {
-        headers: { 'X-Admin-Token': adminToken! }
+      const { data, error } = await supabase.functions.invoke('admin-affiliates', {
+        headers: { 'X-Admin-Token': adminToken! },
+        body: { action: 'trigger-payout' }
       });
       if (error) throw error;
       const successful = (data?.payouts || []).filter((p: any) => p.success).length;
