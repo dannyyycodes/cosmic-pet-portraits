@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Valid gift tiers with amounts (server-side truth)
+// Valid gift tiers with base amounts (server-side truth)
 const GIFT_TIERS = {
   essential: { cents: 3500, name: 'Essential Cosmic Reading' },
   portrait: { cents: 5000, name: 'Cosmic Portrait Edition' },
@@ -17,12 +17,30 @@ const GIFT_TIERS = {
 
 type GiftTier = keyof typeof GIFT_TIERS;
 
-const VALID_AMOUNTS: number[] = Object.values(GIFT_TIERS).map(t => t.cents);
+// Volume discount tiers (must match frontend)
+const VOLUME_DISCOUNTS = [
+  { minPets: 1, discount: 0 },
+  { minPets: 2, discount: 10 },
+  { minPets: 3, discount: 15 },
+  { minPets: 5, discount: 20 },
+];
 
-function getTierFromAmount(cents: number): GiftTier {
-  if (cents === 12900) return 'vip';
-  if (cents === 5000) return 'portrait';
-  return 'essential';
+function getVolumeDiscount(petCount: number): number {
+  for (let i = VOLUME_DISCOUNTS.length - 1; i >= 0; i--) {
+    if (petCount >= VOLUME_DISCOUNTS[i].minPets) {
+      return VOLUME_DISCOUNTS[i].discount;
+    }
+  }
+  return 0;
+}
+
+function calculateGiftPrice(tier: GiftTier, petCount: number): { baseTotal: number; discountAmount: number; finalTotal: number } {
+  const basePrice = GIFT_TIERS[tier].cents;
+  const baseTotal = basePrice * petCount;
+  const discountPercent = getVolumeDiscount(petCount);
+  const discountAmount = Math.round(baseTotal * (discountPercent / 100));
+  const finalTotal = baseTotal - discountAmount;
+  return { baseTotal, discountAmount, finalTotal };
 }
 
 function generateGiftCode(): string {
@@ -47,8 +65,11 @@ const giftSchema = z.object({
   recipientEmail: z.string().email().max(255).optional().or(z.literal("")).or(z.null()),
   recipientName: z.string().max(100).optional().default(""),
   giftMessage: z.string().max(500).optional().default(""),
-  amountCents: z.number().int().refine((a) => VALID_AMOUNTS.includes(a), "Invalid gift amount"),
+  tier: z.enum(["essential", "portrait", "vip"]),
+  petCount: z.number().int().min(1).max(10).default(1),
   deliveryMethod: z.enum(["email", "link"]).optional().default("email"),
+  // Legacy support for old amountCents field
+  amountCents: z.number().int().optional(),
 });
 
 const logStep = (step: string, details?: unknown) => {
@@ -64,11 +85,24 @@ serve(async (req) => {
     // Validate input
     const rawInput = await req.json();
     const input = giftSchema.parse(rawInput);
+    
+    // Determine tier from input (support legacy amountCents)
+    let tier: GiftTier = input.tier;
+    if (!tier && input.amountCents) {
+      if (input.amountCents >= 12900) tier = 'vip';
+      else if (input.amountCents >= 5000) tier = 'portrait';
+      else tier = 'essential';
+    }
+    
+    const petCount = input.petCount || 1;
+    const pricing = calculateGiftPrice(tier, petCount);
 
     logStep("Starting gift certificate purchase", {
       purchaserEmail: input.purchaserEmail,
       recipientEmail: input.recipientEmail,
-      amountCents: input.amountCents,
+      tier,
+      petCount,
+      pricing,
       deliveryMethod: input.deliveryMethod,
     });
 
@@ -100,8 +134,16 @@ serve(async (req) => {
     logStep("Generated gift code", { giftCode });
 
     const origin = req.headers.get("origin") ?? "https://astropets.cloud";
-    const giftTier = getTierFromAmount(input.amountCents);
-    const tierInfo = GIFT_TIERS[giftTier];
+    const tierInfo = GIFT_TIERS[tier];
+    
+    // Build product name with pet count
+    const productName = petCount === 1 
+      ? `Gift Certificate: ${tierInfo.name}`
+      : `Gift Certificate: ${tierInfo.name} (${petCount} pets)`;
+    
+    const productDescription = input.recipientName 
+      ? `Gift for ${input.recipientName}${petCount > 1 ? ` - ${petCount} pet readings` : ''}`
+      : `AstroPets Cosmic Pet Report Gift${petCount > 1 ? ` - ${petCount} pet readings` : ''}`;
 
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
@@ -112,13 +154,11 @@ serve(async (req) => {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `Gift Certificate: ${tierInfo.name}`,
-              description: input.recipientName 
-                ? `Gift for ${input.recipientName}`
-                : "AstroPets Cosmic Pet Report Gift",
+              name: productName,
+              description: productDescription,
               images: ["https://astropets.cloud/og-image.jpg"],
             },
-            unit_amount: input.amountCents,
+            unit_amount: pricing.finalTotal,
           },
           quantity: 1,
         },
@@ -128,7 +168,9 @@ serve(async (req) => {
       metadata: {
         type: "gift_certificate",
         gift_code: giftCode,
-        giftTier,
+        giftTier: tier,
+        petCount: String(petCount),
+        discountPercent: String(getVolumeDiscount(petCount)),
         recipientEmail: input.recipientEmail || "",
         recipientName: input.recipientName || "",
         giftMessage: input.giftMessage || "",
@@ -150,8 +192,9 @@ serve(async (req) => {
         recipient_email: input.recipientEmail || null,
         recipient_name: input.recipientName || null,
         gift_message: input.giftMessage || null,
-        amount_cents: input.amountCents,
-        gift_tier: giftTier,
+        amount_cents: pricing.finalTotal,
+        gift_tier: tier,
+        pet_count: petCount,
         stripe_session_id: session.id,
         expires_at: expiresAt.toISOString(),
       });
@@ -161,7 +204,7 @@ serve(async (req) => {
       throw new Error("Failed to create gift certificate");
     }
 
-    logStep("Gift certificate record created", { giftCode, giftTier });
+    logStep("Gift certificate record created", { giftCode, tier, petCount });
 
     return new Response(
       JSON.stringify({
