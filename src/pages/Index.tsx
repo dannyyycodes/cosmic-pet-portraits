@@ -109,7 +109,7 @@ const Index = () => {
             transition={{ delay: 0.1 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
           >
-            Discover your pet's unique personality traits, cosmic influences, and hidden quirks with our personalized astrological reading — takes just <span className="text-foreground font-medium">60 seconds</span>.
+            Get a detailed personality profile that reveals your pet's quirks, needs, and hidden traits — based on their birth chart and behavioral patterns. Takes just <span className="text-foreground font-medium">60 seconds</span>.
           </motion.p>
 
           {/* Primary CTA */}
@@ -195,10 +195,10 @@ const Index = () => {
             className="text-center mb-10"
           >
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
-              Choose Your Path
+              Ready to Get Started?
             </h2>
             <p className="text-muted-foreground">
-              Get a reading for your own pet, or send as a thoughtful gift
+              Get a reading for your pet, or surprise a fellow pet lover with a gift
             </p>
           </motion.div>
 
@@ -226,7 +226,7 @@ const Index = () => {
                     </div>
                     <Button variant="cosmic" size="lg" className="w-full mt-2">
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Start Reading →
+                      Get Started →
                     </Button>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ const Index = () => {
                     <div className="space-y-2 text-center">
                       <h3 className="text-xl font-display font-bold text-foreground">{t('hero.giftToFriend')}</h3>
                       <p className="text-sm text-muted-foreground">
-                        The perfect gift for any pet lover — instant delivery
+                        A unique, personalized gift — delivered instantly
                       </p>
                     </div>
                     <Button variant="outline" size="lg" className="w-full mt-2 border-primary/40 hover:bg-primary/10">
