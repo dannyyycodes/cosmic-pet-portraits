@@ -74,14 +74,14 @@ function FeaturedTestimonial({
               alt={name}
               className="w-12 h-12 rounded-full object-cover ring-2 ring-border/50"
             />
-            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-primary rounded-full flex items-center justify-center ring-2 ring-background">
-              <BadgeCheck className="w-3.5 h-3.5 text-primary-foreground" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center ring-2 ring-background">
+              <BadgeCheck className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="font-medium text-foreground text-sm">{name}</p>
-              <span className="text-xs text-primary/70 bg-primary/10 px-1.5 py-0.5 rounded">Verified</span>
+              <span className="text-xs text-green-500/90 bg-green-500/10 px-1.5 py-0.5 rounded">Verified</span>
             </div>
             <p className="text-xs text-muted-foreground truncate">
               {pet} • {species}
