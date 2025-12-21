@@ -538,10 +538,10 @@ const Account = () => {
                     For refunds, order issues, or questions, email us at:
                   </p>
                   <a 
-                    href="mailto:support@astropets.cloud"
+                    href="mailto:hello@astropets.cloud"
                     className="text-primary hover:text-primary/80"
                   >
-                    support@astropets.cloud
+                    hello@astropets.cloud
                   </a>
                 </div>
               </CardContent>

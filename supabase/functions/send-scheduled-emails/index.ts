@@ -110,11 +110,11 @@ serve(async (req) => {
         const safeName = escapeHtml(scheduled.name);
 
         await resend.emails.send({
-          from: "AstroPaws Support <support@astropets.cloud>",
+          from: "AstroPets <hello@astropets.cloud>",
           to: [scheduled.email],
           subject: "Re: Your AstroPets inquiry",
           html: buildEmailHtml(safeName, safeAiResponse),
-          reply_to: "support@astropets.cloud",
+          reply_to: "hello@astropets.cloud",
         });
 
         // Mark as sent

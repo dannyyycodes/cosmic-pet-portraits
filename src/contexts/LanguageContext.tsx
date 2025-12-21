@@ -330,7 +330,7 @@ const translations: Record<Language, Record<string, string>> = {
     'privacy.section8Title': '8. Children\'s Privacy',
     'privacy.section8Content': 'Our service is not directed at children under 13. We do not knowingly collect personal information from children.',
     'privacy.section9Title': '9. Contact Us',
-    'privacy.section9Content': 'For privacy-related inquiries, please contact us at support@astropets.cloud',
+    'privacy.section9Content': 'For privacy-related inquiries, please contact us at hello@astropets.cloud',
     
     // Gift
     'gift.title': 'Give the Gift of Cosmic Discovery',
@@ -396,7 +396,7 @@ const translations: Record<Language, Record<string, string>> = {
     'giftSuccess.step2Email': 'We\'ve sent the gift to the recipient\'s email',
     'giftSuccess.step3Email': 'They can redeem it anytime within 1 year',
     'giftSuccess.purchaseAnother': 'Purchase Another Gift',
-    'giftSuccess.questions': 'Questions? Contact us at support@astropets.com',
+    'giftSuccess.questions': 'Questions? Contact us at hello@astropets.cloud',
     
     // Redeem
     'redeem.title': 'Redeem Your Cosmic Gift',
@@ -762,7 +762,7 @@ const translations: Record<Language, Record<string, string>> = {
     'privacy.section8Title': '8. Privacidad de Menores',
     'privacy.section8Content': 'Nuestro servicio no está dirigido a menores de 13 años. No recopilamos información personal de niños.',
     'privacy.section9Title': '9. Contáctanos',
-    'privacy.section9Content': 'Para consultas de privacidad, contáctanos en support@astropets.cloud',
+    'privacy.section9Content': 'Para consultas de privacidad, contáctanos en hello@astropets.cloud',
     
     'gift.title': 'Regala el Descubrimiento Cósmico',
     'gift.subtitle': 'El regalo más significativo para cualquier amante de mascotas',
@@ -826,7 +826,7 @@ const translations: Record<Language, Record<string, string>> = {
     'giftSuccess.step2Email': 'Hemos enviado el regalo al email del destinatario',
     'giftSuccess.step3Email': 'Pueden canjearlo en cualquier momento dentro de 1 año',
     'giftSuccess.purchaseAnother': 'Comprar Otro Regalo',
-    'giftSuccess.questions': '¿Preguntas? Contáctanos en support@astropets.com',
+    'giftSuccess.questions': '¿Preguntas? Contáctanos en hello@astropets.cloud',
     
     'redeem.title': 'Canjea Tu Regalo Cósmico',
     'redeem.subtitle': 'Ingresa tu código de regalo para desbloquear el perfil cósmico de tu mascota',
@@ -1188,7 +1188,7 @@ const translations: Record<Language, Record<string, string>> = {
     'privacy.section8Title': '8. Privacidade de Crianças',
     'privacy.section8Content': 'Nosso serviço não é direcionado a crianças menores de 13 anos. Não coletamos informações pessoais de crianças.',
     'privacy.section9Title': '9. Contate-nos',
-    'privacy.section9Content': 'Para consultas de privacidade, entre em contato em support@astropets.cloud',
+    'privacy.section9Content': 'Para consultas de privacidade, entre em contato em hello@astropets.cloud',
     
     'gift.title': 'Presenteie a Descoberta Cósmica',
     'gift.subtitle': 'O presente mais significativo para qualquer amante de pets',
@@ -1252,7 +1252,7 @@ const translations: Record<Language, Record<string, string>> = {
     'giftSuccess.step2Email': 'Enviamos o presente para o email do destinatário',
     'giftSuccess.step3Email': 'Eles podem resgatar a qualquer momento dentro de 1 ano',
     'giftSuccess.purchaseAnother': 'Comprar Outro Presente',
-    'giftSuccess.questions': 'Dúvidas? Entre em contato em support@astropets.com',
+    'giftSuccess.questions': 'Dúvidas? Entre em contato em hello@astropets.cloud',
     
     'redeem.title': 'Resgatar Seu Presente Cósmico',
     'redeem.subtitle': 'Digite seu código de presente para desbloquear o perfil cósmico do seu pet',
@@ -1614,7 +1614,7 @@ const translations: Record<Language, Record<string, string>> = {
     'privacy.section8Title': '8. Confidentialité des Enfants',
     'privacy.section8Content': 'Notre service n\'est pas destiné aux enfants de moins de 13 ans. Nous ne collectons pas sciemment d\'informations personnelles auprès d\'enfants.',
     'privacy.section9Title': '9. Contactez-nous',
-    'privacy.section9Content': 'Pour les demandes de confidentialité, contactez-nous à support@astropets.cloud',
+    'privacy.section9Content': 'Pour les demandes de confidentialité, contactez-nous à hello@astropets.cloud',
     
     'gift.title': 'Offrez la Découverte Cosmique',
     'gift.subtitle': 'Le cadeau le plus significatif pour tout amoureux des animaux',
@@ -1678,7 +1678,7 @@ const translations: Record<Language, Record<string, string>> = {
     'giftSuccess.step2Email': 'Nous avons envoyé le cadeau à l\'email du destinataire',
     'giftSuccess.step3Email': 'Ils peuvent l\'utiliser à tout moment dans l\'année',
     'giftSuccess.purchaseAnother': 'Acheter un Autre Cadeau',
-    'giftSuccess.questions': 'Questions? Contactez-nous à support@astropets.com',
+    'giftSuccess.questions': 'Questions? Contactez-nous à hello@astropets.cloud',
     
     'redeem.title': 'Utiliser Votre Cadeau Cosmique',
     'redeem.subtitle': 'Entrez votre code cadeau pour débloquer le profil cosmique de votre animal',
@@ -2040,7 +2040,7 @@ const translations: Record<Language, Record<string, string>> = {
     'privacy.section8Title': '8. خصوصية الأطفال',
     'privacy.section8Content': 'خدمتنا غير موجهة للأطفال دون 13 عامًا. لا نجمع معلومات شخصية من الأطفال عن علم.',
     'privacy.section9Title': '9. اتصل بنا',
-    'privacy.section9Content': 'لاستفسارات الخصوصية، اتصل بنا على support@astropets.cloud',
+    'privacy.section9Content': 'لاستفسارات الخصوصية، اتصل بنا على hello@astropets.cloud',
     
     'gift.title': 'أهدِ اكتشاف كوني',
     'gift.subtitle': 'أكثر هدية ذات معنى لأي محب للحيوانات',
@@ -2104,7 +2104,7 @@ const translations: Record<Language, Record<string, string>> = {
     'giftSuccess.step2Email': 'أرسلنا الهدية إلى بريد المستلم',
     'giftSuccess.step3Email': 'يمكنهم استرداده في أي وقت خلال سنة',
     'giftSuccess.purchaseAnother': 'شراء هدية أخرى',
-    'giftSuccess.questions': 'أسئلة؟ تواصل معنا على support@astropets.com',
+    'giftSuccess.questions': 'أسئلة؟ تواصل معنا على hello@astropets.cloud',
     
     'redeem.title': 'استرداد هديتك الكونية',
     'redeem.subtitle': 'أدخل كود الهدية لفتح الملف الكوني لحيوانك',

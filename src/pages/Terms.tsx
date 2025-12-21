@@ -61,8 +61,8 @@ export default function Terms() {
             <h2 className="text-xl font-semibold text-foreground">{t('terms.section9Title')}</h2>
             <p>
               {t('terms.section9Content')}{" "}
-              <a href="mailto:support@astropets.cloud" className="text-cosmic-gold hover:underline">
-                support@astropets.cloud
+              <a href="mailto:hello@astropets.cloud" className="text-cosmic-gold hover:underline">
+                hello@astropets.cloud
               </a>
             </p>
           </section>
