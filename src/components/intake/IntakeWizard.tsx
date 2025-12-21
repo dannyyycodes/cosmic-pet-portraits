@@ -319,9 +319,11 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
   const handleNextPetOrEmail = () => {
     if (currentPetIndex < petCount - 1) {
-      // Move to next pet - start at occasion selection for that pet
+      // Move to next pet
       setCurrentPetIndex(currentPetIndex + 1);
-      setStep(1); // Per-pet occasion step
+      // For gift redemptions, skip occasion selection and go straight to name
+      // Normal flow goes to occasion selection (step 1)
+      setStep(giftCodeFromUrl ? 2 : 1);
     } else {
       // All pets done, go to email
       setStep(11);
@@ -616,7 +618,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       </button>
       
 
-      <SocialProofBar petName={currentPetData?.name || ''} />
+      {/* Hide social proof bar during gift redemption flow */}
+      {!giftCodeFromUrl && <SocialProofBar petName={currentPetData?.name || ''} />}
       
       <div className="w-full max-w-xl relative z-10">
         {/* Start Again (moved into the questionnaire card area so it's always visible) */}
