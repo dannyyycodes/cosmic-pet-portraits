@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.send-abandoned-cart-emails]
 verify_jwt = false
+
+[functions.affiliate-dashboard]
+verify_jwt = false
