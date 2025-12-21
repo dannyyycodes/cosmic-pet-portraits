@@ -8,7 +8,7 @@ import { PremiumTestimonials } from "@/components/PremiumTestimonials";
 import { FAQ } from "@/components/FAQ";
 import { SocialProofBar } from "@/components/SocialProofBar";
 import { UrgencyBanner } from "@/components/UrgencyBanner";
-import { LiveActivityIndicator } from "@/components/LiveActivityIndicator";
+
 import { MoneyBackBadge } from "@/components/MoneyBackBadge";
 import { CTASection } from "@/components/CTASection";
 import { Snowfall } from "@/components/Snowfall";
@@ -146,8 +146,6 @@ const Index = () => {
               </Button>
             </Link>
 
-            {/* Live Activity - Now inline and Christmas themed */}
-            <LiveActivityIndicator />
           </motion.div>
 
           {/* Money-Back Guarantee */}
