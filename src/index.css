@@ -44,6 +44,14 @@
     --nebula-purple: 270 50% 30%;
     --nebula-blue: 220 60% 25%;
     
+    /* Christmas Colors */
+    --christmas-red: 0 75% 45%;
+    --christmas-red-light: 0 80% 55%;
+    --christmas-green: 145 70% 35%;
+    --christmas-green-light: 145 65% 45%;
+    --christmas-gold: 45 90% 55%;
+    --christmas-gold-shimmer: 50 100% 70%;
+    
     /* Gradients */
     --gradient-gold: linear-gradient(135deg, hsl(43 69% 52%), hsl(43 80% 65%));
     --gradient-tangerine: linear-gradient(135deg, hsl(25 100% 63%), hsl(15 100% 55%));
