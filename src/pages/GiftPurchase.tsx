@@ -14,9 +14,10 @@ type DeliveryMethod = 'email' | 'link';
 // Volume discount tiers
 const VOLUME_DISCOUNTS = [
   { minPets: 1, discount: 0, label: '' },
-  { minPets: 2, discount: 10, label: '10% off' },
-  { minPets: 3, discount: 15, label: '15% off' },
-  { minPets: 5, discount: 20, label: '20% off' },
+  { minPets: 2, discount: 20, label: '20% off' },
+  { minPets: 3, discount: 30, label: '30% off' },
+  { minPets: 4, discount: 40, label: '40% off' },
+  { minPets: 5, discount: 50, label: '50% off' },
 ];
 
 const getVolumeDiscount = (petCount: number) => {
