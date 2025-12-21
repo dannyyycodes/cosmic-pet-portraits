@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight, Shield, Clock, Gift, Heart, CheckCircle } from "lucide-react";
+import { Sparkles, ArrowRight, Shield, Clock, Gift, Heart, CheckCircle, TreePine } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface CTASectionProps {
@@ -20,34 +20,42 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
       >
         {isFinal ? (
           <>
-            {/* Loss Aversion Headline */}
+            {/* Christmas Gift Headline */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/20 border border-red-500/40 mb-4">
+              <TreePine className="w-4 h-4 text-green-400" />
+              <span className="text-sm font-medium text-red-300">🎄 Perfect Last-Minute Gift</span>
+              <Gift className="w-4 h-4 text-red-400" />
+            </div>
             <h2 className="text-3xl md:text-4xl font-serif font-semibold text-foreground mb-4">
-              Every Day You Wait, You're Missing Their Message
+              Give the Gift They'll Never Forget
             </h2>
             <p className="text-lg text-muted-foreground mb-6">
-              Your pet won't be here forever. Discover what they've been trying to tell you — before it's too late.
+              This Christmas, give pet lovers something truly magical — a personalized cosmic reading of their beloved companion.
             </p>
             {/* Value Stack */}
             <div className="flex flex-wrap justify-center gap-4 mb-8 text-sm">
               <span className="flex items-center gap-1 text-green-400">
-                <CheckCircle className="w-4 h-4" /> Full Cosmic Reading
+                <CheckCircle className="w-4 h-4" /> Instant Digital Delivery
               </span>
               <span className="flex items-center gap-1 text-green-400">
-                <CheckCircle className="w-4 h-4" /> Personality Breakdown
+                <CheckCircle className="w-4 h-4" /> Beautiful Gift Card
               </span>
               <span className="flex items-center gap-1 text-green-400">
-                <CheckCircle className="w-4 h-4" /> Shareable Story Card
+                <CheckCircle className="w-4 h-4" /> Personal Message Included
               </span>
             </div>
           </>
         ) : (
           <>
-            {/* Curiosity + Urgency */}
-            <p className="text-primary text-sm font-medium mb-3">
-              ✨ You've seen what others discovered...
+            {/* Christmas Curiosity + Urgency */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 border border-green-500/40 mb-4">
+              <span className="text-sm">🎁 Holiday Special</span>
+            </div>
+            <p className="text-red-400 text-sm font-medium mb-3">
+              ✨ The #1 Gift for Pet Lovers This Christmas...
             </p>
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-4">
-              What Secret Is <span className="text-primary">Your</span> Pet Keeping?
+              Unwrap Your Pet's <span className="text-primary">Cosmic Secret</span>
             </h2>
             <p className="text-muted-foreground mb-8">
               Join 52,847 pet parents who finally understand their furry companion. Takes just 60 seconds.
@@ -59,26 +67,26 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
           <Link to="/intake?mode=discover">
             <Button variant="cosmic" size="lg" className="text-lg px-8 py-6 group shadow-[0_0_25px_hsl(var(--primary)/0.3)]">
               <Sparkles className="w-5 h-5 mr-2" />
-              {isFinal ? "Yes! Reveal Their Soul Now" : "Start My Pet's Reading"}
+              {isFinal ? "Get Their Gift Now" : "Start My Pet's Reading"}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
 
-          {/* Gift Option */}
+          {/* Gift Option - Enhanced for Christmas */}
           <Link 
             to="/gift" 
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-nebula-pink transition-colors"
+            className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-red-500/20 to-green-500/20 px-4 py-2 rounded-full border border-red-500/30 text-foreground hover:from-red-500/30 hover:to-green-500/30 transition-colors"
           >
-            <Gift className="w-4 h-4" />
-            <span>Gift to a friend</span>
-            <Heart className="w-3 h-3 text-nebula-pink" />
+            <Gift className="w-4 h-4 text-red-400" />
+            <span>🎄 Send as Christmas Gift</span>
+            <Heart className="w-3 h-3 text-red-400" />
           </Link>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-primary" />
-            <span>60 seconds</span>
+            <span>Instant Delivery</span>
           </div>
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-green-500" />
@@ -92,10 +100,13 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="mt-8 p-4 rounded-lg bg-primary/10 border border-primary/30"
+            className="mt-8 p-4 rounded-lg bg-gradient-to-r from-red-500/20 via-green-500/10 to-red-500/20 border border-red-500/30"
           >
-            <p className="text-sm text-primary font-medium">
-              ⚡ Today only: Complete reading + bonus compatibility insights included free
+            <p className="text-sm font-medium flex items-center justify-center gap-2">
+              <TreePine className="w-4 h-4 text-green-400" />
+              <span className="text-red-300">Christmas Bonus:</span>
+              <span className="text-foreground">Free gift wrapping + festive presentation</span>
+              <Gift className="w-4 h-4 text-red-400" />
             </p>
           </motion.div>
         )}
