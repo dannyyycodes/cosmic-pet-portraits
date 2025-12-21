@@ -16,11 +16,18 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // SECURITY: Require service role authorization for admin functions
+  // SECURITY: Require authorization header (accepts anon key for cron jobs or service role)
   const authHeader = req.headers.get("Authorization");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   
-  if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
+  // Accept either service role key or anon key (for cron jobs)
+  const isValidAuth = authHeader && (
+    authHeader.includes(serviceRoleKey || '') || 
+    authHeader.includes(anonKey || '')
+  );
+  
+  if (!authHeader || !isValidAuth) {
     logStep("Unauthorized request - missing or invalid authorization");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
