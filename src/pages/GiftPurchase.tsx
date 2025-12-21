@@ -1,9 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, Heart, Sparkles, ArrowLeft, Send, Star, LinkIcon, CheckCircle, Quote, Plus, Trash2, PawPrint, Users, User } from 'lucide-react';
+import { Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2, ChevronRight, Users, User, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CosmicInput } from '@/components/cosmic/CosmicInput';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,205 +11,111 @@ import { useLanguage } from '@/contexts/LanguageContext';
 type DeliveryMethod = 'email' | 'link';
 type GiftTier = 'essential' | 'portrait' | 'vip';
 
-interface GiftPet {
+interface GiftRecipient {
   id: string;
+  name: string;
+  email: string;
   tier: GiftTier;
-  recipientName?: string;
-  recipientEmail?: string;
 }
 
 const TIERS = {
   essential: { cents: 3500, label: 'Essential', description: 'Core cosmic reading' },
-  portrait: { cents: 5000, label: 'Portrait Edition', description: 'Includes AI portrait' },
-  vip: { cents: 12900, label: 'VIP Experience', description: 'Full cosmic package' },
+  portrait: { cents: 5000, label: 'Portrait', description: 'With AI portrait' },
+  vip: { cents: 12900, label: 'VIP', description: 'Full cosmic package' },
 } as const;
 
-// Volume discounts based on total pet count
-const getVolumeDiscount = (petCount: number): number => {
-  if (petCount >= 5) return 0.50;
-  if (petCount >= 4) return 0.40;
-  if (petCount >= 3) return 0.30;
-  if (petCount >= 2) return 0.20;
+const getVolumeDiscount = (count: number): number => {
+  if (count >= 5) return 0.50;
+  if (count >= 4) return 0.40;
+  if (count >= 3) return 0.30;
+  if (count >= 2) return 0.20;
   return 0;
 };
 
-const GIFT_TESTIMONIALS = [
-  {
-    quote: "I gifted this to my sister for her cat's birthday and she literally cried reading it. So thoughtful and unique!",
-    author: "Sarah M.",
-    pet: "Whiskers the Cat"
-  },
-  {
-    quote: "Best birthday present ever! My mom loved learning about her dog's cosmic personality. She keeps reading it over and over.",
-    author: "David K.",
-    pet: "Bella the Golden Retriever"
-  },
-  {
-    quote: "Gave this to my best friend who just adopted a rescue. She said it helped her understand her new pup so much better!",
-    author: "Emma T.",
-    pet: "Luna the Mixed Breed"
-  },
-  {
-    quote: "Perfect Christmas gift for the person who has everything. My dad was skeptical but ended up LOVING his cat's reading!",
-    author: "Michael R.",
-    pet: "Shadow the Tabby"
-  },
-  {
-    quote: "I got one for each of my cousins' pets. They couldn't stop sharing screenshots in our family group chat!",
-    author: "Jessica L.",
-    pet: "3 pets gifted"
-  }
-];
-
-function GiftTestimonials() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % GIFT_TESTIMONIALS.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15 }}
-      className="relative p-5 rounded-2xl bg-card/50 border border-border/50 backdrop-blur-sm min-h-[120px]"
-    >
-      <Quote className="absolute top-4 left-4 w-8 h-8 text-gold/20" />
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-          className="pl-8"
-        >
-          <p className="text-sm italic text-foreground/90 mb-3">
-            "{GIFT_TESTIMONIALS[currentIndex].quote}"
-          </p>
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-gold font-medium">— {GIFT_TESTIMONIALS[currentIndex].author}</p>
-            <p className="text-xs text-muted-foreground">{GIFT_TESTIMONIALS[currentIndex].pet}</p>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-      <div className="flex justify-center gap-1.5 mt-3">
-        {GIFT_TESTIMONIALS.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentIndex(i)}
-            className={`w-1.5 h-1.5 rounded-full transition-all ${
-              i === currentIndex ? 'bg-gold w-4' : 'bg-muted-foreground/30'
-            }`}
-          />
-        ))}
-      </div>
-    </motion.div>
-  );
-}
-
 export default function GiftPurchase() {
   const { t } = useLanguage();
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email');
+  const [giftType, setGiftType] = useState<'single' | 'multiple' | null>(null);
   const [purchaserEmail, setPurchaserEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email');
-  
-  // Multi-recipient mode toggle
-  const [multiRecipient, setMultiRecipient] = useState(false);
-  
-  // Single recipient (when multiRecipient is false)
-  const [singleRecipientName, setSingleRecipientName] = useState('');
-  const [singleRecipientEmail, setSingleRecipientEmail] = useState('');
-  
-  // Multi-pet with individual tier and optional recipient selection
-  const [giftPets, setGiftPets] = useState<GiftPet[]>([
-    { id: crypto.randomUUID(), tier: 'portrait' }
+
+  // Single recipient state
+  const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({
+    id: crypto.randomUUID(),
+    name: '',
+    email: '',
+    tier: 'portrait'
+  });
+
+  // Multiple recipients state
+  const [recipients, setRecipients] = useState<GiftRecipient[]>([
+    { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' }
   ]);
 
-  const addPet = () => {
-    if (giftPets.length < 10) {
-      setGiftPets([...giftPets, { id: crypto.randomUUID(), tier: 'portrait' }]);
-    }
-  };
+  const activeRecipients = giftType === 'single' ? [singleRecipient] : recipients;
+  const giftCount = activeRecipients.length;
+  const discount = getVolumeDiscount(giftCount);
 
-  const removePet = (id: string) => {
-    if (giftPets.length > 1) {
-      setGiftPets(giftPets.filter(p => p.id !== id));
-    }
-  };
-
-  const updatePetTier = (id: string, tier: GiftTier) => {
-    setGiftPets(giftPets.map(p => p.id === id ? { ...p, tier } : p));
-  };
-
-  const updatePetRecipient = (id: string, field: 'recipientName' | 'recipientEmail', value: string) => {
-    setGiftPets(giftPets.map(p => p.id === id ? { ...p, [field]: value } : p));
-  };
-
-  const petCount = giftPets.length;
-  const discount = getVolumeDiscount(petCount);
-  
   const pricing = useMemo(() => {
-    const baseTotal = giftPets.reduce((sum, pet) => sum + TIERS[pet.tier].cents, 0);
+    const baseTotal = activeRecipients.reduce((sum, r) => sum + TIERS[r.tier].cents, 0);
     const discountAmount = Math.round(baseTotal * discount);
     const finalTotal = baseTotal - discountAmount;
     return { baseTotal, discountAmount, finalTotal };
-  }, [giftPets, discount]);
+  }, [activeRecipients, discount]);
 
-  // Count unique recipients for display
-  const uniqueRecipientCount = useMemo(() => {
-    if (!multiRecipient) return 1;
-    const emails = new Set(giftPets.map(p => p.recipientEmail?.toLowerCase().trim()).filter(Boolean));
-    return Math.max(emails.size, 1);
-  }, [giftPets, multiRecipient]);
-
-  const handlePurchase = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    
-    if (!purchaserEmail) {
-      toast.error(t('gift.errorYourEmail'));
-      return;
+  const addRecipient = () => {
+    if (recipients.length < 10) {
+      setRecipients([...recipients, { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' }]);
     }
-    
-    if (deliveryMethod === 'email') {
-      if (multiRecipient) {
-        // Check each pet has a recipient email
-        const missingRecipient = giftPets.some(p => !p.recipientEmail?.trim());
-        if (missingRecipient) {
-          toast.error('Please enter an email for each gift recipient');
-          return;
-        }
-      } else {
-        if (!singleRecipientEmail) {
-          toast.error(t('gift.errorRecipientEmail'));
-          return;
-        }
-      }
+  };
+
+  const removeRecipient = (id: string) => {
+    if (recipients.length > 1) {
+      setRecipients(recipients.filter(r => r.id !== id));
+    }
+  };
+
+  const updateRecipient = (id: string, field: keyof GiftRecipient, value: string) => {
+    if (giftType === 'single') {
+      setSingleRecipient({ ...singleRecipient, [field]: value });
+    } else {
+      setRecipients(recipients.map(r => r.id === id ? { ...r, [field]: value } : r));
+    }
+  };
+
+  const canProceedToStep2 = giftType !== null;
+  const canProceedToStep3 = () => {
+    if (deliveryMethod === 'link') return true;
+    if (giftType === 'single') return singleRecipient.email.includes('@');
+    return recipients.every(r => r.email.includes('@'));
+  };
+
+  const handlePurchase = async () => {
+    if (!purchaserEmail.includes('@')) {
+      toast.error('Please enter your email address');
+      return;
     }
 
     setIsLoading(true);
     try {
-      // Prepare pets with recipient info
-      const petsWithRecipients = giftPets.map(pet => ({
-        ...pet,
-        recipientName: multiRecipient ? pet.recipientName : singleRecipientName,
-        recipientEmail: multiRecipient ? pet.recipientEmail : singleRecipientEmail,
+      const giftPets = activeRecipients.map(r => ({
+        id: r.id,
+        tier: r.tier,
+        recipientName: r.name,
+        recipientEmail: deliveryMethod === 'email' ? r.email : null,
       }));
 
       const { data, error } = await supabase.functions.invoke('purchase-gift-certificate', {
         body: {
           purchaserEmail,
-          recipientEmail: multiRecipient ? null : (deliveryMethod === 'email' ? singleRecipientEmail : null),
-          recipientName: multiRecipient ? null : singleRecipientName,
+          recipientEmail: giftType === 'single' && deliveryMethod === 'email' ? singleRecipient.email : null,
+          recipientName: giftType === 'single' ? singleRecipient.name : null,
           giftMessage,
-          giftPets: petsWithRecipients,
+          giftPets,
           deliveryMethod,
-          multiRecipient,
+          multiRecipient: giftType === 'multiple',
         },
       });
 
@@ -220,458 +125,457 @@ export default function GiftPurchase() {
       }
     } catch (error) {
       console.error('Gift purchase error:', error);
-      toast.error(t('gift.errorGeneric'));
+      toast.error('Something went wrong. Please try again.');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 py-8 relative overflow-hidden">
       <StarfieldBackground intensity="calm" />
       
-      <div className="w-full max-w-lg relative z-10">
+      <div className="w-full max-w-xl relative z-10">
         <Link 
           to="/"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('nav.backHome')}
         </Link>
 
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
+          className="text-center mb-8"
         >
-          {/* Hero Section */}
-          <div className="text-center space-y-4">
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
-              className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-nebula-pink via-nebula-purple to-primary shadow-2xl shadow-nebula-purple/30"
-            >
-              <Gift className="w-10 h-10 text-white" />
-            </motion.div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-              {t('gift.title')}
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-md mx-auto">
-              {t('gift.subtitle')}
-            </p>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink via-nebula-purple to-primary shadow-xl shadow-nebula-purple/30 mb-4">
+            <Gift className="w-8 h-8 text-white" />
           </div>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-2">
+            Give the Gift of Cosmic Insight
+          </h1>
+          <p className="text-muted-foreground">
+            A unique, personalized reading for someone's beloved pet
+          </p>
+        </motion.div>
 
-          {/* Why It's Perfect */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="p-6 rounded-2xl bg-gradient-to-br from-nebula-pink/15 to-nebula-purple/15 border border-nebula-pink/30 backdrop-blur-sm space-y-4"
-          >
-            <h2 className="text-lg font-display font-semibold text-foreground flex items-center gap-2">
-              <Heart className="w-5 h-5 text-nebula-pink" />
-              {t('gift.whyPerfect')}
-            </h2>
-            <ul className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{t(`gift.reason${i}Title`)}</p>
-                    <p className="text-xs text-muted-foreground">{t(`gift.reason${i}Desc`)}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
+        {/* Progress Steps */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          {[1, 2, 3].map((s) => (
+            <div key={s} className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                step >= s 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                {step > s ? <CheckCircle className="w-4 h-4" /> : s}
+              </div>
+              {s < 3 && <div className={`w-8 h-0.5 ${step > s ? 'bg-primary' : 'bg-muted'}`} />}
+            </div>
+          ))}
+        </div>
 
-          {/* Gift Testimonials Carousel */}
-          <GiftTestimonials />
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-3 gap-3 text-center">
-            {[
-              { icon: Sparkles, color: 'text-gold', key: 'feature1' },
-              { icon: Star, color: 'text-nebula-purple', key: 'feature2' },
-              { icon: Heart, color: 'text-nebula-pink', key: 'feature3' },
-            ].map((feature, i) => (
-              <motion.div 
-                key={feature.key}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.05 }}
-                className="p-4 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm hover:bg-card/60 transition-colors"
-              >
-                <feature.icon className={`w-6 h-6 ${feature.color} mx-auto mb-2`} />
-                <p className="text-xs text-muted-foreground">{t(`gift.${feature.key}`)}</p>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Recipient Mode Toggle - only show when multiple pets */}
-          {giftPets.length > 1 && deliveryMethod === 'email' && (
+        <AnimatePresence mode="wait">
+          {/* Step 1: Choose gift type */}
+          {step === 1 && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-3"
+              key="step1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
             >
-              <label className="text-sm font-medium text-foreground">Who are these gifts for?</label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <h2 className="text-xl font-display font-semibold text-foreground mb-2">
+                  How many gifts are you sending?
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Choose whether you're gifting to one person or multiple people
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => setMultiRecipient(false)}
-                  className={`p-4 rounded-xl border-2 transition-all text-center ${
-                    !multiRecipient
-                      ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
+                  onClick={() => setGiftType('single')}
+                  className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                    giftType === 'single'
+                      ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
                       : 'border-border/50 bg-card/40 hover:border-primary/50'
                   }`}
                 >
-                  <User className={`w-6 h-6 mx-auto mb-2 ${!multiRecipient ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className="text-sm font-medium text-foreground">One person</p>
-                  <p className="text-xs text-muted-foreground mt-1">All pets go to same recipient</p>
+                  <User className={`w-10 h-10 mx-auto mb-3 ${giftType === 'single' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className="text-lg font-semibold text-foreground">One Person</p>
+                  <p className="text-sm text-muted-foreground mt-1">For their pet(s)</p>
                 </button>
+
                 <button
                   type="button"
-                  onClick={() => setMultiRecipient(true)}
-                  className={`p-4 rounded-xl border-2 transition-all text-center ${
-                    multiRecipient
-                      ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
+                  onClick={() => setGiftType('multiple')}
+                  className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                    giftType === 'multiple'
+                      ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
                       : 'border-border/50 bg-card/40 hover:border-primary/50'
                   }`}
                 >
-                  <Users className={`w-6 h-6 mx-auto mb-2 ${multiRecipient ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className="text-sm font-medium text-foreground">Multiple people</p>
-                  <p className="text-xs text-muted-foreground mt-1">Different recipients per pet</p>
+                  <Users className={`w-10 h-10 mx-auto mb-3 ${giftType === 'multiple' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className="text-lg font-semibold text-foreground">Multiple People</p>
+                  <p className="text-sm text-muted-foreground mt-1">Different recipients</p>
                 </button>
               </div>
+
+              {giftType && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Button
+                    onClick={() => setStep(2)}
+                    disabled={!canProceedToStep2}
+                    className="w-full py-6 text-lg bg-gradient-to-r from-primary to-nebula-purple"
+                  >
+                    Continue
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </motion.div>
+              )}
             </motion.div>
           )}
 
-          {/* Pet Selection */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <PawPrint className="w-5 h-5 text-primary" />
-                <label className="text-lg font-display font-semibold text-foreground">
-                  Gift Readings
-                </label>
+          {/* Step 2: Add recipients */}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setStep(1)}
+                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+                <h2 className="text-lg font-display font-semibold text-foreground">
+                  {giftType === 'single' ? 'Recipient Details' : 'Add Recipients'}
+                </h2>
+                <div className="w-12" />
               </div>
-              <span className="text-sm text-muted-foreground bg-card/50 px-3 py-1 rounded-full">
-                {petCount} {petCount === 1 ? 'gift' : 'gifts'}
-              </span>
-            </div>
 
-            <div className="space-y-3">
-              <AnimatePresence>
-                {giftPets.map((pet, index) => (
-                  <motion.div
-                    key={pet.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="p-4 rounded-xl border border-border/50 bg-card/30 backdrop-blur-sm"
+              {/* Delivery method */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-foreground">How will you deliver the gift?</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('email')}
+                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                      deliveryMethod === 'email'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border/50 bg-card/40 hover:border-primary/50'
+                    }`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center text-xs font-bold text-white">
-                          {index + 1}
-                        </span>
-                        <div>
-                          <span className="text-sm font-medium text-foreground">
-                            Gift #{index + 1}
-                          </span>
-                          {multiRecipient && pet.recipientEmail && (
-                            <p className="text-xs text-primary truncate max-w-[150px]">
-                              → {pet.recipientName || pet.recipientEmail}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      {giftPets.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removePet(pet.id)}
-                          className="p-1.5 rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                    <Send className={`w-5 h-5 mx-auto mb-2 ${deliveryMethod === 'email' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <p className="text-sm font-medium text-foreground">Email directly</p>
+                    <p className="text-xs text-muted-foreground">We'll send it for you</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('link')}
+                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                      deliveryMethod === 'link'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border/50 bg-card/40 hover:border-primary/50'
+                    }`}
+                  >
+                    <LinkIcon className={`w-5 h-5 mx-auto mb-2 ${deliveryMethod === 'link' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <p className="text-sm font-medium text-foreground">Get a link</p>
+                    <p className="text-xs text-muted-foreground">Send it yourself</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Single recipient form */}
+              {giftType === 'single' && (
+                <div className="p-5 rounded-2xl border border-border/50 bg-card/30 space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-1.5 block">Recipient's name</label>
+                      <input
+                        type="text"
+                        value={singleRecipient.name}
+                        onChange={(e) => updateRecipient(singleRecipient.id, 'name', e.target.value)}
+                        placeholder="Their name"
+                        className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
+                      />
                     </div>
-                    
-                    {/* Tier Selection */}
-                    <div className="flex gap-2">
+                    {deliveryMethod === 'email' && (
+                      <div>
+                        <label className="text-sm font-medium text-foreground mb-1.5 block">Recipient's email</label>
+                        <input
+                          type="email"
+                          value={singleRecipient.email}
+                          onChange={(e) => updateRecipient(singleRecipient.id, 'email', e.target.value)}
+                          placeholder="their@email.com"
+                          className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Choose package</label>
+                    <div className="grid grid-cols-3 gap-2">
                       {(Object.entries(TIERS) as [GiftTier, typeof TIERS.essential][]).map(([key, tier]) => (
                         <button
                           key={key}
                           type="button"
-                          onClick={() => updatePetTier(pet.id, key)}
-                          className={`flex-1 p-3 rounded-lg border transition-all text-center ${
-                            pet.tier === key
-                              ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
+                          onClick={() => updateRecipient(singleRecipient.id, 'tier', key)}
+                          className={`p-3 rounded-xl border-2 transition-all text-center ${
+                            singleRecipient.tier === key
+                              ? 'border-primary bg-primary/10'
                               : 'border-border/30 bg-background/30 hover:border-primary/30'
                           }`}
                         >
-                          <p className={`text-xs font-medium mb-1 ${pet.tier === key ? 'text-primary' : 'text-muted-foreground'}`}>
+                          <p className={`text-xs font-medium ${singleRecipient.tier === key ? 'text-primary' : 'text-muted-foreground'}`}>
                             {tier.label}
                           </p>
-                          <p className={`text-base font-bold ${pet.tier === key ? 'text-foreground' : 'text-foreground/80'}`}>
+                          <p className={`text-lg font-bold ${singleRecipient.tier === key ? 'text-foreground' : 'text-foreground/70'}`}>
                             ${tier.cents / 100}
                           </p>
                         </button>
                       ))}
                     </div>
+                  </div>
+                </div>
+              )}
 
-                    {/* Per-pet recipient info when in multi-recipient mode */}
-                    {multiRecipient && deliveryMethod === 'email' && (
-                      <div className="space-y-2 pt-3 mt-3 border-t border-border/30">
-                        <p className="text-xs text-muted-foreground font-medium">Send this gift to:</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <input
-                            type="text"
-                            value={pet.recipientName || ''}
-                            onChange={(e) => updatePetRecipient(pet.id, 'recipientName', e.target.value)}
-                            placeholder="Recipient name"
-                            className="px-3 py-2 text-sm rounded-lg bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
-                          />
+              {/* Multiple recipients */}
+              {giftType === 'multiple' && (
+                <div className="space-y-3">
+                  {recipients.map((recipient, index) => (
+                    <motion.div
+                      key={recipient.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-4 rounded-xl border border-border/50 bg-card/30"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center text-xs font-bold text-white">
+                            {index + 1}
+                          </span>
+                          <span className="text-sm font-medium text-foreground">
+                            {recipient.name || `Recipient ${index + 1}`}
+                          </span>
+                        </div>
+                        {recipients.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeRecipient(recipient.id)}
+                            className="p-1.5 rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <input
+                          type="text"
+                          value={recipient.name}
+                          onChange={(e) => updateRecipient(recipient.id, 'name', e.target.value)}
+                          placeholder="Name"
+                          className="px-3 py-2.5 text-sm rounded-lg bg-background/50 border border-border/40 focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
+                        />
+                        {deliveryMethod === 'email' && (
                           <input
                             type="email"
-                            value={pet.recipientEmail || ''}
-                            onChange={(e) => updatePetRecipient(pet.id, 'recipientEmail', e.target.value)}
-                            placeholder="recipient@email.com"
-                            required
-                            className="px-3 py-2 text-sm rounded-lg bg-background/50 border border-border/40 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
+                            value={recipient.email}
+                            onChange={(e) => updateRecipient(recipient.id, 'email', e.target.value)}
+                            placeholder="Email"
+                            className="px-3 py-2.5 text-sm rounded-lg bg-background/50 border border-border/40 focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
                           />
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        {(Object.entries(TIERS) as [GiftTier, typeof TIERS.essential][]).map(([key, tier]) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => updateRecipient(recipient.id, 'tier', key)}
+                            className={`p-2 rounded-lg border transition-all text-center ${
+                              recipient.tier === key
+                                ? 'border-primary bg-primary/10'
+                                : 'border-border/30 bg-background/30 hover:border-primary/30'
+                            }`}
+                          >
+                            <p className={`text-xs font-medium ${recipient.tier === key ? 'text-primary' : 'text-muted-foreground'}`}>
+                              {tier.label}
+                            </p>
+                            <p className={`text-sm font-bold ${recipient.tier === key ? 'text-foreground' : 'text-foreground/70'}`}>
+                              ${tier.cents / 100}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {recipients.length < 10 && (
+                    <button
+                      type="button"
+                      onClick={addRecipient}
+                      className="w-full p-4 rounded-xl border border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-all flex items-center justify-center gap-2 text-primary"
+                    >
+                      <Plus className="w-5 h-5" />
+                      <span className="font-medium">Add another recipient</span>
+                      {discount < 0.50 && recipients.length >= 1 && (
+                        <span className="text-xs text-green-400 ml-1">
+                          +{Math.round((getVolumeDiscount(recipients.length + 1) - discount) * 100)}% savings
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <Button
+                onClick={() => setStep(3)}
+                disabled={!canProceedToStep3()}
+                className="w-full py-6 text-lg bg-gradient-to-r from-primary to-nebula-purple"
+              >
+                Continue to Checkout
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Step 3: Checkout */}
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setStep(2)}
+                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+                <h2 className="text-lg font-display font-semibold text-foreground">
+                  Complete Purchase
+                </h2>
+                <div className="w-12" />
+              </div>
+
+              {/* Order Summary */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border/50 space-y-4">
+                <div className="flex items-center gap-2 pb-3 border-b border-border/30">
+                  <Gift className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold text-foreground">Order Summary</h3>
+                </div>
+
+                <div className="space-y-2">
+                  {activeRecipients.map((r, index) => (
+                    <div key={r.id} className="flex justify-between items-center py-2 border-b border-border/20 last:border-0">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{TIERS[r.tier].label} Reading</p>
+                          {(r.name || r.email) && deliveryMethod === 'email' && (
+                            <p className="text-xs text-primary">→ {r.name || r.email}</p>
+                          )}
                         </div>
                       </div>
-                    )}
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+                      <span className="text-sm text-muted-foreground">${(TIERS[r.tier].cents / 100).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
 
-              {/* Add Pet Button */}
-              {giftPets.length < 10 && (
-                <motion.button
-                  type="button"
-                  onClick={addPet}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className="w-full p-4 rounded-xl border border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all flex items-center justify-center gap-2 text-primary"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span className="font-medium">Add another gift</span>
-                  {discount < 0.50 && giftPets.length >= 1 && (
-                    <span className="text-xs text-green-400 ml-1">
-                      +{Math.round((getVolumeDiscount(giftPets.length + 1) - discount) * 100)}% more savings
-                    </span>
-                  )}
-                </motion.button>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Order Summary - Clear breakdown of what's being sent */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="p-5 rounded-2xl bg-gradient-to-br from-gold/10 to-amber-500/5 border border-gold/30 space-y-4"
-          >
-            <div className="flex items-center gap-2 pb-3 border-b border-gold/20">
-              <Gift className="w-5 h-5 text-gold" />
-              <h3 className="font-display font-semibold text-foreground">Order Summary</h3>
-            </div>
-
-            {/* Gift breakdown */}
-            <div className="space-y-2">
-              {giftPets.map((pet, index) => (
-                <div key={pet.id} className="flex justify-between items-center text-sm py-1">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                      {index + 1}
-                    </span>
-                    <span className="text-foreground">{TIERS[pet.tier].label}</span>
-                    {multiRecipient && pet.recipientEmail && (
-                      <span className="text-xs text-primary">→ {pet.recipientName || pet.recipientEmail.split('@')[0]}</span>
-                    )}
+                <div className="pt-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-foreground">${(pricing.baseTotal / 100).toFixed(2)}</span>
                   </div>
-                  <span className="text-muted-foreground">${(TIERS[pet.tier].cents / 100).toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-2 pt-2 border-t border-gold/20">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal ({petCount} {petCount === 1 ? 'gift' : 'gifts'})</span>
-                <span className="text-foreground">${(pricing.baseTotal / 100).toFixed(2)}</span>
-              </div>
-              {discount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-green-400 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    Volume discount ({Math.round(discount * 100)}% off)
-                  </span>
-                  <span className="text-green-400">-${(pricing.discountAmount / 100).toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-xl font-bold pt-3 border-t border-gold/20">
-                <span className="text-foreground">Total</span>
-                <span className="text-gold">${(pricing.finalTotal / 100).toFixed(2)}</span>
-              </div>
-            </div>
-
-            {/* Recipient summary */}
-            {deliveryMethod === 'email' && (
-              <div className="pt-3 border-t border-gold/20">
-                <div className="flex items-center gap-2 text-sm">
-                  <Send className="w-4 h-4 text-primary" />
-                  {multiRecipient ? (
-                    <span className="text-muted-foreground">
-                      Sending to <span className="text-primary font-medium">{uniqueRecipientCount} {uniqueRecipientCount === 1 ? 'recipient' : 'different recipients'}</span>
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">
-                      All gifts go to <span className="text-primary font-medium">{singleRecipientName || singleRecipientEmail || '1 recipient'}</span>
-                    </span>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-400 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        {Math.round(discount * 100)}% Volume Discount
+                      </span>
+                      <span className="text-green-400">-${(pricing.discountAmount / 100).toFixed(2)}</span>
+                    </div>
                   )}
+                  <div className="flex justify-between text-xl font-bold pt-3 border-t border-border/30">
+                    <span className="text-foreground">Total</span>
+                    <span className="text-primary">${(pricing.finalTotal / 100).toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
-            )}
-          </motion.div>
 
-          {/* Delivery Method */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.32 }}
-            className="space-y-3"
-          >
-            <label className="text-sm font-medium text-foreground">{t('gift.deliveryMethod')}</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setDeliveryMethod('email')}
-                className={`p-4 rounded-xl border-2 transition-all text-center ${
-                  deliveryMethod === 'email'
-                    ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
-                    : 'border-border/50 bg-card/40 hover:border-primary/50'
-                }`}
-              >
-                <Send className={`w-6 h-6 mx-auto mb-2 ${deliveryMethod === 'email' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <p className="text-sm font-medium text-foreground">{t('gift.sendEmail')}</p>
-                <p className="text-xs text-muted-foreground mt-1">{t('gift.sendEmailDesc')}</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setDeliveryMethod('link');
-                  setMultiRecipient(false); // Reset to single mode for link delivery
-                }}
-                className={`p-4 rounded-xl border-2 transition-all text-center ${
-                  deliveryMethod === 'link'
-                    ? 'border-primary bg-primary/15 shadow-lg shadow-primary/20'
-                    : 'border-border/50 bg-card/40 hover:border-primary/50'
-                }`}
-              >
-                <LinkIcon className={`w-6 h-6 mx-auto mb-2 ${deliveryMethod === 'link' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <p className="text-sm font-medium text-foreground">{t('gift.getLink')}</p>
-                <p className="text-xs text-muted-foreground mt-1">{t('gift.getLinkDesc')}</p>
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Form */}
-          <motion.form 
-            onSubmit={handlePurchase} 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="space-y-4"
-          >
-            <CosmicInput
-              label={t('gift.yourEmail')}
-              type="email"
-              value={purchaserEmail}
-              onChange={(e) => setPurchaserEmail(e.target.value)}
-              placeholder="your@email.com"
-              required
-            />
-            
-            {/* Single recipient fields - only show when NOT in multi-recipient mode */}
-            {!multiRecipient && (
-              <>
-                <CosmicInput
-                  label={t('gift.recipientName')}
-                  value={singleRecipientName}
-                  onChange={(e) => setSingleRecipientName(e.target.value)}
-                  placeholder={t('gift.recipientNamePlaceholder')}
-                />
-                
-                {deliveryMethod === 'email' && (
-                  <CosmicInput
-                    label={t('gift.recipientEmail')}
+              {/* Your details */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Your email (for receipt)</label>
+                  <input
                     type="email"
-                    value={singleRecipientEmail}
-                    onChange={(e) => setSingleRecipientEmail(e.target.value)}
-                    placeholder={t('gift.recipientEmailPlaceholder')}
+                    value={purchaserEmail}
+                    onChange={(e) => setPurchaserEmail(e.target.value)}
+                    placeholder="your@email.com"
                     required
+                    className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
                   />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-1.5 block">Personal message (optional)</label>
+                  <textarea
+                    value={giftMessage}
+                    onChange={(e) => setGiftMessage(e.target.value)}
+                    placeholder="Add a personal note to your gift..."
+                    className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground resize-none"
+                    rows={3}
+                    maxLength={500}
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handlePurchase}
+                disabled={isLoading || !purchaserEmail.includes('@')}
+                className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-nebula-pink via-nebula-purple to-primary hover:opacity-90 transition-opacity shadow-xl shadow-nebula-purple/30"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Processing...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Gift className="w-5 h-5" />
+                    Pay ${(pricing.finalTotal / 100).toFixed(2)}
+                  </span>
                 )}
-              </>
-            )}
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">{t('gift.personalMessage')}</label>
-              <textarea
-                value={giftMessage}
-                onChange={(e) => setGiftMessage(e.target.value)}
-                placeholder={t('gift.personalMessagePlaceholder')}
-                className="w-full px-4 py-3 rounded-xl bg-card/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-none text-foreground placeholder:text-muted-foreground"
-                rows={3}
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground text-right">{giftMessage.length}/500</p>
-            </div>
+              </Button>
 
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-nebula-pink via-nebula-purple to-primary hover:opacity-90 transition-opacity shadow-xl shadow-nebula-purple/30"
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Gift className="w-5 h-5" />
-                  Purchase Gift — ${(pricing.finalTotal / 100).toFixed(2)}
-                </span>
-              )}
-            </Button>
-          </motion.form>
-
-          {/* Trust Badge */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-center space-y-2"
-          >
-            <p className="text-xs text-muted-foreground flex items-center justify-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-400" />
-              {t('gift.securePayment')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t('gift.validFor')}
-            </p>
-          </motion.div>
-        </motion.div>
+              <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-400" />
+                Secure checkout • Gift valid for 1 year
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
