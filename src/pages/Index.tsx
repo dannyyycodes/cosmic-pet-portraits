@@ -133,13 +133,15 @@ const Index = () => {
             </Link>
             
             {/* Gift Option - Christmas Enhanced */}
-            <Link 
-              to="/gift" 
-              className="inline-flex items-center gap-2 text-sm bg-gradient-to-r from-red-500/20 to-green-500/20 px-4 py-2 rounded-full border border-red-500/30 text-foreground hover:from-red-500/30 hover:to-green-500/30 transition-colors group"
-            >
-              <Gift className="w-4 h-4 text-red-400 group-hover:scale-110 transition-transform" />
-              <span>🎁 <span className="font-medium">Perfect Christmas Gift</span> — Arrives Instantly!</span>
-              <Heart className="w-3 h-3 text-red-400" />
+            <Link to="/gift">
+              <Button 
+                size="lg" 
+                className="text-lg px-8 py-6 bg-gradient-to-r from-red-500 to-green-600 hover:from-red-600 hover:to-green-700 text-white border-0 shadow-[0_0_25px_rgba(239,68,68,0.4)] group"
+              >
+                <Gift className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                🎁 Send as Christmas Gift
+                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              </Button>
             </Link>
 
             {/* Live Activity - Now inline and Christmas themed */}
