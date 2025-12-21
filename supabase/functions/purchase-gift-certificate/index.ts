@@ -42,10 +42,12 @@ function generateGiftCode(): string {
   return code;
 }
 
-// Pet schema for individual pet tiers
+// Pet schema for individual pet tiers with optional recipient
 const giftPetSchema = z.object({
   id: z.string(),
   tier: z.enum(["essential", "portrait", "vip"]),
+  recipientName: z.string().max(100).optional(),
+  recipientEmail: z.string().email().max(255).optional().or(z.literal("")).or(z.null()),
 });
 
 // Input validation schema
@@ -55,7 +57,8 @@ const giftSchema = z.object({
   recipientName: z.string().max(100).optional().default(""),
   giftMessage: z.string().max(500).optional().default(""),
   deliveryMethod: z.enum(["email", "link"]).optional().default("email"),
-  // New: array of pets with individual tiers
+  multiRecipient: z.boolean().optional().default(false),
+  // New: array of pets with individual tiers and recipients
   giftPets: z.array(giftPetSchema).min(1).max(10).optional(),
   // Legacy support
   tier: z.enum(["essential", "portrait", "vip"]).optional(),
@@ -65,6 +68,12 @@ const giftSchema = z.object({
 const logStep = (step: string, details?: unknown) => {
   console.log(`[PURCHASE-GIFT] ${step}`, details ? JSON.stringify(details) : '');
 };
+
+interface RecipientGroup {
+  recipientEmail: string | null;
+  recipientName: string;
+  pets: { id: string; tier: GiftTier }[];
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -77,11 +86,14 @@ serve(async (req) => {
     const input = giftSchema.parse(rawInput);
     
     // Determine pets and tiers
-    let giftPets: { id: string; tier: GiftTier }[] = [];
+    let giftPets: { id: string; tier: GiftTier; recipientName?: string; recipientEmail?: string | null }[] = [];
     
     if (input.giftPets && input.giftPets.length > 0) {
-      // New mix-and-match mode
-      giftPets = input.giftPets;
+      // New mix-and-match mode with optional per-pet recipients
+      giftPets = input.giftPets.map(p => ({
+        ...p,
+        recipientEmail: p.recipientEmail || null,
+      }));
     } else if (input.tier) {
       // Legacy mode: same tier for all pets
       const count = input.petCount || 1;
@@ -101,18 +113,47 @@ serve(async (req) => {
     const discountAmount = Math.round(baseTotal * discount);
     const finalTotal = baseTotal - discountAmount;
     
-    // Determine the "primary" tier for display (most expensive or most common)
-    const tierCounts = giftPets.reduce((acc, pet) => {
-      acc[pet.tier] = (acc[pet.tier] || 0) + 1;
-      return acc;
-    }, {} as Record<GiftTier, number>);
+    // Group pets by recipient (for multi-recipient mode)
+    const recipientGroups: RecipientGroup[] = [];
     
-    const primaryTier = (Object.entries(tierCounts) as [GiftTier, number][])
-      .sort((a, b) => b[1] - a[1])[0][0];
+    if (input.multiRecipient) {
+      // Group by recipient email
+      const groupMap = new Map<string, RecipientGroup>();
+      
+      for (const pet of giftPets) {
+        const email = pet.recipientEmail?.toLowerCase().trim() || '';
+        const key = email || `__no_email_${pet.id}__`;
+        
+        if (!groupMap.has(key)) {
+          groupMap.set(key, {
+            recipientEmail: email || null,
+            recipientName: pet.recipientName || '',
+            pets: [],
+          });
+        }
+        
+        const group = groupMap.get(key)!;
+        group.pets.push({ id: pet.id, tier: pet.tier });
+        // Update name if provided
+        if (pet.recipientName && !group.recipientName) {
+          group.recipientName = pet.recipientName;
+        }
+      }
+      
+      recipientGroups.push(...groupMap.values());
+    } else {
+      // Single recipient mode - all pets go to one person
+      recipientGroups.push({
+        recipientEmail: input.recipientEmail || null,
+        recipientName: input.recipientName || '',
+        pets: giftPets.map(p => ({ id: p.id, tier: p.tier })),
+      });
+    }
 
     logStep("Starting gift certificate purchase", {
       purchaserEmail: input.purchaserEmail,
-      recipientEmail: input.recipientEmail,
+      multiRecipient: input.multiRecipient,
+      recipientGroups: recipientGroups.length,
       giftPets,
       petCount,
       discount,
@@ -131,37 +172,52 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-    // Generate unique gift code
-    let giftCode = generateGiftCode();
-    let attempts = 0;
-    while (attempts < 5) {
-      const { data: existing } = await supabaseClient
-        .from("gift_certificates")
-        .select("id")
-        .eq("code", giftCode)
-        .single();
+    // Generate unique gift codes for each recipient group
+    const giftCodes: string[] = [];
+    
+    for (let i = 0; i < recipientGroups.length; i++) {
+      let giftCode = generateGiftCode();
+      let attempts = 0;
+      while (attempts < 5) {
+        const { data: existing } = await supabaseClient
+          .from("gift_certificates")
+          .select("id")
+          .eq("code", giftCode)
+          .single();
 
-      if (!existing) break;
-      giftCode = generateGiftCode();
-      attempts++;
+        if (!existing) break;
+        giftCode = generateGiftCode();
+        attempts++;
+      }
+      giftCodes.push(giftCode);
     }
 
-    logStep("Generated gift code", { giftCode });
+    const primaryGiftCode = giftCodes[0];
+    logStep("Generated gift codes", { giftCodes, primary: primaryGiftCode });
 
     const origin = req.headers.get("origin") ?? "https://astropets.cloud";
     
-    // Build product name based on pets
+    // Build product description
+    const tierCounts = giftPets.reduce((acc, pet) => {
+      acc[pet.tier] = (acc[pet.tier] || 0) + 1;
+      return acc;
+    }, {} as Record<GiftTier, number>);
+    
     const tierSummary = (Object.entries(tierCounts) as [GiftTier, number][])
       .map(([tier, count]) => `${count}x ${GIFT_TIERS[tier].name}`)
       .join(', ');
     
     const productName = petCount === 1 
       ? `Gift Certificate: ${GIFT_TIERS[giftPets[0].tier].name}`
-      : `Gift Certificate: ${petCount} Pet Readings`;
+      : recipientGroups.length > 1
+        ? `Gift Certificates: ${petCount} Readings for ${recipientGroups.length} Recipients`
+        : `Gift Certificate: ${petCount} Pet Readings`;
     
-    const productDescription = input.recipientName 
-      ? `Gift for ${input.recipientName} - ${tierSummary}`
-      : `AstroPets Cosmic Gift - ${tierSummary}`;
+    const productDescription = recipientGroups.length > 1
+      ? `AstroPets Cosmic Gifts for ${recipientGroups.length} recipients - ${tierSummary}`
+      : input.recipientName 
+        ? `Gift for ${input.recipientName} - ${tierSummary}`
+        : `AstroPets Cosmic Gift - ${tierSummary}`;
 
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
@@ -181,55 +237,85 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${origin}/gift-success?code=${giftCode}&delivery=${input.deliveryMethod}`,
+      success_url: `${origin}/gift-success?code=${primaryGiftCode}&delivery=${input.deliveryMethod}&count=${recipientGroups.length}`,
       cancel_url: `${origin}/gift`,
       metadata: {
         type: "gift_certificate",
-        gift_code: giftCode,
-        giftTier: primaryTier, // Primary tier for backwards compat
+        gift_codes: giftCodes.join(','),
+        primary_gift_code: primaryGiftCode,
+        recipient_count: String(recipientGroups.length),
         petCount: String(petCount),
         discountPercent: String(Math.round(discount * 100)),
-        giftPetsJson: JSON.stringify(giftPets), // Store full pet config
-        recipientEmail: input.recipientEmail || "",
-        recipientName: input.recipientName || "",
+        multiRecipient: String(input.multiRecipient),
         giftMessage: input.giftMessage || "",
         deliveryMethod: input.deliveryMethod,
+        // Store full config for webhook
+        recipientGroupsJson: JSON.stringify(recipientGroups.map((group, idx) => ({
+          ...group,
+          giftCode: giftCodes[idx],
+        }))),
       },
     });
 
     logStep("Stripe session created", { sessionId: session.id });
 
-    // Create gift certificate record (pending payment)
+    // Create gift certificate records (pending payment) - one per recipient group
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
-    const { error: insertError } = await supabaseClient
-      .from("gift_certificates")
-      .insert({
-        code: giftCode,
-        purchaser_email: input.purchaserEmail,
-        recipient_email: input.recipientEmail || null,
-        recipient_name: input.recipientName || null,
-        gift_message: input.giftMessage || null,
-        amount_cents: finalTotal,
-        gift_tier: primaryTier,
-        pet_count: petCount,
-        gift_pets_json: giftPets, // Store full pet config in DB
-        stripe_session_id: session.id,
-        expires_at: expiresAt.toISOString(),
+    for (let i = 0; i < recipientGroups.length; i++) {
+      const group = recipientGroups[i];
+      const code = giftCodes[i];
+      
+      // Calculate amount for this group
+      const groupTotal = group.pets.reduce((sum, pet) => sum + GIFT_TIERS[pet.tier].cents, 0);
+      const groupDiscount = Math.round(groupTotal * discount);
+      const groupFinal = groupTotal - groupDiscount;
+      
+      // Determine primary tier for this group
+      const groupTierCounts = group.pets.reduce((acc, pet) => {
+        acc[pet.tier] = (acc[pet.tier] || 0) + 1;
+        return acc;
+      }, {} as Record<GiftTier, number>);
+      
+      const primaryTier = (Object.entries(groupTierCounts) as [GiftTier, number][])
+        .sort((a, b) => b[1] - a[1])[0][0];
+
+      const { error: insertError } = await supabaseClient
+        .from("gift_certificates")
+        .insert({
+          code,
+          purchaser_email: input.purchaserEmail,
+          recipient_email: group.recipientEmail || null,
+          recipient_name: group.recipientName || null,
+          gift_message: input.giftMessage || null,
+          amount_cents: groupFinal,
+          gift_tier: primaryTier,
+          pet_count: group.pets.length,
+          gift_pets_json: group.pets,
+          stripe_session_id: session.id,
+          expires_at: expiresAt.toISOString(),
+        });
+
+      if (insertError) {
+        logStep("Failed to create gift certificate record", { code, error: insertError });
+        throw new Error("Failed to create gift certificate");
+      }
+
+      logStep("Gift certificate record created", { 
+        code, 
+        petCount: group.pets.length, 
+        primaryTier,
+        recipientEmail: group.recipientEmail,
       });
-
-    if (insertError) {
-      logStep("Failed to create gift certificate record", insertError);
-      throw new Error("Failed to create gift certificate");
     }
-
-    logStep("Gift certificate record created", { giftCode, petCount, primaryTier });
 
     return new Response(
       JSON.stringify({
         url: session.url,
-        giftCode,
+        giftCode: primaryGiftCode,
+        giftCodes,
+        recipientCount: recipientGroups.length,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
