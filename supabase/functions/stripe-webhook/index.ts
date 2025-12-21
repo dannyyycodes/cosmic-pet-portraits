@@ -110,10 +110,10 @@ serve(async (req) => {
       else if (session.metadata?.type === "gift_certificate") {
         const giftCode = session.metadata.gift_code;
         
-        // SECURITY: Strict gift code format validation
-        const GIFT_CODE_PATTERN = /^[A-Z0-9]{8,20}$/;
+        // SECURITY: Strict gift code format validation (matches GIFT-XXXX-XXXX format)
+        const GIFT_CODE_PATTERN = /^GIFT-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
         if (!giftCode || typeof giftCode !== 'string' || !GIFT_CODE_PATTERN.test(giftCode)) {
-          console.error("[STRIPE-WEBHOOK] Invalid gift code format in metadata");
+          console.error("[STRIPE-WEBHOOK] Invalid gift code format in metadata:", giftCode);
           return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
         }
 
