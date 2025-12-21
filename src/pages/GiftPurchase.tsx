@@ -166,16 +166,16 @@ export default function GiftPurchase() {
       const giftPets = activeRecipients.map(r => ({
         id: r.id,
         tier: r.tier,
-        recipientName: r.name,
+        recipientName: r.name || '',
         recipientEmail: deliveryMethod === 'email' ? r.email : null,
       }));
 
       const { data, error } = await supabase.functions.invoke('purchase-gift-certificate', {
         body: {
           purchaserEmail,
-          recipientEmail: giftType === 'single' && deliveryMethod === 'email' ? singleRecipient.email : null,
-          recipientName: giftType === 'single' ? singleRecipient.name : null,
-          giftMessage,
+          recipientEmail: giftType === 'single' && deliveryMethod === 'email' ? singleRecipient.email : '',
+          recipientName: giftType === 'single' ? (singleRecipient.name || '') : '',
+          giftMessage: giftMessage || '',
           giftPets,
           deliveryMethod,
           multiRecipient: giftType === 'multiple',
