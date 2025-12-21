@@ -192,7 +192,8 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             exit={{ opacity: 0, y: -20 }}
             className="space-y-6"
           >
-            <SocialProofBar petName={petData.name} />
+            {/* Hide sales tactics for gift recipients */}
+            {!giftCode && <SocialProofBar petName={petData.name} />}
 
             <div className="space-y-3">
               <p className="text-primary/80 text-sm uppercase tracking-widest">Step {totalSteps} of {totalSteps}</p>

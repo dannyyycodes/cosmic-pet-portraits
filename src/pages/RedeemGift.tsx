@@ -192,11 +192,11 @@ export default function RedeemGift() {
                   
                   <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
                     {giftData.recipientName 
-                      ? t('redeem.receivedTitleName', { name: giftData.recipientName })
-                      : t('redeem.receivedTitle')}
+                      ? `Hello, ${giftData.recipientName}!`
+                      : 'A Cosmic Gift Awaits!'}
                   </h1>
                   <p className="text-muted-foreground">
-                    {t('redeem.receivedSubtitle')}
+                    Someone special has gifted you a cosmic reading!
                   </p>
                 </div>
 
