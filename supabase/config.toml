@@ -98,3 +98,18 @@ verify_jwt = false
 
 [functions.affiliate-dashboard]
 verify_jwt = false
+
+[functions.admin-coupons]
+verify_jwt = false
+
+[functions.search-influencers]
+verify_jwt = false
+
+[functions.generate-influencer-pitch]
+verify_jwt = false
+
+[functions.send-influencer-outreach]
+verify_jwt = false
+
+[functions.influencer-prospects]
+verify_jwt = false

@@ -502,6 +502,69 @@ export type Database = {
           },
         ]
       }
+      influencer_prospects: {
+        Row: {
+          content_summary: string | null
+          created_at: string
+          email: string | null
+          follower_estimate: string | null
+          id: string
+          instagram: string | null
+          name: string
+          niche: string | null
+          notes: string | null
+          pitch_content: string | null
+          pitch_sent_at: string | null
+          priority: number | null
+          source: string | null
+          status: string
+          tiktok: string | null
+          updated_at: string
+          website: string | null
+          youtube: string | null
+        }
+        Insert: {
+          content_summary?: string | null
+          created_at?: string
+          email?: string | null
+          follower_estimate?: string | null
+          id?: string
+          instagram?: string | null
+          name: string
+          niche?: string | null
+          notes?: string | null
+          pitch_content?: string | null
+          pitch_sent_at?: string | null
+          priority?: number | null
+          source?: string | null
+          status?: string
+          tiktok?: string | null
+          updated_at?: string
+          website?: string | null
+          youtube?: string | null
+        }
+        Update: {
+          content_summary?: string | null
+          created_at?: string
+          email?: string | null
+          follower_estimate?: string | null
+          id?: string
+          instagram?: string | null
+          name?: string
+          niche?: string | null
+          notes?: string | null
+          pitch_content?: string | null
+          pitch_sent_at?: string | null
+          priority?: number | null
+          source?: string | null
+          status?: string
+          tiktok?: string | null
+          updated_at?: string
+          website?: string | null
+          youtube?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           coupon_id: string | null
