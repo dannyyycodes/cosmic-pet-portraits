@@ -28,7 +28,7 @@ import { IntakeStepEmail } from './IntakeStepEmail';
 import { IntakeStepPhoto } from './IntakeStepPhoto';
 import { IntakeStepPortraitSelect } from './IntakeStepPortraitSelect';
 import { CosmicLoading } from './CosmicLoading';
-import { SocialProofBar } from './SocialProofBar';
+
 import { MultiPetMiniReport } from './MultiPetMiniReport';
 import { GiftWelcome } from './GiftWelcome';
 import { DevPanel } from './DevPanel';
@@ -663,8 +663,6 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       </button>
       
 
-      {/* Hide social proof bar during gift redemption flow */}
-      {!isGiftFlow && <SocialProofBar petName={currentPetData?.name || ''} />}
       
       <div className="w-full max-w-xl relative z-10">
         {/* Start Again (moved into the questionnaire card area so it's always visible) */}
