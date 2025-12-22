@@ -41,7 +41,7 @@ const TIERS = {
     features: [
       "Everything in Essential, plus...",
       "Collectible portrait card with stats & archetypes",
-      "Frame it, share it, treasure it forever",
+      "Perfect to frame or share with friends",
     ],
     shortFeatures: ['+ Portrait', '+ Share Card'],
     popular: true,
