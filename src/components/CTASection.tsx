@@ -42,10 +42,10 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
         ) : (
           <>
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-4">
-              "OMG, This Is <span className="text-primary">Exactly</span> My Pet!"
+              Unlock Your Pet's <span className="text-primary">Cosmic Profile</span>
             </h2>
             <p className="text-muted-foreground mb-8">
-              That's what pet parents keep saying. Ready to have your own "how did they know?!" moment?
+              Discover what the stars reveal about your furry friend's unique personality.
             </p>
           </>
         )}
