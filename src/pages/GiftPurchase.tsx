@@ -401,9 +401,9 @@ export default function GiftPurchase() {
                     </div>
                     <p className="font-semibold text-foreground mb-1">Email directly</p>
                     <p className="text-sm text-muted-foreground leading-snug">We'll send a beautiful gift email on your behalf</p>
-                    <div className="mt-3 flex items-center gap-1.5 text-xs text-green-500">
-                      <Sparkles className="w-3 h-3" />
-                      <span>Most popular</span>
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      <span>Instant delivery</span>
                     </div>
                   </button>
 
@@ -412,27 +412,31 @@ export default function GiftPurchase() {
                     onClick={() => setDeliveryMethod('link')}
                     className={`relative p-5 rounded-xl border-2 transition-all text-left group ${
                       deliveryMethod === 'link'
-                        ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
-                        : 'border-border/50 bg-background/50 hover:border-primary/40 hover:bg-card/50'
+                        ? 'border-gold bg-gold/10 shadow-lg shadow-gold/10'
+                        : 'border-border/50 bg-background/50 hover:border-gold/40 hover:bg-card/50'
                     }`}
                   >
+                    {/* Recommended badge */}
+                    <div className="absolute -top-2.5 left-4 px-2.5 py-0.5 bg-gradient-to-r from-gold to-amber-500 text-background text-[10px] font-bold rounded-full shadow-sm">
+                      ✨ FLEXIBLE
+                    </div>
                     {deliveryMethod === 'link' && (
                       <div className="absolute top-3 right-3">
-                        <CheckCircle className="w-5 h-5 text-primary" />
+                        <CheckCircle className="w-5 h-5 text-gold" />
                       </div>
                     )}
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all ${
                       deliveryMethod === 'link' 
-                        ? 'bg-primary/20' 
-                        : 'bg-muted/50 group-hover:bg-primary/10'
+                        ? 'bg-gold/20' 
+                        : 'bg-muted/50 group-hover:bg-gold/10'
                     }`}>
-                      <LinkIcon className={`w-6 h-6 ${deliveryMethod === 'link' ? 'text-primary' : 'text-muted-foreground group-hover:text-primary/70'}`} />
+                      <LinkIcon className={`w-6 h-6 ${deliveryMethod === 'link' ? 'text-gold' : 'text-muted-foreground group-hover:text-gold/70'}`} />
                     </div>
-                    <p className="font-semibold text-foreground mb-1">Get a shareable link</p>
-                    <p className="text-sm text-muted-foreground leading-snug">Perfect for cards, texts, or wrapping in a bow</p>
-                    <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Gift className="w-3 h-3" />
-                      <span>Great for surprises</span>
+                    <p className="font-semibold text-foreground mb-1">Get a magic link</p>
+                    <p className="text-sm text-muted-foreground leading-snug">Share via text, card, or gift it in person</p>
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-gold">
+                      <Heart className="w-3 h-3" />
+                      <span>Perfect for surprises</span>
                     </div>
                   </button>
                 </div>
