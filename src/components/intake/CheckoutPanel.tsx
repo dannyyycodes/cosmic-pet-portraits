@@ -432,6 +432,86 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         })}
       </div>
 
+      {/* What's Included - Benefits Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-cosmic-gold/5 border border-primary/20"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="w-4 h-4 text-cosmic-gold" />
+          <span className="text-sm font-bold text-foreground">What's Included In Every Reading</span>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-foreground">18 Cosmic Sections</p>
+              <p className="text-muted-foreground">Complete personality breakdown</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-foreground">Birth Chart Analysis</p>
+              <p className="text-muted-foreground">Sun, Moon & Rising signs</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-foreground">Soul Mission</p>
+              <p className="text-muted-foreground">Their life purpose revealed</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-foreground">Love Language</p>
+              <p className="text-muted-foreground">How they show & receive love</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-foreground">Hidden Gift</p>
+              <p className="text-muted-foreground">Secret superpower unlocked</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-foreground">Instant Delivery</p>
+              <p className="text-muted-foreground">Beautifully formatted PDF</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Tier-specific upgrades */}
+        {anyPetNeedsPortrait && (
+          <div className="mt-3 pt-3 border-t border-border/30">
+            <div className="flex items-center gap-2 text-xs">
+              <Camera className="w-3.5 h-3.5 text-nebula-purple" />
+              <span className="text-nebula-purple font-medium">
+                +AI Trading Card Portrait (Portrait/VIP tiers)
+              </span>
+            </div>
+          </div>
+        )}
+        
+        {hasVipPet && (
+          <div className="mt-2">
+            <div className="flex items-center gap-2 text-xs">
+              <Moon className="w-3.5 h-3.5 text-cosmic-gold" />
+              <span className="text-cosmic-gold font-medium">
+                +Free Weekly Horoscopes for Life (VIP tier)
+              </span>
+            </div>
+          </div>
+        )}
+      </motion.div>
+
       {/* Photo Upload for Portrait Tier Pets */}
       <AnimatePresence>
         {petsNeedingPhotos.length > 0 && (
