@@ -796,6 +796,13 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       )}
       
+      {/* Value Proposition */}
+      <div className="bg-gradient-to-br from-primary/5 via-card/40 to-nebula-pink/5 border border-primary/20 rounded-xl p-4 text-center">
+        <p className="text-xs text-foreground/80 leading-relaxed">
+          <span className="font-semibold text-primary">Worth every penny:</span> A vet consult costs $150+, a pet psychic $200+—but the real cost is <span className="italic">not</span> understanding your pet. For less than a bag of treats, get a lifetime of connection. <span className="font-medium text-gold">This is an investment in your bond.</span>
+        </p>
+      </div>
+      
       {/* Final reassurance */}
       <p className="text-center text-xs text-muted-foreground">
         🔒 Secure checkout • 7-day money back guarantee
