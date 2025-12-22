@@ -40,7 +40,7 @@ const TIERS = {
     icon: '🎨',
     features: [
       "Everything in Essential, plus...",
-      "A collectible card with fun cosmic stats",
+      "A custom portrait card with cosmic stats",
       "Frame it, share it, treasure it forever",
     ],
     shortFeatures: ['+ Portrait', '+ Share Card'],
