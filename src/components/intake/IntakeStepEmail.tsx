@@ -7,6 +7,7 @@ import { ArrowLeft, Sparkles, CheckCircle, ChevronDown, Lock, Star, Heart, Zap, 
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { ReportTeaser } from './ReportTeaser';
+import { TestimonialCarousel } from './TestimonialCarousel';
 import { PremiumPreview } from './PremiumPreview';
 import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
 import { getSunSign, zodiacSigns } from '@/lib/zodiac';
@@ -524,22 +525,6 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             </motion.div>
             )}
 
-            {/* Social Proof */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30"
-            >
-              <div className="flex gap-0.5 text-amber-500">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-sm text-foreground italic flex-1">
-                "Finally understood why my {allPets[selectedPetIndex]?.species || 'pet'} does that ONE weird thing!" — Sarah M.
-              </p>
-            </motion.div>
 
             {/* What You'll Unlock - FOMO Builder */}
             {!giftCode && (
@@ -667,6 +652,11 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             exit={{ opacity: 0, y: -20 }}
             className="space-y-4"
           >
+            {/* Rotating Testimonials at the top */}
+            <div className="mb-4">
+              <TestimonialCarousel />
+            </div>
+
             <div className="space-y-2">
               <h2 className="text-xl font-display font-bold text-foreground">
                 Choose Your Reading

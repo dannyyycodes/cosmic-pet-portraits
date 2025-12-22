@@ -71,25 +71,19 @@ export function IntakeStepEmailEarly({
     }, 300);
   };
 
-  // Get occasion-specific friendly headline
+  // Get occasion-specific friendly headline - no zodiac reveal yet!
   const getHeadline = () => {
     if (petData.occasionMode === 'memorial') {
       return `Where should we send ${petData.name}'s memorial?`;
     }
-    if (signData) {
-      return `${petData.name} is a ${signData.name}! ${signData.icon}`;
-    }
-    return `Almost there with ${petData.name}!`;
+    return `Almost there!`;
   };
 
   const getSubheadline = () => {
     if (petData.occasionMode === 'memorial') {
       return `We'll keep ${petData.name}'s cosmic tribute safe and send it to your inbox`;
     }
-    if (signData) {
-      return `We've calculated their cosmic profile. Where should we send ${petData.name}'s ${signData.element} sign reading?`;
-    }
-    return `Let us know where to send ${petData.name}'s personalized cosmic reading`;
+    return `Enter your email to unlock ${petData.name}'s cosmic reading`;
   };
 
   return (
@@ -106,30 +100,16 @@ export function IntakeStepEmailEarly({
           Step {currentStep} of {totalSteps}
         </p>
         
-        {/* Zodiac badge when available */}
-        {signData && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/20 to-cosmic-gold/20 border border-primary/30 mb-2"
-          >
-            <span className="text-xl">{signData.icon}</span>
-            <span className="text-primary text-sm font-medium">{signData.element} Sign • {signData.archetype}</span>
-          </motion.div>
-        )}
-
-        {!signData && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-2"
-          >
-            <Heart className="w-4 h-4 text-primary" />
-            <span className="text-primary text-sm font-medium">Save your progress</span>
-          </motion.div>
-        )}
+        {/* Trust badge - no zodiac reveal until after email! */}
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", delay: 0.1 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 mb-2"
+        >
+          <Shield className="w-4 h-4 text-green-500" />
+          <span className="text-green-500 text-sm font-medium">Your reading is ready</span>
+        </motion.div>
         
         <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">
           {getHeadline()}
@@ -192,14 +172,14 @@ export function IntakeStepEmailEarly({
         </span>
       </div>
 
-      {/* Teaser of what's next */}
+      {/* What happens next */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
         className="text-xs text-muted-foreground/70 pt-2"
       >
-        Just a few more fun questions about {petData.name}'s personality ✨
+        You're one step away from {petData.name}'s cosmic reveal ✨
       </motion.div>
     </div>
   );
