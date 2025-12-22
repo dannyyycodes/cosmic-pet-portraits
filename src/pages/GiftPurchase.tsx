@@ -16,6 +16,7 @@ interface GiftRecipient {
   name: string;
   email: string;
   tier: GiftTier;
+  horoscopeAddon?: 'none' | 'monthly' | 'yearly';
 }
 
 const TIERS = {
@@ -39,7 +40,7 @@ const TIERS = {
     icon: '🎨',
     features: [
       "Everything in Essential, plus...",
-      "A stunning custom portrait they'll frame",
+      "A stunning custom portrait of their pet",
       "Shareable card to show off their pet",
     ],
     shortFeatures: ['+ Portrait', '+ Share Card'],
@@ -59,6 +60,12 @@ const TIERS = {
     shortFeatures: ['+ 52 Horoscopes', '+ Year of Joy'],
     highlight: 'Premium',
   },
+} as const;
+
+const HOROSCOPE_ADDONS = {
+  none: { cents: 0, label: 'No updates', description: '', save: '' },
+  monthly: { cents: 299, label: 'Monthly', description: '$2.99/mo for them', save: '' },
+  yearly: { cents: 2499, label: 'Yearly', description: '$24.99/year', save: 'Save 30%' },
 } as const;
 
 const TESTIMONIALS = [
@@ -130,12 +137,13 @@ export default function GiftPurchase() {
     id: crypto.randomUUID(),
     name: '',
     email: '',
-    tier: 'portrait'
+    tier: 'portrait',
+    horoscopeAddon: 'none'
   });
 
   // Multiple recipients state
   const [recipients, setRecipients] = useState<GiftRecipient[]>([
-    { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' }
+    { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait', horoscopeAddon: 'none' }
   ]);
 
   const activeRecipients = giftType === 'single' ? [singleRecipient] : recipients;
@@ -143,7 +151,11 @@ export default function GiftPurchase() {
   const discount = getVolumeDiscount(giftCount);
 
   const pricing = useMemo(() => {
-    const baseTotal = activeRecipients.reduce((sum, r) => sum + TIERS[r.tier].cents, 0);
+    const baseTotal = activeRecipients.reduce((sum, r) => {
+      const tierCents = TIERS[r.tier].cents;
+      const addonCents = r.horoscopeAddon && r.horoscopeAddon !== 'none' ? HOROSCOPE_ADDONS[r.horoscopeAddon].cents : 0;
+      return sum + tierCents + addonCents;
+    }, 0);
     const discountAmount = Math.round(baseTotal * discount);
     const finalTotal = baseTotal - discountAmount;
     return { baseTotal, discountAmount, finalTotal };
@@ -151,7 +163,7 @@ export default function GiftPurchase() {
 
   const addRecipient = () => {
     if (recipients.length < 10) {
-      setRecipients([...recipients, { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' }]);
+      setRecipients([...recipients, { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait', horoscopeAddon: 'none' }]);
     }
   };
 
@@ -569,6 +581,48 @@ export default function GiftPurchase() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Weekly Updates Addon - only show if not VIP (VIP already includes) */}
+                  {singleRecipient.tier !== 'vip' && (
+                    <div className="mt-5 p-4 rounded-xl bg-gradient-to-br from-nebula-purple/10 to-primary/10 border border-nebula-purple/30">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Sparkles className="w-5 h-5 text-nebula-purple" />
+                        <h4 className="font-semibold text-foreground">Add Weekly Cosmic Updates?</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Give them fresh insights every week — a gift that keeps delighting!
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(['none', 'monthly', 'yearly'] as const).map((option) => {
+                          const addon = HOROSCOPE_ADDONS[option];
+                          return (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => updateRecipient(singleRecipient.id, 'horoscopeAddon', option)}
+                              className={`p-3 rounded-lg border-2 transition-all text-center relative ${
+                                singleRecipient.horoscopeAddon === option
+                                  ? 'border-nebula-purple bg-nebula-purple/15'
+                                  : 'border-border/40 bg-background/40 hover:border-nebula-purple/40'
+                              }`}
+                            >
+                              {addon.save && (
+                                <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[9px] font-bold bg-green-500 text-white rounded-full">
+                                  {addon.save}
+                                </span>
+                              )}
+                              <p className={`text-sm font-semibold ${singleRecipient.horoscopeAddon === option ? 'text-nebula-purple' : 'text-foreground/80'}`}>
+                                {addon.label}
+                              </p>
+                              {option !== 'none' && (
+                                <p className="text-xs text-muted-foreground mt-0.5">{addon.description}</p>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
