@@ -7,11 +7,13 @@ import {
   LogOut,
   Star,
   Gift,
-  Tag
+  Tag,
+  BarChart3
 } from 'lucide-react';
 
 const navItems = [
   { title: 'Overview', path: '/admin', icon: LayoutDashboard },
+  { title: 'Page Analytics', path: '/admin/analytics', icon: BarChart3 },
   { title: 'Pet Reports', path: '/admin/reports', icon: FileText },
   { title: 'Subscriptions', path: '/admin/subscriptions', icon: Mail },
   { title: 'Affiliates', path: '/admin/affiliates', icon: Users },

@@ -6,23 +6,24 @@ import { Navbar } from "@/components/Navbar";
 import { HowItWorks } from "@/components/HowItWorks";
 import { PremiumTestimonials } from "@/components/PremiumTestimonials";
 import { FAQ } from "@/components/FAQ";
-import { SocialProofBar } from "@/components/SocialProofBar";
-import { UrgencyBanner } from "@/components/UrgencyBanner";
-
 import { MoneyBackBadge } from "@/components/MoneyBackBadge";
 import { CTASection } from "@/components/CTASection";
 import { Snowfall } from "@/components/Snowfall";
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePageAnalytics } from "@/hooks/usePageAnalytics";
+import { TrackedSection } from "@/components/TrackedSection";
 
 const Index = () => {
   const { t } = useLanguage();
+  const { trackSectionView, trackCTAClick } = usePageAnalytics('/');
   
   // Check for referral code in URL on page load
   useEffect(() => {
     checkAndStoreReferralFromURL();
   }, []);
+
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       {/* Subtle Christmas Effects */}
@@ -75,8 +76,8 @@ const Index = () => {
         ))}
       </div>
 
-      {/* Hero Section - Optimized with power words + loss aversion */}
-      <section className="relative flex items-center justify-center px-4 pt-24 pb-12 z-10">
+      {/* Hero Section */}
+      <TrackedSection sectionName="hero" onView={trackSectionView} className="relative flex items-center justify-center px-4 pt-24 pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
           {/* Urgency Badge */}
@@ -119,7 +120,7 @@ const Index = () => {
             transition={{ delay: 0.2 }}
             className="flex flex-col items-center gap-4 mb-8"
           >
-            <Link to="/intake?mode=discover">
+            <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')}>
               <Button variant="cosmic" size="lg" className="text-lg px-10 py-7 group shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
                 <Sparkles className="w-5 h-5 mr-2" />
                 Get My Pet's Reading Now
@@ -128,7 +129,7 @@ const Index = () => {
             </Link>
             
             {/* Gift Option - Urgency Style */}
-            <Link to="/gift">
+            <Link to="/gift" onClick={() => trackCTAClick('gift', 'hero')}>
               <Button 
                 variant="outline"
                 size="lg" 
@@ -174,19 +175,25 @@ const Index = () => {
             </p>
           </motion.div>
         </div>
-      </section>
+      </TrackedSection>
 
-      {/* Removed floating LiveActivityIndicator - now inline in hero */}
-      <PremiumTestimonials />
+      {/* Testimonials Section */}
+      <TrackedSection sectionName="testimonials" onView={trackSectionView}>
+        <PremiumTestimonials />
+      </TrackedSection>
 
-      {/* Mid-page CTA - Capture warm leads */}
-      <CTASection variant="mid" />
+      {/* Mid-page CTA */}
+      <TrackedSection sectionName="mid_cta" onView={trackSectionView}>
+        <CTASection variant="mid" />
+      </TrackedSection>
 
-      {/* How It Works Section - Reduces friction */}
-      <HowItWorks />
+      {/* How It Works Section */}
+      <TrackedSection sectionName="how_it_works" onView={trackSectionView}>
+        <HowItWorks />
+      </TrackedSection>
 
-      {/* Two Options Cards - For those who want to explore */}
-      <section className="relative py-16 px-4 z-10">
+      {/* Two Options Cards */}
+      <TrackedSection sectionName="options_cards" onView={trackSectionView} className="relative py-16 px-4 z-10">
         <div className="max-w-3xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -209,7 +216,7 @@ const Index = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <Link to="/intake?mode=discover" className="group block">
+              <Link to="/intake?mode=discover" className="group block" onClick={() => trackCTAClick('get_reading', 'options_cards')}>
                 <div className="relative p-8 rounded-2xl border border-primary/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-card/50 h-full">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
                     {t('hero.mostPopular')}
@@ -239,7 +246,7 @@ const Index = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <Link to="/gift" className="group block">
+              <Link to="/gift" className="group block" onClick={() => trackCTAClick('gift', 'options_cards')}>
                 <div className="relative p-8 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:bg-card/50 h-full">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
                     Great Gift Idea
@@ -264,16 +271,20 @@ const Index = () => {
             </motion.div>
           </div>
         </div>
-      </section>
+      </TrackedSection>
 
-      {/* FAQ Section - Handle objections */}
-      <FAQ />
+      {/* FAQ Section */}
+      <TrackedSection sectionName="faq" onView={trackSectionView}>
+        <FAQ />
+      </TrackedSection>
 
-      {/* Final CTA - Urgency + Last chance */}
-      <CTASection variant="final" />
+      {/* Final CTA */}
+      <TrackedSection sectionName="final_cta" onView={trackSectionView}>
+        <CTASection variant="final" />
+      </TrackedSection>
 
       {/* Footer */}
-      <footer className="relative py-12 px-4 border-t border-border/30 z-10">
+      <TrackedSection sectionName="footer" onView={trackSectionView} className="relative py-12 px-4 border-t border-border/30 z-10">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-muted-foreground/60 text-sm mb-4">
             {t('footer.copyright')}
@@ -293,7 +304,7 @@ const Index = () => {
             </Link>
           </div>
         </div>
-      </footer>
+      </TrackedSection>
     </main>
   );
 };
