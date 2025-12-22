@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Gift, Sparkles, Heart, ArrowRight, Star, Wand2, Image } from 'lucide-react';
+import { Gift, Sparkles, Heart, ArrowRight, Star, Wand2, Image, CalendarHeart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
@@ -25,6 +25,7 @@ export default function RedeemGift() {
     petCount?: number;
     includesPortrait?: boolean;
     includesVip?: boolean;
+    includesWeeklyHoroscope?: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function RedeemGift() {
         petCount: data.petCount || 1,
         includesPortrait: data.includesPortrait,
         includesVip: data.includesVip,
+        includesWeeklyHoroscope: data.includesWeeklyHoroscope,
       });
     } catch (error) {
       console.error('Validation error:', error);
@@ -107,8 +109,9 @@ export default function RedeemGift() {
       features.push({ icon: Image, text: 'AI-Generated Cosmic Portrait', included: true });
     }
     
-    if (giftData?.includesVip) {
-      features.push({ icon: Sparkles, text: 'Weekly Horoscope Subscription', included: true });
+    // Show weekly horoscope if included (from VIP tier OR from addon purchase)
+    if (giftData?.includesWeeklyHoroscope) {
+      features.push({ icon: CalendarHeart, text: 'Weekly Cosmic Updates', included: true });
     }
     
     return features;
