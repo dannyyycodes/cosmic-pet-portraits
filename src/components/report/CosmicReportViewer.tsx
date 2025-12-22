@@ -338,15 +338,34 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-16 text-center">
-          {/* Zodiac symbol */}
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 0.8, type: 'spring' }}
-            className={`w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-2xl ring-4 ring-background/20`}
-          >
-            <span className="text-6xl">{signData?.icon || '✦'}</span>
-          </motion.div>
+          {/* Hero Portrait or Zodiac Symbol */}
+          {petPortraitUrl ? (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, type: 'spring' }}
+              className="relative w-40 h-40 mx-auto mb-6"
+            >
+              <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${gradientClass} blur-xl opacity-60`} />
+              <img 
+                src={petPortraitUrl} 
+                alt={`${petName}'s cosmic portrait`}
+                className="relative w-full h-full object-cover rounded-full ring-4 ring-primary/50 shadow-2xl"
+              />
+              <div className="absolute -bottom-2 -right-2 w-12 h-12 rounded-full bg-background flex items-center justify-center shadow-lg ring-2 ring-border">
+                <span className="text-2xl">{signData?.icon || '✦'}</span>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 0.8, type: 'spring' }}
+              className={`w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-2xl ring-4 ring-background/20`}
+            >
+              <span className="text-6xl">{signData?.icon || '✦'}</span>
+            </motion.div>
+          )}
 
           {/* Archetype title */}
           <motion.p
@@ -401,6 +420,27 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
               <ElementIcon className="w-4 h-4" />
               {element} Dominant
             </span>
+          </motion.div>
+
+          {/* VIP Badges - Horoscope & Portrait Status */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="flex flex-wrap items-center justify-center gap-3 mt-6"
+          >
+            {hasActiveHoroscope && (
+              <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/40 text-green-400 text-sm font-medium">
+                <Calendar className="w-4 h-4" />
+                Weekly Horoscopes Active
+              </span>
+            )}
+            {petPortraitUrl && (
+              <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/40 text-purple-400 text-sm font-medium">
+                <ImageIcon className="w-4 h-4" />
+                AI Portrait Included
+              </span>
+            )}
           </motion.div>
 
           {/* Share Button */}
