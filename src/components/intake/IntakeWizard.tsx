@@ -645,23 +645,6 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     <div className="min-h-screen bg-background flex items-center justify-center p-4 pt-14 relative overflow-hidden">
       <StarfieldBackground intensity={intensity} interactive />
       
-      {/* Mode Badge - clickable to toggle */}
-      <button
-        onClick={toggleDevMode}
-        className="fixed top-3 left-3 z-50 group"
-        title={isDevMode ? 'Click to disable dev mode' : 'Click to enable dev mode'}
-      >
-        <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide transition-all cursor-pointer ${
-            isTestMode
-              ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 hover:bg-yellow-500/30'
-              : 'bg-green-500/20 text-green-400 border border-green-500/40 hover:bg-green-500/30'
-          }`}
-        >
-          <span className={`w-2 h-2 rounded-full ${isTestMode ? 'bg-yellow-400' : 'bg-green-400'}`} />
-          {isDevMode ? 'Dev Mode' : isPreviewHost ? 'Preview Mode' : 'Live Mode'}
-        </span>
-      </button>
       
 
       
