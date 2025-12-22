@@ -25,10 +25,11 @@ const TIERS = {
     description: 'Perfect starter gift',
     icon: '⭐',
     features: [
-      '🌟 Complete birth chart reading',
-      '💫 Deep personality breakdown',
-      '❤️ Bonding tips & love language',
+      'Reveals their unique cosmic personality',
+      'Explains their quirky behaviors',
+      'Tips to deepen your bond',
     ],
+    shortFeatures: ['Personality', 'Behaviors', 'Bonding'],
     highlight: null,
   },
   portrait: { 
@@ -37,10 +38,11 @@ const TIERS = {
     description: 'The full experience',
     icon: '🎨',
     features: [
-      '✨ Everything in Essential',
-      '🖼️ Stunning AI portrait',
-      '📱 Shareable story card',
+      'Everything in Essential, plus...',
+      'Beautiful AI-generated portrait',
+      'Shareable card for social media',
     ],
+    shortFeatures: ['+ Portrait', '+ Share Card'],
     popular: true,
     highlight: 'Best Value',
   },
@@ -50,10 +52,11 @@ const TIERS = {
     description: 'Ultimate luxury gift',
     icon: '👑',
     features: [
-      '💎 Everything in Portrait',
-      '📅 Weekly horoscopes for a year',
-      '🎁 Exclusive VIP perks',
+      'Everything in Portrait, plus...',
+      '52 weekly horoscopes delivered',
+      'A full year of cosmic guidance',
     ],
+    shortFeatures: ['+ 52 Horoscopes', '+ Year Access'],
     highlight: 'Premium',
   },
 } as const;
@@ -623,6 +626,17 @@ export default function GiftPurchase() {
                             </p>
                           </button>
                         ))}
+                      </div>
+                      
+                      {/* Show features for selected tier */}
+                      <div className="mt-2 pt-2 border-t border-border/30">
+                        <div className="flex flex-wrap gap-1.5">
+                          {TIERS[recipient.tier].features.map((f, i) => (
+                            <span key={i} className="text-[10px] px-2 py-1 rounded-full bg-primary/10 text-primary/90 border border-primary/20">
+                              ✓ {f}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </motion.div>
                   ))}
