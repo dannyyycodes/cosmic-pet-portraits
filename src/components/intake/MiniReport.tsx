@@ -538,6 +538,18 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
             <p className="text-xs text-muted-foreground">+ 13 more chapters including Quirks & Habits, Ideal Diet, Dream Analysis...</p>
           </div>
         </motion.div>
+
+        {/* Value Proposition Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.3 }}
+          className="mt-8 bg-gradient-to-br from-primary/5 via-card/60 to-nebula-pink/5 border border-primary/20 rounded-2xl p-5"
+        >
+          <p className="text-sm text-foreground/90 leading-relaxed">
+            <span className="font-semibold text-primary">Think about it:</span> A single vet behavior consultation costs <span className="line-through text-muted-foreground">$150+</span>, a pet psychic reading runs <span className="line-through text-muted-foreground">$200+</span>, and the emotional cost of misunderstanding your pet—missed moments, confusion, unexplained distance—is <span className="italic">priceless</span>. For less than a bag of premium treats, you get a lifetime of understanding, a deeper bond, and insights that transform how you see each other. <span className="font-semibold text-gold">This isn't an expense—it's an investment in the relationship that matters most.</span>
+          </p>
+        </motion.div>
       </div>
 
       {/* Sticky Footer CTA */}
