@@ -172,7 +172,6 @@ const Index = () => {
             </div>
             <p className="text-xs text-muted-foreground text-center px-2">
               <span className="text-foreground font-medium">4.9/5</span> from 2,847 pet parents
-              <span className="hidden sm:inline"> • <span className="text-primary">"Made me cry!"</span> is our most common review</span>
             </p>
           </motion.div>
         </div>
@@ -203,7 +202,7 @@ const Index = () => {
             className="text-center mb-10"
           >
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
-              Thousands Got Theirs Today — Your Turn?
+              Choose Your Experience
             </h2>
             <p className="text-muted-foreground">
               Whether for yourself or as a gift they'll never forget — takes just 60 seconds

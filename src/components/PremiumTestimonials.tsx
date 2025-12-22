@@ -172,10 +172,10 @@ export function PremiumTestimonials() {
           </div>
           
           <h2 className="text-3xl md:text-4xl font-serif font-semibold text-foreground mb-3">
-            "It's Scary How Accurate This Was..."
+            What Pet Parents Are Saying
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            See why pet lovers are calling this "the best gift I've ever given" (and received!)
+            Real stories from our community
           </p>
         </motion.div>
 
