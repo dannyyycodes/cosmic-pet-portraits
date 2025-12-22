@@ -84,11 +84,11 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6 max-w-full"
           >
-            <Gift className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">
-              🎁 The #1 Gift Pet Lovers Are Obsessed With Right Now
+            <Gift className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-foreground text-center">
+              🎁 The #1 Gift Pet Lovers Love
             </span>
           </motion.div>
           
@@ -96,7 +96,7 @@ const Index = () => {
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold leading-tight mb-6"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif font-semibold leading-tight mb-6 px-2"
           >
             <span className="text-gradient-gold-purple">
               Finally Understand What Makes Your Pet... <em>Your Pet</em>
@@ -108,7 +108,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
+            className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed px-2"
           >
             Discover the personality traits, hidden quirks, and cosmic secrets that make your companion one-of-a-kind. <span className="text-foreground font-medium">Thousands of pet parents cried reading theirs.</span> Ready in 60 seconds.
           </motion.p>
@@ -121,9 +121,9 @@ const Index = () => {
             className="flex flex-col items-center gap-4 mb-8"
           >
             <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')}>
-              <Button variant="cosmic" size="lg" className="text-lg px-10 py-7 group shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
-                <Sparkles className="w-5 h-5 mr-2" />
-                Get My Pet's Reading Now
+              <Button variant="cosmic" size="lg" className="text-base sm:text-lg px-6 sm:px-10 py-6 sm:py-7 group shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
+                <Sparkles className="w-5 h-5 mr-2 shrink-0" />
+                <span className="whitespace-nowrap">Get My Pet's Reading</span>
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
@@ -133,10 +133,10 @@ const Index = () => {
               <Button 
                 variant="outline"
                 size="lg" 
-                className="text-lg px-8 py-6 border-primary/40 hover:bg-primary/10 group"
+                className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 border-primary/40 hover:bg-primary/10 group"
               >
-                <Gift className="w-5 h-5 mr-2" />
-                🎁 Give the Gift They'll Never Forget
+                <Gift className="w-5 h-5 mr-2 shrink-0" />
+                <span className="whitespace-nowrap">🎁 Give as Gift</span>
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
@@ -170,8 +170,9 @@ const Index = () => {
               </div>
               <span className="text-sm font-medium text-foreground">Trustpilot</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-foreground font-medium">4.9/5</span> from 2,847 pet parents • <span className="text-primary">"Made me cry!"</span> is our most common review
+            <p className="text-xs text-muted-foreground text-center px-2">
+              <span className="text-foreground font-medium">4.9/5</span> from 2,847 pet parents
+              <span className="hidden sm:inline"> • <span className="text-primary">"Made me cry!"</span> is our most common review</span>
             </p>
           </motion.div>
         </div>
@@ -289,7 +290,7 @@ const Index = () => {
           <p className="text-muted-foreground/60 text-sm mb-4">
             {t('footer.copyright')}
           </p>
-          <div className="flex items-center justify-center gap-6 text-sm">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm">
             <Link to="/terms" className="text-muted-foreground hover:text-gold transition-colors">
               {t('footer.terms')}
             </Link>
