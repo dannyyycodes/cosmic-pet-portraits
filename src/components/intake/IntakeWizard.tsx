@@ -587,6 +587,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               petPhotoUrl: checkoutData.petPhotoUrl || undefined, // Pass photo URL for portrait generation
               petTiers: checkoutData.petTiers || {}, // Per-pet tier selection
               petPhotos: checkoutData.petPhotos || {}, // Per-pet photo URLs
+              petHoroscopes: checkoutData.petHoroscopes || {}, // Per-pet horoscope subscriptions
             },
           }
         );
