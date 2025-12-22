@@ -609,9 +609,9 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         )}
         
         {horoscopeCost > 0 && (
-          <div className="flex justify-between text-sm text-nebula-purple pt-1 border-t border-border/30">
-            <span>Weekly Horoscopes (1st month)</span>
-            <span>+${(horoscopeCost / 100).toFixed(2)}</span>
+          <div className="flex justify-between text-sm text-green-400 pt-1 border-t border-border/30">
+            <span>Weekly Horoscopes</span>
+            <span className="font-semibold">FREE (1st month)</span>
           </div>
         )}
         
@@ -631,7 +631,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           </div>
           
           <p className="text-xs text-muted-foreground">
-            Select which pets receive personalized weekly horoscopes ($4.99/month per pet):
+            Select which pets receive personalized weekly horoscopes (<span className="font-semibold text-green-400">First month FREE</span>, then $4.99/month):
           </p>
           
           <div className="space-y-2">
@@ -673,8 +673,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                       <span className="ml-2 text-xs text-cosmic-gold">(included with VIP)</span>
                     )}
                   </div>
-                  <span className="text-sm text-muted-foreground">
-                    {isVip ? 'Free' : '$4.99/mo'}
+                  <span className="text-xs text-green-400 font-medium">
+                    {isVip ? 'Free forever' : '1st month FREE'}
                   </span>
                 </button>
               );
@@ -682,15 +682,15 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           </div>
           
           {Object.values(petHoroscopes).some(Boolean) && (
-            <div className="flex items-center justify-between text-sm p-2 rounded-lg bg-nebula-purple/10 border border-nebula-purple/30">
-              <span className="text-muted-foreground">Weekly updates total:</span>
-              <span className="font-bold text-nebula-purple">
-                ${((499 * Object.values(petHoroscopes).filter(Boolean).length) / 100).toFixed(2)}/month
+            <div className="flex items-center justify-between text-sm p-2 rounded-lg bg-green-500/10 border border-green-500/30">
+              <span className="text-muted-foreground">Weekly updates:</span>
+              <span className="font-bold text-green-400">
+                FREE for 30 days!
               </span>
             </div>
           )}
           
-          <p className="text-xs text-center text-nebula-purple font-medium">Cancel anytime</p>
+          <p className="text-xs text-center text-muted-foreground">Then $4.99/mo per pet • Cancel anytime</p>
         </div>
       )}
 
