@@ -47,34 +47,49 @@ const TIERS = {
     id: 'basic',
     name: 'Cosmic Reading',
     shortName: 'Basic',
-    description: "Full 18-section report",
+    description: "Understand your pet deeply",
     priceCents: 3500, // $35
     originalPriceCents: 7900, // $79 anchoring
     icon: Sparkles,
     highlight: false,
     includesPortrait: false,
+    benefits: [
+      "Why they do that ONE weird thing",
+      "Their unique love language",
+      "How to bond even deeper",
+    ],
   },
   premium: {
     id: 'premium',
     name: 'Portrait Edition',
     shortName: 'Portrait',
-    description: 'Report + AI trading card',
+    description: 'The keepsake you\'ll treasure',
     priceCents: 5000, // $50
     originalPriceCents: 9900, // $99 anchoring
     icon: Crown,
     highlight: true,
     includesPortrait: true,
+    benefits: [
+      "Everything in Basic, plus...",
+      "A stunning AI portrait of YOUR pet",
+      "Shareable card to show friends",
+    ],
   },
   vip: {
     id: 'vip',
     name: 'VIP Experience',
     shortName: 'VIP',
-    description: 'Everything + yearly updates',
+    description: 'Cosmic guidance all year',
     priceCents: 12900, // $129 - extreme anchor
     originalPriceCents: 24900, // $249 anchoring
     icon: Star,
     highlight: false,
     includesPortrait: true,
+    benefits: [
+      "Everything in Portrait, plus...",
+      "Weekly horoscopes for your pet",
+      "Know what each week brings",
+    ],
   },
 };
 
