@@ -163,7 +163,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     .map((pet, idx) => ({ pet, idx, tier: petTiers[idx] }))
     .filter(({ tier }) => tier === 'premium' || tier === 'vip');
 
-  // Calculate total with per-pet tiers
+  // Calculate total with per-pet tiers AND horoscope subscriptions
   const calculateTotal = () => {
     let baseTotal = 0;
     allPets.forEach((_, idx) => {
@@ -173,10 +173,25 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     
     const volumeDiscountRate = getVolumeDiscount(allPets.length);
     const volumeDiscount = Math.round(baseTotal * volumeDiscountRate);
-    return { baseTotal, volumeDiscount, total: baseTotal - volumeDiscount };
+    
+    // Calculate horoscope subscription cost (only for non-VIP, non-memorial pets with horoscope enabled)
+    let horoscopeCost = 0;
+    allPets.forEach((pet, idx) => {
+      const tier = petTiers[idx] || 'premium';
+      const isVip = tier === 'vip';
+      const isMemorial = pet.occasionMode === 'memorial';
+      const hasHoroscope = petHoroscopes[idx] || false;
+      
+      // VIP includes horoscope for free, memorial pets don't get horoscopes
+      if (!isVip && !isMemorial && hasHoroscope) {
+        horoscopeCost += 499; // $4.99/month per pet
+      }
+    });
+    
+    return { baseTotal, volumeDiscount, horoscopeCost, total: baseTotal - volumeDiscount + horoscopeCost };
   };
 
-  const { baseTotal, volumeDiscount, total } = calculateTotal();
+  const { baseTotal, volumeDiscount, horoscopeCost, total } = calculateTotal();
   const volumeDiscountRate = getVolumeDiscount(allPets.length);
 
   // Get all pet names for display
@@ -228,6 +243,14 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     
     // Check if any pets have horoscope enabled
     const anyPetHasHoroscope = Object.values(petHoroscopes).some(Boolean) || hasVipPet;
+    
+    // Count how many pets have paid horoscope subscriptions (non-VIP, non-memorial)
+    const horoscopeCount = allPets.filter((pet, idx) => {
+      const tier = petTiers[idx] || 'premium';
+      const isVip = tier === 'vip';
+      const isMemorial = pet.occasionMode === 'memorial';
+      return !isVip && !isMemorial && petHoroscopes[idx];
+    }).length;
     
     onCheckout({
       selectedProducts: anyPetHasHoroscope ? [dominantTier, 'horoscope_subscription'] : [dominantTier],
@@ -582,6 +605,13 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           <div className="flex justify-between text-sm text-green-500 pt-1 border-t border-border/30">
             <span>Multi-pet bonus ({Math.round(volumeDiscountRate * 100)}% off)</span>
             <span>-${(volumeDiscount / 100).toFixed(2)}</span>
+          </div>
+        )}
+        
+        {horoscopeCost > 0 && (
+          <div className="flex justify-between text-sm text-nebula-purple pt-1 border-t border-border/30">
+            <span>Weekly Horoscopes (1st month)</span>
+            <span>+${(horoscopeCost / 100).toFixed(2)}</span>
           </div>
         )}
         

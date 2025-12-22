@@ -61,6 +61,8 @@ const checkoutSchema = z.object({
     url: z.string().url().max(2048),
     processingMode: z.string().optional(),
   })).optional(),
+  // NEW: Per-pet horoscope subscriptions
+  petHoroscopes: z.record(z.string(), z.boolean()).optional(),
 });
 
 serve(async (req) => {
@@ -117,7 +119,16 @@ serve(async (req) => {
     // ===== SERVER-SIDE PRICE CALCULATION =====
     // Support per-pet tiers if provided
     const petTiers = input.petTiers || {};
+    const petHoroscopes = input.petHoroscopes || {};
     const actualPetCount = allReportIds.length || input.petCount;
+    
+    // Fetch all reports to check for memorial mode
+    const { data: allReports } = await supabaseClient
+      .from("pet_reports")
+      .select("id, occasion_mode")
+      .in("id", allReportIds);
+    
+    const reportOccasionMap = new Map(allReports?.map(r => [r.id, r.occasion_mode]) || []);
     
     // Calculate base total with per-pet tiers
     let baseTotal = 0;
@@ -130,6 +141,25 @@ serve(async (req) => {
     // Volume discount
     const volumeDiscountRate = getVolumeDiscount(actualPetCount);
     const volumeDiscount = Math.round(baseTotal * volumeDiscountRate);
+    
+    // Calculate horoscope subscription cost (first month)
+    // Only for non-VIP, non-memorial pets with horoscope enabled
+    let horoscopeCost = 0;
+    let horoscopePetCount = 0;
+    for (let i = 0; i < actualPetCount; i++) {
+      const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
+      const isVip = tierKey === 'vip';
+      const reportId = allReportIds[i];
+      const occasionMode = reportId ? reportOccasionMap.get(reportId) : null;
+      const isMemorial = occasionMode === 'memorial';
+      const hasHoroscope = petHoroscopes[String(i)] || false;
+      
+      // VIP includes horoscope for free, memorial pets don't get horoscopes
+      if (!isVip && !isMemorial && hasHoroscope) {
+        horoscopeCost += HOROSCOPE_MONTHLY_CENTS;
+        horoscopePetCount++;
+      }
+    }
     
     // Gift add-on - use selected gift tier
     const giftTier = input.giftTierForFriend || 'basic';
@@ -231,12 +261,14 @@ serve(async (req) => {
     
     // Calculate final total (never negative)
     const calculatedTotal = Math.max(0, 
-      baseTotal - volumeDiscount - couponDiscount - giftCertificateDiscount - customerReferralDiscount + giftAmount
+      baseTotal - volumeDiscount - couponDiscount - giftCertificateDiscount - customerReferralDiscount + giftAmount + horoscopeCost
     );
 
     console.log("[CREATE-CHECKOUT] Server-calculated price:", {
       baseTotal,
       volumeDiscount,
+      horoscopeCost,
+      horoscopePetCount,
       couponDiscount,
       giftCertificateDiscount,
       customerReferralDiscount,
@@ -288,7 +320,8 @@ serve(async (req) => {
     }
 
     // Build line items - show breakdown by tier
-    const mainItemAmount = calculatedTotal - giftAmount;
+    // Subtract horoscope and gift from main item to show them separately
+    const mainItemAmount = calculatedTotal - giftAmount - horoscopeCost;
     
     // Describe the order based on tiers
     const tierCounts = { basic: 0, premium: 0, vip: 0 };
@@ -316,6 +349,23 @@ serve(async (req) => {
       quantity: 1,
     }];
 
+    // Add horoscope subscription (first month) if selected
+    if (horoscopeCost > 0 && horoscopePetCount > 0) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: horoscopePetCount > 1 
+              ? `🌙 Weekly Horoscopes - ${horoscopePetCount} pets (1st month)`
+              : '🌙 Weekly Horoscope Subscription (1st month)',
+            description: 'Personalized cosmic guidance delivered weekly. $4.99/month - cancel anytime.',
+          },
+          unit_amount: horoscopeCost,
+        },
+        quantity: 1,
+      });
+    }
+
     // Add gift reading if selected
     if (input.includeGiftForFriend) {
       const giftTierSelected = input.giftTierForFriend || 'basic';
@@ -333,8 +383,8 @@ serve(async (req) => {
       });
     }
 
-    // Note: Horoscope subscription would require a separate checkout flow
-    // For now, we handle one-time payments only to avoid Stripe mode conflicts
+    // Note: Horoscope subscription is charged as first month payment here
+    // Recurring billing should be set up in stripe-webhook after payment success
     const checkoutMode = "payment";
 
     // Determine if any pet has portrait tier
@@ -364,7 +414,9 @@ serve(async (req) => {
         coupon_id: input.couponId || "",
         gift_certificate_id: input.giftCertificateId || "",
         referral_code: input.referralCode || "",
-        include_horoscope: input.includeHoroscope ? "true" : "false",
+        include_horoscope: (horoscopePetCount > 0 || input.includeHoroscope) ? "true" : "false",
+        horoscope_pet_count: horoscopePetCount.toString(),
+        pet_horoscopes: JSON.stringify(petHoroscopes), // Store per-pet horoscope selections
         // VIP tier includes horoscope for free
         vip_horoscope: Object.values(petTiers).some(t => t === 'vip') || input.selectedTier === "vip" ? "true" : "false",
         pet_photo_url: input.petPhotoUrl || "", // Legacy single photo
