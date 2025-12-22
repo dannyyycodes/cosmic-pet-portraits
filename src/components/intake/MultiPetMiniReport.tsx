@@ -628,12 +628,12 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
                   </>
                 ) : (
                   <>
-                    <p>❌ Why {firstName} acts weird during full moons</p>
-                    <p>❌ {firstName}'s ideal bonding activities</p>
-                    <p>❌ Hidden health patterns to watch for</p>
-                    <p>❌ {firstName}'s deepest fears & how to comfort them</p>
-                    <p>❌ The reason behind THAT weird habit</p>
-                    <p>❌ How to speak {firstName}'s cosmic love language</p>
+                    <p>❌ Why {firstName}'s mood shifts unexpectedly</p>
+                    <p>❌ What you're here to teach each other</p>
+                    <p>❌ The role {firstName} plays in your journey</p>
+                    <p>❌ What {firstName} truly needs but can't express</p>
+                    <p>❌ {firstName}'s unique wellness patterns</p>
+                    <p>❌ The deeper purpose of your bond</p>
                   </>
                 )}
               </div>

@@ -425,23 +425,23 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
                 <div className="space-y-2 text-sm">
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>Why {petData.name} acts differently during full moons</span>
+                    <span>Why {petData.name}'s mood shifts unexpectedly</span>
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>The ONE thing that secretly scares them</span>
+                    <span>What you're here to teach each other</span>
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>Their cosmic health vulnerabilities to watch</span>
+                    <span>The role they play in your life's journey</span>
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>Why they do that ONE weird habit</span>
+                    <span>What they need but can't express</span>
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>The past-life connection between you</span>
+                    <span>Their unique wellness patterns to support</span>
                   </p>
                 </div>
               </div>
