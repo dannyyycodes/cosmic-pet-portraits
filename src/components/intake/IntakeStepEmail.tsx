@@ -26,6 +26,7 @@ interface IntakeStepEmailProps {
   modeContent: ModeContent;
   giftCode?: string | null;
   giftedTier?: 'essential' | 'portrait' | 'vip' | 'basic' | 'premium' | null;
+  skipEmailInput?: boolean;
 }
 
 // Species-specific astrology facts that build belief
@@ -80,10 +81,12 @@ const getSpeciesAstrologyFacts = (species: string) => {
   return speciesAstrologyFacts[normalized] || speciesAstrologyFacts.default;
 };
 
-export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, onAddAnotherPet, totalSteps, modeContent, giftCode, giftedTier }: IntakeStepEmailProps) {
+export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, onAddAnotherPet, totalSteps, modeContent, giftCode, giftedTier, skipEmailInput = false }: IntakeStepEmailProps) {
   const [isLoading, setIsLoading] = useState(false);
-  // If gift code is present, skip checkout stage entirely
-  const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>(giftCode ? 'email' : 'email');
+  // If gift code is present OR skipEmailInput is true, skip to reveal stage
+  const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>(
+    giftCode ? 'email' : (skipEmailInput ? 'reveal' : 'email')
+  );
   const astrologyFacts = getSpeciesAstrologyFacts(petData.species);
   const [factIndex, setFactIndex] = useState(Math.floor(Math.random() * astrologyFacts.length));
   const [selectedPetIndex, setSelectedPetIndex] = useState(0);
