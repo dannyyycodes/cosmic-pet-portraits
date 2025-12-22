@@ -458,9 +458,11 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
   const firstName = petsData[0]?.name || 'your pet';
   
   const lockedItems = [
-    { icon: Moon, label: hasMemorialPet ? "Moon Sign Memories" : "Moon Sign Analysis", preview: hasMemorialPet ? `How ${firstName} processed deep emotions...` : `How ${firstName} processes deep emotions...` },
-    { icon: ArrowUp, label: hasMemorialPet ? "How They Were Seen" : "Rising Sign Profile", preview: hasMemorialPet ? `The unique aura ${firstName} radiated...` : `The unique aura ${firstName} radiates to others...` },
-    { icon: Sparkles, label: hasMemorialPet ? "Eternal Soul Bond" : "Full Soul Contract", preview: hasMemorialPet ? `Why ${firstName} chose you for this lifetime...` : `The cosmic reason ${firstName} found you...` },
+    { icon: Moon, label: hasMemorialPet ? "Moon Sign Memories" : "Moon Sign Analysis", preview: hasMemorialPet ? `Why ${firstName}'s mood would shift...` : `Why ${firstName}'s mood shifts unexpectedly...` },
+    { icon: ArrowUp, label: hasMemorialPet ? "Your Soul Contract" : "Your Soul Contract", preview: hasMemorialPet ? `What you were here to teach each other...` : `What you're here to teach each other...` },
+    { icon: Sparkles, label: hasMemorialPet ? "Their Life Purpose" : "Their Life Purpose", preview: hasMemorialPet ? `The role ${firstName} played in your journey...` : `The role ${firstName} plays in your journey...` },
+    { icon: Heart, label: hasMemorialPet ? "Emotional Legacy" : "Emotional Needs Decoded", preview: hasMemorialPet ? `What ${firstName} needed but couldn't express...` : `What ${firstName} needs but can't express...` },
+    { icon: Zap, label: hasMemorialPet ? "Spirit & Energy" : "Energy & Vitality Insights", preview: hasMemorialPet ? `${firstName}'s unique energy patterns...` : `${firstName}'s unique wellness patterns...` },
   ];
 
   return (
