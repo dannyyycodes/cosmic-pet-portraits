@@ -133,9 +133,11 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
   const speciesFact = getSpeciesFact(petData.species);
 
   const lockedItems = [
-    { icon: Moon, label: "Moon Sign Analysis", preview: "Deep emotional patterns revealed..." },
-    { icon: ArrowUp, label: "Rising Sign Profile", preview: "How the world perceives them..." },
-    { icon: Sparkles, label: "Full Soul Contract", preview: "The cosmic reason for your bond..." },
+    { icon: Moon, label: "Moon Sign Analysis", preview: "Why they get restless at 3am...", teaser: "Reveals their emotional triggers and moods" },
+    { icon: ArrowUp, label: "Rising Sign Profile", preview: "The secret they hide from strangers...", teaser: "How others perceive them vs their true self" },
+    { icon: Sparkles, label: "Past Life Connection", preview: "You've known each other before...", teaser: "The cosmic reason your souls found each other" },
+    { icon: Heart, label: "Deepest Fears Revealed", preview: "What they're scared of but can't tell you...", teaser: "Understanding their anxiety triggers" },
+    { icon: Zap, label: "Health & Energy Patterns", preview: "The warning signs to watch for...", teaser: "Cosmic health insights specific to their chart" },
   ];
 
   return (
@@ -404,32 +406,94 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
         </motion.div>
       </div>
 
-      {/* FOMO Section */}
+      {/* FOMO Section - Enhanced */}
       <div className="max-w-2xl mx-auto px-4 py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
-          className="bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/30 rounded-2xl p-5"
+          className="space-y-4"
         >
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-foreground mb-1">Without the full report, you'll never know...</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                <p>❌ Why they act differently on full moons</p>
-                <p>❌ Their ideal bonding activities based on their chart</p>
-                <p>❌ Hidden health patterns to watch for</p>
-                <p>❌ Their deepest fears and how to comfort them</p>
-                <p>❌ The reason behind that ONE weird habit</p>
-                <p>❌ How to speak their cosmic love language</p>
+          {/* Urgent Warning */}
+          <div className="bg-gradient-to-r from-red-500/15 to-orange-500/15 border-2 border-red-500/40 rounded-2xl p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <p className="font-bold text-foreground mb-2 text-lg">Don't Leave Without Knowing...</p>
+                <div className="space-y-2 text-sm">
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <span className="text-red-400">❌</span> 
+                    <span>Why {petData.name} acts differently during full moons</span>
+                  </p>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <span className="text-red-400">❌</span> 
+                    <span>The ONE thing that secretly scares them</span>
+                  </p>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <span className="text-red-400">❌</span> 
+                    <span>Their cosmic health vulnerabilities to watch</span>
+                  </p>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <span className="text-red-400">❌</span> 
+                    <span>Why they do that ONE weird habit</span>
+                  </p>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <span className="text-red-400">❌</span> 
+                    <span>The past-life connection between you</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sneak Peek - Blurred Content */}
+          <div className="bg-card/60 border border-primary/30 rounded-2xl p-5 relative overflow-hidden">
+            <div className="absolute top-3 right-3 px-2 py-1 bg-gold/20 rounded-full text-[10px] text-gold font-bold uppercase tracking-wider">
+              Sneak Peek
+            </div>
+            <p className="text-sm text-primary font-medium mb-3">From {petData.name}'s Full Report:</p>
+            <div className="relative">
+              <p className="text-foreground/90 text-sm leading-relaxed blur-[3px] select-none">
+                "When the moon enters their opposite sign, {petData.name} may experience unusual restlessness. 
+                This is because their emotional core is being activated by lunar energies that challenge their 
+                natural {element} tendencies. During these times, they need extra comfort and may seek out 
+                dark, quiet spaces to process these cosmic downloads..."
+              </p>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex items-center gap-2 px-4 py-2 bg-primary/90 rounded-full text-primary-foreground text-sm font-medium">
+                  <Lock className="w-4 h-4" />
+                  <span>Unlock to Read</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Comparison */}
+          <div className="bg-card/40 border border-border/50 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-muted-foreground">What you're seeing:</p>
+              <p className="text-sm text-muted-foreground">What's in the full report:</p>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-foreground">4</p>
+                <p className="text-xs text-muted-foreground">insights</p>
+              </div>
+              <div className="flex-1 mx-4 h-2 bg-muted/30 rounded-full overflow-hidden">
+                <div className="w-[15%] h-full bg-primary rounded-full" />
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-gold">30+</p>
+                <p className="text-xs text-muted-foreground">deep insights</p>
               </div>
             </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Locked Content Section */}
+      {/* Locked Content Section - Enhanced */}
       <div className="max-w-2xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -437,17 +501,20 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
           transition={{ delay: 1.0 }}
           className="space-y-4"
         >
-          <h2 className="text-xl font-display font-semibold text-foreground text-center mb-6">
-            Unlock the Deep Dive
-          </h2>
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-display font-semibold text-foreground mb-2">
+              18 Chapters Waiting for You
+            </h2>
+            <p className="text-sm text-muted-foreground">Each one reveals something new about {petData.name}</p>
+          </div>
 
           {lockedItems.map((item, index) => (
             <motion.div
               key={item.label}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.1 + index * 0.1 }}
-              className="relative overflow-hidden bg-card/40 border border-border/50 rounded-2xl p-5"
+              transition={{ delay: 1.1 + index * 0.08 }}
+              className="relative overflow-hidden bg-card/40 border border-border/50 rounded-2xl p-4 group hover:border-primary/50 transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -455,20 +522,21 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
                     <item.icon className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground flex items-center gap-2">
-                      🔒 {item.label}
+                    <h3 className="font-medium text-foreground flex items-center gap-2 text-sm">
+                      <Lock className="w-3 h-3 text-muted-foreground" /> {item.label}
                     </h3>
-                    <p className="text-sm text-muted-foreground blur-sm select-none">
-                      {item.preview}
-                    </p>
+                    <p className="text-xs text-primary/80 font-medium">{item.preview}</p>
+                    <p className="text-xs text-muted-foreground">{item.teaser}</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Lock className="w-4 h-4" />
                 </div>
               </div>
             </motion.div>
           ))}
+
+          {/* More sections indicator */}
+          <div className="text-center pt-2">
+            <p className="text-xs text-muted-foreground">+ 13 more chapters including Quirks & Habits, Ideal Diet, Dream Analysis...</p>
+          </div>
         </motion.div>
       </div>
 
