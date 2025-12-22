@@ -54,7 +54,7 @@ const TIERS = {
     features: [
       "Everything in Portrait, plus...",
       "A full year of weekly cosmic updates",
-      "They'll think of you every week!",
+      "The gift that keeps on giving",
     ],
     shortFeatures: ['+ 52 Horoscopes', '+ Year of Joy'],
     highlight: 'Premium',
