@@ -21,10 +21,10 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
       {isFinal ? (
           <>
             <h2 className="text-3xl md:text-4xl font-serif font-semibold text-foreground mb-4">
-              See What You've Been Missing
+              Don't Miss Out — Pet Lovers Are Raving About This
             </h2>
             <p className="text-lg text-muted-foreground mb-6">
-              Join 50,000+ pet parents who finally understand their companion's unique personality.
+              "I've never understood my cat like this before." — Join 50,000+ pet parents who finally <em>get</em> their companion.
             </p>
             {/* Value Stack */}
             <div className="flex flex-wrap justify-center gap-4 mb-8 text-sm">
@@ -32,7 +32,7 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
                 <CheckCircle className="w-4 h-4" /> Instant Digital Delivery
               </span>
               <span className="flex items-center gap-1 text-primary">
-                <CheckCircle className="w-4 h-4" /> Detailed Personality Profile
+                <CheckCircle className="w-4 h-4" /> The Perfect Gift for Any Pet Lover
               </span>
               <span className="flex items-center gap-1 text-primary">
                 <CheckCircle className="w-4 h-4" /> 7-Day Money-Back Guarantee
@@ -42,10 +42,10 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
         ) : (
           <>
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-4">
-              Curious About Your Pet's <span className="text-primary">True Personality</span>?
+              "OMG, This Is <span className="text-primary">Exactly</span> My Pet!"
             </h2>
             <p className="text-muted-foreground mb-8">
-              Find out what makes them tick. 50,000+ pet parents have already discovered insights they never expected.
+              That's what pet parents keep saying. Ready to have your own "how did they know?!" moment?
             </p>
           </>
         )}
@@ -54,7 +54,7 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
           <Link to="/intake?mode=discover">
             <Button variant="cosmic" size="lg" className="text-lg px-8 py-6 group shadow-[0_0_25px_hsl(var(--primary)/0.3)]">
               <Sparkles className="w-5 h-5 mr-2" />
-              {isFinal ? "Get My Pet's Reading" : "Start Now — It's Quick"}
+              {isFinal ? "Yes, I Want This For My Pet!" : "Discover My Pet's Secrets →"}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
