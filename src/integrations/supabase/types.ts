@@ -153,6 +153,110 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_analytics: {
+        Row: {
+          blog_post_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          referrer: string | null
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          blog_post_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          referrer?: string | null
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          blog_post_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          referrer?: string | null
+          session_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_analytics_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          category: string | null
+          content: string
+          conversions: number | null
+          created_at: string
+          cta_clicks: number | null
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          is_published: boolean | null
+          meta_description: string
+          published_at: string | null
+          reading_time_minutes: number | null
+          secondary_keywords: string[] | null
+          slug: string
+          species: string | null
+          target_keyword: string
+          title: string
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          conversions?: number | null
+          created_at?: string
+          cta_clicks?: number | null
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_published?: boolean | null
+          meta_description: string
+          published_at?: string | null
+          reading_time_minutes?: number | null
+          secondary_keywords?: string[] | null
+          slug: string
+          species?: string | null
+          target_keyword: string
+          title: string
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          conversions?: number | null
+          created_at?: string
+          cta_clicks?: number | null
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string
+          published_at?: string | null
+          reading_time_minutes?: number | null
+          secondary_keywords?: string[] | null
+          slug?: string
+          species?: string | null
+          target_keyword?: string
+          title?: string
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
       contact_form_rate_limits: {
         Row: {
           created_at: string

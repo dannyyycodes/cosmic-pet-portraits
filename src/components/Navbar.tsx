@@ -50,8 +50,10 @@ export function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
+            <Link to="/blog" className="text-sm text-muted-foreground hover:text-gold transition-colors">
+              Blog
+            </Link>
             <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-gold transition-colors">
               {t('nav.howItWorks')}
             </a>
