@@ -166,12 +166,12 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
 
   // What you'd miss without the full report - FOMO content
   const whatYoudMiss = [
-    "Why they act differently on full moons",
-    "Their ideal bonding activities based on their chart",
-    "Hidden health patterns to watch for",
-    "Their deepest fears and how to comfort them",
-    "The reason behind that ONE weird habit",
-    "How to speak their cosmic love language",
+    "Why their mood shifts unexpectedly",
+    "What you're here to teach each other",
+    "The role they play in your life's journey",
+    "What they truly need but can't express",
+    "Their unique wellness patterns to support",
+    "The deeper purpose of your bond",
   ];
 
   return (
