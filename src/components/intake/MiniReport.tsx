@@ -133,11 +133,11 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
   const speciesFact = getSpeciesFact(petData.species);
 
   const lockedItems = [
-    { icon: Moon, label: "Moon Sign Analysis", preview: "Why they get restless at 3am...", teaser: "Reveals their emotional triggers and moods" },
-    { icon: ArrowUp, label: "Rising Sign Profile", preview: "The secret they hide from strangers...", teaser: "How others perceive them vs their true self" },
-    { icon: Sparkles, label: "Past Life Connection", preview: "You've known each other before...", teaser: "The cosmic reason your souls found each other" },
-    { icon: Heart, label: "Deepest Fears Revealed", preview: "What they're scared of but can't tell you...", teaser: "Understanding their anxiety triggers" },
-    { icon: Zap, label: "Health & Energy Patterns", preview: "The warning signs to watch for...", teaser: "Cosmic health insights specific to their chart" },
+    { icon: Moon, label: "Moon Sign Analysis", preview: "Why their mood shifts unexpectedly...", teaser: "Understanding their emotional rhythms" },
+    { icon: ArrowUp, label: "Your Soul Contract", preview: "What you're here to teach each other...", teaser: "The deeper purpose of your bond" },
+    { icon: Sparkles, label: "Their Life Purpose", preview: "The role they play in your journey...", teaser: "Why this soul chose to be with you" },
+    { icon: Heart, label: "Emotional Needs Decoded", preview: "What they need but can't express...", teaser: "How to truly understand their heart" },
+    { icon: Zap, label: "Energy & Vitality Insights", preview: "Their unique wellness patterns...", teaser: "Supporting their highest potential" },
   ];
 
   return (
