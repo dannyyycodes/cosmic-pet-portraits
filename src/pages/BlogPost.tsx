@@ -255,26 +255,62 @@ const BlogPost = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="prose prose-lg dark:prose-invert max-w-none mb-12"
+              className="blog-content mb-12"
             >
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
+                  h1: () => null, // Hide H1s since we already show the title in the header
+                  h2: ({ children }) => (
+                    <h2 className="text-2xl font-semibold mt-10 mb-4 text-foreground border-b border-border pb-2">{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-xl font-semibold mt-8 mb-3 text-foreground">{children}</h3>
+                  ),
+                  p: ({ children }) => (
+                    <p className="text-muted-foreground leading-relaxed mb-5 text-lg">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside space-y-2 mb-6 text-muted-foreground text-lg pl-4">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal list-inside space-y-2 mb-6 text-muted-foreground text-lg pl-4">{children}</ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="leading-relaxed">{children}</li>
+                  ),
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-4 border-primary pl-6 py-2 my-6 bg-muted/30 rounded-r-lg italic text-muted-foreground">
+                      {children}
+                    </blockquote>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-foreground">{children}</strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="italic text-muted-foreground">{children}</em>
+                  ),
+                  hr: () => (
+                    <hr className="my-8 border-border" />
+                  ),
                   a: ({ href, children }) => {
                     if (href === "/intake") {
                       return (
-                        <Button onClick={trackCTAClick} className="inline-flex">
+                        <Button onClick={trackCTAClick} className="inline-flex my-4">
                           {children}
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       );
                     }
                     return (
-                      <a href={href} className="text-primary hover:underline">
+                      <a href={href} className="text-primary hover:underline font-medium">
                         {children}
                       </a>
                     );
                   },
+                  code: ({ children }) => (
+                    <code className="bg-muted px-2 py-1 rounded text-sm font-mono text-primary">{children}</code>
+                  ),
                 }}
               >
                 {post.content}
