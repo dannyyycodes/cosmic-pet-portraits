@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, User, LogOut } from "lucide-react";
+import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, X } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from "@/components/ui/sheet";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +27,14 @@ export function Navbar() {
 
   const handleSignOut = async () => {
     await signOut();
+    setIsOpen(false);
   };
+
+  const navLinks = [
+    { href: "#how-it-works", label: t('nav.howItWorks'), icon: Info },
+    { href: "#testimonials", label: t('nav.testimonials'), icon: Star },
+    { href: "#faq", label: t('nav.faq'), icon: HelpCircle },
+  ];
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/30">
@@ -90,80 +105,106 @@ export function Navbar() {
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-3">
             <LanguageSelector variant="minimal" />
-            <button
-              className="p-2 text-foreground"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <button className="p-2 text-foreground hover:bg-muted/50 rounded-lg transition-colors">
+                  <Menu className="w-6 h-6" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] bg-background/95 backdrop-blur-xl border-l border-border/50 p-0">
+                <SheetHeader className="p-6 border-b border-border/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold to-tangerine flex items-center justify-center">
+                        <Sparkles className="w-4 h-4 text-background" />
+                      </div>
+                      <SheetTitle className="font-serif text-lg font-semibold text-foreground">
+                        AstroPets
+                      </SheetTitle>
+                    </div>
+                  </div>
+                </SheetHeader>
+                
+                <div className="flex flex-col h-[calc(100%-80px)]">
+                  {/* Navigation Links */}
+                  <div className="flex-1 py-4">
+                    <div className="space-y-1 px-3">
+                      {navLinks.map((link) => (
+                        <SheetClose asChild key={link.href}>
+                          <a
+                            href={link.href}
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
+                          >
+                            <link.icon className="w-5 h-5 text-muted-foreground" />
+                            <span className="font-medium">{link.label}</span>
+                          </a>
+                        </SheetClose>
+                      ))}
+                      
+                      <div className="h-px bg-border/50 my-3" />
+                      
+                      <SheetClose asChild>
+                        <Link
+                          to="/gift"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
+                        >
+                          <Gift className="w-5 h-5 text-nebula-pink" />
+                          <span className="font-medium">Send as Gift</span>
+                        </Link>
+                      </SheetClose>
+                    </div>
+
+                    {/* User section */}
+                    {user && (
+                      <div className="mt-4 px-3">
+                        <div className="h-px bg-border/50 mb-3" />
+                        <SheetClose asChild>
+                          <Link
+                            to="/my-reports"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
+                          >
+                            <Sparkles className="w-5 h-5 text-gold" />
+                            <span className="font-medium">My Reports</span>
+                          </Link>
+                        </SheetClose>
+                        <button
+                          onClick={handleSignOut}
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors w-full text-left"
+                        >
+                          <LogOut className="w-5 h-5 text-muted-foreground" />
+                          <span className="font-medium">Sign Out</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bottom CTA */}
+                  <div className="p-4 border-t border-border/30 space-y-3">
+                    {!user && (
+                      <SheetClose asChild>
+                        <Link to="/auth" className="block">
+                          <Button variant="outline" className="w-full justify-center gap-2">
+                            <User className="w-4 h-4" />
+                            Sign In
+                          </Button>
+                        </Link>
+                      </SheetClose>
+                    )}
+                    <SheetClose asChild>
+                      <Link to="/intake?mode=discover" className="block">
+                        <Button variant="cosmic" className="w-full justify-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          {t('nav.getReading')}
+                        </Button>
+                      </Link>
+                    </SheetClose>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-background/95 backdrop-blur-lg border-b border-border/30">
-          <div className="px-4 py-4 space-y-4">
-            <a 
-              href="#how-it-works" 
-              className="block text-foreground hover:text-gold transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              {t('nav.howItWorks')}
-            </a>
-            <a 
-              href="#testimonials" 
-              className="block text-foreground hover:text-gold transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              {t('nav.testimonials')}
-            </a>
-            <a 
-              href="#faq" 
-              className="block text-foreground hover:text-gold transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              {t('nav.faq')}
-            </a>
-            
-            {user ? (
-              <>
-                <Link 
-                  to="/my-reports" 
-                  className="block text-foreground hover:text-gold transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  My Reports
-                </Link>
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setIsOpen(false);
-                  }}
-                  className="block text-foreground hover:text-gold transition-colors w-full text-left"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link 
-                  to="/auth" 
-                  className="block text-foreground hover:text-gold transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Button variant="cosmic" size="sm" className="w-full" asChild>
-                  <Link to="/intake?mode=discover" onClick={() => setIsOpen(false)}>
-                    {t('nav.getReading')}
-                  </Link>
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   );
 }
