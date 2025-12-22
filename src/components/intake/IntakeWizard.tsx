@@ -278,10 +278,12 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     return 1 + (currentPetIndex * stepsPerPet) + (step - 1);
   };
 
-  // Track step timing
+  // Track step timing and scroll to top on step change
   useEffect(() => {
     trackAction({ type: 'step_start' });
     stepStartTime.current = Date.now();
+    // Scroll to top on every step change, especially important for mobile on checkout step
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step, currentPetIndex, trackAction]);
 
   // Handle per-pet occasion selection
