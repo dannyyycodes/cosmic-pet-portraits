@@ -264,16 +264,17 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     });
   }, [petsData, currentPetIndex, step, petCount, hasRestoredProgress]);
 
-  // Steps: 0=pet count, 1=pet occasion, 2=name, 3=species, 4=breed, 5=gender, 6=dob, 7=location, 8=soul, 9=superpower, 10=strangers, 11=email, 12=checkout
-  // Pet data steps now: 1=occasion, 2=name, 3=species, 4=breed, 5=gender, 6=dob, 7=location, 8=soul, 9=superpower, 10=strangers, 11=email
-  const stepsPerPet = 11; // occasion + 10 data steps (including email)
-  const totalSteps = 1 + (petCount * stepsPerPet) + 1; // pet count + pet steps + checkout
+  // Steps: 0=pet count, 1=pet occasion, 2=name, 3=species, 4=breed, 5=gender, 6=dob, 7=location, 8=soul, 9=superpower, 10=strangers (per pet)
+  // Then ONCE: 11=email, 12=checkout
+  const stepsPerPet = 10; // occasion + 9 data steps (NOT including email)
+  const totalSteps = 1 + (petCount * stepsPerPet) + 2; // pet count + pet steps + email + checkout
 
   // Calculate current global step for progress
   const getGlobalStep = () => {
     if (step === 0) return 0; // Pet count
-    if (step === 12) return 1 + (petCount * stepsPerPet); // Checkout step
-    // Pet data steps (1-11 per pet)
+    if (step === 11) return 1 + (petCount * stepsPerPet); // Email step (after all pets)
+    if (step === 12) return 1 + (petCount * stepsPerPet) + 1; // Checkout step
+    // Pet data steps (1-10 per pet)
     return 1 + (currentPetIndex * stepsPerPet) + (step - 1);
   };
 
@@ -345,15 +346,20 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     // If on step 1 (per-pet occasion) and not the first pet, go to previous pet's last step
     if (step === 1 && currentPetIndex > 0) {
       setCurrentPetIndex(currentPetIndex - 1);
-      setStep(11); // Last pet data step (email)
+      setStep(10); // Last per-pet step (strangers)
     } else if (step === 1 && currentPetIndex === 0) {
       setStep(0); // Go back to pet count selection
+    } else if (step === 11) {
+      // Going back from email step - go to last pet's strangers step
+      setCurrentPetIndex(petCount - 1);
+      setStep(10);
     } else if (step > 1) {
       setStep(step - 1); // Go to previous step
     }
   };
 
-  const handleNextPetOrCheckout = () => {
+  // Called after completing step 10 (strangers) for each pet
+  const handleNextPetOrEmail = () => {
     if (currentPetIndex < petCount - 1) {
       const nextIndex = currentPetIndex + 1;
 
@@ -371,8 +377,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       // Gift flow skips per-pet occasion selection
       setStep(isGiftFlow ? 2 : 1);
     } else {
-      // All pets done, go to checkout
-      setStep(12);
+      // All pets done, go to email step (just once)
+      setStep(11);
     }
   };
 
@@ -688,8 +694,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           <CosmicProgress current={getGlobalStep()} total={totalSteps} />
         )}
 
-        {/* Pet indicator for multi-pet flow - show occasion per pet */}
-        {step >= 1 && step < 12 && petCount > 1 && (
+        {/* Pet indicator for multi-pet flow - only during per-pet steps (1-10) */}
+        {step >= 1 && step <= 10 && petCount > 1 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -817,7 +823,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               <IntakeStepStrangers 
                 petData={currentPetData} 
                 onUpdate={updatePetData} 
-                onNext={() => goToStep(11)} 
+                onNext={handleNextPetOrEmail} 
                 onBack={handleBack} 
                 totalSteps={stepsPerPet}
                 modeContent={modeContent}
@@ -826,16 +832,16 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           )}
 
           {step === 11 && (
-            <motion.div key={`step11-email-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+            <motion.div key="step11-email" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepEmailEarly 
-                petData={currentPetData} 
+                petData={petsData[0]} 
                 onUpdate={(data) => {
                   // Update email for all pets when entered
                   if (data.email !== undefined) {
                     setPetsData(prev => prev.map(pet => ({ ...pet, email: data.email! })));
                   }
                 }}
-                onNext={handleNextPetOrCheckout} 
+                onNext={() => goToStep(12)} 
                 onBack={handleBack} 
                 totalSteps={stepsPerPet}
                 currentStep={11}
