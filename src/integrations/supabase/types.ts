@@ -627,6 +627,39 @@ export type Database = {
           },
         ]
       }
+      page_analytics: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          page_path: string
+          referrer: string | null
+          session_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          page_path: string
+          referrer?: string | null
+          session_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          page_path?: string
+          referrer?: string | null
+          session_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       pet_reports: {
         Row: {
           birth_date: string | null
