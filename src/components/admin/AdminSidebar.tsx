@@ -8,12 +8,14 @@ import {
   Star,
   Gift,
   Tag,
-  BarChart3
+  BarChart3,
+  Newspaper
 } from 'lucide-react';
 
 const navItems = [
   { title: 'Overview', path: '/admin', icon: LayoutDashboard },
   { title: 'Page Analytics', path: '/admin/analytics', icon: BarChart3 },
+  { title: 'Blog Stats', path: '/admin/blog', icon: Newspaper },
   { title: 'Pet Reports', path: '/admin/reports', icon: FileText },
   { title: 'Subscriptions', path: '/admin/subscriptions', icon: Mail },
   { title: 'Affiliates', path: '/admin/affiliates', icon: Users },

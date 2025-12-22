@@ -148,6 +148,27 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
+      case "blog": {
+        const [postsResult, topicsResult] = await Promise.all([
+          supabaseClient
+            .from('blog_posts')
+            .select('id, title, slug, views, cta_clicks, conversions, is_published, published_at, created_at, category, species')
+            .order('created_at', { ascending: false }),
+          supabaseClient
+            .from('blog_topics')
+            .select('id, topic, species, category, is_used')
+            .order('priority', { ascending: false }),
+        ]);
+        
+        if (postsResult.error) throw postsResult.error;
+        if (topicsResult.error) throw topicsResult.error;
+
+        return new Response(
+          JSON.stringify({ posts: postsResult.data || [], topics: topicsResult.data || [] }),
+          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
       default:
         return new Response(
           JSON.stringify({ error: "Invalid action" }),

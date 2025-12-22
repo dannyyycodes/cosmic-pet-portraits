@@ -34,6 +34,7 @@ const AdminEmailSequences = lazy(() => import("./pages/AdminEmailSequences"));
 const BecomeAffiliate = lazy(() => import("./pages/BecomeAffiliate"));
 const AdminInfluencers = lazy(() => import("./pages/AdminInfluencers"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const AdminBlogStats = lazy(() => import("./pages/AdminBlogStats"));
 const AffiliateDashboard = lazy(() => import("./pages/AffiliateDashboard"));
 const ReferralRedirect = lazy(() => import("./pages/ReferralRedirect"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -96,6 +97,7 @@ const App = () => (
                 <Route path="/admin/email-sequences" element={<AdminEmailSequences />} />
                 <Route path="/admin/influencers" element={<AdminInfluencers />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                <Route path="/admin/blog" element={<AdminBlogStats />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

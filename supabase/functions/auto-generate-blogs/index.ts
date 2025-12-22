@@ -140,14 +140,30 @@ Make the CTA feel natural and helpful, not salesy. Frame the pet report as the u
         // Parse JSON from response
         let blogData;
         try {
-          const jsonMatch = contentText.match(/```json\n?([\s\S]*?)\n?```/) || 
-                            contentText.match(/```\n?([\s\S]*?)\n?```/) ||
-                            [null, contentText];
-          const jsonStr = jsonMatch[1] || contentText;
-          blogData = JSON.parse(jsonStr.trim());
+          // Try to extract JSON from markdown code block or raw JSON
+          let jsonStr = contentText;
+          
+          // Handle markdown code blocks
+          const jsonMatch = contentText.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+          if (jsonMatch) {
+            jsonStr = jsonMatch[1];
+          }
+          
+          // Clean up any leading/trailing whitespace
+          jsonStr = jsonStr.trim();
+          
+          // Try to parse
+          blogData = JSON.parse(jsonStr);
         } catch (parseError) {
-          console.error(`Failed to parse AI response for "${topic.topic}":`, contentText.substring(0, 200));
+          console.error(`Failed to parse AI response for "${topic.topic}":`, contentText.substring(0, 300));
           results.push({ topic: topic.topic, success: false, error: "Failed to parse AI response" });
+          continue;
+        }
+
+        // Validate required fields and provide fallbacks
+        if (!blogData.title || !blogData.content || !blogData.slug) {
+          console.error(`Missing required fields for "${topic.topic}"`);
+          results.push({ topic: topic.topic, success: false, error: "Missing required fields in AI response" });
           continue;
         }
 
@@ -157,17 +173,20 @@ Make the CTA feel natural and helpful, not salesy. Frame the pet report as the u
           finalContent += `\n\n---\n\n**Ready to understand your ${topic.species} on a deeper level?** [Discover their unique cosmic personality →](/intake)`;
         }
 
+        // Fallback for target_keyword if not provided
+        const targetKeyword = blogData.targetKeyword || topic.topic;
+
         // Save to database
         const { data: post, error: insertError } = await supabase
           .from("blog_posts")
           .insert({
             slug: blogData.slug,
             title: blogData.title,
-            meta_description: blogData.metaDescription,
+            meta_description: blogData.metaDescription || `Learn about ${topic.topic} and discover your pet's cosmic personality.`,
             content: finalContent,
-            excerpt: blogData.excerpt,
-            target_keyword: blogData.targetKeyword,
-            secondary_keywords: blogData.secondaryKeywords,
+            excerpt: blogData.excerpt || blogData.content.substring(0, 200) + "...",
+            target_keyword: targetKeyword,
+            secondary_keywords: blogData.secondaryKeywords || [],
             species: topic.species,
             category: topic.category,
             reading_time_minutes: blogData.readingTimeMinutes || 5,
