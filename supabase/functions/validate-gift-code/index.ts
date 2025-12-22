@@ -74,13 +74,19 @@ serve(async (req) => {
     }
 
     // Parse per-pet tier info if available
-    const giftPetsJson = data.gift_pets_json as { id: string; tier: string }[] | null;
+    const giftPetsJson = data.gift_pets_json as { id: string; tier: string; horoscopeAddon?: string }[] | null;
     
     // Determine which pets have portrait tier
     let portraitPetIndices: number[] = [];
+    let horoscopePetIndices: number[] = [];
     if (giftPetsJson && Array.isArray(giftPetsJson)) {
       portraitPetIndices = giftPetsJson
         .map((pet, idx) => (pet.tier === 'portrait' || pet.tier === 'vip') ? idx : -1)
+        .filter(idx => idx !== -1);
+      
+      // Check for horoscope addons (separate from tier)
+      horoscopePetIndices = giftPetsJson
+        .map((pet, idx) => (pet.horoscopeAddon && pet.horoscopeAddon !== 'none') ? idx : -1)
         .filter(idx => idx !== -1);
     }
     
@@ -88,6 +94,9 @@ serve(async (req) => {
     const hasAnyPortrait = giftPetsJson 
       ? giftPetsJson.some(pet => pet.tier === 'portrait' || pet.tier === 'vip')
       : (giftedTier === 'portrait' || giftedTier === 'vip');
+    
+    // Check if ANY pet has horoscope addon (from tier OR explicit addon purchase)
+    const hasAnyHoroscope = hasAnyPortrait || horoscopePetIndices.length > 0;
 
     // Return only necessary data (no emails)
     return new Response(JSON.stringify({
@@ -100,9 +109,10 @@ serve(async (req) => {
       petCount: data.pet_count || 1,
       giftPets: giftPetsJson, // Per-pet tier info
       portraitPetIndices, // Which pets get portraits
+      horoscopePetIndices, // Which pets get horoscope addons
       includesPortrait: hasAnyPortrait,
       includesVip: giftedTier === 'vip' || (giftPetsJson?.some(p => p.tier === 'vip') ?? false),
-      includesWeeklyHoroscope: hasAnyPortrait,
+      includesWeeklyHoroscope: hasAnyHoroscope,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
