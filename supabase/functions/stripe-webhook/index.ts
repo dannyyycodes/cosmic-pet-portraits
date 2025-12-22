@@ -425,6 +425,57 @@ serve(async (req) => {
                     }
                   }
                   
+                  // Create horoscope subscription if VIP tier or horoscope add-on purchased
+                  const includeHoroscope = session.metadata?.include_horoscope === "true";
+                  const isVipTier = session.metadata?.vip_horoscope === "true" || session.metadata?.selected_tier === "vip";
+                  
+                  // Check per-pet tiers for VIP
+                  let petTiers: Record<string, string> = {};
+                  try {
+                    petTiers = JSON.parse(session.metadata?.pet_tiers || "{}");
+                  } catch { /* ignore parse errors */ }
+                  
+                  const petIndex = reportIds.indexOf(reportId);
+                  const thisPetIsVip = petTiers[String(petIndex)] === "vip" || isVipTier;
+                  const thisPetGetsHoroscope = thisPetIsVip || includeHoroscope;
+                  
+                  if (thisPetGetsHoroscope && report.email) {
+                    console.log("[STRIPE-WEBHOOK] Creating horoscope subscription for:", reportId, { thisPetIsVip, includeHoroscope });
+                    
+                    // Check if subscription already exists
+                    const { data: existingSub } = await supabaseClient
+                      .from("horoscope_subscriptions")
+                      .select("id")
+                      .eq("email", report.email)
+                      .eq("pet_report_id", reportId)
+                      .maybeSingle();
+                    
+                    if (!existingSub) {
+                      // Calculate next Monday for first horoscope
+                      const nextMonday = new Date();
+                      nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
+                      nextMonday.setHours(9, 0, 0, 0);
+                      
+                      const { error: subError } = await supabaseClient
+                        .from("horoscope_subscriptions")
+                        .insert({
+                          email: report.email,
+                          pet_name: report.pet_name,
+                          pet_report_id: reportId,
+                          status: "active",
+                          next_send_at: nextMonday.toISOString(),
+                        });
+                      
+                      if (subError) {
+                        console.error("[STRIPE-WEBHOOK] Failed to create horoscope subscription:", subError);
+                      } else {
+                        console.log("[STRIPE-WEBHOOK] Horoscope subscription created for:", report.email, report.pet_name);
+                      }
+                    } else {
+                      console.log("[STRIPE-WEBHOOK] Horoscope subscription already exists for:", reportId);
+                    }
+                  }
+                  
                   // Determine email recipient - if gift, send to recipient
                   const emailTo = isGift && recipientEmail ? recipientEmail : report.email;
                   const emailContext = isGift ? { 
