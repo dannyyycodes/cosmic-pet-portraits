@@ -126,7 +126,7 @@ function TestimonialBanner() {
 export default function GiftPurchase() {
   const { t } = useLanguage();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('email');
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('link');
   const [giftType, setGiftType] = useState<'single' | 'multiple' | null>(null);
   const [purchaserEmail, setPurchaserEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
