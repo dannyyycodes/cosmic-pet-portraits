@@ -270,6 +270,31 @@ export default function GiftPurchase() {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-6"
             >
+              {/* How It Works */}
+              <div className="p-5 rounded-2xl bg-card/60 border border-border/40 space-y-4">
+                <h3 className="font-display font-semibold text-foreground text-center">
+                  How It Works
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { step: "1", title: "You purchase the gift", desc: "Choose a package & complete checkout" },
+                    { step: "2", title: "They receive it instantly", desc: "Via email or a shareable link you send" },
+                    { step: "3", title: "They enter their pet's details", desc: "Name, birthday & a cute photo" },
+                    { step: "4", title: "Magic happens ✨", desc: "AI generates a personalized cosmic reading" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-primary">{item.step}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{item.title}</p>
+                        <p className="text-xs text-muted-foreground">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Why it's a perfect gift */}
               <div className="p-5 rounded-2xl bg-gradient-to-br from-nebula-pink/10 to-nebula-purple/10 border border-nebula-pink/20 space-y-3">
                 <h3 className="font-display font-semibold text-foreground flex items-center gap-2">
