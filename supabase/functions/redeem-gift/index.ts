@@ -161,14 +161,22 @@ serve(async (req) => {
     }
 
     // Parse per-pet tier info from gift_pets_json
-    const giftPetsJson = gift.gift_pets_json as { id: string; tier: string }[] | null;
+    const giftPetsJson = gift.gift_pets_json as { id: string; tier: string; horoscopeAddon?: string }[] | null;
     
     // Determine which pet indices have portrait/vip tier
     const portraitPetIndices = new Set<number>();
+    // Determine which pet indices have horoscope addons (separate from tier!)
+    const horoscopePetIndices = new Set<number>();
+    
     if (giftPetsJson && Array.isArray(giftPetsJson)) {
       giftPetsJson.forEach((pet, idx) => {
         if (pet.tier === 'portrait' || pet.tier === 'vip') {
           portraitPetIndices.add(idx);
+        }
+        // Check for explicit horoscope addon (monthly or yearly)
+        if (pet.horoscopeAddon && pet.horoscopeAddon !== 'none') {
+          horoscopePetIndices.add(idx);
+          console.log(`[REDEEM-GIFT] Pet ${idx} has horoscope addon:`, pet.horoscopeAddon);
         }
       });
     }
@@ -176,12 +184,15 @@ serve(async (req) => {
     // For legacy gifts without per-pet info, use global tier
     const legacyIncludesPortrait = giftedTier === 'portrait' || giftedTier === 'vip';
     const hasAnyPortrait = portraitPetIndices.size > 0 || legacyIncludesPortrait;
+    const hasAnyHoroscope = horoscopePetIndices.size > 0 || legacyIncludesPortrait;
     
     console.log("[REDEEM-GIFT] Per-pet tier info:", {
       giftPetsJson,
       portraitPetIndices: Array.from(portraitPetIndices),
+      horoscopePetIndices: Array.from(horoscopePetIndices),
       legacyIncludesPortrait,
       hasAnyPortrait,
+      hasAnyHoroscope,
     });
     
     // Process ALL pet reports for horoscopes and portraits
@@ -190,10 +201,12 @@ serve(async (req) => {
       
       // Determine if THIS pet gets portrait based on per-pet tier
       const petTier = giftPetsJson?.[i]?.tier || giftedTier;
+      const petHoroscopeAddon = giftPetsJson?.[i]?.horoscopeAddon || 'none';
       const thisPetIncludesPortrait = petTier === 'portrait' || petTier === 'vip';
-      const thisPetIncludesHoroscope = petTier === 'portrait' || petTier === 'vip';
+      // Horoscope: either from tier (portrait/vip) OR from explicit addon purchase
+      const thisPetIncludesHoroscope = petTier === 'portrait' || petTier === 'vip' || (petHoroscopeAddon !== 'none');
       
-      console.log(`[REDEEM-GIFT] Processing report ${i}:`, { reportId, petTier, thisPetIncludesPortrait, thisPetIncludesHoroscope });
+      console.log(`[REDEEM-GIFT] Processing report ${i}:`, { reportId, petTier, petHoroscopeAddon, thisPetIncludesPortrait, thisPetIncludesHoroscope });
       
       const { data: report } = await supabase
         .from("pet_reports")
@@ -331,7 +344,7 @@ serve(async (req) => {
       giftMessage: gift.gift_message,
       includesVip: giftedTier === 'vip' || (giftPetsJson?.some(p => p.tier === 'vip') ?? false),
       includesPortrait: hasAnyPortrait,
-      includesWeeklyHoroscope: hasAnyPortrait,
+      includesWeeklyHoroscope: hasAnyHoroscope,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
