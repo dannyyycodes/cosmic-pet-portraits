@@ -25,6 +25,7 @@ import { IntakeStepSoul } from './IntakeStepSoul';
 import { IntakeStepSuperpower } from './IntakeStepSuperpower';
 import { IntakeStepStrangers } from './IntakeStepStrangers';
 import { IntakeStepEmail } from './IntakeStepEmail';
+import { IntakeStepEmailEarly } from './IntakeStepEmailEarly';
 import { IntakeStepPhoto } from './IntakeStepPhoto';
 import { IntakeStepPortraitSelect } from './IntakeStepPortraitSelect';
 import { CosmicLoading } from './CosmicLoading';
@@ -263,16 +264,16 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     });
   }, [petsData, currentPetIndex, step, petCount, hasRestoredProgress]);
 
-  // Steps: 0=pet count, 1=pet occasion, 2-10=pet data (9 steps), 11=email
-  // Pet data steps now: 1=occasion, 2=name, 3=species, 4=breed, 5=gender, 6=dob, 7=location, 8=soul, 9=superpower, 10=strangers
-  const stepsPerPet = 10; // occasion + 9 data steps
-  const totalSteps = 1 + (petCount * stepsPerPet) + 1; // pet count + pet steps + email
+  // Steps: 0=pet count, 1=pet occasion, 2=name, 3=species, 4=breed, 5=gender, 6=dob, 7=location, 8=email, 9=soul, 10=superpower, 11=strangers, 12=checkout
+  // Pet data steps now: 1=occasion, 2=name, 3=species, 4=breed, 5=gender, 6=dob, 7=location, 8=email, 9=soul, 10=superpower, 11=strangers
+  const stepsPerPet = 11; // occasion + 10 data steps (including email)
+  const totalSteps = 1 + (petCount * stepsPerPet) + 1; // pet count + pet steps + checkout
 
   // Calculate current global step for progress
   const getGlobalStep = () => {
     if (step === 0) return 0; // Pet count
-    if (step === 11) return 1 + (petCount * stepsPerPet); // Email step
-    // Pet data steps (1-10 per pet)
+    if (step === 12) return 1 + (petCount * stepsPerPet); // Checkout step
+    // Pet data steps (1-11 per pet)
     return 1 + (currentPetIndex * stepsPerPet) + (step - 1);
   };
 
@@ -344,7 +345,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     // If on step 1 (per-pet occasion) and not the first pet, go to previous pet's last step
     if (step === 1 && currentPetIndex > 0) {
       setCurrentPetIndex(currentPetIndex - 1);
-      setStep(10); // Last pet data step
+      setStep(11); // Last pet data step (strangers)
     } else if (step === 1 && currentPetIndex === 0) {
       setStep(0); // Go back to pet count selection
     } else if (step > 1) {
@@ -352,7 +353,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     }
   };
 
-  const handleNextPetOrEmail = () => {
+  const handleNextPetOrCheckout = () => {
     if (currentPetIndex < petCount - 1) {
       const nextIndex = currentPetIndex + 1;
 
@@ -370,8 +371,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       // Gift flow skips per-pet occasion selection
       setStep(isGiftFlow ? 2 : 1);
     } else {
-      // All pets done, go to email
-      setStep(11);
+      // All pets done, go to checkout
+      setStep(12);
     }
   };
 
@@ -817,23 +818,42 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           )}
 
           {step === 8 && (
-            <motion.div key={`step8-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSoul petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(9)} onBack={handleBack} totalSteps={stepsPerPet} modeContent={modeContent} />
+            <motion.div key={`step8-email-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepEmailEarly 
+                petData={currentPetData} 
+                onUpdate={(data) => {
+                  // Update email for all pets when entered
+                  if (data.email !== undefined) {
+                    setPetsData(prev => prev.map(pet => ({ ...pet, email: data.email! })));
+                  }
+                }}
+                onNext={() => goToStep(9)} 
+                onBack={handleBack} 
+                totalSteps={stepsPerPet}
+                currentStep={8}
+                modeContent={modeContent}
+              />
             </motion.div>
           )}
 
           {step === 9 && (
             <motion.div key={`step9-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepSuperpower petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(10)} onBack={handleBack} totalSteps={stepsPerPet} modeContent={modeContent} />
+              <IntakeStepSoul petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(10)} onBack={handleBack} totalSteps={stepsPerPet} modeContent={modeContent} />
             </motion.div>
           )}
 
           {step === 10 && (
             <motion.div key={`step10-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepSuperpower petData={currentPetData} onUpdate={updatePetData} onNext={() => goToStep(11)} onBack={handleBack} totalSteps={stepsPerPet} modeContent={modeContent} />
+            </motion.div>
+          )}
+
+          {step === 11 && (
+            <motion.div key={`step11-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepStrangers 
                 petData={currentPetData} 
                 onUpdate={updatePetData} 
-                onNext={handleNextPetOrEmail} 
+                onNext={handleNextPetOrCheckout} 
                 onBack={handleBack} 
                 totalSteps={stepsPerPet}
                 modeContent={modeContent}
@@ -841,33 +861,28 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             </motion.div>
           )}
 
-          {step === 11 && (
-            <motion.div key="step-email" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+          {step === 12 && (
+            <motion.div key="step-checkout" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepEmail 
                 petData={currentPetData} 
                 petsData={petsData}
                 petCount={petCount}
-                onUpdate={(data) => {
-                  // Update email for all pets
-                  if (data.email) {
-                    setPetsData(prev => prev.map(pet => ({ ...pet, email: data.email! })));
-                  }
-                }} 
+                onUpdate={() => {}} 
                 onReveal={(checkoutData) => {
                   // For gift redemptions with portrait included, go to portrait selection first
                   if (giftCodeFromUrl && giftData?.includesPortrait) {
                     // If multiple pets have portrait tier, show selection; else go straight to photo
                     const portraitIndices = giftData.portraitPetIndices || [];
                     if (portraitIndices.length > 1) {
-                      goToStep(12); // Portrait selection step
+                      goToStep(13); // Portrait selection step
                     } else if (portraitIndices.length === 1) {
                       setPortraitPetIndex(portraitIndices[0]);
                       setCurrentPetIndex(portraitIndices[0]);
-                      goToStep(13); // Photo upload step
+                      goToStep(14); // Photo upload step
                     } else {
                       // Fallback: all pets get portrait if includesPortrait is true but no indices
                       setPortraitPetIndex(0);
-                      goToStep(13);
+                      goToStep(14);
                     }
                   } else {
                     handleReveal(checkoutData);
@@ -875,7 +890,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 }}
                 onBack={() => {
                   setCurrentPetIndex(petCount - 1);
-                  setStep(10);
+                  setStep(11);
                 }}
                 onAddAnotherPet={() => {
                   // Add a new pet slot and go to occasion step for the new pet
@@ -889,12 +904,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 modeContent={modeContent}
                 giftCode={giftCodeFromUrl}
                 giftedTier={giftData?.giftedTier}
+                skipEmailInput={true}
               />
             </motion.div>
           )}
 
           {/* Portrait pet selection step - when multiple pets have portrait tier */}
-          {step === 12 && giftCodeFromUrl && giftData?.includesPortrait && (giftData.portraitPetIndices?.length || 0) > 1 && (
+          {step === 13 && giftCodeFromUrl && giftData?.includesPortrait && (giftData.portraitPetIndices?.length || 0) > 1 && (
             <motion.div key="step-portrait-select" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepPortraitSelect
                 petsData={petsData}
@@ -904,14 +920,14 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                   setPortraitPetIndex(idx);
                   setCurrentPetIndex(idx);
                 }}
-                onNext={() => goToStep(13)}
-                onBack={() => setStep(11)}
+                onNext={() => goToStep(14)}
+                onBack={() => setStep(12)}
               />
             </motion.div>
           )}
 
           {/* Photo upload step - only for portrait/VIP gift recipients */}
-          {step === 13 && giftCodeFromUrl && giftData?.includesPortrait && (
+          {step === 14 && giftCodeFromUrl && giftData?.includesPortrait && (
             <motion.div key="step-photo" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepPhoto
                 petName={petsData[portraitPetIndex ?? 0]?.name || 'Your pet'}
@@ -926,9 +942,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 onBack={() => {
                   const portraitIndices = giftData.portraitPetIndices || [];
                   if (portraitIndices.length > 1) {
-                    setStep(12); // Back to selection
+                    setStep(13); // Back to selection
                   } else {
-                    setStep(11); // Back to email
+                    setStep(12); // Back to checkout
                   }
                 }}
                 onSkip={() => handleReveal()}
