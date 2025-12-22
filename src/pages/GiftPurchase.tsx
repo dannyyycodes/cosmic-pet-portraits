@@ -39,7 +39,7 @@ const TIERS = {
     icon: '🎨',
     features: [
       "Everything in Essential, plus...",
-      "A stunning AI portrait they'll frame",
+      "A stunning custom portrait they'll frame",
       "Shareable card to show off their pet",
     ],
     shortFeatures: ['+ Portrait', '+ Share Card'],
