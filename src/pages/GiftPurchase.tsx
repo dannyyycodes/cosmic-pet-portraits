@@ -22,21 +22,39 @@ const TIERS = {
   essential: { 
     cents: 3500, 
     label: 'Essential', 
-    description: 'Core cosmic reading',
-    features: ['Birth chart analysis', 'Personality insights', 'Cosmic compatibility']
+    description: 'Perfect starter gift',
+    icon: '⭐',
+    features: [
+      '🌟 Complete birth chart reading',
+      '💫 Deep personality breakdown',
+      '❤️ Bonding tips & love language',
+    ],
+    highlight: null,
   },
   portrait: { 
     cents: 5000, 
     label: 'Portrait', 
-    description: 'Most popular',
-    features: ['Everything in Essential', 'AI-generated portrait', 'Shareable pet card'],
-    popular: true
+    description: 'The full experience',
+    icon: '🎨',
+    features: [
+      '✨ Everything in Essential',
+      '🖼️ Stunning AI portrait',
+      '📱 Shareable story card',
+    ],
+    popular: true,
+    highlight: 'Best Value',
   },
   vip: { 
     cents: 12900, 
     label: 'VIP', 
-    description: 'Ultimate gift',
-    features: ['Everything in Portrait', 'Weekly horoscopes', 'Priority support']
+    description: 'Ultimate luxury gift',
+    icon: '👑',
+    features: [
+      '💎 Everything in Portrait',
+      '📅 Weekly horoscopes for a year',
+      '🎁 Exclusive VIP perks',
+    ],
+    highlight: 'Premium',
   },
 } as const;
 
@@ -471,40 +489,52 @@ export default function GiftPurchase() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Choose package</label>
-                    <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground mb-3 block">Choose their package</label>
+                    <div className="space-y-3">
                       {(Object.entries(TIERS) as [GiftTier, typeof TIERS.portrait][]).map(([key, tier]) => (
                         <button
                           key={key}
                           type="button"
                           onClick={() => updateRecipient(singleRecipient.id, 'tier', key)}
-                          className={`w-full p-4 rounded-xl border-2 transition-all text-left relative ${
+                          className={`w-full p-4 rounded-xl border-2 transition-all text-left relative overflow-hidden ${
                             singleRecipient.tier === key
-                              ? 'border-primary bg-primary/10 shadow-md'
-                              : 'border-border/30 bg-background/30 hover:border-primary/30'
-                          } ${'popular' in tier && tier.popular ? 'ring-2 ring-gold/30' : ''}`}
+                              ? 'border-primary bg-gradient-to-br from-primary/15 to-primary/5 shadow-lg shadow-primary/10'
+                              : 'border-border/40 bg-card/40 hover:border-primary/40 hover:bg-card/60'
+                          } ${'popular' in tier && tier.popular ? 'ring-2 ring-gold/40' : ''}`}
                         >
-                          {'popular' in tier && tier.popular && (
-                            <span className="absolute -top-2.5 left-4 px-2 py-0.5 bg-gold text-background text-[10px] font-bold rounded-full">
-                              MOST POPULAR
+                          {/* Badge */}
+                          {'highlight' in tier && tier.highlight && (
+                            <span className={`absolute -top-0 right-4 px-3 py-1 text-[10px] font-bold rounded-b-lg ${
+                              tier.highlight === 'Best Value' 
+                                ? 'bg-gradient-to-r from-gold to-amber-500 text-background' 
+                                : 'bg-gradient-to-r from-nebula-purple to-nebula-pink text-white'
+                            }`}>
+                              {tier.highlight}
                             </span>
                           )}
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className={`font-semibold ${singleRecipient.tier === key ? 'text-foreground' : 'text-foreground/80'}`}>
-                                {tier.label}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-0.5">{tier.description}</p>
+                          
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">{'icon' in tier ? tier.icon : '⭐'}</span>
+                              <div>
+                                <p className={`font-bold text-lg ${singleRecipient.tier === key ? 'text-foreground' : 'text-foreground/90'}`}>
+                                  {tier.label}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{tier.description}</p>
+                              </div>
                             </div>
-                            <p className={`text-xl font-bold ${singleRecipient.tier === key ? 'text-primary' : 'text-foreground/70'}`}>
-                              ${tier.cents / 100}
-                            </p>
+                            <div className="text-right">
+                              <p className={`text-2xl font-bold ${singleRecipient.tier === key ? 'text-primary' : 'text-foreground/80'}`}>
+                                ${tier.cents / 100}
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-1.5 mt-2">
+                          
+                          <div className="space-y-1.5 pl-1">
                             {tier.features.map((f, i) => (
-                              <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-background/50 text-muted-foreground">
+                              <p key={i} className="text-sm text-foreground/80 flex items-center gap-2">
                                 {f}
-                              </span>
+                              </p>
                             ))}
                           </div>
                         </button>
@@ -569,17 +599,22 @@ export default function GiftPurchase() {
                             key={key}
                             type="button"
                             onClick={() => updateRecipient(recipient.id, 'tier', key)}
-                            className={`p-2 rounded-lg border transition-all text-center relative ${
+                            className={`p-3 rounded-lg border-2 transition-all text-center relative ${
                               recipient.tier === key
-                                ? 'border-primary bg-primary/10'
+                                ? 'border-primary bg-primary/10 shadow-md'
                                 : 'border-border/30 bg-background/30 hover:border-primary/30'
                             } ${'popular' in tier && tier.popular ? 'ring-1 ring-gold/30' : ''}`}
                           >
-                            {'popular' in tier && tier.popular && (
-                              <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0 bg-gold text-background text-[8px] font-bold rounded-full">
-                                BEST
+                            {'highlight' in tier && tier.highlight && (
+                              <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0 text-[8px] font-bold rounded-full ${
+                                tier.highlight === 'Best Value' 
+                                  ? 'bg-gold text-background' 
+                                  : 'bg-nebula-purple text-white'
+                              }`}>
+                                {tier.highlight === 'Best Value' ? 'BEST' : 'VIP'}
                               </span>
                             )}
+                            <span className="text-lg block mb-1">{'icon' in tier ? tier.icon : '⭐'}</span>
                             <p className={`text-xs font-medium ${recipient.tier === key ? 'text-primary' : 'text-muted-foreground'}`}>
                               {tier.label}
                             </p>
