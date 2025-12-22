@@ -278,9 +278,9 @@ export default function GiftPurchase() {
                 <div className="space-y-3">
                   {[
                     { step: "1", title: "You purchase the gift", desc: "Choose a package & complete checkout" },
-                    { step: "2", title: "They receive it instantly", desc: "Via email or a shareable link you send" },
+                    { step: "2", title: "Gift it your way", desc: "Email it, text it, or print the link for a card" },
                     { step: "3", title: "They enter their pet's details", desc: "Name, birthday & a cute photo" },
-                    { step: "4", title: "Magic happens ✨", desc: "AI generates a personalized cosmic reading" },
+                    { step: "4", title: "A reading crafted just for them", desc: "Personalized insights they'll treasure forever" },
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-3">
                       <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
