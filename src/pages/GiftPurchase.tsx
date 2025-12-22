@@ -767,11 +767,18 @@ export default function GiftPurchase() {
               </div>
 
               {/* Money-back guarantee */}
-              <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center gap-3">
-                <Shield className="w-5 h-5 text-green-400 shrink-0" />
-                <p className="text-xs text-foreground/80">
-                  <span className="font-semibold text-green-400">100% Satisfaction Guarantee</span> — If they don't love it, we'll refund you. No questions asked.
-                </p>
+              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+                    <Shield className="w-5 h-5 text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-green-400 text-sm mb-1">They'll Love It — Guaranteed</p>
+                    <p className="text-xs text-foreground/80 leading-relaxed">
+                      We're so confident they'll adore their cosmic pet reading that we offer a <span className="font-medium text-green-400">100% money-back guarantee</span>. If they're not amazed, full refund — no questions asked.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <Button
