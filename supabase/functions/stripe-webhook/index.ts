@@ -402,6 +402,7 @@ serve(async (req) => {
                             archetype: genData.report?.archetype?.name || 'Cosmic Soul',
                             style: 'pokemon',
                             petImageUrl: report.pet_photo_url,
+                            reportId: reportId,
                           }),
                         }
                       );
