@@ -40,8 +40,8 @@ const TIERS = {
     icon: '🎨',
     features: [
       "Everything in Essential, plus...",
-      "A stunning custom portrait of their pet",
-      "Shareable card to show off their pet",
+      "A collectible card with fun cosmic stats",
+      "Frame it, share it, treasure it forever",
     ],
     shortFeatures: ['+ Portrait', '+ Share Card'],
     popular: true,
@@ -63,9 +63,9 @@ const TIERS = {
 } as const;
 
 const HOROSCOPE_ADDONS = {
-  none: { cents: 0, label: 'No updates', description: '', save: '' },
-  monthly: { cents: 299, label: 'Monthly', description: '$2.99/mo for them', save: '' },
-  yearly: { cents: 2499, label: 'Yearly', description: '$24.99/year', save: 'Save 30%' },
+  none: { cents: 0, label: 'No thanks', description: '', save: '' },
+  monthly: { cents: 499, label: 'Monthly', description: '$4.99/mo', save: '' },
+  yearly: { cents: 3999, label: 'Yearly', description: '$39.99/year', save: 'Save 33%' },
 } as const;
 
 const TESTIMONIALS = [
