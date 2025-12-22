@@ -46,7 +46,7 @@ serve(async (req) => {
 
     const priceId = plan === "yearly" ? PRICES.yearly : PRICES.monthly;
     
-    // Create checkout session for subscription with 7-day free trial
+    // Create checkout session for subscription with FIRST MONTH FREE
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -57,7 +57,7 @@ serve(async (req) => {
       ],
       mode: "subscription",
       subscription_data: {
-        trial_period_days: 7, // 7-day free trial
+        trial_period_days: 30, // First month FREE
         metadata: {
           petReportId,
           petName,
