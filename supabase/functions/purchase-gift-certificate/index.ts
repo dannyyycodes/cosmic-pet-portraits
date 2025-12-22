@@ -15,7 +15,15 @@ const GIFT_TIERS = {
   vip: { cents: 12900, name: 'Cosmic VIP Experience' },
 } as const;
 
+// Horoscope subscription addons
+const HOROSCOPE_ADDONS = {
+  none: { cents: 0, name: '' },
+  monthly: { cents: 499, name: 'Weekly Cosmic Updates (Monthly)' },
+  yearly: { cents: 3999, name: 'Weekly Cosmic Updates (1 Year)' },
+} as const;
+
 type GiftTier = keyof typeof GIFT_TIERS;
+type HoroscopeAddon = keyof typeof HOROSCOPE_ADDONS;
 
 // Volume discount tiers
 function getVolumeDiscount(petCount: number): number {
@@ -48,6 +56,7 @@ const giftPetSchema = z.object({
   tier: z.enum(["essential", "portrait", "vip"]),
   recipientName: z.string().max(100).optional(),
   recipientEmail: z.string().email().max(255).optional().or(z.literal("")).or(z.null()),
+  horoscopeAddon: z.enum(["none", "monthly", "yearly"]).optional().default("none"),
 });
 
 // Input validation schema
@@ -72,7 +81,7 @@ const logStep = (step: string, details?: unknown) => {
 interface RecipientGroup {
   recipientEmail: string | null;
   recipientName: string;
-  pets: { id: string; tier: GiftTier }[];
+  pets: { id: string; tier: GiftTier; horoscopeAddon: HoroscopeAddon }[];
 }
 
 serve(async (req) => {
@@ -86,12 +95,13 @@ serve(async (req) => {
     const input = giftSchema.parse(rawInput);
     
     // Determine pets and tiers
-    let giftPets: { id: string; tier: GiftTier; recipientName?: string; recipientEmail?: string | null }[] = [];
+    let giftPets: { id: string; tier: GiftTier; horoscopeAddon: HoroscopeAddon; recipientName?: string; recipientEmail?: string | null }[] = [];
     
     if (input.giftPets && input.giftPets.length > 0) {
       // New mix-and-match mode with optional per-pet recipients
       giftPets = input.giftPets.map(p => ({
         ...p,
+        horoscopeAddon: (p.horoscopeAddon || 'none') as HoroscopeAddon,
         recipientEmail: p.recipientEmail || null,
       }));
     } else if (input.tier) {
@@ -100,6 +110,7 @@ serve(async (req) => {
       giftPets = Array.from({ length: count }, (_, i) => ({
         id: `legacy-${i}`,
         tier: input.tier as GiftTier,
+        horoscopeAddon: 'none' as HoroscopeAddon,
       }));
     } else {
       throw new Error("Must provide either giftPets array or tier");
@@ -108,9 +119,11 @@ serve(async (req) => {
     const petCount = giftPets.length;
     const discount = getVolumeDiscount(petCount);
     
-    // Calculate total based on individual pet tiers
-    const baseTotal = giftPets.reduce((sum, pet) => sum + GIFT_TIERS[pet.tier].cents, 0);
-    const discountAmount = Math.round(baseTotal * discount);
+    // Calculate total based on individual pet tiers + horoscope addons
+    const tierTotal = giftPets.reduce((sum, pet) => sum + GIFT_TIERS[pet.tier].cents, 0);
+    const addonTotal = giftPets.reduce((sum, pet) => sum + HOROSCOPE_ADDONS[pet.horoscopeAddon].cents, 0);
+    const baseTotal = tierTotal + addonTotal;
+    const discountAmount = Math.round(tierTotal * discount); // Only discount tiers, not addons
     const finalTotal = baseTotal - discountAmount;
     
     // Group pets by recipient (for multi-recipient mode)
@@ -133,7 +146,7 @@ serve(async (req) => {
         }
         
         const group = groupMap.get(key)!;
-        group.pets.push({ id: pet.id, tier: pet.tier });
+        group.pets.push({ id: pet.id, tier: pet.tier, horoscopeAddon: pet.horoscopeAddon });
         // Update name if provided
         if (pet.recipientName && !group.recipientName) {
           group.recipientName = pet.recipientName;
@@ -146,7 +159,7 @@ serve(async (req) => {
       recipientGroups.push({
         recipientEmail: input.recipientEmail || null,
         recipientName: input.recipientName || '',
-        pets: giftPets.map(p => ({ id: p.id, tier: p.tier })),
+        pets: giftPets.map(p => ({ id: p.id, tier: p.tier, horoscopeAddon: p.horoscopeAddon })),
       });
     }
 
@@ -219,24 +232,55 @@ serve(async (req) => {
         ? `Gift for ${input.recipientName} - ${tierSummary}`
         : `AstroPets Cosmic Gift - ${tierSummary}`;
 
+    // Build line items - main gift + any horoscope addons
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+    
+    // Main gift certificate (with tier discount applied)
+    const giftAmount = tierTotal - discountAmount;
+    lineItems.push({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: productName,
+          description: productDescription,
+          images: ["https://astropets.cloud/og-image.jpg"],
+        },
+        unit_amount: giftAmount,
+      },
+      quantity: 1,
+    });
+    
+    // Add horoscope addon line items (no discount on these)
+    const addonCounts = giftPets.reduce((acc, pet) => {
+      if (pet.horoscopeAddon !== 'none') {
+        acc[pet.horoscopeAddon] = (acc[pet.horoscopeAddon] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<HoroscopeAddon, number>);
+    
+    for (const [addon, count] of Object.entries(addonCounts) as [HoroscopeAddon, number][]) {
+      if (addon === 'none') continue;
+      const addonInfo = HOROSCOPE_ADDONS[addon];
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: `Gift Add-on: ${addonInfo.name}`,
+            description: addon === 'yearly' 
+              ? 'A full year of weekly cosmic guidance for their pet'
+              : 'Monthly subscription to weekly cosmic guidance',
+          },
+          unit_amount: addonInfo.cents * count,
+        },
+        quantity: 1,
+      });
+    }
+
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: input.purchaserEmail,
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: productName,
-              description: productDescription,
-              images: ["https://astropets.cloud/og-image.jpg"],
-            },
-            unit_amount: finalTotal,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       success_url: `${origin}/gift-success?code=${primaryGiftCode}&delivery=${input.deliveryMethod}&count=${recipientGroups.length}`,
       cancel_url: `${origin}/gift`,
       metadata: {
@@ -249,6 +293,7 @@ serve(async (req) => {
         multiRecipient: String(input.multiRecipient),
         giftMessage: input.giftMessage || "",
         deliveryMethod: input.deliveryMethod,
+        horoscopeAddons: JSON.stringify(addonCounts),
         // Store full config for webhook
         recipientGroupsJson: JSON.stringify(recipientGroups.map((group, idx) => ({
           ...group,
