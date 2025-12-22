@@ -201,6 +201,7 @@ export default function GiftPurchase() {
         tier: r.tier,
         recipientName: r.name || '',
         recipientEmail: deliveryMethod === 'email' ? r.email : null,
+        horoscopeAddon: r.horoscopeAddon || 'none',
       }));
 
       const { data, error } = await supabase.functions.invoke('purchase-gift-certificate', {
