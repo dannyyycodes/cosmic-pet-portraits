@@ -257,6 +257,39 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_topics: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_used: boolean | null
+          priority: number | null
+          species: string
+          topic: string
+          used_at: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_used?: boolean | null
+          priority?: number | null
+          species?: string
+          topic: string
+          used_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_used?: boolean | null
+          priority?: number | null
+          species?: string
+          topic?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       contact_form_rate_limits: {
         Row: {
           created_at: string
