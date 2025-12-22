@@ -365,35 +365,75 @@ export default function GiftPurchase() {
                 <div className="w-12" />
               </div>
 
-              {/* Delivery method */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">How will you deliver the gift?</label>
+              {/* Delivery method - Enhanced design */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-card/80 to-card/40 border border-border/40 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center">
+                    <Gift className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">How should we deliver the gift?</h3>
+                    <p className="text-sm text-muted-foreground">Choose how your recipient receives it</p>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setDeliveryMethod('email')}
-                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                    className={`relative p-5 rounded-xl border-2 transition-all text-left group ${
                       deliveryMethod === 'email'
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border/50 bg-card/40 hover:border-primary/50'
+                        ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
+                        : 'border-border/50 bg-background/50 hover:border-primary/40 hover:bg-card/50'
                     }`}
                   >
-                    <Send className={`w-5 h-5 mx-auto mb-2 ${deliveryMethod === 'email' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <p className="text-sm font-medium text-foreground">Email directly</p>
-                    <p className="text-xs text-muted-foreground">We'll send it for you</p>
+                    {deliveryMethod === 'email' && (
+                      <div className="absolute top-3 right-3">
+                        <CheckCircle className="w-5 h-5 text-primary" />
+                      </div>
+                    )}
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all ${
+                      deliveryMethod === 'email' 
+                        ? 'bg-primary/20' 
+                        : 'bg-muted/50 group-hover:bg-primary/10'
+                    }`}>
+                      <Send className={`w-6 h-6 ${deliveryMethod === 'email' ? 'text-primary' : 'text-muted-foreground group-hover:text-primary/70'}`} />
+                    </div>
+                    <p className="font-semibold text-foreground mb-1">Email directly</p>
+                    <p className="text-sm text-muted-foreground leading-snug">We'll send a beautiful gift email on your behalf</p>
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-green-500">
+                      <Sparkles className="w-3 h-3" />
+                      <span>Most popular</span>
+                    </div>
                   </button>
+
                   <button
                     type="button"
                     onClick={() => setDeliveryMethod('link')}
-                    className={`p-4 rounded-xl border-2 transition-all text-center ${
+                    className={`relative p-5 rounded-xl border-2 transition-all text-left group ${
                       deliveryMethod === 'link'
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border/50 bg-card/40 hover:border-primary/50'
+                        ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
+                        : 'border-border/50 bg-background/50 hover:border-primary/40 hover:bg-card/50'
                     }`}
                   >
-                    <LinkIcon className={`w-5 h-5 mx-auto mb-2 ${deliveryMethod === 'link' ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <p className="text-sm font-medium text-foreground">Get a link</p>
-                    <p className="text-xs text-muted-foreground">Send it yourself</p>
+                    {deliveryMethod === 'link' && (
+                      <div className="absolute top-3 right-3">
+                        <CheckCircle className="w-5 h-5 text-primary" />
+                      </div>
+                    )}
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all ${
+                      deliveryMethod === 'link' 
+                        ? 'bg-primary/20' 
+                        : 'bg-muted/50 group-hover:bg-primary/10'
+                    }`}>
+                      <LinkIcon className={`w-6 h-6 ${deliveryMethod === 'link' ? 'text-primary' : 'text-muted-foreground group-hover:text-primary/70'}`} />
+                    </div>
+                    <p className="font-semibold text-foreground mb-1">Get a shareable link</p>
+                    <p className="text-sm text-muted-foreground leading-snug">Perfect for cards, texts, or wrapping in a bow</p>
+                    <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Gift className="w-3 h-3" />
+                      <span>Great for surprises</span>
+                    </div>
                   </button>
                 </div>
               </div>
