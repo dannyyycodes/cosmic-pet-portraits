@@ -79,7 +79,7 @@ const Index = () => {
       <section className="relative flex items-center justify-center px-4 pt-24 pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Holiday Badge - Subtle */}
+          {/* Urgency Badge */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,29 +87,29 @@ const Index = () => {
           >
             <Gift className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">
-              Holiday Special — Perfect Gift for Pet Lovers
+              🎁 The #1 Gift Pet Lovers Are Obsessed With Right Now
             </span>
           </motion.div>
           
-          {/* Main Headline */}
+          {/* Main Headline - Warm & Personal */}
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold leading-tight mb-6"
           >
             <span className="text-gradient-gold-purple">
-              {t('hero.title')}
+              Finally Understand What Makes Your Pet... <em>Your Pet</em>
             </span>
           </motion.h1>
 
-          {/* Subhead - Clear & Professional */}
+          {/* Subhead - Emotional + Gift-focused */}
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed"
           >
-            Get a detailed personality profile that reveals your pet's quirks, needs, and hidden traits — based on their birth chart and behavioral patterns. Takes just <span className="text-foreground font-medium">60 seconds</span>.
+            Discover the personality traits, hidden quirks, and cosmic secrets that make your companion one-of-a-kind. <span className="text-foreground font-medium">Thousands of pet parents cried reading theirs.</span> Ready in 60 seconds.
           </motion.p>
 
           {/* Primary CTA */}
@@ -122,12 +122,12 @@ const Index = () => {
             <Link to="/intake?mode=discover">
               <Button variant="cosmic" size="lg" className="text-lg px-10 py-7 group shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
                 <Sparkles className="w-5 h-5 mr-2" />
-                Get My Pet's Reading
+                Get My Pet's Reading Now
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
             
-            {/* Gift Option - Professional Style */}
+            {/* Gift Option - Urgency Style */}
             <Link to="/gift">
               <Button 
                 variant="outline"
@@ -135,7 +135,7 @@ const Index = () => {
                 className="text-lg px-8 py-6 border-primary/40 hover:bg-primary/10 group"
               >
                 <Gift className="w-5 h-5 mr-2" />
-                Send as a Gift
+                🎁 Give the Gift They'll Never Forget
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
@@ -170,7 +170,7 @@ const Index = () => {
               <span className="text-sm font-medium text-foreground">Trustpilot</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-foreground font-medium">4.9/5</span> from 2,847 verified pet parents
+              <span className="text-foreground font-medium">4.9/5</span> from 2,847 pet parents • <span className="text-primary">"Made me cry!"</span> is our most common review
             </p>
           </motion.div>
         </div>
@@ -195,10 +195,10 @@ const Index = () => {
             className="text-center mb-10"
           >
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
-              Ready to Get Started?
+              Thousands Got Theirs Today — Your Turn?
             </h2>
             <p className="text-muted-foreground">
-              Get a reading for your pet, or surprise a fellow pet lover with a gift
+              Whether for yourself or as a gift they'll never forget — takes just 60 seconds
             </p>
           </motion.div>
 

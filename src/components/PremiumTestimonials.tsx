@@ -168,14 +168,14 @@ export function PremiumTestimonials() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-5">
             <ShieldCheck className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Verified Reviews</span>
+            <span className="text-sm font-medium text-primary">50,000+ Pet Parents Can't Be Wrong</span>
           </div>
           
           <h2 className="text-3xl md:text-4xl font-serif font-semibold text-foreground mb-3">
-            {t('testimonials.title')}
+            "It's Scary How Accurate This Was..."
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Join over 50,000 pet parents who've discovered their pet's unique personality
+            See why pet lovers are calling this "the best gift I've ever given" (and received!)
           </p>
         </motion.div>
 
