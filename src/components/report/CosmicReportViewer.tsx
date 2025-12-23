@@ -183,34 +183,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
   };
 
   const handleGeneratePortrait = async () => {
-    setIsGeneratingPortrait(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-pet-portrait', {
-        body: {
-          petName,
-          species: 'pet', // Could be passed from report if available
-          breed: '',
-          sunSign,
-          element,
-          archetype: report.archetype?.name || 'Cosmic Soul',
-          style: 'pokemon',
-          reportId: reportId
-        }
-      });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      
-      if (data?.imageUrl) {
-        setPetPortraitUrl(data.imageUrl);
-        toast.success('Portrait generated! Your cosmic card is complete.');
-      }
-    } catch (error) {
-      console.error('Portrait generation error:', error);
-      toast.error('Could not generate portrait. Try again later.');
-    } finally {
-      setIsGeneratingPortrait(false);
-    }
+    toast.info("Portrait AI is paused for now — your uploaded photo will be used on the card.");
   };
 
   const handleSubscribeWeekly = async () => {
@@ -438,7 +411,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
             {petPortraitUrl && (
               <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/40 text-purple-400 text-sm font-medium">
                 <ImageIcon className="w-4 h-4" />
-                AI Portrait Included
+                Photo Included
               </span>
             )}
           </motion.div>

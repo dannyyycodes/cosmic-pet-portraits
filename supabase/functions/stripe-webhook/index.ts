@@ -381,50 +381,8 @@ serve(async (req) => {
                   const genData = await genResponse.json();
                   console.log("[STRIPE-WEBHOOK] Report generated for:", reportId);
                   
-                  // Generate AI portrait if tier includes it and pet photo is available
-                  if (includesPortrait && report.pet_photo_url) {
-                    try {
-                      console.log("[STRIPE-WEBHOOK] Generating AI portrait for:", reportId);
-                      const portraitResponse = await fetch(
-                        `${supabaseUrl}/functions/v1/generate-pet-portrait`,
-                        {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${serviceRoleKey}`,
-                          },
-                          body: JSON.stringify({
-                            petName: report.pet_name,
-                            species: report.species || 'pet',
-                            breed: report.breed || '',
-                            sunSign: genData.report?.chartPlacements?.sun?.sign || genData.report?.sunSign || 'Leo',
-                            element: genData.report?.dominantElement || 'Fire',
-                            archetype: genData.report?.archetype?.name || 'Cosmic Soul',
-                            style: 'pokemon',
-                            petImageUrl: report.pet_photo_url,
-                            reportId: reportId,
-                          }),
-                        }
-                      );
-
-                      if (portraitResponse.ok) {
-                        const portraitData = await portraitResponse.json();
-                        if (portraitData.imageUrl) {
-                          // Save portrait URL to database
-                          await supabaseClient
-                            .from("pet_reports")
-                            .update({ portrait_url: portraitData.imageUrl })
-                            .eq("id", reportId);
-                          console.log("[STRIPE-WEBHOOK] AI portrait saved for:", reportId);
-                        }
-                      } else {
-                        console.error("[STRIPE-WEBHOOK] Portrait generation failed:", await portraitResponse.text());
-                      }
-                    } catch (portraitError) {
-                      console.error("[STRIPE-WEBHOOK] Portrait generation error:", portraitError);
-                      // Non-fatal - continue with email
-                    }
-                  }
+                   // Portrait AI temporarily disabled — we use the uploaded photo directly on the card now.
+                   // (pet_photo_url is stored on the report and used in the frontend.)
                   
                   // Create horoscope subscription if VIP tier or horoscope add-on purchased
                   const includeHoroscope = session.metadata?.include_horoscope === "true";
