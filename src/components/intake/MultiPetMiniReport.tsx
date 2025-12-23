@@ -9,6 +9,7 @@ import { ProgressBar } from './ProgressBar';
 import { generateCosmicReport, CosmicReport } from '@/lib/cosmicReport';
 import { cn } from '@/lib/utils';
 import { OccasionMode } from '@/lib/occasionMode';
+import { getPossessive, getPronoun, PetGender } from '@/lib/pronouns';
 
 interface MultiPetMiniReportProps {
   petsData: PetData[];
@@ -115,6 +116,10 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
   const speciesFact = getSpeciesFact(petData.species, petData.name);
   const isMemorial = occasionMode === 'memorial';
   const isBirthday = occasionMode === 'birthday';
+  
+  // Gender-based pronouns
+  const petGender = (petData.gender || '') as PetGender;
+  const possessive = getPossessive(petGender);
 
   // Occasion-specific header text
   const getConfirmationText = () => {
@@ -132,8 +137,8 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
     if (isMemorial) {
       switch (title) {
         case 'Soul Mission': return 'Soul Legacy';
-        case 'Hidden Gift': return 'Gift They Shared';
-        case 'Love Language': return 'How They Loved';
+        case 'Hidden Gift': return `Gift ${getPronoun(petGender, 'subject')} Shared`;
+        case 'Love Language': return `How ${getPronoun(petGender, 'subject')} Loved`;
         default: return title;
       }
     }
@@ -212,7 +217,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
           <h3 className={cn(
             "text-sm uppercase tracking-widest mb-3 text-center",
             isMemorial ? "text-purple-400" : "text-primary/80"
-          )}>{isMemorial ? "Their Core Truth" : "The Core Truth"}</h3>
+          )}>{isMemorial ? `${possessive.charAt(0).toUpperCase() + possessive.slice(1)} Core Truth` : "The Core Truth"}</h3>
           <p className="text-foreground/80 text-lg leading-relaxed text-center">
             {coreEssence}
           </p>
@@ -359,7 +364,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
           </div>
           <div className="text-left">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
-              {isMemorial ? "Their Secret Strength" : "Secret Strength"}
+              {isMemorial ? `${possessive.charAt(0).toUpperCase() + possessive.slice(1)} Secret Strength` : "Secret Strength"}
             </p>
             <p className="text-foreground/90">{secretStrength}</p>
           </div>
@@ -379,7 +384,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
           </div>
           <div className="text-left">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
-              {isMemorial ? "Their Lucky Day Was" : "Lucky Day"}
+              {isMemorial ? `${possessive.charAt(0).toUpperCase() + possessive.slice(1)} Lucky Day Was` : "Lucky Day"}
             </p>
             <p className="text-foreground/90">{luckyDay}</p>
           </div>
@@ -456,12 +461,15 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
   
   // Use first pet's name for personalization
   const firstName = petsData[0]?.name || 'your pet';
+  const firstGender = (petsData[0]?.gender || '') as PetGender;
+  const possessive = getPossessive(firstGender);
+  const subject = getPronoun(firstGender, 'subject');
   
   const lockedItems = [
-    { icon: Moon, label: hasMemorialPet ? "Moon Sign Memories" : "Moon Sign Analysis", preview: hasMemorialPet ? `Why ${firstName}'s mood would shift...` : `Why ${firstName}'s mood shifts unexpectedly...` },
+    { icon: Moon, label: hasMemorialPet ? "Moon Sign Memories" : "Moon Sign Analysis", preview: hasMemorialPet ? `Why ${possessive} mood would shift...` : `Why ${possessive} mood shifts unexpectedly...` },
     { icon: ArrowUp, label: hasMemorialPet ? "Your Soul Contract" : "Your Soul Contract", preview: hasMemorialPet ? `What you were here to teach each other...` : `What you're here to teach each other...` },
-    { icon: Sparkles, label: hasMemorialPet ? "Their Life Purpose" : "Their Life Purpose", preview: hasMemorialPet ? `The role ${firstName} played in your journey...` : `The role ${firstName} plays in your journey...` },
-    { icon: Heart, label: hasMemorialPet ? "Emotional Legacy" : "Emotional Needs Decoded", preview: hasMemorialPet ? `What ${firstName} needed but couldn't express...` : `What ${firstName} needs but can't express...` },
+    { icon: Sparkles, label: hasMemorialPet ? `${firstName}'s Life Purpose` : `${firstName}'s Life Purpose`, preview: hasMemorialPet ? `The role ${subject} played in your journey...` : `The role ${subject} plays in your journey...` },
+    { icon: Heart, label: hasMemorialPet ? "Emotional Legacy" : "Emotional Needs Decoded", preview: hasMemorialPet ? `What ${subject} needed but couldn't express...` : `What ${subject} needs but can't express...` },
     { icon: Zap, label: hasMemorialPet ? "Spirit & Energy" : "Energy & Vitality Insights", preview: hasMemorialPet ? `${firstName}'s unique energy patterns...` : `${firstName}'s unique wellness patterns...` },
   ];
 
@@ -620,18 +628,18 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
                 {hasMemorialPet ? (
                   <>
                     <p>❌ The complete story of {firstName}'s soul purpose</p>
-                    <p>❌ Why they behaved that one special way</p>
-                    <p>❌ Their messages for you from beyond</p>
-                    <p>❌ How to carry their spirit forward</p>
-                    <p>❌ Their lasting gifts to your soul</p>
-                    <p>❌ Signs they may send you now</p>
+                    <p>❌ Why {subject} behaved that one special way</p>
+                    <p>❌ {possessive.charAt(0).toUpperCase() + possessive.slice(1)} messages for you from beyond</p>
+                    <p>❌ How to carry {possessive} spirit forward</p>
+                    <p>❌ {possessive.charAt(0).toUpperCase() + possessive.slice(1)} lasting gifts to your soul</p>
+                    <p>❌ Signs {subject} may send you now</p>
                   </>
                 ) : (
                   <>
                     <p>❌ Why {firstName}'s mood shifts unexpectedly</p>
                     <p>❌ What you're here to teach each other</p>
-                    <p>❌ The role {firstName} plays in your journey</p>
-                    <p>❌ What {firstName} truly needs but can't express</p>
+                    <p>❌ The role {subject} plays in your journey</p>
+                    <p>❌ What {subject} truly needs but can't express</p>
                     <p>❌ {firstName}'s unique wellness patterns</p>
                     <p>❌ The deeper purpose of your bond</p>
                   </>

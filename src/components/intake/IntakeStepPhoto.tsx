@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles, Camera, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PetPhotoUpload } from './PetPhotoUpload';
+import { getPossessive, PetGender } from '@/lib/pronouns';
 
 interface IntakeStepPhotoProps {
   petName: string;
+  petGender?: PetGender;
   photoUrl: string | null;
   onPhotoChange: (url: string | null) => void;
   onNext: () => void;
@@ -16,6 +18,7 @@ interface IntakeStepPhotoProps {
 
 export function IntakeStepPhoto({
   petName,
+  petGender = '',
   photoUrl,
   onPhotoChange,
   onNext,
@@ -23,6 +26,7 @@ export function IntakeStepPhoto({
   onSkip,
   isRequired = false,
 }: IntakeStepPhotoProps) {
+  const pronoun = getPossessive(petGender);
   const canProceed = !isRequired || photoUrl;
 
   return (
@@ -50,7 +54,7 @@ export function IntakeStepPhoto({
         </h1>
         <p className="text-muted-foreground text-base max-w-md mx-auto">
           Your gift includes a <span className="text-primary font-medium">magical cosmic portrait</span>! 
-          Upload a photo and we'll transform {petName} into an amazing trading card.
+          Upload a photo and we'll transform {pronoun} into an amazing trading card.
         </p>
       </div>
 
@@ -79,7 +83,7 @@ export function IntakeStepPhoto({
           <div className="text-left">
             <p className="text-sm font-medium text-foreground">✨ Magic Preview</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Our cosmic magic will transform {petName}'s photo into a stunning trading card with zodiac elements and celestial styling!
+              Our cosmic magic will transform {pronoun} photo into a stunning trading card with zodiac elements and celestial styling!
             </p>
           </div>
         </div>
