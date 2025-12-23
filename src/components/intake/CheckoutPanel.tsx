@@ -450,7 +450,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                       {tier.includesPortrait && (
                         <div className="flex items-center justify-center gap-0.5 mt-1">
                           <Camera className="w-3 h-3 text-nebula-purple" />
-                          <span className="text-[8px] text-nebula-purple">AI Card</span>
+                          <span className="text-[8px] text-nebula-purple">✨ Card</span>
                         </div>
                       )}
                       {isSelected && (
@@ -532,7 +532,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             <div className="flex items-center gap-2 text-xs">
               <Camera className="w-3.5 h-3.5 text-nebula-purple" />
               <span className="text-nebula-purple font-medium">
-                +AI Trading Card Portrait (Portrait/VIP tiers)
+                +Cosmic Trading Card Portrait (Portrait/VIP tiers)
               </span>
             </div>
           </div>
@@ -563,7 +563,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
               <div className="flex items-center gap-2 mb-3">
                 <Camera className="w-4 h-4 text-nebula-purple" />
                 <span className="text-sm font-medium text-foreground">
-                  Upload Photos for AI Cards ({petsNeedingPhotos.length} pet{petsNeedingPhotos.length > 1 ? 's' : ''})
+                  ✨ Transform Your Pet{petsNeedingPhotos.length > 1 ? 's' : ''} Into Stars ({petsNeedingPhotos.length} pet{petsNeedingPhotos.length > 1 ? 's' : ''})
                 </span>
               </div>
               
