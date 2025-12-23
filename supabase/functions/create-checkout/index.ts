@@ -391,6 +391,26 @@ serve(async (req) => {
     const anyPetHasPortrait = Object.values(petTiers).some(t => t === 'premium' || t === 'vip') || 
       input.selectedTier === 'premium' || input.selectedTier === 'vip';
 
+    // Persist uploaded pet photo URLs to the reports immediately so the card can show them
+    // (Portrait AI is paused for now — we use the uploaded photo directly.)
+    try {
+      for (let i = 0; i < allReportIds.length; i++) {
+        const id = allReportIds[i];
+        const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
+        const needsPhoto = tierKey === 'premium' || tierKey === 'vip';
+        const petPhoto = input.petPhotos?.[String(i)];
+
+        if (needsPhoto && petPhoto?.url) {
+          await supabaseClient
+            .from('pet_reports')
+            .update({ pet_photo_url: petPhoto.url })
+            .eq('id', id);
+        }
+      }
+    } catch (err) {
+      console.error('[CREATE-CHECKOUT] Failed to persist pet photos:', err);
+    }
+
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: sanitizedEmail,

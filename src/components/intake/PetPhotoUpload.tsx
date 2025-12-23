@@ -103,7 +103,7 @@ export function PetPhotoUpload({ petName, onPhotoUploaded, photoUrl, isRequired 
       </div>
       
       <p className="text-xs text-muted-foreground">
-        For the best Pokemon-style card, upload a clear photo of {petName}. The AI will transform it into an amazing cosmic portrait!
+        For the best card, upload a clear, well-lit photo of {petName}. We’ll use this exact photo on your trading card.
       </p>
 
       <input

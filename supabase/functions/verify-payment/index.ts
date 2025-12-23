@@ -570,23 +570,8 @@ async function generateReport(report: any, reportId: string, supabaseClient: any
 
     console.log("[VERIFY-PAYMENT] Report generated successfully for:", reportId);
 
-    // Generate AI portrait if tier includes it and pet photo is available
-    // Use background task pattern to avoid timeout
-    if (includesPortrait && report.pet_photo_url) {
-      console.log("[VERIFY-PAYMENT] Triggering AI portrait for:", reportId);
-      
-      // Fire and forget - don't await to prevent timeout
-      generatePortraitBackground(
-        supabaseUrl!,
-        serviceRoleKey!,
-        reportId,
-        report,
-        genData,
-        supabaseClient
-      ).catch(err => {
-        console.error("[VERIFY-PAYMENT] Background portrait error:", err);
-      });
-    }
+     // Portrait AI temporarily disabled — we use the uploaded photo directly on the card now.
+     // (pet_photo_url is stored on the report and used in the frontend.)
 
     // Send email (fire and forget to prevent timeout)
     sendEmailBackground(
