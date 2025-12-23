@@ -34,7 +34,7 @@ export function GiftWelcome({
     ],
     portrait: [
       'Everything in Essential Reading',
-      'AI-generated pet portrait card',
+      'Your pet\'s photo on a cosmic card',
       'Weekly cosmic horoscope emails',
     ],
     vip: [

@@ -23,8 +23,6 @@ interface CosmicPetCardProps {
   stats: CardStats;
   auraColor: string;
   petPortraitUrl?: string;
-  onGeneratePortrait?: () => void;
-  isGeneratingPortrait?: boolean;
 }
 
 const elementGradients: Record<string, string> = {
@@ -67,8 +65,6 @@ export function CosmicPetCard({
   stats,
   auraColor,
   petPortraitUrl,
-  onGeneratePortrait,
-  isGeneratingPortrait,
 }: CosmicPetCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
@@ -168,32 +164,7 @@ Discover your pet's cosmic soul at cosmicpet.report`;
                   >
                     {zodiacIcon}
                   </div>
-                  {onGeneratePortrait && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={onGeneratePortrait}
-                      disabled={isGeneratingPortrait}
-                      className="text-xs h-7 text-white/60 hover:text-white hover:bg-white/10"
-                    >
-                      {isGeneratingPortrait ? (
-                        <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-                          >
-                            <Sparkles className="w-3 h-3 mr-1" />
-                          </motion.div>
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <ImageIcon className="w-3 h-3 mr-1" />
-                          Add AI Portrait
-                        </>
-                      )}
-                    </Button>
-                  )}
+                  <p className="text-xs text-white/50 text-center px-2">Upload a photo in checkout to display here</p>
                 </div>
               )}
               

@@ -161,7 +161,6 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showCard, setShowCard] = useState(false);
   const [petPortraitUrl, setPetPortraitUrl] = useState<string | undefined>(portraitUrl);
-  const [isGeneratingPortrait, setIsGeneratingPortrait] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -180,10 +179,6 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
   const scrollToSection = (sectionId: string) => {
     sectionRefs.current[sectionId]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setActiveSection(sectionId);
-  };
-
-  const handleGeneratePortrait = async () => {
-    toast.info("Portrait AI is paused for now — your uploaded photo will be used on the card.");
   };
 
   const handleSubscribeWeekly = async () => {
@@ -524,7 +519,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
                   <p>✨ 6 unique stat categories</p>
                   <p>🎨 Element-themed design</p>
                   <p>📱 Easy social sharing</p>
-                  <p>🖼️ Optional AI portrait</p>
+                  <p>🖼️ Your pet's photo on the card</p>
                 </div>
               </div>
             </div>

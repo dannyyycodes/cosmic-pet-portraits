@@ -41,7 +41,7 @@ export function IntakeStepPortraitSelect({
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-nebula-purple/20 border border-nebula-purple/30"
         >
           <Camera className="w-4 h-4 text-nebula-purple" />
-          <span className="text-nebula-purple text-sm font-medium">AI Portrait Included!</span>
+          <span className="text-nebula-purple text-sm font-medium">Photo Card Included!</span>
         </motion.div>
 
         <div className="space-y-3">
@@ -49,7 +49,7 @@ export function IntakeStepPortraitSelect({
             Ready for {petsData[portraitPetIndices[0]]?.name}'s Portrait
           </h1>
           <p className="text-muted-foreground text-base max-w-md mx-auto">
-            Your gift includes an AI-generated cosmic portrait for{' '}
+            Your gift includes a cosmic photo card for{' '}
             <span className="text-primary font-medium">{petsData[portraitPetIndices[0]]?.name}</span>!
           </p>
         </div>
@@ -86,19 +86,19 @@ export function IntakeStepPortraitSelect({
         className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-nebula-purple/20 border border-nebula-purple/30"
       >
         <Camera className="w-4 h-4 text-nebula-purple" />
-        <span className="text-nebula-purple text-sm font-medium">AI Portrait Included!</span>
+        <span className="text-nebula-purple text-sm font-medium">Photo Card Included!</span>
       </motion.div>
 
       <div className="space-y-3">
         <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-          Choose Your Portrait Pet
+          Choose Your Photo Card Pet
         </h1>
         <p className="text-muted-foreground text-base max-w-md mx-auto">
           Your gift includes{' '}
           <span className="text-primary font-medium">
-            {portraitPetIndices.length} AI-generated cosmic portrait{portraitPetIndices.length > 1 ? 's' : ''}
+            {portraitPetIndices.length} cosmic photo card{portraitPetIndices.length > 1 ? 's' : ''}
           </span>
-          ! Select which pet to create a portrait for:
+          ! Select which pet to create a card for:
         </p>
       </div>
 

@@ -18,7 +18,7 @@ interface TestimonialPromptProps {
 const FAVORITE_FEATURES = [
   "Personality insights",
   "Birth chart analysis",
-  "AI portrait",
+  "Photo card",
   "Compatibility section",
   "Weekly horoscopes",
   "The cosmic theme",

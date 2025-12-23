@@ -41,7 +41,7 @@ export interface CheckoutData {
   petHoroscopes?: Record<number, boolean>;
 }
 
-// Product tiers - $35 without portrait, $50 with AI portrait
+// Product tiers - $35 without portrait, $50 with photo on card
 const TIERS = {
   basic: {
     id: 'basic',
@@ -71,7 +71,7 @@ const TIERS = {
     includesPortrait: true,
     benefits: [
       "Everything in Basic, plus...",
-      "A stunning AI portrait of YOUR pet",
+      "Your pet's photo on a cosmic card",
       "Shareable card to show friends",
     ],
   },
