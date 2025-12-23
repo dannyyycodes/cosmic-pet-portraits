@@ -9,6 +9,129 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const getVipEmailTemplate = (petName: string, reportUrl: string, accountUrl: string, customerReferralCode: string, portraitUrl?: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  
+  <!-- Outer container with premium gold gradient border -->
+  <div style="max-width: 600px; margin: 0 auto; padding: 3px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 25%, #f59e0b 50%, #d97706 75%, #f59e0b 100%); border-radius: 20px;">
+    
+    <!-- Inner container -->
+    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 17px; padding: 48px 32px;">
+      
+      <!-- VIP Badge -->
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="display: inline-block; padding: 10px 28px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%); border-radius: 50px; box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4);">
+          <span style="color: #1a1a2e; font-size: 12px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">⭐ VIP MEMBER ⭐</span>
+        </div>
+      </div>
+
+      <!-- Main Title -->
+      <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0 0 16px 0; text-align: center; line-height: 1.2;">
+        Welcome to the <span style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">VIP Experience</span>
+      </h1>
+      
+      <p style="color: #9ca3af; font-size: 16px; line-height: 1.7; margin: 0 0 36px 0; text-align: center;">
+        You're now part of an exclusive group of pet parents who go above and beyond for their companions.
+      </p>
+
+      <!-- VIP Benefits Card -->
+      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 16px; padding: 28px; margin: 0 0 32px 0; border: 1px solid rgba(245, 158, 11, 0.3);">
+        <p style="color: #fbbf24; font-size: 14px; font-weight: 700; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 1px; text-align: center;">
+          Your VIP Benefits
+        </p>
+        <div style="display: block;">
+          <div style="display: flex; align-items: center; margin-bottom: 14px;">
+            <span style="width: 36px; height: 36px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); border-radius: 10px; display: inline-block; text-align: center; line-height: 36px; font-size: 16px; margin-right: 14px;">✨</span>
+            <div>
+              <span style="color: #ffffff; font-size: 14px; font-weight: 600;">Full Cosmic Report</span>
+              <span style="color: #9ca3af; font-size: 13px; display: block;">${petName}'s complete personality profile</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; margin-bottom: 14px;">
+            <span style="width: 36px; height: 36px; background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); border-radius: 10px; display: inline-block; text-align: center; line-height: 36px; font-size: 16px; margin-right: 14px;">🎨</span>
+            <div>
+              <span style="color: #ffffff; font-size: 14px; font-weight: 600;">AI-Generated Portrait</span>
+              <span style="color: #9ca3af; font-size: 13px; display: block;">Unique cosmic artwork of ${petName}</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; margin-bottom: 14px;">
+            <span style="width: 36px; height: 36px; background: linear-gradient(135deg, #d946ef 0%, #f472b6 100%); border-radius: 10px; display: inline-block; text-align: center; line-height: 36px; font-size: 16px; margin-right: 14px;">📧</span>
+            <div>
+              <span style="color: #ffffff; font-size: 14px; font-weight: 600;">Weekly Horoscopes</span>
+              <span style="color: #9ca3af; font-size: 13px; display: block;">Personalized guidance every Monday</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <span style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981 0%, #34d399 100%); border-radius: 10px; display: inline-block; text-align: center; line-height: 36px; font-size: 16px; margin-right: 14px;">🎁</span>
+            <div>
+              <span style="color: #ffffff; font-size: 14px; font-weight: 600;">Referral Rewards</span>
+              <span style="color: #9ca3af; font-size: 13px; display: block;">Share the magic, earn rewards</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      ${portraitUrl ? `
+      <!-- Portrait Preview -->
+      <div style="text-align: center; margin: 32px 0;">
+        <p style="color: #9ca3af; font-size: 13px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">Your AI Portrait is Ready</p>
+        <div style="display: inline-block; padding: 4px; background: linear-gradient(135deg, #f59e0b 0%, #8b5cf6 50%, #d946ef 100%); border-radius: 20px;">
+          <img src="${portraitUrl}" alt="${petName}'s Cosmic Portrait" style="max-width: 260px; border-radius: 16px; display: block;">
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- CTA Button -->
+      <div style="text-align: center; margin: 36px 0;">
+        <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #1a1a2e; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-weight: 800; font-size: 16px; box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4), 0 0 0 1px rgba(255,255,255,0.2) inset;">
+          View ${petName}'s Full Report →
+        </a>
+      </div>
+
+      <!-- Referral Section -->
+      <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(217, 70, 239, 0.15) 100%); border-radius: 16px; padding: 24px; margin: 32px 0; text-align: center; border: 1px solid rgba(139, 92, 246, 0.2);">
+        <p style="color: #a78bfa; font-size: 13px; font-weight: 600; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px;">🎁 Your VIP Referral Code</p>
+        <p style="color: #9ca3af; font-size: 13px; margin: 0 0 16px 0;">
+          Share with friends — you'll both get rewards!
+        </p>
+        <div style="display: inline-block; background: rgba(0,0,0,0.4); border-radius: 10px; padding: 14px 28px; border: 1px solid rgba(245, 158, 11, 0.3);">
+          <span style="color: #fbbf24; font-size: 20px; font-weight: 800; letter-spacing: 2px; font-family: monospace;">${customerReferralCode}</span>
+        </div>
+        <p style="color: #6b7280; font-size: 11px; margin: 14px 0 0 0;">
+          astropets.cloud/ref/${customerReferralCode}
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(245, 158, 11, 0.3) 50%, transparent 100%); margin: 32px 0;"></div>
+
+      <!-- Footer -->
+      <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
+        Manage your benefits in your <a href="${accountUrl}" style="color: #a78bfa; text-decoration: none;">account dashboard</a>.
+      </p>
+
+      <!-- Brand Footer -->
+      <div style="text-align: center; margin-top: 32px;">
+        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
+          AstroPets VIP
+        </p>
+      </div>
+
+    </div>
+  </div>
+  
+  <div style="height: 20px;"></div>
+  
+</body>
+</html>
+`;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -67,94 +190,7 @@ serve(async (req) => {
       from: "AstroPets VIP <vip@astropets.cloud>",
       to: [email],
       subject: `🌟 Welcome to the VIP Experience, ${petName}'s Human!`,
-      html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; background-color: #0f0a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 560px; margin: 0 auto; padding: 48px 24px;">
-    
-    <!-- VIP Badge -->
-    <div style="text-align: center; margin-bottom: 32px;">
-      <span style="display: inline-block; background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%); color: #1a1a2e; padding: 8px 24px; border-radius: 20px; font-weight: 700; font-size: 12px; letter-spacing: 0.1em;">
-        ⭐ VIP MEMBER ⭐
-      </span>
-    </div>
-
-    <h1 style="color: #ffffff; font-size: 28px; font-weight: 600; margin: 0 0 16px 0; text-align: center; line-height: 1.3;">
-      Welcome to the Cosmic VIP Experience! 🌟
-    </h1>
-    
-    <p style="color: #a0a0b0; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">
-      You're now part of an exclusive group of pet parents who go above and beyond. Here's what you've unlocked:
-    </p>
-
-    <!-- VIP Benefits -->
-    <div style="background: linear-gradient(135deg, rgba(255,215,0,0.1) 0%, rgba(139,92,246,0.1) 100%); border: 1px solid rgba(255,215,0,0.3); border-radius: 16px; padding: 28px; margin: 32px 0;">
-      <h2 style="color: #ffd700; font-size: 18px; margin: 0 0 20px 0; text-align: center;">Your VIP Benefits</h2>
-      <ul style="color: #e0e0e0; font-size: 14px; line-height: 2; margin: 0; padding-left: 20px;">
-        <li>✨ <strong>Full Cosmic Report</strong> - ${petName}'s complete personality profile</li>
-        <li>🎨 <strong>AI-Generated Portrait</strong> - A unique cosmic artwork of ${petName}</li>
-        <li>📧 <strong>Weekly Horoscopes</strong> - Personalized cosmic guidance delivered weekly</li>
-        <li>📥 <strong>PDF Download</strong> - Keep ${petName}'s reading forever</li>
-        <li>🎁 <strong>Exclusive Referral Rewards</strong> - Share the magic, earn rewards</li>
-      </ul>
-    </div>
-
-    ${portraitUrl ? `
-    <!-- Portrait Preview -->
-    <div style="text-align: center; margin: 32px 0;">
-      <p style="color: #a0a0b0; font-size: 14px; margin-bottom: 16px;">Your AI Portrait is Ready!</p>
-      <img src="${portraitUrl}" alt="${petName}'s Cosmic Portrait" style="max-width: 280px; border-radius: 16px; border: 3px solid rgba(255,215,0,0.5);">
-    </div>
-    ` : ''}
-
-    <!-- View Report CTA -->
-    <div style="text-align: center; margin: 40px 0;">
-      <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%); color: #1a1a2e; text-decoration: none; padding: 16px 48px; border-radius: 8px; font-weight: 700; font-size: 16px;">
-        View ${petName}'s Full Report →
-      </a>
-    </div>
-
-    <!-- Referral Section -->
-    <div style="background: rgba(139,92,246,0.15); border-radius: 12px; padding: 24px; margin: 32px 0; text-align: center;">
-      <h3 style="color: #c084fc; font-size: 16px; margin: 0 0 12px 0;">🎁 Your VIP Referral Code</h3>
-      <p style="color: #a0a0b0; font-size: 13px; margin: 0 0 16px 0;">
-        Share this code with friends. When they use it, you'll both get rewards!
-      </p>
-      <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px 20px; display: inline-block;">
-        <span style="color: #ffd700; font-size: 18px; font-weight: 700; letter-spacing: 0.1em;">${customerReferralCode}</span>
-      </div>
-      <p style="color: #707080; font-size: 11px; margin: 12px 0 0 0;">
-        Share link: ${origin}/ref/${customerReferralCode}
-      </p>
-    </div>
-
-    <!-- Weekly Horoscopes Info -->
-    <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 20px; margin: 24px 0;">
-      <p style="color: #e0e0e0; font-size: 14px; margin: 0; line-height: 1.6;">
-        <strong>📅 Weekly Horoscopes:</strong> Starting next week, you'll receive personalized cosmic guidance for ${petName} every Monday. Watch your inbox!
-      </p>
-    </div>
-
-    <!-- Account Link -->
-    <p style="color: #707080; font-size: 13px; margin: 32px 0; text-align: center; line-height: 1.6;">
-      Manage your VIP benefits, view all reports, and track referrals in your <a href="${accountUrl}" style="color: #c084fc;">account dashboard</a>.
-    </p>
-
-    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 40px; padding-top: 24px; text-align: center;">
-      <p style="color: #505060; font-size: 12px; margin: 0;">
-        AstroPets VIP • Questions? Reply to this email
-      </p>
-    </div>
-
-  </div>
-</body>
-</html>
-      `,
+      html: getVipEmailTemplate(petName, reportUrl, accountUrl, customerReferralCode, portraitUrl),
     });
 
     console.log("[VIP-EMAIL] VIP welcome email sent successfully");
