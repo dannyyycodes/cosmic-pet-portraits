@@ -90,8 +90,8 @@ export default function RedeemGift() {
   const getTierDescription = () => {
     const petText = (giftData?.petCount || 1) > 1 ? ` for ${giftData?.petCount} pets` : '';
     switch (giftData?.giftTier) {
-      case 'vip': return `The complete cosmic experience with AI portrait, weekly horoscopes, and full personality analysis${petText}`;
-      case 'portrait': return `A beautiful AI-generated cosmic portrait plus complete personality reading${petText}`;
+      case 'vip': return `The complete cosmic experience with photo card, weekly horoscopes, and full personality analysis${petText}`;
+      case 'portrait': return `A beautiful cosmic photo card plus complete personality reading${petText}`;
       case 'essential': return `A deep dive into your pet's cosmic personality and soul blueprint${petText}`;
       case 'premium': return `An enhanced cosmic reading with additional insights${petText}`;
       default: return `Discover the cosmic secrets of your beloved companion${petText}`;
@@ -106,7 +106,7 @@ export default function RedeemGift() {
     ];
     
     if (giftData?.includesPortrait) {
-      features.push({ icon: Image, text: 'AI-Generated Cosmic Portrait', included: true });
+      features.push({ icon: Image, text: 'Cosmic Photo Card', included: true });
     }
     
     // Show weekly horoscope if included (from VIP tier OR from addon purchase)

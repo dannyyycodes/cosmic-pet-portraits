@@ -253,73 +253,15 @@ serve(async (req) => {
         }
       }
       
-      // For Portrait and VIP tiers, trigger AI portrait generation if photo available
-      const photoUrl = (input.petPhotoUrls && input.petPhotoUrls[reportId]) || 
-                       (reportId === primaryReportId ? input.petPhotoUrl : null) || 
-                       report.pet_photo_url;
-      
-      if (thisPetIncludesPortrait && photoUrl) {
-        console.log("[REDEEM-GIFT] Triggering AI portrait generation for:", reportId);
-        
-        try {
-          const supabaseUrl = Deno.env.get("SUPABASE_URL");
-          const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-          
-          // Get zodiac info from report content if available
-          const reportContent = report.report_content as any;
-          const sunSign = reportContent?.chartPlacements?.sun?.sign || reportContent?.sunSign || 'Leo';
-          const element = reportContent?.dominantElement || 'Fire';
-          const archetype = reportContent?.archetype?.name || 'Cosmic Soul';
-          
-          const portraitResponse = await fetch(
-            `${supabaseUrl}/functions/v1/generate-pet-portrait`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${serviceRoleKey}`,
-              },
-              body: JSON.stringify({
-                petName: report.pet_name,
-                species: report.species || 'pet',
-                breed: report.breed || '',
-                sunSign,
-                element,
-                archetype,
-                style: 'pokemon',
-                petImageUrl: photoUrl,
-                reportId: reportId,
-              }),
-            }
-          );
-
-          if (portraitResponse.ok) {
-            const portraitData = await portraitResponse.json();
-            if (portraitData.imageUrl) {
-              // Save portrait URL to database
-              const { error: portraitUpdateError } = await supabase
-                .from("pet_reports")
-                .update({ portrait_url: portraitData.imageUrl })
-                .eq("id", reportId);
-              
-              if (portraitUpdateError) {
-                console.error("[REDEEM-GIFT] Failed to save portrait URL:", portraitUpdateError);
-              } else {
-                console.log("[REDEEM-GIFT] AI portrait saved for:", reportId);
-              }
-            } else {
-              console.error("[REDEEM-GIFT] No imageUrl in portrait response");
-            }
-          } else {
-            const errorText = await portraitResponse.text();
-            console.error("[REDEEM-GIFT] Portrait generation failed:", errorText);
-          }
-        } catch (portraitError) {
-          console.error("[REDEEM-GIFT] Failed to generate portrait:", portraitError);
-          // Non-fatal - continue with redemption
+      // Portrait tier: ensure the uploaded photo URL is saved so card can display it
+      // (No AI generation — we use the exact uploaded photo on the card.)
+      if (thisPetIncludesPortrait) {
+        const photoUrl = (input.petPhotoUrls && input.petPhotoUrls[reportId]) || 
+                         (reportId === primaryReportId ? input.petPhotoUrl : null) || 
+                         report.pet_photo_url;
+        if (!photoUrl) {
+          console.log("[REDEEM-GIFT] Pet", i, "has portrait tier but no photo uploaded");
         }
-      } else if (thisPetIncludesPortrait && !photoUrl) {
-        console.log("[REDEEM-GIFT] Pet", i, "has portrait tier but no photo uploaded");
       }
     }
 
