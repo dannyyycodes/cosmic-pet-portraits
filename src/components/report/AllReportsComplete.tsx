@@ -262,19 +262,19 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55 }}
-              className="mb-6 p-5 rounded-2xl bg-gradient-to-r from-cosmic-gold/20 to-nebula-pink/20 border border-cosmic-gold/30"
+              className="mb-6 p-4 md:p-5 rounded-2xl bg-gradient-to-r from-cosmic-gold/20 to-nebula-pink/20 border border-cosmic-gold/30 text-left"
             >
               <div className="flex items-center gap-2 mb-3">
-                <Gift className="w-5 h-5 text-cosmic-gold" />
-                <h3 className="font-semibold text-foreground">Your Gift Reading is Ready!</h3>
+                <Gift className="w-5 h-5 text-cosmic-gold shrink-0" />
+                <h3 className="font-semibold text-foreground text-sm md:text-base">Your Gift Reading is Ready!</h3>
               </div>
               
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs md:text-sm text-muted-foreground mb-4">
                 You added a gift reading for a friend. Share the link below with them so they can get their own cosmic pet reading!
               </p>
               
               <div className="flex gap-2">
-                <div className="flex-1 px-3 py-2 bg-background/50 rounded-lg border border-border/50 font-mono text-sm truncate">
+                <div className="flex-1 min-w-0 px-2 md:px-3 py-2 bg-background/50 rounded-lg border border-border/50 font-mono text-xs md:text-sm truncate">
                   {redeemUrl}
                 </div>
                 <Button
@@ -299,14 +299,14 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.58 }}
-              className="mb-6 p-5 rounded-2xl bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30"
+              className="mb-6 p-4 md:p-5 rounded-2xl bg-gradient-to-r from-primary/20 to-purple-500/20 border border-primary/30 text-left"
             >
               <div className="flex items-center gap-2 mb-3">
-                <Star className="w-5 h-5 text-primary fill-primary" />
-                <h3 className="font-semibold text-foreground">Weekly Horoscopes Activated! 🌟</h3>
+                <Star className="w-5 h-5 text-primary fill-primary shrink-0" />
+                <h3 className="font-semibold text-foreground text-sm md:text-base">Weekly Horoscopes Activated! 🌟</h3>
               </div>
               
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-xs md:text-sm text-muted-foreground mb-3">
                 {horoscopeInfo.petNames.length === 1 
                   ? `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames[0]} every Sunday!`
                   : `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames.join(' and ')} every Sunday!`
@@ -314,7 +314,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               </p>
               
               <div className="bg-background/50 rounded-lg p-3 border border-border/50">
-                <p className="text-sm font-medium text-foreground mb-2">What to expect:</p>
+                <p className="text-xs md:text-sm font-medium text-foreground mb-2">What to expect:</p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>✦ Weekly cosmic forecast tailored to your pet's chart</li>
                   <li>✦ Energy predictions for each day</li>
@@ -392,14 +392,14 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55 }}
-              className="mb-6 p-5 rounded-2xl bg-gradient-to-r from-primary/20 to-nebula-purple/20 border border-primary/30"
+              className="mb-6 p-4 md:p-5 rounded-2xl bg-gradient-to-r from-primary/20 to-nebula-purple/20 border border-primary/30 text-left"
             >
               <div className="flex items-center gap-2 mb-3">
-                <UserPlus className="w-5 h-5 text-primary" />
-                <h3 className="font-semibold text-foreground">Create Your Account</h3>
+                <UserPlus className="w-5 h-5 text-primary shrink-0" />
+                <h3 className="font-semibold text-foreground text-sm md:text-base">Create Your Account</h3>
               </div>
               
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs md:text-sm text-muted-foreground mb-4">
                 Save your reports, manage subscriptions, and access gifts anytime!
               </p>
               
@@ -410,7 +410,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                     type="email"
                     value={email}
                     disabled
-                    className="pl-10 bg-background/50 text-muted-foreground"
+                    className="pl-10 bg-background/50 text-muted-foreground text-sm"
                   />
                 </div>
                 
@@ -421,7 +421,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                     placeholder="Create a password (6+ characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 text-sm"
                   />
                 </div>
                 
