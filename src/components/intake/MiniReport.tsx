@@ -3,6 +3,8 @@ import { PetData, CosmicReport } from './IntakeWizard';
 import { Lock, Moon, ArrowUp, Sparkles, Star, Heart, Lightbulb, AlertTriangle, Zap, Users, Activity, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TestimonialCarousel } from './TestimonialCarousel';
+import { getPossessive } from '@/lib/pronouns';
+import type { PetGender } from '@/lib/pronouns';
 
 interface MiniReportProps {
   petData: PetData;
@@ -131,13 +133,14 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
 
   const { sunSign, archetype, element, nameVibration, coreEssence, soulMission, hiddenGift, loveLanguage } = cosmicReport;
   const speciesFact = getSpeciesFact(petData.species);
+  const pronoun = getPossessive((petData.gender || '') as PetGender);
 
   const lockedItems = [
-    { icon: Moon, label: "Moon Sign Analysis", preview: "Why their mood shifts unexpectedly...", teaser: "Understanding their emotional rhythms" },
+    { icon: Moon, label: "Moon Sign Analysis", preview: `Why ${pronoun} mood shifts unexpectedly...`, teaser: `Understanding ${pronoun} emotional rhythms` },
     { icon: ArrowUp, label: "Your Soul Contract", preview: "What you're here to teach each other...", teaser: "The deeper purpose of your bond" },
-    { icon: Sparkles, label: "Their Life Purpose", preview: "The role they play in your journey...", teaser: "Why this soul chose to be with you" },
-    { icon: Heart, label: "Emotional Needs Decoded", preview: "What they need but can't express...", teaser: "How to truly understand their heart" },
-    { icon: Zap, label: "Energy & Vitality Insights", preview: "Their unique wellness patterns...", teaser: "Supporting their highest potential" },
+    { icon: Sparkles, label: `${petData.name}'s Life Purpose`, preview: `The role ${pronoun === 'his' ? 'he' : pronoun === 'her' ? 'she' : 'they'} plays in your journey...`, teaser: "Why this soul chose to be with you" },
+    { icon: Heart, label: "Emotional Needs Decoded", preview: `What ${pronoun === 'his' ? 'he needs' : pronoun === 'her' ? 'she needs' : 'they need'} but can't express...`, teaser: `How to truly understand ${pronoun} heart` },
+    { icon: Zap, label: "Energy & Vitality Insights", preview: `${petData.name}'s unique wellness patterns...`, teaser: `Supporting ${pronoun} highest potential` },
   ];
 
   return (
