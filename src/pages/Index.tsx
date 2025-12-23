@@ -139,9 +139,9 @@ const Index = () => {
               </Button>
             </Link>
             
-            {/* Price Anchor - Set expectations */}
+            {/* Trust Signals */}
             <p className="text-xs sm:text-sm text-muted-foreground">
-              From <span className="text-foreground font-semibold">$9.99</span> • Instant delivery • 100% Money-back guarantee
+              Instant delivery • 100% Money-back guarantee
             </p>
             
             {/* Gift Option - Secondary */}
@@ -167,15 +167,15 @@ const Index = () => {
             <div className="bg-card/40 backdrop-blur-sm border border-primary/20 rounded-2xl p-4 sm:p-5">
               <p className="text-xs text-muted-foreground mb-2">Sample from a real report:</p>
               <p className="text-sm sm:text-base text-foreground italic leading-relaxed">
-                "Max isn't just loyal — he's a <span className="text-primary font-medium">Guardian Soul</span> who senses your emotions before you do. His stubborn streak? That's his <span className="text-primary font-medium">ancient wisdom</span> showing..."
+                "Your cat's Venus in Pisces makes her crave affection but only on HER terms — she'll ignore you for hours, then <span className="text-primary font-medium">demand cuddles at 3am</span>. Sound familiar?"
               </p>
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center">
-                  <Dog className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center text-sm">
+                  🐱
                 </div>
                 <div className="text-left">
-                  <p className="text-xs font-medium text-foreground">Max, Golden Retriever</p>
-                  <p className="text-xs text-muted-foreground">Sarah M. • Verified Purchase</p>
+                  <p className="text-xs font-medium text-foreground">Luna, Persian Cat</p>
+                  <p className="text-xs text-muted-foreground">Emily K. • Verified Purchase</p>
                 </div>
               </div>
             </div>
