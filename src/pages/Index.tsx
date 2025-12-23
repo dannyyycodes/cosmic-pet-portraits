@@ -167,7 +167,7 @@ const Index = () => {
             <div className="bg-card/40 backdrop-blur-sm border border-primary/20 rounded-2xl p-4 sm:p-5">
               <p className="text-xs text-muted-foreground mb-2">Sample from a real report:</p>
               <p className="text-sm sm:text-base text-foreground italic leading-relaxed">
-                "Your cat's Venus in Pisces makes her crave affection but only on HER terms — she'll ignore you for hours, then <span className="text-primary font-medium">demand cuddles at 3am</span>. Sound familiar?"
+                "Your cat's Venus in Pisces explains the 3am zoomies. She's not crazy — she's just <span className="text-primary font-medium">cosmically activated</span> when you're trying to sleep. Also, she judges your life choices. A lot."
               </p>
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center text-sm">
