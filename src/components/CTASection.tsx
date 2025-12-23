@@ -21,31 +21,31 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
       {isFinal ? (
           <>
             <h2 className="text-3xl md:text-4xl font-serif font-semibold text-foreground mb-4">
-              Don't Miss Out — Pet Lovers Are Raving About This
+              You Know They're Weird. Now Find Out <em>How</em> Weird.
             </h2>
             <p className="text-lg text-muted-foreground mb-6">
-              "I've never understood my cat like this before." — Join 50,000+ pet parents who finally <em>get</em> their companion.
+              "I showed my dog his report. He looked guilty. That's how I knew it was accurate." — Join 50,000+ pet parents who finally get it.
             </p>
             {/* Value Stack */}
             <div className="flex flex-wrap justify-center gap-4 mb-8 text-sm">
               <span className="flex items-center gap-1 text-primary">
-                <CheckCircle className="w-4 h-4" /> Instant Digital Delivery
+                <CheckCircle className="w-4 h-4" /> Instant Delivery
               </span>
               <span className="flex items-center gap-1 text-primary">
-                <CheckCircle className="w-4 h-4" /> The Perfect Gift for Any Pet Lover
+                <CheckCircle className="w-4 h-4" /> Scarily Accurate
               </span>
               <span className="flex items-center gap-1 text-primary">
-                <CheckCircle className="w-4 h-4" /> 7-Day Money-Back Guarantee
+                <CheckCircle className="w-4 h-4" /> Money-Back If Your Pet Disagrees
               </span>
             </div>
           </>
         ) : (
           <>
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-4">
-              Unlock Your Pet's <span className="text-primary">Cosmic Profile</span>
+              Your Pet Has Opinions. <span className="text-primary">We've Translated Them.</span>
             </h2>
             <p className="text-muted-foreground mb-8">
-              Discover what the stars reveal about your furry friend's unique personality.
+              A personality report that explains all those "quirks" you've been wondering about.
             </p>
           </>
         )}
@@ -54,7 +54,7 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
           <Link to="/intake?mode=discover">
             <Button variant="cosmic" size="lg" className="text-lg px-8 py-6 group shadow-[0_0_25px_hsl(var(--primary)/0.3)]">
               <Sparkles className="w-5 h-5 mr-2" />
-              {isFinal ? "Yes, I Want This For My Pet!" : "Discover My Pet's Secrets →"}
+              {isFinal ? "Okay Fine, Expose My Pet →" : "Get My Pet's Report →"}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>

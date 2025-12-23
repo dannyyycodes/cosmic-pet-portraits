@@ -1,23 +1,30 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const loadingMessages = [
-  "Aligning Star Charts...",
-  "Calculating Sun Position...",
-  "Decoding Archetype...",
-  "Reading Elemental Signature...",
+interface CosmicLoadingProps {
+  petName?: string;
+}
+
+const getLoadingMessages = (name: string) => [
+  `Reading ${name}'s soul...`,
+  `Calculating mischief levels...`,
+  `Decoding ${name}'s side-eye...`,
+  `Analyzing treat motivation...`,
+  `Cross-referencing nap schedules...`,
+  `Consulting the chaos charts...`,
 ];
 
-export function CosmicLoading() {
+export function CosmicLoading({ petName = 'your pet' }: CosmicLoadingProps) {
   const [messageIndex, setMessageIndex] = useState(0);
+  const messages = getLoadingMessages(petName);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
-    }, 800);
+      setMessageIndex((prev) => (prev + 1) % messages.length);
+    }, 1200);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [messages.length]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -93,7 +100,7 @@ export function CosmicLoading() {
               exit={{ opacity: 0, y: -10 }}
               className="text-lg text-foreground/80 font-medium"
             >
-              {loadingMessages[messageIndex]}
+              {messages[messageIndex]}
             </motion.p>
           </AnimatePresence>
         </div>
@@ -110,7 +117,7 @@ export function CosmicLoading() {
           ))}
         </div>
 
-        {/* Quote */}
+        {/* Fun quote */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -118,9 +125,9 @@ export function CosmicLoading() {
           className="pt-8 border-t border-border/30"
         >
           <p className="text-muted-foreground italic text-sm leading-relaxed">
-            "The world would be a nicer place if everyone had the ability to love as unconditionally as a dog."
+            "Nobody truly knows what goes on behind those eyes. But we're about to find out."
           </p>
-          <p className="text-primary/60 text-xs mt-2">— M.K. Clinton</p>
+          <p className="text-primary/60 text-xs mt-2">— AstroPets Research Division</p>
         </motion.div>
       </div>
     </div>
