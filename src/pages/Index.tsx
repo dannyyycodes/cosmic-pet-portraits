@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Star, Sparkles, Gift, Dog } from "lucide-react";
@@ -14,6 +14,7 @@ import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 import { TrackedSection } from "@/components/TrackedSection";
+import { SampleCarousel } from "@/components/SampleCarousel";
 
 const Index = () => {
   const { t } = useLanguage();
@@ -157,29 +158,8 @@ const Index = () => {
             </Link>
           </motion.div>
 
-          {/* SAMPLE PREVIEW - Show what they get */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-            className="relative max-w-sm mx-auto"
-          >
-            <div className="bg-card/40 backdrop-blur-sm border border-primary/20 rounded-2xl p-4 sm:p-5">
-              <p className="text-xs text-muted-foreground mb-2">Sample from a real report:</p>
-              <p className="text-sm sm:text-base text-foreground italic leading-relaxed">
-                "Your cat's Venus in Pisces explains the 3am zoomies. She's not crazy — she's just <span className="text-primary font-medium">cosmically activated</span> when you're trying to sleep. Also, she judges your life choices. A lot."
-              </p>
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/30">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center text-sm">
-                  🐱
-                </div>
-                <div className="text-left">
-                  <p className="text-xs font-medium text-foreground">Luna, Persian Cat</p>
-                  <p className="text-xs text-muted-foreground">Emily K. • Verified Purchase</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          {/* ROTATING SAMPLE PREVIEWS - Viral meme style */}
+          <SampleCarousel />
         </div>
       </TrackedSection>
 
