@@ -8,6 +8,98 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const getEmailTemplate = (petName: string, reportUrl: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  
+  <!-- Outer container with gradient border effect -->
+  <div style="max-width: 600px; margin: 0 auto; padding: 2px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #d946ef 50%, #f59e0b 75%, #6366f1 100%); border-radius: 20px;">
+    
+    <!-- Inner container -->
+    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 18px; padding: 48px 32px;">
+      
+      <!-- Logo/Header -->
+      <div style="text-align: center; margin-bottom: 40px;">
+        <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(217, 70, 239, 0.2) 100%); border-radius: 50px; border: 1px solid rgba(139, 92, 246, 0.3);">
+          <span style="font-size: 24px;">✨🐾✨</span>
+        </div>
+      </div>
+
+      <!-- Status Badge -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <span style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">
+          ● Reading Complete
+        </span>
+      </div>
+
+      <!-- Main Title -->
+      <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0 0 16px 0; text-align: center; line-height: 1.2; background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+        ${petName}'s Cosmic Profile is Ready
+      </h1>
+      
+      <p style="color: #9ca3af; font-size: 16px; line-height: 1.7; margin: 0 0 36px 0; text-align: center;">
+        We've analyzed the stars and uncovered ${petName}'s unique cosmic blueprint. Discover what makes your companion truly special.
+      </p>
+
+      <!-- Feature Cards -->
+      <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 24px; margin: 0 0 32px 0; border: 1px solid rgba(255,255,255,0.06);">
+        <p style="color: #d1d5db; font-size: 13px; font-weight: 600; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+          What You'll Discover
+        </p>
+        <div style="display: block;">
+          <div style="display: flex; align-items: center; margin-bottom: 12px;">
+            <span style="width: 32px; height: 32px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 32px; font-size: 14px; margin-right: 12px;">🌟</span>
+            <span style="color: #e5e7eb; font-size: 14px;">Core personality traits & cosmic energy</span>
+          </div>
+          <div style="display: flex; align-items: center; margin-bottom: 12px;">
+            <span style="width: 32px; height: 32px; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 32px; font-size: 14px; margin-right: 12px;">💜</span>
+            <span style="color: #e5e7eb; font-size: 14px;">How ${petName} expresses & receives love</span>
+          </div>
+          <div style="display: flex; align-items: center;">
+            <span style="width: 32px; height: 32px; background: linear-gradient(135deg, #d946ef 0%, #f59e0b 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 32px; font-size: 14px; margin-right: 12px;">🔮</span>
+            <span style="color: #e5e7eb; font-size: 14px;">Tips for deeper bonding & understanding</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA Button -->
+      <div style="text-align: center; margin: 36px 0;">
+        <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f59e0b 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;">
+          View ${petName}'s Reading →
+        </a>
+      </div>
+
+      <!-- Divider -->
+      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.3) 50%, transparent 100%); margin: 40px 0;"></div>
+
+      <!-- Footer -->
+      <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
+        Save this email to access your reading anytime.<br>
+        Questions? Simply reply to this message.
+      </p>
+
+      <!-- Brand Footer -->
+      <div style="text-align: center; margin-top: 32px;">
+        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
+          AstroPets
+        </p>
+      </div>
+
+    </div>
+  </div>
+  
+  <!-- Spacer for email clients -->
+  <div style="height: 20px;"></div>
+  
+</body>
+</html>
+`;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -43,61 +135,8 @@ serve(async (req) => {
     const emailResult = await resend.emails.send({
       from: "AstroPets <hello@astropets.cloud>",
       to: [email],
-      subject: `${petName}'s Cosmic Reading is Ready`,
-      html: `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="margin: 0; padding: 0; background-color: #0f0a1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="max-width: 560px; margin: 0 auto; padding: 48px 24px;">
-    
-    <p style="color: #a0a0b0; font-size: 14px; margin: 0 0 32px 0; text-align: center;">
-      Your pet's reading is complete
-    </p>
-
-    <h1 style="color: #ffffff; font-size: 28px; font-weight: 600; margin: 0 0 16px 0; text-align: center; line-height: 1.3;">
-      ${petName}'s cosmic profile is ready to explore
-    </h1>
-    
-    <p style="color: #a0a0b0; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">
-      We've mapped out ${petName}'s personality traits, hidden gifts, and what makes them truly special.
-    </p>
-
-    <div style="text-align: center; margin: 32px 0;">
-      <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 15px;">
-        View ${petName}'s Reading
-      </a>
-    </div>
-
-    <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 24px; margin: 32px 0;">
-      <p style="color: #e0e0e0; font-size: 14px; font-weight: 500; margin: 0 0 16px 0;">
-        What you'll discover:
-      </p>
-      <ul style="color: #a0a0b0; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px;">
-        <li>Their core personality and what drives them</li>
-        <li>How they show and receive love</li>
-        <li>Tips for deeper bonding based on their nature</li>
-      </ul>
-    </div>
-
-    <p style="color: #707080; font-size: 13px; margin: 32px 0 0 0; text-align: center; line-height: 1.6;">
-      Save this email to access the reading anytime.<br>
-      Questions? Just reply to this email.
-    </p>
-
-    <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 40px; padding-top: 24px; text-align: center;">
-      <p style="color: #505060; font-size: 12px; margin: 0;">
-        AstroPets
-      </p>
-    </div>
-
-  </div>
-</body>
-</html>
-      `,
+      subject: `${petName}'s Cosmic Reading is Ready ✨`,
+      html: getEmailTemplate(petName, reportUrl),
     });
 
     const resendError = (emailResult as any)?.error;
