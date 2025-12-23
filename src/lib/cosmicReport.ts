@@ -120,10 +120,26 @@ function getBreedInsight(breed: string, name: string, verb: VerbTense = { is: 'i
   return '';
 }
 
-// Soul type descriptors (matching backend)
+// Soul type descriptors - now with pronoun support
+function getSoulTypeDescriptor(soulType: string, pronoun: string, possessive: string): string {
+  const descriptors: Record<string, string> = {
+    'old soul': `carries ancient wisdom—${pronoun} understands more than ${pronoun} lets on`,
+    'old-soul': `carries ancient wisdom—${pronoun} understands more than ${pronoun} lets on`,
+    'playful spirit': `is eternally young at heart—finding fun in everything`,
+    'playful-forever': `is eternally young at heart—finding fun in everything`,
+    'guardian': `has a protective, watchful nature—your loyal sentinel`,
+    'healer': `intuitively knows when you need comfort—a natural therapist`,
+    'wise-healer': `intuitively knows when you need comfort—a natural therapist`,
+    'adventurer': `lives for exploration—always ready for the next discovery`,
+    'zen master': `embodies calm presence—teaching you to simply BE`,
+  };
+  return descriptors[soulType.toLowerCase()] || soulType;
+}
+
+// Legacy static descriptors for backward compatibility
 const soulTypeDescriptors: Record<string, string> = {
-  'old soul': 'carries ancient wisdom—they understand more than they let on',
-  'old-soul': 'carries ancient wisdom—they understand more than they let on',
+  'old soul': 'carries ancient wisdom—understanding more than meets the eye',
+  'old-soul': 'carries ancient wisdom—understanding more than meets the eye',
   'playful spirit': 'is eternally young at heart—finding fun in everything',
   'playful-forever': 'is eternally young at heart—finding fun in everything',
   'guardian': 'has a protective, watchful nature—your loyal sentinel',
@@ -133,68 +149,92 @@ const soulTypeDescriptors: Record<string, string> = {
   'zen master': 'embodies calm presence—teaching you to simply BE',
 };
 
-// Superpower descriptors (matching backend)
+// Superpower descriptors - now with pronoun support
+function getSuperpowerDescriptor(superpower: string, pronoun: string, possessive: string): string {
+  const descriptors: Record<string, string> = {
+    'telepathy': `seems to read your mind—knowing what you need before you do`,
+    'healing presence': `${possessive} presence alone is healing—anxiety melts around ${pronoun}`,
+    'comic relief': `has impeccable comedic timing—laughter follows ${pronoun} everywhere`,
+    'unconditional love': `loves without conditions—accepting you completely, flaws and all`,
+    'emotional radar': `senses emotions others miss—an emotional barometer for the home`,
+    'calming presence': `radiates peace—stress dissolves in ${possessive} presence`,
+  };
+  return descriptors[superpower.toLowerCase()] || superpower;
+}
+
+// Legacy static descriptors for backward compatibility  
 const superpowerDescriptors: Record<string, string> = {
   'telepathy': 'seems to read your mind—knowing what you need before you do',
-  'healing presence': 'their presence alone is healing—anxiety melts around them',
-  'comic relief': 'has impeccable comedic timing—laughter follows them everywhere',
+  'healing presence': 'a healing presence—anxiety melts when near',
+  'comic relief': 'has impeccable comedic timing—laughter follows everywhere',
   'unconditional love': 'loves without conditions—accepting you completely, flaws and all',
   'emotional radar': 'senses emotions others miss—an emotional barometer for the home',
-  'calming presence': 'radiates peace—stress dissolves in their presence',
+  'calming presence': 'radiates peace—stress dissolves nearby',
 };
 
-// Stranger reaction descriptors (matching backend)
+// Stranger reaction descriptors - now with pronoun support
+function getStrangerDescriptor(reaction: string, pronoun: string, possessive: string): string {
+  const descriptors: Record<string, string> = {
+    'shy': `cautious with new people—trust is earned, not freely given`,
+    'hiding': `cautious with new people—trust is earned, not freely given`,
+    'cautious': `balances wariness with curiosity—warming up gradually`,
+    'friendly': `welcomes everyone—strangers are just friends ${pronoun} hasn't met`,
+    'excited': `greets everyone with boundless enthusiasm`,
+    'overwhelming': `greets everyone with boundless enthusiasm`,
+    'protective': `is a watchful guardian—strangers must prove themselves worthy`,
+    'indifferent': `acknowledges strangers when ${pronoun} chooses—${possessive} attention is a gift`,
+    'aloof': `acknowledges strangers when ${pronoun} chooses—${possessive} attention is a gift`,
+  };
+  return descriptors[reaction.toLowerCase()] || reaction;
+}
+
+// Legacy static descriptors for backward compatibility
 const strangerDescriptors: Record<string, string> = {
   'shy': 'cautious with new people—trust is earned, not freely given',
   'hiding': 'cautious with new people—trust is earned, not freely given',
   'cautious': 'balances wariness with curiosity—warming up gradually',
-  'friendly': 'welcomes everyone—strangers are just friends they haven\'t met',
+  'friendly': 'welcomes everyone—strangers are just friends not yet met',
   'excited': 'greets everyone with boundless enthusiasm',
   'overwhelming': 'greets everyone with boundless enthusiasm',
   'protective': 'is a watchful guardian—strangers must prove themselves worthy',
-  'indifferent': 'acknowledges strangers when they choose—their attention is a gift',
-  'aloof': 'acknowledges strangers when they choose—their attention is a gift',
+  'indifferent': 'acknowledges strangers selectively—attention is a gift',
+  'aloof': 'acknowledges strangers selectively—attention is a gift',
 };
 
-// Generate owner insight from provided data with tense support
+// Generate owner insight from provided data with tense and pronoun support
 function getOwnerInsight(petData: PetData, verb: VerbTense = { is: 'is', has: 'has', does: 'does', loves: 'loves', brings: 'brings', makes: 'makes', feels: 'feels', shows: 'shows', reacts: 'reacts', greets: 'greets' }): string {
-  const { name, soulType, superpower, strangerReaction } = petData;
+  const { name, gender, soulType, superpower, strangerReaction } = petData;
   const insights: string[] = [];
   const isPast = verb.is === 'was';
   
-  // Check soul type
+  // Get pronouns based on gender
+  const pronoun = gender === 'girl' ? 'she' : gender === 'boy' ? 'he' : 'they';
+  const possessive = gender === 'girl' ? 'her' : gender === 'boy' ? 'his' : 'their';
+  
+  // Check soul type - use pronoun-aware descriptor
   if (soulType) {
-    const soulLower = soulType.toLowerCase();
-    for (const [key, desc] of Object.entries(soulTypeDescriptors)) {
-      if (soulLower.includes(key.split(' ')[0]) || soulLower.includes(key.split('-')[0])) {
-        const pastDesc = desc.replace('carries', 'carried').replace('is ', 'was ').replace('has ', 'had ').replace('intuitively knows', 'intuitively knew').replace('lives', 'lived').replace('embodies', 'embodied');
-        insights.push(`${name} ${isPast ? pastDesc : desc}`);
-        break;
-      }
+    const desc = getSoulTypeDescriptor(soulType, pronoun, possessive);
+    if (desc !== soulType) { // Only if we found a matching descriptor
+      const pastDesc = desc.replace('carries', 'carried').replace('is ', 'was ').replace('has ', 'had ').replace('intuitively knows', 'intuitively knew').replace('lives', 'lived').replace('embodies', 'embodied').replace('understands', 'understood').replace('lets', 'let');
+      insights.push(`${name} ${isPast ? pastDesc : desc}`);
     }
   }
   
-  // Check superpower
+  // Check superpower - use pronoun-aware descriptor
   if (superpower) {
-    const powerLower = superpower.toLowerCase();
-    for (const [key, desc] of Object.entries(superpowerDescriptors)) {
-      if (powerLower.includes(key.split(' ')[0])) {
-        const pastDesc = desc.replace('seems', 'seemed').replace('is ', 'was ').replace('has ', 'had ').replace('loves', 'loved').replace('senses', 'sensed').replace('radiates', 'radiated');
-        insights.push(`${name} ${isPast ? pastDesc : desc}`);
-        break;
-      }
+    const desc = getSuperpowerDescriptor(superpower, pronoun, possessive);
+    if (desc !== superpower) { // Only if we found a matching descriptor
+      const pastDesc = desc.replace('seems', 'seemed').replace('is ', 'was ').replace('has ', 'had ').replace('loves', 'loved').replace('senses', 'sensed').replace('radiates', 'radiated').replace('follows', 'followed').replace('dissolves', 'dissolved').replace('melts', 'melted');
+      insights.push(`${name} ${isPast ? pastDesc : desc}`);
     }
   }
   
-  // Check stranger reaction
+  // Check stranger reaction - use pronoun-aware descriptor
   if (strangerReaction) {
-    const reactionLower = strangerReaction.toLowerCase();
-    for (const [key, desc] of Object.entries(strangerDescriptors)) {
-      if (reactionLower.includes(key)) {
-        const pastDesc = desc.replace('is ', 'was ').replace('balances', 'balanced').replace('welcomes', 'welcomed').replace('greets', 'greeted').replace('acknowledges', 'acknowledged');
-        insights.push(`With strangers, ${name} ${isPast ? pastDesc : desc}`);
-        break;
-      }
+    const desc = getStrangerDescriptor(strangerReaction, pronoun, possessive);
+    if (desc !== strangerReaction) { // Only if we found a matching descriptor
+      const pastDesc = desc.replace('is ', 'was ').replace('balances', 'balanced').replace('welcomes', 'welcomed').replace('greets', 'greeted').replace('acknowledges', 'acknowledged').replace('chooses', 'chose').replace("hasn't", "hadn't");
+      insights.push(`With strangers, ${name} ${isPast ? pastDesc : desc}`);
     }
   }
   
