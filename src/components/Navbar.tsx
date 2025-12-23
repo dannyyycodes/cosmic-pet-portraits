@@ -41,10 +41,7 @@ export function Navbar() {
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold to-tangerine flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-background" />
-            </div>
+          <Link to="/" className="flex items-center">
             <span className="font-serif text-lg font-semibold text-foreground">
               AstroPets
             </span>
@@ -116,14 +113,9 @@ export function Navbar() {
               <SheetContent side="right" className="w-[300px] bg-background/95 backdrop-blur-xl border-l border-border/50 p-0">
                 <SheetHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold to-tangerine flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-background" />
-                      </div>
-                      <SheetTitle className="font-serif text-lg font-semibold text-foreground">
-                        AstroPets
-                      </SheetTitle>
-                    </div>
+                    <SheetTitle className="font-serif text-lg font-semibold text-foreground">
+                      AstroPets
+                    </SheetTitle>
                   </div>
                 </SheetHeader>
                 
