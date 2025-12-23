@@ -106,10 +106,10 @@ const Index = () => {
             className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif font-bold leading-tight mb-3 sm:mb-6"
           >
             <span className="text-gradient-gold-purple block">
-              Finally Understand
+              Discover What Makes
             </span>
             <span className="text-gradient-gold-purple block">
-              Your Little Weirdo 🐾
+              Your Best Friend Unique 🐾
             </span>
           </motion.h1>
 
@@ -120,8 +120,8 @@ const Index = () => {
             transition={{ duration: 0.3, delay: 0.2 }}
             className="text-sm sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-5 sm:mb-8 leading-relaxed"
           >
-            Get a <span className="text-foreground font-semibold">hilariously accurate personality report</span> about YOUR pet.
-            <span className="hidden sm:inline"> It's like a horoscope, but for your cat/dog/hamster. And funnier.</span>
+            A <span className="text-foreground font-semibold">personalized personality report</span> that captures everything special about your beloved companion.
+            <span className="hidden sm:inline"> Thousands of pet parents have been moved to tears.</span>
             <span className="text-foreground font-medium"> Ready in 60 seconds.</span>
           </motion.p>
 
@@ -135,7 +135,7 @@ const Index = () => {
             <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')} className="w-full sm:w-auto max-w-xs sm:max-w-none">
               <Button variant="cosmic" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 group shadow-[0_0_30px_hsl(var(--primary)/0.4)] animate-pulse-glow">
               <Sparkles className="w-5 h-5 mr-2 shrink-0" />
-                <span className="whitespace-nowrap">Expose My Pet's Secrets</span>
+                <span className="whitespace-nowrap">Get My Pet's Report</span>
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
