@@ -100,43 +100,43 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
       they: 'they',
     },
     
-    nameTitle: "First things first — what do you call your little weirdo?",
-    nameSubtitle: "The name they definitely respond to. Sometimes. When there's food.",
+    nameTitle: "What is your beloved friend's name?",
+    nameSubtitle: "Let's discover what makes them so special.",
     
-    speciesTitle: (name) => `What kind of creature is ${name}?`,
-    speciesSubtitle: "Don't worry, we love them all equally. (That's a lie, we have favorites.)",
+    speciesTitle: (name) => `What kind of companion is ${name}?`,
+    speciesSubtitle: "Every species has their own beautiful way of connecting.",
     
-    breedTitle: (name) => `And ${name} is a...?`,
-    breedSubtitle: "Purebred, mystery mutt, or 'the shelter said maybe Lab mix' — all good.",
+    breedTitle: (name) => `What breed is ${name}?`,
+    breedSubtitle: "This helps us understand their unique personality.",
     
-    genderTitle: (name) => `Is ${name} a good boy or a good girl?`,
-    genderSubtitle: "This helps us get the pronouns right. Very important for their ego.",
+    genderTitle: (name) => `Is ${name} a boy or girl?`,
+    genderSubtitle: "So we can personalize their reading just for them.",
     
-    dobTitle: (name) => `When did ${name} grace this planet with their presence?`,
-    dobSubtitle: "Approximate is fine. They certainly don't remember.",
+    dobTitle: (name) => `When was ${name} born?`,
+    dobSubtitle: "The day the universe gave you this gift.",
     
-    locationTitle: (name) => `Where does ${name} rule their kingdom?`,
-    locationSubtitle: "City, country, or wherever they've claimed as their throne.",
+    locationTitle: (name) => `Where does ${name} call home?`,
+    locationSubtitle: "The place they've filled with love.",
     
-    soulTitle: "You know that look in their eyes? What's behind it?",
-    soulSubtitle: (name) => `Trust your gut — what kind of soul lives inside ${name}?`,
+    soulTitle: "When you look into their eyes, what do you see?",
+    soulSubtitle: (name) => `Trust your heart — you know ${name} better than anyone.`,
     
-    superpowerTitle: (name) => `If ${name} had one superpower, what would it be?`,
-    superpowerSubtitle: "Besides making you late for work, obviously.",
+    superpowerTitle: (name) => `What is ${name}'s greatest gift?`,
+    superpowerSubtitle: "The special way they brighten your world.",
     
-    strangersTitle: (name) => `A stranger approaches. ${name}'s reaction?`,
-    strangersSubtitle: "Are we talking new best friend or suspicious until proven otherwise?",
+    strangersTitle: (name) => `How does ${name} greet new people?`,
+    strangersSubtitle: "This tells us about their beautiful spirit.",
     
-    photoTitle: (name) => `Let's see that face! Show us ${name}`,
-    photoSubtitle: "Pick one where they look majestic. Or unhinged. Dealer's choice.",
+    photoTitle: (name) => `Share a photo of ${name}`,
+    photoSubtitle: "Show us the face that lights up your life.",
     photoPlaceholder: "Drop your favorite photo here",
     
-    emailBadge: "Report Brewing...",
-    emailTitle: (name) => `We're crafting ${name}'s personality report`,
-    emailSubtitle: "Where should we send this masterpiece?",
+    emailBadge: "Report Ready",
+    emailTitle: (name) => `${name}'s personality report is complete`,
+    emailSubtitle: "Where should we send this heartfelt reading?",
     emailButton: "Send My Report →",
     
-    reportIntro: (name) => `Everything you suspected about ${name} is probably true — and then some.`,
+    reportIntro: (name) => `A loving portrait of ${name} — your irreplaceable companion.`,
     sectionTitleSuffix: 'Bring',
   },
   
@@ -162,43 +162,43 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
       they: 'they',
     },
     
-    nameTitle: "Who's the birthday star?! 🎂",
-    nameSubtitle: "Another trip around the sun for this little legend.",
+    nameTitle: "Who's celebrating their special day? 🎂",
+    nameSubtitle: "Another year of unconditional love.",
     
-    speciesTitle: (name) => `What species is birthday royalty ${name}?`,
-    speciesSubtitle: "Each creature celebrates in their own chaotic way.",
+    speciesTitle: (name) => `What kind of companion is ${name}?`,
+    speciesSubtitle: "Every birthday deserves to be celebrated.",
     
-    breedTitle: (name) => `What breed is the birthday superstar ${name}?`,
-    breedSubtitle: "Adds extra flair to their big day reading.",
+    breedTitle: (name) => `What breed is ${name}?`,
+    breedSubtitle: "Adding personal touches to their birthday reading.",
     
     genderTitle: (name) => `Is ${name} a birthday boy or birthday girl?`,
-    genderSubtitle: "Time to party! 🎉",
+    genderSubtitle: "Time to celebrate! 🎉",
     
-    dobTitle: (name) => `The big question — exactly when was ${name} born?`,
-    dobSubtitle: "The universe aligned perfectly for this moment.",
+    dobTitle: (name) => `When was ${name} born?`,
+    dobSubtitle: "The day that changed everything.",
     
-    locationTitle: (name) => `Where will ${name} be smashing their birthday cake?`,
-    locationSubtitle: "Their home turf for the celebration.",
+    locationTitle: (name) => `Where does ${name} celebrate?`,
+    locationSubtitle: "Their home filled with love.",
     
-    soulTitle: "What kind of party animal are we dealing with?",
-    soulSubtitle: (name) => `Describe ${name}'s celebratory spirit.`,
+    soulTitle: "What kind of soul lights up your life?",
+    soulSubtitle: (name) => `Describe the joy ${name} brings every day.`,
     
-    superpowerTitle: (name) => `What makes ${name} the life of the party?`,
-    superpowerSubtitle: "Their birthday magic power.",
+    superpowerTitle: (name) => `What makes ${name} so special?`,
+    superpowerSubtitle: "The gift they share with everyone they meet.",
     
-    strangersTitle: (name) => `Party guests arriving — how does ${name} react?`,
-    strangersSubtitle: "Social butterfly or supervising from a distance?",
+    strangersTitle: (name) => `How does ${name} greet party guests?`,
+    strangersSubtitle: "Their welcoming spirit.",
     
-    photoTitle: (name) => `Show us ${name} in all their birthday glory!`,
-    photoSubtitle: "With or without the party hat. We're not picky.",
+    photoTitle: (name) => `Share a photo of ${name}`,
+    photoSubtitle: "Capture their birthday glow.",
     photoPlaceholder: "Drop a birthday photo here",
     
     emailBadge: "Birthday Reading Ready!",
-    emailTitle: (name) => `${name}'s birthday cosmic portrait is wrapped and ready`,
-    emailSubtitle: "Where should we deliver this celebration?",
+    emailTitle: (name) => `${name}'s birthday tribute is complete`,
+    emailSubtitle: "Where should we send this celebration?",
     emailButton: "Send Birthday Report →",
     
-    reportIntro: (name) => `Another year older, another year weirder — happy birthday, ${name}!`,
+    reportIntro: (name) => `Celebrating another beautiful year with ${name} — a soul that brings endless joy.`,
     sectionTitleSuffix: 'Bring',
   },
   
@@ -233,8 +233,8 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     breedTitle: (name) => `What breed was ${name}?`,
     breedSubtitle: "Remembering everything that made them unique.",
     
-    genderTitle: (name) => `Was ${name} a good boy or a good girl?`,
-    genderSubtitle: "The best. We already know.",
+    genderTitle: (name) => `Was ${name} a boy or girl?`,
+    genderSubtitle: "The best friend you'll never forget.",
     
     dobTitle: (name) => `When did ${name} come into your life?`,
     dobSubtitle: "The day everything got better.",
@@ -243,16 +243,16 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     locationSubtitle: "The place they made brighter just by being there.",
     
     soulTitle: "When you looked into their eyes, what did you see?",
-    soulSubtitle: (name) => `Remember the light that ${name} carried.`,
+    soulSubtitle: (name) => `Remember the love that ${name} carried.`,
     
     superpowerTitle: (name) => `What was ${name}'s greatest gift to you?`,
     superpowerSubtitle: "The special magic that's still with you.",
     
     strangersTitle: (name) => `How did ${name} greet new friends?`,
-    strangersSubtitle: "Every soul has their own way of connecting.",
+    strangersSubtitle: "The way they touched every heart.",
     
-    photoTitle: (name) => `Share a photo of ${name}`,
-    photoSubtitle: "A memory to treasure forever.",
+    photoTitle: (name) => `Share a treasured photo of ${name}`,
+    photoSubtitle: "A memory to hold forever.",
     photoPlaceholder: "Drop a cherished photo here",
     
     emailBadge: "Memorial Ready",
@@ -260,7 +260,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     emailSubtitle: "Where should we send this love letter to their memory?",
     emailButton: "Send Memorial →",
     
-    reportIntro: (name) => `For ${name}, who taught us that love doesn't need words — and never truly leaves.`,
+    reportIntro: (name) => `For ${name}, whose love lives on in our hearts forever.`,
     sectionTitleSuffix: 'Brought',
   },
   
@@ -286,43 +286,43 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
       they: 'they',
     },
     
-    nameTitle: "Who's the lucky pet getting this gift?",
-    nameSubtitle: "You're about to make someone's day. And their human's too.",
+    nameTitle: "What's the name of this special pet?",
+    nameSubtitle: "You're creating a gift they'll treasure forever.",
     
-    speciesTitle: (name) => `What type of creature is ${name}?`,
-    speciesSubtitle: "Each species gets their own cosmic treatment.",
+    speciesTitle: (name) => `What kind of companion is ${name}?`,
+    speciesSubtitle: "Every pet has their own beautiful story.",
     
     breedTitle: (name) => `What breed is ${name}?`,
     breedSubtitle: "Makes the gift even more personal.",
     
     genderTitle: (name) => `Is ${name} a boy or girl?`,
-    genderSubtitle: "Getting the details right for maximum impact.",
+    genderSubtitle: "Personalizing every detail.",
     
     dobTitle: (name) => `When was ${name} born?`,
-    dobSubtitle: "This makes the reading scarily accurate.",
+    dobSubtitle: "This makes their reading deeply personal.",
     
     locationTitle: (name) => `Where does ${name} live?`,
-    locationSubtitle: "Adds local flavor to their reading.",
+    locationSubtitle: "Adds a personal touch to their reading.",
     
     soulTitle: "What kind of soul does this pet have?",
-    soulSubtitle: (name) => `Describe ${name}'s vibe.`,
+    soulSubtitle: (name) => `Describe ${name}'s beautiful spirit.`,
     
-    superpowerTitle: (name) => `What's ${name}'s superpower?`,
-    superpowerSubtitle: "The thing that makes their human melt.",
+    superpowerTitle: (name) => `What is ${name}'s special gift?`,
+    superpowerSubtitle: "What makes them so lovable.",
     
     strangersTitle: (name) => `How does ${name} react to new people?`,
-    strangersSubtitle: "Helps us nail their personality.",
+    strangersSubtitle: "This captures their personality perfectly.",
     
     photoTitle: (name) => `Share a photo of ${name}`,
-    photoSubtitle: "The cuter, the better.",
+    photoSubtitle: "The heart of this beautiful gift.",
     photoPlaceholder: "Drop a photo here",
     
     emailBadge: "Gift Ready!",
-    emailTitle: (name) => `${name}'s surprise is wrapped and ready`,
-    emailSubtitle: "Where should we send this magical gift?",
+    emailTitle: (name) => `${name}'s gift is wrapped and ready`,
+    emailSubtitle: "Where should we send this heartfelt surprise?",
     emailButton: "Send Gift →",
     
-    reportIntro: (name) => `A gift so good, ${name}'s human might cry. (In a good way.)`,
+    reportIntro: (name) => `A gift of love — celebrating the beautiful bond with ${name}.`,
     sectionTitleSuffix: 'Bring',
   },
 };

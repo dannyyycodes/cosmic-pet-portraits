@@ -6,15 +6,15 @@ interface CosmicLoadingProps {
 }
 
 const getLoadingMessages = (name: string) => [
+  `Learning about ${name}...`,
   `Reading ${name}'s soul...`,
-  `Calculating mischief levels...`,
-  `Decoding ${name}'s side-eye...`,
-  `Analyzing treat motivation...`,
-  `Cross-referencing nap schedules...`,
-  `Consulting the chaos charts...`,
+  `Discovering what makes ${name} special...`,
+  `Understanding ${name}'s heart...`,
+  `Capturing ${name}'s unique spirit...`,
+  `Almost there...`,
 ];
 
-export function CosmicLoading({ petName = 'your pet' }: CosmicLoadingProps) {
+export function CosmicLoading({ petName = 'your friend' }: CosmicLoadingProps) {
   const [messageIndex, setMessageIndex] = useState(0);
   const messages = getLoadingMessages(petName);
 
@@ -117,7 +117,7 @@ export function CosmicLoading({ petName = 'your pet' }: CosmicLoadingProps) {
           ))}
         </div>
 
-        {/* Fun quote */}
+        {/* Quote */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -125,9 +125,9 @@ export function CosmicLoading({ petName = 'your pet' }: CosmicLoadingProps) {
           className="pt-8 border-t border-border/30"
         >
           <p className="text-muted-foreground italic text-sm leading-relaxed">
-            "Nobody truly knows what goes on behind those eyes. But we're about to find out."
+            "The world would be a nicer place if everyone had the ability to love as unconditionally as a dog."
           </p>
-          <p className="text-primary/60 text-xs mt-2">— AstroPets Research Division</p>
+          <p className="text-primary/60 text-xs mt-2">— M.K. Clinton</p>
         </motion.div>
       </div>
     </div>
