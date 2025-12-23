@@ -563,7 +563,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
               <div className="flex items-center gap-2 mb-3">
                 <Camera className="w-4 h-4 text-nebula-purple" />
                 <span className="text-sm font-medium text-foreground">
-                  ✨ Transform Your Pet{petsNeedingPhotos.length > 1 ? 's' : ''} Into Stars ({petsNeedingPhotos.length} pet{petsNeedingPhotos.length > 1 ? 's' : ''})
+                  ✨ Get Your Collectible Card Printed ({petsNeedingPhotos.length} pet{petsNeedingPhotos.length > 1 ? 's' : ''})
                 </span>
               </div>
               
