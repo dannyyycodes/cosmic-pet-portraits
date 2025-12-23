@@ -632,10 +632,11 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   }
 
   if (isLoading) {
+    const currentPetName = petsData[currentPetIndex]?.name || 'your pet';
     return (
       <>
         <StarfieldBackground intensity="excited" />
-        <CosmicLoading />
+        <CosmicLoading petName={currentPetName} />
       </>
     );
   }
