@@ -41,7 +41,7 @@ export function IntakeStepPhoto({
         className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-nebula-purple/20 border border-nebula-purple/30"
       >
         <Camera className="w-4 h-4 text-nebula-purple" />
-        <span className="text-nebula-purple text-sm font-medium">AI Portrait Included!</span>
+        <span className="text-nebula-purple text-sm font-medium">✨ Cosmic Portrait Included!</span>
       </motion.div>
 
       <div className="space-y-3">
@@ -49,7 +49,7 @@ export function IntakeStepPhoto({
           Upload {petName}'s Photo
         </h1>
         <p className="text-muted-foreground text-base max-w-md mx-auto">
-          Your gift includes an <span className="text-primary font-medium">AI-generated cosmic portrait</span>! 
+          Your gift includes a <span className="text-primary font-medium">magical cosmic portrait</span>! 
           Upload a photo and we'll transform {petName} into an amazing trading card.
         </p>
       </div>
@@ -77,9 +77,9 @@ export function IntakeStepPhoto({
         <div className="flex items-start gap-3">
           <Wand2 className="w-5 h-5 text-nebula-purple mt-0.5 shrink-0" />
           <div className="text-left">
-            <p className="text-sm font-medium text-foreground">AI Magic Preview</p>
+            <p className="text-sm font-medium text-foreground">✨ Magic Preview</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Our cosmic AI will transform {petName}'s photo into a stunning trading card with zodiac elements and celestial styling!
+              Our cosmic magic will transform {petName}'s photo into a stunning trading card with zodiac elements and celestial styling!
             </p>
           </div>
         </div>

@@ -212,7 +212,7 @@ function SinglePetPhotoUpload({
             </div>
             
             <div className="space-y-1.5">
-              <p className="text-[10px] text-muted-foreground text-center">Or choose AI style:</p>
+              <p className="text-[10px] text-muted-foreground text-center">Or choose a magic style:</p>
               <div className="flex gap-1.5 justify-center flex-wrap">
                 {PROCESSING_OPTIONS.slice(2).map((option) => (
                   <button
@@ -287,7 +287,7 @@ export function MultiPetPhotoUpload({ petsData, petPhotos, onPhotoChange }: Mult
       <div className="flex items-center gap-2 mb-2">
         <Camera className="w-4 h-4 text-nebula-purple" />
         <span className="text-sm font-medium text-foreground">
-          Upload Photos for Your Cards
+          ✨ Transform Your Pet Into a Star
         </span>
       </div>
       
@@ -300,7 +300,7 @@ export function MultiPetPhotoUpload({ petsData, petPhotos, onPhotoChange }: Mult
           </div>
           <div className="flex items-center gap-1.5 text-nebula-purple">
             <Wand2 className="w-3 h-3" />
-            <span><strong>AI Transform</strong> – Cosmic/Collector style</span>
+            <span><strong>Magic Transform</strong> – Cosmic/Collector style</span>
           </div>
         </div>
       </div>
