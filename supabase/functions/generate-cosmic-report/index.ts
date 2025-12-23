@@ -642,13 +642,15 @@ EXAMPLES OF THE VOICE (for non-memorial):
 - BORING: "They love food due to their Taurus influence."
 - ON BRAND: "With Venus in Taurus, ${petData.name} doesn't just eat - ${pronouns.subject} holds a private tasting ceremony. Every. Single. Meal. That disappointed look when you give ${pronouns.object} regular kibble instead of the fancy stuff? That's ${pronouns.possessive} Taurus Venus taking notes. And ${pronouns.subject} WILL remember this."
 
-CRITICAL PRONOUN USAGE (MUST FOLLOW):
-- Gender: ${petData.gender === 'boy' ? 'Male (boy)' : 'Female (girl)'}
-- Subject pronoun: ${pronouns.subject} (e.g., "${pronouns.subject} loves...", "${pronouns.subject} is...")
-- Object pronoun: ${pronouns.object} (e.g., "you love ${pronouns.object}", "call ${pronouns.object}")
-- Possessive pronoun: ${pronouns.possessive} (e.g., "${pronouns.possessive} tail", "${pronouns.possessive} favorite toy")
-- Reflexive pronoun: ${pronouns.reflexive} (e.g., "${pronouns.subject} groomed ${pronouns.reflexive}")
-- NEVER use "they/their/them" to refer to ${petData.name} - ALWAYS use ${pronouns.subject}/${pronouns.object}/${pronouns.possessive}
+⚠️ CRITICAL PRONOUN RULES - YOU MUST FOLLOW THESE EXACTLY ⚠️
+- ${petData.name} is ${petData.gender === 'boy' ? 'a BOY (male)' : 'a GIRL (female)'}
+- ALWAYS use "${pronouns.subject}" instead of "they" (e.g., "${pronouns.subject} loves..." not "they love...")
+- ALWAYS use "${pronouns.object}" instead of "them" (e.g., "pet ${pronouns.object}" not "pet them")
+- ALWAYS use "${pronouns.possessive}" instead of "their" (e.g., "${pronouns.possessive} tail" not "their tail")
+- ALWAYS use "${pronouns.reflexive}" instead of "themselves" (e.g., "${pronouns.subject} enjoyed ${pronouns.reflexive}")
+- ❌ WRONG: "Their adventure drives their personality" 
+- ✅ CORRECT: "${pronouns.possessive.charAt(0).toUpperCase() + pronouns.possessive.slice(1)} adventure drives ${pronouns.possessive} personality"
+- VIOLATION OF PRONOUN RULES IS A CRITICAL ERROR - double-check every sentence!
 
 CRITICAL CONTEXT:
 - Output Language: ${targetLanguage} (ALL TEXT MUST BE IN ${targetLanguage.toUpperCase()})
