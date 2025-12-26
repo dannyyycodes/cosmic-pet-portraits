@@ -1,46 +1,67 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Star, Sparkles, Eye, Crown, Heart, Zap, Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Sparkles, Eye, Crown, ChevronLeft, ChevronRight, Shield, Flame, Brain, Heart as HeartIcon } from 'lucide-react';
 import lunaPersian from '@/assets/samples/luna-persian.jpg';
 import maxGolden from '@/assets/samples/max-golden.jpg';
 
-// Pet showcase data
+// Pet showcase data with fun, viral-worthy traits
 const petShowcases = [
   {
     name: "Luna",
     image: lunaPersian,
     archetype: "The Mystical Dreamer",
+    archetypeEmoji: "🔮",
     sunSign: "Pisces",
     moonSign: "Scorpio",
     element: "Water",
     elementEmoji: "💧",
-    elementColors: { from: 'cyan-500', to: 'violet-500' },
-    stats: [
-      { label: 'Charm', value: 94, color: 'from-pink-500 to-rose-400', icon: Heart },
-      { label: 'Mystery', value: 89, color: 'from-violet-500 to-purple-400', icon: Sparkles },
-      { label: 'Energy', value: 76, color: 'from-amber-500 to-yellow-400', icon: Zap },
+    // Fun, shareable personality traits
+    vibes: [
+      { trait: "Judges Your Life Choices", emoji: "👀", intensity: "Expert Level" },
+      { trait: "3am Zoomies Specialist", emoji: "🌙", intensity: "Legendary" },
+      { trait: "Treat Negotiator", emoji: "🍖", intensity: "Master" },
     ],
+    superpower: "Can sense when you're about to leave the house",
+    chaosLevel: "Controlled Chaos",
+    loveLanguage: "Aggressive Head Bonks",
+    secretTalent: "Telepathic Guilt Trips",
+    rarity: "Ultra Rare",
     power: 86,
   },
   {
     name: "Max",
     image: maxGolden,
     archetype: "The Loyal Guardian",
+    archetypeEmoji: "🛡️",
     sunSign: "Leo",
     moonSign: "Cancer",
     element: "Fire",
     elementEmoji: "🔥",
-    elementColors: { from: 'orange-500', to: 'amber-500' },
-    stats: [
-      { label: 'Loyalty', value: 98, color: 'from-amber-500 to-yellow-400', icon: Heart },
-      { label: 'Energy', value: 92, color: 'from-orange-500 to-red-400', icon: Zap },
-      { label: 'Charm', value: 88, color: 'from-pink-500 to-rose-400', icon: Sparkles },
+    vibes: [
+      { trait: "Professional Tail Wagger", emoji: "💫", intensity: "Infinite" },
+      { trait: "Ball Retrieval Expert", emoji: "🎾", intensity: "Obsessed" },
+      { trait: "Unconditional Love Dealer", emoji: "❤️", intensity: "Maximum" },
     ],
+    superpower: "Knows when you're sad before you do",
+    chaosLevel: "Happy Chaos",
+    loveLanguage: "Full Body Wiggles",
+    secretTalent: "Snack Detection from 3 Rooms Away",
+    rarity: "Legendary",
     power: 93,
   },
 ];
 
-// Premium cosmic card with real artwork
+// Rarity colors
+const rarityColors: Record<string, string> = {
+  "Common": "from-slate-400 to-slate-500",
+  "Uncommon": "from-green-400 to-emerald-500",
+  "Rare": "from-blue-400 to-cyan-500",
+  "Ultra Rare": "from-violet-400 to-purple-500",
+  "Legendary": "from-amber-400 to-orange-500",
+  "Mythic": "from-pink-400 to-rose-500",
+};
+
+// Premium cosmic card - collectible style with fun traits
 function PremiumCosmicCard({ petIndex = 0 }: { petIndex?: number }) {
   const pet = petShowcases[petIndex];
   
@@ -54,198 +75,141 @@ function PremiumCosmicCard({ petIndex = 0 }: { petIndex?: number }) {
       className="relative"
       style={{ perspective: '1000px' }}
     >
-      {/* Outer glow */}
-      <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/30 via-pink-500/30 to-amber-500/30 blur-2xl rounded-3xl" />
+      {/* Outer glow based on rarity */}
+      <div className={`absolute -inset-4 bg-gradient-to-r ${rarityColors[pet.rarity]} blur-2xl rounded-3xl opacity-40`} />
       
       {/* Card container */}
       <div 
-        className="relative w-[280px] rounded-2xl overflow-hidden"
+        className="relative w-[300px] rounded-2xl overflow-hidden"
         style={{
-          background: 'linear-gradient(135deg, #8b5cf6, #ec4899, #f59e0b)',
+          background: `linear-gradient(135deg, #1a1a2e, #16213e)`,
           padding: '3px',
-          boxShadow: '0 0 60px rgba(139, 92, 246, 0.4), 0 25px 50px rgba(0,0,0,0.5)',
+          boxShadow: '0 0 60px rgba(139, 92, 246, 0.3), 0 25px 50px rgba(0,0,0,0.5)',
         }}
       >
+        {/* Holographic border */}
+        <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${rarityColors[pet.rarity]} opacity-80`} />
+        
         {/* Inner card */}
-        <div className="relative bg-slate-900 rounded-xl overflow-hidden">
-          {/* Cosmic background pattern */}
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.3),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(236,72,153,0.2),transparent_60%)]" />
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPgo8L3N2Zz4=')] opacity-40" />
-          </div>
-          
-          {/* Animated stars */}
-          {[...Array(8)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full"
-              style={{
-                left: `${10 + i * 12}%`,
-                top: `${5 + (i % 3) * 8}%`,
-              }}
-              animate={{
-                opacity: [0.2, 1, 0.2],
-                scale: [1, 1.5, 1],
-              }}
-              transition={{
-                duration: 2 + i * 0.3,
-                repeat: Infinity,
-                delay: i * 0.2,
-              }}
-            />
-          ))}
-
-          {/* Header badge */}
-          <div className="relative px-4 pt-4 pb-2">
-            <motion.div 
-              className="flex justify-center"
-              animate={{ y: [0, -2, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              <span className="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-500/40 via-pink-500/40 to-amber-500/40 border border-white/30 text-xs font-bold text-white tracking-wider shadow-lg">
-                ✨ COSMIC REVEAL ✨
+        <div className="relative bg-slate-900 rounded-xl overflow-hidden m-[2px]">
+          {/* Top bar with rarity */}
+          <div className="relative flex items-center justify-between px-3 py-2 bg-black/40">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{pet.archetypeEmoji}</span>
+              <span className={`text-xs font-bold uppercase tracking-wider bg-gradient-to-r ${rarityColors[pet.rarity]} bg-clip-text text-transparent`}>
+                {pet.rarity}
               </span>
-            </motion.div>
-          </div>
-
-          {/* Pet portrait with magical frame */}
-          <div className="relative mx-4 mt-2">
-            <div className="relative aspect-square rounded-xl overflow-hidden">
-              {/* Magical frame border */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-violet-400/50 via-pink-400/50 to-amber-400/50 p-[2px]">
-                <div className="w-full h-full rounded-xl overflow-hidden bg-slate-900">
-                  <img 
-                    src={pet.image}
-                    alt={`${pet.name} the pet`}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Aura overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.2),transparent_70%)]" />
-                </div>
-              </div>
-              
-              {/* Floating orbs */}
-              <motion.div
-                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg"
-                animate={{ 
-                  y: [0, -4, 0],
-                  boxShadow: ['0 0 15px rgba(251, 191, 36, 0.4)', '0 0 25px rgba(251, 191, 36, 0.7)', '0 0 15px rgba(251, 191, 36, 0.4)']
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Sun className="w-4 h-4 text-white" />
-              </motion.div>
-              
-              <motion.div
-                className="absolute bottom-2 left-2 w-7 h-7 rounded-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center shadow-lg"
-                animate={{ 
-                  y: [0, -3, 0],
-                  boxShadow: ['0 0 12px rgba(203, 213, 225, 0.3)', '0 0 20px rgba(203, 213, 225, 0.6)', '0 0 12px rgba(203, 213, 225, 0.3)']
-                }}
-                transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
-              >
-                <Moon className="w-3.5 h-3.5 text-slate-700" />
-              </motion.div>
+            </div>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/30">
+              <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+              <span className="text-xs font-bold text-amber-400">{pet.power}</span>
             </div>
           </div>
 
-          {/* Pet info */}
-          <div className="relative px-4 pt-4 pb-2 text-center">
-            <motion.h3 
-              className="text-2xl font-bold text-white tracking-wide"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              {pet.name}
-            </motion.h3>
-            <motion.div 
-              className="flex items-center justify-center gap-2 mt-1"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
+          {/* Pet portrait with archetype overlay */}
+          <div className="relative mx-3 mt-2">
+            <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
+              {/* Gradient frame */}
+              <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${rarityColors[pet.rarity]} p-[2px]`}>
+                <div className="w-full h-full rounded-lg overflow-hidden bg-slate-900">
+                  <img 
+                    src={pet.image}
+                    alt={`${pet.name}`}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Dramatic overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.1),transparent_60%)]" />
+                </div>
+              </div>
+              
+              {/* Element badge */}
+              <motion.div
+                className="absolute top-2 right-2 w-10 h-10 rounded-full bg-black/70 border-2 border-white/20 flex items-center justify-center text-xl"
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 4, repeat: Infinity }}
+              >
+                {pet.elementEmoji}
+              </motion.div>
+              
+              {/* Signs at bottom */}
+              <div className="absolute bottom-2 left-2 right-2 flex justify-center gap-2">
+                <div className="px-2 py-1 rounded-full bg-black/70 backdrop-blur text-[10px] font-medium text-white/90 border border-white/10">
+                  ☉ {pet.sunSign}
+                </div>
+                <div className="px-2 py-1 rounded-full bg-black/70 backdrop-blur text-[10px] font-medium text-white/90 border border-white/10">
+                  ☽ {pet.moonSign}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Name & Archetype */}
+          <div className="relative px-4 pt-3 pb-1 text-center">
+            <h3 className="text-2xl font-bold text-white tracking-wide">{pet.name}</h3>
+            <div className="flex items-center justify-center gap-2 mt-0.5">
               <Crown className="w-3 h-3 text-amber-400" />
-              <span className="text-xs uppercase tracking-[0.2em] text-violet-300 font-medium">
+              <span className={`text-xs uppercase tracking-[0.15em] font-bold bg-gradient-to-r ${rarityColors[pet.rarity]} bg-clip-text text-transparent`}>
                 {pet.archetype}
               </span>
               <Crown className="w-3 h-3 text-amber-400" />
-            </motion.div>
+            </div>
           </div>
 
-          {/* Cosmic signs */}
-          <div className="relative flex justify-center gap-3 px-4 py-2">
-            <motion.div 
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/30"
-              whileHover={{ scale: 1.05 }}
-            >
-              <span className="text-amber-400 text-sm">☉</span>
-              <span className="text-white/90 text-xs font-medium">{pet.sunSign}</span>
-            </motion.div>
-            <motion.div 
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-slate-400/20 to-slate-500/20 border border-slate-400/30"
-              whileHover={{ scale: 1.05 }}
-            >
-              <span className="text-slate-300 text-sm">☽</span>
-              <span className="text-white/90 text-xs font-medium">{pet.moonSign}</span>
-            </motion.div>
-          </div>
-
-          {/* Stats with beautiful bars */}
-          <div className="relative px-4 py-3 space-y-2">
-            {pet.stats.map((stat, i) => (
-              <motion.div 
-                key={stat.label} 
-                className="flex items-center gap-2"
+          {/* Fun Personality Vibes */}
+          <div className="px-3 py-2 space-y-1.5">
+            {pet.vibes.map((vibe, i) => (
+              <motion.div
+                key={vibe.trait}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 + i * 0.1 }}
+                transition={{ delay: 0.5 + i * 0.1 }}
+                className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-white/5 border border-white/10"
               >
-                <stat.icon className="w-3.5 h-3.5 text-white/60" />
-                <span className="text-[10px] uppercase tracking-wider text-white/60 w-14">{stat.label}</span>
-                <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className={`h-full rounded-full bg-gradient-to-r ${stat.color}`}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${stat.value}%` }}
-                    transition={{ delay: 0.8 + i * 0.1, duration: 0.8, ease: 'easeOut' }}
-                  />
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{vibe.emoji}</span>
+                  <span className="text-xs font-medium text-white/90">{vibe.trait}</span>
                 </div>
-                <span className="text-xs font-bold text-white/90 w-6 text-right">{stat.value}</span>
+                <span className="text-[10px] font-bold text-violet-400 uppercase">{vibe.intensity}</span>
               </motion.div>
             ))}
           </div>
 
-          {/* Element badge */}
-          <div className="relative flex justify-center pb-3">
+          {/* Superpower & Secret */}
+          <div className="px-3 pb-2 grid grid-cols-2 gap-2">
             <motion.div 
-              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-${pet.elementColors.from}/30 to-${pet.elementColors.to}/30 border border-${pet.elementColors.from}/30`}
-              animate={{ 
-                boxShadow: ['0 0 15px rgba(139, 92, 246, 0.2)', '0 0 25px rgba(139, 92, 246, 0.4)', '0 0 15px rgba(139, 92, 246, 0.2)']
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
+              className="p-2 rounded-lg bg-gradient-to-br from-violet-500/10 to-pink-500/10 border border-violet-500/20 text-center"
+              whileHover={{ scale: 1.02 }}
             >
-              <span className="text-lg">{pet.elementEmoji}</span>
-              <span className="text-sm font-bold text-white">{pet.element} Element</span>
+              <span className="text-xs text-violet-300 block mb-0.5">⚡ Superpower</span>
+              <span className="text-[10px] text-white/80 leading-tight block">{pet.superpower}</span>
+            </motion.div>
+            <motion.div 
+              className="p-2 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-center"
+              whileHover={{ scale: 1.02 }}
+            >
+              <span className="text-xs text-amber-300 block mb-0.5">🤫 Secret Talent</span>
+              <span className="text-[10px] text-white/80 leading-tight block">{pet.secretTalent}</span>
             </motion.div>
           </div>
 
-          {/* Power score footer */}
-          <div className="relative flex items-center justify-between px-4 py-3 bg-gradient-to-r from-violet-900/50 via-pink-900/30 to-violet-900/50 border-t border-white/10">
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-              <span className="text-xs text-white/70">Cosmic Power</span>
+          {/* Love Language & Chaos Level */}
+          <div className="px-3 pb-3 flex gap-2 text-center">
+            <div className="flex-1 py-1.5 rounded-lg bg-pink-500/10 border border-pink-500/20">
+              <span className="text-[10px] text-pink-300">💕 {pet.loveLanguage}</span>
             </div>
-            <motion.div 
-              className="flex items-center gap-1 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Zap className="w-3 h-3 text-white" />
-              <span className="text-sm font-bold text-white">{pet.power}</span>
-            </motion.div>
+            <div className="flex-1 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+              <span className="text-[10px] text-orange-300">🌀 {pet.chaosLevel}</span>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between px-3 py-2 bg-black/40 border-t border-white/10">
+            <span className="text-[9px] text-white/40">COSMIC PET COLLECTION</span>
+            <div className="flex items-center gap-1 text-[9px] text-white/40">
+              <Sparkles className="w-2.5 h-2.5" />
+              <span>#{String(petIndex + 1).padStart(4, '0')}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -490,8 +454,8 @@ export function GiftReportShowcase() {
   }, []);
 
   const views = [
-    { label: "Cosmic Card", icon: "✨" },
     { label: "Birth Chart", icon: "🌌" },
+    { label: "Cosmic Card", icon: "✨" },
   ];
 
   const nextPet = () => setPetIndex((prev) => (prev + 1) % petShowcases.length);
@@ -562,16 +526,6 @@ export function GiftReportShowcase() {
         <AnimatePresence mode="wait">
           {activeView === 0 ? (
             <motion.div
-              key={`card-${petIndex}`}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
-            >
-              <PremiumCosmicCard petIndex={petIndex} />
-            </motion.div>
-          ) : (
-            <motion.div
               key={`chart-${petIndex}`}
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -579,6 +533,16 @@ export function GiftReportShowcase() {
               transition={{ duration: 0.3 }}
             >
               <PremiumBirthChart petIndex={petIndex} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`card-${petIndex}`}
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.3 }}
+            >
+              <PremiumCosmicCard petIndex={petIndex} />
             </motion.div>
           )}
         </AnimatePresence>
