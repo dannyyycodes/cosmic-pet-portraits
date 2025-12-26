@@ -3,18 +3,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 
 const activities = [
-  { name: "Sarah", location: "London", petName: "Luna", petType: "cat" },
-  { name: "Emma", location: "New York", petName: "Max", petType: "dog" },
-  { name: "James", location: "Sydney", petName: "Bella", petType: "cat" },
-  { name: "Olivia", location: "Toronto", petName: "Charlie", petType: "dog" },
-  { name: "Michael", location: "Dublin", petName: "Milo", petType: "rabbit" },
-  { name: "Sophie", location: "Paris", petName: "Oscar", petType: "cat" },
-  { name: "David", location: "Berlin", petName: "Daisy", petType: "dog" },
-  { name: "Priya", location: "Mumbai", petName: "Simba", petType: "cat" },
-  { name: "Carlos", location: "Madrid", petName: "Rocky", petType: "dog" },
-  { name: "Anna", location: "Stockholm", petName: "Cleo", petType: "cat" },
-  { name: "Tom", location: "Manchester", petName: "Buddy", petType: "dog" },
-  { name: "Lisa", location: "Amsterdam", petName: "Pepper", petType: "hamster" },
+  { name: "Sarah", location: "London", petName: "Biscuit", petType: "cat" },
+  { name: "Emma", location: "New York", petName: "Porkchop", petType: "dog" },
+  { name: "James", location: "Sydney", petName: "Noodle", petType: "cat" },
+  { name: "Olivia", location: "Toronto", petName: "Beans", petType: "dog" },
+  { name: "Michael", location: "Dublin", petName: "Pickles", petType: "rabbit" },
+  { name: "Sophie", location: "Paris", petName: "Nugget", petType: "cat" },
+  { name: "David", location: "Berlin", petName: "Waffles", petType: "dog" },
+  { name: "Priya", location: "Mumbai", petName: "Mochi", petType: "cat" },
+  { name: "Carlos", location: "Madrid", petName: "Churro", petType: "dog" },
+  { name: "Anna", location: "Stockholm", petName: "Sprocket", petType: "cat" },
+  { name: "Tom", location: "Manchester", petName: "Turnip", petType: "dog" },
+  { name: "Lisa", location: "Amsterdam", petName: "Gizmo", petType: "hamster" },
+  { name: "Rachel", location: "Bristol", petName: "Crumpet", petType: "cat" },
+  { name: "Jake", location: "Denver", petName: "Tater Tot", petType: "dog" },
+  { name: "Mei", location: "Singapore", petName: "Dumpling", petType: "cat" },
 ];
 
 const timeAgo = () => {
