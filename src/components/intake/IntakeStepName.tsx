@@ -54,7 +54,6 @@ export function IntakeStepName({ petData, onUpdate, onNext, onBack, totalSteps, 
       )}
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 1 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
           {petNumber ? t('intake.name.titleMulti').replace('{number}', String(petNumber)) : modeContent.nameTitle}
         </h1>

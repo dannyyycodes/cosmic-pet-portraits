@@ -211,7 +211,6 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
           >
 
             <div className="space-y-3">
-              <p className="text-primary/80 text-sm uppercase tracking-widest">Step {totalSteps} of {totalSteps}</p>
               
               <motion.div
                 initial={{ scale: 0 }}

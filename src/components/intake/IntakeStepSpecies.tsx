@@ -44,7 +44,6 @@ export function IntakeStepSpecies({ petData, onUpdate, onNext, onBack, totalStep
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 2 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
           {modeContent.speciesTitle(petData.name)}
         </h1>

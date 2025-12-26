@@ -33,7 +33,6 @@ export function IntakeStepSoul({ petData, onUpdate, onNext, onBack, totalSteps, 
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">{t('intake.step')} 7 {t('intake.of')} {totalSteps}</p>
         <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
           {modeContent.soulTitle}
         </h1>

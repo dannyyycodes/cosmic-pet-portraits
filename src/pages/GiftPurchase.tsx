@@ -275,7 +275,7 @@ export default function GiftPurchase() {
         </div>
 
         <AnimatePresence mode="wait">
-          {/* Step 1: Choose gift type */}
+          {/* Step 1: Choose gift type - Action first, details below */}
           {step === 1 && (
             <motion.div
               key="step1"
@@ -284,79 +284,12 @@ export default function GiftPurchase() {
               exit={{ opacity: 0, x: -20 }}
               className="space-y-6"
             >
-              {/* How It Works */}
-              <div className="p-5 rounded-2xl bg-card/60 border border-border/40 space-y-4">
-                <h3 className="font-display font-semibold text-foreground text-center">
-                  How It Works
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { step: "1", title: "You purchase the gift", desc: "Choose a package & complete checkout" },
-                    { step: "2", title: "Gift it your way", desc: "Email it, text it, or print the link for a card" },
-                    { step: "3", title: "They enter their pet's details", desc: "Name, birthday & a cute photo" },
-                    { step: "4", title: "A reading crafted just for them", desc: "Personalized insights they'll treasure forever" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-primary">{item.step}</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{item.title}</p>
-                        <p className="text-xs text-muted-foreground">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Why it's a perfect gift - Enhanced */}
-              <div className="p-5 rounded-2xl bg-card/60 border border-border/40 space-y-4">
-                <h3 className="font-display font-semibold text-lg text-foreground text-center">
-                  Why Pet Lovers Adore This Gift
-                </h3>
-                <div className="grid grid-cols-1 gap-2">
-                  <div className="flex items-start gap-3 p-3 rounded-xl bg-pink-500/10 border border-pink-500/20">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-pink-500/20">
-                      <Heart className="w-4 h-4 text-pink-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Heartfelt & Meaningful</p>
-                      <p className="text-xs text-muted-foreground">Not another candle or gift card — something they'll actually treasure</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-amber-500/20">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Completely Unique</p>
-                      <p className="text-xs text-muted-foreground">No two readings are alike — crafted just for their pet's cosmic blueprint</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3 p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-violet-500/20">
-                      <Star className="w-4 h-4 text-violet-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Unforgettable Reactions</p>
-                      <p className="text-xs text-muted-foreground">The kind of gift that makes people laugh, cry, and share with everyone</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Report Showcase - Interactive Preview */}
-              <GiftReportShowcase />
-
-              {/* Testimonial */}
-              <TestimonialBanner />
-
-              <div className="text-center pt-2">
-                <h2 className="text-xl font-display font-semibold text-foreground mb-2">
+              {/* Primary Action First */}
+              <div className="text-center">
+                <h2 className="text-xl font-display font-semibold text-foreground mb-1">
                   How many gifts are you sending?
                 </h2>
+                <p className="text-sm text-muted-foreground">Choose an option to continue</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -392,20 +325,6 @@ export default function GiftPurchase() {
                 </button>
               </div>
 
-              {/* Trust badges */}
-              <div className="flex items-center justify-center gap-6 py-2">
-                {[
-                  { icon: Shield, text: "Secure checkout" },
-                  { icon: Clock, text: "Instant delivery" },
-                  { icon: Gift, text: "Valid 1 year" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <item.icon className="w-3.5 h-3.5" />
-                    <span>{item.text}</span>
-                  </div>
-                ))}
-              </div>
-
               {giftType && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -421,6 +340,51 @@ export default function GiftPurchase() {
                   </Button>
                 </motion.div>
               )}
+
+              {/* Trust badges */}
+              <div className="flex items-center justify-center gap-6 py-2">
+                {[
+                  { icon: Shield, text: "Secure checkout" },
+                  { icon: Clock, text: "Instant delivery" },
+                  { icon: Gift, text: "Valid 1 year" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <item.icon className="w-3.5 h-3.5" />
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Collapsible details section - below the fold */}
+              <details className="group">
+                <summary className="cursor-pointer text-center text-sm text-primary/80 hover:text-primary transition-colors py-2">
+                  How does gifting work? ▾
+                </summary>
+                <div className="mt-4 space-y-4">
+                  {/* How It Works */}
+                  <div className="p-4 rounded-xl bg-card/40 border border-border/30 space-y-3">
+                    {[
+                      { step: "1", title: "You purchase the gift", desc: "Choose a package & checkout" },
+                      { step: "2", title: "Share it your way", desc: "Email, text, or print the link" },
+                      { step: "3", title: "They enter pet details", desc: "Name, birthday & photo" },
+                      { step: "4", title: "Magic happens", desc: "A personalized reading just for them" },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                          <span className="text-xs font-bold text-primary">{item.step}</span>
+                        </div>
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-foreground">{item.title}</span>
+                          <span className="text-xs text-muted-foreground ml-2">{item.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Testimonial */}
+                  <TestimonialBanner />
+                </div>
+              </details>
             </motion.div>
           )}
 
