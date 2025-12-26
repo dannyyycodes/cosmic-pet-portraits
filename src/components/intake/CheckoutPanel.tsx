@@ -504,7 +504,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           </div>
           <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
             <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-            <span className="text-foreground">18+ pages of deep insights (PDF)</span>
+            <span className="text-foreground">Beautifully designed, easy to read</span>
           </div>
         </div>
 
