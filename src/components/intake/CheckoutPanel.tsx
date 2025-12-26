@@ -7,9 +7,7 @@ import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
 import { MultiPetPhotoUpload, PetPhotoData, PhotoProcessingMode } from './MultiPetPhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import trustpilotStars from '@/assets/trustpilot-stars.png';
-import { CosmicCardShowcase } from './CosmicCardShowcase';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -410,12 +408,6 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           })}
         </div>
       )}
-
-      {/* What's Included - cards showcase */}
-      <div className="space-y-2">
-        <p className="text-xs text-center text-muted-foreground">What you'll get:</p>
-        <CosmicCardShowcase />
-      </div>
 
       {/* Photo Upload - only when needed, compact */}
       <AnimatePresence>
