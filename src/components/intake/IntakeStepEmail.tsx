@@ -3,11 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
 import { ModeContent } from '@/lib/occasionMode';
-import { ArrowLeft, Sparkles, CheckCircle, ChevronDown, Lock, Star, Heart, Zap, Eye, Share2, Download, Moon, Sun, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Sparkles, CheckCircle, ChevronDown, Lock, Star, Heart, Zap, Eye, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { ReportTeaser } from './ReportTeaser';
-import { TestimonialCarousel } from './TestimonialCarousel';
 import { PremiumPreview } from './PremiumPreview';
 import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
 import { GiftReportShowcase } from '@/components/GiftReportShowcase';
@@ -15,6 +13,19 @@ import { getSunSign, zodiacSigns } from '@/lib/zodiac';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { getReferralCode } from '@/lib/referralTracking';
+import { getPronoun, getPossessive } from '@/lib/pronouns';
+import type { PetGender } from '@/lib/pronouns';
+
+const stableHash = (input: string) => {
+  let h = 0;
+  for (let i = 0; i < input.length; i++) {
+    h = (h << 5) - h + input.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+};
+
+const pickBySeed = <T,>(items: T[], seed: number) => items[seed % items.length];
 
 interface IntakeStepEmailProps {
   petData: PetData;
@@ -115,7 +126,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
           email: petData.email.trim(),
           event: 'intake_started',
           petName: petData.name,
-          referralCode: getReferralCode(),
+          referralCode: getReferralCode() || undefined,
         },
       }).catch(console.error); // Silent fail - don't interrupt flow
     }
@@ -484,22 +495,51 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                   const element = petSignData.element;
                   const traits = elementTraits[element] || elementTraits.Fire;
                   
-                  // Generate occasion-aware + species-specific hook
+                  // Generate occasion-aware + species-specific hook (fun + unique + gender-correct)
                   const getPersonalizedHook = () => {
+                    const gender = (pet.gender || '') as PetGender;
+                    const subject = getPronoun(gender, 'subject');
+                    const possessive = getPossessive(gender);
+                    const seed = stableHash([pet.name, petSign, element, pet.breed, pet.soulType, pet.superpower, pet.strangerReaction].filter(Boolean).join('|'));
+
                     if (isMemorial) {
-                      return `wasn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name} brought ${traits.strength} into your life. Their spirit lives on in your heart.`;
+                      return `wasn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name} brought ${traits.strength} into your life — and you can still feel ${possessive} imprint in the quiet moments.`;
                     }
                     if (isBirthday) {
-                      return `is celebrating another cosmic year! As a ${petSign} with ${element} energy, ${pet.name} brings ${traits.strength} to every day. 🎂`;
+                      return `is celebrating another cosmic year. As a ${petSign} with ${element} energy, ${pet.name} brings ${traits.strength} to every day (and ${subject} knows it).`;
                     }
-                    return `isn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name} brings ${traits.strength} into your life. Their ${traits.need} drives their unique personality.`;
+
+                    const templates = [
+                      `isn't just any ${species}. As a ${petSign} with ${element} energy, ${pet.name} brings ${traits.strength} into your life — and ${subject} absolutely expects applause for it.`,
+                      `is a ${petSign} ${species} with ${element} energy. Translation: ${subject} runs on ${traits.need}… and mild emotional manipulation.`,
+                      `has strong ${element} vibes. ${subject} brings ${traits.strength}… then tests your boundaries like it's a sport.`,
+                      `came pre-installed with ${traits.strength}. The catch? ${possessive} daily operating system requires ${traits.need}.`,
+                    ];
+
+                    return pickBySeed(templates, seed);
                   };
-                  
+
                   return (
                     <>
-                      <p className="text-foreground leading-relaxed text-base">
-                        <span className="font-bold text-primary text-lg">{pet.name}</span> {getPersonalizedHook()}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        {pet.photoUrl ? (
+                          <div className="h-12 w-12 rounded-full overflow-hidden border border-border/50 bg-card/40 shrink-0">
+                            <img
+                              src={pet.photoUrl}
+                              alt={`Pet photo of ${pet.name}`}
+                              loading="lazy"
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-12 w-12 rounded-full border border-border/50 bg-card/40 flex items-center justify-center shrink-0">
+                            <span className="text-xl">{petSignData.icon || '⭐'}</span>
+                          </div>
+                        )}
+                        <p className="text-foreground leading-relaxed text-base">
+                          <span className="font-bold text-primary text-lg">{pet.name}</span> {getPersonalizedHook()}
+                        </p>
+                      </div>
                       
                       {/* Trait Cards - Mobile friendly */}
                       <div className="grid grid-cols-3 gap-2">

@@ -11,11 +11,11 @@ const corsHeaders = {
 const trackSchema = z.object({
   email: z.string().email().max(255),
   event: z.enum(["intake_started", "intake_completed", "purchase_completed", "unsubscribe"]),
-  petName: z.string().max(50).optional(),
-  petReportId: z.string().uuid().optional(),
-  tier: z.enum(["basic", "premium", "vip"]).optional(),
-  source: z.enum(["intake", "gift", "referral"]).optional(),
-  referralCode: z.string().max(50).optional(),
+  petName: z.string().max(50).nullish(),
+  petReportId: z.string().uuid().nullish(),
+  tier: z.enum(["basic", "premium", "vip"]).nullish(),
+  source: z.enum(["intake", "gift", "referral"]).nullish(),
+  referralCode: z.string().max(50).nullish(),
 });
 
 serve(async (req) => {
