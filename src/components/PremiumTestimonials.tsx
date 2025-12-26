@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Star, Quote, BadgeCheck, ShieldCheck } from 'lucide-react';
+import { Star, BadgeCheck, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // Featured testimonial images
@@ -45,49 +45,46 @@ function FeaturedTestimonial({
       transition={{ delay, duration: 0.4 }}
       className="relative group"
     >
-      <div className="relative bg-card/60 backdrop-blur-sm border border-border/40 rounded-2xl p-6 h-full transition-all duration-300 hover:border-border/60 hover:bg-card/80">
-        {/* Quote icon */}
-        <Quote className="absolute top-4 right-4 w-8 h-8 text-primary/10" />
-        
-        {/* Stars */}
-        <div className="flex gap-0.5 mb-4">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-4 h-4 fill-primary text-primary" />
-          ))}
-        </div>
-
-        {/* Highlight quote */}
-        <p className="text-lg font-medium text-foreground mb-3 leading-relaxed">
-          "{highlight}"
-        </p>
-
-        {/* Full text */}
-        <p className="text-muted-foreground leading-relaxed mb-6 text-sm">
-          {text}
-        </p>
-
-        {/* Author */}
-        <div className="flex items-center gap-3 pt-4 border-t border-border/30">
+      <div className="relative bg-card/60 backdrop-blur-sm border border-border/40 rounded-2xl p-5 sm:p-6 h-full transition-all duration-300 hover:border-primary/30 hover:bg-card/80">
+        {/* Author at top for mobile engagement */}
+        <div className="flex items-center gap-3 mb-4">
           <div className="relative">
             <img 
               src={image} 
               alt={name}
-              className="w-12 h-12 rounded-full object-cover ring-2 ring-border/50"
+              className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover ring-2 ring-primary/20"
             />
-            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center ring-2 ring-background">
+            <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center ring-2 ring-background">
               <BadgeCheck className="w-3.5 h-3.5 text-white" />
             </div>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-medium text-foreground text-sm">{name}</p>
-              <span className="text-xs text-green-500/90 bg-green-500/10 px-1.5 py-0.5 rounded">Verified</span>
+              <p className="font-semibold text-foreground text-sm">{name}</p>
+              <span className="text-[10px] text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded font-medium">Verified</span>
             </div>
             <p className="text-xs text-muted-foreground truncate">
-              {pet} • {species}
+              {pet} the {species}
             </p>
           </div>
         </div>
+
+        {/* Stars */}
+        <div className="flex gap-0.5 mb-3">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+          ))}
+        </div>
+
+        {/* Highlight quote - bigger, bolder */}
+        <p className="text-base sm:text-lg font-semibold text-foreground mb-2 leading-snug">
+          "{highlight}"
+        </p>
+
+        {/* Full text */}
+        <p className="text-muted-foreground leading-relaxed text-sm">
+          {text}
+        </p>
       </div>
     </motion.div>
   );
@@ -100,92 +97,92 @@ export function PremiumTestimonials() {
     {
       name: "Mia Thompson",
       pet: "Bruno",
-      species: "Labrador Retriever",
-      text: "I read the first paragraph and my jaw dropped. It described Bruno's exact little habits — how he tilts his head when he's confused, his thing with thunder, all of it.",
-      highlight: "It described Bruno's exact little habits",
+      species: "Labrador",
+      text: "I read the first paragraph and my jaw dropped. It described his exact little habits — the head tilt, the thunder thing. I cried reading it.",
+      highlight: "I cried reading it. It's like they know him.",
       image: miaImg,
     },
     {
       name: "Mark Davies",
       pet: "Mr. Whiskers",
       species: "Tabby Cat",
-      text: "Got this for my sister's birthday. She kept saying 'how do they know all this about Whiskers?' Honestly best gift I've given. Already bought 4 more for friends.",
-      highlight: "How do they know all this about Whiskers?",
+      text: "Got this for my sister's birthday. She kept asking 'how do they know all this?' Already bought 4 more for friends. Best gift ever.",
+      highlight: "Best gift I've ever given anyone.",
       image: markImg,
     },
     {
       name: "Sarah Mitchell",
       pet: "Rex",
       species: "German Shepherd",
-      text: "I was skeptical at first. But the report explained why Rex gets anxious at 6pm every day. Changed how I do his evenings now. He's noticeably calmer.",
-      highlight: "Changed how I do his evenings now",
+      text: "I was skeptical. But it explained why Rex gets anxious at 6pm every day. Changed how I handle his evenings. He's so much calmer now.",
+      highlight: "It actually changed how I care for him.",
       image: sarahImg,
     },
     {
       name: "James Wilson",
       pet: "Biscuit",
-      species: "Holland Lop Rabbit",
-      text: "Never thought I'd get something like this for a rabbit. Turns out Biscuit is a 'grounded earth soul' which explains why he hates being picked up! We leave him be now and he's much happier.",
-      highlight: "Explains why he hates being picked up",
+      species: "Holland Lop",
+      text: "Never thought I'd get this for a rabbit. Turns out he's a 'grounded earth soul' — explains why he hates being picked up! Makes so much sense now.",
+      highlight: "Finally understand why he does that!",
       image: jamesImg,
     },
     {
       name: "Priya Sharma",
       pet: "Coco",
       species: "Cockatiel",
-      text: "My mum got this for Coco and we couldn't stop laughing at how accurate it was. It said he needs 'an audience' — that's literally him. We moved his cage to the lounge.",
-      highlight: "We couldn't stop laughing at how accurate it was",
+      text: "We couldn't stop laughing at how accurate it was. It said he needs 'an audience' — that's literally him. Moved his cage to the lounge.",
+      highlight: "Scarily accurate. We were dying laughing.",
       image: priyaImg,
     },
     {
       name: "Margaret & Tom",
       pet: "Duchess",
       species: "Persian Cat",
-      text: "My grandson got this for my 75th birthday. I've had cats my whole life but never understood Duchess like I do now. She's an 'old soul' apparently — makes perfect sense.",
-      highlight: "Never understood Duchess like I do now",
+      text: "My grandson got this for my 75th birthday. I've had cats my whole life but never understood Duchess like I do now. She's an 'old soul'.",
+      highlight: "75 years with cats — this still surprised me.",
       image: granImg,
     },
   ];
 
   const miniTestimonials = [
-    { name: "Chloe L.", text: "Shared it with 5 friends — they all bought one", image: chloeImg },
-    { name: "The Patels", text: "Our whole family read it together", image: patelsImg },
-    { name: "David R.", text: "More insightful than I expected", image: davidImg },
+    { name: "Chloe L.", text: "Shared with 5 friends — all bought one!", image: chloeImg },
+    { name: "The Patels", text: "Read it as a family. So special.", image: patelsImg },
+    { name: "David R.", text: "Way more insightful than expected", image: davidImg },
     { name: "Emma T.", text: "Got one for my horse — spot on!", image: emmaImg },
-    { name: "The Nguyens", text: "Got all 3 pets done. Worth every penny", image: nguyensImg },
-    { name: "Bob, 68", text: "My daughter helped me order. So glad she did", image: bobImg },
+    { name: "The Nguyens", text: "Did all 3 pets. Worth every penny.", image: nguyensImg },
+    { name: "Bob, 68", text: "Best gift my daughter ever got me", image: bobImg },
   ];
 
   return (
-    <section className="relative py-20 px-4 overflow-hidden">
+    <section className="relative py-16 sm:py-20 px-4 overflow-hidden">
       <div className="max-w-6xl mx-auto relative z-10">
-        {/* Section header */}
+        {/* Section header - tighter on mobile */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-14"
+          className="text-center mb-10 sm:mb-14"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-5">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
             <ShieldCheck className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Join 50,000+ Happy Pet Parents</span>
+            <span className="text-xs sm:text-sm font-medium text-primary">50,000+ Pet Parents Can't Be Wrong</span>
           </div>
           
-          <h2 className="text-3xl md:text-4xl font-serif font-semibold text-foreground mb-3">
-            What Pet Parents Are Saying
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-semibold text-foreground mb-2">
+            Real Stories, Real Tears
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Real stories from our community
+          <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
+            See why pet parents say this is the most meaningful gift they've ever given
           </p>
         </motion.div>
 
-        {/* Featured testimonials grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        {/* Featured testimonials grid - single column on mobile for readability */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
           {featuredTestimonials.map((testimonial, i) => (
             <FeaturedTestimonial
               key={testimonial.name}
               {...testimonial}
-              delay={i * 0.08}
+              delay={i * 0.05}
             />
           ))}
         </div>
