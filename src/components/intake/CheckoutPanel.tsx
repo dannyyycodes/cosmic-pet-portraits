@@ -9,7 +9,7 @@ import { MultiPetPhotoUpload, PetPhotoData, PhotoProcessingMode } from './MultiP
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import trustpilotStars from '@/assets/trustpilot-stars.png';
-// CosmicCardShowcase removed - keeping checkout compact
+import { CosmicCardShowcase } from './CosmicCardShowcase';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -411,11 +411,10 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       )}
 
-      {/* What's Included - single compact line */}
-      <div className="text-center text-xs text-muted-foreground py-1">
-        {petTiers[0] === 'basic' && "✦ Full personality reading • Cosmic insights • Bond tips"}
-        {petTiers[0] === 'premium' && "✦ Full reading + Printed keepsake card"}
-        {petTiers[0] === 'vip' && "✦ Full reading + Card + Weekly cosmic updates"}
+      {/* What's Included - cards showcase */}
+      <div className="space-y-2">
+        <p className="text-xs text-center text-muted-foreground">What you'll get:</p>
+        <CosmicCardShowcase />
       </div>
 
       {/* Photo Upload - only when needed, compact */}
