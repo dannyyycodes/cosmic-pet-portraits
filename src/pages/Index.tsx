@@ -16,6 +16,7 @@ import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 import { TrackedSection } from "@/components/TrackedSection";
 import { SampleCarousel } from "@/components/SampleCarousel";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
+import { LiveActivityNotification } from "@/components/LiveActivityNotification";
 
 const Index = () => {
   const { t } = useLanguage();
@@ -30,6 +31,7 @@ const Index = () => {
     <main className="min-h-screen bg-background overflow-hidden">
       <Navbar />
       <StickyMobileCTA />
+      <LiveActivityNotification />
       
       {/* Dynamic Cosmic Background */}
       <div className="fixed inset-0 z-0">
