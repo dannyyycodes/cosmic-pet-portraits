@@ -528,22 +528,40 @@ export function GiftReportShowcase() {
       {/* Visual Preview */}
       {activeView === 0 ? (
         <>
-          {/* Side-by-side Cosmic Cards (mobile-friendly via scale) */}
-          <div className="flex justify-center mb-8 overflow-visible">
-            <div className="flex gap-3 overflow-visible">
-              {petShowcases.map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setExpandedPetIndex(i)}
-                  className="origin-top scale-[0.52] sm:scale-[0.62] md:scale-[0.75] overflow-visible"
-                  aria-label={`Open ${petShowcases[i].name}'s cosmic card`}
-                >
-                  <PremiumCosmicCard petIndex={i} />
-                </button>
-              ))}
+          {/* Side-by-side Cosmic Cards in fan/rainbow arrangement */}
+          <div className="flex justify-center mb-8 overflow-visible py-4">
+            <div className="relative flex items-end justify-center" style={{ height: 280 }}>
+              {petShowcases.map((pet, i) => {
+                // Fan arrangement: first card tilts left, second tilts right
+                const rotation = i === 0 ? -8 : 8;
+                const translateX = i === 0 ? 20 : -20;
+                const zIndex = i === 0 ? 1 : 2;
+                
+                return (
+                  <motion.button
+                    key={i}
+                    type="button"
+                    onClick={() => setExpandedPetIndex(i)}
+                    className="absolute origin-bottom transition-transform duration-300 hover:scale-105 hover:z-10"
+                    style={{
+                      transform: `translateX(${translateX}px) rotate(${rotation}deg) scale(0.52)`,
+                      zIndex,
+                    }}
+                    whileHover={{ 
+                      scale: 0.58,
+                      rotate: rotation * 0.5,
+                      zIndex: 10,
+                    }}
+                    aria-label={`Open ${pet.name}'s cosmic card`}
+                  >
+                    <PremiumCosmicCard petIndex={i} />
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
+          
+          <p className="text-center text-xs text-muted-foreground mb-4">Tap a card to expand</p>
 
           {/* Expanded modal */}
           <AnimatePresence>
