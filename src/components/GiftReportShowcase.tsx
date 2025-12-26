@@ -528,37 +528,31 @@ export function GiftReportShowcase() {
       {/* Visual Preview */}
       {activeView === 0 ? (
         <>
-          {/* Side-by-side Cosmic Cards in fan/rainbow arrangement */}
-          <div className="flex justify-center mb-8 overflow-visible py-4">
-            <div className="relative flex items-end justify-center" style={{ height: 280 }}>
-              {petShowcases.map((pet, i) => {
-                // Fan arrangement: first card tilts left, second tilts right
-                const rotation = i === 0 ? -8 : 8;
-                const translateX = i === 0 ? 20 : -20;
-                const zIndex = i === 0 ? 1 : 2;
-                
-                return (
-                  <motion.button
-                    key={i}
-                    type="button"
-                    onClick={() => setExpandedPetIndex(i)}
-                    className="absolute origin-bottom transition-transform duration-300 hover:scale-105 hover:z-10"
-                    style={{
-                      transform: `translateX(${translateX}px) rotate(${rotation}deg) scale(0.52)`,
-                      zIndex,
-                    }}
-                    whileHover={{ 
-                      scale: 0.58,
-                      rotate: rotation * 0.5,
-                      zIndex: 10,
-                    }}
-                    aria-label={`Open ${pet.name}'s cosmic card`}
-                  >
-                    <PremiumCosmicCard petIndex={i} />
-                  </motion.button>
-                );
-              })}
-            </div>
+          {/* Side-by-side Cosmic Cards in fan arrangement */}
+          <div className="flex justify-center items-center gap-0 mb-6 py-4">
+            {petShowcases.map((pet, i) => {
+              // Fan arrangement: first card tilts left, second tilts right
+              const rotation = i === 0 ? -6 : 6;
+              const marginLeft = i === 0 ? 0 : -40;
+              
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setExpandedPetIndex(i)}
+                  className="transition-all duration-300 hover:scale-110 hover:z-20 focus:outline-none"
+                  style={{
+                    transform: `rotate(${rotation}deg) scale(0.5)`,
+                    marginLeft: i === 0 ? 0 : marginLeft,
+                    zIndex: i === 0 ? 1 : 2,
+                    transformOrigin: 'bottom center',
+                  }}
+                  aria-label={`Open ${pet.name}'s cosmic card`}
+                >
+                  <PremiumCosmicCard petIndex={i} />
+                </button>
+              );
+            })}
           </div>
           
           <p className="text-center text-xs text-muted-foreground mb-4">Tap a card to expand</p>
