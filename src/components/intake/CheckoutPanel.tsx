@@ -744,57 +744,6 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         )}
       </Button>
 
-      {/* Test Mode (preview only) */}
-      {canShowTest && (
-        <div className="space-y-2">
-          {!isDevMode && (
-            <Button
-              type="button"
-              onClick={enableDevMode}
-              disabled={isLoading}
-              variant="ghost"
-              size="sm"
-              className="w-full"
-            >
-              Enable Test Mode (adds dev=true)
-            </Button>
-          )}
-
-          <Button
-            type="button"
-            onClick={() => {
-              const tierCounts = { basic: 0, premium: 0, vip: 0 };
-              Object.values(petTiers).forEach(t => tierCounts[t]++);
-              const dominantTier = tierCounts.vip > 0 ? 'vip' : tierCounts.premium > 0 ? 'premium' : 'basic';
-              
-              const checkoutData: CheckoutData = {
-                selectedProducts: [dominantTier],
-                couponId: null,
-                giftCertificateId: null,
-                isGift: false,
-                recipientName: '',
-                recipientEmail: '',
-                giftMessage: '',
-                totalCents: 0, // Free in test mode
-                petCount: allPets.length,
-                selectedTier: dominantTier,
-                includeGiftForFriend: false,
-                includesPortrait: anyPetNeedsPortrait,
-                petPhotos: petPhotos,
-                petTiers: petTiers,
-              };
-              onCheckout(checkoutData);
-            }}
-            disabled={isLoading}
-            variant="outline"
-            size="lg"
-            className="w-full border-primary/40 text-primary hover:bg-primary/10"
-          >
-            <Bug className="w-4 h-4 mr-2" />
-            Test: Skip Payment
-          </Button>
-        </div>
-      )}
       
       {/* Value Proposition */}
       <div className="bg-gradient-to-br from-primary/5 via-card/40 to-nebula-pink/5 border border-primary/20 rounded-xl p-4 text-center">
