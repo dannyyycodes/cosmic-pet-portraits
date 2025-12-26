@@ -55,9 +55,9 @@ const TIERS = {
     highlight: false,
     includesPortrait: false,
     benefits: [
-      "Decode their quirky behaviors",
-      "Learn their emotional needs",
-      "Strengthen your bond instantly",
+      "Decode your pet's quirky behaviors",
+      "Learn your pet's emotional needs",
+      "Strengthen your bond fast",
     ],
   },
   premium: {

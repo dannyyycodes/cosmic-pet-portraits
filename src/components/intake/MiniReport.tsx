@@ -30,8 +30,8 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
 
   const { sunSign, archetype, element, nameVibration, coreEssence } = cosmicReport;
   const pronoun = getPossessive((petData.gender || '') as PetGender);
-  const displayPronoun = pronoun === 'their' ? 'her' : pronoun;
-  const subjectPronoun = pronoun === 'his' ? 'he' : pronoun === 'her' ? 'she' : 'she';
+  const displayPronoun = pronoun;
+  const subjectPronoun = petData.gender === 'boy' ? 'he' : 'she';
 
   // Calculate a "compatibility score" for teaser
   const compatScore = Math.floor(78 + (nameVibration * 2));
