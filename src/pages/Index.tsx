@@ -18,6 +18,7 @@ import { SampleCarousel } from "@/components/SampleCarousel";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { LiveActivityNotification } from "@/components/LiveActivityNotification";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
+import { UrgencyBanner } from "@/components/UrgencyBanner";
 
 const Index = () => {
   const { t } = useLanguage();
@@ -30,6 +31,7 @@ const Index = () => {
 
   return (
     <main className="min-h-screen bg-background overflow-hidden">
+      <UrgencyBanner />
       <Navbar />
       <StickyMobileCTA />
       <LiveActivityNotification />
