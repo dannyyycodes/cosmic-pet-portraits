@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PetData } from './IntakeWizard';
 import { ModeContent } from '@/lib/occasionMode';
-import { ArrowLeft, Sparkles, CheckCircle, ChevronDown, Lock, Star, Heart, Zap, Eye, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Sparkles, CheckCircle, ChevronDown, Lock, Star, Heart, Zap, Eye, AlertTriangle, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { PremiumPreview } from './PremiumPreview';
+import { TestimonialCarousel } from './TestimonialCarousel';
 import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
 import { GiftReportShowcase } from '@/components/GiftReportShowcase';
 import { getSunSign, zodiacSigns } from '@/lib/zodiac';
