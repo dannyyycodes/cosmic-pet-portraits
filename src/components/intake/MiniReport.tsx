@@ -141,11 +141,11 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
   const needsVerb = pronoun === 'his' ? 'he needs' : pronoun === 'her' ? 'she needs' : 'she needs';
 
   const lockedItems = [
-    { icon: Moon, label: "Moon Sign Analysis", preview: `Why ${displayPronoun} mood shifts unexpectedly...`, teaser: `Understanding ${displayPronoun} emotional rhythms` },
+    { icon: Moon, label: "Moon Sign Analysis", preview: `Why ${displayPronoun} mood shifts unexpectedly...`, teaser: `Understand ${displayPronoun} emotional cycles` },
     { icon: ArrowUp, label: "Your Soul Contract", preview: "What you're here to teach each other...", teaser: "The deeper purpose of your bond" },
-    { icon: Sparkles, label: `${petData.name}'s Life Purpose`, preview: `The role ${subjectPronoun} plays in your journey...`, teaser: "Why this soul chose to be with you" },
-    { icon: Heart, label: "Emotional Needs Decoded", preview: `What ${needsVerb} but can't express...`, teaser: `How to truly understand ${displayPronoun} heart` },
-    { icon: Zap, label: "Energy & Vitality Insights", preview: `${petData.name}'s unique wellness patterns...`, teaser: `Supporting ${displayPronoun} highest potential` },
+    { icon: Sparkles, label: `${petData.name}'s Life Purpose`, preview: `The role ${subjectPronoun} plays in your journey...`, teaser: "Why this soul chose you" },
+    { icon: Heart, label: "Emotional Needs Decoded", preview: `What ${subjectPronoun} needs but can't say...`, teaser: `Truly understand ${displayPronoun} heart` },
+    { icon: Zap, label: "Energy & Vitality Insights", preview: `${petData.name}'s wellness patterns...`, teaser: `Support ${displayPronoun} best self` },
   ];
 
   return (
@@ -429,27 +429,27 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
                 <AlertTriangle className="w-5 h-5 text-red-400" />
               </div>
               <div>
-                <p className="font-bold text-foreground mb-2 text-lg">Don't Leave Without Knowing...</p>
+                <p className="font-bold text-foreground mb-2 text-lg">You're missing...</p>
                 <div className="space-y-2 text-sm">
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>Why {petData.name}'s mood shifts unexpectedly</span>
+                    <span>Why {petData.name}'s mood shifts</span>
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>What you're here to teach each other</span>
+                    <span>What {subjectPronoun}'s trying to tell you</span>
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>The role they play in your life's journey</span>
+                    <span>Why {subjectPronoun} chose you</span>
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>What they need but can't express</span>
+                    <span>What {subjectPronoun} needs right now</span>
                   </p>
                   <p className="text-muted-foreground flex items-center gap-2">
                     <span className="text-red-400">❌</span> 
-                    <span>Their unique wellness patterns to support</span>
+                    <span>How to support {displayPronoun} health</span>
                   </p>
                 </div>
               </div>
@@ -555,7 +555,7 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
           className="mt-8 bg-gradient-to-br from-primary/5 via-card/60 to-nebula-pink/5 border border-primary/20 rounded-2xl p-5"
         >
           <p className="text-sm text-foreground/90 leading-relaxed">
-            <span className="font-semibold text-primary">Think about it:</span> A single vet behavior consultation costs <span className="line-through text-muted-foreground">$150+</span>, a pet psychic reading runs <span className="line-through text-muted-foreground">$200+</span>, and the emotional cost of misunderstanding your pet—missed moments, confusion, unexplained distance—is <span className="italic">priceless</span>. For less than a bag of premium treats, you get a lifetime of understanding, a deeper bond, and insights that transform how you see each other. <span className="font-semibold text-gold">This isn't an expense—it's an investment in the relationship that matters most.</span>
+            Vet behavior consults: <span className="line-through text-muted-foreground">$150+</span>. Pet psychics: <span className="line-through text-muted-foreground">$200+</span>. <span className="font-semibold text-gold">Finally understanding {petData.name}? Priceless.</span>
           </p>
         </motion.div>
       </div>
