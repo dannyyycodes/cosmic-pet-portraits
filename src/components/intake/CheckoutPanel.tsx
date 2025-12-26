@@ -305,23 +305,14 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       animate={{ opacity: 1 }}
       className="space-y-4"
     >
-      {/* Trustpilot badge */}
-      <div className="flex justify-center">
-        <img 
-          src={trustpilotStars} 
-          alt="Rated Excellent on Trustpilot" 
-          className="h-10 object-contain"
-        />
-      </div>
-
-      {/* Simple header */}
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground mb-1">
-          {recentPurchases.toLocaleString()} readings delivered
-        </p>
-        <h2 className="text-lg font-display font-bold text-foreground">
-          {allPets.length > 1 ? 'Almost there' : `${petData.name}'s reading is ready`}
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-xl font-display font-bold text-foreground">
+          {allPets.length > 1 ? 'Choose Your Reading' : `Unlock ${petData.name}'s Reading`}
         </h2>
+        <p className="text-sm text-muted-foreground">
+          Select an option below to continue
+        </p>
       </div>
 
       {/* Volume Discount Applied - only show when applicable */}
@@ -362,6 +353,16 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           </div>
         </div>
       )}
+
+      {/* Clear instructions for tier selection */}
+      <div className="p-3 rounded-xl bg-primary/5 border border-primary/20">
+        <p className="text-sm text-center text-foreground font-medium mb-1">
+          👇 Tap to choose your package
+        </p>
+        <p className="text-xs text-center text-muted-foreground">
+          Reading = digital report • Card = printed keepsake • VIP = weekly updates
+        </p>
+      </div>
 
       {/* Per-Pet Tier Selection */}
       <div className="space-y-3">
@@ -409,8 +410,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                 </div>
               </div>
 
-              {/* Tier Selection Buttons - Mobile optimized */}
-              <div className="grid grid-cols-3 gap-1.5">
+              {/* Tier Selection Buttons - Clearer labels */}
+              <div className="grid grid-cols-3 gap-2">
                 {(['basic', 'premium', 'vip'] as const).map((tierKey) => {
                   const tier = TIERS[tierKey];
                   const isSelected = currentTier === tierKey;
@@ -421,7 +422,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                       key={tierKey}
                       onClick={() => handleTierChange(petIndex, tierKey)}
                       className={cn(
-                        "relative p-1.5 md:p-2 rounded-lg border-2 text-center transition-all",
+                        "relative p-2 rounded-lg border-2 text-center transition-all",
                         isSelected 
                           ? "border-primary bg-primary/10" 
                           : "border-border/50 bg-card/20 hover:border-primary/50",
@@ -429,37 +430,38 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                       )}
                     >
                       {tier.highlight && !isSelected && (
-                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[7px] px-1 py-0.5 bg-cosmic-gold text-background font-bold rounded-full whitespace-nowrap">
-                          BEST
+                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[8px] px-1.5 py-0.5 bg-cosmic-gold text-background font-bold rounded-full whitespace-nowrap">
+                          POPULAR
                         </span>
                       )}
                       <Icon className={cn(
-                        "w-3.5 h-3.5 mx-auto mb-0.5",
+                        "w-4 h-4 mx-auto mb-1",
                         isSelected ? "text-primary" : "text-muted-foreground"
                       )} />
                       <p className={cn(
-                        "text-[10px] md:text-xs font-medium leading-tight",
+                        "text-xs font-semibold leading-tight",
                         isSelected ? "text-foreground" : "text-muted-foreground"
                       )}>
                         {tier.shortName}
                       </p>
                       <p className={cn(
-                        "text-[10px] font-semibold",
+                        "text-xs font-bold mt-0.5",
                         isSelected ? "text-primary" : "text-muted-foreground/70"
                       )}>
                         ${(tier.priceCents / 100).toFixed(0)}
                       </p>
                       {tier.includesPortrait && (
-                        <div className="flex items-center justify-center gap-0.5 mt-0.5">
-                          <Camera className="w-2.5 h-2.5 text-nebula-purple" />
-                        </div>
+                        <p className="text-[9px] text-nebula-purple mt-0.5">+ Card</p>
+                      )}
+                      {tierKey === 'vip' && (
+                        <p className="text-[9px] text-cosmic-gold mt-0.5">+ Updates</p>
                       )}
                       {isSelected && (
                         <motion.div 
                           layoutId={`check-${petIndex}`}
-                          className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center"
+                          className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
                         >
-                          <Check className="w-2 h-2 text-primary-foreground" />
+                          <Check className="w-2.5 h-2.5 text-primary-foreground" />
                         </motion.div>
                       )}
                     </button>
