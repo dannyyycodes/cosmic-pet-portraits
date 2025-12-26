@@ -528,24 +528,20 @@ export function GiftReportShowcase() {
       {/* Visual Preview */}
       {activeView === 0 ? (
         <>
-          {/* Side-by-side Cosmic Cards in fan arrangement */}
-          <div className="flex justify-center items-center gap-0 mb-6 py-4">
+          {/* Side-by-side Cosmic Cards */}
+          <div className="flex justify-center items-center gap-4 mb-6 py-4">
             {petShowcases.map((pet, i) => {
-              // Fan arrangement: first card tilts left, second tilts right
-              const rotation = i === 0 ? -6 : 6;
-              const marginLeft = i === 0 ? 0 : -40;
+              const rotation = i === 0 ? -4 : 4;
               
               return (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setExpandedPetIndex(i)}
-                  className="transition-all duration-300 hover:scale-110 hover:z-20 focus:outline-none"
+                  className="transition-all duration-300 hover:scale-105 hover:z-20 focus:outline-none"
                   style={{
-                    transform: `rotate(${rotation}deg) scale(0.5)`,
-                    marginLeft: i === 0 ? 0 : marginLeft,
-                    zIndex: i === 0 ? 1 : 2,
-                    transformOrigin: 'bottom center',
+                    transform: `rotate(${rotation}deg) scale(0.42)`,
+                    margin: '-60px -20px',
                   }}
                   aria-label={`Open ${pet.name}'s cosmic card`}
                 >
