@@ -58,10 +58,10 @@ It makes the perfect gift for any pet parent too!
   {
     id: 3,
     title: "Social Proof Email",
-    subject: "50,000+ pet parents can't be wrong...",
+    subject: "12,000+ pet parents can't be wrong...",
     body: `Hey [Name],
 
-Did you know over 50,000 pet parents have discovered their pet's cosmic personality?
+Did you know over 12,000 pet parents have discovered their pet's cosmic personality?
 
 I was skeptical at first too, but then I read my [pet type]'s reading and was genuinely shocked at how accurate it was.
 

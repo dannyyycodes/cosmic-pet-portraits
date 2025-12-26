@@ -43,7 +43,7 @@ const slides: Slide[] = [
   {
     id: 4,
     duration: 12,
-    headline: "Over 50,000 pet parents have discovered their pet's hidden soul",
+    headline: "Over 12,000 pet parents have discovered their pet's hidden soul",
     testimonial: {
       quote: "My husband was like 'did you write this?'",
       name: "Mia",
@@ -74,7 +74,7 @@ Most pet owners never truly understand why their pet acts the way they do. The s
 
 Your pet's birth date holds the key. Their cosmic personality — revealed in a detailed report that's so accurate, people think we've been spying on their pets.
 
-Over 50,000 pet parents have discovered their pet's hidden soul. Mia said, quote, "My husband was like, did you write this?" end quote.
+Over 12,000 pet parents have discovered their pet's hidden soul. Mia said, quote, "My husband was like, did you write this?" end quote.
 
 It's the perfect gift that makes people cry happy tears. Mark told us his sister rang him crying after receiving hers.
 

@@ -24,7 +24,7 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
               Your Best Friend Deserves to Be Understood
             </h2>
             <p className="text-lg text-muted-foreground mb-6">
-              "Reading this made me fall in love with my cat all over again." — Join 50,000+ pet parents who truly <em>get</em> their companion.
+              "Reading this made me fall in love with my cat all over again." — Join 12,000+ pet parents who truly <em>get</em> their companion.
             </p>
             {/* Value Stack */}
             <div className="flex flex-wrap justify-center gap-4 mb-8 text-sm">
