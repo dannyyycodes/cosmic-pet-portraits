@@ -17,6 +17,7 @@ import { TrackedSection } from "@/components/TrackedSection";
 import { SampleCarousel } from "@/components/SampleCarousel";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { LiveActivityNotification } from "@/components/LiveActivityNotification";
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 
 const Index = () => {
   const { t } = useLanguage();
@@ -32,6 +33,7 @@ const Index = () => {
       <Navbar />
       <StickyMobileCTA />
       <LiveActivityNotification />
+      <ExitIntentPopup couponCode="COSMIC15" discountPercent={15} />
       
       {/* Dynamic Cosmic Background */}
       <div className="fixed inset-0 z-0">
