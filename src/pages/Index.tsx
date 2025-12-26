@@ -19,7 +19,7 @@ import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { LiveActivityNotification } from "@/components/LiveActivityNotification";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { UrgencyBanner } from "@/components/UrgencyBanner";
-import trustpilotStars from "@/assets/trustpilot-stars.png";
+
 
 const Index = () => {
   const { t } = useLanguage();
@@ -88,27 +88,31 @@ const Index = () => {
       <TrackedSection sectionName="hero" onView={trackSectionView} className="relative flex items-center justify-center px-4 pt-16 sm:pt-24 pb-8 sm:pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Trustpilot Badge - Clean & Professional */}
-          <motion.div
+          {/* Trustpilot Badge - Authentic Style */}
+          <motion.a
+            href="https://www.trustpilot.com"
+            target="_blank"
+            rel="noopener noreferrer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="inline-flex items-center gap-3 mb-5 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10"
+            className="inline-flex flex-col items-center gap-1.5 mb-5"
           >
-            <img 
-              src={trustpilotStars} 
-              alt="Trustpilot" 
-              className="h-5 sm:h-6 object-contain"
-            />
-            <div className="flex gap-0.5">
+            {/* Stars Row */}
+            <div className="flex">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-[#00b67a]">
-                  <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-white text-white" />
+                <div key={i} className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-[#00b67a] mr-[1px]">
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-white text-white" />
                 </div>
               ))}
             </div>
-            <span className="text-xs sm:text-sm font-medium text-foreground/90">Excellent</span>
-          </motion.div>
+            {/* Trustpilot Text + Rating */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm sm:text-base font-semibold text-foreground">Trustpilot</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">|</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">Rated <span className="text-foreground font-medium">Excellent</span></span>
+            </div>
+          </motion.a>
           
           {/* PUNCHY HEADLINE - Mobile first, emotional */}
           <motion.h1 
