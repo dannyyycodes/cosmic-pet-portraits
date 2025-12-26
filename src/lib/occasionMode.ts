@@ -101,34 +101,34 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     },
     
     nameTitle: "What is your beloved friend's name?",
-    nameSubtitle: "Let's discover what makes them so special.",
+    nameSubtitle: "Names carry vibrational energy that influences personality traits.",
     
     speciesTitle: (name) => `What kind of companion is ${name}?`,
-    speciesSubtitle: "Every species has their own beautiful way of connecting.",
+    speciesSubtitle: "Different species have unique archetypal energies in cosmic readings.",
     
     breedTitle: (name) => `What breed is ${name}?`,
-    breedSubtitle: "This helps us understand their unique personality.",
+    breedSubtitle: "Breed traits blend with astrological influences for deeper accuracy.",
     
     genderTitle: (name) => `Is ${name} a boy or girl?`,
-    genderSubtitle: "So we can personalize their reading just for them.",
+    genderSubtitle: "Gender affects how planetary energies express in the birth chart.",
     
     dobTitle: (name) => `When was ${name} born?`,
-    dobSubtitle: "This unlocks their unique cosmic blueprint.",
+    dobSubtitle: "Birth date reveals Sun sign, Moon phase & planetary positions.",
     
     locationTitle: (name) => `Where does ${name} call home?`,
-    locationSubtitle: "The place they've filled with love.",
+    locationSubtitle: "Location sets the Ascendant & house positions in the birth chart.",
     
     soulTitle: "When you look into their eyes, what do you see?",
-    soulSubtitle: (name) => `Trust your heart — you know ${name} better than anyone.`,
+    soulSubtitle: (name) => `Your insight helps calibrate ${name}'s Neptune & 12th house themes.`,
     
     superpowerTitle: (name) => `What is ${name}'s greatest gift?`,
-    superpowerSubtitle: "The special way they brighten your world.",
+    superpowerSubtitle: "This reveals dominant planetary strengths in the chart.",
     
     strangersTitle: (name) => `How does ${name} greet new people?`,
-    strangersSubtitle: "This tells us about their beautiful spirit.",
+    strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
     
     photoTitle: (name) => `Share a photo of ${name}`,
-    photoSubtitle: "Show us the face that lights up your life.",
+    photoSubtitle: "We use AI to capture their unique aura for the report.",
     photoPlaceholder: "Drop your favorite photo here",
     
     emailBadge: "Report Ready",
@@ -163,34 +163,34 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     },
     
     nameTitle: "Who's celebrating their special day? 🎂",
-    nameSubtitle: "Another year of unconditional love.",
+    nameSubtitle: "Names carry vibrational energy that influences personality traits.",
     
     speciesTitle: (name) => `What kind of companion is ${name}?`,
-    speciesSubtitle: "Every birthday deserves to be celebrated.",
+    speciesSubtitle: "Different species have unique archetypal energies in cosmic readings.",
     
     breedTitle: (name) => `What breed is ${name}?`,
-    breedSubtitle: "Adding personal touches to their birthday reading.",
+    breedSubtitle: "Breed traits blend with astrological influences for deeper accuracy.",
     
     genderTitle: (name) => `Is ${name} a birthday boy or birthday girl?`,
-    genderSubtitle: "Time to celebrate! 🎉",
+    genderSubtitle: "Gender affects how planetary energies express in the chart.",
     
     dobTitle: (name) => `When was ${name} born?`,
-    dobSubtitle: "The day that changed everything.",
+    dobSubtitle: "Birth date reveals Sun sign, Moon phase & planetary positions.",
     
     locationTitle: (name) => `Where does ${name} celebrate?`,
-    locationSubtitle: "Their home filled with love.",
+    locationSubtitle: "Location sets the Ascendant & house positions in the birth chart.",
     
     soulTitle: "What kind of soul lights up your life?",
-    soulSubtitle: (name) => `Describe the joy ${name} brings every day.`,
+    soulSubtitle: (name) => `Your insight helps calibrate ${name}'s Neptune & 12th house themes.`,
     
     superpowerTitle: (name) => `What makes ${name} so special?`,
-    superpowerSubtitle: "The gift they share with everyone they meet.",
+    superpowerSubtitle: "This reveals dominant planetary strengths in the chart.",
     
     strangersTitle: (name) => `How does ${name} greet party guests?`,
-    strangersSubtitle: "Their welcoming spirit.",
+    strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
     
     photoTitle: (name) => `Share a photo of ${name}`,
-    photoSubtitle: "Capture their birthday glow.",
+    photoSubtitle: "We use AI to capture their unique aura for the report.",
     photoPlaceholder: "Drop a birthday photo here",
     
     emailBadge: "Birthday Reading Ready!",
@@ -225,34 +225,34 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     },
     
     nameTitle: "Tell us their name ❤️",
-    nameSubtitle: "Let's honor the beautiful soul who changed your life.",
+    nameSubtitle: "Names carry vibrational energy that shaped who they were.",
     
     speciesTitle: (name) => `What kind of companion was ${name}?`,
-    speciesSubtitle: "Their spirit lives on in every memory.",
+    speciesSubtitle: "Different species have unique archetypal energies in cosmic readings.",
     
     breedTitle: (name) => `What breed was ${name}?`,
-    breedSubtitle: "Remembering everything that made them unique.",
+    breedSubtitle: "Breed traits blend with astrological influences for deeper accuracy.",
     
     genderTitle: (name) => `Was ${name} a boy or girl?`,
-    genderSubtitle: "The best friend you'll never forget.",
+    genderSubtitle: "Gender affected how planetary energies expressed in the chart.",
     
     dobTitle: (name) => `When did ${name} come into your life?`,
-    dobSubtitle: "The day everything got better.",
+    dobSubtitle: "Birth date reveals Sun sign, Moon phase & planetary positions.",
     
     locationTitle: (name) => `Where did ${name} call home?`,
-    locationSubtitle: "The place they made brighter just by being there.",
+    locationSubtitle: "Location set the Ascendant & house positions in the birth chart.",
     
     soulTitle: "When you looked into their eyes, what did you see?",
-    soulSubtitle: (name) => `Remember the love that ${name} carried.`,
+    soulSubtitle: (name) => `Your memory helps calibrate ${name}'s Neptune & 12th house themes.`,
     
     superpowerTitle: (name) => `What was ${name}'s greatest gift to you?`,
-    superpowerSubtitle: "The special magic that's still with you.",
+    superpowerSubtitle: "This reveals dominant planetary strengths in the chart.",
     
     strangersTitle: (name) => `How did ${name} greet new friends?`,
-    strangersSubtitle: "The way they touched every heart.",
+    strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
     
     photoTitle: (name) => `Share a treasured photo of ${name}`,
-    photoSubtitle: "A memory to hold forever.",
+    photoSubtitle: "We use AI to capture their eternal aura for the memorial.",
     photoPlaceholder: "Drop a cherished photo here",
     
     emailBadge: "Memorial Ready",
@@ -287,34 +287,34 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     },
     
     nameTitle: "What's the name of this special pet?",
-    nameSubtitle: "You're creating a gift they'll treasure forever.",
+    nameSubtitle: "Names carry vibrational energy that influences personality traits.",
     
     speciesTitle: (name) => `What kind of companion is ${name}?`,
-    speciesSubtitle: "Every pet has their own beautiful story.",
+    speciesSubtitle: "Different species have unique archetypal energies in cosmic readings.",
     
     breedTitle: (name) => `What breed is ${name}?`,
-    breedSubtitle: "Makes the gift even more personal.",
+    breedSubtitle: "Breed traits blend with astrological influences for deeper accuracy.",
     
     genderTitle: (name) => `Is ${name} a boy or girl?`,
-    genderSubtitle: "Personalizing every detail.",
+    genderSubtitle: "Gender affects how planetary energies express in the chart.",
     
     dobTitle: (name) => `When was ${name} born?`,
-    dobSubtitle: "This makes their reading deeply personal.",
+    dobSubtitle: "Birth date reveals Sun sign, Moon phase & planetary positions.",
     
     locationTitle: (name) => `Where does ${name} live?`,
-    locationSubtitle: "Adds a personal touch to their reading.",
+    locationSubtitle: "Location sets the Ascendant & house positions in the birth chart.",
     
     soulTitle: "What kind of soul does this pet have?",
-    soulSubtitle: (name) => `Describe ${name}'s beautiful spirit.`,
+    soulSubtitle: (name) => `Your insight helps calibrate ${name}'s Neptune & 12th house themes.`,
     
     superpowerTitle: (name) => `What is ${name}'s special gift?`,
-    superpowerSubtitle: "What makes them so lovable.",
+    superpowerSubtitle: "This reveals dominant planetary strengths in the chart.",
     
     strangersTitle: (name) => `How does ${name} react to new people?`,
-    strangersSubtitle: "This captures their personality perfectly.",
+    strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
     
     photoTitle: (name) => `Share a photo of ${name}`,
-    photoSubtitle: "The heart of this beautiful gift.",
+    photoSubtitle: "We use AI to capture their unique aura for the gift.",
     photoPlaceholder: "Drop a photo here",
     
     emailBadge: "Gift Ready!",
