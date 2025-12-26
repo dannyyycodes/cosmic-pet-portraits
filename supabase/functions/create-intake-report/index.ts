@@ -22,6 +22,11 @@ const petReportSchema = z.object({
   stranger_reaction: z.string().max(50).nullable().optional(),
   occasion_mode: z.string().max(20).nullable().optional(),
   language: z.string().max(10).optional().default('en'),
+  // Owner data for compatibility (optional)
+  owner_name: z.string().max(50).nullable().optional(),
+  owner_birth_date: z.string().nullable().optional(), // ISO date string
+  owner_birth_time: z.string().max(10).nullable().optional(),
+  owner_birth_location: z.string().max(100).nullable().optional(),
 });
 
 const inputSchema = z.object({
@@ -83,6 +88,11 @@ serve(async (req) => {
           user_id: userId,
           language: pet.language || 'en',
           payment_status: 'pending',
+          // Owner data for compatibility
+          owner_name: pet.owner_name?.trim() || null,
+          owner_birth_date: pet.owner_birth_date || null,
+          owner_birth_time: pet.owner_birth_time || null,
+          owner_birth_location: pet.owner_birth_location?.trim() || null,
         });
 
       if (dbError) {
