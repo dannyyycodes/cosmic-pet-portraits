@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2, ChevronRight, Users, User, Sparkles, Heart, Star, Quote, Shield, Clock } from 'lucide-react';
+import { GiftReportShowcase } from '@/components/GiftReportShowcase';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
@@ -346,47 +347,8 @@ export default function GiftPurchase() {
                 </div>
               </div>
 
-              {/* Report Preview Showcase */}
-              <div className="p-5 rounded-2xl bg-card/60 border border-border/40 space-y-4">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <div className="h-px w-8 bg-gradient-to-r from-transparent to-primary/50" />
-                  <span className="text-xs font-medium text-primary uppercase tracking-wider">What They'll Receive</span>
-                  <div className="h-px w-8 bg-gradient-to-l from-transparent to-primary/50" />
-                </div>
-                
-                <div className="bg-gradient-to-br from-card/80 to-card/40 border border-primary/20 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center">
-                      <span className="text-lg">♓</span>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Example from Luna's report</p>
-                      <p className="font-semibold text-foreground">Persian Cat • Pisces Venus</p>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <p className="text-sm text-foreground/90 italic leading-relaxed">
-                      "Your cat's Venus in Pisces explains the 3am zoomies. She's not crazy — she's cosmically activated when you're trying to sleep."
-                    </p>
-                    <p className="text-sm text-primary font-medium mt-2">
-                      ✨ Also, she judges your life choices. A lot.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  {[
-                    { label: "Personality", icon: "🌟" },
-                    { label: "Quirks", icon: "😸" },
-                    { label: "Soul Bond", icon: "💫" },
-                  ].map((item, i) => (
-                    <div key={i} className="p-2 rounded-lg bg-muted/30 border border-border/20">
-                      <span className="text-lg">{item.icon}</span>
-                      <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Report Showcase - Interactive Preview */}
+              <GiftReportShowcase />
 
               {/* Testimonial */}
               <TestimonialBanner />
