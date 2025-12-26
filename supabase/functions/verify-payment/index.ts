@@ -136,8 +136,8 @@ serve(async (req) => {
           .single();
 
         if (report && !report.report_content) {
-          // Wait for report generation (including portrait) to complete
-          await generateReport(report, id, supabaseClient, includesPortrait);
+          // Trigger background generation (fire and forget with retries)
+          triggerBackgroundGeneration(id, includesPortrait);
         }
       }
 
@@ -293,7 +293,7 @@ serve(async (req) => {
 
         // Generate report if not already generated
         if (!report.report_content) {
-          await generateReport(report, id, supabaseClient, includesPortrait);
+          triggerBackgroundGeneration(id, includesPortrait);
         }
       }
 
@@ -417,7 +417,7 @@ serve(async (req) => {
 
       if (report && !report.report_content) {
         const includesPortrait = session.metadata?.includes_portrait === "true" || session.metadata?.selected_tier === "vip";
-        await generateReport(report, id, supabaseClient, includesPortrait);
+        triggerBackgroundGeneration(id, includesPortrait);
       }
     }
 
@@ -502,105 +502,29 @@ serve(async (req) => {
   }
 });
 
-async function generateReport(report: any, reportId: string, supabaseClient: any, includesPortrait = false) {
-  console.log("[VERIFY-PAYMENT] Generating report for:", reportId);
-
-  const petData = {
-    name: report.pet_name,
-    species: report.species,
-    breed: report.breed ?? '',
-    gender: report.gender,
-    dateOfBirth: report.birth_date,
-    birthTime: report.birth_time ?? '',
-    location: report.birth_location ?? '',
-    soulType: report.soul_type ?? '',
-    superpower: report.superpower ?? '',
-    strangerReaction: report.stranger_reaction ?? '',
-  };
+// UPDATED: Trigger background report generation with retries
+async function triggerBackgroundGeneration(reportId: string, includesPortrait = false) {
+  console.log("[VERIFY-PAYMENT] Triggering background generation for:", reportId);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-  // Set timeout for external calls to prevent hanging
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout (edge function limit is 60s)
-
   try {
-    console.log("[VERIFY-PAYMENT] Calling generate-cosmic-report...");
-    const genResponse = await fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
+    // Fire and forget - don't wait for the result
+    fetch(`${supabaseUrl}/functions/v1/generate-report-background`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${serviceRoleKey}`,
       },
-      body: JSON.stringify({ 
-        petData, 
-        reportId, 
-        language: report.language || 'en',
-        occasionMode: report.occasion_mode || 'discover',
-      }),
-      signal: controller.signal,
+      body: JSON.stringify({ reportId, includesPortrait, attempt: 1 }),
+    }).catch(err => {
+      console.error("[VERIFY-PAYMENT] Failed to trigger background generation:", err);
     });
 
-    clearTimeout(timeoutId);
-
-    const genText = await genResponse.text();
-    let genData: any = null;
-    try {
-      genData = genText ? JSON.parse(genText) : null;
-    } catch {
-      console.error("[VERIFY-PAYMENT] Failed to parse report response:", genText?.substring(0, 200));
-    }
-
-    if (!genResponse.ok) {
-      console.error("[VERIFY-PAYMENT] Report generation failed", {
-        status: genResponse.status,
-        body: genText?.substring(0, 500),
-      });
-      // Mark report with error status for visibility
-      await supabaseClient
-        .from("pet_reports")
-        .update({ 
-          report_content: { error: "Generation failed - please contact support", status: genResponse.status },
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", reportId);
-      return;
-    }
-
-    console.log("[VERIFY-PAYMENT] Report generated successfully for:", reportId);
-
-     // Portrait AI temporarily disabled — we use the uploaded photo directly on the card now.
-     // (pet_photo_url is stored on the report and used in the frontend.)
-
-    // Send email (fire and forget to prevent timeout)
-    sendEmailBackground(
-      supabaseUrl!,
-      serviceRoleKey!,
-      reportId,
-      report.email,
-      report.pet_name,
-      genData?.report?.sunSign
-    ).catch(err => {
-      console.error("[VERIFY-PAYMENT] Background email error:", err);
-    });
-
+    console.log("[VERIFY-PAYMENT] Background generation triggered for:", reportId);
   } catch (err) {
-    clearTimeout(timeoutId);
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    console.error("[VERIFY-PAYMENT] Error generating report:", errorMessage);
-    
-    // Check if it was a timeout
-    if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
-      console.error("[VERIFY-PAYMENT] Request timed out for:", reportId);
-      await supabaseClient
-        .from("pet_reports")
-        .update({ 
-          report_content: { error: "Report generation timed out - retrying in background", timeout: true },
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", reportId);
-    }
+    console.error("[VERIFY-PAYMENT] Error triggering background generation:", err);
   }
 }
 

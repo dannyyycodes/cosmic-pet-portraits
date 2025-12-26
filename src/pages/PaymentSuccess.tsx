@@ -114,7 +114,7 @@ export default function PaymentSuccess() {
       }
     }
 
-    const tryVerify = async (): Promise<boolean> => {
+  const tryVerify = async (): Promise<boolean | 'generating'> => {
       try {
         console.log('[PaymentSuccess] Verifying payment, attempt:', attempts + 1);
         
@@ -148,9 +148,33 @@ export default function PaymentSuccess() {
         // Handle multiple reports
         const reports = data.allReports || [data.report];
         const processedReports: ReportData[] = [];
+        let stillGenerating = false;
 
         for (const petReport of reports) {
-          if (petReport?.payment_status === 'paid' && petReport?.report_content) {
+          if (petReport?.payment_status === 'paid') {
+            // Check if report is still generating or has error that needs retry
+            const reportContent = petReport.report_content;
+            const isGenerating = !reportContent || 
+                                 reportContent?.status === 'generating' || 
+                                 reportContent?.status === 'retrying';
+            
+            if (isGenerating) {
+              console.log('[PaymentSuccess] Report still generating:', petReport.id);
+              stillGenerating = true;
+              continue;
+            }
+            
+            // Check for failed generation
+            if (reportContent?.status === 'failed' || reportContent?.error) {
+              console.log('[PaymentSuccess] Report has error, may be retrying:', petReport.id);
+              // If it's a timeout/retry scenario, keep polling
+              if (reportContent?.timeout || reportContent?.status === 'retrying') {
+                stillGenerating = true;
+                continue;
+              }
+            }
+            
+            // Report is ready
             // isGift means the report is being SENT as a gift (occasion_mode === 'gift')
             // isGiftRedemption means the user is RECEIVING/REDEEMING a gift (should see their own report)
             const isGiftBeingSent = petReport.occasion_mode === 'gift' && !isGiftRedemption;
@@ -165,6 +189,12 @@ export default function PaymentSuccess() {
               petPhotoUrl: petReport.pet_photo_url,
             });
           }
+        }
+
+        // If any reports are still generating, keep polling
+        if (stillGenerating && processedReports.length < reports.length) {
+          console.log('[PaymentSuccess] Some reports still generating, continuing to poll...');
+          return 'generating';
         }
 
         if (processedReports.length > 0) {
@@ -194,35 +224,42 @@ export default function PaymentSuccess() {
           return true;
         }
 
-        return false;
+        return 'generating'; // Reports exist but not ready yet
       } catch (err) {
         console.error('[PaymentSuccess] Error:', err);
         return false;
       }
     };
 
-    if (await tryVerify()) {
+    const result = await tryVerify();
+    if (result === true) {
       return;
     }
 
     const poll = async () => {
       attempts++;
       
-      if (attempts >= maxAttempts) {
+      // Extend max attempts for background generation (up to ~3 minutes)
+      const extendedMaxAttempts = 40;
+      
+      if (attempts >= extendedMaxAttempts) {
         setError(t('paymentSuccess.errorTimeout'));
         setStage('error');
         return;
       }
 
-      if (await tryVerify()) {
+      const result = await tryVerify();
+      if (result === true) {
         return;
       }
 
-      const delay = Math.min(3000 + attempts * 500, 8000);
+      // Keep polling if generating or false
+      const delay = Math.min(3000 + attempts * 300, 6000);
       setTimeout(poll, delay);
     };
 
-    setTimeout(poll, 3000);
+    // If generating, start polling immediately with shorter delay
+    setTimeout(poll, result === 'generating' ? 2000 : 3000);
   };
 
   const handleRevealComplete = () => {
