@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
+import { ReportLoadingSkeleton } from '@/components/report/ReportSkeletons';
 import { CinematicReveal } from '@/components/report/CinematicReveal';
 import { TestimonialPrompt } from '@/components/report/TestimonialPrompt';
 import { toast } from 'sonner';
@@ -226,7 +227,7 @@ export default function ViewReport() {
   }
 
   if (isLoading) {
-    return <ReportGenerating petName="Loading" />;
+    return <ReportLoadingSkeleton />;
   }
 
   // Report generation failed - show retry option
