@@ -113,7 +113,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     genderSubtitle: "So we can personalize their reading just for them.",
     
     dobTitle: (name) => `When was ${name} born?`,
-    dobSubtitle: "The day the universe gave you this gift.",
+    dobSubtitle: "This unlocks their unique cosmic blueprint.",
     
     locationTitle: (name) => `Where does ${name} call home?`,
     locationSubtitle: "The place they've filled with love.",

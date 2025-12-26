@@ -471,18 +471,16 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         })}
       </div>
 
-      {/* Clean benefits - conversational NLP */}
+      {/* Clean benefits */}
       <div className="p-3 rounded-xl bg-card/40 border border-border/30">
-        <p className="text-xs text-muted-foreground mb-2">You're about to discover...</p>
         <div className="space-y-1.5 text-sm">
-          <p className="text-foreground">✦ Why {petData.name} does <span className="italic">that thing</span></p>
-          <p className="text-foreground">✦ What {petData.gender === 'boy' ? 'he' : 'she'} needs but can't tell you</p>
-          <p className="text-foreground">✦ How to make your bond even stronger</p>
+          <p className="text-foreground">✦ Why {petData.name} does <span className="italic">that</span></p>
+          <p className="text-foreground">✦ What {petData.gender === 'boy' ? 'he' : 'she'} can't tell you</p>
+          <p className="text-foreground">✦ How to deepen your bond</p>
         </div>
-        
         {anyPetNeedsPortrait && (
           <p className="text-xs text-nebula-purple mt-2 pt-2 border-t border-border/30">
-            + A beautiful card to keep forever
+            + Keepsake card included
           </p>
         )}
       </div>
@@ -671,9 +669,9 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         )}
       </Button>
       
-      {/* Soft close - NLP future pacing */}
+      {/* Soft close */}
       <p className="text-center text-[11px] text-muted-foreground/80">
-        Imagine finally knowing exactly what {petData.gender === 'boy' ? 'he' : 'she'}'s thinking.
+        Finally know what {petData.gender === 'boy' ? 'he' : 'she'}'s thinking.
       </p>
 
       {/* Gift Upsell Modal */}
