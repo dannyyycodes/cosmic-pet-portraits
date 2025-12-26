@@ -348,6 +348,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     const timeSpent = Date.now() - stepStartTime.current;
     trackAction({ type: 'step_complete', timeSpent });
     setStep(nextStep);
+    // Scroll to top when changing steps
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBack = () => {

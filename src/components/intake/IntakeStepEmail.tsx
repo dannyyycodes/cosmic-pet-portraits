@@ -303,23 +303,28 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               ))}
             </div>
 
-            {/* Big Celebration Header - Mobile friendly */}
+            {/* Clean Header */}
             <motion.div
-              initial={{ scale: 0, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", duration: 0.8, bounce: 0.5 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
               className="text-center space-y-2"
             >
-              <div className="flex justify-center gap-2 text-3xl md:text-5xl">
-                <motion.span animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0 }}>🎉</motion.span>
-                <motion.span animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }}>✨</motion.span>
-                <motion.span animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }}>🎉</motion.span>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cosmic-gold/20 border border-cosmic-gold/30">
+                <Sparkles className="w-4 h-4 text-cosmic-gold" />
+                <span className="text-sm font-medium text-cosmic-gold">Cosmic Analysis Complete</span>
               </div>
-              <h1 className="text-xl md:text-3xl font-display font-bold text-foreground">
-                The Stars Have Spoken!
+              <h1 className="text-2xl md:text-4xl font-display font-bold text-foreground">
+                {allPets.length > 1 
+                  ? `Meet Your ${allPets.length} Cosmic Companions`
+                  : `${primaryPet.name}'s Cosmic Blueprint`
+                }
               </h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                {allPets.length > 1 ? `Your ${allPets.length} pets' cosmic identities revealed!` : `${primaryPet.name}'s cosmic identity revealed!`}
+              <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
+                {allPets.length > 1 
+                  ? "We've decoded the stars for your furry family"
+                  : "The universe has revealed something extraordinary"
+                }
               </p>
             </motion.div>
 
