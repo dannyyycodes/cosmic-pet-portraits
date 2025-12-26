@@ -126,6 +126,29 @@ interface ReportContent {
     title: string;
     paragraph: string;
   };
+  // Fun shareable sections
+  memePersonality?: {
+    title: string;
+    type: string;
+    description: string;
+    signature: string;
+  };
+  topFiveCrimes?: {
+    title: string;
+    crimes: string[];
+  };
+  datingProfile?: {
+    title: string;
+    headline: string;
+    bio: string;
+    lookingFor: string;
+  };
+  dreamJob?: {
+    title: string;
+    job: string;
+    description: string;
+    salary: string;
+  };
   // Legacy support
   sunSign?: string;
   element?: string;
@@ -938,6 +961,95 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
               </div>
               <p className="text-muted-foreground text-sm">{report.compatibilityNotes.humanCompatibility}</p>
             </div>
+          </motion.div>
+        )}
+
+        {/* Fun Shareable Sections */}
+        {!isPreview && (report.memePersonality || report.topFiveCrimes || report.datingProfile || report.dreamJob) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="space-y-6"
+          >
+            <div className="text-center mb-4">
+              <h2 className="text-2xl font-semibold text-foreground mb-2">🎉 Fun & Shareable</h2>
+              <p className="text-muted-foreground">The hilarious extras - perfect for sharing!</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Meme Personality */}
+              {report.memePersonality && (
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30">
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                    😼 Internet Personality
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="inline-block px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 font-medium">
+                      {report.memePersonality.type}
+                    </div>
+                    <p className="text-muted-foreground">{report.memePersonality.description}</p>
+                    <p className="text-sm italic text-purple-300/80">
+                      Signature move: {report.memePersonality.signature}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Dream Job */}
+              {report.dreamJob && (
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30">
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                    💼 Dream Career
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="inline-block px-4 py-2 rounded-full bg-blue-500/20 text-blue-300 font-medium">
+                      {report.dreamJob.job}
+                    </div>
+                    <p className="text-muted-foreground">{report.dreamJob.description}</p>
+                    <p className="text-sm text-blue-300/80">
+                      💰 Expected salary: {report.dreamJob.salary}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Dating Profile - Full Width */}
+            {report.datingProfile && (
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/30">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  💕 Dating Profile
+                </h3>
+                <div className="space-y-4">
+                  <div className="text-xl font-medium text-pink-300">"{report.datingProfile.headline}"</div>
+                  <p className="text-muted-foreground">{report.datingProfile.bio}</p>
+                  <div className="pt-3 border-t border-pink-500/20">
+                    <span className="text-sm text-pink-300/80">Looking for:</span>
+                    <p className="text-foreground mt-1">{report.datingProfile.lookingFor}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Top 5 Crimes - Full Width */}
+            {report.topFiveCrimes && (
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/30">
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  🚨 Criminal Record
+                </h3>
+                <ol className="space-y-3">
+                  {report.topFiveCrimes.crimes?.map((crime, idx) => (
+                    <li key={idx} className="flex gap-3 items-start">
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-orange-500/20 text-orange-300 flex items-center justify-center text-sm font-bold">
+                        {idx + 1}
+                      </span>
+                      <span className="text-muted-foreground">{crime}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
           </motion.div>
         )}
 
