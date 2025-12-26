@@ -45,49 +45,49 @@ export interface CheckoutData {
 const TIERS = {
   basic: {
     id: 'basic',
-    name: 'Cosmic Reading',
-    shortName: 'Basic',
-    description: "Understand your pet deeply",
+    name: 'Full Reading',
+    shortName: 'Reading',
+    description: "Finally understand your pet",
     priceCents: 3500, // $35
     originalPriceCents: 7900, // $79 anchoring
     icon: Sparkles,
     highlight: false,
     includesPortrait: false,
     benefits: [
-      "Why they do that ONE weird thing",
-      "Their unique love language",
-      "How to bond even deeper",
+      "Decode their quirky behaviors",
+      "Learn their emotional needs",
+      "Strengthen your bond instantly",
     ],
   },
   premium: {
     id: 'premium',
-    name: 'Portrait Edition',
-    shortName: 'Portrait',
-    description: 'The keepsake you\'ll treasure',
+    name: 'Keepsake Card',
+    shortName: 'Card',
+    description: 'A treasure you can hold',
     priceCents: 5000, // $50
     originalPriceCents: 9900, // $99 anchoring
     icon: Crown,
     highlight: true,
     includesPortrait: true,
     benefits: [
-      "Everything in Basic, plus...",
-      "Your pet's photo on a cosmic card",
-      "Shareable card to show friends",
+      "Everything in Reading, plus...",
+      "Beautiful printed cosmic card",
+      "Perfect to frame or share",
     ],
   },
   vip: {
     id: 'vip',
-    name: 'VIP Experience',
+    name: 'VIP All-Access',
     shortName: 'VIP',
-    description: 'Cosmic guidance all year',
+    description: 'Guidance that never ends',
     priceCents: 12900, // $129 - extreme anchor
     originalPriceCents: 24900, // $249 anchoring
     icon: Star,
     highlight: false,
     includesPortrait: true,
     benefits: [
-      "Everything in Portrait, plus...",
-      "Weekly horoscopes for your pet",
+      "Everything in Keepsake, plus...",
+      "Weekly personalized updates",
       "Know what each week brings",
     ],
   },
@@ -302,23 +302,23 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-5"
+      className="space-y-4"
     >
-      {/* Social Proof - Simplified */}
-      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-2">
-        <Users className="w-4 h-4" />
-        <span><span className="text-foreground font-semibold">{recentPurchases.toLocaleString()}</span> happy pet parents</span>
+      {/* Social Proof - Compact for mobile */}
+      <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground py-1.5">
+        <Users className="w-3.5 h-3.5" />
+        <span><span className="text-foreground font-semibold">{recentPurchases.toLocaleString()}</span> pet parents love this</span>
       </div>
 
-      {/* Header */}
-      <div className="text-center space-y-1 pb-3 border-b border-border/30">
-        <h2 className="text-xl font-display font-bold text-foreground">
-          Choose Your Reading{allPets.length > 1 ? 's' : ''}
+      {/* Header - Tighter mobile spacing */}
+      <div className="text-center space-y-0.5 pb-2">
+        <h2 className="text-lg md:text-xl font-display font-bold text-foreground">
+          {allPets.length > 1 ? 'Choose Your Readings' : `Get ${petData.name}'s Full Reading`}
         </h2>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-xs md:text-sm">
           {allPets.length > 1 
-            ? `Select a tier for each pet`
-            : `Unlock ${petData.name}'s complete cosmic profile`}
+            ? `Pick what works for each pet`
+            : `Finally understand what makes ${petData.gender === 'boy' ? 'him' : 'her'} tick`}
         </p>
       </div>
 
@@ -407,8 +407,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                 </div>
               </div>
 
-              {/* Tier Selection Buttons */}
-              <div className="grid grid-cols-3 gap-2">
+              {/* Tier Selection Buttons - Mobile optimized */}
+              <div className="grid grid-cols-3 gap-1.5">
                 {(['basic', 'premium', 'vip'] as const).map((tierKey) => {
                   const tier = TIERS[tierKey];
                   const isSelected = currentTier === tierKey;
@@ -419,7 +419,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                       key={tierKey}
                       onClick={() => handleTierChange(petIndex, tierKey)}
                       className={cn(
-                        "relative p-2 rounded-lg border-2 text-center transition-all",
+                        "relative p-1.5 md:p-2 rounded-lg border-2 text-center transition-all",
                         isSelected 
                           ? "border-primary bg-primary/10" 
                           : "border-border/50 bg-card/20 hover:border-primary/50",
@@ -427,38 +427,37 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                       )}
                     >
                       {tier.highlight && !isSelected && (
-                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[8px] px-1.5 py-0.5 bg-cosmic-gold text-background font-bold rounded-full whitespace-nowrap">
-                          POPULAR
+                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[7px] px-1 py-0.5 bg-cosmic-gold text-background font-bold rounded-full whitespace-nowrap">
+                          BEST
                         </span>
                       )}
                       <Icon className={cn(
-                        "w-4 h-4 mx-auto mb-1",
+                        "w-3.5 h-3.5 mx-auto mb-0.5",
                         isSelected ? "text-primary" : "text-muted-foreground"
                       )} />
                       <p className={cn(
-                        "text-xs font-medium",
+                        "text-[10px] md:text-xs font-medium leading-tight",
                         isSelected ? "text-foreground" : "text-muted-foreground"
                       )}>
                         {tier.shortName}
                       </p>
                       <p className={cn(
-                        "text-[10px]",
-                        isSelected ? "text-foreground/70" : "text-muted-foreground/70"
+                        "text-[10px] font-semibold",
+                        isSelected ? "text-primary" : "text-muted-foreground/70"
                       )}>
                         ${(tier.priceCents / 100).toFixed(0)}
                       </p>
                       {tier.includesPortrait && (
-                        <div className="flex items-center justify-center gap-0.5 mt-1">
-                          <Camera className="w-3 h-3 text-nebula-purple" />
-                          <span className="text-[8px] text-nebula-purple">✨ Card</span>
+                        <div className="flex items-center justify-center gap-0.5 mt-0.5">
+                          <Camera className="w-2.5 h-2.5 text-nebula-purple" />
                         </div>
                       )}
                       {isSelected && (
                         <motion.div 
                           layoutId={`check-${petIndex}`}
-                          className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
+                          className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-primary flex items-center justify-center"
                         >
-                          <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                          <Check className="w-2 h-2 text-primary-foreground" />
                         </motion.div>
                       )}
                     </button>
@@ -470,80 +469,63 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         })}
       </div>
 
-      {/* What's Included - Benefits Section */}
+      {/* What's Included - Mobile optimized */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-4 rounded-xl bg-gradient-to-br from-primary/5 to-cosmic-gold/5 border border-primary/20"
+        className="p-3 rounded-xl bg-gradient-to-br from-primary/5 to-cosmic-gold/5 border border-primary/20"
       >
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-2">
           <Sparkles className="w-4 h-4 text-cosmic-gold" />
-          <span className="text-sm font-bold text-foreground">What's Included In Every Reading</span>
+          <span className="text-sm font-bold text-foreground">Your Reading Includes</span>
         </div>
         
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-foreground">18 Cosmic Sections</p>
-              <p className="text-muted-foreground">Complete personality breakdown</p>
-            </div>
+        {/* Single column on mobile, 2 cols on larger */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+            <span className="text-foreground">Why they do that <span className="italic">one</span> weird thing</span>
           </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-foreground">Birth Chart Analysis</p>
-              <p className="text-muted-foreground">Sun, Moon & Rising signs</p>
-            </div>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+            <span className="text-foreground">Their exact emotional needs</span>
           </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-foreground">Soul Mission</p>
-              <p className="text-muted-foreground">Their life purpose revealed</p>
-            </div>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+            <span className="text-foreground">How they show love (you might be missing it)</span>
           </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-foreground">Love Language</p>
-              <p className="text-muted-foreground">How they show & receive love</p>
-            </div>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+            <span className="text-foreground">Their hidden fears and what calms them</span>
           </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-foreground">Hidden Gift</p>
-              <p className="text-muted-foreground">Secret superpower unlocked</p>
-            </div>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+            <span className="text-foreground">The one thing that'll make them happiest</span>
           </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium text-foreground">Instant Delivery</p>
-              <p className="text-muted-foreground">Beautifully formatted PDF</p>
-            </div>
+          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
+            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+            <span className="text-foreground">18+ pages of deep insights (PDF)</span>
           </div>
         </div>
 
         {/* Tier-specific upgrades */}
         {anyPetNeedsPortrait && (
-          <div className="mt-3 pt-3 border-t border-border/30">
+          <div className="mt-2 pt-2 border-t border-border/30">
             <div className="flex items-center gap-2 text-xs">
               <Camera className="w-3.5 h-3.5 text-nebula-purple" />
               <span className="text-nebula-purple font-medium">
-                +Cosmic Trading Card Portrait (Portrait/VIP tiers)
+                + Frameable cosmic card with their photo
               </span>
             </div>
           </div>
         )}
         
         {hasVipPet && (
-          <div className="mt-2">
+          <div className="mt-1.5">
             <div className="flex items-center gap-2 text-xs">
               <Moon className="w-3.5 h-3.5 text-cosmic-gold" />
               <span className="text-cosmic-gold font-medium">
-                +Free Weekly Horoscopes for Life (VIP tier)
+                + Weekly updates forever (VIP perk)
               </span>
             </div>
           </div>
@@ -702,21 +684,17 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       )}
 
-      {/* Trust signals */}
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="text-green-500">✓</span> Instant delivery
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="text-green-500">✓</span> 100% satisfaction guaranteed
-          </span>
-        </div>
-        {allPets.length === 1 && (
-          <p className="text-[10px] text-center text-muted-foreground/70">
-            Multi-pet savings: 2 pets 20% off • 3 pets 30% off • 4 pets 40% off • 5+ pets 50% off
-          </p>
-        )}
+      {/* Trust signals - Stacked for mobile */}
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <span className="text-green-500">✓</span> Instant email delivery
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="text-green-500">✓</span> 7-day money back
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="text-green-500">✓</span> Secure payment
+        </span>
       </div>
 
       {/* Checkout button */}
@@ -745,17 +723,12 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       </Button>
 
       
-      {/* Value Proposition */}
-      <div className="bg-gradient-to-br from-primary/5 via-card/40 to-nebula-pink/5 border border-primary/20 rounded-xl p-4 text-center">
-        <p className="text-xs text-foreground/80 leading-relaxed">
-          <span className="font-semibold text-primary">Worth every penny:</span> A vet consult costs $150+, a pet psychic $200+—but the real cost is <span className="italic">not</span> understanding your pet. For less than a bag of treats, get a lifetime of connection. <span className="font-medium text-gold">This is an investment in your bond.</span>
+      {/* Value Proposition - Mobile optimized */}
+      <div className="bg-gradient-to-br from-primary/5 via-card/40 to-nebula-pink/5 border border-primary/20 rounded-xl p-3 text-center">
+        <p className="text-[11px] md:text-xs text-foreground/80 leading-relaxed">
+          <span className="font-semibold text-primary">Pet psychics charge $200+.</span> For less than dinner out, you'll finally understand why your pet does what they do—and how to make them happier. <span className="font-medium text-gold">Most people say "I wish I knew this sooner."</span>
         </p>
       </div>
-      
-      {/* Final reassurance */}
-      <p className="text-center text-xs text-muted-foreground">
-        🔒 Secure checkout • 7-day money back guarantee
-      </p>
 
       {/* Gift Upsell Modal */}
       <AnimatePresence>
