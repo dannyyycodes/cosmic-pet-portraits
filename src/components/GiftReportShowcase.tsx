@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Star, Sparkles, Eye, Crown, ChevronLeft, ChevronRight, Shield, Flame, Brain, Heart as HeartIcon } from 'lucide-react';
+import { Star, Sparkles, Eye, Crown, ChevronLeft, ChevronRight, Shield, Flame, Brain, Heart as HeartIcon, X } from 'lucide-react';
 import lunaPersian from '@/assets/samples/luna-persian.jpg';
 import maxGolden from '@/assets/samples/max-golden.jpg';
 import mysticalDreamerCat from '@/assets/archetypes/mystical-dreamer-cat-v2.jpg';
@@ -458,6 +458,7 @@ export function GiftReportShowcase() {
   const [activeView, setActiveView] = useState(0);
   const [excerptIndex, setExcerptIndex] = useState(0);
   const [petIndex, setPetIndex] = useState(0);
+  const [expandedPetIndex, setExpandedPetIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -524,65 +525,106 @@ export function GiftReportShowcase() {
         ))}
       </div>
 
-      {/* Visual Preview with Pet Navigation */}
-      <div className="flex justify-center items-center gap-4 mb-10">
-        {/* Left arrow */}
-        <motion.button
-          onClick={prevPet}
-          className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </motion.button>
+      {/* Visual Preview */}
+      {activeView === 0 ? (
+        <>
+          {/* Side-by-side Cosmic Cards (mobile-friendly via scale) */}
+          <div className="flex justify-center mb-8 overflow-visible">
+            <div className="flex gap-3 overflow-visible">
+              {petShowcases.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setExpandedPetIndex(i)}
+                  className="origin-top scale-[0.52] sm:scale-[0.62] md:scale-[0.75] overflow-visible"
+                  aria-label={`Open ${petShowcases[i].name}'s cosmic card`}
+                >
+                  <PremiumCosmicCard petIndex={i} />
+                </button>
+              ))}
+            </div>
+          </div>
 
-        <AnimatePresence mode="wait">
-          {activeView === 0 ? (
-            <motion.div
-              key={`card-${petIndex}`}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
+          {/* Expanded modal */}
+          <AnimatePresence>
+            {expandedPetIndex !== null && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm"
+                onClick={() => setExpandedPetIndex(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.92, y: 10 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.92, y: 10 }}
+                  transition={{ type: 'spring', stiffness: 140, damping: 18 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="relative"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setExpandedPetIndex(null)}
+                    className="absolute -top-3 -right-3 z-10 w-9 h-9 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Close"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <PremiumCosmicCard petIndex={expandedPetIndex} />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      ) : (
+        <>
+          {/* Birth Chart view keeps pet navigation */}
+          <div className="flex justify-center items-center gap-4 mb-10">
+            <motion.button
+              onClick={prevPet}
+              className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
-              <PremiumCosmicCard petIndex={petIndex} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`chart-${petIndex}`}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
+              <ChevronLeft className="w-5 h-5" />
+            </motion.button>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`chart-${petIndex}`}
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.3 }}
+              >
+                <PremiumBirthChart petIndex={petIndex} />
+              </motion.div>
+            </AnimatePresence>
+
+            <motion.button
+              onClick={nextPet}
+              className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
-              <PremiumBirthChart petIndex={petIndex} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <ChevronRight className="w-5 h-5" />
+            </motion.button>
+          </div>
 
-        {/* Right arrow */}
-        <motion.button
-          onClick={nextPet}
-          className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <ChevronRight className="w-5 h-5" />
-        </motion.button>
-      </div>
-
-      {/* Pet indicator dots */}
-      <div className="flex justify-center gap-2 mb-8">
-        {petShowcases.map((pet, i) => (
-          <button
-            key={i}
-            onClick={() => setPetIndex(i)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              i === petIndex ? 'bg-gradient-to-r from-violet-400 to-pink-400 w-8' : 'bg-white/20 w-2 hover:bg-white/30'
-            }`}
-          />
-        ))}
-      </div>
+          <div className="flex justify-center gap-2 mb-8">
+            {petShowcases.map((pet, i) => (
+              <button
+                key={i}
+                onClick={() => setPetIndex(i)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === petIndex ? 'bg-gradient-to-r from-violet-400 to-pink-400 w-8' : 'bg-white/20 w-2 hover:bg-white/30'
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Rotating Excerpts */}
       <motion.div 
