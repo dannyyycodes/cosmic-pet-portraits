@@ -309,50 +309,40 @@ export default function GiftPurchase() {
               </div>
 
               {/* Why it's a perfect gift - Enhanced */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-nebula-pink/10 via-card/60 to-nebula-purple/10 border border-nebula-pink/20 space-y-4">
+              <div className="p-5 rounded-2xl bg-card/60 border border-border/40 space-y-4">
                 <h3 className="font-display font-semibold text-lg text-foreground text-center">
                   Why Pet Lovers Adore This Gift
                 </h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {[
-                    { 
-                      icon: Heart, 
-                      title: "Heartfelt & Meaningful", 
-                      desc: "Not another candle or gift card — something they'll actually treasure",
-                      color: "text-nebula-pink",
-                      bg: "bg-nebula-pink/10"
-                    },
-                    { 
-                      icon: Sparkles, 
-                      title: "Completely Unique", 
-                      desc: "No two readings are alike — crafted just for their pet's cosmic blueprint",
-                      color: "text-gold",
-                      bg: "bg-gold/10"
-                    },
-                    { 
-                      icon: Star, 
-                      title: "Unforgettable Reactions", 
-                      desc: "The kind of gift that makes people laugh, cry, and share with everyone",
-                      color: "text-primary",
-                      bg: "bg-primary/10"
-                    },
-                  ].map((item, i) => (
-                    <motion.div 
-                      key={i} 
-                      className={`flex items-start gap-3 p-3 rounded-xl ${item.bg} border border-border/20`}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${item.bg}`}>
-                        <item.icon className={`w-4 h-4 ${item.color}`} />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-foreground">{item.title}</p>
-                        <p className="text-xs text-muted-foreground">{item.desc}</p>
-                      </div>
-                    </motion.div>
-                  ))}
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-pink-500/10 border border-pink-500/20">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-pink-500/20">
+                      <Heart className="w-4 h-4 text-pink-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Heartfelt & Meaningful</p>
+                      <p className="text-xs text-muted-foreground">Not another candle or gift card — something they'll actually treasure</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-amber-500/20">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Completely Unique</p>
+                      <p className="text-xs text-muted-foreground">No two readings are alike — crafted just for their pet's cosmic blueprint</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-violet-500/20">
+                      <Star className="w-4 h-4 text-violet-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Unforgettable Reactions</p>
+                      <p className="text-xs text-muted-foreground">The kind of gift that makes people laugh, cry, and share with everyone</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
