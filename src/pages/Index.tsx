@@ -15,6 +15,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 import { TrackedSection } from "@/components/TrackedSection";
 import { SampleCarousel } from "@/components/SampleCarousel";
+import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 
 const Index = () => {
   const { t } = useLanguage();
@@ -28,6 +29,7 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       <Navbar />
+      <StickyMobileCTA />
       
       {/* Dynamic Cosmic Background */}
       <div className="fixed inset-0 z-0">
