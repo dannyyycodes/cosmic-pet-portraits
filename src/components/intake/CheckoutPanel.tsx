@@ -304,22 +304,14 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       animate={{ opacity: 1 }}
       className="space-y-4"
     >
-      {/* Social Proof - Compact for mobile */}
-      <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground py-1.5">
-        <Users className="w-3.5 h-3.5" />
-        <span><span className="text-foreground font-semibold">{recentPurchases.toLocaleString()}</span> pet parents love this</span>
-      </div>
-
-      {/* Header - Tighter mobile spacing */}
-      <div className="text-center space-y-0.5 pb-2">
-        <h2 className="text-lg md:text-xl font-display font-bold text-foreground">
-          {allPets.length > 1 ? 'Choose Your Readings' : `Get ${petData.name}'s Full Reading`}
-        </h2>
-        <p className="text-muted-foreground text-xs md:text-sm">
-          {allPets.length > 1 
-            ? `Pick what works for each pet`
-            : `Finally understand what makes ${petData.gender === 'boy' ? 'him' : 'her'} tick`}
+      {/* Simple header - no repetition */}
+      <div className="text-center pb-2">
+        <p className="text-xs text-muted-foreground mb-1">
+          {recentPurchases.toLocaleString()} readings delivered
         </p>
+        <h2 className="text-lg font-display font-bold text-foreground">
+          {allPets.length > 1 ? 'Almost there' : `${petData.name}'s reading is ready`}
+        </h2>
       </div>
 
       {/* Volume Discount Applied - only show when applicable */}
@@ -469,68 +461,20 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         })}
       </div>
 
-      {/* Emotional hook - What you'll discover */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-3 rounded-xl bg-gradient-to-br from-primary/5 to-cosmic-gold/5 border border-primary/20"
-      >
-        <div className="flex items-center gap-2 mb-2">
-          <Heart className="w-4 h-4 text-red-400" />
-          <span className="text-sm font-bold text-foreground">What You'll Finally Understand</span>
+      {/* Clean benefits - conversational NLP */}
+      <div className="p-3 rounded-xl bg-card/40 border border-border/30">
+        <p className="text-xs text-muted-foreground mb-2">You're about to discover...</p>
+        <div className="space-y-1.5 text-sm">
+          <p className="text-foreground">✦ Why {petData.name} does <span className="italic">that thing</span></p>
+          <p className="text-foreground">✦ What {petData.gender === 'boy' ? 'he' : 'she'} needs but can't tell you</p>
+          <p className="text-foreground">✦ How to make your bond even stronger</p>
         </div>
         
-        {/* Emotionally charged benefits */}
-        <div className="grid grid-cols-1 gap-1.5 text-xs">
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <span className="text-primary mt-0.5">→</span>
-            <span className="text-foreground">The <span className="font-semibold">real reason</span> behind that behavior that's been puzzling you</span>
-          </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <span className="text-primary mt-0.5">→</span>
-            <span className="text-foreground">Signs of affection you've been <span className="font-semibold">missing without realizing</span></span>
-          </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <span className="text-primary mt-0.5">→</span>
-            <span className="text-foreground">What they <span className="font-semibold">actually need</span> from you (it's not what you think)</span>
-          </div>
-          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
-            <span className="text-primary mt-0.5">→</span>
-            <span className="text-foreground">The <span className="font-semibold">one thing</span> that would make your bond unbreakable</span>
-          </div>
-        </div>
-
-        {/* Tier-specific upgrades */}
         {anyPetNeedsPortrait && (
-          <div className="mt-2 pt-2 border-t border-border/30">
-            <div className="flex items-center gap-2 text-xs">
-              <Camera className="w-3.5 h-3.5 text-nebula-purple" />
-              <span className="text-nebula-purple font-medium">
-                + Beautiful keepsake card you'll treasure
-              </span>
-            </div>
-          </div>
+          <p className="text-xs text-nebula-purple mt-2 pt-2 border-t border-border/30">
+            + A beautiful card to keep forever
+          </p>
         )}
-        
-        {hasVipPet && (
-          <div className="mt-1.5">
-            <div className="flex items-center gap-2 text-xs">
-              <Moon className="w-3.5 h-3.5 text-cosmic-gold" />
-              <span className="text-cosmic-gold font-medium">
-                + Weekly guidance so you never miss a thing
-              </span>
-            </div>
-          </div>
-        )}
-      </motion.div>
-
-      {/* Loss aversion / emotional urgency */}
-      <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-center">
-        <p className="text-xs text-foreground/90 leading-relaxed">
-          <span className="font-medium text-amber-400">Every day without this knowledge</span> is another day of missed signals, 
-          misunderstood moments, and a bond that could be <span className="italic">so much deeper</span>. 
-          They can't tell you what they need—<span className="font-semibold">but this will.</span>
-        </p>
       </div>
 
       {/* Photo Upload for Portrait Tier Pets */}
@@ -685,20 +629,14 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </div>
       )}
 
-      {/* Trust signals - Stacked for mobile */}
-      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="text-green-500">✓</span> Instant email delivery
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="text-green-500">✓</span> 7-day money back
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="text-green-500">✓</span> Secure payment
-        </span>
+      {/* Trust signals - minimal */}
+      <div className="flex items-center justify-center gap-3 text-[10px] text-muted-foreground">
+        <span>✓ Instant delivery</span>
+        <span>✓ 7-day guarantee</span>
+        <span>✓ Secure</span>
       </div>
 
-      {/* Checkout button */}
+      {/* Checkout button - cleaner CTA */}
       <Button
         onClick={handleCheckoutClick}
         disabled={isLoading}
@@ -718,19 +656,15 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         ) : (
           <span className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            Reveal {allPets.length > 1 ? 'Their' : `${petData.name}'s`} Truth — ${(total / 100).toFixed(2)}
+            Get {petData.name}'s Reading — ${(total / 100).toFixed(0)}
           </span>
         )}
       </Button>
-
       
-      {/* Final emotional close */}
-      <div className="bg-gradient-to-br from-primary/5 via-card/40 to-nebula-pink/5 border border-primary/20 rounded-xl p-3 text-center">
-        <p className="text-[11px] md:text-xs text-foreground/80 leading-relaxed">
-          <span className="font-medium text-foreground">Years from now,</span> you won't remember what this cost. 
-          But you <span className="italic">will</span> remember the moment everything clicked—when you finally <span className="font-semibold text-primary">understood them.</span>
-        </p>
-      </div>
+      {/* Soft close - NLP future pacing */}
+      <p className="text-center text-[11px] text-muted-foreground/80">
+        Imagine finally knowing exactly what {petData.gender === 'boy' ? 'he' : 'she'}'s thinking.
+      </p>
 
       {/* Gift Upsell Modal */}
       <AnimatePresence>
