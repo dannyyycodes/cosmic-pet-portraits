@@ -529,23 +529,22 @@ export function GiftReportShowcase() {
       {activeView === 0 ? (
         <>
           {/* Side-by-side Cosmic Cards */}
-          <div className="flex justify-center items-center gap-4 mb-6 py-4">
+          <div className="flex justify-center items-start gap-3 sm:gap-5 mb-6 py-4">
             {petShowcases.map((pet, i) => {
-              const rotation = i === 0 ? -4 : 4;
-              
+              // Keep both cards fully visible on mobile: no overlap, minimal tilt.
+              const rotationClass = i === 0 ? "rotate-0 md:-rotate-[2deg]" : "rotate-0 md:rotate-[2deg]";
+
               return (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setExpandedPetIndex(i)}
-                  className="transition-all duration-300 hover:scale-105 hover:z-20 focus:outline-none"
-                  style={{
-                    transform: `rotate(${rotation}deg) scale(0.42)`,
-                    margin: '-60px -20px',
-                  }}
+                  className="relative shrink-0 w-[148px] h-[320px] sm:w-[162px] sm:h-[350px] md:w-[180px] md:h-[390px] overflow-visible focus:outline-none transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:z-20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   aria-label={`Open ${pet.name}'s cosmic card`}
                 >
-                  <PremiumCosmicCard petIndex={i} />
+                  <div className={`origin-top ${rotationClass} scale-[0.48] sm:scale-[0.54] md:scale-[0.6]`}>
+                    <PremiumCosmicCard petIndex={i} />
+                  </div>
                 </button>
               );
             })}
