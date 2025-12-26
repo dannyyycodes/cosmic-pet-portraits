@@ -9,7 +9,7 @@ import { MultiPetPhotoUpload, PetPhotoData, PhotoProcessingMode } from './MultiP
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import trustpilotStars from '@/assets/trustpilot-stars.png';
-import { CosmicCardShowcase } from './CosmicCardShowcase';
+// CosmicCardShowcase removed - keeping checkout compact
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -304,207 +304,121 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="space-y-4"
+      className="space-y-3"
     >
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-xl font-display font-bold text-foreground">
-          {allPets.length > 1 ? 'Choose Your Reading' : `Unlock ${petData.name}'s Reading`}
+      {/* Compact Header */}
+      <div className="text-center">
+        <h2 className="text-lg font-display font-bold text-foreground">
+          {allPets.length > 1 ? 'Choose Your Package' : `Get ${petData.name}'s Reading`}
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Select an option below to continue
-        </p>
       </div>
 
-      {/* Volume Discount Applied - only show when applicable */}
+      {/* Volume Discount - inline */}
       {allPets.length >= 2 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="p-2 rounded-lg bg-green-500/10 border border-green-500/20"
-        >
-          <div className="flex items-center justify-center gap-2">
-            <Users className="w-3.5 h-3.5 text-green-400" />
-            <span className="text-xs font-medium text-green-400">
-              🎉 {Math.round(volumeDiscountRate * 100)}% Multi-Pet Discount Applied!
-            </span>
-          </div>
-        </motion.div>
+        <div className="text-center text-xs text-green-400 font-medium">
+          🎉 {Math.round(volumeDiscountRate * 100)}% Multi-Pet Discount Applied
+        </div>
       )}
 
-      {/* Quick tier select for multiple pets */}
-      {allPets.length > 1 && (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Quick select:</span>
-          <div className="flex gap-1 flex-1">
-            {(['basic', 'premium', 'vip'] as const).map(tier => (
+      {/* Compact Tier Selection */}
+      {allPets.length === 1 ? (
+        // Single pet - horizontal tier buttons
+        <div className="grid grid-cols-3 gap-2">
+          {(['basic', 'premium', 'vip'] as const).map((tierKey) => {
+            const tier = TIERS[tierKey];
+            const isSelected = petTiers[0] === tierKey;
+            const Icon = tier.icon;
+            
+            return (
               <button
-                key={tier}
-                onClick={() => setAllPetsTier(tier)}
+                key={tierKey}
+                onClick={() => handleTierChange(0, tierKey)}
                 className={cn(
-                  "flex-1 py-1.5 px-2 text-xs font-medium rounded-lg border transition-all",
-                  Object.values(petTiers).every(t => t === tier)
-                    ? "bg-primary/10 border-primary text-primary"
-                    : "border-border/50 text-muted-foreground hover:border-primary/50"
+                  "relative p-3 rounded-xl border-2 text-center transition-all",
+                  isSelected 
+                    ? "border-primary bg-primary/10" 
+                    : "border-border/50 bg-card/30 hover:border-primary/50",
+                  tier.highlight && !isSelected && "ring-1 ring-cosmic-gold/30"
                 )}
               >
-                All {TIERS[tier].shortName}
+                {tier.highlight && !isSelected && (
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[8px] px-1.5 py-0.5 bg-cosmic-gold text-background font-bold rounded-full">
+                    BEST
+                  </span>
+                )}
+                <Icon className={cn("w-5 h-5 mx-auto mb-1", isSelected ? "text-primary" : "text-muted-foreground")} />
+                <p className={cn("text-sm font-bold", isSelected ? "text-foreground" : "text-muted-foreground")}>
+                  ${(tier.priceCents / 100).toFixed(0)}
+                </p>
+                <p className={cn("text-[10px]", isSelected ? "text-foreground" : "text-muted-foreground")}>
+                  {tier.shortName}
+                </p>
+                {isSelected && (
+                  <motion.div layoutId="selected-tier" className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                    <Check className="w-3 h-3 text-primary-foreground" />
+                  </motion.div>
+                )}
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
+      ) : (
+        // Multi-pet - compact list
+        <div className="space-y-2">
+          {allPets.length > 1 && (
+            <div className="flex gap-1">
+              {(['basic', 'premium', 'vip'] as const).map(tier => (
+                <button
+                  key={tier}
+                  onClick={() => setAllPetsTier(tier)}
+                  className={cn(
+                    "flex-1 py-1.5 text-xs font-medium rounded-lg border transition-all",
+                    Object.values(petTiers).every(t => t === tier)
+                      ? "bg-primary/10 border-primary text-primary"
+                      : "border-border/50 text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  All {TIERS[tier].shortName}
+                </button>
+              ))}
+            </div>
+          )}
+          
+          {allPets.map((pet, petIndex) => {
+            const currentTier = petTiers[petIndex] || 'premium';
+            return (
+              <div key={petIndex} className="flex items-center gap-2 p-2 rounded-lg bg-card/30 border border-border/30">
+                <span className="text-sm font-medium text-foreground flex-1 truncate">{pet.name}</span>
+                <div className="flex gap-1">
+                  {(['basic', 'premium', 'vip'] as const).map(tier => (
+                    <button
+                      key={tier}
+                      onClick={() => handleTierChange(petIndex, tier)}
+                      className={cn(
+                        "px-2 py-1 text-[10px] font-medium rounded transition-all",
+                        currentTier === tier
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-card"
+                      )}
+                    >
+                      ${(TIERS[tier].priceCents / 100).toFixed(0)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Clear instructions for tier selection */}
-      <div className="p-3 rounded-xl bg-primary/5 border border-primary/20">
-        <p className="text-sm text-center text-foreground font-medium mb-1">
-          👇 Tap to choose your package
-        </p>
-        <p className="text-xs text-center text-muted-foreground">
-          Reading = digital report • Card = printed keepsake • VIP = weekly updates
-        </p>
+      {/* What's Included - single compact line */}
+      <div className="text-center text-xs text-muted-foreground py-1">
+        {petTiers[0] === 'basic' && "✦ Full personality reading • Cosmic insights • Bond tips"}
+        {petTiers[0] === 'premium' && "✦ Full reading + Printed keepsake card"}
+        {petTiers[0] === 'vip' && "✦ Full reading + Card + Weekly cosmic updates"}
       </div>
 
-      {/* Per-Pet Tier Selection */}
-      <div className="space-y-3">
-        {allPets.map((pet, petIndex) => {
-          const currentTier = petTiers[petIndex] || 'premium';
-          const isMemorial = pet.occasionMode === 'memorial';
-          
-          return (
-            <motion.div
-              key={petIndex}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: petIndex * 0.1 }}
-              className={cn(
-                "p-4 rounded-xl border",
-                isMemorial 
-                  ? "bg-purple-500/5 border-purple-500/30"
-                  : "bg-card/30 border-border/50"
-              )}
-            >
-              {/* Pet Header */}
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
-                  isMemorial 
-                    ? "bg-purple-500/20 text-purple-400"
-                    : "bg-primary/20 text-primary"
-                )}>
-                  {petIndex + 1}
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-foreground">{pet.name || `Pet ${petIndex + 1}`}</p>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {pet.species}{pet.breed ? ` • ${pet.breed}` : ''}
-                    {isMemorial && <span className="text-purple-400 ml-1">• Memorial</span>}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-cosmic-gold">
-                    ${(TIERS[currentTier].priceCents / 100).toFixed(0)}
-                  </p>
-                  <p className="text-xs text-muted-foreground line-through">
-                    ${(TIERS[currentTier].originalPriceCents / 100).toFixed(0)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Tier Selection Buttons - Clearer labels */}
-              <div className="grid grid-cols-3 gap-2">
-                {(['basic', 'premium', 'vip'] as const).map((tierKey) => {
-                  const tier = TIERS[tierKey];
-                  const isSelected = currentTier === tierKey;
-                  const Icon = tier.icon;
-                  
-                  return (
-                    <button
-                      key={tierKey}
-                      onClick={() => handleTierChange(petIndex, tierKey)}
-                      className={cn(
-                        "relative p-2 rounded-lg border-2 text-center transition-all",
-                        isSelected 
-                          ? "border-primary bg-primary/10" 
-                          : "border-border/50 bg-card/20 hover:border-primary/50",
-                        tier.highlight && !isSelected && "ring-1 ring-cosmic-gold/30"
-                      )}
-                    >
-                      {tier.highlight && !isSelected && (
-                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[8px] px-1.5 py-0.5 bg-cosmic-gold text-background font-bold rounded-full whitespace-nowrap">
-                          POPULAR
-                        </span>
-                      )}
-                      <Icon className={cn(
-                        "w-4 h-4 mx-auto mb-1",
-                        isSelected ? "text-primary" : "text-muted-foreground"
-                      )} />
-                      <p className={cn(
-                        "text-xs font-semibold leading-tight",
-                        isSelected ? "text-foreground" : "text-muted-foreground"
-                      )}>
-                        {tier.shortName}
-                      </p>
-                      <p className={cn(
-                        "text-xs font-bold mt-0.5",
-                        isSelected ? "text-primary" : "text-muted-foreground/70"
-                      )}>
-                        ${(tier.priceCents / 100).toFixed(0)}
-                      </p>
-                      {tier.includesPortrait && (
-                        <p className="text-[9px] text-nebula-purple mt-0.5">+ Card</p>
-                      )}
-                      {tierKey === 'vip' && (
-                        <p className="text-[9px] text-cosmic-gold mt-0.5">+ Updates</p>
-                      )}
-                      {isSelected && (
-                        <motion.div 
-                          layoutId={`check-${petIndex}`}
-                          className="absolute top-1 right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center"
-                        >
-                          <Check className="w-2.5 h-2.5 text-primary-foreground" />
-                        </motion.div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* What's Inside - Shuffled Card Showcase */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-center text-foreground">What You'll Discover</h3>
-        
-        {/* Shuffled cosmic cards side by side */}
-        <CosmicCardShowcase />
-        
-        {/* Clear benefits below cards */}
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="p-2 rounded-lg bg-card/30 border border-border/30">
-            <p className="text-xs text-foreground font-medium">✦ Why they do <em>that</em></p>
-          </div>
-          <div className="p-2 rounded-lg bg-card/30 border border-border/30">
-            <p className="text-xs text-foreground font-medium">✦ Hidden personality</p>
-          </div>
-          <div className="p-2 rounded-lg bg-card/30 border border-border/30">
-            <p className="text-xs text-foreground font-medium">✦ Bond tips</p>
-          </div>
-          <div className="p-2 rounded-lg bg-card/30 border border-border/30">
-            <p className="text-xs text-foreground font-medium">✦ Cosmic destiny</p>
-          </div>
-        </div>
-        
-        {anyPetNeedsPortrait && (
-          <p className="text-xs text-nebula-purple text-center pt-1">
-            + Collectible keepsake card included
-          </p>
-        )}
-      </div>
-
-      {/* Photo Upload for Portrait Tier Pets */}
+      {/* Photo Upload - only when needed, compact */}
       <AnimatePresence>
         {petsNeedingPhotos.length > 0 && (
           <motion.div
@@ -513,14 +427,11 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="p-4 rounded-xl bg-gradient-to-r from-nebula-purple/10 to-cosmic-gold/10 border border-nebula-purple/30">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="p-3 rounded-lg bg-nebula-purple/10 border border-nebula-purple/30">
+              <div className="flex items-center gap-2 mb-2">
                 <Camera className="w-4 h-4 text-nebula-purple" />
-                <span className="text-sm font-medium text-foreground">
-                  ✨ Get Your Collectible Card Printed ({petsNeedingPhotos.length} pet{petsNeedingPhotos.length > 1 ? 's' : ''})
-                </span>
+                <span className="text-xs font-medium text-foreground">Upload photo for card</span>
               </div>
-              
               <div className="space-y-2">
                 {petsNeedingPhotos.map(({ pet, idx }) => (
                   <SinglePetPhotoUploadInline
@@ -532,136 +443,49 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
                   />
                 ))}
               </div>
-              
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                📸 Clear face photos work best for the AI transformation!
-              </p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Order summary */}
-      <div className="rounded-xl bg-card/30 border border-border/30 p-4 space-y-2">
-        {allPets.map((pet, idx) => {
-          const tier = petTiers[idx];
-          return (
-            <div key={idx} className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                {pet.name || `Pet ${idx + 1}`} — {TIERS[tier].shortName}
-              </span>
-              <span className="text-muted-foreground">${(TIERS[tier].priceCents / 100).toFixed(0)}</span>
-            </div>
-          );
-        })}
-        
-        {volumeDiscount > 0 && (
-          <div className="flex justify-between text-sm text-green-500 pt-1 border-t border-border/30">
-            <span>Multi-pet bonus ({Math.round(volumeDiscountRate * 100)}% off)</span>
-            <span>-${(volumeDiscount / 100).toFixed(2)}</span>
+      {/* Compact total - only show for multi-pet or discounts */}
+      {(allPets.length > 1 || volumeDiscount > 0) && (
+        <div className="flex justify-between items-center py-2 border-t border-border/30">
+          <span className="text-sm text-muted-foreground">Total</span>
+          <div className="text-right">
+            {volumeDiscount > 0 && (
+              <span className="text-xs text-green-400 mr-2">-${(volumeDiscount / 100).toFixed(0)} saved</span>
+            )}
+            <span className="text-lg font-bold text-primary">${(total / 100).toFixed(0)}</span>
           </div>
-        )}
-        
-        {horoscopeCost > 0 && (
-          <div className="flex justify-between text-sm text-green-400 pt-1 border-t border-border/30">
-            <span>Weekly Horoscopes</span>
-            <span className="font-semibold">FREE (1st month)</span>
-          </div>
-        )}
-        
-        <div className="border-t border-border/30 pt-2 flex justify-between font-semibold">
-          <span>Your Price</span>
-          <span className="text-primary text-lg">${(total / 100).toFixed(2)}</span>
         </div>
-      </div>
+      )}
 
-      {/* Per-Pet Weekly Horoscope Subscription Selection */}
-      {!hasVipPet && nonMemorialPets.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Moon className="w-4 h-4 text-nebula-purple" />
-            <span className="text-sm font-medium text-foreground">Weekly Cosmic Updates</span>
-            <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-nebula-purple to-nebula-pink text-white">LAUNCH SPECIAL</span>
-          </div>
-          
-          <p className="text-xs text-muted-foreground">
-            Select which pets receive personalized weekly horoscopes (<span className="font-semibold text-green-400">First month FREE</span>, then $4.99/month):
-          </p>
-          
-          <div className="space-y-2">
-            {allPets.map((pet, petIndex) => {
-              const isMemorial = pet.occasionMode === 'memorial';
-              const isVip = petTiers[petIndex] === 'vip';
-              const isEnabled = petHoroscopes[petIndex] || isVip;
-              
-              if (isMemorial) return null;
-              
-              return (
-                <button
-                  key={petIndex}
-                  onClick={() => {
-                    if (!isVip) {
-                      setPetHoroscopes(prev => ({ ...prev, [petIndex]: !prev[petIndex] }));
-                    }
-                  }}
-                  disabled={isVip}
-                  className={cn(
-                    "w-full p-3 rounded-lg border-2 transition-all text-left flex items-center gap-3",
-                    isEnabled
-                      ? "border-nebula-purple bg-nebula-purple/10"
-                      : "border-border/50 bg-card/20 hover:border-nebula-purple/30",
-                    isVip && "opacity-70 cursor-not-allowed"
-                  )}
-                >
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                    isEnabled
-                      ? "border-nebula-purple bg-nebula-purple"
-                      : "border-muted-foreground/40"
-                  )}>
-                    {isEnabled && <Check className="w-3 h-3 text-white" />}
-                  </div>
-                  <div className="flex-1">
-                    <span className="font-medium text-foreground">{pet.name || `Pet ${petIndex + 1}`}</span>
-                    {isVip && (
-                      <span className="ml-2 text-xs text-cosmic-gold">(included with VIP)</span>
-                    )}
-                  </div>
-                  <span className="text-xs text-green-400 font-medium">
-                    {isVip ? 'Free forever' : '1st month FREE'}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          
-          {Object.values(petHoroscopes).some(Boolean) && (
-            <div className="flex items-center justify-between text-sm p-2 rounded-lg bg-green-500/10 border border-green-500/30">
-              <span className="text-muted-foreground">Weekly updates:</span>
-              <span className="font-bold text-green-400">
-                FREE for 30 days!
-              </span>
-            </div>
+      {/* Weekly updates add-on - simplified single toggle for single pet */}
+      {!hasVipPet && allPets.length === 1 && allPets[0].occasionMode !== 'memorial' && (
+        <button
+          onClick={() => setPetHoroscopes(prev => ({ ...prev, 0: !prev[0] }))}
+          className={cn(
+            "w-full p-2 rounded-lg border text-left flex items-center gap-2 transition-all text-sm",
+            petHoroscopes[0]
+              ? "border-nebula-purple/50 bg-nebula-purple/10"
+              : "border-border/30 bg-card/20"
           )}
-          
-          <p className="text-xs text-center text-muted-foreground">Then $4.99/mo per pet • Cancel anytime</p>
-        </div>
+        >
+          <div className={cn(
+            "w-4 h-4 rounded border flex items-center justify-center flex-shrink-0",
+            petHoroscopes[0] ? "border-nebula-purple bg-nebula-purple" : "border-muted-foreground/40"
+          )}>
+            {petHoroscopes[0] && <Check className="w-2.5 h-2.5 text-white" />}
+          </div>
+          <span className="flex-1 text-muted-foreground">Add weekly updates</span>
+          <span className="text-xs text-green-400">1st month FREE</span>
+        </button>
       )}
 
       {hasVipPet && (
-        <div className="p-3 rounded-lg bg-cosmic-gold/10 border border-cosmic-gold/30 text-center">
-          <p className="text-sm text-cosmic-gold font-medium">
-            ⭐ VIP includes free weekly horoscopes for life!
-          </p>
-        </div>
+        <p className="text-xs text-center text-cosmic-gold">⭐ Weekly updates included</p>
       )}
-
-      {/* Trust signals - minimal */}
-      <div className="flex items-center justify-center gap-3 text-[10px] text-muted-foreground">
-        <span>✓ Instant delivery</span>
-        <span>✓ 7-day guarantee</span>
-        <span>✓ Secure</span>
-      </div>
 
       {/* Checkout button - cleaner CTA */}
       <Button
