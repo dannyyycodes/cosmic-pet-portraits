@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
 import { MultiPetPhotoUpload, PetPhotoData, PhotoProcessingMode } from './MultiPetPhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import trustpilotStars from '@/assets/trustpilot-stars.png';
 
 interface CheckoutPanelProps {
