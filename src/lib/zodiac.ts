@@ -120,3 +120,17 @@ export function getSunSign(month: number, day: number): string {
   if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 'aquarius';
   return 'pisces';
 }
+
+// Get zodiac sign from a Date object
+export function getZodiacSign(date: Date): string {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const signKey = getSunSign(month, day);
+  return zodiacSigns[signKey]?.name || 'Aries';
+}
+
+// Get element from sign name
+export function getZodiacElement(signName: string): string {
+  const signKey = signName.toLowerCase();
+  return zodiacSigns[signKey]?.element || 'Fire';
+}

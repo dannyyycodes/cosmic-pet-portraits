@@ -809,6 +809,12 @@ export type Database = {
           id: string
           language: string | null
           occasion_mode: string | null
+          owner_birth_date: string | null
+          owner_birth_location: string | null
+          owner_birth_time: string | null
+          owner_compatibility_insights: Json | null
+          owner_compatibility_score: number | null
+          owner_name: string | null
           payment_status: string | null
           pet_name: string
           pet_photo_url: string | null
@@ -834,6 +840,12 @@ export type Database = {
           id?: string
           language?: string | null
           occasion_mode?: string | null
+          owner_birth_date?: string | null
+          owner_birth_location?: string | null
+          owner_birth_time?: string | null
+          owner_compatibility_insights?: Json | null
+          owner_compatibility_score?: number | null
+          owner_name?: string | null
           payment_status?: string | null
           pet_name: string
           pet_photo_url?: string | null
@@ -859,6 +871,12 @@ export type Database = {
           id?: string
           language?: string | null
           occasion_mode?: string | null
+          owner_birth_date?: string | null
+          owner_birth_location?: string | null
+          owner_birth_time?: string | null
+          owner_compatibility_insights?: Json | null
+          owner_compatibility_score?: number | null
+          owner_name?: string | null
           payment_status?: string | null
           pet_name?: string
           pet_photo_url?: string | null
