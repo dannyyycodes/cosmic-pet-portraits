@@ -273,54 +273,42 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6"
           >
-            {/* Epic Confetti Celebration - Mobile optimized */}
+            {/* Subtle celebration particles - reduced on mobile */}
             <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-              {[...Array(20)].map((_, i) => (
+              {[...Array(12)].map((_, i) => (
                 <motion.div
                   key={i}
-                  initial={{ 
-                    y: -20, 
-                    rotate: 0,
-                    opacity: 1 
-                  }}
-                  animate={{ 
-                    y: '100vh',
-                    rotate: Math.random() * 720 - 360,
-                    opacity: 0
-                  }}
-                  transition={{ 
-                    duration: 2.5 + Math.random() * 1.5,
-                    delay: Math.random() * 0.5,
-                    ease: "easeOut"
-                  }}
-                  className="absolute text-lg md:text-2xl"
+                  initial={{ y: -20, opacity: 1 }}
+                  animate={{ y: '100vh', opacity: 0 }}
+                  transition={{ duration: 3 + Math.random() * 2, delay: Math.random() * 0.5, ease: "easeOut" }}
+                  className="absolute text-sm md:text-lg"
                   style={{ left: `${Math.random() * 100}%` }}
                 >
-                  {['✨', '⭐', '🌟', '💫', '🎉', '🔮'][Math.floor(Math.random() * 6)]}
+                  {['✨', '⭐', '🌟'][Math.floor(Math.random() * 3)]}
                 </motion.div>
               ))}
             </div>
 
-            {/* Clean Header */}
+            {/* Clean Header - Compact on mobile */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-center space-y-2"
+              className="text-center space-y-1.5 md:space-y-2"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cosmic-gold/20 border border-cosmic-gold/30">
-                <Sparkles className="w-4 h-4 text-cosmic-gold" />
-                <span className="text-sm font-medium text-cosmic-gold">Cosmic Analysis Complete</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-cosmic-gold/20 border border-cosmic-gold/30">
+                <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-cosmic-gold" />
+                <span className="text-xs md:text-sm font-medium text-cosmic-gold">Cosmic Analysis Complete</span>
               </div>
-              <h1 className="text-2xl md:text-4xl font-display font-bold text-foreground">
+              <h1 className="text-xl md:text-4xl font-display font-bold text-foreground px-2">
                 {allPets.length > 1 
                   ? `Meet Your ${allPets.length} Cosmic Companions`
                   : `${primaryPet.name}'s Cosmic Blueprint`
                 }
               </h1>
-              <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
+              <p className="text-xs md:text-base text-muted-foreground max-w-md mx-auto px-4">
                 {allPets.length > 1 
                   ? "We've decoded the stars for your furry family"
                   : "The universe has revealed something extraordinary"
@@ -328,8 +316,8 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               </p>
             </motion.div>
 
-            {/* Zodiac reveal cards - Show ALL pets with enhanced visuals */}
-            <div className="space-y-4">
+            {/* Zodiac reveal cards - Compact on mobile */}
+            <div className="space-y-3 md:space-y-4">
               {allPets.map((pet, index) => {
                 const { sign: petSign, signData: petSignData } = getPetSignData(pet);
                 if (!petSign || !petSignData) return null;
@@ -337,10 +325,10 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 return (
                   <motion.div
                     key={`pet-reveal-${index}`}
-                    initial={{ scale: 0.8, opacity: 0, rotateY: -30 }}
-                    animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-                    transition={{ type: "spring", duration: 1, delay: index * 0.3 }}
-                    className="relative overflow-hidden rounded-xl md:rounded-2xl border-2 border-primary/50 bg-gradient-to-br from-card via-card to-primary/20 p-4 md:p-6 shadow-xl shadow-primary/20"
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", duration: 0.8, delay: index * 0.2 }}
+                    className="relative overflow-hidden rounded-xl border-2 border-primary/50 bg-gradient-to-br from-card via-card to-primary/20 p-3 md:p-6 shadow-lg shadow-primary/10"
                   >
                     {/* Animated background effects - smaller on mobile */}
                     <div className="absolute inset-0">
@@ -356,83 +344,79 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                       />
                     </div>
 
-                    <div className="relative z-10 text-center space-y-3 md:space-y-4">
-                      {/* Zodiac icon - smaller on mobile */}
+                    <div className="relative z-10 text-center space-y-2 md:space-y-4">
+                      {/* Zodiac icon - compact on mobile */}
                       <motion.div
-                        animate={{ 
-                          scale: [1, 1.05, 1],
-                          rotate: [0, 3, -3, 0],
-                        }}
+                        animate={{ scale: [1, 1.03, 1] }}
                         transition={{ repeat: Infinity, duration: 3 }}
-                        className={`w-16 h-16 md:w-24 md:h-24 mx-auto rounded-full bg-gradient-to-br ${elementColors[petSignData?.element || 'Fire']} flex items-center justify-center shadow-2xl`}
-                        style={{ boxShadow: `0 0 40px hsl(var(--primary) / 0.4)` }}
+                        className={`w-14 h-14 md:w-24 md:h-24 mx-auto rounded-full bg-gradient-to-br ${elementColors[petSignData?.element || 'Fire']} flex items-center justify-center shadow-lg`}
                       >
-                        <span className="text-3xl md:text-5xl">{petSignData?.icon || '✨'}</span>
+                        <span className="text-2xl md:text-5xl">{petSignData?.icon || '✨'}</span>
                       </motion.div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-1 md:space-y-2">
                         <motion.p 
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          transition={{ delay: 0.5 + index * 0.3 }}
-                          className="text-sm text-primary uppercase tracking-[0.2em] font-semibold"
+                          transition={{ delay: 0.3 + index * 0.2 }}
+                          className="text-[10px] md:text-sm text-primary uppercase tracking-widest font-semibold"
                         >
-                          ✨ Cosmic Identity Revealed ✨
+                          ✨ Cosmic Identity ✨
                         </motion.p>
                         <motion.h2 
-                          initial={{ y: 20, opacity: 0 }}
+                          initial={{ y: 10, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.6 + index * 0.3, type: "spring" }}
-                          className="text-2xl md:text-4xl font-display font-bold text-foreground capitalize"
+                          transition={{ delay: 0.4 + index * 0.2 }}
+                          className="text-lg md:text-4xl font-display font-bold text-foreground capitalize"
                         >
                           {pet.name} Is A {petSign}!
                         </motion.h2>
                         
-                        {/* Element and archetype badges - wrap on mobile */}
+                        {/* Element and archetype badges */}
                         <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 0.8 + index * 0.3, type: "spring" }}
-                          className="flex flex-wrap justify-center gap-2 mt-2 md:mt-3"
+                          initial={{ scale: 0.9, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.5 + index * 0.2 }}
+                          className="flex flex-wrap justify-center gap-1.5 md:gap-2 mt-1 md:mt-3"
                         >
-                          <span className={`capitalize px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-gradient-to-r ${elementColors[petSignData?.element || 'Fire']} text-white font-semibold text-xs md:text-sm shadow-lg`}>
+                          <span className={`capitalize px-2 py-1 md:px-4 md:py-2 rounded-full bg-gradient-to-r ${elementColors[petSignData?.element || 'Fire']} text-white font-semibold text-[10px] md:text-sm shadow`}>
                             {petSignData?.element === 'Fire' ? '🔥' : petSignData?.element === 'Earth' ? '🌍' : petSignData?.element === 'Air' ? '💨' : '💧'} {petSignData?.element}
                           </span>
-                          <span className="px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary/20 text-primary font-semibold text-xs md:text-sm border border-primary/30">
+                          <span className="px-2 py-1 md:px-4 md:py-2 rounded-full bg-primary/20 text-primary font-semibold text-[10px] md:text-sm border border-primary/30">
                             {petSignData?.archetype}
                           </span>
                         </motion.div>
                       </div>
 
-                      {/* Soul Snapshot Card - Mobile optimized */}
+                      {/* Soul Snapshot Card - Compact on mobile */}
                       <motion.div 
-                        initial={{ y: 30, opacity: 0 }}
+                        initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 1 + index * 0.3 }}
-                        className="mt-4 md:mt-6 p-3 md:p-4 rounded-lg md:rounded-xl bg-gradient-to-br from-background/90 to-background/70 border border-border/50 backdrop-blur"
+                        transition={{ delay: 0.6 + index * 0.2 }}
+                        className="mt-3 md:mt-6 p-2.5 md:p-4 rounded-lg bg-gradient-to-br from-background/90 to-background/70 border border-border/50"
                       >
-                        <div className="flex items-center justify-between mb-2 md:mb-3">
-                          <span className="text-[10px] md:text-xs text-primary font-semibold uppercase tracking-wider flex items-center gap-1 md:gap-2">
-                            <Sparkles className="w-3 h-3" /> Soul Snapshot
+                        <div className="flex items-center justify-between mb-1.5 md:mb-3">
+                          <span className="text-[9px] md:text-xs text-primary font-semibold uppercase tracking-wider flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" /> Soul Snapshot
                           </span>
-                          <span className="text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-500 font-medium">FREE</span>
+                          <span className="text-[9px] md:text-xs px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-500 font-medium">FREE</span>
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-2 text-center">
-                          <div className="p-2 md:p-3 rounded-lg bg-card/50 border border-border/30">
-                            <Sun className="w-4 h-4 md:w-5 md:h-5 mx-auto mb-0.5 md:mb-1 text-cosmic-gold" />
-                            <p className="text-[8px] md:text-[10px] text-muted-foreground uppercase">Sun</p>
-                            <p className="text-xs md:text-sm font-semibold text-foreground capitalize">{petSign}</p>
+                        <div className="grid grid-cols-3 gap-1.5 md:gap-2 text-center">
+                          <div className="p-1.5 md:p-3 rounded-lg bg-card/50 border border-border/30">
+                            <Sun className="w-3.5 h-3.5 md:w-5 md:h-5 mx-auto mb-0.5 text-cosmic-gold" />
+                            <p className="text-[7px] md:text-[10px] text-muted-foreground uppercase">Sun</p>
+                            <p className="text-[10px] md:text-sm font-semibold text-foreground capitalize">{petSign}</p>
                           </div>
-                          <div className="p-2 md:p-3 rounded-lg bg-card/50 border border-border/30">
-                            <span className="text-base md:text-xl block mb-0.5 md:mb-1">{petSignData?.element === 'Fire' ? '🔥' : petSignData?.element === 'Earth' ? '🌍' : petSignData?.element === 'Air' ? '💨' : '💧'}</span>
-                            <p className="text-[8px] md:text-[10px] text-muted-foreground uppercase">Element</p>
-                            <p className="text-xs md:text-sm font-semibold text-foreground">{petSignData?.element}</p>
+                          <div className="p-1.5 md:p-3 rounded-lg bg-card/50 border border-border/30">
+                            <span className="text-sm md:text-xl block mb-0.5">{petSignData?.element === 'Fire' ? '🔥' : petSignData?.element === 'Earth' ? '🌍' : petSignData?.element === 'Air' ? '💨' : '💧'}</span>
+                            <p className="text-[7px] md:text-[10px] text-muted-foreground uppercase">Element</p>
+                            <p className="text-[10px] md:text-sm font-semibold text-foreground">{petSignData?.element}</p>
                           </div>
-                          <div className="p-2 md:p-3 rounded-lg bg-card/50 border border-border/30">
-                            <Moon className="w-4 h-4 md:w-5 md:h-5 mx-auto mb-0.5 md:mb-1 text-nebula-purple" />
-                            <p className="text-[8px] md:text-[10px] text-muted-foreground uppercase">Soul</p>
-                            <p className="text-xs md:text-sm font-semibold text-foreground">{petSignData?.archetype?.split(' ')[1] || 'Soul'}</p>
+                          <div className="p-1.5 md:p-3 rounded-lg bg-card/50 border border-border/30">
+                            <Moon className="w-3.5 h-3.5 md:w-5 md:h-5 mx-auto mb-0.5 text-nebula-purple" />
+                            <p className="text-[7px] md:text-[10px] text-muted-foreground uppercase">Soul</p>
+                            <p className="text-[10px] md:text-sm font-semibold text-foreground">{petSignData?.archetype?.split(' ')[1] || 'Soul'}</p>
                           </div>
                         </div>
                       </motion.div>
@@ -442,26 +426,26 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               })}
             </div>
 
-            {/* FREE Mini Reading - Enhanced with more content */}
+            {/* FREE Mini Reading - Compact mobile layout */}
             {!giftCode && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="rounded-xl bg-gradient-to-br from-cosmic-gold/15 to-amber-500/10 border-2 border-cosmic-gold/40 overflow-hidden shadow-lg shadow-cosmic-gold/10"
+              transition={{ delay: 0.5 }}
+              className="rounded-xl bg-gradient-to-br from-cosmic-gold/15 to-amber-500/10 border border-cosmic-gold/40 overflow-hidden"
             >
-              {/* Header */}
-              <div className="flex items-center gap-2 p-4 pb-0">
-                <div className="p-2 rounded-full bg-cosmic-gold/20">
-                  <Sparkles className="w-5 h-5 text-cosmic-gold" />
+              {/* Header - Compact */}
+              <div className="flex items-center gap-2 p-3 md:p-4 pb-0">
+                <div className="p-1.5 md:p-2 rounded-full bg-cosmic-gold/20">
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-cosmic-gold" />
                 </div>
-                <div>
-                  <h3 className="font-display font-bold text-lg text-foreground">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-display font-bold text-base md:text-lg text-foreground truncate">
                     Your Free Cosmic Preview
                   </h3>
-                  <p className="text-xs text-muted-foreground">A glimpse into the cosmic truth...</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">A glimpse into the cosmic truth...</p>
                 </div>
-                <span className="ml-auto text-sm px-3 py-1 rounded-full bg-green-500/20 text-green-500 font-bold border border-green-500/30">🎁 FREE</span>
+                <span className="text-xs px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-green-500/20 text-green-500 font-bold border border-green-500/30 shrink-0">🎁 FREE</span>
               </div>
               
               {/* Pet Tabs for multiple pets */}
