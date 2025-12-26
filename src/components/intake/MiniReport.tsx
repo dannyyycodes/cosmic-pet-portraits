@@ -135,12 +135,17 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
   const speciesFact = getSpeciesFact(petData.species);
   const pronoun = getPossessive((petData.gender || '') as PetGender);
 
+  // Default to 'her' if gender not specified (more common in pet marketing)
+  const displayPronoun = pronoun === 'their' ? 'her' : pronoun;
+  const subjectPronoun = pronoun === 'his' ? 'he' : pronoun === 'her' ? 'she' : 'she';
+  const needsVerb = pronoun === 'his' ? 'he needs' : pronoun === 'her' ? 'she needs' : 'she needs';
+
   const lockedItems = [
-    { icon: Moon, label: "Moon Sign Analysis", preview: `Why ${pronoun} mood shifts unexpectedly...`, teaser: `Understanding ${pronoun} emotional rhythms` },
+    { icon: Moon, label: "Moon Sign Analysis", preview: `Why ${displayPronoun} mood shifts unexpectedly...`, teaser: `Understanding ${displayPronoun} emotional rhythms` },
     { icon: ArrowUp, label: "Your Soul Contract", preview: "What you're here to teach each other...", teaser: "The deeper purpose of your bond" },
-    { icon: Sparkles, label: `${petData.name}'s Life Purpose`, preview: `The role ${pronoun === 'his' ? 'he' : pronoun === 'her' ? 'she' : 'they'} plays in your journey...`, teaser: "Why this soul chose to be with you" },
-    { icon: Heart, label: "Emotional Needs Decoded", preview: `What ${pronoun === 'his' ? 'he needs' : pronoun === 'her' ? 'she needs' : 'they need'} but can't express...`, teaser: `How to truly understand ${pronoun} heart` },
-    { icon: Zap, label: "Energy & Vitality Insights", preview: `${petData.name}'s unique wellness patterns...`, teaser: `Supporting ${pronoun} highest potential` },
+    { icon: Sparkles, label: `${petData.name}'s Life Purpose`, preview: `The role ${subjectPronoun} plays in your journey...`, teaser: "Why this soul chose to be with you" },
+    { icon: Heart, label: "Emotional Needs Decoded", preview: `What ${needsVerb} but can't express...`, teaser: `How to truly understand ${displayPronoun} heart` },
+    { icon: Zap, label: "Energy & Vitality Insights", preview: `${petData.name}'s unique wellness patterns...`, teaser: `Supporting ${displayPronoun} highest potential` },
   ];
 
   return (
