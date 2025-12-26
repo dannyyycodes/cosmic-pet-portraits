@@ -63,6 +63,22 @@ function calculateNameVibration(name: string): number {
   return sum;
 }
 
+// Vibration meanings for numerology
+const vibrationMeanings: Record<number, string> = {
+  1: "Leadership & Independence",
+  2: "Harmony & Partnership", 
+  3: "Creativity & Expression",
+  4: "Stability & Foundation",
+  5: "Freedom & Adventure",
+  6: "Nurturing & Protection",
+  7: "Wisdom & Intuition",
+  8: "Power & Abundance",
+  9: "Compassion & Completion",
+  11: "Spiritual Illumination",
+  22: "Master Builder",
+  33: "Master Teacher",
+};
+
 // Element balance calculation using actual positions
 function getElementalBalance(positions: PlanetaryPositions): Record<string, number> {
   const elements = { Fire: 0, Earth: 0, Air: 0, Water: 0 };
@@ -759,6 +775,15 @@ JSON Structure:
     "paragraph": "A 3-4 sentence vivid description written as if you just met ${petData.name} in real life. Describe what you'd notice first - their energy, their eyes, the way they approach you. Make it feel like a first encounter in a novel. Be specific to ${petData.species}s!"
   },
   
+  "nameMeaning": {
+    "title": "📛 The Name '${petData.name}' Decoded",
+    "origin": "The likely origin/etymology of the name '${petData.name}' - language/culture it comes from, what it traditionally means (e.g., 'Luna comes from Latin meaning moon'). If the name is unusual or made-up, be creative about what it could symbolize.",
+    "cosmicSignificance": "2-3 sentences connecting the name meaning to their astrological profile. How does the name's meaning relate to their ${sunSign} Sun or ${moonSign} Moon? Any cosmic coincidences?",
+    "nameVibration": ${nameVibration},
+    "numerologyMeaning": "1-2 sentences about what their name's numerology number (${nameVibration}) means for their personality and destiny. Reference the actual number.",
+    "funFact": "A playful observation about how their name fits (or hilariously doesn't fit) their personality. Be funny!"
+  },
+  
   "solarSoulprint": {
     "title": "☉ Solar Soulprint: The Light They ${occasionMode === 'memorial' ? 'Brought' : 'Bring'}",
     "planetExplanation": "1-2 sentences explaining what the Sun represents - core identity, vitality, ego.",
@@ -1017,6 +1042,14 @@ Make every section feel personal, specific, and magical. The fun sections should
       crystal,
       aura,
       archetype,
+      nameMeaning: {
+        title: `📛 The Name '${petData.name}' Decoded`,
+        origin: `The name "${petData.name}" carries unique vibrational energy. While its exact etymology varies, names that sound like this often have roots in ${nameVibration <= 3 ? 'ancient languages symbolizing strength and beginnings' : nameVibration <= 6 ? 'words meaning harmony, nurturing, or creativity' : 'mystical traditions connected to wisdom and intuition'}.`,
+        cosmicSignificance: `Interestingly, ${petData.name}'s name resonates perfectly with their ${sunSign} Sun energy. The vibrational quality of these letters aligns with ${element} element attributes, suggesting their name was cosmically chosen to match their soul blueprint.`,
+        nameVibration: nameVibration,
+        numerologyMeaning: `Their name vibration number ${nameVibration} represents ${vibrationMeanings[nameVibration] || 'Unique Energy'}. This influences their destiny and how they connect with the world around them.`,
+        funFact: `Did their personality match the name, or did the name shape who they became? With ${petData.name}, the cosmos suggests it was written in the stars from the start.`
+      },
       prologue: `In the vast tapestry of the cosmos, on ${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, the stars aligned to bring ${petData.name} into this world. With the Sun blazing through ${sunSign} and the Moon's gentle light filtering through ${moonSign}, a unique soul was born—one destined to bring ${element} energy and ${archetype.name.toLowerCase()} wisdom into your life.`,
       solarSoulprint: {
         title: `Solar Soulprint: The Light They ${occasionMode === 'memorial' ? 'Brought' : 'Bring'}`,
