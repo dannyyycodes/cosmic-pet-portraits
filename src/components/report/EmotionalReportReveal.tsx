@@ -234,10 +234,22 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               </div>
             </motion.div>
 
-            <Button onClick={advanceStage} variant="gold" size="lg" className="mt-8">
-              <Sparkles className="w-5 h-5 mr-2" />
-              Discover Their Archetype
-            </Button>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 }}
+            >
+              <Button onClick={advanceStage} variant="gold" size="lg" className="mt-8 gap-2 group">
+                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
+                <span>Reveal {petName}'s Soul Archetype</span>
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  →
+                </motion.span>
+              </Button>
+            </motion.div>
           </motion.div>
         );
 
@@ -286,10 +298,22 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               ))}
             </motion.div>
 
-            <Button onClick={advanceStage} variant="gold" size="lg" className="mt-8">
-              <Sun className="w-5 h-5 mr-2" />
-              Reveal Core Essence
-            </Button>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+            >
+              <Button onClick={advanceStage} variant="gold" size="lg" className="mt-8 gap-2 group">
+                <Sun className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+                <span>Uncover Their Core Essence</span>
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  →
+                </motion.span>
+              </Button>
+            </motion.div>
           </motion.div>
         );
 
@@ -322,12 +346,23 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               </p>
             </motion.div>
 
-            <div className="text-center">
-              <Button onClick={advanceStage} variant="gold" size="lg">
-                <Compass className="w-5 h-5 mr-2" />
-                Discover Soul Mission
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-center"
+            >
+              <Button onClick={advanceStage} variant="gold" size="lg" className="gap-2 group">
+                <Compass className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
+                <span>Discover Their Soul Mission</span>
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  →
+                </motion.span>
               </Button>
-            </div>
+            </motion.div>
           </motion.div>
         );
 
@@ -360,12 +395,23 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               </p>
             </motion.div>
 
-            <div className="text-center">
-              <Button onClick={advanceStage} variant="gold" size="lg">
-                <Sparkles className="w-5 h-5 mr-2" />
-                Reveal Hidden Gift
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-center"
+            >
+              <Button onClick={advanceStage} variant="gold" size="lg" className="gap-2 group">
+                <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                <span>Unlock Their Hidden Gift</span>
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  →
+                </motion.span>
               </Button>
-            </div>
+            </motion.div>
           </motion.div>
         );
 
@@ -398,12 +444,23 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               </p>
             </motion.div>
 
-            <div className="text-center">
-              <Button onClick={advanceStage} variant="gold" size="lg">
-                <Heart className="w-5 h-5 mr-2" />
-                Discover Love Language
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-center"
+            >
+              <Button onClick={advanceStage} variant="gold" size="lg" className="gap-2 group">
+                <Heart className="w-5 h-5 group-hover:scale-110 transition-transform text-red-400" />
+                <span>Discover Their Love Language</span>
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  →
+                </motion.span>
               </Button>
-            </div>
+            </motion.div>
           </motion.div>
         );
 
@@ -436,12 +493,23 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               </p>
             </motion.div>
 
-            <div className="text-center">
-              <Button onClick={advanceStage} variant="gold" size="lg">
-                <Moon className="w-5 h-5 mr-2" />
-                Receive Cosmic Wisdom
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="text-center"
+            >
+              <Button onClick={advanceStage} variant="gold" size="lg" className="gap-2 group">
+                <Moon className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                <span>Receive Cosmic Wisdom</span>
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                >
+                  →
+                </motion.span>
               </Button>
-            </div>
+            </motion.div>
           </motion.div>
         );
 
@@ -510,10 +578,16 @@ export function EmotionalReportReveal({ petName, report, onComplete }: Emotional
               </p>
             </div>
 
-            <Button onClick={onComplete} variant="gold" size="xl">
-              <Sparkles className="w-5 h-5 mr-2" />
-              View Full Report
-            </Button>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Button onClick={onComplete} variant="gold" size="xl" className="gap-2 group animate-pulse">
+                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
+                <span>Explore {petName}'s Full Portrait</span>
+              </Button>
+            </motion.div>
           </motion.div>
         );
     }

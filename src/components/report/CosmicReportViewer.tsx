@@ -1506,47 +1506,99 @@ function ArchetypeSection({ section, archetype, index, locked }: { section: Sect
   );
 }
 
-// Legacy Report Viewer for backwards compatibility
+// Legacy Report Viewer - now handles both old format AND comprehensive format with missing legacy fields
 function LegacyReportViewer({ petName, report, isPreview, onUnlockFull }: CosmicReportViewerProps) {
-  const sunSign = report.sunSign || 'Aries';
-  const element = report.element || 'Fire';
+  // Handle both legacy and comprehensive report formats
+  const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Aries';
+  const element = report.dominantElement || report.element || 'Fire';
   const signData = zodiacSigns[sunSign.toLowerCase() as keyof typeof zodiacSigns];
   const gradientClass = elementColors[element] || elementColors.Fire;
 
+  // Map comprehensive format sections to display
   const sections = [
-    { icon: Sun, title: 'Core Essence', content: report.coreEssence, color: 'text-cosmic-gold', locked: false },
-    { icon: Compass, title: 'Soul Mission', content: report.soulMission, color: 'text-primary', locked: false },
-    { icon: Sparkles, title: 'Hidden Gift', content: report.hiddenGift, color: 'text-nebula-pink', locked: isPreview },
-    { icon: Heart, title: 'Love Language', content: report.loveLanguage, color: 'text-red-400', locked: isPreview },
-    { icon: MessageCircle, title: 'Cosmic Advice', content: report.cosmicAdvice, color: 'text-emerald-400', locked: isPreview },
+    { 
+      icon: Sun, 
+      title: report.solarSoulprint?.title || 'Solar Soulprint', 
+      content: report.solarSoulprint?.content || report.coreEssence,
+      tip: report.solarSoulprint?.practicalTip,
+      color: 'text-cosmic-gold', 
+      locked: false 
+    },
+    { 
+      icon: Moon, 
+      title: report.lunarHeart?.title || 'Lunar Heart', 
+      content: report.lunarHeart?.content || report.soulMission,
+      tip: report.lunarHeart?.practicalTip,
+      color: 'text-primary', 
+      locked: false 
+    },
+    { 
+      icon: Sparkles, 
+      title: report.cosmicCuriosity?.title || 'Cosmic Curiosity', 
+      content: report.cosmicCuriosity?.content || report.hiddenGift,
+      tip: report.cosmicCuriosity?.practicalTip,
+      color: 'text-nebula-pink', 
+      locked: isPreview 
+    },
+    { 
+      icon: Heart, 
+      title: report.harmonyHeartbeats?.title || 'Harmony & Heartbeats', 
+      content: report.harmonyHeartbeats?.content || report.loveLanguage,
+      tip: report.harmonyHeartbeats?.practicalTip,
+      color: 'text-red-400', 
+      locked: isPreview 
+    },
+    { 
+      icon: Zap, 
+      title: report.spiritOfMotion?.title || 'Spirit of Motion', 
+      content: report.spiritOfMotion?.content || report.cosmicAdvice,
+      tip: report.spiritOfMotion?.practicalTip,
+      color: 'text-emerald-400', 
+      locked: isPreview 
+    },
   ];
+
+  // Filter out sections with no content
+  const validSections = sections.filter(s => s.content);
 
   return (
     <div className="min-h-screen bg-background">
       <div className="relative overflow-hidden">
         <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-10`} />
-        <div className="relative z-10 max-w-2xl mx-auto px-6 py-16 text-center">
+        <div className="relative z-10 max-w-2xl mx-auto px-6 py-12 md:py-16 text-center">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className={`w-28 h-28 mx-auto mb-6 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-2xl`}
+            className={`w-24 h-24 md:w-28 md:h-28 mx-auto mb-4 md:mb-6 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-2xl`}
           >
-            <span className="text-5xl">{signData?.icon || '✦'}</span>
+            <span className="text-4xl md:text-5xl">{signData?.icon || '✦'}</span>
           </motion.div>
-          <p className="text-primary font-medium tracking-widest uppercase text-sm mb-2">{typeof report.archetype === 'string' ? report.archetype : report.archetype?.name || 'Cosmic Soul'}</p>
-          <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">{petName}</h1>
-          <div className="flex items-center justify-center gap-4 text-muted-foreground">
+          <p className="text-primary font-medium tracking-widest uppercase text-xs md:text-sm mb-2">
+            {typeof report.archetype === 'string' ? report.archetype : report.archetype?.name || 'Cosmic Soul'}
+          </p>
+          <h1 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-3 md:mb-4">{petName}</h1>
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1"><Star className="w-4 h-4 text-cosmic-gold" />{sunSign}</span>
-            <span className="text-border">•</span>
-            <span>{element} Sign</span>
-            <span className="text-border">•</span>
-            <span>{report.modality}</span>
+            <span className="text-border hidden md:inline">•</span>
+            <span>{element}</span>
           </div>
+          
+          {/* Prologue */}
+          {report.prologue && (
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-6 text-muted-foreground italic text-sm md:text-base max-w-xl mx-auto"
+            >
+              {report.prologue}
+            </motion.p>
+          )}
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-12 space-y-8">
-        {sections.map((section, index) => (
+      <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-12 space-y-6 md:space-y-8">
+        {validSections.map((section, index) => (
           <motion.div
             key={section.title}
             custom={index}
@@ -1554,37 +1606,111 @@ function LegacyReportViewer({ petName, report, isPreview, onUnlockFull }: Cosmic
             whileInView="visible"
             viewport={{ once: true }}
             variants={sectionVariants}
-            className={`p-6 rounded-2xl border ${section.locked ? 'bg-card/20 border-border/30' : 'bg-card/40 border-border/50'}`}
+            className={`p-4 md:p-6 rounded-xl md:rounded-2xl border ${section.locked ? 'bg-card/20 border-border/30' : 'bg-card/40 border-border/50'}`}
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`w-10 h-10 rounded-xl bg-muted/30 flex items-center justify-center ${section.color}`}>
-                <section.icon className="w-5 h-5" />
+            <div className="flex items-center gap-3 mb-3 md:mb-4">
+              <div className={`w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-muted/30 flex items-center justify-center ${section.color}`}>
+                <section.icon className="w-4 h-4 md:w-5 md:h-5" />
               </div>
-              <h2 className="text-xl font-semibold text-foreground">{section.title}</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-foreground">{section.title}</h2>
             </div>
             {section.locked ? (
               <div className="relative">
-                <p className="text-muted-foreground/50 blur-sm select-none">{section.content}</p>
+                <p className="text-muted-foreground/50 blur-sm select-none text-sm md:text-base line-clamp-3">
+                  {section.content}
+                </p>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-                    <Gift className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-primary font-medium">Unlock full reading</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-primary/10 border border-primary/20">
+                    <Gift className="w-3 h-3 md:w-4 md:h-4 text-primary" />
+                    <span className="text-xs md:text-sm text-primary font-medium">Unlock full reading</span>
                   </div>
                 </div>
               </div>
             ) : (
-              <p className="text-muted-foreground leading-relaxed">{section.content}</p>
+              <div className="space-y-3">
+                <p className="text-muted-foreground leading-relaxed text-sm md:text-base">{section.content}</p>
+                {section.tip && (
+                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <p className="text-xs md:text-sm text-muted-foreground">
+                      <span className="text-emerald-400 font-medium">💡 Tip:</span> {section.tip}
+                    </p>
+                  </div>
+                )}
+              </div>
             )}
           </motion.div>
         ))}
 
+        {/* Fun sections if available */}
+        {(report.memePersonality || report.topFiveCrimes || report.datingProfile) && !isPreview && (
+          <div className="space-y-4 pt-4">
+            <h3 className="text-lg font-semibold text-foreground text-center">🎉 Fun Extras</h3>
+            
+            {report.memePersonality && (
+              <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                <p className="text-sm text-purple-300 font-medium mb-1">😼 Internet Personality</p>
+                <p className="text-foreground font-semibold">{report.memePersonality.type}</p>
+                <p className="text-sm text-muted-foreground mt-1">{report.memePersonality.description}</p>
+              </div>
+            )}
+            
+            {report.datingProfile && (
+              <div className="p-4 rounded-xl bg-pink-500/10 border border-pink-500/20">
+                <p className="text-sm text-pink-300 font-medium mb-1">💕 Dating Profile</p>
+                <p className="text-foreground font-semibold italic">"{report.datingProfile.headline}"</p>
+                <p className="text-sm text-muted-foreground mt-1">{report.datingProfile.bio}</p>
+              </div>
+            )}
+            
+            {report.topFiveCrimes?.crimes && (
+              <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                <p className="text-sm text-orange-300 font-medium mb-2">🚨 Criminal Record</p>
+                <ol className="space-y-1 text-sm text-muted-foreground">
+                  {report.topFiveCrimes.crimes.slice(0, 3).map((crime: string, i: number) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-orange-300 font-medium">{i+1}.</span> {crime}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+          </div>
+        )}
+
         {isPreview && onUnlockFull && (
-          <div className="text-center pt-8">
-            <Button onClick={onUnlockFull} variant="gold" size="xl" className="gap-2">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="text-center pt-6 md:pt-8"
+          >
+            <p className="text-muted-foreground mb-4 text-sm">
+              Unlock {petName}'s complete cosmic portrait including all 18 sections
+            </p>
+            <Button onClick={onUnlockFull} variant="gold" size="xl" className="gap-2 animate-pulse">
               <Sparkles className="w-5 h-5" />
               Unlock Full Cosmic Portrait
             </Button>
-          </div>
+          </motion.div>
+        )}
+
+        {/* Epilogue */}
+        {report.epilogue && !isPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center pt-8 space-y-3"
+          >
+            <div className="flex justify-center gap-1">
+              <Star className="w-5 h-5 text-cosmic-gold" />
+              <Star className="w-6 h-6 text-primary" />
+              <Star className="w-5 h-5 text-cosmic-gold" />
+            </div>
+            <p className="text-muted-foreground italic text-sm md:text-base max-w-xl mx-auto">
+              {report.epilogue}
+            </p>
+          </motion.div>
         )}
       </div>
     </div>
