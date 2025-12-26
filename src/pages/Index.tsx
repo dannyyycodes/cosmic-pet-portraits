@@ -19,6 +19,7 @@ import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { LiveActivityNotification } from "@/components/LiveActivityNotification";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { UrgencyBanner } from "@/components/UrgencyBanner";
+import trustpilotStars from "@/assets/trustpilot-stars.png";
 
 const Index = () => {
   const { t } = useLanguage();
@@ -87,21 +88,28 @@ const Index = () => {
       <TrackedSection sectionName="hero" onView={trackSectionView} className="relative flex items-center justify-center px-4 pt-16 sm:pt-24 pb-8 sm:pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* MOBILE-FIRST: Trustpilot-style Social Proof */}
+          {/* Trustpilot Logo + Stars */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="inline-flex items-center gap-2 mb-4"
+            className="flex flex-col items-center gap-2 mb-4"
           >
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-[#00b67a] rounded-sm">
-                  <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white text-white" />
-                </div>
-              ))}
+            <img 
+              src={trustpilotStars} 
+              alt="Rated Excellent on Trustpilot" 
+              className="h-8 sm:h-10 object-contain"
+            />
+            <div className="flex items-center gap-2">
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-[#00b67a] rounded-sm">
+                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white text-white" />
+                  </div>
+                ))}
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-foreground">2,847+ Happy Pet Parents</span>
             </div>
-            <span className="text-xs sm:text-sm font-medium text-foreground">2,847+ Happy Pet Parents</span>
           </motion.div>
           
           {/* PUNCHY HEADLINE - Mobile first, emotional */}
