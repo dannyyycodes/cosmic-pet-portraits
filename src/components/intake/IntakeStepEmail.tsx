@@ -10,6 +10,7 @@ import { ReportTeaser } from './ReportTeaser';
 import { TestimonialCarousel } from './TestimonialCarousel';
 import { PremiumPreview } from './PremiumPreview';
 import { CheckoutPanel, CheckoutData } from './CheckoutPanel';
+import { GiftReportShowcase } from '@/components/GiftReportShowcase';
 import { getSunSign, zodiacSigns } from '@/lib/zodiac';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -666,6 +667,11 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                   ? `Unlock cosmic profiles for all ${petCount} of your pets`
                   : `Unlock ${petData.name}'s complete cosmic profile`}
               </p>
+            </div>
+
+            {/* Report Preview Showcase */}
+            <div className="max-w-xl mx-auto mb-6">
+              <GiftReportShowcase />
             </div>
 
             <div className="max-w-md mx-auto">

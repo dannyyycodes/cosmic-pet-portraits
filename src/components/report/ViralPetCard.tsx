@@ -108,68 +108,111 @@ const elementGradients: Record<string, { from: string; to: string; glow: string 
   Water: { from: '#06b6d4', to: '#8b5cf6', glow: 'rgba(6, 182, 212, 0.5)' },
 };
 
-// Get personality traits based on stats - fun and shareable
-const getPersonalityTraits = (stats: CardStats, occasionMode: OccasionMode, petName: string): { trait: string; icon: string; description: string }[] => {
-  const traits: { trait: string; icon: string; description: string }[] = [];
-  
-  // Find top 3 stats
-  const sortedStats = Object.entries(stats).sort((a, b) => b[1] - a[1]);
-  const topStats = sortedStats.slice(0, 3);
-  
-  const traitMappings: Record<string, { trait: string; icon: string; description: string }[]> = {
-    vitality: [
-      { trait: 'Zoomies Champion', icon: '⚡', description: 'Bursts of chaotic energy' },
-      { trait: 'Unstoppable Force', icon: '💥', description: 'Never runs out of battery' },
+// Archetype-based fun traits for viral sharing
+const archetypeVibes: Record<string, { vibes: { trait: string; emoji: string; intensity: string }[]; superpower: string; secretTalent: string; loveLanguage: string; chaosLevel: string }> = {
+  'The Mystical Dreamer': {
+    vibes: [
+      { trait: 'Judges Your Life Choices', emoji: '👀', intensity: 'Expert Level' },
+      { trait: '3am Zoomies Specialist', emoji: '🌙', intensity: 'Legendary' },
+      { trait: 'Treat Negotiator', emoji: '🍖', intensity: 'Master' },
     ],
-    empathy: [
-      { trait: 'Emotional Support Pro', icon: '💝', description: 'Knows when you need cuddles' },
-      { trait: 'Soul Reader', icon: '👁️', description: 'Senses feelings from 3 rooms away' },
+    superpower: 'Can sense when you\'re about to leave',
+    secretTalent: 'Telepathic Guilt Trips',
+    loveLanguage: 'Aggressive Head Bonks',
+    chaosLevel: 'Controlled Chaos',
+  },
+  'The Loyal Guardian': {
+    vibes: [
+      { trait: 'Professional Tail Wagger', emoji: '💫', intensity: 'Infinite' },
+      { trait: 'Ball Retrieval Expert', emoji: '🎾', intensity: 'Obsessed' },
+      { trait: 'Unconditional Love Dealer', emoji: '❤️', intensity: 'Maximum' },
     ],
-    curiosity: [
-      { trait: 'Professional Investigator', icon: '🔍', description: 'What was that sound?!' },
-      { trait: 'Chaos Explorer', icon: '🗺️', description: 'Must touch everything' },
+    superpower: 'Knows when you\'re sad before you do',
+    secretTalent: 'Snack Detection from 3 Rooms Away',
+    loveLanguage: 'Full Body Wiggles',
+    chaosLevel: 'Happy Chaos',
+  },
+  'The Playful Trickster': {
+    vibes: [
+      { trait: 'Professional Mischief Maker', emoji: '😈', intensity: 'Expert' },
+      { trait: 'Forbidden Snack Hunter', emoji: '🍕', intensity: 'Relentless' },
+      { trait: 'Attention Demanding Diva', emoji: '👑', intensity: 'Maximum' },
     ],
-    charm: [
-      { trait: 'Treat Negotiator', icon: '🍖', description: 'Could get away with crimes' },
-      { trait: 'Heart Stealer', icon: '💘', description: 'Weaponized cuteness' },
+    superpower: 'Can find treats hidden anywhere',
+    secretTalent: 'Looking Innocent After Crimes',
+    loveLanguage: 'Chaotic Affection',
+    chaosLevel: 'Maximum Chaos',
+  },
+  'The Gentle Healer': {
+    vibes: [
+      { trait: 'Emotional Support Pro', emoji: '💝', intensity: 'Infinite' },
+      { trait: 'Cuddle Therapist', emoji: '🤗', intensity: 'Expert' },
+      { trait: 'Calm Energy Radiator', emoji: '✨', intensity: 'Master' },
     ],
-    energy: [
-      { trait: 'Perpetual Motion', icon: '🌀', description: 'Sleep? Never heard of it' },
-      { trait: 'Chaos Engine', icon: '🔥', description: '100% battery always' },
+    superpower: 'Healing sad humans with presence alone',
+    secretTalent: 'Knowing exactly when to cuddle',
+    loveLanguage: 'Gentle Presence',
+    chaosLevel: 'Zen Master',
+  },
+  'The Fierce Protector': {
+    vibes: [
+      { trait: 'Personal Bodyguard', emoji: '🛡️', intensity: 'Legendary' },
+      { trait: 'Suspicious of Strangers', emoji: '🔍', intensity: 'Always' },
+      { trait: 'Territory Patrol Expert', emoji: '🚨', intensity: 'Non-stop' },
     ],
-    mystery: [
-      { trait: 'Keeper of Secrets', icon: '🌙', description: 'Knows things. Won\'t tell.' },
-      { trait: 'Midnight Philosopher', icon: '🦉', description: 'Stares into the void' },
+    superpower: 'Can detect delivery trucks 10 minutes early',
+    secretTalent: 'Intimidating Bark-to-Size Ratio',
+    loveLanguage: 'Protective Following',
+    chaosLevel: 'Vigilant Energy',
+  },
+};
+
+// Get fun viral traits based on archetype and stats
+const getViralVibes = (archetype: string, stats: CardStats, petName: string, occasionMode: OccasionMode) => {
+  // Default vibes if archetype not found
+  const defaultVibes = {
+    vibes: [
+      { trait: 'Professional Treat Lover', emoji: '🍖', intensity: 'Expert' },
+      { trait: 'Nap Champion', emoji: '😴', intensity: 'Legendary' },
+      { trait: 'Chaos Creator', emoji: '🌀', intensity: 'Maximum' },
     ],
+    superpower: 'Melting hearts with one look',
+    secretTalent: 'Always finding the comfiest spot',
+    loveLanguage: 'Food-Based Affection',
+    chaosLevel: 'Unpredictable',
   };
   
-  // Memorial-specific traits
+  // Memorial mode overrides
   if (occasionMode === 'memorial') {
-    return [
-      { trait: 'Guardian Angel', icon: '👼', description: 'Watching over you always' },
-      { trait: 'Forever Beloved', icon: '💫', description: 'Eternal pawprints on hearts' },
-      { trait: 'Star Walker', icon: '⭐', description: 'Now among the constellations' },
-    ];
+    return {
+      vibes: [
+        { trait: 'Guardian Angel', emoji: '👼', intensity: 'Eternal' },
+        { trait: 'Forever Beloved', emoji: '💫', intensity: 'Infinite' },
+        { trait: 'Star Walker', emoji: '⭐', intensity: 'Always' },
+      ],
+      superpower: 'Watching over you from the stars',
+      secretTalent: 'Living forever in your heart',
+      loveLanguage: 'Eternal Bond',
+      chaosLevel: 'Peaceful Spirit',
+    };
   }
   
-  // Birthday-specific traits
+  // Birthday mode overrides
   if (occasionMode === 'birthday') {
-    return [
-      { trait: 'Birthday Royal', icon: '👑', description: 'Today\'s main character' },
-      { trait: 'Treat Collector', icon: '🎂', description: 'Accepting all offerings' },
-      { trait: 'Party Animal', icon: '🎉', description: 'Born to celebrate' },
-    ];
+    return {
+      vibes: [
+        { trait: 'Birthday Royal', emoji: '👑', intensity: 'Today Only' },
+        { trait: 'Treat Collector', emoji: '🎂', intensity: 'Maximum' },
+        { trait: 'Party Animal', emoji: '🎉', intensity: 'Activated' },
+      ],
+      superpower: 'Getting away with anything today',
+      secretTalent: 'Knowing exactly how cute they are',
+      loveLanguage: 'All The Treats',
+      chaosLevel: 'Birthday Chaos',
+    };
   }
   
-  topStats.forEach(([stat]) => {
-    const options = traitMappings[stat];
-    if (options) {
-      const randomIndex = Math.floor((petName.charCodeAt(0) || 0) % options.length);
-      traits.push(options[randomIndex]);
-    }
-  });
-  
-  return traits;
+  return archetypeVibes[archetype] || defaultVibes;
 };
 
 // Funny/engaging captions based on stats
@@ -234,7 +277,7 @@ export function ViralPetCard({
   const [copied, setCopied] = useState(false);
   const [cardImage, setCardImage] = useState<string | null>(null);
   const [viralCaption] = useState(() => getViralCaption(stats, occasionMode, petName));
-  const [personalityTraits] = useState(() => getPersonalityTraits(stats, occasionMode, petName));
+  const viralVibes = getViralVibes(archetype, stats, petName, occasionMode);
 
   const theme = occasionThemes[occasionMode];
   const colors = occasionMode === 'memorial' || occasionMode === 'birthday' 
@@ -586,18 +629,55 @@ export function ViralPetCard({
             </div>
           </div>
 
-          {/* Personality Traits (replaces numbered stats) */}
-          <div className="px-4 pb-4 space-y-2">
-            {personalityTraits.map((trait, index) => (
+          {/* Fun Personality Vibes */}
+          <div className="px-4 pb-2 space-y-1.5">
+            {viralVibes.vibes.map((vibe, index) => (
               <motion.div
-                key={trait.trait}
+                key={vibe.trait}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 + index * 0.1 }}
+                className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-white/5 border border-white/10"
               >
-                <TraitBadge {...trait} />
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{vibe.emoji}</span>
+                  <span className="text-xs font-medium text-white/90">{vibe.trait}</span>
+                </div>
+                <span className="text-[10px] font-bold text-violet-400 uppercase">{vibe.intensity}</span>
               </motion.div>
             ))}
+          </div>
+
+          {/* Superpower & Secret Talent */}
+          <div className="px-4 pb-2 grid grid-cols-2 gap-2">
+            <motion.div 
+              className="p-2 rounded-lg bg-gradient-to-br from-violet-500/10 to-pink-500/10 border border-violet-500/20 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <span className="text-xs text-violet-300 block mb-0.5">⚡ Superpower</span>
+              <span className="text-[10px] text-white/80 leading-tight block">{viralVibes.superpower}</span>
+            </motion.div>
+            <motion.div 
+              className="p-2 rounded-lg bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-center"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <span className="text-xs text-amber-300 block mb-0.5">🤫 Secret Talent</span>
+              <span className="text-[10px] text-white/80 leading-tight block">{viralVibes.secretTalent}</span>
+            </motion.div>
+          </div>
+
+          {/* Love Language & Chaos Level */}
+          <div className="px-4 pb-3 flex gap-2 text-center">
+            <div className="flex-1 py-1.5 rounded-lg bg-pink-500/10 border border-pink-500/20">
+              <span className="text-[10px] text-pink-300">💕 {viralVibes.loveLanguage}</span>
+            </div>
+            <div className="flex-1 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+              <span className="text-[10px] text-orange-300">🌀 {viralVibes.chaosLevel}</span>
+            </div>
           </div>
 
           {/* Footer */}
