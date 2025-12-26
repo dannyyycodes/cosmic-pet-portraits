@@ -96,9 +96,6 @@ export function IntakeStepEmailEarly({
       </button>
 
       <div className="space-y-3">
-        <p className="text-primary/80 text-sm uppercase tracking-widest">
-          Step {currentStep} of {totalSteps}
-        </p>
         
         {/* Trust badge - no zodiac reveal until after email! */}
         <motion.div

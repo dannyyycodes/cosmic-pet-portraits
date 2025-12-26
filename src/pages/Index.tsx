@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Star, Sparkles, Gift, Dog } from "lucide-react";
@@ -6,7 +6,6 @@ import { Navbar } from "@/components/Navbar";
 import { HowItWorks } from "@/components/HowItWorks";
 import { PremiumTestimonials } from "@/components/PremiumTestimonials";
 import { FAQ } from "@/components/FAQ";
-import { MoneyBackBadge } from "@/components/MoneyBackBadge";
 import { CTASection } from "@/components/CTASection";
 
 import { motion } from "framer-motion";
@@ -15,10 +14,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 import { TrackedSection } from "@/components/TrackedSection";
 import { SampleCarousel } from "@/components/SampleCarousel";
-import { StickyMobileCTA } from "@/components/StickyMobileCTA";
-import { LiveActivityNotification } from "@/components/LiveActivityNotification";
-import { ExitIntentPopup } from "@/components/ExitIntentPopup";
-import { UrgencyBanner } from "@/components/UrgencyBanner";
 
 
 const Index = () => {
@@ -32,11 +27,8 @@ const Index = () => {
 
   return (
     <main className="min-h-screen bg-background overflow-hidden">
-      <UrgencyBanner />
       <Navbar />
-      <StickyMobileCTA />
-      <LiveActivityNotification />
-      <ExitIntentPopup couponCode="COSMIC15" discountPercent={15} />
+      {/* Removed: UrgencyBanner, StickyMobileCTA, LiveActivityNotification, ExitIntentPopup for cleaner UX */}
       
       {/* Dynamic Cosmic Background */}
       <div className="fixed inset-0 z-0">
