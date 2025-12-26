@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import { Star, Sparkles, Eye, Crown, ChevronLeft, ChevronRight, Shield, Flame, Brain, Heart as HeartIcon } from 'lucide-react';
 import lunaPersian from '@/assets/samples/luna-persian.jpg';
 import maxGolden from '@/assets/samples/max-golden.jpg';
-import mysticalDreamerCat from '@/assets/archetypes/mystical-dreamer-cat.jpg';
-import nobleGuardianDog from '@/assets/archetypes/noble-guardian-dog.jpg';
+import mysticalDreamerCat from '@/assets/archetypes/mystical-dreamer-cat-v2.jpg';
+import nobleGuardianDog from '@/assets/archetypes/noble-guardian-dog-v2.jpg';
 
 // Pet showcase data with fun, viral-worthy traits
 const petShowcases = [

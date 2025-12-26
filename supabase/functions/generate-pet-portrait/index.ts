@@ -31,32 +31,81 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Build style descriptions
+    // UPGRADED: Premium collectible card art style prompts
+    // Key improvements: Less "AI look", more hand-painted/illustrated feel
     const styleDescriptions: Record<string, string> = {
-      pokemon: "Transform into a Pokemon trading card art style character. Make it look like a real Pokemon creature with vibrant anime aesthetics, dynamic heroic pose, magical sparkles, energy aura effects, and elemental powers visible. The character should look like it belongs in the Pokemon universe as a collectible card creature.",
-      fantasy: "Transform into a fantasy illustration style character with magical glowing aura, ethereal lighting, mystical atmosphere, floating magical particles",
-      portrait: "Transform into a professional artistic pet portrait with soft lighting, warm colors, dignified pose, studio quality fine art style",
-      cosmic: "Transform into a cosmic space-themed character surrounded by stars and nebulae, celestial glow, mystical energy, floating in space",
+      cosmic: `Transform this pet into a premium collectible trading card illustration. Art style: hand-painted digital art reminiscent of high-end fantasy card games (like Magic: The Gathering or premium Pokemon cards). 
+        - Use rich, painterly brushstrokes with visible artistic texture
+        - Apply dramatic cinematic lighting with rim lighting and depth
+        - Add mystical cosmic background with subtle nebula clouds and soft starlight
+        - Give the pet a majestic, regal presence while keeping their unique personality
+        - Eyes should be expressive and soulful, slightly stylized but not cartoonish
+        - Color palette should be rich jewel tones with luminous highlights
+        - The overall feel should be "museum-quality pet portrait meets fantasy art"`,
+      pokemon: `Transform this pet into a collectible creature card in the style of premium trading card game art. 
+        - Style: Professional Japanese anime-influenced illustration, NOT cheap AI art
+        - Dynamic heroic pose with confident energy
+        - Vibrant but harmonious color palette
+        - Magical sparkle and energy effects that feel intentional, not overdone
+        - Keep the pet's actual likeness, markings, and unique features clearly recognizable
+        - Background should have soft magical elements without overwhelming the subject`,
+      fantasy: `Transform into a high-fantasy book cover illustration style.
+        - Painterly realism with fantasy elements
+        - Soft ethereal glow and magical atmosphere
+        - Rich, warm lighting like a classical oil painting
+        - Mystical particles and gentle magical effects`,
+      portrait: `Transform into a fine art pet portrait worthy of gallery display.
+        - Classical portrait painting style with modern digital precision
+        - Soft, flattering studio lighting
+        - Rich textures in fur/feathers rendered with artistic brushwork
+        - Dignified, timeless composition`,
+    };
+
+    // Archetype-specific visual themes
+    const archetypeVisuals: Record<string, string> = {
+      "The Mystical Dreamer": "dreamy, ethereal atmosphere with soft purple and blue auroras, floating crystals, eyes half-closed in peaceful meditation, surrounded by gentle starlight",
+      "The Noble Guardian": "heroic stance with warm golden light rays, protective energy aura, noble and alert expression, subtle shield or armor-like light effects",
+      "The Chaos Gremlin": "playful mischievous energy, dynamic action pose, scattered magical sparks, wild but endearing expression, vibrant chaotic colors",
+      "The Gentle Giant": "soft warm lighting, peaceful serene expression, earth tones with gentle green nature elements, protective gentle aura",
+      "The Drama Queen": "theatrical dramatic lighting, regal confident pose, rich jewel tones, spotlight effect, crown or tiara light effects",
+      "The Wise Elder": "soft sage greens and deep purples, ancient mystical symbols floating gently, knowing wise eyes, scroll or book elements",
+      "The Eternal Optimist": "bright sunny golden lighting, joyful dynamic energy, rainbow prismatic effects, infectious happy expression",
+      "The Shadow Walker": "mysterious dark elegance, moonlit atmosphere, silver and deep blue tones, mysterious but not scary, elegant shadows",
     };
 
     const elementEffects: Record<string, string> = {
-      Fire: "Add warm orange and red magical flames, fire particles, glowing ember effects surrounding the character",
-      Earth: "Add green nature energy, floating leaves, earthy brown and green tones, grounded magical energy around them",
-      Air: "Add swirling wind effects, light blue and white wisps, floating cloud elements around the character",
-      Water: "Add blue water droplets, ocean wave effects, teal and aqua magical glow surrounding them",
+      Fire: "warm amber and soft orange glow emanating from behind, subtle flame-like wisps (NOT cartoonish flames), warm color temperature throughout",
+      Earth: "grounded energy with soft moss greens and warm browns, gentle floating leaves or petals, stable rooted presence, nature's embrace",
+      Air: "light and ethereal with soft white and pale blue wisps, gentle breeze effect on fur, floating lightness, cloud-like softness",
+      Water: "cool teal and aquamarine reflections, gentle water droplet effects, fluid graceful energy, oceanic depth in the eyes",
     };
 
-    const chosenStyle = styleDescriptions[style] || styleDescriptions.pokemon;
+    const chosenStyle = styleDescriptions[style] || styleDescriptions.cosmic;
+    const archetypeVisual = archetypeVisuals[archetype] || "mystical magical presence with gentle cosmic energy";
     const elementEffect = elementEffects[element] || elementEffects.Fire;
 
     let imageUrl: string;
     let prompt: string;
 
     if (petImageUrl) {
-      // IMAGE-TO-IMAGE: Transform the user's actual pet photo
+      // IMAGE-TO-IMAGE: Transform the user's actual pet photo into collectible art
       console.log("[GENERATE-PORTRAIT] Using image-to-image transformation");
       
-      prompt = `${chosenStyle}. This is a ${breed || species} (${species}) with ${sunSign} zodiac energy, known as "${archetype}". ${elementEffect}. Keep the pet's unique features, markings, colors, and characteristics recognizable while transforming the style. Make it look magical, heroic, and powerful. High quality digital art, expressive eyes, clean stylized background with magical effects. The final image should be a beautiful, collectible card-worthy transformation of this specific pet. IMPORTANT: Do NOT include any text, words, letters, numbers, or writing anywhere in the image. No labels, no captions, no watermarks.`;
+      prompt = `${chosenStyle}
+
+SUBJECT: A ${breed || species} (${species}) embodying the ${sunSign} zodiac archetype "${archetype}".
+
+ARCHETYPE VISUAL THEME: ${archetypeVisual}
+
+ELEMENTAL ENERGY: ${elementEffect}
+
+CRITICAL REQUIREMENTS:
+1. PRESERVE THE PET'S UNIQUE IDENTITY - their exact face shape, ear shape, markings, colors, and distinctive features must be clearly recognizable as THIS specific pet
+2. DO NOT make it look like generic AI art - it should look hand-illustrated by a professional fantasy artist
+3. The transformation should enhance, not replace, what makes this pet unique
+4. Quality level: Premium collectible trading card art, museum-worthy
+5. NO TEXT, NO WORDS, NO WATERMARKS, NO LABELS anywhere in the image
+6. Square composition, centered subject with artistic breathing room`;
 
       console.log("[GENERATE-PORTRAIT] Edit prompt:", prompt);
 
@@ -120,10 +169,27 @@ serve(async (req) => {
       imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       
     } else {
-      // TEXT-TO-IMAGE: Generate from description only (fallback)
+      // TEXT-TO-IMAGE: Generate from description only (fallback when no photo provided)
       console.log("[GENERATE-PORTRAIT] Using text-to-image generation (no pet photo provided)");
       
-      prompt = `Create a stunning ${chosenStyle} portrait of a ${breed || species} (${species}). The pet should look majestic and magical, embodying the ${sunSign} zodiac energy. ${elementEffect}. The pet is known as "${archetype}". Make it look like a collectible trading card character - heroic, adorable, and powerful. High quality digital art, detailed fur/features, expressive eyes, centered composition, clean background with magical effects. IMPORTANT: Do NOT include any text, words, letters, numbers, or writing anywhere in the image. No labels, no captions, no watermarks.`;
+      prompt = `${chosenStyle}
+
+Create a premium collectible trading card illustration of a ${breed || species} (${species}).
+
+SUBJECT: This pet embodies the ${sunSign} zodiac archetype known as "${archetype}".
+
+ARCHETYPE VISUAL THEME: ${archetypeVisual}
+
+ELEMENTAL ENERGY: ${elementEffect}
+
+REQUIREMENTS:
+1. Professional fantasy card game art quality - hand-painted digital art look
+2. NOT generic AI art - should look like a professional illustrator created it
+3. Rich, painterly textures with intentional brushwork
+4. Dramatic but beautiful lighting
+5. Expressive, soulful eyes that capture personality
+6. NO TEXT, NO WORDS, NO WATERMARKS, NO LABELS anywhere
+7. Square composition, centered subject`;
 
       console.log("[GENERATE-PORTRAIT] Generate prompt:", prompt);
 
