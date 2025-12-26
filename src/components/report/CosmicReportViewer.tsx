@@ -99,6 +99,33 @@ interface ReportContent {
     luckyColor: string;
     powerTime: string;
   };
+  // New sections
+  nameMeaning?: {
+    title: string;
+    origin: string;
+    cosmicSignificance: string;
+    nameVibration: number;
+    numerologyMeaning: string;
+    funFact: string;
+  };
+  basedOnYourAnswers?: {
+    title: string;
+    intro: string;
+    mappings: Array<{
+      question: string;
+      yourAnswer: string;
+      usedFor: string;
+    }>;
+    accuracyNote: string;
+  };
+  cosmicNickname?: {
+    nickname: string;
+    explanation: string;
+  };
+  firstMeeting?: {
+    title: string;
+    paragraph: string;
+  };
   // Legacy support
   sunSign?: string;
   element?: string;
@@ -447,6 +474,83 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
           </p>
         </div>
       </motion.div>
+
+      {/* Cosmic Nickname */}
+      {report.cosmicNickname && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto px-6 py-4"
+        >
+          <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-cosmic-gold/10 to-primary/10 border border-cosmic-gold/30">
+            <p className="text-sm text-muted-foreground uppercase tracking-widest mb-2">Cosmic Nickname</p>
+            <h2 className="text-3xl font-display font-bold text-foreground mb-3">"{report.cosmicNickname.nickname}"</h2>
+            <p className="text-muted-foreground">{report.cosmicNickname.explanation}</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Name Meaning Section */}
+      {report.nameMeaning && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto px-6 py-8"
+        >
+          <div className="p-6 rounded-2xl bg-card/40 border border-border/50 space-y-4">
+            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+              <Hash className="w-5 h-5 text-cosmic-gold" />
+              {report.nameMeaning.title}
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-primary mb-1">Origin & Meaning</h3>
+                <p className="text-muted-foreground">{report.nameMeaning.origin}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-primary mb-1">Cosmic Connection</h3>
+                <p className="text-muted-foreground">{report.nameMeaning.cosmicSignificance}</p>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-primary/10 border border-primary/20">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-primary">{report.nameMeaning.nameVibration}</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-foreground">Name Vibration Number</h3>
+                  <p className="text-sm text-muted-foreground">{report.nameMeaning.numerologyMeaning}</p>
+                </div>
+              </div>
+              
+              <div className="text-sm text-muted-foreground italic border-l-2 border-cosmic-gold/50 pl-4">
+                💡 {report.nameMeaning.funFact}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* First Meeting Section */}
+      {report.firstMeeting && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto px-6 py-4"
+        >
+          <div className="p-6 rounded-2xl bg-card/40 border border-border/50">
+            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2 mb-4">
+              <Eye className="w-5 h-5 text-purple-400" />
+              {report.firstMeeting.title}
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">{report.firstMeeting.paragraph}</p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Cosmic Trading Card Section */}
       <motion.div
@@ -904,6 +1008,40 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
                   </div>
                 )}
               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Based on Your Answers Section */}
+        {!isPreview && report.basedOnYourAnswers && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="p-6 rounded-2xl bg-gradient-to-br from-primary/5 to-card/50 border border-primary/20"
+          >
+            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              {report.basedOnYourAnswers.title}
+            </h2>
+            <p className="text-muted-foreground mb-6">{report.basedOnYourAnswers.intro}</p>
+            
+            <div className="space-y-4">
+              {report.basedOnYourAnswers.mappings?.map((mapping, idx) => (
+                <div key={idx} className="p-4 rounded-lg bg-card/50 border border-border/30">
+                  <div className="flex flex-wrap gap-2 items-baseline mb-2">
+                    <span className="text-sm font-medium text-primary">{mapping.question}:</span>
+                    <span className="text-foreground font-semibold">{mapping.yourAnswer}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    <span className="text-cosmic-gold">→</span> {mapping.usedFor}
+                  </p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6 p-4 rounded-lg bg-cosmic-gold/10 border border-cosmic-gold/30">
+              <p className="text-sm text-cosmic-gold">{report.basedOnYourAnswers.accuracyNote}</p>
             </div>
           </motion.div>
         )}
