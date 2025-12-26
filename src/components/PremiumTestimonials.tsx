@@ -165,7 +165,7 @@ export function PremiumTestimonials() {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
             <ShieldCheck className="w-4 h-4 text-primary" />
-            <span className="text-xs sm:text-sm font-medium text-primary">50,000+ Pet Parents Can't Be Wrong</span>
+            <span className="text-xs sm:text-sm font-medium text-primary">Loved by Pet Parents Everywhere</span>
           </div>
           
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-semibold text-foreground mb-2">
