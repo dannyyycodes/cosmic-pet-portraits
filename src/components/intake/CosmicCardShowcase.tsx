@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Flame, Crown } from 'lucide-react';
+import { X, Star, Heart, Zap, Shield, Sparkles, Flame, Crown } from 'lucide-react';
 import mysticalDreamer from '@/assets/archetypes/mystical-dreamer-cat-v2.jpg';
 import nobleGuardian from '@/assets/archetypes/noble-guardian-dog-v2.jpg';
+
+interface CardStats {
+  vitality: number;
+  empathy: number;
+  curiosity: number;
+  charm: number;
+  energy: number;
+  mystery: number;
+}
 
 interface SampleCardData {
   name: string;
@@ -12,7 +21,7 @@ interface SampleCardData {
   element: string;
   zodiacIcon: string;
   imageUrl: string;
-  totalPower: number;
+  stats: CardStats;
   vibes: { trait: string; emoji: string; intensity: string }[];
   superpower: string;
   secretTalent: string;
@@ -29,7 +38,7 @@ const sampleCards: SampleCardData[] = [
     element: 'Fire',
     zodiacIcon: '♌',
     imageUrl: nobleGuardian,
-    totalPower: 93,
+    stats: { vitality: 95, empathy: 88, curiosity: 75, charm: 92, energy: 98, mystery: 70 },
     vibes: [
       { trait: 'Professional Tail Wagger', emoji: '💫', intensity: 'Infinite' },
       { trait: 'Ball Retrieval Expert', emoji: '🎾', intensity: 'Obsessed' },
@@ -48,7 +57,7 @@ const sampleCards: SampleCardData[] = [
     element: 'Water',
     zodiacIcon: '♓',
     imageUrl: mysticalDreamer,
-    totalPower: 87,
+    stats: { vitality: 72, empathy: 95, curiosity: 88, charm: 90, energy: 65, mystery: 98 },
     vibes: [
       { trait: 'Judges Your Life Choices', emoji: '👀', intensity: 'Expert Level' },
       { trait: '3am Zoomies Specialist', emoji: '🌙', intensity: 'Legendary' },
@@ -66,207 +75,201 @@ const elementColors: Record<string, { from: string; to: string; glow: string }> 
   Water: { from: '#06b6d4', to: '#8b5cf6', glow: 'rgba(6, 182, 212, 0.5)' },
 };
 
-function MiniViralCard({ card, onExpand }: { card: SampleCardData; onExpand: () => void }) {
+// Full-size ViralPetCard replica for the showcase
+function ShowcaseCard({ card, isExpanded, onToggle }: { card: SampleCardData; isExpanded: boolean; onToggle: () => void }) {
   const colors = elementColors[card.element];
+  const totalPower = Math.round((card.stats.vitality + card.stats.empathy + card.stats.curiosity + card.stats.charm + card.stats.energy + card.stats.mystery) / 6);
   
   return (
     <motion.div
-      whileHover={{ scale: 1.08, zIndex: 10 }}
+      layout
+      whileHover={{ scale: isExpanded ? 1 : 1.05, zIndex: 10 }}
       whileTap={{ scale: 0.98 }}
-      onClick={onExpand}
-      className="relative w-[140px] rounded-xl overflow-hidden cursor-pointer shadow-xl"
+      onClick={onToggle}
+      animate={{ 
+        width: isExpanded ? 320 : 156,
+      }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="relative rounded-2xl overflow-hidden cursor-pointer flex-shrink-0"
       style={{
         background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
-        padding: '2px',
-        boxShadow: `0 0 20px ${colors.glow}`,
+        padding: '3px',
+        boxShadow: `0 0 ${isExpanded ? 60 : 30}px ${colors.glow}, 0 ${isExpanded ? 20 : 10}px ${isExpanded ? 60 : 30}px rgba(0,0,0,0.5)`,
       }}
     >
-      <div className="relative rounded-[10px] bg-slate-900 overflow-hidden">
+      <div className="relative rounded-xl bg-slate-900 overflow-hidden">
         {/* Badge */}
-        <div className="text-center py-1 text-[7px] font-bold tracking-wider bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white">
+        <div 
+          className="text-center font-bold tracking-widest bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white"
+          style={{ 
+            padding: isExpanded ? '8px 0' : '4px 0',
+            fontSize: isExpanded ? '12px' : '8px',
+          }}
+        >
           ✨ LEGENDARY ✨
         </div>
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-2 py-1 bg-black/40">
+        {/* Header with power level */}
+        <div 
+          className="flex items-center justify-between bg-black/40"
+          style={{ padding: isExpanded ? '8px 16px' : '4px 8px' }}
+        >
           <div className="flex items-center gap-1">
-            <span className="text-lg">{card.zodiacIcon}</span>
-            <span className="text-[9px] font-bold text-white">{card.sunSign}</span>
+            <span style={{ fontSize: isExpanded ? '28px' : '16px' }}>{card.zodiacIcon}</span>
+            <div>
+              <span 
+                className="font-bold text-white block"
+                style={{ fontSize: isExpanded ? '14px' : '9px' }}
+              >
+                {card.sunSign}
+              </span>
+              {isExpanded && (
+                <span className="text-[10px] text-white/50">☽ {card.moonSign}</span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${colors.from}40` }}>
-            <Flame className="w-2.5 h-2.5 text-amber-400" />
-            <span className="text-[10px] font-black text-white">{card.totalPower}</span>
+          <div 
+            className="flex items-center gap-1 rounded-full"
+            style={{ 
+              backgroundColor: `${colors.from}40`,
+              border: `1px solid ${colors.from}60`,
+              padding: isExpanded ? '6px 12px' : '2px 6px',
+            }}
+          >
+            <Flame 
+              className="text-amber-400" 
+              style={{ width: isExpanded ? 16 : 10, height: isExpanded ? 16 : 10 }}
+            />
+            <span 
+              className="font-black text-white"
+              style={{ fontSize: isExpanded ? '14px' : '10px' }}
+            >
+              {totalPower}
+            </span>
           </div>
         </div>
 
         {/* Portrait */}
-        <div className="relative mx-1.5 mt-1 h-20 rounded-lg overflow-hidden border border-white/20">
+        <div 
+          className="relative mx-auto rounded-xl overflow-hidden border-2 border-white/20"
+          style={{ 
+            margin: isExpanded ? '8px 12px' : '4px 6px',
+            height: isExpanded ? 160 : 80,
+          }}
+        >
           <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
-          {card.totalPower >= 90 && (
-            <Crown className="absolute top-1 left-1 w-4 h-4 text-amber-400 drop-shadow" />
+          {totalPower >= 75 && (
+            <motion.div 
+              className="absolute top-1 left-1"
+              animate={{ rotate: [-5, 5, -5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Crown 
+                className="text-amber-400 drop-shadow-lg" 
+                style={{ width: isExpanded ? 28 : 16, height: isExpanded ? 28 : 16 }}
+              />
+            </motion.div>
           )}
           <div 
-            className="absolute bottom-1 right-1 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-white text-[7px] font-bold"
-            style={{ backgroundColor: `${colors.from}cc` }}
+            className="absolute bottom-1 right-1 flex items-center gap-1 rounded-full text-white font-bold backdrop-blur-md"
+            style={{ 
+              backgroundColor: `${colors.from}cc`,
+              padding: isExpanded ? '4px 10px' : '2px 6px',
+              fontSize: isExpanded ? '11px' : '7px',
+            }}
           >
-            {card.element === 'Fire' ? '🔥' : '💧'}
+            {card.element === 'Fire' ? '🔥' : '💧'} {isExpanded && card.element}
           </div>
         </div>
 
-        {/* Name */}
-        <div className="px-2 mt-1.5 text-center">
-          <p className="text-sm font-bold text-white">{card.name}</p>
-          <p className="text-[7px] text-white/50 italic">{card.archetype}</p>
+        {/* Name & archetype */}
+        <div className="text-center" style={{ padding: isExpanded ? '0 16px' : '0 6px' }}>
+          <h2 
+            className="font-black text-white"
+            style={{ fontSize: isExpanded ? '24px' : '14px' }}
+          >
+            {card.name}
+          </h2>
+          <p 
+            className="text-white/60 italic"
+            style={{ fontSize: isExpanded ? '14px' : '8px' }}
+          >
+            {card.archetype}
+          </p>
         </div>
 
-        {/* Mini vibes */}
-        <div className="px-1.5 mt-1.5 space-y-0.5 pb-2">
-          {card.vibes.slice(0, 2).map((vibe, i) => (
-            <div key={i} className="flex items-center gap-1 p-1 rounded bg-white/5 border border-white/10">
-              <span className="text-xs">{vibe.emoji}</span>
-              <span className="text-[7px] text-white truncate">{vibe.trait}</span>
-            </div>
+        {/* Vibes - trait cards */}
+        <div style={{ padding: isExpanded ? '12px 16px' : '6px 6px', display: 'flex', flexDirection: 'column', gap: isExpanded ? 8 : 4 }}>
+          {card.vibes.map((vibe, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10"
+              style={{ padding: isExpanded ? '8px' : '4px 6px' }}
+            >
+              <span style={{ fontSize: isExpanded ? '20px' : '12px' }}>{vibe.emoji}</span>
+              <div className="min-w-0 flex-1">
+                <p 
+                  className="font-bold text-white truncate"
+                  style={{ fontSize: isExpanded ? '14px' : '8px' }}
+                >
+                  {vibe.trait}
+                </p>
+                <p 
+                  className="text-white/60"
+                  style={{ fontSize: isExpanded ? '10px' : '6px' }}
+                >
+                  {vibe.intensity}
+                </p>
+              </div>
+            </motion.div>
           ))}
         </div>
 
-        {/* Tap hint */}
-        <p className="text-[6px] text-white/40 text-center pb-1.5">Tap to expand</p>
-      </div>
-    </motion.div>
-  );
-}
-
-function ExpandedViralCard({ card, onClose }: { card: SampleCardData; onClose: () => void }) {
-  const colors = elementColors[card.element];
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ scale: 0.8, rotateY: -15 }}
-        animate={{ scale: 1, rotateY: 0 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-80 rounded-2xl overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
-          padding: '3px',
-          boxShadow: `0 0 60px ${colors.glow}, 0 20px 60px rgba(0,0,0,0.5)`,
-        }}
-      >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute -top-2 -right-2 z-20 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="relative rounded-xl bg-slate-900 overflow-hidden">
-          {/* Badge */}
-          <div className="text-center py-2 text-xs font-bold tracking-widest bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white">
-            ✨ LEGENDARY ✨
-          </div>
-
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2 bg-black/40">
-            <div className="flex items-center gap-2">
-              <span className="text-3xl">{card.zodiacIcon}</span>
-              <div>
-                <span className="text-sm font-bold text-white">{card.sunSign}</span>
-                <span className="text-[10px] text-white/50 ml-1">SUN</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ backgroundColor: `${colors.from}40`, border: `1px solid ${colors.from}60` }}>
-              <Flame className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-black text-white">{card.totalPower}</span>
-            </div>
-          </div>
-
-          {/* Portrait */}
-          <div className="relative mx-3 mt-2 h-40 rounded-xl overflow-hidden border-2 border-white/20">
-            <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
-            {card.totalPower >= 75 && (
-              <motion.div 
-                className="absolute top-2 left-2"
-                animate={{ rotate: [-5, 5, -5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Crown className="w-8 h-8 text-amber-400 drop-shadow-lg" />
-              </motion.div>
-            )}
-            <div 
-              className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-bold backdrop-blur-md"
-              style={{ backgroundColor: `${colors.from}cc` }}
+        {/* Special abilities - only when expanded */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="px-4 pb-4 space-y-2"
             >
-              {card.element === 'Fire' ? '🔥' : '💧'} {card.element}
-            </div>
-          </div>
-
-          {/* Name & archetype */}
-          <div className="px-4 mt-3 text-center">
-            <h2 className="text-2xl font-black text-white">{card.name}</h2>
-            <p className="text-sm text-white/60 italic">{card.archetype}</p>
-          </div>
-
-          {/* Moon sign */}
-          <div className="flex justify-center mt-2">
-            <span className="text-xs text-white/50">☽ {card.moonSign} Moon</span>
-          </div>
-
-          {/* Vibes */}
-          <div className="px-4 mt-3 space-y-2">
-            {card.vibes.map((vibe, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="flex items-center gap-3 p-2 rounded-lg bg-white/5 border border-white/10"
-              >
-                <span className="text-xl">{vibe.emoji}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-white">{vibe.trait}</p>
-                  <p className="text-[10px] text-white/60">{vibe.intensity}</p>
+              <div className="flex items-start gap-2">
+                <span className="text-sm">⚡</span>
+                <div>
+                  <span className="text-[10px] text-white/50">Superpower</span>
+                  <p className="text-xs text-white font-medium">{card.superpower}</p>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-sm">🤫</span>
+                <div>
+                  <span className="text-[10px] text-white/50">Secret Talent</span>
+                  <p className="text-xs text-white font-medium">{card.secretTalent}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 mt-2 pt-2 border-t border-white/10">
+                <div className="flex items-center gap-1">
+                  <span>💕</span>
+                  <span className="text-[10px] text-white/70">{card.loveLanguage}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>🌀</span>
+                  <span className="text-[10px] text-white/70">{card.chaosLevel}</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Special abilities */}
-          <div className="px-4 mt-3 space-y-1.5 pb-4">
-            <div className="flex items-start gap-2">
-              <span className="text-sm">⚡</span>
-              <div>
-                <span className="text-[10px] text-white/50">Superpower</span>
-                <p className="text-xs text-white font-medium">{card.superpower}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-sm">🤫</span>
-              <div>
-                <span className="text-[10px] text-white/50">Secret Talent</span>
-                <p className="text-xs text-white font-medium">{card.secretTalent}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 mt-2 pt-2 border-t border-white/10">
-              <div className="flex items-center gap-1">
-                <span>💕</span>
-                <span className="text-[10px] text-white/70">{card.loveLanguage}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span>🌀</span>
-                <span className="text-[10px] text-white/70">{card.chaosLevel}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+        {/* Tap hint when not expanded */}
+        {!isExpanded && (
+          <p className="text-[6px] text-white/40 text-center pb-2">Tap to expand</p>
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -274,28 +277,20 @@ function ExpandedViralCard({ card, onClose }: { card: SampleCardData; onClose: (
 export function CosmicCardShowcase() {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
 
-  return (
-    <>
-      {/* Side by side cards */}
-      <div className="flex justify-center gap-2">
-        {sampleCards.map((card, idx) => (
-          <MiniViralCard
-            key={idx}
-            card={card}
-            onExpand={() => setExpandedCard(idx)}
-          />
-        ))}
-      </div>
+  const handleToggle = (idx: number) => {
+    setExpandedCard(prev => prev === idx ? null : idx);
+  };
 
-      {/* Expanded card modal */}
-      <AnimatePresence>
-        {expandedCard !== null && (
-          <ExpandedViralCard
-            card={sampleCards[expandedCard]}
-            onClose={() => setExpandedCard(null)}
-          />
-        )}
-      </AnimatePresence>
-    </>
+  return (
+    <div className="flex justify-center gap-3 overflow-visible py-2">
+      {sampleCards.map((card, idx) => (
+        <ShowcaseCard
+          key={idx}
+          card={card}
+          isExpanded={expandedCard === idx}
+          onToggle={() => handleToggle(idx)}
+        />
+      ))}
+    </div>
   );
 }
