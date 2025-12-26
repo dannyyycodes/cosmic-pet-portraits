@@ -1,185 +1,268 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap, Heart, Star, Sparkles, Shield } from 'lucide-react';
+import { X, Flame, Crown } from 'lucide-react';
 import mysticalDreamer from '@/assets/archetypes/mystical-dreamer-cat-v2.jpg';
 import nobleGuardian from '@/assets/archetypes/noble-guardian-dog-v2.jpg';
 
-interface MiniCardProps {
+interface SampleCardData {
   name: string;
   archetype: string;
+  sunSign: string;
+  moonSign: string;
   element: string;
   zodiacIcon: string;
   imageUrl: string;
-  stats: { vitality: number; empathy: number; curiosity: number; charm: number; energy: number; mystery: number };
-  colors: { primary: string; secondary: string };
-  onExpand: () => void;
+  totalPower: number;
+  vibes: { trait: string; emoji: string; intensity: string }[];
+  superpower: string;
+  secretTalent: string;
+  loveLanguage: string;
+  chaosLevel: string;
 }
 
-const elementColors: Record<string, { primary: string; secondary: string }> = {
-  Water: { primary: '#0EA5E9', secondary: '#BAE6FD' },
-  Fire: { primary: '#F97316', secondary: '#FED7AA' },
+const sampleCards: SampleCardData[] = [
+  {
+    name: 'Max',
+    archetype: 'The Noble Guardian',
+    sunSign: 'Leo',
+    moonSign: 'Cancer',
+    element: 'Fire',
+    zodiacIcon: '♌',
+    imageUrl: nobleGuardian,
+    totalPower: 93,
+    vibes: [
+      { trait: 'Professional Tail Wagger', emoji: '💫', intensity: 'Infinite' },
+      { trait: 'Ball Retrieval Expert', emoji: '🎾', intensity: 'Obsessed' },
+      { trait: 'Unconditional Love Dealer', emoji: '❤️', intensity: 'Maximum' },
+    ],
+    superpower: 'Knows when you\'re sad before you do',
+    secretTalent: 'Snack Detection from 3 Rooms Away',
+    loveLanguage: 'Full Body Wiggles',
+    chaosLevel: 'Happy Chaos',
+  },
+  {
+    name: 'Luna',
+    archetype: 'The Mystical Dreamer',
+    sunSign: 'Pisces',
+    moonSign: 'Scorpio',
+    element: 'Water',
+    zodiacIcon: '♓',
+    imageUrl: mysticalDreamer,
+    totalPower: 87,
+    vibes: [
+      { trait: 'Judges Your Life Choices', emoji: '👀', intensity: 'Expert Level' },
+      { trait: '3am Zoomies Specialist', emoji: '🌙', intensity: 'Legendary' },
+      { trait: 'Treat Negotiator', emoji: '🍖', intensity: 'Master' },
+    ],
+    superpower: 'Can sense when you\'re about to leave',
+    secretTalent: 'Telepathic Guilt Trips',
+    loveLanguage: 'Aggressive Head Bonks',
+    chaosLevel: 'Controlled Chaos',
+  },
+];
+
+const elementColors: Record<string, { from: string; to: string; glow: string }> = {
+  Fire: { from: '#f97316', to: '#eab308', glow: 'rgba(249, 115, 22, 0.5)' },
+  Water: { from: '#06b6d4', to: '#8b5cf6', glow: 'rgba(6, 182, 212, 0.5)' },
 };
 
-function MiniCard({ name, archetype, element, zodiacIcon, imageUrl, stats, colors, onExpand }: MiniCardProps) {
-  const totalHP = Math.round(50 + (stats.vitality + stats.energy) * 0.5);
+function MiniViralCard({ card, onExpand }: { card: SampleCardData; onExpand: () => void }) {
+  const colors = elementColors[card.element];
   
   return (
     <motion.div
-      whileHover={{ scale: 1.05, zIndex: 10 }}
+      whileHover={{ scale: 1.08, zIndex: 10 }}
       whileTap={{ scale: 0.98 }}
       onClick={onExpand}
-      className="relative w-36 cursor-pointer"
-      style={{ aspectRatio: '63/88' }}
+      className="relative w-[140px] rounded-xl overflow-hidden cursor-pointer shadow-xl"
+      style={{
+        background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
+        padding: '2px',
+        boxShadow: `0 0 20px ${colors.glow}`,
+      }}
     >
-      {/* Card border */}
-      <div 
-        className="absolute inset-0 rounded-lg overflow-hidden shadow-xl"
-        style={{ 
-          background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-          padding: '3px',
-        }}
-      >
-        {/* Inner card */}
-        <div className="relative h-full rounded-md overflow-hidden" style={{ backgroundColor: colors.secondary }}>
-          {/* Header */}
-          <div className="flex justify-between items-center px-1.5 py-1">
-            <span className="text-[7px] font-bold px-1 py-0.5 rounded text-white" style={{ backgroundColor: colors.primary }}>
-              {zodiacIcon} COSMIC
-            </span>
-            <div className="flex items-center gap-0.5">
-              <span className="text-[7px] font-bold" style={{ color: colors.primary }}>HP</span>
-              <span className="text-sm font-black" style={{ color: colors.primary }}>{totalHP}</span>
-            </div>
-          </div>
-
-          {/* Name */}
-          <p className="text-[10px] font-bold px-1.5 truncate" style={{ color: colors.primary }}>{name}</p>
-
-          {/* Image */}
-          <div className="mx-1.5 mt-1 rounded overflow-hidden border-2" style={{ borderColor: colors.primary }}>
-            <img src={imageUrl} alt={name} className="w-full h-16 object-cover" />
-          </div>
-
-          {/* Mini stats */}
-          <div className="px-1.5 mt-1.5 space-y-0.5">
-            <div className="flex items-center gap-1">
-              <Zap className="w-2.5 h-2.5" style={{ color: colors.primary }} />
-              <div className="flex-1 h-1 bg-white/50 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${stats.vitality}%`, backgroundColor: colors.primary }} />
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <Heart className="w-2.5 h-2.5" style={{ color: colors.primary }} />
-              <div className="flex-1 h-1 bg-white/50 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${stats.empathy}%`, backgroundColor: colors.primary }} />
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5" style={{ color: colors.primary }} />
-              <div className="flex-1 h-1 bg-white/50 rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{ width: `${stats.charm}%`, backgroundColor: colors.primary }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Archetype */}
-          <p className="text-[6px] text-center mt-1 opacity-70 truncate px-1" style={{ color: colors.primary }}>
-            {archetype}
-          </p>
-
-          {/* Tap hint */}
-          <p className="text-[6px] text-center mt-0.5 opacity-50" style={{ color: colors.primary }}>
-            Tap to expand
-          </p>
+      <div className="relative rounded-[10px] bg-slate-900 overflow-hidden">
+        {/* Badge */}
+        <div className="text-center py-1 text-[7px] font-bold tracking-wider bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white">
+          ✨ LEGENDARY ✨
         </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-2 py-1 bg-black/40">
+          <div className="flex items-center gap-1">
+            <span className="text-lg">{card.zodiacIcon}</span>
+            <span className="text-[9px] font-bold text-white">{card.sunSign}</span>
+          </div>
+          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${colors.from}40` }}>
+            <Flame className="w-2.5 h-2.5 text-amber-400" />
+            <span className="text-[10px] font-black text-white">{card.totalPower}</span>
+          </div>
+        </div>
+
+        {/* Portrait */}
+        <div className="relative mx-1.5 mt-1 h-20 rounded-lg overflow-hidden border border-white/20">
+          <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
+          {card.totalPower >= 90 && (
+            <Crown className="absolute top-1 left-1 w-4 h-4 text-amber-400 drop-shadow" />
+          )}
+          <div 
+            className="absolute bottom-1 right-1 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-white text-[7px] font-bold"
+            style={{ backgroundColor: `${colors.from}cc` }}
+          >
+            {card.element === 'Fire' ? '🔥' : '💧'}
+          </div>
+        </div>
+
+        {/* Name */}
+        <div className="px-2 mt-1.5 text-center">
+          <p className="text-sm font-bold text-white">{card.name}</p>
+          <p className="text-[7px] text-white/50 italic">{card.archetype}</p>
+        </div>
+
+        {/* Mini vibes */}
+        <div className="px-1.5 mt-1.5 space-y-0.5 pb-2">
+          {card.vibes.slice(0, 2).map((vibe, i) => (
+            <div key={i} className="flex items-center gap-1 p-1 rounded bg-white/5 border border-white/10">
+              <span className="text-xs">{vibe.emoji}</span>
+              <span className="text-[7px] text-white truncate">{vibe.trait}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Tap hint */}
+        <p className="text-[6px] text-white/40 text-center pb-1.5">Tap to expand</p>
       </div>
     </motion.div>
   );
 }
 
-function ExpandedCard({ name, archetype, element, zodiacIcon, imageUrl, stats, colors, onClose }: MiniCardProps & { onClose: () => void }) {
-  const totalHP = Math.round(50 + (stats.vitality + stats.energy) * 0.5);
+function ExpandedViralCard({ card, onClose }: { card: SampleCardData; onClose: () => void }) {
+  const colors = elementColors[card.element];
   
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.8, rotateY: -20 }}
+        initial={{ scale: 0.8, rotateY: -15 }}
         animate={{ scale: 1, rotateY: 0 }}
         exit={{ scale: 0.8, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-72"
-        style={{ aspectRatio: '63/88' }}
+        className="relative w-80 rounded-2xl overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${colors.from}, ${colors.to})`,
+          padding: '3px',
+          boxShadow: `0 0 60px ${colors.glow}, 0 20px 60px rgba(0,0,0,0.5)`,
+        }}
       >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute -top-3 -right-3 z-10 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute -top-2 -right-2 z-20 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
-        {/* Card border */}
-        <div 
-          className="absolute inset-0 rounded-xl overflow-hidden shadow-2xl"
-          style={{ 
-            background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-            padding: '6px',
-          }}
-        >
-          {/* Holographic overlay */}
-          <motion.div
-            className="absolute inset-0 rounded-xl pointer-events-none z-10"
-            style={{
-              background: `linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.2) 100%)`,
-              mixBlendMode: 'overlay',
-            }}
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
+        <div className="relative rounded-xl bg-slate-900 overflow-hidden">
+          {/* Badge */}
+          <div className="text-center py-2 text-xs font-bold tracking-widest bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white">
+            ✨ LEGENDARY ✨
+          </div>
 
-          {/* Inner card */}
-          <div className="relative h-full rounded-lg overflow-hidden" style={{ backgroundColor: colors.secondary }}>
-            {/* Header */}
-            <div className="flex justify-between items-center px-2 py-1.5">
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: colors.primary }}>
-                {zodiacIcon} COSMIC RARE
-              </span>
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] font-bold" style={{ color: colors.primary }}>HP</span>
-                <span className="text-2xl font-black" style={{ color: colors.primary }}>{totalHP}</span>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-2 bg-black/40">
+            <div className="flex items-center gap-2">
+              <span className="text-3xl">{card.zodiacIcon}</span>
+              <div>
+                <span className="text-sm font-bold text-white">{card.sunSign}</span>
+                <span className="text-[10px] text-white/50 ml-1">SUN</span>
               </div>
             </div>
-
-            {/* Name */}
-            <div className="px-2.5 -mt-0.5">
-              <h2 className="text-lg font-black" style={{ color: colors.primary }}>{name}</h2>
-              <p className="text-[8px] uppercase tracking-wider opacity-60" style={{ color: colors.primary }}>{archetype}</p>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ backgroundColor: `${colors.from}40`, border: `1px solid ${colors.from}60` }}>
+              <Flame className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-black text-white">{card.totalPower}</span>
             </div>
+          </div>
 
-            {/* Image */}
-            <div className="mx-2.5 mt-2 rounded-lg overflow-hidden border-3" style={{ borderColor: colors.primary, borderWidth: '3px' }}>
-              <img src={imageUrl} alt={name} className="w-full h-28 object-cover" />
+          {/* Portrait */}
+          <div className="relative mx-3 mt-2 h-40 rounded-xl overflow-hidden border-2 border-white/20">
+            <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
+            {card.totalPower >= 75 && (
+              <motion.div 
+                className="absolute top-2 left-2"
+                animate={{ rotate: [-5, 5, -5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Crown className="w-8 h-8 text-amber-400 drop-shadow-lg" />
+              </motion.div>
+            )}
+            <div 
+              className="absolute bottom-2 right-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-bold backdrop-blur-md"
+              style={{ backgroundColor: `${colors.from}cc` }}
+            >
+              {card.element === 'Fire' ? '🔥' : '💧'} {card.element}
             </div>
+          </div>
 
-            {/* Stats */}
-            <div className="px-3 mt-3 space-y-1.5">
-              <StatRow icon={Zap} label="Vitality" value={stats.vitality} color={colors.primary} />
-              <StatRow icon={Heart} label="Empathy" value={stats.empathy} color={colors.primary} />
-              <StatRow icon={Star} label="Curiosity" value={stats.curiosity} color={colors.primary} />
-              <StatRow icon={Sparkles} label="Charm" value={stats.charm} color={colors.primary} />
-              <StatRow icon={Zap} label="Energy" value={stats.energy} color={colors.primary} />
-              <StatRow icon={Shield} label="Mystery" value={stats.mystery} color={colors.primary} />
+          {/* Name & archetype */}
+          <div className="px-4 mt-3 text-center">
+            <h2 className="text-2xl font-black text-white">{card.name}</h2>
+            <p className="text-sm text-white/60 italic">{card.archetype}</p>
+          </div>
+
+          {/* Moon sign */}
+          <div className="flex justify-center mt-2">
+            <span className="text-xs text-white/50">☽ {card.moonSign} Moon</span>
+          </div>
+
+          {/* Vibes */}
+          <div className="px-4 mt-3 space-y-2">
+            {card.vibes.map((vibe, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-center gap-3 p-2 rounded-lg bg-white/5 border border-white/10"
+              >
+                <span className="text-xl">{vibe.emoji}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-white">{vibe.trait}</p>
+                  <p className="text-[10px] text-white/60">{vibe.intensity}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Special abilities */}
+          <div className="px-4 mt-3 space-y-1.5 pb-4">
+            <div className="flex items-start gap-2">
+              <span className="text-sm">⚡</span>
+              <div>
+                <span className="text-[10px] text-white/50">Superpower</span>
+                <p className="text-xs text-white font-medium">{card.superpower}</p>
+              </div>
             </div>
-
-            {/* Footer */}
-            <div className="absolute bottom-2 left-2 right-2 text-[7px] text-center opacity-50" style={{ color: colors.primary }}>
-              {element} Type • cosmicpet.report
+            <div className="flex items-start gap-2">
+              <span className="text-sm">🤫</span>
+              <div>
+                <span className="text-[10px] text-white/50">Secret Talent</span>
+                <p className="text-xs text-white font-medium">{card.secretTalent}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 mt-2 pt-2 border-t border-white/10">
+              <div className="flex items-center gap-1">
+                <span>💕</span>
+                <span className="text-[10px] text-white/70">{card.loveLanguage}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span>🌀</span>
+                <span className="text-[10px] text-white/70">{card.chaosLevel}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -188,57 +271,17 @@ function ExpandedCard({ name, archetype, element, zodiacIcon, imageUrl, stats, c
   );
 }
 
-function StatRow({ icon: Icon, label, value, color }: { icon: typeof Zap; label: string; value: number; color: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="w-3 h-3" style={{ color }} />
-      <span className="text-[9px] uppercase w-12 opacity-70" style={{ color }}>{label}</span>
-      <div className="flex-1 h-1.5 bg-white/50 rounded-full overflow-hidden">
-        <motion.div 
-          initial={{ width: 0 }}
-          animate={{ width: `${value}%` }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="h-full rounded-full" 
-          style={{ backgroundColor: color }} 
-        />
-      </div>
-      <span className="text-[10px] font-bold w-5 text-right" style={{ color }}>{value}</span>
-    </div>
-  );
-}
-
-// Sample card data
-const sampleCards = [
-  {
-    name: 'Luna',
-    archetype: 'Mystical Dreamer',
-    element: 'Water',
-    zodiacIcon: '♓',
-    imageUrl: mysticalDreamer,
-    stats: { vitality: 72, empathy: 91, curiosity: 85, charm: 88, energy: 65, mystery: 94 },
-  },
-  {
-    name: 'Max',
-    archetype: 'Noble Guardian',
-    element: 'Fire',
-    zodiacIcon: '♌',
-    imageUrl: nobleGuardian,
-    stats: { vitality: 89, empathy: 78, curiosity: 70, charm: 82, energy: 92, mystery: 68 },
-  },
-];
-
 export function CosmicCardShowcase() {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
 
   return (
     <>
       {/* Side by side cards */}
-      <div className="flex justify-center gap-3">
+      <div className="flex justify-center gap-2">
         {sampleCards.map((card, idx) => (
-          <MiniCard
+          <MiniViralCard
             key={idx}
-            {...card}
-            colors={elementColors[card.element]}
+            card={card}
             onExpand={() => setExpandedCard(idx)}
           />
         ))}
@@ -247,10 +290,8 @@ export function CosmicCardShowcase() {
       {/* Expanded card modal */}
       <AnimatePresence>
         {expandedCard !== null && (
-          <ExpandedCard
-            {...sampleCards[expandedCard]}
-            colors={elementColors[sampleCards[expandedCard].element]}
-            onExpand={() => {}}
+          <ExpandedViralCard
+            card={sampleCards[expandedCard]}
             onClose={() => setExpandedCard(null)}
           />
         )}
