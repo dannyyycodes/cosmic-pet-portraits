@@ -9,30 +9,6 @@ import nobleGuardianDog from '@/assets/archetypes/noble-guardian-dog-v2.jpg';
 // Pet showcase data with fun, viral-worthy traits
 const petShowcases = [
   {
-    name: "Luna",
-    photo: lunaPersian,
-    archetypeImage: mysticalDreamerCat,
-    archetype: "The Mystical Dreamer",
-    archetypeEmoji: "🔮",
-    sunSign: "Pisces",
-    moonSign: "Scorpio",
-    element: "Water",
-    elementEmoji: "💧",
-    species: "Persian Cat",
-    // Fun, shareable personality traits
-    vibes: [
-      { trait: "Judges Your Life Choices", emoji: "👀", intensity: "Expert Level" },
-      { trait: "3am Zoomies Specialist", emoji: "🌙", intensity: "Legendary" },
-      { trait: "Treat Negotiator", emoji: "🍖", intensity: "Master" },
-    ],
-    superpower: "Can sense when you're about to leave the house",
-    chaosLevel: "Controlled Chaos",
-    loveLanguage: "Aggressive Head Bonks",
-    secretTalent: "Telepathic Guilt Trips",
-    rarity: "Ultra Rare",
-    power: 86,
-  },
-  {
     name: "Max",
     photo: maxGolden,
     archetypeImage: nobleGuardianDog,
@@ -54,6 +30,29 @@ const petShowcases = [
     secretTalent: "Snack Detection from 3 Rooms Away",
     rarity: "Legendary",
     power: 93,
+  },
+  {
+    name: "Luna",
+    photo: lunaPersian,
+    archetypeImage: mysticalDreamerCat,
+    archetype: "The Mystical Dreamer",
+    archetypeEmoji: "🔮",
+    sunSign: "Pisces",
+    moonSign: "Scorpio",
+    element: "Water",
+    elementEmoji: "💧",
+    species: "Persian Cat",
+    vibes: [
+      { trait: "Judges Your Life Choices", emoji: "👀", intensity: "Expert Level" },
+      { trait: "3am Zoomies Specialist", emoji: "🌙", intensity: "Legendary" },
+      { trait: "Treat Negotiator", emoji: "🍖", intensity: "Master" },
+    ],
+    superpower: "Can sense when you're about to leave the house",
+    chaosLevel: "Controlled Chaos",
+    loveLanguage: "Aggressive Head Bonks",
+    secretTalent: "Telepathic Guilt Trips",
+    rarity: "Ultra Rare",
+    power: 86,
   },
 ];
 
@@ -468,8 +467,8 @@ export function GiftReportShowcase() {
   }, []);
 
   const views = [
-    { label: "Birth Chart", icon: "🌌" },
     { label: "Cosmic Card", icon: "✨" },
+    { label: "Birth Chart", icon: "🌌" },
   ];
 
   const nextPet = () => setPetIndex((prev) => (prev + 1) % petShowcases.length);
@@ -540,16 +539,6 @@ export function GiftReportShowcase() {
         <AnimatePresence mode="wait">
           {activeView === 0 ? (
             <motion.div
-              key={`chart-${petIndex}`}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
-            >
-              <PremiumBirthChart petIndex={petIndex} />
-            </motion.div>
-          ) : (
-            <motion.div
               key={`card-${petIndex}`}
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -557,6 +546,16 @@ export function GiftReportShowcase() {
               transition={{ duration: 0.3 }}
             >
               <PremiumCosmicCard petIndex={petIndex} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`chart-${petIndex}`}
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.3 }}
+            >
+              <PremiumBirthChart petIndex={petIndex} />
             </motion.div>
           )}
         </AnimatePresence>
