@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Bug, Moon, Camera } from 'lucide-react';
+import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Moon, Camera, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
@@ -469,42 +469,34 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         })}
       </div>
 
-      {/* What's Included - Mobile optimized */}
+      {/* Emotional hook - What you'll discover */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         className="p-3 rounded-xl bg-gradient-to-br from-primary/5 to-cosmic-gold/5 border border-primary/20"
       >
         <div className="flex items-center gap-2 mb-2">
-          <Sparkles className="w-4 h-4 text-cosmic-gold" />
-          <span className="text-sm font-bold text-foreground">Your Reading Includes</span>
+          <Heart className="w-4 h-4 text-red-400" />
+          <span className="text-sm font-bold text-foreground">What You'll Finally Understand</span>
         </div>
         
-        {/* Single column on mobile, 2 cols on larger */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-            <span className="text-foreground">Why they do that <span className="italic">one</span> weird thing</span>
+        {/* Emotionally charged benefits */}
+        <div className="grid grid-cols-1 gap-1.5 text-xs">
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <span className="text-primary mt-0.5">→</span>
+            <span className="text-foreground">The <span className="font-semibold">real reason</span> behind that behavior that's been puzzling you</span>
           </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-            <span className="text-foreground">Their exact emotional needs</span>
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <span className="text-primary mt-0.5">→</span>
+            <span className="text-foreground">Signs of affection you've been <span className="font-semibold">missing without realizing</span></span>
           </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-            <span className="text-foreground">How they show love (you might be missing it)</span>
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <span className="text-primary mt-0.5">→</span>
+            <span className="text-foreground">What they <span className="font-semibold">actually need</span> from you (it's not what you think)</span>
           </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-            <span className="text-foreground">Their hidden fears and what calms them</span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-            <span className="text-foreground">The one thing that'll make them happiest</span>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50">
-            <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-            <span className="text-foreground">Beautifully designed, easy to read</span>
+          <div className="flex items-start gap-2 p-2 rounded-lg bg-background/50">
+            <span className="text-primary mt-0.5">→</span>
+            <span className="text-foreground">The <span className="font-semibold">one thing</span> that would make your bond unbreakable</span>
           </div>
         </div>
 
@@ -514,7 +506,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             <div className="flex items-center gap-2 text-xs">
               <Camera className="w-3.5 h-3.5 text-nebula-purple" />
               <span className="text-nebula-purple font-medium">
-                + Frameable cosmic card with their photo
+                + Beautiful keepsake card you'll treasure
               </span>
             </div>
           </div>
@@ -525,12 +517,21 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             <div className="flex items-center gap-2 text-xs">
               <Moon className="w-3.5 h-3.5 text-cosmic-gold" />
               <span className="text-cosmic-gold font-medium">
-                + Weekly updates forever (VIP perk)
+                + Weekly guidance so you never miss a thing
               </span>
             </div>
           </div>
         )}
       </motion.div>
+
+      {/* Loss aversion / emotional urgency */}
+      <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-center">
+        <p className="text-xs text-foreground/90 leading-relaxed">
+          <span className="font-medium text-amber-400">Every day without this knowledge</span> is another day of missed signals, 
+          misunderstood moments, and a bond that could be <span className="italic">so much deeper</span>. 
+          They can't tell you what they need—<span className="font-semibold">but this will.</span>
+        </p>
+      </div>
 
       {/* Photo Upload for Portrait Tier Pets */}
       <AnimatePresence>
@@ -723,10 +724,11 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       </Button>
 
       
-      {/* Value Proposition - Mobile optimized */}
+      {/* Final emotional close */}
       <div className="bg-gradient-to-br from-primary/5 via-card/40 to-nebula-pink/5 border border-primary/20 rounded-xl p-3 text-center">
         <p className="text-[11px] md:text-xs text-foreground/80 leading-relaxed">
-          <span className="font-semibold text-primary">Pet psychics charge $200+.</span> For less than dinner out, you'll finally understand why your pet does what they do—and how to make them happier. <span className="font-medium text-gold">Most people say "I wish I knew this sooner."</span>
+          <span className="font-medium text-foreground">Years from now,</span> you won't remember what this cost. 
+          But you <span className="italic">will</span> remember the moment everything clicked—when you finally <span className="font-semibold text-primary">understood them.</span>
         </p>
       </div>
 
