@@ -8,6 +8,7 @@ import { PetData } from './IntakeWizard';
 import { MultiPetPhotoUpload, PetPhotoData, PhotoProcessingMode } from './MultiPetPhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import trustpilotStars from '@/assets/trustpilot-stars.png';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -304,8 +305,17 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       animate={{ opacity: 1 }}
       className="space-y-4"
     >
-      {/* Simple header - no repetition */}
-      <div className="text-center pb-2">
+      {/* Trustpilot badge */}
+      <div className="flex justify-center">
+        <img 
+          src={trustpilotStars} 
+          alt="Rated Excellent on Trustpilot" 
+          className="h-10 object-contain"
+        />
+      </div>
+
+      {/* Simple header */}
+      <div className="text-center">
         <p className="text-xs text-muted-foreground mb-1">
           {recentPurchases.toLocaleString()} readings delivered
         </p>
