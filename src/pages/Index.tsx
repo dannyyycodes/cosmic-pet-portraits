@@ -85,19 +85,21 @@ const Index = () => {
       <TrackedSection sectionName="hero" onView={trackSectionView} className="relative flex items-center justify-center px-4 pt-16 sm:pt-24 pb-8 sm:pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* MOBILE-FIRST: Compact Social Proof */}
+          {/* MOBILE-FIRST: Trustpilot-style Social Proof */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1.5 mb-4"
+            className="inline-flex items-center gap-2 mb-4"
           >
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-3 h-3 fill-emerald-400 text-emerald-400" />
+                <div key={i} className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-[#00b67a] rounded-sm">
+                  <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white text-white" />
+                </div>
               ))}
             </div>
-            <span className="text-xs font-medium text-emerald-400">2,847 pet parents love us</span>
+            <span className="text-xs sm:text-sm font-medium text-foreground">2,847+ Happy Pet Parents</span>
           </motion.div>
           
           {/* PUNCHY HEADLINE - Mobile first, emotional */}
@@ -159,9 +161,9 @@ const Index = () => {
               </Button>
             </Link>
             
-            {/* Price anchor */}
+            {/* Trust signal */}
             <p className="text-xs text-muted-foreground">
-              From just <span className="text-foreground font-semibold">$9.99</span> • Instant delivery
+              Instant delivery • 100% Money-back guarantee
             </p>
             
             {/* Gift Option - Secondary */}
