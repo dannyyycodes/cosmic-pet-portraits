@@ -9,6 +9,7 @@ import { MultiPetPhotoUpload, PetPhotoData, PhotoProcessingMode } from './MultiP
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import trustpilotStars from '@/assets/trustpilot-stars.png';
+import { CosmicCardShowcase } from './CosmicCardShowcase';
 
 interface CheckoutPanelProps {
   petData: PetData;
@@ -473,16 +474,32 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         })}
       </div>
 
-      {/* Clean benefits */}
-      <div className="p-3 rounded-xl bg-card/40 border border-border/30">
-        <div className="space-y-1.5 text-sm">
-          <p className="text-foreground">✦ Why {petData.name} does <span className="italic">that</span></p>
-          <p className="text-foreground">✦ What {petData.gender === 'boy' ? 'he' : 'she'} can't tell you</p>
-          <p className="text-foreground">✦ How to deepen your bond</p>
+      {/* What's Inside - Shuffled Card Showcase */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-center text-foreground">What You'll Discover</h3>
+        
+        {/* Shuffled cosmic cards side by side */}
+        <CosmicCardShowcase />
+        
+        {/* Clear benefits below cards */}
+        <div className="grid grid-cols-2 gap-2 text-center">
+          <div className="p-2 rounded-lg bg-card/30 border border-border/30">
+            <p className="text-xs text-foreground font-medium">✦ Why they do <em>that</em></p>
+          </div>
+          <div className="p-2 rounded-lg bg-card/30 border border-border/30">
+            <p className="text-xs text-foreground font-medium">✦ Hidden personality</p>
+          </div>
+          <div className="p-2 rounded-lg bg-card/30 border border-border/30">
+            <p className="text-xs text-foreground font-medium">✦ Bond tips</p>
+          </div>
+          <div className="p-2 rounded-lg bg-card/30 border border-border/30">
+            <p className="text-xs text-foreground font-medium">✦ Cosmic destiny</p>
+          </div>
         </div>
+        
         {anyPetNeedsPortrait && (
-          <p className="text-xs text-nebula-purple mt-2 pt-2 border-t border-border/30">
-            + Keepsake card included
+          <p className="text-xs text-nebula-purple text-center pt-1">
+            + Collectible keepsake card included
           </p>
         )}
       </div>
