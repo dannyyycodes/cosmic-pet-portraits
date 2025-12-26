@@ -82,83 +82,93 @@ const Index = () => {
       </div>
 
       {/* Hero Section - Optimized for Mobile Engagement */}
-      <TrackedSection sectionName="hero" onView={trackSectionView} className="relative flex items-center justify-center px-4 pt-20 sm:pt-24 pb-10 sm:pb-12 z-10">
+      <TrackedSection sectionName="hero" onView={trackSectionView} className="relative flex items-center justify-center px-4 pt-16 sm:pt-24 pb-8 sm:pb-12 z-10">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* MOBILE-FIRST: Social Proof Badge - Show trust immediately */}
+          {/* MOBILE-FIRST: Compact Social Proof */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="flex items-center justify-center gap-2 mb-4"
+            className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1.5 mb-4"
           >
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-[#00b67a] rounded-sm">
-                  <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-white text-white" />
-                </div>
+                <Star key={i} className="w-3 h-3 fill-emerald-400 text-emerald-400" />
               ))}
             </div>
-            <span className="text-xs sm:text-sm font-medium text-foreground">2,847+ Happy Pet Parents</span>
+            <span className="text-xs font-medium text-emerald-400">2,847 pet parents love us</span>
           </motion.div>
           
-          {/* PUNCHY HEADLINE - Instant clarity */}
+          {/* PUNCHY HEADLINE - Mobile first, emotional */}
           <motion.h1 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-serif font-bold leading-tight mb-3 sm:mb-6"
+            className="text-[1.75rem] leading-[1.2] sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-3 sm:mb-5"
           >
-            <span className="text-gradient-gold-purple block">
-              Discover What Makes
+            <span className="text-gradient-gold-purple">
+              Finally Understand
             </span>
-            <span className="text-gradient-gold-purple block">
-              Your Best Friend Unique 🐾
+            <br />
+            <span className="text-gradient-gold-purple">
+              Your Pet's Soul
             </span>
           </motion.h1>
 
-          {/* SHORT VALUE PROP - Mobile optimized */}
+          {/* SHORT VALUE PROP - Ultra scannable on mobile */}
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.2 }}
-            className="text-sm sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-5 sm:mb-8 leading-relaxed"
+            className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto mb-5 sm:mb-6 leading-relaxed px-2"
           >
-            A <span className="text-foreground font-semibold">personalized personality report</span> that captures everything special about your beloved companion.
-            <span className="hidden sm:inline"> Thousands of pet parents have been moved to tears.</span>
-            <span className="text-foreground font-medium"> Ready in 60 seconds.</span>
+            Get a <span className="text-foreground font-semibold">beautiful personality report</span> that reveals what makes your companion truly special.
           </motion.p>
 
-          {/* PRIMARY CTA - Big and obvious */}
+          {/* BENEFITS STRIP - Quick scan */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.25 }}
+            className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground mb-5"
+          >
+            <span className="flex items-center gap-1">
+              <span className="text-emerald-400">✓</span> Ready in 60 seconds
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="text-emerald-400">✓</span> Money-back guarantee
+            </span>
+            <span className="flex items-center gap-1 hidden sm:flex">
+              <span className="text-emerald-400">✓</span> Shareable keepsake
+            </span>
+          </motion.div>
+
+          {/* PRIMARY CTA - Big, bold, thumb-friendly */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, delay: 0.3 }}
-            className="flex flex-col items-center gap-3 sm:gap-4 mb-6 sm:mb-8"
+            className="flex flex-col items-center gap-3 mb-6"
           >
-            <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')} className="w-full sm:w-auto max-w-xs sm:max-w-none">
-              <Button variant="cosmic" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 group shadow-[0_0_30px_hsl(var(--primary)/0.4)] animate-pulse-glow">
-              <Sparkles className="w-5 h-5 mr-2 shrink-0" />
-                <span className="whitespace-nowrap">Get My Pet's Report</span>
+            <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')} className="w-full max-w-sm">
+              <Button variant="cosmic" size="lg" className="w-full text-base sm:text-lg px-6 py-7 group shadow-[0_0_40px_hsl(var(--primary)/0.5)] hover:shadow-[0_0_50px_hsl(var(--primary)/0.6)] transition-shadow">
+                <Sparkles className="w-5 h-5 mr-2 shrink-0" />
+                <span>Discover My Pet's Personality</span>
                 <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
             
-            {/* Trust Signals */}
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Instant delivery • 100% Money-back guarantee
+            {/* Price anchor */}
+            <p className="text-xs text-muted-foreground">
+              From just <span className="text-foreground font-semibold">$9.99</span> • Instant delivery
             </p>
             
             {/* Gift Option - Secondary */}
             <Link to="/gift" onClick={() => trackCTAClick('gift', 'hero')}>
-              <Button 
-                variant="ghost"
-                size="sm" 
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                <Gift className="w-4 h-4 mr-1.5" />
-                Or give as a gift 🎁
-              </Button>
+              <span className="text-xs text-primary/80 hover:text-primary transition-colors underline underline-offset-2">
+                🎁 Give as a gift instead
+              </span>
             </Link>
           </motion.div>
 
