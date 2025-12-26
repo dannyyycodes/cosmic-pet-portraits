@@ -997,7 +997,60 @@ JSON Structure:
     "cosmicNickname": "Same nickname from earlier",
     "sixKeyTraits": ["6 key personality traits, each 2-3 words max"],
     "signatureLine": "A one-sentence memorable description perfect for sharing",
-    "zodiacEmoji": "A relevant emoji combo for their sign"
+  "zodiacEmoji": "A relevant emoji combo for their sign"
+  },
+  
+  "basedOnYourAnswers": {
+    "title": "📋 Based on Your Answers",
+    "intro": "Here's how everything you told us shaped ${petData.name}'s cosmic portrait:",
+    "mappings": [
+      {
+        "question": "Name",
+        "yourAnswer": "${petData.name}",
+        "usedFor": "Name numerology (vibration ${nameVibration}), cosmic nickname generation, and personalized language throughout the report"
+      },
+      {
+        "question": "Species & Breed",
+        "yourAnswer": "${petData.breed || petData.species}",
+        "usedFor": "Species-specific personality insights, breed trait integration in the Earthly Expression section, and tailored care recommendations"
+      },
+      {
+        "question": "Gender",
+        "yourAnswer": "${petData.gender === 'boy' ? 'Male' : 'Female'}",
+        "usedFor": "Pronoun usage throughout the report and archetype selection (${archetype.name})"
+      },
+      {
+        "question": "Date of Birth",
+        "yourAnswer": "${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}",
+        "usedFor": "All planetary calculations - Sun sign (${sunSign}), Moon sign (${moonSign}), and all planetary placements"
+      },
+      {
+        "question": "Birth Time",
+        "yourAnswer": "${petData.birthTime || 'Not provided (using noon estimate)'}",
+        "usedFor": "${petData.birthTime ? 'Precise Moon sign calculation and accurate Rising sign (Ascendant)' : 'Moon sign has ±1 sign variance, Rising sign defaults to Sun sign'}"
+      },
+      {
+        "question": "Birth Location",
+        "yourAnswer": "${petData.location || 'Not provided'}",
+        "usedFor": "${petData.location ? 'True Ascendant (Rising sign) calculation based on geographic coordinates' : 'Rising sign defaults to Sun sign without location'}"
+      },
+      {
+        "question": "Soul Type",
+        "yourAnswer": "${ownerInsights.soulType || 'Not selected'}",
+        "usedFor": "Archetype refinement, personality descriptions, and Soul Snapshot insights"
+      },
+      {
+        "question": "Superpower",
+        "yourAnswer": "${ownerInsights.superpower || 'Not selected'}",
+        "usedFor": "Hidden gift section, healing abilities, and what makes them special"
+      },
+      {
+        "question": "Stranger Reaction",
+        "yourAnswer": "${ownerInsights.strangerReaction || 'Not selected'}",
+        "usedFor": "Rising sign/First Impressions section - how others perceive ${petData.name}"
+      }
+    ],
+    "accuracyNote": "💡 The more details you provide (especially birth time and location), the more accurate the Moon and Rising sign calculations become!"
   },
   
   "epilogue": "A 3-4 sentence beautiful closing blessing for ${occasionMode} mode. Leave them feeling moved.",
@@ -1184,6 +1237,22 @@ Make every section feel personal, specific, and magical. The fun sections should
         luckyDay: rulingPlanet === 'Sun' ? 'Sunday' : rulingPlanet === 'Moon' ? 'Monday' : rulingPlanet === 'Mars' ? 'Tuesday' : rulingPlanet === 'Mercury' ? 'Wednesday' : rulingPlanet === 'Jupiter' ? 'Thursday' : rulingPlanet === 'Venus' ? 'Friday' : 'Saturday',
         luckyColor: aura.primary,
         powerTime: element === 'Fire' ? 'Morning (6-9 AM)' : element === 'Earth' ? 'Afternoon (12-3 PM)' : element === 'Air' ? 'Late afternoon (3-6 PM)' : 'Evening (6-9 PM)'
+      },
+      basedOnYourAnswers: {
+        title: "📋 Based on Your Answers",
+        intro: `Here's how everything you told us shaped ${petData.name}'s cosmic portrait:`,
+        mappings: [
+          { question: "Name", yourAnswer: petData.name, usedFor: `Name numerology (vibration ${nameVibration}), cosmic nickname generation, and personalized language throughout the report` },
+          { question: "Species & Breed", yourAnswer: petData.breed || petData.species, usedFor: "Species-specific personality insights, breed trait integration in the Earthly Expression section, and tailored care recommendations" },
+          { question: "Gender", yourAnswer: petData.gender === 'boy' ? 'Male' : 'Female', usedFor: `Pronoun usage throughout the report and archetype selection (${archetype.name})` },
+          { question: "Date of Birth", yourAnswer: dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), usedFor: `All planetary calculations - Sun sign (${sunSign}), Moon sign (${moonSign}), and all planetary placements` },
+          { question: "Birth Time", yourAnswer: petData.birthTime || 'Not provided (using noon estimate)', usedFor: petData.birthTime ? 'Precise Moon sign calculation and accurate Rising sign (Ascendant)' : 'Moon sign has ±1 sign variance, Rising sign defaults to Sun sign' },
+          { question: "Birth Location", yourAnswer: petData.location || 'Not provided', usedFor: petData.location ? 'True Ascendant (Rising sign) calculation based on geographic coordinates' : 'Rising sign defaults to Sun sign without location' },
+          { question: "Soul Type", yourAnswer: petData.soulType || 'Not selected', usedFor: "Archetype refinement, personality descriptions, and Soul Snapshot insights" },
+          { question: "Superpower", yourAnswer: petData.superpower || 'Not selected', usedFor: "Hidden gift section, healing abilities, and what makes them special" },
+          { question: "Stranger Reaction", yourAnswer: petData.strangerReaction || 'Not selected', usedFor: `Rising sign/First Impressions section - how others perceive ${petData.name}` }
+        ],
+        accuracyNote: "💡 The more details you provide (especially birth time and location), the more accurate the Moon and Rising sign calculations become!"
       }
     });
 
