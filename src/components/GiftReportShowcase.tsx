@@ -529,21 +529,24 @@ export function GiftReportShowcase() {
       {activeView === 0 ? (
         <>
           {/* Side-by-side Cosmic Cards */}
-          <div className="flex justify-center items-start gap-3 sm:gap-5 mb-6 py-4">
+          <div className="flex justify-center items-start gap-3 sm:gap-5 md:gap-0 mb-6 py-4">
             {petShowcases.map((pet, i) => {
-              // Keep both cards fully visible on mobile: no overlap, minimal tilt.
-              const rotationClass = i === 0 ? "rotate-0 md:-rotate-[2deg]" : "rotate-0 md:rotate-[2deg]";
+              // Mobile: clean side-by-side. Desktop: subtle "fan" overlap while keeping both fully visible.
+              const rotationClass = i === 0 ? "rotate-0 md:-rotate-[3deg]" : "rotate-0 md:rotate-[3deg]";
+              const overlapClass = i === 0 ? "md:z-10" : "md:-ml-6 md:z-20";
 
               return (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setExpandedPetIndex(i)}
-                  className="relative shrink-0 w-[148px] h-[320px] sm:w-[162px] sm:h-[350px] md:w-[180px] md:h-[390px] overflow-visible focus:outline-none transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:z-20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className={`relative shrink-0 ${overlapClass} w-[148px] h-[320px] sm:w-[162px] sm:h-[350px] md:w-[180px] md:h-[390px] overflow-visible focus:outline-none transition-transform duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:z-30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background`}
                   aria-label={`Open ${pet.name}'s cosmic card`}
                 >
-                  <div className={`origin-top ${rotationClass} scale-[0.48] sm:scale-[0.54] md:scale-[0.6]`}>
-                    <PremiumCosmicCard petIndex={i} />
+                  <div className="flex justify-center">
+                    <div className={`origin-top ${rotationClass} scale-[0.48] sm:scale-[0.54] md:scale-[0.6]`}>
+                      <PremiumCosmicCard petIndex={i} />
+                    </div>
                   </div>
                 </button>
               );
