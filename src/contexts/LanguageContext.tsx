@@ -30,7 +30,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.backHome': 'Back to Home',
     
     // Hero
-    'hero.badge': '✨ Trusted by 50,000+ Pet Parents',
+    'hero.badge': '✨ Trusted by 12,000+ Pet Parents',
     'hero.title': 'Finally Understand What Makes Your Pet Unique',
     'hero.subtitle': 'Get a personalized personality profile that reveals your pet\'s quirks, needs, and hidden traits — based on their birth chart and behavioral science.',
     'hero.cta': 'Get My Pet\'s Reading',
