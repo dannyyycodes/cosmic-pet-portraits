@@ -3,18 +3,22 @@ import { useState, useEffect } from 'react';
 import { Star, Sparkles, Eye, Crown, ChevronLeft, ChevronRight, Shield, Flame, Brain, Heart as HeartIcon } from 'lucide-react';
 import lunaPersian from '@/assets/samples/luna-persian.jpg';
 import maxGolden from '@/assets/samples/max-golden.jpg';
+import mysticalDreamerCat from '@/assets/archetypes/mystical-dreamer-cat.jpg';
+import nobleGuardianDog from '@/assets/archetypes/noble-guardian-dog.jpg';
 
 // Pet showcase data with fun, viral-worthy traits
 const petShowcases = [
   {
     name: "Luna",
-    image: lunaPersian,
+    photo: lunaPersian,
+    archetypeImage: mysticalDreamerCat,
     archetype: "The Mystical Dreamer",
     archetypeEmoji: "🔮",
     sunSign: "Pisces",
     moonSign: "Scorpio",
     element: "Water",
     elementEmoji: "💧",
+    species: "Persian Cat",
     // Fun, shareable personality traits
     vibes: [
       { trait: "Judges Your Life Choices", emoji: "👀", intensity: "Expert Level" },
@@ -30,13 +34,15 @@ const petShowcases = [
   },
   {
     name: "Max",
-    image: maxGolden,
-    archetype: "The Loyal Guardian",
+    photo: maxGolden,
+    archetypeImage: nobleGuardianDog,
+    archetype: "The Noble Guardian",
     archetypeEmoji: "🛡️",
     sunSign: "Leo",
     moonSign: "Cancer",
     element: "Fire",
     elementEmoji: "🔥",
+    species: "Golden Retriever",
     vibes: [
       { trait: "Professional Tail Wagger", emoji: "💫", intensity: "Infinite" },
       { trait: "Ball Retrieval Expert", emoji: "🎾", intensity: "Obsessed" },
@@ -106,26 +112,34 @@ function PremiumCosmicCard({ petIndex = 0 }: { petIndex?: number }) {
             </div>
           </div>
 
-          {/* Pet portrait with archetype overlay */}
+          {/* Archetype artwork - collectible style */}
           <div className="relative mx-3 mt-2">
-            <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
+            <div className="relative aspect-square rounded-xl overflow-hidden">
               {/* Gradient frame */}
               <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${rarityColors[pet.rarity]} p-[2px]`}>
-                <div className="w-full h-full rounded-lg overflow-hidden bg-slate-900">
+                <div className="w-full h-full rounded-lg overflow-hidden bg-slate-900 relative">
                   <img 
-                    src={pet.image}
-                    alt={`${pet.name}`}
+                    src={pet.archetypeImage}
+                    alt={`${pet.name} - ${pet.archetype}`}
                     className="w-full h-full object-cover"
                   />
-                  {/* Dramatic overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80" />
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.1),transparent_60%)]" />
+                  {/* Subtle overlay for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
+                  {/* Holographic shimmer effect */}
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5"
+                    animate={{ 
+                      opacity: [0.3, 0.6, 0.3],
+                      backgroundPosition: ['0% 0%', '100% 100%', '0% 0%']
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
                 </div>
               </div>
               
               {/* Element badge */}
               <motion.div
-                className="absolute top-2 right-2 w-10 h-10 rounded-full bg-black/70 border-2 border-white/20 flex items-center justify-center text-xl"
+                className="absolute top-2 right-2 w-10 h-10 rounded-full bg-black/70 border-2 border-white/20 flex items-center justify-center text-xl backdrop-blur-sm"
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
@@ -396,7 +410,7 @@ function PremiumBirthChart({ petIndex = 0 }: { petIndex?: number }) {
         </clipPath>
         <circle cx={cx} cy={cy} r="30" fill="rgba(0,0,0,0.8)" stroke="url(#ringGradient)" strokeWidth="2" />
         <image
-          href={pet.image}
+          href={pet.photo}
           x={cx - 28}
           y={cy - 28}
           width="56"
