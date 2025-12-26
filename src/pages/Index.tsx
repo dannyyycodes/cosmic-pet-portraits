@@ -8,7 +8,7 @@ import { PremiumTestimonials } from "@/components/PremiumTestimonials";
 import { FAQ } from "@/components/FAQ";
 import { MoneyBackBadge } from "@/components/MoneyBackBadge";
 import { CTASection } from "@/components/CTASection";
-import { Snowfall } from "@/components/Snowfall";
+
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,8 +27,6 @@ const Index = () => {
 
   return (
     <main className="min-h-screen bg-background overflow-hidden">
-      {/* Subtle Christmas Effects */}
-      <Snowfall />
       <Navbar />
       
       {/* Dynamic Cosmic Background */}
