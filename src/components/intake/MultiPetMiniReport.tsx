@@ -44,63 +44,63 @@ const vibrationMeanings: Record<number, string> = {
 // Species-specific cosmic facts
 const speciesFacts: Record<string, string[]> = {
   dog: [
-    "Dogs can sense changes in barometric pressure before storms—making them cosmic weather predictors!",
-    "Your dog's howling at the moon is actually an ancient pack communication ritual passed down for millennia.",
-    "Studies show dogs dream about their owners—they literally see you in their cosmic sleep journeys.",
-    "Dogs can detect your emotional state through changes in your scent, making them empathic energy readers.",
-    "A dog's nose print is as unique as a human fingerprint—their cosmic signature encoded in flesh.",
+    "Dogs can sense changes in barometric pressure before storms—cosmic weather predictors in fur.",
+    "Your dog's howling at the moon is an ancient pack ritual (and yes, it's a performance).",
+    "Studies show dogs dream about you—welcome to doggy dreamland.",
+    "Dogs can detect your mood through scent—tiny empath antennas with paws.",
+    "A dog's nose print is as unique as a fingerprint—pure cosmic signature.",
   ],
   cat: [
-    "Ancient Egyptians believed cats were sacred because they could sense cosmic energy humans couldn't perceive.",
-    "Cats purr at a frequency (25-150 Hz) that promotes healing and bone regeneration—they're natural energy healers.",
-    "A cat's whiskers can detect the slightest changes in air currents, sensing invisible energies around them.",
-    "Cats spend 70% of their lives sleeping, traveling to realms beyond our perception in their dreams.",
-    "The reflective layer in a cat's eyes was once believed to capture moonlight and store lunar energy.",
+    "Ancient Egyptians believed cats were sacred because cats sense energies humans miss.",
+    "Cats purr at healing frequencies (25–150 Hz)—natural energy healers with attitude.",
+    "A cat's whiskers detect tiny air shifts—basically built-in aura radar.",
+    "Cats sleep 70% of the day because cats have other dimensions to visit.",
+    "That moon-glow in cat eyes? Legends say cats store lunar energy.",
   ],
   horse: [
-    "Horses can sense human emotions through heart rate and pheromones, making them powerful empaths.",
-    "A horse's eyes are the largest of any land mammal, designed to perceive both physical and spiritual worlds.",
-    "Horses sleep standing up and can enter REM sleep while remaining alert to cosmic disturbances.",
-    "In mythology, horses carry souls between worlds—your horse may be your spirit guide.",
-    "Horses communicate through 17 different facial expressions, a complex emotional language.",
+    "Horses read human emotions through heart rate—elite empath energy.",
+    "A horse's eyes are huge for a reason: perception in both physical and spiritual worlds.",
+    "Horses can nap standing up—always on duty for cosmic disturbances.",
+    "In myth, horses carry souls between worlds—spirit guide behavior.",
+    "Horses communicate with 17 facial expressions—emotional language, no subtitles needed.",
   ],
   bird: [
-    "Birds can see ultraviolet light, perceiving a hidden world of colors and energies invisible to humans.",
-    "Many birds navigate using Earth's magnetic field—they're literally tuned into the planet's energy grid.",
-    "Parrots can understand abstract concepts like shape and color, showing they process cosmic information uniquely.",
-    "Birds sing at dawn to greet the sun's energy—a daily ritual of cosmic acknowledgment.",
+    "Birds can see ultraviolet light—hidden colors and energies you never get invited to.",
+    "Many birds navigate using Earth's magnetic field—tuned into the planet's energy grid.",
+    "Parrots understand abstract concepts like shape and color—cosmic thinkers.",
+    "Birds sing at dawn to greet the sun—daily ritual of cosmic acknowledgement.",
   ],
   rabbit: [
-    "Rabbits can see nearly 360 degrees around them, perceiving energy from almost every direction.",
-    "A rabbit's nose twitches 20-120 times per minute, constantly sampling the energetic environment.",
-    "Rabbits are most active at dawn and dusk—the mystical twilight hours when worlds overlap.",
-    "In many cultures, rabbits symbolize the moon and are considered messengers between realms.",
+    "Rabbits can see nearly 360°—energy awareness on expert mode.",
+    "A rabbit's nose twitches constantly—sampling vibes in real time.",
+    "Rabbits peak at dawn and dusk—twilight hours when worlds overlap.",
+    "In many cultures, rabbits symbolize the moon—messengers between realms.",
   ],
   hamster: [
-    "Hamsters can run up to 5 miles in a night on their wheel—channeling infinite cosmic energy.",
-    "A hamster's cheek pouches can expand to three times the size of their head, storing abundance.",
-    "Hamsters are crepuscular, most active during the magical twilight hours of dawn and dusk.",
+    "Hamsters can run miles at night—tiny bodies, infinite cosmic engine.",
+    "Hamster cheek pouches expand wildly—abundance storage, literally.",
+    "Hamsters are twilight creatures—most active during the magical in-between hours.",
   ],
   guinea_pig: [
-    "Guinea pigs 'popcorn' when happy—an irresistible expression of pure cosmic joy.",
-    "They communicate through 11 different vocalizations, each carrying its own emotional frequency.",
-    "Guinea pigs need companionship to thrive—their souls are designed for connection.",
+    "Guinea pigs 'popcorn' when happy—pure joy in a tiny body.",
+    "Guinea pigs have 11+ vocalizations—each one a different emotional frequency.",
+    "Guinea pigs thrive with companionship—built for connection.",
   ],
   fish: [
-    "Fish can feel vibrations through their lateral line, sensing energy waves we cannot perceive.",
-    "Goldfish have a memory span of months, not seconds—they remember their cosmic companions.",
-    "Fish in schools move as one through a mysterious sixth sense—collective cosmic consciousness.",
+    "Fish feel vibrations through the lateral line—energy waves you cannot sense.",
+    "Goldfish remember for months—cosmic companions do not get forgotten.",
+    "Schools of fish move as one—collective consciousness in motion.",
   ],
   reptile: [
-    "Reptiles are cold-blooded, meaning they literally absorb the sun's cosmic energy to survive.",
-    "Many reptiles have a 'third eye' (parietal eye) that senses light and shadows from above.",
-    "Reptiles have existed for over 300 million years, carrying ancient cosmic wisdom in their DNA.",
+    "Reptiles absorb warmth to live—sun energy, directly.",
+    "Some reptiles have a 'third eye' to sense light and shadow from above.",
+    "Reptiles have existed for 300+ million years—ancient wisdom in the DNA.",
   ],
   default: [
-    "Your pet's eyes contain light receptors that may perceive wavelengths humans cannot see.",
-    "Animals sense energy shifts before earthquakes and storms—they're tuned to Earth's cosmic frequency.",
-    "The bond between humans and animals creates a measurable electromagnetic connection.",
-    "Your pet chose you on a soul level—this connection was written in the stars.",
+    "Your pet's eyes may perceive wavelengths humans cannot see.",
+    "Animals sense shifts before storms and quakes—tuned to Earth's frequency.",
+    "The human-animal bond creates a measurable electromagnetic connection.",
+    "Your pet chose you on a soul level—this bond was written in the stars.",
   ],
 };
 
@@ -109,6 +109,70 @@ function getSpeciesFact(species: string, petName: string): string {
   const facts = speciesFacts[normalizedSpecies] || speciesFacts.default;
   const index = petName.length % facts.length;
   return facts[index];
+}
+
+function stableHash(input: string): number {
+  let h = 0;
+  for (let i = 0; i < input.length; i++) {
+    h = (h << 5) - h + input.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+function pickBySeed<T>(items: T[], seed: number): T {
+  return items[seed % items.length];
+}
+
+function adaptPetPronouns(text: string, gender: PetGender): string {
+  const possessive = getPossessive(gender); // his / her
+  const subject = getPronoun(gender, 'subject'); // he / she
+  const object = getPronoun(gender, 'object'); // him / her
+
+  const possTitle = possessive === 'his' ? 'His' : 'Her';
+  const subjTitle = subject === 'he' ? 'He' : 'She';
+  const objTitle = object === 'him' ? 'Him' : 'Her';
+  const theirsLower = gender === 'girl' ? 'hers' : 'his';
+  const theirsTitle = gender === 'girl' ? 'Hers' : 'His';
+  const contractedTitle = subject === 'he' ? "He's" : "She's";
+  const contractedLower = subject === 'he' ? "he's" : "she's";
+
+  return text
+    .replace(/\bTheir\b/g, possTitle)
+    .replace(/\btheir\b/g, possessive)
+    .replace(/\bThey\b/g, subjTitle)
+    .replace(/\bthey\b/g, subject)
+    .replace(/\bThem\b/g, objTitle)
+    .replace(/\bthem\b/g, object)
+    .replace(/\bThey're\b/g, contractedTitle)
+    .replace(/\bthey're\b/g, contractedLower)
+    .replace(/\bTheirs\b/g, theirsTitle)
+    .replace(/\btheirs\b/g, theirsLower);
+}
+
+function getFunnyHook(pet: PetData, report: CosmicReport): string {
+  const gender = (pet.gender || '') as PetGender;
+  const subject = getPronoun(gender, 'subject');
+  const name = pet.name || 'your pet';
+
+  const superpower = pet.superpower?.trim() ? pet.superpower.trim() : 'emotional manipulation';
+  const strangers = pet.strangerReaction?.trim()
+    ? pet.strangerReaction.trim().toLowerCase()
+    : 'makes strangers instantly smile';
+
+  const seed = stableHash(
+    [name, report.sunSign, report.archetype, pet.soulType, superpower, strangers, pet.breed].filter(Boolean).join('|')
+  );
+
+  const templates = [
+    `${name} is a ${report.sunSign} ${report.archetype}. Translation: ${subject} was born to be adored and slightly dramatic.`,
+    `Cosmic note: ${name}'s secret superpower is “${superpower}”. The stars say you are not imagining it.`,
+    `If ${name} had a podcast, episode one would be: “Why I ${strangers}.”`,
+    `The universe filed ${name} under: “Cute, chaotic, and spiritually advanced.” Also: snack-motivated.`,
+    `Good news: your bond is real. Bad news: ${subject} knows it and will absolutely use it for snacks.`,
+  ];
+
+  return pickBySeed(templates, seed);
 }
 
 function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData; cosmicReport: CosmicReport; isActive: boolean }) {
@@ -120,6 +184,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
   // Gender-based pronouns
   const petGender = (petData.gender || '') as PetGender;
   const possessive = getPossessive(petGender);
+  const say = (text: string) => adaptPetPronouns(text, petGender);
 
   // Occasion-specific header text
   const getConfirmationText = () => {
@@ -219,7 +284,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
             isMemorial ? "text-purple-400" : "text-primary/80"
           )}>{isMemorial ? `${possessive.charAt(0).toUpperCase() + possessive.slice(1)} Core Truth` : "The Core Truth"}</h3>
           <p className="text-foreground/80 text-lg leading-relaxed text-center">
-            {coreEssence}
+            {say(coreEssence)}
           </p>
         </div>
       </motion.div>
@@ -245,7 +310,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
           </div>
           <div className="text-left">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">{getSectionTitle('Soul Mission')}</p>
-            <p className="text-foreground/90">{soulMission}</p>
+            <p className="text-foreground/90">{say(soulMission)}</p>
           </div>
         </div>
       </motion.div>
@@ -263,7 +328,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
           </div>
           <div className="text-left">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">{getSectionTitle('Hidden Gift')}</p>
-            <p className="text-foreground/90">{hiddenGift}</p>
+            <p className="text-foreground/90">{say(hiddenGift)}</p>
           </div>
         </div>
       </motion.div>
@@ -281,7 +346,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
           </div>
           <div className="text-left">
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">{getSectionTitle('Love Language')}</p>
-            <p className="text-foreground/90">{loveLanguage}</p>
+            <p className="text-foreground/90">{say(loveLanguage)}</p>
           </div>
         </div>
       </motion.div>
@@ -366,7 +431,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
               {isMemorial ? `${possessive.charAt(0).toUpperCase() + possessive.slice(1)} Secret Strength` : "Secret Strength"}
             </p>
-            <p className="text-foreground/90">{secretStrength}</p>
+            <p className="text-foreground/90">{say(secretStrength)}</p>
           </div>
         </div>
       </motion.div>
@@ -386,7 +451,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
               {isMemorial ? `${possessive.charAt(0).toUpperCase() + possessive.slice(1)} Lucky Day Was` : "Lucky Day"}
             </p>
-            <p className="text-foreground/90">{luckyDay}</p>
+            <p className="text-foreground/90">{say(luckyDay)}</p>
           </div>
         </div>
       </motion.div>
@@ -406,7 +471,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
             <p className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
               {isMemorial ? "Soul Connection" : "Power Pair"}
             </p>
-            <p className="text-foreground/90 text-sm">{powerPair}</p>
+            <p className="text-foreground/90 text-sm">{say(powerPair)}</p>
           </div>
         </div>
       </motion.div>
@@ -427,7 +492,7 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
               {isMemorial ? `${petData.name}'s Cosmic Signature` : "Cosmic Signature"}
             </p>
             <p className="text-foreground/90 text-sm leading-relaxed">
-              {cosmicFact}
+              {say(cosmicFact)}
             </p>
           </div>
         </div>
@@ -555,6 +620,31 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
                 </Button>
               </motion.div>
             )}
+
+            {/* Funny, personalized hook */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="max-w-2xl mx-auto"
+            >
+              <div
+                className={cn(
+                  "bg-card/50 backdrop-blur-xl border rounded-2xl p-5 text-left",
+                  hasMemorialPet ? "border-purple-500/30" : "border-primary/25"
+                )}
+              >
+                <p className={cn(
+                  "text-xs font-medium uppercase tracking-wider mb-2",
+                  hasMemorialPet ? "text-purple-300" : "text-primary/80"
+                )}>
+                  A quick message from the cosmos
+                </p>
+                <p className="text-foreground/90 leading-relaxed">
+                  {getFunnyHook(currentPet, currentReport)}
+                </p>
+              </div>
+            </motion.div>
 
             {/* Current Pet Report */}
             <AnimatePresence mode="wait">
