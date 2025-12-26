@@ -1,14 +1,55 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Star, Sparkles, Eye, Crown, Heart, Zap, Moon, Sun } from 'lucide-react';
+import { Star, Sparkles, Eye, Crown, Heart, Zap, Moon, Sun, ChevronLeft, ChevronRight } from 'lucide-react';
 import lunaPersian from '@/assets/samples/luna-persian.jpg';
+import maxGolden from '@/assets/samples/max-golden.jpg';
+
+// Pet showcase data
+const petShowcases = [
+  {
+    name: "Luna",
+    image: lunaPersian,
+    archetype: "The Mystical Dreamer",
+    sunSign: "Pisces",
+    moonSign: "Scorpio",
+    element: "Water",
+    elementEmoji: "💧",
+    elementColors: { from: 'cyan-500', to: 'violet-500' },
+    stats: [
+      { label: 'Charm', value: 94, color: 'from-pink-500 to-rose-400', icon: Heart },
+      { label: 'Mystery', value: 89, color: 'from-violet-500 to-purple-400', icon: Sparkles },
+      { label: 'Energy', value: 76, color: 'from-amber-500 to-yellow-400', icon: Zap },
+    ],
+    power: 86,
+  },
+  {
+    name: "Max",
+    image: maxGolden,
+    archetype: "The Loyal Guardian",
+    sunSign: "Leo",
+    moonSign: "Cancer",
+    element: "Fire",
+    elementEmoji: "🔥",
+    elementColors: { from: 'orange-500', to: 'amber-500' },
+    stats: [
+      { label: 'Loyalty', value: 98, color: 'from-amber-500 to-yellow-400', icon: Heart },
+      { label: 'Energy', value: 92, color: 'from-orange-500 to-red-400', icon: Zap },
+      { label: 'Charm', value: 88, color: 'from-pink-500 to-rose-400', icon: Sparkles },
+    ],
+    power: 93,
+  },
+];
 
 // Premium cosmic card with real artwork
-function PremiumCosmicCard() {
+function PremiumCosmicCard({ petIndex = 0 }: { petIndex?: number }) {
+  const pet = petShowcases[petIndex];
+  
   return (
     <motion.div
+      key={pet.name}
       initial={{ scale: 0.9, opacity: 0, rotateY: -15 }}
       animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+      exit={{ scale: 0.9, opacity: 0, rotateY: 15 }}
       transition={{ type: 'spring', stiffness: 80, delay: 0.2 }}
       className="relative"
       style={{ perspective: '1000px' }}
@@ -75,8 +116,8 @@ function PremiumCosmicCard() {
               <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-violet-400/50 via-pink-400/50 to-amber-400/50 p-[2px]">
                 <div className="w-full h-full rounded-xl overflow-hidden bg-slate-900">
                   <img 
-                    src={lunaPersian}
-                    alt="Luna the Persian Cat"
+                    src={pet.image}
+                    alt={`${pet.name} the pet`}
                     className="w-full h-full object-cover"
                   />
                   {/* Aura overlay */}
@@ -118,7 +159,7 @@ function PremiumCosmicCard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              Luna
+              {pet.name}
             </motion.h3>
             <motion.div 
               className="flex items-center justify-center gap-2 mt-1"
@@ -128,7 +169,7 @@ function PremiumCosmicCard() {
             >
               <Crown className="w-3 h-3 text-amber-400" />
               <span className="text-xs uppercase tracking-[0.2em] text-violet-300 font-medium">
-                The Mystical Dreamer
+                {pet.archetype}
               </span>
               <Crown className="w-3 h-3 text-amber-400" />
             </motion.div>
@@ -141,24 +182,20 @@ function PremiumCosmicCard() {
               whileHover={{ scale: 1.05 }}
             >
               <span className="text-amber-400 text-sm">☉</span>
-              <span className="text-white/90 text-xs font-medium">Pisces</span>
+              <span className="text-white/90 text-xs font-medium">{pet.sunSign}</span>
             </motion.div>
             <motion.div 
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-slate-400/20 to-slate-500/20 border border-slate-400/30"
               whileHover={{ scale: 1.05 }}
             >
               <span className="text-slate-300 text-sm">☽</span>
-              <span className="text-white/90 text-xs font-medium">Scorpio</span>
+              <span className="text-white/90 text-xs font-medium">{pet.moonSign}</span>
             </motion.div>
           </div>
 
           {/* Stats with beautiful bars */}
           <div className="relative px-4 py-3 space-y-2">
-            {[
-              { label: 'Charm', value: 94, color: 'from-pink-500 to-rose-400', icon: Heart },
-              { label: 'Mystery', value: 89, color: 'from-violet-500 to-purple-400', icon: Sparkles },
-              { label: 'Energy', value: 76, color: 'from-amber-500 to-yellow-400', icon: Zap },
-            ].map((stat, i) => (
+            {pet.stats.map((stat, i) => (
               <motion.div 
                 key={stat.label} 
                 className="flex items-center gap-2"
@@ -184,14 +221,14 @@ function PremiumCosmicCard() {
           {/* Element badge */}
           <div className="relative flex justify-center pb-3">
             <motion.div 
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/30 to-violet-500/30 border border-cyan-400/30"
+              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-${pet.elementColors.from}/30 to-${pet.elementColors.to}/30 border border-${pet.elementColors.from}/30`}
               animate={{ 
-                boxShadow: ['0 0 15px rgba(6, 182, 212, 0.2)', '0 0 25px rgba(6, 182, 212, 0.4)', '0 0 15px rgba(6, 182, 212, 0.2)']
+                boxShadow: ['0 0 15px rgba(139, 92, 246, 0.2)', '0 0 25px rgba(139, 92, 246, 0.4)', '0 0 15px rgba(139, 92, 246, 0.2)']
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <span className="text-lg">💧</span>
-              <span className="text-sm font-bold text-white">Water Element</span>
+              <span className="text-lg">{pet.elementEmoji}</span>
+              <span className="text-sm font-bold text-white">{pet.element} Element</span>
             </motion.div>
           </div>
 
@@ -207,7 +244,7 @@ function PremiumCosmicCard() {
               transition={{ duration: 2, repeat: Infinity }}
             >
               <Zap className="w-3 h-3 text-white" />
-              <span className="text-sm font-bold text-white">86</span>
+              <span className="text-sm font-bold text-white">{pet.power}</span>
             </motion.div>
           </div>
         </div>
@@ -227,7 +264,8 @@ function PremiumCosmicCard() {
 }
 
 // Premium birth chart wheel
-function PremiumBirthChart() {
+function PremiumBirthChart({ petIndex = 0 }: { petIndex?: number }) {
+  const pet = petShowcases[petIndex];
   const size = 260;
   const cx = size / 2;
   const cy = size / 2;
@@ -394,7 +432,7 @@ function PremiumBirthChart() {
         </clipPath>
         <circle cx={cx} cy={cy} r="30" fill="rgba(0,0,0,0.8)" stroke="url(#ringGradient)" strokeWidth="2" />
         <image
-          href={lunaPersian}
+          href={pet.image}
           x={cx - 28}
           y={cy - 28}
           width="56"
@@ -411,7 +449,7 @@ function PremiumBirthChart() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
       >
-        <span className="text-[10px] font-bold text-white/90 uppercase tracking-wider">Luna's Birth Chart</span>
+        <span className="text-[10px] font-bold text-white/90 uppercase tracking-wider">{pet.name}'s Birth Chart</span>
       </motion.div>
     </motion.div>
   );
@@ -442,6 +480,7 @@ const excerpts = [
 export function GiftReportShowcase() {
   const [activeView, setActiveView] = useState(0);
   const [excerptIndex, setExcerptIndex] = useState(0);
+  const [petIndex, setPetIndex] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -454,6 +493,9 @@ export function GiftReportShowcase() {
     { label: "Cosmic Card", icon: "✨" },
     { label: "Birth Chart", icon: "🌌" },
   ];
+
+  const nextPet = () => setPetIndex((prev) => (prev + 1) % petShowcases.length);
+  const prevPet = () => setPetIndex((prev) => (prev - 1 + petShowcases.length) % petShowcases.length);
 
   return (
     <div className="py-8 px-4">
@@ -505,31 +547,64 @@ export function GiftReportShowcase() {
         ))}
       </div>
 
-      {/* Visual Preview */}
-      <div className="flex justify-center mb-10">
+      {/* Visual Preview with Pet Navigation */}
+      <div className="flex justify-center items-center gap-4 mb-10">
+        {/* Left arrow */}
+        <motion.button
+          onClick={prevPet}
+          className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </motion.button>
+
         <AnimatePresence mode="wait">
           {activeView === 0 ? (
             <motion.div
-              key="card"
+              key={`card-${petIndex}`}
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.3 }}
             >
-              <PremiumCosmicCard />
+              <PremiumCosmicCard petIndex={petIndex} />
             </motion.div>
           ) : (
             <motion.div
-              key="chart"
+              key={`chart-${petIndex}`}
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.3 }}
             >
-              <PremiumBirthChart />
+              <PremiumBirthChart petIndex={petIndex} />
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Right arrow */}
+        <motion.button
+          onClick={nextPet}
+          className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <ChevronRight className="w-5 h-5" />
+        </motion.button>
+      </div>
+
+      {/* Pet indicator dots */}
+      <div className="flex justify-center gap-2 mb-8">
+        {petShowcases.map((pet, i) => (
+          <button
+            key={i}
+            onClick={() => setPetIndex(i)}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              i === petIndex ? 'bg-gradient-to-r from-violet-400 to-pink-400 w-8' : 'bg-white/20 w-2 hover:bg-white/30'
+            }`}
+          />
+        ))}
       </div>
 
       {/* Rotating Excerpts */}
