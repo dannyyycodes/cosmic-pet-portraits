@@ -30,6 +30,7 @@ import { IntakeStepEmailEarly } from './IntakeStepEmailEarly';
 import { IntakeStepPhoto } from './IntakeStepPhoto';
 import { IntakeStepPortraitSelect } from './IntakeStepPortraitSelect';
 import { CosmicLoading } from './CosmicLoading';
+import { IntakeStepSkeleton, IntakeEmailSkeleton, IntakeCheckoutSkeleton } from './IntakeSkeletons';
 
 import { MultiPetMiniReport } from './MultiPetMiniReport';
 import { GiftWelcome } from './GiftWelcome';
@@ -133,6 +134,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const [currentPetIndex, setCurrentPetIndex] = useState(0);
   const [petsData, setPetsData] = useState<PetData[]>([createEmptyPetData(mode)]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [cosmicReport, setCosmicReport] = useState<CosmicReport | null>(null);
   const [hasRestoredProgress, setHasRestoredProgress] = useState(false);
@@ -347,9 +349,15 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
   const goToStep = (nextStep: number) => {
     const timeSpent = Date.now() - stepStartTime.current;
     trackAction({ type: 'step_complete', timeSpent });
-    setStep(nextStep);
-    // Scroll to top when changing steps
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Show skeleton briefly during transition for smoother feel
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setStep(nextStep);
+      setIsTransitioning(false);
+      // Scroll to top when changing steps
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 150);
   };
 
   const handleBack = () => {
@@ -751,6 +759,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         )}
 
         <AnimatePresence mode="wait">
+          {/* Skeleton during step transitions */}
+          {isTransitioning && (
+            <motion.div key="transition-skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.1 }}>
+              {step === 12 || step === 13 ? <IntakeEmailSkeleton /> : <IntakeStepSkeleton />}
+            </motion.div>
+          )}
+
           {/* Gift Welcome Screen - shown before everything else for gift recipients */}
           {showGiftWelcome && giftData && (
             <motion.div key="gift-welcome" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
