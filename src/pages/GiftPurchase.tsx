@@ -308,21 +308,91 @@ export default function GiftPurchase() {
                 </div>
               </div>
 
-              {/* Why it's a perfect gift */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-nebula-pink/10 to-nebula-purple/10 border border-nebula-pink/20 space-y-3">
-                <h3 className="font-display font-semibold text-foreground flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-nebula-pink" />
+              {/* Why it's a perfect gift - Enhanced */}
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-nebula-pink/10 via-card/60 to-nebula-purple/10 border border-nebula-pink/20 space-y-4">
+                <h3 className="font-display font-semibold text-lg text-foreground text-center">
                   Why Pet Lovers Adore This Gift
                 </h3>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-3">
                   {[
-                    { icon: Sparkles, text: "Deeply personal & one-of-a-kind", color: "text-gold" },
-                    { icon: Heart, text: "Shows you truly know what they love", color: "text-nebula-pink" },
-                    { icon: Star, text: "Beautifully crafted cosmic insights", color: "text-primary" },
+                    { 
+                      icon: Heart, 
+                      title: "Heartfelt & Meaningful", 
+                      desc: "Not another candle or gift card — something they'll actually treasure",
+                      color: "text-nebula-pink",
+                      bg: "bg-nebula-pink/10"
+                    },
+                    { 
+                      icon: Sparkles, 
+                      title: "Completely Unique", 
+                      desc: "No two readings are alike — crafted just for their pet's cosmic blueprint",
+                      color: "text-gold",
+                      bg: "bg-gold/10"
+                    },
+                    { 
+                      icon: Star, 
+                      title: "Unforgettable Reactions", 
+                      desc: "The kind of gift that makes people laugh, cry, and share with everyone",
+                      color: "text-primary",
+                      bg: "bg-primary/10"
+                    },
                   ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
-                      <item.icon className={`w-4 h-4 ${item.color}`} />
-                      <span className="text-foreground/90">{item.text}</span>
+                    <motion.div 
+                      key={i} 
+                      className={`flex items-start gap-3 p-3 rounded-xl ${item.bg} border border-border/20`}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${item.bg}`}>
+                        <item.icon className={`w-4 h-4 ${item.color}`} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm text-foreground">{item.title}</p>
+                        <p className="text-xs text-muted-foreground">{item.desc}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Report Preview Showcase */}
+              <div className="p-5 rounded-2xl bg-card/60 border border-border/40 space-y-4">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="h-px w-8 bg-gradient-to-r from-transparent to-primary/50" />
+                  <span className="text-xs font-medium text-primary uppercase tracking-wider">What They'll Receive</span>
+                  <div className="h-px w-8 bg-gradient-to-l from-transparent to-primary/50" />
+                </div>
+                
+                <div className="bg-gradient-to-br from-card/80 to-card/40 border border-primary/20 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center">
+                      <span className="text-lg">♓</span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Example from Luna's report</p>
+                      <p className="font-semibold text-foreground">Persian Cat • Pisces Venus</p>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <p className="text-sm text-foreground/90 italic leading-relaxed">
+                      "Your cat's Venus in Pisces explains the 3am zoomies. She's not crazy — she's cosmically activated when you're trying to sleep."
+                    </p>
+                    <p className="text-sm text-primary font-medium mt-2">
+                      ✨ Also, she judges your life choices. A lot.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  {[
+                    { label: "Personality", icon: "🌟" },
+                    { label: "Quirks", icon: "😸" },
+                    { label: "Soul Bond", icon: "💫" },
+                  ].map((item, i) => (
+                    <div key={i} className="p-2 rounded-lg bg-muted/30 border border-border/20">
+                      <span className="text-lg">{item.icon}</span>
+                      <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
                     </div>
                   ))}
                 </div>
