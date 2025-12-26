@@ -230,8 +230,8 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
           isMemorial ? "border-purple-500/30" : "border-border/50"
         )}
       >
-        {/* Zodiac Icon */}
-        <div className="relative mx-auto w-24 h-24">
+      {/* Pet Photo or Zodiac Icon */}
+        <div className="relative mx-auto w-28 h-28">
           <motion.div
             className={cn(
               "absolute inset-0 rounded-full blur-xl",
@@ -240,12 +240,32 @@ function SinglePetReport({ petData, cosmicReport, isActive }: { petData: PetData
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 3, repeat: Infinity }}
           />
-          <div className={cn(
-            "relative w-full h-full rounded-full flex items-center justify-center shadow-2xl",
-            isMemorial ? "bg-gradient-to-br from-purple-600 to-pink-500 shadow-purple-500/30" : "bg-gradient-to-br from-primary to-gold shadow-primary/30"
-          )}>
-            <span className="text-4xl">{zodiacIcons[sunSign] || '⭐'}</span>
-          </div>
+        {petData.photoUrl ? (
+            <div className={cn(
+              "relative w-full h-full rounded-full overflow-hidden shadow-2xl border-4",
+              isMemorial ? "border-purple-500/50 shadow-purple-500/30" : "border-gold/50 shadow-primary/30"
+            )}>
+              <img 
+                src={petData.photoUrl}
+                alt={petData.name || 'Pet photo'} 
+                className="w-full h-full object-cover"
+              />
+              {/* Zodiac badge overlay */}
+              <div className={cn(
+                "absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-lg",
+                isMemorial ? "bg-gradient-to-br from-purple-600 to-pink-500" : "bg-gradient-to-br from-primary to-gold"
+              )}>
+                {zodiacIcons[sunSign] || '⭐'}
+              </div>
+            </div>
+          ) : (
+            <div className={cn(
+              "relative w-full h-full rounded-full flex items-center justify-center shadow-2xl",
+              isMemorial ? "bg-gradient-to-br from-purple-600 to-pink-500 shadow-purple-500/30" : "bg-gradient-to-br from-primary to-gold shadow-primary/30"
+            )}>
+              <span className="text-4xl">{zodiacIcons[sunSign] || '⭐'}</span>
+            </div>
+          )}
         </div>
 
         {/* Name & Sign */}
