@@ -3,6 +3,9 @@ project_id = "asmyxhisubzbblhivnea"
 [functions.generate-cosmic-report]
 verify_jwt = false
 
+[functions.generate-report-background]
+verify_jwt = false
+
 [functions.create-affiliate]
 verify_jwt = false
 
