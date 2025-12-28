@@ -80,14 +80,21 @@ serve(async (req) => {
 
       // Find all reports with the same email created within last 10 minutes (multi-pet order)
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-      const { data: allPetReports } = await supabaseClient
+      const { data: recentReports } = await supabaseClient
         .from("pet_reports")
         .select("*")
         .eq("email", primaryReport.email)
         .gte("created_at", tenMinutesAgo)
         .order("created_at", { ascending: true });
 
-      const reportIds = allPetReports?.map((r: any) => r.id) || [reportId];
+      // Always include the primary report even if not in recent window
+      let allPetReports = recentReports || [];
+      const primaryIncluded = allPetReports.some((r: any) => r.id === reportId);
+      if (!primaryIncluded) {
+        allPetReports = [primaryReport, ...allPetReports];
+      }
+
+      const reportIds = allPetReports.map((r: any) => r.id);
       console.log("[VERIFY-PAYMENT] Dev mode - found reports:", reportIds.length, "petPhotos:", Object.keys(petPhotosFromBody));
 
       // Generate share tokens for each report
