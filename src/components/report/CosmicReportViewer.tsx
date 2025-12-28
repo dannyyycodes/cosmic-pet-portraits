@@ -307,14 +307,14 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
       {/* Multi-pet selector bar */}
       {hasMultipleReports && onSwitchReport && (
         <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
-          <div className="max-w-4xl mx-auto px-6 py-3">
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              <span className="text-muted-foreground text-sm mr-2">View Reports:</span>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-2 sm:py-3">
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap">
+              <span className="text-muted-foreground text-xs sm:text-sm mr-1 sm:mr-2">View:</span>
               {allReports.map((r, idx) => (
                 <button
                   key={r.reportId}
                   onClick={() => onSwitchReport(idx)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${
                     idx === currentIndex
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
@@ -355,7 +355,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
           ))}
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-16 text-center">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 text-center">
           {/* Hero Portrait or Zodiac Symbol */}
           {petPortraitUrl ? (
             <motion.div
@@ -400,7 +400,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="text-5xl md:text-6xl font-display font-bold text-foreground mb-4"
+            className="text-3xl sm:text-5xl md:text-6xl font-display font-bold text-foreground mb-4"
           >
             {petName}
           </motion.h1>
@@ -410,7 +410,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-muted-foreground text-lg mb-6 max-w-xl mx-auto"
+            className="text-muted-foreground text-sm sm:text-lg mb-6 max-w-xl mx-auto px-2"
           >
             {report.archetype?.description}
           </motion.p>
@@ -420,22 +420,22 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="flex flex-wrap items-center justify-center gap-4 text-sm"
+            className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm"
           >
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/50 border border-border/50">
-              <Sun className="w-4 h-4 text-cosmic-gold" />
+            <span className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-card/50 border border-border/50">
+              <Sun className="w-3 h-3 sm:w-4 sm:h-4 text-cosmic-gold" />
               {sunSign} Sun
             </span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/50 border border-border/50">
-              <Moon className="w-4 h-4 text-primary" />
+            <span className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-card/50 border border-border/50">
+              <Moon className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
               {report.chartPlacements?.moon?.sign} Moon
             </span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/50 border border-border/50">
-              <Star className="w-4 h-4 text-purple-400" />
+            <span className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-card/50 border border-border/50">
+              <Star className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" />
               {report.chartPlacements?.ascendant?.sign} Rising
             </span>
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/50 border border-border/50">
-              <ElementIcon className="w-4 h-4" />
+            <span className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-card/50 border border-border/50">
+              <ElementIcon className="w-3 h-3 sm:w-4 sm:h-4" />
               {element} Dominant
             </span>
           </motion.div>
@@ -445,17 +445,17 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="flex flex-wrap items-center justify-center gap-3 mt-6"
+            className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-4 sm:mt-6"
           >
             {hasActiveHoroscope && (
-              <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/40 text-green-400 text-sm font-medium">
-                <Calendar className="w-4 h-4" />
-                Weekly Horoscopes Active
+              <span className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-green-500/10 border border-green-500/40 text-green-400 text-xs sm:text-sm font-medium">
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                Weekly Horoscopes
               </span>
             )}
             {petPortraitUrl && (
-              <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/40 text-purple-400 text-sm font-medium">
-                <ImageIcon className="w-4 h-4" />
+              <span className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-purple-500/10 border border-purple-500/40 text-purple-400 text-xs sm:text-sm font-medium">
+                <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                 Photo Included
               </span>
             )}
@@ -488,11 +488,11 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="max-w-3xl mx-auto px-6 py-12"
+        className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12"
       >
         <div className="text-center space-y-4">
-          <Sparkles className="w-8 h-8 text-cosmic-gold mx-auto" />
-          <p className="text-lg text-muted-foreground leading-relaxed italic">
+          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-cosmic-gold mx-auto" />
+          <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed italic">
             {report.prologue}
           </p>
         </div>
