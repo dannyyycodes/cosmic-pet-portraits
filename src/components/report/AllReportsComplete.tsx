@@ -157,12 +157,12 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
         ))}
       </div>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-20">
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 sm:py-20">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="max-w-lg text-center"
+          className="w-full max-w-lg text-center"
         >
           {/* Celebration icon */}
           <motion.div
@@ -216,7 +216,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4"
+            className="text-2xl sm:text-4xl md:text-5xl font-display font-bold text-foreground mb-4"
           >
             Cosmic Journey Complete! ✨
           </motion.h1>
@@ -226,7 +226,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="text-xl text-muted-foreground mb-8"
+            className="text-base sm:text-xl text-muted-foreground mb-6 sm:mb-8 px-2"
           >
             You've discovered the celestial secrets of {petListText}
           </motion.p>
@@ -236,23 +236,23 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="flex items-center justify-center gap-6 mb-10"
+            className="flex items-center justify-center gap-4 sm:gap-6 mb-8 sm:mb-10"
           >
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary">{petNames.length}</div>
-              <div className="text-sm text-muted-foreground">
+            <div className="text-center min-w-0">
+              <div className="text-2xl sm:text-3xl font-bold text-primary">{petNames.length}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 {petNames.length === 1 ? 'Report' : 'Reports'}
               </div>
             </div>
-            <div className="w-px h-12 bg-border" />
-            <div className="text-center">
-              <div className="text-3xl font-bold text-cosmic-gold">17</div>
-              <div className="text-sm text-muted-foreground">Cosmic Insights</div>
+            <div className="w-px h-10 sm:h-12 bg-border shrink-0" />
+            <div className="text-center min-w-0">
+              <div className="text-2xl sm:text-3xl font-bold text-cosmic-gold">17</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Cosmic Insights</div>
             </div>
-            <div className="w-px h-12 bg-border" />
-            <div className="text-center">
-              <div className="text-3xl font-bold text-nebula-pink">∞</div>
-              <div className="text-sm text-muted-foreground">Love</div>
+            <div className="w-px h-10 sm:h-12 bg-border shrink-0" />
+            <div className="text-center min-w-0">
+              <div className="text-2xl sm:text-3xl font-bold text-nebula-pink">∞</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Love</div>
             </div>
           </motion.div>
 
