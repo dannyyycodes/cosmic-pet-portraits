@@ -81,10 +81,7 @@ const Index = () => {
         <div className="max-w-4xl mx-auto text-center">
           
           {/* Trustpilot Badge - Authentic Style */}
-          <motion.a
-            href="https://www.trustpilot.com"
-            target="_blank"
-            rel="noopener noreferrer"
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
@@ -104,7 +101,7 @@ const Index = () => {
               <span className="text-xs sm:text-sm text-muted-foreground">|</span>
               <span className="text-xs sm:text-sm text-muted-foreground">Rated <span className="text-foreground font-medium">Excellent</span></span>
             </div>
-          </motion.a>
+          </motion.div>
           
           {/* PUNCHY HEADLINE - Mobile first, emotional */}
           <motion.h1 
