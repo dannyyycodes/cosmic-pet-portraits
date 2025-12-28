@@ -97,9 +97,9 @@ const getSpeciesAstrologyFacts = (species: string) => {
 
 export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onReveal, onBack, onAddAnotherPet, totalSteps, modeContent, giftCode, giftedTier, skipEmailInput = false }: IntakeStepEmailProps) {
   const [isLoading, setIsLoading] = useState(false);
-  // If gift code is present OR skipEmailInput is true, skip to reveal stage
+  // Skip reveal stage entirely - go straight from email to checkout
   const [stage, setStage] = useState<'email' | 'reveal' | 'checkout'>(
-    giftCode ? 'email' : (skipEmailInput ? 'reveal' : 'email')
+    giftCode ? 'checkout' : (skipEmailInput ? 'checkout' : 'email')
   );
   const astrologyFacts = getSpeciesAstrologyFacts(petData.species);
   const [factIndex, setFactIndex] = useState(Math.floor(Math.random() * astrologyFacts.length));
@@ -115,8 +115,8 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
     onUpdate({ email: sanitized });
   };
 
-  // Track subscriber when moving to reveal stage
-  const handleProceedToReveal = async () => {
+  // Track subscriber when moving to checkout stage
+  const handleProceedToCheckout = async () => {
     // Only track once per session
     if (!hasTrackedEmail.current && isValidEmail) {
       hasTrackedEmail.current = true;
@@ -132,7 +132,8 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
       }).catch(console.error); // Silent fail - don't interrupt flow
     }
     
-    setStage('reveal');
+    // Go straight to checkout, skip reveal
+    setStage('checkout');
   };
 
   // Get sign data for a specific pet
@@ -187,12 +188,22 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
     "The deeper purpose of your bond",
   ];
 
+  // Simple feature preview component for checkout
+  const FeaturePreview = ({ icon, title, description }: { icon: string; title: string; description: string }) => (
+    <div className="flex items-start gap-2 p-2 rounded-lg bg-card/50 border border-border/30">
+      <span className="text-lg flex-shrink-0">{icon}</span>
+      <div className="text-left">
+        <p className="text-xs font-semibold text-foreground">{title}</p>
+        <p className="text-[10px] text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6 text-center">
       <button
         onClick={() => {
-          if (stage === 'checkout') setStage('reveal');
-          else if (stage === 'reveal') setStage('email');
+          if (stage === 'checkout') setStage('email');
           else onBack();
         }}
         className="absolute top-8 left-8 text-muted-foreground hover:text-foreground transition-colors"
@@ -242,7 +253,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
 
               <div className="flex flex-col items-center gap-3">
                 <Button
-                  onClick={handleProceedToReveal}
+                  onClick={handleProceedToCheckout}
                   disabled={!isValidEmail}
                   variant="gold"
                   size="xl"
@@ -687,22 +698,47 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               <TestimonialCarousel />
             </div>
 
-            <div className="space-y-2">
-              <h2 className="text-xl font-display font-bold text-foreground">
-                Choose Your Reading
-              </h2>
-              <p className="text-sm text-muted-foreground">
+            {/* Compelling Header */}
+            <div className="space-y-2 text-center">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cosmic-gold/20 border border-cosmic-gold/30 mb-2">
+                <Sparkles className="w-3 h-3 text-cosmic-gold" />
+                <span className="text-xs font-medium text-cosmic-gold">Cosmic Analysis Ready</span>
+              </div>
+              <h2 className="text-2xl font-display font-bold text-foreground">
                 {petCount > 1 
-                  ? `Unlock cosmic profiles for all ${petCount} of your pets`
-                  : `Unlock ${petData.name}'s complete cosmic profile`}
+                  ? `Your ${petCount} Pets' Full Readings`
+                  : `${petData.name}'s Full Cosmic Reading`}
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Unlock deep insights into their personality, needs & your cosmic bond
               </p>
             </div>
 
+            {/* What's Inside - Compelling Feature Grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-gradient-to-br from-card/80 to-card/40 rounded-xl border border-border/50 p-4 space-y-3"
+            >
+              <p className="text-xs font-semibold text-center text-primary uppercase tracking-wider">What You'll Discover</p>
+              <div className="grid grid-cols-2 gap-2">
+                <FeaturePreview icon="🔮" title="Soul Blueprint" description="Why they act the way they do" />
+                <FeaturePreview icon="❤️" title="Love Language" description="How they give & receive love" />
+                <FeaturePreview icon="⚡" title="Hidden Superpower" description="Their secret cosmic gift" />
+                <FeaturePreview icon="🌙" title="Emotional Needs" description="What they truly crave" />
+                <FeaturePreview icon="💫" title="Life Purpose" description="Why they chose you" />
+                <FeaturePreview icon="🐾" title="Behavior Decoded" description="What their quirks mean" />
+              </div>
+            </motion.div>
+
             {/* Report Preview Showcase */}
-            <div className="max-w-xl mx-auto mb-6">
+            <div className="max-w-xl mx-auto">
+              <p className="text-xs text-center text-muted-foreground mb-2">Sample report cards:</p>
               <GiftReportShowcase />
             </div>
 
+            {/* Checkout Panel */}
             <div className="max-w-md mx-auto">
               <CheckoutPanel
                 petData={petData}

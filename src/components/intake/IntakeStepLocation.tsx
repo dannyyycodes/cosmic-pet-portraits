@@ -63,8 +63,9 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
     setIsSearching(true);
     searchTimeout.current = setTimeout(async () => {
       try {
+        // Search without featuretype restriction to get more specific locations
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=6&featuretype=city`,
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=8`,
           {
             headers: {
               'Accept-Language': 'en',
@@ -124,9 +125,21 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
 
   const selectLocation = (displayName: string, result?: LocationResult) => {
     if (result?.address) {
+      // Get the most specific location available
       const city = result.address.city || result.address.town || result.address.village || result.name;
+      const state = result.address.state;
       const country = result.address.country;
-      const formatted = city && country ? `${city}, ${country}` : displayName.split(',').slice(0, 2).join(',');
+      
+      // Format with state for US locations, otherwise city + country
+      let formatted: string;
+      if (country === 'United States' && state && city) {
+        formatted = `${city}, ${state}, USA`;
+      } else if (city && country) {
+        formatted = `${city}, ${country}`;
+      } else {
+        // Use first 3 parts of display name for maximum specificity
+        formatted = displayName.split(',').slice(0, 3).join(',').trim();
+      }
       onUpdate({ location: formatted });
     } else {
       onUpdate({ location: displayName });
