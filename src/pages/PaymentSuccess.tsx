@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
-import { EmotionalReportReveal } from '@/components/report/EmotionalReportReveal';
+import { ReportRevealVariantRenderer } from '@/components/report/ReportRevealVariantRenderer';
 import { GiftConfirmation } from '@/components/report/GiftConfirmation';
 import { AllReportsComplete } from '@/components/report/AllReportsComplete';
 import { toast } from 'sonner';
@@ -386,7 +386,7 @@ export default function PaymentSuccess() {
   // Emotional reveal
   if (stage === 'reveal' && currentReport) {
     return (
-      <EmotionalReportReveal
+      <ReportRevealVariantRenderer
         petName={currentReport.petName}
         report={currentReport.report}
         onComplete={handleRevealComplete}
