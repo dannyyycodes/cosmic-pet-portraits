@@ -15,10 +15,111 @@ import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 import { TrackedSection } from "@/components/TrackedSection";
 import { SampleCarousel } from "@/components/SampleCarousel";
 
+// A/B Test imports
+import { VariantRenderer } from "@/components/ab-test/VariantRenderer";
+import { useABTest } from "@/hooks/useABTest";
+import { HeroVariantB } from "@/components/variants/variant-b/HeroVariantB";
+import { TestimonialsVariantB } from "@/components/variants/variant-b/TestimonialsVariantB";
+import { CTAVariantB } from "@/components/variants/variant-b/CTAVariantB";
+import { HeroVariantC } from "@/components/variants/variant-c/HeroVariantC";
+import { TestimonialsVariantC } from "@/components/variants/variant-c/TestimonialsVariantC";
+import { CTAVariantC } from "@/components/variants/variant-c/CTAVariantC";
+
+
+// Original Hero content extracted as a component for Variant A
+const HeroVariantA = ({ trackCTAClick, t }: { trackCTAClick: (cta: string, location: string) => void; t: (key: string) => string }) => (
+  <div className="max-w-4xl mx-auto text-center">
+    {/* Trustpilot Badge - Authentic Style */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+      className="inline-flex flex-col items-center gap-1.5 mb-5"
+    >
+      <div className="flex">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-[#00b67a] mr-[1px]">
+            <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-white text-white" />
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-sm sm:text-base font-semibold text-foreground">Trustpilot</span>
+        <span className="text-xs sm:text-sm text-muted-foreground">|</span>
+        <span className="text-xs sm:text-sm text-muted-foreground">Rated <span className="text-foreground font-medium">Excellent</span></span>
+      </div>
+    </motion.div>
+    
+    <motion.h1 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, delay: 0.1 }}
+      className="text-[1.75rem] leading-[1.2] sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-3 sm:mb-5"
+    >
+      <span className="text-gradient-gold-purple">Finally Understand</span>
+      <br />
+      <span className="text-gradient-gold-purple">Your Pet's Soul</span>
+    </motion.h1>
+
+    <motion.p 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, delay: 0.2 }}
+      className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto mb-5 sm:mb-6 leading-relaxed px-2"
+    >
+      Get a <span className="text-foreground font-semibold">beautiful personality report</span> that reveals what makes your companion truly special.
+    </motion.p>
+
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, delay: 0.25 }}
+      className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground mb-5"
+    >
+      <span className="flex items-center gap-1">
+        <span className="text-emerald-400">✓</span> Ready in 60 seconds
+      </span>
+      <span className="flex items-center gap-1">
+        <span className="text-emerald-400">✓</span> Money-back guarantee
+      </span>
+      <span className="flex items-center gap-1 hidden sm:flex">
+        <span className="text-emerald-400">✓</span> Shareable keepsake
+      </span>
+    </motion.div>
+
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, delay: 0.3 }}
+      className="flex flex-col items-center gap-3 mb-6"
+    >
+      <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')} className="w-full max-w-sm">
+        <Button variant="cosmic" size="lg" className="w-full text-base sm:text-lg px-6 py-7 group shadow-[0_0_40px_hsl(var(--primary)/0.5)] hover:shadow-[0_0_50px_hsl(var(--primary)/0.6)] transition-shadow">
+          <Sparkles className="w-5 h-5 mr-2 shrink-0" />
+          <span>Discover My Pet's Personality</span>
+          <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+        </Button>
+      </Link>
+      
+      <p className="text-xs text-muted-foreground">
+        Instant delivery • 100% Money-back guarantee
+      </p>
+      
+      <Link to="/gift" onClick={() => trackCTAClick('gift', 'hero')}>
+        <span className="text-xs text-primary/80 hover:text-primary transition-colors underline underline-offset-2">
+          🎁 Give as a gift instead
+        </span>
+      </Link>
+    </motion.div>
+
+    <SampleCarousel />
+  </div>
+);
 
 const Index = () => {
   const { t } = useLanguage();
   const { trackSectionView, trackCTAClick } = usePageAnalytics('/');
+  const { variant } = useABTest();
   
   // Check for referral code in URL on page load
   useEffect(() => {
@@ -76,118 +177,37 @@ const Index = () => {
         ))}
       </div>
 
-      {/* Hero Section - Optimized for Mobile Engagement */}
-      <TrackedSection sectionName="hero" onView={trackSectionView} className="relative flex items-center justify-center px-4 pt-16 sm:pt-24 pb-8 sm:pb-12 z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          
-          {/* Trustpilot Badge - Authentic Style */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
-            className="inline-flex flex-col items-center gap-1.5 mb-5"
-          >
-            {/* Stars Row */}
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-[#00b67a] mr-[1px]">
-                  <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-white text-white" />
-                </div>
-              ))}
-            </div>
-            {/* Trustpilot Text + Rating */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm sm:text-base font-semibold text-foreground">Trustpilot</span>
-              <span className="text-xs sm:text-sm text-muted-foreground">|</span>
-              <span className="text-xs sm:text-sm text-muted-foreground">Rated <span className="text-foreground font-medium">Excellent</span></span>
-            </div>
-          </motion.div>
-          
-          {/* PUNCHY HEADLINE - Mobile first, emotional */}
-          <motion.h1 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="text-[1.75rem] leading-[1.2] sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-3 sm:mb-5"
-          >
-            <span className="text-gradient-gold-purple">
-              Finally Understand
-            </span>
-            <br />
-            <span className="text-gradient-gold-purple">
-              Your Pet's Soul
-            </span>
-          </motion.h1>
-
-          {/* SHORT VALUE PROP - Ultra scannable on mobile */}
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto mb-5 sm:mb-6 leading-relaxed px-2"
-          >
-            Get a <span className="text-foreground font-semibold">beautiful personality report</span> that reveals what makes your companion truly special.
-          </motion.p>
-
-          {/* BENEFITS STRIP - Quick scan */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.25 }}
-            className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs sm:text-sm text-muted-foreground mb-5"
-          >
-            <span className="flex items-center gap-1">
-              <span className="text-emerald-400">✓</span> Ready in 60 seconds
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="text-emerald-400">✓</span> Money-back guarantee
-            </span>
-            <span className="flex items-center gap-1 hidden sm:flex">
-              <span className="text-emerald-400">✓</span> Shareable keepsake
-            </span>
-          </motion.div>
-
-          {/* PRIMARY CTA - Big, bold, thumb-friendly */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            className="flex flex-col items-center gap-3 mb-6"
-          >
-            <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')} className="w-full max-w-sm">
-              <Button variant="cosmic" size="lg" className="w-full text-base sm:text-lg px-6 py-7 group shadow-[0_0_40px_hsl(var(--primary)/0.5)] hover:shadow-[0_0_50px_hsl(var(--primary)/0.6)] transition-shadow">
-                <Sparkles className="w-5 h-5 mr-2 shrink-0" />
-                <span>Discover My Pet's Personality</span>
-                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
-              </Button>
-            </Link>
-            
-            {/* Trust signal */}
-            <p className="text-xs text-muted-foreground">
-              Instant delivery • 100% Money-back guarantee
-            </p>
-            
-            {/* Gift Option - Secondary */}
-            <Link to="/gift" onClick={() => trackCTAClick('gift', 'hero')}>
-              <span className="text-xs text-primary/80 hover:text-primary transition-colors underline underline-offset-2">
-                🎁 Give as a gift instead
-              </span>
-            </Link>
-          </motion.div>
-
-          {/* ROTATING SAMPLE PREVIEWS - Viral meme style */}
-          <SampleCarousel />
-        </div>
+      {/* Hero Section - A/B Tested */}
+      <TrackedSection sectionName="hero" onView={trackSectionView} className="relative z-10">
+        <VariantRenderer
+          variants={{
+            A: <section className="flex items-center justify-center px-4 pt-16 sm:pt-24 pb-8 sm:pb-12"><HeroVariantA trackCTAClick={trackCTAClick} t={t} /></section>,
+            B: <HeroVariantB trackCTAClick={trackCTAClick} />,
+            C: <HeroVariantC trackCTAClick={trackCTAClick} />,
+          }}
+        />
       </TrackedSection>
 
-      {/* Testimonials Section */}
+      {/* Testimonials Section - A/B Tested */}
       <TrackedSection sectionName="testimonials" onView={trackSectionView}>
-        <PremiumTestimonials />
+        <VariantRenderer
+          variants={{
+            A: <PremiumTestimonials />,
+            B: <TestimonialsVariantB />,
+            C: <TestimonialsVariantC />,
+          }}
+        />
       </TrackedSection>
 
-      {/* Mid-page CTA */}
+      {/* Mid-page CTA - A/B Tested */}
       <TrackedSection sectionName="mid_cta" onView={trackSectionView}>
-        <CTASection variant="mid" />
+        <VariantRenderer
+          variants={{
+            A: <CTASection variant="mid" />,
+            B: <CTAVariantB variant="mid" trackCTAClick={trackCTAClick} />,
+            C: <CTAVariantC variant="mid" trackCTAClick={trackCTAClick} />,
+          }}
+        />
       </TrackedSection>
 
       {/* How It Works Section */}
@@ -205,10 +225,13 @@ const Index = () => {
             className="text-center mb-10"
           >
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
-              Choose Your Experience
+              {variant === "C" ? "Two Ways to Get the Tea 🍵" : "Choose Your Experience"}
             </h2>
             <p className="text-muted-foreground">
-              Whether for yourself or as a gift they'll never forget — takes just 60 seconds
+              {variant === "C" 
+                ? "For you or for a friend who needs this in their life"
+                : "Whether for yourself or as a gift they'll never forget — takes just 60 seconds"
+              }
             </p>
           </motion.div>
 
@@ -220,23 +243,29 @@ const Index = () => {
               viewport={{ once: true }}
             >
               <Link to="/intake?mode=discover" className="group block" onClick={() => trackCTAClick('get_reading', 'options_cards')}>
-                <div className="relative p-8 rounded-2xl border border-primary/30 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary hover:bg-card/50 h-full">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                    {t('hero.mostPopular')}
+                <div className={`relative p-8 rounded-2xl border ${variant === "C" ? "border-pink-400/30 hover:border-pink-400" : "border-primary/30 hover:border-primary"} bg-card/30 backdrop-blur-sm transition-all duration-300 hover:bg-card/50 h-full`}>
+                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full ${variant === "C" ? "bg-gradient-to-r from-pink-500 to-cyan-500" : "bg-primary"} text-primary-foreground text-xs font-medium`}>
+                    {variant === "C" ? "Most Popular 🔥" : t('hero.mostPopular')}
                   </div>
                   <div className="flex flex-col items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center">
+                    <div className={`w-14 h-14 rounded-full ${variant === "C" ? "bg-gradient-to-br from-pink-500 to-cyan-500" : "bg-gradient-to-br from-primary to-nebula-purple"} flex items-center justify-center`}>
                       <Dog className="w-7 h-7 text-white" />
                     </div>
                     <div className="space-y-2 text-center">
-                      <h3 className="text-xl font-display font-bold text-foreground">{t('hero.discoverMyPet')}</h3>
+                      <h3 className="text-xl font-display font-bold text-foreground">
+                        {variant === "C" ? "For My Pet" : t('hero.discoverMyPet')}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        {t('hero.discoverDesc')}
+                        {variant === "C" ? "Get the full personality breakdown" : t('hero.discoverDesc')}
                       </p>
                     </div>
-                    <Button variant="cosmic" size="lg" className="w-full mt-2">
+                    <Button 
+                      variant={variant === "C" ? "default" : "cosmic"} 
+                      size="lg" 
+                      className={`w-full mt-2 ${variant === "C" ? "bg-gradient-to-r from-pink-500 to-cyan-500 hover:from-pink-600 hover:to-cyan-600" : ""}`}
+                    >
                       <Sparkles className="w-4 h-4 mr-2" />
-                      Get Started →
+                      {variant === "C" ? "Get the Tea 🍵" : "Get Started →"}
                     </Button>
                   </div>
                 </div>
@@ -252,21 +281,23 @@ const Index = () => {
               <Link to="/gift" className="group block" onClick={() => trackCTAClick('gift', 'options_cards')}>
                 <div className="relative p-8 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:bg-card/50 h-full">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
-                    Great Gift Idea
+                    {variant === "C" ? "They Need This 💅" : "Great Gift Idea"}
                   </div>
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/80 to-nebula-purple/80 flex items-center justify-center">
                       <Gift className="w-7 h-7 text-white" />
                     </div>
                     <div className="space-y-2 text-center">
-                      <h3 className="text-xl font-display font-bold text-foreground">{t('hero.giftToFriend')}</h3>
+                      <h3 className="text-xl font-display font-bold text-foreground">
+                        {variant === "C" ? "For a Friend" : t('hero.giftToFriend')}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
-                        A unique, personalized gift — delivered instantly
+                        {variant === "C" ? "Send them the gift of self-awareness (for their pet)" : "A unique, personalized gift — delivered instantly"}
                       </p>
                     </div>
                     <Button variant="outline" size="lg" className="w-full mt-2 border-primary/40 hover:bg-primary/10">
                       <Gift className="w-4 h-4 mr-2" />
-                      Send as Gift →
+                      {variant === "C" ? "Gift the Tea 🎁" : "Send as Gift →"}
                     </Button>
                   </div>
                 </div>
@@ -281,9 +312,15 @@ const Index = () => {
         <FAQ />
       </TrackedSection>
 
-      {/* Final CTA */}
+      {/* Final CTA - A/B Tested */}
       <TrackedSection sectionName="final_cta" onView={trackSectionView}>
-        <CTASection variant="final" />
+        <VariantRenderer
+          variants={{
+            A: <CTASection variant="final" />,
+            B: <CTAVariantB variant="final" trackCTAClick={trackCTAClick} />,
+            C: <CTAVariantC variant="final" trackCTAClick={trackCTAClick} />,
+          }}
+        />
       </TrackedSection>
 
       {/* Footer */}
