@@ -12,6 +12,11 @@ const getSessionId = () => {
   return sessionId;
 };
 
+// Get A/B test variant from localStorage
+const getABVariant = () => {
+  return localStorage.getItem('ab_test_variant') || 'A';
+};
+
 interface TrackEventParams {
   eventType: string;
   eventData?: Json;
@@ -25,11 +30,17 @@ export const usePageAnalytics = (pagePath: string) => {
 
   const trackEvent = useCallback(async ({ eventType, eventData }: TrackEventParams) => {
     try {
+      const abVariant = getABVariant();
+      const enrichedEventData = {
+        ...(eventData as Record<string, unknown> || {}),
+        ab_variant: abVariant,
+      };
+      
       await supabase.from('page_analytics').insert([{
         session_id: sessionId.current,
         event_type: eventType,
         page_path: pagePath,
-        event_data: eventData || {},
+        event_data: enrichedEventData as Json,
         user_agent: navigator.userAgent,
         referrer: document.referrer || null,
       }]);
