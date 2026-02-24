@@ -89,6 +89,65 @@
     --input: 220 20% 18%;
     --ring: 25 100% 63%;
   }
+
+  /* Variant C: Warm & Trusted Editorial Theme */
+  .variant-c {
+    --background: 35 33% 98%;
+    --foreground: 30 5% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 30 5% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 5% 17%;
+
+    --primary: 16 78% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 30 10% 94%;
+    --secondary-foreground: 30 5% 17%;
+
+    --muted: 30 10% 94%;
+    --muted-foreground: 25 5% 53%;
+
+    --accent: 43 69% 52%;
+    --accent-foreground: 30 5% 17%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 10% 92%;
+    --input: 30 10% 92%;
+    --ring: 16 78% 60%;
+
+    /* Warm custom tokens */
+    --warm-sage: 130 30% 55%;
+    --warm-gold: 43 60% 55%;
+    --warm-coral: 16 78% 60%;
+    --warm-cream: 35 33% 98%;
+    --warm-cream-dark: 30 25% 95%;
+
+    --shadow-card: 0 2px 16px hsl(0 0% 0% / 0.06);
+    --shadow-glow-orange: none;
+    --shadow-glow-gold: none;
+  }
+
+  .variant-c .glass-card,
+  .variant-c .cosmic-card,
+  .variant-c .testimonial-card {
+    background: hsl(0 0% 100%);
+    border: 1px solid hsl(30 10% 92%);
+    box-shadow: 0 2px 16px hsl(0 0% 0% / 0.06);
+  }
+
+  .variant-c .cosmic-card::before,
+  .variant-c .testimonial-card::before {
+    display: none;
+  }
+
+  .variant-c .nebula-bg::before {
+    display: none;
+  }
 }
 
 @layer base {

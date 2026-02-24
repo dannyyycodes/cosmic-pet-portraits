@@ -1,95 +1,121 @@
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { Star, BadgeCheck } from "lucide-react";
+import sarahImg from "@/assets/testimonials/sarah.jpg";
+import jamesImg from "@/assets/testimonials/james.jpg";
+import priyaImg from "@/assets/testimonials/priya.jpg";
+import emmaImg from "@/assets/testimonials/emma.jpg";
+import davidImg from "@/assets/testimonials/david.jpg";
+import markImg from "@/assets/testimonials/mark.jpg";
 
-const memeTestimonials = [
+const testimonials = [
   {
-    name: "jess_and_milo",
-    handle: "@jess_and_milo",
-    avatar: "🐕",
-    content: "just got my dog's cosmic reading and i'm SCREAMING 😭 it said he has 'boundary issues' and 'loves too hard' which is literally just him trying to sit on everyone's lap at once",
-    likes: "2.4k",
-    comments: "89",
-    shares: "156",
+    name: "Sarah M.",
+    pet: "Buddy — Labrador, Age 6",
+    photo: sarahImg,
+    highlight: "It described things about Buddy that I've never been able to put into words.",
+    review: "The personality breakdown was so detailed and personal. I shared it with my partner and we both teared up. This isn't just a novelty — it's a genuine keepsake we'll treasure.",
+    rating: 5,
   },
   {
-    name: "catlady_chronicles",
-    handle: "@catlady_chronicles",
-    avatar: "🐈",
-    content: "the accuracy is scary?? it described my cat as 'emotionally unavailable but deeply loyal' and I—\nthat's literally her just staring at me from across the room for 6 hours straight 💀",
-    likes: "5.1k",
-    comments: "234",
-    shares: "412",
+    name: "James T.",
+    pet: "Luna — Persian Cat, Age 3",
+    photo: jamesImg,
+    highlight: "I bought it as a joke. Then I read it and got emotional.",
+    review: "Luna's report captured her perfectly — the section about her being 'selectively affectionate' had me laughing and crying at the same time. Sent it to my whole family.",
+    rating: 5,
   },
   {
-    name: "bunny_momma",
-    handle: "@bunny_momma",
-    avatar: "🐰",
-    content: "okay but why did this personality report just call out my rabbit for being 'dramatic and attention-seeking' 💀\n\nma'am that's MY son you're talking about and you're absolutely right",
-    likes: "3.8k",
-    comments: "167",
-    shares: "289",
+    name: "Priya K.",
+    pet: "Cinnamon — Holland Lop, Age 2",
+    photo: priyaImg,
+    highlight: "Scary accurate. How did it know she thumps when she's jealous?",
+    review: "I didn't expect this level of depth for a rabbit. The emotional blueprint section was incredibly detailed and actually helped me understand her behaviour better.",
+    rating: 5,
+  },
+  {
+    name: "Emma L.",
+    pet: "Mochi — Siamese Cat, Age 5",
+    photo: emmaImg,
+    highlight: "We framed the keepsake quote page. It's hanging in our living room.",
+    review: "The report was beautifully designed and the writing was so warm and personal. It felt like someone who truly understood cats wrote it just for Mochi.",
+    rating: 5,
+  },
+  {
+    name: "David R.",
+    pet: "Max — Golden Retriever, Age 8",
+    photo: davidImg,
+    highlight: "Max is getting older. This report is something I'll keep forever.",
+    review: "I wanted something to remember him by that goes deeper than photos. This report captures his spirit, his quirks, everything that makes Max who he is. Worth every penny.",
+    rating: 5,
+  },
+  {
+    name: "Mark D.",
+    pet: "Charlie — Beagle, Age 4",
+    photo: markImg,
+    highlight: "Best gift I've ever given my wife. She absolutely loved it.",
+    review: "Bought it for my wife's birthday — she's obsessed with our Beagle. She read it three times and kept reading quotes out loud. The portrait was the cherry on top.",
+    rating: 5,
   },
 ];
 
 export const TestimonialsVariantC = () => {
   return (
-    <section className="relative py-16 px-4 z-10">
-      <div className="max-w-2xl mx-auto">
+    <section id="testimonials" className="relative py-16 px-4 z-10">
+      <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-10"
         >
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-            The Girlies Are <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-cyan-400">Obsessed</span> 💅
+          <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-2">
+            Real Stories from Real Pet Parents
           </h2>
           <p className="text-muted-foreground">
-            This will break your group chat
+            Join thousands of pet parents who've discovered something special
           </p>
         </motion.div>
 
-        <div className="space-y-4">
-          {memeTestimonials.map((testimonial, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {testimonials.map((t, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
-              className="relative bg-card/60 backdrop-blur-sm rounded-2xl border border-border/50 p-4 overflow-hidden"
+              transition={{ delay: index * 0.08 }}
             >
-              {/* Header */}
-              <div className="flex items-center gap-3 mb-3">
-                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500/20 to-cyan-500/20 flex items-center justify-center text-xl">
-                  {testimonial.avatar}
-                </span>
-                <div>
-                  <p className="font-semibold text-white text-sm">{testimonial.name}</p>
-                  <p className="text-xs text-muted-foreground">{testimonial.handle}</p>
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-[var(--shadow-card)] h-full">
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <img 
+                    src={t.photo} 
+                    alt={t.name} 
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-foreground text-sm">{t.name}</p>
+                      <BadgeCheck className="w-4 h-4 text-[hsl(var(--warm-sage))]" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t.pet}</p>
+                  </div>
+                  <div className="flex">
+                    {[...Array(t.rating)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-[hsl(var(--warm-gold))] text-[hsl(var(--warm-gold))]" />
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Content */}
-              <p className="text-white/90 text-sm leading-relaxed whitespace-pre-line mb-4">
-                {testimonial.content}
-              </p>
+                {/* Highlight */}
+                <p className="font-semibold text-foreground text-sm mb-2">
+                  "{t.highlight}"
+                </p>
 
-              {/* Engagement */}
-              <div className="flex items-center gap-6 text-muted-foreground text-xs">
-                <span className="flex items-center gap-1.5 hover:text-pink-400 transition-colors cursor-pointer">
-                  <Heart className="w-4 h-4" />
-                  {testimonial.likes}
-                </span>
-                <span className="flex items-center gap-1.5 hover:text-cyan-400 transition-colors cursor-pointer">
-                  <MessageCircle className="w-4 h-4" />
-                  {testimonial.comments}
-                </span>
-                <span className="flex items-center gap-1.5 hover:text-purple-400 transition-colors cursor-pointer">
-                  <Share2 className="w-4 h-4" />
-                  {testimonial.shares}
-                </span>
+                {/* Review */}
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t.review}
+                </p>
               </div>
             </motion.div>
           ))}
