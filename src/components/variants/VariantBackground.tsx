@@ -8,7 +8,7 @@ interface VariantBackgroundProps {
 
 /**
  * Drop-in replacement for StarfieldBackground that is variant-aware.
- * Variant C: warm cream gradient. A/B: cosmic starfield.
+ * Variant C: buttery yellow gradient. A/B: cosmic starfield.
  */
 export const VariantBackground = ({ intensity, interactive }: VariantBackgroundProps) => {
   const { isVariantC } = useABTest();
@@ -19,7 +19,7 @@ export const VariantBackground = ({ intensity, interactive }: VariantBackgroundP
         <div 
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(180deg, hsl(35 33% 98%) 0%, hsl(30 30% 96%) 50%, hsl(35 33% 98%) 100%)',
+            background: 'linear-gradient(180deg, hsl(45 100% 91%) 0%, hsl(40 60% 87%) 50%, hsl(45 100% 91%) 100%)',
           }}
         />
       </div>

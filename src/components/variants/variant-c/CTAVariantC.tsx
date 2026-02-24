@@ -2,11 +2,17 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import lunaImg from "@/assets/samples/luna-persian.jpg";
+import maxImg from "@/assets/samples/max-golden.jpg";
+import cinnamonImg from "@/assets/samples/cinnamon-rabbit.jpg";
+import peanutImg from "@/assets/samples/peanut-hamster.jpg";
 
 interface CTAVariantCProps {
   variant: "mid" | "final";
   trackCTAClick?: (cta: string, location: string) => void;
 }
+
+const petPhotos = [lunaImg, maxImg, cinnamonImg, peanutImg];
 
 export const CTAVariantC = ({ variant, trackCTAClick }: CTAVariantCProps) => {
   return (
@@ -18,6 +24,18 @@ export const CTAVariantC = ({ variant, trackCTAClick }: CTAVariantCProps) => {
         className="max-w-xl mx-auto text-center"
       >
         <div className="bg-card rounded-2xl p-8 border border-border shadow-[var(--shadow-card)]">
+          {/* Pet photo strip */}
+          <div className="flex items-center justify-center gap-[-8px] mb-6">
+            {petPhotos.map((photo, i) => (
+              <img 
+                key={i} 
+                src={photo} 
+                alt="Pet" 
+                className="w-12 h-12 rounded-full object-cover border-2 border-card -ml-2 first:ml-0" 
+              />
+            ))}
+          </div>
+
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-3">
             {variant === "mid"
               ? "Your pet already knows who they are. It's time you did too."

@@ -41,7 +41,7 @@ const tiers = [
     price: "$4.99",
     priceSuffix: "/mo",
     badge: "Best Value",
-    badgeColor: "sage",
+    badgeColor: "gold",
     features: [
       "Daily personality insights",
       "Weekly horoscope updates",
@@ -59,7 +59,8 @@ const tiers = [
 export const PricingPreview = () => {
   return (
     <section className="relative py-16 px-4 z-10">
-      <div className="max-w-4xl mx-auto">
+      <div className="absolute inset-0 bg-[hsl(40_60%_87%/0.3)]" />
+      <div className="max-w-4xl mx-auto relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -85,13 +86,13 @@ export const PricingPreview = () => {
               className={tier.elevated ? "md:-mt-2 md:mb-2" : ""}
             >
               <div className={`relative bg-card rounded-2xl p-6 border shadow-[var(--shadow-card)] h-full ${
-                tier.elevated ? "border-primary ring-1 ring-primary/20 scale-[1.03]" : "border-border"
+                tier.elevated ? "border-primary ring-2 ring-primary/20 scale-[1.03]" : "border-border"
               }`}>
                 {/* Badge */}
                 {tier.badge && (
                   <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold ${
-                    tier.badgeColor === "sage" 
-                      ? "bg-[hsl(var(--warm-sage))] text-white" 
+                    tier.badgeColor === "gold" 
+                      ? "bg-[hsl(var(--warm-gold))] text-white" 
                       : "bg-primary text-primary-foreground"
                   }`}>
                     {tier.badge}
@@ -113,7 +114,7 @@ export const PricingPreview = () => {
                 <ul className="space-y-2.5 mb-6">
                   {tier.features.map((feature, fi) => (
                     <li key={fi} className="flex items-start gap-2 text-sm">
-                      <Check className="w-4 h-4 text-[hsl(var(--warm-sage))] shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                       <span className="text-muted-foreground">{feature}</span>
                     </li>
                   ))}
@@ -147,15 +148,15 @@ export const PricingPreview = () => {
           className="flex flex-wrap items-center justify-center gap-6 mt-10 text-sm text-muted-foreground"
         >
           <span className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[hsl(var(--warm-sage))]" />
+            <Shield className="w-4 h-4 text-primary" />
             Secure checkout
           </span>
           <span className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-[hsl(var(--warm-sage))]" />
+            <Zap className="w-4 h-4 text-primary" />
             Delivered instantly
           </span>
           <span className="flex items-center gap-2">
-            <Check className="w-4 h-4 text-[hsl(var(--warm-sage))]" />
+            <Check className="w-4 h-4 text-primary" />
             100% money-back guarantee
           </span>
         </motion.div>

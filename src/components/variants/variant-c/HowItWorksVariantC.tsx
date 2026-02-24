@@ -25,7 +25,8 @@ const steps = [
 export const HowItWorksVariantC = () => {
   return (
     <section id="how-it-works" className="relative py-16 px-4 z-10">
-      <div className="max-w-3xl mx-auto">
+      <div className="absolute inset-0 bg-[hsl(40_60%_87%/0.5)]" />
+      <div className="max-w-3xl mx-auto relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -40,7 +41,10 @@ export const HowItWorksVariantC = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+          {/* Connector lines on desktop */}
+          <div className="hidden md:block absolute top-[3.5rem] left-[20%] right-[20%] h-px border-t-2 border-dashed border-border z-0" />
+          
           {steps.map((step, index) => (
             <motion.div
               key={index}
@@ -48,12 +52,15 @@ export const HowItWorksVariantC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
+              className="relative z-10"
             >
               <div className="bg-card rounded-2xl p-6 border border-border shadow-[var(--shadow-card)] text-center h-full">
-                <div className="w-12 h-12 rounded-xl bg-[hsl(var(--warm-sage)/0.12)] flex items-center justify-center mx-auto mb-4">
-                  <step.icon className="w-6 h-6 text-[hsl(var(--warm-sage))]" />
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-4 text-lg font-bold">
+                  {step.number}
                 </div>
-                <div className="text-xs font-bold text-primary mb-2">Step {step.number}</div>
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <step.icon className="w-6 h-6 text-primary" />
+                </div>
                 <h3 className="font-semibold text-foreground mb-2">{step.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
               </div>
