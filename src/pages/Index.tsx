@@ -155,23 +155,16 @@ const Index = () => {
         />
       </TrackedSection>
 
-      {/* Micro FAQ -- Variant C only */}
-      <VariantOnly variants="C">
-        <MicroFAQ />
-      </VariantOnly>
-
-      {/* Report Preview -- Variant C only */}
-      <VariantOnly variants="C">
-        <TrackedSection sectionName="report_preview" onView={trackSectionView}>
-          <ReportPreviewSection />
-        </TrackedSection>
-      </VariantOnly>
-
-      {/* UGC Videos -- Variant C only */}
+      {/* UGC Videos -- Variant C only, right after hero */}
       <VariantOnly variants="C">
         <TrackedSection sectionName="video_testimonials" onView={trackSectionView}>
           <VideoTestimonials />
         </TrackedSection>
+      </VariantOnly>
+
+      {/* Micro FAQ -- Variant C only */}
+      <VariantOnly variants="C">
+        <MicroFAQ />
       </VariantOnly>
 
       {/* Testimonials Section - A/B Tested */}
@@ -197,16 +190,18 @@ const Index = () => {
         </TrackedSection>
       </VariantOnly>
 
-      {/* How It Works Section -- A/B/C */}
-      <TrackedSection sectionName="how_it_works" onView={trackSectionView}>
-        <VariantRenderer
-          variants={{
-            A: <HowItWorks />,
-            B: <HowItWorks />,
-            C: <HowItWorksVariantC />,
-          }}
-        />
-      </TrackedSection>
+      {/* How It Works Section -- A/B only (removed from C) */}
+      <VariantOnly variants={["A", "B"]}>
+        <TrackedSection sectionName="how_it_works" onView={trackSectionView}>
+          <VariantRenderer
+            variants={{
+              A: <HowItWorks />,
+              B: <HowItWorks />,
+              C: null,
+            }}
+          />
+        </TrackedSection>
+      </VariantOnly>
 
       {/* Two Options Cards */}
       <TrackedSection sectionName="options_cards" onView={trackSectionView} className="relative py-16 px-4 z-10">

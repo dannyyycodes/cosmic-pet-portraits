@@ -44,8 +44,8 @@ export const HeroVariantC = ({ trackCTAClick }: HeroVariantCProps) => {
           transition={{ duration: 0.4, delay: 0.1 }}
           className="text-[1.75rem] leading-[1.15] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-serif font-bold text-foreground mb-5"
         >
-          You'll Never Look at Your Pet{" "}
-          <span className="text-primary">the Same Way Again</span>
+          You'll Never Look at Them{" "}
+          <span className="text-[hsl(25_85%_55%)]">The Same Way Again</span>
         </motion.h1>
 
         {/* Subheadline */}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, ArrowRight } from "lucide-react";
+import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, ArrowRight, X } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,9 @@ import {
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [giftBannerDismissed, setGiftBannerDismissed] = useState(() => {
+    return sessionStorage.getItem('gift-banner-dismissed') === 'true';
+  });
   const { t } = useLanguage();
   const { user, signOut } = useAuth();
   const { isVariantC } = useABTest();
@@ -30,6 +33,11 @@ export function Navbar() {
   const handleSignOut = async () => {
     await signOut();
     setIsOpen(false);
+  };
+
+  const dismissGiftBanner = () => {
+    setGiftBannerDismissed(true);
+    sessionStorage.setItem('gift-banner-dismissed', 'true');
   };
 
   const navLinks = [
@@ -41,10 +49,26 @@ export function Navbar() {
   const hoverClass = isVariantC ? "hover:text-primary" : "hover:text-gold";
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 border-b ${
+    <>
+      {/* Gift Banner — Variant C only */}
+      {isVariantC && !giftBannerDismissed && (
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-[hsl(330_60%_30%)] text-white text-center text-sm py-2.5 px-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-center gap-2">
+            <Link to="/gift" className="flex items-center gap-2 hover:underline underline-offset-2 font-medium">
+              <span>🎁</span>
+              <span>The perfect gift for a pet lover</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <button onClick={dismissGiftBanner} className="absolute right-3 p-1 hover:bg-white/20 rounded transition-colors" aria-label="Dismiss">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+    <nav className={`fixed left-0 right-0 z-50 border-b ${
       isVariantC 
-        ? "bg-card/95 backdrop-blur-lg border-border" 
-        : "bg-background/80 backdrop-blur-lg border-border/30"
+        ? `bg-card/95 backdrop-blur-lg border-border ${!giftBannerDismissed ? 'top-[42px]' : 'top-0'}` 
+        : "top-0 bg-background/80 backdrop-blur-lg border-border/30"
     }`}>
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
@@ -228,5 +252,6 @@ export function Navbar() {
         </div>
       </div>
     </nav>
+    </>
   );
 }
