@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Check, ArrowRight, Zap, Download, Printer } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SampleCarousel } from "@/components/SampleCarousel";
+import trustpilotStars from "@/assets/trustpilot-stars.png";
 
 interface HeroVariantCProps {
   trackCTAClick: (cta: string, location: string) => void;
@@ -12,19 +14,27 @@ export const HeroVariantC = ({ trackCTAClick }: HeroVariantCProps) => {
     <section className="relative flex flex-col items-center justify-center px-4 pt-20 sm:pt-28 pb-12 sm:pb-16 z-10">
       <div className="max-w-3xl mx-auto text-center">
         
-        {/* Social Proof Above Fold */}
+        {/* Trustpilot Badge */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="inline-flex items-center gap-2 mb-6"
+          className="inline-flex items-center gap-3 mb-6"
         >
-          <div className="flex">
+          <div className="flex items-center gap-1">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-5 h-5 fill-[hsl(var(--warm-gold))] text-[hsl(var(--warm-gold))]" />
+              <div key={i} className="w-5 h-5 bg-[#00B67A] flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </div>
             ))}
           </div>
-          <span className="text-sm font-medium text-foreground">4.9 from 2,347 reviews</span>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-bold text-foreground">Excellent</span>
+            <span className="text-muted-foreground">on</span>
+            <span className="font-bold text-[#00B67A]">★ Trustpilot</span>
+          </div>
         </motion.div>
 
         {/* Headline */}
@@ -61,7 +71,7 @@ export const HeroVariantC = ({ trackCTAClick }: HeroVariantCProps) => {
             "Keep a beautifully designed memory forever",
           ].map((text, i) => (
             <span key={i} className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-[hsl(var(--warm-sage))] shrink-0" />
+              <Check className="w-4 h-4 text-primary shrink-0" />
               {text}
             </span>
           ))}
@@ -85,20 +95,13 @@ export const HeroVariantC = ({ trackCTAClick }: HeroVariantCProps) => {
           </p>
         </motion.div>
 
-        {/* Micro Pet Excerpt Card */}
+        {/* Sample Carousel with real pet photos */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="max-w-md mx-auto"
         >
-          <div className="bg-card rounded-2xl p-6 border border-border shadow-[var(--shadow-card)]">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">From a real report</p>
-            <p className="text-sm font-semibold text-foreground mb-1">Bella — Golden Retriever, Age 4</p>
-            <p className="text-sm text-muted-foreground italic leading-relaxed">
-              "Bella loves intensely. She doesn't just greet you at the door — she celebrates you. Her emotional world is vast, and her loyalty runs deeper than most humans will ever understand."
-            </p>
-          </div>
+          <SampleCarousel />
         </motion.div>
       </div>
     </section>

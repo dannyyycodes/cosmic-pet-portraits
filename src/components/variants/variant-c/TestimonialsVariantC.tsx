@@ -7,6 +7,15 @@ import emmaImg from "@/assets/testimonials/emma.jpg";
 import davidImg from "@/assets/testimonials/david.jpg";
 import markImg from "@/assets/testimonials/mark.jpg";
 
+const accentColors = [
+  "hsl(145 47% 33%)",
+  "hsl(43 80% 50%)",
+  "hsl(145 47% 33%)",
+  "hsl(43 80% 50%)",
+  "hsl(145 47% 33%)",
+  "hsl(43 80% 50%)",
+];
+
 const testimonials = [
   {
     name: "Sarah M.",
@@ -85,18 +94,21 @@ export const TestimonialsVariantC = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.08 }}
             >
-              <div className="bg-card rounded-2xl p-6 border border-border shadow-[var(--shadow-card)] h-full">
+              <div 
+                className="bg-card rounded-2xl p-6 border border-border shadow-[var(--shadow-card)] h-full"
+                style={{ borderLeftWidth: '3px', borderLeftColor: accentColors[index] }}
+              >
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-4">
                   <img 
                     src={t.photo} 
                     alt={t.name} 
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-14 h-14 rounded-full object-cover"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="font-semibold text-foreground text-sm">{t.name}</p>
-                      <BadgeCheck className="w-4 h-4 text-[hsl(var(--warm-sage))]" />
+                      <BadgeCheck className="w-4 h-4 text-primary" />
                     </div>
                     <p className="text-xs text-muted-foreground">{t.pet}</p>
                   </div>
@@ -108,7 +120,7 @@ export const TestimonialsVariantC = () => {
                 </div>
 
                 {/* Highlight */}
-                <p className="font-semibold text-foreground text-sm mb-2">
+                <p className="font-bold text-foreground text-sm mb-2">
                   "{t.highlight}"
                 </p>
 

@@ -90,44 +90,44 @@
     --ring: 25 100% 63%;
   }
 
-  /* Variant C: Warm & Trusted Editorial Theme */
+  /* Variant C: Butternut Box-Inspired Warm Theme (Green Accent) */
   .variant-c {
-    --background: 35 33% 98%;
-    --foreground: 30 5% 17%;
+    --background: 45 100% 91%;
+    --foreground: 25 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 5% 17%;
+    --card-foreground: 25 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 5% 17%;
+    --popover-foreground: 25 30% 12%;
 
-    --primary: 16 78% 60%;
+    --primary: 145 47% 33%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 10% 94%;
-    --secondary-foreground: 30 5% 17%;
+    --secondary: 35 30% 92%;
+    --secondary-foreground: 25 30% 12%;
 
-    --muted: 30 10% 94%;
-    --muted-foreground: 25 5% 53%;
+    --muted: 35 30% 92%;
+    --muted-foreground: 30 12% 44%;
 
-    --accent: 43 69% 52%;
-    --accent-foreground: 30 5% 17%;
+    --accent: 43 50% 56%;
+    --accent-foreground: 25 30% 12%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 10% 92%;
-    --input: 30 10% 92%;
-    --ring: 16 78% 60%;
+    --border: 35 35% 85%;
+    --input: 35 35% 85%;
+    --ring: 145 47% 33%;
 
     /* Warm custom tokens */
-    --warm-sage: 130 30% 55%;
-    --warm-gold: 43 60% 55%;
-    --warm-coral: 16 78% 60%;
-    --warm-cream: 35 33% 98%;
-    --warm-cream-dark: 30 25% 95%;
+    --warm-sage: 145 47% 33%;
+    --warm-gold: 43 80% 50%;
+    --warm-green: 145 47% 33%;
+    --warm-cream: 45 100% 91%;
+    --warm-cream-dark: 40 60% 87%;
 
-    --shadow-card: 0 2px 16px hsl(0 0% 0% / 0.06);
+    --shadow-card: 0 4px 20px hsl(35 40% 30% / 0.08);
     --shadow-glow-orange: none;
     --shadow-glow-gold: none;
   }
@@ -136,8 +136,8 @@
   .variant-c .cosmic-card,
   .variant-c .testimonial-card {
     background: hsl(0 0% 100%);
-    border: 1px solid hsl(30 10% 92%);
-    box-shadow: 0 2px 16px hsl(0 0% 0% / 0.06);
+    border: 1px solid hsl(35 35% 85%);
+    box-shadow: 0 4px 20px hsl(35 40% 30% / 0.08);
   }
 
   .variant-c .cosmic-card::before,
