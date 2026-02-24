@@ -13,11 +13,8 @@ const ABTestContext = createContext<ABTestContextType | undefined>(undefined);
 const STORAGE_KEY = "ab_test_variant";
 const URL_PARAM = "variant";
 
-// Weighted random assignment (33% each)
+// Default: 100% Variant C (Warm & Trusted)
 const assignVariant = (): ABVariant => {
-  const random = Math.random();
-  if (random < 0.333) return "A";
-  if (random < 0.666) return "B";
   return "C";
 };
 
@@ -26,7 +23,7 @@ interface ABTestProviderProps {
 }
 
 export const ABTestProvider: React.FC<ABTestProviderProps> = ({ children }) => {
-  const [variant, setVariant] = useState<ABVariant>("A");
+  const [variant, setVariant] = useState<ABVariant>("C");
   const [isLoading, setIsLoading] = useState(true);
 
   // Apply body class for variant-specific CSS theming

@@ -4,7 +4,7 @@ import { Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2, ChevronRigh
 import { GiftReportShowcase } from '@/components/GiftReportShowcase';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { VariantBackground } from '@/components/variants/VariantBackground';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -230,7 +230,7 @@ export default function GiftPurchase() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 py-8 relative overflow-hidden">
-      <StarfieldBackground intensity="calm" />
+      <VariantBackground intensity="calm" />
       
       <div className="w-full max-w-xl relative z-10">
         <Link 

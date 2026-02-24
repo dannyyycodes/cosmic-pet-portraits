@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { VariantBackground } from '@/components/variants/VariantBackground';
 import { CosmicButton } from '@/components/cosmic/CosmicButton';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -77,7 +77,7 @@ export default function BecomeAffiliate() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <StarfieldBackground intensity="calm" />
+      <VariantBackground intensity="calm" />
       
       <div className="relative z-10 p-6 max-w-2xl mx-auto py-12">
         {/* Back Link */}

@@ -39,7 +39,7 @@ import { OccasionMode, occasionModeContent } from '@/lib/occasionMode';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { VariantBackground } from '@/components/variants/VariantBackground';
 import { CosmicProgress } from '@/components/cosmic/CosmicProgress';
 import { EmotionProvider, useEmotion } from '@/contexts/EmotionContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -676,7 +676,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     const currentPetName = petsData[currentPetIndex]?.name || 'your pet';
     return (
       <>
-        <StarfieldBackground intensity="excited" />
+        <VariantBackground intensity="excited" />
         <CosmicLoading petName={currentPetName} />
       </>
     );
@@ -694,7 +694,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 pt-14 relative overflow-hidden">
-      <StarfieldBackground intensity={intensity} interactive />
+      <VariantBackground intensity={intensity} interactive />
       
       
 
