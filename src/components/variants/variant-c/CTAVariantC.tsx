@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, Heart, Gift } from "lucide-react";
+import { ArrowRight, Gift } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CTAVariantCProps {
   variant: "mid" | "final";
@@ -16,71 +17,48 @@ export const CTAVariantC = ({ variant, trackCTAClick }: CTAVariantCProps) => {
         viewport={{ once: true }}
         className="max-w-xl mx-auto text-center"
       >
-        {/* Fun Card */}
-        <div className="relative p-8 rounded-3xl bg-gradient-to-b from-pink-950/30 via-card/40 to-cyan-950/30 border border-pink-400/20 backdrop-blur-sm overflow-hidden">
-          {/* Floating emojis */}
-          <div className="absolute top-4 left-4 text-2xl animate-bounce" style={{ animationDelay: "0s" }}>🐾</div>
-          <div className="absolute top-4 right-4 text-2xl animate-bounce" style={{ animationDelay: "0.3s" }}>✨</div>
-          <div className="absolute bottom-4 left-8 text-2xl animate-bounce" style={{ animationDelay: "0.6s" }}>💅</div>
-          <div className="absolute bottom-4 right-8 text-2xl animate-bounce" style={{ animationDelay: "0.9s" }}>🔥</div>
-
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-            {variant === "mid" ? (
-              <>Treat Yourself <span className="text-pink-400">&</span> Your Bestie</>
-            ) : (
-              <>You Know You Want To 👀</>
-            )}
+        <div className="bg-card rounded-2xl p-8 border border-border shadow-[var(--shadow-card)]">
+          <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-3">
+            {variant === "mid"
+              ? "Your pet already knows who they are. It's time you did too."
+              : "Create their personalized 15+ page report now."}
           </h2>
 
-          <p className="text-muted-foreground mb-6 text-lg">
-            {variant === "mid" ? (
-              <>Because you both deserve to understand each other better 💕</>
-            ) : (
-              <>Your pet's personality is waiting to be discovered. Don't leave them on read.</>
-            )}
+          <p className="text-muted-foreground mb-6">
+            {variant === "mid"
+              ? "Discover their personality, quirks, and emotional world in a beautiful keepsake report."
+              : "100% money-back guarantee. No questions asked."}
           </p>
 
-          {/* Fun Stats */}
-          <div className="flex items-center justify-center gap-6 mb-6 text-sm">
-            <div className="flex items-center gap-1.5 text-pink-300">
-              <Heart className="w-4 h-4 fill-pink-400" />
-              <span>50k+ happy pets</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-cyan-300">
-              <Sparkles className="w-4 h-4" />
-              <span>100% shareable</span>
-            </div>
-          </div>
-
-          {/* CTA Button */}
-          <Link 
-            to="/intake?mode=discover" 
-            onClick={() => trackCTAClick?.('get_tea', `cta_${variant}`)}
+          <Link
+            to="/intake?mode=discover"
+            onClick={() => trackCTAClick?.('get_reading', `cta_${variant}`)}
             className="block"
           >
-            <motion.button 
-              className="w-full max-w-sm mx-auto text-lg font-bold px-8 py-5 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white shadow-[0_8px_32px_rgba(236,72,153,0.4)] hover:shadow-[0_12px_40px_rgba(236,72,153,0.5)] transition-all duration-300"
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <span className="flex items-center justify-center gap-2">
-                Get the Tea on My Pet
-                <span className="text-2xl">🍵</span>
-              </span>
-            </motion.button>
+            <Button size="lg" className="w-full max-w-sm mx-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base rounded-xl group">
+              {variant === "mid" ? "Create My Pet's Report" : "Start Now — It Takes 60 Seconds"}
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </Link>
 
-          {/* Gift option */}
-          <div className="mt-4">
-            <Link 
-              to="/gift" 
-              onClick={() => trackCTAClick?.('gift', `cta_${variant}`)}
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-pink-300 transition-colors"
-            >
-              <Gift className="w-4 h-4" />
-              Or send it to a friend who needs this in their life
-            </Link>
-          </div>
+          {variant === "mid" && (
+            <p className="text-xs text-muted-foreground mt-3">
+              100% money-back guarantee
+            </p>
+          )}
+
+          {variant === "final" && (
+            <div className="mt-4">
+              <Link
+                to="/gift"
+                onClick={() => trackCTAClick?.('gift', `cta_${variant}`)}
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Gift className="w-4 h-4" />
+                Or send as a gift for someone special
+              </Link>
+            </div>
+          )}
         </div>
       </motion.div>
     </section>

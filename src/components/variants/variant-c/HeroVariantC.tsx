@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, PartyPopper, Coffee, Heart } from "lucide-react";
+import { Star, Check, ArrowRight, Zap, Download, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface HeroVariantCProps {
   trackCTAClick: (cta: string, location: string) => void;
@@ -8,139 +9,96 @@ interface HeroVariantCProps {
 
 export const HeroVariantC = ({ trackCTAClick }: HeroVariantCProps) => {
   return (
-    <section className="relative flex flex-col items-center justify-center px-4 pt-16 sm:pt-24 pb-8 sm:pb-12 z-10">
-      <div className="max-w-4xl mx-auto text-center">
+    <section className="relative flex flex-col items-center justify-center px-4 pt-20 sm:pt-28 pb-12 sm:pb-16 z-10">
+      <div className="max-w-3xl mx-auto text-center">
         
-        {/* FUN BADGE */}
+        {/* Social Proof Above Fold */}
         <motion.div
-          initial={{ opacity: 0, y: -10, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.4, type: "spring", bounce: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-cyan-500/20 border border-pink-400/30 text-pink-300 text-sm font-medium mb-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="inline-flex items-center gap-2 mb-6"
         >
-          <PartyPopper className="w-4 h-4" />
-          <span>12,847 pets roasted this week</span>
-          <span className="animate-bounce">🔥</span>
+          <div className="flex">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-5 h-5 fill-[hsl(var(--warm-gold))] text-[hsl(var(--warm-gold))]" />
+            ))}
+          </div>
+          <span className="text-sm font-medium text-foreground">4.9 from 2,347 reviews</span>
         </motion.div>
 
-        {/* MAIN HEADLINE - THE REQUESTED ONE */}
+        {/* Headline */}
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="text-[1.75rem] leading-[1.15] sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-5"
+          className="text-[1.75rem] leading-[1.15] sm:text-4xl md:text-5xl lg:text-[3.5rem] font-serif font-bold text-foreground mb-5"
         >
-          <motion.span 
-            className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400"
-            animate={{ 
-              backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-            }}
-            transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-            style={{ backgroundSize: "200% 200%" }}
-          >
-            Congratulations,
-          </motion.span>
-          <br />
-          <span className="text-white">You've Just Found One of the</span>
-          <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-amber-400">
-            Best Places on the Internet
-          </span>{" "}
-          <motion.span 
-            className="inline-block"
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-          >
-            🐾✨
-          </motion.span>
+          You'll Never Look at Your Pet{" "}
+          <span className="text-primary">the Same Way Again</span>
         </motion.h1>
 
-        {/* FUN SUBHEADLINE */}
+        {/* Subheadline */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
-          className="text-lg sm:text-xl text-muted-foreground max-w-lg mx-auto mb-6 leading-relaxed"
+          className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto mb-6 leading-relaxed"
         >
-          Your pet has <span className="text-white font-semibold">main character energy</span>. 
-          We're about to prove it. 
-          <span className="inline-block ml-1">💅</span>
+          A 15+ page personalized report that captures who your companion really is — their quirks, their love language, and why they do the things they do. Delivered instantly.
         </motion.p>
 
-        {/* CASUAL BENEFITS */}
+        {/* Pattern Interrupt Bullet Strip */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.25 }}
-          className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground mb-6"
+          className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-foreground mb-8"
         >
-          <motion.span 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/50 border border-border/50"
-            whileHover={{ scale: 1.05, rotate: -2 }}
-          >
-            <Coffee className="w-4 h-4 text-amber-400" />
-            Takes 60 secs (less than making coffee)
-          </motion.span>
-          <motion.span 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/50 border border-border/50"
-            whileHover={{ scale: 1.05, rotate: 2 }}
-          >
-            <Heart className="w-4 h-4 text-pink-400" />
-            Made to share
-          </motion.span>
+          {[
+            "Understand why they do what they do",
+            "Discover their emotional blueprint",
+            "Keep a beautifully designed memory forever",
+          ].map((text, i) => (
+            <span key={i} className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-[hsl(var(--warm-sage))] shrink-0" />
+              {text}
+            </span>
+          ))}
         </motion.div>
 
-        {/* PRIMARY CTA - FUN BOUNCY */}
+        {/* CTA */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.3, type: "spring", bounce: 0.4 }}
-          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="flex flex-col items-center gap-3 mb-10"
         >
-          <Link 
-            to="/intake?mode=discover" 
-            onClick={() => trackCTAClick('get_tea', 'hero')} 
-            className="w-full max-w-sm"
-          >
-            <motion.button 
-              className="w-full text-lg sm:text-xl font-bold px-8 py-5 rounded-2xl bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white shadow-[0_8px_32px_rgba(236,72,153,0.4)] hover:shadow-[0_12px_40px_rgba(236,72,153,0.5)] transition-all duration-300 group"
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <span className="flex items-center justify-center gap-2">
-                Get the Tea on My Pet
-                <span className="text-2xl">🍵</span>
-              </span>
-            </motion.button>
+          <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')} className="w-full max-w-sm">
+            <Button size="lg" className="w-full text-base sm:text-lg px-6 py-7 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold group transition-all">
+              Meet My Pet's True Self
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </Link>
-          
-          {/* Fun trust line */}
           <p className="text-xs text-muted-foreground">
-            Worst case: you get a hilarious read about your bestie 
-            <span className="inline-block ml-1">🤷‍♀️</span>
+            Instant delivery · 100% money-back guarantee
           </p>
-          
-          {/* Social proof - casual */}
-          <motion.div 
-            className="flex items-center gap-2 text-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="flex -space-x-2">
-              {["🐕", "🐈", "🐰", "🦜"].map((emoji, i) => (
-                <span 
-                  key={i} 
-                  className="w-8 h-8 rounded-full bg-card border-2 border-background flex items-center justify-center text-lg"
-                >
-                  {emoji}
-                </span>
-              ))}
-            </div>
-            <span className="text-muted-foreground">
-              Join the <span className="text-white font-medium">50k+</span> pet parents in the know
-            </span>
-          </motion.div>
+        </motion.div>
+
+        {/* Micro Pet Excerpt Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="max-w-md mx-auto"
+        >
+          <div className="bg-card rounded-2xl p-6 border border-border shadow-[var(--shadow-card)]">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">From a real report</p>
+            <p className="text-sm font-semibold text-foreground mb-1">Bella — Golden Retriever, Age 4</p>
+            <p className="text-sm text-muted-foreground italic leading-relaxed">
+              "Bella loves intensely. She doesn't just greet you at the door — she celebrates you. Her emotional world is vast, and her loyalty runs deeper than most humans will ever understand."
+            </p>
+          </div>
         </motion.div>
       </div>
     </section>

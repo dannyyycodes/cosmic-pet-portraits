@@ -29,6 +29,15 @@ export const ABTestProvider: React.FC<ABTestProviderProps> = ({ children }) => {
   const [variant, setVariant] = useState<ABVariant>("A");
   const [isLoading, setIsLoading] = useState(true);
 
+  // Apply body class for variant-specific CSS theming
+  useEffect(() => {
+    document.body.classList.remove("variant-a", "variant-b", "variant-c");
+    document.body.classList.add(`variant-${variant.toLowerCase()}`);
+    return () => {
+      document.body.classList.remove("variant-a", "variant-b", "variant-c");
+    };
+  }, [variant]);
+
   useEffect(() => {
     // Check URL parameter first (for testing)
     const urlParams = new URLSearchParams(window.location.search);

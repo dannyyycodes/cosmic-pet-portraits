@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Star, Sparkles, Gift, Dog } from "lucide-react";
+import { Star, Sparkles, Gift, Dog, ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { HowItWorks } from "@/components/HowItWorks";
 import { PremiumTestimonials } from "@/components/PremiumTestimonials";
@@ -17,6 +17,7 @@ import { SampleCarousel } from "@/components/SampleCarousel";
 
 // A/B Test imports
 import { VariantRenderer } from "@/components/ab-test/VariantRenderer";
+import { VariantOnly } from "@/components/ab-test/VariantRenderer";
 import { useABTest } from "@/hooks/useABTest";
 import { HeroVariantB } from "@/components/variants/variant-b/HeroVariantB";
 import { TestimonialsVariantB } from "@/components/variants/variant-b/TestimonialsVariantB";
@@ -24,6 +25,16 @@ import { CTAVariantB } from "@/components/variants/variant-b/CTAVariantB";
 import { HeroVariantC } from "@/components/variants/variant-c/HeroVariantC";
 import { TestimonialsVariantC } from "@/components/variants/variant-c/TestimonialsVariantC";
 import { CTAVariantC } from "@/components/variants/variant-c/CTAVariantC";
+
+// Variant C exclusive sections
+import { VariantBackground } from "@/components/variants/VariantBackground";
+import { MicroFAQ } from "@/components/variants/variant-c/MicroFAQ";
+import { ReportPreviewSection } from "@/components/variants/variant-c/ReportPreviewSection";
+import { VideoTestimonials } from "@/components/variants/variant-c/VideoTestimonials";
+import { PerfectForSection } from "@/components/variants/variant-c/PerfectForSection";
+import { PricingPreview } from "@/components/variants/variant-c/PricingPreview";
+import { HowItWorksVariantC } from "@/components/variants/variant-c/HowItWorksVariantC";
+import { FAQVariantC } from "@/components/variants/variant-c/FAQVariantC";
 
 
 // Original Hero content extracted as a component for Variant A
@@ -119,7 +130,7 @@ const HeroVariantA = ({ trackCTAClick, t }: { trackCTAClick: (cta: string, locat
 const Index = () => {
   const { t } = useLanguage();
   const { trackSectionView, trackCTAClick } = usePageAnalytics('/');
-  const { variant } = useABTest();
+  const { variant, isVariantC } = useABTest();
   
   // Check for referral code in URL on page load
   useEffect(() => {
@@ -129,53 +140,9 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-background overflow-hidden">
       <Navbar />
-      {/* Removed: UrgencyBanner, StickyMobileCTA, LiveActivityNotification, ExitIntentPopup for cleaner UX */}
       
-      {/* Dynamic Cosmic Background */}
-      <div className="fixed inset-0 z-0">
-        {/* Base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[hsl(220,35%,8%)] via-[hsl(220,35%,6%)] to-[hsl(220,35%,4%)]" />
-        
-        {/* Animated nebula layers */}
-        <div 
-          className="absolute inset-0 opacity-40"
-          style={{
-            background: 'radial-gradient(ellipse 80% 50% at 20% 30%, hsl(280 50% 30% / 0.5), transparent 60%)',
-            animation: 'cosmic-breathe 12s ease-in-out infinite',
-          }}
-        />
-        <div 
-          className="absolute inset-0 opacity-30"
-          style={{
-            background: 'radial-gradient(ellipse 60% 40% at 75% 70%, hsl(220 60% 35% / 0.4), transparent 50%)',
-            animation: 'cosmic-breathe 15s ease-in-out infinite reverse',
-          }}
-        />
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            background: 'radial-gradient(ellipse 50% 50% at 50% 50%, hsl(25 80% 50% / 0.15), transparent 60%)',
-            animation: 'cosmic-breathe 18s ease-in-out infinite',
-          }}
-        />
-
-        {/* Floating Star Particles - reduced on mobile for performance */}
-        {[...Array(typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 60)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-starlight"
-            style={{
-              width: `${Math.random() * 3 + 1}px`,
-              height: `${Math.random() * 3 + 1}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.6 + 0.2,
-              animation: `twinkle ${Math.random() * 4 + 3}s ease-in-out infinite, star-float ${Math.random() * 20 + 15}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 5}s`,
-            }}
-          />
-        ))}
-      </div>
+      {/* Dynamic Background -- Variant-aware */}
+      <VariantBackground />
 
       {/* Hero Section - A/B Tested */}
       <TrackedSection sectionName="hero" onView={trackSectionView} className="relative z-10">
@@ -188,6 +155,25 @@ const Index = () => {
         />
       </TrackedSection>
 
+      {/* Micro FAQ -- Variant C only */}
+      <VariantOnly variants="C">
+        <MicroFAQ />
+      </VariantOnly>
+
+      {/* Report Preview -- Variant C only */}
+      <VariantOnly variants="C">
+        <TrackedSection sectionName="report_preview" onView={trackSectionView}>
+          <ReportPreviewSection />
+        </TrackedSection>
+      </VariantOnly>
+
+      {/* UGC Videos -- Variant C only */}
+      <VariantOnly variants="C">
+        <TrackedSection sectionName="video_testimonials" onView={trackSectionView}>
+          <VideoTestimonials />
+        </TrackedSection>
+      </VariantOnly>
+
       {/* Testimonials Section - A/B Tested */}
       <TrackedSection sectionName="testimonials" onView={trackSectionView}>
         <VariantRenderer
@@ -199,20 +185,27 @@ const Index = () => {
         />
       </TrackedSection>
 
-      {/* Mid-page CTA - A/B Tested */}
-      <TrackedSection sectionName="mid_cta" onView={trackSectionView}>
+      {/* Perfect For -- Variant C only */}
+      <VariantOnly variants="C">
+        <PerfectForSection />
+      </VariantOnly>
+
+      {/* Pricing Preview -- Variant C only */}
+      <VariantOnly variants="C">
+        <TrackedSection sectionName="pricing" onView={trackSectionView}>
+          <PricingPreview />
+        </TrackedSection>
+      </VariantOnly>
+
+      {/* How It Works Section -- A/B/C */}
+      <TrackedSection sectionName="how_it_works" onView={trackSectionView}>
         <VariantRenderer
           variants={{
-            A: <CTASection variant="mid" />,
-            B: <CTAVariantB variant="mid" trackCTAClick={trackCTAClick} />,
-            C: <CTAVariantC variant="mid" trackCTAClick={trackCTAClick} />,
+            A: <HowItWorks />,
+            B: <HowItWorks />,
+            C: <HowItWorksVariantC />,
           }}
         />
-      </TrackedSection>
-
-      {/* How It Works Section */}
-      <TrackedSection sectionName="how_it_works" onView={trackSectionView}>
-        <HowItWorks />
       </TrackedSection>
 
       {/* Two Options Cards */}
@@ -225,11 +218,11 @@ const Index = () => {
             className="text-center mb-10"
           >
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
-              {variant === "C" ? "Two Ways to Get the Tea 🍵" : "Choose Your Experience"}
+              {isVariantC ? "Two Ways to Start" : "Choose Your Experience"}
             </h2>
             <p className="text-muted-foreground">
-              {variant === "C" 
-                ? "For you or for a friend who needs this in their life"
+              {isVariantC
+                ? "Whether for yourself or as a gift they'll never forget"
                 : "Whether for yourself or as a gift they'll never forget — takes just 60 seconds"
               }
             </p>
@@ -243,30 +236,41 @@ const Index = () => {
               viewport={{ once: true }}
             >
               <Link to="/intake?mode=discover" className="group block" onClick={() => trackCTAClick('get_reading', 'options_cards')}>
-                <div className={`relative p-8 rounded-2xl border ${variant === "C" ? "border-pink-400/30 hover:border-pink-400" : "border-primary/30 hover:border-primary"} bg-card/30 backdrop-blur-sm transition-all duration-300 hover:bg-card/50 h-full`}>
-                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full ${variant === "C" ? "bg-gradient-to-r from-pink-500 to-cyan-500" : "bg-primary"} text-primary-foreground text-xs font-medium`}>
-                    {variant === "C" ? "Most Popular 🔥" : t('hero.mostPopular')}
+                <div className={`relative p-8 rounded-2xl border transition-all duration-300 h-full ${
+                  isVariantC 
+                    ? "border-primary/30 hover:border-primary bg-card shadow-[var(--shadow-card)]" 
+                    : "border-primary/30 hover:border-primary bg-card/30 backdrop-blur-sm hover:bg-card/50"
+                }`}>
+                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium ${
+                    isVariantC ? "bg-primary text-primary-foreground" : "bg-primary text-primary-foreground"
+                  }`}>
+                    {t('hero.mostPopular')}
                   </div>
                   <div className="flex flex-col items-center gap-4">
-                    <div className={`w-14 h-14 rounded-full ${variant === "C" ? "bg-gradient-to-br from-pink-500 to-cyan-500" : "bg-gradient-to-br from-primary to-nebula-purple"} flex items-center justify-center`}>
-                      <Dog className="w-7 h-7 text-white" />
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
+                      isVariantC ? "bg-primary/10" : "bg-gradient-to-br from-primary to-nebula-purple"
+                    }`}>
+                      <Dog className={`w-7 h-7 ${isVariantC ? "text-primary" : "text-white"}`} />
                     </div>
                     <div className="space-y-2 text-center">
                       <h3 className="text-xl font-display font-bold text-foreground">
-                        {variant === "C" ? "For My Pet" : t('hero.discoverMyPet')}
+                        For My Pet
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {variant === "C" ? "Get the full personality breakdown" : t('hero.discoverDesc')}
+                        {isVariantC ? "Get a beautiful personalized personality report" : t('hero.discoverDesc')}
                       </p>
                     </div>
-                    <Button 
-                      variant={variant === "C" ? "default" : "cosmic"} 
-                      size="lg" 
-                      className={`w-full mt-2 ${variant === "C" ? "bg-gradient-to-r from-pink-500 to-cyan-500 hover:from-pink-600 hover:to-cyan-600" : ""}`}
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      {variant === "C" ? "Get the Tea 🍵" : "Get Started →"}
-                    </Button>
+                    {isVariantC ? (
+                      <Button size="lg" className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground">
+                        Get Started
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    ) : (
+                      <Button variant="cosmic" size="lg" className="w-full mt-2">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Get Started →
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -279,25 +283,33 @@ const Index = () => {
               viewport={{ once: true }}
             >
               <Link to="/gift" className="group block" onClick={() => trackCTAClick('gift', 'options_cards')}>
-                <div className="relative p-8 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:bg-card/50 h-full">
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
-                    {variant === "C" ? "They Need This 💅" : "Great Gift Idea"}
+                <div className={`relative p-8 rounded-2xl border transition-all duration-300 h-full ${
+                  isVariantC 
+                    ? "border-border hover:border-primary/50 bg-card shadow-[var(--shadow-card)]" 
+                    : "border-border/50 bg-card/30 backdrop-blur-sm hover:border-primary/50 hover:bg-card/50"
+                }`}>
+                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium ${
+                    isVariantC ? "bg-secondary text-muted-foreground" : "bg-muted text-muted-foreground"
+                  }`}>
+                    Great Gift Idea
                   </div>
                   <div className="flex flex-col items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/80 to-nebula-purple/80 flex items-center justify-center">
-                      <Gift className="w-7 h-7 text-white" />
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
+                      isVariantC ? "bg-primary/10" : "bg-gradient-to-br from-primary/80 to-nebula-purple/80"
+                    }`}>
+                      <Gift className={`w-7 h-7 ${isVariantC ? "text-primary" : "text-white"}`} />
                     </div>
                     <div className="space-y-2 text-center">
                       <h3 className="text-xl font-display font-bold text-foreground">
-                        {variant === "C" ? "For a Friend" : t('hero.giftToFriend')}
+                        For a Friend
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {variant === "C" ? "Send them the gift of self-awareness (for their pet)" : "A unique, personalized gift — delivered instantly"}
+                        A unique, personalized gift — delivered instantly
                       </p>
                     </div>
                     <Button variant="outline" size="lg" className="w-full mt-2 border-primary/40 hover:bg-primary/10">
                       <Gift className="w-4 h-4 mr-2" />
-                      {variant === "C" ? "Gift the Tea 🎁" : "Send as Gift →"}
+                      Send as Gift →
                     </Button>
                   </div>
                 </div>
@@ -307,9 +319,26 @@ const Index = () => {
         </div>
       </TrackedSection>
 
-      {/* FAQ Section */}
+      {/* Mid-page CTA - A/B Tested */}
+      <TrackedSection sectionName="mid_cta" onView={trackSectionView}>
+        <VariantRenderer
+          variants={{
+            A: <CTASection variant="mid" />,
+            B: <CTAVariantB variant="mid" trackCTAClick={trackCTAClick} />,
+            C: <CTAVariantC variant="mid" trackCTAClick={trackCTAClick} />,
+          }}
+        />
+      </TrackedSection>
+
+      {/* FAQ Section -- A/B/C */}
       <TrackedSection sectionName="faq" onView={trackSectionView}>
-        <FAQ />
+        <VariantRenderer
+          variants={{
+            A: <FAQ />,
+            B: <FAQ />,
+            C: <FAQVariantC />,
+          }}
+        />
       </TrackedSection>
 
       {/* Final CTA - A/B Tested */}
@@ -330,16 +359,16 @@ const Index = () => {
             {t('footer.copyright')}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm">
-            <Link to="/terms" className="text-muted-foreground hover:text-gold transition-colors">
+            <Link to="/terms" className={`text-muted-foreground ${isVariantC ? "hover:text-primary" : "hover:text-gold"} transition-colors`}>
               {t('footer.terms')}
             </Link>
-            <Link to="/privacy" className="text-muted-foreground hover:text-gold transition-colors">
+            <Link to="/privacy" className={`text-muted-foreground ${isVariantC ? "hover:text-primary" : "hover:text-gold"} transition-colors`}>
               {t('footer.privacy')}
             </Link>
-            <Link to="/contact" className="text-muted-foreground hover:text-gold transition-colors">
+            <Link to="/contact" className={`text-muted-foreground ${isVariantC ? "hover:text-primary" : "hover:text-gold"} transition-colors`}>
               {t('footer.contact')}
             </Link>
-            <Link to="/become-affiliate" className="text-muted-foreground hover:text-gold transition-colors">
+            <Link to="/become-affiliate" className={`text-muted-foreground ${isVariantC ? "hover:text-primary" : "hover:text-gold"} transition-colors`}>
               {t('footer.becomeAffiliate')}
             </Link>
           </div>

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, X } from "lucide-react";
+import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, ArrowRight } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useABTest } from "@/hooks/useABTest";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLanguage();
   const { user, signOut } = useAuth();
+  const { isVariantC } = useABTest();
 
   const handleSignOut = async () => {
     await signOut();
@@ -36,8 +38,14 @@ export function Navbar() {
     { href: "#faq", label: t('nav.faq'), icon: HelpCircle },
   ];
 
+  const hoverClass = isVariantC ? "hover:text-primary" : "hover:text-gold";
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/30">
+    <nav className={`fixed top-0 left-0 right-0 z-50 border-b ${
+      isVariantC 
+        ? "bg-card/95 backdrop-blur-lg border-border" 
+        : "bg-background/80 backdrop-blur-lg border-border/30"
+    }`}>
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -48,16 +56,16 @@ export function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/blog" className="text-sm text-muted-foreground hover:text-gold transition-colors">
+            <Link to="/blog" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
               Blog
             </Link>
-            <a href="#how-it-works" className="text-sm text-muted-foreground hover:text-gold transition-colors">
+            <a href="#how-it-works" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
               {t('nav.howItWorks')}
             </a>
-            <a href="#testimonials" className="text-sm text-muted-foreground hover:text-gold transition-colors">
+            <a href="#testimonials" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
               {t('nav.testimonials')}
             </a>
-            <a href="#faq" className="text-sm text-muted-foreground hover:text-gold transition-colors">
+            <a href="#faq" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
               {t('nav.faq')}
             </a>
           </div>
@@ -92,11 +100,20 @@ export function Navbar() {
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/auth">Sign In</Link>
                 </Button>
-                <Button variant="cosmic" size="sm" asChild>
-                  <Link to="/intake?mode=discover">
-                    {t('nav.getReading')}
-                  </Link>
-                </Button>
+                {isVariantC ? (
+                  <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
+                    <Link to="/intake?mode=discover">
+                      Get Started
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button variant="cosmic" size="sm" asChild>
+                    <Link to="/intake?mode=discover">
+                      {t('nav.getReading')}
+                    </Link>
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -110,7 +127,11 @@ export function Navbar() {
                   <Menu className="w-6 h-6" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] bg-background/95 backdrop-blur-xl border-l border-border/50 p-0">
+              <SheetContent side="right" className={`w-[300px] border-l p-0 ${
+                isVariantC 
+                  ? "bg-card/98 backdrop-blur-xl border-border" 
+                  : "bg-background/95 backdrop-blur-xl border-border/50"
+              }`}>
                 <SheetHeader className="p-6 border-b border-border/30">
                   <div className="flex items-center justify-between">
                     <SheetTitle className="font-serif text-lg font-semibold text-foreground">
@@ -142,7 +163,7 @@ export function Navbar() {
                           to="/gift"
                           className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
                         >
-                          <Gift className="w-5 h-5 text-nebula-pink" />
+                          <Gift className="w-5 h-5 text-primary" />
                           <span className="font-medium">Send as Gift</span>
                         </Link>
                       </SheetClose>
@@ -157,7 +178,7 @@ export function Navbar() {
                             to="/my-reports"
                             className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
                           >
-                            <Sparkles className="w-5 h-5 text-gold" />
+                            <Sparkles className="w-5 h-5 text-accent" />
                             <span className="font-medium">My Reports</span>
                           </Link>
                         </SheetClose>
@@ -186,10 +207,17 @@ export function Navbar() {
                     )}
                     <SheetClose asChild>
                       <Link to="/intake?mode=discover" className="block">
-                        <Button variant="cosmic" className="w-full justify-center gap-2">
-                          <Sparkles className="w-4 h-4" />
-                          {t('nav.getReading')}
-                        </Button>
+                        {isVariantC ? (
+                          <Button className="w-full justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
+                            Get Started
+                            <ArrowRight className="w-4 h-4" />
+                          </Button>
+                        ) : (
+                          <Button variant="cosmic" className="w-full justify-center gap-2">
+                            <Sparkles className="w-4 h-4" />
+                            {t('nav.getReading')}
+                          </Button>
+                        )}
                       </Link>
                     </SheetClose>
                   </div>
