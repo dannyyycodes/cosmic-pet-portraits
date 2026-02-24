@@ -10,7 +10,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { VariantBackground } from '@/components/variants/VariantBackground';
+import { useVariantStyles } from '@/hooks/useVariantStyles';
 
 
 const emailSchema = z.string().email('Please enter a valid email address');
@@ -29,6 +30,7 @@ export default function Auth() {
   const { signIn, signUp, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { card, buttonVariant, isVariantC } = useVariantStyles();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -138,7 +140,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      <StarfieldBackground />
+      <VariantBackground />
       
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-20">
         <motion.div
@@ -146,7 +148,6 @@ export default function Auth() {
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md"
         >
-          {/* Back button */}
           <button
             onClick={() => mode === 'forgot' ? setMode('login') : navigate('/')}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
@@ -155,13 +156,16 @@ export default function Auth() {
             <span>{mode === 'forgot' ? 'Back to Sign In' : t('nav.backHome')}</span>
           </button>
           
-          {/* Logo */}
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, type: 'spring' }}
-              className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-cosmic-gold to-primary flex items-center justify-center"
+              className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                isVariantC 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-gradient-to-br from-cosmic-gold to-primary'
+              }`}
             >
               {resetSent ? (
                 <Check className="w-8 h-8 text-white" />
@@ -177,16 +181,13 @@ export default function Auth() {
             </p>
           </div>
 
-          {/* Form Card */}
           {!resetSent && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6"
+              className={card + " p-6"}
             >
-              {/* Email/Password authentication */}
-
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -228,7 +229,7 @@ export default function Auth() {
 
                 <Button
                   type="submit"
-                  variant="cosmic"
+                  variant={buttonVariant}
                   size="lg"
                   className="w-full"
                   disabled={loading}
@@ -273,13 +274,12 @@ export default function Auth() {
             </motion.div>
           )}
 
-          {/* Reset sent state */}
           {resetSent && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 text-center"
+              className={card + " p-6 text-center"}
             >
               <p className="text-muted-foreground mb-4">
                 Didn't receive the email? Check your spam folder or

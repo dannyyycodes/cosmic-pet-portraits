@@ -9,7 +9,7 @@ import { TestimonialPrompt } from '@/components/report/TestimonialPrompt';
 import { toast } from 'sonner';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
 import { CosmicButton } from '@/components/cosmic/CosmicButton';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { VariantBackground } from '@/components/variants/VariantBackground';
 
 const EMAIL_STORAGE_KEY = 'cosmic_report_email';
 
@@ -183,7 +183,7 @@ export default function ViewReport() {
   if (needsEmailVerification && !isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-6 relative overflow-hidden">
-        <StarfieldBackground />
+        <VariantBackground />
         <div className="max-w-md w-full text-center relative z-10">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/20 flex items-center justify-center">
             <span className="text-3xl">🔮</span>
@@ -237,7 +237,7 @@ export default function ViewReport() {
     
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-6 relative overflow-hidden">
-        <StarfieldBackground />
+        <VariantBackground />
         <div className="max-w-md text-center relative z-10">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-destructive/20 flex items-center justify-center">
             <span className="text-3xl">{isTimeout ? '⏳' : '😿'}</span>

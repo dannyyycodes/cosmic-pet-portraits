@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { VariantBackground } from '@/components/variants/VariantBackground';
 import { format } from 'date-fns';
 
 interface PetReport {
@@ -115,7 +115,7 @@ export default function MyReports() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      <StarfieldBackground />
+      <VariantBackground />
       
       <div className="relative z-10 min-h-screen px-6 py-10">
         <div className="max-w-4xl mx-auto">

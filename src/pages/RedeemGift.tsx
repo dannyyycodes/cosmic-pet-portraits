@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Gift, Sparkles, Heart, ArrowRight, Star, Wand2, Image, CalendarHeart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
+import { VariantBackground } from '@/components/variants/VariantBackground';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -119,7 +119,7 @@ export default function RedeemGift() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
-      <StarfieldBackground intensity="calm" />
+      <VariantBackground intensity="calm" />
       
       <div className="w-full max-w-md relative z-10">
         <motion.div

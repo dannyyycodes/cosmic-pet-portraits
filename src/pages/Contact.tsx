@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
-import { StarfieldBackground } from "@/components/cosmic/StarfieldBackground";
+import { VariantBackground } from "@/components/variants/VariantBackground";
 import { CosmicButton } from "@/components/cosmic/CosmicButton";
 import { Link } from "react-router-dom";
 import { Mail, MessageCircle, Clock, Shield } from "lucide-react";
@@ -42,7 +42,7 @@ export default function Contact() {
 
   return (
     <main className="min-h-screen bg-background">
-      <StarfieldBackground />
+      <VariantBackground />
       <Navbar />
       
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-24">
