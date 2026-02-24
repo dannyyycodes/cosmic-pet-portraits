@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 const tiers = [
   {
     name: "Personality Reading",
-    price: "$35",
+    price: "$27",
     badge: null,
     features: [
       "15+ page personalized report",
@@ -22,7 +22,7 @@ const tiers = [
   },
   {
     name: "Premium with Portrait",
-    price: "$50",
+    price: "$35",
     badge: "Most Popular",
     features: [
       "Everything in Personality Reading",
@@ -35,24 +35,6 @@ const tiers = [
     variant: "default" as const,
     elevated: true,
     link: "/intake?mode=discover",
-  },
-  {
-    name: "Weekly Updates",
-    price: "$4.99",
-    priceSuffix: "/mo",
-    badge: "Best Value",
-    badgeColor: "gold",
-    features: [
-      "Daily personality insights",
-      "Weekly horoscope updates",
-      "Seasonal personality shifts",
-      "Cancel anytime",
-    ],
-    cta: "Start Updates",
-    variant: "outline" as const,
-    elevated: false,
-    link: "/intake?mode=discover",
-    note: "Start with a one-time report. Upgrade anytime.",
   },
 ];
 
@@ -75,7 +57,7 @@ export const PricingPreview = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start max-w-2xl mx-auto">
           {tiers.map((tier, index) => (
             <motion.div
               key={index}
@@ -90,11 +72,7 @@ export const PricingPreview = () => {
               }`}>
                 {/* Badge */}
                 {tier.badge && (
-                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold ${
-                    tier.badgeColor === "gold" 
-                      ? "bg-[hsl(var(--warm-gold))] text-white" 
-                      : "bg-primary text-primary-foreground"
-                  }`}>
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-primary text-primary-foreground">
                     {tier.badge}
                   </div>
                 )}
@@ -104,9 +82,6 @@ export const PricingPreview = () => {
                   <h3 className="font-semibold text-foreground text-lg mb-1">{tier.name}</h3>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-3xl font-bold text-foreground">{tier.price}</span>
-                    {tier.priceSuffix && (
-                      <span className="text-sm text-muted-foreground">{tier.priceSuffix}</span>
-                    )}
                   </div>
                 </div>
 
@@ -131,10 +106,6 @@ export const PricingPreview = () => {
                   </Button>
                 </Link>
 
-                {/* Note */}
-                {tier.note && (
-                  <p className="text-xs text-muted-foreground text-center mt-3">{tier.note}</p>
-                )}
               </div>
             </motion.div>
           ))}
