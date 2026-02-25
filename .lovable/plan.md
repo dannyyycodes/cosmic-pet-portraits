@@ -1,93 +1,154 @@
 
 
-# Landing Page Overhaul: 7 Changes
-
-## Summary of Changes
-
-1. **Headline change** — "You'll Never Look at Them The Same Way Again" in orange
-2. **All buttons orange** — Change primary color from green to orange across the entire Variant C theme
-3. **Gift banner above navbar** — Butternut Box-style top banner linking to gift purchase
-4. **Glimpse Inside section** — Remove it (too weak, not adding value)
-5. **UGC section moved up** — Right after hero CTA, before anything else
-6. **Pricing update** — $27 Standard, $35 with Portrait. Remove Weekly Updates tier entirely (it's an upsell, not a landing page offer)
-7. **Remove How It Works** — Emotional buyers don't need process steps. FAQ covers it for analytical readers
+# 6 Changes: Green Banner, Remove MicroFAQ, Move Trustpilot, Remove Navbar/Branding, Add Decorations, Heartfelt Language
 
 ---
 
-## Technical Details
+## 1. Gift Banner → Green
 
-### File 1: `src/index.css` (lines 93-133)
-Change the `.variant-c` primary color from forest green to a warm orange:
-- `--primary`: from `145 47% 33%` (green) to `25 85% 55%` (warm orange, approx `#E07A30`)
-- `--ring`: same orange
-- `--warm-sage`, `--warm-green`: update to orange to match
-- All buttons, checkmarks, badges, and accents auto-inherit this change site-wide
+**File: `src/components/Navbar.tsx` (line 55)**
 
-### File 2: `src/components/variants/variant-c/HeroVariantC.tsx`
-- Change headline from "You'll Never Look at Your Pet" to "You'll Never Look at Them"
-- Change accent span from `text-primary` to explicit orange `text-[#E07A30]` so the headline orange stands out even if primary is used elsewhere
-- Keep Trustpilot badge, SampleCarousel, bullet strip, CTA — all auto-inherit orange via `bg-primary`
+Change `bg-[hsl(330_60%_30%)]` to `bg-[#2D7D46]` (forest green).
 
-### File 3: `src/components/Navbar.tsx`
-- Add a full-width gift banner **above** the navbar (like Butternut Box's "30% off your first 2 boxes + free gift →")
-- Banner text: "🎁 The perfect gift for a pet lover → Give a Personalized Reading" with arrow, linking to `/gift`
-- Styled with a contrasting background (e.g., a soft maroon/burgundy `#8B2252` or a deep warm color to stand out against buttery yellow) with white text
-- Dismissible with X button, stores state in sessionStorage
-- This replaces or sits alongside the existing `UrgencyBanner` — the gift banner is always-on, not time-limited
+---
 
-### File 4: `src/pages/Index.tsx`
-- **Remove** the `ReportPreviewSection` ("Glimpse Inside") import and its `VariantOnly` block (lines 163-168)
-- **Move** `VideoTestimonials` block to immediately after the Hero section (before `MicroFAQ`)
-- **Remove** the `HowItWorksVariantC` section from the Variant C renderer (lines 200-209) — keep A/B variants intact
-- Section order for Variant C becomes: Hero → UGC Videos → MicroFAQ → Testimonials → Perfect For → Pricing → Two Options Cards → Mid CTA → FAQ → Final CTA → Footer
+## 2. Remove MicroFAQ
 
-### File 5: `src/components/variants/variant-c/PricingPreview.tsx`
-- Change Standard tier: `$35` → `$27`, name stays "Personality Reading"
-- Change Premium tier: `$50` → `$35`, name stays "Premium with Portrait"
-- **Remove** the entire Weekly Updates tier (3rd column) — this is an upsell offered post-purchase, not on landing
-- Grid changes from `md:grid-cols-3` to `md:grid-cols-2` with `max-w-2xl` container
-- "Most Popular" badge stays on Premium
+**File: `src/pages/Index.tsx` (lines 165-168)**
 
-### File 6: `src/components/StickyMobileCTA.tsx`
-- Button already uses `bg-primary` — will auto-inherit orange from CSS change
+Remove the entire MicroFAQ `VariantOnly` block. The "Do I need my pet's birth time?" question is already covered in `FAQVariantC.tsx` (FAQ item #3).
 
-### File 7: `src/components/variants/variant-c/CTAVariantC.tsx`
-- Buttons already use `bg-primary` — will auto-inherit orange
+---
 
-### File 8: `src/components/ExitIntentPopup.tsx`
-- Uses `variant="gold"` button — no change needed, but the `primary` references in coupon styling will auto-inherit orange
+## 3. Move Trustpilot Below CTA Button
+
+**File: `src/components/variants/variant-c/HeroVariantC.tsx`**
+
+- Remove the Trustpilot badge from the top of the hero (lines 17-38)
+- Insert it between the CTA button and the "Instant delivery" text (inside the CTA motion.div, lines 80-96), rendered as a compact inline row: 5 green squares + "Excellent on ★ Trustpilot"
+
+---
+
+## 4. Remove Navbar for Variant C, Remove "AstroPets" Branding, Keep Language Selector in Footer
+
+**File: `src/components/Navbar.tsx`**
+
+- For Variant C: hide the entire `<nav>` element. Only the green gift banner remains visible above the page.
+- Remove "AstroPets" from the mobile sheet title (line 162) — replace with empty or generic text for non-C variants too.
+
+**File: `src/pages/Index.tsx` (footer, lines 350-371)**
+
+- For Variant C: add `LanguageSelector` and a `Blog` link into the footer alongside existing Terms/Privacy/Contact/Affiliate links
+- Remove the copyright text that says "The Cosmic Pet Report" for Variant C (or make it generic)
+
+**File: `src/components/StickyMobileCTA.tsx`**
+
+- Update the gradient background from `hsl(35,33%,98%)` to the buttery yellow `#FFF4D2` to match the Variant C background
+
+---
+
+## 5. Add Floating Hearts & Paw Decorations
+
+**New file: `src/components/variants/variant-c/FloatingDecorations.tsx`**
+
+- 10-12 scattered decorative elements: paw prints (🐾) and hearts (❤️)
+- Semi-transparent (opacity 0.06-0.12), warm orange/gold/brown tones
+- Gentle floating animation using framer-motion (slow Y drift, slight rotation)
+- `fixed inset-0 pointer-events-none z-[5]` so they don't block interaction
+- Hidden on mobile via `hidden md:block` to avoid clutter on small screens
+
+**File: `src/pages/Index.tsx`**
+
+- Import and render `FloatingDecorations` inside a `VariantOnly variants="C"` block
+
+---
+
+## 6. More Heartfelt Language Throughout
+
+Update copy across all Variant C sections to use warmer, more emotional language:
+
+**HeroVariantC.tsx:**
+- Subheadline: "A 15+ page personalized report that captures who your companion really is" → "A beautifully crafted report that reveals the soul of your beloved companion — their quirks, their love language, and why they chose you."
+- Bullet points:
+  - "Understand why they do what they do" → "Finally understand what's behind those eyes"
+  - "Discover their emotional blueprint" → "Discover how deeply they love you"
+  - "Keep a beautifully designed memory forever" → "A keepsake you'll treasure forever"
+- CTA button: "Meet My Pet's True Self" → "Discover Who They Really Are"
+
+**CTAVariantC.tsx:**
+- Mid CTA heading: "Your pet already knows who they are..." → "The bond you share is deeper than you know."
+- Mid CTA subtext: "Discover their personality, quirks..." → "Uncover the beautiful, hidden layers of your relationship in a keepsake you'll treasure forever."
+- Final CTA heading: "Create their personalized 15+ page report now." → "Give them the love letter they deserve."
+- Final CTA subtext: "100% money-back guarantee. No questions asked." → "A beautiful keepsake that captures everything you love about them. 100% money-back guarantee."
+- Mid button: "Create My Pet's Report" → "Discover Our Bond"
+- Final button: "Start Now — It Takes 60 Seconds" → "Create Their Story Now"
+
+**TestimonialsVariantC.tsx:**
+- Section heading: "Real Stories from Real Pet Parents" → "They Changed Our Lives. We Captured Theirs."
+- Subheading: "Join thousands of pet parents who've discovered something special" → "Hear from pet parents who finally understood the depth of their bond"
+
+**PerfectForSection.tsx:**
+- Occasion labels more emotional:
+  - "Pet birthdays" → "Celebrating their special day"
+  - "Gotcha days" → "Honoring the day you found each other"
+  - "Memorial keepsakes" → "Keeping their memory alive"
+  - "Surprise gifts" → "A gift that says 'I see you'"
+
+**PricingPreview.tsx:**
+- Heading: "Choose How You Want to Remember Them" → "Choose How You Want to Celebrate Them"
+- Subheading: "Every option includes a beautiful, personalized report" → "Every option is a love letter to your best friend"
+
+**VideoTestimonials.tsx:**
+- Section heading: "See Why Pet Parents Can't Stop Sharing" → "These Moments Made Pet Parents Cry"
+- Subheading: "Real stories from real pet parents" → "The moment you realize how deeply they've touched your life"
+
+**FAQVariantC.tsx:**
+- FAQ intro answer: "Think of it as a love letter to your pet" → "Think of it as a love letter to your best friend — written with real insight into who they truly are"
+
+**Index.tsx (Two Options Cards):**
+- "Two Ways to Start" → "Two Ways to Celebrate Your Bond"
+- "Whether for yourself or as a gift they'll never forget" → "Whether for yourself or as a heartfelt gift they'll never forget"
+- "For My Pet" subtext: "Get a beautiful personalized personality report" → "Discover the beautiful soul behind those eyes"
+- "For a Friend" subtext: "A unique, personalized gift — delivered instantly" → "Give the most meaningful gift a pet lover could receive"
+
+**StickyMobileCTA.tsx:**
+- Button text: "Get My Pet's Report" → "Discover Their Soul"
 
 ---
 
 ## Section Order After Changes (Variant C)
 
 ```text
-[Gift Banner - always visible above navbar]
-[Navbar]
-Hero (headline in orange, orange CTA)
-UGC Video Testimonials (moved up)
-Micro FAQ
-Written Testimonials
-Perfect For
-Pricing ($27 / $35, two columns)
-Two Options Cards (For My Pet / For a Friend)
-Mid CTA
+[Green Gift Banner - dismissible]
+(no navbar)
+Hero (Trustpilot below CTA button, heartfelt copy)
+UGC Video Testimonials (emotional heading)
+Written Testimonials (emotional heading)
+Perfect For (emotional labels)
+Pricing ($27 / $35, heartfelt heading)
+Two Options Cards (heartfelt copy)
+Mid CTA (heartfelt copy)
 FAQ
-Final CTA
-Footer
+Final CTA (heartfelt copy)
+Footer (Terms · Privacy · Contact · Blog · Affiliate · Language Selector)
+[Floating hearts & paws decoration layer]
 ```
 
----
+## Files Modified
 
-## What Gets Removed
-- "A Glimpse Inside" report preview section (entire component stays in codebase, just removed from page)
-- "How It Works" section (for Variant C only — A/B keep theirs)
-- Weekly Updates pricing tier
+| File | Change |
+|------|--------|
+| `src/components/Navbar.tsx` | Green banner, hide nav for Variant C |
+| `src/components/variants/variant-c/HeroVariantC.tsx` | Move Trustpilot below button, heartfelt copy |
+| `src/pages/Index.tsx` | Remove MicroFAQ, add FloatingDecorations, footer updates, heartfelt copy in options cards |
+| `src/components/variants/variant-c/FloatingDecorations.tsx` | **NEW** — floating hearts & paws |
+| `src/components/variants/variant-c/CTAVariantC.tsx` | Heartfelt copy |
+| `src/components/variants/variant-c/TestimonialsVariantC.tsx` | Heartfelt heading, update accent colors from green to orange |
+| `src/components/variants/variant-c/PerfectForSection.tsx` | Heartfelt occasion labels |
+| `src/components/variants/variant-c/PricingPreview.tsx` | Heartfelt heading/subheading |
+| `src/components/variants/variant-c/VideoTestimonials.tsx` | Heartfelt heading |
+| `src/components/variants/variant-c/FAQVariantC.tsx` | Minor wording tweak |
+| `src/components/StickyMobileCTA.tsx` | Heartfelt button text, fix gradient bg |
 
-## What Stays
-- Variants A and B completely untouched
-- All other components, backend, database unchanged
-- No new dependencies
-
-**Total files modified: ~6-7**
+No new dependencies. No database changes. Variants A and B untouched.
 
