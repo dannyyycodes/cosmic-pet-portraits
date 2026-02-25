@@ -55,25 +55,33 @@ const PawPrint = ({ style }: { style: React.CSSProperties }) => (
 // ─── Paw decorations for a section ───
 const SectionPaws = ({ visible }: { visible: boolean }) => {
   const paws = [
-    { left: "3%", top: "18%", rotate: "175deg", scaleX: 1 },
-    { left: "6%", top: "55%", rotate: "185deg", scaleX: 1 },
-    { right: "4%", top: "25%", rotate: "180deg", scaleX: -1 },
-    { right: "7%", top: "65%", rotate: "170deg", scaleX: -1 },
+    { left: "2%", top: "18%", rotate: "175deg", scaleX: 1 },
+    { left: "5%", top: "55%", rotate: "185deg", scaleX: 1 },
+    { right: "2%", top: "25%", rotate: "180deg", scaleX: -1 },
+    { right: "5%", top: "65%", rotate: "170deg", scaleX: -1 },
   ];
   return (
     <>
       {paws.map((p, i) => (
-        <PawPrint
+        <div
           key={i}
+          className="scale-[0.7] md:scale-100"
           style={{
+            position: "absolute",
             ...(p.left ? { left: p.left } : {}),
             ...(p.right ? { right: p.right } : {}),
             top: p.top,
-            transform: `rotate(${p.rotate}) scaleX(${p.scaleX})`,
-            opacity: visible ? 1 : 0,
-            transition: `opacity 1.2s ease ${i * 0.15}s`,
           }}
-        />
+        >
+          <PawPrint
+            style={{
+              position: "relative",
+              transform: `rotate(${p.rotate}) scaleX(${p.scaleX})`,
+              opacity: visible ? 1 : 0,
+              transition: `opacity 1.2s ease ${i * 0.15}s`,
+            }}
+          />
+        </div>
       ))}
     </>
   );
@@ -177,14 +185,11 @@ const Beat = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "80px 28px",
+        padding: "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px)",
         background: background ?? COLORS.cream,
       }}
     >
-      {/* Hide paws below 420px */}
-      <div className="hidden min-[420px]:block">
-        <SectionPaws visible={visible} />
-      </div>
+      <SectionPaws visible={visible} />
       <div style={{ maxWidth: 750, width: "100%", textAlign: "center" }}>
         {children(visible)}
       </div>
@@ -522,7 +527,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ UGC TESTIMONIALS ═══ */}
-      <section style={{ background: COLORS.cream, padding: "80px 28px 60px", textAlign: "center" }}>
+      <section style={{ background: COLORS.cream, padding: "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px) clamp(30px, 6vw, 60px)", textAlign: "center" }}>
         <p
           style={{
             fontFamily: "Cormorant, Georgia, serif",
