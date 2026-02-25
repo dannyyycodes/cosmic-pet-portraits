@@ -1,77 +1,41 @@
 
 
-# Emotional Journey — Editorial Typography & Animated Trail Redesign
+# Fix: Mobile Spacing — Reduce Section Heights for Faster Scrolling
 
-## Single File Change: `src/components/variants/variant-c/EmotionalJourney.tsx`
+## Problem
 
-Complete rewrite of the component to apply the exact 4-level typography system, animated meandering trail dividers, and section-specific refinements.
+Every beat uses `minHeight: "100vh"` (or 60-80vh), which on mobile creates enormous empty whitespace around small text blocks. The page takes far too long to scroll through because each section forces a full screen height even when the content only needs a fraction of that.
 
----
+## Solution
 
-### 1. Typography Hierarchy (4 strict levels)
+Use responsive min-heights: keep the cinematic full-viewport feel on desktop but collapse to content-driven heights on mobile. Replace static `minHeight` values with CSS `clamp()` or media-query-aware values.
 
-| Level | Class String |
-|-------|-------------|
-| **Headlines** | `font-serif text-4xl md:text-6xl font-bold tracking-tighter text-slate-900` + inline style `textWrap: 'balance'` |
-| **Whispers** | `font-sans text-xs md:text-sm font-light uppercase tracking-[0.3em] text-slate-500` |
-| **Power Lines** | `font-serif text-2xl md:text-3xl italic font-medium text-slate-800 leading-relaxed` |
-| **Signature** | `font-caveat text-3xl md:text-4xl text-slate-900` — ONLY the final line |
+### Changes to `Beat` component and each beat's `minHeight`
 
-All `text-primary`, `text-foreground`, `text-muted-foreground` classes replaced with the specific slate values above.
+| Beat | Current | Mobile (< 768px) | Desktop |
+|------|---------|-------------------|---------|
+| 1 (headline) | `100vh` | `60vh` | `100vh` |
+| 2 (whisper) | `60vh` | `35vh` | `60vh` |
+| 3 ("just") | `65vh` | `30vh` | `65vh` |
+| 4 (loyalty) | `70vh` | `45vh` | `70vh` |
+| 5 (not just a pet) | `100vh` | `60vh` | `100vh` |
+| 6 (incantation) | `80vh` | `50vh` | `80vh` |
+| 7 (means something) | `60vh` | `35vh` | `60vh` |
+| 8 (act of love) | `100vh` | `60vh` | `100vh` |
+| 9 (I see you) | `75vh` | `50vh` | `75vh` |
+| 10 (signature) | `100vh` | `60vh` | `100vh` |
+| CTA | `100vh` | `60vh` | `100vh` |
 
----
+**Implementation approach**: Since `minHeight` is set via inline styles and we can't use Tailwind breakpoints there, we'll detect mobile via a simple check (`window.innerWidth < 768`) and pass a multiplier, OR use CSS `clamp()` on minHeight values. The cleanest approach: update the `Beat` component to accept both a `minHeight` and a `mobileMinHeight`, then use a media query via `matchMedia` or simply use the existing `useIsMobile` hook.
 
-### 2. TrailDivider Component (replaces PawHeartDivider)
+### Additional mobile tightening
 
-New component using `framer-motion`. Three icons stacked vertically (Paw → Heart → Paw), each offset on the X-axis to create a meandering walking path:
+- Reduce vertical padding on mobile from `clamp(40px, 8vw, 80px)` to `clamp(24px, 6vw, 80px)` — saves ~16px per section on small screens
+- UGC video cards: reduce from 180px wide to 140px on mobile so they fit 2 per row without excess scrolling
 
-- Icon 1 (Paw): `x: -12`, opacity `0.6`, delay `0s`
-- Icon 2 (Heart): `x: 12`, opacity `0.4`, delay `0.2s`
-- Icon 3 (Paw): `x: 0`, opacity `0.2`, delay `0.4s`
-
-Each wrapped in `motion.div` with `whileInView` trigger, `viewport: { once: true }`. Icons use `text-blue-500/50` for paws and `text-red-500/50` for hearts. Arranged in a `flex flex-col items-center gap-1` container with `py-12 md:py-16`.
-
----
-
-### 3. Section-by-Section Changes
-
-**Section 1 — "They Love You Without Conditions."**
-- Headline: Level 1 (serif, `text-4xl md:text-6xl`, bold, `tracking-tighter`, `text-slate-900`)
-- "On your best days." / "On your worst days." / "No judgement." / "No expectations.": Level 2 Whisper style
-- "Just loyalty. Just presence. Just love.": Level 3 Power Line. Replace periods with ` · ` (middle dot separator) for editorial look → "Just loyalty · Just presence · Just love."
-- Padding: `py-24 md:py-32`, content `max-w-3xl mx-auto text-center`
-
-**Section 2 — "They're Not 'Just a Pet.'"**
-- Headline: Level 1
-- "They are a living, feeling soul..." paragraph: `font-serif text-lg md:text-xl text-slate-600 leading-relaxed`
-- "The way they comfort/protect/choose you": `font-serif italic text-slate-700 pl-4`, each with staggered fade-in (increasing delay)
-- "That means something.": Level 3 Power Line
-- Same padding and max-width
-
-**Section 3 — "This Is an Act of Love."**
-- Headline: Level 1
-- Body lines ("Taking the time..."): Level 2 Whisper style
-- "It's a small way of saying:": Whisper style
-- **Floating Quote**: Remove the card (`bg-primary/5`, border, rounded). Replace with a `relative` container. Place a massive decorative `"` behind the text using `absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 text-[160px] font-serif text-slate-900 opacity-5 select-none pointer-events-none leading-none`. The quote lines ("I see you." etc.) rendered as `font-serif italic text-lg md:text-xl text-slate-800` centered in the white space.
-- "Because when someone loves you unconditionally…": Whisper style
-- "the most beautiful thing you can do": Level 3 Power Line
-- "is try to understand them in return.": Level 4 Signature (`font-caveat text-3xl md:text-4xl text-slate-900`) with blur-reveal animation: `initial: { filter: 'blur(10px)', opacity: 0 }`, `whileInView: { filter: 'blur(0px)', opacity: 1 }`, `transition: { duration: 0.8 }`
-
----
-
-### 4. Layout & Rhythm
-
-- All three sections: `px-6 py-24 md:py-32`
-- All content containers: `max-w-3xl mx-auto text-center`
-- Line spacing within sections: `space-y-3 md:space-y-4`
-
----
-
-### File Summary
+### File changed
 
 | File | Change |
 |------|--------|
-| `src/components/variants/variant-c/EmotionalJourney.tsx` | Full rewrite: 4-level typography, animated meandering trail dividers, floating quote, blur-reveal signature, editorial spacing |
-
-No other files modified. Fonts (`Playfair Display`, `Caveat`, `Lato`) and config are already in place.
+| `src/components/variants/variant-c/EmotionalJourney.tsx` | Import `useIsMobile`, add `mobileMinHeight` prop to `Beat`, reduce all section heights on mobile, tighten padding |
 
