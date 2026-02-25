@@ -1,19 +1,41 @@
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const fadeIn = {
-  initial: { opacity: 0, y: 12 },
+  initial: { opacity: 0, y: 10 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-40px" },
-  transition: { duration: 0.6, ease: "easeOut" as const },
+  viewport: { once: true, margin: "-30px" },
+  transition: { duration: 0.5, ease: "easeOut" as const },
 };
 
 const lineFade = (delay: number) => ({
   ...fadeIn,
-  transition: { duration: 0.5, delay, ease: "easeOut" as const },
+  transition: { duration: 0.4, delay, ease: "easeOut" as const },
 });
+
+// Tiny paw SVG
+const PawIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 100 100" fill="currentColor" className="text-blue-400/40">
+    <ellipse cx="50" cy="68" rx="18" ry="16" />
+    <ellipse cx="30" cy="42" rx="9" ry="11" />
+    <ellipse cx="50" cy="32" rx="9" ry="11" />
+    <ellipse cx="70" cy="42" rx="9" ry="11" />
+  </svg>
+);
+
+// Tiny heart SVG
+const HeartIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-red-400/40">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+  </svg>
+);
+
+const PawHeartDivider = () => (
+  <div className="flex items-center justify-center gap-2 py-6 sm:py-8 select-none">
+    <PawIcon />
+    <HeartIcon />
+    <PawIcon />
+  </div>
+);
 
 interface EmotionalJourneyProps {
   trackCTAClick: (cta: string, location: string) => void;
@@ -23,47 +45,41 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
   return (
     <div className="relative z-10">
       {/* Section 1 — They Love You Without Conditions */}
-      <section className="px-4 py-20 sm:py-28">
-        <div className="max-w-2xl mx-auto text-center">
+      <section className="px-4 py-10 sm:py-14">
+        <div className="max-w-xl mx-auto text-center">
           <motion.h2
             {...fadeIn}
-            className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground mb-10 sm:mb-14 leading-tight"
+            className="text-3xl sm:text-4xl font-caveat font-bold text-foreground mb-5 sm:mb-7 leading-tight"
           >
             They Love You Without Conditions.
           </motion.h2>
 
-          <div className="space-y-4 sm:space-y-5">
-            {[
-              "On your best days.",
-              "On your worst days.",
-            ].map((line, i) => (
+          <div className="space-y-2 sm:space-y-3">
+            {["On your best days.", "On your worst days."].map((line, i) => (
               <motion.p
                 key={i}
-                {...lineFade(i * 0.12)}
-                className="text-lg sm:text-xl text-muted-foreground font-serif"
+                {...lineFade(i * 0.1)}
+                className="text-base sm:text-lg text-muted-foreground font-serif"
               >
                 {line}
               </motion.p>
             ))}
 
-            <motion.div {...lineFade(0.3)} className="py-3" />
+            <motion.div {...lineFade(0.25)} className="py-2" />
 
-            {[
-              "No judgement.",
-              "No expectations.",
-            ].map((line, i) => (
+            {["No judgement.", "No expectations."].map((line, i) => (
               <motion.p
                 key={line}
-                {...lineFade(0.3 + i * 0.12)}
-                className="text-lg sm:text-xl text-muted-foreground font-serif"
+                {...lineFade(0.25 + i * 0.1)}
+                className="text-base sm:text-lg text-muted-foreground font-serif"
               >
                 {line}
               </motion.p>
             ))}
 
             <motion.p
-              {...lineFade(0.6)}
-              className="text-xl sm:text-2xl text-foreground font-serif font-semibold pt-4"
+              {...lineFade(0.5)}
+              className="text-lg sm:text-xl text-primary font-serif font-semibold pt-3"
             >
               Just loyalty. Just presence. Just love.
             </motion.p>
@@ -71,32 +87,27 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
         </div>
       </section>
 
-      {/* Subtle divider */}
-      <div className="flex justify-center py-4">
-        <motion.span {...fadeIn} className="text-primary/30 text-2xl tracking-widest select-none">
-          · · ·
-        </motion.span>
-      </div>
+      <PawHeartDivider />
 
       {/* Section 2 — They're Not "Just a Pet." */}
-      <section className="px-4 py-20 sm:py-28">
-        <div className="max-w-2xl mx-auto text-center">
+      <section className="px-4 py-10 sm:py-14">
+        <div className="max-w-xl mx-auto text-center">
           <motion.h2
             {...fadeIn}
-            className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground mb-10 sm:mb-14 leading-tight"
+            className="text-3xl sm:text-4xl font-caveat font-bold text-foreground mb-5 sm:mb-7 leading-tight"
           >
             They're Not "Just a Pet."
           </motion.h2>
 
           <motion.p
             {...lineFade(0.1)}
-            className="text-lg sm:text-xl text-muted-foreground font-serif leading-relaxed mb-10"
+            className="text-base sm:text-lg text-muted-foreground font-serif leading-relaxed mb-6"
           >
             They are a living, feeling soul with their own personality,
             their own quirks, their own inner world.
           </motion.p>
 
-          <div className="space-y-4 sm:space-y-5">
+          <div className="space-y-2 sm:space-y-3">
             {[
               "The way they comfort you.",
               "The way they protect you.",
@@ -104,8 +115,8 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
             ].map((line, i) => (
               <motion.p
                 key={i}
-                {...lineFade(0.2 + i * 0.12)}
-                className="text-lg sm:text-xl text-muted-foreground font-serif"
+                {...lineFade(0.2 + i * 0.1)}
+                className="text-base sm:text-lg text-muted-foreground font-serif"
               >
                 {line}
               </motion.p>
@@ -113,32 +124,27 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
           </div>
 
           <motion.p
-            {...lineFade(0.6)}
-            className="text-xl sm:text-2xl text-foreground font-serif font-bold mt-10"
+            {...lineFade(0.55)}
+            className="text-lg sm:text-xl text-primary font-serif font-bold mt-6"
           >
             That means something.
           </motion.p>
         </div>
       </section>
 
-      {/* Subtle divider */}
-      <div className="flex justify-center py-4">
-        <motion.span {...fadeIn} className="text-primary/30 text-2xl tracking-widest select-none">
-          · · ·
-        </motion.span>
-      </div>
+      <PawHeartDivider />
 
       {/* Section 3 — This Is an Act of Love */}
-      <section className="px-4 py-20 sm:py-28">
-        <div className="max-w-2xl mx-auto text-center">
+      <section className="px-4 py-10 sm:py-14">
+        <div className="max-w-xl mx-auto text-center">
           <motion.h2
             {...fadeIn}
-            className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground mb-10 sm:mb-14 leading-tight"
+            className="text-3xl sm:text-4xl font-caveat font-bold text-foreground mb-5 sm:mb-7 leading-tight"
           >
             This Is an Act of Love.
           </motion.h2>
 
-          <div className="space-y-4 sm:space-y-5 mb-12">
+          <div className="space-y-2 sm:space-y-3 mb-8">
             {[
               "Taking the time to understand them more deeply.",
               "To see who they are as an individual soul.",
@@ -146,8 +152,8 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
             ].map((line, i) => (
               <motion.p
                 key={i}
-                {...lineFade(0.1 + i * 0.12)}
-                className="text-lg sm:text-xl text-muted-foreground font-serif"
+                {...lineFade(0.1 + i * 0.1)}
+                className="text-base sm:text-lg text-muted-foreground font-serif"
               >
                 {line}
               </motion.p>
@@ -155,60 +161,37 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
           </div>
 
           <motion.p
-            {...lineFade(0.5)}
-            className="text-base sm:text-lg text-muted-foreground font-serif mb-8"
+            {...lineFade(0.4)}
+            className="text-sm sm:text-base text-muted-foreground font-serif mb-5"
           >
             It's a small way of saying:
           </motion.p>
 
-          {/* Quoted block */}
+          {/* Quoted block — warm card */}
           <motion.div
-            {...lineFade(0.6)}
-            className="border-l-4 border-primary/30 pl-6 sm:pl-8 py-4 my-10 text-left max-w-md mx-auto"
+            {...lineFade(0.5)}
+            className="rounded-2xl bg-primary/5 border border-primary/10 px-6 py-5 sm:px-8 sm:py-6 my-6 max-w-sm mx-auto"
           >
-            <p className="text-lg sm:text-xl text-foreground font-serif italic leading-relaxed">
+            <p className="text-base sm:text-lg text-foreground font-serif italic leading-relaxed">
               "I see you.
             </p>
-            <p className="text-lg sm:text-xl text-foreground font-serif italic leading-relaxed mt-2">
+            <p className="text-base sm:text-lg text-foreground font-serif italic leading-relaxed mt-1">
               I appreciate you.
             </p>
-            <p className="text-lg sm:text-xl text-foreground font-serif italic leading-relaxed mt-2">
+            <p className="text-base sm:text-lg text-foreground font-serif italic leading-relaxed mt-1">
               I'm grateful you're in my life."
             </p>
           </motion.div>
 
-          <motion.div {...lineFade(0.7)} className="mt-12 space-y-2">
-            <p className="text-base sm:text-lg text-muted-foreground font-serif leading-relaxed">
+          <motion.div {...lineFade(0.6)} className="mt-8 space-y-1">
+            <p className="text-sm sm:text-base text-muted-foreground font-serif leading-relaxed">
               Because when someone loves you unconditionally…
             </p>
-            <p className="text-xl sm:text-2xl text-foreground font-serif font-semibold leading-relaxed mt-4">
+            <p className="text-2xl sm:text-3xl text-foreground font-caveat font-bold leading-snug mt-3">
               the most beautiful thing you can do
             </p>
-            <p className="text-xl sm:text-2xl text-foreground font-serif font-semibold leading-relaxed">
+            <p className="text-2xl sm:text-3xl text-foreground font-caveat font-bold leading-snug">
               is try to understand them in return.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA after emotional journey */}
-      <section className="px-4 py-12 sm:py-16">
-        <div className="max-w-sm mx-auto text-center">
-          <motion.div {...fadeIn}>
-            <Link
-              to="/checkout?tier=premium"
-              onClick={() => trackCTAClick("get_reading", "emotional_journey")}
-            >
-              <Button
-                size="lg"
-                className="w-full text-base sm:text-lg px-6 py-7 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold group transition-all"
-              >
-                Discover Who They Really Are
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <p className="text-xs text-muted-foreground mt-3">
-              Instant delivery · 100% money-back guarantee
             </p>
           </motion.div>
         </div>

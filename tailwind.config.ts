@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         sans: ['Lato', 'system-ui', 'sans-serif'],
         serif: ['Playfair Display', 'Georgia', 'serif'],
+        caveat: ['Caveat', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
