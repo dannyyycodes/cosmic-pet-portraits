@@ -1,154 +1,146 @@
 
 
-# 6 Changes: Green Banner, Remove MicroFAQ, Move Trustpilot, Remove Navbar/Branding, Add Decorations, Heartfelt Language
+# Purchase-First Flow + 50/50 Traffic Split + Conversion Tracking
+
+## Summary
+
+Two major changes:
+1. **50/50 A/C traffic split** with conversion tracking per variant
+2. **Variant C purchase-first flow**: Landing page CTA → Checkout (Stripe captures email) → Post-purchase mini-intake → Report
+
+No separate email step — Stripe handles email collection during checkout. Minimal friction.
 
 ---
 
-## 1. Gift Banner → Green
+## Technical Details
 
-**File: `src/components/Navbar.tsx` (line 55)**
+### 1. 50/50 Traffic Split
 
-Change `bg-[hsl(330_60%_30%)]` to `bg-[#2D7D46]` (forest green).
+**File: `src/contexts/ABTestContext.tsx`**
 
----
-
-## 2. Remove MicroFAQ
-
-**File: `src/pages/Index.tsx` (lines 165-168)**
-
-Remove the entire MicroFAQ `VariantOnly` block. The "Do I need my pet's birth time?" question is already covered in `FAQVariantC.tsx` (FAQ item #3).
-
----
-
-## 3. Move Trustpilot Below CTA Button
-
-**File: `src/components/variants/variant-c/HeroVariantC.tsx`**
-
-- Remove the Trustpilot badge from the top of the hero (lines 17-38)
-- Insert it between the CTA button and the "Instant delivery" text (inside the CTA motion.div, lines 80-96), rendered as a compact inline row: 5 green squares + "Excellent on ★ Trustpilot"
-
----
-
-## 4. Remove Navbar for Variant C, Remove "AstroPets" Branding, Keep Language Selector in Footer
-
-**File: `src/components/Navbar.tsx`**
-
-- For Variant C: hide the entire `<nav>` element. Only the green gift banner remains visible above the page.
-- Remove "AstroPets" from the mobile sheet title (line 162) — replace with empty or generic text for non-C variants too.
-
-**File: `src/pages/Index.tsx` (footer, lines 350-371)**
-
-- For Variant C: add `LanguageSelector` and a `Blog` link into the footer alongside existing Terms/Privacy/Contact/Affiliate links
-- Remove the copyright text that says "The Cosmic Pet Report" for Variant C (or make it generic)
-
-**File: `src/components/StickyMobileCTA.tsx`**
-
-- Update the gradient background from `hsl(35,33%,98%)` to the buttery yellow `#FFF4D2` to match the Variant C background
-
----
-
-## 5. Add Floating Hearts & Paw Decorations
-
-**New file: `src/components/variants/variant-c/FloatingDecorations.tsx`**
-
-- 10-12 scattered decorative elements: paw prints (🐾) and hearts (❤️)
-- Semi-transparent (opacity 0.06-0.12), warm orange/gold/brown tones
-- Gentle floating animation using framer-motion (slow Y drift, slight rotation)
-- `fixed inset-0 pointer-events-none z-[5]` so they don't block interaction
-- Hidden on mobile via `hidden md:block` to avoid clutter on small screens
-
-**File: `src/pages/Index.tsx`**
-
-- Import and render `FloatingDecorations` inside a `VariantOnly variants="C"` block
-
----
-
-## 6. More Heartfelt Language Throughout
-
-Update copy across all Variant C sections to use warmer, more emotional language:
-
-**HeroVariantC.tsx:**
-- Subheadline: "A 15+ page personalized report that captures who your companion really is" → "A beautifully crafted report that reveals the soul of your beloved companion — their quirks, their love language, and why they chose you."
-- Bullet points:
-  - "Understand why they do what they do" → "Finally understand what's behind those eyes"
-  - "Discover their emotional blueprint" → "Discover how deeply they love you"
-  - "Keep a beautifully designed memory forever" → "A keepsake you'll treasure forever"
-- CTA button: "Meet My Pet's True Self" → "Discover Who They Really Are"
-
-**CTAVariantC.tsx:**
-- Mid CTA heading: "Your pet already knows who they are..." → "The bond you share is deeper than you know."
-- Mid CTA subtext: "Discover their personality, quirks..." → "Uncover the beautiful, hidden layers of your relationship in a keepsake you'll treasure forever."
-- Final CTA heading: "Create their personalized 15+ page report now." → "Give them the love letter they deserve."
-- Final CTA subtext: "100% money-back guarantee. No questions asked." → "A beautiful keepsake that captures everything you love about them. 100% money-back guarantee."
-- Mid button: "Create My Pet's Report" → "Discover Our Bond"
-- Final button: "Start Now — It Takes 60 Seconds" → "Create Their Story Now"
-
-**TestimonialsVariantC.tsx:**
-- Section heading: "Real Stories from Real Pet Parents" → "They Changed Our Lives. We Captured Theirs."
-- Subheading: "Join thousands of pet parents who've discovered something special" → "Hear from pet parents who finally understood the depth of their bond"
-
-**PerfectForSection.tsx:**
-- Occasion labels more emotional:
-  - "Pet birthdays" → "Celebrating their special day"
-  - "Gotcha days" → "Honoring the day you found each other"
-  - "Memorial keepsakes" → "Keeping their memory alive"
-  - "Surprise gifts" → "A gift that says 'I see you'"
-
-**PricingPreview.tsx:**
-- Heading: "Choose How You Want to Remember Them" → "Choose How You Want to Celebrate Them"
-- Subheading: "Every option includes a beautiful, personalized report" → "Every option is a love letter to your best friend"
-
-**VideoTestimonials.tsx:**
-- Section heading: "See Why Pet Parents Can't Stop Sharing" → "These Moments Made Pet Parents Cry"
-- Subheading: "Real stories from real pet parents" → "The moment you realize how deeply they've touched your life"
-
-**FAQVariantC.tsx:**
-- FAQ intro answer: "Think of it as a love letter to your pet" → "Think of it as a love letter to your best friend — written with real insight into who they truly are"
-
-**Index.tsx (Two Options Cards):**
-- "Two Ways to Start" → "Two Ways to Celebrate Your Bond"
-- "Whether for yourself or as a gift they'll never forget" → "Whether for yourself or as a heartfelt gift they'll never forget"
-- "For My Pet" subtext: "Get a beautiful personalized personality report" → "Discover the beautiful soul behind those eyes"
-- "For a Friend" subtext: "A unique, personalized gift — delivered instantly" → "Give the most meaningful gift a pet lover could receive"
-
-**StickyMobileCTA.tsx:**
-- Button text: "Get My Pet's Report" → "Discover Their Soul"
-
----
-
-## Section Order After Changes (Variant C)
-
-```text
-[Green Gift Banner - dismissible]
-(no navbar)
-Hero (Trustpilot below CTA button, heartfelt copy)
-UGC Video Testimonials (emotional heading)
-Written Testimonials (emotional heading)
-Perfect For (emotional labels)
-Pricing ($27 / $35, heartfelt heading)
-Two Options Cards (heartfelt copy)
-Mid CTA (heartfelt copy)
-FAQ
-Final CTA (heartfelt copy)
-Footer (Terms · Privacy · Contact · Blog · Affiliate · Language Selector)
-[Floating hearts & paws decoration layer]
+Change `assignVariant()` from always returning `"C"` to a 50/50 random split:
+```
+const assignVariant = (): ABVariant => {
+  return Math.random() < 0.5 ? "A" : "C";
+};
 ```
 
-## Files Modified
+Existing visitors keep their stored variant (localStorage). Only new visitors get randomly assigned. URL override (`?variant=A` / `?variant=C`) still works for testing.
+
+### 2. Conversion Tracking Per Variant
+
+The analytics system already tracks `ab_variant` in every event via `usePageAnalytics.ts` (line 33-37). Page views, scroll depth, CTA clicks, and section views all include the variant.
+
+**Additional tracking needed:**
+
+**File: `supabase/functions/create-checkout/index.ts`**
+- Add `ab_variant` to the Stripe checkout session metadata (passed from frontend)
+- This lets you query Stripe or your `page_analytics` table to see conversion rates per variant
+
+**File: `src/components/intake/IntakeWizard.tsx`**
+- Pass the current AB variant when calling `create-checkout` so it's stored in Stripe metadata
+
+**File: `src/components/intake/CheckoutPanel.tsx`**
+- Accept and forward `abVariant` prop
+
+### 3. Variant C Purchase-First Flow
+
+The key insight: for Variant C, users click a CTA on the landing page and go straight to a **checkout page** (not a 13-step intake). Stripe captures their email. After payment, they fill in 5 quick pet details.
+
+#### New Flow Architecture
+
+```text
+Variant A (unchanged):
+  Landing → /intake → [13 steps] → Email → Checkout → Stripe → /payment-success → Report
+
+Variant C (new):
+  Landing → /checkout (new page) → Stripe (captures email) → /payment-success → [5-step mini-intake] → Report
+```
+
+#### File: `src/pages/QuickCheckout.tsx` (NEW)
+A new standalone checkout page for Variant C:
+- Shows two tier cards ($27 Standard / $35 Premium with Portrait)
+- Optional photo upload for Premium tier
+- Single "Pay Now" button → creates a temporary report record with minimal data, then calls `create-checkout`
+- Stripe Checkout handles email capture (no email step needed)
+- Accepts `?tier=premium` URL param to pre-select tier from landing page CTAs
+- Styled with the warm buttery Variant C theme
+- Includes trust badges (Trustpilot, money-back guarantee, secure payment icons)
+
+#### File: `src/pages/PaymentSuccess.tsx` (MODIFIED)
+After Stripe payment succeeds for Variant C purchases:
+- Detect that pet data is incomplete (no name/species/gender/DOB in the report record)
+- Show a 5-step mini-intake wizard inline:
+  1. Pet Name
+  2. Species (with breed auto-suggest)
+  3. Gender
+  4. Date of Birth
+  5. Photo upload (if Premium tier — pre-filled if already uploaded at checkout)
+- After completing, update the report record via an edge function call, then trigger report generation
+- For Variant A, behavior is unchanged (report data already exists)
+
+#### File: `supabase/functions/create-checkout/index.ts` (MODIFIED)
+- Support a new "quick checkout" mode where `reportId` may not exist yet
+- Accept `quickCheckout: true` flag — creates the report record server-side with just email (from Stripe) and tier selection
+- Or: accept a pre-created report with minimal data (just a placeholder email like `pending@checkout`)
+- Update server-side TIERS pricing:
+  - `basic`: 2700 cents ($27) for Variant C
+  - `premium`: 3500 cents ($35) for Variant C
+  - Keep existing pricing for Variant A ($35/$50/$129)
+- The variant is passed in the request to determine pricing
+
+#### File: `supabase/functions/update-pet-data/index.ts` (NEW)
+New edge function for post-purchase pet data update:
+- Accepts: `reportId`, `petName`, `species`, `breed`, `gender`, `birthDate`, `photoUrl`
+- Updates the existing `pet_reports` row
+- Then triggers report generation (calls `generate-cosmic-report` internally or returns so frontend can trigger it)
+- Validates that the report's `payment_status` is `paid` before allowing updates
+
+#### File: `src/App.tsx` (MODIFIED)
+- Add route: `/checkout` → `QuickCheckout` page
+
+#### CTA Link Updates (Variant C only)
+All Variant C CTAs currently link to `/intake?mode=discover`. Change to `/checkout?tier=premium`:
+
+- **`src/components/variants/variant-c/HeroVariantC.tsx`**: CTA button link
+- **`src/components/variants/variant-c/CTAVariantC.tsx`**: Mid and final CTA buttons
+- **`src/components/variants/variant-c/PricingPreview.tsx`**: Tier card buttons → `/checkout?tier=basic` and `/checkout?tier=premium`
+- **`src/pages/Index.tsx`**: "Two Options" cards → `/checkout` for "For My Pet"
+- **`src/components/StickyMobileCTA.tsx`**: Mobile CTA → `/checkout?tier=premium` (for Variant C only, keep `/intake` for A)
+
+#### File: `src/components/intake/CheckoutPanel.tsx` (MODIFIED)
+- Update TIERS pricing to match:
+  - basic: 2700 ($27) — used when variant is C
+  - premium: 3500 ($35) — used when variant is C
+  - Keep old pricing for variant A/B
+- Accept variant prop to determine which pricing to show
+
+### 4. What Stays the Same
+- Variant A: completely untouched, same 13-step intake → checkout flow
+- Gift flow: unchanged
+- All existing edge functions besides `create-checkout`: unchanged
+- Database schema: unchanged (pet_reports table already has all needed columns)
+
+---
+
+## Files Summary
 
 | File | Change |
 |------|--------|
-| `src/components/Navbar.tsx` | Green banner, hide nav for Variant C |
-| `src/components/variants/variant-c/HeroVariantC.tsx` | Move Trustpilot below button, heartfelt copy |
-| `src/pages/Index.tsx` | Remove MicroFAQ, add FloatingDecorations, footer updates, heartfelt copy in options cards |
-| `src/components/variants/variant-c/FloatingDecorations.tsx` | **NEW** — floating hearts & paws |
-| `src/components/variants/variant-c/CTAVariantC.tsx` | Heartfelt copy |
-| `src/components/variants/variant-c/TestimonialsVariantC.tsx` | Heartfelt heading, update accent colors from green to orange |
-| `src/components/variants/variant-c/PerfectForSection.tsx` | Heartfelt occasion labels |
-| `src/components/variants/variant-c/PricingPreview.tsx` | Heartfelt heading/subheading |
-| `src/components/variants/variant-c/VideoTestimonials.tsx` | Heartfelt heading |
-| `src/components/variants/variant-c/FAQVariantC.tsx` | Minor wording tweak |
-| `src/components/StickyMobileCTA.tsx` | Heartfelt button text, fix gradient bg |
+| `src/contexts/ABTestContext.tsx` | 50/50 A/C split |
+| `src/pages/QuickCheckout.tsx` | **NEW** — standalone checkout page for Variant C |
+| `src/pages/PaymentSuccess.tsx` | Add post-purchase mini-intake for Variant C |
+| `supabase/functions/create-checkout/index.ts` | Support quick checkout mode, variant-specific pricing ($27/$35) |
+| `supabase/functions/update-pet-data/index.ts` | **NEW** — post-purchase pet data update |
+| `src/App.tsx` | Add `/checkout` route |
+| `src/components/variants/variant-c/HeroVariantC.tsx` | CTA → `/checkout` |
+| `src/components/variants/variant-c/CTAVariantC.tsx` | CTAs → `/checkout` |
+| `src/components/variants/variant-c/PricingPreview.tsx` | Tier buttons → `/checkout?tier=X` |
+| `src/pages/Index.tsx` | Options cards → `/checkout` for Variant C |
+| `src/components/StickyMobileCTA.tsx` | Mobile CTA → `/checkout` for Variant C |
+| `src/components/intake/CheckoutPanel.tsx` | Variant-specific pricing |
 
-No new dependencies. No database changes. Variants A and B untouched.
+**New edge functions: 1** (`update-pet-data`)
+**New pages: 1** (`QuickCheckout`)
+**Database changes: none**
 
