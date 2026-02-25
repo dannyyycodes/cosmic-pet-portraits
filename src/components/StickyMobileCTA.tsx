@@ -27,7 +27,7 @@ export const StickyMobileCTA = () => {
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className={`fixed bottom-0 left-0 right-0 z-50 p-4 md:hidden ${
             isVariantC 
-              ? "bg-gradient-to-t from-[hsl(35,33%,98%)] via-[hsl(35,33%,98%)] to-transparent"
+              ? "bg-gradient-to-t from-[#FFF4D2] via-[#FFF4D2] to-transparent"
               : "bg-gradient-to-t from-background via-background to-transparent"
           }`}
         >
@@ -38,7 +38,7 @@ export const StickyMobileCTA = () => {
                 : "bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 shadow-purple-500/30"
             }`}>
               <Sparkles className="w-5 h-5" />
-              {isVariantC ? "Get My Pet's Report" : "Get My Pet's Cosmic Report"}
+              {isVariantC ? "Discover Their Soul" : "Get My Pet's Cosmic Report"}
             </button>
           </Link>
         </motion.div>

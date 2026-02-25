@@ -8,11 +8,11 @@ import davidImg from "@/assets/testimonials/david.jpg";
 import markImg from "@/assets/testimonials/mark.jpg";
 
 const accentColors = [
-  "hsl(145 47% 33%)",
+  "hsl(25 85% 55%)",
   "hsl(43 80% 50%)",
-  "hsl(145 47% 33%)",
+  "hsl(25 85% 55%)",
   "hsl(43 80% 50%)",
-  "hsl(145 47% 33%)",
+  "hsl(25 85% 55%)",
   "hsl(43 80% 50%)",
 ];
 
@@ -78,10 +78,10 @@ export const TestimonialsVariantC = () => {
           className="text-center mb-10"
         >
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-2">
-            Real Stories from Real Pet Parents
+            They Changed Our Lives. We Captured Theirs.
           </h2>
           <p className="text-muted-foreground">
-            Join thousands of pet parents who've discovered something special
+            Hear from pet parents who finally understood the depth of their bond
           </p>
         </motion.div>
 

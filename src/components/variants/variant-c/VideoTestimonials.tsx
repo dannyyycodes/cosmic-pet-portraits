@@ -27,10 +27,10 @@ export const VideoTestimonials = () => {
           className="text-center mb-10"
         >
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-2">
-            See Why Pet Parents Can't Stop Sharing
+            These Moments Made Pet Parents Cry
           </h2>
           <p className="text-muted-foreground">
-            Real stories from real pet parents
+            The moment you realize how deeply they've touched your life
           </p>
         </motion.div>
 

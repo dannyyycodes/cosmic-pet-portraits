@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { Cake, Heart, Star, Gift } from "lucide-react";
 
 const occasions = [
-  { label: "Pet birthdays", icon: Cake, borderColor: "hsl(350 60% 55%)" },
-  { label: "Gotcha days", icon: Heart, borderColor: "hsl(145 47% 33%)" },
-  { label: "Memorial keepsakes", icon: Star, borderColor: "hsl(43 80% 50%)" },
-  { label: "Surprise gifts", icon: Gift, borderColor: "hsl(16 78% 55%)" },
+  { label: "Celebrating their special day", icon: Cake, borderColor: "hsl(350 60% 55%)" },
+  { label: "Honoring the day you found each other", icon: Heart, borderColor: "hsl(145 47% 33%)" },
+  { label: "Keeping their memory alive", icon: Star, borderColor: "hsl(43 80% 50%)" },
+  { label: "A gift that says 'I see you'", icon: Gift, borderColor: "hsl(16 78% 55%)" },
 ];
 
 export const PerfectForSection = () => {

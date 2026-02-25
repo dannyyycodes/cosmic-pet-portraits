@@ -38,14 +38,14 @@ export const CTAVariantC = ({ variant, trackCTAClick }: CTAVariantCProps) => {
 
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-3">
             {variant === "mid"
-              ? "Your pet already knows who they are. It's time you did too."
-              : "Create their personalized 15+ page report now."}
+              ? "The bond you share is deeper than you know."
+              : "Give them the love letter they deserve."}
           </h2>
 
           <p className="text-muted-foreground mb-6">
             {variant === "mid"
-              ? "Discover their personality, quirks, and emotional world in a beautiful keepsake report."
-              : "100% money-back guarantee. No questions asked."}
+              ? "Uncover the beautiful, hidden layers of your relationship in a keepsake you'll treasure forever."
+              : "A beautiful keepsake that captures everything you love about them. 100% money-back guarantee."}
           </p>
 
           <Link
@@ -54,7 +54,7 @@ export const CTAVariantC = ({ variant, trackCTAClick }: CTAVariantCProps) => {
             className="block"
           >
             <Button size="lg" className="w-full max-w-sm mx-auto bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-base rounded-xl group">
-              {variant === "mid" ? "Create My Pet's Report" : "Start Now — It Takes 60 Seconds"}
+              {variant === "mid" ? "Discover Our Bond" : "Create Their Story Now"}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
