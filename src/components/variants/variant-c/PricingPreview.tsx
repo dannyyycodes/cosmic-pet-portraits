@@ -50,10 +50,10 @@ export const PricingPreview = () => {
           className="text-center mb-10"
         >
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-2">
-            Choose How You Want to Remember Them
+            Choose How You Want to Celebrate Them
           </h2>
           <p className="text-muted-foreground">
-            Every option includes a beautiful, personalized report
+            Every option is a love letter to your best friend
           </p>
         </motion.div>
 

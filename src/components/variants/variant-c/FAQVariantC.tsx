@@ -9,7 +9,7 @@ import {
 const faqs = [
   {
     q: "What exactly is a pet personality report?",
-    a: "It's a beautifully designed 15+ page document that combines your pet's unique traits, astrological profile, and emotional patterns into a deeply personal keepsake. Think of it as a love letter to your pet, written with real insight.",
+    a: "It's a beautifully designed 15+ page document that combines your pet's unique traits, astrological profile, and emotional patterns into a deeply personal keepsake. Think of it as a love letter to your best friend — written with real insight into who they truly are.",
   },
   {
     q: "How accurate is it?",

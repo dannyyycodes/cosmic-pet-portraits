@@ -7,6 +7,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { PremiumTestimonials } from "@/components/PremiumTestimonials";
 import { FAQ } from "@/components/FAQ";
 import { CTASection } from "@/components/CTASection";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 import { motion } from "framer-motion";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
@@ -28,13 +29,11 @@ import { CTAVariantC } from "@/components/variants/variant-c/CTAVariantC";
 
 // Variant C exclusive sections
 import { VariantBackground } from "@/components/variants/VariantBackground";
-import { MicroFAQ } from "@/components/variants/variant-c/MicroFAQ";
-import { ReportPreviewSection } from "@/components/variants/variant-c/ReportPreviewSection";
 import { VideoTestimonials } from "@/components/variants/variant-c/VideoTestimonials";
 import { PerfectForSection } from "@/components/variants/variant-c/PerfectForSection";
 import { PricingPreview } from "@/components/variants/variant-c/PricingPreview";
-import { HowItWorksVariantC } from "@/components/variants/variant-c/HowItWorksVariantC";
 import { FAQVariantC } from "@/components/variants/variant-c/FAQVariantC";
+import { FloatingDecorations } from "@/components/variants/variant-c/FloatingDecorations";
 
 
 // Original Hero content extracted as a component for Variant A
@@ -144,6 +143,11 @@ const Index = () => {
       {/* Dynamic Background -- Variant-aware */}
       <VariantBackground />
 
+      {/* Floating Decorations — Variant C only */}
+      <VariantOnly variants="C">
+        <FloatingDecorations />
+      </VariantOnly>
+
       {/* Hero Section - A/B Tested */}
       <TrackedSection sectionName="hero" onView={trackSectionView} className="relative z-10">
         <VariantRenderer
@@ -160,11 +164,6 @@ const Index = () => {
         <TrackedSection sectionName="video_testimonials" onView={trackSectionView}>
           <VideoTestimonials />
         </TrackedSection>
-      </VariantOnly>
-
-      {/* Micro FAQ -- Variant C only */}
-      <VariantOnly variants="C">
-        <MicroFAQ />
       </VariantOnly>
 
       {/* Testimonials Section - A/B Tested */}
@@ -213,11 +212,11 @@ const Index = () => {
             className="text-center mb-10"
           >
             <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
-              {isVariantC ? "Two Ways to Start" : "Choose Your Experience"}
+              {isVariantC ? "Two Ways to Celebrate Your Bond" : "Choose Your Experience"}
             </h2>
             <p className="text-muted-foreground">
               {isVariantC
-                ? "Whether for yourself or as a gift they'll never forget"
+                ? "Whether for yourself or as a heartfelt gift they'll never forget"
                 : "Whether for yourself or as a gift they'll never forget — takes just 60 seconds"
               }
             </p>
@@ -252,7 +251,7 @@ const Index = () => {
                         For My Pet
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {isVariantC ? "Get a beautiful personalized personality report" : t('hero.discoverDesc')}
+                        {isVariantC ? "Discover the beautiful soul behind those eyes" : t('hero.discoverDesc')}
                       </p>
                     </div>
                     {isVariantC ? (
@@ -299,7 +298,7 @@ const Index = () => {
                         For a Friend
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        A unique, personalized gift — delivered instantly
+                        {isVariantC ? "Give the most meaningful gift a pet lover could receive" : "A unique, personalized gift — delivered instantly"}
                       </p>
                     </div>
                     <Button variant="outline" size="lg" className="w-full mt-2 border-primary/40 hover:bg-primary/10">
@@ -350,9 +349,11 @@ const Index = () => {
       {/* Footer */}
       <TrackedSection sectionName="footer" onView={trackSectionView} className="relative py-12 px-4 border-t border-border/30 z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-muted-foreground/60 text-sm mb-4">
-            {t('footer.copyright')}
-          </p>
+          {!isVariantC && (
+            <p className="text-muted-foreground/60 text-sm mb-4">
+              {t('footer.copyright')}
+            </p>
+          )}
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm">
             <Link to="/terms" className={`text-muted-foreground ${isVariantC ? "hover:text-primary" : "hover:text-gold"} transition-colors`}>
               {t('footer.terms')}
@@ -363,10 +364,20 @@ const Index = () => {
             <Link to="/contact" className={`text-muted-foreground ${isVariantC ? "hover:text-primary" : "hover:text-gold"} transition-colors`}>
               {t('footer.contact')}
             </Link>
+            {isVariantC && (
+              <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors">
+                Blog
+              </Link>
+            )}
             <Link to="/become-affiliate" className={`text-muted-foreground ${isVariantC ? "hover:text-primary" : "hover:text-gold"} transition-colors`}>
               {t('footer.becomeAffiliate')}
             </Link>
           </div>
+          {isVariantC && (
+            <div className="mt-4 flex justify-center">
+              <LanguageSelector variant="minimal" />
+            </div>
+          )}
         </div>
       </TrackedSection>
     </main>
