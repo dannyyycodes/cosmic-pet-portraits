@@ -237,9 +237,9 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
               lineHeight: 1.75,
             }}
           >
-            On your best days, they're there.
+            On your best days. On your worst days.
             <br />
-            On your worst days, they're closer.
+            No judgement. No expectations.
           </p>
         )}
       </Beat>
@@ -253,7 +253,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
               fontFamily: "Cormorant, Georgia, serif",
               fontStyle: "italic",
               fontWeight: 300,
-              fontSize: "clamp(4rem, 16vw, 9rem)",
+              fontSize: "clamp(2.5rem, 10vw, 5rem)",
               color: COLORS.sand,
               letterSpacing: "0.04em",
             }}

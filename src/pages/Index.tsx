@@ -163,12 +163,6 @@ const Index = () => {
       {/* Variant C: Emotional Journey → UGC → Final CTA */}
       <VariantOnly variants="C">
         <EmotionalJourney trackCTAClick={trackCTAClick} />
-        <TrackedSection sectionName="video_testimonials" onView={trackSectionView}>
-          <VideoTestimonials />
-        </TrackedSection>
-        <TrackedSection sectionName="final_cta" onView={trackSectionView}>
-          <CTAVariantC variant="final" trackCTAClick={trackCTAClick} />
-        </TrackedSection>
       </VariantOnly>
 
       {/* Variant A/B: Original flow */}
