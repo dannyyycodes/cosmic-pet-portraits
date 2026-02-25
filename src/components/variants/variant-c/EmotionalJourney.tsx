@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // ─── Color palette as inline styles (CSS custom props) ───
 const COLORS = {
@@ -167,31 +168,65 @@ const scaleInStyle = (visible: boolean, delay = 0): React.CSSProperties => ({
 const Beat = ({
   children,
   minHeight = "100vh",
+  mobileMinHeight,
   background,
   className = "",
 }: {
   children: (visible: boolean) => React.ReactNode;
   minHeight?: string;
+  mobileMinHeight?: string;
   background?: string;
   className?: string;
 }) => {
   const { ref, visible } = useScrollReveal();
+  const mobile = useIsMobile();
+  const resolvedMin = mobile && mobileMinHeight ? mobileMinHeight : minHeight;
   return (
     <section
       ref={ref}
       className={`relative overflow-hidden ${className}`}
       style={{
-        minHeight,
+        minHeight: resolvedMin,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px)",
+        padding: mobile
+          ? "clamp(24px, 6vw, 80px) clamp(16px, 4vw, 28px)"
+          : "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px)",
         background: background ?? COLORS.cream,
       }}
     >
       <SectionPaws visible={visible} />
       <div style={{ maxWidth: 750, width: "100%", textAlign: "center" }}>
         {children(visible)}
+      </div>
+    </section>
+  );
+};
+
+// ─── UGC Testimonials section ───
+const UGCTestimonials = () => {
+  const mobile = useIsMobile();
+  const cardW = mobile ? 140 : 180;
+  return (
+    <section style={{ background: COLORS.cream, padding: mobile ? "clamp(24px, 6vw, 80px) clamp(16px, 4vw, 28px) clamp(20px, 4vw, 60px)" : "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px) clamp(30px, 6vw, 60px)", textAlign: "center" }}>
+      <p style={{ fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.3em", color: COLORS.earth, marginBottom: 45 }}>
+        WHAT PET PARENTS ARE SAYING
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: mobile ? 12 : 20 }}>
+        {[0, 1, 2, 3].map((i) => {
+          const { ref, visible } = useScrollReveal({ threshold: 0.15 });
+          return (
+            <div key={i} ref={ref} style={{ ...fadeUpStyle(visible, 0.3 + i * 0.3), width: cardW, aspectRatio: "9/16", borderRadius: 16, background: `linear-gradient(135deg, ${COLORS.cream3}, ${COLORS.sand})`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: COLORS.cream, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", fontSize: 40 }}>▶</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: mobile ? 12 : 20, marginTop: 12 }}>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} style={{ width: cardW, textAlign: "center", fontSize: "0.85rem", color: COLORS.gold }}>★★★★★</div>
+        ))}
       </div>
     </section>
   );
@@ -208,7 +243,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       <GrainOverlay />
 
       {/* ═══ BEAT 1 — "They Love You Without Conditions" ═══ */}
-      <Beat background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat mobileMinHeight="60vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (
           <h2
             style={{
@@ -229,7 +264,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 2 — "On your best days…" ═══ */}
-      <Beat minHeight="60vh">
+      <Beat minHeight="60vh" mobileMinHeight="35vh">
         {(v) => (
           <p
             style={{
@@ -250,7 +285,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 3 — "just" ═══ */}
-      <Beat minHeight="65vh">
+      <Beat minHeight="65vh" mobileMinHeight="30vh">
         {(v) => (
           <p
             style={{
@@ -269,7 +304,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 4 — "loyalty, presence, and a heart…" ═══ */}
-      <Beat minHeight="70vh" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2})`}>
+      <Beat minHeight="70vh" mobileMinHeight="45vh" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2})`}>
         {(v) => (
           <div>
             {["loyalty,", "presence,", "and a heart that doesn't leave."].map((line, i) => (
@@ -294,7 +329,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 5 — "They're Not 'Just a Pet'" ═══ */}
-      <Beat background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream3}, ${COLORS.cream2})`}>
+      <Beat mobileMinHeight="60vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream3}, ${COLORS.cream2})`}>
         {(v) => (
           <div>
             <h2
@@ -330,7 +365,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 6 — The Incantation ═══ */}
-      <Beat minHeight="80vh" background={COLORS.cream2}>
+      <Beat minHeight="80vh" mobileMinHeight="50vh" background={COLORS.cream2}>
         {(v) => (
           <div>
             {[
@@ -358,7 +393,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 7 — "That means something." ═══ */}
-      <Beat minHeight="60vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat minHeight="60vh" mobileMinHeight="35vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (
           <div>
             <h2
@@ -386,7 +421,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 8 — "This Is an Act of Love." ═══ */}
-      <Beat background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat mobileMinHeight="60vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (
           <div>
             <h2
@@ -428,7 +463,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 9 — "I see you…" ═══ */}
-      <Beat minHeight="75vh">
+      <Beat minHeight="75vh" mobileMinHeight="50vh">
         {(v) => {
           const lines = ["I see you.", "I appreciate you.", "I'm grateful you're in my life."];
           return (
@@ -483,7 +518,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 10 — Closing + Signature ═══ */}
-      <Beat>
+      <Beat mobileMinHeight="60vh">
         {(v) => (
           <div>
             <p
@@ -526,70 +561,10 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
         )}
       </Beat>
 
-      {/* ═══ UGC TESTIMONIALS ═══ */}
-      <section style={{ background: COLORS.cream, padding: "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px) clamp(30px, 6vw, 60px)", textAlign: "center" }}>
-        <p
-          style={{
-            fontFamily: "Cormorant, Georgia, serif",
-            fontWeight: 600,
-            fontSize: "0.85rem",
-            textTransform: "uppercase",
-            letterSpacing: "0.3em",
-            color: COLORS.earth,
-            marginBottom: 45,
-          }}
-        >
-          WHAT PET PARENTS ARE SAYING
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 20 }}>
-          {[0, 1, 2, 3].map((i) => {
-            const { ref, visible } = useScrollReveal({ threshold: 0.15 });
-            return (
-              <div
-                key={i}
-                ref={ref}
-                style={{
-                  ...fadeUpStyle(visible, 0.3 + i * 0.3),
-                  width: 180,
-                  aspectRatio: "9/16",
-                  borderRadius: 16,
-                  background: `linear-gradient(135deg, ${COLORS.cream3}, ${COLORS.sand})`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                }}
-              >
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: "50%",
-                    background: COLORS.cream,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-                    fontSize: 40,
-                  }}
-                >
-                  ▶
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 12 }}>
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} style={{ width: 180, textAlign: "center", fontSize: "0.85rem", color: COLORS.gold }}>
-              ★★★★★
-            </div>
-          ))}
-        </div>
-      </section>
+      <UGCTestimonials />
 
       {/* ═══ CTA SECTION ═══ */}
-      <Beat background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat mobileMinHeight="60vh" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (
           <div>
             <p
