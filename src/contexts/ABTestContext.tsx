@@ -13,9 +13,9 @@ const ABTestContext = createContext<ABTestContextType | undefined>(undefined);
 const STORAGE_KEY = "ab_test_variant";
 const URL_PARAM = "variant";
 
-// 50/50 split: Variant A (Original) vs Variant C (Warm & Trusted)
+// 100% traffic to Variant C (Warm & Trusted)
 const assignVariant = (): ABVariant => {
-  return Math.random() < 0.5 ? "A" : "C";
+  return "C";
 };
 
 interface ABTestProviderProps {
