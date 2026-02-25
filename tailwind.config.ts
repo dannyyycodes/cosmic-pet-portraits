@@ -17,6 +17,8 @@ export default {
         sans: ['Lato', 'system-ui', 'sans-serif'],
         serif: ['Playfair Display', 'Georgia', 'serif'],
         caveat: ['Caveat', 'cursive'],
+        'dm-serif': ['"DM Serif Display"', 'Georgia', 'serif'],
+        cormorant: ['Cormorant', 'Georgia', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",

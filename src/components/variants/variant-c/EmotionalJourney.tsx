@@ -1,235 +1,664 @@
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-const fadeIn = {
-  initial: { opacity: 0, y: 10 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-30px" },
-  transition: { duration: 0.5, ease: "easeOut" as const },
+// ─── Color palette as inline styles (CSS custom props) ───
+const COLORS = {
+  black: "#141210",
+  ink: "#1f1c18",
+  deep: "#2e2a24",
+  warm: "#4d443b",
+  earth: "#6e6259",
+  muted: "#958779",
+  faded: "#bfb2a3",
+  sand: "#d6c8b6",
+  cream: "#FFFDF5",
+  cream2: "#faf4e8",
+  cream3: "#f3eadb",
+  rose: "#bf524a",
+  roseLight: "#d4857e",
+  gold: "#c4a265",
+  pawColor: "rgba(181,104,94,0.2)",
 };
 
-const lineFade = (delay: number) => ({
-  ...fadeIn,
-  transition: { duration: 0.4, delay, ease: "easeOut" as const },
-});
+// ─── Scroll-triggered animation hook ───
+function useScrollReveal(options?: { threshold?: number; rootMargin?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
+      { threshold: options?.threshold ?? 0.25, rootMargin: options?.rootMargin ?? "0px 0px -60px 0px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return { ref, visible };
+}
 
-// Tiny paw SVG
-const PawIcon = ({ className = "text-blue-500/50" }: { className?: string }) => (
-  <svg width="14" height="14" viewBox="0 0 100 100" fill="currentColor" className={className}>
-    <ellipse cx="50" cy="68" rx="18" ry="16" />
-    <ellipse cx="30" cy="42" rx="9" ry="11" />
-    <ellipse cx="50" cy="32" rx="9" ry="11" />
-    <ellipse cx="70" cy="42" rx="9" ry="11" />
+// ─── Paw print SVG component ───
+const PawPrint = ({ style }: { style: React.CSSProperties }) => (
+  <svg
+    width="28"
+    height="34"
+    viewBox="0 0 28 34"
+    fill="none"
+    style={{ position: "absolute", pointerEvents: "none", ...style }}
+  >
+    <ellipse cx="14" cy="22" rx="7" ry="9" fill={COLORS.pawColor} />
+    <ellipse cx="7" cy="10" rx="4" ry="5" fill={COLORS.pawColor} transform="rotate(-10 7 10)" />
+    <ellipse cx="14" cy="6" rx="4" ry="5" fill={COLORS.pawColor} />
+    <ellipse cx="21" cy="10" rx="4" ry="5" fill={COLORS.pawColor} transform="rotate(10 21 10)" />
   </svg>
 );
 
-// Tiny heart SVG
-const HeartIcon = ({ className = "text-red-500/50" }: { className?: string }) => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-  </svg>
-);
-
-// Animated meandering trail divider
-const TrailDivider = () => {
-  const icons = [
-    { Icon: PawIcon, x: -12, opacity: 0.6, delay: 0, className: "text-blue-500/50" },
-    { Icon: HeartIcon, x: 12, opacity: 0.4, delay: 0.2, className: "text-red-500/50" },
-    { Icon: PawIcon, x: 0, opacity: 0.2, delay: 0.4, className: "text-blue-500/50" },
+// ─── Paw decorations for a section ───
+const SectionPaws = ({ visible }: { visible: boolean }) => {
+  const paws = [
+    { left: "3%", top: "18%", rotate: "175deg", scaleX: 1 },
+    { left: "6%", top: "55%", rotate: "185deg", scaleX: 1 },
+    { right: "4%", top: "25%", rotate: "180deg", scaleX: -1 },
+    { right: "7%", top: "65%", rotate: "170deg", scaleX: -1 },
   ];
-
   return (
-    <div className="flex flex-col items-center gap-1 py-12 md:py-16 select-none">
-      {icons.map(({ Icon, x, opacity, delay, className }, i) => (
-        <motion.div
+    <>
+      {paws.map((p, i) => (
+        <PawPrint
           key={i}
-          initial={{ opacity: 0, x: 0 }}
-          whileInView={{ opacity, x }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay, ease: "easeOut" }}
-        >
-          <Icon className={className} />
-        </motion.div>
+          style={{
+            ...(p.left ? { left: p.left } : {}),
+            ...(p.right ? { right: p.right } : {}),
+            top: p.top,
+            transform: `rotate(${p.rotate}) scaleX(${p.scaleX})`,
+            opacity: visible ? 1 : 0,
+            transition: `opacity 1.2s ease ${i * 0.15}s`,
+          }}
+        />
       ))}
-    </div>
+    </>
   );
 };
 
+// ─── Grain texture overlay ───
+const GrainOverlay = () => (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 9999,
+      pointerEvents: "none",
+      opacity: 0.03,
+      mixBlendMode: "multiply",
+    }}
+  >
+    <svg width="100%" height="100%">
+      <filter id="grain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+      </filter>
+      <rect width="100%" height="100%" filter="url(#grain)" />
+    </svg>
+  </div>
+);
+
+// ─── SVG Heart that draws itself ───
+const DrawHeart = ({ visible }: { visible: boolean }) => (
+  <svg viewBox="0 0 100 100" width="80" height="80" style={{ display: "block", margin: "50px auto 0" }}>
+    <path
+      d="M49.998,90.544c0,0,0,0,0.002,0c5.304-14.531,32.88-27.047,41.474-44.23C108.081,13.092,61.244-5.023,50,23.933C38.753-5.023-8.083,13.092,8.525,46.313C17.116,63.497,44.691,76.013,49.998,90.544z"
+      fill="none"
+      stroke={COLORS.rose}
+      strokeOpacity={0.7}
+      strokeWidth={4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      pathLength={1}
+      strokeDasharray={1}
+      strokeDashoffset={visible ? 0 : 1}
+      style={{ transition: "stroke-dashoffset 2.5s ease 0.6s" }}
+    />
+  </svg>
+);
+
+// ─── Wavy underline SVG ───
+const WavyUnderline = ({ visible }: { visible: boolean }) => (
+  <svg width="220" height="12" viewBox="0 0 220 12" style={{ display: "block", margin: "12px auto 0" }}>
+    <path
+      d="M2 8 Q 20 2, 40 8 Q 60 14, 80 8 Q 100 2, 120 8 Q 140 14, 160 8 Q 180 2, 200 8 Q 210 11, 218 8"
+      fill="none"
+      stroke={COLORS.rose}
+      strokeOpacity={0.4}
+      strokeWidth={2}
+      strokeLinecap="round"
+      pathLength={1}
+      strokeDasharray={1}
+      strokeDashoffset={visible ? 0 : 1}
+      style={{ transition: "stroke-dashoffset 1.2s ease 0.5s" }}
+    />
+  </svg>
+);
+
+// ─── Animation helpers ───
+const fadeUpStyle = (visible: boolean, delay = 0): React.CSSProperties => ({
+  opacity: visible ? 1 : 0,
+  transform: visible ? "translateY(0)" : "translateY(45px)",
+  transition: `opacity 1.2s cubic-bezier(0.19,1,0.22,1) ${delay}s, transform 1.2s cubic-bezier(0.19,1,0.22,1) ${delay}s`,
+});
+
+const fadeOnlyStyle = (visible: boolean, delay = 0): React.CSSProperties => ({
+  opacity: visible ? 1 : 0,
+  transition: `opacity 1.4s ease ${delay}s`,
+});
+
+const scaleInStyle = (visible: boolean, delay = 0): React.CSSProperties => ({
+  opacity: visible ? 1 : 0,
+  transform: visible ? "scale(1)" : "scale(0.85)",
+  transition: `opacity 1s ease ${delay}s, transform 1s ease ${delay}s`,
+});
+
+// ─── Section wrapper ───
+const Beat = ({
+  children,
+  minHeight = "100vh",
+  background,
+  className = "",
+}: {
+  children: (visible: boolean) => React.ReactNode;
+  minHeight?: string;
+  background?: string;
+  className?: string;
+}) => {
+  const { ref, visible } = useScrollReveal();
+  return (
+    <section
+      ref={ref}
+      className={`relative overflow-hidden ${className}`}
+      style={{
+        minHeight,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "80px 28px",
+        background: background ?? COLORS.cream,
+      }}
+    >
+      {/* Hide paws below 420px */}
+      <div className="hidden min-[420px]:block">
+        <SectionPaws visible={visible} />
+      </div>
+      <div style={{ maxWidth: 750, width: "100%", textAlign: "center" }}>
+        {children(visible)}
+      </div>
+    </section>
+  );
+};
+
+// ─── Main component ───
 interface EmotionalJourneyProps {
   trackCTAClick: (cta: string, location: string) => void;
 }
 
 export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
   return (
-    <div className="relative z-10">
-      {/* Section 1 — They Love You Without Conditions */}
-      <section className="px-6 py-24 md:py-32">
-        <div className="max-w-3xl mx-auto text-center space-y-3 md:space-y-4">
-          <motion.h2
-            {...fadeIn}
-            className="font-serif text-4xl md:text-6xl font-bold tracking-tighter text-slate-900"
-            style={{ textWrap: "balance" } as React.CSSProperties}
+    <div style={{ background: COLORS.cream, position: "relative" }}>
+      <GrainOverlay />
+
+      {/* ═══ BEAT 1 — "They Love You Without Conditions" ═══ */}
+      <Beat background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
+        {(v) => (
+          <h2
+            style={{
+              ...fadeUpStyle(v),
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(3rem, 12vw, 6rem)",
+              fontWeight: 400,
+              color: COLORS.black,
+              lineHeight: 0.98,
+              letterSpacing: "-0.04em",
+            }}
           >
-            They Love You Without Conditions.
-          </motion.h2>
+            They Love You
+            <br />
+            <em>Without Conditions.</em>
+          </h2>
+        )}
+      </Beat>
 
-          <div className="space-y-3 md:space-y-4 pt-6">
-            {["On your best days.", "On your worst days."].map((line, i) => (
-              <motion.p
+      {/* ═══ BEAT 2 — "On your best days…" ═══ */}
+      <Beat minHeight="60vh">
+        {(v) => (
+          <p
+            style={{
+              ...fadeUpStyle(v),
+              fontFamily: "Cormorant, Georgia, serif",
+              fontStyle: "italic",
+              fontWeight: 400,
+              fontSize: "clamp(1.5rem, 5.5vw, 2.2rem)",
+              color: COLORS.earth,
+              lineHeight: 1.75,
+            }}
+          >
+            On your best days, they're there.
+            <br />
+            On your worst days, they're closer.
+          </p>
+        )}
+      </Beat>
+
+      {/* ═══ BEAT 3 — "just" ═══ */}
+      <Beat minHeight="65vh">
+        {(v) => (
+          <p
+            style={{
+              ...fadeOnlyStyle(v),
+              fontFamily: "Cormorant, Georgia, serif",
+              fontStyle: "italic",
+              fontWeight: 300,
+              fontSize: "clamp(4rem, 16vw, 9rem)",
+              color: COLORS.sand,
+              letterSpacing: "0.04em",
+            }}
+          >
+            just
+          </p>
+        )}
+      </Beat>
+
+      {/* ═══ BEAT 4 — "loyalty, presence, and a heart…" ═══ */}
+      <Beat minHeight="70vh" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2})`}>
+        {(v) => (
+          <div>
+            {["loyalty,", "presence,", "and a heart that doesn't leave."].map((line, i) => (
+              <span
                 key={i}
-                {...lineFade(i * 0.15)}
-                className="font-sans text-xs md:text-sm font-light uppercase tracking-[0.3em] text-slate-500"
+                style={{
+                  ...fadeUpStyle(v, 0.2 + i * 0.35),
+                  display: "block",
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "clamp(2rem, 8vw, 3.8rem)",
+                  color: COLORS.ink,
+                  lineHeight: 1.2,
+                  letterSpacing: "-0.025em",
+                }}
               >
                 {line}
-              </motion.p>
+              </span>
             ))}
+            <DrawHeart visible={v} />
+          </div>
+        )}
+      </Beat>
 
-            <motion.div {...lineFade(0.25)} className="py-1" />
-
-            {["No judgement.", "No expectations."].map((line, i) => (
-              <motion.p
-                key={line}
-                {...lineFade(0.3 + i * 0.15)}
-                className="font-sans text-xs md:text-sm font-light uppercase tracking-[0.3em] text-slate-500"
-              >
-                {line}
-              </motion.p>
-            ))}
-
-            <motion.p
-              {...lineFade(0.6)}
-              className="font-serif text-2xl md:text-3xl italic font-medium text-slate-800 leading-relaxed pt-4"
+      {/* ═══ BEAT 5 — "They're Not 'Just a Pet'" ═══ */}
+      <Beat background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream3}, ${COLORS.cream2})`}>
+        {(v) => (
+          <div>
+            <h2
+              style={{
+                ...fadeUpStyle(v),
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(2.8rem, 11vw, 5.5rem)",
+                color: COLORS.black,
+                marginBottom: 40,
+                lineHeight: 0.98,
+                letterSpacing: "-0.04em",
+              }}
             >
-              Just loyalty · Just presence · Just love.
-            </motion.p>
+              They're Not "Just a Pet."
+            </h2>
+            <p
+              style={{
+                ...fadeUpStyle(v, 0.2),
+                fontFamily: "Cormorant, Georgia, serif",
+                fontWeight: 400,
+                fontSize: "clamp(1.15rem, 4vw, 1.4rem)",
+                color: COLORS.earth,
+                lineHeight: 1.9,
+                maxWidth: 480,
+                margin: "0 auto",
+              }}
+            >
+              They're a companion. A quiet protector. A soul that chose you — and stays,
+              every single day, without ever being asked.
+            </p>
           </div>
-        </div>
-      </section>
+        )}
+      </Beat>
 
-      <TrailDivider />
-
-      {/* Section 2 — They're Not "Just a Pet." */}
-      <section className="px-6 py-24 md:py-32">
-        <div className="max-w-3xl mx-auto text-center space-y-3 md:space-y-4">
-          <motion.h2
-            {...fadeIn}
-            className="font-serif text-4xl md:text-6xl font-bold tracking-tighter text-slate-900"
-            style={{ textWrap: "balance" } as React.CSSProperties}
-          >
-            They're Not "Just a Pet."
-          </motion.h2>
-
-          <motion.p
-            {...lineFade(0.1)}
-            className="font-serif text-lg md:text-xl text-slate-600 leading-relaxed pt-4"
-          >
-            They are a living, feeling soul with their own personality,
-            their own quirks, their own inner world.
-          </motion.p>
-
-          <div className="space-y-3 md:space-y-4 pt-4">
+      {/* ═══ BEAT 6 — The Incantation ═══ */}
+      <Beat minHeight="80vh" background={COLORS.cream2}>
+        {(v) => (
+          <div>
             {[
-              "The way they comfort you.",
-              "The way they protect you.",
-              "The way they choose you — every single day.",
+              { text: "The way they comfort you when you're hurting", size: "clamp(1.4rem, 5vw, 2rem)", color: COLORS.muted },
+              { text: "The way they protect you when you're scared", size: "clamp(1.65rem, 6vw, 2.4rem)", color: COLORS.warm },
+              { text: "The way they choose you, every single day", size: "clamp(1.95rem, 7vw, 2.9rem)", color: COLORS.ink },
             ].map((line, i) => (
-              <motion.p
+              <p
                 key={i}
-                {...lineFade(0.2 + i * 0.15)}
-                className="font-serif italic text-slate-700 pl-4"
+                style={{
+                  ...fadeUpStyle(v, 0.2 + i * 0.35),
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontStyle: "italic",
+                  fontSize: line.size,
+                  color: line.color,
+                  lineHeight: 1.4,
+                  marginBottom: i < 2 ? 20 : 0,
+                }}
               >
-                {line}
-              </motion.p>
+                {line.text}
+              </p>
             ))}
           </div>
+        )}
+      </Beat>
 
-          <motion.p
-            {...lineFade(0.65)}
-            className="font-serif text-2xl md:text-3xl italic font-medium text-slate-800 leading-relaxed pt-6"
-          >
-            That means something.
-          </motion.p>
-        </div>
-      </section>
+      {/* ═══ BEAT 7 — "That means something." ═══ */}
+      <Beat minHeight="60vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream})`}>
+        {(v) => (
+          <div>
+            <h2
+              style={{
+                ...scaleInStyle(v),
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(2.6rem, 10vw, 5rem)",
+                color: COLORS.black,
+              }}
+            >
+              That means something.
+            </h2>
+            <div
+              style={{
+                width: 50,
+                height: 2,
+                background: COLORS.gold,
+                opacity: v ? 0.5 : 0,
+                margin: "30px auto 0",
+                transition: "opacity 1s ease 0.5s",
+              }}
+            />
+          </div>
+        )}
+      </Beat>
 
-      <TrailDivider />
-
-      {/* Section 3 — This Is an Act of Love */}
-      <section className="px-6 py-24 md:py-32">
-        <div className="max-w-3xl mx-auto text-center space-y-3 md:space-y-4">
-          <motion.h2
-            {...fadeIn}
-            className="font-serif text-4xl md:text-6xl font-bold tracking-tighter text-slate-900"
-            style={{ textWrap: "balance" } as React.CSSProperties}
-          >
-            This Is an Act of Love.
-          </motion.h2>
-
-          <div className="space-y-3 md:space-y-4 pt-6">
+      {/* ═══ BEAT 8 — "This Is an Act of Love." ═══ */}
+      <Beat background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
+        {(v) => (
+          <div>
+            <h2
+              style={{
+                ...fadeUpStyle(v),
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(2.8rem, 11vw, 5.5rem)",
+                color: COLORS.black,
+                lineHeight: 1,
+                marginBottom: 40,
+              }}
+            >
+              This Is an
+              <br />
+              <em>Act of Love.</em>
+            </h2>
             {[
               "Taking the time to understand them more deeply.",
               "To see who they are as an individual soul.",
               "To honour the bond you share.",
             ].map((line, i) => (
-              <motion.p
+              <p
                 key={i}
-                {...lineFade(0.1 + i * 0.12)}
-                className="font-sans text-xs md:text-sm font-light uppercase tracking-[0.3em] text-slate-500"
+                style={{
+                  ...fadeUpStyle(v, 0.3 + i * 0.15),
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontStyle: "italic",
+                  fontSize: "clamp(1.25rem, 4.5vw, 1.6rem)",
+                  color: COLORS.earth,
+                  lineHeight: 1.75,
+                  marginBottom: 8,
+                }}
               >
                 {line}
-              </motion.p>
+              </p>
             ))}
           </div>
+        )}
+      </Beat>
 
-          <motion.p
-            {...lineFade(0.4)}
-            className="font-sans text-xs md:text-sm font-light uppercase tracking-[0.3em] text-slate-500 pt-4"
-          >
-            It's a small way of saying:
-          </motion.p>
-
-          {/* Floating Quote */}
-          <motion.div
-            {...lineFade(0.5)}
-            className="relative py-10 my-6 max-w-sm mx-auto"
-          >
-            <span
-              className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 text-[160px] font-serif text-slate-900 opacity-5 select-none pointer-events-none leading-none"
-              aria-hidden="true"
-            >
-              "
-            </span>
-            <div className="relative z-10 space-y-1">
-              <p className="font-serif italic text-lg md:text-xl text-slate-800">
-                "I see you.
+      {/* ═══ BEAT 9 — "I see you…" ═══ */}
+      <Beat minHeight="75vh">
+        {(v) => {
+          const lines = ["I see you.", "I appreciate you.", "I'm grateful you're in my life."];
+          return (
+            <div>
+              <p
+                style={{
+                  ...fadeUpStyle(v),
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontWeight: 600,
+                  fontSize: "0.85rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.25em",
+                  color: COLORS.earth,
+                  marginBottom: 30,
+                }}
+              >
+                It's a small way of saying:
               </p>
-              <p className="font-serif italic text-lg md:text-xl text-slate-800">
-                I appreciate you.
-              </p>
-              <p className="font-serif italic text-lg md:text-xl text-slate-800">
-                I'm grateful you're in my life."
-              </p>
+              <div style={{ position: "relative", display: "inline-block", textAlign: "left", paddingLeft: 30 }}>
+                {/* Growing left border */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: 3,
+                    height: v ? "100%" : "0%",
+                    background: `linear-gradient(to bottom, ${COLORS.gold}, ${COLORS.rose})`,
+                    transition: "height 1.5s ease 0.3s",
+                  }}
+                />
+                {lines.map((line, i) => (
+                  <p
+                    key={i}
+                    style={{
+                      ...fadeUpStyle(v, 0.3 + i * 0.35),
+                      fontFamily: '"DM Serif Display", Georgia, serif',
+                      fontStyle: "italic",
+                      fontSize: "clamp(1.8rem, 7vw, 3.2rem)",
+                      color: COLORS.deep,
+                      marginBottom: 12,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {line}
+                  </p>
+                ))}
+              </div>
             </div>
-          </motion.div>
+          );
+        }}
+      </Beat>
 
-          <motion.div {...lineFade(0.6)} className="mt-4 space-y-3">
-            <p className="font-sans text-xs md:text-sm font-light uppercase tracking-[0.3em] text-slate-500">
+      {/* ═══ BEAT 10 — Closing + Signature ═══ */}
+      <Beat>
+        {(v) => (
+          <div>
+            <p
+              style={{
+                ...fadeUpStyle(v),
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(1.2rem, 4.2vw, 1.5rem)",
+                color: COLORS.muted,
+                marginBottom: 30,
+              }}
+            >
               Because when someone loves you unconditionally…
             </p>
-            <p className="font-serif text-2xl md:text-3xl italic font-medium text-slate-800 leading-relaxed pt-3">
+            <p
+              style={{
+                ...fadeUpStyle(v, 0.25),
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.8rem, 6.5vw, 2.6rem)",
+                color: COLORS.deep,
+                marginBottom: 24,
+              }}
+            >
               the most beautiful thing you can do
             </p>
-            <motion.p
-              initial={{ filter: "blur(10px)", opacity: 0 }}
-              whileInView={{ filter: "blur(0px)", opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="font-caveat text-3xl md:text-4xl text-slate-900"
+            <p
+              style={{
+                opacity: v ? 1 : 0,
+                filter: v ? "blur(0px)" : "blur(10px)",
+                transition: "opacity 0.8s ease 0.5s, filter 0.8s ease 0.5s",
+                fontFamily: "Caveat, cursive",
+                fontSize: "clamp(3.2rem, 12vw, 6rem)",
+                color: COLORS.ink,
+              }}
             >
               is try to understand them in return.
-            </motion.p>
-          </motion.div>
+            </p>
+            <WavyUnderline visible={v} />
+          </div>
+        )}
+      </Beat>
+
+      {/* ═══ UGC TESTIMONIALS ═══ */}
+      <section style={{ background: COLORS.cream, padding: "80px 28px 60px", textAlign: "center" }}>
+        <p
+          style={{
+            fontFamily: "Cormorant, Georgia, serif",
+            fontWeight: 600,
+            fontSize: "0.85rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.3em",
+            color: COLORS.earth,
+            marginBottom: 45,
+          }}
+        >
+          WHAT PET PARENTS ARE SAYING
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 20 }}>
+          {[0, 1, 2, 3].map((i) => {
+            const { ref, visible } = useScrollReveal({ threshold: 0.15 });
+            return (
+              <div
+                key={i}
+                ref={ref}
+                style={{
+                  ...fadeUpStyle(visible, 0.3 + i * 0.3),
+                  width: 180,
+                  aspectRatio: "9/16",
+                  borderRadius: 16,
+                  background: `linear-gradient(135deg, ${COLORS.cream3}, ${COLORS.sand})`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                }}
+              >
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: "50%",
+                    background: COLORS.cream,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+                    fontSize: 40,
+                  }}
+                >
+                  ▶
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 20, marginTop: 12 }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} style={{ width: 180, textAlign: "center", fontSize: "0.85rem", color: COLORS.gold }}>
+              ★★★★★
+            </div>
+          ))}
         </div>
       </section>
+
+      {/* ═══ CTA SECTION ═══ */}
+      <Beat background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2}, ${COLORS.cream})`}>
+        {(v) => (
+          <div>
+            <p
+              style={{
+                ...fadeUpStyle(v),
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(1.2rem, 4.5vw, 1.6rem)",
+                color: COLORS.earth,
+                marginBottom: 35,
+              }}
+            >
+              Your pet loves you with everything they have.
+            </p>
+            <h2
+              style={{
+                ...fadeUpStyle(v, 0.2),
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(2.6rem, 10vw, 4.8rem)",
+                color: COLORS.black,
+                lineHeight: 1,
+                marginBottom: 50,
+              }}
+            >
+              Now it's your turn
+              <br />
+              to understand them.
+            </h2>
+            <a
+              href="/intake"
+              onClick={() => trackCTAClick("Get Their Reading", "emotional-journey-cta")}
+              style={{
+                ...fadeUpStyle(v, 0.4),
+                display: "inline-block",
+                background: COLORS.rose,
+                color: "#fff",
+                fontFamily: "Cormorant, Georgia, serif",
+                fontWeight: 600,
+                fontSize: "1.1rem",
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                textDecoration: "none",
+                padding: "20px 52px",
+                borderRadius: 50,
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.35s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 8px 30px rgba(191,82,74,0.25)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              Get Their Reading
+            </a>
+            <p
+              style={{
+                ...fadeUpStyle(v, 0.55),
+                fontFamily: "Cormorant, Georgia, serif",
+                fontSize: "0.95rem",
+                color: COLORS.muted,
+                marginTop: 24,
+                letterSpacing: "0.05em",
+              }}
+            >
+              Personalised soul & astrology reading for your pet
+            </p>
+          </div>
+        )}
+      </Beat>
     </div>
   );
 };
