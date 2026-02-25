@@ -31,7 +31,7 @@ export const StickyMobileCTA = () => {
               : "bg-gradient-to-t from-background via-background to-transparent"
           }`}
         >
-          <Link to="/intake" className="block">
+          <Link to={isVariantC ? "/checkout?tier=premium" : "/intake"} className="block">
             <button className={`w-full py-4 px-6 text-white font-bold text-lg rounded-full shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-transform ${
               isVariantC 
                 ? "bg-primary hover:bg-primary/90 shadow-primary/30"

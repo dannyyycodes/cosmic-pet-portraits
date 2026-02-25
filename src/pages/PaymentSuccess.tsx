@@ -6,13 +6,14 @@ import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
 import { ReportRevealVariantRenderer } from '@/components/report/ReportRevealVariantRenderer';
 import { GiftConfirmation } from '@/components/report/GiftConfirmation';
 import { AllReportsComplete } from '@/components/report/AllReportsComplete';
+import { PostPurchaseIntake } from '@/components/intake/PostPurchaseIntake';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Sparkles, Gift, Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-type Stage = 'verifying' | 'generating' | 'reveal' | 'complete' | 'gift-sent' | 'error' | 'ready-next' | 'celebration';
+type Stage = 'verifying' | 'generating' | 'reveal' | 'complete' | 'gift-sent' | 'error' | 'ready-next' | 'celebration' | 'post-purchase-intake';
 
 interface ReportData {
   petName: string;
@@ -56,6 +57,7 @@ export default function PaymentSuccess() {
   const sessionId = searchParams.get('session_id');
   const reportId = searchParams.get('report_id');
   const reportIdsParam = searchParams.get('report_ids'); // For multi-pet gifts
+  const isQuickCheckout = searchParams.get('quick') === 'true';
   const isGiftedParam = searchParams.get('gifted') === 'true';
   const giftedTierParam = searchParams.get('gifted_tier') as 'basic' | 'premium' | 'vip' | null;
   const isGiftRedemption = sessionId?.startsWith('gift_') || isGiftedParam;
@@ -81,6 +83,12 @@ export default function PaymentSuccess() {
     if (!sessionId || !reportId) {
       setError(t('paymentSuccess.errorMissing'));
       setStage('error');
+      return;
+    }
+
+    // Quick checkout: show post-purchase intake first (Variant C flow)
+    if (isQuickCheckout) {
+      setStage('post-purchase-intake');
       return;
     }
 
@@ -288,6 +296,19 @@ export default function PaymentSuccess() {
       setCurrentReportIndex(prev => prev + 1);
     }
   };
+
+  // Post-purchase intake (quick checkout / Variant C)
+  if (stage === 'post-purchase-intake' && reportId) {
+    return (
+      <PostPurchaseIntake
+        reportId={reportId}
+        onComplete={() => {
+          // After pet data is saved, start verifying/generating
+          verifyAndFetchReport();
+        }}
+      />
+    );
+  }
 
   // Error state
   if (stage === 'error') {
