@@ -346,8 +346,6 @@ serve(async (req) => {
       calculatedTotal,
     });
 
-    const origin = req.headers.get("origin") || "https://lovable.dev";
-
     // If total is 0 (fully covered by gift certificate), skip Stripe
     if (calculatedTotal === 0) {
       console.log("[CREATE-CHECKOUT] Order is free, skipping Stripe");

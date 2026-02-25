@@ -52,7 +52,7 @@ export function Navbar() {
     <>
       {/* Gift Banner — Variant C only */}
       {isVariantC && !giftBannerDismissed && (
-        <div className="fixed top-0 left-0 right-0 z-[60] bg-[#2D7D46] text-white text-center text-sm py-2.5 px-4">
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-[#5CB85C] text-white text-center text-sm py-2.5 px-4">
           <div className="max-w-6xl mx-auto flex items-center justify-center gap-2">
             <Link to="/gift" className="flex items-center gap-2 hover:underline underline-offset-2 font-medium">
               <span>🎁</span>
