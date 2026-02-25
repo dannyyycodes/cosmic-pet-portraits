@@ -594,7 +594,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
               to understand them.
             </h2>
             <a
-              href="/intake"
+              href="/checkout"
               onClick={() => trackCTAClick("Get Their Reading", "emotional-journey-cta")}
               style={{
                 ...fadeUpStyle(v, 0.4),
