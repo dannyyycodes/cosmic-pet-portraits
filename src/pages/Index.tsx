@@ -34,6 +34,7 @@ import { PerfectForSection } from "@/components/variants/variant-c/PerfectForSec
 import { PricingPreview } from "@/components/variants/variant-c/PricingPreview";
 import { FAQVariantC } from "@/components/variants/variant-c/FAQVariantC";
 import { FloatingDecorations } from "@/components/variants/variant-c/FloatingDecorations";
+import { EmotionalJourney } from "@/components/variants/variant-c/EmotionalJourney";
 
 
 // Original Hero content extracted as a component for Variant A
@@ -159,199 +160,131 @@ const Index = () => {
         />
       </TrackedSection>
 
-      {/* UGC Videos -- Variant C only, right after hero */}
+      {/* Variant C: Emotional Journey → UGC → Final CTA */}
       <VariantOnly variants="C">
+        <EmotionalJourney trackCTAClick={trackCTAClick} />
         <TrackedSection sectionName="video_testimonials" onView={trackSectionView}>
           <VideoTestimonials />
         </TrackedSection>
-      </VariantOnly>
-
-      {/* Sample Carousel (From Real Reports) -- Variant C only, after UGC */}
-      <VariantOnly variants="C">
-        <TrackedSection sectionName="sample_reports" onView={trackSectionView} className="relative z-10 pb-8">
-          <SampleCarousel />
+        <TrackedSection sectionName="final_cta" onView={trackSectionView}>
+          <CTAVariantC variant="final" trackCTAClick={trackCTAClick} />
         </TrackedSection>
       </VariantOnly>
 
-      {/* Testimonials Section - A/B Tested */}
-      <TrackedSection sectionName="testimonials" onView={trackSectionView}>
-        <VariantRenderer
-          variants={{
-            A: <PremiumTestimonials />,
-            B: <TestimonialsVariantB />,
-            C: <TestimonialsVariantC />,
-          }}
-        />
-      </TrackedSection>
-
-      {/* Perfect For -- Variant C only */}
-      <VariantOnly variants="C">
-        <PerfectForSection />
-      </VariantOnly>
-
-      {/* Pricing Preview -- Variant C only */}
-      <VariantOnly variants="C">
-        <TrackedSection sectionName="pricing" onView={trackSectionView}>
-          <PricingPreview />
-        </TrackedSection>
-      </VariantOnly>
-
-      {/* How It Works Section -- A/B only (removed from C) */}
+      {/* Variant A/B: Original flow */}
       <VariantOnly variants={["A", "B"]}>
-        <TrackedSection sectionName="how_it_works" onView={trackSectionView}>
+        <TrackedSection sectionName="testimonials" onView={trackSectionView}>
           <VariantRenderer
             variants={{
-              A: <HowItWorks />,
-              B: <HowItWorks />,
+              A: <PremiumTestimonials />,
+              B: <TestimonialsVariantB />,
+              C: null,
+            }}
+          />
+        </TrackedSection>
+
+        <TrackedSection sectionName="how_it_works" onView={trackSectionView}>
+          <HowItWorks />
+        </TrackedSection>
+
+        <TrackedSection sectionName="options_cards" onView={trackSectionView} className="relative py-16 px-4 z-10">
+          <div className="max-w-3xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-10"
+            >
+              <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
+                Choose Your Experience
+              </h2>
+              <p className="text-muted-foreground">
+                Whether for yourself or as a gift they'll never forget — takes just 60 seconds
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                <Link to="/intake?mode=discover" className="group block" onClick={() => trackCTAClick('get_reading', 'options_cards')}>
+                  <div className="relative p-8 rounded-2xl border border-primary/30 hover:border-primary bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all duration-300 h-full">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium bg-primary text-primary-foreground">
+                      {t('hero.mostPopular')}
+                    </div>
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-nebula-purple">
+                        <Dog className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="space-y-2 text-center">
+                        <h3 className="text-xl font-display font-bold text-foreground">For My Pet</h3>
+                        <p className="text-sm text-muted-foreground">{t('hero.discoverDesc')}</p>
+                      </div>
+                      <Button variant="cosmic" size="lg" className="w-full mt-2">
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Get Started →
+                      </Button>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+              >
+                <Link to="/gift" className="group block" onClick={() => trackCTAClick('gift', 'options_cards')}>
+                  <div className="relative p-8 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm hover:border-primary/50 hover:bg-card/50 transition-all duration-300 h-full">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                      Great Gift Idea
+                    </div>
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-br from-primary/80 to-nebula-purple/80">
+                        <Gift className="w-7 h-7 text-white" />
+                      </div>
+                      <div className="space-y-2 text-center">
+                        <h3 className="text-xl font-display font-bold text-foreground">For a Friend</h3>
+                        <p className="text-sm text-muted-foreground">A unique, personalized gift — delivered instantly</p>
+                      </div>
+                      <Button variant="outline" size="lg" className="w-full mt-2 border-primary/40 hover:bg-primary/10">
+                        <Gift className="w-4 h-4 mr-2" />
+                        Send as Gift →
+                      </Button>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+        </TrackedSection>
+
+        <TrackedSection sectionName="mid_cta" onView={trackSectionView}>
+          <VariantRenderer
+            variants={{
+              A: <CTASection variant="mid" />,
+              B: <CTAVariantB variant="mid" trackCTAClick={trackCTAClick} />,
+              C: null,
+            }}
+          />
+        </TrackedSection>
+
+        <TrackedSection sectionName="faq" onView={trackSectionView}>
+          <FAQ />
+        </TrackedSection>
+
+        <TrackedSection sectionName="final_cta" onView={trackSectionView}>
+          <VariantRenderer
+            variants={{
+              A: <CTASection variant="final" />,
+              B: <CTAVariantB variant="final" trackCTAClick={trackCTAClick} />,
               C: null,
             }}
           />
         </TrackedSection>
       </VariantOnly>
-
-      {/* Two Options Cards */}
-      <TrackedSection sectionName="options_cards" onView={trackSectionView} className="relative py-16 px-4 z-10">
-        <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-10"
-          >
-            <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground mb-2">
-              {isVariantC ? "Two Ways to Celebrate Your Bond" : "Choose Your Experience"}
-            </h2>
-            <p className="text-muted-foreground">
-              {isVariantC
-                ? "Whether for yourself or as a heartfelt gift they'll never forget"
-                : "Whether for yourself or as a gift they'll never forget — takes just 60 seconds"
-              }
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Discover My Pet */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <Link to={isVariantC ? "/checkout?tier=premium" : "/intake?mode=discover"} className="group block" onClick={() => trackCTAClick('get_reading', 'options_cards')}>
-                <div className={`relative p-8 rounded-2xl border transition-all duration-300 h-full ${
-                  isVariantC 
-                    ? "border-primary/30 hover:border-primary bg-card shadow-[var(--shadow-card)]" 
-                    : "border-primary/30 hover:border-primary bg-card/30 backdrop-blur-sm hover:bg-card/50"
-                }`}>
-                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium ${
-                    isVariantC ? "bg-primary text-primary-foreground" : "bg-primary text-primary-foreground"
-                  }`}>
-                    {t('hero.mostPopular')}
-                  </div>
-                  <div className="flex flex-col items-center gap-4">
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                      isVariantC ? "bg-primary/10" : "bg-gradient-to-br from-primary to-nebula-purple"
-                    }`}>
-                      <Dog className={`w-7 h-7 ${isVariantC ? "text-primary" : "text-white"}`} />
-                    </div>
-                    <div className="space-y-2 text-center">
-                      <h3 className="text-xl font-display font-bold text-foreground">
-                        For My Pet
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {isVariantC ? "Discover the beautiful soul behind those eyes" : t('hero.discoverDesc')}
-                      </p>
-                    </div>
-                    {isVariantC ? (
-                      <Button size="lg" className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground">
-                        Get Started
-                        <ArrowRight className="w-4 h-4 ml-1" />
-                      </Button>
-                    ) : (
-                      <Button variant="cosmic" size="lg" className="w-full mt-2">
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Get Started →
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-
-            {/* Gift to a Friend */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <Link to="/gift" className="group block" onClick={() => trackCTAClick('gift', 'options_cards')}>
-                <div className={`relative p-8 rounded-2xl border transition-all duration-300 h-full ${
-                  isVariantC 
-                    ? "border-border hover:border-primary/50 bg-card shadow-[var(--shadow-card)]" 
-                    : "border-border/50 bg-card/30 backdrop-blur-sm hover:border-primary/50 hover:bg-card/50"
-                }`}>
-                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-medium ${
-                    isVariantC ? "bg-secondary text-muted-foreground" : "bg-muted text-muted-foreground"
-                  }`}>
-                    Great Gift Idea
-                  </div>
-                  <div className="flex flex-col items-center gap-4">
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                      isVariantC ? "bg-primary/10" : "bg-gradient-to-br from-primary/80 to-nebula-purple/80"
-                    }`}>
-                      <Gift className={`w-7 h-7 ${isVariantC ? "text-primary" : "text-white"}`} />
-                    </div>
-                    <div className="space-y-2 text-center">
-                      <h3 className="text-xl font-display font-bold text-foreground">
-                        For a Friend
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {isVariantC ? "Give the most meaningful gift a pet lover could receive" : "A unique, personalized gift — delivered instantly"}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="lg" className="w-full mt-2 border-primary/40 hover:bg-primary/10">
-                      <Gift className="w-4 h-4 mr-2" />
-                      Send as Gift →
-                    </Button>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </TrackedSection>
-
-      {/* Mid-page CTA - A/B Tested */}
-      <TrackedSection sectionName="mid_cta" onView={trackSectionView}>
-        <VariantRenderer
-          variants={{
-            A: <CTASection variant="mid" />,
-            B: <CTAVariantB variant="mid" trackCTAClick={trackCTAClick} />,
-            C: <CTAVariantC variant="mid" trackCTAClick={trackCTAClick} />,
-          }}
-        />
-      </TrackedSection>
-
-      {/* FAQ Section -- A/B/C */}
-      <TrackedSection sectionName="faq" onView={trackSectionView}>
-        <VariantRenderer
-          variants={{
-            A: <FAQ />,
-            B: <FAQ />,
-            C: <FAQVariantC />,
-          }}
-        />
-      </TrackedSection>
-
-      {/* Final CTA - A/B Tested */}
-      <TrackedSection sectionName="final_cta" onView={trackSectionView}>
-        <VariantRenderer
-          variants={{
-            A: <CTASection variant="final" />,
-            B: <CTAVariantB variant="final" trackCTAClick={trackCTAClick} />,
-            C: <CTAVariantC variant="final" trackCTAClick={trackCTAClick} />,
-          }}
-        />
-      </TrackedSection>
 
       {/* Footer */}
       <TrackedSection sectionName="footer" onView={trackSectionView} className="relative py-12 px-4 border-t border-border/30 z-10">

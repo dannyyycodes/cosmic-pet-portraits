@@ -210,17 +210,25 @@ export default function QuickCheckout() {
           )}
         </Button>
 
-        {/* Testimonial Quote */}
+      {/* Testimonials */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-5 text-center"
+          className="mt-6 space-y-4"
         >
-          <p className="text-sm text-muted-foreground italic leading-relaxed">
-            "I cried reading it — it captured him perfectly. Like someone finally saw what I see every day."
-          </p>
-          <p className="text-xs text-muted-foreground mt-1 font-medium">— Sarah M., golden retriever mom</p>
+          {[
+            { quote: "I cried reading it — it captured him perfectly. Like someone finally saw what I see every day.", name: "Sarah M.", pet: "golden retriever mom" },
+            { quote: "I bought this for my mum for her birthday. She cried happy tears. Best gift I've ever given.", name: "James L.", pet: "cat dad" },
+            { quote: "The portrait alone was worth it. It's now framed on our wall and everyone asks about it.", name: "Priya K.", pet: "labrador parent" },
+          ].map((t, i) => (
+            <div key={i} className="text-center">
+              <p className="text-sm text-muted-foreground italic leading-relaxed">
+                "{t.quote}"
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 font-medium">— {t.name}, {t.pet}</p>
+            </div>
+          ))}
         </motion.div>
 
         {/* Trustpilot Badge */}
