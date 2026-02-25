@@ -12,6 +12,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 // Eagerly loaded pages (core user journey)
 import Index from "./pages/Index";
 import Intake from "./pages/Intake";
+import QuickCheckout from "./pages/QuickCheckout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import ViewReport from "./pages/ViewReport";
 import GiftPurchase from "./pages/GiftPurchase";
@@ -72,6 +73,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/intake" element={<Intake />} />
+                  <Route path="/checkout" element={<QuickCheckout />} />
                   <Route path="/gift" element={<GiftPurchase />} />
                   <Route path="/gift-success" element={<GiftSuccess />} />
                   <Route path="/redeem" element={<RedeemGift />} />

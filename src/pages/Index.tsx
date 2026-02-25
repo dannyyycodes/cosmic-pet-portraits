@@ -229,7 +229,7 @@ const Index = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <Link to="/intake?mode=discover" className="group block" onClick={() => trackCTAClick('get_reading', 'options_cards')}>
+              <Link to={isVariantC ? "/checkout?tier=premium" : "/intake?mode=discover"} className="group block" onClick={() => trackCTAClick('get_reading', 'options_cards')}>
                 <div className={`relative p-8 rounded-2xl border transition-all duration-300 h-full ${
                   isVariantC 
                     ? "border-primary/30 hover:border-primary bg-card shadow-[var(--shadow-card)]" 

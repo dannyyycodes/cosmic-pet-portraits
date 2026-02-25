@@ -63,6 +63,9 @@ const checkoutSchema = z.object({
   })).optional(),
   // NEW: Per-pet horoscope subscriptions
   petHoroscopes: z.record(z.string(), z.boolean()).optional(),
+  // Quick checkout mode for Variant C (no report exists yet)
+  quickCheckout: z.boolean().optional().default(false),
+  abVariant: z.string().max(5).optional(),
 });
 
 serve(async (req) => {
@@ -74,15 +77,6 @@ serve(async (req) => {
     // Validate input
     const rawInput = await req.json();
     const input = checkoutSchema.parse(rawInput);
-
-    // Support both single reportId and array of reportIds
-    const allReportIds = input.reportIds || (input.reportId ? [input.reportId] : []);
-    if (allReportIds.length === 0) {
-      throw new Error("At least one report ID is required");
-    }
-    const primaryReportId = allReportIds[0];
-
-    console.log("[CREATE-CHECKOUT] Starting checkout for reports:", allReportIds, "tier:", input.selectedTier);
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -98,6 +92,82 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+
+    const origin = req.headers.get("origin") || "https://lovable.dev";
+
+    // ========== QUICK CHECKOUT MODE (Variant C) ==========
+    // No report exists yet — create a placeholder, go straight to Stripe
+    if (input.quickCheckout) {
+      const isVariantC = input.abVariant === "C";
+      const tierKey = input.selectedTier || 'premium';
+      
+      // Use Variant C pricing ($27/$35)
+      const VARIANT_C_PRICES: Record<string, number> = {
+        basic: 2700,
+        premium: 3500,
+      };
+      const priceCents = VARIANT_C_PRICES[tierKey] || 3500;
+      const tierName = tierKey === 'basic' ? 'Personality Reading' : 'Premium with Portrait';
+
+      // Create a placeholder report record
+      const { data: placeholderReport, error: insertError } = await supabaseClient
+        .from("pet_reports")
+        .insert({
+          email: "pending@checkout.temp",
+          pet_name: "Pending",
+          species: "pending",
+          payment_status: "pending",
+        })
+        .select("id")
+        .single();
+
+      if (insertError || !placeholderReport) {
+        console.error("[CREATE-CHECKOUT] Failed to create placeholder report:", insertError);
+        throw new Error("Failed to create report record");
+      }
+
+      const reportId = placeholderReport.id;
+      console.log("[CREATE-CHECKOUT] Quick checkout — placeholder report:", reportId, "tier:", tierKey, "price:", priceCents);
+
+      // Create Stripe session — Stripe captures email
+      const session = await stripe.checkout.sessions.create({
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: { name: tierName },
+            unit_amount: priceCents,
+          },
+          quantity: 1,
+        }],
+        mode: "payment",
+        success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${reportId}&quick=true`,
+        cancel_url: `${origin}/checkout?tier=${tierKey}`,
+        metadata: {
+          report_ids: reportId,
+          pet_count: "1",
+          selected_tier: tierKey,
+          quick_checkout: "true",
+          ab_variant: input.abVariant || "C",
+          includes_portrait: (tierKey === 'premium') ? "true" : "false",
+        },
+      });
+
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // ========== STANDARD CHECKOUT MODE (Variant A / existing flow) ==========
+
+    // Support both single reportId and array of reportIds
+    const allReportIds = input.reportIds || (input.reportId ? [input.reportId] : []);
+    if (allReportIds.length === 0) {
+      throw new Error("At least one report ID is required");
+    }
+    const primaryReportId = allReportIds[0];
+
+    console.log("[CREATE-CHECKOUT] Starting checkout for reports:", allReportIds, "tier:", input.selectedTier);
 
     // Fetch the primary report to get email
     const { data: report, error: reportError } = await supabaseClient
@@ -440,6 +510,7 @@ serve(async (req) => {
         // VIP tier includes horoscope for free
         vip_horoscope: Object.values(petTiers).some(t => t === 'vip') || input.selectedTier === "vip" ? "true" : "false",
         pet_photo_url: input.petPhotoUrl || "", // Legacy single photo
+        ab_variant: input.abVariant || "", // A/B test variant tracking
       },
     });
 

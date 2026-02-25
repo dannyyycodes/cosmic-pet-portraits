@@ -18,7 +18,7 @@ const tiers = [
     cta: "Get Started",
     variant: "outline" as const,
     elevated: false,
-    link: "/intake?mode=discover",
+    link: "/checkout?tier=basic",
   },
   {
     name: "Premium with Portrait",
@@ -34,7 +34,7 @@ const tiers = [
     cta: "Get Premium",
     variant: "default" as const,
     elevated: true,
-    link: "/intake?mode=discover",
+    link: "/checkout?tier=premium",
   },
 ];
 

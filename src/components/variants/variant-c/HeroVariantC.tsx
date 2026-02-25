@@ -60,7 +60,7 @@ export const HeroVariantC = ({ trackCTAClick }: HeroVariantCProps) => {
           transition={{ duration: 0.4, delay: 0.3 }}
           className="flex flex-col items-center gap-3 mb-10"
         >
-          <Link to="/intake?mode=discover" onClick={() => trackCTAClick('get_reading', 'hero')} className="w-full max-w-sm">
+          <Link to="/checkout?tier=premium" onClick={() => trackCTAClick('get_reading', 'hero')} className="w-full max-w-sm">
             <Button size="lg" className="w-full text-base sm:text-lg px-6 py-7 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-semibold group transition-all">
               Discover Who They Really Are
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
