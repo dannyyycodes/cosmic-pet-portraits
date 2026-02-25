@@ -166,6 +166,13 @@ const Index = () => {
         </TrackedSection>
       </VariantOnly>
 
+      {/* Sample Carousel (From Real Reports) -- Variant C only, after UGC */}
+      <VariantOnly variants="C">
+        <TrackedSection sectionName="sample_reports" onView={trackSectionView} className="relative z-10 pb-8">
+          <SampleCarousel />
+        </TrackedSection>
+      </VariantOnly>
+
       {/* Testimonials Section - A/B Tested */}
       <TrackedSection sectionName="testimonials" onView={trackSectionView}>
         <VariantRenderer
