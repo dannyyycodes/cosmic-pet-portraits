@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SampleCarousel } from "@/components/SampleCarousel";
 
 interface HeroVariantCProps {
   trackCTAClick: (cta: string, location: string) => void;
@@ -86,15 +85,6 @@ export const HeroVariantC = ({ trackCTAClick }: HeroVariantCProps) => {
           <p className="text-xs text-muted-foreground">
             Instant delivery · 100% money-back guarantee
           </p>
-        </motion.div>
-
-        {/* Sample Carousel with real pet photos */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <SampleCarousel />
         </motion.div>
       </div>
     </section>
