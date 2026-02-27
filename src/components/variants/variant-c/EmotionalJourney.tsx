@@ -55,36 +55,7 @@ const PawPrint = ({ style }: { style: React.CSSProperties }) => (
 
 // ─── Paw decorations for a section ───
 const SectionPaws = ({ visible }: { visible: boolean }) => {
-  const paws = [
-    { left: "2%", top: "18%", rotate: "175deg", scaleX: 1 },
-    { left: "5%", top: "55%", rotate: "185deg", scaleX: 1 },
-    { right: "2%", top: "25%", rotate: "180deg", scaleX: -1 },
-    { right: "5%", top: "65%", rotate: "170deg", scaleX: -1 },
-  ];
-  return (
-    <div className="hidden md:block">
-      {paws.map((p, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            ...(p.left ? { left: p.left } : {}),
-            ...(p.right ? { right: p.right } : {}),
-            top: p.top,
-          }}
-        >
-          <PawPrint
-            style={{
-              position: "relative",
-              transform: `rotate(${p.rotate}) scaleX(${p.scaleX})`,
-              opacity: visible ? 1 : 0,
-              transition: `opacity 1.2s ease ${i * 0.15}s`,
-            }}
-          />
-        </div>
-      ))}
-    </div>
-  );
+  return null;
 };
 
 // ─── Subtle paw traces between beats ───
