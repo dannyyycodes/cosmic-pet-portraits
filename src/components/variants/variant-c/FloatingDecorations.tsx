@@ -15,7 +15,7 @@ const decorations = [
 
 export const FloatingDecorations = () => {
   return (
-    <div className="fixed inset-0 pointer-events-none z-[5] hidden md:block overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-[5] overflow-hidden">
       {decorations.map((d, i) => (
         <motion.span
           key={i}
