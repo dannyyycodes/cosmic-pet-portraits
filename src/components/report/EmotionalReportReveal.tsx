@@ -1,657 +1,201 @@
-import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Star, Heart, Sun, Moon, Compass, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
-interface ReportContent {
-  sunSign: string;
-  archetype: string;
-  element: string;
-  modality: string;
-  nameVibration: number;
-  coreEssence: string;
-  soulMission: string;
-  hiddenGift: string;
-  loveLanguage: string;
-  cosmicAdvice: string;
-}
+import { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 
 interface EmotionalReportRevealProps {
   petName: string;
-  report: ReportContent;
+  report: any;
   onComplete: () => void;
+  occasionMode?: string;
 }
 
-const elementEmojis: Record<string, string> = {
-  Fire: '🔥',
-  Earth: '🌿',
-  Air: '💨',
-  Water: '🌊',
-};
+function getPronouns(gender?: string) {
+  switch (gender) {
+    case 'male': case 'boy': return { subject: 'he', Subject: 'He', possessive: 'his' };
+    case 'female': case 'girl': return { subject: 'she', Subject: 'She', possessive: 'her' };
+    default: return { subject: 'they', Subject: 'They', possessive: 'their' };
+  }
+}
 
 const signEmojis: Record<string, string> = {
-  Aries: '♈',
-  Taurus: '♉',
-  Gemini: '♊',
-  Cancer: '♋',
-  Leo: '♌',
-  Virgo: '♍',
-  Libra: '♎',
-  Scorpio: '♏',
-  Sagittarius: '♐',
-  Capricorn: '♑',
-  Aquarius: '♒',
-  Pisces: '♓',
+  Aries: '♈', Taurus: '♉', Gemini: '♊', Cancer: '♋', Leo: '♌', Virgo: '♍',
+  Libra: '♎', Scorpio: '♏', Sagittarius: '♐', Capricorn: '♑', Aquarius: '♒', Pisces: '♓',
 };
 
-type RevealStage = 
-  | 'intro'
-  | 'sign-reveal'
-  | 'archetype'
-  | 'essence'
-  | 'mission'
-  | 'gift'
-  | 'love'
-  | 'advice'
-  | 'complete';
-
-const stages: RevealStage[] = [
-  'intro',
-  'sign-reveal',
-  'archetype',
-  'essence',
-  'mission',
-  'gift',
-  'love',
-  'advice',
-  'complete',
-];
-
-type UnknownReport = any;
-
-const asString = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
-const asNumber = (v: unknown): number | undefined => (typeof v === 'number' ? v : undefined);
-
-const normalizeRevealReport = (raw: UnknownReport): ReportContent => {
-  const sunSign = asString(raw?.chartPlacements?.sun?.sign) || asString(raw?.sunSign) || 'Aries';
-  const element = asString(raw?.dominantElement) || asString(raw?.element) || 'Fire';
-  const modality = asString(raw?.modality) || 'Mystic';
-
-  const archetype = asString(raw?.archetype?.name) || asString(raw?.archetype) || 'Cosmic Soul';
-
-  const coreEssence =
-    asString(raw?.coreEssence) ||
-    asString(raw?.solarSoulprint?.content) ||
-    asString(raw?.prologue) ||
-    'A radiant presence with a heart full of starlight.';
-
-  const soulMission =
-    asString(raw?.soulMission) ||
-    asString(raw?.destinyCompass?.content) ||
-    asString(raw?.keepersBond?.soulContract) ||
-    'To deepen your bond through presence, play, and gentle guidance.';
-
-  const hiddenGift =
-    asString(raw?.hiddenGift) ||
-    asString(raw?.wildSpirit?.content) ||
-    asString(raw?.gentleHealer?.content) ||
-    'A quiet magic that turns ordinary moments into comfort.';
-
-  const loveLanguage =
-    asString(raw?.loveLanguage) ||
-    asString(raw?.harmonyHeartbeats?.loveLanguageType) ||
-    asString(raw?.harmonyHeartbeats?.content) ||
-    'Quality time and affectionate rituals.';
-
-  const cosmicAdvice =
-    asString(raw?.cosmicAdvice) ||
-    asString(raw?.keepersBond?.dailyRitual) ||
-    asString(raw?.epilogue) ||
-    'Follow the small daily rituals that make your bond feel sacred.';
-
-  return {
-    sunSign,
-    archetype,
-    element,
-    modality,
-    nameVibration: asNumber(raw?.nameVibration) ?? 0,
-    coreEssence,
-    soulMission,
-    hiddenGift,
-    loveLanguage,
-    cosmicAdvice,
-  };
+const grainStyle: React.CSSProperties = {
+  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
 };
 
-export function EmotionalReportReveal({ petName, report, onComplete }: EmotionalReportRevealProps) {
-  const [currentStage, setCurrentStage] = useState<RevealStage>('intro');
-  const [isTransitioning, setIsTransitioning] = useState(false);
+export function EmotionalReportReveal({ petName, report, onComplete, occasionMode }: EmotionalReportRevealProps) {
+  const [visible, setVisible] = useState(false);
 
-  const stageIndex = stages.indexOf(currentStage);
-  const progress = (stageIndex / (stages.length - 1)) * 100;
-  const r = normalizeRevealReport(report);
+  const sunSign = report?.chartPlacements?.sun?.sign || report?.sunSign || 'Aries';
+  const moonSign = report?.chartPlacements?.moon?.sign || report?.moonSign || '';
+  const risingSign = report?.chartPlacements?.ascendant?.sign || report?.risingSign || '';
+  const element = report?.dominantElement || report?.element || 'Fire';
+  const modality = report?.modality || 'Cardinal';
+  const ruler = report?.rulingPlanet || report?.ruler || '';
+  const archetype = report?.archetype?.name || report?.archetype || report?.cosmicNickname || '';
+  const prologue = report?.prologue || report?.solarSoulprint?.content || report?.coreEssence || '';
+  const gender = report?.gender;
 
-  const advanceStage = useCallback(() => {
-    const nextIndex = stageIndex + 1;
-    if (nextIndex < stages.length) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setCurrentStage(stages[nextIndex]);
-        setIsTransitioning(false);
-      }, 500);
-    }
-  }, [stageIndex]);
+  const p = getPronouns(gender);
+  const isMemorial = occasionMode === 'memorial';
+  const isBirthday = occasionMode === 'birthday';
+  const isGift = occasionMode === 'gift';
+  const timeMult = isMemorial ? 1.5 : 1;
 
-  // Auto-advance intro after delay
+  const bornText = isBirthday
+    ? `${petName} celebrates another year under`
+    : isMemorial
+    ? `${petName} walked this earth under`
+    : `${petName} was born under`;
+
+  const signEmoji = signEmojis[sunSign] || '✨';
+
+  const pills = [
+    `☉ ${sunSign} Sun`,
+    moonSign ? `☽ ${moonSign} Moon` : null,
+    risingSign ? `↑ ${risingSign} Rising` : null,
+    element ? `${element === 'Water' ? '🌊' : element === 'Fire' ? '🔥' : element === 'Earth' ? '🌿' : '💨'} ${element} Dominant` : null,
+  ].filter(Boolean);
+
+  const elementLine = [
+    signEmoji,
+    `${element} Sign`,
+    modality ? `· ${modality}` : '',
+    ruler ? `· Ruled by ${ruler}` : '',
+  ].filter(Boolean).join(' ');
+
+  // Background gold dots
+  const dots = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
+    left: `${5 + Math.random() * 90}%`,
+    top: `${5 + Math.random() * 90}%`,
+    size: 2 + Math.random(),
+    opacity: 0.2 + Math.random() * 0.2,
+    delay: (i / 12) * 3,
+  })), []);
+
   useEffect(() => {
-    if (currentStage === 'intro') {
-      const timer = setTimeout(advanceStage, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentStage, advanceStage]);
+    setVisible(true);
+  }, []);
 
-  const renderStage = () => {
-    switch (currentStage) {
-      case 'intro':
-        return (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1 }}
-            className="text-center space-y-6"
-          >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-              className="w-32 h-32 mx-auto relative"
-            >
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-nebula-purple via-primary to-nebula-pink opacity-50 blur-xl" />
-              <div className="relative w-full h-full rounded-full bg-card/50 flex items-center justify-center border border-primary/30">
-                <Star className="w-16 h-16 text-cosmic-gold" />
-              </div>
-            </motion.div>
-            <div>
-              <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-                The cosmos are aligning...
-              </h2>
-              <p className="text-muted-foreground">
-                Preparing to reveal {petName}&apos;s cosmic truth
-              </p>
-            </div>
-          </motion.div>
-        );
-
-      case 'sign-reveal':
-        return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center space-y-8"
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', damping: 10, stiffness: 100 }}
-              className="relative"
-            >
-              <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-                className="w-48 h-48 mx-auto relative"
-              >
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cosmic-gold via-primary to-cosmic-gold opacity-30 blur-2xl" />
-              </motion.div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <motion.span
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5, type: 'spring' }}
-                  className="text-8xl"
-                >
-                  {signEmojis[r.sunSign] || '✨'}
-                </motion.span>
-              </div>
-            </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <p className="text-cosmic-gold text-sm uppercase tracking-widest mb-2">
-                {petName} was born under
-              </p>
-              <h1 className="text-5xl font-display font-bold text-foreground mb-4">
-                {r.sunSign}
-              </h1>
-              <div className="flex items-center justify-center gap-4 text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  {elementEmojis[r.element]} {r.element}
-                </span>
-                <span>•</span>
-                <span>{r.modality}</span>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2 }}
-            >
-              <Button onClick={advanceStage} variant="gold" size="lg" className="mt-8 gap-2 group">
-                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-                <span>Reveal {petName}'s Soul Archetype</span>
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  →
-                </motion.span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        );
-
-      case 'archetype':
-        return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center space-y-8"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring' }}
-              className="space-y-4"
-            >
-              <p className="text-muted-foreground text-sm uppercase tracking-widest">
-                {petName}&apos;s Soul Archetype
-              </p>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-cosmic-gold via-primary to-nebula-pink bg-clip-text text-transparent"
-              >
-                &ldquo;{r.archetype}&rdquo;
-              </motion.h1>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="flex justify-center gap-2"
-            >
-              {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.8 + i * 0.1 }}
-                >
-                  <Star className="w-6 h-6 text-cosmic-gold fill-cosmic-gold" />
-                </motion.div>
-              ))}
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1 }}
-            >
-              <Button onClick={advanceStage} variant="gold" size="lg" className="mt-8 gap-2 group">
-                <Sun className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-                <span>Uncover Their Core Essence</span>
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  →
-                </motion.span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        );
-
-      case 'essence':
-        return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-8 max-w-lg mx-auto"
-          >
-            <div className="text-center">
-              <Sun className="w-12 h-12 mx-auto text-cosmic-gold mb-4" />
-              <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-                Core Essence
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                The heart of {petName}&apos;s being
-              </p>
-            </div>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-cosmic-gold/20"
-            >
-              <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{r.coreEssence}&rdquo;
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="text-center"
-            >
-              <Button onClick={advanceStage} variant="gold" size="lg" className="gap-2 group">
-                <Compass className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
-                <span>Discover Their Soul Mission</span>
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  →
-                </motion.span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        );
-
-      case 'mission':
-        return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-8 max-w-lg mx-auto"
-          >
-            <div className="text-center">
-              <Compass className="w-12 h-12 mx-auto text-primary mb-4" />
-              <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-                Soul Mission
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Why {petName} came into your life
-              </p>
-            </div>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-primary/20"
-            >
-              <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{r.soulMission}&rdquo;
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="text-center"
-            >
-              <Button onClick={advanceStage} variant="gold" size="lg" className="gap-2 group">
-                <Sparkles className="w-5 h-5 group-hover:scale-125 transition-transform" />
-                <span>Unlock Their Hidden Gift</span>
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  →
-                </motion.span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        );
-
-      case 'gift':
-        return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-8 max-w-lg mx-auto"
-          >
-            <div className="text-center">
-              <Sparkles className="w-12 h-12 mx-auto text-nebula-pink mb-4" />
-              <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-                Hidden Gift
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                A special quality {petName} brings to your world
-              </p>
-            </div>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-nebula-pink/20"
-            >
-              <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{r.hiddenGift}&rdquo;
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="text-center"
-            >
-              <Button onClick={advanceStage} variant="gold" size="lg" className="gap-2 group">
-                <Heart className="w-5 h-5 group-hover:scale-110 transition-transform text-red-400" />
-                <span>Discover Their Love Language</span>
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  →
-                </motion.span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        );
-
-      case 'love':
-        return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-8 max-w-lg mx-auto"
-          >
-            <div className="text-center">
-              <Heart className="w-12 h-12 mx-auto text-red-400 mb-4" />
-              <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-                Love Language
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                How {petName} gives and receives love
-              </p>
-            </div>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-red-400/20"
-            >
-              <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{r.loveLanguage}&rdquo;
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="text-center"
-            >
-              <Button onClick={advanceStage} variant="gold" size="lg" className="gap-2 group">
-                <Moon className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                <span>Receive Cosmic Wisdom</span>
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  →
-                </motion.span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        );
-
-      case 'advice':
-        return (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-8 max-w-lg mx-auto"
-          >
-            <div className="text-center">
-              <Moon className="w-12 h-12 mx-auto text-emerald-400 mb-4" />
-              <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-                Cosmic Wisdom
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Guidance for deepening your bond
-              </p>
-            </div>
-            
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card/30 backdrop-blur-sm rounded-2xl p-6 border border-emerald-400/20"
-            >
-              <p className="text-lg text-foreground leading-relaxed italic">
-                &ldquo;{r.cosmicAdvice}&rdquo;
-              </p>
-            </motion.div>
-
-            <div className="text-center">
-              <Button onClick={advanceStage} variant="gold" size="lg">
-                <Eye className="w-5 h-5 mr-2" />
-                View Complete Portrait
-              </Button>
-            </div>
-          </motion.div>
-        );
-
-      case 'complete':
-        return (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center space-y-8"
-          >
-            <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-            >
-              <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-r from-cosmic-gold via-primary to-nebula-pink p-1">
-                <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-                  <span className="text-4xl">{signEmojis[r.sunSign] || '✨'}</span>
-                </div>
-              </div>
-            </motion.div>
-            
-            <div>
-              <h2 className="text-3xl font-display font-bold text-foreground mb-2">
-                {petName}&apos;s Portrait is Complete
-              </h2>
-              <p className="text-muted-foreground">
-                May this cosmic wisdom deepen your bond forever
-              </p>
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Button onClick={onComplete} variant="gold" size="xl" className="gap-2 group animate-pulse">
-                <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-                <span>Explore {petName}'s Full Portrait</span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        );
-    }
-  };
+  const d = (base: number) => base * timeMult;
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Cosmic background */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background" />
-        <div 
-          className="absolute inset-0 opacity-30"
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden"
+      style={{ backgroundColor: '#FFFDF5', ...grainStyle }}>
+
+      {/* Background dots */}
+      {dots.map((dot, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
           style={{
-            background: 'radial-gradient(ellipse 80% 50% at 50% 30%, hsl(280 50% 30% / 0.5), transparent 60%)',
+            left: dot.left, top: dot.top,
+            width: dot.size, height: dot.size,
+            backgroundColor: isMemorial ? 'rgba(200,200,210,0.3)' : isBirthday ? `hsl(${i * 30}, 70%, 60%)` : `rgba(196,162,101,${dot.opacity})`,
           }}
+          initial={{ opacity: 0 }}
+          animate={visible ? { opacity: 1 } : {}}
+          transition={{ delay: dot.delay, duration: 0.5 }}
         />
-        {/* Floating particles */}
-        {[...Array(30)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-primary/50"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.3, 0.8, 0.3],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+      ))}
 
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <div className="h-1 bg-muted/30">
-          <motion.div
-            className="h-full bg-gradient-to-r from-cosmic-gold to-primary"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.5 }}
-          />
-        </div>
-      </div>
+      <div className="relative z-10 flex flex-col items-center text-center max-w-[520px] w-full">
+        {/* Gift pre-text */}
+        {isGift && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0 }}
+            className="text-[1.1rem] text-[#bf524a] mb-6"
+            style={{ fontFamily: 'Caveat, cursive' }}>
+            You're about to give someone a gift they'll never forget
+          </motion.p>
+        )}
 
-      {/* Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-20">
-        <AnimatePresence mode="wait">
+        {/* "born under" */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: d(isGift ? 1.2 : 0.2) }}
+          className="text-[0.7rem] text-[#9B8E84] uppercase tracking-[0.15em] mb-2"
+          style={{ fontFamily: 'Cormorant, serif', fontVariant: 'small-caps' }}>
+          {bornText}
+        </motion.p>
+
+        {/* Sun sign — hero moment */}
+        <motion.h1
+          initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
+          animate={visible ? { opacity: 1, scale: 1, filter: 'blur(0px)' } : {}}
+          transition={{ delay: d(isGift ? 1.5 : 0.5), duration: 0.8, ease: 'easeOut' }}
+          className="text-[#2D2926] mb-2"
+          style={{ fontFamily: 'DM Serif Display, serif', fontSize: 'clamp(2.5rem, 8vw, 3.5rem)' }}>
+          {sunSign}
+        </motion.h1>
+
+        {/* Element line */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: d(isGift ? 2.2 : 1.2) }}
+          className="text-[0.82rem] text-[#9B8E84] mb-3"
+          style={{ fontFamily: 'Cormorant, serif' }}>
+          {elementLine}
+        </motion.p>
+
+        {/* Cosmic nickname */}
+        {archetype && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: d(isGift ? 2.6 : 1.6) }}
+            className="text-[1.3rem] text-[#bf524a] mb-4"
+            style={{ fontFamily: 'Caveat, cursive' }}>
+            {archetype}
+          </motion.p>
+        )}
+
+        {/* Big three stat pills */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: d(isGift ? 3.0 : 2.0) }}
+          className="flex flex-wrap gap-2 justify-center mb-6">
+          {pills.map((pill, i) => (
+            <span key={i} className="bg-white border border-[#E8DFD6] rounded-[20px] px-3 py-[0.35rem] text-[0.78rem] text-[#2D2926]"
+              style={{ fontFamily: 'Cormorant, serif' }}>
+              {pill}
+            </span>
+          ))}
+        </motion.div>
+
+        {/* Prologue card */}
+        {prologue && (
           <motion.div
-            key={currentStage}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: isTransitioning ? 0.5 : 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full max-w-2xl"
-          >
-            {renderStage()}
+            initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: d(isGift ? 3.4 : 2.4) }}
+            className="bg-white border border-[#E8DFD6] rounded-[16px] p-6 w-full mb-6">
+            <p className="text-[1.02rem] text-[#6B5E54] italic leading-[1.7]"
+              style={{ fontFamily: 'Cormorant, serif' }}>
+              {typeof prologue === 'string' ? prologue : ''}
+            </p>
           </motion.div>
-        </AnimatePresence>
+        )}
+
+        {/* CTA Button */}
+        <motion.button
+          initial={{ opacity: 0, y: 10 }} animate={visible ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: d(isGift ? 4.2 : 3.2) }}
+          onClick={onComplete}
+          className="w-full max-w-[400px] py-4 rounded-xl text-white text-[1.05rem] relative overflow-hidden"
+          style={{ fontFamily: 'DM Serif Display, serif', backgroundColor: '#bf524a' }}>
+          {/* Shimmer */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+            }}
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <span className="relative z-10">Read {petName}'s Full Soul Reading →</span>
+        </motion.button>
       </div>
     </div>
   );
