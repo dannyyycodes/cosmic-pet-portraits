@@ -3,14 +3,14 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
-import { ReportRevealVariantRenderer } from '@/components/report/ReportRevealVariantRenderer';
+import { EmotionalReportReveal } from '@/components/report/EmotionalReportReveal';
 import { GiftConfirmation } from '@/components/report/GiftConfirmation';
 import { AllReportsComplete } from '@/components/report/AllReportsComplete';
 import { PostPurchaseIntake } from '@/components/intake/PostPurchaseIntake';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Sparkles, Gift, Copy, Check } from 'lucide-react';
+import { ChevronRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 type Stage = 'verifying' | 'generating' | 'reveal' | 'complete' | 'gift-sent' | 'error' | 'ready-next' | 'celebration' | 'post-purchase-intake';
@@ -25,6 +25,8 @@ interface ReportData {
   recipientEmail?: string;
   portraitUrl?: string;
   petPhotoUrl?: string;
+  gender?: string;
+  occasionMode?: string;
 }
 
 interface GiftInfo {
@@ -56,13 +58,12 @@ export default function PaymentSuccess() {
 
   const sessionId = searchParams.get('session_id');
   const reportId = searchParams.get('report_id');
-  const reportIdsParam = searchParams.get('report_ids'); // For multi-pet gifts
+  const reportIdsParam = searchParams.get('report_ids');
   const isQuickCheckout = searchParams.get('quick') === 'true';
   const isGiftedParam = searchParams.get('gifted') === 'true';
   const giftedTierParam = searchParams.get('gifted_tier') as 'basic' | 'premium' | 'vip' | null;
   const isGiftRedemption = sessionId?.startsWith('gift_') || isGiftedParam;
   
-  // Dev mode checkout options passed via URL
   const includeGiftParam = searchParams.get('include_gift') === 'true';
   const includeHoroscopeParam = searchParams.get('include_horoscope') === 'true';
   const selectedTierParam = searchParams.get('selected_tier');
@@ -72,7 +73,6 @@ export default function PaymentSuccess() {
   const hasMultipleReports = allReports.length > 1;
   const isLastReport = currentReportIndex === allReports.length - 1;
 
-  // Set gifted info from URL params
   useEffect(() => {
     if (isGiftedParam) {
       setGiftedInfo({ isGifted: true, giftedTier: giftedTierParam });
@@ -86,7 +86,7 @@ export default function PaymentSuccess() {
       return;
     }
 
-    // Quick checkout: show post-purchase intake first (Variant C flow)
+    // Quick checkout: show post-purchase intake first
     if (isQuickCheckout) {
       setStage('post-purchase-intake');
       return;
@@ -101,7 +101,6 @@ export default function PaymentSuccess() {
     const maxAttempts = 20;
     let attempts = 0;
     
-    // Retrieve dev mode petPhotos and petTiers from sessionStorage
     let petPhotosFromStorage: Record<string, { url: string; processingMode?: string }> = {};
     let petTiersFromStorage: Record<string, 'basic' | 'premium' | 'vip'> = {};
     
@@ -109,308 +108,143 @@ export default function PaymentSuccess() {
       try {
         const storedPhotos = sessionStorage.getItem('dev_checkout_petPhotos');
         const storedTiers = sessionStorage.getItem('dev_checkout_petTiers');
-        if (storedPhotos) {
-          petPhotosFromStorage = JSON.parse(storedPhotos);
-          sessionStorage.removeItem('dev_checkout_petPhotos');
-        }
-        if (storedTiers) {
-          petTiersFromStorage = JSON.parse(storedTiers);
-          sessionStorage.removeItem('dev_checkout_petTiers');
-        }
-      } catch (e) {
-        console.warn('Could not retrieve dev mode data from sessionStorage:', e);
-      }
+        if (storedPhotos) { petPhotosFromStorage = JSON.parse(storedPhotos); sessionStorage.removeItem('dev_checkout_petPhotos'); }
+        if (storedTiers) { petTiersFromStorage = JSON.parse(storedTiers); sessionStorage.removeItem('dev_checkout_petTiers'); }
+      } catch (e) { console.warn('Could not retrieve dev mode data:', e); }
     }
 
-  const tryVerify = async (): Promise<boolean | 'generating'> => {
+    const tryVerify = async (): Promise<boolean | 'generating'> => {
       try {
-        console.log('[PaymentSuccess] Verifying payment, attempt:', attempts + 1);
-        
         const { data, error: verifyError } = await supabase.functions.invoke('verify-payment', {
-          body: { 
-            sessionId, 
-            reportId,
-            report_ids: reportIdsParam, // For multi-pet gifts
-            // Pass dev mode options if present
-            includeGift: includeGiftParam,
-            includeHoroscope: includeHoroscopeParam,
-            selectedTier: selectedTierParam,
-            includesPortrait: includesPortraitParam,
-            // Pass pet photos and tiers for dev mode
-            petPhotos: petPhotosFromStorage,
-            petTiers: petTiersFromStorage,
-          }
+          body: { sessionId, reportId, report_ids: reportIdsParam, includeGift: includeGiftParam, includeHoroscope: includeHoroscopeParam, selectedTier: selectedTierParam, includesPortrait: includesPortraitParam, petPhotos: petPhotosFromStorage, petTiers: petTiersFromStorage }
         });
 
-        if (verifyError) {
-          console.error('[PaymentSuccess] Verify error:', verifyError);
-          return false;
-        }
+        if (verifyError) return false;
+        if (!data?.success) return false;
 
-        console.log('[PaymentSuccess] Verify response:', data);
-
-        if (!data?.success) {
-          return false;
-        }
-
-        // Handle multiple reports
         const reports = data.allReports || [data.report];
         const processedReports: ReportData[] = [];
         let stillGenerating = false;
 
         for (const petReport of reports) {
           if (petReport?.payment_status === 'paid') {
-            // Check if report is still generating or has error that needs retry
             const reportContent = petReport.report_content;
-            const isGenerating = !reportContent || 
-                                 reportContent?.status === 'generating' || 
-                                 reportContent?.status === 'retrying';
-            
-            if (isGenerating) {
-              console.log('[PaymentSuccess] Report still generating:', petReport.id);
-              stillGenerating = true;
-              continue;
-            }
-            
-            // Check for failed generation
+            const isGen = !reportContent || reportContent?.status === 'generating' || reportContent?.status === 'retrying';
+            if (isGen) { stillGenerating = true; continue; }
             if (reportContent?.status === 'failed' || reportContent?.error) {
-              console.log('[PaymentSuccess] Report has error, may be retrying:', petReport.id);
-              // If it's a timeout/retry scenario, keep polling
-              if (reportContent?.timeout || reportContent?.status === 'retrying') {
-                stillGenerating = true;
-                continue;
-              }
+              if (reportContent?.timeout || reportContent?.status === 'retrying') { stillGenerating = true; continue; }
             }
             
-            // Report is ready
-            // isGift means the report is being SENT as a gift (occasion_mode === 'gift')
-            // isGiftRedemption means the user is RECEIVING/REDEEMING a gift (should see their own report)
             const isGiftBeingSent = petReport.occasion_mode === 'gift' && !isGiftRedemption;
-            
             processedReports.push({
-              petName: petReport.pet_name,
-              email: petReport.email,
-              report: petReport.report_content,
-              reportId: petReport.id,
-              isGift: isGiftBeingSent,
-              portraitUrl: petReport.portrait_url,
-              petPhotoUrl: petReport.pet_photo_url,
+              petName: petReport.pet_name, email: petReport.email, report: petReport.report_content,
+              reportId: petReport.id, isGift: isGiftBeingSent, portraitUrl: petReport.portrait_url,
+              petPhotoUrl: petReport.pet_photo_url, gender: petReport.gender, occasionMode: petReport.occasion_mode,
             });
           }
         }
 
-        // If any reports are still generating, keep polling
-        if (stillGenerating && processedReports.length < reports.length) {
-          console.log('[PaymentSuccess] Some reports still generating, continuing to poll...');
-          return 'generating';
-        }
+        if (stillGenerating && processedReports.length < reports.length) return 'generating';
 
         if (processedReports.length > 0) {
-          // Save email for verification
-          if (processedReports[0].email) {
-            try {
-              sessionStorage.setItem('cosmic_report_email', processedReports[0].email);
-            } catch {}
-          }
-          
-          // Capture gift info if present
-          if (data.includeGift && data.giftCode) {
-            setGiftInfo({ includeGift: true, giftCode: data.giftCode });
-          }
-          
-          // Capture horoscope subscription info
-          if (data.horoscopeEnabled) {
-            setHoroscopeInfo({ 
-              enabled: true, 
-              petNames: processedReports.map(r => r.petName) 
-            });
-          }
-          
+          if (processedReports[0].email) { try { sessionStorage.setItem('cosmic_report_email', processedReports[0].email); } catch {} }
+          if (data.includeGift && data.giftCode) setGiftInfo({ includeGift: true, giftCode: data.giftCode });
+          if (data.horoscopeEnabled) setHoroscopeInfo({ enabled: true, petNames: processedReports.map(r => r.petName) });
           setAllReports(processedReports);
-          const firstReport = processedReports[0];
-          setStage(firstReport.isGift ? 'gift-sent' : 'reveal');
+          setStage(processedReports[0].isGift ? 'gift-sent' : 'reveal');
           return true;
         }
-
-        return 'generating'; // Reports exist but not ready yet
-      } catch (err) {
-        console.error('[PaymentSuccess] Error:', err);
-        return false;
-      }
+        return 'generating';
+      } catch { return false; }
     };
 
     const result = await tryVerify();
-    if (result === true) {
-      return;
-    }
+    if (result === true) return;
 
     const poll = async () => {
       attempts++;
-      
-      // Extend max attempts for background generation (up to ~3 minutes)
-      const extendedMaxAttempts = 40;
-      
-      if (attempts >= extendedMaxAttempts) {
-        setError(t('paymentSuccess.errorTimeout'));
-        setStage('error');
-        return;
-      }
-
+      if (attempts >= 40) { setError(t('paymentSuccess.errorTimeout')); setStage('error'); return; }
       const result = await tryVerify();
-      if (result === true) {
-        return;
-      }
-
-      // Keep polling if generating or false
-      const delay = Math.min(3000 + attempts * 300, 6000);
-      setTimeout(poll, delay);
+      if (result === true) return;
+      setTimeout(poll, Math.min(3000 + attempts * 300, 6000));
     };
-
-    // If generating, start polling immediately with shorter delay
     setTimeout(poll, result === 'generating' ? 2000 : 3000);
   };
 
   const handleRevealComplete = () => {
-    if (hasMultipleReports && !isLastReport) {
-      setStage('ready-next');
-    } else {
-      setStage('complete');
-    }
+    if (hasMultipleReports && !isLastReport) setStage('ready-next');
+    else setStage('complete');
   };
 
-  const handleNextPet = () => {
-    setCurrentReportIndex(prev => prev + 1);
-    setStage('reveal');
-  };
+  const handleNextPet = () => { setCurrentReportIndex(prev => prev + 1); setStage('reveal'); };
+  const handleViewAllReports = () => setStage('complete');
+  const handleAllComplete = () => setStage('celebration');
+  const handleNextPetFromViewer = () => { if (currentReportIndex < allReports.length - 1) setCurrentReportIndex(prev => prev + 1); };
 
-  const handleViewAllReports = () => {
-    setStage('complete');
-  };
-
-  const handleAllComplete = () => {
-    setStage('celebration');
-  };
-
-  const handleNextPetFromViewer = () => {
-    if (currentReportIndex < allReports.length - 1) {
-      setCurrentReportIndex(prev => prev + 1);
-    }
-  };
-
-  // Post-purchase intake (quick checkout / Variant C)
+  // Post-purchase intake
   if (stage === 'post-purchase-intake' && reportId) {
-    return (
-      <PostPurchaseIntake
-        reportId={reportId}
-        onComplete={() => {
-          // After pet data is saved, start verifying/generating
-          verifyAndFetchReport();
-        }}
-      />
-    );
+    return <PostPurchaseIntake reportId={reportId} onComplete={() => verifyAndFetchReport()} />;
   }
 
-  // Error state
+  // Error
   if (stage === 'error') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-6">
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#FFFDF5' }}>
         <div className="max-w-md text-center">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-destructive/10 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[rgba(191,82,74,0.1)] flex items-center justify-center">
             <span className="text-3xl">😿</span>
           </div>
-          <h1 className="text-2xl font-display font-bold text-foreground mb-4">
-            {t('common.oops')}
-          </h1>
-          <p className="text-muted-foreground mb-6">{error}</p>
-          <div className="space-y-3">
-            <Button
-              onClick={() => {
-                setStage('generating');
-                setError(null);
-                verifyAndFetchReport();
-              }}
-              variant="cosmic"
-              className="w-full"
-            >
-              Try Again
-            </Button>
-            <button
-              onClick={() => navigate('/')}
-              className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors block w-full"
-            >
-              {t('common.goBackHome')}
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-6">
-            If this persists, please contact hello@astropets.cloud
-          </p>
+          <h1 className="text-2xl font-bold text-[#2D2926] mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>Oops</h1>
+          <p className="text-[#6B5E54] mb-6">{error}</p>
+          <Button onClick={() => { setStage('generating'); setError(null); verifyAndFetchReport(); }} className="w-full bg-[#bf524a] hover:bg-[#c9665f] text-white">
+            Try Again
+          </Button>
+          <button onClick={() => navigate('/')} className="text-sm text-[#9B8E84] hover:text-[#2D2926] underline-offset-4 hover:underline transition-colors block w-full mt-3">
+            Go back home
+          </button>
+          <p className="text-xs text-[#9B8E84] mt-6">If this persists, please contact hello@astropets.cloud</p>
         </div>
       </div>
     );
   }
 
-  // Verifying/Generating
+  // Generating
   if (stage === 'verifying' || stage === 'generating') {
-    return (
-      <ReportGenerating 
-        petName={currentReport?.petName || 'Your pet'}
-        sunSign={currentReport?.report?.sunSign}
-      />
-    );
+    return <ReportGenerating petName={currentReport?.petName || 'Your pet'} gender={currentReport?.gender} sunSign={currentReport?.report?.sunSign} />;
   }
 
-  // Ready for next pet prompt
+  // Ready next
   if (stage === 'ready-next' && currentReport) {
     const nextPetName = allReports[currentReportIndex + 1]?.petName || 'your next pet';
-    
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-6">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md text-center"
-        >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center">
-            <Sparkles className="w-10 h-10 text-white" />
+      <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#FFFDF5' }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md text-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[rgba(191,82,74,0.1)] flex items-center justify-center">
+            <Sparkles className="w-10 h-10 text-[#bf524a]" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-foreground mb-4">
+          <h1 className="text-3xl font-bold text-[#2D2926] mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>
             {currentReport.petName}'s Report Complete! 🌟
           </h1>
-          <p className="text-muted-foreground mb-8 text-lg">
-            Ready to discover {nextPetName}'s cosmic secrets?
-          </p>
-          <div className="space-y-4">
-            <Button
-              onClick={handleNextPet}
-              variant="cosmic"
-              size="xl"
-              className="w-full"
-            >
-              <span>View {nextPetName}'s Report</span>
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-            <button
-              onClick={handleViewAllReports}
-              className="text-muted-foreground hover:text-foreground text-sm underline-offset-4 hover:underline transition-colors"
-            >
-              Skip to all reports
-            </button>
-          </div>
-          <p className="text-muted-foreground/60 text-sm mt-8">
-            Pet {currentReportIndex + 1} of {allReports.length} completed
-          </p>
+          <p className="text-[#6B5E54] mb-8 text-lg">Ready to discover {nextPetName}'s cosmic secrets?</p>
+          <Button onClick={handleNextPet} className="w-full bg-[#bf524a] hover:bg-[#c9665f] text-white py-3">
+            View {nextPetName}'s Report <ChevronRight className="w-5 h-5 ml-2" />
+          </Button>
+          <button onClick={handleViewAllReports} className="text-[#9B8E84] hover:text-[#2D2926] text-sm underline-offset-4 hover:underline mt-4 block w-full">
+            Skip to all reports
+          </button>
         </motion.div>
       </div>
     );
   }
 
-  // Emotional reveal
+  // Reveal
   if (stage === 'reveal' && currentReport) {
     return (
-      <ReportRevealVariantRenderer
+      <EmotionalReportReveal
         petName={currentReport.petName}
         report={currentReport.report}
         onComplete={handleRevealComplete}
+        occasionMode={currentReport.occasionMode}
       />
     );
   }
@@ -427,7 +261,7 @@ export default function PaymentSuccess() {
     );
   }
 
-  // Complete - show report viewer with all reports
+  // Complete
   if (stage === 'complete' && allReports.length > 0) {
     return (
       <CosmicReportViewer
@@ -444,7 +278,7 @@ export default function PaymentSuccess() {
     );
   }
 
-  // Celebration - all reports viewed
+  // Celebration
   if (stage === 'celebration') {
     return (
       <AllReportsComplete

@@ -1,151 +1,126 @@
-import { motion } from 'framer-motion';
-import { Sparkles, Star, Moon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ReportGeneratingProps {
   petName: string;
+  gender?: string;
   sunSign?: string;
 }
 
-export function ReportGenerating({ petName, sunSign }: ReportGeneratingProps) {
-  const steps = [
-    { label: 'Calculating planetary positions...', delay: 0 },
-    { label: `Mapping ${petName}'s natal chart...`, delay: 2 },
-    { label: 'Analyzing cosmic alignments...', delay: 4 },
-    { label: 'Interpreting celestial influences...', delay: 6 },
-    { label: 'Crafting your personalized portrait...', delay: 8 },
+function getPronouns(gender?: string) {
+  switch (gender) {
+    case 'male': case 'boy': return { subject: 'he', Subject: 'He', possessive: 'his' };
+    case 'female': case 'girl': return { subject: 'she', Subject: 'She', possessive: 'her' };
+    default: return { subject: 'they', Subject: 'They', possessive: 'their' };
+  }
+}
+
+const grainStyle: React.CSSProperties = {
+  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
+};
+
+export function ReportGenerating({ petName, gender, sunSign }: ReportGeneratingProps) {
+  const p = getPronouns(gender);
+  const [msgIndex, setMsgIndex] = useState(0);
+
+  const messages = [
+    `Mapping the position of 10 celestial bodies at the exact moment ${p.subject} was born...`,
+    `Calculating ${p.possessive} Sun, Moon, and Rising signs from real astronomical data...`,
+    `${p.Subject} chose you, you know. The stars confirm it.`,
+    `Writing ${p.possessive} soul portrait now — every word shaped by ${p.possessive} unique chart...`,
+    `Almost ready. Some things are worth the wait.`,
   ];
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMsgIndex(prev => (prev + 1) % messages.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [messages.length]);
+
+  // Generate paw print positions once
+  const pawPrints = Array.from({ length: 7 }, (_, i) => ({
+    left: `${10 + Math.random() * 80}%`,
+    top: `${10 + Math.random() * 80}%`,
+    size: 0.6 + Math.random() * 0.3,
+    delay: i * 0.8,
+    rotation: Math.random() * 60 - 30,
+  }));
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
-      {/* Animated stars background */}
-      <div className="absolute inset-0">
-        {[...Array(50)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-primary/40 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              opacity: [0.2, 1, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 2 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden"
+      style={{ backgroundColor: '#FFFDF5', ...grainStyle }}>
 
-      {/* Rotating cosmic ring */}
-      <motion.div
-        className="absolute w-80 h-80 border border-primary/20 rounded-full"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-      />
-      <motion.div
-        className="absolute w-96 h-96 border border-primary/10 rounded-full"
-        animate={{ rotate: -360 }}
-        transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
-      />
-
-      <div className="relative z-10 text-center px-6 max-w-md">
-        {/* Central orb */}
-        <motion.div
-          className="w-32 h-32 mx-auto mb-8 rounded-full bg-gradient-to-br from-primary/20 via-primary/40 to-nebula-purple/30 flex items-center justify-center shadow-2xl shadow-primary/20"
-          animate={{
-            scale: [1, 1.1, 1],
-            boxShadow: [
-              '0 0 40px rgba(var(--primary), 0.2)',
-              '0 0 80px rgba(var(--primary), 0.4)',
-              '0 0 40px rgba(var(--primary), 0.2)',
-            ],
-          }}
-          transition={{ duration: 3, repeat: Infinity }}
+      {/* Floating paw prints */}
+      {pawPrints.map((paw, i) => (
+        <motion.span
+          key={i}
+          className="absolute select-none pointer-events-none"
+          style={{ left: paw.left, top: paw.top, fontSize: `${paw.size}rem`, rotate: `${paw.rotation}deg` }}
+          animate={{ opacity: [0, 0.06, 0], y: [0, -10, 0] }}
+          transition={{ duration: 7, repeat: Infinity, delay: paw.delay, ease: 'easeInOut' }}
         >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-          >
-            <Sparkles className="w-12 h-12 text-primary" />
-          </motion.div>
+          🐾
+        </motion.span>
+      ))}
+
+      <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full">
+        {/* Pet name */}
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="text-[1.3rem] text-[#bf524a] mb-4" style={{ fontFamily: 'Caveat, cursive' }}>
+          {petName}
+        </motion.p>
+
+        {/* Breathing orb */}
+        <motion.div
+          className="w-[100px] h-[100px] rounded-full flex items-center justify-center mb-6"
+          style={{
+            background: 'radial-gradient(circle, #f0d5d2 0%, transparent 70%)',
+            boxShadow: '0 0 40px rgba(240,213,210,0.3)',
+          }}
+          animate={{ scale: [1, 1.15, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <span className="text-[1.5rem]">🐾</span>
         </motion.div>
 
-        {/* Pet name */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-3xl md:text-4xl font-display font-bold text-foreground mb-2"
-        >
-          {petName}'s Cosmic Portrait
-        </motion.h1>
+        {/* Status text */}
+        <h2 className="text-[1.15rem] text-[#2D2926] mb-6" style={{ fontFamily: 'DM Serif Display, serif' }}>
+          Reading {p.possessive} stars now
+        </h2>
 
-        {sunSign && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-primary font-medium mb-8"
-          >
-            {sunSign} ✦
-          </motion.p>
-        )}
-
-        {/* Progress steps */}
-        <div className="space-y-3">
-          {steps.map((step, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: step.delay }}
-              className="flex items-center gap-3 justify-center"
-            >
-              <motion.div
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 1.5, repeat: Infinity, delay: step.delay }}
-              >
-                {index % 3 === 0 && <Star className="w-4 h-4 text-cosmic-gold" />}
-                {index % 3 === 1 && <Moon className="w-4 h-4 text-primary" />}
-                {index % 3 === 2 && <Sparkles className="w-4 h-4 text-nebula-pink" />}
-              </motion.div>
-              <span className="text-muted-foreground">{step.label}</span>
-            </motion.div>
-          ))}
+        {/* Progress line */}
+        <div className="w-[200px] h-[2px] bg-[#E8DFD6] rounded-full overflow-hidden mb-6">
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: 'linear-gradient(90deg, #bf524a, #c4a265)' }}
+            initial={{ width: '0%' }}
+            animate={{ width: '94%' }}
+            transition={{ duration: 20, ease: [0.4, 0, 0.2, 1] }}
+          />
         </div>
 
-        {/* Shimmer bar */}
-        <motion.div
-          className="mt-8 h-1 bg-muted/30 rounded-full overflow-hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          <motion.div
-            className="h-full bg-gradient-to-r from-primary via-cosmic-gold to-nebula-purple"
-            initial={{ width: '0%' }}
-            animate={{ width: '100%' }}
-            transition={{ duration: 12, ease: 'easeInOut' }}
-          />
-        </motion.div>
+        {/* Rotating messages */}
+        <div className="h-[48px] flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={msgIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="text-[0.88rem] text-[#6B5E54] italic text-center max-w-sm"
+              style={{ fontFamily: 'Cormorant, serif' }}
+            >
+              {messages[msgIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
 
-        {/* Time notice */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-          className="mt-6 space-y-2"
-        >
-          <p className="text-sm text-muted-foreground">
-            ✨ This may take a few moments...
-          </p>
-          <p className="text-xs text-muted-foreground/70">
-            We're performing advanced astrological calculations using {petName}'s exact birth data to create a truly unique cosmic portrait.
-          </p>
-        </motion.div>
+        {/* Small note */}
+        <p className="text-[0.72rem] text-[#9B8E84] mt-8">
+          This usually takes about 20 seconds
+        </p>
       </div>
     </div>
   );
