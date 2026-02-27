@@ -62,11 +62,10 @@ const SectionPaws = ({ visible }: { visible: boolean }) => {
     { right: "5%", top: "65%", rotate: "170deg", scaleX: -1 },
   ];
   return (
-    <>
+    <div className="hidden md:block">
       {paws.map((p, i) => (
         <div
           key={i}
-          className="scale-[0.7] md:scale-100"
           style={{
             position: "absolute",
             ...(p.left ? { left: p.left } : {}),
@@ -84,7 +83,7 @@ const SectionPaws = ({ visible }: { visible: boolean }) => {
           />
         </div>
       ))}
-    </>
+    </div>
   );
 };
 
@@ -111,7 +110,7 @@ const GrainOverlay = () => (
 
 // ─── SVG Heart that draws itself ───
 const DrawHeart = ({ visible }: { visible: boolean }) => (
-  <svg viewBox="0 0 100 100" width="80" height="80" style={{ display: "block", margin: "50px auto 0" }}>
+  <svg viewBox="0 0 100 100" className="w-[60px] h-[60px] md:w-[80px] md:h-[80px] mt-[30px] md:mt-[50px] mx-auto block">
     <path
       d="M49.998,90.544c0,0,0,0,0.002,0c5.304-14.531,32.88-27.047,41.474-44.23C108.081,13.092,61.244-5.023,50,23.933C38.753-5.023-8.083,13.092,8.525,46.313C17.116,63.497,44.691,76.013,49.998,90.544z"
       fill="none"
@@ -130,7 +129,7 @@ const DrawHeart = ({ visible }: { visible: boolean }) => (
 
 // ─── Wavy underline SVG ───
 const WavyUnderline = ({ visible }: { visible: boolean }) => (
-  <svg width="220" height="12" viewBox="0 0 220 12" style={{ display: "block", margin: "12px auto 0" }}>
+  <svg width="220" height="12" viewBox="0 0 220 12" style={{ display: "block", margin: "12px auto 0", maxWidth: "100%" }}>
     <path
       d="M2 8 Q 20 2, 40 8 Q 60 14, 80 8 Q 100 2, 120 8 Q 140 14, 160 8 Q 180 2, 200 8 Q 210 11, 218 8"
       fill="none"
@@ -243,13 +242,13 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       <GrainOverlay />
 
       {/* ═══ BEAT 1 — "They Love You Without Conditions" ═══ */}
-      <Beat mobileMinHeight="60vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat mobileMinHeight="auto" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (
           <h2
             style={{
               ...fadeUpStyle(v),
               fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(3rem, 12vw, 6rem)",
+              fontSize: "clamp(1.6rem, 12vw, 6rem)",
               fontWeight: 400,
               color: COLORS.black,
               lineHeight: 0.98,
@@ -293,7 +292,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
               fontFamily: "Cormorant, Georgia, serif",
               fontStyle: "italic",
               fontWeight: 300,
-              fontSize: "clamp(2.5rem, 10vw, 5rem)",
+              fontSize: "clamp(1.6rem, 10vw, 5rem)",
               color: COLORS.sand,
               letterSpacing: "0.04em",
             }}
@@ -314,7 +313,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
                   ...fadeUpStyle(v, 0.2 + i * 0.35),
                   display: "block",
                   fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(2rem, 8vw, 3.8rem)",
+                  fontSize: "clamp(1.6rem, 8vw, 3.8rem)",
                   color: COLORS.ink,
                   lineHeight: 1.2,
                   letterSpacing: "-0.025em",
@@ -329,14 +328,14 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 5 — "They're Not 'Just a Pet'" ═══ */}
-      <Beat mobileMinHeight="60vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream3}, ${COLORS.cream2})`}>
+      <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream3}, ${COLORS.cream2})`}>
         {(v) => (
           <div>
             <h2
               style={{
                 ...fadeUpStyle(v),
                 fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(2.8rem, 11vw, 5.5rem)",
+                fontSize: "clamp(1.6rem, 11vw, 5.5rem)",
                 color: COLORS.black,
                 marginBottom: 40,
                 lineHeight: 0.98,
@@ -400,7 +399,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
               style={{
                 ...scaleInStyle(v),
                 fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(2.6rem, 10vw, 5rem)",
+                fontSize: "clamp(1.6rem, 10vw, 5rem)",
                 color: COLORS.black,
               }}
             >
@@ -421,14 +420,14 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 8 — "This Is an Act of Love." ═══ */}
-      <Beat mobileMinHeight="60vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat mobileMinHeight="auto" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (
           <div>
             <h2
               style={{
                 ...fadeUpStyle(v),
                 fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(2.8rem, 11vw, 5.5rem)",
+                fontSize: "clamp(1.6rem, 11vw, 5.5rem)",
                 color: COLORS.black,
                 lineHeight: 1,
                 marginBottom: 40,
@@ -518,7 +517,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       </Beat>
 
       {/* ═══ BEAT 10 — Closing + Signature ═══ */}
-      <Beat mobileMinHeight="60vh">
+      <Beat mobileMinHeight="auto">
         {(v) => (
           <div>
             <p
@@ -550,7 +549,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
                 filter: v ? "blur(0px)" : "blur(10px)",
                 transition: "opacity 0.8s ease 0.5s, filter 0.8s ease 0.5s",
                 fontFamily: "Caveat, cursive",
-                fontSize: "clamp(3.2rem, 12vw, 6rem)",
+                fontSize: "clamp(1.6rem, 12vw, 6rem)",
                 color: COLORS.ink,
               }}
             >
@@ -564,7 +563,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       <UGCTestimonials />
 
       {/* ═══ CTA SECTION ═══ */}
-      <Beat mobileMinHeight="60vh" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (
           <div>
             <p
@@ -583,7 +582,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
               style={{
                 ...fadeUpStyle(v, 0.2),
                 fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(2.6rem, 10vw, 4.8rem)",
+                fontSize: "clamp(1.6rem, 10vw, 4.8rem)",
                 color: COLORS.black,
                 lineHeight: 1,
                 marginBottom: 50,
