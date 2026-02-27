@@ -405,7 +405,7 @@ export default function QuickCheckout() {
                 <Palette className={`w-4 h-4 ${includePortrait ? "text-accent" : "text-muted-foreground"}`} />
               </div>
               <div>
-                <p className="font-cormorant font-semibold text-[0.92rem] text-foreground">✨ Cosmic Portrait Edition</p>
+                <p className="font-cormorant font-semibold text-[0.92rem] text-foreground">✨ Cosmic Soul Reading Edition</p>
                 <p className="text-[0.78rem] text-muted-foreground">
                   Your favourite photo set in a cosmic scene matched to their aura colours. Featured on the report, shareable card, and printed book cover.
                 </p>
@@ -514,7 +514,7 @@ export default function QuickCheckout() {
             {includePortrait && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  {petCount > 1 ? `${petCount}× ` : ""}Cosmic Portrait Edition
+                  {petCount > 1 ? `${petCount}× ` : ""}Cosmic Soul Reading Edition
                 </span>
                 <span className="text-foreground font-semibold">${(portraitSubtotal / 100).toFixed(2)}</span>
               </div>

@@ -22,7 +22,7 @@ export function GiftWelcome({
   
   const tierLabels: Record<string, string> = {
     essential: 'Cosmic Pet Reading',
-    portrait: 'Cosmic Portrait Edition',
+    portrait: 'Cosmic Soul Reading Edition',
     vip: 'Cosmic VIP Experience',
   };
 

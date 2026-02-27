@@ -378,7 +378,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 >
                   <Sparkles className="w-5 h-5 text-nebula-pink shrink-0" />
                   <div className="text-left">
-                    <p className="font-medium">Add Cosmic Portrait</p>
+                    <p className="font-medium">Add Cosmic Soul Reading</p>
                     <p className="text-xs text-muted-foreground">Get an AI-generated cosmic trading card</p>
                   </div>
                 </Button>

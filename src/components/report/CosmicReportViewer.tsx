@@ -1063,7 +1063,7 @@ export function CosmicReportViewer({ petName, report, isPreview, onUnlockFull, r
           >
             <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-cosmic-gold/10 border border-primary/30">
               <Gift className="w-12 h-12 mx-auto text-primary mb-4" />
-              <h3 className="text-2xl font-semibold text-foreground mb-2">Unlock the Full Cosmic Portrait</h3>
+              <h3 className="text-2xl font-semibold text-foreground mb-2">Unlock the Full Cosmic Soul Reading</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 Get all 18 sections including practical tips, lucky elements, compatibility insights, and your personalized keeper's bond reading.
               </p>
@@ -1689,7 +1689,7 @@ function LegacyReportViewer({ petName, report, isPreview, onUnlockFull }: Cosmic
             </p>
             <Button onClick={onUnlockFull} variant="gold" size="xl" className="gap-2 animate-pulse">
               <Sparkles className="w-5 h-5" />
-              Unlock Full Cosmic Portrait
+              Unlock Full Cosmic Soul Reading
             </Button>
           </motion.div>
         )}

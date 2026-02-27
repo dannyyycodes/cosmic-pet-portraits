@@ -337,7 +337,7 @@ const translations: Record<Language, Record<string, string>> = {
     'gift.subtitle': 'The most meaningful gift for any pet lover — a window into their companion\'s soul',
     'gift.tier1Name': 'Cosmic Pet Reading',
     'gift.tier1Desc': 'Full 18-chapter cosmic report',
-    'gift.tier2Name': 'Cosmic Portrait Edition',
+    'gift.tier2Name': 'Cosmic Soul Reading Edition',
     'gift.tier2Desc': 'Full report + AI cosmic portrait card',
     'gift.tier3Name': 'Cosmic VIP Experience',
     'gift.tier3Desc': 'Everything + yearly updates forever',

@@ -97,7 +97,7 @@ const TIERS = {
 // Gift tiers - 50% off all tiers for friends
 const GIFT_TIERS = {
   basic: { priceCents: 1750, originalCents: 3500, name: 'Cosmic Pet Reading' },
-  premium: { priceCents: 2500, originalCents: 5000, name: 'Cosmic Portrait Edition' },
+  premium: { priceCents: 2500, originalCents: 5000, name: 'Cosmic Soul Reading Edition' },
   vip: { priceCents: 6450, originalCents: 12900, name: 'Cosmic VIP Experience' },
 };
 
@@ -631,7 +631,7 @@ const PROCESSING_OPTIONS: { id: PhotoProcessingMode; label: string; description:
   },
   { 
     id: 'cosmic', 
-    label: 'Cosmic Portrait', 
+    label: 'Cosmic Soul Reading', 
     description: 'Celestial card style'
   },
   { 
@@ -807,7 +807,7 @@ function SinglePetPhotoUploadInline({
               >
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <Sparkles className="w-3 h-3 text-nebula-purple" />
-                  <span className="text-xs font-medium">Cosmic Portrait</span>
+                  <span className="text-xs font-medium">Cosmic Soul Reading</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground">Celestial card style</p>
               </button>
