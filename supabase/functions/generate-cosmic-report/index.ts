@@ -213,10 +213,9 @@ serve(async (req) => {
     
     console.log("[GENERATE-REPORT] Processing for:", petData.name, "Mode:", occasionMode, "Language:", targetLanguage);
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      // SECURITY FIX: Generic error - don't reveal config details
-      console.error("[GENERATE-REPORT] Missing AI service configuration");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    if (!OPENROUTER_API_KEY) {
+      console.error("[GENERATE-REPORT] Missing OpenRouter API key");
       return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
         status: 503,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -1071,14 +1070,16 @@ JSON Structure:
 
 Make every section feel personal, specific, and magical. The fun sections should make people want to screenshot and share!`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://astropets.lovable.app",
+        "X-Title": "AstroPets Cosmic Report",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "anthropic/claude-sonnet-4.5",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
