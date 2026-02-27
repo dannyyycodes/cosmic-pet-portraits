@@ -1,0 +1,1 @@
+ALTER TABLE public.pet_reports ADD COLUMN IF NOT EXISTS includes_book boolean NOT NULL DEFAULT false;

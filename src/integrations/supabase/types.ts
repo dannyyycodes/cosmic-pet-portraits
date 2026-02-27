@@ -807,6 +807,7 @@ export type Database = {
           email: string
           gender: string | null
           id: string
+          includes_book: boolean
           language: string | null
           occasion_mode: string | null
           owner_birth_date: string | null
@@ -838,6 +839,7 @@ export type Database = {
           email: string
           gender?: string | null
           id?: string
+          includes_book?: boolean
           language?: string | null
           occasion_mode?: string | null
           owner_birth_date?: string | null
@@ -869,6 +871,7 @@ export type Database = {
           email?: string
           gender?: string | null
           id?: string
+          includes_book?: boolean
           language?: string | null
           occasion_mode?: string | null
           owner_birth_date?: string | null

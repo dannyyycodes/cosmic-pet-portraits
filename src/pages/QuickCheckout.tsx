@@ -12,8 +12,8 @@ import {
   Sun,
   Gift,
   Cake,
-  ChevronDown,
-  ChevronUp,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -93,6 +93,10 @@ const faqItems = [
     q: "Can I gift this to someone?",
     a: "Absolutely — it's one of our most popular gifts. Many pet parents order multiple readings as birthday, Christmas, or just-because presents. You can fill in the details for their pet at checkout.",
   },
+  {
+    q: "What's the Printed Keepsake Book?",
+    a: "It's a gorgeous hardcover book containing the entire soul reading — full colour, 40+ pages, on premium 200gsm paper with gold foil accents. Your pet's photo on the cover. Ships worldwide in 5–7 days.",
+  },
 ];
 
 // ─── Chapter Data ───
@@ -104,8 +108,24 @@ const chapters = [
   { num: 5, name: "The Bond", detail: "your soul connection & compatibility" },
 ];
 
+// ─── Volume Discount ───
+function getVolumeDiscount(petCount: number): number {
+  if (petCount >= 5) return 0.50;
+  if (petCount >= 4) return 0.40;
+  if (petCount >= 3) return 0.30;
+  if (petCount >= 2) return 0.20;
+  return 0;
+}
+
+function getDiscountLabel(petCount: number): string {
+  const pct = Math.round(getVolumeDiscount(petCount) * 100);
+  return `🎉 ${pct}% off!`;
+}
+
 export default function QuickCheckout() {
   const [includePortrait, setIncludePortrait] = useState(false);
+  const [includeBook, setIncludeBook] = useState(false);
+  const [petCount, setPetCount] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMode, setSelectedMode] = useState<OccasionMode>("discover");
   const [tickerIndex, setTickerIndex] = useState(0);
@@ -116,7 +136,16 @@ export default function QuickCheckout() {
 
   const basePriceCents = 2700;
   const portraitPriceCents = 800;
-  const totalCents = includePortrait ? basePriceCents + portraitPriceCents : basePriceCents;
+  const bookPriceCents = 8900;
+
+  // Calculate totals
+  const readingSubtotal = basePriceCents * petCount;
+  const portraitSubtotal = includePortrait ? portraitPriceCents * petCount : 0;
+  const discountableSubtotal = readingSubtotal + portraitSubtotal;
+  const discountRate = getVolumeDiscount(petCount);
+  const discountAmount = Math.round(discountableSubtotal * discountRate);
+  const bookTotal = includeBook ? bookPriceCents : 0;
+  const totalCents = discountableSubtotal - discountAmount + bookTotal;
   const totalDisplay = (totalCents / 100).toFixed(0);
 
   // Ticker rotation
@@ -155,7 +184,9 @@ export default function QuickCheckout() {
           selectedTier: includePortrait ? "premium" : "basic",
           abVariant: "C",
           includesPortrait: includePortrait,
+          includesBook: includeBook,
           occasionMode: selectedMode,
+          petCount,
         },
       });
       if (error) throw error;
@@ -243,6 +274,33 @@ export default function QuickCheckout() {
           transition={{ delay: 0.3 }}
           className="bg-card rounded-2xl border border-border shadow-sm p-6 sm:p-7 mb-4"
         >
+          {/* Multi-Pet Selector */}
+          <div className="mb-5 pb-5 border-b border-border">
+            <p className="font-cormorant text-[0.9rem] text-muted-foreground mb-2.5">
+              How many fur babies?
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setPetCount(Math.max(1, petCount - 1))}
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-foreground/30 transition-colors"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="font-dm-serif text-xl text-foreground w-8 text-center">{petCount}</span>
+              <button
+                onClick={() => setPetCount(Math.min(10, petCount + 1))}
+                className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-foreground/30 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+              {petCount >= 2 && (
+                <span className="ml-2 text-[0.75rem] font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-md">
+                  {getDiscountLabel(petCount)}
+                </span>
+              )}
+            </div>
+          </div>
+
           {/* Occasion Selector */}
           <div className="mb-5 pb-5 border-b border-border">
             <p className="font-cormorant font-semibold text-[0.85rem] text-muted-foreground mb-1">
@@ -315,7 +373,7 @@ export default function QuickCheckout() {
           </ul>
 
           {/* Chapter Peek */}
-          <div className="pt-4 border-t border-border">
+          <div className="pt-4 border-t border-border mb-5">
             <p className="font-cormorant font-semibold text-[0.78rem] text-muted-foreground/70 uppercase tracking-[0.15em] mb-3">
               Your 5-chapter journey
             </p>
@@ -332,32 +390,151 @@ export default function QuickCheckout() {
               </div>
             ))}
           </div>
+
+          {/* ── Portrait Upsell (inside product card) ── */}
+          <div
+            onClick={() => setIncludePortrait(!includePortrait)}
+            className={`rounded-xl border p-4 flex items-center justify-between cursor-pointer transition-all ${
+              includePortrait
+                ? "border-accent shadow-[0_0_0_2px_hsl(var(--accent)/0.15)]"
+                : "border-border hover:border-muted-foreground/30"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
+                <Palette className={`w-4 h-4 ${includePortrait ? "text-accent" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <p className="font-cormorant font-semibold text-[0.92rem] text-foreground">✨ Cosmic Portrait Edition</p>
+                <p className="text-[0.78rem] text-muted-foreground">
+                  Your favourite photo set in a cosmic scene matched to their aura colours. Featured on the report, shareable card, and printed book cover.
+                </p>
+                {includePortrait && (
+                  <p className="text-[0.75rem] text-muted-foreground italic mt-1">You'll upload the photo after payment</p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <span className="font-cormorant font-bold text-[0.92rem] text-muted-foreground">+$8</span>
+              <Switch checked={includePortrait} onCheckedChange={setIncludePortrait} />
+            </div>
+          </div>
         </motion.div>
 
-        {/* ── Upsell Card ── */}
+        {/* ── Printed Keepsake Book Upsell ── */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          onClick={() => setIncludePortrait(!includePortrait)}
-          className={`bg-card rounded-xl border p-4 mb-6 flex items-center justify-between cursor-pointer transition-all ${
-            includePortrait
-              ? "border-accent shadow-[0_0_0_2px_hsl(var(--accent)/0.15)]"
-              : "border-border hover:border-muted-foreground/30"
+          transition={{ delay: 0.38 }}
+          onClick={() => setIncludeBook(!includeBook)}
+          className={`bg-card rounded-2xl border-[1.5px] p-5 sm:p-6 mb-4 cursor-pointer transition-all ${
+            includeBook
+              ? "border-primary/60 shadow-[0_0_0_2px_hsl(var(--primary)/0.12)]"
+              : "border-accent/30 hover:border-accent/50"
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-              <Palette className={`w-4 h-4 ${includePortrait ? "text-accent" : "text-muted-foreground"}`} />
+          <div className="flex gap-4 mb-4">
+            {/* Book mockup */}
+            <div className="w-[80px] shrink-0 flex items-start justify-center">
+              <div className="w-[60px] h-[80px] rounded-sm bg-background border border-accent/40 shadow-md flex flex-col items-center justify-center relative">
+                <div className="absolute inset-1 border border-accent/20 rounded-[1px]" />
+                <span className="text-lg mb-1">🐾</span>
+                <span className="font-dm-serif text-[0.45rem] text-foreground tracking-tight uppercase">Your Pet</span>
+              </div>
             </div>
-            <div>
-              <p className="font-cormorant font-semibold text-[0.92rem] text-foreground">Add Custom Portrait</p>
-              <p className="text-[0.78rem] text-muted-foreground">A stunning artistic portrait of your pet</p>
+
+            {/* Text content */}
+            <div className="flex-1 min-w-0">
+              <span className="inline-block text-[0.6rem] font-semibold text-accent uppercase tracking-[0.12em] bg-accent/10 px-2 py-0.5 rounded mb-2">
+                ✨ THE KEEPSAKE
+              </span>
+              <h4 className="font-dm-serif text-[1.1rem] text-foreground mb-1.5">Printed Hardcover Edition</h4>
+              <p className="font-cormorant text-[0.88rem] text-muted-foreground leading-relaxed mb-3">
+                The entire soul reading as a beautiful hardbound book. Full colour on premium 200gsm paper. Their photo on the cover. Ships worldwide in 5–7 days.
+              </p>
+              <div className="space-y-1">
+                {[
+                  "40+ pages, full colour, hardcover",
+                  "Their photo on the cover (or species art)",
+                  "Gold foil accents",
+                  "Free worldwide shipping",
+                ].map((feat) => (
+                  <p key={feat} className="text-[0.8rem] text-muted-foreground font-cormorant">
+                    <span className="text-green-600 mr-1.5">✓</span>
+                    {feat}
+                  </p>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 shrink-0">
-            <span className="font-cormorant font-bold text-[0.92rem] text-muted-foreground">+$8</span>
-            <Switch checked={includePortrait} onCheckedChange={setIncludePortrait} />
+
+          {/* Pricing row */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[0.78rem] text-muted-foreground font-cormorant">Bundle price</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[0.85rem] text-muted-foreground line-through">$99</span>
+              <span className="font-dm-serif text-[1.3rem] text-foreground">$89</span>
+              <span className="text-[0.6rem] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">SAVE $10</span>
+            </div>
+          </div>
+
+          {/* Add button */}
+          <button
+            className={`w-full py-2.5 rounded-xl font-cormorant font-semibold text-[0.92rem] transition-all ${
+              includeBook
+                ? "bg-primary/10 text-primary border border-primary/30"
+                : "bg-muted text-foreground border border-border hover:bg-muted/80"
+            }`}
+          >
+            {includeBook ? "✓ Added — $89" : "Add to order — $89"}
+          </button>
+
+          <p className="font-caveat italic text-[0.85rem] text-primary text-center mt-2.5">
+            Perfect for gifts, memorials, and keeping their story forever.
+          </p>
+        </motion.div>
+
+        {/* ── Order Summary ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.42 }}
+          className="bg-card rounded-xl border border-border p-4 mb-4"
+        >
+          <p className="font-cormorant font-semibold text-[0.82rem] text-muted-foreground/70 uppercase tracking-[0.12em] mb-3">
+            Order summary
+          </p>
+          <div className="space-y-2 text-[0.88rem] font-cormorant">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">
+                {petCount > 1 ? `${petCount}× ` : ""}Cosmic Soul Reading
+              </span>
+              <span className="text-foreground font-semibold">${(readingSubtotal / 100).toFixed(2)}</span>
+            </div>
+            {includePortrait && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">
+                  {petCount > 1 ? `${petCount}× ` : ""}Cosmic Portrait Edition
+                </span>
+                <span className="text-foreground font-semibold">${(portraitSubtotal / 100).toFixed(2)}</span>
+              </div>
+            )}
+            {includeBook && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Printed Keepsake Book</span>
+                <span className="text-foreground font-semibold">$89.00</span>
+              </div>
+            )}
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Multi-pet discount ({Math.round(discountRate * 100)}%)</span>
+                <span className="font-semibold">-${(discountAmount / 100).toFixed(2)}</span>
+              </div>
+            )}
+            <div className="border-t border-border pt-2 flex justify-between">
+              <span className="text-foreground font-semibold">Total</span>
+              <span className="font-dm-serif text-lg text-foreground">${(totalCents / 100).toFixed(2)}</span>
+            </div>
           </div>
         </motion.div>
 

@@ -10,28 +10,36 @@ const corsHeaders = {
 
 // Fixed pricing tiers - SERVER-SIDE TRUTH
 const TIERS = {
-  basic: { name: 'Cosmic Pet Reading', priceCents: 3500 },
+  basic: { name: 'Cosmic Soul Reading', priceCents: 3500 },
   premium: { name: 'Cosmic Deluxe', priceCents: 5000 },
   vip: { name: 'Cosmic VIP Experience', priceCents: 12900 },
 } as const;
 
 // Gift tiers - 50% off all tiers for friends
 const GIFT_TIERS = {
-  basic: { priceCents: 1750, name: 'Gift: Cosmic Pet Reading' },
+  basic: { priceCents: 1750, name: 'Gift: Cosmic Soul Reading' },
   premium: { priceCents: 2500, name: 'Gift: Cosmic Portrait Edition' },
   vip: { priceCents: 6450, name: 'Gift: Cosmic VIP Experience' },
 } as const;
 
-// Volume discount calculation - SERVER-SIDE (must match frontend CheckoutPanel)
+// Volume discount calculation - SERVER-SIDE (must match frontend)
 function getVolumeDiscount(petCount: number): number {
-  if (petCount >= 5) return 0.50; // 50% off for 5+ pets
-  if (petCount >= 4) return 0.40; // 40% off for 4 pets
-  if (petCount >= 3) return 0.30; // 30% off for 3 pets
-  if (petCount >= 2) return 0.20; // 20% off for 2 pets
+  if (petCount >= 5) return 0.50;
+  if (petCount >= 4) return 0.40;
+  if (petCount >= 3) return 0.30;
+  if (petCount >= 2) return 0.20;
   return 0;
 }
 
-const HOROSCOPE_MONTHLY_CENTS = 499; // $4.99/month subscription
+const HOROSCOPE_MONTHLY_CENTS = 499;
+const BOOK_PRICE_CENTS = 8900; // $89.00
+
+// Variant C pricing
+const VARIANT_C_PRICES: Record<string, number> = {
+  basic: 2700,
+  premium: 3500,
+};
+const PORTRAIT_PRICE_CENTS = 800; // $8.00
 
 // Input validation schema
 const checkoutSchema = z.object({
@@ -46,26 +54,24 @@ const checkoutSchema = z.object({
   recipientName: z.string().max(100).optional().default(''),
   recipientEmail: z.string().email().max(255).optional().or(z.literal('')).default(''),
   giftMessage: z.string().max(500).optional().default(''),
-  totalCents: z.number().optional(), // Ignored - calculated server-side
+  totalCents: z.number().optional(),
   includeGiftForFriend: z.boolean().optional().default(false),
   giftTierForFriend: z.enum(['basic', 'premium', 'vip']).optional().default('basic'),
-  includesPortrait: z.boolean().optional().default(false), // Whether tier includes AI portrait
-  referralCode: z.string().max(50).optional(), // Affiliate referral code
-  includeHoroscope: z.boolean().optional().default(false), // Weekly horoscope add-on
-  giftCode: z.string().max(20).optional(), // Gift code to redeem (e.g., GIFT-XXXX-XXXX)
-  petPhotoUrl: z.string().url().max(2048).optional(), // Pet photo for portrait generation (legacy single pet)
-  // NEW: Per-pet tier selection
+  includesPortrait: z.boolean().optional().default(false),
+  includesBook: z.boolean().optional().default(false),
+  referralCode: z.string().max(50).optional(),
+  includeHoroscope: z.boolean().optional().default(false),
+  giftCode: z.string().max(20).optional(),
+  petPhotoUrl: z.string().url().max(2048).optional(),
   petTiers: z.record(z.string(), z.enum(['basic', 'premium', 'vip'])).optional(),
-  // NEW: Per-pet photo URLs (key is pet index as string)
   petPhotos: z.record(z.string(), z.object({
     url: z.string().url().max(2048),
     processingMode: z.string().optional(),
   })).optional(),
-  // NEW: Per-pet horoscope subscriptions
   petHoroscopes: z.record(z.string(), z.boolean()).optional(),
-  // Quick checkout mode for Variant C (no report exists yet)
   quickCheckout: z.boolean().optional().default(false),
   abVariant: z.string().max(5).optional(),
+  occasionMode: z.string().max(20).optional(),
 });
 
 serve(async (req) => {
@@ -74,7 +80,6 @@ serve(async (req) => {
   }
 
   try {
-    // Validate input
     const rawInput = await req.json();
     const input = checkoutSchema.parse(rawInput);
 
@@ -96,59 +101,131 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "https://lovable.dev";
 
     // ========== QUICK CHECKOUT MODE (Variant C) ==========
-    // No report exists yet — create a placeholder, go straight to Stripe
     if (input.quickCheckout) {
-      const isVariantC = input.abVariant === "C";
       const tierKey = input.selectedTier || 'premium';
-      
-      // Use Variant C pricing ($27/$35)
-      const VARIANT_C_PRICES: Record<string, number> = {
-        basic: 2700,
-        premium: 3500,
-      };
-      const priceCents = VARIANT_C_PRICES[tierKey] || 3500;
-      const tierName = tierKey === 'basic' ? 'Personality Reading' : 'Premium with Portrait';
+      const petCount = input.petCount || 1;
+      const includesPortrait = input.includesPortrait || tierKey === 'premium';
+      const includesBook = input.includesBook || false;
+      const occasionMode = input.occasionMode || 'discover';
 
-      // Create a placeholder report record
-      const { data: placeholderReport, error: insertError } = await supabaseClient
-        .from("pet_reports")
-        .insert({
-          email: "pending@checkout.temp",
-          pet_name: "Pending",
-          species: "pending",
-          payment_status: "pending",
-        })
-        .select("id")
-        .single();
+      // Calculate price server-side
+      const basePriceCents = VARIANT_C_PRICES[tierKey] || VARIANT_C_PRICES.basic;
+      // If basic tier + portrait separately, price = $27 + $8 per pet
+      const perPetPrice = tierKey === 'basic' && includesPortrait
+        ? VARIANT_C_PRICES.basic + PORTRAIT_PRICE_CENTS
+        : basePriceCents;
 
-      if (insertError || !placeholderReport) {
-        console.error("[CREATE-CHECKOUT] Failed to create placeholder report:", insertError);
-        throw new Error("Failed to create report record");
+      const readingTotal = perPetPrice * petCount;
+
+      // Volume discount on readings+portraits only
+      const discountRate = getVolumeDiscount(petCount);
+      const discountAmount = Math.round(readingTotal * discountRate);
+      const readingAfterDiscount = readingTotal - discountAmount;
+
+      // Book is flat $89, not per-pet, not discounted
+      const bookAmount = includesBook ? BOOK_PRICE_CENTS : 0;
+      const totalAmount = readingAfterDiscount + bookAmount;
+
+      // Create placeholder report(s)
+      const reportIds: string[] = [];
+      for (let i = 0; i < petCount; i++) {
+        const { data: placeholderReport, error: insertError } = await supabaseClient
+          .from("pet_reports")
+          .insert({
+            email: "pending@checkout.temp",
+            pet_name: "Pending",
+            species: "pending",
+            payment_status: "pending",
+            occasion_mode: occasionMode,
+            includes_book: includesBook,
+          })
+          .select("id")
+          .single();
+
+        if (insertError || !placeholderReport) {
+          console.error("[CREATE-CHECKOUT] Failed to create placeholder report:", insertError);
+          throw new Error("Failed to create report record");
+        }
+        reportIds.push(placeholderReport.id);
       }
 
-      const reportId = placeholderReport.id;
-      console.log("[CREATE-CHECKOUT] Quick checkout — placeholder report:", reportId, "tier:", tierKey, "price:", priceCents);
+      const primaryReportId = reportIds[0];
+      console.log("[CREATE-CHECKOUT] Quick checkout — reports:", reportIds, "tier:", tierKey, "total:", totalAmount, "book:", includesBook);
 
-      // Create Stripe session — Stripe captures email
-      const session = await stripe.checkout.sessions.create({
-        line_items: [{
+      // Build line items
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+
+      // Reading line item
+      const readingName = petCount > 1
+        ? `${petCount}× Cosmic Soul Reading`
+        : 'Cosmic Soul Reading';
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: readingName },
+          unit_amount: readingAfterDiscount - (includesPortrait && tierKey !== 'premium' ? 0 : 0),
+        },
+        quantity: 1,
+      });
+
+      // If portrait is separate from tier
+      // (For simplicity, combine into one line item showing total after discount)
+      // We already computed readingAfterDiscount including portrait
+
+      // Book line item
+      if (includesBook) {
+        lineItems.push({
           price_data: {
             currency: "usd",
-            product_data: { name: tierName },
-            unit_amount: priceCents,
+            product_data: {
+              name: 'Printed Keepsake Edition',
+              description: "Hardcover book of your pet's cosmic soul reading",
+            },
+            unit_amount: BOOK_PRICE_CENTS,
           },
           quantity: 1,
-        }],
+        });
+      }
+
+      // Actually we want a single reading line item with the correct total
+      // Let's rebuild: one line item = readingAfterDiscount, optionally one for book
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: petCount > 1 ? `${petCount}× Cosmic Soul Reading${includesPortrait ? ' + Portrait' : ''}` : `Cosmic Soul Reading${includesPortrait ? ' + Portrait' : ''}`,
+                description: discountAmount > 0 ? `Includes ${Math.round(discountRate * 100)}% multi-pet discount` : undefined,
+              },
+              unit_amount: readingAfterDiscount,
+            },
+            quantity: 1,
+          },
+          ...(includesBook ? [{
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: 'Printed Keepsake Edition',
+                description: "Hardcover book of your pet's cosmic soul reading",
+              },
+              unit_amount: BOOK_PRICE_CENTS,
+            },
+            quantity: 1,
+          }] : []),
+        ],
         mode: "payment",
-        success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${reportId}&quick=true`,
+        success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}&quick=true`,
         cancel_url: `${origin}/checkout?tier=${tierKey}`,
         metadata: {
-          report_ids: reportId,
-          pet_count: "1",
+          report_ids: reportIds.join(","),
+          pet_count: petCount.toString(),
           selected_tier: tierKey,
           quick_checkout: "true",
           ab_variant: input.abVariant || "C",
-          includes_portrait: (tierKey === 'premium') ? "true" : "false",
+          includes_portrait: includesPortrait ? "true" : "false",
+          includes_book: includesBook ? "true" : "false",
+          occasion_mode: occasionMode,
         },
       });
 
@@ -158,9 +235,7 @@ serve(async (req) => {
       });
     }
 
-    // ========== STANDARD CHECKOUT MODE (Variant A / existing flow) ==========
-
-    // Support both single reportId and array of reportIds
+    // ========== STANDARD CHECKOUT MODE ==========
     const allReportIds = input.reportIds || (input.reportId ? [input.reportId] : []);
     if (allReportIds.length === 0) {
       throw new Error("At least one report ID is required");
@@ -169,7 +244,6 @@ serve(async (req) => {
 
     console.log("[CREATE-CHECKOUT] Starting checkout for reports:", allReportIds, "tier:", input.selectedTier);
 
-    // Fetch the primary report to get email
     const { data: report, error: reportError } = await supabaseClient
       .from("pet_reports")
       .select("email, pet_name")
@@ -180,19 +254,16 @@ serve(async (req) => {
       throw new Error("Report not found");
     }
 
-    // Sanitize email - remove trailing commas, spaces, and other invalid chars
     const sanitizedEmail = report.email
       .trim()
-      .replace(/,+$/, '') // Remove trailing commas
-      .replace(/\s+/g, ''); // Remove any whitespace
+      .replace(/,+$/, '')
+      .replace(/\s+/g, '');
 
     // ===== SERVER-SIDE PRICE CALCULATION =====
-    // Support per-pet tiers if provided
     const petTiers = input.petTiers || {};
     const petHoroscopes = input.petHoroscopes || {};
     const actualPetCount = allReportIds.length || input.petCount;
     
-    // Fetch all reports to check for memorial mode
     const { data: allReports } = await supabaseClient
       .from("pet_reports")
       .select("id, occasion_mode")
@@ -200,7 +271,6 @@ serve(async (req) => {
     
     const reportOccasionMap = new Map(allReports?.map(r => [r.id, r.occasion_mode]) || []);
     
-    // Calculate base total with per-pet tiers
     let baseTotal = 0;
     for (let i = 0; i < actualPetCount; i++) {
       const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
@@ -208,12 +278,9 @@ serve(async (req) => {
       baseTotal += tier.priceCents;
     }
     
-    // Volume discount
     const volumeDiscountRate = getVolumeDiscount(actualPetCount);
     const volumeDiscount = Math.round(baseTotal * volumeDiscountRate);
     
-    // Calculate horoscope subscription cost (first month)
-    // Only for non-VIP, non-memorial pets with horoscope enabled
     let horoscopeCost = 0;
     let horoscopePetCount = 0;
     for (let i = 0; i < actualPetCount; i++) {
@@ -224,18 +291,15 @@ serve(async (req) => {
       const isMemorial = occasionMode === 'memorial';
       const hasHoroscope = petHoroscopes[String(i)] || false;
       
-      // VIP includes horoscope for free, memorial pets don't get horoscopes
       if (!isVip && !isMemorial && hasHoroscope) {
         horoscopeCost += HOROSCOPE_MONTHLY_CENTS;
         horoscopePetCount++;
       }
     }
     
-    // Gift add-on - use selected gift tier
     const giftTier = input.giftTierForFriend || 'basic';
     const giftAmount = input.includeGiftForFriend ? GIFT_TIERS[giftTier].priceCents : 0;
     
-    // Apply coupon discount if provided
     let couponDiscount = 0;
     if (input.couponId) {
       const { data: coupon, error: couponError } = await supabaseClient
@@ -246,11 +310,8 @@ serve(async (req) => {
         .single();
       
       if (!couponError && coupon) {
-        // Check expiration
         if (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) {
-          // Check usage limits
           if (!coupon.max_uses || coupon.current_uses < coupon.max_uses) {
-            // Check minimum purchase
             const subtotal = baseTotal - volumeDiscount;
             if (!coupon.min_purchase_cents || subtotal >= coupon.min_purchase_cents) {
               if (coupon.discount_type === 'percent') {
@@ -264,11 +325,9 @@ serve(async (req) => {
       }
     }
     
-    // Apply gift certificate if provided (by ID or by code)
     let giftCertificateDiscount = 0;
     let giftCertificateId: string | null = input.giftCertificateId || null;
     
-    // If gift code is provided (from URL), look it up
     if (input.giftCode && !giftCertificateId) {
       const { data: giftByCode, error: codeError } = await supabaseClient
         .from("gift_certificates")
@@ -278,16 +337,13 @@ serve(async (req) => {
         .single();
       
       if (!codeError && giftByCode) {
-        // Check expiration
         if (!giftByCode.expires_at || new Date(giftByCode.expires_at) > new Date()) {
           giftCertificateId = giftByCode.id;
           giftCertificateDiscount = giftByCode.amount_cents;
-          console.log("[CREATE-CHECKOUT] Gift code applied:", input.giftCode, "value:", giftByCode.amount_cents);
         }
       }
     }
     
-    // If gift certificate ID is provided, look it up
     if (giftCertificateId && giftCertificateDiscount === 0) {
       const { data: giftCert, error: giftError } = await supabaseClient
         .from("gift_certificates")
@@ -297,17 +353,14 @@ serve(async (req) => {
         .single();
       
       if (!giftError && giftCert) {
-        // Check expiration
         if (!giftCert.expires_at || new Date(giftCert.expires_at) > new Date()) {
           giftCertificateDiscount = giftCert.amount_cents;
         }
       }
     }
     
-    // Apply VIP customer referral discount ($5 off if referred by VIP customer)
     let customerReferralDiscount = 0;
     if (input.referralCode && input.referralCode.startsWith("VIP-")) {
-      // Check if this referral code exists
       const { data: referrer } = await supabaseClient
         .from("email_subscribers")
         .select("email, referral_code")
@@ -315,7 +368,6 @@ serve(async (req) => {
         .single();
       
       if (referrer && referrer.email.toLowerCase() !== sanitizedEmail.toLowerCase()) {
-        // Check if already referred
         const { data: existingRef } = await supabaseClient
           .from("customer_referrals")
           .select("id")
@@ -323,41 +375,41 @@ serve(async (req) => {
           .single();
         
         if (!existingRef) {
-          customerReferralDiscount = 500; // $5 off
-          console.log("[CREATE-CHECKOUT] VIP referral discount applied:", input.referralCode);
+          customerReferralDiscount = 500;
         }
       }
     }
     
-    // Calculate final total (never negative)
+    // Book upsell for standard checkout
+    const bookAmount = input.includesBook ? BOOK_PRICE_CENTS : 0;
+
     const calculatedTotal = Math.max(0, 
-      baseTotal - volumeDiscount - couponDiscount - giftCertificateDiscount - customerReferralDiscount + giftAmount + horoscopeCost
+      baseTotal - volumeDiscount - couponDiscount - giftCertificateDiscount - customerReferralDiscount + giftAmount + horoscopeCost + bookAmount
     );
 
     console.log("[CREATE-CHECKOUT] Server-calculated price:", {
       baseTotal,
       volumeDiscount,
       horoscopeCost,
-      horoscopePetCount,
       couponDiscount,
       giftCertificateDiscount,
       customerReferralDiscount,
       giftAmount,
+      bookAmount,
       calculatedTotal,
     });
 
-    // If total is 0 (fully covered by gift certificate), skip Stripe
     if (calculatedTotal === 0) {
-      console.log("[CREATE-CHECKOUT] Order is free, skipping Stripe");
-      
-      // Update all reports as paid and save per-pet photo URLs if provided
       for (let i = 0; i < allReportIds.length; i++) {
         const id = allReportIds[i];
         const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
         const tierIncludesPortrait = tierKey === 'premium' || tierKey === 'vip';
         const petPhoto = input.petPhotos?.[String(i)];
         
-        const updateData: Record<string, unknown> = { payment_status: "paid" };
+        const updateData: Record<string, unknown> = { 
+          payment_status: "paid",
+          includes_book: input.includesBook || false,
+        };
         if (tierIncludesPortrait && petPhoto?.url) {
           updateData.pet_photo_url = petPhoto.url;
         }
@@ -367,7 +419,6 @@ serve(async (req) => {
           .eq("id", id);
       }
 
-      // Mark gift certificate as redeemed
       if (giftCertificateId) {
         await supabaseClient
           .from("gift_certificates")
@@ -387,11 +438,9 @@ serve(async (req) => {
       });
     }
 
-    // Build line items - show breakdown by tier
-    // Subtract horoscope and gift from main item to show them separately
-    const mainItemAmount = calculatedTotal - giftAmount - horoscopeCost;
+    // Build line items
+    const mainItemAmount = calculatedTotal - giftAmount - horoscopeCost - bookAmount;
     
-    // Describe the order based on tiers
     const tierCounts = { basic: 0, premium: 0, vip: 0 };
     for (let i = 0; i < actualPetCount; i++) {
       const tierKey = (petTiers[String(i)] || input.selectedTier || 'premium') as keyof typeof tierCounts;
@@ -408,7 +457,7 @@ serve(async (req) => {
         currency: "usd",
         product_data: {
           name: actualPetCount > 1 
-            ? `Cosmic Pet Readings (${actualPetCount} pets)`
+            ? `Cosmic Soul Readings (${actualPetCount} pets)`
             : TIERS[input.selectedTier].name,
           description: actualPetCount > 1 ? orderDesc : undefined,
         },
@@ -417,7 +466,6 @@ serve(async (req) => {
       quantity: 1,
     }];
 
-    // Add horoscope subscription (first month) if selected
     if (horoscopeCost > 0 && horoscopePetCount > 0) {
       lineItems.push({
         price_data: {
@@ -434,7 +482,6 @@ serve(async (req) => {
       });
     }
 
-    // Add gift reading if selected
     if (input.includeGiftForFriend) {
       const giftTierSelected = input.giftTierForFriend || 'basic';
       const giftInfo = GIFT_TIERS[giftTierSelected];
@@ -451,16 +498,26 @@ serve(async (req) => {
       });
     }
 
-    // Note: Horoscope subscription is charged as first month payment here
-    // Recurring billing should be set up in stripe-webhook after payment success
+    // Book line item
+    if (input.includesBook) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: 'Printed Keepsake Edition',
+            description: "Hardcover book of your pet's cosmic soul reading",
+          },
+          unit_amount: BOOK_PRICE_CENTS,
+        },
+        quantity: 1,
+      });
+    }
+
     const checkoutMode = "payment";
 
-    // Determine if any pet has portrait tier
     const anyPetHasPortrait = Object.values(petTiers).some(t => t === 'premium' || t === 'vip') || 
       input.selectedTier === 'premium' || input.selectedTier === 'vip';
 
-    // Persist uploaded pet photo URLs to the reports immediately so the card can show them
-    // (Portrait AI is paused for now — we use the uploaded photo directly.)
     try {
       for (let i = 0; i < allReportIds.length; i++) {
         const id = allReportIds[i];
@@ -479,7 +536,6 @@ serve(async (req) => {
       console.error('[CREATE-CHECKOUT] Failed to persist pet photos:', err);
     }
 
-    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       customer_email: sanitizedEmail,
       line_items: lineItems,
@@ -490,11 +546,12 @@ serve(async (req) => {
         report_ids: allReportIds.join(","),
         pet_count: actualPetCount.toString(),
         selected_tier: input.selectedTier,
-        pet_tiers: JSON.stringify(petTiers), // Store per-pet tiers
-        pet_photos: JSON.stringify(input.petPhotos || {}), // Store per-pet photos
+        pet_tiers: JSON.stringify(petTiers),
+        pet_photos: JSON.stringify(input.petPhotos || {}),
         include_gift: input.includeGiftForFriend ? "true" : "false",
         gift_tier_for_friend: input.includeGiftForFriend ? (input.giftTierForFriend || 'basic') : "",
         includes_portrait: anyPetHasPortrait ? "true" : "false",
+        includes_book: input.includesBook ? "true" : "false",
         is_gift: input.isGift ? "true" : "false",
         recipient_name: input.recipientName,
         recipient_email: input.recipientEmail,
@@ -504,11 +561,10 @@ serve(async (req) => {
         referral_code: input.referralCode || "",
         include_horoscope: (horoscopePetCount > 0 || input.includeHoroscope) ? "true" : "false",
         horoscope_pet_count: horoscopePetCount.toString(),
-        pet_horoscopes: JSON.stringify(petHoroscopes), // Store per-pet horoscope selections
-        // VIP tier includes horoscope for free
+        pet_horoscopes: JSON.stringify(petHoroscopes),
         vip_horoscope: Object.values(petTiers).some(t => t === 'vip') || input.selectedTier === "vip" ? "true" : "false",
-        pet_photo_url: input.petPhotoUrl || "", // Legacy single photo
-        ab_variant: input.abVariant || "", // A/B test variant tracking
+        pet_photo_url: input.petPhotoUrl || "",
+        ab_variant: input.abVariant || "",
       },
     });
 
@@ -522,7 +578,6 @@ serve(async (req) => {
   } catch (error) {
     console.error("[CREATE-CHECKOUT] Error:", error);
     
-    // SECURITY: Handle Zod validation errors - log details server-side only
     if (error instanceof z.ZodError) {
       console.error("[CREATE-CHECKOUT] Validation errors:", error.errors);
       return new Response(JSON.stringify({ 
@@ -533,7 +588,6 @@ serve(async (req) => {
       });
     }
     
-    // SECURITY: Generic error message - never expose internal details
     return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
