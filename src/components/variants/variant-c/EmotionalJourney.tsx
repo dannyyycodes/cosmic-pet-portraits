@@ -87,6 +87,49 @@ const SectionPaws = ({ visible }: { visible: boolean }) => {
   );
 };
 
+// ─── Subtle paw traces between beats ───
+const SubtlePaws = ({ variant = 0 }: { variant?: number }) => {
+  const patterns = [
+    [
+      { left: "12%", top: -22, size: 18, opacity: 0.07, rotate: 175, flip: false },
+      { right: "18%", top: -8, size: 14, opacity: 0.05, rotate: -170, flip: true },
+    ],
+    [
+      { right: "14%", top: -25, size: 16, opacity: 0.06, rotate: 185, flip: true },
+      { left: "22%", top: -6, size: 13, opacity: 0.05, rotate: 170, flip: false },
+    ],
+    [
+      { left: "8%", top: -18, size: 15, opacity: 0.06, rotate: -175, flip: false },
+      { right: "25%", top: -28, size: 18, opacity: 0.05, rotate: 180, flip: true },
+    ],
+    [
+      { right: "10%", top: -15, size: 14, opacity: 0.07, rotate: 172, flip: true },
+      { left: "30%", top: -24, size: 16, opacity: 0.05, rotate: -185, flip: false },
+    ],
+  ];
+  const paws = patterns[variant % patterns.length];
+  return (
+    <div style={{ position: "relative", height: 0, overflow: "visible", pointerEvents: "none", zIndex: 1 }}>
+      {paws.map((p, i) => (
+        <svg key={i} width={p.size} height={p.size * 1.2} viewBox="0 0 28 34" fill="none"
+          style={{
+            position: "absolute",
+            ...(p.left ? { left: p.left } : {}),
+            ...(p.right ? { right: p.right } : {}),
+            top: p.top, opacity: p.opacity,
+            transform: `rotate(${p.rotate}deg)${p.flip ? " scaleX(-1)" : ""}`,
+          }}
+        >
+          <ellipse cx="14" cy="22" rx="7" ry="9" fill={COLORS.pawColor} />
+          <ellipse cx="7" cy="10" rx="4" ry="5" fill={COLORS.pawColor} transform="rotate(-10 7 10)" />
+          <ellipse cx="14" cy="6" rx="4" ry="5" fill={COLORS.pawColor} />
+          <ellipse cx="21" cy="10" rx="4" ry="5" fill={COLORS.pawColor} transform="rotate(10 21 10)" />
+        </svg>
+      ))}
+    </div>
+  );
+};
+
 // ─── Grain texture overlay ───
 const GrainOverlay = () => (
   <div
@@ -110,7 +153,7 @@ const GrainOverlay = () => (
 
 // ─── SVG Heart that draws itself ───
 const DrawHeart = ({ visible }: { visible: boolean }) => (
-  <svg viewBox="0 0 100 100" className="w-[60px] h-[60px] md:w-[80px] md:h-[80px] mt-[30px] md:mt-[50px] mx-auto block">
+  <svg viewBox="0 0 100 100" className="w-[55px] h-[55px] md:w-[80px] md:h-[80px] mt-[24px] md:mt-[50px] mx-auto block">
     <path
       d="M49.998,90.544c0,0,0,0,0.002,0c5.304-14.531,32.88-27.047,41.474-44.23C108.081,13.092,61.244-5.023,50,23.933C38.753-5.023-8.083,13.092,8.525,46.313C17.116,63.497,44.691,76.013,49.998,90.544z"
       fill="none"
@@ -216,16 +259,14 @@ const UGCTestimonials = () => {
         {[0, 1, 2, 3].map((i) => {
           const { ref, visible } = useScrollReveal({ threshold: 0.15 });
           return (
-            <div key={i} ref={ref} style={{ ...fadeUpStyle(visible, 0.3 + i * 0.3), width: cardW, aspectRatio: "9/16", borderRadius: 16, background: `linear-gradient(135deg, ${COLORS.cream3}, ${COLORS.sand})`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: COLORS.cream, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", fontSize: 40 }}>▶</div>
+            <div key={i} ref={ref} style={{ ...fadeUpStyle(visible, 0.3 + i * 0.3), width: cardW, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ width: "100%", aspectRatio: "9/16", borderRadius: 16, background: `linear-gradient(135deg, ${COLORS.cream3}, ${COLORS.sand})`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                <div style={{ width: 56, height: 56, borderRadius: "50%", background: COLORS.cream, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", fontSize: 40 }}>▶</div>
+              </div>
+              <div style={{ marginTop: 8, fontSize: "0.85rem", color: COLORS.gold, letterSpacing: "0.08em" }}>★★★★★</div>
             </div>
           );
         })}
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: mobile ? 12 : 20, marginTop: 12 }}>
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} style={{ width: cardW, textAlign: "center", fontSize: "0.85rem", color: COLORS.gold }}>★★★★★</div>
-        ))}
       </div>
     </section>
   );
@@ -283,6 +324,8 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
         )}
       </Beat>
 
+      <SubtlePaws variant={0} />
+
       {/* ═══ BEAT 3 — "just" ═══ */}
       <Beat minHeight="65vh" mobileMinHeight="30vh">
         {(v) => (
@@ -327,6 +370,8 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
         )}
       </Beat>
 
+      <SubtlePaws variant={1} />
+
       {/* ═══ BEAT 5 — "They're Not 'Just a Pet'" ═══ */}
       <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream3}, ${COLORS.cream2})`}>
         {(v) => (
@@ -363,6 +408,8 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
         )}
       </Beat>
 
+      <SubtlePaws variant={2} />
+
       {/* ═══ BEAT 6 — The Incantation ═══ */}
       <Beat minHeight="80vh" mobileMinHeight="50vh" background={COLORS.cream2}>
         {(v) => (
@@ -390,6 +437,8 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
           </div>
         )}
       </Beat>
+
+      <SubtlePaws variant={3} />
 
       {/* ═══ BEAT 7 — "That means something." ═══ */}
       <Beat minHeight="60vh" mobileMinHeight="35vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream})`}>
@@ -460,6 +509,8 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
           </div>
         )}
       </Beat>
+
+      <SubtlePaws variant={0} />
 
       {/* ═══ BEAT 9 — "I see you…" ═══ */}
       <Beat minHeight="75vh" mobileMinHeight="50vh">
@@ -559,6 +610,8 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
           </div>
         )}
       </Beat>
+
+      <SubtlePaws variant={1} />
 
       <UGCTestimonials />
 
