@@ -62,20 +62,20 @@ const SectionPaws = ({ visible }: { visible: boolean }) => {
 const SubtlePaws = ({ variant = 0 }: { variant?: number }) => {
   const patterns = [
     [
-      { left: "12%", top: -22, size: 18, opacity: 0.07, rotate: 175, flip: false },
-      { right: "18%", top: -8, size: 14, opacity: 0.05, rotate: -170, flip: true },
+      { left: "12%", top: -22, size: 18, opacity: 0.12, rotate: 175, flip: false },
+      { right: "18%", top: -8, size: 14, opacity: 0.09, rotate: -170, flip: true },
     ],
     [
-      { right: "14%", top: -25, size: 16, opacity: 0.06, rotate: 185, flip: true },
-      { left: "22%", top: -6, size: 13, opacity: 0.05, rotate: 170, flip: false },
+      { right: "14%", top: -25, size: 16, opacity: 0.11, rotate: 185, flip: true },
+      { left: "22%", top: -6, size: 13, opacity: 0.08, rotate: 170, flip: false },
     ],
     [
-      { left: "8%", top: -18, size: 15, opacity: 0.06, rotate: -175, flip: false },
-      { right: "25%", top: -28, size: 18, opacity: 0.05, rotate: 180, flip: true },
+      { left: "8%", top: -18, size: 15, opacity: 0.1, rotate: -175, flip: false },
+      { right: "25%", top: -28, size: 18, opacity: 0.08, rotate: 180, flip: true },
     ],
     [
-      { right: "10%", top: -15, size: 14, opacity: 0.07, rotate: 172, flip: true },
-      { left: "30%", top: -24, size: 16, opacity: 0.05, rotate: -185, flip: false },
+      { right: "10%", top: -15, size: 14, opacity: 0.11, rotate: 172, flip: true },
+      { left: "30%", top: -24, size: 16, opacity: 0.09, rotate: -185, flip: false },
     ],
   ];
   const paws = patterns[variant % patterns.length];
