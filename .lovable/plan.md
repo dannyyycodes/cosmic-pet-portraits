@@ -1,41 +1,24 @@
 
 
-# Fix: Mobile Spacing — Reduce Section Heights for Faster Scrolling
+# Switch Report Generation to Claude Sonnet 4.5 via OpenRouter
 
-## Problem
+## What Changes
 
-Every beat uses `minHeight: "100vh"` (or 60-80vh), which on mobile creates enormous empty whitespace around small text blocks. The page takes far too long to scroll through because each section forces a full screen height even when the content only needs a fraction of that.
+The cosmic report generation currently uses the Lovable AI Gateway (Gemini 2.5 Flash). We'll switch it to call OpenRouter's API with Claude Sonnet 4.5 instead.
 
-## Solution
+## Steps
 
-Use responsive min-heights: keep the cinematic full-viewport feel on desktop but collapse to content-driven heights on mobile. Replace static `minHeight` values with CSS `clamp()` or media-query-aware values.
+1. **Store OpenRouter API key** — Save your OpenRouter key as a backend secret called `OPENROUTER_API_KEY`
 
-### Changes to `Beat` component and each beat's `minHeight`
+2. **Update `generate-cosmic-report/index.ts`** — Three targeted changes:
+   - Replace `LOVABLE_API_KEY` reference with `OPENROUTER_API_KEY`
+   - Change the API endpoint from `https://ai.gateway.lovable.dev/v1/chat/completions` to `https://openrouter.ai/api/v1/chat/completions`
+   - Change the model from `google/gemini-2.5-flash` to `anthropic/claude-sonnet-4.5`
+   - Add OpenRouter-required headers (`HTTP-Referer`, `X-Title`)
 
-| Beat | Current | Mobile (< 768px) | Desktop |
-|------|---------|-------------------|---------|
-| 1 (headline) | `100vh` | `60vh` | `100vh` |
-| 2 (whisper) | `60vh` | `35vh` | `60vh` |
-| 3 ("just") | `65vh` | `30vh` | `65vh` |
-| 4 (loyalty) | `70vh` | `45vh` | `70vh` |
-| 5 (not just a pet) | `100vh` | `60vh` | `100vh` |
-| 6 (incantation) | `80vh` | `50vh` | `80vh` |
-| 7 (means something) | `60vh` | `35vh` | `60vh` |
-| 8 (act of love) | `100vh` | `60vh` | `100vh` |
-| 9 (I see you) | `75vh` | `50vh` | `75vh` |
-| 10 (signature) | `100vh` | `60vh` | `100vh` |
-| CTA | `100vh` | `60vh` | `100vh` |
+3. **Deploy and test** — Redeploy the edge function and verify report generation still works
 
-**Implementation approach**: Since `minHeight` is set via inline styles and we can't use Tailwind breakpoints there, we'll detect mobile via a simple check (`window.innerWidth < 768`) and pass a multiplier, OR use CSS `clamp()` on minHeight values. The cleanest approach: update the `Beat` component to accept both a `minHeight` and a `mobileMinHeight`, then use a media query via `matchMedia` or simply use the existing `useIsMobile` hook.
+## Technical Detail
 
-### Additional mobile tightening
-
-- Reduce vertical padding on mobile from `clamp(40px, 8vw, 80px)` to `clamp(24px, 6vw, 80px)` — saves ~16px per section on small screens
-- UGC video cards: reduce from 180px wide to 140px on mobile so they fit 2 per row without excess scrolling
-
-### File changed
-
-| File | Change |
-|------|--------|
-| `src/components/variants/variant-c/EmotionalJourney.tsx` | Import `useIsMobile`, add `mobileMinHeight` prop to `Beat`, reduce all section heights on mobile, tighten padding |
+The OpenRouter API is OpenAI-compatible, so the request/response format stays identical — only the URL, auth header, and model name change. The `response_format: { type: "json_object" }` parameter is supported by Claude on OpenRouter.
 
