@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AstroPets — Discover Your Pet's Cosmic Soul</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --black: #141210;
+  --ink: #1f1c18;
+  --deep: #2e2a24;
+  --warm: #4d443b;
+  --earth: #6e6259;
+  --muted: #958779;
+  --faded: #bfb2a3;
+  --sand: #d6c8b6;
+  --cream: #FFFDF5;
+  --cream2: #faf4e8;
+  --cream3: #f3eadb;
+  --rose: #bf524a;
+  --rose-soft: #c9665f;
+  --rose-glow: rgba(191,82,74,0.12);
+  --gold: #c4a265;
+  --gold-soft: rgba(196,162,101,0.15);
+  --paw-color: #9a8e84;
+  --green: #4a8c5c;
+  --green-soft: #e8f5ec;
+}
+
+html { scroll-behavior:smooth; }
+body { background:var(--cream); color:var(--ink); font-family:'Cormorant',Georgia,serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; padding-top:72px; }
+
+/* Grain */
+body::after {
+  content:''; position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size:256px; pointer-events:none; z-index:9999;
+}
+
+/* ============ PINNED BARS ============ */
+.pinned-bars { position:fixed; top:0; left:0; right:0; z-index:1000; }
+
+.gift-banner {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:8px 16px; background:var(--rose); color:#fff;
+  font-size:0.82rem; font-weight:600; letter-spacing:0.02em;
+  cursor:pointer; text-decoration:none; transition:background 0.3s;
+}
+.gift-banner:hover { background:var(--rose-soft); }
+.gift-banner svg { flex-shrink:0; }
+.gift-banner-text { text-decoration:underline; text-underline-offset:2px; }
+.gift-banner-arrow { font-size:1rem; transition:transform 0.3s; }
+.gift-banner:hover .gift-banner-arrow { transform:translateX(3px); }
+
+.ticker-bar {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:8px 16px;
+  background:rgba(255,253,245,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(0,0,0,0.06);
+  font-size:0.8rem; color:var(--earth); font-weight:500;
+  min-height:36px;
+}
+.ticker-dot {
+  width:6px; height:6px; border-radius:50%; background:var(--green);
+  animation:pulse 2s infinite; flex-shrink:0;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+.ticker-text { transition:opacity 0.4s ease; }
+.ticker-text strong { color:var(--ink); }
+
+/* ============ ANIMATIONS ============ */
+.a { opacity:0; transform:translateY(30px); transition:opacity 1s cubic-bezier(0.19,1,0.22,1), transform 1s cubic-bezier(0.19,1,0.22,1); }
+.a.v { opacity:1; transform:translateY(0); }
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}.d5{transition-delay:.5s}.d6{transition-delay:.6s}.d7{transition-delay:.7s}.d8{transition-delay:.8s}
+
+/* ============ HERO ============ */
+.hero {
+  min-height:36vh;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  padding:48px 24px 32px; text-align:center;
+  background:radial-gradient(ellipse 90% 70% at 50% 40%, var(--cream2) 0%, var(--cream) 65%);
+  position:relative; overflow:hidden;
+}
+.hero-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--rose-glow); border:1px solid rgba(191,82,74,0.15);
+  padding:6px 16px; border-radius:50px;
+  font-size:0.78rem; font-weight:600; color:var(--rose); letter-spacing:0.04em;
+  margin-bottom:22px;
+}
+.hero-badge svg { flex-shrink:0; }
+.hero-headline {
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:clamp(2rem,7vw,3.4rem);
+  font-weight:400; line-height:1.08; letter-spacing:-0.03em;
+  color:var(--black); margin-bottom:14px;
+}
+.hero-headline em { font-style:italic; }
+.hero-sub {
+  font-family:'Cormorant',Georgia,serif; font-style:italic;
+  font-size:clamp(1rem,3.5vw,1.2rem); font-weight:400;
+  color:var(--earth); line-height:1.6; max-width:400px;
+}
+.paw { position:absolute; opacity:0; transition:opacity 0.8s ease; pointer-events:none; }
+.paw.show { opacity:0.12; }
+
+/* ============ CHECKOUT ============ */
+.checkout-wrap { max-width:520px; margin:0 auto; padding:0 20px 40px; }
+
+/* ---- Product Card (Digital) ---- */
+.product-card {
+  background:#fff; border-radius:18px;
+  border:1px solid rgba(0,0,0,0.06);
+  box-shadow:0 2px 20px rgba(0,0,0,0.04);
+  padding:24px; margin-bottom:14px;
+}
+.product-header {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:18px; padding-bottom:14px;
+  border-bottom:1px solid var(--cream3);
+}
+.product-icon {
+  width:40px; height:40px; border-radius:12px;
+  background:linear-gradient(135deg, var(--gold-soft), rgba(196,162,101,0.08));
+  display:flex; align-items:center; justify-content:center;
+  margin-right:12px; flex-shrink:0;
+}
+.product-title-wrap { flex:1; }
+.product-title { font-family:'DM Serif Display',Georgia,serif; font-size:1.1rem; color:var(--ink); margin-bottom:2px; }
+.product-subtitle { font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.85rem; color:var(--muted); }
+.product-price-wrap { text-align:right; }
+.product-price-old { font-size:0.85rem; color:var(--faded); text-decoration:line-through; margin-bottom:1px; }
+.product-price { font-family:'DM Serif Display',Georgia,serif; font-size:1.6rem; color:var(--ink); line-height:1; }
+.product-features { list-style:none; padding:0; }
+.product-features li {
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:0.92rem; font-weight:500; color:var(--warm);
+  padding:5px 0; line-height:1.4;
+}
+.product-features li svg { flex-shrink:0; margin-top:3px; }
+
+/* ---- Upsell (Portrait only) ---- */
+.upsell-card {
+  background:#fff; border-radius:14px;
+  border:1px solid rgba(0,0,0,0.06);
+  box-shadow:0 1px 12px rgba(0,0,0,0.03);
+  padding:14px 18px;
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:18px; cursor:pointer;
+  transition:border-color 0.3s, box-shadow 0.3s;
+}
+.upsell-card:hover { border-color:rgba(196,162,101,0.3); }
+.upsell-card.active { border-color:var(--gold); box-shadow:0 0 0 2px var(--gold-soft); }
+.upsell-left { display:flex; align-items:center; gap:12px; flex:1; }
+.upsell-icon { width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg, var(--cream3), var(--cream2)); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.upsell-title { font-family:'Cormorant',Georgia,serif; font-weight:600; font-size:0.9rem; color:var(--ink); }
+.upsell-desc { font-size:0.76rem; color:var(--muted); margin-top:1px; }
+.upsell-popular { font-size:0.58rem; font-weight:700; color:var(--rose); background:var(--rose-glow); padding:2px 6px; border-radius:4px; letter-spacing:0.05em; margin-top:3px; display:inline-block; }
+.upsell-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.upsell-price { font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:0.9rem; color:var(--earth); white-space:nowrap; }
+.toggle-track { width:40px; height:22px; border-radius:11px; background:var(--sand); position:relative; transition:background 0.3s; cursor:pointer; flex-shrink:0; }
+.toggle-track.on { background:var(--gold); }
+.toggle-knob { width:18px; height:18px; border-radius:50%; background:#fff; position:absolute; top:2px; left:2px; box-shadow:0 1px 4px rgba(0,0,0,0.15); transition:transform 0.3s; }
+.toggle-track.on .toggle-knob { transform:translateX(18px); }
+
+/* CTA */
+.cta-wrap { margin-bottom:16px; }
+.cta-btn {
+  display:block; width:100%; padding:16px 24px;
+  background:var(--rose); color:#fff; border:none; border-radius:14px;
+  font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:1.1rem;
+  letter-spacing:0.05em; cursor:pointer; text-align:center; text-decoration:none;
+  box-shadow:0 4px 20px rgba(191,82,74,0.2);
+  transition:all 0.35s ease;
+}
+.cta-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(191,82,74,0.3); background:var(--rose-soft); }
+.cta-btn.loading { opacity:0.7; pointer-events:none; }
+.cta-note { text-align:center; font-size:0.8rem; color:var(--muted); margin-top:9px; font-style:italic; line-height:1.5; }
+
+/* Trust */
+.trust-strip { display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; padding:12px 0; margin-bottom:20px; }
+.trust-item { display:flex; align-items:center; gap:4px; font-size:0.76rem; font-weight:500; color:var(--earth); }
+.trust-item svg { flex-shrink:0; }
+.trustpilot-badge { display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:20px; }
+.tp-stars { display:flex; gap:1px; }
+.tp-star { width:18px; height:18px; background:#00b67a; display:flex; align-items:center; justify-content:center; border-radius:2px; }
+.tp-star svg { width:11px; height:11px; }
+.tp-text { font-size:0.78rem; color:var(--earth); font-weight:500; }
+.tp-text strong { color:var(--ink); }
+
+/* Expandable trust boxes */
+.trust-expand { border-radius:12px; margin-bottom:10px; overflow:hidden; }
+.trust-expand-header {
+  display:flex; align-items:center; gap:10px; padding:12px 16px; cursor:pointer;
+  transition:background 0.2s;
+}
+.trust-expand-header:hover { opacity:0.85; }
+.trust-expand-icon { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.trust-expand-title { font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink); flex:1; }
+.trust-expand-arrow { width:20px; height:20px; display:flex; align-items:center; justify-content:center; transition:transform 0.3s; flex-shrink:0; color:var(--muted); }
+.trust-expand.open .trust-expand-arrow { transform:rotate(180deg); }
+.trust-expand-body { max-height:0; overflow:hidden; transition:max-height 0.35s ease; }
+.trust-expand-body-inner { padding:0 16px 14px 56px; font-size:0.82rem; color:var(--earth); line-height:1.55; }
+.guarantee-expand { background:var(--green-soft); border:1px solid rgba(74,140,92,0.15); }
+.guarantee-expand .trust-expand-icon { background:rgba(74,140,92,0.12); }
+.privacy-expand { background:rgba(196,162,101,0.06); border:1px solid rgba(196,162,101,0.12); }
+.privacy-expand .trust-expand-icon { background:rgba(196,162,101,0.1); }
+
+/* ============ HARDCOVER SECTION ============ */
+.hardcover-section { max-width:520px; margin:0 auto; padding:0 20px 40px; }
+.hardcover-label { font-family:'Cormorant',Georgia,serif; font-weight:600; font-size:0.78rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold); text-align:center; margin-bottom:10px; }
+.hardcover-card {
+  background:linear-gradient(135deg, #fff 0%, var(--cream2) 100%);
+  border-radius:18px; border:2px solid var(--gold);
+  box-shadow:0 4px 30px rgba(196,162,101,0.15);
+  padding:28px 24px; text-align:center; position:relative; overflow:hidden;
+}
+.hardcover-card::before {
+  content:''; position:absolute; top:-60px; right:-60px;
+  width:140px; height:140px; border-radius:50%;
+  background:radial-gradient(circle, rgba(196,162,101,0.08), transparent 70%);
+}
+.hardcover-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  background:linear-gradient(135deg, var(--gold), #d4b87a);
+  color:#fff; padding:4px 12px; border-radius:6px;
+  font-size:0.68rem; font-weight:700; letter-spacing:0.08em; margin-bottom:16px;
+}
+.hardcover-title { font-family:'DM Serif Display',Georgia,serif; font-size:1.3rem; color:var(--ink); margin-bottom:6px; }
+.hardcover-subtitle { font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.92rem; color:var(--earth); margin-bottom:20px; }
+.hardcover-features { list-style:none; padding:0; text-align:left; max-width:340px; margin:0 auto 20px; }
+.hardcover-features li { display:flex; align-items:flex-start; gap:8px; font-size:0.88rem; font-weight:500; color:var(--warm); padding:5px 0; line-height:1.4; }
+.hardcover-features li svg { flex-shrink:0; margin-top:3px; }
+.hardcover-price-row { display:flex; align-items:baseline; justify-content:center; gap:8px; margin-bottom:16px; }
+.hardcover-price { font-family:'DM Serif Display',Georgia,serif; font-size:2rem; color:var(--ink); }
+.hardcover-cta {
+  display:inline-block; padding:14px 36px;
+  background:linear-gradient(135deg, var(--gold), #d4b87a);
+  color:#fff; border:none; border-radius:12px;
+  font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:1.05rem;
+  letter-spacing:0.05em; cursor:pointer; text-decoration:none;
+  box-shadow:0 4px 20px rgba(196,162,101,0.25);
+  transition:all 0.35s ease;
+}
+.hardcover-cta:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(196,162,101,0.35); }
+.hardcover-cta.loading { opacity:0.7; pointer-events:none; }
+.hardcover-note { font-size:0.76rem; color:var(--muted); margin-top:10px; font-style:italic; }
+
+/* ============ GIFT CARD V2 ============ */
+.gift-card-v2 {
+  display:flex; flex-direction:column;
+  overflow:visible; position:relative;
+}
+.gift-body { padding:24px; display:flex; flex-direction:column; gap:14px; }
+.gift-v2-title { font-family:'DM Serif Display',Georgia,serif; font-size:1.1rem; color:var(--ink); }
+.gift-v2-subtitle { font-size:0.82rem; color:var(--muted); font-style:italic; margin-top:2px; }
+.gift-v2-desc { font-size:0.85rem; color:var(--earth); line-height:1.5; }
+.gift-v2-steps { display:flex; gap:6px; flex-direction:column; }
+.gift-v2-step { display:flex; align-items:center; gap:10px; font-size:0.82rem; color:var(--warm); font-weight:500; }
+.gift-v2-num {
+  width:22px; height:22px; border-radius:50%; flex-shrink:0;
+  background:var(--rose-glow); color:var(--rose); font-weight:700; font-size:0.72rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.gift-v2-tags { display:flex; gap:6px; flex-wrap:wrap; }
+.gift-v2-tag {
+  font-size:0.66rem; font-weight:600; color:var(--rose);
+  background:var(--rose-glow); padding:3px 8px; border-radius:20px;
+  letter-spacing:0.02em;
+}
+.gift-v2-btn {
+  display:block; text-align:center; padding:14px 20px;
+  background:var(--rose); color:#fff; border-radius:12px;
+  font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:1rem;
+  text-decoration:none; letter-spacing:0.04em;
+  transition:all 0.3s; box-shadow:0 3px 14px rgba(191,82,74,0.18);
+}
+.gift-v2-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(191,82,74,0.25); background:var(--rose-soft); }
+
+/* ============ TESTIMONIALS ============ */
+.testimonials-section { max-width:800px; margin:0 auto; padding:0 20px 40px; }
+.section-label { font-family:'Cormorant',Georgia,serif; font-weight:600; font-size:0.78rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--earth); text-align:center; margin-bottom:10px; }
+.section-headline { font-family:'DM Serif Display',Georgia,serif; font-size:clamp(1.4rem,5vw,2rem); color:var(--black); text-align:center; margin-bottom:6px; }
+.section-sub { font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.92rem; color:var(--muted); text-align:center; margin-bottom:32px; max-width:380px; margin-left:auto; margin-right:auto; }
+.testimonial-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
+.testimonial-card { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 1px 10px rgba(0,0,0,0.03); padding:18px; }
+.tc-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.tc-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, var(--cream3), var(--sand)); display:flex; align-items:center; justify-content:center; font-family:'Caveat',cursive; font-size:0.95rem; color:var(--earth); }
+.tc-name { font-weight:600; font-size:0.82rem; color:var(--ink); }
+.tc-pet { font-size:0.72rem; color:var(--muted); }
+.tc-verified { font-size:0.58rem; font-weight:700; color:#fff; background:var(--green); padding:2px 5px; border-radius:3px; margin-left:4px; }
+.tc-stars { color:var(--gold); font-size:0.8rem; margin-bottom:8px; letter-spacing:1px; }
+.tc-quote { font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink); margin-bottom:6px; line-height:1.3; }
+.tc-body { font-size:0.82rem; color:var(--earth); line-height:1.5; }
+
+/* Mini testimonials */
+.mini-row { display:flex; gap:10px; overflow-x:auto; padding:0 0 12px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+.mini-row::-webkit-scrollbar { display:none; }
+.mini-card { flex-shrink:0; width:145px; background:#fff; border-radius:10px; border:1px solid rgba(0,0,0,0.05); padding:12px; text-align:center; }
+.mini-avatar { width:28px; height:28px; border-radius:50%; margin:0 auto 5px; background:linear-gradient(135deg, var(--cream3), var(--sand)); display:flex; align-items:center; justify-content:center; font-family:'Caveat',cursive; font-size:0.8rem; color:var(--earth); }
+.mini-stars { color:var(--gold); font-size:0.65rem; margin-bottom:4px; }
+.mini-quote { font-size:0.72rem; color:var(--warm); line-height:1.35; font-style:italic; margin-bottom:3px; }
+.mini-name { font-size:0.65rem; color:var(--muted); }
+
+/* Bottom CTA */
+.bottom-cta { text-align:center; padding:24px 20px 16px; max-width:520px; margin:0 auto; }
+.bottom-cta-text { font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.95rem; color:var(--earth); margin-bottom:16px; }
+.bottom-cta .cta-btn { max-width:520px; margin:0 auto; }
+
+/* Back */
+.back-link { text-align:center; padding:20px 20px 50px; }
+.back-link a { font-family:'Cormorant',Georgia,serif; font-size:0.85rem; color:var(--muted); text-decoration:none; transition:color 0.3s; }
+.back-link a:hover { color:var(--earth); }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:640px) {
+  body { padding-top:66px; }
+  .hero { padding:36px 20px 24px; min-height:auto; }
+  .testimonial-grid { grid-template-columns:1fr; }
+  .checkout-wrap, .hardcover-section { padding-left:16px; padding-right:16px; }
+  .product-card, .hardcover-card { padding:20px; }
+  .product-header { flex-direction:column; gap:10px; }
+  .product-price-wrap { text-align:left; display:flex; align-items:center; gap:8px; }
+  .product-price-old { margin-bottom:0; }
+  .product-icon { display:none; }
+  .hardcover-card { padding:22px 18px; }
+  .hardcover-features { max-width:100%; }
+}
+
+@media (max-width:380px) {
+  .paw { display:none; }
+  .hero-headline { font-size:clamp(1.7rem,8vw,2.2rem); }
+  .gift-banner { font-size:0.75rem; padding:7px 12px; }
+  .ticker-bar { font-size:0.72rem; padding:6px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ PINNED TOP BARS ============ -->
+<div class="pinned-bars">
+  <a href="#gift-section" class="gift-banner">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+    <span class="gift-banner-text">Buying for someone else? Tap here to gift</span>
+    <span class="gift-banner-arrow">&rarr;</span>
+  </a>
+  <div class="ticker-bar">
+    <div class="ticker-dot"></div>
+    <div class="ticker-text" id="ticker"></div>
+  </div>
+</div>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="paw" style="top:18%;left:5%;transform:rotate(180deg);" data-paw><svg width="20" height="26" viewBox="0 0 28 34"><ellipse cx="14" cy="22" rx="7" ry="9" fill="var(--paw-color)"/><ellipse cx="7" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(-10 7 10)"/><ellipse cx="14" cy="6" rx="4" ry="5" fill="var(--paw-color)"/><ellipse cx="21" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(10 21 10)"/></svg></div>
+  <div class="paw" style="top:55%;left:3%;transform:rotate(188deg);" data-paw><svg width="20" height="26" viewBox="0 0 28 34"><ellipse cx="14" cy="22" rx="7" ry="9" fill="var(--paw-color)"/><ellipse cx="7" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(-10 7 10)"/><ellipse cx="14" cy="6" rx="4" ry="5" fill="var(--paw-color)"/><ellipse cx="21" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(10 21 10)"/></svg></div>
+  <div class="paw" style="top:22%;right:4%;transform:rotate(176deg) scaleX(-1);" data-paw><svg width="20" height="26" viewBox="0 0 28 34"><ellipse cx="14" cy="22" rx="7" ry="9" fill="var(--paw-color)"/><ellipse cx="7" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(-10 7 10)"/><ellipse cx="14" cy="6" rx="4" ry="5" fill="var(--paw-color)"/><ellipse cx="21" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(10 21 10)"/></svg></div>
+  <div class="paw" style="top:60%;right:6%;transform:rotate(184deg) scaleX(-1);" data-paw><svg width="20" height="26" viewBox="0 0 28 34"><ellipse cx="14" cy="22" rx="7" ry="9" fill="var(--paw-color)"/><ellipse cx="7" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(-10 7 10)"/><ellipse cx="14" cy="6" rx="4" ry="5" fill="var(--paw-color)"/><ellipse cx="21" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(10 21 10)"/></svg></div>
+
+  <div class="hero-badge a">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    Trusted by 12,000+ pet parents
+  </div>
+  <h1 class="hero-headline a d1">Discover the Soul<br>Behind <em>Those Eyes</em></h1>
+  <p class="hero-sub a d2">A beautifully crafted, animated journey that captures<br>everything you love about them.</p>
+</section>
+
+<!-- ============ DIGITAL READING ============ -->
+<div class="checkout-wrap">
+  <div class="product-card a d2" style="border:2px solid var(--rose);">
+
+    <div class="product-header">
+      <div style="display:flex;align-items:center;">
+        <div class="product-icon" style="background:var(--rose-glow);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        <div class="product-title-wrap">
+          <div class="product-title">The Cosmic Soul Reading</div>
+          <div class="product-subtitle">Finally understand the soul behind those eyes</div>
+        </div>
+      </div>
+      <div class="product-price-wrap">
+        <div class="product-price-old">$49</div>
+        <div class="product-price">$27</div>
+      </div>
+    </div>
+
+    <ul class="product-features">
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Deep personality reading — why they do the quirky things you adore</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Their emotional blueprint — how they love you, comfort you &amp; read your moods</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Full birth chart, aura colours, zodiac profile &amp; compatibility</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>A message from their soul to yours — the part that makes people cry</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Delivered as a beautiful animated journey you'll revisit forever</li>
+    </ul>
+
+    <!-- Portrait upsell INSIDE card -->
+    <div style="border-top:1px solid var(--cream3); padding-top:14px; margin-top:16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;" id="upsellPortrait">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <div>
+          <span style="font-weight:600; font-size:0.88rem; color:var(--ink);">Add Cosmic Portrait</span>
+          <span class="upsell-popular" style="margin-left:6px;">MOST POPULAR</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-weight:700; font-size:0.88rem; color:var(--earth);">+$8</span>
+        <div class="toggle-track" id="togglePortrait"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+
+    <!-- CTA INSIDE card -->
+    <a href="#" class="cta-btn" id="ctaBtn" style="margin-top:16px;" onclick="handleDigitalCheckout(event)">Unlock Their Cosmic Soul — $27</a>
+
+    <!-- Trust INSIDE card -->
+    <div style="margin-top:14px; text-align:center;">
+      <p style="font-size:0.78rem; color:var(--muted); font-style:italic; margin-bottom:10px;">You'll tell us about your pet after checkout — takes 60 seconds</p>
+      <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:8px;">
+        <div class="tp-stars"><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div></div>
+        <span class="tp-text"><strong>Excellent</strong> on Trustpilot</span>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; font-size:0.72rem; font-weight:500; color:var(--earth);">
+        <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Secure checkout</span>
+        <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Instant delivery</span>
+        <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>100% money-back</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ HARDCOVER ============ -->
+<div class="hardcover-section">
+  <div class="hardcover-label a">PREMIUM KEEPSAKE</div>
+  <div class="hardcover-card a d1">
+    <div class="hardcover-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>THE FOREVER EDITION</div>
+    <div class="hardcover-title">Hardcover Keepsake Book</div>
+    <div class="hardcover-subtitle">Hold their soul in your hands. A book so beautiful it will live on your bedside table forever — and make anyone who picks it up emotional.</div>
+    <ul class="hardcover-features">
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Premium hardcover, beautifully bound &amp; printed</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Their entire soul reading — every word, professionally typeset</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Full-page cosmic portrait of your pet</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Birth chart, aura map &amp; zodiac wheel — all in print</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>The kind of keepsake you'll still be reading in 10 years</li>
+    </ul>
+    <div class="hardcover-price-row">
+      <div class="hardcover-price">$99</div>
+    </div>
+    <a href="#" class="hardcover-cta" id="hardcoverBtn" onclick="handleHardcoverCheckout(event)">Order the Hardcover — $99</a>
+
+    <!-- Trust inside hardcover -->
+    <div style="margin-top:16px; padding-top:14px; border-top:1px solid rgba(196,162,101,0.15); text-align:center;">
+      <p style="font-size:0.78rem; color:var(--muted); font-style:italic; margin-bottom:8px;">Ships within 5–7 business days &middot; Free worldwide delivery</p>
+      <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:8px;">
+        <div class="tp-stars"><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div></div>
+        <span class="tp-text"><strong>Excellent</strong> on Trustpilot</span>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; font-size:0.7rem; font-weight:500; color:var(--earth);">
+        <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Secure checkout</span>
+        <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Reading delivered instantly</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ GIFT ============ -->
+<div class="hardcover-section" id="gift-section">
+  <div class="gift-card-v2 a" style="background:linear-gradient(135deg, rgba(191,82,74,0.03) 0%, rgba(196,162,101,0.04) 100%); border:2px dashed rgba(191,82,74,0.25); border-radius:18px; position:relative;">
+
+    <!-- Gift tag top-right -->
+    <div style="position:absolute; top:-12px; right:20px; background:var(--rose); color:#fff; padding:4px 12px; border-radius:8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; box-shadow:0 2px 8px rgba(191,82,74,0.2);">GIFT</div>
+
+    <div class="gift-body">
+      <div style="text-align:center; margin-bottom:6px;">
+        <div style="width:52px; height:52px; border-radius:50%; background:var(--rose-glow); display:inline-flex; align-items:center; justify-content:center; margin-bottom:8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+        </div>
+        <div class="gift-v2-title" style="text-align:center;">Give the Gift of Understanding Their Pet</div>
+        <div class="gift-v2-subtitle" style="text-align:center;">They open it, they cry, they love you forever</div>
+      </div>
+
+      <div class="gift-v2-desc" style="text-align:center; max-width:360px; margin:0 auto;">Buy a gift link and share it however you like — email, WhatsApp, text, or printed inside a card. They redeem it and fill in their own pet's details.</div>
+
+      <div class="gift-v2-steps" style="max-width:300px; margin:12px auto 0;">
+        <div class="gift-v2-step"><span class="gift-v2-num">1</span>You buy a gift link</div>
+        <div class="gift-v2-step"><span class="gift-v2-num">2</span>Share it your way — email, text, card</div>
+        <div class="gift-v2-step"><span class="gift-v2-num">3</span>They redeem &amp; discover their pet's soul</div>
+      </div>
+
+      <div class="gift-v2-tags" style="justify-content:center;">
+        <span class="gift-v2-tag">Birthdays</span>
+        <span class="gift-v2-tag">Holidays</span>
+        <span class="gift-v2-tag">Just because</span>
+        <span class="gift-v2-tag">In memory</span>
+      </div>
+
+      <a href="/gift" class="gift-v2-btn">Send a Gift — from $27 &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ EXPANDABLES (after all cards) ============ -->
+<div class="checkout-wrap" style="padding-bottom:20px;">
+  <div class="trust-expand guarantee-expand a" onclick="this.classList.toggle('open');var b=this.querySelector('.trust-expand-body');b.style.maxHeight=b.style.maxHeight?null:b.scrollHeight+'px'">
+    <div class="trust-expand-header">
+      <div class="trust-expand-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="trust-expand-title">Love It or It's Free</div>
+      <div class="trust-expand-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="trust-expand-body"><div class="trust-expand-body-inner">If your digital reading doesn't move you, we'll refund every penny. No questions, no hassle. We stand behind every reading because we know what it does to people.</div></div>
+  </div>
+  <div class="trust-expand privacy-expand a" onclick="this.classList.toggle('open');var b=this.querySelector('.trust-expand-body');b.style.maxHeight=b.style.maxHeight?null:b.scrollHeight+'px'">
+    <div class="trust-expand-header">
+      <div class="trust-expand-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <div class="trust-expand-title">Your Pet's Data Stays Private</div>
+      <div class="trust-expand-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="trust-expand-body"><div class="trust-expand-body-inner">We never share, sell, or store your pet's photos beyond creating your reading. Encrypted and automatically deleted after delivery. This is between you and your pet.</div></div>
+  </div>
+</div>
+
+<!-- ============ TESTIMONIALS ============ -->
+<div class="testimonials-section">
+  <p class="section-label a">WHAT HAPPENS AFTER THEY ORDER</p>
+  <h2 class="section-headline a d1">Tears, Laughter &amp; "How Did They Know?"</h2>
+  <p class="section-sub a d2">The most common reaction? Sending it to everyone they know.</p>
+
+  <div class="testimonial-grid">
+    <div class="testimonial-card a d2">
+      <div class="tc-header"><div class="tc-avatar">M</div><div><div class="tc-name">Mia Thompson <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Bruno the Labrador</div></div></div>
+      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="tc-quote">"I was in tears by the first paragraph"</div>
+      <div class="tc-body">How did they know about his head tilt thing?? And the thunder. My husband thought I was crazy crying over a dog reading. Already sent it to my whole family.</div>
+    </div>
+    <div class="testimonial-card a d3">
+      <div class="tc-header"><div class="tc-avatar">M</div><div><div class="tc-name">Mark Davies <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Mr. Whiskers the Tabby</div></div></div>
+      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="tc-quote">"Ordered 4 more as gifts. Everyone wants one."</div>
+      <div class="tc-body">Got this for my sister's birthday. She hasn't stopped showing people. Now everyone in my family wants one for their pet.</div>
+    </div>
+    <div class="testimonial-card a d4">
+      <div class="tc-header"><div class="tc-avatar">S</div><div><div class="tc-name">Sarah Mitchell <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Rex the German Shepherd</div></div></div>
+      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="tc-quote">"Even my vet was impressed"</div>
+      <div class="tc-body">It explained why Rex freaks out every day at 6pm. Started doing his evening walk earlier and he's like a different dog. My vet actually asked where I got it.</div>
+    </div>
+    <div class="testimonial-card a d5">
+      <div class="tc-header"><div class="tc-avatar">J</div><div><div class="tc-name">James Wilson <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Biscuit the Holland Lop</div></div></div>
+      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="tc-quote">"Changed how we treat our rabbit entirely"</div>
+      <div class="tc-body">It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and he actually comes to us on his own now.</div>
+    </div>
+    <div class="testimonial-card a d6">
+      <div class="tc-header"><div class="tc-avatar">P</div><div><div class="tc-name">Priya Sharma <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Coco the Cockatiel</div></div></div>
+      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="tc-quote">"My mum and I couldn't stop laughing"</div>
+      <div class="tc-body">It said Coco needs an audience and that is him to a tee. We moved his cage to the living room and he's been so much happier. Spot on.</div>
+    </div>
+    <div class="testimonial-card a d7">
+      <div class="tc-header"><div class="tc-avatar">M</div><div><div class="tc-name">Margaret &amp; Tom <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Duchess the Persian Cat</div></div></div>
+      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="tc-quote">"Wish I'd had this 20 years ago"</div>
+      <div class="tc-body">My grandson got this for my 75th. I've had cats all my life and thought I knew everything. It called Duchess an old soul. Makes perfect sense.</div>
+    </div>
+  </div>
+
+  <div class="mini-row a d8">
+    <div class="mini-card"><div class="mini-avatar">C</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Sent it to 5 friends. They all bought…"</div><div class="mini-name">— Chloe L.</div></div>
+    <div class="mini-card"><div class="mini-avatar">P</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"We read it out loud as a family"</div><div class="mini-name">— The Patels</div></div>
+    <div class="mini-card"><div class="mini-avatar">D</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Ok this was actually really…"</div><div class="mini-name">— David R.</div></div>
+    <div class="mini-card"><div class="mini-avatar">E</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Did my horse!! So accurate"</div><div class="mini-name">— Emma T.</div></div>
+    <div class="mini-card"><div class="mini-avatar">N</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Got all 3 pets done. No regrets."</div><div class="mini-name">— The Nguyens</div></div>
+    <div class="mini-card"><div class="mini-avatar">B</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Best present my daughter's ever got"</div><div class="mini-name">— Bob, 68</div></div>
+  </div>
+</div>
+
+<!-- Bottom CTA -->
+<div class="bottom-cta a">
+  <p class="bottom-cta-text">They chose you every single day. Now understand why.</p>
+  <a href="#" class="cta-btn" id="ctaBtn2" onclick="handleDigitalCheckout(event)">Unlock Their Cosmic Soul — $27</a>
+</div>
+
+<div class="back-link"><a href="/">&#8592; Back to home</a></div>
+
+<script>
+// ─── Supabase Config ───
+const SUPABASE_URL = 'https://asmyxhisubzbblhivnea.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzbXl4aGlzdWJ6YmJsaGl2bmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NjgwODQsImV4cCI6MjA4MTU0NDA4NH0.6EVgWUN4jvgBveGSxt5RmVGHCCgeTgWuRmnpe4LphfY';
+
+// ─── Portrait toggle state ───
+let portraitOn = false;
+const basePrice = 27;
+
+document.getElementById('upsellPortrait').addEventListener('click', function() {
+  portraitOn = !portraitOn;
+  document.getElementById('togglePortrait').classList.toggle('on', portraitOn);
+  this.classList.toggle('active', portraitOn);
+  var p = portraitOn ? basePrice + 8 : basePrice;
+  document.getElementById('ctaBtn').textContent = 'Unlock Their Cosmic Soul \u2014 $' + p;
+  document.getElementById('ctaBtn2').textContent = 'Unlock Their Cosmic Soul \u2014 $' + p;
+});
+
+// ─── Checkout: Digital Reading ───
+async function handleDigitalCheckout(e) {
+  e.preventDefault();
+  var btn = document.getElementById('ctaBtn');
+  var btn2 = document.getElementById('ctaBtn2');
+  btn.classList.add('loading');
+  btn.textContent = 'Redirecting to checkout...';
+  btn2.classList.add('loading');
+  btn2.textContent = 'Redirecting to checkout...';
+
+  try {
+    var res = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        quickCheckout: true,
+        selectedTier: portraitOn ? 'premium' : 'basic',
+        abVariant: 'C',
+        includesPortrait: portraitOn,
+        includesBook: false,
+        occasionMode: 'discover',
+        petCount: 1,
+      }),
+    });
+    var data = await res.json();
+    if (!data.url) throw new Error('No checkout URL returned');
+    window.location.href = data.url;
+  } catch (err) {
+    console.error('[Checkout] Error:', err);
+    alert('Something went wrong. Please try again.');
+    var p = portraitOn ? basePrice + 8 : basePrice;
+    btn.classList.remove('loading');
+    btn.textContent = 'Unlock Their Cosmic Soul \u2014 $' + p;
+    btn2.classList.remove('loading');
+    btn2.textContent = 'Unlock Their Cosmic Soul \u2014 $' + p;
+  }
+}
+
+// ─── Checkout: Hardcover ───
+async function handleHardcoverCheckout(e) {
+  e.preventDefault();
+  var btn = document.getElementById('hardcoverBtn');
+  btn.classList.add('loading');
+  btn.textContent = 'Redirecting to checkout...';
+
+  try {
+    var res = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        quickCheckout: true,
+        selectedTier: 'premium',
+        abVariant: 'C',
+        includesPortrait: true,
+        includesBook: true,
+        occasionMode: 'discover',
+        petCount: 1,
+      }),
+    });
+    var data = await res.json();
+    if (!data.url) throw new Error('No checkout URL returned');
+    window.location.href = data.url;
+  } catch (err) {
+    console.error('[Hardcover Checkout] Error:', err);
+    alert('Something went wrong. Please try again.');
+    btn.classList.remove('loading');
+    btn.textContent = 'Order the Hardcover \u2014 $99';
+  }
+}
+
+// ─── Live ticker ───
+var tickerMessages = [
+  '<strong>Sarah</strong>&nbsp;from the UK just got a reading for&nbsp;<strong>Bruno</strong>&nbsp;\uD83D\uDC15',
+  '<strong>Emma</strong>&nbsp;from Australia ordered 3 readings for&nbsp;<strong>Milo, Daisy &amp; Pepper</strong>&nbsp;\uD83D\uDC36\uD83D\uDC31\uD83D\uDC30',
+  '<strong>Priya</strong>&nbsp;from Canada just discovered&nbsp;<strong>Coco\'s</strong>&nbsp;love language&nbsp;\uD83D\uDC26',
+  '<strong>James</strong>&nbsp;from the UK got&nbsp;<strong>Biscuit\'s</strong>&nbsp;soul reading&nbsp;\uD83D\uDC07',
+  '<strong>Maria</strong>&nbsp;from the US just gifted a reading for&nbsp;<strong>Zeus</strong>&nbsp;\uD83D\uDC15',
+  '<strong>Aiko</strong>&nbsp;from Japan got a reading for&nbsp;<strong>Mochi</strong>&nbsp;\uD83D\uDC31',
+  '<strong>Lars</strong>&nbsp;from Sweden ordered for&nbsp;<strong>Odin</strong>&nbsp;\uD83D\uDC15',
+  '<strong>Sophie</strong>&nbsp;from France just got&nbsp;<strong>Chlo\u00e9\'s</strong>&nbsp;cosmic blueprint&nbsp;\uD83D\uDC29',
+  '<strong>Chen</strong>&nbsp;from Singapore ordered for&nbsp;<strong>Bubbles</strong>&nbsp;\uD83D\uDC20',
+  '<strong>Fatima</strong>&nbsp;from the UAE got&nbsp;<strong>Simba\'s</strong>&nbsp;personality reading&nbsp;\uD83D\uDC08',
+];
+var ti = 0;
+var tickerEl = document.getElementById('ticker');
+function showTicker() {
+  tickerEl.style.opacity = '0';
+  setTimeout(function() {
+    tickerEl.innerHTML = tickerMessages[ti % tickerMessages.length];
+    tickerEl.style.opacity = '1';
+    ti++;
+  }, 300);
+}
+showTicker();
+setInterval(showTicker, 4500);
+
+// ─── Scroll animations ───
+var obs = new IntersectionObserver(function(e) { e.forEach(function(i) { if(i.isIntersecting) i.target.classList.add('v'); }); }, { threshold:0.1, rootMargin:'0px 0px -30px 0px' });
+document.querySelectorAll('.a').forEach(function(el) { obs.observe(el); });
+var pawObs = new IntersectionObserver(function(e) { e.forEach(function(i) { if(i.isIntersecting) i.target.classList.add('show'); }); }, { threshold:0.3 });
+document.querySelectorAll('[data-paw]').forEach(function(p) { pawObs.observe(p); });
+</script>
+
+</body>
+</html>

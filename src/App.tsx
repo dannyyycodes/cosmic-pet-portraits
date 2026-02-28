@@ -12,7 +12,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 // Eagerly loaded pages (core user journey)
 import Index from "./pages/Index";
 import Intake from "./pages/Intake";
-import QuickCheckout from "./pages/QuickCheckout";
+// QuickCheckout kept as backup in src/pages/QuickCheckout.tsx for A/B testing
 import PaymentSuccess from "./pages/PaymentSuccess";
 import ViewReport from "./pages/ViewReport";
 import GiftPurchase from "./pages/GiftPurchase";
@@ -49,6 +49,12 @@ const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const AdminABTest = lazy(() => import("./pages/AdminABTest"));
 
+// Redirect /checkout to the static HTML checkout page
+function CheckoutRedirect() {
+  window.location.href = '/checkout-v3.html';
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 // Loading fallback for lazy components
@@ -73,7 +79,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/intake" element={<Intake />} />
-                  <Route path="/checkout" element={<QuickCheckout />} />
+                  <Route path="/checkout" element={<CheckoutRedirect />} />
                   <Route path="/gift" element={<GiftPurchase />} />
                   <Route path="/gift-success" element={<GiftSuccess />} />
                   <Route path="/redeem" element={<RedeemGift />} />
