@@ -221,18 +221,28 @@ const Beat = ({
 const UGCTestimonials = () => {
   const mobile = useIsMobile();
   const cardW = mobile ? 140 : 180;
+  const people = [
+    { name: "Sarah M.", pet: "Buddy the Lab" },
+    { name: "James T.", pet: "Luna the Persian" },
+    { name: "Priya K.", pet: "Cinnamon" },
+    { name: "Mark D.", pet: "Charlie the Beagle" },
+  ];
   return (
     <section style={{ background: COLORS.cream, padding: mobile ? "clamp(24px, 6vw, 80px) clamp(16px, 4vw, 28px) clamp(20px, 4vw, 60px)" : "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px) clamp(30px, 6vw, 60px)", textAlign: "center" }}>
       <p style={{ fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.3em", color: COLORS.earth, marginBottom: 45 }}>
         WHAT PET PARENTS ARE SAYING
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: mobile ? 12 : 20 }}>
-        {[0, 1, 2, 3].map((i) => {
+        {people.map((person, i) => {
           const { ref, visible } = useScrollReveal({ threshold: 0.15 });
           return (
             <div key={i} ref={ref} style={{ ...fadeUpStyle(visible, 0.3 + i * 0.3), width: cardW, display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ width: "100%", aspectRatio: "9/16", borderRadius: 16, background: `linear-gradient(135deg, ${COLORS.cream3}, ${COLORS.sand})`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+              <div style={{ width: "100%", aspectRatio: "9/16", borderRadius: 16, background: `linear-gradient(135deg, ${COLORS.cream3}, ${COLORS.sand})`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
                 <div style={{ width: 56, height: 56, borderRadius: "50%", background: COLORS.cream, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.08)", fontSize: 40 }}>▶</div>
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55), transparent)", padding: "28px 8px 8px" }}>
+                  <p style={{ color: "white", fontSize: "0.7rem", fontWeight: 600, margin: 0 }}>{person.name}</p>
+                  <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.6rem", margin: 0 }}>{person.pet}</p>
+                </div>
               </div>
               <div style={{ marginTop: 8, fontSize: "0.85rem", color: COLORS.gold, letterSpacing: "0.08em" }}>★★★★★</div>
             </div>
@@ -647,18 +657,6 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
             >
               Get Their Reading
             </a>
-            <p
-              style={{
-                ...fadeUpStyle(v, 0.55),
-                fontFamily: "Cormorant, Georgia, serif",
-                fontSize: "0.95rem",
-                color: COLORS.muted,
-                marginTop: 24,
-                letterSpacing: "0.05em",
-              }}
-            >
-              Personalised soul & astrology reading for your pet
-            </p>
           </div>
         )}
       </Beat>
