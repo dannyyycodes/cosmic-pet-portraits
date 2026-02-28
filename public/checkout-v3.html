@@ -194,6 +194,25 @@ body::after {
 }
 @keyframes badgePop { 0%{transform:scale(0.8);opacity:0} 100%{transform:scale(1);opacity:1} }
 
+/* ---- Bonus Stack ---- */
+.bonus-section {
+  margin-top:16px; padding:14px 16px; border-radius:12px;
+  background:linear-gradient(135deg, rgba(74,140,92,0.04) 0%, rgba(196,162,101,0.04) 100%);
+  border:1px solid rgba(74,140,92,0.12);
+}
+.bonus-title {
+  font-size:0.68rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:6px;
+}
+.bonus-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:6px 12px;
+}
+.bonus-item {
+  display:flex; align-items:center; gap:6px; font-size:0.78rem; color:var(--warm); padding:3px 0;
+}
+.bonus-item svg { flex-shrink:0; }
+@media (max-width:420px) { .bonus-grid { grid-template-columns:1fr; } }
+
 /* ---- Order Summary ---- */
 .order-summary {
   background:var(--cream2); border-radius:14px; border:1px solid var(--cream3);
@@ -449,6 +468,24 @@ body::after {
       <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Delivered as a beautiful animated journey you'll revisit forever</li>
     </ul>
 
+    <!-- Bonus Stack -->
+    <div class="bonus-section">
+      <div class="bonus-title">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--green)" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Also included free
+      </div>
+      <div class="bonus-grid">
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Pet-parent cosmic match</div>
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Past life glimpse</div>
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Cosmic name meaning</div>
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Shareable social cosmic card</div>
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Cosmic pet playlist</div>
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Pet compatibility checker</div>
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>5 free soul chat messages</div>
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>First month horoscope free</div>
+      </div>
+    </div>
+
     <!-- Portrait upsell INSIDE card -->
     <div style="border-top:1px solid var(--cream3); padding-top:14px; margin-top:16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;" id="upsellPortrait">
       <div style="display:flex; align-items:center; gap:10px;">
@@ -460,7 +497,7 @@ body::after {
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="font-weight:700; font-size:0.88rem; color:var(--earth);">+$8</span>
-        <div class="toggle-track" id="togglePortrait"><div class="toggle-knob"></div></div>
+        <div class="toggle-track on" id="togglePortrait"><div class="toggle-knob"></div></div>
       </div>
     </div>
 
@@ -482,7 +519,7 @@ body::after {
     </div>
 
     <!-- CTA INSIDE card -->
-    <a href="#" class="cta-btn" id="ctaBtn" style="margin-top:16px;" onclick="handleDigitalCheckout(event)">Unlock Their Cosmic Soul — $27</a>
+    <a href="#" class="cta-btn" id="ctaBtn" style="margin-top:16px;" onclick="handleDigitalCheckout(event)">Unlock Their Cosmic Soul — $35</a>
 
     <!-- Trust INSIDE card -->
     <div style="margin-top:14px; text-align:center;">
@@ -566,35 +603,48 @@ body::after {
     <div class="hardcover-title">Hardcover Keepsake Book</div>
     <div class="hardcover-subtitle">The complete experience. Your digital reading delivered instantly, their cosmic portrait, and a beautifully printed hardcover you'll treasure forever.</div>
     <ul class="hardcover-features">
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Everything in the digital reading — all bonuses included</li>
       <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Instant digital reading — delivered the moment you checkout</li>
       <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Cosmic portrait of your pet included</li>
       <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Premium hardcover, beautifully bound &amp; printed</li>
       <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Birth chart, aura map &amp; zodiac wheel — all in print</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unlimited soul chat — talk to your pet anytime <span style="font-size:0.6rem; font-weight:700; color:var(--gold); background:rgba(196,162,101,0.12); padding:1px 5px; border-radius:3px; margin-left:4px;">EXCLUSIVE</span></li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Monthly horoscope included <span style="font-size:0.6rem; font-weight:700; color:var(--gold); background:rgba(196,162,101,0.12); padding:1px 5px; border-radius:3px; margin-left:4px;">EXCLUSIVE</span></li>
       <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>The kind of keepsake you'll still be reading in 10 years</li>
     </ul>
 
     <!-- What's included breakdown -->
-    <div style="display:flex; justify-content:center; gap:16px; margin-bottom:16px; padding:10px 0; border-top:1px solid rgba(196,162,101,0.12); border-bottom:1px solid rgba(196,162,101,0.12);">
-      <div style="text-align:center;">
-        <div style="font-size:0.65rem; font-weight:600; color:var(--gold); letter-spacing:0.05em; text-transform:uppercase;">Includes</div>
-        <div style="font-size:0.78rem; color:var(--earth); margin-top:2px;">Digital Reading</div>
+    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:16px; padding:10px 6px; border-top:1px solid rgba(196,162,101,0.12); border-bottom:1px solid rgba(196,162,101,0.12); flex-wrap:wrap;">
+      <div style="text-align:center; min-width:60px;">
+        <div style="font-size:0.58rem; font-weight:600; color:var(--gold); letter-spacing:0.04em; text-transform:uppercase;">Instant</div>
+        <div style="font-size:0.72rem; color:var(--earth); margin-top:2px;">Digital Reading</div>
       </div>
       <div style="width:1px; background:rgba(196,162,101,0.15);"></div>
-      <div style="text-align:center;">
-        <div style="font-size:0.65rem; font-weight:600; color:var(--gold); letter-spacing:0.05em; text-transform:uppercase;">Includes</div>
-        <div style="font-size:0.78rem; color:var(--earth); margin-top:2px;">Cosmic Portrait</div>
+      <div style="text-align:center; min-width:60px;">
+        <div style="font-size:0.58rem; font-weight:600; color:var(--gold); letter-spacing:0.04em; text-transform:uppercase;">Includes</div>
+        <div style="font-size:0.72rem; color:var(--earth); margin-top:2px;">Portrait</div>
       </div>
       <div style="width:1px; background:rgba(196,162,101,0.15);"></div>
-      <div style="text-align:center;">
-        <div style="font-size:0.65rem; font-weight:600; color:var(--gold); letter-spacing:0.05em; text-transform:uppercase;">Includes</div>
-        <div style="font-size:0.78rem; color:var(--earth); margin-top:2px;">Hardcover Book</div>
+      <div style="text-align:center; min-width:60px;">
+        <div style="font-size:0.58rem; font-weight:600; color:var(--gold); letter-spacing:0.04em; text-transform:uppercase;">Shipped</div>
+        <div style="font-size:0.72rem; color:var(--earth); margin-top:2px;">Hardcover</div>
+      </div>
+      <div style="width:1px; background:rgba(196,162,101,0.15);"></div>
+      <div style="text-align:center; min-width:60px;">
+        <div style="font-size:0.58rem; font-weight:600; color:var(--gold); letter-spacing:0.04em; text-transform:uppercase;">Exclusive</div>
+        <div style="font-size:0.72rem; color:var(--earth); margin-top:2px;">Unlimited Chat</div>
+      </div>
+      <div style="width:1px; background:rgba(196,162,101,0.15);"></div>
+      <div style="text-align:center; min-width:60px;">
+        <div style="font-size:0.58rem; font-weight:600; color:var(--gold); letter-spacing:0.04em; text-transform:uppercase;">Exclusive</div>
+        <div style="font-size:0.72rem; color:var(--earth); margin-top:2px;">Monthly Horoscope</div>
       </div>
     </div>
 
     <!-- Value comparison -->
     <div style="text-align:center; margin-bottom:14px;">
-      <span style="font-size:0.78rem; color:var(--faded); text-decoration:line-through;">$134 if bought separately</span>
-      <span style="font-size:0.72rem; font-weight:600; color:var(--green); margin-left:6px;">Save $35</span>
+      <span style="font-size:0.78rem; color:var(--faded); text-decoration:line-through;">$180+ if bought separately</span>
+      <span style="font-size:0.72rem; font-weight:600; color:var(--green); margin-left:6px;">Save $80+</span>
     </div>
 
     <!-- Hardcover quantity -->
@@ -747,7 +797,7 @@ body::after {
 <!-- Bottom CTA -->
 <div class="bottom-cta a">
   <p class="bottom-cta-text">They chose you every single day. Now understand why.</p>
-  <a href="#" class="cta-btn" id="ctaBtn2" onclick="handleDigitalCheckout(event)">Unlock Their Cosmic Soul — $27</a>
+  <a href="#" class="cta-btn" id="ctaBtn2" onclick="handleDigitalCheckout(event)">Unlock Their Cosmic Soul — $35</a>
 </div>
 
 <div class="back-link"><a href="/">&#8592; Back to home</a></div>
@@ -758,7 +808,7 @@ var SUPABASE_URL = 'https://asmyxhisubzbblhivnea.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzbXl4aGlzdWJ6YmJsaGl2bmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NjgwODQsImV4cCI6MjA4MTU0NDA4NH0.6EVgWUN4jvgBveGSxt5RmVGHCCgeTgWuRmnpe4LphfY';
 
 // ─── State ───
-var portraitOn = false;
+var portraitOn = true; // Pre-toggled ON
 var horoscopeOn = true; // Pre-toggled ON (first month free)
 var petCount = 1;
 var bookCount = 1;

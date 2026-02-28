@@ -21,44 +21,50 @@ interface GiftRecipient {
 }
 
 const TIERS = {
-  essential: { 
-    cents: 3500, 
-    label: 'Essential', 
+  essential: {
+    cents: 2700,
+    label: 'Essential',
     description: 'A thoughtful surprise',
     icon: '⭐',
     features: [
-      "They'll discover their pet's cosmic personality",
-      "Finally understand those funny quirks",
-      "A gift that shows you really care",
+      "Deep personality reading & emotional blueprint",
+      "Birth chart, aura colours & zodiac profile",
+      "A soul message that makes people cry",
+      "Pet-parent cosmic match, past life glimpse & cosmic name meaning",
+      "5 free soul chat messages",
+      "First month weekly horoscope free",
     ],
-    shortFeatures: ['Personality', 'Quirks', 'Heartfelt'],
+    shortFeatures: ['Personality', 'Soul Message', 'Horoscope'],
     highlight: null,
   },
-  portrait: { 
-    cents: 5000, 
-    label: 'Portrait', 
+  portrait: {
+    cents: 3500,
+    label: 'Portrait',
     description: 'The gift they\'ll treasure',
     icon: '🎨',
     features: [
-      "Everything in Essential, plus...",
-      "Collectible portrait card with stats & archetypes",
-      "Perfect to frame or share with friends",
+      "Everything in Essential",
+      "Cosmic portrait of their pet",
+      "Shareable social cosmic card",
+      "Cosmic pet playlist",
     ],
-    shortFeatures: ['+ Portrait', '+ Share Card'],
+    shortFeatures: ['+ Portrait', '+ Cosmic Card'],
     popular: true,
     highlight: 'Best Value',
   },
-  vip: { 
-    cents: 12900, 
-    label: 'VIP', 
+  vip: {
+    cents: 9900,
+    label: 'Hardcover',
     description: 'The ultimate pet lover gift',
     icon: '👑',
     features: [
-      "Everything in Portrait, plus...",
-      "A full year of weekly cosmic updates",
-      "The gift that keeps on giving",
+      "Everything in Portrait",
+      "Premium hardcover book shipped free",
+      "Unlimited soul chat — EXCLUSIVE",
+      "Monthly horoscope included — EXCLUSIVE",
+      "The ultimate gift — they'll cry when they open it",
     ],
-    shortFeatures: ['+ 52 Horoscopes', '+ Year of Joy'],
+    shortFeatures: ['+ Book', '+ Unlimited Chat', '+ Horoscope'],
     highlight: 'Premium',
   },
 } as const;
@@ -77,10 +83,10 @@ const TESTIMONIALS = [
 ];
 
 const getVolumeDiscount = (count: number): number => {
-  if (count >= 5) return 0.50;
-  if (count >= 4) return 0.40;
-  if (count >= 3) return 0.30;
-  if (count >= 2) return 0.20;
+  if (count >= 5) return 0.30;
+  if (count >= 4) return 0.25;
+  if (count >= 3) return 0.20;
+  if (count >= 2) return 0.15;
   return 0;
 };
 
@@ -139,12 +145,12 @@ export default function GiftPurchase() {
     name: '',
     email: '',
     tier: 'portrait',
-    horoscopeAddon: 'none'
+    horoscopeAddon: 'monthly'
   });
 
   // Multiple recipients state
   const [recipients, setRecipients] = useState<GiftRecipient[]>([
-    { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait', horoscopeAddon: 'none' }
+    { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait', horoscopeAddon: 'monthly' }
   ]);
 
   const activeRecipients = giftType === 'single' ? [singleRecipient] : recipients;
@@ -164,7 +170,7 @@ export default function GiftPurchase() {
 
   const addRecipient = () => {
     if (recipients.length < 10) {
-      setRecipients([...recipients, { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait', horoscopeAddon: 'none' }]);
+      setRecipients([...recipients, { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait', horoscopeAddon: 'monthly' }]);
     }
   };
 
@@ -256,6 +262,9 @@ export default function GiftPurchase() {
           <p className="text-muted-foreground">
             A unique, personalized reading for someone's beloved pet
           </p>
+          <p className="text-sm text-muted-foreground/70 mt-1">
+            Works for dogs, cats, rabbits, birds, horses, reptiles, fish & more
+          </p>
         </motion.div>
 
         {/* Progress Steps */}
@@ -317,7 +326,7 @@ export default function GiftPurchase() {
                   }`}
                 >
                   <div className="absolute top-2 right-2 px-2 py-0.5 bg-green-500/20 rounded-full">
-                    <span className="text-[10px] font-bold text-green-400">SAVE UP TO 50%</span>
+                    <span className="text-[10px] font-bold text-green-400">SAVE UP TO 30%</span>
                   </div>
                   <Users className={`w-10 h-10 mx-auto mb-3 ${giftType === 'multiple' ? 'text-primary' : 'text-muted-foreground'}`} />
                   <p className="text-lg font-semibold text-foreground">Multiple People</p>
@@ -569,7 +578,7 @@ export default function GiftPurchase() {
                     </div>
                   </div>
 
-                  {/* Weekly Updates Addon - only show if not VIP (VIP already includes) */}
+                  {/* Weekly Updates Addon - only show if not Hardcover (Hardcover already includes) */}
                   {singleRecipient.tier !== 'vip' && (
                     <div className="mt-5 p-4 rounded-xl bg-gradient-to-br from-nebula-purple/10 to-primary/10 border border-nebula-purple/30">
                       <div className="flex items-center gap-2 mb-3">
