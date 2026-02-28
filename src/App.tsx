@@ -15,7 +15,7 @@ import Intake from "./pages/Intake";
 // QuickCheckout kept as backup in src/pages/QuickCheckout.tsx for A/B testing
 import PaymentSuccess from "./pages/PaymentSuccess";
 import ViewReport from "./pages/ViewReport";
-import GiftPurchase from "./pages/GiftPurchase";
+// GiftPurchase kept as backup in src/pages/GiftPurchase.tsx
 import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";
 import GiftIntake from "./pages/GiftIntake";
@@ -55,6 +55,12 @@ function CheckoutRedirect() {
   return null;
 }
 
+// Redirect /gift to the static HTML gift page
+function GiftRedirect() {
+  window.location.href = '/gift-v2.html';
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 // Loading fallback for lazy components
@@ -80,7 +86,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/intake" element={<Intake />} />
                   <Route path="/checkout" element={<CheckoutRedirect />} />
-                  <Route path="/gift" element={<GiftPurchase />} />
+                  <Route path="/gift" element={<GiftRedirect />} />
                   <Route path="/gift-success" element={<GiftSuccess />} />
                   <Route path="/redeem" element={<RedeemGift />} />
                   <Route path="/redeem-intake" element={<GiftIntake />} />

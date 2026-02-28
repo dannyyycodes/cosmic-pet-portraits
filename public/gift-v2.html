@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AstroPets — Gift a Cosmic Soul Reading</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --black: #141210;
+  --ink: #1f1c18;
+  --deep: #2e2a24;
+  --warm: #4d443b;
+  --earth: #6e6259;
+  --muted: #958779;
+  --faded: #bfb2a3;
+  --sand: #d6c8b6;
+  --cream: #FFFDF5;
+  --cream2: #faf4e8;
+  --cream3: #f3eadb;
+  --rose: #bf524a;
+  --rose-soft: #c9665f;
+  --rose-glow: rgba(191,82,74,0.12);
+  --gold: #c4a265;
+  --gold-soft: rgba(196,162,101,0.15);
+  --green: #4a8c5c;
+  --green-soft: #e8f5ec;
+}
+
+html { scroll-behavior:smooth; }
+body { background:var(--cream); color:var(--ink); font-family:'Cormorant',Georgia,serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+
+/* Grain */
+body::after {
+  content:''; position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size:256px; pointer-events:none; z-index:9999;
+}
+
+/* ============ HERO ============ */
+.hero {
+  text-align:center; padding:48px 20px 32px; position:relative;
+}
+.hero-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:0.78rem; font-weight:600; color:var(--rose);
+  background:var(--rose-glow); padding:5px 14px; border-radius:20px;
+  margin-bottom:16px;
+}
+.hero-headline {
+  font-family:'DM Serif Display',Georgia,serif; font-size:clamp(2rem,6vw,2.8rem);
+  color:var(--ink); line-height:1.15; margin-bottom:12px;
+}
+.hero-headline em { font-style:italic; color:var(--rose); }
+.hero-sub {
+  font-size:1.05rem; color:var(--earth); line-height:1.5; font-weight:400;
+  max-width:480px; margin:0 auto;
+}
+.hero-note {
+  margin-top:14px; font-size:0.78rem; font-weight:500; color:var(--muted); letter-spacing:0.02em;
+}
+
+/* ============ TIER CARDS ============ */
+.tiers-wrap {
+  max-width:900px; margin:0 auto; padding:0 16px 24px;
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;
+}
+.tier-card {
+  border-radius:18px; padding:24px 20px; position:relative;
+  display:flex; flex-direction:column; transition:transform 0.3s, box-shadow 0.3s;
+  cursor:pointer;
+}
+.tier-card:hover { transform:translateY(-2px); }
+.tier-card.selected { box-shadow:0 4px 24px rgba(0,0,0,0.08); }
+
+.tier-card.essential {
+  background:#fff; border:2px solid var(--cream3);
+}
+.tier-card.essential.selected { border-color:var(--rose); }
+
+.tier-card.portrait {
+  background:#fff; border:2px solid var(--rose);
+}
+
+.tier-card.hardcover {
+  background:linear-gradient(135deg, #faf6ed 0%, #f5eedf 100%);
+  border:2px solid var(--gold);
+}
+
+.tier-badge {
+  position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+  padding:3px 12px; border-radius:6px; font-size:0.62rem; font-weight:700;
+  letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap;
+}
+.tier-badge.popular { background:var(--rose); color:#fff; }
+.tier-badge.premium { background:var(--gold); color:#fff; }
+
+.tier-name {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.25rem;
+  color:var(--ink); margin-bottom:2px; margin-top:6px;
+}
+.tier-desc { font-size:0.82rem; color:var(--muted); margin-bottom:14px; }
+
+.tier-price-row { display:flex; align-items:baseline; gap:6px; margin-bottom:14px; }
+.tier-price-old { font-size:0.85rem; color:var(--faded); text-decoration:line-through; }
+.tier-price { font-family:'DM Serif Display',Georgia,serif; font-size:1.6rem; color:var(--ink); }
+
+.tier-features { list-style:none; flex:1; margin-bottom:16px; }
+.tier-features li {
+  display:flex; align-items:flex-start; gap:8px; font-size:0.8rem; color:var(--warm);
+  padding:4px 0; line-height:1.35;
+}
+.tier-features li svg { flex-shrink:0; margin-top:1px; }
+
+.tier-select-btn {
+  display:block; width:100%; text-align:center; padding:12px 16px;
+  border-radius:10px; font-family:'Cormorant',Georgia,serif;
+  font-size:0.95rem; font-weight:700; text-decoration:none;
+  cursor:pointer; transition:all 0.3s; border:none;
+}
+.tier-select-btn.rose { background:var(--rose); color:#fff; }
+.tier-select-btn.rose:hover { background:var(--rose-soft); }
+.tier-select-btn.gold { background:var(--gold); color:#fff; }
+.tier-select-btn.gold:hover { background:#b8964f; }
+.tier-select-btn.outline { background:transparent; color:var(--earth); border:1.5px solid var(--sand); }
+.tier-select-btn.outline:hover { border-color:var(--earth); }
+.tier-select-btn.active { transform:scale(0.98); }
+
+.check-svg { width:13px; height:13px; }
+
+/* ============ DELIVERY + FORM ============ */
+.form-section {
+  max-width:540px; margin:0 auto; padding:0 16px 40px;
+}
+.form-card {
+  background:#fff; border-radius:18px; border:1px solid var(--cream3);
+  padding:28px 24px; box-shadow:0 2px 12px rgba(0,0,0,0.04);
+}
+.form-title {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.3rem;
+  color:var(--ink); margin-bottom:6px;
+}
+.form-subtitle { font-size:0.85rem; color:var(--muted); margin-bottom:20px; }
+
+/* Delivery method pills */
+.delivery-methods { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.delivery-pill {
+  flex:1; min-width:100px; padding:10px 12px; border-radius:10px;
+  border:1.5px solid var(--cream3); background:var(--cream2);
+  text-align:center; cursor:pointer; transition:all 0.2s;
+}
+.delivery-pill:hover { border-color:var(--sand); }
+.delivery-pill.active { border-color:var(--rose); background:var(--rose-glow); }
+.delivery-pill-icon { font-size:1.1rem; margin-bottom:4px; }
+.delivery-pill-label { font-size:0.75rem; font-weight:600; color:var(--ink); }
+.delivery-pill-desc { font-size:0.65rem; color:var(--muted); margin-top:1px; }
+
+/* Form inputs */
+.form-group { margin-bottom:16px; }
+.form-label {
+  display:block; font-size:0.78rem; font-weight:600; color:var(--earth);
+  margin-bottom:5px; letter-spacing:0.02em;
+}
+.form-input, .form-textarea {
+  width:100%; padding:11px 14px; border-radius:10px;
+  border:1.5px solid var(--cream3); background:var(--cream2);
+  font-family:'Cormorant',Georgia,serif; font-size:0.95rem;
+  color:var(--ink); transition:border-color 0.2s; outline:none;
+}
+.form-input:focus, .form-textarea:focus { border-color:var(--rose); }
+.form-textarea { resize:vertical; min-height:80px; }
+.form-hint { font-size:0.7rem; color:var(--muted); margin-top:4px; font-style:italic; }
+
+/* Schedule field */
+.schedule-row { display:flex; gap:10px; }
+.schedule-row .form-group { flex:1; }
+
+/* CTA */
+.gift-cta {
+  display:block; width:100%; text-align:center; padding:16px;
+  border-radius:12px; font-family:'Cormorant',Georgia,serif;
+  font-size:1.1rem; font-weight:700; text-decoration:none;
+  background:var(--rose); color:#fff; border:none; cursor:pointer;
+  transition:all 0.3s; margin-top:20px;
+}
+.gift-cta:hover { background:var(--rose-soft); transform:translateY(-1px); }
+.gift-cta.loading { opacity:0.7; pointer-events:none; }
+
+/* Trust */
+.gift-trust {
+  text-align:center; margin-top:16px; font-size:0.72rem; color:var(--muted);
+}
+.gift-trust-row {
+  display:flex; align-items:center; justify-content:center; gap:12px;
+  flex-wrap:wrap; font-size:0.72rem; font-weight:500; color:var(--earth); margin-top:8px;
+}
+.gift-trust-item { display:flex; align-items:center; gap:3px; }
+
+/* How it works */
+.steps-section { max-width:540px; margin:0 auto; padding:0 16px 32px; }
+.steps-title {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.2rem;
+  color:var(--ink); text-align:center; margin-bottom:16px;
+}
+.steps-row { display:flex; gap:12px; }
+.step-item { flex:1; text-align:center; padding:16px 10px; }
+.step-num {
+  width:28px; height:28px; border-radius:50%; background:var(--rose-glow);
+  color:var(--rose); font-family:'DM Serif Display',Georgia,serif;
+  font-size:0.9rem; display:inline-flex; align-items:center; justify-content:center;
+  margin-bottom:8px;
+}
+.step-text { font-size:0.82rem; color:var(--warm); line-height:1.35; }
+
+/* Back link */
+.back-link {
+  display:block; text-align:center; padding:20px;
+  font-size:0.85rem; color:var(--muted); text-decoration:none;
+}
+.back-link:hover { color:var(--earth); }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:720px) {
+  .tiers-wrap { grid-template-columns:1fr; max-width:420px; }
+  .steps-row { flex-direction:column; gap:4px; }
+}
+@media (max-width:480px) {
+  .hero { padding:36px 16px 24px; }
+  .form-card { padding:20px 16px; }
+  .delivery-methods { flex-direction:column; }
+  .schedule-row { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <a href="/checkout" style="display:inline-block; margin-bottom:16px; font-size:0.82rem; color:var(--muted); text-decoration:none;">&larr; Back to checkout</a>
+  <div class="hero-badge">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+    The gift that makes people cry
+  </div>
+  <h1 class="hero-headline">Give the Gift of Understanding<br><em>Their Pet's Soul</em></h1>
+  <p class="hero-sub">They open it, read about their pet's deepest personality, and fall in love all over again. It's the kind of gift people talk about for years.</p>
+  <p class="hero-note">Works for dogs, cats, rabbits, birds, horses, reptiles, fish &amp; more</p>
+</section>
+
+<!-- ============ TIER CARDS ============ -->
+<div class="tiers-wrap">
+
+  <!-- Essential -->
+  <div class="tier-card essential" onclick="selectTier('essential')">
+    <div class="tier-name">The Reading</div>
+    <div class="tier-desc">A thoughtful surprise</div>
+    <div class="tier-price-row">
+      <div class="tier-price-old">$49</div>
+      <div class="tier-price">$27</div>
+    </div>
+    <ul class="tier-features">
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Deep personality reading</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Birth chart &amp; zodiac profile</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Soul message that makes people cry</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Past life glimpse &amp; cosmic name</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>5 free soul chat messages</li>
+    </ul>
+    <button class="tier-select-btn outline" id="btnEssential">Select</button>
+  </div>
+
+  <!-- Portrait (recommended) -->
+  <div class="tier-card portrait selected" onclick="selectTier('portrait')">
+    <div class="tier-badge popular">MOST POPULAR</div>
+    <div class="tier-name">Reading + Portrait</div>
+    <div class="tier-desc">The gift they'll treasure</div>
+    <div class="tier-price-row">
+      <div class="tier-price-old">$57</div>
+      <div class="tier-price">$35</div>
+    </div>
+    <ul class="tier-features">
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Everything in The Reading</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Cosmic portrait of their pet</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Shareable social cosmic card</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Cosmic pet playlist</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>First month horoscope free</li>
+    </ul>
+    <button class="tier-select-btn rose" id="btnPortrait">Selected</button>
+  </div>
+
+  <!-- Hardcover -->
+  <div class="tier-card hardcover" onclick="selectTier('hardcover')">
+    <div class="tier-badge premium">ULTIMATE GIFT</div>
+    <div class="tier-name">The Hardcover</div>
+    <div class="tier-desc">The gift that lives forever</div>
+    <div class="tier-price-row">
+      <div class="tier-price-old">$180+</div>
+      <div class="tier-price">$99</div>
+    </div>
+    <ul class="tier-features">
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Everything in Reading + Portrait</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Premium hardcover book shipped free</li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unlimited soul chat <span style="font-size:0.6rem;font-weight:700;color:var(--gold);background:rgba(196,162,101,0.12);padding:1px 5px;border-radius:3px;margin-left:4px;">EXCLUSIVE</span></li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Monthly horoscope included <span style="font-size:0.6rem;font-weight:700;color:var(--gold);background:rgba(196,162,101,0.12);padding:1px 5px;border-radius:3px;margin-left:4px;">EXCLUSIVE</span></li>
+      <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>A keepsake they'll treasure for years</li>
+    </ul>
+    <button class="tier-select-btn gold" id="btnHardcover">Select</button>
+  </div>
+
+</div>
+
+<!-- ============ HOW IT WORKS ============ -->
+<div class="steps-section">
+  <div class="steps-title">How gifting works</div>
+  <div class="steps-row">
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <div class="step-text">Choose a tier and personalise your gift</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <div class="step-text" id="step2Text">You get a beautiful gift link to share your way</div>
+    </div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <div class="step-text" id="step3Text">They fill in their pet's details and discover the magic</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ DELIVERY + FORM ============ -->
+<div class="form-section">
+  <div class="form-card">
+    <div class="form-title">Personalise your gift</div>
+    <div class="form-subtitle">Choose how you'd like to deliver it</div>
+
+    <!-- Delivery method pills -->
+    <div class="delivery-methods">
+      <div class="delivery-pill active" onclick="setDelivery('link')" id="pillLink">
+        <div class="delivery-pill-icon">&#128279;</div>
+        <div class="delivery-pill-label">Send link myself</div>
+        <div class="delivery-pill-desc">Copy &amp; share however you like</div>
+      </div>
+      <div class="delivery-pill" onclick="setDelivery('email')" id="pillEmail">
+        <div class="delivery-pill-icon">&#9993;</div>
+        <div class="delivery-pill-label">Email it</div>
+        <div class="delivery-pill-desc">We send a beautiful email</div>
+      </div>
+      <div class="delivery-pill" onclick="setDelivery('schedule')" id="pillSchedule">
+        <div class="delivery-pill-icon">&#128197;</div>
+        <div class="delivery-pill-label">Schedule it</div>
+        <div class="delivery-pill-desc">Arrives on the perfect day</div>
+      </div>
+    </div>
+
+    <!-- Recipient details (shown for email/schedule) -->
+    <div id="recipientFields" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Recipient's name</label>
+        <input class="form-input" type="text" id="recipientName" placeholder="Their first name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Recipient's email</label>
+        <input class="form-input" type="email" id="recipientEmail" placeholder="name@email.com">
+      </div>
+    </div>
+
+    <!-- Schedule date (shown for schedule only) -->
+    <div id="scheduleFields" style="display:none;">
+      <div class="schedule-row">
+        <div class="form-group">
+          <label class="form-label">Delivery date</label>
+          <input class="form-input" type="date" id="scheduleDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delivery time</label>
+          <select class="form-input" id="scheduleTime">
+            <option value="09:00">9:00 AM</option>
+            <option value="12:00" selected>12:00 PM</option>
+            <option value="18:00">6:00 PM</option>
+            <option value="21:00">9:00 PM</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-hint">We'll send the gift email at the exact time you choose</div>
+    </div>
+
+    <!-- Personal message (always shown) -->
+    <div class="form-group">
+      <label class="form-label">Add a personal message <span style="color:var(--muted); font-weight:400;">(optional)</span></label>
+      <textarea class="form-textarea" id="giftMessage" placeholder="Something like: 'I know how much Bella means to you — I thought you'd love discovering her cosmic soul...'"></textarea>
+      <div class="form-hint">This will be included when they open their gift</div>
+    </div>
+
+    <!-- Your email (always needed) -->
+    <div class="form-group">
+      <label class="form-label">Your email <span style="color:var(--muted); font-weight:400;">(for the receipt)</span></label>
+      <input class="form-input" type="email" id="senderEmail" placeholder="your@email.com">
+    </div>
+
+    <!-- CTA -->
+    <button class="gift-cta" id="giftCta" onclick="handleGiftCheckout()">Send This Gift — $35</button>
+
+    <!-- Trust (dynamic based on tier) -->
+    <div class="gift-trust" id="trustSection">
+      <p id="trustMessage">They'll receive a beautiful gift page to redeem their reading</p>
+      <div class="gift-trust-row" id="trustBadges">
+        <span class="gift-trust-item"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Secure checkout</span>
+        <span class="gift-trust-item"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>100% money-back guarantee</span>
+        <span class="gift-trust-item"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Instant delivery</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Back link -->
+<a href="/" class="back-link">&larr; Back to home</a>
+
+<script>
+// ─── Supabase Config ───
+var SUPABASE_URL = 'https://asmyxhisubzbblhivnea.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzbXl4aGlzdWJ6YmJsaGl2bmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NjgwODQsImV4cCI6MjA4MTU0NDA4NH0.6EVgWUN4jvgBveGSxt5RmVGHCCgeTgWuRmnpe4LphfY';
+
+// ─── State ───
+var selectedTier = 'portrait';
+var deliveryMethod = 'link';
+
+var tierData = {
+  essential: { price: 27, label: 'The Reading', tier: 'basic', portrait: false, book: false },
+  portrait:  { price: 35, label: 'Reading + Portrait', tier: 'premium', portrait: true, book: false },
+  hardcover: { price: 99, label: 'The Hardcover', tier: 'premium', portrait: true, book: true },
+};
+
+// ─── CTA verb per delivery method ───
+var ctaVerbs = {
+  link: 'Send This Gift',
+  email: 'Email This Gift',
+  schedule: 'Schedule This Gift',
+};
+
+// ─── Update Everything ───
+function updateUI() {
+  var td = tierData[selectedTier];
+  var isHardcover = selectedTier === 'hardcover';
+
+  // CTA button
+  document.getElementById('giftCta').textContent = ctaVerbs[deliveryMethod] + ' \u2014 $' + td.price;
+
+  // Trust message
+  var trustMsg = document.getElementById('trustMessage');
+  if (deliveryMethod === 'link') {
+    trustMsg.textContent = isHardcover
+      ? "You'll get a gift link to share \u2014 they'll provide shipping details when they redeem it"
+      : "You'll get a gift link to share however you like \u2014 email, text, or inside a card";
+  } else if (deliveryMethod === 'email') {
+    trustMsg.textContent = isHardcover
+      ? "We'll send them a beautiful gift email \u2014 they'll add shipping details when they redeem"
+      : "We'll send them a beautiful gift email with your personal message";
+  } else {
+    trustMsg.textContent = isHardcover
+      ? "We'll deliver the gift email on your chosen date \u2014 they'll add shipping details when they redeem"
+      : "We'll deliver the gift email at the exact date and time you choose";
+  }
+
+  // Trust badges
+  var badges = document.getElementById('trustBadges');
+  var lockSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+  var checkSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+  var boltSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  var shipSvg = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><rect x="1" y="6" width="15" height="13" rx="2"/><path d="M16 11h5l2 2v5h-7"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg>';
+
+  if (isHardcover) {
+    badges.innerHTML =
+      '<span class="gift-trust-item">' + lockSvg + 'Secure checkout</span>' +
+      '<span class="gift-trust-item">' + boltSvg + 'Digital reading delivered instantly</span>' +
+      '<span class="gift-trust-item">' + shipSvg + 'Book ships within 5\u20137 days</span>';
+  } else {
+    badges.innerHTML =
+      '<span class="gift-trust-item">' + lockSvg + 'Secure checkout</span>' +
+      '<span class="gift-trust-item">' + checkSvg + '100% money-back guarantee</span>' +
+      '<span class="gift-trust-item">' + boltSvg + 'Instant delivery</span>';
+  }
+
+  // How it works step 2 text
+  var step2 = document.getElementById('step2Text');
+  if (deliveryMethod === 'link') {
+    step2.textContent = 'You get a beautiful gift link to share your way';
+  } else if (deliveryMethod === 'email') {
+    step2.textContent = 'We email them a beautiful gift with your message';
+  } else {
+    step2.textContent = 'We deliver the gift email on your chosen date';
+  }
+
+  // Hardcover note on step 3
+  var step3 = document.getElementById('step3Text');
+  if (isHardcover) {
+    step3.textContent = "They fill in their pet's details and shipping address";
+  } else {
+    step3.textContent = "They fill in their pet's details and discover the magic";
+  }
+}
+
+// ─── Tier Selection ───
+function selectTier(tier) {
+  selectedTier = tier;
+
+  document.querySelectorAll('.tier-card').forEach(function(c) { c.classList.remove('selected'); });
+  document.querySelector('.tier-card.' + tier).classList.add('selected');
+
+  document.getElementById('btnEssential').textContent = tier === 'essential' ? 'Selected' : 'Select';
+  document.getElementById('btnEssential').className = 'tier-select-btn ' + (tier === 'essential' ? 'rose' : 'outline');
+
+  document.getElementById('btnPortrait').textContent = tier === 'portrait' ? 'Selected' : 'Select';
+  document.getElementById('btnPortrait').className = 'tier-select-btn ' + (tier === 'portrait' ? 'rose' : 'outline');
+
+  document.getElementById('btnHardcover').textContent = tier === 'hardcover' ? 'Selected' : 'Select';
+  document.getElementById('btnHardcover').className = 'tier-select-btn ' + (tier === 'hardcover' ? 'gold' : 'outline');
+
+  updateUI();
+}
+
+// ─── Delivery Method ───
+function setDelivery(method) {
+  deliveryMethod = method;
+
+  document.querySelectorAll('.delivery-pill').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('pill' + method.charAt(0).toUpperCase() + method.slice(1)).classList.add('active');
+
+  var showRecipient = method === 'email' || method === 'schedule';
+  document.getElementById('recipientFields').style.display = showRecipient ? 'block' : 'none';
+  document.getElementById('scheduleFields').style.display = method === 'schedule' ? 'block' : 'none';
+
+  updateUI();
+}
+
+// ─── Set minimum date ───
+(function() {
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  var dateInput = document.getElementById('scheduleDate');
+  dateInput.min = tomorrow.toISOString().split('T')[0];
+  dateInput.value = tomorrow.toISOString().split('T')[0];
+})();
+
+// ─── Checkout ───
+async function handleGiftCheckout() {
+  var btn = document.getElementById('giftCta');
+  var td = tierData[selectedTier];
+
+  // Validate sender email
+  var senderEmail = document.getElementById('senderEmail').value.trim();
+  if (!senderEmail) { alert('Please enter your email for the receipt.'); return; }
+  if (senderEmail.indexOf('@') === -1) { alert('Please enter a valid email address.'); return; }
+
+  // Validate recipient fields if needed
+  if (deliveryMethod === 'email' || deliveryMethod === 'schedule') {
+    var recipientName = document.getElementById('recipientName').value.trim();
+    var recipientEmail = document.getElementById('recipientEmail').value.trim();
+    if (!recipientName) { alert("Please enter the recipient's name."); return; }
+    if (!recipientEmail || recipientEmail.indexOf('@') === -1) { alert("Please enter a valid email for the recipient."); return; }
+  }
+
+  // Validate schedule date
+  if (deliveryMethod === 'schedule') {
+    var schedDate = document.getElementById('scheduleDate').value;
+    if (!schedDate) { alert('Please choose a delivery date.'); return; }
+    var chosen = new Date(schedDate);
+    var today = new Date();
+    today.setHours(0,0,0,0);
+    if (chosen <= today) { alert('Please choose a future date.'); return; }
+  }
+
+  btn.classList.add('loading');
+  btn.textContent = 'Redirecting to checkout...';
+
+  try {
+    var payload = {
+      quickCheckout: true,
+      isGift: true,
+      selectedTier: td.tier,
+      abVariant: 'C',
+      includesPortrait: td.portrait,
+      includesBook: td.book,
+      includesHoroscope: selectedTier !== 'essential',
+      occasionMode: 'gift',
+      petCount: 1,
+      giftDeliveryMethod: deliveryMethod,
+      giftMessage: document.getElementById('giftMessage').value.trim(),
+      senderEmail: senderEmail,
+    };
+
+    if (deliveryMethod === 'email' || deliveryMethod === 'schedule') {
+      payload.recipientName = document.getElementById('recipientName').value.trim();
+      payload.recipientEmail = document.getElementById('recipientEmail').value.trim();
+    }
+    if (deliveryMethod === 'schedule') {
+      payload.scheduleDate = document.getElementById('scheduleDate').value;
+      payload.scheduleTime = document.getElementById('scheduleTime').value;
+    }
+
+    var res = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify(payload),
+    });
+    var data = await res.json();
+    if (!data.url) throw new Error('No checkout URL returned');
+    window.location.href = data.url;
+  } catch (err) {
+    console.error('[Gift Checkout] Error:', err);
+    alert('Something went wrong. Please try again.');
+    btn.classList.remove('loading');
+    updateUI();
+  }
+}
+
+// ─── Init ───
+updateUI();
+</script>
+
+</body>
+</html>
