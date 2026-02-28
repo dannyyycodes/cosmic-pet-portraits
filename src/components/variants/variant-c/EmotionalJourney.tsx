@@ -34,29 +34,35 @@ function useScrollReveal(options?: { threshold?: number; rootMargin?: string }) 
   return { ref, visible };
 }
 
-const PawIcon = ({ size = 14, opacity = 0.15, x, y, rotate = 180, flip = false }: { size?: number; opacity?: number; x: string; y: number; rotate?: number; flip?: boolean; }) => (
-  <svg width={size} height={size * 1.2} viewBox="0 0 28 34" fill="none" style={{ position: "absolute", left: x, top: y, opacity, transform: `rotate(${rotate}deg)${flip ? " scaleX(-1)" : ""}`, pointerEvents: "none" }}>
+const PawSvg = ({ size, opacity, rotate, flip }: { size: number; opacity: number; rotate: number; flip?: boolean }) => (
+  <svg width={size} height={size * 1.2} viewBox="0 0 28 34" fill="none" style={{ opacity, transform: `rotate(${rotate}deg)${flip ? " scaleX(-1)" : ""}` }}>
     <ellipse cx="14" cy="22" rx="7" ry="9" fill="#9a8e84" /><ellipse cx="7" cy="10" rx="4" ry="5" fill="#9a8e84" transform="rotate(-10 7 10)" /><ellipse cx="14" cy="6" rx="4" ry="5" fill="#9a8e84" /><ellipse cx="21" cy="10" rx="4" ry="5" fill="#9a8e84" transform="rotate(10 21 10)" />
   </svg>
 );
 
-const HeartIcon = ({ size = 13, opacity = 0.2, x, y, rotate = 0 }: { size?: number; opacity?: number; x: string; y: number; rotate?: number; }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ position: "absolute", left: x, top: y, opacity, transform: `rotate(${rotate}deg)`, pointerEvents: "none" }}>
+const HeartSvg = ({ size, opacity, rotate }: { size: number; opacity: number; rotate: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ opacity, transform: `rotate(${rotate}deg)` }}>
     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill={COLORS.rose} />
   </svg>
 );
 
-const GapDecor = ({ variant = 0 }: { variant?: number }) => {
-  const clusters: React.ReactNode[] = [
-    <><PawIcon size={14} opacity={0.14} x="9%" y={-30} rotate={172} /><PawIcon size={15} opacity={0.16} x="14%" y={-8} rotate={178} flip /></>,
-    <><HeartIcon size={12} opacity={0.2} x="18%" y={-24} rotate={-12} /><HeartIcon size={14} opacity={0.22} x="74%" y={-14} rotate={10} /></>,
-    <><PawIcon size={15} opacity={0.15} x="72%" y={-28} rotate={185} flip /><PawIcon size={13} opacity={0.13} x="68%" y={-6} rotate={178} /></>,
-    <><HeartIcon size={11} opacity={0.18} x="44%" y={-22} rotate={8} /><HeartIcon size={13} opacity={0.22} x="82%" y={-10} rotate={-15} /></>,
-    <><PawIcon size={15} opacity={0.16} x="10%" y={-28} rotate={170} /><PawIcon size={13} opacity={0.14} x="15%" y={-6} rotate={176} flip /></>,
-    <><HeartIcon size={13} opacity={0.22} x="14%" y={-20} rotate={-8} /><HeartIcon size={11} opacity={0.18} x="78%" y={-14} rotate={12} /></>,
-  ];
-  return (<div style={{ position: "relative", height: 0, overflow: "visible", pointerEvents: "none", zIndex: 1 }}>{clusters[variant % clusters.length]}</div>);
-};
+const PawPair = ({ opacity = 0.14 }: { opacity?: number }) => (
+  <div style={{ position: "relative", height: 0, overflow: "visible", pointerEvents: "none", zIndex: 1 }}>
+    <div style={{ display: "flex", justifyContent: "center", gap: 6, position: "absolute", left: "50%", transform: "translateX(-50%)", top: -24 }}>
+      <PawSvg size={13} opacity={opacity} rotate={175} />
+      <PawSvg size={13} opacity={opacity * 0.85} rotate={185} flip />
+    </div>
+  </div>
+);
+
+const HeartPair = ({ opacity = 0.18 }: { opacity?: number }) => (
+  <div style={{ position: "relative", height: 0, overflow: "visible", pointerEvents: "none", zIndex: 1 }}>
+    <div style={{ display: "flex", justifyContent: "center", gap: 14, position: "absolute", left: "50%", transform: "translateX(-50%)", top: -20 }}>
+      <HeartSvg size={11} opacity={opacity} rotate={-8} />
+      <HeartSvg size={11} opacity={opacity * 0.85} rotate={8} />
+    </div>
+  </div>
+);
 
 const GrainOverlay = () => (<div style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none", opacity: 0.03, mixBlendMode: "multiply" as const }}><svg width="100%" height="100%"><filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" /></filter><rect width="100%" height="100%" filter="url(#grain)" /></svg></div>);
 
@@ -116,25 +122,25 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
         {(v) => (<p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.5rem, 5.5vw, 2.2rem)", color: COLORS.earth, lineHeight: 1.75 }}>On your best days.<br />On your worst days.<br />No judgement.<br />No expectations.</p>)}
       </Beat>
 
-      <GapDecor variant={0} />
+      <PawPair opacity={0.14} />
 
       <Beat minHeight="70vh" mobileMinHeight="45vh" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2})`}>
         {(v) => (<div><p style={{ ...fadeOnlyStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontWeight: 300, fontSize: "clamp(2rem, 10vw, 5rem)", color: COLORS.sand, letterSpacing: "0.04em", marginBottom: 16 }}>Just</p>{["loyalty.", "presence.", "& love."].map((word, i) => (<span key={i} style={{ ...fadeUpStyle(v, 0.2 + i * 0.35), display: "block", fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 8vw, 3.8rem)", color: COLORS.ink, lineHeight: 1.25, letterSpacing: "-0.025em" }}>{word}</span>))}<DrawHeart visible={v} /></div>)}
       </Beat>
 
-      <GapDecor variant={1} />
+      <HeartPair opacity={0.18} />
 
       <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream3}, ${COLORS.cream2})`}>
         {(v) => (<div><h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 11vw, 5.5rem)", color: COLORS.black, marginBottom: 40, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They're Not "Just a Pet."</h2><p style={{ ...fadeUpStyle(v, 0.2), fontFamily: "Cormorant, Georgia, serif", fontWeight: 400, fontSize: "clamp(1.15rem, 4vw, 1.4rem)", color: COLORS.earth, lineHeight: 1.9, maxWidth: 480, margin: "0 auto" }}>They are a living, feeling soul with their own personality, their own quirks, their own inner world.</p></div>)}
       </Beat>
 
-      <GapDecor variant={2} />
+      <PawPair opacity={0.12} />
 
       <Beat minHeight="80vh" mobileMinHeight="50vh" background={COLORS.cream2}>
         {(v) => (<div>{[{ text: "The way they comfort you.", size: "clamp(1.4rem, 5vw, 2rem)", color: COLORS.muted }, { text: "The way they protect you.", size: "clamp(1.65rem, 6vw, 2.4rem)", color: COLORS.warm }, { text: "The way they choose you — every single day.", size: "clamp(1.95rem, 7vw, 2.9rem)", color: COLORS.ink }].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.2 + i * 0.35), fontFamily: '"DM Serif Display", Georgia, serif', fontStyle: "italic", fontSize: line.size, color: line.color, lineHeight: 1.4, marginBottom: i < 2 ? 20 : 0 }}>{line.text}</p>))}</div>)}
       </Beat>
 
-      <GapDecor variant={3} />
+      <HeartPair opacity={0.16} />
 
       <Beat minHeight="60vh" mobileMinHeight="35vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (<div><h2 style={{ ...scaleInStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 5rem)", color: COLORS.black }}>That means something.</h2><div style={{ width: 50, height: 2, background: COLORS.gold, opacity: v ? 0.5 : 0, margin: "30px auto 0", transition: "opacity 1s ease 0.5s" }} /></div>)}
@@ -144,7 +150,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
         {(v) => (<div><h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 11vw, 5.5rem)", color: COLORS.black, lineHeight: 1, marginBottom: 40 }}>This Is an<br /><em>Act of Love.</em></h2>{["Taking the time to understand them more deeply.", "To see who they are as an individual soul.", "To honour the bond you share."].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.3 + i * 0.15), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.25rem, 4.5vw, 1.6rem)", color: COLORS.earth, lineHeight: 1.75, marginBottom: 8 }}>{line}</p>))}</div>)}
       </Beat>
 
-      <GapDecor variant={4} />
+      <PawPair opacity={0.14} />
 
       <Beat minHeight="75vh" mobileMinHeight="50vh">
         {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.25em", color: COLORS.earth, marginBottom: 30 }}>It's a small way of saying:</p><div style={{ position: "relative", display: "inline-block", textAlign: "left", paddingLeft: 30 }}><div style={{ position: "absolute", left: 0, top: 0, width: 3, height: v ? "100%" : "0%", background: `linear-gradient(to bottom, ${COLORS.gold}, ${COLORS.rose})`, transition: "height 1.5s ease 0.3s" }} />{['"I see you.', '"I appreciate you.', '"I\'m grateful you\'re in my life."'].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.3 + i * 0.35), fontFamily: '"DM Serif Display", Georgia, serif', fontStyle: "italic", fontSize: "clamp(1.8rem, 7vw, 3.2rem)", color: COLORS.deep, marginBottom: 12, lineHeight: 1.2 }}>{line}</p>))}</div><GoldStars visible={v} /></div>)}
@@ -154,7 +160,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
         {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 4.2vw, 1.5rem)", color: COLORS.muted, marginBottom: 30 }}>Because when someone loves you unconditionally…</p><p style={{ ...fadeUpStyle(v, 0.25), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 6vw, 2.6rem)", color: COLORS.deep, marginBottom: 24 }}>the most beautiful thing you can do</p><p style={{ opacity: v ? 1 : 0, filter: v ? "blur(0px)" : "blur(10px)", transition: "opacity 0.8s ease 0.5s, filter 0.8s ease 0.5s", fontFamily: "Caveat, cursive", fontSize: "clamp(1.6rem, 10vw, 6rem)", color: COLORS.ink }}>is try to understand them<br />in return.</p><WavyUnderline visible={v} /></div>)}
       </Beat>
 
-      <GapDecor variant={5} />
+      <HeartPair opacity={0.18} />
 
       <UGCTestimonials />
 
