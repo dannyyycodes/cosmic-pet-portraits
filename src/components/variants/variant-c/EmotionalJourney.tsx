@@ -114,7 +114,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
     <div style={{ background: COLORS.cream, position: "relative" }}>
       <GrainOverlay />
 
-      <Beat mobileMinHeight="55vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat mobileMinHeight="100vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (<h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 12vw, 6rem)", fontWeight: 400, color: COLORS.black, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They Love You<br /><em>Without Conditions.</em></h2>)}
       </Beat>
 
@@ -125,7 +125,7 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       <PawPair opacity={0.14} />
 
       <Beat minHeight="70vh" mobileMinHeight="45vh" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2})`}>
-        {(v) => (<div><p style={{ ...fadeOnlyStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontWeight: 300, fontSize: "clamp(2rem, 10vw, 5rem)", color: COLORS.sand, letterSpacing: "0.04em", marginBottom: 16 }}>Just</p>{["loyalty.", "presence.", "& love."].map((word, i) => (<span key={i} style={{ ...fadeUpStyle(v, 0.2 + i * 0.35), display: "block", fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 8vw, 3.8rem)", color: COLORS.ink, lineHeight: 1.25, letterSpacing: "-0.025em" }}>{word}</span>))}<DrawHeart visible={v} /></div>)}
+        {(v) => (<div><p style={{ ...fadeOnlyStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "clamp(2rem, 10vw, 5rem)", color: COLORS.sand, letterSpacing: "0.04em", marginBottom: 16 }}>Just</p>{["loyalty.", "presence.", "& love."].map((word, i) => (<span key={i} style={{ ...fadeUpStyle(v, 0.2 + i * 0.35), display: "block", fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 8vw, 3.8rem)", color: COLORS.ink, lineHeight: 1.25, letterSpacing: "-0.025em" }}>{word}</span>))}<DrawHeart visible={v} /></div>)}
       </Beat>
 
       <HeartPair opacity={0.18} />
