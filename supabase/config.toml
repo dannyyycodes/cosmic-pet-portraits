@@ -128,3 +128,9 @@ verify_jwt = false
 
 [functions.auto-generate-blogs]
 verify_jwt = false
+
+[functions.soul-chat]
+verify_jwt = false
+
+[functions.create-chat-purchase]
+verify_jwt = false

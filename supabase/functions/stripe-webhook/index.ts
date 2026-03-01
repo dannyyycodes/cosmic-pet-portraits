@@ -107,6 +107,45 @@ serve(async (req) => {
           }
         }
       }
+      // Check if this is a chat credit purchase
+      else if (session.metadata?.type === "chat_credits") {
+        const credits = parseInt(session.metadata.credits) || 100;
+        const orderId = session.metadata.orderId;
+
+        console.log("[STRIPE-WEBHOOK] Chat credits purchased:", { orderId, credits });
+
+        // Add credits via RPC
+        const { error: rpcError } = await supabaseClient.rpc("increment_chat_credits", {
+          p_order_id: orderId,
+          p_amount: credits,
+        });
+
+        if (rpcError) {
+          console.error("[STRIPE-WEBHOOK] Failed to increment chat credits:", rpcError);
+        } else {
+          console.log("[STRIPE-WEBHOOK] Chat credits added:", credits, "for order:", orderId);
+        }
+      }
+      // Check if this is a chat subscription purchase
+      else if (session.metadata?.type === "chat_subscription") {
+        const orderId = session.metadata.orderId;
+
+        console.log("[STRIPE-WEBHOOK] Chat subscription purchased for order:", orderId);
+
+        const { error: subError } = await supabaseClient
+          .from("chat_credits")
+          .upsert({
+            order_id: orderId,
+            is_unlimited: true,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "order_id" });
+
+        if (subError) {
+          console.error("[STRIPE-WEBHOOK] Failed to set unlimited chat:", subError);
+        } else {
+          console.log("[STRIPE-WEBHOOK] Unlimited chat enabled for order:", orderId);
+        }
+      }
       // Check if this is a gift certificate purchase
       else if (session.metadata?.type === "gift_certificate") {
         const giftCode = session.metadata.gift_code;

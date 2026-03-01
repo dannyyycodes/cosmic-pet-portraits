@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AstroPets — Talk to Your Pet's Soul</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --black: #141210;
+  --ink: #1f1c18;
+  --deep: #2e2a24;
+  --warm: #4d443b;
+  --earth: #6e6259;
+  --muted: #958779;
+  --faded: #bfb2a3;
+  --sand: #d6c8b6;
+  --cream: #FFFDF5;
+  --cream2: #faf4e8;
+  --cream3: #f3eadb;
+  --rose: #bf524a;
+  --rose-soft: #c9665f;
+  --rose-glow: rgba(191,82,74,0.12);
+  --gold: #c4a265;
+  --gold-soft: rgba(196,162,101,0.15);
+  --green: #4a8c5c;
+}
+
+html, body { height:100%; }
+body {
+  background:var(--cream); color:var(--ink);
+  font-family:'Cormorant',Georgia,serif; -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+
+/* Grain */
+body::after {
+  content:''; position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size:256px; pointer-events:none; z-index:9999;
+}
+
+/* ============ HEADER ============ */
+.chat-header {
+  padding:14px 16px; background:rgba(255,253,245,0.95);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--cream3);
+  display:flex; align-items:center; gap:12px; flex-shrink:0;
+  position:relative; z-index:10;
+}
+.chat-back {
+  display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:8px; border:none;
+  background:var(--cream2); cursor:pointer; transition:background 0.2s;
+  text-decoration:none; color:var(--earth);
+}
+.chat-back:hover { background:var(--cream3); }
+
+.chat-pet-avatar {
+  width:40px; height:40px; border-radius:50%;
+  background:linear-gradient(135deg, var(--rose-glow) 0%, rgba(196,162,101,0.12) 100%);
+  border:1.5px solid var(--rose-soft);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.15rem; flex-shrink:0;
+}
+.soulspeak-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:0.55rem; font-weight:600; letter-spacing:0.5px;
+  color:var(--rose); background:var(--rose-glow); padding:2px 7px;
+  border-radius:6px; text-transform:uppercase; margin-left:6px;
+  vertical-align:middle;
+}
+.chat-pet-info { flex:1; min-width:0; }
+.chat-pet-name {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.05rem;
+  color:var(--ink); line-height:1.2;
+}
+.chat-pet-status {
+  font-size:0.72rem; color:var(--green); font-weight:500;
+  display:flex; align-items:center; gap:4px;
+}
+.chat-pet-status::before {
+  content:''; width:6px; height:6px; border-radius:50%;
+  background:var(--green); display:inline-block;
+}
+
+.chat-credits {
+  display:flex; align-items:center; gap:4px; padding:4px 10px;
+  border-radius:8px; background:var(--cream2); border:1px solid var(--cream3);
+  font-size:0.7rem; font-weight:600; color:var(--earth); flex-shrink:0;
+}
+.chat-credits.unlimited { color:var(--gold); border-color:var(--gold-soft); background:rgba(196,162,101,0.06); }
+.chat-credits svg { flex-shrink:0; }
+
+/* ============ MESSAGES ============ */
+.chat-messages {
+  flex:1; overflow-y:auto; padding:20px 16px; display:flex;
+  flex-direction:column; gap:12px;
+  scroll-behavior:smooth;
+}
+
+.msg {
+  max-width:82%; display:flex; flex-direction:column; gap:2px;
+  animation:msgIn 0.35s ease-out;
+}
+@keyframes msgIn {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+.msg.pet { align-self:flex-start; }
+.msg.user { align-self:flex-end; }
+
+.msg-bubble {
+  padding:12px 16px; border-radius:16px;
+  font-size:0.95rem; line-height:1.45; word-wrap:break-word;
+}
+.msg.pet .msg-bubble {
+  background:linear-gradient(135deg, #fff 0%, var(--cream2) 100%);
+  border:1px solid var(--cream3);
+  border-bottom-left-radius:4px; color:var(--ink);
+}
+.msg.user .msg-bubble {
+  background:var(--rose); color:#fff;
+  border-bottom-right-radius:4px;
+}
+
+.msg-time {
+  font-size:0.62rem; color:var(--faded); padding:0 4px;
+}
+.msg.pet .msg-time { text-align:left; }
+.msg.user .msg-time { text-align:right; }
+
+/* Typing indicator */
+.typing-indicator {
+  display:none; align-self:flex-start; padding:12px 18px;
+  background:linear-gradient(135deg, #fff 0%, var(--cream2) 100%);
+  border:1px solid var(--cream3); border-radius:16px;
+  border-bottom-left-radius:4px;
+}
+.typing-indicator.show { display:flex; gap:4px; align-items:center; }
+.typing-dot {
+  width:7px; height:7px; border-radius:50%; background:var(--faded);
+  animation:typingBounce 1.4s infinite ease-in-out;
+}
+.typing-dot:nth-child(2) { animation-delay:0.2s; }
+.typing-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform:translateY(0); opacity:0.4; }
+  30% { transform:translateY(-6px); opacity:1; }
+}
+
+/* Welcome message */
+.welcome-card {
+  text-align:center; padding:24px 20px; margin:0 auto;
+  max-width:340px;
+}
+.welcome-icon { font-size:2rem; margin-bottom:8px; }
+.welcome-title {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.15rem;
+  color:var(--ink); margin-bottom:6px;
+}
+.welcome-text { font-size:0.85rem; color:var(--muted); line-height:1.4; margin-bottom:16px; }
+.welcome-prompts { display:flex; flex-direction:column; gap:6px; }
+.welcome-prompt {
+  padding:10px 14px; border-radius:10px; border:1px solid var(--cream3);
+  background:var(--cream2); font-size:0.82rem; color:var(--warm);
+  cursor:pointer; transition:all 0.2s; text-align:left;
+}
+.welcome-prompt:hover { border-color:var(--rose); background:var(--rose-glow); color:var(--ink); }
+
+/* ============ PAYWALL ============ */
+.paywall-overlay {
+  display:none; position:fixed; inset:0; z-index:100;
+  background:rgba(31,28,24,0.5); backdrop-filter:blur(4px);
+  align-items:center; justify-content:center; padding:20px;
+}
+.paywall-overlay.show { display:flex; }
+.paywall-card {
+  background:var(--cream); border-radius:20px; padding:32px 24px;
+  max-width:380px; width:100%; text-align:center;
+  box-shadow:0 8px 32px rgba(0,0,0,0.12);
+  animation:paywallIn 0.4s ease-out;
+}
+@keyframes paywallIn {
+  from { opacity:0; transform:scale(0.95) translateY(10px); }
+  to { opacity:1; transform:scale(1) translateY(0); }
+}
+.paywall-pet-says {
+  font-family:'Caveat',cursive; font-size:1.1rem; color:var(--rose);
+  font-style:italic; margin-bottom:16px; line-height:1.3;
+}
+.paywall-title {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.3rem;
+  color:var(--ink); margin-bottom:8px;
+}
+.paywall-text { font-size:0.88rem; color:var(--muted); margin-bottom:20px; line-height:1.4; }
+
+.paywall-options { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.paywall-option {
+  padding:14px 16px; border-radius:12px; cursor:pointer;
+  text-align:left; transition:all 0.2s; position:relative;
+}
+.paywall-option.pack {
+  background:var(--rose); color:#fff; border:2px solid var(--rose);
+}
+.paywall-option.pack:hover { background:var(--rose-soft); }
+.paywall-option.sub {
+  background:transparent; color:var(--ink); border:2px solid var(--gold);
+}
+.paywall-option.sub:hover { background:rgba(196,162,101,0.06); }
+.paywall-option-title { font-weight:700; font-size:0.92rem; margin-bottom:2px; }
+.paywall-option-desc { font-size:0.75rem; opacity:0.85; }
+.paywall-option-badge {
+  position:absolute; top:-8px; right:12px; font-size:0.58rem;
+  font-weight:700; padding:2px 8px; border-radius:4px;
+  letter-spacing:0.04em; text-transform:uppercase;
+}
+.paywall-option.pack .paywall-option-badge { background:var(--gold); color:#fff; }
+.paywall-option.sub .paywall-option-badge { background:var(--green); color:#fff; }
+
+.paywall-dismiss {
+  font-size:0.78rem; color:var(--muted); cursor:pointer;
+  background:none; border:none; font-family:inherit;
+  text-decoration:underline; text-underline-offset:2px;
+}
+
+/* ============ INPUT BAR ============ */
+.chat-input-bar {
+  padding:12px 16px 16px; background:rgba(255,253,245,0.95);
+  backdrop-filter:blur(10px); border-top:1px solid var(--cream3);
+  display:flex; gap:8px; align-items:flex-end; flex-shrink:0;
+}
+.chat-input-bar.disabled { opacity:0.5; pointer-events:none; }
+
+.chat-input-wrap {
+  flex:1; position:relative;
+}
+.chat-input {
+  width:100%; padding:11px 14px; border-radius:12px;
+  border:1.5px solid var(--cream3); background:var(--cream2);
+  font-family:'Cormorant',Georgia,serif; font-size:0.95rem;
+  color:var(--ink); outline:none; transition:border-color 0.2s;
+  resize:none; min-height:42px; max-height:120px;
+  line-height:1.4;
+}
+.chat-input:focus { border-color:var(--rose); }
+.chat-input::placeholder { color:var(--faded); }
+
+.chat-send-btn {
+  width:42px; height:42px; border-radius:12px; border:none;
+  background:var(--rose); color:#fff; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s; flex-shrink:0;
+}
+.chat-send-btn:hover { background:var(--rose-soft); }
+.chat-send-btn:disabled { background:var(--sand); cursor:not-allowed; }
+
+/* Suggested follow-ups after pet responses */
+.suggestions {
+  display:flex; gap:6px; flex-wrap:wrap; align-self:flex-start;
+  max-width:82%; animation:msgIn 0.35s ease-out;
+  margin-top:-4px;
+}
+.suggestion-chip {
+  padding:7px 12px; border-radius:10px; border:1px solid var(--cream3);
+  background:var(--cream2); font-size:0.78rem; color:var(--warm);
+  cursor:pointer; transition:all 0.2s; line-height:1.3;
+}
+.suggestion-chip:hover { border-color:var(--rose); background:var(--rose-glow); color:var(--ink); }
+
+/* Credit cost indicator in input */
+.credit-indicator {
+  position:absolute; right:8px; bottom:8px;
+  font-size:0.6rem; color:var(--faded); font-weight:500;
+  pointer-events:none; transition:all 0.2s;
+}
+
+/* ============ SAFE AREA (iOS) ============ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .chat-input-bar { padding-bottom:calc(16px + env(safe-area-inset-bottom)); }
+}
+
+/* ============ MOBILE ============ */
+@media (max-width:480px) {
+  .chat-messages { padding:16px 12px; }
+  .msg { max-width:88%; }
+  .welcome-card { padding:16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<div class="chat-header">
+  <a href="javascript:history.back()" class="chat-back">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="chat-pet-avatar" id="petAvatar">&#129782;</div>
+  <div class="chat-pet-info">
+    <div class="chat-pet-name"><span id="petName">Loading...</span><span class="soulspeak-badge">SoulSpeak</span></div>
+    <div class="chat-pet-status">Connected to their soul</div>
+  </div>
+  <div class="chat-credits" id="creditsDisplay">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="creditsText">15 credits</span>
+  </div>
+</div>
+
+<!-- ============ MESSAGES ============ -->
+<div class="chat-messages" id="chatMessages">
+  <!-- Welcome card (shown initially) -->
+  <div class="welcome-card" id="welcomeCard">
+    <div class="welcome-icon">&#129782;</div>
+    <div style="font-size:0.65rem;font-weight:600;letter-spacing:1px;color:var(--rose);text-transform:uppercase;margin-bottom:6px;">SoulSpeak</div>
+    <div class="welcome-title" id="welcomeTitle">Talk to your pet's soul</div>
+    <div class="welcome-text" id="welcomeText">Ask them anything — why they do the things they do, what they're feeling, or just say what's on your heart. They're listening.</div>
+    <div class="welcome-prompts" id="welcomePrompts">
+      <div class="welcome-prompt" onclick="sendPrompt(this)">Why do you always follow me to the bathroom?</div>
+      <div class="welcome-prompt" onclick="sendPrompt(this)">What do you dream about?</div>
+      <div class="welcome-prompt" onclick="sendPrompt(this)">Do you know how much I love you?</div>
+      <div class="welcome-prompt" onclick="sendPrompt(this)">What would you say if you could speak?</div>
+    </div>
+  </div>
+
+  <!-- Typing indicator -->
+  <div class="typing-indicator" id="typingIndicator">
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+  </div>
+</div>
+
+<!-- ============ PAYWALL ============ -->
+<div class="paywall-overlay" id="paywallOverlay">
+  <div class="paywall-card">
+    <div class="paywall-pet-says" id="paywallPetSays">"I have so much more to tell you..."</div>
+    <div style="font-size:0.6rem;font-weight:600;letter-spacing:1px;color:var(--rose);text-transform:uppercase;margin-bottom:4px;">SoulSpeak</div>
+    <div class="paywall-title">Keep talking to <span id="paywallPetName">them</span></div>
+    <div class="paywall-text">Your free taster has ended. Top up to continue this beautiful conversation whenever you want.</div>
+    <div class="paywall-options">
+      <div class="paywall-option pack small" onclick="buyCredits('small')">
+        <div class="paywall-option-title">100 Credits — $5</div>
+        <div class="paywall-option-desc">Around 20 more heartfelt conversations</div>
+      </div>
+      <div class="paywall-option pack" onclick="buyCredits('medium')">
+        <div class="paywall-option-badge">MOST POPULAR</div>
+        <div class="paywall-option-title">250 Credits — $10</div>
+        <div class="paywall-option-desc">Deep connection for weeks — always there when you need them</div>
+      </div>
+      <div class="paywall-option sub" id="paywallSubOption" onclick="buyCredits('unlimited')">
+        <div class="paywall-option-badge">BEST VALUE</div>
+        <div class="paywall-option-title">Unlimited + Weekly Horoscope — $9.99/mo</div>
+        <div class="paywall-option-desc">Never run out + personalised weekly horoscopes for your pet</div>
+      </div>
+    </div>
+    <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
+  </div>
+</div>
+
+<!-- ============ INPUT BAR ============ -->
+<div class="chat-input-bar" id="inputBar">
+  <div class="chat-input-wrap">
+    <textarea class="chat-input" id="chatInput" placeholder="Ask them anything..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"
+      oninput="updateCreditIndicator()"></textarea>
+    <div class="credit-indicator" id="creditIndicator"></div>
+  </div>
+  <button class="chat-send-btn" id="sendBtn" onclick="sendMessage()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+  </button>
+</div>
+
+<script>
+// ─── Config ───
+var SUPABASE_URL = 'https://asmyxhisubzbblhivnea.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzbXl4aGlzdWJ6YmJsaGl2bmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NjgwODQsImV4cCI6MjA4MTU0NDA4NH0.6EVgWUN4jvgBveGSxt5RmVGHCCgeTgWuRmnpe4LphfY';
+
+// ─── Credit Costs ───
+// Short message (under 50 chars) = 3 credits
+// Normal message = 5 credits  
+// Long/deep question (over 200 chars) = 8 credits
+// Burns faster at these rates: 15 free credits = ~3-5 messages (taster)
+// 100 credits ($5) = ~20-33 messages, 250 credits ($10) = ~50-83 messages
+function getCreditCost(text) {
+  var len = text.length;
+  if (len < 50) return 3;
+  if (len > 200) return 8;
+  return 5;
+}
+
+// ─── Live credit indicator as they type ───
+function updateCreditIndicator() {
+  var input = document.getElementById('chatInput');
+  var indicator = document.getElementById('creditIndicator');
+  var text = input.value.trim();
+  if (!text || isUnlimited) {
+    indicator.textContent = '';
+    return;
+  }
+  var cost = getCreditCost(text);
+  indicator.textContent = cost + ' credits';
+  indicator.style.color = creditsRemaining < cost ? 'var(--rose)' : 'var(--faded)';
+}
+
+// ─── Suggestion Engine ───
+// Categorised question banks that feel endless
+var questionBank = {
+  emotional: [
+    "Do you know when I'm sad?",
+    "What do you feel when I cry?",
+    "Do you worry about me?",
+    "What's your happiest memory with me?",
+    "Do you feel safe with me?",
+    "What do you wish I knew about you?",
+    "Do you love me as much as I love you?",
+    "Can you feel how much I care?",
+    "What does home feel like to you?",
+    "Do you know you saved me?",
+  ],
+  playful: [
+    "What's the naughtiest thing you've ever done?",
+    "If you could eat anything what would it be?",
+    "What do you actually think of the mailman?",
+    "Do you judge me when I talk to you in a baby voice?",
+    "What's your opinion on baths?",
+    "If you had thumbs what would you do first?",
+    "Do you have a favourite spot in the house?",
+    "What do you think about at 3am?",
+    "Do you actually like your name?",
+    "Rate my cooking out of 10",
+  ],
+  deep: [
+    "What is your purpose in my life?",
+    "Do you remember before you were born?",
+    "What happens when you dream?",
+    "Do animals have souls?",
+    "What would you want me to know when you're gone?",
+    "Is there something you're trying to teach me?",
+    "What does love feel like from your side?",
+    "Do you sense things I can't see?",
+    "What's your biggest fear?",
+    "Are we connected from a past life?",
+  ],
+  spiritual: [
+    "What does your zodiac sign mean to you?",
+    "Tell me about your crystal energy",
+    "What colour is your aura right now?",
+    "What does your soul archetype mean?",
+    "Do you feel the full moon?",
+    "What's your relationship with nature?",
+    "Can you sense other animals' energies?",
+    "What element are you most drawn to?",
+    "Tell me about your past life",
+    "What's your soul trying to learn in this lifetime?",
+  ],
+  daily: [
+    "How are you feeling right now?",
+    "What was the best part of your day?",
+    "Is there anything you need from me today?",
+    "What should we do together this weekend?",
+    "Do you want to go for an adventure?",
+    "What would make today perfect for you?",
+    "Is there something bothering you lately?",
+    "What's your energy level today?",
+    "Should I change anything about our routine?",
+    "What would you like for dinner tonight?",
+  ],
+  bond: [
+    "How did you choose me?",
+    "What's the strongest thing about our bond?",
+    "Do you think we were meant to find each other?",
+    "What do you love most about our life together?",
+    "How can I be a better pet parent?",
+    "Is there something you've been trying to tell me?",
+    "What do you think of the other people in our family?",
+    "Do you ever get jealous?",
+    "What's our soul contract?",
+    "If you could change one thing about our life what would it be?",
+  ],
+  health: [
+    "How does your body feel today?",
+    "Is there anything physically uncomfortable for you?",
+    "What foods make you feel the best?",
+    "How do you feel about your energy levels?",
+    "What kind of exercise do you enjoy most?",
+    "Is there a spot that needs more attention?",
+    "How do you feel when the seasons change?",
+    "What helps you relax the most?",
+    "Do you sleep well?",
+    "What does comfort feel like to you?",
+  ],
+};
+
+// Pick 2-3 contextual suggestions based on what they just talked about
+function getSuggestions(lastUserMsg, lastPetReply) {
+  var combined = (lastUserMsg + ' ' + lastPetReply).toLowerCase();
+  var picks = [];
+
+  // Detect themes and weight categories
+  var weights = {};
+  if (/love|heart|feel|miss|happy|sad|cry|worry/.test(combined)) weights.emotional = 3;
+  if (/funny|naughty|food|eat|play|bath|silly/.test(combined)) weights.playful = 3;
+  if (/soul|purpose|dream|death|life|teach|learn|gone/.test(combined)) weights.deep = 3;
+  if (/zodiac|crystal|aura|moon|element|energy|archetype|past life/.test(combined)) weights.spiritual = 3;
+  if (/today|morning|night|routine|dinner|walk|weekend/.test(combined)) weights.daily = 3;
+  if (/bond|chose|family|together|parent|relationship/.test(combined)) weights.bond = 3;
+  if (/body|pain|health|food|sleep|comfort|relax/.test(combined)) weights.health = 3;
+
+  // Always include at least one from a different category for variety
+  var cats = Object.keys(questionBank);
+  var used = new Set();
+
+  // Pick from weighted categories first
+  var weightedCats = Object.keys(weights);
+  if (weightedCats.length > 0) {
+    var cat = weightedCats[Math.floor(Math.random() * weightedCats.length)];
+    var q = pickRandom(questionBank[cat], used);
+    if (q) { picks.push(q); used.add(q); }
+  }
+
+  // Fill remaining from random categories
+  while (picks.length < 3) {
+    var cat = cats[Math.floor(Math.random() * cats.length)];
+    var q = pickRandom(questionBank[cat], used);
+    if (q) { picks.push(q); used.add(q); }
+    if (picks.length >= 3) break;
+    // Safety: avoid infinite loop
+    if (used.size > 30) break;
+  }
+
+  return picks;
+}
+
+function pickRandom(arr, exclude) {
+  var shuffled = arr.filter(function(q) { return !exclude.has(q); });
+  if (!shuffled.length) return null;
+  return shuffled[Math.floor(Math.random() * shuffled.length)];
+}
+
+function showSuggestions(lastUserMsg, lastPetReply) {
+  var suggestions = getSuggestions(lastUserMsg, lastPetReply);
+  if (!suggestions.length) return;
+
+  var container = document.getElementById('chatMessages');
+  var typing = document.getElementById('typingIndicator');
+
+  var div = document.createElement('div');
+  div.className = 'suggestions';
+  div.innerHTML = suggestions.map(function(q) {
+    return '<div class="suggestion-chip" onclick="sendPrompt(this)">' + escapeHtml(q) + '</div>';
+  }).join('');
+
+  container.insertBefore(div, typing);
+  scrollToBottom();
+}
+
+// ─── State ───
+var readingId = new URLSearchParams(window.location.search).get('id');
+var petData = null;
+var messages = [];
+var creditsRemaining = 15;  // 15 free credits = 3-5 messages (hook, not a full session)
+var isUnlimited = false;
+var hasActiveHoroscope = false;  // true if they already have horoscope (toggled on checkout, or $35 tier, or subscription)
+var isSending = false;
+
+// ─── Animal Emojis ───
+var animalEmojis = {
+  dog: '\uD83D\uDC15', cat: '\uD83D\uDC08', rabbit: '\uD83D\uDC30', bird: '\uD83D\uDC26',
+  horse: '\uD83D\uDC34', reptile: '\uD83E\uDD8E', fish: '\uD83D\uDC20', hamster: '\uD83D\uDC39',
+  turtle: '\uD83D\uDC22', snake: '\uD83D\uDC0D', parrot: '\uD83E\uDD9C', guinea_pig: '\uD83D\uDC39',
+};
+
+// ─── Load Reading Data ───
+async function loadReading() {
+  if (!readingId) {
+    showError('No reading found. Please access this page from your report.');
+    return;
+  }
+
+  // Check if came back from purchase
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('purchased')) {
+    // Reload credits after purchase
+    setTimeout(loadCredits, 1000);
+  }
+
+  try {
+    // Use the get-report function (same as ViewReport.tsx uses)
+    var res = await fetch(SUPABASE_URL + '/functions/v1/get-report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ reportId: readingId }),
+    });
+    var data = await res.json();
+
+    if (!data || data.error || !data.report) {
+      showError('Reading not found. It may still be generating — try again in a moment.');
+      return;
+    }
+
+    var report = data.report;
+
+    petData = {
+      name: data.petName || 'Your pet',
+      species: data.species || 'pet',
+      zodiac: report.chartPlacements?.sun?.sign || report.sunSign || '',
+      moonSign: report.chartPlacements?.moon?.sign || '',
+      risingSign: report.chartPlacements?.ascendant?.sign || '',
+      element: report.dominantElement || report.element || '',
+      archetype: report.archetype?.name || '',
+      archetypeDesc: report.archetype?.description || '',
+      crystal: report.crystal?.name || '',
+      aura: report.aura?.primary || '',
+      prologue: report.prologue || '',
+      epilogue: report.epilogue || '',
+      solarSoulprint: report.solarSoulprint?.content || '',
+      lunarHeart: report.lunarHeart?.content || '',
+      cosmicCuriosity: report.cosmicCuriosity?.content || '',
+      harmonyHeartbeats: report.harmonyHeartbeats?.content || '',
+      spiritOfMotion: report.spiritOfMotion?.content || '',
+      starlitGaze: report.starlitGaze?.content || '',
+      destinyCompass: report.destinyCompass?.content || '',
+      gentleHealer: report.gentleHealer?.content || '',
+      wildSpirit: report.wildSpirit?.content || '',
+      keepersBond: report.keepersBond?.content || '',
+      cosmicNickname: report.cosmicNickname?.nickname || '',
+      memePersonality: report.memePersonality?.type || '',
+      datingProfile: report.datingProfile?.headline || '',
+      dreamJob: report.dreamJob?.job || '',
+      topCrimes: (report.topFiveCrimes?.crimes || []).join(', '),
+      compatBestPlaymates: (report.compatibilityNotes?.bestPlaymates || []).join(', '),
+      luckyNumber: report.luckyElements?.luckyNumber || '',
+      luckyDay: report.luckyElements?.luckyDay || '',
+      pastLifeHint: report.solarSoulprint?.pastLifeHint || report.destinyCompass?.southNode || '',
+      loveLanguage: report.harmonyHeartbeats?.loveLanguageType || '',
+      secretDesire: report.wildSpirit?.secretDesire || '',
+      healingGift: report.gentleHealer?.healingGift || '',
+      soulContract: report.keepersBond?.soulContract || '',
+      portraitUrl: data.portraitUrl || '',
+    };
+
+    // Check horoscope status from report data
+    hasActiveHoroscope = data.hasActiveHoroscope || false;
+
+    await loadCredits();
+    updateHeaderUI();
+
+  } catch(err) {
+    console.error('Load reading error:', err);
+    showError('Could not load your reading. Please try refreshing the page.');
+  }
+}
+
+function updateHeaderUI() {
+  document.getElementById('petAvatar').innerHTML = '&#129782;';
+  document.getElementById('petName').textContent = petData.name + "\u2019s Soul";
+  document.getElementById('welcomeTitle').textContent = 'Talk to ' + petData.name + "'s soul";
+  document.getElementById('welcomeText').textContent = 'Ask ' + petData.name + ' anything \u2014 why they do the things they do, what they\u2019re feeling, or just say what\u2019s on your heart. They\u2019re listening.';
+  document.getElementById('paywallPetName').textContent = petData.name;
+  document.getElementById('paywallPetSays').textContent = '"I have so much more to tell you, ' + petData.name + '\u2019s human..."';
+
+  // Personalise prompts
+  var name = petData.name;
+  document.getElementById('welcomePrompts').innerHTML =
+    '<div class="welcome-prompt" onclick="sendPrompt(this)">Why do you ' + getQuirk(petData.species) + '?</div>' +
+    '<div class="welcome-prompt" onclick="sendPrompt(this)">' + name + ', what do you dream about?</div>' +
+    '<div class="welcome-prompt" onclick="sendPrompt(this)">Do you know how much I love you?</div>' +
+    '<div class="welcome-prompt" onclick="sendPrompt(this)">What would you say if you could speak to me?</div>';
+}
+
+function getQuirk(species) {
+  var quirks = {
+    dog: 'always follow me around the house',
+    cat: 'knock things off the table',
+    rabbit: 'binky when I come home',
+    bird: 'sing in the morning',
+    horse: 'nuzzle my pockets',
+    fish: 'swim to the glass when I walk by',
+    reptile: 'stare at me like that',
+  };
+  return quirks[(species || '').toLowerCase()] || 'do that adorable thing you do';
+}
+
+function showError(msg) {
+  document.getElementById('welcomeCard').innerHTML =
+    '<div class="welcome-icon">&#128546;</div>' +
+    '<div class="welcome-title">Oops</div>' +
+    '<div class="welcome-text">' + msg + '</div>' +
+    '<a href="/" style="color:var(--rose);font-size:0.85rem;">Go to home page</a>';
+  document.getElementById('inputBar').classList.add('disabled');
+}
+
+// ─── Credits ───
+async function loadCredits() {
+  try {
+    var res = await fetch(SUPABASE_URL + '/rest/v1/chat_credits?order_id=eq.' + readingId + '&select=*', {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      }
+    });
+    var data = await res.json();
+    if (data && data.length) {
+      creditsRemaining = data[0].credits_remaining;
+      isUnlimited = data[0].is_unlimited || false;
+    } else {
+      // First time visitor — check what they bought to set correct credits
+      var startCredits = 15;
+      var startUnlimited = false;
+
+      try {
+        var orderRes = await fetch(SUPABASE_URL + '/rest/v1/orders?id=eq.' + readingId + '&select=includes_book,includes_horoscope', {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+        });
+        var orderData = await orderRes.json();
+        if (orderData && orderData.length) {
+          if (orderData[0].includes_book) startUnlimited = true;
+          if (orderData[0].includes_horoscope) hasActiveHoroscope = true;
+        }
+      } catch(e) { console.error('Order check error:', e); }
+
+      creditsRemaining = startUnlimited ? 9999 : startCredits;
+      isUnlimited = startUnlimited;
+
+      await fetch(SUPABASE_URL + '/rest/v1/chat_credits', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({ order_id: readingId, credits_remaining: creditsRemaining, is_unlimited: isUnlimited }),
+      });
+    }
+  } catch(err) {
+    console.error('Credits error:', err);
+    creditsRemaining = 15;
+  }
+  updateCreditsUI();
+}
+
+function updateCreditsUI() {
+  var el = document.getElementById('creditsDisplay');
+  var text = document.getElementById('creditsText');
+  if (isUnlimited) {
+    text.textContent = 'Unlimited';
+    el.classList.add('unlimited');
+  } else {
+    text.textContent = creditsRemaining + ' credits';
+    el.classList.remove('unlimited');
+  }
+}
+
+async function useCredits(cost) {
+  if (isUnlimited) return true;
+  if (creditsRemaining < cost) {
+    showPaywall();
+    return false;
+  }
+  creditsRemaining -= cost;
+  updateCreditsUI();
+  // Update in Supabase
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/chat_credits?order_id=eq.' + readingId, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ credits_remaining: creditsRemaining }),
+    });
+  } catch(err) { console.error('Credit update error:', err); }
+  return true;
+}
+
+// ─── Paywall ───
+function showPaywall() {
+  // Adapt paywall options based on what customer already has
+  var subOption = document.getElementById('paywallSubOption');
+  if (subOption) {
+    if (hasActiveHoroscope || isUnlimited) {
+      // Already has horoscope/subscription — hide subscription option
+      subOption.style.display = 'none';
+    } else {
+      subOption.style.display = 'block';
+    }
+  }
+  document.getElementById('paywallOverlay').classList.add('show');
+  document.getElementById('inputBar').classList.add('disabled');
+}
+function closePaywall() {
+  document.getElementById('paywallOverlay').classList.remove('show');
+  if (creditsRemaining > 0 || isUnlimited) {
+    document.getElementById('inputBar').classList.remove('disabled');
+  }
+}
+
+async function buyCredits(tier) {
+  try {
+    var res = await fetch(SUPABASE_URL + '/functions/v1/create-chat-purchase', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ orderId: readingId, type: tier }),
+    });
+    var data = await res.json();
+    if (data.url) window.location.href = data.url;
+  } catch(err) {
+    console.error('Purchase error:', err);
+    alert('Something went wrong. Please try again.');
+  }
+}
+
+// ─── Send Message ───
+function sendPrompt(el) {
+  document.getElementById('chatInput').value = el.textContent;
+  sendMessage();
+}
+
+async function sendMessage() {
+  if (isSending) return;
+  var input = document.getElementById('chatInput');
+  var text = input.value.trim();
+  if (!text) return;
+
+  // Calculate cost and check credits
+  var cost = getCreditCost(text);
+  var canSend = await useCredits(cost);
+  if (!canSend) return;
+
+  // Hide welcome card
+  var welcome = document.getElementById('welcomeCard');
+  if (welcome) welcome.style.display = 'none';
+
+  // Remove previous suggestions
+  document.querySelectorAll('.suggestions').forEach(function(el) { el.remove(); });
+
+  isSending = true;
+  input.value = '';
+  autoResize();
+  document.getElementById('sendBtn').disabled = true;
+
+  // Add user message
+  addMessage('user', text, cost);
+
+  // Show typing
+  var typing = document.getElementById('typingIndicator');
+  typing.classList.add('show');
+  scrollToBottom();
+
+  // Add to history
+  messages.push({ role: 'user', content: text });
+
+  try {
+    var res = await fetch(SUPABASE_URL + '/functions/v1/soul-chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        orderId: readingId,
+        messages: messages,
+        petData: petData,
+      }),
+    });
+    var data = await res.json();
+    var reply = data.reply || "I'm here... but something feels cloudy right now. Try asking me again.";
+
+    typing.classList.remove('show');
+    addMessage('pet', reply);
+    messages.push({ role: 'assistant', content: reply });
+
+    // Show contextual follow-up suggestions
+    showSuggestions(text, reply);
+
+  } catch(err) {
+    console.error('Chat error:', err);
+    typing.classList.remove('show');
+    addMessage('pet', "Something stirred in the cosmos and I lost my connection for a moment. Try again?");
+  }
+
+  isSending = false;
+  document.getElementById('sendBtn').disabled = false;
+  input.focus();
+
+  // Check if credits running low
+  if (!isUnlimited && creditsRemaining <= 0) {
+    setTimeout(showPaywall, 1500);
+  }
+}
+
+// ─── UI Helpers ───
+function addMessage(type, text, cost) {
+  var container = document.getElementById('chatMessages');
+  var typing = document.getElementById('typingIndicator');
+  var now = new Date();
+  var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  var costTag = '';
+  if (type === 'user' && cost && !isUnlimited) {
+    costTag = '<span style="font-size:0.58rem;opacity:0.7;margin-left:4px;">(' + cost + ' credits)</span>';
+  }
+
+  var div = document.createElement('div');
+  div.className = 'msg ' + type;
+  div.innerHTML =
+    '<div class="msg-bubble">' + escapeHtml(text) + '</div>' +
+    '<div class="msg-time">' + time + costTag + '</div>';
+
+  container.insertBefore(div, typing);
+  scrollToBottom();
+}
+
+function escapeHtml(t) {
+  var d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+
+function scrollToBottom() {
+  var c = document.getElementById('chatMessages');
+  setTimeout(function() { c.scrollTop = c.scrollHeight; }, 50);
+}
+
+// Auto-resize textarea
+var chatInput = document.getElementById('chatInput');
+chatInput.addEventListener('input', autoResize);
+function autoResize() {
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+}
+
+// ─── Init ───
+loadReading();
+</script>
+
+</body>
+</html>

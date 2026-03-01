@@ -263,18 +263,34 @@ export default function PaymentSuccess() {
 
   // Complete
   if (stage === 'complete' && allReports.length > 0) {
+    const activePetName = currentReport?.petName || allReports[0].petName;
+    const activeReportId = currentReport?.reportId || allReports[0].reportId;
     return (
-      <CosmicReportViewer
-        petName={currentReport?.petName || allReports[0].petName}
-        report={currentReport?.report || allReports[0].report}
-        portraitUrl={currentReport?.portraitUrl || currentReport?.petPhotoUrl}
-        allReports={hasMultipleReports ? allReports : undefined}
-        currentIndex={currentReportIndex}
-        onSwitchReport={setCurrentReportIndex}
-        onNextPet={handleNextPetFromViewer}
-        onAllComplete={handleAllComplete}
-        hasActiveHoroscope={horoscopeInfo.enabled}
-      />
+      <>
+        <CosmicReportViewer
+          petName={activePetName}
+          report={currentReport?.report || allReports[0].report}
+          portraitUrl={currentReport?.portraitUrl || currentReport?.petPhotoUrl}
+          allReports={hasMultipleReports ? allReports : undefined}
+          currentIndex={currentReportIndex}
+          onSwitchReport={setCurrentReportIndex}
+          onNextPet={handleNextPetFromViewer}
+          onAllComplete={handleAllComplete}
+          hasActiveHoroscope={horoscopeInfo.enabled}
+        />
+        {activeReportId && (
+          <div className="flex justify-center my-8">
+            <a
+              href={`/soul-chat.html?id=${activeReportId}`}
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold text-base no-underline transition-all hover:opacity-90 hover:scale-[1.02] shadow-lg"
+              style={{ background: '#bf524a', fontFamily: "'DM Serif Display', Georgia, serif" }}
+            >
+              <span style={{ fontSize: '1.2em' }}>&#129782;</span>
+              SoulSpeak — Talk to {activePetName}'s Soul Free
+            </a>
+          </div>
+        )}
+      </>
     );
   }
 

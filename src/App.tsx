@@ -61,6 +61,13 @@ function GiftRedirect() {
   return null;
 }
 
+// Redirect /chat to the static HTML soul chat page
+function SoulChatRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  window.location.href = '/soul-chat.html?id=' + (params.get('id') || '');
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 // Loading fallback for lazy components
@@ -118,6 +125,7 @@ const App = () => (
                   <Route path="/admin/ab-test" element={<AdminABTest />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/chat" element={<SoulChatRedirect />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

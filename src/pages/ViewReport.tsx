@@ -306,6 +306,18 @@ export default function ViewReport() {
               occasionMode={reportData.occasionMode}
               hasActiveHoroscope={reportData.hasActiveHoroscope}
             />
+            {reportData.reportId && (
+              <div className="flex justify-center my-8">
+                <a
+                  href={`/soul-chat.html?id=${reportData.reportId}`}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold text-base no-underline transition-all hover:opacity-90 hover:scale-[1.02] shadow-lg"
+                  style={{ background: '#bf524a', fontFamily: "'DM Serif Display', Georgia, serif" }}
+                >
+                  <span style={{ fontSize: '1.2em' }}>&#129782;</span>
+                  SoulSpeak — Talk to {reportData.petName}'s Soul Free
+                </a>
+              </div>
+            )}
             {showTestimonialPrompt && reportData.reportId && reportData.email && (
               <TestimonialPrompt
                 reportId={reportData.reportId}
