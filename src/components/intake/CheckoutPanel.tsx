@@ -487,7 +487,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             SoulSpeak Intelligence
             <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded-full">New</span>
           </span>
-          <span className="text-[10px] text-muted-foreground/60 block mt-0.5">We infuse your pet's soul into our language engine so you can actually talk to them</span>
+          <span className="text-[10px] text-muted-foreground/60 block mt-0.5">Hear your pet speak back to you for the first time</span>
         </span>
         <span className="text-[11px] text-muted-foreground/70 shrink-0">
           {Object.values(petTiers).some(t => t === 'vip') ? 'Unlimited' : '15 free credits'}
