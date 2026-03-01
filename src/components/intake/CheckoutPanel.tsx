@@ -49,8 +49,8 @@ const TIERS = {
     name: 'Full Reading',
     shortName: 'Reading',
     description: "Finally understand your pet",
-    priceCents: 3500, // $35
-    originalPriceCents: 7900, // $79 anchoring
+    priceCents: 2700, // $27
+    originalPriceCents: 5400, // $54 anchoring
     icon: Sparkles,
     highlight: false,
     includesPortrait: false,
@@ -65,8 +65,8 @@ const TIERS = {
     name: 'Keepsake Card',
     shortName: 'Card',
     description: 'A treasure you can hold',
-    priceCents: 5000, // $50
-    originalPriceCents: 9900, // $99 anchoring
+    priceCents: 3500, // $35
+    originalPriceCents: 7000, // $70 anchoring
     icon: Crown,
     highlight: true,
     includesPortrait: true,
@@ -81,8 +81,8 @@ const TIERS = {
     name: 'VIP All-Access',
     shortName: 'VIP',
     description: 'Guidance that never ends',
-    priceCents: 12900, // $129 - extreme anchor
-    originalPriceCents: 24900, // $249 anchoring
+    priceCents: 9900, // $99
+    originalPriceCents: 19800, // $198 anchoring
     icon: Star,
     highlight: false,
     includesPortrait: true,
@@ -96,9 +96,9 @@ const TIERS = {
 
 // Gift tiers - 50% off all tiers for friends
 const GIFT_TIERS = {
-  basic: { priceCents: 1750, originalCents: 3500, name: 'Cosmic Pet Reading' },
-  premium: { priceCents: 2500, originalCents: 5000, name: 'Cosmic Soul Reading Edition' },
-  vip: { priceCents: 6450, originalCents: 12900, name: 'Cosmic VIP Experience' },
+  basic: { priceCents: 1350, originalCents: 2700, name: 'Cosmic Pet Reading' },
+  premium: { priceCents: 1750, originalCents: 3500, name: 'Cosmic Soul Reading Edition' },
+  vip: { priceCents: 4950, originalCents: 9900, name: 'Cosmic VIP Experience' },
 };
 
 // Volume discount calculation
