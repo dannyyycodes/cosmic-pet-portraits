@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Crown, Star, Check, Gift, X, Clock, Users, Zap, Moon, Camera, Heart } from 'lucide-react';
+import { Sparkles, Crown, Check, Gift, X, Clock, Users, Zap, Moon, Camera, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
@@ -29,15 +29,15 @@ export interface CheckoutData {
   giftMessage: string;
   totalCents: number;
   petCount?: number;
-  selectedTier: 'basic' | 'premium' | 'vip';
+  selectedTier: 'basic' | 'premium';
   includeGiftForFriend?: boolean;
-  giftTierForFriend?: 'basic' | 'premium' | 'vip';
+  giftTierForFriend?: 'basic' | 'premium';
   includesPortrait?: boolean;
   petPhotoUrl?: string | null;
   petPhotos?: Record<number, PetPhotoData>;
   includeHoroscope?: boolean;
   // NEW: Per-pet tier selection
-  petTiers?: Record<number, 'basic' | 'premium' | 'vip'>;
+  petTiers?: Record<number, 'basic' | 'premium'>;
   // Per-pet horoscope subscription selection
   petHoroscopes?: Record<number, boolean>;
 }
@@ -57,7 +57,7 @@ const TIERS = {
     benefits: [
       "Decode your pet's quirky behaviors",
       "Learn your pet's emotional needs",
-      "⭐ SoulSpeak Intelligence — hear your pet's voice",
+      "⭐ SoulSpeak by Little Souls — hear your pet's voice",
     ],
   },
   premium: {
@@ -73,23 +73,7 @@ const TIERS = {
     benefits: [
       "Everything in Reading, plus...",
       "Beautiful printed cosmic card",
-      "⭐ SoulSpeak Intelligence — hear your pet's voice",
-    ],
-  },
-  vip: {
-    id: 'vip',
-    name: 'VIP All-Access',
-    shortName: 'VIP',
-    description: 'Guidance that never ends',
-    priceCents: 9900, // $99
-    originalPriceCents: 19800, // $198 anchoring
-    icon: Star,
-    highlight: false,
-    includesPortrait: true,
-    benefits: [
-      "Everything in Keepsake, plus...",
-      "Weekly personalized updates",
-      "⭐ Unlimited SoulSpeak Intelligence",
+      "⭐ SoulSpeak by Little Souls — hear your pet's voice",
     ],
   },
 };
@@ -97,8 +81,7 @@ const TIERS = {
 // Gift tiers - 50% off all tiers for friends
 const GIFT_TIERS = {
   basic: { priceCents: 1350, originalCents: 2700, name: 'Cosmic Pet Reading' },
-  premium: { priceCents: 1750, originalCents: 3500, name: 'Cosmic Soul Reading Edition' },
-  vip: { priceCents: 4950, originalCents: 9900, name: 'Cosmic VIP Experience' },
+  premium: { priceCents: 1750, originalCents: 3500, name: 'Little Souls Reading Edition' },
 };
 
 // Volume discount calculation
@@ -127,19 +110,19 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
   // Per-pet tier selection - initialize all pets to 'premium' by default
   const allPets = petsData || [petData];
-  const [petTiers, setPetTiers] = useState<Record<number, 'basic' | 'premium' | 'vip'>>(() => {
-    const initial: Record<number, 'basic' | 'premium' | 'vip'> = {};
+  const [petTiers, setPetTiers] = useState<Record<number, 'basic' | 'premium'>>(() => {
+    const initial: Record<number, 'basic' | 'premium'> = {};
     allPets.forEach((_, idx) => { initial[idx] = 'premium'; });
     return initial;
   });
   
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
-  const [selectedGiftTier, setSelectedGiftTier] = useState<'basic' | 'premium' | 'vip'>('basic');
+  const [selectedGiftTier, setSelectedGiftTier] = useState<'basic' | 'premium'>('basic');
   const [spotsLeft, setSpotsLeft] = useState(7);
   const [recentPurchases, setRecentPurchases] = useState(12847);
   const [petPhotos, setPetPhotos] = useState<Record<number, PetPhotoData>>({});
   
-  // Per-pet horoscope subscription selection (only for non-memorial, non-VIP pets)
+  // Per-pet horoscope subscription selection (only for non-memorial pets)
   const nonMemorialPets = allPets.filter(p => p.occasionMode !== 'memorial');
   const [petHoroscopes, setPetHoroscopes] = useState<Record<number, boolean>>(() => {
     const initial: Record<number, boolean> = {};
@@ -159,10 +142,10 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     return () => clearInterval(interval);
   }, []);
 
-  // Calculate which pets need photo upload (Premium or VIP)
+  // Calculate which pets need photo upload (Premium tier)
   const petsNeedingPhotos = allPets
     .map((pet, idx) => ({ pet, idx, tier: petTiers[idx] }))
-    .filter(({ tier }) => tier === 'premium' || tier === 'vip');
+    .filter(({ tier }) => tier === 'premium');
 
   // Calculate total with per-pet tiers AND horoscope subscriptions
   const calculateTotal = () => {
@@ -175,16 +158,13 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     const volumeDiscountRate = getVolumeDiscount(allPets.length);
     const volumeDiscount = Math.round(baseTotal * volumeDiscountRate);
     
-    // Calculate horoscope subscription cost (only for non-VIP, non-memorial pets with horoscope enabled)
+    // Calculate horoscope subscription cost (only for non-memorial pets with horoscope enabled)
     let horoscopeCost = 0;
     allPets.forEach((pet, idx) => {
-      const tier = petTiers[idx] || 'premium';
-      const isVip = tier === 'vip';
       const isMemorial = pet.occasionMode === 'memorial';
       const hasHoroscope = petHoroscopes[idx] || false;
-      
-      // VIP includes horoscope for free, memorial pets don't get horoscopes
-      if (!isVip && !isMemorial && hasHoroscope) {
+
+      if (!isMemorial && hasHoroscope) {
         horoscopeCost += 499; // $4.99/month per pet
       }
     });
@@ -198,16 +178,13 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   // Get all pet names for display
   const petNames = allPets.map(p => p.name).filter(Boolean);
   
-  // Check if any pet has VIP (includes horoscope for free)
-  const hasVipPet = Object.values(petTiers).some(tier => tier === 'vip');
-  
   // Only show gift upsell for non-gift occasion modes
   const shouldShowGiftUpsell = occasionMode !== 'gift';
 
   // Check if any pet needs portrait
-  const anyPetNeedsPortrait = Object.values(petTiers).some(tier => tier === 'premium' || tier === 'vip');
+  const anyPetNeedsPortrait = Object.values(petTiers).some(tier => tier === 'premium');
 
-  const handleTierChange = (petIndex: number, tier: 'basic' | 'premium' | 'vip') => {
+  const handleTierChange = (petIndex: number, tier: 'basic' | 'premium') => {
     setPetTiers(prev => ({ ...prev, [petIndex]: tier }));
     
     // If downgrading from portrait tier, remove photo
@@ -238,19 +215,17 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     const firstPetPhoto = firstPortraitPetIdx !== undefined ? petPhotos[firstPortraitPetIdx] : undefined;
     
     // Determine dominant tier for backward compatibility
-    const tierCounts = { basic: 0, premium: 0, vip: 0 };
+    const tierCounts = { basic: 0, premium: 0 };
     Object.values(petTiers).forEach(t => tierCounts[t]++);
-    const dominantTier = tierCounts.vip > 0 ? 'vip' : tierCounts.premium > 0 ? 'premium' : 'basic';
-    
+    const dominantTier = tierCounts.premium > 0 ? 'premium' : 'basic';
+
     // Check if any pets have horoscope enabled
-    const anyPetHasHoroscope = Object.values(petHoroscopes).some(Boolean) || hasVipPet;
-    
-    // Count how many pets have paid horoscope subscriptions (non-VIP, non-memorial)
+    const anyPetHasHoroscope = Object.values(petHoroscopes).some(Boolean);
+
+    // Count how many pets have paid horoscope subscriptions (non-memorial)
     const horoscopeCount = allPets.filter((pet, idx) => {
-      const tier = petTiers[idx] || 'premium';
-      const isVip = tier === 'vip';
       const isMemorial = pet.occasionMode === 'memorial';
-      return !isVip && !isMemorial && petHoroscopes[idx];
+      return !isMemorial && petHoroscopes[idx];
     }).length;
     
     onCheckout({
@@ -288,8 +263,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   };
 
   // Quick tier select for all pets
-  const setAllPetsTier = (tier: 'basic' | 'premium' | 'vip') => {
-    const newTiers: Record<number, 'basic' | 'premium' | 'vip'> = {};
+  const setAllPetsTier = (tier: 'basic' | 'premium') => {
+    const newTiers: Record<number, 'basic' | 'premium'> = {};
     allPets.forEach((_, idx) => { newTiers[idx] = tier; });
     setPetTiers(newTiers);
     
@@ -322,8 +297,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       {/* Compact Tier Selection */}
       {allPets.length === 1 ? (
         // Single pet - horizontal tier buttons
-        <div className="grid grid-cols-3 gap-2">
-          {(['basic', 'premium', 'vip'] as const).map((tierKey) => {
+        <div className="grid grid-cols-2 gap-2">
+          {(['basic', 'premium'] as const).map((tierKey) => {
             const tier = TIERS[tierKey];
             const isSelected = petTiers[0] === tierKey;
             const Icon = tier.icon;
@@ -366,7 +341,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         <div className="space-y-2">
           {allPets.length > 1 && (
             <div className="flex gap-1">
-              {(['basic', 'premium', 'vip'] as const).map(tier => (
+              {(['basic', 'premium'] as const).map(tier => (
                 <button
                   key={tier}
                   onClick={() => setAllPetsTier(tier)}
@@ -389,7 +364,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
               <div key={petIndex} className="flex items-center gap-2 p-2 rounded-lg bg-card/30 border border-border/30">
                 <span className="text-sm font-medium text-foreground flex-1 truncate">{pet.name}</span>
                 <div className="flex gap-1">
-                  {(['basic', 'premium', 'vip'] as const).map(tier => (
+                  {(['basic', 'premium'] as const).map(tier => (
                     <button
                       key={tier}
                       onClick={() => handleTierChange(petIndex, tier)}
@@ -454,7 +429,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       )}
 
       {/* Weekly updates add-on - simplified single toggle for single pet */}
-      {!hasVipPet && allPets.length === 1 && allPets[0].occasionMode !== 'memorial' && (
+      {allPets.length === 1 && allPets[0].occasionMode !== 'memorial' && (
         <button
           onClick={() => setPetHoroscopes(prev => ({ ...prev, 0: !prev[0] }))}
           className={cn(
@@ -475,23 +450,17 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         </button>
       )}
 
-      {hasVipPet && (
-        <p className="text-xs text-center text-cosmic-gold">⭐ Weekly updates included</p>
-      )}
-
-      {/* SoulSpeak Intelligence - included with every reading */}
+      {/* SoulSpeak by Little Souls - included with every reading */}
       <div className="w-full p-2 rounded-lg border border-amber-500/30 bg-amber-500/5 flex items-center gap-2 text-sm">
         <span className="text-base">⭐</span>
         <span className="flex-1">
           <span className="text-muted-foreground">
-            SoulSpeak Intelligence
+            SoulSpeak by Little Souls
             <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded-full">New</span>
           </span>
           <span className="text-[10px] text-muted-foreground/60 block mt-0.5">Hear your pet speak back to you for the first time</span>
         </span>
-        <span className="text-[11px] text-muted-foreground/70 shrink-0">
-          {Object.values(petTiers).some(t => t === 'vip') ? 'Unlimited' : '15 free credits'}
-        </span>
+        <span className="text-[11px] text-muted-foreground/70 shrink-0">15 free credits</span>
       </div>
 
       {/* Checkout button - cleaner CTA */}
@@ -572,7 +541,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
               </div>
 
               <div className="space-y-2 mb-4">
-                {(['basic', 'premium', 'vip'] as const).map((giftTier) => {
+                {(['basic', 'premium'] as const).map((giftTier) => {
                   const tierInfo = GIFT_TIERS[giftTier];
                   const isSelected = selectedGiftTier === giftTier;
                   const Icon = TIERS[giftTier].icon;
@@ -646,7 +615,7 @@ const PROCESSING_OPTIONS: { id: PhotoProcessingMode; label: string; description:
   },
   { 
     id: 'cosmic', 
-    label: 'Cosmic Soul Reading', 
+    label: 'Little Souls Reading', 
     description: 'Celestial card style'
   },
   { 
@@ -822,7 +791,7 @@ function SinglePetPhotoUploadInline({
               >
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <Sparkles className="w-3 h-3 text-nebula-purple" />
-                  <span className="text-xs font-medium">Cosmic Soul Reading</span>
+                  <span className="text-xs font-medium">Little Souls Reading</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground">Celestial card style</p>
               </button>

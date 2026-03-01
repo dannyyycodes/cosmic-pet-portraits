@@ -71,25 +71,25 @@ const Blog = () => {
   return (
     <>
       <Helmet>
-        <title>Pet Behavior & Astrology Blog | AstroPets</title>
+        <title>Pet Behavior & Astrology Blog | Little Souls</title>
         <meta
           name="description"
           content="Discover why your pet does what they do. Expert articles on dog and cat behavior, zodiac personalities, and cosmic pet insights."
         />
-        <meta property="og:title" content="Pet Behavior & Astrology Blog | AstroPets" />
+        <meta property="og:title" content="Pet Behavior & Astrology Blog | Little Souls" />
         <meta property="og:description" content="Discover why your pet does what they do. Expert articles on dog and cat behavior, zodiac personalities, and cosmic pet insights." />
-        <link rel="canonical" href="https://astropets.cloud/blog" />
+        <link rel="canonical" href="https://littlesouls.co/blog" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Blog",
-            "name": "AstroPets Blog",
+            "name": "Little Souls Blog",
             "description": "Expert articles on pet behavior and cosmic pet personalities",
-            "url": "https://astropets.cloud/blog",
+            "url": "https://littlesouls.co/blog",
             "publisher": {
               "@type": "Organization",
-              "name": "AstroPets",
-              "url": "https://astropets.cloud"
+              "name": "Little Souls",
+              "url": "https://littlesouls.co"
             }
           })}
         </script>

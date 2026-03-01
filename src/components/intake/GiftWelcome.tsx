@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 interface GiftWelcomeProps {
   recipientName?: string;
   giftMessage?: string;
-  giftedTier: 'essential' | 'portrait' | 'vip' | 'basic' | 'premium'; // Support both old and new tier names
+  giftedTier: 'essential' | 'portrait' | 'basic' | 'premium'; // Support both old and new tier names
   includesPortrait?: boolean;
   onContinue: () => void;
 }
@@ -19,11 +19,10 @@ export function GiftWelcome({
 }: GiftWelcomeProps) {
   // Normalize tier names (support old and new naming)
   const normalizedTier = giftedTier === 'basic' ? 'essential' : giftedTier === 'premium' ? 'portrait' : giftedTier;
-  
+
   const tierLabels: Record<string, string> = {
     essential: 'Cosmic Pet Reading',
-    portrait: 'Cosmic Soul Reading Edition',
-    vip: 'Cosmic VIP Experience',
+    portrait: 'Little Souls Reading Edition',
   };
 
   const tierFeatures: Record<string, string[]> = {
@@ -36,11 +35,6 @@ export function GiftWelcome({
       'Everything in Essential Reading',
       'Your pet\'s photo on a cosmic card',
       'Weekly cosmic horoscope emails',
-    ],
-    vip: [
-      'Everything in Portrait Edition',
-      'Yearly cosmic updates for life',
-      'VIP priority support',
     ],
   };
 

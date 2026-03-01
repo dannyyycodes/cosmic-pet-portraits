@@ -86,7 +86,7 @@ const getEmailTemplate = (petName: string, reportUrl: string) => `
       <!-- Brand Footer -->
       <div style="text-align: center; margin-top: 32px;">
         <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          AstroPets
+          Little Souls
         </p>
       </div>
 
@@ -133,7 +133,7 @@ serve(async (req) => {
     const reportUrl = `${origin}/report?id=${reportId}`;
 
     const emailResult = await resend.emails.send({
-      from: "AstroPets <hello@astropets.cloud>",
+      from: "Little Souls <hello@littlesouls.co>",
       to: [email],
       subject: `${petName}'s Cosmic Reading is Ready ✨`,
       html: getEmailTemplate(petName, reportUrl),

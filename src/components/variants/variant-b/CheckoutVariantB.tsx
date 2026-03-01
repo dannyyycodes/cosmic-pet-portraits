@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 interface CheckoutVariantBProps {
   petName: string;
   petCount: number;
-  onSelectTier: (tier: 'basic' | 'premium' | 'vip') => void;
-  selectedTier: 'basic' | 'premium' | 'vip';
+  onSelectTier: (tier: 'basic' | 'premium') => void;
+  selectedTier: 'basic' | 'premium';
   baseTotal: number;
   volumeDiscount: number;
 }
@@ -68,14 +68,6 @@ export function CheckoutVariantB({
       features: ['Everything in Full Reading', 'Beautiful printed cosmic card', 'Perfect for framing or gifting'],
       urgency: 'MOST POPULAR',
       popular: true,
-    },
-    {
-      id: 'vip' as const,
-      name: 'VIP ALL-ACCESS',
-      price: 129,
-      originalPrice: 249,
-      features: ['Everything in Keepsake', 'Weekly personalized updates', 'Ongoing cosmic guidance'],
-      urgency: 'Best value',
     },
   ];
 

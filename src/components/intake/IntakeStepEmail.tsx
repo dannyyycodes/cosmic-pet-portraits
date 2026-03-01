@@ -39,7 +39,7 @@ interface IntakeStepEmailProps {
   totalSteps: number;
   modeContent: ModeContent;
   giftCode?: string | null;
-  giftedTier?: 'essential' | 'portrait' | 'vip' | 'basic' | 'premium' | null;
+  giftedTier?: 'essential' | 'portrait' | 'basic' | 'premium' | null;
   skipEmailInput?: boolean;
 }
 

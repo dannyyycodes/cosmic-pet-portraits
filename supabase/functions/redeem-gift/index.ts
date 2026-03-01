@@ -151,9 +151,7 @@ serve(async (req) => {
     let giftedTier = gift.gift_tier;
     if (!giftedTier) {
       // Fallback for old gift certificates without tier
-      if (gift.amount_cents >= 12900) {
-        giftedTier = 'vip';
-      } else if (gift.amount_cents >= 5000) {
+      if (gift.amount_cents >= 5000) {
         giftedTier = 'portrait';
       } else {
         giftedTier = 'essential';
@@ -163,14 +161,14 @@ serve(async (req) => {
     // Parse per-pet tier info from gift_pets_json
     const giftPetsJson = gift.gift_pets_json as { id: string; tier: string; horoscopeAddon?: string }[] | null;
     
-    // Determine which pet indices have portrait/vip tier
+    // Determine which pet indices have portrait tier
     const portraitPetIndices = new Set<number>();
     // Determine which pet indices have horoscope addons (separate from tier!)
     const horoscopePetIndices = new Set<number>();
-    
+
     if (giftPetsJson && Array.isArray(giftPetsJson)) {
       giftPetsJson.forEach((pet, idx) => {
-        if (pet.tier === 'portrait' || pet.tier === 'vip') {
+        if (pet.tier === 'portrait') {
           portraitPetIndices.add(idx);
         }
         // Check for explicit horoscope addon (monthly or yearly)
@@ -182,7 +180,7 @@ serve(async (req) => {
     }
     
     // For legacy gifts without per-pet info, use global tier
-    const legacyIncludesPortrait = giftedTier === 'portrait' || giftedTier === 'vip';
+    const legacyIncludesPortrait = giftedTier === 'portrait';
     const hasAnyPortrait = portraitPetIndices.size > 0 || legacyIncludesPortrait;
     const hasAnyHoroscope = horoscopePetIndices.size > 0 || legacyIncludesPortrait;
     
@@ -202,9 +200,9 @@ serve(async (req) => {
       // Determine if THIS pet gets portrait based on per-pet tier
       const petTier = giftPetsJson?.[i]?.tier || giftedTier;
       const petHoroscopeAddon = giftPetsJson?.[i]?.horoscopeAddon || 'none';
-      const thisPetIncludesPortrait = petTier === 'portrait' || petTier === 'vip';
-      // Horoscope: either from tier (portrait/vip) OR from explicit addon purchase
-      const thisPetIncludesHoroscope = petTier === 'portrait' || petTier === 'vip' || (petHoroscopeAddon !== 'none');
+      const thisPetIncludesPortrait = petTier === 'portrait';
+      // Horoscope: either from portrait tier OR from explicit addon purchase
+      const thisPetIncludesHoroscope = petTier === 'portrait' || (petHoroscopeAddon !== 'none');
       
       console.log(`[REDEEM-GIFT] Processing report ${i}:`, { reportId, petTier, petHoroscopeAddon, thisPetIncludesPortrait, thisPetIncludesHoroscope });
       
@@ -219,7 +217,7 @@ serve(async (req) => {
         continue;
       }
 
-      // For Portrait and VIP tiers, auto-enroll in weekly horoscope (only once per email/report)
+      // For Portrait tier, auto-enroll in weekly horoscope (only once per email/report)
       if (thisPetIncludesHoroscope) {
         // Check if subscription already exists for this email
         const { data: existingSub } = await supabase
@@ -284,7 +282,6 @@ serve(async (req) => {
       giftTier: giftedTier, // Explicit tier name for frontend
       recipientName: gift.recipient_name,
       giftMessage: gift.gift_message,
-      includesVip: giftedTier === 'vip' || (giftPetsJson?.some(p => p.tier === 'vip') ?? false),
       includesPortrait: hasAnyPortrait,
       includesWeeklyHoroscope: hasAnyHoroscope,
     }), {

@@ -44,8 +44,8 @@ serve(async (req) => {
       });
     }
 
-    // Check if this is a customer referral code (VIP-XXXX-XXXX format)
-    if (!referralCode.startsWith("VIP-")) {
+    // Check if this is a customer referral code (REF-XXXX-XXXX format)
+    if (!referralCode.startsWith("REF-")) {
       return new Response(JSON.stringify({ error: "Invalid referral code format" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -24,7 +24,6 @@ export default function RedeemGift() {
     giftTier?: string;
     petCount?: number;
     includesPortrait?: boolean;
-    includesVip?: boolean;
     includesWeeklyHoroscope?: boolean;
   } | null>(null);
 
@@ -60,7 +59,6 @@ export default function RedeemGift() {
         giftTier: data.giftTier,
         petCount: data.petCount || 1,
         includesPortrait: data.includesPortrait,
-        includesVip: data.includesVip,
         includesWeeklyHoroscope: data.includesWeeklyHoroscope,
       });
     } catch (error) {
@@ -79,7 +77,6 @@ export default function RedeemGift() {
 
   const getTierName = () => {
     switch (giftData?.giftTier) {
-      case 'vip': return 'VIP Cosmic Experience';
       case 'portrait': return 'Portrait Reading';
       case 'essential': return 'Essential Reading';
       case 'premium': return 'Premium Reading';
@@ -90,7 +87,6 @@ export default function RedeemGift() {
   const getTierDescription = () => {
     const petText = (giftData?.petCount || 1) > 1 ? ` for ${giftData?.petCount} pets` : '';
     switch (giftData?.giftTier) {
-      case 'vip': return `The complete cosmic experience with photo card, weekly horoscopes, and full personality analysis${petText}`;
       case 'portrait': return `A beautiful cosmic photo card plus complete personality reading${petText}`;
       case 'essential': return `A deep dive into your pet's cosmic personality and soul blueprint${petText}`;
       case 'premium': return `An enhanced cosmic reading with additional insights${petText}`;
@@ -109,7 +105,7 @@ export default function RedeemGift() {
       features.push({ icon: Image, text: 'Cosmic Photo Card', included: true });
     }
     
-    // Show weekly horoscope if included (from VIP tier OR from addon purchase)
+    // Show weekly horoscope if included (from addon purchase)
     if (giftData?.includesWeeklyHoroscope) {
       features.push({ icon: CalendarHeart, text: 'Weekly Cosmic Updates', included: true });
     }

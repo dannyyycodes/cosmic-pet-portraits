@@ -10,16 +10,14 @@ const corsHeaders = {
 
 // Fixed pricing tiers - SERVER-SIDE TRUTH
 const TIERS = {
-  basic: { name: 'Cosmic Soul Reading', priceCents: 3500 },
-  premium: { name: 'Cosmic Deluxe', priceCents: 5000 },
-  vip: { name: 'Cosmic VIP Experience', priceCents: 12900 },
+  basic: { name: 'Little Souls Reading', priceCents: 3500 },
+  premium: { name: 'Little Souls Reading + Portrait', priceCents: 5000 },
 } as const;
 
 // Gift tiers - 50% off all tiers for friends
 const GIFT_TIERS = {
-  basic: { priceCents: 1750, name: 'Gift: Cosmic Soul Reading' },
-  premium: { priceCents: 2500, name: 'Gift: Cosmic Portrait Edition' },
-  vip: { priceCents: 6450, name: 'Gift: Cosmic VIP Experience' },
+  basic: { priceCents: 1750, name: 'Gift: Little Souls Reading' },
+  premium: { priceCents: 2500, name: 'Gift: Little Souls Reading + Portrait' },
 } as const;
 
 // Volume discount calculation - SERVER-SIDE (must match frontend)
@@ -32,7 +30,7 @@ function getVolumeDiscount(petCount: number): number {
 }
 
 const HOROSCOPE_MONTHLY_CENTS = 0; // Free at checkout — Stripe subscription created in webhook with 30-day trial
-const BOOK_PRICE_CENTS = 8900; // $89.00
+const HARDCOVER_PRICE_CENTS = 9900; // $99.00 — includes reading + portrait + book
 
 // Variant C pricing
 const VARIANT_C_PRICES: Record<string, number> = {
@@ -46,7 +44,7 @@ const checkoutSchema = z.object({
   reportIds: z.array(z.string().uuid()).optional(),
   reportId: z.string().uuid().optional(),
   petCount: z.number().int().min(1).max(10).optional().default(1),
-  selectedTier: z.enum(['basic', 'premium', 'vip']).optional().default('premium'),
+  selectedTier: z.enum(['basic', 'premium']).optional().default('premium'),
   selectedProducts: z.array(z.string()).optional(),
   couponId: z.string().uuid().nullable().optional(),
   giftCertificateId: z.string().uuid().nullable().optional(),
@@ -56,14 +54,14 @@ const checkoutSchema = z.object({
   giftMessage: z.string().max(500).optional().default(''),
   totalCents: z.number().optional(),
   includeGiftForFriend: z.boolean().optional().default(false),
-  giftTierForFriend: z.enum(['basic', 'premium', 'vip']).optional().default('basic'),
+  giftTierForFriend: z.enum(['basic', 'premium']).optional().default('basic'),
   includesPortrait: z.boolean().optional().default(false),
   includesBook: z.boolean().optional().default(false),
   referralCode: z.string().max(50).optional(),
   includeHoroscope: z.boolean().optional().default(false),
   giftCode: z.string().max(20).optional(),
   petPhotoUrl: z.string().url().max(2048).optional(),
-  petTiers: z.record(z.string(), z.enum(['basic', 'premium', 'vip'])).optional(),
+  petTiers: z.record(z.string(), z.enum(['basic', 'premium'])).optional(),
   petPhotos: z.record(z.string(), z.object({
     url: z.string().url().max(2048),
     processingMode: z.string().optional(),
@@ -104,27 +102,29 @@ serve(async (req) => {
     if (input.quickCheckout) {
       const tierKey = input.selectedTier || 'premium';
       const petCount = input.petCount || 1;
-      const includesPortrait = input.includesPortrait || tierKey === 'premium';
+      let includesPortrait = input.includesPortrait || tierKey === 'premium';
       const includesBook = input.includesBook || false;
       const occasionMode = input.occasionMode || 'discover';
 
+      // Hardcover always includes portrait
+      if (includesBook) {
+        includesPortrait = true;
+      }
+
       // Calculate price server-side
-      const basePriceCents = VARIANT_C_PRICES[tierKey] || VARIANT_C_PRICES.basic;
-      // If basic tier + portrait separately, price = $27 + $8 per pet
-      const perPetPrice = tierKey === 'basic' && includesPortrait
-        ? VARIANT_C_PRICES.basic + PORTRAIT_PRICE_CENTS
-        : basePriceCents;
-
-      const readingTotal = perPetPrice * petCount;
-
-      // Volume discount on readings+portraits only
-      const discountRate = getVolumeDiscount(petCount);
-      const discountAmount = Math.round(readingTotal * discountRate);
-      const readingAfterDiscount = readingTotal - discountAmount;
-
-      // Book is flat $89, not per-pet, not discounted
-      const bookAmount = includesBook ? BOOK_PRICE_CENTS : 0;
-      const totalAmount = readingAfterDiscount + bookAmount;
+      if (includesBook) {
+        // Hardcover: $99 per pet — includes reading + portrait + book
+        var totalAmount = HARDCOVER_PRICE_CENTS * petCount;
+      } else {
+        const basePriceCents = VARIANT_C_PRICES[tierKey] || VARIANT_C_PRICES.basic;
+        const perPetPrice = tierKey === 'basic' && includesPortrait
+          ? VARIANT_C_PRICES.basic + PORTRAIT_PRICE_CENTS
+          : basePriceCents;
+        const readingTotal = perPetPrice * petCount;
+        const discountRate = getVolumeDiscount(petCount);
+        const discountAmount = Math.round(readingTotal * discountRate);
+        var totalAmount = readingTotal - discountAmount;
+      }
 
       // Create placeholder report(s)
       const reportIds: string[] = [];
@@ -155,65 +155,37 @@ serve(async (req) => {
       // Build line items
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
 
-      // Reading line item
-      const readingName = petCount > 1
-        ? `${petCount}× Cosmic Soul Reading`
-        : 'Cosmic Soul Reading';
-      lineItems.push({
-        price_data: {
-          currency: "usd",
-          product_data: { name: readingName },
-          unit_amount: readingAfterDiscount - (includesPortrait && tierKey !== 'premium' ? 0 : 0),
-        },
-        quantity: 1,
-      });
-
-      // If portrait is separate from tier
-      // (For simplicity, combine into one line item showing total after discount)
-      // We already computed readingAfterDiscount including portrait
-
-      // Book line item
       if (includesBook) {
+        // HARDCOVER: Single line item at $99 per pet — includes reading + portrait
         lineItems.push({
           price_data: {
             currency: "usd",
             product_data: {
-              name: 'Printed Keepsake Edition',
-              description: "Hardcover book of your pet's cosmic soul reading",
+              name: petCount > 1 ? `${petCount}× The Little Souls Book` : 'The Little Souls Book',
+              description: 'Hardcover book + digital reading + AI portrait',
             },
-            unit_amount: BOOK_PRICE_CENTS,
+            unit_amount: totalAmount,
+          },
+          quantity: 1,
+        });
+      } else {
+        // DIGITAL ONLY: Reading ± portrait
+        lineItems.push({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: petCount > 1
+                ? `${petCount}× Little Souls Reading${includesPortrait ? ' + Portrait' : ''}`
+                : `Little Souls Reading${includesPortrait ? ' + Portrait' : ''}`,
+            },
+            unit_amount: totalAmount,
           },
           quantity: 1,
         });
       }
 
-      // Actually we want a single reading line item with the correct total
-      // Let's rebuild: one line item = readingAfterDiscount, optionally one for book
       const session = await stripe.checkout.sessions.create({
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: {
-                name: petCount > 1 ? `${petCount}× Cosmic Soul Reading${includesPortrait ? ' + Portrait' : ''}` : `Cosmic Soul Reading${includesPortrait ? ' + Portrait' : ''}`,
-                description: discountAmount > 0 ? `Includes ${Math.round(discountRate * 100)}% multi-pet discount` : undefined,
-              },
-              unit_amount: readingAfterDiscount,
-            },
-            quantity: 1,
-          },
-          ...(includesBook ? [{
-            price_data: {
-              currency: "usd",
-              product_data: {
-                name: 'Printed Keepsake Edition',
-                description: "Hardcover book of your pet's cosmic soul reading",
-              },
-              unit_amount: BOOK_PRICE_CENTS,
-            },
-            quantity: 1,
-          }] : []),
-        ],
+        line_items: lineItems,
         mode: "payment",
         success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}&quick=true`,
         cancel_url: `${origin}/checkout?tier=${tierKey}`,
@@ -285,13 +257,12 @@ serve(async (req) => {
     let horoscopePetCount = 0;
     for (let i = 0; i < actualPetCount; i++) {
       const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
-      const isVip = tierKey === 'vip';
       const reportId = allReportIds[i];
       const occasionMode = reportId ? reportOccasionMap.get(reportId) : null;
       const isMemorial = occasionMode === 'memorial';
       const hasHoroscope = petHoroscopes[String(i)] || false;
-      
-      if (!isVip && !isMemorial && hasHoroscope) {
+
+      if (!isMemorial && hasHoroscope) {
         horoscopeCost += HOROSCOPE_MONTHLY_CENTS;
         horoscopePetCount++;
       }
@@ -360,7 +331,7 @@ serve(async (req) => {
     }
     
     let customerReferralDiscount = 0;
-    if (input.referralCode && input.referralCode.startsWith("VIP-")) {
+    if (input.referralCode && input.referralCode.startsWith("REF-")) {
       const { data: referrer } = await supabaseClient
         .from("email_subscribers")
         .select("email, referral_code")
@@ -381,7 +352,7 @@ serve(async (req) => {
     }
     
     // Book upsell for standard checkout
-    const bookAmount = input.includesBook ? BOOK_PRICE_CENTS : 0;
+    const bookAmount = input.includesBook ? HARDCOVER_PRICE_CENTS : 0;
 
     const calculatedTotal = Math.max(0, 
       baseTotal - volumeDiscount - couponDiscount - giftCertificateDiscount - customerReferralDiscount + giftAmount + horoscopeCost + bookAmount
@@ -403,7 +374,7 @@ serve(async (req) => {
       for (let i = 0; i < allReportIds.length; i++) {
         const id = allReportIds[i];
         const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
-        const tierIncludesPortrait = tierKey === 'premium' || tierKey === 'vip';
+        const tierIncludesPortrait = tierKey === 'premium';
         const petPhoto = input.petPhotos?.[String(i)];
         
         const updateData: Record<string, unknown> = { 
@@ -441,7 +412,7 @@ serve(async (req) => {
     // Build line items
     const mainItemAmount = calculatedTotal - giftAmount - horoscopeCost - bookAmount;
     
-    const tierCounts = { basic: 0, premium: 0, vip: 0 };
+    const tierCounts = { basic: 0, premium: 0 };
     for (let i = 0; i < actualPetCount; i++) {
       const tierKey = (petTiers[String(i)] || input.selectedTier || 'premium') as keyof typeof tierCounts;
       tierCounts[tierKey]++;
@@ -457,7 +428,7 @@ serve(async (req) => {
         currency: "usd",
         product_data: {
           name: actualPetCount > 1 
-            ? `Cosmic Soul Readings (${actualPetCount} pets)`
+            ? `Little Souls Readings (${actualPetCount} pets)`
             : TIERS[input.selectedTier].name,
           description: actualPetCount > 1 ? orderDesc : undefined,
         },
@@ -504,10 +475,10 @@ serve(async (req) => {
         price_data: {
           currency: "usd",
           product_data: {
-            name: 'Printed Keepsake Edition',
-            description: "Hardcover book of your pet's cosmic soul reading",
+            name: 'The Little Souls Book',
+            description: 'Hardcover book + digital reading + AI portrait',
           },
-          unit_amount: BOOK_PRICE_CENTS,
+          unit_amount: HARDCOVER_PRICE_CENTS,
         },
         quantity: 1,
       });
@@ -515,14 +486,14 @@ serve(async (req) => {
 
     const checkoutMode = "payment";
 
-    const anyPetHasPortrait = Object.values(petTiers).some(t => t === 'premium' || t === 'vip') || 
-      input.selectedTier === 'premium' || input.selectedTier === 'vip';
+    const anyPetHasPortrait = Object.values(petTiers).some(t => t === 'premium') ||
+      input.selectedTier === 'premium' || input.includesBook;
 
     try {
       for (let i = 0; i < allReportIds.length; i++) {
         const id = allReportIds[i];
         const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
-        const needsPhoto = tierKey === 'premium' || tierKey === 'vip';
+        const needsPhoto = tierKey === 'premium' || input.includesBook;
         const petPhoto = input.petPhotos?.[String(i)];
 
         if (needsPhoto && petPhoto?.url) {
@@ -562,7 +533,6 @@ serve(async (req) => {
         include_horoscope: (horoscopePetCount > 0 || input.includeHoroscope) ? "true" : "false",
         horoscope_pet_count: horoscopePetCount.toString(),
         pet_horoscopes: JSON.stringify(petHoroscopes),
-        vip_horoscope: Object.values(petTiers).some(t => t === 'vip') || input.selectedTier === "vip" ? "true" : "false",
         pet_photo_url: input.petPhotoUrl || "",
         ab_variant: input.abVariant || "",
       },

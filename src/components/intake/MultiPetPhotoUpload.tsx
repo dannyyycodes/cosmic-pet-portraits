@@ -29,7 +29,7 @@ const PROCESSING_OPTIONS: { id: PhotoProcessingMode; label: string; description:
   },
   { 
     id: 'cosmic', 
-    label: 'Cosmic Soul Reading', 
+    label: 'Little Souls Reading', 
     description: 'Transform into a celestial trading card',
     icon: <Sparkles className="w-4 h-4" />
   },

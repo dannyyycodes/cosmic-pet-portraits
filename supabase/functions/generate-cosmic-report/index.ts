@@ -1075,8 +1075,8 @@ Make every section feel personal, specific, and magical. The fun sections should
       headers: {
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://astropets.lovable.app",
-        "X-Title": "AstroPets Cosmic Report",
+        "HTTP-Referer": "https://littlesouls.co",
+        "X-Title": "Little Souls Reading",
       },
       body: JSON.stringify({
         model: "anthropic/claude-sonnet-4.5",

@@ -410,7 +410,7 @@ export function ReportPDFDownload({ petName, reportContent }: ReportPDFDownloadP
         doc.setTextColor(100, 100, 120);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text('AstroPets • Cosmic Pet Astrology', margin, pageHeight - 8);
+        doc.text('Little Souls • Cosmic Pet Astrology', margin, pageHeight - 8);
         doc.text(`${i} / ${totalPages}`, pageWidth - margin - 10, pageHeight - 8);
       }
 

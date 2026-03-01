@@ -346,7 +346,7 @@ export default function QuickCheckout() {
                 <Sparkles className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <h3 className="font-dm-serif text-lg text-foreground">Cosmic Soul Reading</h3>
+                <h3 className="font-dm-serif text-lg text-foreground">Little Souls Reading</h3>
                 <p className="font-cormorant italic text-[0.85rem] text-muted-foreground">
                   5 chapters · 30+ personalised sections
                 </p>
@@ -405,7 +405,7 @@ export default function QuickCheckout() {
                 <Palette className={`w-4 h-4 ${includePortrait ? "text-accent" : "text-muted-foreground"}`} />
               </div>
               <div>
-                <p className="font-cormorant font-semibold text-[0.92rem] text-foreground">✨ Cosmic Soul Reading Edition</p>
+                <p className="font-cormorant font-semibold text-[0.92rem] text-foreground">✨ Little Souls Reading Edition</p>
                 <p className="text-[0.78rem] text-muted-foreground">
                   Your favourite photo set in a cosmic scene matched to their aura colours. Featured on the report, shareable card, and printed book cover.
                 </p>
@@ -507,14 +507,14 @@ export default function QuickCheckout() {
           <div className="space-y-2 text-[0.88rem] font-cormorant">
             <div className="flex justify-between">
               <span className="text-muted-foreground">
-                {petCount > 1 ? `${petCount}× ` : ""}Cosmic Soul Reading
+                {petCount > 1 ? `${petCount}× ` : ""}Little Souls Reading
               </span>
               <span className="text-foreground font-semibold">${(readingSubtotal / 100).toFixed(2)}</span>
             </div>
             {includePortrait && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
-                  {petCount > 1 ? `${petCount}× ` : ""}Cosmic Soul Reading Edition
+                  {petCount > 1 ? `${petCount}× ` : ""}Little Souls Reading Edition
                 </span>
                 <span className="text-foreground font-semibold">${(portraitSubtotal / 100).toFixed(2)}</span>
               </div>

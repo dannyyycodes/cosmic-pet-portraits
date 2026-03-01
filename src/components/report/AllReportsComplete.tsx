@@ -15,7 +15,7 @@ interface GiftInfo {
 
 interface GiftedInfo {
   isGifted: boolean;
-  giftedTier: 'basic' | 'premium' | 'vip' | null;
+  giftedTier: 'basic' | 'premium' | null;
 }
 
 interface HoroscopeInfo {
@@ -354,8 +354,8 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 </div>
               </Button>
 
-              {/* Weekly horoscope - show if not VIP and not already purchased */}
-              {giftedInfo.giftedTier !== 'vip' && !horoscopeInfo?.enabled && (
+              {/* Weekly horoscope - show if not already purchased */}
+              {!horoscopeInfo?.enabled && (
                 <Button
                   onClick={() => navigate('/intake?mode=discover&upsell=horoscope')}
                   variant="outline"
@@ -369,7 +369,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 </Button>
               )}
 
-              {/* Upgrade to VIP - show only if basic or premium */}
+              {/* Upgrade - show only if basic */}
               {giftedInfo.giftedTier === 'basic' && (
                 <Button
                   onClick={() => navigate('/intake?mode=discover&upsell=portrait')}
@@ -378,7 +378,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 >
                   <Sparkles className="w-5 h-5 text-nebula-pink shrink-0" />
                   <div className="text-left">
-                    <p className="font-medium">Add Cosmic Soul Reading</p>
+                    <p className="font-medium">Add Little Souls Reading</p>
                     <p className="text-xs text-muted-foreground">Get an AI-generated cosmic trading card</p>
                   </div>
                 </Button>
@@ -488,7 +488,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 onClick={() => {
                   if (navigator.share) {
                     navigator.share({
-                      title: 'AstroPets - Cosmic Pet Reports',
+                      title: 'Little Souls - Cosmic Pet Reports',
                       text: `I just discovered the cosmic secrets of ${petListText}! 🌟`,
                       url: window.location.origin,
                     });

@@ -69,7 +69,7 @@ function buildEmailHtml(safeName: string, safeAiResponse: string): string {
       <!-- Brand Footer -->
       <div style="text-align: center; margin-top: 24px;">
         <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          AstroPets Support
+          Little Souls Support
         </p>
       </div>
 
@@ -126,11 +126,11 @@ serve(async (req) => {
         const safeName = escapeHtml(scheduled.name);
 
         await resend.emails.send({
-          from: "AstroPets <hello@astropets.cloud>",
+          from: "Little Souls <hello@littlesouls.co>",
           to: [scheduled.email],
-          subject: "Re: Your AstroPets inquiry ✨",
+          subject: "Re: Your Little Souls inquiry ✨",
           html: buildEmailHtml(safeName, safeAiResponse),
-          reply_to: "hello@astropets.cloud",
+          reply_to: "hello@littlesouls.co",
         });
 
         // Mark as sent

@@ -144,7 +144,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     amountCents: number; 
     giftMessage?: string;
     recipientName?: string;
-    giftedTier?: 'essential' | 'portrait' | 'vip' | 'basic' | 'premium';
+    giftedTier?: 'essential' | 'portrait' | 'basic' | 'premium';
     petCount?: number;
     includesPortrait?: boolean;
     includesWeeklyHoroscope?: boolean;
@@ -568,7 +568,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         if (checkoutData?.includeGiftForFriend) {
           devParams.set('include_gift', 'true');
         }
-        if (checkoutData?.includeHoroscope || checkoutData?.selectedTier === 'vip') {
+        if (checkoutData?.includeHoroscope) {
           devParams.set('include_horoscope', 'true');
         }
         if (checkoutData?.selectedTier) {
@@ -981,7 +981,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             </motion.div>
           )}
 
-          {/* Photo upload step - only for portrait/VIP gift recipients */}
+          {/* Photo upload step - only for portrait gift recipients */}
           {step === 15 && giftCodeFromUrl && giftData?.includesPortrait && (
             <motion.div key="step-photo" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepPhoto

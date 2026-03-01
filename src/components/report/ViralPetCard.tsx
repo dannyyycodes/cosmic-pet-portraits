@@ -345,19 +345,19 @@ export function ViralPetCard({
     const hashtags = theme.hashtags.join(' ');
     
     if (occasionMode === 'memorial') {
-      return `🌟 ${petName} - Forever in the Stars 🌟\n\n${viralCaption}\n\n${zodiacIcon} ${sunSign} • ☽ ${moonSign} Moon\n💫 Element: ${element}\n\n${hashtags}\n\n${shareUrl || 'astropets.cloud'}`;
+      return `🌟 ${petName} - Forever in the Stars 🌟\n\n${viralCaption}\n\n${zodiacIcon} ${sunSign} • ☽ ${moonSign} Moon\n💫 Element: ${element}\n\n${hashtags}\n\n${shareUrl || 'littlesouls.co'}`;
     }
     
     if (occasionMode === 'birthday') {
-      return `🎂 HAPPY BIRTHDAY ${petName.toUpperCase()}! 🎂\n\n${viralCaption}\n\n☉ ${sunSign} Sun • ☽ ${moonSign} Moon\n🔥 Cosmic Power: ${totalPower}/100\n\n${hashtags}\n\n${shareUrl || 'astropets.cloud'}`;
+      return `🎂 HAPPY BIRTHDAY ${petName.toUpperCase()}! 🎂\n\n${viralCaption}\n\n☉ ${sunSign} Sun • ☽ ${moonSign} Moon\n🔥 Cosmic Power: ${totalPower}/100\n\n${hashtags}\n\n${shareUrl || 'littlesouls.co'}`;
     }
     
-    return `✨ ${viralCaption} ✨\n\nMeet ${petName}, ${archetype}\n☉ ${sunSign} • ☽ ${moonSign}\n🔥 Power Level: ${totalPower}\n\nGet your pet's cosmic card 👇\n${hashtags}\n\n${shareUrl || 'astropets.cloud'}`;
+    return `✨ ${viralCaption} ✨\n\nMeet ${petName}, ${archetype}\n☉ ${sunSign} • ☽ ${moonSign}\n🔥 Power Level: ${totalPower}\n\nGet your pet's cosmic card 👇\n${hashtags}\n\n${shareUrl || 'littlesouls.co'}`;
   };
 
   const handleShare = async (platform: 'twitter' | 'facebook' | 'tiktok' | 'instagram' | 'native') => {
     const text = getShareText();
-    const url = shareUrl || 'https://astropets.cloud';
+    const url = shareUrl || 'https://littlesouls.co';
     
     if (platform === 'twitter') {
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
@@ -682,7 +682,7 @@ export function ViralPetCard({
 
           {/* Footer */}
           <div className="px-4 py-3 bg-black/40 flex items-center justify-between">
-            <span className="text-[10px] font-medium text-white/50">astropets.cloud</span>
+            <span className="text-[10px] font-medium text-white/50">littlesouls.co</span>
             <div className="flex items-center gap-1.5">
               <Sparkles className="w-3 h-3 text-white/40" />
               <span className="text-[10px] font-medium text-white/50">

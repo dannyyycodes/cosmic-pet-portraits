@@ -45,7 +45,7 @@ export function IntakeStepPhoto({
         className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-nebula-purple/20 border border-nebula-purple/30"
       >
         <Camera className="w-4 h-4 text-nebula-purple" />
-        <span className="text-nebula-purple text-sm font-medium">✨ Cosmic Soul Reading Included!</span>
+        <span className="text-nebula-purple text-sm font-medium">✨ Little Souls Reading Included!</span>
       </motion.div>
 
       <div className="space-y-3">

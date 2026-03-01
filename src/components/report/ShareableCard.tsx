@@ -46,7 +46,7 @@ export function ShareableCard({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${petName}'s Cosmic Soul Reading`,
+          title: `${petName}'s Little Souls Reading`,
           text: `${petName} is a ${sunSign} ${archetype}! Check out their cosmic soul reading.`,
           url: shareUrl,
         });

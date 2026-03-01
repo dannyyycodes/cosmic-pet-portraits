@@ -334,7 +334,7 @@ export function CosmicReportViewer({
         <div className="text-center py-12 px-6">
           <div className="max-w-[520px] mx-auto p-8 rounded-[14px] bg-white border border-[#e8ddd0]">
             <Gift className="w-12 h-12 mx-auto text-[#c4a265] mb-4" />
-            <h3 className="font-dm-serif text-2xl text-[#3d2f2a] mb-2">Unlock the Full Cosmic Soul Reading</h3>
+            <h3 className="font-dm-serif text-2xl text-[#3d2f2a] mb-2">Unlock the Full Little Souls Reading</h3>
             <p className="text-[#9a8578] text-[0.84rem] mb-6 max-w-md mx-auto">
               Get all 10 reading sections, the soul letter, trading card, fun sections, and more.
             </p>

@@ -12,7 +12,6 @@ const corsHeaders = {
 const GIFT_TIERS = {
   essential: { cents: 3500, name: 'Essential Cosmic Reading' },
   portrait: { cents: 5000, name: 'Cosmic Portrait Edition' },
-  vip: { cents: 12900, name: 'Cosmic VIP Experience' },
 } as const;
 
 // Horoscope subscription addons
@@ -53,7 +52,7 @@ function generateGiftCode(): string {
 // Pet schema for individual pet tiers with optional recipient
 const giftPetSchema = z.object({
   id: z.string(),
-  tier: z.enum(["essential", "portrait", "vip"]),
+  tier: z.enum(["essential", "portrait"]),
   recipientName: z.string().max(100).optional(),
   recipientEmail: z.string().email().max(255).optional().or(z.literal("")).or(z.null()),
   horoscopeAddon: z.enum(["none", "monthly", "yearly"]).optional().default("none"),
@@ -70,7 +69,7 @@ const giftSchema = z.object({
   // New: array of pets with individual tiers and recipients
   giftPets: z.array(giftPetSchema).min(1).max(10).optional(),
   // Legacy support
-  tier: z.enum(["essential", "portrait", "vip"]).optional(),
+  tier: z.enum(["essential", "portrait"]).optional(),
   petCount: z.number().int().min(1).max(10).optional(),
 });
 
@@ -208,7 +207,7 @@ serve(async (req) => {
     const primaryGiftCode = giftCodes[0];
     logStep("Generated gift codes", { giftCodes, primary: primaryGiftCode });
 
-    const origin = req.headers.get("origin") ?? "https://astropets.cloud";
+    const origin = req.headers.get("origin") ?? "https://littlesouls.co";
     
     // Build product description
     const tierCounts = giftPets.reduce((acc, pet) => {
@@ -227,10 +226,10 @@ serve(async (req) => {
         : `Gift Certificate: ${petCount} Pet Readings`;
     
     const productDescription = recipientGroups.length > 1
-      ? `AstroPets Cosmic Gifts for ${recipientGroups.length} recipients - ${tierSummary}`
+      ? `Little Souls Cosmic Gifts for ${recipientGroups.length} recipients - ${tierSummary}`
       : input.recipientName 
         ? `Gift for ${input.recipientName} - ${tierSummary}`
-        : `AstroPets Cosmic Gift - ${tierSummary}`;
+        : `Little Souls Cosmic Gift - ${tierSummary}`;
 
     // Build line items - main gift + any horoscope addons
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
@@ -243,7 +242,7 @@ serve(async (req) => {
         product_data: {
           name: productName,
           description: productDescription,
-          images: ["https://astropets.cloud/og-image.jpg"],
+          images: ["https://littlesouls.co/og-image.jpg"],
         },
         unit_amount: giftAmount,
       },

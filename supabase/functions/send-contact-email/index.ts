@@ -85,7 +85,7 @@ const getConfirmationEmailTemplate = (safeName: string, safeSubjectLabel: string
       </div>
 
       <p style="color: #9ca3af; font-size: 15px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
-        In the meantime, check out our <a href="https://astropets.cloud/#faq" style="color: #34d399; text-decoration: none; font-weight: 600;">FAQ section</a> for quick answers.
+        In the meantime, check out our <a href="https://littlesouls.co/#faq" style="color: #34d399; text-decoration: none; font-weight: 600;">FAQ section</a> for quick answers.
       </p>
 
       <!-- Divider -->
@@ -94,13 +94,13 @@ const getConfirmationEmailTemplate = (safeName: string, safeSubjectLabel: string
       <!-- Footer -->
       <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
         With cosmic love,<br>
-        <span style="color: #9ca3af;">The AstroPets Team ✨</span>
+        <span style="color: #9ca3af;">The Little Souls Team ✨</span>
       </p>
 
       <!-- Brand Footer -->
       <div style="text-align: center; margin-top: 24px;">
         <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          AstroPets
+          Little Souls
         </p>
       </div>
 
@@ -203,8 +203,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification to support
     const supportEmailResponse = await resend.emails.send({
-      from: "AstroPets <hello@astropets.cloud>",
-      to: ["hello@astropets.cloud"],
+      from: "Little Souls <hello@littlesouls.co>",
+      to: ["hello@littlesouls.co"],
       subject: `[${safeSubjectLabel}] New contact from ${safeName}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -223,7 +223,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation to customer
     const confirmationEmailResponse = await resend.emails.send({
-      from: "AstroPets <hello@astropets.cloud>",
+      from: "Little Souls <hello@littlesouls.co>",
       to: [email],
       subject: "We received your message! ✨",
       html: getConfirmationEmailTemplate(safeName, safeSubjectLabel, safeMessage),

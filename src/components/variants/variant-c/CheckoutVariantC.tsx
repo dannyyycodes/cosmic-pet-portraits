@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils';
 interface CheckoutVariantCProps {
   petName: string;
   petCount: number;
-  onSelectTier: (tier: 'basic' | 'premium' | 'vip') => void;
-  selectedTier: 'basic' | 'premium' | 'vip';
+  onSelectTier: (tier: 'basic' | 'premium') => void;
+  selectedTier: 'basic' | 'premium';
   baseTotal: number;
   volumeDiscount: number;
 }
@@ -41,15 +41,6 @@ export function CheckoutVariantC({
       gradient: 'from-purple-500 to-indigo-500',
       features: ['Everything in Tea', 'Printable card', 'Frame-worthy vibes'],
       popular: true,
-    },
-    {
-      id: 'vip' as const,
-      name: 'Cosmic Bestie 🌟',
-      tagline: 'Ongoing cosmic gossip',
-      price: 129,
-      emoji: '💫',
-      gradient: 'from-indigo-500 to-cyan-500',
-      features: ['Everything above', 'Weekly updates', 'Never miss a vibe'],
     },
   ];
 

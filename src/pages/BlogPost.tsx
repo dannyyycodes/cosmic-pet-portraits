@@ -170,14 +170,14 @@ const BlogPost = () => {
   return (
     <>
       <Helmet>
-        <title>{post.title} | AstroPets Blog</title>
+        <title>{post.title} | Little Souls Blog</title>
         <meta name="description" content={post.meta_description} />
         <meta name="keywords" content={[post.target_keyword, ...(post.secondary_keywords || [])].join(", ")} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.meta_description} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://astropets.cloud/blog/${post.slug}`} />
-        <link rel="canonical" href={`https://astropets.cloud/blog/${post.slug}`} />
+        <meta property="og:url" content={`https://littlesouls.co/blog/${post.slug}`} />
+        <link rel="canonical" href={`https://littlesouls.co/blog/${post.slug}`} />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -187,16 +187,16 @@ const BlogPost = () => {
             "datePublished": post.published_at,
             "author": {
               "@type": "Organization",
-              "name": "AstroPets"
+              "name": "Little Souls"
             },
             "publisher": {
               "@type": "Organization",
-              "name": "AstroPets",
-              "url": "https://astropets.cloud"
+              "name": "Little Souls",
+              "url": "https://littlesouls.co"
             },
             "mainEntityOfPage": {
               "@type": "WebPage",
-              "@id": `https://astropets.cloud/blog/${post.slug}`
+              "@id": `https://littlesouls.co/blog/${post.slug}`
             }
           })}
         </script>

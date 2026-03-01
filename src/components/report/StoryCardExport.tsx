@@ -365,7 +365,7 @@ export const StoryCardExport = forwardRef<HTMLDivElement, StoryCardExportProps>(
               color: 'rgba(255,255,255,0.5)',
               fontWeight: 600,
             }}>
-              astropets.cloud
+              littlesouls.co
             </span>
           </div>
         </div>

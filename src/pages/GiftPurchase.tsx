@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type DeliveryMethod = 'email' | 'link';
-type GiftTier = 'essential' | 'portrait' | 'vip';
+type GiftTier = 'essential' | 'portrait';
 
 interface GiftRecipient {
   id: string;
@@ -51,21 +51,6 @@ const TIERS = {
     shortFeatures: ['+ Portrait', '+ Cosmic Card'],
     popular: true,
     highlight: 'Best Value',
-  },
-  vip: {
-    cents: 9900,
-    label: 'Hardcover',
-    description: 'The ultimate pet lover gift',
-    icon: '👑',
-    features: [
-      "Everything in Portrait",
-      "Premium hardcover book shipped free",
-      "Unlimited soul chat — EXCLUSIVE",
-      "Monthly horoscope included — EXCLUSIVE",
-      "The ultimate gift — they'll cry when they open it",
-    ],
-    shortFeatures: ['+ Book', '+ Unlimited Chat', '+ Horoscope'],
-    highlight: 'Premium',
   },
 } as const;
 
@@ -578,9 +563,8 @@ export default function GiftPurchase() {
                     </div>
                   </div>
 
-                  {/* Weekly Updates Addon - only show if not Hardcover (Hardcover already includes) */}
-                  {singleRecipient.tier !== 'vip' && (
-                    <div className="mt-5 p-4 rounded-xl bg-gradient-to-br from-nebula-purple/10 to-primary/10 border border-nebula-purple/30">
+                  {/* Weekly Updates Addon */}
+                  <div className="mt-5 p-4 rounded-xl bg-gradient-to-br from-nebula-purple/10 to-primary/10 border border-nebula-purple/30">
                       <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="w-5 h-5 text-nebula-purple" />
                         <h4 className="font-semibold text-foreground">Add Weekly Cosmic Updates?</h4>
@@ -618,7 +602,6 @@ export default function GiftPurchase() {
                         })}
                       </div>
                     </div>
-                  )}
                 </div>
               )}
 
@@ -671,7 +654,7 @@ export default function GiftPurchase() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         {(Object.entries(TIERS) as [GiftTier, typeof TIERS.portrait][]).map(([key, tier]) => (
                           <button
                             key={key}
@@ -685,11 +668,11 @@ export default function GiftPurchase() {
                           >
                             {'highlight' in tier && tier.highlight && (
                               <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0 text-[8px] font-bold rounded-full ${
-                                tier.highlight === 'Best Value' 
-                                  ? 'bg-gold text-background' 
+                                tier.highlight === 'Best Value'
+                                  ? 'bg-gold text-background'
                                   : 'bg-nebula-purple text-white'
                               }`}>
-                                {tier.highlight === 'Best Value' ? 'BEST' : 'VIP'}
+                                {tier.highlight}
                               </span>
                             )}
                             <span className="text-lg block mb-1">{'icon' in tier ? tier.icon : '⭐'}</span>

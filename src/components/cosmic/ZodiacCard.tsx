@@ -38,12 +38,12 @@ export function ZodiacCard({ petName, sunSign, archetype, element, coreEssence, 
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleShare = async () => {
-    const shareText = `✨ ${petName}'s Cosmic Soul Reading ✨\n\n${zodiacEmojis[sunSign] || '⭐'} ${sunSign} ${element}\n🌟 ${archetype}\n\n"${coreEssence}"\n\nDiscover your pet's cosmic destiny at Astro Paws!`;
+    const shareText = `✨ ${petName}'s Little Souls Reading ✨\n\n${zodiacEmojis[sunSign] || '⭐'} ${sunSign} ${element}\n🌟 ${archetype}\n\n"${coreEssence}"\n\nDiscover your pet's cosmic destiny at Astro Paws!`;
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${petName}'s Cosmic Soul Reading`,
+          title: `${petName}'s Little Souls Reading`,
           text: shareText,
         });
       } catch (err) {

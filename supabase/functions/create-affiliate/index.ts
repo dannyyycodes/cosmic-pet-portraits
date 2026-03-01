@@ -119,7 +119,7 @@ serve(async (req) => {
     }
 
     // Create onboarding link
-    const origin = req.headers.get("origin") || "https://astropets.cloud";
+    const origin = req.headers.get("origin") || "https://littlesouls.co";
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: `${origin}/affiliate/onboarding?refresh=true`,
@@ -137,15 +137,15 @@ serve(async (req) => {
         const referralLink = `${origin}/?ref=${referralCode}`;
         
         await resend.emails.send({
-          from: "Astropets <hello@astropets.cloud>",
+          from: "Little Souls <hello@littlesouls.co>",
           to: [input.email],
-          subject: "🎉 Welcome to the Astropets Affiliate Program!",
+          subject: "🎉 Welcome to the Little Souls Affiliate Program!",
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <h1 style="color: #1a1a2e; margin-bottom: 20px;">Welcome aboard, ${input.name}! 🌟</h1>
               
               <p style="color: #333; font-size: 16px; line-height: 1.6;">
-                You're now an official Astropets affiliate! Your account is <strong>active</strong> and ready to start earning.
+                You're now an official Little Souls affiliate! Your account is <strong>active</strong> and ready to start earning.
               </p>
               
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 12px; margin: 24px 0;">

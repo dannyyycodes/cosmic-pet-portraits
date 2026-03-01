@@ -36,7 +36,7 @@ interface GiftInfo {
 
 interface GiftedInfo {
   isGifted: boolean;
-  giftedTier: 'basic' | 'premium' | 'vip' | null;
+  giftedTier: 'basic' | 'premium' | null;
 }
 
 interface HoroscopeInfo {
@@ -61,7 +61,7 @@ export default function PaymentSuccess() {
   const reportIdsParam = searchParams.get('report_ids');
   const isQuickCheckout = searchParams.get('quick') === 'true';
   const isGiftedParam = searchParams.get('gifted') === 'true';
-  const giftedTierParam = searchParams.get('gifted_tier') as 'basic' | 'premium' | 'vip' | null;
+  const giftedTierParam = searchParams.get('gifted_tier') as 'basic' | 'premium' | null;
   const isGiftRedemption = sessionId?.startsWith('gift_') || isGiftedParam;
   
   const includeGiftParam = searchParams.get('include_gift') === 'true';
@@ -102,7 +102,7 @@ export default function PaymentSuccess() {
     let attempts = 0;
     
     let petPhotosFromStorage: Record<string, { url: string; processingMode?: string }> = {};
-    let petTiersFromStorage: Record<string, 'basic' | 'premium' | 'vip'> = {};
+    let petTiersFromStorage: Record<string, 'basic' | 'premium'> = {};
     
     if (sessionId?.startsWith('dev_test_')) {
       try {
@@ -202,7 +202,7 @@ export default function PaymentSuccess() {
           <button onClick={() => navigate('/')} className="text-sm text-[#9B8E84] hover:text-[#2D2926] underline-offset-4 hover:underline transition-colors block w-full mt-3">
             Go back home
           </button>
-          <p className="text-xs text-[#9B8E84] mt-6">If this persists, please contact hello@astropets.cloud</p>
+          <p className="text-xs text-[#9B8E84] mt-6">If this persists, please contact hello@littlesouls.co</p>
         </div>
       </div>
     );

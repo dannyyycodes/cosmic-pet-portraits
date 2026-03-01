@@ -93,7 +93,7 @@ const getAbandonedCartEmailTemplate = (petName: string, intakeUrl: string, unsub
       <!-- Brand Footer -->
       <div style="text-align: center; margin-top: 24px;">
         <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          AstroPets
+          Little Souls
         </p>
       </div>
 
@@ -168,14 +168,14 @@ serve(async (req) => {
     for (const subscriber of abandonedCarts) {
       try {
         const petName = subscriber.pet_name || "your pet";
-        const baseUrl = "https://astropets.cloud";
+        const baseUrl = "https://littlesouls.co";
         const intakeUrl = `${baseUrl}/intake`;
         const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
         
         logStep("Sending abandoned cart email", { email: subscriber.email, petName });
 
         const emailResponse = await resend.emails.send({
-          from: "AstroPets <hello@astropets.cloud>",
+          from: "Little Souls <hello@littlesouls.co>",
           to: [subscriber.email],
           subject: `✨ ${petName}'s cosmic reading is waiting for you!`,
           html: getAbandonedCartEmailTemplate(petName, intakeUrl, unsubscribeUrl),

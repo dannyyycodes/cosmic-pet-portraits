@@ -114,7 +114,7 @@ async function generateEmailContent(
         messages: [
           {
             role: "system",
-            content: `You are writing emails for AstroPets, a pet astrology service. 
+            content: `You are writing emails for Little Souls, a pet astrology service. 
 
 CRITICAL RULES:
 - Write like a human, not a marketer
@@ -126,7 +126,7 @@ CRITICAL RULES:
 - No "we're so excited" or similar phrases
 - Output ONLY the email body HTML with inline CSS
 - Use simple, clean styling - dark background (#0f0a1a), white text, muted gray for secondary text
-- Include one clear CTA button linking to https://astropets.cloud/intake`,
+- Include one clear CTA button linking to https://littlesouls.co/intake`,
           },
           { role: "user", content: prompt },
         ],
@@ -171,10 +171,10 @@ function wrapEmailTemplate(content: string, petName: string): string {
     
     <div style="border-top: 1px solid rgba(255,255,255,0.08); margin-top: 40px; padding-top: 24px; text-align: center;">
       <p style="color: #505060; font-size: 12px; margin: 0 0 12px 0;">
-        AstroPets
+        Little Souls
       </p>
       <p style="margin: 0;">
-        <a href="https://astropets.cloud/unsubscribe?email={email}" style="color: #505060; font-size: 11px; text-decoration: underline;">Unsubscribe</a>
+        <a href="https://littlesouls.co/unsubscribe?email={email}" style="color: #505060; font-size: 11px; text-decoration: underline;">Unsubscribe</a>
       </p>
     </div>
   </div>
@@ -192,7 +192,7 @@ function getFallbackContent(campaignType: string, petName: string): string {
         The full reading covers their personality traits, how they show love, and tips for bonding.
       </p>
       <div style="text-align: center; margin: 24px 0;">
-        <a href="https://astropets.cloud/intake" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+        <a href="https://littlesouls.co/intake" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
           Continue ${petName}'s Reading
         </a>
       </div>
@@ -205,7 +205,7 @@ function getFallbackContent(campaignType: string, petName: string): string {
         Your progress is saved if you want to pick back up.
       </p>
       <div style="text-align: center; margin: 24px 0;">
-        <a href="https://astropets.cloud/intake" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+        <a href="https://littlesouls.co/intake" style="display: inline-block; background: linear-gradient(135deg, #d4a574 0%, #c49a6c 100%); color: #1a1a2e; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
           Finish My Reading
         </a>
       </div>
@@ -274,7 +274,7 @@ serve(async (req) => {
         const { subject, html } = await generateEmailContent("welcome_1", subscriber.pet_name || "your pet");
         
         await resend.emails.send({
-          from: "AstroPets <hello@astropets.cloud>",
+          from: "Little Souls <hello@littlesouls.co>",
           to: [subscriber.email],
           subject,
           html: html.replace("{email}", encodeURIComponent(subscriber.email)),
@@ -310,7 +310,7 @@ serve(async (req) => {
         const { subject, html } = await generateEmailContent("abandoned_cart", subscriber.pet_name || "your pet");
         
         await resend.emails.send({
-          from: "AstroPets <hello@astropets.cloud>",
+          from: "Little Souls <hello@littlesouls.co>",
           to: [subscriber.email],
           subject,
           html: html.replace("{email}", encodeURIComponent(subscriber.email)),
@@ -350,7 +350,7 @@ serve(async (req) => {
         );
         
         await resend.emails.send({
-          from: "AstroPets <hello@astropets.cloud>",
+          from: "Little Souls <hello@littlesouls.co>",
           to: [subscriber.email],
           subject,
           html: html.replace("{email}", encodeURIComponent(subscriber.email)),

@@ -246,7 +246,7 @@ export default function BecomeAffiliate() {
                   {t('affiliate.customCode')} <span className="text-muted-foreground font-normal">{t('affiliate.customCodeOptional')}</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm whitespace-nowrap">astropets.cloud/ref/</span>
+                  <span className="text-muted-foreground text-sm whitespace-nowrap">littlesouls.co/ref/</span>
                   <input
                     type="text"
                     value={referralCode}

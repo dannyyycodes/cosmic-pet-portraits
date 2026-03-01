@@ -35,7 +35,7 @@ serve(async (req) => {
     console.log("Generating blog post for topic:", topic);
 
     // Generate SEO-optimized blog content with pet report CTA
-    const systemPrompt = `You are an expert pet behavior writer and SEO specialist for AstroPets, a cosmic pet personality reading service. 
+    const systemPrompt = `You are an expert pet behavior writer and SEO specialist for Little Souls, a cosmic pet personality reading service. 
 
 Your task is to write engaging, helpful blog posts that:
 1. Answer the user's question about pet behavior thoroughly

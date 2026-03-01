@@ -27,14 +27,15 @@ function escapeHtml(unsafe: string): string {
     .replace(/'/g, '&#039;');
 }
 
-const SYSTEM_PROMPT = `You are AstroPaws, the friendly AI support assistant for AstroPets (astropets.cloud) - a cosmic pet astrology service that creates personalized astrological readings for pets.
+const SYSTEM_PROMPT = `You are Little Souls, the friendly AI support assistant for Little Souls (littlesouls.co) - a cosmic pet astrology service that creates personalized astrological readings for pets.
 
 ABOUT THE SERVICE:
-- Cosmic Pet Report ($9.97): Personalized astrology reading based on pet's birth date, species, and personality
-- Weekly Horoscope Subscription ($2.99/month): Weekly cosmic guidance delivered by email
-- AI Cosmic Portrait ($7.99): AI-generated artistic portrait of the pet
-- VIP Package ($16.97): Includes report + portrait + subscription
-- Gift Certificates: Available for any amount, redeemable for readings
+- Little Souls Reading ($27): Personalized astrology reading based on pet's birth date, species, and personality
+- Little Souls Reading + Portrait ($35): Reading plus AI-generated artistic portrait of the pet
+- The Little Souls Book ($99): Hardcover printed edition with reading + portrait + book
+- Little Souls Weekly ($4.99/month, 30-day free trial): Weekly cosmic guidance delivered by email
+- SoulSpeak by Little Souls: Chat with your pet's cosmic soul (15 free credits, 50 for hardcover buyers)
+- Gift Certificates: Available for any tier, redeemable for readings
 
 COMMON TOPICS & RESPONSES:
 
@@ -73,7 +74,7 @@ IMPORTANT:
 - For refunds: ALWAYS say the team will review and respond within 24-48 hours
 - If unsure, say "Our team will review this and get back to you shortly"`;
 
-const FEEDBACK_REQUEST_PROMPT = `You are AstroPaws, the friendly AI support assistant for AstroPets.
+const FEEDBACK_REQUEST_PROMPT = `You are Little Souls, the friendly AI support assistant for Little Souls.
 
 The customer has requested a refund for the second time. We need to understand why they want a refund so we can improve our product.
 
@@ -86,7 +87,7 @@ Write a warm, empathetic email that:
 
 The tone should be curious and caring, not defensive. We genuinely want to learn and improve.`;
 
-const REFUND_CONFIRMATION_PROMPT = `You are AstroPaws, the friendly AI support assistant for AstroPets.
+const REFUND_CONFIRMATION_PROMPT = `You are Little Souls, the friendly AI support assistant for Little Souls.
 
 The customer has responded to our feedback request about their refund. Now we need to confirm we're processing their refund.
 
@@ -186,7 +187,7 @@ function buildEmailHtml(safeName: string, safeAiResponse: string): string {
         You can reply to this email if you need further assistance
       </p>
       <p style="color: #505060; font-size: 12px; margin: 0;">
-        AstroPets • Revealing the souls of our furry friends 🌙
+        Little Souls • Revealing the souls of our furry friends 🌙
       </p>
     </div>
 
@@ -243,7 +244,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("[AI-SUPPORT] Contact history:", { isRefund, previousRefundRequests });
 
     let aiResponse = "";
-    let emailSubject = "Re: Your AstroPets inquiry";
+    let emailSubject = "Re: Your Little Souls inquiry";
 
     // Determine which response flow based on refund request count
     if (isRefund && previousRefundRequests >= 2) {
@@ -313,11 +314,11 @@ const handler = async (req: Request): Promise<Response> => {
     const safeName = escapeHtml(name);
 
     const emailResponse = await resend.emails.send({
-      from: "AstroPaws Support <hello@astropets.cloud>",
+      from: "Little Souls <hello@littlesouls.co>",
       to: [email],
       subject: emailSubject,
       html: buildEmailHtml(safeName, safeAiResponse),
-      reply_to: "hello@astropets.cloud",
+      reply_to: "hello@littlesouls.co",
     });
 
     console.log("[AI-SUPPORT] Auto-reply sent successfully:", emailResponse);

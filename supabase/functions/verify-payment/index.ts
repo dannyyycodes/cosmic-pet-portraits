@@ -109,7 +109,7 @@ serve(async (req) => {
         const id = reportIds[i];
         const shareToken = generateShareToken();
         const tierKey = petTiersFromBody[String(i)] || selectedTierParam || 'premium';
-        const tierIncludesPortrait = tierKey === 'premium' || tierKey === 'vip';
+        const tierIncludesPortrait = tierKey === 'premium';
         const petPhoto = petPhotosFromBody[String(i)];
         
         const updateData: Record<string, unknown> = { 
@@ -134,7 +134,7 @@ serve(async (req) => {
       for (let i = 0; i < reportIds.length; i++) {
         const id = reportIds[i];
         const tierKey = petTiersFromBody[String(i)] || selectedTierParam || 'premium';
-        const includesPortrait = tierKey === 'premium' || tierKey === 'vip';
+        const includesPortrait = tierKey === 'premium';
         
         const { data: report } = await supabaseClient
           .from("pet_reports")
@@ -173,7 +173,7 @@ serve(async (req) => {
       }
 
       // Handle horoscope subscription in dev mode
-      const horoscopeEnabled = includeHoroscopeParam || selectedTierParam === 'vip';
+      const horoscopeEnabled = includeHoroscopeParam;
       if (horoscopeEnabled) {
         console.log("[VERIFY-PAYMENT] Dev mode - Creating horoscope subscriptions");
         
@@ -270,7 +270,7 @@ serve(async (req) => {
         
         // Determine this pet's tier from gift_pets_json or fallback to global
         const petTier = giftPetsJson?.[i]?.tier || globalTier;
-        const includesPortrait = petTier === 'portrait' || petTier === 'vip';
+        const includesPortrait = petTier === 'portrait';
         
         console.log(`[VERIFY-PAYMENT] Processing report ${i}:`, { id, petTier, includesPortrait });
         
@@ -312,9 +312,9 @@ serve(async (req) => {
         .order("created_at", { ascending: true });
       
       // Check if any pet has horoscope subscription
-      const hasAnyPortrait = giftPetsJson 
-        ? giftPetsJson.some(p => p.tier === 'portrait' || p.tier === 'vip')
-        : (globalTier === 'portrait' || globalTier === 'vip');
+      const hasAnyPortrait = giftPetsJson
+        ? giftPetsJson.some(p => p.tier === 'portrait')
+        : (globalTier === 'portrait');
 
       const primaryReport = allReports?.find((r: any) => r.id === reportId) || allReports?.[0];
 
@@ -423,17 +423,16 @@ serve(async (req) => {
         .single();
 
       if (report && !report.report_content) {
-        const includesPortrait = session.metadata?.includes_portrait === "true" || session.metadata?.selected_tier === "vip";
+        const includesPortrait = session.metadata?.includes_portrait === "true";
         triggerBackgroundGeneration(id, includesPortrait);
       }
     }
 
-    // Create horoscope subscriptions if selected or VIP tier
+    // Create horoscope subscriptions if selected
     const includeHoroscope = session.metadata?.include_horoscope === "true";
-    const isVip = session.metadata?.vip_horoscope === "true" || session.metadata?.selected_tier === "vip";
-    
-    if (includeHoroscope || isVip) {
-      console.log("[VERIFY-PAYMENT] Creating horoscope subscriptions", { includeHoroscope, isVip });
+
+    if (includeHoroscope) {
+      console.log("[VERIFY-PAYMENT] Creating horoscope subscriptions", { includeHoroscope });
       
       for (const id of reportIds) {
         const { data: petReport } = await supabaseClient
@@ -451,7 +450,6 @@ serve(async (req) => {
             .single();
           
           if (!existingSub) {
-            // Create horoscope subscription (active immediately for VIP, or paid add-on)
             const { error: subError } = await supabaseClient
               .from("horoscope_subscriptions")
               .insert({
@@ -459,7 +457,6 @@ serve(async (req) => {
                 pet_name: petReport.pet_name,
                 pet_report_id: id,
                 status: "active",
-                stripe_subscription_id: isVip ? `vip_included_${sessionId}` : null,
                 next_send_at: new Date().toISOString(),
               });
             
@@ -493,7 +490,7 @@ serve(async (req) => {
       reportIds: reportIds,
       includeGift,
       giftCode,
-      horoscopeEnabled: includeHoroscope || isVip,
+      horoscopeEnabled: includeHoroscope,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

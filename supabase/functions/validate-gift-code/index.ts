@@ -64,9 +64,7 @@ serve(async (req) => {
     let giftedTier = data.gift_tier;
     if (!giftedTier) {
       // Fallback for old gift certificates without tier column
-      if (data.amount_cents >= 12900) {
-        giftedTier = 'vip';
-      } else if (data.amount_cents >= 5000) {
+      if (data.amount_cents >= 5000) {
         giftedTier = 'portrait';
       } else {
         giftedTier = 'essential';
@@ -81,7 +79,7 @@ serve(async (req) => {
     let horoscopePetIndices: number[] = [];
     if (giftPetsJson && Array.isArray(giftPetsJson)) {
       portraitPetIndices = giftPetsJson
-        .map((pet, idx) => (pet.tier === 'portrait' || pet.tier === 'vip') ? idx : -1)
+        .map((pet, idx) => (pet.tier === 'portrait') ? idx : -1)
         .filter(idx => idx !== -1);
       
       // Check for horoscope addons (separate from tier)
@@ -90,12 +88,12 @@ serve(async (req) => {
         .filter(idx => idx !== -1);
     }
     
-    // Check if ANY pet has portrait/VIP tier
-    const hasAnyPortrait = giftPetsJson 
-      ? giftPetsJson.some(pet => pet.tier === 'portrait' || pet.tier === 'vip')
-      : (giftedTier === 'portrait' || giftedTier === 'vip');
+    // Check if ANY pet has portrait tier
+    const hasAnyPortrait = giftPetsJson
+      ? giftPetsJson.some(pet => pet.tier === 'portrait')
+      : (giftedTier === 'portrait');
     
-    // Check if ANY pet has horoscope addon (from tier OR explicit addon purchase)
+    // Check if ANY pet has horoscope addon (from portrait tier OR explicit addon purchase)
     const hasAnyHoroscope = hasAnyPortrait || horoscopePetIndices.length > 0;
 
     // Return only necessary data (no emails)
@@ -111,7 +109,6 @@ serve(async (req) => {
       portraitPetIndices, // Which pets get portraits
       horoscopePetIndices, // Which pets get horoscope addons
       includesPortrait: hasAnyPortrait,
-      includesVip: giftedTier === 'vip' || (giftPetsJson?.some(p => p.tier === 'vip') ?? false),
       includesWeeklyHoroscope: hasAnyHoroscope,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

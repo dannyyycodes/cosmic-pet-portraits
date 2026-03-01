@@ -112,7 +112,7 @@ export default function Auth() {
             toast.error(error.message);
           }
         } else {
-          toast.success('Account created! Welcome to AstroPets.');
+          toast.success('Account created! Welcome to Little Souls.');
           navigate('/my-reports');
         }
       }
@@ -135,7 +135,7 @@ export default function Auth() {
     }
     return mode === 'login' 
       ? 'Sign in to view your cosmic reports' 
-      : 'Join AstroPets to save your reports';
+      : 'Join Little Souls to save your reports';
   };
 
   return (

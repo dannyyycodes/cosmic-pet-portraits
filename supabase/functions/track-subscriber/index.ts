@@ -13,7 +13,7 @@ const trackSchema = z.object({
   event: z.enum(["intake_started", "intake_completed", "purchase_completed", "unsubscribe"]),
   petName: z.string().max(50).nullish(),
   petReportId: z.string().uuid().nullish(),
-  tier: z.enum(["basic", "premium", "vip"]).nullish(),
+  tier: z.enum(["basic", "premium"]).nullish(),
   source: z.enum(["intake", "gift", "referral"]).nullish(),
   referralCode: z.string().max(50).nullish(),
 });

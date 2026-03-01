@@ -308,7 +308,6 @@ serve(async (req) => {
             const giftTierMap: Record<string, { cents: number; tier: string }> = {
               basic: { cents: 3500, tier: 'essential' },
               premium: { cents: 5000, tier: 'portrait' },
-              vip: { cents: 12900, tier: 'vip' },
             };
             const giftInfo = giftTierMap[giftTierForFriend] || giftTierMap.basic;
             
@@ -423,22 +422,13 @@ serve(async (req) => {
                    // Portrait AI temporarily disabled — we use the uploaded photo directly on the card now.
                    // (pet_photo_url is stored on the report and used in the frontend.)
                   
-                  // Create horoscope subscription if VIP tier or horoscope add-on purchased
+                  // Create horoscope subscription if hardcover or horoscope add-on enabled
                   const includeHoroscope = session.metadata?.include_horoscope === "true";
-                  const isVipTier = session.metadata?.vip_horoscope === "true" || session.metadata?.selected_tier === "vip";
-                  
-                  // Check per-pet tiers for VIP
-                  let petTiers: Record<string, string> = {};
-                  try {
-                    petTiers = JSON.parse(session.metadata?.pet_tiers || "{}");
-                  } catch { /* ignore parse errors */ }
-                  
-                  const petIndex = reportIds.indexOf(reportId);
-                  const thisPetIsVip = petTiers[String(petIndex)] === "vip" || isVipTier;
-                  const thisPetGetsHoroscope = thisPetIsVip || includeHoroscope;
-                  
+                  const isHardcover = session.metadata?.includes_book === "true";
+                  const thisPetGetsHoroscope = isHardcover || includeHoroscope;
+
                   if (thisPetGetsHoroscope && report.email) {
-                    console.log("[STRIPE-WEBHOOK] Creating horoscope subscription for:", reportId, { thisPetIsVip, includeHoroscope });
+                    console.log("[STRIPE-WEBHOOK] Creating horoscope subscription for:", reportId, { isHardcover, includeHoroscope });
 
                     // Check if subscription already exists
                     const { data: existingSub } = await supabaseClient
@@ -458,11 +448,11 @@ serve(async (req) => {
                       const petOccasionMode = report.occasion_mode || "discover";
 
                       // Hardcover buyers get horoscopes forever; others get 30-day trial
-                      const plan = thisPetIsVip ? "hardcover_included" : "trial";
+                      const plan = isHardcover ? "hardcover_included" : "trial";
 
-                      // For non-VIP, create a Stripe recurring subscription with 30-day trial
+                      // For non-hardcover, create a Stripe recurring subscription with 30-day trial
                       let stripeSubId: string | null = null;
-                      if (!thisPetIsVip && session.customer) {
+                      if (!isHardcover && session.customer) {
                         try {
                           const stripeSub = await stripe.subscriptions.create({
                             customer: session.customer as string,
@@ -477,9 +467,19 @@ serve(async (req) => {
                           console.log("[STRIPE-WEBHOOK] Stripe horoscope subscription created:", stripeSubId);
                         } catch (stripeSubError: any) {
                           console.error("[STRIPE-WEBHOOK] Failed to create Stripe horoscope subscription:", stripeSubError?.message);
-                          // Continue anyway — they still get the free trial via our DB
                         }
                       }
+
+                      // Set SoulSpeak credits: 50 for hardcover, 15 for standard
+                      const creditAmount = isHardcover ? 50 : 15;
+                      await supabaseClient
+                        .from("chat_credits")
+                        .upsert({
+                          report_id: reportId,
+                          email: report.email,
+                          credits_remaining: creditAmount,
+                          plan: isHardcover ? "hardcover" : "free",
+                        }, { onConflict: "report_id" });
 
                       const { error: subError } = await supabaseClient
                         .from("horoscope_subscriptions")
@@ -551,35 +551,8 @@ serve(async (req) => {
                       });
                       console.log("[STRIPE-WEBHOOK] Purchase tracked for email marketing:", report.email);
                       
-                      // Send VIP welcome email if VIP tier
-                      if (selectedTier === 'vip') {
-                        console.log("[STRIPE-WEBHOOK] Sending VIP welcome email for:", reportId);
-                        
-                        // Get latest report data with portrait
-                        const { data: latestReport } = await supabaseClient
-                          .from("pet_reports")
-                          .select("portrait_url")
-                          .eq("id", reportId)
-                          .single();
-                        
-                        await fetch(`${supabaseUrl}/functions/v1/send-vip-email`, {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${serviceRoleKey}`,
-                          },
-                          body: JSON.stringify({
-                            reportId,
-                            email: report.email,
-                            petName: report.pet_name,
-                            sunSign: genData.report?.chartPlacements?.sun?.sign || genData.report?.sunSign,
-                            portraitUrl: latestReport?.portrait_url || null,
-                          }),
-                        });
-                        console.log("[STRIPE-WEBHOOK] VIP welcome email sent for:", reportId);
-                      }
                     } catch (trackError) {
-                      console.error("[STRIPE-WEBHOOK] Failed to track/send VIP email:", trackError);
+                      console.error("[STRIPE-WEBHOOK] Failed to track purchase:", trackError);
                     }
                   }
                 } else {

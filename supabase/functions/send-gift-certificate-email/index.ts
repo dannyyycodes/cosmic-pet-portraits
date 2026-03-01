@@ -73,7 +73,7 @@ const getPurchaserEmailTemplate = (recipientName: string, giftCode: string, gift
       <!-- Footer -->
       <div style="text-align: center;">
         <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          AstroPets
+          Little Souls
         </p>
       </div>
 
@@ -136,7 +136,7 @@ const getRecipientEmailTemplate = (recipientName: string, giftCode: string, gift
 
       <!-- CTA Button -->
       <div style="text-align: center; margin: 36px 0;">
-        <a href="https://astropets.cloud/redeem?code=${giftCode}" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f59e0b 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;">
+        <a href="https://littlesouls.co/redeem?code=${giftCode}" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f59e0b 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;">
           Redeem Your Gift →
         </a>
       </div>
@@ -147,7 +147,7 @@ const getRecipientEmailTemplate = (recipientName: string, giftCode: string, gift
       <!-- Footer -->
       <div style="text-align: center;">
         <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          AstroPets
+          Little Souls
         </p>
       </div>
 
@@ -206,7 +206,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to purchaser (confirmation)
     const purchaserEmailResult = await resend.emails.send({
-      from: "AstroPets <hello@astropets.cloud>",
+      from: "Little Souls <hello@littlesouls.co>",
       to: [giftCert.purchaser_email],
       subject: "🎁 Your Gift Certificate is Ready",
       html: getPurchaserEmailTemplate(recipientName, giftCert.code, giftMessage, giftCert.recipient_email),
@@ -229,7 +229,7 @@ const handler = async (req: Request): Promise<Response> => {
     // If there's a recipient email, send them the gift notification
     if (giftCert.recipient_email) {
       const recipientEmailResult = await resend.emails.send({
-        from: "AstroPets <hello@astropets.cloud>",
+        from: "Little Souls <hello@littlesouls.co>",
         to: [giftCert.recipient_email],
         subject: `🎁 ${recipientName}, you've received a special gift!`,
         html: getRecipientEmailTemplate(recipientName, giftCert.code, giftMessage),

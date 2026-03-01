@@ -189,10 +189,8 @@ const Account = () => {
   };
 
   const getTierLabel = (tier: string | null, amount: number) => {
-    if (tier === 'vip') return 'VIP Experience';
     if (tier === 'portrait') return 'Portrait Package';
     if (tier === 'essential') return 'Essential Reading';
-    if (amount >= 12900) return 'VIP Experience';
     if (amount >= 5000) return 'Portrait Package';
     return 'Essential Reading';
   };
@@ -306,7 +304,7 @@ const Account = () => {
                     <Star className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground mb-4">No horoscope subscriptions</p>
                     <p className="text-sm text-muted-foreground">
-                      Weekly horoscopes are included with Portrait and VIP gift tiers
+                      Weekly horoscopes are included with Portrait gift tiers
                     </p>
                   </div>
                 ) : (
@@ -436,7 +434,7 @@ const Account = () => {
             <Card className="bg-card/50 backdrop-blur border-border/50">
               <CardHeader>
                 <CardTitle>Affiliate Program</CardTitle>
-                <CardDescription>Earn by sharing AstroPets</CardDescription>
+                <CardDescription>Earn by sharing Little Souls</CardDescription>
               </CardHeader>
               <CardContent>
                 {!customerData?.affiliate ? (
@@ -538,10 +536,10 @@ const Account = () => {
                     For refunds, order issues, or questions, email us at:
                   </p>
                   <a 
-                    href="mailto:hello@astropets.cloud"
+                    href="mailto:hello@littlesouls.co"
                     className="text-primary hover:text-primary/80"
                   >
-                    hello@astropets.cloud
+                    hello@littlesouls.co
                   </a>
                 </div>
               </CardContent>

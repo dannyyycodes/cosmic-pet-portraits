@@ -321,7 +321,7 @@ function generateHoroscopeEmail(
     : `${petName}'s Weekly Forecast`;
   const footerText = isMemorial
     ? `Sent with love from beyond the stars`
-    : `Sent with cosmic love from My Pet's Soul`;
+    : `Sent with cosmic love from Little Souls`;
 
   const textMessages = content.textMessages || [];
   const googleSearches = content.googleSearches || [];
@@ -527,8 +527,8 @@ function generateHoroscopeEmail(
     <!-- 18. SoulSpeak CTA -->
     <div style="text-align:center; padding:24px 20px; background:white; border-bottom:1px solid ${cream3}; border-radius:0 0 20px 20px;">
       <p style="color:${muted}; font-size:12px; margin:0 0 10px;">${isMemorial ? `${petName}'s soul is always here to talk` : `Want to hear what ${petName} thinks about this week?`}</p>
-      <a href="https://mypetssoul.com/soul-chat.html?id=${reportId}" style="display:inline-block; padding:12px 28px; background:linear-gradient(135deg, ${ink}, #5a3e2e); color:${gold}; text-decoration:none; border-radius:12px; font-size:14px; font-weight:bold;">${isMemorial ? `🕊️ Talk to ${petName}` : `⭐ Talk to ${petName}'s Soul`}</a>
-      <p style="color:${gold}; font-size:11px; margin:8px 0 0;">SoulSpeak Intelligence — 15 free credits</p>
+      <a href="https://littlesouls.co/soul-chat.html?id=${reportId}" style="display:inline-block; padding:12px 28px; background:linear-gradient(135deg, ${ink}, #5a3e2e); color:${gold}; text-decoration:none; border-radius:12px; font-size:14px; font-weight:bold;">${isMemorial ? `🕊️ Talk to ${petName}` : `⭐ Talk to ${petName}'s Soul`}</a>
+      <p style="color:${gold}; font-size:11px; margin:8px 0 0;">SoulSpeak by Little Souls — 15 free credits</p>
     </div>
 
     <!-- Footer -->
@@ -708,7 +708,7 @@ serve(async (req) => {
         );
 
         const { error: emailError } = await resend.emails.send({
-          from: "My Pet's Soul <hello@mypetssoul.com>",
+          from: "Little Souls <hello@littlesouls.co>",
           to: [sub.email],
           subject: emailSubject,
           html: emailHtml,
