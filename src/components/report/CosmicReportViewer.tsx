@@ -28,6 +28,7 @@ import { CosmicRecipe } from './CosmicRecipe';
 import { CosmicNameMeaning } from './CosmicNameMeaning';
 import { CompatibilityChart } from './CompatibilityChart';
 import { CosmicPlaylist } from './CosmicPlaylist';
+import { DatingProfile } from './DatingProfile';
 import { ShareableCard } from './ShareableCard';
 import { SectionDivider } from './SectionDivider';
 import { SoulSpeakFAB } from './SoulSpeakFAB';
@@ -415,8 +416,21 @@ export function CosmicReportViewer({
           <CosmicRecipe petName={petName} report={report} />
           <SectionDivider />
 
+          {/* ═══ DATING PROFILE ═══ */}
+          {report.datingProfile && (
+            <>
+              <DatingProfile
+                petName={petName}
+                datingProfile={report.datingProfile}
+                sunSign={sunSign}
+                element={element}
+              />
+              <SectionDivider />
+            </>
+          )}
+
           {/* ═══ FUN EXTRAS ═══ */}
-          {(report.memePersonality || report.topFiveCrimes || report.datingProfile || report.dreamJob) && (
+          {(report.memePersonality || report.topFiveCrimes || report.dreamJob) && (
             <>
               <FunExtras report={report} />
               <SectionDivider />
@@ -679,17 +693,6 @@ function FunExtras({ report }: { report: ReportContent }) {
           </div>
           <div className="font-dm-serif text-[0.95rem] text-[#3d2f2a]">
             {report.dreamJob.job}
-          </div>
-        </div>
-      )}
-
-      {report.datingProfile && (
-        <div className="mb-3.5">
-          <div className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
-            💕 Dating Profile
-          </div>
-          <div className="italic text-[0.85rem] text-[#5a4a42]">
-            "{report.datingProfile.headline}"
           </div>
         </div>
       )}
