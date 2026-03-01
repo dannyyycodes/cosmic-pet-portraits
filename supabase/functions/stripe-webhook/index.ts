@@ -457,8 +457,8 @@ serve(async (req) => {
                       // Determine occasion mode from report
                       const petOccasionMode = report.occasion_mode || "discover";
 
-                      // VIP gets plan: 'vip_included', others get 'trial'
-                      const plan = thisPetIsVip ? "vip_included" : "trial";
+                      // Hardcover buyers get horoscopes forever; others get 30-day trial
+                      const plan = thisPetIsVip ? "hardcover_included" : "trial";
 
                       // For non-VIP, create a Stripe recurring subscription with 30-day trial
                       let stripeSubId: string | null = null;

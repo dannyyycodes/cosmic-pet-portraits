@@ -1,8 +1,12 @@
--- Weekly cron job: fire generate-weekly-horoscopes every Monday at 9:00 AM UTC
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+-- Weekly cron job: generate horoscopes every Monday at 9:00 AM UTC
 SELECT cron.schedule(
   'weekly-horoscope-generation',
-  '0 9 * * 1',  -- Every Monday at 09:00 UTC
-  $$
+  '0 9 * * 1',
+  $CRON$
   SELECT net.http_post(
     url := current_setting('app.settings.supabase_url') || '/functions/v1/generate-weekly-horoscopes',
     headers := jsonb_build_object(
@@ -11,5 +15,5 @@ SELECT cron.schedule(
     ),
     body := '{}'::jsonb
   ) AS request_id;
-  $$
+  $CRON$
 );

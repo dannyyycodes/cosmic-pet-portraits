@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import { calculateAllPositions, longitudeToZodiac } from "./ephemeris.ts";
+import { calculateAllPositions } from "./ephemeris.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +11,8 @@ const corsHeaders = {
 const resend = new Resend(Deno.env.get("RESEND_API_KEY") as string);
 
 // ── Transit helpers ─────────────────────────────────────────────
-function getCurrentTransits(): string {
+
+function getGlobalTransits(): { text: string; positions: ReturnType<typeof calculateAllPositions> } {
   const now = new Date();
   const positions = calculateAllPositions(now);
 
@@ -31,31 +32,21 @@ function getCurrentTransits(): string {
     lines.push(`${p.label}: ${pos.sign} ${pos.degree}°`);
   }
 
-  // Note any notable aspects (conjunctions within 8°)
+  // Note aspects between transiting planets
   const aspects: string[] = [];
   const keys = planets.map((p) => p.key);
   for (let i = 0; i < keys.length; i++) {
     for (let j = i + 1; j < keys.length; j++) {
-      const diff = Math.abs(
-        positions[keys[i]].longitude - positions[keys[j]].longitude
-      );
-      const normalizedDiff = diff > 180 ? 360 - diff : diff;
-      if (normalizedDiff < 8) {
-        aspects.push(
-          `${planets[i].label} conjunct ${planets[j].label} in ${positions[keys[i]].sign}`
-        );
-      } else if (Math.abs(normalizedDiff - 180) < 8) {
-        aspects.push(
-          `${planets[i].label} opposite ${planets[j].label}`
-        );
-      } else if (Math.abs(normalizedDiff - 90) < 6) {
-        aspects.push(
-          `${planets[i].label} square ${planets[j].label}`
-        );
-      } else if (Math.abs(normalizedDiff - 120) < 6) {
-        aspects.push(
-          `${planets[i].label} trine ${planets[j].label}`
-        );
+      const diff = Math.abs(positions[keys[i]].longitude - positions[keys[j]].longitude);
+      const d = diff > 180 ? 360 - diff : diff;
+      if (d < 8) {
+        aspects.push(`${planets[i].label} conjunct ${planets[j].label} in ${positions[keys[i]].sign}`);
+      } else if (Math.abs(d - 180) < 8) {
+        aspects.push(`${planets[i].label} opposite ${planets[j].label}`);
+      } else if (Math.abs(d - 90) < 6) {
+        aspects.push(`${planets[i].label} square ${planets[j].label}`);
+      } else if (Math.abs(d - 120) < 6) {
+        aspects.push(`${planets[i].label} trine ${planets[j].label}`);
       }
     }
   }
@@ -64,10 +55,54 @@ function getCurrentTransits(): string {
     lines.push(`\nKey Aspects: ${aspects.join(", ")}`);
   }
 
-  return lines.join("\n");
+  return { text: lines.join("\n"), positions };
+}
+
+// FIX 3: Calculate natal chart aspects against current transits
+function getNatalAspects(
+  transitPositions: ReturnType<typeof calculateAllPositions>,
+  natalPositions: { sun: number; moon: number; mercury?: number; venus?: number; mars?: number }
+): string {
+  const aspects: string[] = [];
+
+  const transitPlanets = [
+    { key: "sun", label: "Transiting Sun", lon: transitPositions.sun.longitude },
+    { key: "moon", label: "Transiting Moon", lon: transitPositions.moon.longitude },
+    { key: "mercury", label: "Transiting Mercury", lon: transitPositions.mercury.longitude },
+    { key: "venus", label: "Transiting Venus", lon: transitPositions.venus.longitude },
+    { key: "mars", label: "Transiting Mars", lon: transitPositions.mars.longitude },
+    { key: "jupiter", label: "Transiting Jupiter", lon: transitPositions.jupiter.longitude },
+    { key: "saturn", label: "Transiting Saturn", lon: transitPositions.saturn.longitude },
+  ];
+
+  const natalPoints: Array<{ label: string; lon: number }> = [
+    { label: "natal Sun", lon: natalPositions.sun },
+    { label: "natal Moon", lon: natalPositions.moon },
+  ];
+  if (natalPositions.mercury) natalPoints.push({ label: "natal Mercury", lon: natalPositions.mercury });
+  if (natalPositions.venus) natalPoints.push({ label: "natal Venus", lon: natalPositions.venus });
+  if (natalPositions.mars) natalPoints.push({ label: "natal Mars", lon: natalPositions.mars });
+
+  for (const transit of transitPlanets) {
+    for (const natal of natalPoints) {
+      const diff = Math.abs(transit.lon - natal.lon);
+      const d = diff > 180 ? 360 - diff : diff;
+
+      if (d < 8) aspects.push(`${transit.label} conjunct ${natal.label} (powerful alignment — core energy activated)`);
+      else if (Math.abs(d - 60) < 5) aspects.push(`${transit.label} sextile ${natal.label} (opportunity for growth)`);
+      else if (Math.abs(d - 90) < 6) aspects.push(`${transit.label} square ${natal.label} (tension, but productive tension)`);
+      else if (Math.abs(d - 120) < 6) aspects.push(`${transit.label} trine ${natal.label} (natural harmony and flow)`);
+      else if (Math.abs(d - 180) < 8) aspects.push(`${transit.label} opposite ${natal.label} (awareness and balance needed)`);
+    }
+  }
+
+  return aspects.length > 0
+    ? `\nNatal Aspects (transits hitting ${natalPoints.length > 2 ? "the pet's" : "their"} chart):\n  - ${aspects.join("\n  - ")}`
+    : "\nNo major natal aspects this week — a neutral, steady period.";
 }
 
 // ── AI prompt builders ──────────────────────────────────────────
+
 function buildStandardPrompt(
   petName: string,
   species: string,
@@ -122,20 +157,42 @@ Return a JSON object with these fields:
   "compatibilityTip": "How ${petName} will interact with other pets/humans this week",
   "affirmation": "A magical pet-themed affirmation for the week",
   "textMessages": [
-    { "sender": "pet", "text": "Short funny text from ${petName} about the week" },
-    { "sender": "human", "text": "Owner reply" },
-    { "sender": "pet", "text": "Pet comeback" },
-    { "sender": "human", "text": "Owner reply" },
-    { "sender": "pet", "text": "Final ${petName} text" }
+    {
+      "time": "Tuesday 7:12 AM",
+      "messages": [
+        "first funny text from ${petName}",
+        "second message continuing the thought",
+        "third message with emoji"
+      ]
+    },
+    {
+      "time": "Thursday 11:47 PM",
+      "messages": [
+        "late-night text from ${petName}",
+        "another message about how the week is going",
+        "sweet/funny sign-off message with emoji"
+      ]
+    }
   ],
   "googleSearches": [
     "Funny Google search ${petName} would make about this week",
     "Another search",
     "Another search"
   ],
-  "petParentSync": "One-liner about how the owner will mirror ${petName}'s energy this week",
-  "memePersonality": "Which meme ${petName} IS this week (format: 'That meme where...')",
-  "powerMove": "The most dramatic thing ${petName} will do this week"
+  "petParentSync": {
+    "syncLevel": 4,
+    "syncEmoji": "🔗🔗🔗🔗░",
+    "description": "3 sentences about how the pet's chart interacts with general human energy this week. Be specific about what the owner will notice."
+  },
+  "memePersonality": {
+    "vibe": "This week ${petName} is giving: '[funny internet personality description in quotes]'",
+    "energyLevel": "Energy level emoji rating (e.g. 🔋🔋🔋░░) with a parenthetical like (running on treats and audacity)"
+  },
+  "powerMove": {
+    "title": "One specific thing to do with ${petName} (5-15 words)",
+    "description": "Why this day/activity aligns with their transits (2 sentences max)",
+    "bestDay": "Which day to do it"
+  }
 }
 
 Make it warm, magical, deeply personal, specific to the transits, and shareable!`;
@@ -195,32 +252,57 @@ Return a JSON object with these fields:
   "compatibilityTip": "How ${petName}'s spirit will show up through other animals this week",
   "affirmation": "A comforting affirmation about eternal bonds",
   "textMessages": [
-    { "sender": "pet", "text": "Sweet message from ${petName} from beyond ✨" },
-    { "sender": "human", "text": "Tender reply" },
-    { "sender": "pet", "text": "${petName}'s comforting response" },
-    { "sender": "human", "text": "Reply" },
-    { "sender": "pet", "text": "Final message from ${petName}" }
+    {
+      "time": "Tuesday morning",
+      "messages": [
+        "Sweet message from ${petName} from beyond ✨",
+        "Another tender message",
+        "Comforting sign-off"
+      ]
+    },
+    {
+      "time": "Saturday night",
+      "messages": [
+        "Late-night message from ${petName}",
+        "Comforting words about always being near",
+        "Final sweet message with emoji"
+      ]
+    }
   ],
   "googleSearches": [
     "Bittersweet search about missing ${petName}",
     "Another tender search",
     "Another search"
   ],
-  "petParentSync": "How ${petName}'s energy still guides their human this week",
-  "memePersonality": "Tender version — 'That moment when...' about feeling their presence",
-  "powerMove": "The most powerful sign ${petName} will send this week"
+  "petParentSync": {
+    "syncLevel": 5,
+    "syncEmoji": "🔗🔗🔗🔗🔗",
+    "description": "3 sentences about how ${petName}'s energy still guides their human this week. Eternal bond framing."
+  },
+  "memePersonality": {
+    "vibe": "This week ${petName}'s spirit is giving: '[tender internet moment description]'",
+    "energyLevel": "Presence level: ✨✨✨✨✨ (always here, always watching)"
+  },
+  "powerMove": {
+    "title": "The most powerful sign ${petName} will send this week",
+    "description": "Why this moment connects to the transits (2 sentences max)",
+    "bestDay": "When to watch for it"
+  }
 }
 
 Make it warm, comforting, and full of continued connection. Never sad — always hopeful.`;
 }
 
 // ── Email template ──────────────────────────────────────────────
+
 function generateHoroscopeEmail(
   petName: string,
   content: any,
   sunSign: string,
   element: string,
-  occasionMode: string
+  occasionMode: string,
+  reportId: string,
+  weekDateRange: string
 ): string {
   const isMemorial = occasionMode === "memorial";
 
@@ -253,25 +335,74 @@ function generateHoroscopeEmail(
 <body style="margin:0; padding:0; background-color:${cream}; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
   <div style="max-width:600px; margin:0 auto; padding:20px;">
 
-    <!-- Header -->
+    <!-- 1. Header -->
     <div style="text-align:center; padding:40px 20px 30px; background:linear-gradient(135deg, ${cream2} 0%, ${cream} 100%); border-radius:20px 20px 0 0; border-bottom:1px solid ${cream3};">
       <div style="font-size:42px; margin-bottom:8px;">${headerEmoji}</div>
       <h1 style="color:${ink}; margin:0; font-size:26px; font-family:Georgia,'Times New Roman',serif;">${headerTitle}</h1>
       <p style="color:${gold}; margin:8px 0 0; font-size:13px; text-transform:uppercase; letter-spacing:2px;">${sunSign} · ${element} Energy</p>
+      <p style="color:${muted}; margin:6px 0 0; font-size:11px; opacity:0.6;">${weekDateRange}</p>
     </div>
 
-    <!-- Theme Badge -->
+    <!-- 2. Transit accuracy intro -->
+    <div style="padding:14px 20px; background:${cream2}; border-bottom:1px solid ${cream3};">
+      <table style="width:100%;" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="width:30px; vertical-align:top; padding-top:2px; font-size:14px;">🔭</td>
+          <td style="color:${muted}; font-size:11px; line-height:1.5;">
+            <strong style="color:${ink};">Based on real planetary transits.</strong> This reading is calculated from ${petName}'s exact birth chart against this week's sky positions — not generic sun sign predictions.
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 3. Theme Badge -->
     <div style="background:${cream2}; padding:20px; text-align:center; border-bottom:1px solid ${cream3};">
       <p style="color:${muted}; margin:0 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:2px;">This Week's Theme</p>
       <h2 style="color:${gold}; margin:0; font-size:30px; font-weight:bold; font-family:Georgia,'Times New Roman',serif;">${content.theme || "Cosmic"}</h2>
     </div>
 
-    <!-- Overview -->
+    <!-- 4. This Week Is Giving (meme personality) -->
+    ${content.memePersonality ? `
+    <div style="background:white; padding:18px 22px; text-align:center; border-bottom:1px solid ${cream3};">
+      <p style="color:${muted}; margin:0 0 2px; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:bold;">This Week ${petName} Is Giving</p>
+      <p style="color:${ink}; margin:0; font-size:17px; font-family:Georgia,'Times New Roman',serif; font-style:italic;">${typeof content.memePersonality === 'object' ? content.memePersonality.vibe : content.memePersonality}</p>
+      ${typeof content.memePersonality === 'object' && content.memePersonality.energyLevel ? `<p style="color:${muted}; margin:8px 0 0; font-size:11px;">${content.memePersonality.energyLevel}</p>` : ''}
+    </div>
+    ` : ""}
+
+    <!-- 5. Overview -->
     <div style="background:white; padding:28px 24px; border-bottom:1px solid ${cream3};">
       <p style="color:${warm}; line-height:1.85; font-size:15px; margin:0;">${content.overview || ""}</p>
     </div>
 
-    <!-- Mood Predictions -->
+    <!-- 6. Lucky Day / Go Easy Day / Lucky Activity (TABLE not flexbox) -->
+    <table style="width:100%; border-collapse:collapse; background:white; border-bottom:1px solid ${cream3};">
+      <tr>
+        <td style="padding:20px; text-align:center; border-right:1px solid ${cream3}; width:33%;">
+          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Lucky Day</p>
+          <p style="color:${gold}; margin:0; font-size:16px; font-weight:bold;">🌟 ${content.luckyDay || ""}</p>
+        </td>
+        <td style="padding:20px; text-align:center; border-right:1px solid ${cream3}; width:33%;">
+          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Go Easy Day</p>
+          <p style="color:${warm}; margin:0; font-size:16px; font-weight:bold;">🌸 ${content.unluckyDay || ""}</p>
+        </td>
+        <td style="padding:20px; text-align:center; width:33%;">
+          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Lucky Activity</p>
+          <p style="color:${ink}; margin:0; font-size:14px; font-weight:bold;">🎯 ${content.luckyActivity || ""}</p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- 7. Power Move -->
+    ${content.powerMove ? `
+    <div style="background:${cream2}; padding:18px 22px; border-left:3px solid ${gold}; border-bottom:1px solid ${cream3};">
+      <p style="color:${gold}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1.5px; font-weight:bold;">⚡ This Week's Power Move</p>
+      <p style="color:${ink}; margin:0; font-size:15px; font-weight:bold; line-height:1.4;">${typeof content.powerMove === 'object' ? `${content.powerMove.bestDay || ''}: ${content.powerMove.title}` : content.powerMove}</p>
+      ${typeof content.powerMove === 'object' && content.powerMove.description ? `<p style="color:${muted}; margin:6px 0 0; font-size:12px; font-style:italic;">${content.powerMove.description}</p>` : ''}
+    </div>
+    ` : ""}
+
+    <!-- 8. Mood Predictions -->
     ${content.moodPredictions ? `
     <div style="background:${cream2}; padding:20px 24px; border-bottom:1px solid ${cream3};">
       <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">🌙 Mood Forecast</h3>
@@ -294,51 +425,66 @@ function generateHoroscopeEmail(
     </div>
     ` : ""}
 
-    <!-- Lucky & Unlucky Days -->
-    <table style="width:100%; border-collapse:collapse; background:white; border-bottom:1px solid ${cream3};">
-      <tr>
-        <td style="padding:20px; text-align:center; border-right:1px solid ${cream3}; width:33%;">
-          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Lucky Day</p>
-          <p style="color:${gold}; margin:0; font-size:16px; font-weight:bold;">🌟 ${content.luckyDay || ""}</p>
-        </td>
-        <td style="padding:20px; text-align:center; border-right:1px solid ${cream3}; width:33%;">
-          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Go Easy Day</p>
-          <p style="color:${warm}; margin:0; font-size:16px; font-weight:bold;">🌸 ${content.unluckyDay || ""}</p>
-        </td>
-        <td style="padding:20px; text-align:center; width:33%;">
-          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Lucky Activity</p>
-          <p style="color:${ink}; margin:0; font-size:14px; font-weight:bold;">🎯 ${content.luckyActivity || ""}</p>
-        </td>
-      </tr>
-    </table>
-
-    <!-- Daily Energy -->
+    <!-- 9. Daily Energy (TABLE not flexbox) -->
     <div style="background:${cream2}; padding:24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">📅 Daily Energy Guide</h3>
-      ${Object.entries(content.energyForecast || {}).map(([day, energy]) => `
-        <div style="display:flex; padding:10px 0; border-bottom:1px solid ${cream3};">
-          <span style="color:${gold}; width:90px; font-size:13px; text-transform:capitalize; font-weight:bold;">${day}</span>
-          <span style="color:${warm}; font-size:13px; flex:1;">${energy}</span>
-        </div>
-      `).join("")}
+      <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">📅 ${isMemorial ? 'Where to Feel ' + petName + ' This Week' : 'Daily Energy Guide'}</h3>
+      <table style="width:100%; border-collapse:collapse;">
+        ${Object.entries(content.energyForecast || {}).map(([day, energy]) => `
+          <tr>
+            <td style="padding:10px 0; color:${gold}; font-size:13px; text-transform:capitalize; font-weight:bold; width:90px; vertical-align:top;">${day}</td>
+            <td style="padding:10px 0; color:${warm}; font-size:13px; border-bottom:1px solid ${cream3};">${energy}</td>
+          </tr>
+        `).join("")}
+      </table>
     </div>
 
-    <!-- Text Messages -->
-    ${textMessages.length > 0 ? `
-    <div style="background:white; padding:24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">💬 Texts From ${petName}</h3>
-      ${textMessages.map((msg: any) => {
-        const isPet = msg.sender === "pet";
-        return `<div style="margin-bottom:8px; text-align:${isPet ? "left" : "right"};">
-          <span style="display:inline-block; max-width:80%; padding:10px 14px; border-radius:18px; font-size:13px; line-height:1.5; background:${isPet ? cream2 : gold}; color:${isPet ? warm : "white"};">
-            ${msg.text}
-          </span>
-        </div>`;
-      }).join("")}
+    <!-- 10. Pet-Parent Cosmic Sync -->
+    ${content.petParentSync ? `
+    <div style="background:white; padding:22px 24px; border-bottom:1px solid ${cream3};">
+      <h3 style="color:${ink}; margin:0 0 6px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">💫 Pet-Parent Cosmic Sync</h3>
+      <div style="padding:12px 14px; background:${cream2}; border-radius:10px;">
+        <p style="color:${ink}; margin:0 0 6px; font-size:13px; font-weight:bold;">Sync Level: ${typeof content.petParentSync === 'object' ? content.petParentSync.syncEmoji || '🔗🔗🔗░░' : '🔗🔗🔗░░'} (${typeof content.petParentSync === 'object' && content.petParentSync.syncLevel >= 4 ? 'Strong' : 'Moderate'})</p>
+        <p style="color:${warm}; margin:0; font-size:13px; line-height:1.6;">${typeof content.petParentSync === 'object' ? content.petParentSync.description : content.petParentSync}</p>
+      </div>
     </div>
     ` : ""}
 
-    <!-- Google Searches -->
+    <!-- 11. Bonus Insight -->
+    ${content.bonusInsight ? `
+    <div style="background:white; padding:20px 24px; border-left:3px solid ${gold}; border-bottom:1px solid ${cream3};">
+      <h3 style="color:${gold}; margin:0 0 6px; font-size:13px;">💡 Cosmic Insight</h3>
+      <p style="color:${warm}; margin:0; font-size:14px; line-height:1.65;">${content.bonusInsight}</p>
+    </div>
+    ` : ""}
+
+    <!-- 12. Text Messages (iMessage style with timestamps) -->
+    ${Array.isArray(textMessages) && textMessages.length > 0 ? `
+    <div style="background:white; padding:24px; border-bottom:1px solid ${cream3};">
+      <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">💬 ${isMemorial ? 'A Message From ' + petName : 'What ' + petName + ' Would Text You This Week'}</h3>
+      ${textMessages.map((segment: any) => {
+        // Handle new format [{time, messages}]
+        if (segment.time && Array.isArray(segment.messages)) {
+          return `
+            <p style="text-align:center; color:${muted}; font-size:10px; margin:12px 0 8px;">${segment.time}</p>
+            ${segment.messages.map((msg: string) => `
+              <div style="margin-bottom:4px;">
+                <div style="background:#e9e9eb; color:#1a1a1a; padding:10px 14px; border-radius:18px 18px 18px 6px; font-size:13px; line-height:1.4; max-width:80%; display:inline-block;">${msg}</div>
+              </div>
+            `).join('')}
+          `;
+        // Backward compat with old format [{sender, text}]
+        } else if (segment.sender && segment.text) {
+          const isPet = segment.sender === 'pet';
+          return `<div style="margin-bottom:6px; text-align:${isPet ? 'left' : 'right'};">
+            <div style="display:inline-block; max-width:80%; padding:10px 14px; border-radius:${isPet ? '18px 18px 18px 6px' : '18px 18px 6px 18px'}; font-size:13px; line-height:1.4; background:${isPet ? '#e9e9eb' : gold}; color:${isPet ? '#1a1a1a' : 'white'};">${segment.text}</div>
+          </div>`;
+        }
+        return '';
+      }).join('')}
+    </div>
+    ` : ""}
+
+    <!-- 13. Google Searches -->
     ${googleSearches.length > 0 ? `
     <div style="background:${cream2}; padding:24px; border-bottom:1px solid ${cream3};">
       <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">🔍 ${petName}'s Search History</h3>
@@ -350,43 +496,7 @@ function generateHoroscopeEmail(
     </div>
     ` : ""}
 
-    <!-- Pet-Parent Sync -->
-    ${content.petParentSync ? `
-    <div style="background:white; padding:20px 24px; border-bottom:1px solid ${cream3}; text-align:center;">
-      <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:2px;">Pet-Parent Sync</p>
-      <p style="color:${ink}; margin:0; font-size:14px; font-style:italic; line-height:1.6;">"${content.petParentSync}"</p>
-    </div>
-    ` : ""}
-
-    <!-- Meme + Power Move row -->
-    ${content.memePersonality || content.powerMove ? `
-    <table style="width:100%; border-collapse:collapse; background:${cream2}; border-bottom:1px solid ${cream3};">
-      <tr>
-        ${content.memePersonality ? `
-        <td style="padding:20px; vertical-align:top; ${content.powerMove ? `border-right:1px solid ${cream3};` : ""} width:50%;">
-          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">😂 Meme Energy</p>
-          <p style="color:${warm}; margin:0; font-size:13px; line-height:1.5;">${content.memePersonality}</p>
-        </td>
-        ` : ""}
-        ${content.powerMove ? `
-        <td style="padding:20px; vertical-align:top; width:50%;">
-          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">⚡ Power Move</p>
-          <p style="color:${warm}; margin:0; font-size:13px; line-height:1.5;">${content.powerMove}</p>
-        </td>
-        ` : ""}
-      </tr>
-    </table>
-    ` : ""}
-
-    <!-- Bonus Insight -->
-    ${content.bonusInsight ? `
-    <div style="background:white; padding:20px 24px; border-left:3px solid ${gold}; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${gold}; margin:0 0 6px; font-size:13px;">💡 Cosmic Insight</h3>
-      <p style="color:${warm}; margin:0; font-size:14px; line-height:1.65;">${content.bonusInsight}</p>
-    </div>
-    ` : ""}
-
-    <!-- Compatibility Tip -->
+    <!-- 14. Social Forecast -->
     ${content.compatibilityTip ? `
     <div style="background:${cream2}; padding:20px 24px; border-bottom:1px solid ${cream3};">
       <h3 style="color:${ink}; margin:0 0 6px; font-size:13px;">💕 Social Forecast</h3>
@@ -394,13 +504,13 @@ function generateHoroscopeEmail(
     </div>
     ` : ""}
 
-    <!-- Cosmic Advice -->
+    <!-- 15. Cosmic Advice -->
     <div style="background:white; padding:24px; border-bottom:1px solid ${cream3};">
       <h3 style="color:${ink}; margin:0 0 8px; font-size:13px;">💫 Cosmic Advice for ${petName}'s Human</h3>
       <p style="color:${warm}; margin:0; font-size:15px; line-height:1.65;">${content.cosmicAdvice || ""}</p>
     </div>
 
-    <!-- Photo Challenge -->
+    <!-- 16. Photo Challenge -->
     ${content.photoPrompt ? `
     <div style="background:${cream2}; padding:20px 24px; text-align:center; border-bottom:1px solid ${cream3};">
       <h3 style="color:${gold}; margin:0 0 6px; font-size:13px;">📸 Photo Challenge</h3>
@@ -408,10 +518,17 @@ function generateHoroscopeEmail(
     </div>
     ` : ""}
 
-    <!-- Affirmation -->
-    <div style="background:white; padding:30px 24px; text-align:center; border-radius:0 0 20px 20px;">
+    <!-- 17. Affirmation -->
+    <div style="background:white; padding:30px 24px; text-align:center; border-bottom:1px solid ${cream3};">
       <p style="color:${muted}; margin:0 0 8px; font-size:11px; text-transform:uppercase; letter-spacing:2px;">Weekly Affirmation</p>
       <p style="color:${ink}; margin:0; font-size:17px; font-style:italic; font-family:Georgia,'Times New Roman',serif;">"${content.affirmation || ""}"</p>
+    </div>
+
+    <!-- 18. SoulSpeak CTA -->
+    <div style="text-align:center; padding:24px 20px; background:white; border-bottom:1px solid ${cream3}; border-radius:0 0 20px 20px;">
+      <p style="color:${muted}; font-size:12px; margin:0 0 10px;">${isMemorial ? `${petName}'s soul is always here to talk` : `Want to hear what ${petName} thinks about this week?`}</p>
+      <a href="https://mypetssoul.com/soul-chat.html?id=${reportId}" style="display:inline-block; padding:12px 28px; background:linear-gradient(135deg, ${ink}, #5a3e2e); color:${gold}; text-decoration:none; border-radius:12px; font-size:14px; font-weight:bold;">${isMemorial ? `🕊️ Talk to ${petName}` : `⭐ Talk to ${petName}'s Soul`}</a>
+      <p style="color:${gold}; font-size:11px; margin:8px 0 0;">SoulSpeak Intelligence — 15 free credits</p>
     </div>
 
     <!-- Footer -->
@@ -428,6 +545,7 @@ function generateHoroscopeEmail(
 }
 
 // ── Main handler ────────────────────────────────────────────────
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -451,14 +569,20 @@ serve(async (req) => {
 
     console.log(`[WEEKLY-HOROSCOPE] Found ${subscriptions?.length || 0} active subscriptions`);
 
-    // Calculate current transits once (shared across all pets)
-    const transits = getCurrentTransits();
-    console.log("[WEEKLY-HOROSCOPE] Current transits:\n", transits);
+    // Calculate global transits once (shared across all pets)
+    const { text: globalTransits, positions: currentPositions } = getGlobalTransits();
+    console.log("[WEEKLY-HOROSCOPE] Current transits:\n", globalTransits);
 
     const weekStart = new Date();
     weekStart.setHours(0, 0, 0, 0);
     weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of week (Sunday)
     const weekStartStr = weekStart.toISOString().split("T")[0];
+
+    // FIX 9: Calculate week date range
+    const weekStartDate = new Date(weekStart);
+    const weekEndDate = new Date(weekStartDate);
+    weekEndDate.setDate(weekEndDate.getDate() + 6);
+    const weekDateRange = `${weekStartDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – ${weekEndDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
 
     const results = [];
 
@@ -495,10 +619,25 @@ serve(async (req) => {
         const breed = petReport.breed || "";
         const occasionMode = sub.occasion_mode || petReport.occasion_mode || "discover";
 
+        // FIX 3: Build per-pet transit text with natal aspects
+        let petTransits = globalTransits;
+        const petDob = new Date(petReport.birth_date);
+        if (!isNaN(petDob.getTime())) {
+          const natalPositions = calculateAllPositions(petDob);
+          const natalAspectText = getNatalAspects(currentPositions, {
+            sun: natalPositions.sun.longitude,
+            moon: natalPositions.moon.longitude,
+            mercury: natalPositions.mercury.longitude,
+            venus: natalPositions.venus.longitude,
+            mars: natalPositions.mars.longitude,
+          });
+          petTransits += natalAspectText;
+        }
+
         // Build prompt based on occasion mode
         const userPrompt = occasionMode === "memorial"
-          ? buildMemorialPrompt(sub.pet_name, species, breed, sunSign, moonSign, element, archetype, superpower, transits)
-          : buildStandardPrompt(sub.pet_name, species, breed, sunSign, moonSign, element, archetype, superpower, transits);
+          ? buildMemorialPrompt(sub.pet_name, species, breed, sunSign, moonSign, element, archetype, superpower, petTransits)
+          : buildStandardPrompt(sub.pet_name, species, breed, sunSign, moonSign, element, archetype, superpower, petTransits);
 
         // Generate horoscope using Claude Sonnet
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -563,7 +702,9 @@ serve(async (req) => {
           horoscopeContent,
           sunSign,
           element,
-          occasionMode
+          occasionMode,
+          sub.pet_report_id,
+          weekDateRange
         );
 
         const { error: emailError } = await resend.emails.send({
