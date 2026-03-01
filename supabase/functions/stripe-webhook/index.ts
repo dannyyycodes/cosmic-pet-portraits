@@ -439,7 +439,7 @@ serve(async (req) => {
                   
                   if (thisPetGetsHoroscope && report.email) {
                     console.log("[STRIPE-WEBHOOK] Creating horoscope subscription for:", reportId, { thisPetIsVip, includeHoroscope });
-                    
+
                     // Check if subscription already exists
                     const { data: existingSub } = await supabaseClient
                       .from("horoscope_subscriptions")
@@ -447,13 +447,40 @@ serve(async (req) => {
                       .eq("email", report.email)
                       .eq("pet_report_id", reportId)
                       .maybeSingle();
-                    
+
                     if (!existingSub) {
                       // Calculate next Monday for first horoscope
                       const nextMonday = new Date();
                       nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
                       nextMonday.setHours(9, 0, 0, 0);
-                      
+
+                      // Determine occasion mode from report
+                      const petOccasionMode = report.occasion_mode || "discover";
+
+                      // VIP gets plan: 'vip_included', others get 'trial'
+                      const plan = thisPetIsVip ? "vip_included" : "trial";
+
+                      // For non-VIP, create a Stripe recurring subscription with 30-day trial
+                      let stripeSubId: string | null = null;
+                      if (!thisPetIsVip && session.customer) {
+                        try {
+                          const stripeSub = await stripe.subscriptions.create({
+                            customer: session.customer as string,
+                            items: [{ price: "price_1Sfi1vEFEZSdxrGttpk4iUEa" }],
+                            trial_period_days: 30,
+                            metadata: {
+                              pet_name: report.pet_name,
+                              pet_report_id: reportId,
+                            },
+                          });
+                          stripeSubId = stripeSub.id;
+                          console.log("[STRIPE-WEBHOOK] Stripe horoscope subscription created:", stripeSubId);
+                        } catch (stripeSubError: any) {
+                          console.error("[STRIPE-WEBHOOK] Failed to create Stripe horoscope subscription:", stripeSubError?.message);
+                          // Continue anyway — they still get the free trial via our DB
+                        }
+                      }
+
                       const { error: subError } = await supabaseClient
                         .from("horoscope_subscriptions")
                         .insert({
@@ -462,12 +489,15 @@ serve(async (req) => {
                           pet_report_id: reportId,
                           status: "active",
                           next_send_at: nextMonday.toISOString(),
+                          plan,
+                          occasion_mode: petOccasionMode,
+                          ...(stripeSubId ? { stripe_subscription_id: stripeSubId } : {}),
                         });
-                      
+
                       if (subError) {
                         console.error("[STRIPE-WEBHOOK] Failed to create horoscope subscription:", subError);
                       } else {
-                        console.log("[STRIPE-WEBHOOK] Horoscope subscription created for:", report.email, report.pet_name);
+                        console.log("[STRIPE-WEBHOOK] Horoscope subscription created for:", report.email, report.pet_name, { plan, occasionMode: petOccasionMode });
                       }
                     } else {
                       console.log("[STRIPE-WEBHOOK] Horoscope subscription already exists for:", reportId);

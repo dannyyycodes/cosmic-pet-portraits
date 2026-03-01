@@ -31,7 +31,7 @@ function getVolumeDiscount(petCount: number): number {
   return 0;
 }
 
-const HOROSCOPE_MONTHLY_CENTS = 499;
+const HOROSCOPE_MONTHLY_CENTS = 0; // Free at checkout — Stripe subscription created in webhook with 30-day trial
 const BOOK_PRICE_CENTS = 8900; // $89.00
 
 // Variant C pricing
