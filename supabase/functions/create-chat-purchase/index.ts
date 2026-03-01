@@ -46,7 +46,7 @@ serve(async (req) => {
     } else if (type === "unlimited") {
       // Monthly subscription: unlimited chat + horoscope for $4.99/mo
       // NOTE: Create this price in Stripe Dashboard first and replace below
-      const SUBSCRIPTION_PRICE_ID = "price_REPLACE_WITH_ACTUAL_ID";
+      const SUBSCRIPTION_PRICE_ID = "price_1T60YTEFEZSdxrGtwyYc0szo";
 
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
