@@ -57,7 +57,7 @@ const TIERS = {
     benefits: [
       "Decode your pet's quirky behaviors",
       "Learn your pet's emotional needs",
-      "\uD83E\uDEF6 SoulSpeak AI — talk to their soul",
+      "⭐ SoulSpeak Intelligence — hear your pet's voice",
     ],
   },
   premium: {
@@ -73,7 +73,7 @@ const TIERS = {
     benefits: [
       "Everything in Reading, plus...",
       "Beautiful printed cosmic card",
-      "\uD83E\uDEF6 SoulSpeak AI — talk to their soul",
+      "⭐ SoulSpeak Intelligence — hear your pet's voice",
     ],
   },
   vip: {
@@ -89,7 +89,7 @@ const TIERS = {
     benefits: [
       "Everything in Keepsake, plus...",
       "Weekly personalized updates",
-      "\uD83E\uDEF6 Unlimited SoulSpeak AI Chat",
+      "⭐ Unlimited SoulSpeak Intelligence",
     ],
   },
 };
@@ -479,14 +479,17 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         <p className="text-xs text-center text-cosmic-gold">⭐ Weekly updates included</p>
       )}
 
-      {/* SoulSpeak AI Chat - included with every reading */}
+      {/* SoulSpeak Intelligence - included with every reading */}
       <div className="w-full p-2 rounded-lg border border-amber-500/30 bg-amber-500/5 flex items-center gap-2 text-sm">
-        <span className="text-base">{"\uD83E\uDEF6"}</span>
-        <span className="flex-1 text-muted-foreground">
-          SoulSpeak AI Chat
-          <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded-full">New</span>
+        <span className="text-base">⭐</span>
+        <span className="flex-1">
+          <span className="text-muted-foreground">
+            SoulSpeak Intelligence
+            <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded-full">New</span>
+          </span>
+          <span className="text-[10px] text-muted-foreground/60 block mt-0.5">We infuse your pet's soul into our language engine so you can actually talk to them</span>
         </span>
-        <span className="text-[11px] text-muted-foreground/70">
+        <span className="text-[11px] text-muted-foreground/70 shrink-0">
           {Object.values(petTiers).some(t => t === 'vip') ? 'Unlimited' : '15 free credits'}
         </span>
       </div>
