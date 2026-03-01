@@ -62,6 +62,13 @@ export default {
           DEFAULT: "hsl(var(--gold))",
           light: "hsl(var(--gold-light))",
         },
+        // Warm earthy report v2 palette
+        cream: { DEFAULT: '#f5efe6', 2: '#faf6ef', 3: '#e8ddd0' },
+        'report-gold': { DEFAULT: '#c4a265', dark: '#8b6f3a' },
+        ink: '#3d2f2a',
+        warm: '#5a4a42',
+        'report-muted': '#9a8578',
+        earth: '#6b4c3b',
         "cosmic-gold": {
           DEFAULT: "hsl(var(--gold))",
           foreground: "hsl(var(--background))",

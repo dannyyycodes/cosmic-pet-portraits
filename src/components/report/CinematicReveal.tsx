@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Sparkles, Star } from 'lucide-react';
+import { zodiacSigns } from '@/lib/zodiac';
 
 interface CinematicRevealProps {
   petName: string;
@@ -8,221 +8,180 @@ interface CinematicRevealProps {
   archetype: string;
   element: string;
   onComplete: () => void;
+  occasionMode?: string;
 }
 
-export function CinematicReveal({ petName, sunSign, archetype, element, onComplete }: CinematicRevealProps) {
+export function CinematicReveal({ petName, sunSign, archetype, element, onComplete, occasionMode }: CinematicRevealProps) {
   const [stage, setStage] = useState(0);
 
-  useEffect(() => {
-    const timings = [0, 2000, 4000, 6000, 8000];
-    
-    timings.forEach((delay, index) => {
-      setTimeout(() => {
-        setStage(index + 1);
-      }, delay);
-    });
+  const signData = zodiacSigns[sunSign.toLowerCase()];
+  const signIcon = signData?.icon || '⭐';
 
-    // Complete after final stage
-    setTimeout(() => {
-      onComplete();
-    }, 10000);
+  useEffect(() => {
+    const timings = [300, 2500, 5000, 7500];
+    const timeouts = timings.map((delay, index) =>
+      setTimeout(() => setStage(index + 1), delay)
+    );
+    const completeTimeout = setTimeout(() => onComplete(), 10500);
+
+    return () => {
+      timeouts.forEach(clearTimeout);
+      clearTimeout(completeTimeout);
+    };
   }, [onComplete]);
 
-  const elementColors: Record<string, string> = {
-    Fire: '#ef4444',
-    Earth: '#22c55e',
-    Air: '#3b82f6',
-    Water: '#8b5cf6',
+  // Memorial mode text adjustments
+  const stageText = {
+    s0: occasionMode === 'memorial'
+      ? 'The stars remember'
+      : 'The stars have aligned',
+    s1sub: occasionMode === 'memorial'
+      ? 'Their cosmic soul lives on'
+      : 'Your cosmic soul reading is ready',
+    s3sub: occasionMode === 'memorial'
+      ? 'A soul who will never be forgotten'
+      : `A soul who feels everything twice`,
+    s3overline: occasionMode === 'memorial'
+      ? `${petName}'s Eternal Archetype`
+      : `${petName}'s Cosmic Archetype`,
   };
-
-  const color = elementColors[element] || '#8b5cf6';
 
   return (
     <AnimatePresence>
       {stage < 5 && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
+          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
           style={{ backgroundColor: '#0a0612' }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.8 }}
         >
-          {/* Animated stars background */}
+          {/* Stars */}
           <div className="absolute inset-0">
-            {[...Array(100)].map((_, i) => (
-              <motion.div
+            {[...Array(80)].map((_, i) => (
+              <div
                 key={i}
                 className="absolute rounded-full bg-white"
                 style={{
-                  width: Math.random() * 3 + 1,
-                  height: Math.random() * 3 + 1,
+                  width: 1 + Math.random() * 2,
+                  height: 1 + Math.random() * 2,
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
-                }}
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: [0, 1, 0],
-                  scale: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 2 + Math.random() * 3,
-                  repeat: Infinity,
-                  delay: Math.random() * 3,
+                  animation: `twinkle ${2 + Math.random() * 3}s ease-in-out infinite ${Math.random() * 3}s`,
                 }}
               />
             ))}
           </div>
 
-          {/* Nebula glow */}
-          <motion.div
-            className="absolute w-[600px] h-[600px] rounded-full blur-3xl"
-            style={{ backgroundColor: `${color}20` }}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: 'easeInOut',
+          {/* Nebula - gold glow */}
+          <div
+            className="absolute w-[400px] h-[400px] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(196,162,101,0.15), transparent 70%)',
+              animation: 'nebula-pulse 4s ease-in-out infinite',
             }}
           />
 
-          {/* Stage 1: "The stars have aligned..." */}
+          {/* Stages */}
           <AnimatePresence mode="wait">
             {stage === 1 && (
               <motion.div
-                key="stage1"
-                className="text-center z-10"
+                key="s0"
+                className="absolute text-center px-8 z-10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               >
-                <motion.div
-                  className="flex items-center justify-center gap-2 mb-4"
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <Star className="w-6 h-6 text-yellow-400" />
-                  <Sparkles className="w-8 h-8 text-purple-400" />
-                  <Star className="w-6 h-6 text-yellow-400" />
-                </motion.div>
-                <p className="text-white/60 text-lg tracking-widest uppercase">
-                  The stars have aligned...
+                <p className="text-white/40 text-[0.9rem] tracking-[3px] uppercase">
+                  {stageText.s0}
                 </p>
               </motion.div>
             )}
 
-            {/* Stage 2: Pet name reveal */}
             {stage === 2 && (
               <motion.div
-                key="stage2"
-                className="text-center z-10"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.1 }}
-                transition={{ duration: 0.8 }}
+                key="s1"
+                className="absolute text-center px-8 z-10"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               >
-                <motion.h1
-                  className="text-6xl md:text-8xl font-bold text-white mb-4"
-                  style={{ textShadow: `0 0 60px ${color}` }}
-                  animate={{
-                    textShadow: [
-                      `0 0 60px ${color}`,
-                      `0 0 100px ${color}`,
-                      `0 0 60px ${color}`,
-                    ],
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                <h1
+                  className="font-dm-serif text-[3.5rem] text-white"
+                  style={{ textShadow: '0 0 50px rgba(196,162,101,0.5)' }}
                 >
                   {petName}
-                </motion.h1>
+                </h1>
+                <p className="text-white/30 text-[0.9rem] tracking-[1px] mt-1">
+                  {stageText.s1sub}
+                </p>
               </motion.div>
             )}
 
-            {/* Stage 3: Sun sign reveal */}
             {stage === 3 && (
               <motion.div
-                key="stage3"
-                className="text-center z-10"
-                initial={{ opacity: 0, rotateY: 90 }}
-                animate={{ opacity: 1, rotateY: 0 }}
-                exit={{ opacity: 0, rotateY: -90 }}
-                transition={{ duration: 0.8 }}
+                key="s2"
+                className="absolute text-center px-8 z-10"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               >
-                <motion.div
-                  className="w-32 h-32 mx-auto mb-6 rounded-full flex items-center justify-center"
+                <div
+                  className="w-[110px] h-[110px] rounded-full mx-auto mb-4 flex items-center justify-center text-[3rem]"
                   style={{
-                    background: `linear-gradient(135deg, ${color}40, ${color}80)`,
-                    boxShadow: `0 0 60px ${color}60`,
+                    background: 'linear-gradient(135deg, rgba(196,162,101,0.3), rgba(196,162,101,0.1))',
+                    border: '1px solid rgba(196,162,101,0.4)',
+                    boxShadow: '0 0 60px rgba(196,162,101,0.3)',
                   }}
-                  animate={{
-                    boxShadow: [
-                      `0 0 60px ${color}60`,
-                      `0 0 100px ${color}80`,
-                      `0 0 60px ${color}60`,
-                    ],
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <span className="text-6xl">☉</span>
-                </motion.div>
-                <p className="text-white/60 text-sm uppercase tracking-widest mb-2">Sun Sign</p>
-                <h2 className="text-4xl font-bold text-white">{sunSign}</h2>
+                  {signIcon}
+                </div>
+                <p className="text-white/40 text-[0.75rem] tracking-[2px] uppercase">Sun Sign</p>
+                <h1 className="font-dm-serif text-[2.5rem] text-white mt-1">{sunSign}</h1>
               </motion.div>
             )}
 
-            {/* Stage 4: Archetype reveal */}
             {stage === 4 && (
               <motion.div
-                key="stage4"
-                className="text-center z-10 max-w-md px-4"
-                initial={{ opacity: 0, y: 50 }}
+                key="s3"
+                className="absolute text-center px-8 z-10"
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.2 }}
-                transition={{ duration: 0.8 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               >
-                <motion.div
-                  className="text-6xl mb-6"
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  👑
-                </motion.div>
-                <p className="text-white/60 text-sm uppercase tracking-widest mb-2">
-                  {petName}'s Cosmic Archetype
+                <p className="text-white/40 text-[0.75rem] tracking-[2px] uppercase">
+                  {stageText.s3overline}
                 </p>
-                <h2
-                  className="text-3xl md:text-4xl font-bold mb-4"
-                  style={{ color }}
-                >
+                <div className="font-dm-serif text-[1.8rem] text-[#c4a265] mt-2">
                   {archetype}
-                </h2>
-                <p className="text-white/40 text-sm">
-                  Your cosmic journey awaits...
+                </div>
+                <p className="text-white/35 text-[0.82rem] mt-3 max-w-[300px] mx-auto">
+                  {stageText.s3sub}
                 </p>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Progress dots */}
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-3">
+          {/* Gold progress dots */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-2">
             {[1, 2, 3, 4].map((s) => (
-              <motion.div
+              <div
                 key={s}
-                className="w-2 h-2 rounded-full"
+                className="w-1.5 h-1.5 rounded-full transition-all duration-400"
                 style={{
-                  backgroundColor: stage >= s ? color : 'rgba(255,255,255,0.2)',
+                  backgroundColor: stage >= s ? '#c4a265' : 'rgba(255,255,255,0.2)',
+                  transform: stage === s ? 'scale(1.3)' : 'scale(1)',
                 }}
-                animate={stage === s ? { scale: [1, 1.5, 1] } : {}}
-                transition={{ duration: 0.5, repeat: stage === s ? Infinity : 0 }}
               />
             ))}
           </div>
 
           {/* Skip button */}
           <motion.button
-            className="absolute bottom-12 right-8 text-white/40 text-sm hover:text-white/60 transition-colors"
+            className="absolute bottom-10 right-6 bg-transparent border-none text-white/30 text-[0.8rem] cursor-pointer font-[DM_Sans,sans-serif]"
             onClick={onComplete}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -230,6 +189,17 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
           >
             Skip →
           </motion.button>
+
+          <style>{`
+            @keyframes twinkle {
+              0%, 100% { opacity: 0.2; transform: scale(0.8); }
+              50% { opacity: 1; transform: scale(1.2); }
+            }
+            @keyframes nebula-pulse {
+              0%, 100% { transform: scale(1); opacity: 0.4; }
+              50% { transform: scale(1.15); opacity: 0.7; }
+            }
+          `}</style>
         </motion.div>
       )}
     </AnimatePresence>

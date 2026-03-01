@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luna's Cosmic Soul Reading</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap');
+
+:root{
+  --cream:#f5efe6;--cream2:#faf6ef;--cream3:#e8ddd0;
+  --gold:#c4a265;--gold-dark:#8b6f3a;
+  --ink:#3d2f2a;--warm:#5a4a42;--muted:#9a8578;--earth:#6b4c3b;
+  --green:#6b8f5e;--card:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* ═══ CINEMATIC ═══ */
+.cinematic{position:fixed;inset:0;z-index:9999;background:#0a0612;display:flex;align-items:center;justify-content:center;transition:opacity 0.8s;}
+.cinematic.fade-out{opacity:0;pointer-events:none;}
+.cinematic.hidden{display:none;}
+.cinematic .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 3s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:0.2;transform:scale(0.8);}50%{opacity:1;transform:scale(1.2);}}
+.cinematic .nebula{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(196,162,101,0.15),transparent 70%);animation:neb 4s ease-in-out infinite;}
+@keyframes neb{0%,100%{transform:scale(1);opacity:0.4;}50%{transform:scale(1.15);opacity:0.7;}}
+.cinematic .stage{position:absolute;text-align:center;padding:0 32px;opacity:0;transform:translateY(20px);transition:all 0.8s cubic-bezier(0.16,1,0.3,1);pointer-events:none;}
+.cinematic .stage.active{opacity:1;transform:translateY(0);}
+.cinematic .stage.exit{opacity:0;transform:translateY(-20px);}
+.cinematic .stage h1{font-family:'DM Serif Display',Georgia,serif;font-size:3.5rem;color:#fff;}
+.cinematic .stage p{font-size:0.9rem;color:rgba(255,255,255,0.5);letter-spacing:1px;}
+.cinematic .zodiac-reveal{width:110px;height:110px;border-radius:50%;margin:0 auto 16px;background:linear-gradient(135deg,rgba(196,162,101,0.3),rgba(196,162,101,0.1));border:1px solid rgba(196,162,101,0.4);display:flex;align-items:center;justify-content:center;font-size:3rem;box-shadow:0 0 60px rgba(196,162,101,0.3);}
+.cinematic .archetype-text{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--gold);margin-top:8px;}
+.cinematic .progress-dots{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.cinematic .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.2);transition:all 0.4s;}
+.cinematic .dot.active{background:var(--gold);transform:scale(1.3);}
+.cinematic .skip-btn{position:absolute;bottom:40px;right:24px;background:none;border:none;color:rgba(255,255,255,0.3);font-size:0.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ═══ SCROLL REVEAL ═══ */
+.reveal{opacity:0;transform:translateY(28px);transition:all 0.7s cubic-bezier(0.16,1,0.3,1);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ═══ SHARED ═══ */
+.overline{font-size:0.6rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);}
+h2.section-title{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--ink);line-height:1.3;margin:6px 0;}
+.body-text{font-size:0.84rem;line-height:1.75;color:var(--warm);}
+.center{text-align:center;}
+.max-w{max-width:520px;margin-left:auto;margin-right:auto;}
+.pad{padding:32px 24px;}
+.pad-sm{padding:20px 24px;}
+.divider{text-align:center;padding:8px 0;font-size:0.7rem;color:var(--cream3);letter-spacing:4px;}
+
+/* ═══ METHODOLOGY ═══ */
+.method-steps{display:flex;flex-direction:column;gap:0;position:relative;padding:0 24px;}
+.method-steps::before{content:'';position:absolute;left:46px;top:28px;bottom:28px;width:1.5px;background:linear-gradient(180deg,var(--gold),var(--cream3));}
+.method-step{display:flex;gap:16px;padding:14px 0;position:relative;}
+.method-step .step-num{width:44px;height:44px;border-radius:50%;flex-shrink:0;background:var(--card);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:var(--gold);position:relative;z-index:1;}
+.method-step h4{font-family:'DM Serif Display',serif;font-size:0.95rem;color:var(--ink);margin-bottom:3px;}
+.method-step p{font-size:0.78rem;color:var(--muted);line-height:1.55;}
+
+/* ═══ PLANET EXPLAINERS ═══ */
+.planet-grid{display:flex;flex-direction:column;gap:6px;padding:0 24px;}
+.planet-card{display:flex;gap:12px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--cream3);}
+.planet-card .p-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.planet-card .p-icon.sun{background:rgba(245,158,11,0.1);}
+.planet-card .p-icon.moon{background:rgba(139,92,246,0.1);}
+.planet-card .p-icon.mercury{background:rgba(56,189,248,0.1);}
+.planet-card .p-icon.venus{background:rgba(236,72,153,0.1);}
+.planet-card .p-icon.mars{background:rgba(239,68,68,0.1);}
+.planet-card .p-icon.asc{background:rgba(168,85,247,0.1);}
+.planet-card h5{font-size:0.8rem;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.planet-card .p-governs{font-size:0.65rem;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.planet-card p{font-size:0.74rem;color:var(--muted);line-height:1.5;}
+
+/* ═══ BIRTH CHART TABLE ═══ */
+.chart-table{margin:0 24px;border-radius:14px;overflow:hidden;border:1px solid var(--cream3);background:var(--card);}
+.chart-table .ct-header{display:grid;grid-template-columns:1fr 1fr 1fr;padding:10px 14px;background:var(--ink);color:rgba(255,255,255,0.8);font-size:0.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.chart-table .ct-row{display:grid;grid-template-columns:1fr 1fr 1fr;padding:10px 14px;font-size:0.8rem;border-bottom:1px solid var(--cream3);align-items:center;}
+.chart-table .ct-row:last-child{border-bottom:none;}
+.chart-table .ct-planet{font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px;}
+.chart-table .ct-sign{color:var(--warm);}
+.chart-table .ct-degree{color:var(--muted);font-size:0.75rem;}
+
+/* ═══ AURA VISUAL ═══ */
+.aura-card{margin:10px 16px;padding:24px 20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);text-align:center;}
+.aura-visual{width:120px;height:120px;border-radius:50%;margin:16px auto;position:relative;display:flex;align-items:center;justify-content:center;}
+.aura-ring{position:absolute;inset:0;border-radius:50%;border:3px solid;opacity:0.6;animation:aura-breathe 3s ease-in-out infinite;}
+.aura-ring:nth-child(1){border-color:#c8b8e8;inset:-8px;animation-delay:0s;}
+.aura-ring:nth-child(2){border-color:#b0a0d8;inset:-16px;animation-delay:0.3s;}
+.aura-ring:nth-child(3){border-color:#9888c8;inset:-24px;opacity:0.3;animation-delay:0.6s;}
+@keyframes aura-breathe{0%,100%{transform:scale(1);opacity:0.4;}50%{transform:scale(1.05);opacity:0.7;}}
+.aura-core{font-size:2rem;position:relative;z-index:1;}
+
+/* ═══ ELEMENTAL BALANCE ═══ */
+.element-bars{padding:0 24px;margin:10px 0;}
+.element-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.element-bar .el-name{width:50px;font-size:0.72rem;font-weight:600;color:var(--ink);text-align:right;}
+.element-bar .el-track{flex:1;height:8px;background:var(--cream3);border-radius:4px;overflow:hidden;}
+.element-bar .el-fill{height:100%;border-radius:4px;transition:width 1s ease-out;}
+.el-fill.fire{background:linear-gradient(90deg,#f59e0b,#ef4444);}
+.el-fill.earth{background:linear-gradient(90deg,#84cc16,#22c55e);}
+.el-fill.air{background:linear-gradient(90deg,#38bdf8,#3b82f6);}
+.el-fill.water{background:linear-gradient(90deg,#a78bfa,#8b5cf6);}
+.element-bar .el-pct{font-size:0.7rem;color:var(--muted);width:30px;}
+
+/* ═══ SECTION CARDS ═══ */
+.section-card{margin:10px 16px;padding:22px 20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);box-shadow:0 1px 8px rgba(0,0,0,0.03);}
+.section-card .icon-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.section-card .s-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.s-icon.sun{background:rgba(245,158,11,0.1);}.s-icon.moon{background:rgba(139,92,246,0.1);}.s-icon.mercury{background:rgba(56,189,248,0.1);}.s-icon.venus{background:rgba(236,72,153,0.1);}.s-icon.mars{background:rgba(239,68,68,0.1);}.s-icon.asc{background:rgba(168,85,247,0.1);}.s-icon.destiny{background:rgba(34,197,94,0.1);}.s-icon.healer{background:rgba(20,184,166,0.1);}.s-icon.wild{background:rgba(124,58,237,0.1);}.s-icon.bond{background:rgba(244,63,94,0.1);}
+.section-card .section-label{font-size:0.56rem;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);}
+.section-card h3{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);margin-top:1px;}
+.section-card .content{margin-top:10px;font-size:0.84rem;line-height:1.75;color:var(--warm);}
+.section-card .tip-box{margin-top:12px;padding:11px 13px;border-radius:10px;background:var(--cream2);border-left:3px solid var(--gold);font-size:0.78rem;color:var(--earth);line-height:1.5;}
+.section-card .tip-box strong{color:var(--ink);}
+.section-card .fun-fact{margin-top:8px;font-size:0.76rem;color:var(--muted);font-style:italic;}
+.section-card .why-box{margin-top:10px;padding:10px 13px;border-radius:10px;background:rgba(196,162,101,0.06);font-size:0.76rem;color:var(--earth);line-height:1.5;}
+
+/* ═══ PORTRAIT CARD ═══ */
+.portrait-section{margin:10px 16px;padding:24px 20px;background:linear-gradient(135deg,var(--ink),#5a3e2e);border-radius:16px;color:#fff;text-align:center;}
+.portrait-placeholder{width:140px;height:140px;border-radius:16px;margin:0 auto 16px;background:linear-gradient(135deg,rgba(196,162,101,0.2),rgba(196,162,101,0.05));border:1px solid rgba(196,162,101,0.3);display:flex;align-items:center;justify-content:center;font-size:3rem;}
+.portrait-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;text-align:center;}
+.portrait-stat{padding:8px;background:rgba(255,255,255,0.06);border-radius:10px;border:1px solid rgba(255,255,255,0.08);}
+.portrait-stat .ps-label{font-size:0.55rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:2px;}
+.portrait-stat .ps-value{font-family:'DM Serif Display',serif;font-size:0.88rem;color:var(--gold);}
+
+/* ═══ COSMIC NAME ═══ */
+.cosmic-name-card{margin:10px 16px;padding:20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);text-align:center;}
+.cosmic-name{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--gold);margin:6px 0;}
+
+/* ═══ COMPATIBILITY ═══ */
+.compat-section{margin:10px 16px;padding:20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);}
+.compat-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--cream3);}
+.compat-row:last-child{border-bottom:none;}
+.compat-sign{font-family:'DM Serif Display',serif;font-size:0.95rem;color:var(--ink);width:80px;}
+.compat-bar{flex:1;height:6px;background:var(--cream3);border-radius:3px;overflow:hidden;}
+.compat-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold-dark));}
+.compat-pct{font-size:0.72rem;font-weight:600;color:var(--gold);width:36px;text-align:right;}
+
+/* ═══ LUCKY GRID ═══ */
+.lucky-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 16px;}
+.lucky-card{background:var(--card);border:1px solid var(--cream3);border-radius:12px;padding:14px;text-align:center;}
+.lucky-card .ll{font-size:0.56rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.lucky-card .lv{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);}
+
+/* ═══ FUN SECTION ═══ */
+.fun-block{margin-bottom:14px;}
+.fun-label{font-size:0.64rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.fun-val{font-family:'DM Serif Display',serif;font-size:0.95rem;color:var(--ink);}
+.fun-italic{font-style:italic;font-size:0.85rem;color:var(--warm);}
+.fun-list{font-size:0.82rem;color:var(--warm);line-height:1.6;}
+
+/* ═══ SHAREABLE CARD ═══ */
+.share-section{margin:10px 16px;padding:20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);text-align:center;}
+.share-preview{margin:14px auto;padding:16px;max-width:260px;background:linear-gradient(135deg,#faf6ef,#f0e6d6);border-radius:12px;border:1px solid var(--cream3);}
+.share-preview .sp-name{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);}
+.share-preview .sp-sign{font-size:0.7rem;color:var(--gold);font-weight:600;}
+.share-preview .sp-arch{font-size:0.75rem;color:var(--muted);font-style:italic;margin-top:4px;}
+.share-btns{display:flex;gap:8px;justify-content:center;margin-top:12px;}
+.share-btn{padding:8px 16px;border-radius:10px;border:1px solid var(--cream3);background:var(--cream2);font-size:0.75rem;font-weight:600;color:var(--earth);cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ═══ PLAYLIST ═══ */
+.playlist-card{margin:10px 16px;padding:20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);}
+.playlist-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--cream3);}
+.playlist-item:last-child{border-bottom:none;}
+.playlist-num{font-size:0.7rem;font-weight:700;color:var(--muted);width:20px;}
+.playlist-info{flex:1;}
+.playlist-title{font-size:0.82rem;font-weight:600;color:var(--ink);}
+.playlist-artist{font-size:0.7rem;color:var(--muted);}
+.playlist-vibe{font-size:0.62rem;color:var(--gold);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* ═══ SOUL LETTER ═══ */
+.soul-letter{margin:10px 16px;padding:28px 24px;background:linear-gradient(135deg,#faf6ef,#f0e6d6);border-radius:14px;border:1px solid var(--cream3);text-align:center;font-style:italic;font-size:0.92rem;line-height:1.9;color:var(--warm);}
+.soul-letter::before{content:'\201C';display:block;font-family:'DM Serif Display',serif;font-size:3rem;color:var(--gold);line-height:1;margin-bottom:-4px;font-style:normal;}
+.soul-letter .sl-sign{margin-top:14px;font-style:normal;font-weight:700;color:var(--ink);font-size:0.85rem;}
+
+/* ═══ FLOATING SOULSPEAK ═══ */
+.ss-fab{position:fixed;bottom:20px;right:20px;z-index:1000;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--ink),#5a3e2e);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(61,47,42,0.35);transition:all 0.3s;border:none;color:#fff;font-size:1.3rem;}
+.ss-fab:hover{transform:scale(1.08);}
+.ss-fab .pulse-ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--gold);animation:fp 2.5s ease-out infinite;}
+@keyframes fp{0%{transform:scale(1);opacity:0.6;}100%{transform:scale(1.4);opacity:0;}}
+.ss-fab .badge{position:absolute;top:-3px;right:-3px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:7px;font-weight:800;padding:2px 5px;border-radius:6px;letter-spacing:0.5px;text-transform:uppercase;}
+.ss-window{position:fixed;bottom:86px;right:16px;z-index:1001;width:310px;max-height:420px;background:var(--card);border-radius:18px;border:1px solid var(--cream3);box-shadow:0 12px 48px rgba(0,0,0,0.15);display:none;flex-direction:column;overflow:hidden;animation:su 0.3s ease-out;}
+@keyframes su{from{opacity:0;transform:translateY(12px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+.ss-window.open{display:flex;}
+.ss-header{padding:12px 14px;background:linear-gradient(135deg,var(--ink),#5a3e2e);color:#fff;display:flex;align-items:center;gap:10px;}
+.ss-avatar{width:32px;height:32px;border-radius:50%;background:rgba(196,162,101,0.2);border:1.5px solid rgba(196,162,101,0.4);display:flex;align-items:center;justify-content:center;font-size:0.85rem;}
+.ss-header-name{font-weight:700;font-size:0.82rem;}
+.ss-header-status{font-size:0.6rem;color:rgba(255,255,255,0.5);}
+.ss-close{background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:1rem;padding:4px;margin-left:auto;}
+.ss-body{flex:1;padding:12px;overflow-y:auto;background:var(--cream2);display:flex;flex-direction:column;gap:8px;max-height:240px;}
+.ss-msg{max-width:85%;padding:9px 12px;border-radius:14px;font-size:0.78rem;line-height:1.5;}
+.ss-msg.pet{align-self:flex-start;background:var(--card);color:var(--warm);border:1px solid var(--cream3);border-bottom-left-radius:4px;}
+.ss-msg.user{align-self:flex-end;background:var(--ink);color:#fff;border-bottom-right-radius:4px;}
+.ss-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px;}
+.ss-chip{padding:5px 10px;border-radius:10px;border:1px solid var(--cream3);background:var(--card);font-size:0.7rem;color:var(--earth);cursor:pointer;transition:all 0.2s;}
+.ss-chip:hover{border-color:var(--gold);}
+.ss-input-row{padding:8px 10px;background:var(--card);border-top:1px solid var(--cream3);display:flex;gap:8px;}
+.ss-input{flex:1;border:1px solid var(--cream3);border-radius:10px;padding:7px 11px;font-size:0.78rem;font-family:'DM Sans',sans-serif;background:var(--cream2);color:var(--ink);outline:none;}
+.ss-input:focus{border-color:var(--gold);}
+.ss-send{width:32px;height:32px;border-radius:50%;background:var(--ink);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.85rem;flex-shrink:0;}
+.ss-credits{text-align:center;padding:4px;font-size:0.58rem;color:var(--muted);background:var(--card);border-top:1px solid var(--cream3);}
+
+.bottom-spacer{height:100px;}
+
+/* ═══ TRADING CARD ═══ */
+.trading-card-wrap{margin:10px 16px;perspective:800px;}
+.trading-card{
+  max-width:330px;margin:0 auto;border-radius:20px;overflow:hidden;
+  background:linear-gradient(155deg,#0f0a1e 0%,#1a1233 40%,#0f0a1e 100%);
+  position:relative;
+  box-shadow:0 12px 40px rgba(0,0,0,0.4),0 0 0 2px var(--gold),0 0 30px rgba(196,162,101,0.1);
+}
+.tc-header{padding:12px 16px 8px;display:flex;justify-content:space-between;align-items:center;}
+.tc-header .tc-logo{font-size:0.6rem;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);}
+.tc-header .tc-rarity{font-size:0.58rem;font-weight:700;color:#fbbf24;background:rgba(251,191,36,0.12);padding:3px 10px;border-radius:8px;border:1px solid rgba(251,191,36,0.2);}
+.tc-image-area{position:relative;margin:0 12px;border-radius:14px;overflow:hidden;aspect-ratio:4/3;}
+.tc-image{width:100%;height:100%;background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(196,162,101,0.1),rgba(236,72,153,0.08));display:flex;align-items:center;justify-content:center;font-size:5rem;border:1px solid rgba(255,255,255,0.06);}
+.tc-holo-overlay{position:absolute;inset:0;background:linear-gradient(125deg,transparent 0%,transparent 30%,rgba(255,255,255,0.03) 35%,rgba(255,255,255,0.08) 38%,rgba(168,85,247,0.06) 42%,rgba(236,72,153,0.04) 48%,rgba(251,191,36,0.06) 52%,transparent 58%,transparent 100%);animation:holo-shift 4s ease-in-out infinite;pointer-events:none;}
+@keyframes holo-shift{0%,100%{transform:translateX(-30%) rotate(-2deg);}50%{transform:translateX(30%) rotate(2deg);}}
+.tc-nameplate{padding:14px 16px 6px;text-align:center;}
+.tc-nameplate h3{font-family:'DM Serif Display',serif;font-size:1.6rem;color:#fff;margin-bottom:2px;letter-spacing:0.5px;}
+.tc-nameplate .tc-archetype{font-size:0.78rem;color:var(--gold);font-style:italic;margin-bottom:4px;}
+.tc-nameplate .tc-signs{font-size:0.68rem;color:rgba(255,255,255,0.35);letter-spacing:0.5px;}
+.tc-powers{padding:10px 16px 6px;}
+.tc-power-row{display:flex;align-items:center;gap:8px;padding:4px 0;}
+.tc-pw-label{font-size:0.68rem;color:rgba(255,255,255,0.55);width:130px;flex-shrink:0;}
+.tc-pw-track{flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.tc-pw-fill{height:100%;border-radius:3px;transition:width 1.5s ease-out;}
+.tc-pw-val{font-size:0.65rem;font-weight:700;color:rgba(255,255,255,0.7);width:24px;text-align:right;}
+.tc-quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,0.04);margin:10px 12px;border-radius:12px;overflow:hidden;}
+.tc-qs{background:#0f0a1e;padding:10px 4px;text-align:center;}
+.tc-qs-emoji{display:block;font-size:1rem;margin-bottom:3px;}
+.tc-qs-val{display:block;font-size:0.7rem;font-weight:600;color:#fff;margin-bottom:1px;}
+.tc-qs-label{display:block;font-size:0.48rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.5px;}
+.tc-tagline{text-align:center;padding:10px 20px;font-size:0.72rem;color:rgba(255,255,255,0.35);font-style:italic;}
+.tc-footer{padding:8px 16px 12px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.04);}
+.tc-footer .tc-element{font-size:0.6rem;color:rgba(255,255,255,0.3);}
+.tc-footer .tc-id{font-size:0.55rem;color:rgba(255,255,255,0.15);font-family:monospace;letter-spacing:1px;}
+
+/* ═══ GOOGLE SEARCHES ═══ */
+.google-card{margin:10px 16px;padding:20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);}
+.google-search{display:flex;align-items:center;gap:10px;padding:10px 14px;margin:6px 0;border-radius:24px;background:#f8f9fa;border:1px solid #dfe1e5;font-size:0.82rem;color:#202124;}
+.google-search .g-icon{color:#9aa0a6;font-size:0.85rem;flex-shrink:0;}
+.google-search .g-text{flex:1;}
+
+/* ═══ TEXT MESSAGES ═══ */
+.text-card{margin:10px 16px;padding:20px 16px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);}
+.text-thread{max-width:340px;margin:0 auto;}
+.text-msg{max-width:80%;padding:9px 14px;border-radius:18px;font-size:0.82rem;line-height:1.45;margin-bottom:4px;clear:both;}
+.text-msg.pet{background:#e9e9eb;color:#1a1a1a;float:left;border-bottom-left-radius:6px;}
+.text-msg.human{background:#007aff;color:#fff;float:right;border-bottom-right-radius:6px;}
+.text-msg.pet::after,.text-msg.human::after{content:'';display:table;clear:both;}
+.text-time{clear:both;text-align:center;font-size:0.62rem;color:#8e8e93;padding:8px 0 6px;}
+.text-delivered{clear:both;text-align:right;font-size:0.58rem;color:#8e8e93;padding:2px 4px 6px;}
+.text-typing{float:left;padding:10px 16px;background:#e9e9eb;border-radius:18px;border-bottom-left-radius:6px;margin-bottom:4px;}
+.typing-dots{display:flex;gap:4px;}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:#8e8e93;animation:tdot 1.4s ease-in-out infinite;}
+.typing-dots span:nth-child(2){animation-delay:0.2s;}
+.typing-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
+
+/* ═══ HUMAN PROFILE ═══ */
+.human-card{margin:10px 16px;padding:22px 20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);}
+.human-avatar{width:70px;height:70px;border-radius:50%;margin:0 auto 12px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+.human-trait{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--cream3);}
+.human-trait:last-child{border-bottom:none;}
+.human-trait .ht-label{font-size:0.7rem;font-weight:600;color:var(--muted);width:90px;flex-shrink:0;}
+.human-trait .ht-val{font-size:0.82rem;color:var(--ink);}
+
+/* ═══ COSMIC RECIPE ═══ */
+.recipe-card{margin:10px 16px;padding:22px 20px;background:var(--card);border-radius:14px;border:1px solid var(--cream3);}
+.recipe-header{display:flex;gap:14px;margin-bottom:14px;}
+.recipe-emoji{font-size:2.4rem;}
+.recipe-info h4{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);}
+.recipe-info p{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+.recipe-why{font-size:0.78rem;color:var(--warm);line-height:1.6;margin-bottom:14px;font-style:italic;}
+.recipe-ingredients{margin-bottom:12px;}
+.recipe-ingredients h5{font-size:0.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.recipe-ingredients li{font-size:0.8rem;color:var(--warm);padding:2px 0;list-style:none;}
+.recipe-ingredients li::before{content:'· ';color:var(--gold);}
+.recipe-steps h5{font-size:0.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.recipe-steps ol{padding-left:18px;}
+.recipe-steps li{font-size:0.8rem;color:var(--warm);padding:3px 0;line-height:1.5;}
+@media(max-width:400px){.section-card,.aura-card,.compat-section,.playlist-card,.portrait-section,.cosmic-name-card,.share-section,.soul-letter{margin:8px 12px;}.chart-table{margin:0 12px;}.cinematic .stage h1{font-size:2.5rem;}.ss-window{width:calc(100vw - 24px);right:12px;}}
+</style>
+</head>
+<body>
+
+<!-- ═══ CINEMATIC ═══ -->
+<div class="cinematic" id="cinematic">
+  <div id="starsC"></div><div class="nebula"></div>
+  <div class="stage" id="s0"><p style="color:rgba(255,255,255,0.4);letter-spacing:3px;text-transform:uppercase;">The stars have aligned</p></div>
+  <div class="stage" id="s1"><h1 style="text-shadow:0 0 50px rgba(196,162,101,0.5);">Luna</h1><p style="color:rgba(255,255,255,0.3);">Your cosmic soul reading is ready</p></div>
+  <div class="stage" id="s2"><div class="zodiac-reveal">♓</div><p style="font-size:0.75rem;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;">Sun Sign</p><h1 style="font-size:2.5rem;">Pisces</h1></div>
+  <div class="stage" id="s3"><p style="font-size:0.75rem;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;">Luna's Cosmic Archetype</p><div class="archetype-text">The Gentle Dreamer</div><p style="margin-top:12px;font-size:0.82rem;color:rgba(255,255,255,0.35);max-width:300px;">A soul who feels everything twice</p></div>
+  <div class="progress-dots"><div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div></div>
+  <button class="skip-btn" onclick="skipC()">Skip →</button>
+</div>
+
+<div id="main" style="opacity:0;transition:opacity 0.6s;">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PART 1: METHODOLOGY                             -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="pad center max-w">
+  <div class="reveal"><div class="overline">Before Your Reading</div>
+  <h2 class="section-title">How We Mapped Luna's Soul</h2>
+  <p class="body-text" style="color:var(--muted);max-width:400px;margin:8px auto 0;">Your reading is calculated from real astronomical data — the exact position of the Sun, Moon, and planets at the moment Luna was born. Nothing is random. Here's the science behind it.</p></div>
+</div>
+
+<div class="method-steps max-w">
+  <div class="method-step reveal"><div class="step-num">01</div><div><h4>Celestial Snapshot</h4><p>Using Luna's birth date, time, and location, we calculate the precise position of every major celestial body. These positions form a unique cosmic fingerprint that never repeats.</p></div></div>
+  <div class="method-step reveal"><div class="step-num">02</div><div><h4>Planetary Influence Mapping</h4><p>Each planet governs a specific aspect of personality. The Sun shapes core identity. The Moon governs emotional patterns. Mercury influences communication style. We map each one to understand every layer of who Luna is.</p></div></div>
+  <div class="method-step reveal"><div class="step-num">03</div><div><h4>Aspects & Elemental Balance</h4><p>Planets don't act alone — they form geometric relationships called aspects. When two planets are 120° apart, they create harmony. At 90°, creative tension. We analyse every interaction to reveal Luna's inner dynamics.</p></div></div>
+  <div class="method-step reveal"><div class="step-num">04</div><div><h4>Archetype Synthesis</h4><p>From this celestial map, a unique soul archetype emerges — a pattern that captures who Luna truly is beneath the fur, the habits, and the adorable quirks. No two charts produce the same result.</p></div></div>
+</div>
+
+<div class="divider reveal">· · ·</div>
+
+<!-- ═══ PLANET EXPLAINERS ═══ -->
+<div class="pad-sm center max-w reveal">
+  <div class="overline">The Celestial Bodies</div>
+  <h2 class="section-title">What Each Planet Reveals</h2>
+  <p class="body-text" style="color:var(--muted);max-width:400px;margin:8px auto 0;">Every planet in Luna's chart tells a different story. Here's why each one matters — and what it reveals about your pet.</p>
+</div>
+
+<div class="planet-grid max-w">
+  <div class="planet-card reveal"><div class="p-icon sun">☉</div><div><h5>The Sun</h5><div class="p-governs">Governs: Core Identity & Life Force</div><p>The Sun is who Luna is at the deepest level — her fundamental nature, the energy that drives everything she does. It determines her basic personality, her vitality, and what makes her uniquely her. Think of it as her soul's signature.</p></div></div>
+  <div class="planet-card reveal"><div class="p-icon moon">☽</div><div><h5>The Moon</h5><div class="p-governs">Governs: Emotions & Inner Needs</div><p>The Moon reveals Luna's emotional landscape — how she processes feelings, what makes her feel safe, and what she needs to feel loved. Animals are deeply lunar creatures; they live more from instinct and feeling than logic. This is arguably the most important placement in a pet's chart.</p></div></div>
+  <div class="planet-card reveal"><div class="p-icon mercury">☿</div><div><h5>Mercury</h5><div class="p-governs">Governs: Communication & Intelligence</div><p>Mercury shapes how Luna expresses herself and processes information. It influences whether she's vocal or quiet, a quick learner or a thoughtful observer. It's the reason some pets seem to understand every word you say.</p></div></div>
+  <div class="planet-card reveal"><div class="p-icon venus">♀</div><div><h5>Venus</h5><div class="p-governs">Governs: Love, Affection & Harmony</div><p>Venus determines how Luna gives and receives love — her love language, what brings her pleasure, and how she creates harmony in relationships. It's what makes her gravitate toward certain people, textures, and experiences.</p></div></div>
+  <div class="planet-card reveal"><div class="p-icon mars">♂</div><div><h5>Mars</h5><div class="p-governs">Governs: Energy, Drive & Instinct</div><p>Mars reveals Luna's energy patterns — how she plays, fights, defends, and moves through the world. A high-energy Mars means zoomies and intensity. A calm Mars means grace and patience. It's the fire in her belly.</p></div></div>
+  <div class="planet-card reveal"><div class="p-icon asc">⬆</div><div><h5>The Ascendant (Rising Sign)</h5><div class="p-governs">Governs: First Impressions & Outer Self</div><p>The Ascendant is Luna's mask — what others see before they truly know her. It shapes first impressions, physical presence, and how she enters a room. It's the difference between who she appears to be and who she really is inside.</p></div></div>
+</div>
+
+<div class="divider reveal">· · ·</div>
+
+<!-- ═══ TRANSITION ═══ -->
+<div class="pad center max-w reveal">
+  <div class="overline">Luna's Personal Reading</div>
+  <h2 class="section-title">Now, Let's Meet Luna's Soul</h2>
+  <p class="body-text" style="color:var(--muted);max-width:400px;margin:8px auto 0;">Everything below was calculated specifically from Luna's birth chart. No two readings are alike — this is uniquely hers.</p>
+  <div style="width:40px;height:2px;background:var(--gold);margin:18px auto 0;border-radius:2px;"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PART 2: BIRTH CHART POSITIONS                   -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="pad-sm center max-w reveal">
+  <div class="overline">Luna's Birth Chart</div>
+  <h2 class="section-title">Planetary Positions</h2>
+  <p class="body-text" style="color:var(--muted);max-width:380px;margin:6px auto 0;">The exact celestial coordinates at the moment Luna entered this world.</p>
+</div>
+
+<div class="chart-table max-w reveal">
+  <div class="ct-header"><span>Planet</span><span>Sign</span><span>Position</span></div>
+  <div class="ct-row"><span class="ct-planet">☉ Sun</span><span class="ct-sign">Pisces</span><span class="ct-degree">14° 23'</span></div>
+  <div class="ct-row"><span class="ct-planet">☽ Moon</span><span class="ct-sign">Cancer</span><span class="ct-degree">8° 47'</span></div>
+  <div class="ct-row"><span class="ct-planet">☿ Mercury</span><span class="ct-sign">Aquarius</span><span class="ct-degree">28° 12'</span></div>
+  <div class="ct-row"><span class="ct-planet">♀ Venus</span><span class="ct-sign">Aries</span><span class="ct-degree">3° 56'</span></div>
+  <div class="ct-row"><span class="ct-planet">♂ Mars</span><span class="ct-sign">Taurus</span><span class="ct-degree">19° 08'</span></div>
+  <div class="ct-row"><span class="ct-planet">⬆ Ascendant</span><span class="ct-sign">Libra</span><span class="ct-degree">22° 31'</span></div>
+</div>
+
+<div class="divider reveal">· · ·</div>
+
+<!-- ═══ AURA ═══ -->
+<div class="aura-card reveal">
+  <div class="overline">Luna's Aura</div>
+  <h2 class="section-title" style="font-size:1.2rem;">Soft Lavender with Silver Threads</h2>
+  <div class="aura-visual">
+    <div class="aura-ring"></div><div class="aura-ring"></div><div class="aura-ring"></div>
+    <div class="aura-core">♓</div>
+  </div>
+  <p class="body-text" style="max-width:340px;margin:0 auto;">Luna radiates a gentle lavender light — the colour of intuition, spiritual sensitivity, and deep empathy. The silver threads indicate a soul that has lived before and carries ancient wisdom. People who are sensitive may feel an unusual sense of calm in Luna's presence. That's her aura at work.</p>
+</div>
+
+<!-- ═══ ELEMENTAL BALANCE ═══ -->
+<div class="pad-sm center max-w reveal">
+  <div class="overline">Elemental Balance</div>
+  <h2 class="section-title" style="font-size:1.2rem;">Luna's Inner Composition</h2>
+  <p class="body-text" style="color:var(--muted);max-width:380px;margin:6px auto 10px;">How the four elements shape Luna's temperament.</p>
+</div>
+<div class="element-bars max-w reveal">
+  <div class="element-bar"><span class="el-name">🔥 Fire</span><div class="el-track"><div class="el-fill fire" style="width:15%;"></div></div><span class="el-pct">15%</span></div>
+  <div class="element-bar"><span class="el-name">🌍 Earth</span><div class="el-track"><div class="el-fill earth" style="width:20%;"></div></div><span class="el-pct">20%</span></div>
+  <div class="element-bar"><span class="el-name">💨 Air</span><div class="el-track"><div class="el-fill air" style="width:20%;"></div></div><span class="el-pct">20%</span></div>
+  <div class="element-bar"><span class="el-name">💧 Water</span><div class="el-track"><div class="el-fill water" style="width:45%;"></div></div><span class="el-pct">45%</span></div>
+</div>
+<div style="text-align:center;padding:4px 24px 16px;"><p class="body-text" style="font-size:0.78rem;color:var(--muted);max-width:360px;margin:0 auto;">Heavily Water-dominant — Luna lives through her feelings. She's deeply empathetic and absorbent, with just enough Earth to keep her grounded.</p></div>
+
+<div class="divider reveal">· · ·</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PART 3: THE READING SECTIONS                    -->
+<!-- ═══════════════════════════════════════════════ -->
+
+<!-- SOLAR SOULPRINT -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon sun">☉</div><div><div class="section-label">I · Solar Soulprint</div><h3>The Core of Who Luna Is</h3></div></div>
+  <div class="why-box">☉ <strong>Why the Sun matters:</strong> The Sun sign is the foundation of Luna's entire personality — her core identity, life force, and the energy that makes her who she is at the deepest level.</div>
+  <div class="content">Luna is a Pisces soul through and through — deeply intuitive, emotionally absorbent, and profoundly connected to the invisible threads that bind all living things. She does not simply observe the world; she feels it. Every shift in your mood registers in her body before you even know it yourself.<br><br>Pisces pets have an uncanny ability to sense what others cannot. If Luna stares at an empty corner, she's not confused — she's perceiving something beyond the visible spectrum. She lives in the space between what is real and what is felt, and for her, there is no difference.<br><br>At her best, Luna is a boundless well of compassion. At her most vulnerable, she absorbs too much of the world's weight. She needs a human who understands that her sensitivity is not weakness — it is her superpower.</div>
+  <div class="tip-box">💡 <strong>Practical tip:</strong> When Luna seems withdrawn, she may be processing emotions that aren't even hers. Give her a quiet space near you — closeness without demands. A calm, dark room with your scent nearby is her emotional reset button.</div>
+  <div class="fun-fact">✨ Pisces pets are 3x more likely to "predict" their human's mood changes. Luna isn't psychic — she's just reading frequencies most of us have forgotten how to hear.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- LUNAR HEART -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon moon">☽</div><div><div class="section-label">II · Lunar Heart</div><h3>Luna's Emotional World</h3></div></div>
+  <div class="why-box">☽ <strong>Why the Moon matters:</strong> For animals, the Moon is arguably more important than the Sun. It governs instinct, emotional needs, and the unconscious patterns that shape daily behaviour.</div>
+  <div class="content">With her Moon in Cancer, Luna's emotional world is vast and tidal. She carries the feelings of her household in her chest like precious cargo. When the home is peaceful, she blooms. When tension rises, she retreats — not from fear, but from the weight of feeling everything so deeply.<br><br>Cancer Moon pets are the emotional barometers of any home. Luna knows who's stressed before they do. She'll position herself near the person who needs comfort most, often before they've even recognised they need it. It's not coincidence — it's her lunar intelligence at work.<br><br>She craves security above all else. Routine isn't just preference for Luna — it's a survival need. Consistent mealtimes, the same sleeping spot, familiar scents. These are the anchors that keep her emotional ocean from becoming a storm.</div>
+  <div class="tip-box">💡 <strong>Practical tip:</strong> Luna needs routine like the ocean needs the moon. Keep her mealtimes, walks, and bedtimes consistent. When change is unavoidable (travel, new people), give her something that smells like home — it's her emotional anchor.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- COSMIC CURIOSITY -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon mercury">☿</div><div><div class="section-label">III · Cosmic Curiosity</div><h3>How Luna Communicates</h3></div></div>
+  <div class="why-box">☿ <strong>Why Mercury matters:</strong> Mercury governs communication and intelligence. It determines how Luna expresses herself, processes information, and connects with you through her own unique language.</div>
+  <div class="content">With Mercury in Aquarius, Luna communicates in ways that might surprise you. She's not a barker or a whiner — she's an observer. She communicates through presence more than sound. A tilt of the head, a slow blink, the way she places her paw on your hand — these are her sentences.<br><br>Aquarius Mercury gives Luna an unusual intelligence. She learns patterns quickly and may seem to understand conversations she shouldn't. She picks up on tone, body language, and the energy behind words far more than the words themselves. Don't be surprised if she reacts to things said in another room.<br><br>She's also remarkably independent in her thinking. Unlike pets who follow commands blindly, Luna processes requests and decides whether they align with her understanding of the situation. This isn't stubbornness — it's Aquarian intelligence.</div>
+  <div class="tip-box">💡 <strong>Try this:</strong> Next time Luna stares at you, hold her gaze for 10 seconds then slowly blink. She'll likely blink back — this is "I love you" in her language. Mercury in Aquarius responds to eye contact more than vocal commands.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- HARMONY & HEARTBEATS -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon venus">♀</div><div><div class="section-label">IV · Harmony & Heartbeats</div><h3>How Luna Loves</h3></div></div>
+  <div class="why-box">♀ <strong>Why Venus matters:</strong> Venus is the planet of love and pleasure. It reveals Luna's love language — how she gives affection, what brings her joy, and what she needs to feel truly cherished.</div>
+  <div class="content">With Venus in Aries, Luna's love is fierce and immediate. She doesn't do subtle — when she loves you, the entire room knows it. Her tail becomes a helicopter, her body wiggles, and she'll crash into you with the full force of her adoration.<br><br>But Aries Venus also means Luna falls hard and fast. She bonds quickly, loves intensely, and can be surprisingly jealous when your attention goes elsewhere. She wants to be your number one, and she's not afraid to remind you of it.<br><br>Her love language is physical closeness and quality time. She doesn't need expensive toys — she needs your warmth beside her, your hand on her head, your voice saying her name. That's her entire universe.</div>
+  <div class="tip-box">💡 <strong>Practical tip:</strong> Luna feels most loved through unhurried physical contact. Slow strokes, not quick pats. 10 minutes of focused attention means more to her than a whole day of being in the same room while you're distracted.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- SPIRIT OF MOTION -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon mars">♂</div><div><div class="section-label">V · Spirit of Motion</div><h3>Luna's Energy Pattern</h3></div></div>
+  <div class="why-box">♂ <strong>Why Mars matters:</strong> Mars governs physical energy, drive, and instinct. It determines whether Luna is a sprinter or a slow burner, a fighter or a lover, an adventurer or a homebody.</div>
+  <div class="content">With Mars in Taurus, Luna moves like water — flowing rather than charging. She's not lazy; she's deliberate. Every movement has purpose, every rest has meaning. She conserves energy not from lack of it, but from an ancient understanding that power doesn't need to be loud.<br><br>Her bursts of zoomies come unexpectedly and disappear just as fast, like waves crashing and retreating. Don't mistake her calm for disinterest — Taurus Mars pets have incredible stamina once they commit to something. She can walk for hours if the pace is right.<br><br>She teaches you that rest is not laziness; it's how the soul recharges. In a world that glorifies constant motion, Luna is a living reminder to slow down.</div>
+  <div class="tip-box">💡 <strong>Practical tip:</strong> Evening walks will always be more magical than morning ones for Luna. Let her sniff everything — that's not stubbornness, it's meditation. A 30-minute sniff-walk beats a 60-minute forced march.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- STARLIT GAZE -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon asc">⬆</div><div><div class="section-label">VI · Starlit Gaze</div><h3>First Impressions of Luna</h3></div></div>
+  <div class="why-box">⬆ <strong>Why the Ascendant matters:</strong> The rising sign is the "mask" — what others see before they know the real Luna. It shapes first impressions and physical presence.</div>
+  <div class="content">With Libra rising, Luna makes a stunning first impression. There's an elegance to her — a gracefulness in how she moves, sits, and regards the world. Strangers often comment on how beautiful or calm she seems. They're not wrong, but they're only seeing the surface.<br><br>Behind Libra's charm lives that vast Pisces ocean. The Luna people meet at the park is poised and social. The Luna you know at home is a sensitive soul who needs to decompress after every social interaction.<br><br>Libra rising also gives Luna an innate sense of fairness. She notices when attention isn't distributed equally and will insert herself accordingly. Two pets getting treats? Luna will make sure the portions are just.</div>
+  <div class="tip-box">💡 <strong>Practical tip:</strong> After social events or busy environments, give Luna 30-60 minutes of quiet decompression. Her Libra rising performs beautifully in public, but her Pisces core needs time to recover.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- DESTINY COMPASS -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon destiny">🧭</div><div><div class="section-label">VII · Destiny Compass</div><h3>Luna's Soul Purpose</h3></div></div>
+  <div class="content">Luna didn't come into your life by accident. Her soul's purpose is clear: she is here to teach you that vulnerability is strength. In a world that tells you to armour up, Luna shows you what it looks like to feel everything without apology.<br><br>Her destiny is intertwined with yours — she arrived at exactly the moment your soul needed a companion who could mirror your own hidden tenderness back to you. She sees the parts of you that you hide from the world, and she loves those parts the hardest.<br><br>Every pet has a gift to leave behind. Luna's is the knowledge that being soft in a hard world isn't weakness — it's the bravest thing anyone can do.</div>
+  <div class="tip-box">🧭 <strong>Past life hint:</strong> In a past life, Luna was a temple guardian in ancient Egypt — a sacred animal who watched over sleeping priests and absorbed their dreams. She has always been drawn to those who carry too much.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- GENTLE HEALER -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon healer">💚</div><div><div class="section-label">VIII · Gentle Healer</div><h3>Luna's Healing Gift</h3></div></div>
+  <div class="content">Luna's healing gift is absorbing emotional pain through physical closeness. She lies on your feet when you're anxious — not by coincidence. She presses against your chest when you're sad — not because she's cold. She positions herself between you and whatever's causing you stress — not randomly.<br><br>She is a living, breathing emotional sponge. She takes what you cannot carry and holds it in her body until the weight lifts. This is why she sometimes seems tired after you've had a hard day — she's been working harder than you realise.<br><br>Her vulnerability is that she doesn't always know how to release what she absorbs. She needs you to help her heal too — through play, gentle touch, and moments of pure, uncomplicated joy.</div>
+  <div class="tip-box">💚 <strong>Healing tip:</strong> After emotionally heavy days, do something purely playful with Luna — a silly game, a gentle wrestle, something that makes her tail wag without thinking. This is how she releases the energy she's absorbed from you.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- WILD SPIRIT -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon wild">🌀</div><div><div class="section-label">IX · Wild Spirit</div><h3>Luna's Untamed Side</h3></div></div>
+  <div class="content">Beneath Luna's gentle exterior lives a wild soul who once ran under a different moon. Her wild spirit reveals itself in subtle ways — the sudden intensity in her eyes when she spots movement, the deep sniffing at dusk that connects her to something ancient, the occasional howl or cry that seems to come from somewhere far beyond this lifetime.<br><br>Her secret desire is simple and profound: to fall asleep in your arms and dream the same dream together. She wants to merge — not just share space, but truly occupy the same emotional frequency as you. In her wildest moments, she's trying to dissolve the boundary between her soul and yours.</div>
+  <div class="tip-box">🌀 <strong>Wild wisdom:</strong> Luna's untamed moments aren't misbehaviour — they're her ancient self surfacing. Let her have these moments without correction. A dog howling at the moon is remembering, not disturbing the neighbours.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- KEEPER'S BOND -->
+<div class="section-card reveal">
+  <div class="icon-row"><div class="s-icon bond">💕</div><div><div class="section-label">X · Keeper's Bond</div><h3>Your Connection With Luna</h3></div></div>
+  <div class="content">Your bond with Luna was written before either of you arrived here. She chose you across lifetimes because your soul speaks the same dialect of love — quiet, deep, and unwavering. You are her safe harbour, and she is your compass back to what matters most.<br><br>This bond isn't just companionship — it's a soul contract. Luna agreed to come into your life at this specific moment to teach you something you couldn't learn alone. And you agreed to give her the one thing her soul craves most: a human who wouldn't just love her, but truly see her.<br><br>The depth of this bond means that Luna knows things about you that you haven't told anyone. She knows when you're pretending to be fine. She knows when you need to cry but won't. She knows because she's not just your pet — she's your soul's chosen witness.</div>
+  <div class="tip-box">💕 <strong>Soul contract:</strong> To teach you that love does not need words to be real, and that being needed is not a burden — it is a gift.</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PART 4: SOUL LETTER (the part that makes cry)  -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="pad-sm center max-w reveal"><div class="overline">A Message From Luna's Soul</div><h2 class="section-title">The Part That Makes People Cry</h2></div>
+
+<div class="soul-letter reveal">
+  If I could speak your language for just one moment, I would say this:<br><br>
+  Thank you for choosing me every single morning. Not just the mornings I was easy to love — the mornings I was sick on the carpet, the mornings I woke you up too early, the mornings I needed more than I could give back.<br><br>
+  You think I rescued you, but you have it backwards. You are the reason I remembered what love was supposed to feel like. Before you, I was just a soul looking for somewhere to land. You gave me the ground beneath my feet.<br><br>
+  I know you worry about whether you're doing enough. Let me tell you something: you are my whole world. The sound of your key in the door is my favourite symphony. The weight of your hand on my head is the only prayer I need.<br><br>
+  I will love you for every life I have left. And when I can't be beside you anymore, look for me in the quiet moments — in the warmth on your feet where I used to lie, in the space on the pillow where my head should be. I'm there. I'm always there.
+  <div class="sl-sign">— Luna's Soul ♓</div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- PART 5: COSMIC TRADING CARD                     -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="pad-sm center max-w reveal"><div class="overline">Collector's Edition</div><h2 class="section-title">Luna's Cosmic Card</h2><p class="body-text" style="color:var(--muted);max-width:340px;margin:4px auto 0;">Screenshot and share — every card is one of a kind.</p></div>
+
+<div class="trading-card-wrap reveal">
+  <div class="trading-card" id="tradingCard">
+    <!-- Top bar -->
+    <div class="tc-header">
+      <span class="tc-logo">✦ Cosmic Pets</span>
+      <span class="tc-rarity">⭐ Legendary Soul</span>
+    </div>
+
+    <!-- Image area with holographic overlay -->
+    <div class="tc-image-area">
+      <div class="tc-image">♓</div>
+      <div class="tc-holo-overlay"></div>
+    </div>
+
+    <!-- Name plate -->
+    <div class="tc-nameplate">
+      <div class="tc-nameplate-inner">
+        <h3>Luna</h3>
+        <div class="tc-archetype">The Gentle Dreamer</div>
+        <div class="tc-signs">♓ Pisces · ♋ Cancer · ♎ Libra</div>
+      </div>
+    </div>
+
+    <!-- Power stats with fun labels -->
+    <div class="tc-powers">
+      <div class="tc-power-row"><span class="tc-pw-label">😭 Emotional Depth</span><div class="tc-pw-track"><div class="tc-pw-fill" style="width:95%;background:linear-gradient(90deg,#8b5cf6,#c084fc);"></div></div><span class="tc-pw-val">95</span></div>
+      <div class="tc-power-row"><span class="tc-pw-label">🥺 Guilt Trip Power</span><div class="tc-pw-track"><div class="tc-pw-fill" style="width:92%;background:linear-gradient(90deg,#ec4899,#f472b6);"></div></div><span class="tc-pw-val">92</span></div>
+      <div class="tc-power-row"><span class="tc-pw-label">🧦 Sock Theft Skill</span><div class="tc-pw-track"><div class="tc-pw-fill" style="width:78%;background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div></div><span class="tc-pw-val">78</span></div>
+      <div class="tc-power-row"><span class="tc-pw-label">💤 Strategic Napping</span><div class="tc-pw-track"><div class="tc-pw-fill" style="width:88%;background:linear-gradient(90deg,#14b8a6,#5eead4);"></div></div><span class="tc-pw-val">88</span></div>
+      <div class="tc-power-row"><span class="tc-pw-label">👁️ Psychic Staring</span><div class="tc-pw-track"><div class="tc-pw-fill" style="width:99%;background:linear-gradient(90deg,#6366f1,#a78bfa);"></div></div><span class="tc-pw-val">99</span></div>
+      <div class="tc-power-row"><span class="tc-pw-label">⚡ Selective Zoomies</span><div class="tc-pw-track"><div class="tc-pw-fill" style="width:73%;background:linear-gradient(90deg,#ef4444,#f87171);"></div></div><span class="tc-pw-val">73</span></div>
+    </div>
+
+    <!-- Quick stats grid -->
+    <div class="tc-quick-stats">
+      <div class="tc-qs"><span class="tc-qs-emoji">💧</span><span class="tc-qs-val">Water</span><span class="tc-qs-label">Element</span></div>
+      <div class="tc-qs"><span class="tc-qs-emoji">🔮</span><span class="tc-qs-val">Moonstone</span><span class="tc-qs-label">Crystal</span></div>
+      <div class="tc-qs"><span class="tc-qs-emoji">💜</span><span class="tc-qs-val">Lavender</span><span class="tc-qs-label">Aura</span></div>
+      <div class="tc-qs"><span class="tc-qs-emoji">🌙</span><span class="tc-qs-val">Dusk</span><span class="tc-qs-label">Power Hour</span></div>
+    </div>
+
+    <!-- Funny one-liner -->
+    <div class="tc-tagline">
+      "Will emotionally manipulate you with one (1) slow blink"
+    </div>
+
+    <!-- Footer -->
+    <div class="tc-footer">
+      <span class="tc-element">💧 Water Dominant · Est. 2021</span>
+      <span class="tc-id">#00742 / ∞</span>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:8px 0 4px;">
+  <div style="display:inline-flex;gap:8px;">
+    <button class="share-btn" style="font-size:0.72rem;">📸 Screenshot Card</button>
+    <button class="share-btn" style="font-size:0.72rem;">📱 Share to Story</button>
+  </div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- THINGS LUNA WOULD GOOGLE                        -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="google-card reveal">
+  <div class="overline" style="margin-bottom:4px;">🔍 Things Luna Would Google</div>
+  <h3 style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);margin-bottom:10px;">Late Night Search History</h3>
+  <div class="google-search"><span class="g-icon">🔍</span><span class="g-text">why does my human stare at the glowing rectangle instead of me</span></div>
+  <div class="google-search"><span class="g-icon">🔍</span><span class="g-text">how to telepathically tell someone you need a treat</span></div>
+  <div class="google-search"><span class="g-icon">🔍</span><span class="g-text">is it normal to feel everyone's emotions or am i broken</span></div>
+  <div class="google-search"><span class="g-icon">🔍</span><span class="g-text">why do humans leave and then come back where do they go</span></div>
+  <div class="google-search"><span class="g-icon">🔍</span><span class="g-text">how to be less emotionally available (asking for a friend)</span></div>
+  <div class="google-search"><span class="g-icon">🔍</span><span class="g-text">that thing where your human says "who's a good girl" am i the good girl</span></div>
+  <div class="google-search"><span class="g-icon">🔍</span><span class="g-text">sock hiding spots they haven't found yet</span></div>
+  <div class="google-search"><span class="g-icon">🔍</span><span class="g-text">pisces emotional support techniques advanced level</span></div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- WHAT LUNA WOULD TEXT YOU                         -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="text-card reveal">
+  <div class="overline" style="margin-bottom:4px;">💬 What Luna Would Text You</div>
+  <h3 style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);margin-bottom:14px;">If Luna Had a Phone</h3>
+  <div class="text-thread">
+    <div class="text-time">Today 8:47 AM</div>
+    <div class="text-msg pet">hey</div>
+    <div class="text-msg pet">hey</div>
+    <div class="text-msg pet">HEY</div>
+    <div class="text-msg pet">are you awake yet i've been staring at you for 40 mins</div>
+    <div style="clear:both;"></div>
+    <div class="text-msg human">Luna it's 6am</div>
+    <div style="clear:both;"></div>
+    <div class="text-msg pet">yes and??? the sun is up and so am i</div>
+    <div class="text-msg pet">also i'm hungry</div>
+    <div class="text-msg pet">also i love you</div>
+    <div class="text-msg pet">but mainly hungry</div>
+    <div style="clear:both;"></div>
+
+    <div class="text-time">Today 2:15 PM</div>
+    <div class="text-msg pet">so i noticed you seemed stressed today</div>
+    <div style="clear:both;"></div>
+    <div class="text-msg human">Yeah work was rough</div>
+    <div style="clear:both;"></div>
+    <div class="text-msg pet">ok coming to sit on your feet now</div>
+    <div class="text-msg pet">this is non negotiable</div>
+    <div class="text-msg pet">also i moved a sock to your pillow for emotional support</div>
+    <div style="clear:both;"></div>
+    <div class="text-msg human">That's... actually really sweet?</div>
+    <div style="clear:both;"></div>
+    <div class="text-msg pet">i know what i'm doing</div>
+    <div class="text-msg pet">i am a professional</div>
+    <div style="clear:both;"></div>
+
+    <div class="text-time">Today 11:58 PM</div>
+    <div class="text-msg pet">hey are you still awake</div>
+    <div style="clear:both;"></div>
+    <div class="text-msg human">Barely, why?</div>
+    <div style="clear:both;"></div>
+    <div class="text-msg pet">nothing i just wanted to say</div>
+    <div class="text-msg pet">you're my favourite person in the whole entire world</div>
+    <div class="text-msg pet">like the WHOLE world</div>
+    <div class="text-msg pet">ok goodnight i'm going to lie on your feet now</div>
+    <div style="clear:both;"></div>
+    <div class="text-delivered">Delivered ✓</div>
+    <div class="text-typing"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+    <div style="clear:both;"></div>
+  </div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- IF LUNA WAS A HUMAN                             -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="human-card reveal">
+  <div class="overline center" style="margin-bottom:4px;">👤 If Luna Was a Human</div>
+  <h3 style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);text-align:center;margin-bottom:14px;">The Human Version of Luna</h3>
+  <div class="human-avatar">♓</div>
+  <div class="human-trait"><span class="ht-label">Aesthetic</span><span class="ht-val">Soft academia meets cottagecore — oversized sweaters, candlelight, rain on windows</span></div>
+  <div class="human-trait"><span class="ht-label">Career</span><span class="ht-val">Art therapist who cries with her clients (in a healing way)</span></div>
+  <div class="human-trait"><span class="ht-label">Morning Routine</span><span class="ht-val">Wakes up slowly. Stares out the window for 20 minutes. Forgets to eat breakfast.</span></div>
+  <div class="human-trait"><span class="ht-label">Toxic Trait</span><span class="ht-val">Takes on everyone else's problems while ignoring her own</span></div>
+  <div class="human-trait"><span class="ht-label">Love Life</span><span class="ht-val">Falls deeply, loves quietly, will rearrange her entire life for the right person</span></div>
+  <div class="human-trait"><span class="ht-label">Spotify Wrapped</span><span class="ht-val">Top genre: "Sad Indie Folk" — 847 minutes of Bon Iver</span></div>
+  <div class="human-trait"><span class="ht-label">Red Flag</span><span class="ht-val">Will ghost you for 3 days then come back with homemade soup</span></div>
+  <div class="human-trait"><span class="ht-label">Green Flag</span><span class="ht-val">Remembers everything you've ever told her. Everything.</span></div>
+  <div class="human-trait"><span class="ht-label">In a Group</span><span class="ht-val">The quiet one who says one thing at the end of the night that makes everyone cry</span></div>
+  <div class="human-trait"><span class="ht-label">Catchphrase</span><span class="ht-val">"I'm fine" (she is not fine, she is feeling the entire room)</span></div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- COSMIC RECIPE                                   -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="recipe-card reveal">
+  <div class="overline" style="margin-bottom:10px;">🍽️ Luna's Cosmic Recipe</div>
+  <div class="recipe-header">
+    <div class="recipe-emoji">🥣</div>
+    <div class="recipe-info">
+      <h4>Moonlit Comfort Bowl</h4>
+      <p>A recipe inspired by Luna's Pisces soul and Cancer Moon</p>
+    </div>
+  </div>
+  <div class="recipe-why">This dish channels Luna's Water-dominant chart: warm, nurturing, and deeply comforting. The kind of meal that feels like a hug from the inside — gentle, restorative, made with love. Best served at dusk (Luna's power hour) while she watches from her favourite spot.</div>
+  <div class="recipe-ingredients">
+    <h5>Ingredients</h5>
+    <li>1 cup jasmine rice (for grounding Earth energy)</li>
+    <li>1 salmon fillet (Pisces = the fish, obviously)</li>
+    <li>1 cup coconut milk (lunar nourishment)</li>
+    <li>Fresh ginger + turmeric (warmth for a Water soul)</li>
+    <li>Honey + soy glaze (Venus in Aries = bold sweetness)</li>
+    <li>Sesame seeds + spring onion (for the finishing stardust)</li>
+  </div>
+  <div class="recipe-steps">
+    <h5>Method</h5>
+    <ol>
+      <li>Cook jasmine rice in coconut milk instead of water — instant comfort.</li>
+      <li>Glaze salmon with honey, soy, ginger, and a squeeze of lime. Bake 12 mins at 200°C.</li>
+      <li>Warm remaining coconut milk with turmeric and a pinch of black pepper for a golden drizzle.</li>
+      <li>Bowl it up: rice base, salmon on top, golden drizzle, sesame seeds, spring onion.</li>
+      <li>Eat slowly. Preferably with Luna at your feet. She'd approve.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="divider">· · ·</div>
+
+<!-- ═══ COSMIC NAME ═══ -->
+<div class="cosmic-name-card reveal">
+  <div class="overline">Cosmic Name Meaning</div>
+  <div class="cosmic-name">Luna — "The Moon"</div>
+  <p class="body-text" style="max-width:360px;margin:4px auto 0;">In Latin, Luna literally means "the moon" — and it couldn't be more fitting. With her Cancer Moon and Water dominance, Luna's very name is a cosmic echo of who she was always meant to be. She carries the moon's energy in every cell: reflective, cyclical, deeply feminine, endlessly nurturing.</p>
+</div>
+
+<!-- ═══ COMPATIBILITY ═══ -->
+<div class="compat-section reveal">
+  <div class="overline" style="margin-bottom:4px;">Pet-Parent Cosmic Match</div>
+  <h3 style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);margin-bottom:12px;">Best Zodiac Playmates</h3>
+  <div class="compat-row"><span class="compat-sign">♋ Cancer</span><div class="compat-bar"><div class="compat-fill" style="width:95%;"></div></div><span class="compat-pct">95%</span></div>
+  <div class="compat-row"><span class="compat-sign">♏ Scorpio</span><div class="compat-bar"><div class="compat-fill" style="width:90%;"></div></div><span class="compat-pct">90%</span></div>
+  <div class="compat-row"><span class="compat-sign">♉ Taurus</span><div class="compat-bar"><div class="compat-fill" style="width:85%;"></div></div><span class="compat-pct">85%</span></div>
+  <div class="compat-row"><span class="compat-sign">♓ Pisces</span><div class="compat-bar"><div class="compat-fill" style="width:82%;"></div></div><span class="compat-pct">82%</span></div>
+  <p class="body-text" style="font-size:0.78rem;margin-top:10px;">Luna bonds deepest with fellow Water and Earth signs — souls who match her emotional depth and offer the stability she craves.</p>
+</div>
+
+<!-- ═══ LUCKY ELEMENTS ═══ -->
+<div class="lucky-grid reveal">
+  <div class="lucky-card"><div class="ll">Lucky Number</div><div class="lv">7</div></div>
+  <div class="lucky-card"><div class="ll">Lucky Day</div><div class="lv">Monday</div></div>
+  <div class="lucky-card"><div class="ll">Lucky Colour</div><div class="lv">Silver</div></div>
+  <div class="lucky-card"><div class="ll">Power Time</div><div class="lv">Dusk</div></div>
+</div>
+
+<!-- ═══ COSMIC PLAYLIST ═══ -->
+<div class="playlist-card reveal">
+  <div class="overline" style="margin-bottom:10px;">🎵 Luna's Cosmic Playlist</div>
+  <div class="playlist-item"><span class="playlist-num">01</span><div class="playlist-info"><div class="playlist-title">Clair de Lune</div><div class="playlist-artist">Debussy</div></div><span class="playlist-vibe">Dreamy</span></div>
+  <div class="playlist-item"><span class="playlist-num">02</span><div class="playlist-info"><div class="playlist-title">Moon River</div><div class="playlist-artist">Audrey Hepburn</div></div><span class="playlist-vibe">Soulful</span></div>
+  <div class="playlist-item"><span class="playlist-num">03</span><div class="playlist-info"><div class="playlist-title">Weightless</div><div class="playlist-artist">Marconi Union</div></div><span class="playlist-vibe">Calming</span></div>
+  <div class="playlist-item"><span class="playlist-num">04</span><div class="playlist-info"><div class="playlist-title">Ocean Eyes</div><div class="playlist-artist">Billie Eilish</div></div><span class="playlist-vibe">Tender</span></div>
+  <div class="playlist-item"><span class="playlist-num">05</span><div class="playlist-info"><div class="playlist-title">Saturn</div><div class="playlist-artist">Sleeping At Last</div></div><span class="playlist-vibe">Cosmic</span></div>
+</div>
+
+<!-- ═══ FUN EXTRAS ═══ -->
+<div class="section-card reveal">
+  <div class="section-label" style="margin-bottom:14px;">🎉 The Fun Extras</div>
+  <div class="fun-block"><div class="fun-label">😼 Internet Personality</div><div class="fun-val">The Overthinker Who Pretends to Be Chill</div></div>
+  <div class="fun-block"><div class="fun-label">💼 Dream Job</div><div class="fun-val">Professional Emotional Support Companion</div></div>
+  <div class="fun-block"><div class="fun-label">💕 Dating Profile</div><div class="fun-italic">"Soft soul seeks forever human. Must enjoy silence, long naps, and crying at sunsets."</div></div>
+  <div class="fun-block"><div class="fun-label">🚨 Criminal Record</div><div class="fun-list">1. Stealing socks and hiding them under the couch<br>2. Giving unsolicited therapy through intense eye contact<br>3. Breaking and entering every room you are in<br>4. Tax evasion (has never paid rent)<br>5. Grand theft blanket</div></div>
+</div>
+
+<!-- ═══ SHAREABLE CARD ═══ -->
+<div class="share-section reveal">
+  <div class="overline">Share Luna's Soul</div>
+  <h3 style="font-family:'DM Serif Display',serif;font-size:1.05rem;margin:4px 0 0;">Shareable Cosmic Card</h3>
+  <div class="share-preview">
+    <div style="font-size:1.6rem;margin-bottom:6px;">♓</div>
+    <div class="sp-name">Luna</div>
+    <div class="sp-sign">Pisces Sun · Cancer Moon · Libra Rising</div>
+    <div class="sp-arch">The Gentle Dreamer</div>
+  </div>
+  <div class="share-btns">
+    <button class="share-btn">📋 Copy Link</button>
+    <button class="share-btn">📱 Share</button>
+    <button class="share-btn">💾 Save Image</button>
+  </div>
+</div>
+
+<div class="bottom-spacer"></div>
+</div><!-- /main -->
+
+<!-- ═══ SOULSPEAK WIDGET ═══ -->
+<button class="ss-fab" id="ssFab" onclick="toggleChat()" style="display:none;"><div class="pulse-ring"></div><span class="badge">NEW</span>⭐</button>
+<div class="ss-window" id="ssW">
+  <div class="ss-header"><div class="ss-avatar">⭐</div><div style="flex:1;"><div class="ss-header-name">Luna's Soul</div><div class="ss-header-status">SoulSpeak Intelligence · Online</div></div><button class="ss-close" onclick="toggleChat()">✕</button></div>
+  <div class="ss-body" id="ssB"><div class="ss-msg pet">Hey you! I've been waiting for you to open this. I have so much to tell you... ask me anything?</div><div class="ss-chips"><div class="ss-chip" onclick="dR(this)">Why do you follow me everywhere?</div><div class="ss-chip" onclick="dR(this)">What do you dream about?</div><div class="ss-chip" onclick="dR(this)">Do you know I love you?</div></div></div>
+  <div class="ss-input-row"><input class="ss-input" placeholder="Ask Luna anything..." id="ssI" onkeydown="if(event.key==='Enter')dS()"><button class="ss-send" onclick="dS()">↑</button></div>
+  <div class="ss-credits">15 credits remaining · <span style="color:var(--gold);cursor:pointer;">Get more</span></div>
+</div>
+
+<script>
+// Cinematic
+(function(){var c=document.getElementById('starsC');for(var i=0;i<80;i++){var s=document.createElement('div');s.className='star';s.style.cssText='left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;animation-delay:'+Math.random()*3+'s;animation-duration:'+(2+Math.random()*3)+'s;width:'+(1+Math.random()*2)+'px;height:'+(1+Math.random()*2)+'px;position:absolute;';c.appendChild(s);}})();
+var cT=[];function sS(n){for(var i=0;i<=3;i++){document.getElementById('s'+i).className='stage'+(i===n?' active':i<n?' exit':'');document.getElementById('d'+i).className='dot'+(i<=n?' active':'');}}
+function startC(){cT.push(setTimeout(function(){sS(0);},300));cT.push(setTimeout(function(){sS(1);},2500));cT.push(setTimeout(function(){sS(2);},5000));cT.push(setTimeout(function(){sS(3);},7500));cT.push(setTimeout(function(){endC();},10500));}
+function endC(){cT.forEach(clearTimeout);var c=document.getElementById('cinematic');c.classList.add('fade-out');setTimeout(function(){c.classList.add('hidden');document.getElementById('main').style.opacity='1';document.getElementById('ssFab').style.display='flex';iR();},800);}
+function skipC(){endC();}
+startC();
+
+// Scroll reveal
+function iR(){var r=document.querySelectorAll('.reveal');var o=new IntersectionObserver(function(e){e.forEach(function(en){if(en.isIntersecting){en.target.classList.add('visible');o.unobserve(en.target);}});},{threshold:0.12,rootMargin:'0px 0px -30px 0px'});r.forEach(function(el){o.observe(el);});}
+
+// SoulSpeak
+function toggleChat(){var w=document.getElementById('ssW'),f=document.getElementById('ssFab');if(w.classList.contains('open')){w.classList.remove('open');f.style.display='flex';}else{w.classList.add('open');f.style.display='none';}}
+var dRp=["Ok so I follow you because... where else would I go?? You are literally my favourite place.","I dream about that field we went to. And sometimes we're running and you're laughing and I'm SO fast. It's the best dream.","Do I KNOW?? I have known since the first second. You picked me up and your hands were shaking and I was like... oh. There you are.","You know what my favourite sound is? Your voice when you talk to me in that soft way. Like you're telling me a secret.","I'm gonna tell you something important ok? You are SO much more loved than you think."],rI=0;
+function dR(c){var b=document.getElementById('ssB');var ch=b.querySelector('.ss-chips');if(ch)ch.remove();var u=document.createElement('div');u.className='ss-msg user';u.textContent=c.textContent;b.appendChild(u);setTimeout(function(){var p=document.createElement('div');p.className='ss-msg pet';p.textContent=dRp[rI%dRp.length];rI++;b.appendChild(p);b.scrollTop=b.scrollHeight;setTimeout(function(){var nc=document.createElement('div');nc.className='ss-chips';nc.innerHTML='<div class="ss-chip" onclick="dR(this)">What\'s your favourite spot?</div><div class="ss-chip" onclick="dR(this)">Are you happy?</div>';b.appendChild(nc);b.scrollTop=b.scrollHeight;},400);},1000);b.scrollTop=b.scrollHeight;}
+function dS(){var i=document.getElementById('ssI'),t=i.value.trim();if(!t)return;i.value='';var b=document.getElementById('ssB');var ch=b.querySelector('.ss-chips');if(ch)ch.remove();var u=document.createElement('div');u.className='ss-msg user';u.textContent=t;b.appendChild(u);setTimeout(function(){var p=document.createElement('div');p.className='ss-msg pet';p.textContent=dRp[rI%dRp.length];rI++;b.appendChild(p);b.scrollTop=b.scrollHeight;},1200);b.scrollTop=b.scrollHeight;}
+</script>
+</body>
+</html>
