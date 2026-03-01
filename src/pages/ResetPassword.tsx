@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Lock, ArrowLeft, Sparkles, Check } from 'lucide-react';
+import { Lock, ArrowLeft, Sparkles, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
@@ -18,7 +17,7 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<{ password?: string; confirm?: string }>({});
-  
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,30 +34,30 @@ export default function ResetPassword() {
 
   const validateForm = () => {
     const newErrors: { password?: string; confirm?: string } = {};
-    
+
     const passwordResult = passwordSchema.safeParse(password);
     if (!passwordResult.success) {
       newErrors.password = passwordResult.error.errors[0].message;
     }
-    
+
     if (password !== confirmPassword) {
       newErrors.confirm = 'Passwords do not match';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setLoading(true);
-    
+
     try {
       const { error } = await supabase.auth.updateUser({ password });
-      
+
       if (error) {
         toast.error(error.message);
       } else {
@@ -72,9 +71,8 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <StarfieldBackground />
-      
+    <div className="min-h-screen relative overflow-hidden" style={{ background: '#FFFDF5' }}>
+
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -83,31 +81,31 @@ export default function ResetPassword() {
         >
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
+            className="flex items-center gap-2 text-[#9a8578] hover:text-[#3d2f2a] mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Home</span>
           </button>
-          
+
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, type: 'spring' }}
-              className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-cosmic-gold to-primary flex items-center justify-center"
+              className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#c4a265] to-[#8b6f3a] flex items-center justify-center"
             >
               {success ? (
                 <Check className="w-8 h-8 text-white" />
               ) : (
-                <Star className="w-8 h-8 text-white fill-white" />
+                <Lock className="w-8 h-8 text-white" />
               )}
             </motion.div>
-            <h1 className="text-3xl font-display font-bold text-foreground">
+            <h1 className="text-3xl font-serif font-bold text-[#3d2f2a]">
               {success ? 'Password Updated!' : 'Set New Password'}
             </h1>
-            <p className="text-muted-foreground mt-2">
-              {success 
-                ? 'Redirecting you to your reports...' 
+            <p className="text-[#5a4a42] mt-2">
+              {success
+                ? 'Redirecting you to your reports...'
                 : 'Enter your new password below'}
             </p>
           </div>
@@ -117,13 +115,13 @@ export default function ResetPassword() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6"
+              className="bg-white border border-[#e8ddd0] rounded-2xl shadow-sm p-6"
             >
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="password">New Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a4a42]" />
                     <Input
                       id="password"
                       type="password"
@@ -141,7 +139,7 @@ export default function ResetPassword() {
                 <div className="space-y-2">
                   <Label htmlFor="confirm">Confirm Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5a4a42]" />
                     <Input
                       id="confirm"
                       type="password"
@@ -158,9 +156,7 @@ export default function ResetPassword() {
 
                 <Button
                   type="submit"
-                  variant="cosmic"
-                  size="lg"
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-[#c4a265] to-[#8b6f3a] text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
                   disabled={loading}
                 >
                   {loading ? (
@@ -169,7 +165,7 @@ export default function ResetPassword() {
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                       >
-                        <Sparkles className="w-4 h-4" />
+                        <Sparkles className="w-4 h-4 text-[#c4a265]" />
                       </motion.span>
                       Updating...
                     </span>

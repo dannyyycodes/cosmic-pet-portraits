@@ -13,7 +13,7 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://astropets.cloud/sitemap.xml
+Sitemap: https://littlesouls.co/sitemap.xml
 
 # Block admin pages from crawling
 Disallow: /admin

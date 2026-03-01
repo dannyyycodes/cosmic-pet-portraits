@@ -2,7 +2,6 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Gift, CheckCircle, Mail, Copy, ArrowRight, LinkIcon, Share2, Sparkles, PartyPopper, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -45,9 +44,8 @@ export default function GiftSuccess() {
   const isLinkDelivery = deliveryMethod === 'link';
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
-      <StarfieldBackground intensity="calm" />
-      
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: '#FFFDF5' }}>
+
       <div className="w-full max-w-md relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -64,7 +62,7 @@ export default function GiftSuccess() {
             >
               <CheckCircle className="w-12 h-12 text-white" />
             </motion.div>
-            
+
             {/* Celebration particles */}
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
@@ -72,7 +70,7 @@ export default function GiftSuccess() {
               transition={{ delay: 0.5 }}
               className="absolute -top-2 -right-2"
             >
-              <PartyPopper className="w-8 h-8 text-gold" />
+              <PartyPopper className="w-8 h-8 text-[#c4a265]" />
             </motion.div>
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
@@ -80,23 +78,23 @@ export default function GiftSuccess() {
               transition={{ delay: 0.6 }}
               className="absolute -bottom-1 -left-2"
             >
-              <Sparkles className="w-6 h-6 text-nebula-pink" />
+              <Sparkles className="w-6 h-6 text-[#c4a265]" />
             </motion.div>
           </div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="space-y-3"
           >
-            <h1 className="text-3xl md:text-4xl font-display font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-4xl font-display font-bold text-[#3d2f2a] font-serif">
               {t('giftSuccess.title')}
             </h1>
-            <p className="text-muted-foreground text-lg">
-              {isMultiRecipient 
+            <p className="text-[#9a8578] text-lg">
+              {isMultiRecipient
                 ? `${recipientCount} cosmic gifts are on their way!`
-                : isLinkDelivery 
+                : isLinkDelivery
                   ? t('giftSuccess.subtitleLink')
                   : t('giftSuccess.subtitleEmail')}
             </p>
@@ -108,7 +106,7 @@ export default function GiftSuccess() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.35 }}
-              className="flex items-center justify-center gap-2 text-primary"
+              className="flex items-center justify-center gap-2 text-[#c4a265]"
             >
               <Users className="w-5 h-5" />
               <span className="text-sm font-medium">
@@ -123,28 +121,28 @@ export default function GiftSuccess() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
-              className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 via-nebula-purple/15 to-nebula-pink/20 border border-primary/30 backdrop-blur-sm space-y-4"
+              className="p-6 rounded-2xl bg-white border border-[#e8ddd0] shadow-sm space-y-4"
             >
-              <div className="flex items-center justify-center gap-2 text-primary">
+              <div className="flex items-center justify-center gap-2 text-[#c4a265]">
                 <LinkIcon className="w-5 h-5" />
                 <p className="text-sm font-semibold">{t('giftSuccess.shareableLink')}</p>
               </div>
-              <div className="p-4 rounded-xl bg-background/60 border border-border/50">
-                <p className="text-sm font-mono text-foreground break-all">{redeemUrl}</p>
+              <div className="p-4 rounded-xl bg-[#faf6ef] border border-[#e8ddd0]">
+                <p className="text-sm font-mono text-[#3d2f2a] break-all">{redeemUrl}</p>
               </div>
               <div className="flex gap-3">
-                <Button onClick={copyLink} variant="outline" className="flex-1 border-border/50">
+                <Button onClick={copyLink} variant="outline" className="flex-1 border-[#e8ddd0]">
                   <Copy className="w-4 h-4 mr-2" />
                   {t('giftSuccess.copyLink')}
                 </Button>
-                <Button onClick={shareGift} variant="cosmic" className="flex-1">
+                <Button onClick={shareGift} className="flex-1 bg-gradient-to-r from-[#c4a265] to-[#8b6f3a] text-white font-semibold hover:opacity-90">
                   <Share2 className="w-4 h-4 mr-2" />
                   {t('giftSuccess.share')}
                 </Button>
               </div>
-              <div className="pt-2 border-t border-border/30">
-                <p className="text-xs text-muted-foreground">
-                  {t('giftSuccess.giftCode')}: <span className="font-mono font-bold text-foreground">{giftCode}</span>
+              <div className="pt-2 border-t border-[#e8ddd0]">
+                <p className="text-xs text-[#9a8578]">
+                  {t('giftSuccess.giftCode')}: <span className="font-mono font-bold text-[#3d2f2a]">{giftCode}</span>
                 </p>
               </div>
             </motion.div>
@@ -156,25 +154,25 @@ export default function GiftSuccess() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
-              className="p-6 rounded-2xl bg-gradient-to-br from-primary/20 via-nebula-purple/15 to-nebula-pink/20 border border-primary/30 backdrop-blur-sm"
+              className="p-6 rounded-2xl bg-white border border-[#e8ddd0] shadow-sm"
             >
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-[#9a8578] mb-3">
                 {isMultiRecipient ? 'Primary gift code' : t('giftSuccess.giftCode')}
               </p>
-              <div className="flex items-center justify-center gap-4 p-4 rounded-xl bg-background/60 border border-border/50">
-                <p className="text-2xl md:text-3xl font-mono font-bold text-foreground tracking-widest">
+              <div className="flex items-center justify-center gap-4 p-4 rounded-xl bg-[#faf6ef] border border-[#e8ddd0]">
+                <p className="text-2xl md:text-3xl font-mono font-bold text-[#3d2f2a] tracking-widest">
                   {giftCode}
                 </p>
                 <button
                   onClick={copyCode}
-                  className="p-2.5 rounded-lg hover:bg-card/80 transition-colors border border-border/50"
+                  className="p-2.5 rounded-lg hover:bg-[#faf6ef] transition-colors border border-[#e8ddd0]"
                 >
-                  <Copy className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                  <Copy className="w-5 h-5 text-[#9a8578] hover:text-[#3d2f2a]" />
                 </button>
               </div>
-              <p className="text-xs text-green-400 mt-3 flex items-center justify-center gap-2">
+              <p className="text-xs text-[#c4a265] mt-3 flex items-center justify-center gap-2">
                 <Mail className="w-4 h-4" />
-                {isMultiRecipient 
+                {isMultiRecipient
                   ? `Emails sent to ${recipientCount} recipients`
                   : 'Email sent to recipient'}
               </p>
@@ -182,42 +180,42 @@ export default function GiftSuccess() {
           )}
 
           {/* What's Next */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="p-5 rounded-xl bg-card/40 border border-border/40 backdrop-blur-sm space-y-3 text-left"
+            className="p-5 rounded-xl bg-white border border-[#e8ddd0] space-y-3 text-left"
           >
-            <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-              {isLinkDelivery ? <LinkIcon className="w-4 h-4 text-primary" /> : <Mail className="w-4 h-4 text-primary" />}
+            <p className="text-sm font-semibold text-[#3d2f2a] flex items-center gap-2">
+              {isLinkDelivery ? <LinkIcon className="w-4 h-4 text-[#c4a265]" /> : <Mail className="w-4 h-4 text-[#c4a265]" />}
               {t('giftSuccess.whatsNext')}
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2">
+            <ul className="text-sm text-[#5a4a42] space-y-2">
               <li className="flex items-start gap-2">
-                <span className="text-green-400 font-bold">1.</span>
+                <span className="text-[#c4a265] font-bold">1.</span>
                 {t('giftSuccess.step1')}
               </li>
               {isLinkDelivery ? (
                 <>
                   <li className="flex items-start gap-2">
-                    <span className="text-green-400 font-bold">2.</span>
+                    <span className="text-[#c4a265] font-bold">2.</span>
                     {t('giftSuccess.step2Link')}
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-green-400 font-bold">3.</span>
+                    <span className="text-[#c4a265] font-bold">3.</span>
                     {t('giftSuccess.step3Link')}
                   </li>
                 </>
               ) : (
                 <>
                   <li className="flex items-start gap-2">
-                    <span className="text-green-400 font-bold">2.</span>
-                    {isMultiRecipient 
+                    <span className="text-[#c4a265] font-bold">2.</span>
+                    {isMultiRecipient
                       ? 'Each recipient gets their own unique gift code via email'
                       : t('giftSuccess.step2Email')}
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-green-400 font-bold">3.</span>
+                    <span className="text-[#c4a265] font-bold">3.</span>
                     {t('giftSuccess.step3Email')}
                   </li>
                 </>
@@ -226,28 +224,28 @@ export default function GiftSuccess() {
           </motion.div>
 
           {/* Actions */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
             className="space-y-3"
           >
             <Link to="/gift" className="block">
-              <Button variant="cosmic" size="lg" className="w-full">
+              <Button size="lg" className="w-full bg-gradient-to-r from-[#c4a265] to-[#8b6f3a] text-white font-semibold py-3 rounded-xl hover:opacity-90">
                 <Gift className="w-5 h-5 mr-2" />
                 {t('giftSuccess.purchaseAnother')}
               </Button>
             </Link>
-            
+
             <Link to="/" className="block">
-              <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" className="w-full text-[#9a8578] hover:text-[#3d2f2a]">
                 {t('nav.backHome')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
           </motion.div>
 
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#9a8578]">
             {t('giftSuccess.questions')}
           </p>
         </motion.div>

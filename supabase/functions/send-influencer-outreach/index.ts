@@ -37,9 +37,9 @@ serve(async (req) => {
       method: "POST",
       headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "Cosmic Pet <onboarding@resend.dev>",
+        from: "Little Souls <hello@littlesouls.co>",
         to: [email],
-        subject: subject || "Partner with Cosmic Pet - Earn 50% Commission 🐾✨",
+        subject: subject || "Partner with Little Souls - Earn 50% Commission 🐾✨",
         html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">${htmlPitch}</div>`,
       }),
     });

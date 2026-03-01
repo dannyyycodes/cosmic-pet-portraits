@@ -37,12 +37,12 @@ export function UrgencyBanner() {
     return () => clearInterval(interval);
   }, []);
 
-  const dismissed = sessionStorage.getItem('astropets_newyear_banner_dismissed');
+  const dismissed = sessionStorage.getItem('littlesouls_banner_dismissed');
   if (dismissed === 'true' || !isVisible) return null;
 
   const handleDismiss = () => {
     setIsVisible(false);
-    sessionStorage.setItem('astropets_newyear_banner_dismissed', 'true');
+    sessionStorage.setItem('littlesouls_banner_dismissed', 'true');
   };
 
   const formatNumber = (num: number) => num.toString().padStart(2, '0');
