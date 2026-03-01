@@ -1,24 +1,28 @@
 
 
-# Switch Report Generation to Claude Sonnet 4.5 via OpenRouter
+# Issue: Missing `orders` table
 
-## What Changes
+The SQL migration references `REFERENCES orders(id)` but no `orders` table exists. The project uses `pet_reports` as the primary order record.
 
-The cosmic report generation currently uses the Lovable AI Gateway (Gemini 2.5 Flash). We'll switch it to call OpenRouter's API with Claude Sonnet 4.5 instead.
+## Options
 
-## Steps
+1. **Replace `orders(id)` with `pet_reports(id)`** — The `order_id` columns would reference `pet_reports` instead. This aligns with the existing codebase where report IDs are used as order identifiers throughout.
 
-1. **Store OpenRouter API key** — Save your OpenRouter key as a backend secret called `OPENROUTER_API_KEY`
+2. **Create an `orders` table first** — But nothing in the current codebase uses it, so this would be dead infrastructure.
 
-2. **Update `generate-cosmic-report/index.ts`** — Three targeted changes:
-   - Replace `LOVABLE_API_KEY` reference with `OPENROUTER_API_KEY`
-   - Change the API endpoint from `https://ai.gateway.lovable.dev/v1/chat/completions` to `https://openrouter.ai/api/v1/chat/completions`
-   - Change the model from `google/gemini-2.5-flash` to `anthropic/claude-sonnet-4.5`
-   - Add OpenRouter-required headers (`HTTP-Referer`, `X-Title`)
+## Additional fixes needed
 
-3. **Deploy and test** — Redeploy the edge function and verify report generation still works
+1. **`create-chat-purchase/index.ts`** — Has a TS error: `creditTiers[type]` needs a type assertion since `type` is `any`. Fix: `const tier = creditTiers[type as keyof typeof creditTiers]`.
 
-## Technical Detail
+2. **`soul-chat/index.ts`** — Already exists in the codebase. Need to verify it's compatible with the new tables.
 
-The OpenRouter API is OpenAI-compatible, so the request/response format stays identical — only the URL, auth header, and model name change. The `response_format: { type: "json_object" }` parameter is supported by Claude on OpenRouter.
+## Proposed plan
+
+1. Run migration with `pet_reports(id)` instead of `orders(id)` (or confirm if you want an `orders` table created)
+2. Fix the TS error in `create-chat-purchase`
+3. Deploy both edge functions
+
+## Security note
+
+The RLS policies in the SQL are fully open (anonymous read/insert/update). This means anyone can read, create, and modify chat credits and messages without authentication. This is intentional for the anonymous chat flow but worth noting.
 
