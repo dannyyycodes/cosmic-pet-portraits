@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
 import { AdminSidebar } from './AdminSidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
@@ -17,7 +16,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     const validateSession = async () => {
       const adminToken = sessionStorage.getItem('admin_token');
-      
+
       if (!adminToken) {
         navigate('/admin/login');
         return;
@@ -68,11 +67,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   if (isValidating) {
     return (
-      <div className="min-h-screen relative flex items-center justify-center">
-        <StarfieldBackground />
-        <div className="relative z-10 flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Validating session...</p>
+      <div className="flex items-center justify-center" style={{ background: '#FFFDF5', minHeight: '100vh' }}>
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#c4a265' }} />
+          <p style={{ color: '#9a8578' }}>Validating session...</p>
         </div>
       </div>
     );
@@ -81,9 +79,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen relative flex">
-      <StarfieldBackground />
-      <div className="relative z-10 flex w-full">
+    <div className="flex" style={{ background: '#FFFDF5', minHeight: '100vh' }}>
+      <div className="flex w-full">
         <AdminSidebar />
         <main className="flex-1 p-6 overflow-auto">
           {children}

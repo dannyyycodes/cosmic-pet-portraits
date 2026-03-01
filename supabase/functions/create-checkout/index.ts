@@ -152,6 +152,41 @@ serve(async (req) => {
       const primaryReportId = reportIds[0];
       console.log("[CREATE-CHECKOUT] Quick checkout — reports:", reportIds, "tier:", tierKey, "total:", totalAmount, "book:", includesBook);
 
+      // If total is $0 (shouldn't normally happen for quick checkout, but handle it)
+      if (totalAmount <= 0) {
+        console.log("[CREATE-CHECKOUT] Quick checkout free order — skipping Stripe");
+        for (const id of reportIds) {
+          await supabaseClient
+            .from("pet_reports")
+            .update({
+              payment_status: "paid",
+              includes_book: includesBook,
+              includes_portrait: includesPortrait,
+            })
+            .eq("id", id);
+
+          const creditAmount = includesBook ? 50 : 15;
+          await supabaseClient
+            .from("chat_credits")
+            .upsert({
+              report_id: id,
+              email: "pending@checkout.temp",
+              credits_remaining: creditAmount,
+              plan: "free_coupon",
+            }, { onConflict: "report_id" });
+        }
+
+        return new Response(JSON.stringify({
+          free: true,
+          reportId: primaryReportId,
+          reportIds,
+          url: `${origin}/payment-success?session_id=free&report_id=${primaryReportId}&free=true&quick=true`,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
       // Build line items
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
 
@@ -371,15 +406,18 @@ serve(async (req) => {
     });
 
     if (calculatedTotal === 0) {
+      console.log("[CREATE-CHECKOUT] Free order detected — skipping Stripe");
+
       for (let i = 0; i < allReportIds.length; i++) {
         const id = allReportIds[i];
         const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
-        const tierIncludesPortrait = tierKey === 'premium';
+        const tierIncludesPortrait = tierKey === 'premium' || input.includesBook;
         const petPhoto = input.petPhotos?.[String(i)];
-        
-        const updateData: Record<string, unknown> = { 
+
+        const updateData: Record<string, unknown> = {
           payment_status: "paid",
           includes_book: input.includesBook || false,
+          includes_portrait: tierIncludesPortrait,
         };
         if (tierIncludesPortrait && petPhoto?.url) {
           updateData.pet_photo_url = petPhoto.url;
@@ -388,21 +426,51 @@ serve(async (req) => {
           .from("pet_reports")
           .update(updateData)
           .eq("id", id);
+
+        // Set SoulSpeak credits
+        const creditAmount = input.includesBook ? 50 : 15;
+        await supabaseClient
+          .from("chat_credits")
+          .upsert({
+            report_id: id,
+            email: sanitizedEmail,
+            credits_remaining: creditAmount,
+            plan: "free_coupon",
+          }, { onConflict: "report_id" });
       }
 
+      // Increment coupon usage
+      if (input.couponId) {
+        const { data: couponData } = await supabaseClient
+          .from("coupons")
+          .select("current_uses")
+          .eq("id", input.couponId)
+          .single();
+        if (couponData) {
+          await supabaseClient
+            .from("coupons")
+            .update({ current_uses: couponData.current_uses + 1 })
+            .eq("id", input.couponId);
+        }
+      }
+
+      // Mark gift certificate as redeemed
       if (giftCertificateId) {
         await supabaseClient
           .from("gift_certificates")
-          .update({ 
-            is_redeemed: true, 
+          .update({
+            is_redeemed: true,
             redeemed_at: new Date().toISOString(),
             redeemed_by_report_id: primaryReportId,
           })
           .eq("id", giftCertificateId);
       }
 
-      return new Response(JSON.stringify({ 
-        url: `${origin}/payment-success?session_id=free&report_id=${primaryReportId}` 
+      return new Response(JSON.stringify({
+        free: true,
+        reportId: primaryReportId,
+        reportIds: allReportIds,
+        url: `${origin}/payment-success?session_id=free&report_id=${primaryReportId}&free=true`,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
-import { CosmicButton } from '@/components/cosmic/CosmicButton';
 import { toast } from 'sonner';
-import { 
-  Tag, 
-  Plus, 
-  Trash2, 
+import {
+  Tag,
+  Plus,
+  Trash2,
   RefreshCw,
   Search,
   Percent,
@@ -58,7 +57,7 @@ export default function AdminCoupons() {
       const { data, error } = await supabase.functions.invoke('admin-coupons?action=list', {
         headers: { 'X-Admin-Token': adminToken! }
       });
-      
+
       if (error) throw error;
       setCoupons(data?.coupons || []);
       setFilteredCoupons(data?.coupons || []);
@@ -104,8 +103,8 @@ export default function AdminCoupons() {
     setFormCode(coupon.code);
     setFormDiscountType(coupon.discount_type as 'percentage' | 'fixed');
     setFormDiscountValue(
-      coupon.discount_type === 'percentage' 
-        ? coupon.discount_value.toString() 
+      coupon.discount_type === 'percentage'
+        ? coupon.discount_value.toString()
         : (coupon.discount_value / 100).toString()
     );
     setFormMaxUses(coupon.max_uses?.toString() || '');
@@ -122,7 +121,7 @@ export default function AdminCoupons() {
 
     setIsSaving(true);
     try {
-      const discountValue = formDiscountType === 'percentage' 
+      const discountValue = formDiscountType === 'percentage'
         ? parseFloat(formDiscountValue)
         : parseFloat(formDiscountValue) * 100; // Convert to cents
 
@@ -203,18 +202,31 @@ export default function AdminCoupons() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-display font-bold text-foreground">Coupons</h1>
-            <p className="text-muted-foreground">Create and manage discount codes</p>
+            <h1 className="text-3xl font-display font-bold" style={{ color: '#3d2f2a' }}>Coupons</h1>
+            <p style={{ color: '#9a8578' }}>Create and manage discount codes</p>
           </div>
           <div className="flex gap-3">
-            <CosmicButton onClick={openCreateModal}>
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center px-5 py-2.5 rounded-xl font-medium text-white transition-all"
+              style={{ background: 'linear-gradient(135deg, #c4a265, #b08d4f)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Coupon
-            </CosmicButton>
-            <CosmicButton variant="secondary" onClick={loadData} disabled={isLoading}>
+            </button>
+            <button
+              onClick={loadData}
+              disabled={isLoading}
+              className="inline-flex items-center px-5 py-2.5 rounded-xl font-medium transition-all"
+              style={{ border: '1px solid #e8ddd0', color: '#3d2f2a', background: 'white' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#faf6ef'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
+            >
               <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
-            </CosmicButton>
+            </button>
           </div>
         </div>
 
@@ -224,75 +236,79 @@ export default function AdminCoupons() {
             title="Total Coupons"
             value={coupons.length}
             icon={Tag}
-            iconColor="text-cosmic-purple"
-            iconBg="bg-cosmic-purple/20"
+            iconColor="text-[#c4a265]"
+            iconBg="bg-[#c4a265]/10"
           />
           <StatCard
             title="Active"
             value={activeCount}
             icon={CheckCircle}
-            iconColor="text-green-400"
-            iconBg="bg-green-500/20"
+            iconColor="text-[#6b8f5e]"
+            iconBg="bg-[#6b8f5e]/10"
           />
           <StatCard
             title="Total Uses"
             value={totalUses}
             icon={Users}
-            iconColor="text-cosmic-gold"
-            iconBg="bg-cosmic-gold/20"
+            iconColor="text-[#c4a265]"
+            iconBg="bg-[#c4a265]/10"
           />
         </div>
 
         {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: '#9a8578' }} />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by code..."
-            className="w-full pl-11 pr-4 py-3 bg-card/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+            className="w-full pl-11 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+            style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
           />
         </div>
 
         {/* Table */}
-        <div className="bg-card/50 backdrop-blur-sm border border-border rounded-xl overflow-hidden">
+        <div className="rounded-xl overflow-hidden" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border bg-muted/30">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Code</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Discount</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Uses</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Min Purchase</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Expires</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-foreground">Actions</th>
+                <tr style={{ background: '#f5efe6', borderBottom: '1px solid #e8ddd0' }}>
+                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: '#3d2f2a' }}>Code</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: '#3d2f2a' }}>Discount</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: '#3d2f2a' }}>Status</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: '#3d2f2a' }}>Uses</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: '#3d2f2a' }}>Min Purchase</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: '#3d2f2a' }}>Expires</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium" style={{ color: '#3d2f2a' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-12 text-center">
-                      <RefreshCw className="w-6 h-6 animate-spin mx-auto text-cosmic-gold" />
+                      <RefreshCw className="w-6 h-6 animate-spin mx-auto" style={{ color: '#c4a265' }} />
                     </td>
                   </tr>
                 ) : filteredCoupons.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-4 py-12 text-center" style={{ color: '#9a8578' }}>
                       No coupons found. Create your first coupon!
                     </td>
                   </tr>
                 ) : (
                   filteredCoupons.map((coupon) => (
-                    <tr key={coupon.id} className="border-b border-border/50 hover:bg-muted/20">
+                    <tr key={coupon.id} style={{ borderBottom: '1px solid #e8ddd0' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#faf6ef'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    >
                       <td className="px-4 py-3">
-                        <code className="text-sm bg-muted px-2 py-1 rounded text-cosmic-gold font-bold">
+                        <code className="text-sm px-2 py-1 rounded font-bold" style={{ background: '#faf6ef', color: '#c4a265' }}>
                           {coupon.code}
                         </code>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1 text-foreground">
+                        <span className="inline-flex items-center gap-1" style={{ color: '#5a4a42' }}>
                           {coupon.discount_type === 'percentage' ? (
                             <Percent className="w-3 h-3" />
                           ) : (
@@ -304,11 +320,11 @@ export default function AdminCoupons() {
                       <td className="px-4 py-3">
                         <button
                           onClick={() => toggleStatus(coupon.id, coupon.is_active)}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
-                            coupon.is_active 
-                              ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
-                              : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                          }`}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors"
+                          style={coupon.is_active
+                            ? { background: 'rgba(107,143,94,0.12)', color: '#6b8f5e' }
+                            : { background: 'rgba(180,90,90,0.12)', color: '#b45a5a' }
+                          }
                         >
                           {coupon.is_active ? (
                             <>
@@ -323,33 +339,39 @@ export default function AdminCoupons() {
                           )}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-foreground">
+                      <td className="px-4 py-3" style={{ color: '#5a4a42' }}>
                         {coupon.current_uses}
                         {coupon.max_uses && ` / ${coupon.max_uses}`}
                       </td>
-                      <td className="px-4 py-3 text-foreground">
-                        {coupon.min_purchase_cents 
+                      <td className="px-4 py-3" style={{ color: '#5a4a42' }}>
+                        {coupon.min_purchase_cents
                           ? `$${(coupon.min_purchase_cents / 100).toFixed(0)}`
-                          : '-'
+                          : <span style={{ color: '#9a8578' }}>-</span>
                         }
                       </td>
-                      <td className="px-4 py-3 text-foreground">
-                        {coupon.expires_at 
+                      <td className="px-4 py-3" style={{ color: '#5a4a42' }}>
+                        {coupon.expires_at
                           ? new Date(coupon.expires_at).toLocaleDateString()
-                          : 'Never'
+                          : <span style={{ color: '#9a8578' }}>Never</span>
                         }
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
                           <button
                             onClick={() => openEditModal(coupon)}
-                            className="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground hover:text-foreground"
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{ color: '#9a8578' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#3d2f2a'; e.currentTarget.style.background = '#faf6ef'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = '#9a8578'; e.currentTarget.style.background = 'transparent'; }}
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => deleteCoupon(coupon.id)}
-                            className="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors text-muted-foreground hover:text-red-400"
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{ color: '#9a8578' }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#b45a5a'; e.currentTarget.style.background = 'rgba(180,90,90,0.1)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = '#9a8578'; e.currentTarget.style.background = 'transparent'; }}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -364,13 +386,13 @@ export default function AdminCoupons() {
         </div>
 
         {/* Suggested Codes */}
-        <div className="mt-6 p-4 bg-cosmic-purple/10 border border-cosmic-purple/30 rounded-xl">
-          <h3 className="font-semibold text-foreground mb-2">💡 Suggested Coupon Ideas</h3>
+        <div className="mt-6 p-4 rounded-xl" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
+          <h3 className="font-semibold mb-2" style={{ color: '#3d2f2a' }}>Suggested Coupon Ideas</h3>
           <div className="flex flex-wrap gap-2 text-sm">
-            <span className="px-2 py-1 bg-card rounded text-muted-foreground">LAUNCH20 (20% off)</span>
-            <span className="px-2 py-1 bg-card rounded text-muted-foreground">WELCOME10 (10% off first)</span>
-            <span className="px-2 py-1 bg-card rounded text-muted-foreground">HOLIDAY25 (25% seasonal)</span>
-            <span className="px-2 py-1 bg-card rounded text-muted-foreground">VIP15 (15% loyalty)</span>
+            <span className="px-2 py-1 rounded" style={{ background: 'white', color: '#9a8578' }}>LAUNCH20 (20% off)</span>
+            <span className="px-2 py-1 rounded" style={{ background: 'white', color: '#9a8578' }}>WELCOME10 (10% off first)</span>
+            <span className="px-2 py-1 rounded" style={{ background: 'white', color: '#9a8578' }}>HOLIDAY25 (25% seasonal)</span>
+            <span className="px-2 py-1 rounded" style={{ background: 'white', color: '#9a8578' }}>VIP15 (15% loyalty)</span>
           </div>
         </div>
       </div>
@@ -378,22 +400,25 @@ export default function AdminCoupons() {
       {/* Create/Edit Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md">
+          <div className="rounded-2xl p-6 w-full max-w-md" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-foreground">
+              <h2 className="text-xl font-semibold" style={{ color: '#3d2f2a' }}>
                 {editingCoupon ? 'Edit Coupon' : 'Create Coupon'}
               </h2>
               <button
                 onClick={() => { setShowCreateModal(false); resetForm(); }}
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ color: '#9a8578' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#faf6ef'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
               >
-                <X className="w-5 h-5 text-muted-foreground" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
+                <label className="block text-sm font-medium mb-1" style={{ color: '#3d2f2a' }}>
                   Coupon Code *
                 </label>
                 <input
@@ -401,27 +426,29 @@ export default function AdminCoupons() {
                   value={formCode}
                   onChange={(e) => setFormCode(e.target.value.toUpperCase())}
                   placeholder="e.g. LAUNCH20"
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground uppercase"
+                  className="w-full px-4 py-3 rounded-xl uppercase focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
                   disabled={!!editingCoupon}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#3d2f2a' }}>
                     Discount Type
                   </label>
                   <select
                     value={formDiscountType}
                     onChange={(e) => setFormDiscountType(e.target.value as 'percentage' | 'fixed')}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground"
+                    className="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
                   >
                     <option value="percentage">Percentage (%)</option>
                     <option value="fixed">Fixed ($)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#3d2f2a' }}>
                     Value *
                   </label>
                   <input
@@ -429,7 +456,8 @@ export default function AdminCoupons() {
                     value={formDiscountValue}
                     onChange={(e) => setFormDiscountValue(e.target.value)}
                     placeholder={formDiscountType === 'percentage' ? '20' : '5.00'}
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground"
+                    className="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
                     min="0"
                     max={formDiscountType === 'percentage' ? '100' : undefined}
                     step={formDiscountType === 'percentage' ? '1' : '0.01'}
@@ -439,7 +467,7 @@ export default function AdminCoupons() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#3d2f2a' }}>
                     Max Uses
                   </label>
                   <input
@@ -447,12 +475,13 @@ export default function AdminCoupons() {
                     value={formMaxUses}
                     onChange={(e) => setFormMaxUses(e.target.value)}
                     placeholder="Unlimited"
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground"
+                    className="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
                     min="1"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">
+                  <label className="block text-sm font-medium mb-1" style={{ color: '#3d2f2a' }}>
                     Min Purchase ($)
                   </label>
                   <input
@@ -460,7 +489,8 @@ export default function AdminCoupons() {
                     value={formMinPurchase}
                     onChange={(e) => setFormMinPurchase(e.target.value)}
                     placeholder="None"
-                    className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground"
+                    className="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
                     min="0"
                     step="0.01"
                   />
@@ -468,27 +498,38 @@ export default function AdminCoupons() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
+                <label className="block text-sm font-medium mb-1" style={{ color: '#3d2f2a' }}>
                   Expiration Date
                 </label>
                 <input
                   type="date"
                   value={formExpiresAt}
                   onChange={(e) => setFormExpiresAt(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground"
+                  className="w-full px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
                 />
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={() => { setShowCreateModal(false); resetForm(); }}
-                  className="flex-1 px-4 py-3 border border-border rounded-xl text-foreground hover:bg-muted transition-colors"
+                  className="flex-1 px-4 py-3 rounded-xl transition-colors"
+                  style={{ border: '1px solid #e8ddd0', color: '#3d2f2a', background: 'white' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#faf6ef'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
                 >
                   Cancel
                 </button>
-                <CosmicButton onClick={handleSave} className="flex-1" disabled={isSaving}>
+                <button
+                  onClick={handleSave}
+                  className="flex-1 px-4 py-3 rounded-xl font-medium text-white transition-all"
+                  style={{ background: 'linear-gradient(135deg, #c4a265, #b08d4f)' }}
+                  disabled={isSaving}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                >
                   {isSaving ? 'Saving...' : (editingCoupon ? 'Update' : 'Create')}
-                </CosmicButton>
+                </button>
               </div>
             </div>
           </div>

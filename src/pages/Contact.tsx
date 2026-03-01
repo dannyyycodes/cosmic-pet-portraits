@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
-import { VariantBackground } from "@/components/variants/VariantBackground";
-import { CosmicButton } from "@/components/cosmic/CosmicButton";
 import { Link } from "react-router-dom";
 import { Mail, MessageCircle, Clock, Shield } from "lucide-react";
 import { toast } from "sonner";
@@ -19,7 +17,7 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('send-contact-email', {
         body: { name, email, subject, message }
@@ -41,53 +39,52 @@ export default function Contact() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <VariantBackground />
+    <main style={{ background: '#FFFDF5', minHeight: '100vh' }}>
       <Navbar />
-      
+
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-24">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-serif font-bold text-foreground mb-4">{t('contact.title')}</h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+          <h1 className="text-4xl font-bold mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>{t('contact.title')}</h1>
+          <p className="text-lg max-w-xl mx-auto" style={{ color: '#9a8578' }}>
             {t('contact.subtitle')}
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
           <div className="space-y-8">
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-6">{t('contact.getInTouch')}</h2>
-              
+            <div className="p-6" style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}>
+              <h2 className="text-xl font-semibold mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>{t('contact.getInTouch')}</h2>
+
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-cosmic-gold/20 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-cosmic-gold" />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#faf6ef' }}>
+                    <Mail className="w-5 h-5" style={{ color: '#c4a265' }} />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">{t('contact.email')}</h3>
-                    <a href="mailto:hello@littlesouls.co" className="text-cosmic-gold hover:underline">
+                    <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{t('contact.email')}</h3>
+                    <a href="mailto:hello@littlesouls.co" className="hover:underline" style={{ color: '#c4a265' }}>
                       hello@littlesouls.co
                     </a>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-cosmic-purple/20 flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5 text-cosmic-purple" />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#faf6ef' }}>
+                    <Clock className="w-5 h-5" style={{ color: '#c4a265' }} />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">{t('contact.responseTime')}</h3>
-                    <p className="text-muted-foreground">{t('contact.responseTimeDesc')}</p>
+                    <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{t('contact.responseTime')}</h3>
+                    <p style={{ color: '#9a8578' }}>{t('contact.responseTimeDesc')}</p>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-5 h-5 text-green-500" />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#faf6ef' }}>
+                    <Shield className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-foreground">{t('contact.guarantee')}</h3>
-                    <p className="text-muted-foreground">
+                    <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{t('contact.guarantee')}</h3>
+                    <p style={{ color: '#9a8578' }}>
                       {t('contact.guaranteeDesc')}
                     </p>
                   </div>
@@ -95,21 +92,21 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-4">{t('contact.commonQuestions')}</h2>
-              <ul className="space-y-3 text-muted-foreground">
+            <div className="p-6" style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}>
+              <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>{t('contact.commonQuestions')}</h2>
+              <ul className="space-y-3" style={{ color: '#9a8578' }}>
                 <li>
-                  <Link to="/#faq" className="hover:text-cosmic-gold transition-colors">
+                  <Link to="/#faq" className="transition-colors hover:opacity-80" style={{ color: '#c4a265' }}>
                     → {t('contact.faq1')}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#faq" className="hover:text-cosmic-gold transition-colors">
+                  <Link to="/#faq" className="transition-colors hover:opacity-80" style={{ color: '#c4a265' }}>
                     → {t('contact.faq2')}
                   </Link>
                 </li>
                 <li>
-                  <Link to="/#faq" className="hover:text-cosmic-gold transition-colors">
+                  <Link to="/#faq" className="transition-colors hover:opacity-80" style={{ color: '#c4a265' }}>
                     → {t('contact.faq3')}
                   </Link>
                 </li>
@@ -117,40 +114,43 @@ export default function Contact() {
             </div>
           </div>
 
-          <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
-            <h2 className="text-xl font-semibold text-foreground mb-6">{t('contact.sendMessage')}</h2>
-            
+          <div className="p-6" style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}>
+            <h2 className="text-xl font-semibold mb-6" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>{t('contact.sendMessage')}</h2>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">{t('contact.nameLabel')}</label>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#5a4a42' }}>{t('contact.nameLabel')}</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+                  className="w-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', borderRadius: '10px' }}
                   placeholder={t('contact.namePlaceholder')}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">{t('contact.emailLabel')}</label>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#5a4a42' }}>{t('contact.emailLabel')}</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+                  className="w-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', borderRadius: '10px' }}
                   placeholder="you@example.com"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">{t('contact.subjectLabel')}</label>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#5a4a42' }}>{t('contact.subjectLabel')}</label>
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50"
+                  className="w-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', borderRadius: '10px' }}
                   required
                 >
                   <option value="">{t('contact.subjectPlaceholder')}</option>
@@ -163,26 +163,32 @@ export default function Contact() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">{t('contact.messageLabel')}</label>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#5a4a42' }}>{t('contact.messageLabel')}</label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="w-full px-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-cosmic-gold/50 min-h-[120px] resize-y"
+                  className="w-full px-4 py-3 min-h-[120px] resize-y focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', borderRadius: '10px' }}
                   placeholder={t('contact.messagePlaceholder')}
                   required
                 />
               </div>
 
-              <CosmicButton type="submit" className="w-full" disabled={isSubmitting}>
-                <MessageCircle className="w-4 h-4 mr-2" />
+              <button
+                type="submit"
+                className="w-full py-3 px-6 font-medium text-lg transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                disabled={isSubmitting}
+              >
+                <MessageCircle className="w-4 h-4" />
                 {isSubmitting ? t('contact.sending') : t('contact.send')}
-              </CosmicButton>
+              </button>
             </form>
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border/30">
-          <Link to="/" className="text-cosmic-gold hover:underline">
+        <div className="mt-12 pt-8" style={{ borderTop: '1px solid #e8ddd0' }}>
+          <Link to="/" className="hover:underline" style={{ color: '#c4a265' }}>
             ← {t('nav.backHome')}
           </Link>
         </div>

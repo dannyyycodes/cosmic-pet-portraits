@@ -529,6 +529,11 @@ body::after {
     <!-- CTA INSIDE card -->
     <a href="#" class="cta-btn" id="ctaBtn" style="margin-top:16px;" onclick="handleDigitalCheckout(event)">Unlock Their Soul — $35</a>
 
+    <!-- Free code link -->
+    <div style="text-align:center; margin-top:12px;">
+      <a href="/redeem-code" style="color:#c4a265; font-size:13px; text-decoration:none;">Have a free code? Redeem here</a>
+    </div>
+
     <!-- Trust INSIDE card -->
     <div style="margin-top:14px; text-align:center;">
       <p style="font-size:0.78rem; color:var(--muted); font-style:italic; margin-bottom:10px;">You'll tell us about your pet after checkout — takes 60 seconds</p>
@@ -1006,6 +1011,7 @@ async function handleDigitalCheckout(e) {
       }),
     });
     var data = await res.json();
+    if (data.free) { window.location.href = data.url; return; }
     if (!data.url) throw new Error('No checkout URL returned');
     window.location.href = data.url;
   } catch (err) {
@@ -1044,6 +1050,7 @@ async function handleHardcoverCheckout(e) {
       }),
     });
     var data = await res.json();
+    if (data.free) { window.location.href = data.url; return; }
     if (!data.url) throw new Error('No checkout URL returned');
     window.location.href = data.url;
   } catch (err) {

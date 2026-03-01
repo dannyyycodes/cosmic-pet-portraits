@@ -1,17 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Mail, Lock, ArrowLeft, Sparkles, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { VariantBackground } from '@/components/variants/VariantBackground';
-import { useVariantStyles } from '@/hooks/useVariantStyles';
 
 
 const emailSchema = z.string().email('Please enter a valid email address');
@@ -26,11 +21,10 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  
+
   const { signIn, signUp, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { card, buttonVariant, isVariantC } = useVariantStyles();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -56,30 +50,30 @@ export default function Auth() {
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
-    
+
     const emailResult = emailSchema.safeParse(email);
     if (!emailResult.success) {
       newErrors.email = emailResult.error.errors[0].message;
     }
-    
+
     if (mode !== 'forgot') {
       const passwordResult = passwordSchema.safeParse(password);
       if (!passwordResult.success) {
         newErrors.password = passwordResult.error.errors[0].message;
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setLoading(true);
-    
+
     try {
       if (mode === 'forgot') {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -129,19 +123,18 @@ export default function Auth() {
 
   const getDescription = () => {
     if (mode === 'forgot') {
-      return resetSent 
-        ? 'We sent you a link to reset your password' 
+      return resetSent
+        ? 'We sent you a link to reset your password'
         : 'Enter your email to receive a reset link';
     }
-    return mode === 'login' 
-      ? 'Sign in to view your cosmic reports' 
+    return mode === 'login'
+      ? 'Sign in to view your cosmic reports'
       : 'Join Little Souls to save your reports';
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <VariantBackground />
-      
+    <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="relative overflow-hidden">
+
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -150,22 +143,20 @@ export default function Auth() {
         >
           <button
             onClick={() => mode === 'forgot' ? setMode('login') : navigate('/')}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
+            className="flex items-center gap-2 mb-8 transition-colors"
+            style={{ color: '#9a8578' }}
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{mode === 'forgot' ? 'Back to Sign In' : t('nav.backHome')}</span>
           </button>
-          
+
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, type: 'spring' }}
-              className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                isVariantC 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-gradient-to-br from-cosmic-gold to-primary'
-              }`}
+              className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)' }}
             >
               {resetSent ? (
                 <Check className="w-8 h-8 text-white" />
@@ -173,10 +164,10 @@ export default function Auth() {
                 <Star className="w-8 h-8 text-white fill-white" />
               )}
             </motion.div>
-            <h1 className="text-3xl font-display font-bold text-foreground">
+            <h1 className="text-3xl font-display font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>
               {getTitle()}
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="mt-2" style={{ color: '#9a8578' }}>
               {getDescription()}
             </p>
           </div>
@@ -186,20 +177,22 @@ export default function Auth() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className={card + " p-6"}
+              className="p-6"
+              style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
             >
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <label htmlFor="email" className="block text-sm font-medium" style={{ color: '#5a4a42' }}>Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9a8578' }} />
+                    <input
                       id="email"
                       type="email"
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
+                      className="w-full pl-10 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                      style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', borderRadius: '10px' }}
                     />
                   </div>
                   {errors.email && (
@@ -209,16 +202,17 @@ export default function Auth() {
 
                 {mode !== 'forgot' && (
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <label htmlFor="password" className="block text-sm font-medium" style={{ color: '#5a4a42' }}>Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#9a8578' }} />
+                      <input
                         id="password"
                         type="password"
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
+                        className="w-full pl-10 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                        style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', borderRadius: '10px' }}
                       />
                     </div>
                     {errors.password && (
@@ -227,15 +221,14 @@ export default function Auth() {
                   </div>
                 )}
 
-                <Button
+                <button
                   type="submit"
-                  variant={buttonVariant}
-                  size="lg"
-                  className="w-full"
+                  className="w-full py-3 px-6 font-medium text-lg transition-opacity hover:opacity-90 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
                   disabled={loading}
                 >
                   {loading ? (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 justify-center">
                       <motion.span
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
@@ -247,7 +240,7 @@ export default function Auth() {
                   ) : (
                     mode === 'forgot' ? 'Send Reset Link' : mode === 'login' ? 'Sign In' : 'Create Account'
                   )}
-                </Button>
+                </button>
               </form>
 
               <div className="mt-6 space-y-3 text-center">
@@ -255,19 +248,21 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setMode('forgot')}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors block w-full"
+                    className="text-sm transition-colors block w-full"
+                    style={{ color: '#9a8578' }}
                   >
                     Forgot your password?
                   </button>
                 )}
-                
+
                 <button
                   type="button"
                   onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm transition-colors"
+                  style={{ color: '#c4a265' }}
                 >
-                  {mode === 'login' 
-                    ? "Don't have an account? Sign up" 
+                  {mode === 'login'
+                    ? "Don't have an account? Sign up"
                     : 'Already have an account? Sign in'}
                 </button>
               </div>
@@ -279,17 +274,19 @@ export default function Auth() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className={card + " p-6 text-center"}
+              className="p-6 text-center"
+              style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
             >
-              <p className="text-muted-foreground mb-4">
+              <p className="mb-4" style={{ color: '#9a8578' }}>
                 Didn't receive the email? Check your spam folder or
               </p>
-              <Button
-                variant="outline"
+              <button
                 onClick={() => setResetSent(false)}
+                className="px-6 py-2 font-medium transition-opacity hover:opacity-80"
+                style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
               >
                 Try again
-              </Button>
+              </button>
             </motion.div>
           )}
         </motion.div>

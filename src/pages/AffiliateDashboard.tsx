@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { StarfieldBackground } from '@/components/cosmic/StarfieldBackground';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
-import { 
+import {
   ArrowLeft,
   Copy,
   DollarSign,
@@ -14,7 +12,6 @@ import {
   TrendingUp,
   Clock,
   CheckCircle,
-  ExternalLink,
   RefreshCw,
   AlertCircle,
   Sparkles
@@ -128,39 +125,42 @@ export default function AffiliateDashboard() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <StarfieldBackground intensity="calm" />
-      
-      <div className="relative z-10 p-6 max-w-4xl mx-auto py-12">
+    <div style={{ background: '#FFFDF5', minHeight: '100vh' }}>
+      <div className="p-6 max-w-4xl mx-auto py-12">
         {/* Back Link */}
-        <Link 
+        <Link
           to="/"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+          className="inline-flex items-center gap-2 transition-opacity hover:opacity-70 mb-8"
+          style={{ color: '#9a8578' }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
 
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <motion.div 
+          <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-gold/20 to-amber-500/20 border border-gold/30 rounded-full mb-6"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-full mb-6"
+            style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
           >
-            <Sparkles className="w-4 h-4 text-gold" />
-            <span className="text-gold text-sm font-semibold">Affiliate Portal</span>
+            <Sparkles className="w-4 h-4" style={{ color: '#c4a265' }} />
+            <span className="text-sm font-semibold" style={{ color: '#c4a265' }}>Affiliate Portal</span>
           </motion.div>
-          <h1 className="text-4xl md:text-5xl font-display font-bold bg-gradient-to-r from-foreground via-gold to-foreground bg-clip-text text-transparent mb-4">
+          <h1
+            className="text-4xl md:text-5xl font-bold mb-4"
+            style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}
+          >
             {isLoggedIn ? `Welcome, ${affiliate?.name}` : 'Affiliate Dashboard'}
           </h1>
           {isLoggedIn && (
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg" style={{ color: '#9a8578' }}>
               Track your referrals and earnings
             </p>
           )}
@@ -168,42 +168,49 @@ export default function AffiliateDashboard() {
 
         {/* Login Form */}
         {!isLoggedIn && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-md mx-auto bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8"
+            className="max-w-md mx-auto rounded-2xl p-8"
+            style={{ background: 'white', border: '1px solid #e8ddd0' }}
           >
-            <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
+            <h2 className="text-xl font-semibold mb-6 text-center" style={{ color: '#3d2f2a' }}>
               Access Your Dashboard
             </h2>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: '#3d2f2a' }}>
                   Email Address
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-background/80 border border-border/50 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold/50 transition-all"
+                  className="w-full px-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 transition-all"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', focusRingColor: '#c4a265' }}
                   placeholder="your@email.com"
                   required
                 />
               </div>
-              <Button type="submit" variant="gold" className="w-full" disabled={isLoading}>
+              <button
+                type="submit"
+                className="w-full px-4 py-3.5 rounded-xl font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white' }}
+                disabled={isLoading}
+              >
                 {isLoading ? (
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center justify-center gap-2">
                     <RefreshCw className="w-4 h-4 animate-spin" />
                     Loading...
                   </span>
                 ) : (
                   'Access Dashboard'
                 )}
-              </Button>
+              </button>
             </form>
-            <p className="text-sm text-muted-foreground mt-6 text-center">
+            <p className="text-sm mt-6 text-center" style={{ color: '#9a8578' }}>
               Not an affiliate yet?{' '}
-              <Link to="/become-affiliate" className="text-gold hover:underline">
+              <Link to="/become-affiliate" className="hover:underline" style={{ color: '#c4a265' }}>
                 Apply here
               </Link>
             </p>
@@ -212,7 +219,7 @@ export default function AffiliateDashboard() {
 
         {/* Dashboard Content */}
         {isLoggedIn && stats && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -220,11 +227,14 @@ export default function AffiliateDashboard() {
           >
             {/* Status Banner */}
             {stats.status !== 'active' && (
-              <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
-                <AlertCircle className="w-5 h-5 text-amber-500" />
+              <div
+                className="flex items-center gap-3 p-4 rounded-xl"
+                style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+              >
+                <AlertCircle className="w-5 h-5" style={{ color: '#c4a265' }} />
                 <div>
-                  <p className="font-medium text-foreground">Complete Stripe Setup</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium" style={{ color: '#3d2f2a' }}>Complete Stripe Setup</p>
+                  <p className="text-sm" style={{ color: '#9a8578' }}>
                     Your account is pending. Complete Stripe onboarding to start earning.
                   </p>
                 </div>
@@ -233,84 +243,108 @@ export default function AffiliateDashboard() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5">
+              {/* Total Earnings */}
+              <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400/20 to-emerald-600/20 flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-green-400" />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                  >
+                    <DollarSign className="w-5 h-5" style={{ color: '#c4a265' }} />
                   </div>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.totalEarnings)}</p>
-                <p className="text-sm text-muted-foreground">Total Earnings</p>
+                <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>{formatCurrency(stats.totalEarnings)}</p>
+                <p className="text-sm" style={{ color: '#9a8578' }}>Total Earnings</p>
               </div>
 
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5">
+              {/* Pending Payout */}
+              <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gold/20 to-amber-500/20 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-gold" />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                  >
+                    <Clock className="w-5 h-5" style={{ color: '#6b8f5e' }} />
                   </div>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{formatCurrency(stats.pendingBalance)}</p>
-                <p className="text-sm text-muted-foreground">Pending Payout</p>
+                <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>{formatCurrency(stats.pendingBalance)}</p>
+                <p className="text-sm" style={{ color: '#9a8578' }}>Pending Payout</p>
               </div>
 
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5">
+              {/* Total Referrals */}
+              <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-nebula-purple/20 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-primary" />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                  >
+                    <Users className="w-5 h-5" style={{ color: '#5a4a42' }} />
                   </div>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{stats.totalReferrals}</p>
-                <p className="text-sm text-muted-foreground">Total Referrals</p>
+                <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>{stats.totalReferrals}</p>
+                <p className="text-sm" style={{ color: '#9a8578' }}>Total Referrals</p>
               </div>
 
-              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-5">
+              {/* Commission Rate */}
+              <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400/20 to-rose-600/20 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-pink-400" />
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                  >
+                    <TrendingUp className="w-5 h-5" style={{ color: '#c4a265' }} />
                   </div>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{stats.commissionRate}%</p>
-                <p className="text-sm text-muted-foreground">Commission Rate</p>
+                <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>{stats.commissionRate}%</p>
+                <p className="text-sm" style={{ color: '#9a8578' }}>Commission Rate</p>
               </div>
             </div>
 
             {/* Referral Link */}
-            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6">
-              <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-gold" />
+            <div className="rounded-2xl p-6" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
+              <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: '#3d2f2a' }}>
+                <Sparkles className="w-5 h-5" style={{ color: '#c4a265' }} />
                 Your Referral Link
               </h3>
-              <div className="flex items-center gap-3 p-3 bg-background/80 rounded-xl border border-border/30">
-                <code className="flex-1 text-sm text-gold break-all font-mono">
+              <div
+                className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+              >
+                <code className="flex-1 text-sm break-all font-mono" style={{ color: '#c4a265' }}>
                   {window.location.origin}/ref/{stats.referralCode}
                 </code>
                 <button
                   onClick={copyReferralLink}
-                  className="p-2.5 hover:bg-muted rounded-lg transition-colors border border-border/50"
+                  className="p-2.5 rounded-lg transition-opacity hover:opacity-70"
+                  style={{ border: '1px solid #e8ddd0' }}
                 >
-                  <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                  <Copy className="w-4 h-4" style={{ color: '#9a8578' }} />
                 </button>
               </div>
-              <p className="text-sm text-muted-foreground mt-3">
+              <p className="text-sm mt-3" style={{ color: '#9a8578' }}>
                 Share this link with your audience. You'll earn {stats.commissionRate}% commission on every sale!
               </p>
             </div>
 
             {/* Recent Referrals */}
-            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6">
+            <div className="rounded-2xl p-6" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-foreground flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
+                <h3 className="font-semibold flex items-center gap-2" style={{ color: '#3d2f2a' }}>
+                  <Users className="w-5 h-5" style={{ color: '#5a4a42' }} />
                   Recent Referrals
                 </h3>
-                <Button variant="ghost" size="sm" onClick={() => fetchDashboard(email)}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                <button
+                  onClick={() => fetchDashboard(email)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-opacity hover:opacity-70"
+                  style={{ color: '#5a4a42' }}
+                >
+                  <RefreshCw className="w-4 h-4" />
                   Refresh
-                </Button>
+                </button>
               </div>
 
               {referrals.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8" style={{ color: '#9a8578' }}>
                   <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No referrals yet. Share your link to start earning!</p>
                 </div>
@@ -318,33 +352,39 @@ export default function AffiliateDashboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-border/50">
-                        <th className="text-left text-sm font-medium text-muted-foreground pb-3">Date</th>
-                        <th className="text-right text-sm font-medium text-muted-foreground pb-3">Sale Amount</th>
-                        <th className="text-right text-sm font-medium text-muted-foreground pb-3">Commission</th>
-                        <th className="text-center text-sm font-medium text-muted-foreground pb-3">Status</th>
+                      <tr style={{ background: '#f5efe6' }}>
+                        <th className="text-left text-sm font-medium px-3 py-3 rounded-l-lg" style={{ color: '#9a8578' }}>Date</th>
+                        <th className="text-right text-sm font-medium px-3 py-3" style={{ color: '#9a8578' }}>Sale Amount</th>
+                        <th className="text-right text-sm font-medium px-3 py-3" style={{ color: '#9a8578' }}>Commission</th>
+                        <th className="text-center text-sm font-medium px-3 py-3 rounded-r-lg" style={{ color: '#9a8578' }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {referrals.map((referral) => (
-                        <tr key={referral.id} className="border-b border-border/30 last:border-0">
-                          <td className="py-3 text-sm text-foreground">
+                        <tr key={referral.id} style={{ borderBottom: '1px solid #e8ddd0' }} className="last:border-0">
+                          <td className="py-3 px-3 text-sm" style={{ color: '#5a4a42' }}>
                             {formatDate(referral.date)}
                           </td>
-                          <td className="py-3 text-sm text-foreground text-right">
+                          <td className="py-3 px-3 text-sm text-right" style={{ color: '#5a4a42' }}>
                             {formatCurrency(referral.amount)}
                           </td>
-                          <td className="py-3 text-sm text-gold font-medium text-right">
+                          <td className="py-3 px-3 text-sm font-medium text-right" style={{ color: '#c4a265' }}>
                             +{formatCurrency(referral.commission)}
                           </td>
-                          <td className="py-3 text-center">
+                          <td className="py-3 px-3 text-center">
                             {referral.status === 'paid' ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-500/10 text-green-400 text-xs rounded-full">
+                              <span
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full"
+                                style={{ background: 'rgba(107,143,94,0.12)', color: '#6b8f5e' }}
+                              >
                                 <CheckCircle className="w-3 h-3" />
                                 Paid
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-amber-500/10 text-amber-400 text-xs rounded-full">
+                              <span
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full"
+                                style={{ background: 'rgba(196,162,101,0.12)', color: '#c4a265' }}
+                              >
                                 <Clock className="w-3 h-3" />
                                 Pending
                               </span>
@@ -362,7 +402,8 @@ export default function AffiliateDashboard() {
             <div className="text-center">
               <button
                 onClick={handleLogout}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm transition-opacity hover:opacity-70"
+                style={{ color: '#9a8578' }}
               >
                 Sign out of dashboard
               </button>

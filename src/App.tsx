@@ -48,6 +48,8 @@ const AffiliateMediaKit = lazy(() => import("./pages/AffiliateMediaKit"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const AdminABTest = lazy(() => import("./pages/AdminABTest"));
+const AdminRedeemCodes = lazy(() => import("./pages/AdminRedeemCodes"));
+const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 
 // Redirect /checkout to the static HTML checkout page
 function CheckoutRedirect() {
@@ -123,6 +125,8 @@ const App = () => (
                   <Route path="/admin/analytics" element={<AdminAnalytics />} />
                   <Route path="/admin/blog" element={<AdminBlogStats />} />
                   <Route path="/admin/ab-test" element={<AdminABTest />} />
+                  <Route path="/admin/redeem-codes" element={<AdminRedeemCodes />} />
+                  <Route path="/redeem-code" element={<RedeemCode />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />

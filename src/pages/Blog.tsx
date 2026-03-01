@@ -4,10 +4,7 @@ import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Clock, Search, Dog, Cat, Sparkles } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 interface BlogPost {
   id: string;
@@ -95,26 +92,28 @@ const Blog = () => {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-background">
+      <div style={{ background: '#FFFDF5', minHeight: '100vh' }}>
         <Navbar />
 
         {/* Hero Section */}
         <section className="pt-24 pb-12 px-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
           <div className="max-w-4xl mx-auto text-center relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-                <Sparkles className="w-3 h-3 mr-1" />
+              <span
+                className="inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full mb-4"
+                style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#c4a265' }}
+              >
+                <Sparkles className="w-3 h-3" />
                 Pet Wisdom
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Understand Your Pet's <span className="text-primary">Cosmic Soul</span>
+              </span>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>
+                Understand Your Pet's <span style={{ color: '#c4a265' }}>Cosmic Soul</span>
               </h1>
-              <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <p className="text-lg mb-8 max-w-2xl mx-auto" style={{ color: '#9a8578' }}>
                 Expert insights into pet behavior, zodiac personalities, and what makes your furry friend truly unique.
               </p>
             </motion.div>
@@ -122,38 +121,48 @@ const Blog = () => {
             {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <div className="relative w-full max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: '#9a8578' }} />
+                <input
                   placeholder="Search articles..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="w-full pl-10 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#c4a265]/50"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', borderRadius: '10px' }}
                 />
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant={speciesFilter === null ? "default" : "outline"}
-                  size="sm"
+                <button
                   onClick={() => setSpeciesFilter(null)}
+                  className="px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+                  style={speciesFilter === null
+                    ? { background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }
+                    : { border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }
+                  }
                 >
                   All
-                </Button>
-                <Button
-                  variant={speciesFilter === "dog" ? "default" : "outline"}
-                  size="sm"
+                </button>
+                <button
                   onClick={() => setSpeciesFilter("dog")}
+                  className="px-4 py-2 text-sm font-medium flex items-center gap-1 transition-opacity hover:opacity-90"
+                  style={speciesFilter === "dog"
+                    ? { background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }
+                    : { border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }
+                  }
                 >
-                  <Dog className="w-4 h-4 mr-1" />
+                  <Dog className="w-4 h-4" />
                   Dogs
-                </Button>
-                <Button
-                  variant={speciesFilter === "cat" ? "default" : "outline"}
-                  size="sm"
+                </button>
+                <button
                   onClick={() => setSpeciesFilter("cat")}
+                  className="px-4 py-2 text-sm font-medium flex items-center gap-1 transition-opacity hover:opacity-90"
+                  style={speciesFilter === "cat"
+                    ? { background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }
+                    : { border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }
+                  }
                 >
-                  <Cat className="w-4 h-4 mr-1" />
+                  <Cat className="w-4 h-4" />
                   Cats
-                </Button>
+                </button>
               </div>
             </div>
           </div>
@@ -165,21 +174,25 @@ const Blog = () => {
             {loading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="bg-card rounded-xl p-6 animate-pulse">
-                    <div className="h-4 bg-muted rounded w-1/4 mb-4" />
-                    <div className="h-6 bg-muted rounded w-3/4 mb-2" />
-                    <div className="h-4 bg-muted rounded w-full mb-4" />
-                    <div className="h-4 bg-muted rounded w-2/3" />
+                  <div key={i} className="rounded-xl p-6 animate-pulse" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
+                    <div className="h-4 rounded w-1/4 mb-4" style={{ background: '#faf6ef' }} />
+                    <div className="h-6 rounded w-3/4 mb-2" style={{ background: '#faf6ef' }} />
+                    <div className="h-4 rounded w-full mb-4" style={{ background: '#faf6ef' }} />
+                    <div className="h-4 rounded w-2/3" style={{ background: '#faf6ef' }} />
                   </div>
                 ))}
               </div>
             ) : filteredPosts.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">No articles found yet.</p>
-                <Button onClick={() => navigate("/intake")}>
+                <p className="mb-4" style={{ color: '#9a8578' }}>No articles found yet.</p>
+                <button
+                  onClick={() => navigate("/intake")}
+                  className="inline-flex items-center gap-2 px-6 py-3 font-medium transition-opacity hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                >
                   Get Your Pet's Reading Instead
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -192,24 +205,31 @@ const Blog = () => {
                   >
                     <Link
                       to={`/blog/${post.slug}`}
-                      className="block bg-card hover:bg-card/80 border border-border rounded-xl p-6 h-full transition-all hover:shadow-lg hover:-translate-y-1"
+                      className="block p-6 h-full transition-all hover:shadow-lg hover:-translate-y-1"
+                      style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
                     >
                       <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="secondary" className="text-xs capitalize">
+                        <span
+                          className="inline-flex items-center text-xs capitalize px-2 py-1 rounded-full"
+                          style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#c4a265' }}
+                        >
                           {post.species === "dog" ? <Dog className="w-3 h-3 mr-1" /> : <Cat className="w-3 h-3 mr-1" />}
                           {post.species}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs capitalize">
+                        </span>
+                        <span
+                          className="inline-flex items-center text-xs capitalize px-2 py-1 rounded-full"
+                          style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#c4a265' }}
+                        >
                           {post.category}
-                        </Badge>
+                        </span>
                       </div>
-                      <h2 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      <h2 className="text-lg font-semibold mb-2 line-clamp-2" style={{ color: '#3d2f2a' }}>
                         {post.title}
                       </h2>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                      <p className="text-sm mb-4 line-clamp-3" style={{ color: '#9a8578' }}>
                         {post.excerpt || post.meta_description}
                       </p>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center justify-between text-xs" style={{ color: '#9a8578' }}>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {post.reading_time_minutes} min read
@@ -225,18 +245,22 @@ const Blog = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 px-4 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10">
+        <section className="py-16 px-4" style={{ background: '#faf6ef' }}>
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>
               Ready to Discover Your Pet's True Personality?
             </h2>
-            <p className="text-muted-foreground mb-6">
+            <p className="mb-6" style={{ color: '#9a8578' }}>
               Get a personalized cosmic reading that reveals your pet's unique traits, behaviors, and soul connection.
             </p>
-            <Button size="lg" onClick={() => navigate("/intake")}>
+            <button
+              onClick={() => navigate("/intake")}
+              className="inline-flex items-center gap-2 px-8 py-4 font-medium text-lg transition-opacity hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+            >
               Get Your Pet's Free Reading
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </div>
         </section>
       </div>
