@@ -290,6 +290,76 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_credits: {
+        Row: {
+          created_at: string | null
+          credits_remaining: number
+          credits_total_purchased: number
+          id: string
+          is_unlimited: boolean
+          order_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credits_remaining?: number
+          credits_total_purchased?: number
+          id?: string
+          is_unlimited?: boolean
+          order_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credits_remaining?: number
+          credits_total_purchased?: number
+          id?: string
+          is_unlimited?: boolean
+          order_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_credits_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          order_id: string | null
+          role: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          role: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_form_rate_limits: {
         Row: {
           created_at: string
@@ -1121,6 +1191,10 @@ export type Database = {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       increment_affiliate_stats: {
         Args: { p_affiliate_id: string; p_commission_cents: number }
+        Returns: undefined
+      }
+      increment_chat_credits: {
+        Args: { p_amount: number; p_order_id: string }
         Returns: undefined
       }
     }

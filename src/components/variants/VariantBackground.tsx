@@ -1,4 +1,9 @@
-export const VariantBackground = () => {
+interface VariantBackgroundProps {
+  intensity?: 'calm' | 'normal' | 'excited';
+  interactive?: boolean;
+}
+
+export const VariantBackground = ({ intensity: _intensity, interactive: _interactive }: VariantBackgroundProps = {}) => {
   return (
     <div className="fixed inset-0 z-0">
       <div

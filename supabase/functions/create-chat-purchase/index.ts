@@ -23,7 +23,7 @@ serve(async (req) => {
     const baseUrl = req.headers.get("origin") || "https://cosmicpetportraits.com";
 
     if (type === "small" || type === "medium") {
-      const tier = creditTiers[type];
+      const tier = creditTiers[type as keyof typeof creditTiers];
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         line_items: [{
