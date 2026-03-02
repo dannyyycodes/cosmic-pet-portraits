@@ -1070,6 +1070,38 @@ JSON Structure:
 
 Make every section feel personal, specific, and magical. The fun sections should make people want to screenshot and share!`;
 
+    // === FIRE AND FORGET: Return immediately, generate in background ===
+    if (input.reportId) {
+      const earlyClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
+      await earlyClient.from("pet_reports").update({ report_content: { status: "generating" } }).eq("id", input.reportId);
+    }
+
+    // Background generation — NOT awaited
+    const backgroundGeneration = async () => {
+      try {
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://littlesouls.co",
+        "X-Title": "Little Souls Reading",
+      },
+      body: JSON.stringify({
+        model: "anthropic/claude-sonnet-4.5",
+        max_tokens: 8000,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+
     // Create comprehensive fallback report
     const createFallbackReport = () => ({
       chartPlacements,
@@ -1239,112 +1271,79 @@ Make every section feel personal, specific, and magical. The fun sections should
       }
     });
 
-    // === FIRE AND FORGET: Return immediately, generate in background ===
-    // Mark report as "generating" in DB first
+    let reportContent;
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
+      console.log("[GENERATE-REPORT] Using fallback report due to AI error");
+      reportContent = createFallbackReport();
+    } else {
+      try {
+        const aiResponse = await response.json();
+        const rawContent = aiResponse.choices?.[0]?.message?.content;
+        
+        if (!rawContent) {
+          console.error("[GENERATE-REPORT] Empty AI response, using fallback");
+          reportContent = createFallbackReport();
+        } else {
+          reportContent = JSON.parse(rawContent);
+          
+          // Ensure all required fields exist with fallbacks
+          const fallback = createFallbackReport();
+          reportContent = { ...fallback, ...reportContent };
+          
+          // Ensure chart placements are accurate (override any AI hallucinations)
+          reportContent.chartPlacements = chartPlacements;
+          reportContent.elementalBalance = elementalBalance;
+          reportContent.dominantElement = element;
+          reportContent.crystal = crystal;
+          reportContent.aura = aura;
+          reportContent.archetype = archetype;
+        }
+      } catch (parseError) {
+        console.error("[GENERATE-REPORT] Failed to parse AI response:", parseError);
+        reportContent = createFallbackReport();
+      }
+    }
+
+    // Update the database record
     if (input.reportId) {
       const supabaseClient = createClient(
         Deno.env.get("SUPABASE_URL") ?? "",
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
       );
+
       await supabaseClient
         .from("pet_reports")
-        .update({ status: "generating" })
+        .update({ report_content: reportContent })
         .eq("id", input.reportId);
     }
 
-    // Start background generation (NOT awaited — runs after response is sent)
-    const backgroundGeneration = async () => {
-      try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://littlesouls.co",
-            "X-Title": "Little Souls Reading",
-          },
-          body: JSON.stringify({
-            model: "anthropic/claude-sonnet-4.5",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt }
-            ],
-            response_format: { type: "json_object" },
-          }),
-        });
+    console.log("[GENERATE-REPORT] Background generation complete for:", input.reportId);
 
-        let reportContent;
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("AI gateway error:", response.status, errorText);
-          console.log("[GENERATE-REPORT] Using fallback report due to AI error");
-          reportContent = createFallbackReport();
-        } else {
-          try {
-            const aiResponse = await response.json();
-            const rawContent = aiResponse.choices?.[0]?.message?.content;
-
-            if (!rawContent) {
-              console.error("[GENERATE-REPORT] Empty AI response, using fallback");
-              reportContent = createFallbackReport();
-            } else {
-              reportContent = JSON.parse(rawContent);
-
-              // Ensure all required fields exist with fallbacks
-              const fallback = createFallbackReport();
-              reportContent = { ...fallback, ...reportContent };
-
-              // Ensure chart placements are accurate (override any AI hallucinations)
-              reportContent.chartPlacements = chartPlacements;
-              reportContent.elementalBalance = elementalBalance;
-              reportContent.dominantElement = element;
-              reportContent.crystal = crystal;
-              reportContent.aura = aura;
-              reportContent.archetype = archetype;
-            }
-          } catch (parseError) {
-            console.error("[GENERATE-REPORT] Failed to parse AI response:", parseError);
-            reportContent = createFallbackReport();
-          }
-        }
-
-        // Update the database record with completed report
-        if (input.reportId) {
-          const supabaseClient = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-          );
-          await supabaseClient
-            .from("pet_reports")
-            .update({ report_content: reportContent, status: "complete" })
-            .eq("id", input.reportId);
-        }
-        console.log("[GENERATE-REPORT] Background generation complete for:", input.reportId);
       } catch (bgError) {
         console.error("[GENERATE-REPORT] Background generation failed:", bgError);
-        // Mark the report as failed in DB
         if (input.reportId) {
-          const supabaseClient = createClient(
-            Deno.env.get("SUPABASE_URL") ?? "",
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-          );
-          await supabaseClient
-            .from("pet_reports")
-            .update({ status: "error" })
-            .eq("id", input.reportId);
+          try {
+            const errClient = createClient(
+              Deno.env.get("SUPABASE_URL") ?? "",
+              Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+            );
+            await errClient.from("pet_reports").update({ report_content: { status: "failed", error: String(bgError) } }).eq("id", input.reportId);
+          } catch (_) {}
         }
       }
     };
 
-    // Start background work WITHOUT awaiting it
+    // Start background work WITHOUT awaiting — this is the key change
     backgroundGeneration();
 
-    // Return immediately — client will poll DB for results
-    return new Response(JSON.stringify({
+    // Return immediately so we don't hit the 150s timeout
+    return new Response(JSON.stringify({ 
       status: "generating",
       reportId: input.reportId,
-      message: "Report generation started. Poll the database for results."
+      message: "Report generation started"
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
