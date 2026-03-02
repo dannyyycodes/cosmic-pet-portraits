@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 async function validateAdminToken(
@@ -53,7 +53,20 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const action = url.searchParams.get("action");
+    let action = url.searchParams.get("action");
+
+    // Also accept action from request body for more robust calls
+    let body: any = {};
+    if (req.method === "POST" || req.method === "PUT" || req.method === "PATCH") {
+      try {
+        body = await req.json();
+        if (!action && body.action) {
+          action = body.action;
+        }
+      } catch (_) {
+        // no body or invalid JSON
+      }
+    }
 
     // LIST
     if (action === "list" || !action) {
@@ -72,7 +85,6 @@ serve(async (req) => {
 
     // CREATE
     if (action === "create") {
-      const body = await req.json();
       const { code, tier, max_uses, note, expires_at } = body;
 
       if (!code || !code.trim()) {
@@ -113,7 +125,6 @@ serve(async (req) => {
 
     // TOGGLE
     if (action === "toggle") {
-      const body = await req.json();
       const { id, is_active } = body;
 
       const { error } = await supabase
@@ -131,7 +142,6 @@ serve(async (req) => {
 
     // DELETE
     if (action === "delete") {
-      const body = await req.json();
       const { id } = body;
 
       const { error } = await supabase
