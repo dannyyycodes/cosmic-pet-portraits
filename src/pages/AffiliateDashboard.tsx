@@ -187,7 +187,7 @@ export default function AffiliateDashboard() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3.5 rounded-xl focus:outline-none focus:ring-2 transition-all"
-                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a', focusRingColor: '#c4a265' }}
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
                   placeholder="your@email.com"
                   required
                 />
