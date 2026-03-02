@@ -295,27 +295,36 @@ export type Database = {
           created_at: string | null
           credits_remaining: number
           credits_total_purchased: number
+          email: string | null
           id: string
           is_unlimited: boolean
           order_id: string | null
+          plan: string | null
+          report_id: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           credits_remaining?: number
           credits_total_purchased?: number
+          email?: string | null
           id?: string
           is_unlimited?: boolean
           order_id?: string | null
+          plan?: string | null
+          report_id?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           credits_remaining?: number
           credits_total_purchased?: number
+          email?: string | null
           id?: string
           is_unlimited?: boolean
           order_id?: string | null
+          plan?: string | null
+          report_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -323,6 +332,13 @@ export type Database = {
             foreignKeyName: "chat_credits_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: true
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_credits_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
             referencedRelation: "pet_reports"
             referencedColumns: ["id"]
           },
@@ -878,6 +894,7 @@ export type Database = {
           gender: string | null
           id: string
           includes_book: boolean
+          includes_portrait: boolean | null
           language: string | null
           occasion_mode: string | null
           owner_birth_date: string | null
@@ -890,6 +907,7 @@ export type Database = {
           pet_name: string
           pet_photo_url: string | null
           portrait_url: string | null
+          redeem_code: string | null
           report_content: Json | null
           share_token: string | null
           soul_type: string | null
@@ -910,6 +928,7 @@ export type Database = {
           gender?: string | null
           id?: string
           includes_book?: boolean
+          includes_portrait?: boolean | null
           language?: string | null
           occasion_mode?: string | null
           owner_birth_date?: string | null
@@ -922,6 +941,7 @@ export type Database = {
           pet_name: string
           pet_photo_url?: string | null
           portrait_url?: string | null
+          redeem_code?: string | null
           report_content?: Json | null
           share_token?: string | null
           soul_type?: string | null
@@ -942,6 +962,7 @@ export type Database = {
           gender?: string | null
           id?: string
           includes_book?: boolean
+          includes_portrait?: boolean | null
           language?: string | null
           occasion_mode?: string | null
           owner_birth_date?: string | null
@@ -954,6 +975,7 @@ export type Database = {
           pet_name?: string
           pet_photo_url?: string | null
           portrait_url?: string | null
+          redeem_code?: string | null
           report_content?: Json | null
           share_token?: string | null
           soul_type?: string | null

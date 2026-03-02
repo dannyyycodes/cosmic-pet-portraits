@@ -98,12 +98,13 @@ serve(async (req) => {
     const creditAmount = includesBook ? 50 : 15;
     await supabase
       .from("chat_credits")
-      .upsert({
+      .insert({
         report_id: report.id,
         email: email || "pending@redeem.littlesouls.co",
         credits_remaining: creditAmount,
         plan: "redeemed",
-      }, { onConflict: "report_id" });
+        order_id: report.id,
+      });
 
     // Increment usage count
     await supabase
