@@ -48,8 +48,9 @@ export default function AdminRedeemCodes() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-redeem-codes?action=list', {
+      const { data, error } = await supabase.functions.invoke('admin-redeem-codes', {
         headers: { 'X-Admin-Token': adminToken! },
+        body: { action: 'list' },
       });
       if (error) throw error;
       setCodes(data?.codes || []);
@@ -89,9 +90,10 @@ export default function AdminRedeemCodes() {
     }
     setIsSaving(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-redeem-codes?action=create', {
+      const { data, error } = await supabase.functions.invoke('admin-redeem-codes', {
         headers: { 'X-Admin-Token': adminToken! },
         body: {
+          action: 'create',
           code: formCode.trim().toUpperCase(),
           tier: formTier,
           max_uses: parseInt(formMaxUses) || 1,
@@ -118,9 +120,9 @@ export default function AdminRedeemCodes() {
     const code = generateCode();
     setIsSaving(true);
     try {
-      const { data, error } = await supabase.functions.invoke('admin-redeem-codes?action=create', {
+      const { data, error } = await supabase.functions.invoke('admin-redeem-codes', {
         headers: { 'X-Admin-Token': adminToken! },
-        body: { code, tier: 'premium', max_uses: maxUses, note },
+        body: { action: 'create', code, tier: 'premium', max_uses: maxUses, note },
       });
       if (error || data?.error) {
         toast.error(data?.error || 'Failed to create code');
@@ -137,9 +139,9 @@ export default function AdminRedeemCodes() {
 
   const handleToggle = async (id: string, currentActive: boolean) => {
     try {
-      await supabase.functions.invoke('admin-redeem-codes?action=toggle', {
+      await supabase.functions.invoke('admin-redeem-codes', {
         headers: { 'X-Admin-Token': adminToken! },
-        body: { id, is_active: !currentActive },
+        body: { action: 'toggle', id, is_active: !currentActive },
       });
       toast.success(currentActive ? 'Code deactivated' : 'Code activated');
       loadData();
@@ -151,9 +153,9 @@ export default function AdminRedeemCodes() {
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this redeem code?')) return;
     try {
-      await supabase.functions.invoke('admin-redeem-codes?action=delete', {
+      await supabase.functions.invoke('admin-redeem-codes', {
         headers: { 'X-Admin-Token': adminToken! },
-        body: { id },
+        body: { action: 'delete', id },
       });
       toast.success('Code deleted');
       loadData();
