@@ -125,6 +125,8 @@ export interface ReportContent {
     headline: string;
     bio: string;
     lookingFor: string;
+    greenFlags?: string[];
+    redFlags?: string[];
   };
   dreamJob?: {
     title: string;

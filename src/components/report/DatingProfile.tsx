@@ -5,10 +5,12 @@ import { zodiacSigns } from '@/lib/zodiac';
 interface DatingProfileProps {
   petName: string;
   datingProfile: {
+    title?: string;
     headline: string;
     bio: string;
-    greenFlags: string[];
-    redFlags: string[];
+    lookingFor?: string;
+    greenFlags?: string[];
+    redFlags?: string[];
   };
   sunSign: string;
   element: string;
