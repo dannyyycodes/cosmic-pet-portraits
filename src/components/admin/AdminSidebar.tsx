@@ -10,7 +10,8 @@ import {
   Tag,
   Ticket,
   BarChart3,
-  Newspaper
+  Newspaper,
+  FlaskConical
 } from 'lucide-react';
 
 const navItems = [
@@ -23,6 +24,7 @@ const navItems = [
   { title: 'Gift Certificates', path: '/admin/gifts', icon: Gift },
   { title: 'Coupons', path: '/admin/coupons', icon: Tag },
   { title: 'Redeem Codes', path: '/admin/redeem-codes', icon: Ticket },
+  { title: 'QA Testing', path: '/admin/qa-test', icon: FlaskConical },
 ];
 
 export function AdminSidebar() {
