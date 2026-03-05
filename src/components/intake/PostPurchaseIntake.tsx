@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,18 +34,34 @@ const GENDER_OPTIONS = [
 ];
 
 const SOUL_TYPES = [
-  "The Calm Observer", "The Wild Spirit", "The Gentle Healer",
-  "The Social Butterfly", "The Loyal Guardian", "The Mischief Maker",
+  { emoji: "🌿", label: "The Gentle Healer", desc: "Calm presence, soothing energy" },
+  { emoji: "🔥", label: "The Wild Spirit", desc: "Untameable, fiercely free" },
+  { emoji: "🧘", label: "The Calm Observer", desc: "Watches, waits, understands" },
+  { emoji: "🦋", label: "The Social Butterfly", desc: "Loves everyone they meet" },
+  { emoji: "🛡️", label: "The Loyal Guardian", desc: "Protective, devoted, steadfast" },
+  { emoji: "😈", label: "The Mischief Maker", desc: "Chaos is their love language" },
+  { emoji: "🧸", label: "The Comfort Giver", desc: "Always there when you need them" },
+  { emoji: "👑", label: "The Diva", desc: "Dramatic, glamorous, unforgettable" },
 ];
 
 const SUPERPOWERS = [
-  "Emotional Intelligence", "Pure Chaos Energy", "Infinite Patience",
-  "Mind Reading", "Treat Detection", "Selective Hearing",
+  { emoji: "💗", label: "Emotional Intelligence", desc: "Reads the room perfectly" },
+  { emoji: "⚡", label: "Pure Chaos Energy", desc: "Zoomies on demand" },
+  { emoji: "🧘", label: "Infinite Patience", desc: "Will wait forever, calmly" },
+  { emoji: "🧠", label: "Mind Reading", desc: "Knows what you're thinking" },
+  { emoji: "🍖", label: "Treat Detection", desc: "Hears a wrapper from 3 rooms away" },
+  { emoji: "🙉", label: "Selective Hearing", desc: "Only hears what they want" },
+  { emoji: "😴", label: "Champion Napper", desc: "Sleeps like a pro, anywhere" },
+  { emoji: "💨", label: "Zoomie Master", desc: "0 to 60 in 0.5 seconds" },
 ];
 
 const STRANGER_REACTIONS = [
-  "Instant Best Friend", "Cautious Then Obsessed", "Suspicious Until Trust Earned",
-  "Couldn't Care Less", "Hides Then Investigates",
+  { emoji: "🤗", label: "Instant Best Friend", desc: "Loves everyone immediately" },
+  { emoji: "🤔", label: "Cautious Then Obsessed", desc: "Slow warm-up, then clingy" },
+  { emoji: "🕵️", label: "Suspicious Until Trust Earned", desc: "Needs time to open up" },
+  { emoji: "😎", label: "Couldn't Care Less", desc: "Completely unbothered" },
+  { emoji: "🙈", label: "Hides Then Investigates", desc: "Shy first, curious later" },
+  { emoji: "🎭", label: "Shows Off Immediately", desc: "Look at me! Watch this!" },
 ];
 
 const screenVariants = {
@@ -67,17 +83,54 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const [birthTime, setBirthTime] = useState("");
   const [breed, setBreed] = useState("");
   const [location, setLocation] = useState("");
-  const [soulType, setSoulType] = useState("");
-  const [superpower, setSuperpower] = useState("");
+  const [locationResults, setLocationResults] = useState<Array<{ display_name: string; address?: { city?: string; town?: string; village?: string; country?: string; state?: string }; name?: string }>>([]);
+  const [showLocationResults, setShowLocationResults] = useState(false);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const locationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [soulTypes, setSoulTypes] = useState<string[]>([]);
+  const [superpowers, setSuperpowers] = useState<string[]>([]);
   const [strangerReaction, setStrangerReaction] = useState("");
-  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [privacyError, setPrivacyError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pronouns = getPronouns(gender);
+
+  // Location autocomplete (Nominatim)
+  useEffect(() => {
+    if (locationTimeout.current) clearTimeout(locationTimeout.current);
+    const query = location.trim();
+    if (query.length < 2) { setLocationResults([]); setShowLocationResults(false); return; }
+    setIsSearchingLocation(true);
+    locationTimeout.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        setLocationResults(data);
+        setShowLocationResults(true);
+      } catch { setLocationResults([]); }
+      finally { setIsSearchingLocation(false); }
+    }, 300);
+    return () => { if (locationTimeout.current) clearTimeout(locationTimeout.current); };
+  }, [location]);
+
+  const selectLocation = (result: typeof locationResults[0]) => {
+    const city = result.address?.city || result.address?.town || result.address?.village || result.name || '';
+    const country = result.address?.country || '';
+    const state = result.address?.state;
+    let formatted: string;
+    if (country === 'United States' && state && city) formatted = `${city}, ${state}, USA`;
+    else if (city && country) formatted = `${city}, ${country}`;
+    else formatted = result.display_name.split(',').slice(0, 3).join(',').trim();
+    setLocation(formatted);
+    setShowLocationResults(false);
+  };
+
+  const toggleMultiSelect = (current: string[], setter: (v: string[]) => void, value: string, max: number) => {
+    if (current.includes(value)) setter(current.filter(v => v !== value));
+    else if (current.length < max) setter([...current, value]);
+  };
 
   // Screen 1 readiness
   const showSpecies = petName.length >= 1;
@@ -110,10 +163,6 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   };
 
   const handleSubmit = async () => {
-    if (!privacyAccepted) {
-      setPrivacyError(true);
-      return;
-    }
     setIsSubmitting(true);
     try {
       const { error } = await supabase.functions.invoke("update-pet-data", {
@@ -121,7 +170,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
           reportId, petName, species, gender: gender || undefined,
           birthDate: birthDate || undefined, birthTime: birthTime || undefined,
           breed: breed || undefined, location: location || undefined,
-          soulType: soulType || undefined, superpower: superpower || undefined,
+          soulType: soulTypes.join(', ') || undefined, superpower: superpowers.join(', ') || undefined,
           strangerReaction: strangerReaction || undefined, petPhotoUrl: petPhotoUrl || undefined,
         },
       });
@@ -168,8 +217,8 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
     { label: "Time", value: birthTime || "" },
     { label: "Breed", value: breed },
     { label: "Location", value: location },
-    { label: "Soul type", value: soulType },
-    { label: "Superpower", value: superpower },
+    { label: "Soul type", value: soulTypes.join(', ') },
+    { label: "Superpower", value: superpowers.join(', ') },
     { label: "Stranger reaction", value: strangerReaction },
   ];
 
@@ -286,16 +335,34 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
               </p>
 
               <div>
+                <label className={labelClass}>Breed</label>
                 <input value={breed} onChange={e => setBreed(e.target.value)}
                   placeholder="e.g. Golden Retriever, Siamese, Holland Lop..."
                   className={inputClass} aria-label="Breed" style={{ fontSize: '16px' }} />
                 <p className={hintClass}>Lets us write breed-specific personality insights that actually sound like {petName}.</p>
               </div>
 
-              <div>
+              <div className="relative">
+                <label className={labelClass}>Birth location</label>
                 <input value={location} onChange={e => setLocation(e.target.value)}
-                  placeholder="City or country" className={inputClass} aria-label="Location" style={{ fontSize: '16px' }} />
-                <p className={hintClass}>Affects which stars were visible at {pronouns.possessive} birth — refines house placements in the chart.</p>
+                  placeholder="City or country"
+                  className={inputClass} aria-label="Location" style={{ fontSize: '16px' }}
+                  onFocus={() => { if (location.length >= 2) setShowLocationResults(true); }}
+                  onBlur={() => setTimeout(() => setShowLocationResults(false), 200)} />
+                <AnimatePresence>
+                  {showLocationResults && locationResults.length > 0 && (
+                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                      className="absolute z-50 w-full mt-1 bg-white border border-[#E8DFD6] rounded-xl shadow-lg overflow-hidden">
+                      {locationResults.map((r, i) => (
+                        <button key={i} onMouseDown={e => e.preventDefault()} onClick={() => selectLocation(r)}
+                          className="w-full px-4 py-3 text-left hover:bg-[rgba(240,213,210,0.2)] transition-colors border-b border-[#E8DFD6] last:border-0 text-[0.85rem] font-[Cormorant,serif] text-[#2D2926]">
+                          {r.display_name.split(',').slice(0, 3).join(',')}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <p className={hintClass}>Affects which stars were visible — refines house placements in the chart.</p>
               </div>
 
               <button onClick={() => setScreen(3)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
@@ -323,15 +390,19 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
 
               {/* Soul Type */}
               <div>
-                <label className={labelClass}>Soul type</label>
+                <label className={labelClass}>Soul type <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(pick up to 2)</span></label>
                 <div className="grid grid-cols-2 gap-2">
                   {SOUL_TYPES.map(t => (
-                    <button key={t} onClick={() => setSoulType(soulType === t ? "" : t)}
+                    <button key={t.label} onClick={() => toggleMultiSelect(soulTypes, setSoulTypes, t.label, 2)}
                       className={cn(
-                        "px-3 py-[0.55rem] rounded-[10px] border-[1.5px] text-[0.82rem] font-[Cormorant,serif] text-left transition-all",
-                        soulType === t ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
+                        "px-3 py-[0.55rem] rounded-[10px] border-[1.5px] text-left transition-all flex items-start gap-2",
+                        soulTypes.includes(t.label) ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
                       )}>
-                      {t}
+                      <span className="text-[1rem] mt-[1px]">{t.emoji}</span>
+                      <div>
+                        <div className="text-[0.82rem] font-[Cormorant,serif] font-semibold text-[#2D2926]">{t.label}</div>
+                        <div className="text-[0.7rem] font-[Cormorant,serif] text-[#9B8E84]">{t.desc}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -339,15 +410,19 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
 
               {/* Superpower */}
               <div>
-                <label className={labelClass}>Superpower</label>
+                <label className={labelClass}>Superpower <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(pick up to 2)</span></label>
                 <div className="grid grid-cols-2 gap-2">
                   {SUPERPOWERS.map(s => (
-                    <button key={s} onClick={() => setSuperpower(superpower === s ? "" : s)}
+                    <button key={s.label} onClick={() => toggleMultiSelect(superpowers, setSuperpowers, s.label, 2)}
                       className={cn(
-                        "px-3 py-[0.55rem] rounded-[10px] border-[1.5px] text-[0.82rem] font-[Cormorant,serif] text-left transition-all",
-                        superpower === s ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
+                        "px-3 py-[0.55rem] rounded-[10px] border-[1.5px] text-left transition-all flex items-start gap-2",
+                        superpowers.includes(s.label) ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
                       )}>
-                      {s}
+                      <span className="text-[1rem] mt-[1px]">{s.emoji}</span>
+                      <div>
+                        <div className="text-[0.82rem] font-[Cormorant,serif] font-semibold text-[#2D2926]">{s.label}</div>
+                        <div className="text-[0.7rem] font-[Cormorant,serif] text-[#9B8E84]">{s.desc}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -355,15 +430,19 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
 
               {/* Stranger Reaction */}
               <div>
-                <label className={labelClass}>Stranger reaction</label>
-                <div className="flex flex-col gap-2">
+                <label className={labelClass}>How do they react to strangers?</label>
+                <div className="grid grid-cols-2 gap-2">
                   {STRANGER_REACTIONS.map(r => (
-                    <button key={r} onClick={() => setStrangerReaction(strangerReaction === r ? "" : r)}
+                    <button key={r.label} onClick={() => setStrangerReaction(strangerReaction === r.label ? "" : r.label)}
                       className={cn(
-                        "w-full px-4 py-[0.6rem] rounded-[10px] border-[1.5px] text-[0.82rem] font-[Cormorant,serif] text-left transition-all",
-                        strangerReaction === r ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
+                        "px-3 py-[0.55rem] rounded-[10px] border-[1.5px] text-left transition-all flex items-start gap-2",
+                        strangerReaction === r.label ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white"
                       )}>
-                      {r}
+                      <span className="text-[1rem] mt-[1px]">{r.emoji}</span>
+                      <div>
+                        <div className="text-[0.82rem] font-[Cormorant,serif] font-semibold text-[#2D2926]">{r.label}</div>
+                        <div className="text-[0.7rem] font-[Cormorant,serif] text-[#9B8E84]">{r.desc}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -433,43 +512,22 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 )}
               </div>
 
-              {/* Privacy Panel */}
-              <div className="bg-white rounded-[14px] border border-[#E8DFD6] p-5 space-y-3">
-                <p className="text-[0.92rem] text-[#2D2926] font-semibold font-[Cormorant,serif]">
-                  🔒 Your Data, Your Control
-                </p>
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input type="checkbox" checked={privacyAccepted}
-                    onChange={e => { setPrivacyAccepted(e.target.checked); setPrivacyError(false); }}
-                    className="mt-1 w-4 h-4 accent-[#bf524a] shrink-0" />
-                  <span className="text-[0.82rem] text-[#6B5E54] font-[Cormorant,serif] leading-relaxed">
-                    I understand my pet's details are used solely to generate their cosmic reading. No data is shared with third parties. I can delete all my data at any time.
-                  </span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {["✓ No third-party sharing", "✓ Delete anytime", "✓ Encrypted"].map(b => (
-                    <span key={b} className="text-[0.7rem] text-[#4a8c5c] bg-[rgba(74,140,92,0.1)] px-2 py-[2px] rounded-md font-[Cormorant,serif]">
-                      {b}
-                    </span>
-                  ))}
-                </div>
-                {privacyError && (
-                  <p className="text-[0.78rem] text-[#bf524a]">Please accept the privacy terms to continue</p>
-                )}
-              </div>
-
               {/* CTA */}
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
                 className={cn(
                   "w-full py-4 rounded-xl text-white text-[1.05rem] transition-all",
-                  privacyAccepted ? "bg-[#bf524a] hover:bg-[#c9665f]" : "bg-[#bf524a]/50 cursor-not-allowed"
+                  "bg-[#bf524a] hover:bg-[#c9665f]"
                 )}
                 style={{ fontFamily: 'DM Serif Display, serif' }}
               >
                 {isSubmitting ? "Creating..." : `Create ${petName}'s Soul Reading →`}
               </button>
+              <p className="text-center text-[0.72rem] text-[#9B8E84] font-[Cormorant,serif]">
+                🔒 Your data is encrypted and never shared.{' '}
+                <a href="/privacy" className="underline hover:text-[#6B5E54]">Privacy policy</a>
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

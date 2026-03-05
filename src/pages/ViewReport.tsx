@@ -169,13 +169,36 @@ export default function ViewReport() {
   const handleRevealComplete = () => {
     setShowCinematic(false);
     setRevealComplete(true);
-    
-    // Show testimonial prompt after 30 seconds of viewing
+
     const hasSubmittedTestimonial = localStorage.getItem(`testimonial_submitted_${reportId || code}`);
     if (!hasSubmittedTestimonial) {
-      setTimeout(() => {
+      // 3-minute timer
+      const timer = setTimeout(() => {
         setShowTestimonialPrompt(true);
-      }, 30000); // 30 seconds delay
+      }, 180000);
+
+      // 70% scroll trigger
+      const handleScroll = () => {
+        const scrollDepth = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
+        if (scrollDepth >= 0.7) {
+          setShowTestimonialPrompt(true);
+          window.removeEventListener('scroll', handleScroll);
+          clearTimeout(timer);
+        }
+      };
+      window.addEventListener('scroll', handleScroll);
+
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  };
+
+  const handleRequestTestimonial = () => {
+    const hasSubmittedTestimonial = localStorage.getItem(`testimonial_submitted_${reportId || code}`);
+    if (!hasSubmittedTestimonial) {
+      setShowTestimonialPrompt(true);
     }
   };
 
@@ -305,6 +328,7 @@ export default function ViewReport() {
               portraitUrl={reportData.portraitUrl}
               occasionMode={reportData.occasionMode}
               hasActiveHoroscope={reportData.hasActiveHoroscope}
+              onRequestTestimonial={handleRequestTestimonial}
             />
             {reportData.reportId && (
               <div className="flex justify-center my-8">

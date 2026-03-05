@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ReportGeneratingProps {
@@ -19,33 +19,52 @@ const grainStyle: React.CSSProperties = {
   backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
 };
 
+const FUN_FACTS = [
+  "Every pet's birth chart contains 10+ planetary placements \u2014 just like yours.",
+  "The Moon moves through all 12 zodiac signs every 28 days \u2014 just like your pet's moods.",
+  "A dog's nose print is as unique as a human fingerprint.",
+  "In astrology, your pet's birth chart has the same complexity as yours \u2014 10+ planetary placements.",
+  "Rabbits purr when they're happy. It sounds like soft teeth chattering.",
+  "Saturn takes 29 years to orbit the Sun. Your pet might never experience their Saturn return!",
+  "Dogs dream about their owners. Researchers confirmed this by watching their brain patterns.",
+];
+
+const STEPS = [
+  { label: 'Mapping celestial positions', threshold: 10 },
+  { label: 'Calculating planetary aspects', threshold: 30 },
+  { label: 'Writing soul portrait', threshold: 50 },
+  { label: 'Adding personal touches', threshold: 75 },
+];
+
 export function ReportGenerating({ petName, gender, sunSign }: ReportGeneratingProps) {
   const p = getPronouns(gender);
-  const [msgIndex, setMsgIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [factIndex, setFactIndex] = useState(0);
 
-  const messages = [
-    `Mapping the position of 10 celestial bodies at the exact moment ${p.subject} was born...`,
-    `Calculating ${p.possessive} Sun, Moon, and Rising signs from real astronomical data...`,
-    `${p.Subject} chose you, you know. The stars confirm it.`,
-    `Writing ${p.possessive} soul portrait now — every word shaped by ${p.possessive} unique chart...`,
-    `Almost ready. Some things are worth the wait.`,
-  ];
-
+  // Progress increments ~0.8% per second → reaches ~96% in 2 minutes
   useEffect(() => {
     const interval = setInterval(() => {
-      setMsgIndex(prev => (prev + 1) % messages.length);
-    }, 3500);
+      setProgress(prev => Math.min(prev + 0.8, 96));
+    }, 1000);
     return () => clearInterval(interval);
-  }, [messages.length]);
+  }, []);
+
+  // Rotate fun facts every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFactIndex(prev => (prev + 1) % FUN_FACTS.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Generate paw print positions once
-  const pawPrints = Array.from({ length: 7 }, (_, i) => ({
+  const pawPrints = useMemo(() => Array.from({ length: 7 }, (_, i) => ({
     left: `${10 + Math.random() * 80}%`,
     top: `${10 + Math.random() * 80}%`,
     size: 0.6 + Math.random() * 0.3,
     delay: i * 0.8,
     rotation: Math.random() * 60 - 30,
-  }));
+  })), []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden"
@@ -89,37 +108,66 @@ export function ReportGenerating({ petName, gender, sunSign }: ReportGeneratingP
           Reading {p.possessive} stars now
         </h2>
 
-        {/* Progress line */}
+        {/* Step-by-step progress indicators */}
+        <div className="w-full max-w-[320px] space-y-2 mb-6">
+          {STEPS.map((step, i) => {
+            const isDone = progress > step.threshold;
+            const isActive = !isDone && (i === 0 || progress > STEPS[i - 1].threshold);
+            return (
+              <div key={step.label} className="flex items-center gap-3">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                  isDone ? 'bg-[#bf524a]' : isActive ? 'bg-[#E8DFD6]' : 'bg-[#E8DFD6]/50'
+                }`}>
+                  {isDone ? (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  ) : isActive ? (
+                    <motion.div className="w-2 h-2 rounded-full bg-[#bf524a]"
+                      animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
+                  ) : (
+                    <div className="w-2 h-2 rounded-full bg-[#d4cbc3]" />
+                  )}
+                </div>
+                <span className={`text-[0.85rem] font-[Cormorant,serif] transition-colors ${
+                  isDone ? 'text-[#2D2926]' : isActive ? 'text-[#6B5E54]' : 'text-[#9B8E84]'
+                }`}>
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Progress bar */}
         <div className="w-[200px] h-[2px] bg-[#E8DFD6] rounded-full overflow-hidden mb-6">
           <motion.div
             className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, #bf524a, #c4a265)' }}
-            initial={{ width: '0%' }}
-            animate={{ width: '94%' }}
-            transition={{ duration: 20, ease: [0.4, 0, 0.2, 1] }}
+            style={{ background: 'linear-gradient(90deg, #bf524a, #c4a265)', width: `${progress}%` }}
           />
         </div>
 
-        {/* Rotating messages */}
-        <div className="h-[48px] flex items-center justify-center">
+        {/* Fun fact card */}
+        <div className="bg-white border border-[#E8DFD6] rounded-xl px-5 py-4 mb-6 max-w-sm">
+          <p className="text-[0.68rem] text-[#c4a265] uppercase tracking-widest font-semibold mb-1" style={{ fontFamily: 'Cormorant, serif' }}>
+            Did you know?
+          </p>
           <AnimatePresence mode="wait">
             <motion.p
-              key={msgIndex}
-              initial={{ opacity: 0, y: 10 }}
+              key={factIndex}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3 }}
-              className="text-[0.88rem] text-[#6B5E54] italic text-center max-w-sm"
+              className="text-[0.82rem] text-[#6B5E54] italic leading-relaxed"
               style={{ fontFamily: 'Cormorant, serif' }}
             >
-              {messages[msgIndex]}
+              {FUN_FACTS[factIndex]}
             </motion.p>
           </AnimatePresence>
         </div>
 
         {/* Small note */}
-        <p className="text-[0.72rem] text-[#9B8E84] mt-8">
-          This usually takes about 20 seconds
+        <p className="text-[0.72rem] text-[#9B8E84]">
+          Creating something special — usually about a minute
         </p>
         <p className="text-[0.72rem] text-[#9B8E84] mt-2">
           A link to your report has been sent to your email

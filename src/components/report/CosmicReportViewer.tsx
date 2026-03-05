@@ -51,6 +51,7 @@ interface CosmicReportViewerProps {
   onAllComplete?: () => void;
   occasionMode?: string;
   hasActiveHoroscope?: boolean;
+  onRequestTestimonial?: () => void;
 }
 
 // Section configuration for the 10 reading sections
@@ -172,6 +173,7 @@ export function CosmicReportViewer({
   onAllComplete,
   occasionMode = 'discover',
   hasActiveHoroscope = false,
+  onRequestTestimonial,
 }: CosmicReportViewerProps) {
   const [isSubscribing, setIsSubscribing] = useState(false);
 
@@ -848,6 +850,17 @@ function LegacyReportViewer({
             <p className="text-[#5a4a42] italic text-[0.84rem] leading-[1.75] max-w-xl mx-auto">
               {report.epilogue}
             </p>
+          </div>
+        )}
+
+        {onRequestTestimonial && !isPreview && (
+          <div className="text-center pt-8 pb-4">
+            <button
+              onClick={onRequestTestimonial}
+              className="text-[0.82rem] text-[#9a8578] hover:text-[#bf524a] transition-colors font-[Cormorant,serif] underline underline-offset-4"
+            >
+              Rate your reading
+            </button>
           </div>
         )}
       </div>
