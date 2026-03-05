@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Crown, Check, Gift, X, Clock, Users, Zap, Moon, Camera, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -134,6 +134,12 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   });
   const subscriptionPetCount = Math.max(1, nonMemorialPets.length);
 
+  // Redeem code state
+  const navigate = useNavigate();
+  const [showRedeemInput, setShowRedeemInput] = useState(false);
+  const [redeemCode, setRedeemCode] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
+
   // Simulated scarcity countdown
   useEffect(() => {
     const interval = setInterval(() => {
@@ -194,6 +200,26 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         delete updated[petIndex];
         return updated;
       });
+    }
+  };
+
+  const handleRedeem = async () => {
+    const code = redeemCode.trim();
+    if (!code) return;
+    setIsRedeeming(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('redeem-free-code', {
+        body: { code, email: petData.email, petName: petData.name, species: petData.species, occasionMode: petData.occasionMode },
+      });
+      if (error || !data?.success) {
+        toast.error(data?.error || 'Invalid or expired code. Please try again.');
+        return;
+      }
+      navigate(`/payment-success?session_id=redeem_${Date.now()}&report_id=${data.reportId}&quick=true`);
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsRedeeming(false);
     }
   };
 
@@ -461,6 +487,44 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           <span className="text-[10px] text-muted-foreground/60 block mt-0.5">Hear your pet speak back to you for the first time</span>
         </span>
         <span className="text-[11px] text-muted-foreground/70 shrink-0">15 free credits</span>
+      </div>
+
+      {/* Redeem Code */}
+      <div className="text-center">
+        <button
+          onClick={() => setShowRedeemInput(!showRedeemInput)}
+          className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+        >
+          Have a redeem code?
+        </button>
+        <AnimatePresence>
+          {showRedeemInput && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  value={redeemCode}
+                  onChange={(e) => setRedeemCode(e.target.value)}
+                  placeholder="Enter code"
+                  className="flex-1 px-3 py-2 rounded-lg border border-border/50 bg-card/30 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary transition-colors"
+                />
+                <Button
+                  onClick={handleRedeem}
+                  disabled={!redeemCode.trim() || isRedeeming}
+                  variant="gold"
+                  size="default"
+                >
+                  {isRedeeming ? '...' : 'Redeem'}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Checkout button - cleaner CTA */}

@@ -127,7 +127,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
       });
       if (error) throw error;
 
-      const { error: genError } = await supabase.functions.invoke("generate-cosmic-report", {
+      const { error: genError } = await supabase.functions.invoke("generate-report-background", {
         body: { reportId },
       });
       if (genError) console.warn("[PostPurchaseIntake] Generation trigger:", genError);
