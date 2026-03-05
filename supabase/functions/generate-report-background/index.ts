@@ -79,26 +79,28 @@ serve(async (req) => {
       strangerReaction: report.stranger_reaction ?? '',
     };
 
-    // Fire and forget - generate-cosmic-report saves directly to DB
-    console.log("[BACKGROUND-GEN] Firing generate-cosmic-report for:", reportId);
+    // Await generation — streaming keeps the connection alive (~60-90s)
+    console.log("[BACKGROUND-GEN] Calling generate-cosmic-report for:", reportId);
 
-    fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify({
-        petData,
-        reportId,
-        language: report.language || 'en',
-        occasionMode: report.occasion_mode || 'discover',
-      }),
-    }).catch(err => console.error("[BACKGROUND-GEN] Fire-and-forget error:", err));
-
-    // Don't wait - return immediately. The worker saves to DB when done.
-    // The frontend polls get-report until content appears.
-    console.log("[BACKGROUND-GEN] Generation fired for:", reportId);
+    try {
+      const genResponse = await fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${serviceRoleKey}`,
+        },
+        body: JSON.stringify({
+          petData,
+          reportId,
+          language: report.language || 'en',
+          occasionMode: report.occasion_mode || 'discover',
+        }),
+      });
+      const genResult = await genResponse.text();
+      console.log("[BACKGROUND-GEN] Generation completed:", genResponse.status);
+    } catch (err) {
+      console.error("[BACKGROUND-GEN] Generation failed:", err);
+    }
 
     // Send confirmation email in background (will arrive after report is ready)
     sendEmailBackground(supabaseUrl, serviceRoleKey, reportId, report.email, report.pet_name);
