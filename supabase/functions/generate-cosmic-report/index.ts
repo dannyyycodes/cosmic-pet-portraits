@@ -1354,14 +1354,11 @@ Make every section feel personal, specific, and magical. The fun sections should
       }
     };
 
-    // Fire and forget - backgroundGeneration saves directly to DB when done
-    // The caller (generate-report-background) does NOT need to wait
-    backgroundGeneration();
+    // Await the full generation — streaming keeps the connection alive
+    // so Supabase won't kill the function before the DB write completes
+    await backgroundGeneration();
 
-    return new Response(JSON.stringify({
-      status: "generating",
-      reportId: input.reportId,
-    }), {
+    return new Response(JSON.stringify({ success: true, reportId: input.reportId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
