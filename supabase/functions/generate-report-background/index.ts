@@ -47,8 +47,14 @@ serve(async (req) => {
       });
     }
 
-    // Skip if already has report content (and no error)
-    if (report.report_content && !report.report_content.error) {
+    // Only skip if report has real content (not a status marker from a previous attempt)
+    const content = report.report_content;
+    const hasRealContent = content
+      && !content.error
+      && !content.status  // skip status markers like "generating", "retrying", "failed"
+      && (content.prologue || content.chartPlacements || content.solarSoulprint);
+
+    if (hasRealContent) {
       console.log("[BACKGROUND-GEN] Report already generated:", reportId);
       return new Response(JSON.stringify({ success: true, already_generated: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
