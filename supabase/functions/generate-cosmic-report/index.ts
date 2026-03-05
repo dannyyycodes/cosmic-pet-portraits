@@ -1336,15 +1336,10 @@ Make every section feel personal, specific, and magical. The fun sections should
       }
     };
 
-    // Start background work WITHOUT awaiting — this is the key change
-    backgroundGeneration();
+    // Await the generation so the process stays alive until the DB write completes
+    await backgroundGeneration();
 
-    // Return immediately so we don't hit the 150s timeout
-    return new Response(JSON.stringify({ 
-      status: "generating",
-      reportId: input.reportId,
-      message: "Report generation started"
-    }), {
+    return new Response(JSON.stringify({ success: true, reportId: input.reportId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
