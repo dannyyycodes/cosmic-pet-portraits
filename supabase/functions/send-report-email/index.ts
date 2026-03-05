@@ -129,8 +129,7 @@ serve(async (req) => {
       });
     }
 
-    const origin = req.headers.get("origin") || "https://cosmicpetreport.com";
-    const reportUrl = `${origin}/report?id=${reportId}`;
+    const reportUrl = `https://littlesouls.co/report?id=${reportId}`;
 
     const emailResult = await resend.emails.send({
       from: "Little Souls <hello@littlesouls.co>",

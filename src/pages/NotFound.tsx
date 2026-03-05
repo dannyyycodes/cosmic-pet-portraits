@@ -16,6 +16,11 @@ const NotFound = () => {
         <a href="/" className="text-primary underline hover:text-primary/90">
           Return to Home
         </a>
+        <p className="mt-4">
+          <a href="/find-report" className="text-muted-foreground underline hover:text-foreground text-sm">
+            Lost your report? Find it here
+          </a>
+        </p>
       </div>
     </div>
   );

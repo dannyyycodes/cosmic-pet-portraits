@@ -50,6 +50,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const AdminABTest = lazy(() => import("./pages/AdminABTest"));
 const AdminRedeemCodes = lazy(() => import("./pages/AdminRedeemCodes"));
 const RedeemCode = lazy(() => import("./pages/RedeemCode"));
+const FindReport = lazy(() => import("./pages/FindReport"));
 
 // Redirect /checkout to the static HTML checkout page
 function CheckoutRedirect() {
@@ -129,6 +130,7 @@ const App = () => (
                   <Route path="/redeem-code" element={<RedeemCode />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/find-report" element={<FindReport />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />

@@ -30,6 +30,7 @@ const Index = () => {
           <Link to="/contact" style={{ color: "#958779", textDecoration: "none" }}>Contact</Link>
           <Link to="/blog" style={{ color: "#958779", textDecoration: "none" }}>Blog</Link>
           <Link to="/become-affiliate" style={{ color: "#958779", textDecoration: "none" }}>Affiliates</Link>
+          <Link to="/find-report" style={{ color: "#958779", textDecoration: "none" }}>Find My Report</Link>
         </div>
       </footer>
     </main>

@@ -121,6 +121,9 @@ export function ReportGenerating({ petName, gender, sunSign }: ReportGeneratingP
         <p className="text-[0.72rem] text-[#9B8E84] mt-8">
           This usually takes about 20 seconds
         </p>
+        <p className="text-[0.72rem] text-[#9B8E84] mt-2">
+          A link to your report has been sent to your email
+        </p>
       </div>
     </div>
   );
