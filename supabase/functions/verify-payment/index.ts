@@ -236,6 +236,54 @@ serve(async (req) => {
       });
     }
 
+    // Handle redeem code sessions (already paid via free code)
+    if (sessionId.startsWith('redeem_')) {
+      console.log("[VERIFY-PAYMENT] Redeem code session - skipping Stripe verification");
+
+      const { data: redeemReport } = await supabaseClient
+        .from("pet_reports")
+        .select("*")
+        .eq("id", reportId)
+        .single();
+
+      if (!redeemReport || redeemReport.payment_status !== 'paid') {
+        return new Response(JSON.stringify({ error: "Report not found" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+
+      // Generate share token if missing
+      if (!redeemReport.share_token) {
+        const bytes = new Uint8Array(12);
+        crypto.getRandomValues(bytes);
+        const shareToken = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        await supabaseClient
+          .from("pet_reports")
+          .update({ share_token: shareToken, updated_at: new Date().toISOString() })
+          .eq("id", reportId);
+        redeemReport.share_token = shareToken;
+      }
+
+      // Trigger generation if not already done
+      if (!redeemReport.report_content) {
+        triggerBackgroundGeneration(reportId, false);
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        report: redeemReport,
+        allReports: [redeemReport],
+        reportIds: [reportId],
+        includeGift: false,
+        giftCode: null,
+        horoscopeEnabled: false,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Handle gift redemption sessions (already paid via gift certificate)
     if (sessionId.startsWith('gift_')) {
       console.log("[VERIFY-PAYMENT] Gift redemption - skipping Stripe verification");

@@ -1094,6 +1094,7 @@ Make every section feel personal, specific, and magical. The fun sections should
       body: JSON.stringify({
         model: "anthropic/claude-sonnet-4.5",
         max_tokens: 8000,
+        stream: true,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
@@ -1280,20 +1281,37 @@ Make every section feel personal, specific, and magical. The fun sections should
       reportContent = createFallbackReport();
     } else {
       try {
-        const aiResponse = await response.json();
-        const rawContent = aiResponse.choices?.[0]?.message?.content;
-        
-        if (!rawContent) {
-          console.error("[GENERATE-REPORT] Empty AI response, using fallback");
+        let accumulated = "";
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n");
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6).trim();
+              if (data === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (delta) accumulated += delta;
+              } catch {}
+            }
+          }
+        }
+
+        console.log("[GENERATE-REPORT] Streamed", accumulated.length, "chars");
+
+        if (!accumulated) {
+          console.error("[GENERATE-REPORT] Empty stream, using fallback");
           reportContent = createFallbackReport();
         } else {
-          reportContent = JSON.parse(rawContent);
-          
-          // Ensure all required fields exist with fallbacks
+          reportContent = JSON.parse(accumulated);
           const fallback = createFallbackReport();
           reportContent = { ...fallback, ...reportContent };
-          
-          // Ensure chart placements are accurate (override any AI hallucinations)
           reportContent.chartPlacements = chartPlacements;
           reportContent.elementalBalance = elementalBalance;
           reportContent.dominantElement = element;
@@ -1302,7 +1320,7 @@ Make every section feel personal, specific, and magical. The fun sections should
           reportContent.archetype = archetype;
         }
       } catch (parseError) {
-        console.error("[GENERATE-REPORT] Failed to parse AI response:", parseError);
+        console.error("[GENERATE-REPORT] Parse error:", parseError);
         reportContent = createFallbackReport();
       }
     }
@@ -1336,10 +1354,14 @@ Make every section feel personal, specific, and magical. The fun sections should
       }
     };
 
-    // Await the generation so the process stays alive until the DB write completes
-    await backgroundGeneration();
+    // Fire and forget - backgroundGeneration saves directly to DB when done
+    // The caller (generate-report-background) does NOT need to wait
+    backgroundGeneration();
 
-    return new Response(JSON.stringify({ success: true, reportId: input.reportId }), {
+    return new Response(JSON.stringify({
+      status: "generating",
+      reportId: input.reportId,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

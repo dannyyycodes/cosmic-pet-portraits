@@ -79,109 +79,34 @@ serve(async (req) => {
       strangerReaction: report.stranger_reaction ?? '',
     };
 
-    // Call the generate-cosmic-report function with extended timeout
-    console.log("[BACKGROUND-GEN] Calling generate-cosmic-report...");
-    
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout for background
+    // Fire and forget - generate-cosmic-report saves directly to DB
+    console.log("[BACKGROUND-GEN] Firing generate-cosmic-report for:", reportId);
 
-    try {
-      const genResponse = await fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${serviceRoleKey}`,
-        },
-        body: JSON.stringify({
-          petData,
-          reportId,
-          language: report.language || 'en',
-          occasionMode: report.occasion_mode || 'discover',
-        }),
-        signal: controller.signal,
-      });
+    fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({
+        petData,
+        reportId,
+        language: report.language || 'en',
+        occasionMode: report.occasion_mode || 'discover',
+      }),
+    }).catch(err => console.error("[BACKGROUND-GEN] Fire-and-forget error:", err));
 
-      clearTimeout(timeoutId);
+    // Don't wait - return immediately. The worker saves to DB when done.
+    // The frontend polls get-report until content appears.
+    console.log("[BACKGROUND-GEN] Generation fired for:", reportId);
 
-      if (!genResponse.ok) {
-        const errorText = await genResponse.text();
-        throw new Error(`Generation failed: ${genResponse.status} - ${errorText.substring(0, 200)}`);
-      }
+    // Send confirmation email in background (will arrive after report is ready)
+    sendEmailBackground(supabaseUrl, serviceRoleKey, reportId, report.email, report.pet_name);
 
-      const genData = await genResponse.json();
-      console.log("[BACKGROUND-GEN] Report generated successfully for:", reportId);
-
-      // Send confirmation email in background
-      sendEmailBackground(supabaseUrl, serviceRoleKey, reportId, report.email, report.pet_name, genData?.report?.sunSign);
-
-      return new Response(JSON.stringify({ success: true, reportId }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-
-    } catch (genError) {
-      clearTimeout(timeoutId);
-      const errorMessage = genError instanceof Error ? genError.message : String(genError);
-      console.error(`[BACKGROUND-GEN] Generation error (attempt ${attempt}):`, errorMessage);
-
-      // If we have retries left, schedule a retry
-      if (attempt < MAX_RETRIES) {
-        console.log(`[BACKGROUND-GEN] Scheduling retry ${attempt + 1} for ${reportId}`);
-        
-        // Update status to retrying
-        await supabaseClient
-          .from("pet_reports")
-          .update({
-            report_content: { 
-              status: "retrying", 
-              attempt: attempt + 1, 
-              last_error: errorMessage,
-              retry_at: new Date(Date.now() + RETRY_DELAY_MS).toISOString()
-            },
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", reportId);
-
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
-
-        // Retry by calling ourselves
-        const retryResponse = await fetch(`${supabaseUrl}/functions/v1/generate-report-background`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${serviceRoleKey}`,
-          },
-          body: JSON.stringify({ reportId, includesPortrait, attempt: attempt + 1 }),
-        });
-
-        return new Response(JSON.stringify({ success: true, retrying: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      } else {
-        // Max retries reached - mark as failed
-        console.error(`[BACKGROUND-GEN] Max retries reached for ${reportId}`);
-        
-        await supabaseClient
-          .from("pet_reports")
-          .update({
-            report_content: { 
-              error: "Report generation failed after multiple attempts. Please contact support.", 
-              status: "failed",
-              attempts: attempt,
-              last_error: errorMessage
-            },
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", reportId);
-
-        return new Response(JSON.stringify({ error: "Max retries reached", reportId }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 500,
-        });
-      }
-    }
+    return new Response(JSON.stringify({ success: true, reportId }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
 
   } catch (error) {
     console.error("[BACKGROUND-GEN] Error:", error);
