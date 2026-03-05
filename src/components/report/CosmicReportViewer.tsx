@@ -220,6 +220,7 @@ export function CosmicReportViewer({
         report={report}
         isPreview={isPreview}
         onUnlockFull={onUnlockFull}
+        onRequestTestimonial={onRequestTestimonial}
       />
     );
   }
@@ -762,7 +763,8 @@ function LegacyReportViewer({
   report,
   isPreview,
   onUnlockFull,
-}: Pick<CosmicReportViewerProps, 'petName' | 'report' | 'isPreview' | 'onUnlockFull'>) {
+  onRequestTestimonial,
+}: Pick<CosmicReportViewerProps, 'petName' | 'report' | 'isPreview' | 'onUnlockFull' | 'onRequestTestimonial'>) {
   const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Aries';
   const element = report.dominantElement || report.element || 'Fire';
   const signData = zodiacSigns[sunSign.toLowerCase()];
