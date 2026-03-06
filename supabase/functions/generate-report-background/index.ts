@@ -85,8 +85,25 @@ serve(async (req) => {
       strangerReaction: report.stranger_reaction ?? '',
     };
 
-    // Await generation — streaming keeps the connection alive (~60-90s)
-    console.log("[BACKGROUND-GEN] Calling generate-cosmic-report for:", reportId);
+    // Use n8n worker for report generation (no timeout limit)
+    const N8N_WEBHOOK = Deno.env.get("N8N_REPORT_WEBHOOK_URL");
+    if (N8N_WEBHOOK) {
+      console.log("[BACKGROUND-GEN] Sending to n8n worker:", reportId);
+
+      fetch(N8N_WEBHOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reportId }),
+      }).catch(err => console.error("[BACKGROUND-GEN] n8n error:", err));
+
+      return new Response(JSON.stringify({ success: true, reportId, worker: "n8n" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Fallback: direct generation if n8n not configured
+    console.log("[BACKGROUND-GEN] N8N not configured, using direct generation");
 
     try {
       const genResponse = await fetch(`${supabaseUrl}/functions/v1/generate-cosmic-report`, {
