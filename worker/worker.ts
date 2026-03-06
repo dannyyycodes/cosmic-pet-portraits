@@ -374,85 +374,7 @@ try {
     reptile: "Reptiles are ancient souls who operate on different rhythms. They communicate through basking, movement, and positioning. They form bonds through consistent care and gentle handling.",
   };
 
-  const breedTraits: Record<string, string> = {
-    'labrador': 'Labradors are friendly, outgoing, and high-spirited. They are food-motivated, water-loving, and eternally optimistic. Known for their soft mouths and retrieval instincts.',
-    'golden retriever': 'Golden Retrievers are devoted, intelligent, and friendly. They are people-pleasers who thrive on companionship. Known for their gentle temperament and love of carrying things.',
-    'german shepherd': 'German Shepherds are loyal, confident, and courageous. They are highly trainable and protective. Known for their intelligence and strong work ethic.',
-    'border collie': 'Border Collies are brilliant, energetic, and intense. They need mental stimulation and jobs to do. Known for their "eye" and herding instincts.',
-    'husky': 'Huskies are independent, mischievous, and vocal. They are escape artists who love to run. Known for their dramatic vocalizations and stubborn streak.',
-    'siberian husky': 'Siberian Huskies are independent, mischievous, and vocal. They are escape artists who love to run. Known for their dramatic vocalizations and stubborn streak.',
-    'australian shepherd': 'Aussies are energetic, intelligent, and protective. They need lots of exercise and mental stimulation. Known for their herding instincts and loyalty.',
-    'beagle': 'Beagles are curious, merry, and nose-driven. They follow scents obsessively. Known for their vocal nature and food motivation.',
-    'boxer': 'Boxers are playful, loyal, and eternally puppy-like. They are clownish and expressive. Known for their "kidney bean" wiggles and jumping.',
-    'bulldog': 'Bulldogs are calm, courageous, and stubborn. They are couch potatoes who snore loudly. Known for their determination and gentle nature.',
-    'french bulldog': 'Frenchies are playful, adaptable, and attention-loving. They are excellent companions. Known for their bat ears and goofy personalities.',
-    'poodle': 'Poodles are intelligent, active, and elegant. They are highly trainable and proud. Known for their hypoallergenic coats and circus-worthy tricks.',
-    'rottweiler': 'Rottweilers are confident, loyal, and protective. They are devoted guardians. Known for their strength and gentle nature with family.',
-    'dachshund': 'Dachshunds are curious, brave, and stubborn. They are big dogs in small bodies. Known for their burrowing instincts and determination.',
-    'yorkshire terrier': 'Yorkies are feisty, affectionate, and spirited. They are bold despite their size. Known for their sassiness and lap-dog nature.',
-    'yorkie': 'Yorkies are feisty, affectionate, and spirited. They are bold despite their size. Known for their sassiness and lap-dog nature.',
-    'shih tzu': 'Shih Tzus are affectionate, outgoing, and playful. They are royal lap dogs at heart. Known for their friendly nature and flowing coats.',
-    'chihuahua': 'Chihuahuas are loyal, sassy, and confident. They bond intensely to one person. Known for their trembling and big personalities.',
-    'pomeranian': 'Pomeranians are extroverted, vivacious, and bold. They think they are much bigger. Known for their fluffy coats and commanding presence.',
-    'cavalier king charles spaniel': 'Cavaliers are affectionate, gentle, and adaptable. They are the ultimate lap dogs. Known for their soulful eyes and sweet temperament.',
-    'corgi': 'Corgis are intelligent, alert, and active. They are surprisingly athletic. Known for their short legs, herding instincts, and sploot.',
-    'pembroke welsh corgi': 'Pembroke Corgis are intelligent, alert, and active. They are surprisingly athletic. Known for their short legs, herding instincts, and sploot.',
-    'jack russell': 'Jack Russells are energetic, fearless, and clever. They have endless stamina. Known for their jumping ability and intense focus.',
-    'pit bull': 'Pit Bulls are loyal, affectionate, and eager to please. They are gentle with family. Known for their strength and smile.',
-    'american pit bull': 'American Pit Bulls are loyal, affectionate, and eager to please. They are gentle with family. Known for their strength and smile.',
-    'maltese': 'Maltese are gentle, playful, and charming. They are devoted companions. Known for their silky white coats and sweet disposition.',
-    'great dane': 'Great Danes are friendly, patient, and dependable. They are gentle giants. Known for their size and couch-potato tendencies.',
-    'doberman': 'Dobermans are loyal, fearless, and alert. They are elegant and powerful. Known for their intelligence and protective instincts.',
-    'persian': 'Persians are calm, sweet, and gentle. They prefer serene environments. Known for their flat faces and luxurious coats.',
-    'maine coon': 'Maine Coons are gentle, intelligent, and dog-like. They love water and follow their humans. Known for their size and chirping vocalizations.',
-    'siamese': 'Siamese are vocal, social, and opinionated. They form intense bonds. Known for their striking blue eyes and constant commentary.',
-    'ragdoll': 'Ragdolls are gentle, affectionate, and relaxed. They go limp when held. Known for their docile nature and blue eyes.',
-    'bengal': 'Bengals are active, intelligent, and wild-looking. They need lots of stimulation. Known for their leopard spots and love of water.',
-    'british shorthair': 'British Shorthairs are calm, easygoing, and independent. They are dignified companions. Known for their round faces and plush coats.',
-    'abyssinian': 'Abyssinians are curious, playful, and athletic. They love heights and exploration. Known for their ticked coats and dog-like loyalty.',
-    'scottish fold': 'Scottish Folds are sweet, gentle, and adaptable. They are laid-back companions. Known for their folded ears and owl-like appearance.',
-    'sphynx': 'Sphynx cats are energetic, mischievous, and attention-seeking. They crave warmth and contact. Known for their hairless bodies and extrovert personalities.',
-    'tabby': 'Tabby cats are often friendly, outgoing, and adaptable. They are the classic cat. Known for their M-shaped forehead marking.',
-    'tuxedo': 'Tuxedo cats are often playful, vocal, and intelligent. They have big personalities. Known for their formal black and white coloring.',
-    'calico': 'Calico cats are often sassy, independent, and spirited. They have strong personalities. Known for their tri-color coats.',
-    'orange tabby': 'Orange tabbies are often friendly, affectionate, and food-motivated. They are typically bold and confident. Known for their social nature.',
-    'arabian': 'Arabian horses are intelligent, spirited, and loyal. They have incredible endurance. Known for their dished faces and high tail carriage.',
-    'quarter horse': 'Quarter Horses are calm, versatile, and athletic. They are great all-rounders. Known for their muscular build and gentle disposition.',
-    'thoroughbred': 'Thoroughbreds are athletic, sensitive, and intelligent. They are high-energy horses. Known for their speed and competitive spirit.',
-    'mustang': 'Mustangs are independent, hardy, and intelligent. They have strong survival instincts. Known for their wild heritage and adaptability.',
-    'cockatiel': 'Cockatiels are affectionate, musical, and gentle. They love to whistle and sing. Known for their crests and cheek patches.',
-    'budgie': 'Budgies are playful, social, and talkative. They can learn many words. Known for their colorful plumage and chatter.',
-    'parakeet': 'Parakeets are playful, social, and talkative. They can learn many words. Known for their colorful plumage and chatter.',
-    'african grey': 'African Greys are brilliant, sensitive, and vocal. They are exceptional talkers. Known for their intelligence and emotional depth.',
-    'cockatoo': 'Cockatoos are affectionate, loud, and demanding. They crave attention. Known for their crests and dramatic personalities.',
-    'macaw': 'Macaws are intelligent, playful, and stunning. They are lifelong companions. Known for their size, colors, and vocalizations.',
-    'holland lop': 'Holland Lops are sweet, playful, and gentle. They are compact and cuddly. Known for their floppy ears and friendly nature.',
-    'netherland dwarf': 'Netherland Dwarfs are energetic, curious, and sometimes sassy. They are tiny but bold. Known for their baby faces and spunk.',
-    'mini rex': 'Mini Rex rabbits are calm, curious, and velvety. They love being petted. Known for their plush, rex-furred coats.',
-    'lionhead': 'Lionhead rabbits are friendly, playful, and fluffy. They have big personalities. Known for their mane of fur around their heads.',
-    'cockapoo': 'Cockapoos blend the intelligence of Poodles with the sweet nature of Cocker Spaniels. They are affectionate, sociable, and endlessly happy. Known for their curly coats, goofy grins, and being velcro dogs who follow you everywhere.',
-    'labradoodle': 'Labradoodles are friendly, energetic, and smart. They combine Lab loyalty with Poodle brains. Known for their hypoallergenic coats and enthusiasm for everything.',
-    'goldendoodle': 'Goldendoodles are gentle, intelligent, and incredibly affectionate. They are the ultimate family dog. Known for their teddy bear looks and people-pleasing nature.',
-    'cavapoo': 'Cavapoos are sweet, gentle, and loving. They blend Cavalier affection with Poodle smarts. Known for their puppy eyes and lap-dog tendencies.',
-    'maltipoo': 'Maltipoos are playful, affectionate, and charming. They are spirited little companions. Known for their fluffy coats and big personalities in small packages.',
-    'schnoodle': 'Schnoodles are loyal, smart, and protective. They blend Schnauzer alertness with Poodle intelligence. Known for their distinctive looks and devotion.',
-    'puggle': 'Puggles are sweet, sociable, and playful. They blend Pug charm with Beagle curiosity. Known for their wrinkled faces and cheerful energy.',
-    'sprocker': 'Sprockers are energetic, intelligent, and loving. A Springer-Cocker cross. Known for their boundless energy and sweet temperament.',
-    'lurcher': 'Lurchers are gentle, fast, and surprisingly lazy at home. A sighthound cross. Known for their graceful speed and couch potato tendencies.',
-    'staffie': 'Staffordshire Bull Terriers are loyal, brave, and incredibly affectionate. They are the original nanny dog. Known for their muscular build and gentle nature with families.',
-    'staffy': 'Staffordshire Bull Terriers are loyal, brave, and incredibly affectionate. They are the original nanny dog. Known for their muscular build and gentle nature with families.',
-  };
-
   const speciesContext = speciesTraits[species?.toLowerCase() || 'dog'] || speciesTraits.dog;
-
-  const breedLower = (breed || '').toLowerCase();
-  let breedContext = '';
-  for (const [breedKey, traits] of Object.entries(breedTraits)) {
-    if (breedLower.includes(breedKey) || breedKey.includes(breedLower)) {
-      breedContext = traits;
-      break;
-    }
-  }
 
   const ownerInsights = { soulType, superpower, strangerReaction };
 
@@ -657,7 +579,7 @@ CRITICAL CONTEXT:
 - Emotional Tone: ${modeEmotionalGuidance[occasionMode]}
 - Pet: ${name}, a ${gender === 'boy' ? 'male' : 'female'} ${breed || species}
 - Species: ${species} - ${speciesContext}
-- Breed: ${breed || 'mixed/unknown'}${breedContext ? ` - ${breedContext}` : ' (use general species traits)'}
+- Breed: ${breed || 'mixed/unknown'}
 - Birth: ${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}${birthTime ? ` at ${birthTime}` : ' (time unknown)'}
 - Location: ${birthCoords ? birthCoords.displayName : location || 'Unknown'}
 - ${birthTimeNote}
@@ -738,7 +660,8 @@ CRITICAL WRITING GUIDELINES:
 8. ${isMemorial ? 'HEALING LANGUAGE - "Their paws left prints on your heart forever" type energy' : 'CONVERSATIONAL TONE - Write like you\'re telling a friend about their pet, not writing a textbook'}
 9. AVOID GENERIC PHRASES - "Loyal companion" "beloved pet" = lazy writing. Be SPECIFIC.
 10. ${isMemorial ? 'END WITH HOPE - They may be gone but the love never dies' : 'END WITH IMPACT - The last lines should be screenshot-worthy'}
-11. CRITICAL: The pet monologue section should make people CRY. That's the emotional peak.`;
+11. CRITICAL: The pet monologue section should make people CRY. That's the emotional peak.
+12. BREED EXPERTISE - You have deep knowledge of ALL breeds. For ${breed || species}, research and reference their specific breed traits, common behaviors, physical characteristics, health tendencies, temperament, and quirks throughout the report. If the breed is a mix (e.g. cockapoo, labradoodle), reference traits from BOTH parent breeds. Every section should feel like it was written by someone who has lived with this exact breed.`;
 
   const userPrompt = `Generate a comprehensive cosmic portrait for ${name} the ${breed || species} with this JSON structure.
 
