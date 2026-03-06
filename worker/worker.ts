@@ -1244,7 +1244,7 @@ Make every section feel personal, specific, and magical. The fun sections should
   } else {
     try {
       const json = await response.json();
-      const rawContent = json.choices?.[0]?.message?.content;
+      let rawContent = json.choices?.[0]?.message?.content;
 
       if (!rawContent) {
         console.error("[WORKER] Empty response from AI, using fallback");
