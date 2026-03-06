@@ -223,7 +223,7 @@ try {
   const gender: "boy" | "girl" = petData.gender === "girl" ? "girl" : "boy";
   const dateOfBirth: string = petData.dateOfBirth ?? petData.date_of_birth ?? new Date().toISOString();
   const birthTime: string = (petData.birthTime ?? petData.birth_time ?? "").trim();
-  const location: string = (petData.location ?? "").trim();
+  const location: string = (petData.location ?? petData.birth_location ?? "").trim();
   const soulType: string = (petData.soulType ?? petData.soul_type ?? "").trim();
   const superpower: string = (petData.superpower ?? "").trim();
   const strangerReaction: string = (petData.strangerReaction ?? petData.stranger_reaction ?? "").trim();
@@ -285,6 +285,11 @@ try {
   const northNode = positions.northNode.sign;
   const chiron = positions.chiron.sign;
   const lilith = positions.lilith.sign;
+  const jupiter = positions.jupiter.sign;
+  const saturn = positions.saturn.sign;
+  const uranus = positions.uranus.sign;
+  const neptune = positions.neptune.sign;
+  const pluto = positions.pluto.sign;
 
   // South Node is opposite North Node
   const signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
@@ -425,6 +430,17 @@ try {
     'netherland dwarf': 'Netherland Dwarfs are energetic, curious, and sometimes sassy. They are tiny but bold. Known for their baby faces and spunk.',
     'mini rex': 'Mini Rex rabbits are calm, curious, and velvety. They love being petted. Known for their plush, rex-furred coats.',
     'lionhead': 'Lionhead rabbits are friendly, playful, and fluffy. They have big personalities. Known for their mane of fur around their heads.',
+    'cockapoo': 'Cockapoos blend the intelligence of Poodles with the sweet nature of Cocker Spaniels. They are affectionate, sociable, and endlessly happy. Known for their curly coats, goofy grins, and being velcro dogs who follow you everywhere.',
+    'labradoodle': 'Labradoodles are friendly, energetic, and smart. They combine Lab loyalty with Poodle brains. Known for their hypoallergenic coats and enthusiasm for everything.',
+    'goldendoodle': 'Goldendoodles are gentle, intelligent, and incredibly affectionate. They are the ultimate family dog. Known for their teddy bear looks and people-pleasing nature.',
+    'cavapoo': 'Cavapoos are sweet, gentle, and loving. They blend Cavalier affection with Poodle smarts. Known for their puppy eyes and lap-dog tendencies.',
+    'maltipoo': 'Maltipoos are playful, affectionate, and charming. They are spirited little companions. Known for their fluffy coats and big personalities in small packages.',
+    'schnoodle': 'Schnoodles are loyal, smart, and protective. They blend Schnauzer alertness with Poodle intelligence. Known for their distinctive looks and devotion.',
+    'puggle': 'Puggles are sweet, sociable, and playful. They blend Pug charm with Beagle curiosity. Known for their wrinkled faces and cheerful energy.',
+    'sprocker': 'Sprockers are energetic, intelligent, and loving. A Springer-Cocker cross. Known for their boundless energy and sweet temperament.',
+    'lurcher': 'Lurchers are gentle, fast, and surprisingly lazy at home. A sighthound cross. Known for their graceful speed and couch potato tendencies.',
+    'staffie': 'Staffordshire Bull Terriers are loyal, brave, and incredibly affectionate. They are the original nanny dog. Known for their muscular build and gentle nature with families.',
+    'staffy': 'Staffordshire Bull Terriers are loyal, brave, and incredibly affectionate. They are the original nanny dog. Known for their muscular build and gentle nature with families.',
   };
 
   const speciesContext = speciesTraits[species?.toLowerCase() || 'dog'] || speciesTraits.dog;
@@ -675,6 +691,21 @@ ASC RISING: ${ascendant} ${positions.ascendant?.degree || 0}° ${hasRealAscendan
 ⚸ LILITH: ${lilith} ${positions.lilith.degree}°
    → Black Moon Lilith exposes WILD NATURE - their untamed instincts, independence, shadow self
 
+♃ JUPITER: ${jupiter} ${positions.jupiter.degree}°
+   → Jupiter governs EXPANSION & LUCK - their natural abundance, optimism, and where they bring joy
+
+♄ SATURN: ${saturn} ${positions.saturn.degree}°
+   → Saturn rules DISCIPLINE & LESSONS - their boundaries, fears, and what they need to master
+
+♅ URANUS: ${uranus} ${positions.uranus.degree}°
+   → Uranus sparks UNIQUENESS & REBELLION - what makes them weird, quirky, and one-of-a-kind
+
+♆ NEPTUNE: ${neptune} ${positions.neptune.degree}°
+   → Neptune governs DREAMS & INTUITION - their psychic abilities, imagination, and spiritual nature
+
+♇ PLUTO: ${pluto} ${positions.pluto.degree}°
+   → Pluto reveals TRANSFORMATION & POWER - their deepest instincts and capacity for change
+
 Element: ${element} | Modality: ${modality} | Ruling Planet: ${rulingPlanet}
 Elemental Balance: Fire ${elementalBalance.Fire}%, Earth ${elementalBalance.Earth}%, Air ${elementalBalance.Air}%, Water ${elementalBalance.Water}%
 
@@ -832,6 +863,24 @@ JSON Structure:
     "relatable_moment": "A funny observation about their independent streak.",
     "secretDesire": "Their deepest instinctual ${species} desire.",
     "practicalTip": "How to honor their wild side."
+  },
+
+  "cosmicExpansion": {
+    "title": "♃ Cosmic Expansion: Growth & Abundance",
+    "planetExplanation": "1-2 sentences on Jupiter as the planet of expansion, luck, and abundance.",
+    "content": "3-4 sentences about their ${jupiter} Jupiter - where they naturally expand and bring joy.",
+    "relatable_moment": "A moment that shows their Jupiter abundance.",
+    "practicalTip": "How to harness their Jupiter energy.",
+    "luckyArea": "The area of life where Jupiter blesses them most."
+  },
+
+  "cosmicLessons": {
+    "title": "♄ Cosmic Lessons: Discipline & Mastery",
+    "planetExplanation": "1-2 sentences on Saturn as the teacher of discipline and boundaries.",
+    "content": "3-4 sentences about their ${saturn} Saturn - their lessons, fears, and where they need patience.",
+    "relatable_moment": "A moment that shows their Saturn lessons.",
+    "practicalTip": "How to support their Saturn growth.",
+    "masterLesson": "The one thing they came here to master."
   },
 
   "memePersonality": {

@@ -55,6 +55,13 @@ const SUPERPOWERS = [
   { emoji: "💨", label: "Zoomie Master", desc: "0 to 60 in 0.5 seconds" },
 ];
 
+const OCCASION_OPTIONS = [
+  { value: "discover", emoji: "🔮", label: "Discover", desc: "Explore who they truly are" },
+  { value: "birthday", emoji: "🎂", label: "Birthday", desc: "Celebrate another year of magic" },
+  { value: "memorial", emoji: "🕊️", label: "Memorial", desc: "Honor a soul that's crossed the rainbow bridge" },
+  { value: "gift", emoji: "🎁", label: "Gift", desc: "A cosmic gift for someone special" },
+];
+
 const STRANGER_REACTIONS = [
   { emoji: "🤗", label: "Instant Best Friend", desc: "Loves everyone immediately" },
   { emoji: "🤔", label: "Cautious Then Obsessed", desc: "Slow warm-up, then clingy" },
@@ -76,6 +83,7 @@ const grainStyle: React.CSSProperties = {
 
 export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeProps) {
   const [screen, setScreen] = useState(0);
+  const [occasionMode, setOccasionMode] = useState("discover");
   const [petName, setPetName] = useState("");
   const [species, setSpecies] = useState("");
   const [gender, setGender] = useState("");
@@ -167,7 +175,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
     try {
       const { error } = await supabase.functions.invoke("update-pet-data", {
         body: {
-          reportId, petName, species, gender: gender || undefined,
+          reportId, petName, species, gender: gender || undefined, occasionMode,
           birthDate: birthDate || undefined, birthTime: birthTime || undefined,
           breed: breed || undefined, location: location || undefined,
           soulType: soulTypes.join(', ') || undefined, superpower: superpowers.join(', ') || undefined,
@@ -197,7 +205,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
 
   const ProgressDots = () => (
     <div className="flex items-center gap-2 justify-center mb-8">
-      {[0, 1, 2, 3, 4].map(i => (
+      {[0, 1, 2, 3, 4, 5].map(i => (
         <motion.div
           key={i}
           animate={i === screen ? { scale: [1, 1.3, 1] } : {}}
@@ -212,6 +220,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   );
 
   const summaryRows = [
+    { label: "Occasion", value: OCCASION_OPTIONS.find(o => o.value === occasionMode)?.label || "Discover" },
     { label: "Name", value: petName },
     { label: "Species", value: species ? SPECIES_OPTIONS.find(s => s.value === species)?.label : "" },
     { label: "Gender", value: gender ? GENDER_OPTIONS.find(g => g.value === gender)?.label : "" },
@@ -229,14 +238,42 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
       <div className="w-full max-w-[480px]">
         <ProgressDots />
         <AnimatePresence mode="wait">
-          {/* SCREEN 1 */}
+          {/* SCREEN 0: Occasion Mode */}
           {screen === 0 && (
+            <motion.div key="s0" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
+              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>What's the occasion?</h1>
+              <div className="grid grid-cols-2 gap-2">
+                {OCCASION_OPTIONS.map(opt => (
+                  <button key={opt.value} onClick={() => setOccasionMode(opt.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-1 py-4 px-3 rounded-xl border-[1.5px] transition-all",
+                      occasionMode === opt.value ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)]" : "border-[#E8DFD6] bg-white hover:border-[#c9665f]"
+                    )}>
+                    <span className="text-[1.5rem]">{opt.emoji}</span>
+                    <span className="text-[0.88rem] font-[Cormorant,serif] font-semibold text-[#2D2926]">{opt.label}</span>
+                    <span className="text-[0.72rem] font-[Cormorant,serif] text-[#9B8E84]">{opt.desc}</span>
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setScreen(1)}
+                className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+                Continue →
+              </button>
+            </motion.div>
+          )}
+
+          {/* SCREEN 1: Name, Species, Gender */}
+          {screen === 1 && (
             <motion.div key="s1" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>Let's meet them</h1>
 
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
                 <input
-                  value={petName} onChange={e => setPetName(e.target.value)}
+                  value={petName} onChange={e => {
+                    const val = e.target.value;
+                    const formatted = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+                    setPetName(formatted);
+                  }}
                   placeholder="What's their name?" className={cn(inputClass, "text-center")}
                   autoFocus style={{ fontSize: '1.1rem' }}
                   aria-label="Pet name"
@@ -276,7 +313,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 </motion.div>
               )}
 
-              <button onClick={() => setScreen(1)} disabled={!screen1Ready}
+              <button onClick={() => setScreen(2)} disabled={!screen1Ready}
                 className={cn(roseBtn, screen1Ready ? "bg-[#bf524a] hover:bg-[#c9665f]" : "bg-[#bf524a]/50 cursor-not-allowed")}>
                 Continue →
               </button>
@@ -284,7 +321,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
           )}
 
           {/* SCREEN 2: Birthday + Time */}
-          {screen === 1 && (
+          {screen === 2 && (
             <motion.div key="s2" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
                 When was {petName} born?
@@ -320,14 +357,14 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 </p>
               </div>
 
-              <button onClick={() => setScreen(2)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(3)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
                 Continue →
               </button>
             </motion.div>
           )}
 
           {/* SCREEN 3: Breed + Location */}
-          {screen === 2 && (
+          {screen === 3 && (
             <motion.div key="s3" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
                 A little more about {petName}
@@ -367,17 +404,17 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 <p className={hintClass}>Affects which stars were visible — refines house placements in the chart.</p>
               </div>
 
-              <button onClick={() => setScreen(3)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(4)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
                 Continue →
               </button>
-              <button onClick={() => setScreen(3)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+              <button onClick={() => setScreen(4)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
                 Skip these — keep it simple
               </button>
             </motion.div>
           )}
 
           {/* SCREEN 4: Make it personal */}
-          {screen === 3 && (
+          {screen === 4 && (
             <motion.div key="s4" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <div className="bg-[rgba(196,162,101,0.15)] rounded-[10px] px-4 py-2 text-center">
                 <span className="text-[0.78rem] text-[#c4a265] font-semibold">⭐ Makes it personal</span>
@@ -450,17 +487,17 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 </div>
               </div>
 
-              <button onClick={() => setScreen(4)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(5)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
                 Continue →
               </button>
-              <button onClick={() => setScreen(4)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+              <button onClick={() => setScreen(5)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
                 Skip — let the stars do the talking
               </button>
             </motion.div>
           )}
 
           {/* SCREEN 5: Confirmation */}
-          {screen === 4 && (
+          {screen === 5 && (
             <motion.div key="s5" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
                 Ready to read {petName}'s stars

@@ -100,7 +100,8 @@ function getZodiacSign(dateStr: string): string {
 const READING_SECTIONS = [
   'solarSoulprint', 'lunarHeart', 'cosmicCuriosity', 'harmonyHeartbeats',
   'spiritOfMotion', 'starlitGaze', 'destinyCompass', 'gentleHealer',
-  'wildSpirit', 'elementalNature', 'celestialChoreography', 'earthlyExpression',
+  'wildSpirit', 'cosmicExpansion', 'cosmicLessons',
+  'elementalNature', 'celestialChoreography', 'earthlyExpression',
   'luminousField', 'celestialGem', 'eternalArchetype', 'keepersBond',
 ];
 
@@ -128,7 +129,7 @@ function runChecks(report: any, pet: TestPet): Check[] {
 
   const missingSections = READING_SECTIONS.filter(s => !report[s]?.content);
   checks.push({
-    label: `All 16 reading sections present (${missingSections.length === 0 ? '16/16' : `missing: ${missingSections.join(', ')}`})`,
+    label: `All ${READING_SECTIONS.length} reading sections present (${missingSections.length === 0 ? `${READING_SECTIONS.length}/${READING_SECTIONS.length}` : `missing: ${missingSections.join(', ')}`})`,
     passed: missingSections.length === 0,
   });
 
