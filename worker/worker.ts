@@ -708,7 +708,7 @@ JSON Structure:
   "solarSoulprint": {
     "title": "☉ Solar Soulprint: The Light They ${occasionMode === 'memorial' ? 'Brought' : 'Bring'}",
     "planetExplanation": "1-2 sentences explaining what the Sun represents - core identity, vitality, ego.",
-    "content": "3-4 sentences about their ${sunSign} Sun core personality with specific ${species} behaviors.",
+    "content": "3-4 sentences about their ${sunSign} Sun. Be SPECIFIC to ${breed || species}. Don't just describe the sign — describe what a ${sunSign} ${breed || species} actually DOES. What are the telltale behaviors? What makes their owner laugh? What habit drives people crazy? Reference their breed's known traits and explain them through the lens of their Sun sign.",
     "relatable_moment": "One funny 'you know that moment when...' observation specific to ${sunSign} ${species}s.",
     "practicalTip": "One specific, actionable tip based on this placement.",
     "cosmicQuote": "A relevant quote about this Sun sign energy."
@@ -717,7 +717,7 @@ JSON Structure:
   "lunarHeart": {
     "title": "☽ Lunar Heart: The Way They ${occasionMode === 'memorial' ? 'Felt' : 'Feel'} Love",
     "planetExplanation": "1-2 sentences explaining what the Moon governs - emotions, comfort needs.",
-    "content": "3-4 sentences about their ${moonSign} Moon emotional nature.",
+    "content": "3-4 sentences about their ${moonSign} Moon. How does a ${breed || species} with this Moon placement ACTUALLY show they need comfort? What's their specific tell when they're stressed vs. content? Describe the exact ${breed || species} behaviors — the specific look, the body language, the ritual — that reveal their emotional inner world.",
     "relatable_moment": "A 'have you noticed when...' moment about ${moonSign} comfort-seeking.",
     "practicalTip": "How to comfort them specific to their Moon sign.",
     "interactiveChallenge": "Try this: A specific bonding activity for this week."
@@ -726,7 +726,7 @@ JSON Structure:
   "cosmicCuriosity": {
     "title": "☿ Cosmic Curiosity: Thoughts & Signals",
     "planetExplanation": "1-2 sentences on Mercury ruling mind and communication.",
-    "content": "3-4 sentences about their ${mercury} Mercury - thinking and learning style.",
+    "content": "3-4 sentences about their ${mercury} Mercury. How does a ${breed || species} with this Mercury actually COMMUNICATE? What's their specific way of telling you they want something? How do they learn — fast or stubborn? What's the funniest way their ${breed || species} intelligence shows up? Describe real behaviors, not abstract traits.",
     "relatable_moment": "A funny observation about how they communicate.",
     "practicalTip": "Best way to train or stimulate a ${mercury} Mercury ${species}.",
     "didYouKnow": "Something surprising about ${species} intelligence."
@@ -735,7 +735,7 @@ JSON Structure:
   "harmonyHeartbeats": {
     "title": "♀ Harmony & Heartbeats: Their Love Language",
     "planetExplanation": "1-2 sentences on Venus governing love and pleasure.",
-    "content": "3-4 sentences about their ${venus} Venus love style.",
+    "content": "3-4 sentences about their ${venus} Venus love style. Be SPECIFIC to ${breed || species}. How does a ${venus} Venus ${breed || species} actually show affection? What's their signature move? Do they lean in, paw at you, bring gifts, or just stare? What's the difference between how they love their favorite person vs. everyone else? Use real ${breed || species} bonding behaviors explained through Venus.",
     "relatable_moment": "A sweet moment about how they show love.",
     "practicalTip": "The #1 way to make them feel loved.",
     "loveLanguageType": "One of: Physical Touch, Quality Time, Acts of Service, Gifts, Words of Affirmation",
@@ -745,7 +745,7 @@ JSON Structure:
   "spiritOfMotion": {
     "title": "♂ Spirit of Motion: Fire, Focus & Instinct",
     "planetExplanation": "1-2 sentences on Mars controlling energy and drive.",
-    "content": "3-4 sentences about their ${mars} Mars energy and play style.",
+    "content": "3-4 sentences about their ${mars} Mars energy and play style. Be SPECIFIC to ${breed || species}. What does a ${mars} Mars ${breed || species} look like when they're fired up? What triggers their zoomies? How do they play — rough, strategic, obsessive, or chaotic? What toy do they destroy first and how? Reference their breed's energy level and explain it through their Mars sign.",
     "relatable_moment": "A funny observation about their energy bursts.",
     "practicalTip": "Best activities for a ${mars} Mars ${species}.",
     "energyLevel": "A rating from 1-10 with humorous explanation."
@@ -754,7 +754,7 @@ JSON Structure:
   "starlitGaze": {
     "title": "ASC Starlit Gaze: First Impressions",
     "planetExplanation": "1-2 sentences on the Rising sign as the outer mask.",
-    "content": "3-4 sentences about their ${ascendant} Rising outer demeanor.",
+    "content": "3-4 sentences about their ${ascendant} Rising outer demeanor. Be SPECIFIC to ${breed || species}. What does a ${ascendant} Rising ${breed || species} look like walking into a room or a park? What's the vibe strangers pick up on? How does their breed's physical presence combine with their Rising sign energy? What's the gap between how they SEEM and who they actually are? Use real first-impression moments ${breed || species} owners would recognize.",
     "relatable_moment": "What people always say when they first meet them.",
     "practicalTip": "How to introduce them to new people/animals.",
     "firstImpressionPrediction": "What strangers think in the first 10 seconds."
@@ -817,11 +817,11 @@ JSON Structure:
   "topFiveCrimes": {
     "title": "🚨 Criminal Record: Top 5 Crimes",
     "crimes": [
-      "Crime #1 with funny description specific to their chart and ${species} nature",
-      "Crime #2 - be specific and hilarious",
-      "Crime #3 - reference their planetary placements",
-      "Crime #4 - make it relatable to all ${species} owners",
-      "Crime #5 - the most egregious offense"
+      "Crime #1 - MUST be specific to ${breed || species} behavior (e.g. a cockapoo's specific crime, not generic 'stole food'). Reference their ${mars} Mars and ${lilith} Lilith.",
+      "Crime #2 - Something their breed is KNOWN for doing. Every ${breed || species} owner should nod in recognition.",
+      "Crime #3 - Reference a specific astrological placement causing this behavior",
+      "Crime #4 - Something so specific to ${breed || species} that owners of other breeds wouldn't fully get it",
+      "Crime #5 - The most egregious, most hilarious, most shareable offense. Peak comedy."
     ],
     "verdict": "A humorous one-line verdict on their criminal career"
   },
@@ -829,15 +829,15 @@ JSON Structure:
   "datingProfile": {
     "title": "💕 Dating Profile",
     "headline": "A funny, attention-grabbing headline (like on a dating app)",
-    "bio": "A 3-4 sentence dating profile bio written from ${name}'s perspective. Include their interests, what they're looking for, and deal-breakers. Be funny!",
-    "greenFlags": ["3 green flags as a companion"],
-    "redFlags": ["2 playful 'red flags' that are actually endearing quirks"]
+    "bio": "A 3-4 sentence dating profile bio written from ${name}'s perspective. Include breed-specific deal-breakers and green flags. A cockapoo's profile would be very different from a husky's. Be funny!",
+    "greenFlags": ["3 green flags as a companion — make them breed-specific"],
+    "redFlags": ["2 playful 'red flags' that are actually endearing breed-specific quirks"]
   },
 
   "dreamJob": {
     "title": "💼 Dream Career",
-    "job": "If ${name} had a job, what would it be? Based on their chart.",
-    "whyPerfect": "2 sentences explaining why this job suits their Sun, Moon, and Mars.",
+    "job": "If ${name} had a job, what would it be? The job should feel inevitable based on their breed + chart combo. A Border Collie with Mars in Virgo has a VERY different career than a Bulldog with Mars in Taurus.",
+    "whyPerfect": "2 sentences explaining why this job suits their Sun, Moon, and Mars — reference breed traits.",
     "workStyle": "How they'd behave at this job (funny observations)",
     "reasonForFiring": "The humorous reason they'd eventually get fired"
   },
@@ -866,7 +866,7 @@ JSON Structure:
 
   "petMonologue": {
     "title": "🎤 If ${name} Could Talk for 60 Seconds",
-    "monologue": "A 5-7 sentence monologue from ${name}'s perspective. Start with 'Listen, I need you to understand something...' Include gratitude, a complaint or two, a secret, and end with something that makes the owner tear up. Reference their chart placements and ${species} nature. Make it emotionally powerful.",
+    "monologue": "A 8-12 sentence monologue from ${name}'s perspective. This is the EMOTIONAL PEAK of the entire report — it should make the reader cry. Start with 'Listen, I need you to understand something...' Then: (1) Acknowledge something specific the owner does that ${name} notices — something small and overlooked, (2) Express a complaint that's actually love in disguise, (3) Reveal a secret — something ${name} does when nobody's watching, (4) Reference their breed's specific way of showing love, (5) Tell the owner what they mean to ${name} in a way that's raw and unguarded, (6) End with a line so tender it's screenshot-worthy. Reference their ${sunSign} Sun and ${moonSign} Moon energy. Use ${pronouns.possessive} actual breed behaviors. Make it feel like ${name} is REALLY talking. If the reader doesn't tear up, you've failed.",
     "postScript": "A funny P.S. about something trivial (like treats or their favorite spot)"
   },
 
@@ -992,7 +992,19 @@ JSON Structure:
     "accuracyNote": "💡 The more details you provide (especially birth time and location), the more accurate the Moon and Rising sign calculations become!"
   },
 
-  "epilogue": "A 3-4 sentence beautiful closing blessing for ${occasionMode} mode. Leave them feeling moved.",
+  "accuracyMoments": {
+    "title": "🎯 Did We Get It Right?",
+    "predictions": [
+      "A specific behavioral prediction based on their ${sunSign} Sun sign + ${breed || species} breed (e.g. 'We bet ${name} does THIS when...')",
+      "A specific emotional pattern prediction based on their ${moonSign} Moon sign",
+      "A specific quirk prediction based on their ${mars} Mars + ${breed || species} combo",
+      "A specific social behavior prediction based on their ${ascendant} Rising sign",
+      "A specific comfort-seeking behavior based on their ${venus} Venus sign"
+    ],
+    "callToAction": "Share which ones were scarily accurate — tag us @mypetssoul"
+  },
+
+  "epilogue": "A 5-6 sentence closing that weaves together ${name}'s key placements into a final, powerful message. Reference their ${sunSign} Sun, ${moonSign} Moon, and ${ascendant} Rising specifically. For discover mode: end with a line that makes the owner see their pet differently — more deeply, more magically. For memorial: end with a message about eternal connection that provides genuine comfort. For birthday: end with a cosmic blessing for the year ahead. For gift: end with a message about the cosmic bond between ${name} and their person. The last sentence should be the most quotable line in the entire report — something they'd put on a wall.",
 
   "compatibilityNotes": {
     "bestPlaymates": ["Two zodiac signs that would be great playmate matches"],
@@ -1169,7 +1181,34 @@ Make every section feel personal, specific, and magical. The fun sections should
       dailyRitual: `Each day, take a moment to look into ${name}'s eyes and silently acknowledge the soul you see there. This simple practice strengthens your cosmic bond.`,
       affirmation: `"${name} and I are cosmically connected. Our bond transcends time and space, written in the language of the stars."`
     },
-    epilogue: `As the stars continue their eternal dance across the night sky, know that ${name}'s light—unique, precious, and irreplaceable—shines on forever. May this cosmic portrait serve as a reminder of the extraordinary soul who shares your journey, and may your bond continue to deepen with each passing day. In the grand tapestry of the universe, your connection to ${name} is a thread of pure gold, woven by destiny itself. 🌟`,
+    cosmicExpansion: {
+      title: "♃ Cosmic Expansion: Growth & Abundance",
+      planetExplanation: "Jupiter is the planet of expansion, luck, and abundance — it shows where your pet naturally grows and thrives.",
+      content: `With Jupiter in ${jupiter}, ${name} naturally expands and brings joy through ${getElement(jupiter) === 'Fire' ? 'enthusiastic adventures and bold exploration' : getElement(jupiter) === 'Earth' ? 'steady growth and material comforts' : getElement(jupiter) === 'Air' ? 'social connections and curious discovery' : 'emotional depth and intuitive wisdom'}.`,
+      relatable_moment: `Watch for ${name}'s Jupiter energy when they ${getElement(jupiter) === 'Fire' ? 'throw themselves into something new with total abandon' : getElement(jupiter) === 'Earth' ? 'find the comfiest spot and settle in like royalty' : getElement(jupiter) === 'Air' ? 'make a new friend within seconds' : 'seem to sense exactly what you need'}.`,
+      practicalTip: `Harness their Jupiter in ${jupiter} by providing ${getElement(jupiter) === 'Fire' ? 'new experiences and freedom to explore' : getElement(jupiter) === 'Earth' ? 'luxurious comforts and nature time' : getElement(jupiter) === 'Air' ? 'variety and social opportunities' : 'emotional bonding and peaceful environments'}.`,
+      luckyArea: `${getElement(jupiter) === 'Fire' ? 'Adventures and new experiences' : getElement(jupiter) === 'Earth' ? 'Comfort and material well-being' : getElement(jupiter) === 'Air' ? 'Friendships and social connections' : 'Emotional bonds and intuition'}`
+    },
+    cosmicLessons: {
+      title: "♄ Cosmic Lessons: Discipline & Mastery",
+      planetExplanation: "Saturn is the cosmic teacher — it reveals where your pet faces challenges and ultimately masters important life lessons.",
+      content: `Saturn in ${saturn} gives ${name} lessons in ${getElement(saturn) === 'Fire' ? 'patience with their own energy and impulses' : getElement(saturn) === 'Earth' ? 'flexibility when routines are disrupted' : getElement(saturn) === 'Air' ? 'focusing their scattered curiosity' : 'managing emotional overwhelm'}.`,
+      relatable_moment: `You might notice ${name}'s Saturn lessons when they ${getElement(saturn) === 'Fire' ? 'try to be patient but can barely contain themselves' : getElement(saturn) === 'Earth' ? 'get thrown off by an unexpected change' : getElement(saturn) === 'Air' ? 'struggle to settle on one thing' : 'withdraw when feelings get too big'}.`,
+      practicalTip: `Support their Saturn growth by ${getElement(saturn) === 'Fire' ? 'gently teaching impulse control with positive reinforcement' : getElement(saturn) === 'Earth' ? 'introducing small changes gradually' : getElement(saturn) === 'Air' ? 'creating structured play that channels their curiosity' : 'providing a safe space for emotional processing'}.`,
+      masterLesson: `${getElement(saturn) === 'Fire' ? 'Patience and directed energy' : getElement(saturn) === 'Earth' ? 'Adaptability within structure' : getElement(saturn) === 'Air' ? 'Focus and commitment' : 'Emotional resilience'}`
+    },
+    accuracyMoments: {
+      title: "🎯 Did We Get It Right?",
+      predictions: [
+        `We bet ${name} does something very ${sunSign}-like when they're excited — ${getElement(sunSign) === 'Fire' ? 'full-body enthusiasm that knocks things over' : getElement(sunSign) === 'Earth' ? 'a slow, deliberate approach with maximum dignity' : getElement(sunSign) === 'Air' ? 'bouncing between five things at once' : 'an intense stare followed by a dramatic gesture'}.`,
+        `When ${name} is feeling emotional, their ${moonSign} Moon means they probably ${getElement(moonSign) === 'Fire' ? 'demand attention loudly and immediately' : getElement(moonSign) === 'Earth' ? 'seek out their favorite comfort object or spot' : getElement(moonSign) === 'Air' ? 'pace around restlessly until someone notices' : 'become extra clingy and won\'t leave your side'}.`,
+        `With Mars in ${mars}, ${name} probably ${getElement(mars) === 'Fire' ? 'plays so hard they exhaust themselves' : getElement(mars) === 'Earth' ? 'has a stubborn streak a mile wide' : getElement(mars) === 'Air' ? 'invents their own games with elaborate rules' : 'channels energy through emotional intensity'}.`,
+        `Their ${ascendant} Rising means strangers probably think ${name} is ${signTraits[ascendant].split(',')[0].toLowerCase()} when they first meet — are we right?`,
+        `Venus in ${venus} suggests ${name} shows love by ${getElement(venus) === 'Fire' ? 'being your enthusiastic personal cheerleader' : getElement(venus) === 'Earth' ? 'physical closeness and wanting to be touching you always' : getElement(venus) === 'Air' ? 'bringing you things and showing off for your attention' : 'staring deep into your eyes like they can read your soul'}.`
+      ],
+      callToAction: "Share which ones were scarily accurate — tag us @mypetssoul"
+    },
+    epilogue: `As the stars continue their eternal dance across the night sky, know that ${name}'s light—unique, precious, and irreplaceable—shines on forever. With their ${sunSign} Sun illuminating their core, their ${moonSign} Moon guiding their heart, and their ${ascendant} Rising shaping how they meet the world, ${name} is a cosmic masterpiece unlike any other. May this portrait serve as a reminder of the extraordinary soul who shares your journey, and may your bond continue to deepen with each passing day. In the grand tapestry of the universe, your connection to ${name} is a thread of pure gold—woven by destiny, strengthened by love, and eternal in its brilliance. 🌟`,
     compatibilityNotes: {
       bestPlaymates: [
         element === 'Fire' ? 'Leo' : element === 'Earth' ? 'Virgo' : element === 'Air' ? 'Gemini' : 'Pisces',

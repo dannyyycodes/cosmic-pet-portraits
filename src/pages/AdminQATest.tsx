@@ -152,6 +152,12 @@ function runChecks(report: any, pet: TestPet): Check[] {
     passed: crimes.length === 5,
   });
 
+  const predictions = report.accuracyMoments?.predictions || [];
+  checks.push({
+    label: `accuracyMoments has 5 predictions (got ${predictions.length})`,
+    passed: predictions.length === 5,
+  });
+
   checks.push({
     label: 'dominantElement exists',
     passed: !!report.dominantElement,
