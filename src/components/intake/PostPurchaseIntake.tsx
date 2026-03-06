@@ -176,11 +176,13 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
       });
       if (error) throw error;
 
-      const { error: genError } = await supabase.functions.invoke("generate-report-background", {
-        body: { reportId },
-      });
-      if (genError) console.warn("[PostPurchaseIntake] Generation trigger:", genError);
+      // Show loading screen immediately — don't wait for background generation
       onComplete();
+
+      // Fire and forget — report generates in the background
+      supabase.functions.invoke("generate-report-background", {
+        body: { reportId },
+      }).catch(err => console.warn("[PostPurchaseIntake] Generation trigger:", err));
     } catch (err) {
       console.error("[PostPurchaseIntake] Error:", err);
       toast.error("Something went wrong. Please try again.");
