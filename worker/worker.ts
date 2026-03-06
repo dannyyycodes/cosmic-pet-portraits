@@ -1251,6 +1251,7 @@ Make every section feel personal, specific, and magical. The fun sections should
         reportContent = createFallbackReport();
       } else {
         console.log("[WORKER] Received", rawContent.length, "chars from AI");
+        rawContent = rawContent.replace(/^```json\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
         reportContent = JSON.parse(rawContent);
         const fallback = createFallbackReport();
         reportContent = { ...fallback, ...reportContent };
