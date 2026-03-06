@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("[N8N-BRIDGE] Error:", err.message);
+    console.error("[N8N-BRIDGE] Error:", (err as Error).message);
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
