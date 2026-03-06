@@ -141,5 +141,8 @@ verify_jwt = false
 [functions.redeem-free-code]
 verify_jwt = false
 
+[functions.n8n-bridge]
+verify_jwt = false
+
 [functions.update-pet-data]
 verify_jwt = false
