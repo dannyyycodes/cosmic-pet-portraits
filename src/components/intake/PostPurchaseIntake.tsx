@@ -173,6 +173,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    console.log("[PostPurchaseIntake] Submitting:", { reportId, petName, species, gender, email: email.trim() });
     try {
       const { data, error } = await supabase.functions.invoke("update-pet-data", {
         body: {
@@ -200,9 +201,12 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
       supabase.functions.invoke("generate-report-background", {
         body: { reportId },
       }).catch(err => console.warn("[PostPurchaseIntake] Generation trigger:", err));
-    } catch (err) {
-      console.error("[PostPurchaseIntake] Error:", err);
-      toast.error("Something went wrong. Please try again.");
+    } catch (err: any) {
+      console.error("[PostPurchaseIntake] Full error:", err);
+      console.error("[PostPurchaseIntake] Error message:", err?.message);
+      console.error("[PostPurchaseIntake] Report ID:", reportId);
+      const errorMsg = err?.message || "Something went wrong";
+      toast.error(errorMsg + ". Please try again.");
       setIsSubmitting(false);
     }
   };

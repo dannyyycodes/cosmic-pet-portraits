@@ -20,7 +20,6 @@ import { AuraVisual } from './AuraVisual';
 import { ElementalBalance } from './ElementalBalance';
 import { ReportSectionCard } from './ReportSectionCard';
 import { SoulLetter } from './SoulLetter';
-import { TradingCard } from './TradingCard';
 import { GoogleSearches } from './GoogleSearches';
 import { TextMessages } from './TextMessages';
 import { HumanProfile } from './HumanProfile';
@@ -62,7 +61,7 @@ const readingSections = [
     iconClass: 'bg-amber-500/10',
     label: 'I · Solar Soulprint',
     whyBoxIcon: '☉',
-    whyPrefix: '<strong>Why the Sun matters:</strong> The Sun sign is the foundation of personality — core identity, life force, and the energy that makes them who they are at the deepest level.',
+    whyPrefix: 'The Sun sign is the foundation of personality, representing core identity, life force, and the energy that makes them who they are at the deepest level.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -72,7 +71,7 @@ const readingSections = [
     iconClass: 'bg-violet-500/10',
     label: 'II · Lunar Heart',
     whyBoxIcon: '☽',
-    whyPrefix: '<strong>Why the Moon matters:</strong> For animals, the Moon is arguably more important than the Sun. It governs instinct, emotional needs, and the unconscious patterns that shape daily behaviour.',
+    whyPrefix: 'For animals, the Moon is arguably more important than the Sun. It governs instinct, emotional needs, and the unconscious patterns that shape daily behaviour.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -82,7 +81,7 @@ const readingSections = [
     iconClass: 'bg-sky-400/10',
     label: 'III · Cosmic Curiosity',
     whyBoxIcon: '☿',
-    whyPrefix: '<strong>Why Mercury matters:</strong> Mercury governs communication and intelligence. It determines how your pet expresses themselves, processes information, and connects with you.',
+    whyPrefix: 'Mercury governs communication and intelligence. It determines how your pet expresses themselves, processes information, and connects with you.',
     tipIcon: '💡',
     tipLabel: 'Try this',
   },
@@ -92,7 +91,7 @@ const readingSections = [
     iconClass: 'bg-pink-500/10',
     label: 'IV · Harmony & Heartbeats',
     whyBoxIcon: '♀',
-    whyPrefix: '<strong>Why Venus matters:</strong> Venus is the planet of love and pleasure. It reveals love language — how your pet gives affection, what brings joy, and what they need to feel cherished.',
+    whyPrefix: 'Venus is the planet of love and pleasure. It reveals love language: how your pet gives affection, what brings joy, and what they need to feel cherished.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -102,7 +101,7 @@ const readingSections = [
     iconClass: 'bg-red-500/10',
     label: 'V · Spirit of Motion',
     whyBoxIcon: '♂',
-    whyPrefix: '<strong>Why Mars matters:</strong> Mars governs physical energy, drive, and instinct. It determines whether your pet is a sprinter or a slow burner, a fighter or a lover.',
+    whyPrefix: 'Mars governs physical energy, drive, and instinct. It determines whether your pet is a sprinter or a slow burner, a fighter or a lover.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -112,7 +111,7 @@ const readingSections = [
     iconClass: 'bg-purple-500/10',
     label: 'VI · Starlit Gaze',
     whyBoxIcon: '⬆',
-    whyPrefix: '<strong>Why the Ascendant matters:</strong> The rising sign is the "mask" — what others see before they know the real personality. It shapes first impressions and physical presence.',
+    whyPrefix: 'The rising sign is the "mask" your pet wears. It shapes what others see before they know the real personality, influencing first impressions and physical presence.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -162,7 +161,7 @@ const readingSections = [
     iconClass: 'bg-yellow-500/10',
     label: 'XI · Cosmic Expansion',
     whyBoxIcon: '♃',
-    whyPrefix: '<strong>Why Jupiter matters:</strong> Jupiter is the planet of expansion, luck, and abundance. It reveals where life flows easily and joy lives.',
+    whyPrefix: 'Jupiter is the planet of expansion, luck, and abundance. It reveals where life flows easily and joy naturally lives.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -172,7 +171,7 @@ const readingSections = [
     iconClass: 'bg-slate-500/10',
     label: 'XII · Cosmic Lessons',
     whyBoxIcon: '♄',
-    whyPrefix: '<strong>Why Saturn matters:</strong> Saturn is the teacher of discipline and boundaries. It shows where growth requires patience and effort.',
+    whyPrefix: 'Saturn is the teacher of discipline and boundaries. It shows where growth requires patience and where effort yields the greatest rewards.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -360,9 +359,7 @@ export function CosmicReportViewer({
       <BirthChartTable chartPlacements={report.chartPlacements || {}} petName={petName} />
       <SectionDivider />
 
-      {/* ═══ PLANET EXPLAINERS (moved after birth chart) ═══ */}
-      <PlanetExplainers />
-      <SectionDivider />
+      {/* Planet explanations are now inline within each reading section via planetExplanation field */}
 
       {/* ═══ AURA VISUAL ═══ */}
       <AuraVisual aura={report.aura} sunSign={sunSign} />
@@ -554,21 +551,10 @@ export function CosmicReportViewer({
             element={element}
             reportId={reportId}
             ascendant={ascendant}
-            shareableCard={report.shareableCard}
-          />
-
-          {/* ═══ TRADING CARD ═══ */}
-          <TradingCard
-            petName={petName}
-            sunSign={sunSign}
-            moonSign={moonSign}
-            element={element}
-            archetype={report.archetype?.name || 'Cosmic Soul'}
             portraitUrl={portraitUrl}
-            aura={report.aura}
-            luckyElements={report.luckyElements}
-            crystal={report.crystal}
             occasionMode={occasionMode}
+            chartPlacements={report.chartPlacements}
+            shareableCard={report.shareableCard}
           />
           <SectionDivider />
 
@@ -736,7 +722,7 @@ function TableOfContents() {
       className="mx-4 my-2.5 p-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
     >
       <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-3 text-center">
-        Your Reading
+        Your Cosmic Journey
       </div>
       <div className="space-y-1">
         {chapters.map((ch) => (

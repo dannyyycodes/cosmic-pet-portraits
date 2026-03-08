@@ -13,6 +13,14 @@ const planetRows = [
   { key: 'mercury', symbol: '☿', label: 'Mercury' },
   { key: 'venus', symbol: '♀', label: 'Venus' },
   { key: 'mars', symbol: '♂', label: 'Mars' },
+  { key: 'jupiter', symbol: '♃', label: 'Jupiter' },
+  { key: 'saturn', symbol: '♄', label: 'Saturn' },
+  { key: 'uranus', symbol: '♅', label: 'Uranus' },
+  { key: 'neptune', symbol: '♆', label: 'Neptune' },
+  { key: 'pluto', symbol: '♇', label: 'Pluto' },
+  { key: 'northNode', symbol: '☊', label: 'North Node' },
+  { key: 'chiron', symbol: '⚷', label: 'Chiron' },
+  { key: 'lilith', symbol: '⚸', label: 'Lilith' },
   { key: 'ascendant', symbol: '⬆', label: 'Ascendant' },
 ];
 

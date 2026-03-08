@@ -1032,6 +1032,18 @@ JSON Structure:
     "luckyDay": "Day of the week",
     "luckyColor": "A color",
     "powerTime": "Time of day when they're most energetic"
+  },
+
+  "cosmicRecipe": {
+    "name": "A creative recipe name inspired by ${name}'s dominant element and personality",
+    "emoji": "A food emoji that matches the recipe",
+    "description": "1-2 sentences about why this recipe captures ${name}'s cosmic energy",
+    "element": "${element}",
+    "servings": "2-4",
+    "prepTime": "A realistic prep time",
+    "ingredients": ["6-8 ingredients with quantities - CRITICAL SAFETY: This recipe is for HUMANS inspired by the pet's cosmic energy. Do NOT include any ingredients toxic to ${species}: no chocolate, onions, garlic, grapes, xylitol, caffeine, alcohol, or excessively spicy ingredients like cayenne. If the element is Fire, use warming spices like cinnamon or paprika (mild), not hot chili peppers."],
+    "steps": ["4-6 clear cooking steps"],
+    "cosmicNote": "A whimsical note about how this dish channels ${name}'s energy"
   }
 }
 
