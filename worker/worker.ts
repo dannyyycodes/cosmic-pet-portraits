@@ -217,16 +217,16 @@ try {
   const language: string = reportRow.language ?? petData.language ?? "en";
 
   // Sanitize / defaults
-  const name: string = (petData.name ?? "Pet").trim().slice(0, 50).replace(/[^a-zA-Z\s\-']/g, '') || "Pet";
+  const name: string = (petData.pet_name ?? petData.name ?? "Pet").trim().slice(0, 50).replace(/[^a-zA-Z\s\-']/g, '') || "Pet";
   const species: string = (petData.species ?? "companion animal").trim().slice(0, 30) || "companion animal";
   const breed: string = (petData.breed ?? "").trim().slice(0, 100);
-  const gender: "boy" | "girl" = petData.gender === "girl" ? "girl" : "boy";
-  const dateOfBirth: string = petData.dateOfBirth ?? petData.date_of_birth ?? new Date().toISOString();
-  const birthTime: string = (petData.birthTime ?? petData.birth_time ?? "").trim();
-  const location: string = (petData.location ?? petData.birth_location ?? "").trim();
-  const soulType: string = (petData.soulType ?? petData.soul_type ?? "").trim();
+  const gender: "boy" | "girl" = (petData.gender === "girl" || petData.gender === "female") ? "girl" : "boy";
+  const dateOfBirth: string = petData.birth_date ?? petData.dateOfBirth ?? petData.date_of_birth ?? new Date().toISOString();
+  const birthTime: string = (petData.birth_time ?? petData.birthTime ?? "").trim();
+  const location: string = (petData.birth_location ?? petData.location ?? "").trim();
+  const soulType: string = (petData.soul_type ?? petData.soulType ?? "").trim();
   const superpower: string = (petData.superpower ?? "").trim();
-  const strangerReaction: string = (petData.strangerReaction ?? petData.stranger_reaction ?? "").trim();
+  const strangerReaction: string = (petData.stranger_reaction ?? petData.strangerReaction ?? "").trim();
 
   const languageNames: Record<string, string> = {
     en: 'English', es: 'Spanish', de: 'German',
