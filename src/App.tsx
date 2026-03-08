@@ -1,3 +1,4 @@
+// Build trigger v2 - March 8 2026
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
