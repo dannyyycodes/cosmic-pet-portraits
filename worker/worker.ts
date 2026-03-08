@@ -1051,7 +1051,7 @@ Make every section feel personal, specific, and magical. The fun sections should
     },
     body: JSON.stringify({
       model: "anthropic/claude-sonnet-4.5",
-      max_tokens: 8000,
+      max_tokens: 16000,
       stream: false,
       messages: [
         { role: "system", content: systemPrompt },
