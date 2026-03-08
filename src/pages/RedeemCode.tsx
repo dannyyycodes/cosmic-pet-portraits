@@ -32,9 +32,9 @@ export default function RedeemCode() {
       setResult({ reportId: data.reportId, tier: data.tier });
       toast.success('Code redeemed! Redirecting to your reading...');
 
-      // Redirect to intake after a brief delay
+      // Redirect to payment-success with quick checkout — PostPurchaseIntake handles pet data + email
       setTimeout(() => {
-        navigate(`/intake?report_id=${data.reportId}&redeemed=true`);
+        navigate(`/payment-success?session_id=redeem_${data.reportId}&report_id=${data.reportId}&quick=true`);
       }, 1500);
     } catch (err) {
       toast.error('Something went wrong. Please try again.');

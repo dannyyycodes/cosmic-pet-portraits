@@ -174,7 +174,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.functions.invoke("update-pet-data", {
+      const { data, error } = await supabase.functions.invoke("update-pet-data", {
         body: {
           reportId, petName, species, gender: gender || undefined, occasionMode,
           birthDate: birthDate || undefined, birthTime: birthTime || undefined,
@@ -184,7 +184,14 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
           email: email.trim() || undefined,
         },
       });
-      if (error) throw error;
+      if (error) {
+        console.error("[PostPurchaseIntake] update-pet-data error:", error);
+        throw error;
+      }
+      if (data?.error) {
+        console.error("[PostPurchaseIntake] update-pet-data returned error:", data.error);
+        throw new Error(data.error);
+      }
 
       // Show loading screen immediately — don't wait for background generation
       onComplete();
