@@ -17,7 +17,7 @@ import {
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const BRIDGE_URL = "https://asmyxhisubzbblhivnea.supabase.co/functions/v1/n8n-bridge";
+const BRIDGE_URL = Deno.env.get("BRIDGE_URL") || "https://aduibsyrnenzobuyetmn.supabase.co/functions/v1/n8n-bridge";
 const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY")!;
 const N8N_BRIDGE_SECRET = Deno.env.get("N8N_BRIDGE_SECRET")!;
 
