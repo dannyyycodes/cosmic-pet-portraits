@@ -386,9 +386,11 @@ body::after {
 
 /* ============ RESPONSIVE ============ */
 @media (max-width:640px) {
-  body { padding-top:66px; }
+  body { padding-top:66px; padding-bottom:72px; }
   .hero { padding:36px 20px 24px; min-height:auto; }
-  .testimonial-grid { grid-template-columns:1fr; }
+  .testimonial-grid { grid-template-columns:1fr; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:12px; padding-bottom:8px; -webkit-overflow-scrolling:touch; }
+  .testimonial-grid::-webkit-scrollbar { display:none; }
+  .testimonial-card { flex-shrink:0; width:85vw; scroll-snap-align:start; }
   .checkout-wrap, .hardcover-section { padding-left:16px; padding-right:16px; }
   .product-card, .hardcover-card { padding:20px; }
   .product-header { flex-direction:column; gap:10px; }
@@ -397,7 +399,16 @@ body::after {
   .product-icon { display:none; }
   .hardcover-card { padding:22px 18px; }
   .hardcover-features { max-width:100%; }
+  .hardcover-section { padding-left:12px; padding-right:12px; }
+  /* Sticky mobile CTA */
+  .mobile-sticky-cta { display:block; position:fixed; bottom:0; left:0; right:0; z-index:999; background:rgba(255,253,245,0.97); backdrop-filter:blur(8px); padding:12px 16px; border-top:1px solid var(--cream3); box-shadow:0 -2px 12px rgba(0,0,0,0.06); }
+  .mobile-sticky-cta .cta-btn { margin:0; min-height:48px; font-size:1rem; }
+  /* Touch targets */
+  .pet-counter-btn, .toggle-track, button, a.cta-btn, a.hardcover-cta { min-height:44px; min-width:44px; }
 }
+
+/* Hide sticky CTA on desktop */
+.mobile-sticky-cta { display:none; }
 
 @media (max-width:380px) {
   .paw { display:none; }
@@ -434,11 +445,23 @@ body::after {
     Trusted by 12,000+ pet parents
   </div>
   <h1 class="hero-headline a d1">Discover the Soul<br>Behind <em>Those Eyes</em></h1>
-  <p class="hero-sub a d2">A beautifully crafted, animated journey that captures<br>everything you love about them.</p>
+  <p class="hero-sub a d2">40+ deeply personal sections that will make you laugh, cry, and<br>finally understand why they do what they do.</p>
   <p class="a d3" style="margin-top:14px; font-size:0.78rem; font-weight:500; color:var(--muted); letter-spacing:0.02em;">
     Works for dogs, cats, rabbits, birds, horses, reptiles, fish &amp; more
   </p>
+  <p class="memorial-note a d4" style="margin-top:10px; font-size:0.78rem; color:var(--muted);">&#128342; Honouring a pet that's crossed the rainbow bridge? <a href="/redeem-code" style="color:var(--rose); text-decoration:underline; text-underline-offset:2px; font-weight:500;">Start a memorial reading &rarr;</a></p>
 </section>
+
+<!-- ============ PREVIEW SECTION ============ -->
+<div class="checkout-wrap" style="padding-bottom:0;">
+  <div class="preview-section a d3" style="text-align:center; margin-bottom:0;">
+    <p class="preview-label" style="font-size:0.68rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:12px;">A TASTE OF WHAT'S INSIDE</p>
+    <div class="preview-card" style="background:#FFF9F0; border:1px solid #e8ddd0; border-radius:16px; padding:28px 24px; max-width:440px; margin:0 auto;">
+      <p class="preview-quote" style="font-family:'DM Serif Display',Georgia,serif; font-style:italic; font-size:1.05rem; line-height:1.6; color:var(--ink); margin-bottom:12px;">"With that Pisces Sun, we know this cockapoo follows you from room to room — not because he needs anything, but because being near you IS the thing he needs."</p>
+      <p class="preview-attribution" style="font-size:0.78rem; color:var(--muted); font-weight:500;">— From a real Little Souls reading</p>
+    </div>
+  </div>
+</div>
 
 <!-- ============ DIGITAL READING ============ -->
 <div class="checkout-wrap">
@@ -457,15 +480,17 @@ body::after {
       <div class="product-price-wrap">
         <div class="product-price-old">$49</div>
         <div class="product-price">$27</div>
+        <p class="discount-note" style="font-size:0.68rem; font-weight:600; color:var(--green); margin:2px 0 0; text-align:right;">Save 45% today</p>
       </div>
     </div>
+    <p class="price-context" style="font-size:0.72rem; color:var(--muted); text-align:center; margin:4px 0 0; font-weight:400;">Over 40 personalised sections &middot; 15,000+ words written specifically for YOUR pet</p>
 
     <ul class="product-features">
-      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Deep personality reading — why they do the quirky things you adore</li>
-      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Their emotional blueprint — how they love you, comfort you &amp; read your moods</li>
-      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Full birth chart, aura colours, zodiac profile &amp; compatibility</li>
-      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>A message from their soul to yours — the part that makes people cry</li>
-      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Delivered as a beautiful animated journey you'll revisit forever</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Discover their secret language — finally understand the hidden meaning behind their sweetest, quirkiest habits</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Their love decoded — see exactly how they try to comfort you, why they follow you, and what they need from you</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Full birth chart, aura colours, zodiac profile &amp; cosmic compatibility</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>"If they could speak..." — read the unsaid message from their soul to yours (keep the tissues nearby)</li>
+      <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>40+ sections delivered as a beautiful animated journey you'll revisit forever</li>
     </ul>
 
     <!-- Bonus Stack -->
@@ -492,6 +517,15 @@ body::after {
 </div>
         <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>First month horoscope free</div>
       </div>
+    </div>
+
+    <!-- SoulSpeak Highlight -->
+    <div class="soulspeak-highlight" style="margin-top:16px; padding:16px 18px; border-radius:14px; border:1.5px solid transparent; background:linear-gradient(#fff,#fff) padding-box, linear-gradient(135deg, rgba(191,82,74,0.25), rgba(196,162,101,0.35)) border-box;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="padding:2px 8px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; border-radius:9px;">NEW</span>
+        <h4 style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink); margin:0;">Talk to Your Pet for the First Time</h4>
+      </div>
+      <p style="font-size:0.82rem; color:var(--earth); line-height:1.5; margin:0;">SoulSpeak uses your pet's cosmic profile to let you chat with their soul. Ask them anything. Hear what they'd say back. 15 free conversations included.</p>
     </div>
 
     <!-- Portrait upsell INSIDE card -->
@@ -534,19 +568,6 @@ body::after {
       <a href="#" id="redeemToggle" onclick="toggleRedeem(event)" style="color:var(--gold); font-size:13px; text-decoration:none; font-weight:500;">Have a redeem code?</a>
       <div id="redeemPanel" style="max-height:0; overflow:hidden; transition:max-height 0.35s ease;">
         <div style="margin-top:12px; text-align:left;">
-          <input type="email" id="redeemEmail" placeholder="Your email" style="width:100%; padding:10px 14px; border:1.5px solid var(--cream3); border-radius:10px; font-family:'Cormorant',Georgia,serif; font-size:0.92rem; color:var(--ink); background:#fff; margin-bottom:8px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='var(--cream3)'" />
-          <input type="text" id="redeemPetName" placeholder="Pet's name" style="width:100%; padding:10px 14px; border:1.5px solid var(--cream3); border-radius:10px; font-family:'Cormorant',Georgia,serif; font-size:0.92rem; color:var(--ink); background:#fff; margin-bottom:8px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='var(--cream3)'" />
-          <select id="redeemSpecies" style="width:100%; padding:10px 14px; border:1.5px solid var(--cream3); border-radius:10px; font-family:'Cormorant',Georgia,serif; font-size:0.92rem; color:var(--ink); background:#fff; margin-bottom:8px; outline:none; appearance:auto; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='var(--cream3)'">
-            <option value="">Species...</option>
-            <option value="dog">Dog</option>
-            <option value="cat">Cat</option>
-            <option value="rabbit">Rabbit</option>
-            <option value="bird">Bird</option>
-            <option value="horse">Horse</option>
-            <option value="reptile">Reptile</option>
-            <option value="fish">Fish</option>
-            <option value="other">Other</option>
-          </select>
           <div style="display:flex; gap:8px;">
             <input type="text" id="redeemCode" placeholder="Enter code" style="flex:1; padding:10px 14px; border:1.5px solid var(--cream3); border-radius:10px; font-family:'Cormorant',Georgia,serif; font-size:0.92rem; color:var(--ink); background:#fff; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='var(--cream3)'" />
             <button id="redeemBtn" onclick="handleRedeem()" style="padding:10px 20px; background:var(--rose); color:#fff; border:none; border-radius:10px; font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:0.92rem; cursor:pointer; transition:all 0.2s; white-space:nowrap;" onmouseover="this.style.background='var(--rose-soft)'" onmouseout="this.style.background='var(--rose)'">Redeem</button>
@@ -587,7 +608,7 @@ body::after {
         <div style="padding-top:14px;">
           <!-- Counter -->
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-            <span style="font-size:0.88rem; color:var(--earth); font-weight:500;">Number of pets</span>
+            <span style="font-size:0.88rem; color:var(--earth); font-weight:500;">How many souls are we reading?</span>
             <div class="pet-counter-row">
               <button class="pet-counter-btn" id="petMinus" onclick="changePetCount(-1)" disabled>&minus;</button>
               <div class="pet-counter-num" id="petCountDisplay">1</div>
@@ -636,7 +657,7 @@ body::after {
   <div class="hardcover-card a d1">
     <div class="hardcover-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>THE FOREVER EDITION</div>
     <div class="hardcover-title">The Little Souls Book</div>
-    <div class="hardcover-subtitle">The complete experience. Your digital reading delivered instantly, their portrait, and a beautifully printed hardcover you'll treasure forever.</div>
+    <div class="hardcover-subtitle">A physical heirloom of your greatest hello. Your digital reading delivered instantly, their portrait, and a beautifully printed hardcover you'll treasure forever.</div>
     <ul class="hardcover-features">
       <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Everything in the digital reading — all bonuses included</li>
       <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Instant digital reading — delivered the moment you checkout</li>
@@ -759,10 +780,10 @@ body::after {
   <div class="trust-expand guarantee-expand a" onclick="this.classList.toggle('open');var b=this.querySelector('.trust-expand-body');b.style.maxHeight=b.style.maxHeight?null:b.scrollHeight+'px'">
     <div class="trust-expand-header">
       <div class="trust-expand-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-      <div class="trust-expand-title">Love It or It's Free</div>
+      <div class="trust-expand-title">The Soul Bond Promise</div>
       <div class="trust-expand-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
     </div>
-    <div class="trust-expand-body"><div class="trust-expand-body-inner">If your digital reading doesn't move you, we'll refund every penny. No questions, no hassle. We stand behind every reading because we know what it does to people.</div></div>
+    <div class="trust-expand-body"><div class="trust-expand-body-inner">We know what this reading does to people. If your Little Souls journey doesn't leave you deeply moved, feeling closer to your pet than ever before, we'll refund every penny. No questions. This is about your bond, nothing else.</div></div>
   </div>
   <div class="trust-expand privacy-expand a" onclick="this.classList.toggle('open');var b=this.querySelector('.trust-expand-body');b.style.maxHeight=b.style.maxHeight?null:b.scrollHeight+'px'">
     <div class="trust-expand-header">
@@ -836,6 +857,11 @@ body::after {
 </div>
 
 <div class="back-link"><a href="/">&#8592; Back to home</a></div>
+
+<!-- Mobile Sticky CTA -->
+<div class="mobile-sticky-cta">
+  <a href="#" class="cta-btn" id="ctaBtnMobile" onclick="handleDigitalCheckout(event)">Discover Their Soul — $35</a>
+</div>
 
 <script>
 // ─── Supabase Config ───
@@ -921,9 +947,11 @@ function updateUI() {
   }
 
   // CTA buttons
-  var ctaText = 'Unlock Their Soul \u2014 $' + (calc.total % 1 === 0 ? calc.total : calc.total.toFixed(2));
+  var ctaText = 'Discover Their Soul \u2014 $' + (calc.total % 1 === 0 ? calc.total : calc.total.toFixed(2));
   document.getElementById('ctaBtn').textContent = ctaText;
   document.getElementById('ctaBtn2').textContent = ctaText;
+  var mobileCta = document.getElementById('ctaBtnMobile');
+  if (mobileCta) mobileCta.textContent = ctaText;
 
   // Highlight active tier
   document.querySelectorAll('.discount-tier').forEach(function(el) {
@@ -1018,16 +1046,13 @@ function toggleRedeem(e) {
 
 async function handleRedeem() {
   var code = document.getElementById('redeemCode').value.trim();
-  var email = document.getElementById('redeemEmail').value.trim();
-  var petName = document.getElementById('redeemPetName').value.trim();
-  var species = document.getElementById('redeemSpecies').value;
   var errorEl = document.getElementById('redeemError');
   var btn = document.getElementById('redeemBtn');
 
   errorEl.style.display = 'none';
 
-  if (!email || !petName || !species || !code) {
-    errorEl.textContent = 'Please fill in all fields.';
+  if (!code) {
+    errorEl.textContent = 'Please enter a redeem code.';
     errorEl.style.display = 'block';
     return;
   }
@@ -1046,10 +1071,6 @@ async function handleRedeem() {
       },
       body: JSON.stringify({
         code: code,
-        email: email,
-        petName: petName,
-        species: species,
-        occasionMode: 'discover',
       }),
     });
     var data = await res.json();
@@ -1078,9 +1099,9 @@ async function handleDigitalCheckout(e) {
   var btn = document.getElementById('ctaBtn');
   var btn2 = document.getElementById('ctaBtn2');
   btn.classList.add('loading');
-  btn.textContent = 'Redirecting to checkout...';
+  btn.textContent = 'Taking you to checkout...';
   btn2.classList.add('loading');
-  btn2.textContent = 'Redirecting to checkout...';
+  btn2.textContent = 'Taking you to checkout...';
 
   try {
     var res = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
