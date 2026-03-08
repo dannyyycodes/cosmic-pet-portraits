@@ -167,7 +167,7 @@ export function ReportGenerating({ petName, gender, sunSign }: ReportGeneratingP
 
         {/* Small note */}
         <p className="text-[0.72rem] text-[#9B8E84]">
-          Creating something special — usually about a minute
+          Creating something special just for them
         </p>
         <p className="text-[0.72rem] text-[#9B8E84] mt-2">
           A link to your report has been sent to your email

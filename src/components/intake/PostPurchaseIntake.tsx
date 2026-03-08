@@ -99,6 +99,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const [superpowers, setSuperpowers] = useState<string[]>([]);
   const [strangerReaction, setStrangerReaction] = useState("");
   const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -180,6 +181,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
           breed: breed || undefined, location: location || undefined,
           soulType: soulTypes.join(', ') || undefined, superpower: superpowers.join(', ') || undefined,
           strangerReaction: strangerReaction || undefined, petPhotoUrl: petPhotoUrl || undefined,
+          email: email.trim() || undefined,
         },
       });
       if (error) throw error;
@@ -551,13 +553,32 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 )}
               </div>
 
+              {/* Email */}
+              <div>
+                <label className={labelClass}>Where should we send your report?</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className={inputClass}
+                  aria-label="Email address"
+                  style={{ fontSize: '16px' }}
+                />
+                <p className={hintClass}>
+                  We'll email you a link when {petName}'s reading is ready.
+                </p>
+              </div>
+
               {/* CTA */}
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !email.trim().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)}
                 className={cn(
                   "w-full py-4 rounded-xl text-white text-[1.05rem] transition-all",
-                  "bg-[#bf524a] hover:bg-[#c9665f]"
+                  email.trim().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) && !isSubmitting
+                    ? "bg-[#bf524a] hover:bg-[#c9665f]"
+                    : "bg-[#bf524a]/50 cursor-not-allowed"
                 )}
                 style={{ fontFamily: 'DM Serif Display, serif' }}
               >

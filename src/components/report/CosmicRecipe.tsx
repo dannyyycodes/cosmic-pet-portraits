@@ -134,7 +134,10 @@ export function CosmicRecipe({ petName, report }: CosmicRecipeProps) {
         </div>
       </div>
 
-      <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6] mb-3.5 italic">{recipe.why}</p>
+      <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6] mb-2 italic">{recipe.why}</p>
+      <p className="text-[0.68rem] text-[#9a8578] mb-3.5 bg-[#faf6ef] rounded-lg px-3 py-1.5 inline-block">
+        🍴 This recipe is for humans, inspired by your pet's cosmic energy.
+      </p>
 
       <div className="mb-3">
         <h5 className="text-[0.68rem] font-bold text-[#c4a265] uppercase tracking-[1px] mb-1.5">

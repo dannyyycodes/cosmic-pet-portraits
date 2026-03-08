@@ -28,7 +28,7 @@ export default function ViewReport() {
 
   const reportId = searchParams.get('id');
   const code = searchParams.get('code'); // For gift redemption
-  const shareToken = searchParams.get('share'); // For public share links
+  const shareToken = searchParams.get('share') || searchParams.get('token'); // For public share links
 
   // Try to get saved email from session storage
   const getSavedEmail = () => {

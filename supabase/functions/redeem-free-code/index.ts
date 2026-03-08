@@ -16,7 +16,9 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
   try {
-    const { code, email, petName, species, occasionMode } = await req.json();
+    const body = await req.json();
+    const { code, petName, species, occasionMode } = body;
+    const email = body.email?.trim().toLowerCase() || "";
 
     if (!code || !code.trim()) {
       return new Response(JSON.stringify({ error: "Please enter a redeem code" }), {

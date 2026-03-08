@@ -54,7 +54,7 @@ interface CosmicReportViewerProps {
   onRequestTestimonial?: () => void;
 }
 
-// Section configuration for the 10 reading sections
+// Section configuration for the 12 reading sections
 const readingSections = [
   {
     key: 'solarSoulprint' as const,
@@ -156,6 +156,36 @@ const readingSections = [
     tipIcon: '💕',
     tipLabel: 'Soul contract',
   },
+  {
+    key: 'cosmicExpansion' as const,
+    icon: '♃',
+    iconClass: 'bg-yellow-500/10',
+    label: 'XI · Cosmic Expansion',
+    whyBoxIcon: '♃',
+    whyPrefix: '<strong>Why Jupiter matters:</strong> Jupiter is the planet of expansion, luck, and abundance. It reveals where life flows easily and joy lives.',
+    tipIcon: '💡',
+    tipLabel: 'Practical tip',
+  },
+  {
+    key: 'cosmicLessons' as const,
+    icon: '♄',
+    iconClass: 'bg-slate-500/10',
+    label: 'XII · Cosmic Lessons',
+    whyBoxIcon: '♄',
+    whyPrefix: '<strong>Why Saturn matters:</strong> Saturn is the teacher of discipline and boundaries. It shows where growth requires patience and effort.',
+    tipIcon: '💡',
+    tipLabel: 'Practical tip',
+  },
+];
+
+// Chapter definitions
+const chapters = [
+  { number: 1, title: 'The Arrival', subtitle: 'The moment the stars aligned', icon: '✦' },
+  { number: 2, title: 'The Soul Map', subtitle: 'What the planets reveal', icon: '🗺️' },
+  { number: 3, title: 'The Lighter Side', subtitle: 'The bits you\'ll screenshot', icon: '😸' },
+  { number: 4, title: 'Their Secret World', subtitle: 'What they\'d say if they could', icon: '🔮' },
+  { number: 5, title: 'The Bond', subtitle: 'Why they chose you', icon: '💕' },
+  { number: 6, title: 'The Keepsake', subtitle: 'Take this with you', icon: '🎁' },
 ];
 
 export function CosmicReportViewer({
@@ -225,6 +255,48 @@ export function CosmicReportViewer({
     );
   }
 
+  // Helper: render a reading section
+  const renderReadingSection = (config: typeof readingSections[number]) => {
+    const section = report[config.key] as SectionContent | undefined;
+    if (!section) return null;
+
+    const isLocked = isPreview && !['solarSoulprint', 'lunarHeart'].includes(config.key);
+
+    if (isLocked) {
+      return (
+        <div key={config.key}>
+          <LockedSectionCard label={config.label} title={section.title} icon={config.icon} iconClass={config.iconClass} />
+          <SectionDivider />
+        </div>
+      );
+    }
+
+    return (
+      <div key={config.key}>
+        <ReportSectionCard
+          icon={config.icon}
+          iconClass={config.iconClass}
+          label={config.label}
+          title={section.title}
+          whyText={config.whyPrefix || section.whyThisMatters}
+          whyBoxIcon={config.whyBoxIcon}
+          content={section.content}
+          tipBox={
+            section.practicalTip
+              ? { icon: config.tipIcon, label: config.tipLabel, text: section.practicalTip }
+              : section.pastLifeHint
+              ? { icon: config.tipIcon, label: config.tipLabel, text: section.pastLifeHint }
+              : section.soulContract
+              ? { icon: config.tipIcon, label: config.tipLabel, text: section.soulContract }
+              : undefined
+          }
+          funFact={section.funFact}
+        />
+        <SectionDivider />
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen" style={{ background: '#f5efe6' }}>
       {/* Multi-pet selector bar */}
@@ -264,19 +336,32 @@ export function CosmicReportViewer({
         portraitUrl={portraitUrl}
       />
 
+      {/* ═══ TABLE OF CONTENTS ═══ */}
+      {!isPreview && <TableOfContents />}
+
+      {/* ══════════════════════════════════════════
+          CHAPTER 1 — THE ARRIVAL
+         ══════════════════════════════════════════ */}
+      <ChapterTitle chapter={chapters[0]} />
+
       {/* ═══ METHODOLOGY ═══ */}
       <ReportMethodology petName={petName} />
-      <SectionDivider />
-
-      {/* ═══ PLANET EXPLAINERS ═══ */}
-      <PlanetExplainers />
       <SectionDivider />
 
       {/* ═══ READING TRANSITION ═══ */}
       <ReadingTransition petName={petName} />
 
+      {/* ══════════════════════════════════════════
+          CHAPTER 2 — THE SOUL MAP
+         ══════════════════════════════════════════ */}
+      <ChapterTitle chapter={chapters[1]} />
+
       {/* ═══ BIRTH CHART TABLE ═══ */}
       <BirthChartTable chartPlacements={report.chartPlacements || {}} petName={petName} />
+      <SectionDivider />
+
+      {/* ═══ PLANET EXPLAINERS (moved after birth chart) ═══ */}
+      <PlanetExplainers />
       <SectionDivider />
 
       {/* ═══ AURA VISUAL ═══ */}
@@ -290,47 +375,8 @@ export function CosmicReportViewer({
       />
       <SectionDivider />
 
-      {/* ═══ 10 READING SECTIONS ═══ */}
-      {readingSections.map((config) => {
-        const section = report[config.key] as SectionContent | undefined;
-        if (!section) return null;
-
-        const isLocked = isPreview && !['solarSoulprint', 'lunarHeart'].includes(config.key);
-
-        if (isLocked) {
-          return (
-            <div key={config.key}>
-              <LockedSectionCard label={config.label} title={section.title} icon={config.icon} iconClass={config.iconClass} />
-              <SectionDivider />
-            </div>
-          );
-        }
-
-        return (
-          <div key={config.key}>
-            <ReportSectionCard
-              icon={config.icon}
-              iconClass={config.iconClass}
-              label={config.label}
-              title={section.title}
-              whyText={config.whyPrefix || section.whyThisMatters}
-              whyBoxIcon={config.whyBoxIcon}
-              content={section.content}
-              tipBox={
-                section.practicalTip
-                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.practicalTip }
-                  : section.pastLifeHint
-                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.pastLifeHint }
-                  : section.soulContract
-                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.soulContract }
-                  : undefined
-              }
-              funFact={section.funFact}
-            />
-            <SectionDivider />
-          </div>
-        );
-      })}
+      {/* ═══ 12 READING SECTIONS (Sun through Saturn) ═══ */}
+      {readingSections.map(renderReadingSection)}
 
       {/* ═══ UNLOCK CTA (preview mode) ═══ */}
       {isPreview && onUnlockFull && (
@@ -339,7 +385,7 @@ export function CosmicReportViewer({
             <Gift className="w-12 h-12 mx-auto text-[#c4a265] mb-4" />
             <h3 className="font-dm-serif text-2xl text-[#3d2f2a] mb-2">Unlock the Full Little Souls Reading</h3>
             <p className="text-[#9a8578] text-[0.84rem] mb-6 max-w-md mx-auto">
-              Get all 10 reading sections, the soul letter, trading card, fun sections, and more.
+              Get all 12 reading sections, the soul letter, trading card, fun sections, and more.
             </p>
             <Button onClick={onUnlockFull} variant="gold" size="xl" className="gap-2">
               <Sparkles className="w-5 h-5" />
@@ -352,56 +398,81 @@ export function CosmicReportViewer({
       {/* ═══ EVERYTHING BELOW IS FULL (NOT PREVIEW) ═══ */}
       {!isPreview && (
         <>
-          {/* ═══ SOUL LETTER ═══ */}
-          <SoulLetter
-            petName={petName}
-            epilogue={report.epilogue}
-            sunSign={sunSign}
-            occasionMode={occasionMode}
-          />
-          <SectionDivider />
+          {/* ══════════════════════════════════════════
+              CHAPTER 3 — THE LIGHTER SIDE
+             ══════════════════════════════════════════ */}
+          <ChapterTitle chapter={chapters[2]} />
 
-          {/* ═══ TRADING CARD ═══ */}
-          <TradingCard
-            petName={petName}
-            sunSign={sunSign}
-            moonSign={moonSign}
-            element={element}
-            archetype={report.archetype?.name || 'Cosmic Soul'}
-            portraitUrl={portraitUrl}
-            aura={report.aura}
-            luckyElements={report.luckyElements}
-            crystal={report.crystal}
-            occasionMode={occasionMode}
-          />
-          <SectionDivider />
+          {/* ═══ MEME PERSONALITY ═══ */}
+          {report.memePersonality && (
+            <FunExtrasCard
+              icon="😼"
+              label="Internet Personality"
+              title={report.memePersonality.type}
+              description={report.memePersonality.description}
+            />
+          )}
 
-          {/* ═══ COSMIC NAME MEANING ═══ */}
-          {report.nameMeaning && (
+          {/* ═══ TOP 5 CRIMES ═══ */}
+          {report.topFiveCrimes?.crimes && (
             <>
-              <CosmicNameMeaning nameMeaning={report.nameMeaning} />
+              <CrimesSection crimes={report.topFiveCrimes.crimes} />
               <SectionDivider />
             </>
           )}
 
-          {/* ═══ COMPATIBILITY CHART ═══ */}
-          {report.compatibilityNotes && (
+          {/* ═══ DATING PROFILE ═══ */}
+          {report.datingProfile && (
             <>
-              <CompatibilityChart
-                compatibilityNotes={report.compatibilityNotes}
+              <DatingProfile
                 petName={petName}
+                datingProfile={report.datingProfile}
+                sunSign={sunSign}
+                element={element}
               />
+              <SectionDivider />
             </>
           )}
 
-          {/* ═══ LUCKY ELEMENTS ═══ */}
-          {report.luckyElements && (
-            <LuckyGrid luckyElements={report.luckyElements} />
+          {/* ═══ DREAM JOB ═══ */}
+          {report.dreamJob && (
+            <FunExtrasCard
+              icon="💼"
+              label="Dream Job"
+              title={report.dreamJob.job}
+              description={report.dreamJob.description}
+              extra={<span className="text-[0.72rem] text-[#9a8578] italic">Salary: {report.dreamJob.salary}</span>}
+            />
           )}
 
-          {/* ═══ COSMIC PLAYLIST ═══ */}
-          <CosmicPlaylist petName={petName} report={report} />
-          <SectionDivider />
+          {/* ═══ VILLAIN ORIGIN STORY ═══ */}
+          {report.villainOriginStory && (
+            <>
+              <VillainOriginStory story={report.villainOriginStory} petName={petName} />
+              <SectionDivider />
+            </>
+          )}
+
+          {/* ═══ QUIRK DECODER ═══ */}
+          {report.quirkDecoder && (
+            <>
+              <QuirkDecoder quirkDecoder={report.quirkDecoder} petName={petName} />
+              <SectionDivider />
+            </>
+          )}
+
+          {/* ══════════════════════════════════════════
+              CHAPTER 4 — THEIR SECRET WORLD
+             ══════════════════════════════════════════ */}
+          <ChapterTitle chapter={chapters[3]} />
+
+          {/* ═══ PET MONOLOGUE ═══ */}
+          {report.petMonologue && (
+            <>
+              <PetMonologue monologue={report.petMonologue} petName={petName} sunSign={sunSign} />
+              <SectionDivider />
+            </>
+          )}
 
           {/* ═══ GOOGLE SEARCHES ═══ */}
           <GoogleSearches petName={petName} report={report} />
@@ -419,26 +490,60 @@ export function CosmicReportViewer({
           <CosmicRecipe petName={petName} report={report} />
           <SectionDivider />
 
-          {/* ═══ DATING PROFILE ═══ */}
-          {report.datingProfile && (
+          {/* ═══ COSMIC PLAYLIST ═══ */}
+          <CosmicPlaylist petName={petName} report={report} />
+          <SectionDivider />
+
+          {/* ══════════════════════════════════════════
+              CHAPTER 5 — THE BOND
+             ══════════════════════════════════════════ */}
+          <ChapterTitle chapter={chapters[4]} />
+
+          {/* ═══ KEEPER'S BOND (re-rendered in chapter context if needed) ═══ */}
+
+          {/* ═══ ACCURACY PREDICTIONS ═══ */}
+          {report.accuracyMoments && (
             <>
-              <DatingProfile
+              <AccuracyPredictions accuracyMoments={report.accuracyMoments} />
+              <SectionDivider />
+            </>
+          )}
+
+          {/* ═══ COMPATIBILITY CHART ═══ */}
+          {report.compatibilityNotes && (
+            <>
+              <CompatibilityChart
+                compatibilityNotes={report.compatibilityNotes}
                 petName={petName}
-                datingProfile={report.datingProfile}
-                sunSign={sunSign}
-                element={element}
               />
               <SectionDivider />
             </>
           )}
 
-          {/* ═══ FUN EXTRAS ═══ */}
-          {(report.memePersonality || report.topFiveCrimes || report.dreamJob) && (
+          {/* ═══ EARTHLY EXPRESSION (if exists) ═══ */}
+          {report.earthlyExpression && (
             <>
-              <FunExtras report={report} />
+              <ReportSectionCard
+                icon="🌎"
+                iconClass="bg-green-500/10"
+                label="Earthly Expression"
+                title={report.earthlyExpression.title}
+                content={report.earthlyExpression.content}
+                tipBox={
+                  report.earthlyExpression.practicalTip
+                    ? { icon: '💡', label: 'Practical tip', text: report.earthlyExpression.practicalTip }
+                    : undefined
+                }
+                funFact={report.earthlyExpression.funFact}
+              />
               <SectionDivider />
             </>
           )}
+
+          {/* ══════════════════════════════════════════
+              CHAPTER 6 — THE KEEPSAKE
+             ══════════════════════════════════════════ */}
+          <ChapterTitle chapter={chapters[5]} />
 
           {/* ═══ SHAREABLE CARD ═══ */}
           <ShareableCard
@@ -449,7 +554,53 @@ export function CosmicReportViewer({
             element={element}
             reportId={reportId}
             ascendant={ascendant}
+            shareableCard={report.shareableCard}
           />
+
+          {/* ═══ TRADING CARD ═══ */}
+          <TradingCard
+            petName={petName}
+            sunSign={sunSign}
+            moonSign={moonSign}
+            element={element}
+            archetype={report.archetype?.name || 'Cosmic Soul'}
+            portraitUrl={portraitUrl}
+            aura={report.aura}
+            luckyElements={report.luckyElements}
+            crystal={report.crystal}
+            occasionMode={occasionMode}
+          />
+          <SectionDivider />
+
+          {/* ═══ LUCKY ELEMENTS ═══ */}
+          {report.luckyElements && (
+            <LuckyGrid luckyElements={report.luckyElements} />
+          )}
+
+          {/* ═══ COSMIC NAME MEANING ═══ */}
+          {report.nameMeaning && (
+            <>
+              <CosmicNameMeaning nameMeaning={report.nameMeaning} />
+              <SectionDivider />
+            </>
+          )}
+
+          {/* ═══ BASED ON YOUR ANSWERS ═══ */}
+          {report.basedOnYourAnswers && (
+            <>
+              <BasedOnYourAnswers data={report.basedOnYourAnswers} />
+              <SectionDivider />
+            </>
+          )}
+
+          {/* ═══ SOUL LETTER (epilogue) ═══ */}
+          <SoulLetter
+            petName={petName}
+            epilogue={report.epilogue}
+            sunSign={sunSign}
+            occasionMode={occasionMode}
+          />
+          <SectionDivider />
 
           {/* ═══ HOROSCOPE SUBSCRIPTION ═══ */}
           <div className="text-center py-8 px-6 max-w-[520px] mx-auto">
@@ -470,6 +621,8 @@ export function CosmicReportViewer({
               </div>
             )}
           </div>
+
+          {/* ═══ SOULSPEAK FAB CTA ═══ */}
 
           {/* ═══ MULTI-PET NAVIGATION ═══ */}
           {(hasMultipleReports || onAllComplete) && (
@@ -515,6 +668,446 @@ export function CosmicReportViewer({
       {/* ═══ SOULSPEAK FAB ═══ */}
       {!isPreview && <SoulSpeakFAB reportId={reportId} />}
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// CHAPTER TITLE
+// ═══════════════════════════════════════════════
+function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      id={`chapter-${chapter.number}`}
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="text-center py-10 px-6 max-w-[520px] mx-auto"
+    >
+      <div
+        className="py-8 px-6 rounded-2xl relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(196,162,101,0.06) 0%, rgba(245,239,230,0.8) 50%, rgba(196,162,101,0.04) 100%)',
+        }}
+      >
+        <div className="text-[0.6rem] font-bold tracking-[3px] uppercase text-[#c4a265] mb-2">
+          Chapter {chapter.number}
+        </div>
+        <h2
+          className="text-[1.8rem] text-[#3d2f2a] leading-tight mb-1.5"
+          style={{ fontFamily: 'DM Serif Display, serif' }}
+        >
+          {chapter.title}
+        </h2>
+        <p
+          className="text-[0.9rem] text-[#9a8578] italic"
+          style={{ fontFamily: 'Cormorant, serif' }}
+        >
+          {chapter.subtitle}
+        </p>
+        {/* Decorative line */}
+        <div className="w-12 h-[1px] bg-[#c4a265]/30 mx-auto mt-4" />
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// TABLE OF CONTENTS
+// ═══════════════════════════════════════════════
+function TableOfContents() {
+  const s = useScrollReveal();
+
+  const handleClick = (chapterNum: number) => {
+    const el = document.getElementById(`chapter-${chapterNum}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 p-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+    >
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-3 text-center">
+        Your Reading
+      </div>
+      <div className="space-y-1">
+        {chapters.map((ch) => (
+          <button
+            key={ch.number}
+            onClick={() => handleClick(ch.number)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#faf6ef] transition-colors text-left group"
+          >
+            <span className="w-8 h-8 rounded-lg bg-[#faf6ef] group-hover:bg-white flex items-center justify-center text-[0.9rem] flex-shrink-0 border border-[#e8ddd0]/50">
+              {ch.icon}
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[0.65rem] text-[#c4a265] font-semibold tracking-[1px] uppercase">
+                Chapter {ch.number}
+              </div>
+              <div className="text-[0.88rem] text-[#3d2f2a] font-medium truncate" style={{ fontFamily: 'DM Serif Display, serif' }}>
+                {ch.title}
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-[#c4a265]/40 group-hover:text-[#c4a265] transition-colors flex-shrink-0" />
+          </button>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// PET MONOLOGUE
+// ═══════════════════════════════════════════════
+function PetMonologue({
+  monologue,
+  petName,
+  sunSign,
+}: {
+  monologue: { monologue: string; postScript: string };
+  petName: string;
+  sunSign: string;
+}) {
+  const s = useScrollReveal();
+  const signData = zodiacSigns[sunSign.toLowerCase()];
+  const signIcon = signData?.icon || '⭐';
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+    >
+      <div
+        className="p-8 rounded-[14px] text-center relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #faf6ef, #f5ede0, #faf6ef)' }}
+      >
+        {/* Opening quote */}
+        <div className="text-[4rem] leading-none text-[#c4a265]/30 font-serif mb-[-1rem]">&ldquo;</div>
+
+        <p
+          className="text-[1rem] text-[#3d2f2a] leading-[1.9] italic px-4 max-w-md mx-auto"
+          style={{ fontFamily: 'Cormorant, serif' }}
+        >
+          {monologue.monologue}
+        </p>
+
+        {/* Closing quote */}
+        <div className="text-[4rem] leading-none text-[#c4a265]/30 font-serif mt-[-0.5rem]">&rdquo;</div>
+
+        {/* Attribution */}
+        <div className="mt-2 text-[0.82rem] text-[#9a8578] font-medium">
+          — {petName} {signIcon}
+        </div>
+        <div className="text-[0.68rem] text-[#9a8578]/70 mt-0.5">{sunSign}</div>
+
+        {/* Post script */}
+        {monologue.postScript && (
+          <p className="mt-4 text-[0.78rem] text-[#6b4c3b] italic opacity-80 max-w-sm mx-auto" style={{ fontFamily: 'Cormorant, serif' }}>
+            P.S. {monologue.postScript}
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// VILLAIN ORIGIN STORY
+// ═══════════════════════════════════════════════
+function VillainOriginStory({
+  story,
+  petName,
+}: {
+  story: { trigger: string; dramaticResponse: string; secretMotivation: string; redemptionArc: string };
+  petName: string;
+}) {
+  const s = useScrollReveal();
+
+  const sections = [
+    { label: 'The Trigger', text: story.trigger, icon: '⚡' },
+    { label: 'The Dramatic Response', text: story.dramaticResponse, icon: '🎭' },
+    { label: 'Secret Motivation', text: story.secretMotivation, icon: '🕵️' },
+    { label: 'Redemption Arc', text: story.redemptionArc, icon: '💛' },
+  ];
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+    >
+      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265] mb-1">
+        🦹 Villain Origin Story
+      </div>
+      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mb-3.5">
+        {petName}'s Descent into Chaos
+      </h3>
+
+      <div className="space-y-3">
+        {sections.map((s) => (
+          <div key={s.label}>
+            <div className="text-[0.68rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
+              {s.icon} {s.label}
+            </div>
+            <p className="text-[0.82rem] text-[#5a4a42] leading-[1.65]">{s.text}</p>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// QUIRK DECODER
+// ═══════════════════════════════════════════════
+function QuirkDecoder({
+  quirkDecoder,
+  petName,
+}: {
+  quirkDecoder: {
+    quirk1: { behavior: string; cosmicExplanation: string; whatItReallyMeans: string };
+    quirk2: { behavior: string; cosmicExplanation: string; whatItReallyMeans: string };
+  };
+  petName: string;
+}) {
+  const s = useScrollReveal();
+  const quirks = [quirkDecoder.quirk1, quirkDecoder.quirk2];
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+    >
+      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265] mb-1 px-1">
+        🔍 Quirk Decoder
+      </div>
+      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mb-3 px-1">
+        Why {petName} Does That
+      </h3>
+
+      <div className="space-y-3">
+        {quirks.map((quirk, i) => (
+          <div key={i} className="p-4 bg-white rounded-[14px] border border-[#e8ddd0]">
+            <h4 className="font-dm-serif text-[0.95rem] text-[#3d2f2a] mb-2.5">
+              {quirk.behavior}
+            </h4>
+            <div className="space-y-2">
+              <div>
+                <span className="text-[0.64rem] font-bold text-[#c4a265] uppercase tracking-[1px]">Cosmic explanation</span>
+                <p className="text-[0.8rem] text-[#5a4a42] leading-[1.6] mt-0.5">{quirk.cosmicExplanation}</p>
+              </div>
+              <div>
+                <span className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px]">What it really means</span>
+                <p className="text-[0.8rem] text-[#5a4a42] leading-[1.6] mt-0.5">{quirk.whatItReallyMeans}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ACCURACY PREDICTIONS
+// ═══════════════════════════════════════════════
+function AccuracyPredictions({
+  accuracyMoments,
+}: {
+  accuracyMoments: { predictions: string[]; callToAction: string };
+}) {
+  const s = useScrollReveal();
+  const [checked, setChecked] = useState<Record<number, boolean>>({});
+
+  const toggle = (idx: number) => {
+    setChecked((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const checkedCount = Object.values(checked).filter(Boolean).length;
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+    >
+      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265] mb-1">
+        🎯 Accuracy Check
+      </div>
+      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mb-1">
+        Did We Get It Right?
+      </h3>
+      <p className="text-[0.75rem] text-[#9a8578] mb-3.5">
+        Tap the ones that ring true — {checkedCount}/{accuracyMoments.predictions.length} confirmed
+      </p>
+
+      <div className="space-y-2">
+        {accuracyMoments.predictions.map((prediction, i) => (
+          <button
+            key={i}
+            onClick={() => toggle(i)}
+            className={`w-full text-left flex items-start gap-3 p-3 rounded-xl border transition-all ${
+              checked[i]
+                ? 'bg-[#f0fdf4] border-green-200'
+                : 'bg-[#faf6ef] border-[#e8ddd0] hover:border-[#c4a265]/40'
+            }`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                checked[i]
+                  ? 'bg-green-500 text-white'
+                  : 'border-2 border-[#c4a265]/30'
+              }`}
+            >
+              {checked[i] && (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
+            <span className={`text-[0.82rem] leading-[1.5] ${checked[i] ? 'text-green-700' : 'text-[#5a4a42]'}`}>
+              {prediction}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {accuracyMoments.callToAction && (
+        <p className="text-[0.78rem] text-[#9a8578] italic mt-3.5 text-center">
+          {accuracyMoments.callToAction}
+        </p>
+      )}
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// BASED ON YOUR ANSWERS
+// ═══════════════════════════════════════════════
+function BasedOnYourAnswers({
+  data,
+}: {
+  data: {
+    title: string;
+    intro: string;
+    mappings: Array<{ question: string; yourAnswer: string; usedFor: string }>;
+    accuracyNote: string;
+  };
+}) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+    >
+      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265] mb-1">
+        📝 {data.title}
+      </div>
+      <p className="text-[0.82rem] text-[#5a4a42] mb-3">{data.intro}</p>
+
+      <div className="space-y-2.5">
+        {data.mappings.map((m, i) => (
+          <div key={i} className="p-3 rounded-xl bg-[#faf6ef] border border-[#e8ddd0]/50">
+            <div className="text-[0.72rem] font-semibold text-[#3d2f2a]">{m.question}</div>
+            <div className="text-[0.72rem] text-[#c4a265] mt-0.5">You said: {m.yourAnswer}</div>
+            <div className="text-[0.72rem] text-[#9a8578] mt-0.5">{m.usedFor}</div>
+          </div>
+        ))}
+      </div>
+
+      {data.accuracyNote && (
+        <p className="text-[0.72rem] text-[#9a8578] italic mt-3 text-center">{data.accuracyNote}</p>
+      )}
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// FUN EXTRAS CARD (single item)
+// ═══════════════════════════════════════════════
+function FunExtrasCard({
+  icon,
+  label,
+  title,
+  description,
+  extra,
+}: {
+  icon: string;
+  label: string;
+  title: string;
+  description?: string;
+  extra?: React.ReactNode;
+}) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+    >
+      <div className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
+        {icon} {label}
+      </div>
+      <div className="font-dm-serif text-[0.95rem] text-[#3d2f2a]">{title}</div>
+      {description && (
+        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.6] mt-1">{description}</p>
+      )}
+      {extra && <div className="mt-1.5">{extra}</div>}
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// CRIMES SECTION
+// ═══════════════════════════════════════════════
+function CrimesSection({ crimes }: { crimes: string[] }) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+    >
+      <div className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
+        🚨 Criminal Record
+      </div>
+      <div className="text-[0.82rem] text-[#5a4a42] leading-[1.6]">
+        {crimes.map((crime, i) => (
+          <span key={i}>
+            {i + 1}. {crime}
+            {i < crimes.length - 1 && <br />}
+          </span>
+        ))}
+      </div>
+    </motion.div>
   );
 }
 
@@ -656,65 +1249,6 @@ function LuckyGrid({ luckyElements }: { luckyElements: ReportContent['luckyEleme
           <div className="font-dm-serif text-[1.05rem] text-[#3d2f2a]">{item.value}</div>
         </div>
       ))}
-    </motion.div>
-  );
-}
-
-// ═══════════════════════════════════════════════
-// FUN EXTRAS (meme, dream job, dating, crimes)
-// ═══════════════════════════════════════════════
-function FunExtras({ report }: { report: ReportContent }) {
-  const s = useScrollReveal();
-
-  return (
-    <motion.div
-      ref={s.ref}
-      initial="hidden"
-      animate={s.isInView ? 'visible' : 'hidden'}
-      variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
-    >
-      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265] mb-3.5">
-        🎉 The Fun Extras
-      </div>
-
-      {report.memePersonality && (
-        <div className="mb-3.5">
-          <div className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
-            😼 Internet Personality
-          </div>
-          <div className="font-dm-serif text-[0.95rem] text-[#3d2f2a]">
-            {report.memePersonality.type}
-          </div>
-        </div>
-      )}
-
-      {report.dreamJob && (
-        <div className="mb-3.5">
-          <div className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
-            💼 Dream Job
-          </div>
-          <div className="font-dm-serif text-[0.95rem] text-[#3d2f2a]">
-            {report.dreamJob.job}
-          </div>
-        </div>
-      )}
-
-      {report.topFiveCrimes?.crimes && (
-        <div className="mb-3.5">
-          <div className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
-            🚨 Criminal Record
-          </div>
-          <div className="text-[0.82rem] text-[#5a4a42] leading-[1.6]">
-            {report.topFiveCrimes.crimes.map((crime, i) => (
-              <span key={i}>
-                {i + 1}. {crime}
-                {i < report.topFiveCrimes!.crimes.length - 1 && <br />}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
     </motion.div>
   );
 }

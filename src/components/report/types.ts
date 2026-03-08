@@ -72,6 +72,8 @@ export interface ReportContent {
   celestialGem: SectionContent;
   eternalArchetype: SectionContent;
   keepersBond: SectionContent;
+  cosmicExpansion: SectionContent;
+  cosmicLessons: SectionContent;
   epilogue: string;
   compatibilityNotes: {
     bestPlaymates: string[];
@@ -155,6 +157,37 @@ export interface ReportContent {
     artist: string;
     vibe: string;
   }>;
+  petMonologue?: {
+    monologue: string;
+    postScript: string;
+  };
+  villainOriginStory?: {
+    trigger: string;
+    dramaticResponse: string;
+    secretMotivation: string;
+    redemptionArc: string;
+  };
+  quirkDecoder?: {
+    quirk1: {
+      behavior: string;
+      cosmicExplanation: string;
+      whatItReallyMeans: string;
+    };
+    quirk2: {
+      behavior: string;
+      cosmicExplanation: string;
+      whatItReallyMeans: string;
+    };
+  };
+  accuracyMoments?: {
+    predictions: string[];
+    callToAction: string;
+  };
+  shareableCard?: {
+    cosmicNickname: string;
+    sixKeyTraits: string[];
+    signatureLine: string;
+  };
   // Legacy support
   sunSign?: string;
   element?: string;

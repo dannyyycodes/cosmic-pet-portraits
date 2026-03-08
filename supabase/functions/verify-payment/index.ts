@@ -400,6 +400,10 @@ serve(async (req) => {
 
     console.log("[VERIFY-PAYMENT] Payment verified as paid");
 
+    // Extract customer email from Stripe session
+    const customerEmail = session.customer_details?.email ||
+                          session.customer_email || "";
+
     // Get report IDs from session metadata
     const reportIds = session.metadata?.report_ids?.split(",").filter(Boolean) || [reportId];
     
@@ -451,14 +455,18 @@ serve(async (req) => {
     // Update all reports as paid with share tokens
     for (const id of reportIds) {
       const shareToken = generateShareToken();
-      await supabaseClient
-        .from("pet_reports")
-        .update({ 
-          payment_status: "paid", 
+      const updateData: Record<string, unknown> = {
+          payment_status: "paid",
           stripe_session_id: sessionId,
           share_token: shareToken,
-          updated_at: new Date().toISOString()
-        })
+          updated_at: new Date().toISOString(),
+        };
+        if (customerEmail) {
+          updateData.email = customerEmail.toLowerCase().trim();
+        }
+      await supabaseClient
+        .from("pet_reports")
+        .update(updateData)
         .eq("id", id);
     }
 

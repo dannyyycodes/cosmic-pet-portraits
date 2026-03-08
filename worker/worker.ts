@@ -1300,6 +1300,24 @@ Make every section feel personal, specific, and magical. The fun sections should
   await bridgePatch({ reportId, reportContent });
   console.log("[WORKER] Done! Report saved for:", reportId);
 
+  // Send report email
+  try {
+    const emailRes = await fetch(
+      `${BRIDGE_URL.replace('/n8n-bridge', '/send-report-email')}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + N8N_BRIDGE_SECRET,
+        },
+        body: JSON.stringify({ reportId }),
+      }
+    );
+    console.log("[WORKER] Email trigger:", emailRes.status);
+  } catch (e) {
+    console.error("[WORKER] Email failed:", e);
+  }
+
 } catch (error) {
   console.error("[WORKER] Fatal error:", error);
   await saveError(String(error));

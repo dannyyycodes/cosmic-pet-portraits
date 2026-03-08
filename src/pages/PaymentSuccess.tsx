@@ -146,6 +146,13 @@ export default function PaymentSuccess() {
 
         if (stillGenerating && processedReports.length < reports.length) return 'generating';
 
+        // Check if any report still has placeholder pet name (user closed tab before intake)
+        const allPending = reports.every((r: any) => r.pet_name === 'Pending' || !r.pet_name);
+        if (allPending && reportId) {
+          setStage('post-purchase-intake');
+          return true;
+        }
+
         if (processedReports.length > 0) {
           if (processedReports[0].email) { try { sessionStorage.setItem('cosmic_report_email', processedReports[0].email); } catch {} }
           if (data.includeGift && data.giftCode) setGiftInfo({ includeGift: true, giftCode: data.giftCode });
