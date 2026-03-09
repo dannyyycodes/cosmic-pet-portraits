@@ -739,7 +739,17 @@ CRITICAL WRITING GUIDELINES:
 8. ${isMemorial ? 'HEALING LANGUAGE - "Their paws left prints on your heart forever" type energy' : 'CONVERSATIONAL TONE - Write like you\'re telling a friend about their pet, not writing a textbook'}
 9. AVOID GENERIC PHRASES - "Loyal companion" "beloved pet" = lazy writing. Be SPECIFIC.
 10. ${isMemorial ? 'END WITH HOPE - They may be gone but the love never dies' : 'END WITH IMPACT - The last lines should be screenshot-worthy'}
-11. CRITICAL: The pet monologue section should make people CRY. That's the emotional peak.`;
+11. CRITICAL: The pet monologue section should make people CRY. That's the emotional peak.
+12. PRICE JUSTIFICATION: This report costs $35. Every section must justify that price. No filler. No generic text.
+13. SPECIFICITY OVER EVERYTHING: Not "loyal companion" but "the one who sits on your feet during thunderstorms and stares at you until you feel safe." Species-specific ${petData.species} details = "they KNOW my pet!"
+14. EMOTIONAL STRUCTURE: The report should build. Curiosity → Understanding → Laughter → Deep emotion → Tears → Hope. The pet monologue and keeper's bond are the emotional peaks.
+15. FUN SECTIONS QUALITY: Crimes should be HILARIOUS and specific. Dating profile should be screenshot-worthy. Text messages should sound exactly like how a pet would text. Google searches should make people laugh out loud.
+16. SECTION RULES FOR ${occasionMode.toUpperCase()} MODE:
+${isMemorial ? '- ALL fun sections (crimes, dating, villain) should be written with warm nostalgia: "the crimes we miss", "how they always..."' : ''}
+${isMemorial ? '- Text messages should be from the other side: gentle, healing, with classic personality shining through' : ''}
+${isMemorial ? '- Monologue should address their human from wherever they are now — reassurance, gratitude, "I never left"' : ''}
+${occasionMode === 'birthday' ? '- Celebrate their journey. Add birthday energy to the prologue and epilogue.' : ''}
+${occasionMode === 'gift' ? '- Make it feel like the most beautiful gift someone has ever received.' : ''}`;
 
     const userPrompt = `Generate a comprehensive cosmic portrait for ${petData.name} the ${petData.breed || petData.species} with this JSON structure. 
 
@@ -762,7 +772,7 @@ JSON Structure:
   "aura": ${JSON.stringify(aura)},
   "archetype": ${JSON.stringify(archetype)},
   
-  "prologue": "${isMemorial ? `A 3-4 sentence opening that honours the moment ${petData.name} entered this world. Set the tone of reverence and cosmic significance. Reference the date, ${sunSign} Sun energy, and what the stars were doing. End with a line about how some souls arrive already knowing exactly who they need to find.` : occasionMode === 'birthday' ? `A 3-4 sentence birthday opening. On this day, the cosmos delivered ${petData.name}. Reference their ${sunSign} Sun, the cosmic alignment, and how the universe knew exactly what it was doing. Include one funny moment. End with celebration energy.` : `A 3-4 sentence mystical opening about ${petData.name} and their cosmic arrival. Set the scene with the date, the sky, the ${sunSign} Sun blazing. Include one humorous/relatable moment (like the cosmos underestimating how much chaos this soul would bring). End with something that makes the reader lean in and want to keep reading.`}",
+  "prologue": "3-4 sentence mystical opening about ${petData.name}'s cosmic arrival. Reference the date and ${sunSign} Sun energy. Include one humorous moment. End with something that hooks the reader. Adapt tone for ${occasionMode} mode.",
   
   "cosmicNickname": {
     "nickname": "A short, sticky 2-3 word cosmic nickname based on their ${sunSign} Sun + ${moonSign} Moon combination (e.g., 'The Velvet Thunder', 'The Gentle Storm', 'The Sparkle Tyrant')",
@@ -875,39 +885,39 @@ JSON Structure:
   },
   
   "topFiveCrimes": {
-    "title": "${isMemorial ? `🚨 Criminal Record: The Crimes We Miss` : `🚨 Criminal Record: Top 5 Crimes`}",
+    "title": "🚨 Criminal Record: Top 5 Crimes",
     "crimes": [
-      "${isMemorial ? `Crime #1 — a beloved mischief they were famous for. Write it with warm nostalgia: 'The Great [thing] Incident of...'` : `Crime #1 — specific to their ${sunSign} Sun personality and ${petData.species} nature. Be HILARIOUS. Not 'stealing food' but 'grand larceny of a rotisserie chicken while maintaining unbroken eye contact'`}",
-      "${isMemorial ? `Crime #2 — another classic move they pulled. Reference their chart.` : `Crime #2 — reference their ${moonSign} Moon emotional manipulation tactics. Make it funny and specific.`}",
-      "${isMemorial ? `Crime #3 — the one that always made everyone laugh` : `Crime #3 — something their ${mars} Mars energy drove them to do. Dramatic and hilarious.`}",
-      "${isMemorial ? `Crime #4 — a quirky habit that was uniquely them` : `Crime #4 — relatable to all ${petData.species} owners but with their unique twist.`}",
-      "${isMemorial ? `Crime #5 — the most legendary offence. The one the family still talks about.` : `Crime #5 — the most EGREGIOUS. Go big. Make it the kind of thing people read aloud to friends.`}"
+      "Crime #1 specific to ${sunSign} Sun and ${petData.species} nature. Be HILARIOUS and hyper-specific.",
+      "Crime #2 referencing ${moonSign} Moon emotional manipulation. Funny and specific.",
+      "Crime #3 driven by ${mars} Mars energy. Go dramatic.",
+      "Crime #4 relatable to ${petData.species} owners but with chart-specific twist.",
+      "Crime #5 the most EGREGIOUS. Screenshot-worthy funny."
     ],
-    "verdict": "${isMemorial ? `A loving verdict: 'Found guilty of being irreplaceable. Sentence: forever in our hearts.'` : `A hilarious one-line verdict. Like a judge who can't keep a straight face.`}"
+    "verdict": "A hilarious one-line verdict"
   },
-  
+
   "datingProfile": {
-    "title": "${isMemorial ? `💕 ${petData.name}'s Dating Profile (They'd Want You to Laugh)` : `💕 Dating Profile`}",
-    "headline": "A funny, attention-grabbing dating app headline written in ${petData.name}'s voice. Based on their ${sunSign} Sun confidence and ${ascendant} Rising first impression. Make it memorable.",
-    "bio": "A 3-4 sentence dating profile bio from ${petData.name}'s perspective. Include: specific interests based on their chart, deal-breakers based on their ${moonSign} Moon needs, and what they're looking for. Be genuinely funny — the kind of profile people screenshot. ${isMemorial ? 'Write it as a celebration of who they were — make it funny enough that the reader laugh-cries.' : ''}",
-    "greenFlags": ["3 specific green flags based on their Venus in ${venus} and ${sunSign} Sun. Not generic like 'loyal' — specific like 'will sit on your feet when you cry without being asked'"],
-    "redFlags": ["2 playful 'red flags' that are actually endearing. Based on their ${mars} Mars and ${lilith} Lilith. Make them hilarious and specific."]
+    "title": "💕 Dating Profile",
+    "headline": "Funny dating app headline in ${petData.name}'s voice. ${sunSign} confidence meets ${ascendant} Rising charm.",
+    "bio": "3-4 sentence dating bio from ${petData.name}'s perspective. Chart-based interests, ${moonSign} Moon deal-breakers. Genuinely funny.",
+    "greenFlags": ["3 specific green flags based on Venus in ${venus}. Not 'loyal' — specific behaviors like 'sits on your feet when you cry'"],
+    "redFlags": ["2 playful red flags based on ${mars} Mars and ${lilith} Lilith. Hilarious and specific."]
   },
-  
+
   "dreamJob": {
     "title": "💼 Dream Career",
-    "job": "If ${petData.name} had a job, what would it be? Based on their chart.",
-    "whyPerfect": "2 sentences explaining why this job suits their Sun, Moon, and Mars.",
-    "workStyle": "How they'd behave at this job (funny observations)",
-    "reasonForFiring": "The humorous reason they'd eventually get fired"
+    "job": "Based on ${sunSign} Sun, ${mars} Mars drive, ${mercury} Mercury mind. Be creative and specific.",
+    "whyPerfect": "2 sentences why this job suits their chart.",
+    "workStyle": "Funny observations about their work behavior",
+    "reasonForFiring": "The humorous reason they'd get fired"
   },
-  
+
   "villainOriginStory": {
-    "title": "${isMemorial ? `🦹 ${petData.name}'s Villain Origin Story (A Classic)` : `🦹 Villain Origin Story`}",
-    "trigger": "The one thing that ${isMemorial ? 'turned' : 'turns'} ${petData.name} into villain mode. Based on ${mars} Mars aggression style and ${lilith} Lilith shadow. Be SPECIFIC to their ${petData.species} nature — not 'bath time' but describe the EXACT dramatic scenario.",
-    "dramaticResponse": "How ${pronouns.subject} ${isMemorial ? 'reacted' : 'reacts'} when triggered — describe the full drama in vivid, cinematic detail. Make it hilarious. Like a nature documentary narrator describing a meltdown.",
-    "secretMotivation": "The surprisingly sweet reason behind the dramatic behavior. This is the twist — it was always about love, attention, or protecting their human. Make it endearing.",
-    "redemptionArc": "How ${pronouns.subject} ${isMemorial ? 'came' : 'comes'} back from villain mode. Be specific — the exact treat, cuddle position, or ritual that resets everything. Make it warm."
+    "title": "🦹 Villain Origin Story",
+    "trigger": "What triggers villain mode. Based on ${mars} Mars and ${lilith} Lilith. SPECIFIC to ${petData.species} nature.",
+    "dramaticResponse": "The full drama like a nature documentary narrator. Hilarious.",
+    "secretMotivation": "The sweet reason behind the drama — always about love.",
+    "redemptionArc": "How they come back. Specific treat, cuddle, or ritual."
   },
   
   "quirkDecoder": {
@@ -926,8 +936,8 @@ JSON Structure:
   
   "petMonologue": {
     "title": "🎤 If ${petData.name} Could Talk for 60 Seconds",
-    "monologue": "${isMemorial ? `A 6-8 sentence monologue from ${petData.name}'s soul, speaking to their human from the other side. THIS MUST MAKE PEOPLE SOB. Start with something like 'Hey. It's me. I know you can feel me sometimes...'  Include: (1) reassurance that they're okay and still near, (2) a specific memory only they would reference — a spot they loved, a ritual they had, (3) gratitude for being chosen, for being loved, for the good life, (4) telling their human it's okay to be happy again, (5) end with something devastating like 'Every time the sun hits that spot on the floor, that's me. I'm right there.' Reference their ${sunSign} Sun soul and ${moonSign} Moon heart. Write it in simple, pet-voice language — not poetic, not flowery. Raw and real.` : `A 6-8 sentence monologue from ${petData.name}'s perspective that makes people CRY. THIS IS THE EMOTIONAL PEAK OF THE ENTIRE REPORT. Start with 'Listen, I need you to understand something...' Structure: (1) One funny complaint — something trivial and specific to their ${petData.species} life, (2) A secret they've been keeping, (3) The moment they knew their human was THEIR person — make this specific and vivid, (4) What their human does that they love most — a tiny detail, not 'loving me' but something like 'that thing where you put your hand on my head without looking up from your phone', (5) End with a line so emotionally devastating that people have to put their phone down. Something like: 'I don't understand most of what you say. But I understand all of what you mean.' Reference their ${sunSign} Sun and ${moonSign} Moon personality. Write in simple, earnest, pet-voice language. Short sentences. One long one when it matters. No purple prose.`}",
-    "postScript": "${isMemorial ? `A gentle P.S. that's bittersweet — referencing something small they loved, like a favorite treat or spot. 'P.S. I can still smell those treats from here.'` : `A funny P.S. that breaks the emotional tension. Something trivial and perfectly in-character. Like 'P.S. I know where you hide the good treats. I've always known.'`}"
+    "monologue": "6-8 sentences from ${petData.name}'s perspective. THIS IS THE EMOTIONAL PEAK. Start with 'Listen, I need you to understand something...' Include: (1) a funny complaint, (2) a secret, (3) the moment they knew their human was THEIR person — vivid and specific, (4) a tiny detail they love — not 'loving me' but something like 'that thing where you put your hand on my head without looking up', (5) end with a devastating line people will screenshot. Simple pet-voice. Short sentences. Reference ${sunSign} Sun and ${moonSign} Moon. Make people CRY.",
+    "postScript": "A funny P.S. that breaks the tension. Trivial and in-character."
   },
   
   "elementalNature": {
@@ -984,11 +994,11 @@ JSON Structure:
   
   "keepersBond": {
     "title": "The Keeper's Bond",
-    "content": "${isMemorial ? `3-4 sentences about the soul connection that transcends physical presence. THIS SHOULD BE DEEPLY MOVING. Explain why they chose their human — what cosmic force brought them together. Reference their ${sunSign} Sun and ${moonSign} Moon. End with assurance that the bond is eternal.` : `3-4 sentences about the soul connection between them. Go DEEP. Not generic 'you were meant to find each other' but SPECIFIC — what does their ${sunSign} Sun need that their human provides? What does their ${moonSign} Moon seek that their human gives? Make it feel like a cosmic love story.`}",
-    "mirrorQuality": "What ${petData.name} ${isMemorial ? 'mirrored' : 'mirrors'} in their human. Be specific and insightful — something that makes the reader pause and think 'oh... that's actually true.'",
-    "soulContract": "${isMemorial ? `The cosmic agreement between them — what ${petData.name} came to teach, and what they learned in return. Make it profound and healing.` : `The cosmic agreement between them. Not vague — specific to their chart. What did ${petData.name}'s soul come to do for this particular human?`}",
-    "dailyRitual": "${isMemorial ? `A simple daily ritual to honour ${petData.name}'s memory and feel the bond. Something specific and doable — not 'light a candle' but something connected to their personality.` : `A simple daily ritual to deepen their bond. Something specific and sweet based on their chart — not 'spend time together' but a real, actionable moment.`}",
-    "affirmation": "A one-sentence affirmation that feels personal, not generic. Reference ${petData.name} by name. ${isMemorial ? 'Make it about eternal connection.' : 'Make it about the unique bond they share.'}"
+    "content": "3-4 sentences about the soul connection. Go DEEP — what does their ${sunSign} Sun need that their human provides? What does their ${moonSign} Moon seek? Make it feel like a cosmic love story.",
+    "mirrorQuality": "What ${petData.name} mirrors in their human. Specific and insightful.",
+    "soulContract": "The cosmic agreement between them. Specific to their chart, not vague.",
+    "dailyRitual": "A specific daily ritual to deepen the bond. Not generic — connected to their personality.",
+    "affirmation": "A personal affirmation referencing ${petData.name} by name."
   },
   
   "shareableCard": {
@@ -1052,7 +1062,7 @@ JSON Structure:
     "accuracyNote": "💡 The more details you provide (especially birth time and location), the more accurate the Moon and Rising sign calculations become!"
   },
   
-  "epilogue": "${isMemorial ? `A 4-5 sentence closing that honours ${petData.name}'s legacy. Not generic 'rainbow bridge' language — specific to who THEY were based on their chart. Acknowledge the grief, validate the love, and end with something that makes the reader feel held. Final line should be quotable — the kind of thing someone puts in a photo frame.` : occasionMode === 'birthday' ? `A 4-5 sentence birthday blessing for ${petData.name}. Celebrate who they are, the joy they bring, and the year ahead. Reference their ${sunSign} spirit. End with something warm and memorable — a toast to them.` : `A 4-5 sentence closing that leaves the reader feeling something REAL. Not generic astrology language. Speak directly to the reader about what ${petData.name} means. Reference their unique chart. End with a final line so good they screenshot it and share it. Make it feel like the last page of a book you didn't want to end.`}",
+  "epilogue": "4-5 sentence closing that leaves the reader feeling something REAL. Reference ${petData.name}'s unique chart. End with a final line so good they screenshot it. Make it feel like the last page of a book you didn't want to end.",
   
   "compatibilityNotes": {
     "bestPlaymates": ["Two zodiac signs that would be great playmate matches"],
@@ -1068,52 +1078,52 @@ JSON Structure:
   },
 
   "googleSearches": [
-    "${isMemorial ? `8 bittersweet Google searches ${petData.name} would have made. Mix funny memories with tender ones. Example: 'do humans know we never actually leave them', 'how to send a dream to my favourite person'. Make people laugh-cry.` : `8 hilarious Google searches ${petData.name} would make at 2am. Be SPECIFIC to their ${sunSign} Sun, ${moonSign} Moon, and ${petData.species} nature. Mix existential crises, food obsessions, complaints about their human, and one weirdly profound one. Example: 'why does my human stare at the glowing rectangle instead of me', 'am i the alpha or is the cat'. Each must feel unique to THIS pet. NO generic searches.`}"
+    "8 hilarious Google searches ${petData.name} would make at 2am. SPECIFIC to ${sunSign} Sun, ${moonSign} Moon, and ${petData.species} nature. Mix existential crises, food obsessions, complaints about their human, and one weirdly profound one. Each must feel unique to THIS pet. NO generic searches."
   ],
 
   "textMessages": {
     "morning": {
-      "pet": ["${isMemorial ? `4-5 morning messages as if ${petData.name} could text from wherever they are now. Sweet, nostalgic, maybe referencing their old morning routine. End with something that makes the reader cry.` : `4-5 messages from ${petData.name} waking up their human. Written in ${petData.name}'s voice — a ${sunSign} Sun with ${moonSign} Moon. Be funny and endearing. Include one dramatic complaint. Pet-speak: short sentences, no capitals except for EMPHASIS, casual grammar.`}"],
-      "human": ["1-2 short human responses that feel real and natural"]
+      "pet": ["4-5 messages from ${petData.name} waking up their human. ${sunSign} Sun with ${moonSign} Moon voice. Funny, endearing, pet-speak. Short sentences, casual grammar."],
+      "human": ["1-2 short human responses"]
     },
     "afternoon": {
-      "pet": ["${isMemorial ? `4-5 afternoon messages. ${petData.name} checking in on their human, reminding them they're still around. Gentle, loving, with one moment of their classic personality shining through.` : `4-5 afternoon messages. ${petData.name} noticed their human is stressed, or wants treats, or has a dramatic observation about the mailman. Match their Venus in ${venus} love style. Include one moment of surprising emotional intelligence.`}"],
+      "pet": ["4-5 afternoon messages. ${petData.name} wants treats, noticed stress, or has a dramatic observation. Match Venus in ${venus} love style."],
       "human": ["1-2 short human responses"]
     },
     "night": {
-      "pet": ["${isMemorial ? `3-4 late night messages. The kind that would make someone sob at midnight. ${petData.name} saying the things they never got to say. End with something like 'i'm right here. i never left.'` : `3-4 late night messages. This is the emotional thread. ${petData.name} randomly telling their human they love them, or sharing a deep thought. Match their ${moonSign} Moon emotional style. The last message should be the kind of thing that makes someone screenshot and cry.`}"],
-      "human": ["1 short human response that shows they're touched"]
+      "pet": ["3-4 late night emotional messages. ${petData.name} randomly saying 'i love you'. Match ${moonSign} Moon style. Last message should be screenshot-worthy."],
+      "human": ["1 short response"]
     }
   },
 
   "humanProfile": {
-    "Aesthetic": "If ${petData.name} ${isMemorial ? 'had been' : 'was'} a human, what would ${pronouns.possessive} aesthetic be? Based on Venus in ${venus} and ${ascendant} Rising. Be SPECIFIC — name styles, vibes, details. Not just 'cottagecore' but 'cottagecore meets chaotic bookshelf energy — mismatched mugs, a concerning number of blankets'.",
-    "Career": "What career would human-${petData.name} have? Based on ${sunSign} Sun, ${mars} Mars, and ${mercury} Mercury. Be creative and specific — not just 'therapist' but 'the therapist who cries WITH you and brings homemade cookies to sessions'.",
-    "Morning Routine": "Describe human-${petData.name}'s morning routine in one vivid sentence. Match their ${element} element energy. Be funny.",
-    "Toxic Trait": "Their most endearing 'toxic trait' as a human. Based on chart shadows and ${lilith} Lilith. Make it relatable and hilarious.",
-    "Love Life": "How would human-${petData.name} handle romance? Based on Venus in ${venus} and Moon in ${moonSign}. Be specific and funny.",
-    "Spotify Wrapped": "Their top genre and artist with specific listening minutes. Match their chart vibe. Format: 'Top genre: \"Genre\" — X minutes of Artist'.",
-    "Red Flag": "A funny 'red flag' that's actually charming. Based on ${mars} Mars and ${lilith} Lilith. Make it screenshot-worthy.",
-    "Green Flag": "Their most lovable quality. Based on ${sunSign} Sun and Venus in ${venus}. Make it the kind of thing that makes people go 'aww'.",
-    "In a Group": "What role do they play in a friend group? Based on ${ascendant} Rising and ${mercury} Mercury. Be vivid and specific.",
-    "Catchphrase": "What would human-${petData.name}'s catchphrase be? In quotes. Make it hilarious and perfectly capture their personality."
+    "Aesthetic": "Based on Venus in ${venus} and ${ascendant} Rising. Be SPECIFIC and funny — not just 'cottagecore' but vivid details.",
+    "Career": "Based on ${sunSign} Sun, ${mars} Mars, ${mercury} Mercury. Creative and specific.",
+    "Morning Routine": "One vivid funny sentence matching ${element} element energy.",
+    "Toxic Trait": "Based on chart shadows and ${lilith} Lilith. Relatable and hilarious.",
+    "Love Life": "Based on Venus in ${venus} and Moon in ${moonSign}. Specific and funny.",
+    "Spotify Wrapped": "Top genre and artist with minutes. Format: Top genre: Genre — X minutes of Artist.",
+    "Red Flag": "Based on ${mars} Mars and ${lilith} Lilith. Screenshot-worthy funny.",
+    "Green Flag": "Based on ${sunSign} Sun and Venus in ${venus}. Makes people go aww.",
+    "In a Group": "Based on ${ascendant} Rising and ${mercury} Mercury. Vivid and specific.",
+    "Catchphrase": "In quotes. Hilarious and perfectly captures their personality."
   },
 
   "playlist": [
-    {"title": "A REAL song that captures ${petData.name}'s overall soul energy. Pick something that fits their ${sunSign}/${moonSign} combo perfectly.", "artist": "Real artist name", "vibe": "One-word mood that fits"},
-    {"title": "A REAL song for their ${moonSign} Moon emotional world. ${isMemorial ? 'Something that would make their human think of them and cry.' : 'Something that captures how they process feelings.'}", "artist": "Real artist name", "vibe": "One-word mood"},
-    {"title": "A REAL song for their ${sunSign} Sun core energy. Something that IS them.", "artist": "Real artist name", "vibe": "One-word mood"},
-    {"title": "A REAL song for their wild/${isMemorial ? 'free' : 'playful'} side based on ${lilith} Lilith and ${mars} Mars.", "artist": "Real artist name", "vibe": "One-word mood"},
-    {"title": "A REAL song about the bond between ${petData.name} and their human. ${isMemorial ? 'Something about love that never dies.' : 'Something about unconditional love.'}", "artist": "Real artist name", "vibe": "One-word mood"}
+    {"title": "REAL song for ${petData.name}'s ${sunSign}/${moonSign} soul", "artist": "Real artist", "vibe": "One-word mood"},
+    {"title": "REAL song for ${moonSign} Moon emotional world", "artist": "Real artist", "vibe": "One-word mood"},
+    {"title": "REAL song for ${sunSign} Sun core energy", "artist": "Real artist", "vibe": "One-word mood"},
+    {"title": "REAL song for wild side (${lilith} Lilith/${mars} Mars)", "artist": "Real artist", "vibe": "One-word mood"},
+    {"title": "REAL song about bond with human — unconditional love", "artist": "Real artist", "vibe": "One-word mood"}
   ],
 
   "cosmicRecipe": {
-    "name": "A creative, evocative recipe name that channels ${petData.name}'s energy (e.g., 'Velvet Thunder's Midnight Comfort Bowl' not just 'Pasta')",
-    "emoji": "A food emoji that matches the dish",
-    "description": "One sentence connecting the recipe to ${petData.name}'s ${sunSign}/${moonSign} chart",
-    "why": "2-3 sentences explaining WHY this specific dish channels ${petData.name}'s energy. Reference their ${sunSign} Sun, ${moonSign} Moon, and ${element} element. Make it feel personal, not generic.",
-    "ingredients": ["6 real ingredients with cosmic annotations in parentheses referencing specific placements, e.g. '1 cup coconut milk (lunar nourishment for that ${moonSign} Moon)'"],
-    "steps": ["5 actual cooking steps. Weave in personality references naturally. Last step MUST mention ${petData.name} in a warm, funny way. ${isMemorial ? `Make the last step something like: Eat slowly. Close your eyes. ${petData.name} is right there with you.` : `Make the last step something like: Eat with ${petData.name} watching you. They deserve a bite. They know they deserve a bite.`}"]
+    "name": "Creative recipe name channeling ${petData.name}'s energy — not just 'Pasta'",
+    "emoji": "Food emoji matching the dish",
+    "description": "One sentence connecting recipe to ${petData.name}'s ${sunSign}/${moonSign} chart",
+    "why": "2-3 sentences on WHY this dish channels ${petData.name}. Reference ${sunSign} Sun, ${moonSign} Moon, ${element} element.",
+    "ingredients": ["6 real ingredients with cosmic annotations referencing placements"],
+    "steps": ["5 cooking steps. Last step mentions ${petData.name} in a warm, funny way."]
   }
 }
 
@@ -1337,6 +1347,7 @@ QUALITY STANDARD: This report costs $35. Every section must justify that price.
       console.error("AI gateway error:", response.status, errorText);
       console.log("[GENERATE-REPORT] Using fallback report due to AI error");
       reportContent = createFallbackReport();
+      reportContent._debug = { error: "AI gateway error", status: response.status, detail: errorText.slice(0, 500) };
     } else {
       try {
         let accumulated = "";
@@ -1366,10 +1377,12 @@ QUALITY STANDARD: This report costs $35. Every section must justify that price.
         if (!accumulated) {
           console.error("[GENERATE-REPORT] Empty stream, using fallback");
           reportContent = createFallbackReport();
+          reportContent._debug = { error: "Empty stream from AI", chars: 0 };
         } else {
           reportContent = JSON.parse(accumulated);
           const fallback = createFallbackReport();
           reportContent = { ...fallback, ...reportContent };
+          reportContent._debug = { source: "ai", chars: accumulated.length };
           reportContent.chartPlacements = chartPlacements;
           reportContent.elementalBalance = elementalBalance;
           reportContent.dominantElement = element;
@@ -1380,6 +1393,7 @@ QUALITY STANDARD: This report costs $35. Every section must justify that price.
       } catch (parseError) {
         console.error("[GENERATE-REPORT] Parse error:", parseError);
         reportContent = createFallbackReport();
+        reportContent._debug = { error: "JSON parse error", detail: String(parseError).slice(0, 500) };
       }
     }
 
