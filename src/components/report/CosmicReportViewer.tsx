@@ -288,7 +288,7 @@ export function CosmicReportViewer({
   };
 
   return (
-    <div className="min-h-screen" style={{ background: '#f5efe6' }}>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #FFFDF5 0%, #f5efe6 15%, #f5efe6 85%, #ede5d8 100%)' }}>
       {/* Multi-pet selector bar */}
       {hasMultipleReports && onSwitchReport && (
         <div className="sticky top-0 z-50 border-b border-[#e8ddd0]" style={{ background: 'rgba(245,239,230,0.95)', backdropFilter: 'blur(8px)' }}>
@@ -518,24 +518,40 @@ export function CosmicReportViewer({
           <ChapterTitle chapter={chapters[3]} />
 
           {/* ═══ GOOGLE SEARCHES ═══ */}
-          <GoogleSearches petName={petName} report={report} />
-          <SectionDivider />
+          {report.googleSearches && (
+            <>
+              <GoogleSearches petName={petName} report={report} />
+              <SectionDivider />
+            </>
+          )}
 
           {/* ═══ TEXT MESSAGES ═══ */}
-          <TextMessages petName={petName} report={report} occasionMode={occasionMode} />
-          <SectionDivider />
+          {report.textMessages && (
+            <>
+              <TextMessages petName={petName} report={report} occasionMode={occasionMode} />
+              <SectionDivider />
+            </>
+          )}
 
           {/* ═══ HUMAN PROFILE ═══ */}
-          <HumanProfile petName={petName} report={report} occasionMode={occasionMode} />
-          <SectionDivider />
+          {report.humanProfile && (
+            <>
+              <HumanProfile petName={petName} report={report} occasionMode={occasionMode} />
+              <SectionDivider />
+            </>
+          )}
 
           {/* ═══ COSMIC RECIPE ═══ */}
           <CosmicRecipe petName={petName} report={report} />
           <SectionDivider />
 
           {/* ═══ COSMIC PLAYLIST ═══ */}
-          <CosmicPlaylist petName={petName} report={report} />
-          <SectionDivider />
+          {report.cosmicPlaylist && (
+            <>
+              <CosmicPlaylist petName={petName} report={report} />
+              <SectionDivider />
+            </>
+          )}
 
           {/* ══════════════════════════════════════════
               CHAPTER 5 — THE BOND
@@ -1315,7 +1331,10 @@ function HeroSection({
   const s = useScrollReveal();
 
   return (
-    <div className="text-center px-6 py-10 max-w-[520px] mx-auto">
+    <div className="text-center px-6 pt-14 pb-8 max-w-[520px] mx-auto relative">
+      {/* Subtle radial glow behind portrait */}
+      <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[300px] h-[300px] rounded-full pointer-events-none opacity-30"
+        style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.15), transparent 70%)' }} />
       {/* Zodiac circle / portrait */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
@@ -1440,18 +1459,36 @@ function PrologueSection({ prologue, petName }: { prologue: string; petName: str
       ref={s.ref}
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
-      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } } }}
-      className="mx-4 my-4 max-w-[520px] sm:mx-auto text-center"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.5, ease: 'easeOut' } } }}
+      className="px-6 py-8 max-w-[520px] mx-auto"
     >
-      <div className="text-[0.56rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-3">
-        Prologue
+      <div
+        className="p-8 sm:p-10 rounded-[20px] text-center relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 50%, #1a1210 100%)',
+          boxShadow: '0 8px 32px rgba(61,47,42,0.3)',
+        }}
+      >
+        {/* Corner glow */}
+        <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-20"
+          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.3), transparent 70%)' }} />
+        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-20"
+          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.3), transparent 70%)' }} />
+
+        <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#c4a265]/70 mb-4">
+          Prologue
+        </div>
+        <p
+          className="text-[1.02rem] sm:text-[1.08rem] text-white/85 leading-[2.1] px-2"
+          style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
+          dangerouslySetInnerHTML={{ __html: prologue.replace(/\n\n/g, '<br /><br />') }}
+        />
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <div className="w-8 h-[1px] bg-[#c4a265]/30" />
+          <span className="text-[#c4a265]/40 text-[0.6rem]">✦</span>
+          <div className="w-8 h-[1px] bg-[#c4a265]/30" />
+        </div>
       </div>
-      <p
-        className="text-[1rem] text-[#5a4a42] leading-[2] italic px-4"
-        style={{ fontFamily: 'Cormorant, serif' }}
-        dangerouslySetInnerHTML={{ __html: prologue.replace(/\n\n/g, '<br /><br />') }}
-      />
-      <div className="w-12 h-[1px] bg-[#c4a265]/30 mx-auto mt-6" />
     </motion.div>
   );
 }
@@ -1466,25 +1503,38 @@ function MidReadingTransition({ petName }: { petName: string }) {
       ref={s.ref}
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
-      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.8, ease: 'easeOut' } } }}
-      className="text-center px-8 py-10 max-w-[520px] mx-auto"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1, ease: 'easeOut' } } }}
+      className="py-14 px-6 max-w-[520px] mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-2">
-        Going Deeper
+      <div className="text-center relative py-8">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-3">
+          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+          <span className="text-[#c4a265]/40 text-[0.6rem]">✦</span>
+          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+        </div>
+
+        <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#c4a265]/70 mb-3">
+          Going Deeper
+        </div>
+        <h2
+          className="text-[1.6rem] sm:text-[1.8rem] text-[#3d2f2a] leading-[1.2] mb-3"
+          style={{ fontFamily: 'DM Serif Display, serif' }}
+        >
+          The Hidden Layers of {petName}&rsquo;s Soul
+        </h2>
+        <p
+          className="text-[0.95rem] text-[#9a8578] leading-[1.8] max-w-[360px] mx-auto"
+          style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
+        >
+          The outer planets, karmic points, and soul contracts reveal what lies beneath the surface.
+        </p>
+
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-3">
+          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+          <span className="text-[#c4a265]/40 text-[0.6rem]">✦</span>
+          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+        </div>
       </div>
-      <h2
-        className="text-[1.4rem] text-[#3d2f2a] leading-tight mb-2"
-        style={{ fontFamily: 'DM Serif Display, serif' }}
-      >
-        The Hidden Layers of {petName}&rsquo;s Soul
-      </h2>
-      <p
-        className="text-[0.88rem] text-[#9a8578] italic leading-[1.7] max-w-[380px] mx-auto"
-        style={{ fontFamily: 'Cormorant, serif' }}
-      >
-        The outer planets, karmic points, and soul contracts reveal what lies beneath the surface.
-      </p>
-      <div className="w-10 h-0.5 bg-[#c4a265] mx-auto mt-5 rounded-sm" />
     </motion.div>
   );
 }
