@@ -31,6 +31,10 @@ import { DatingProfile } from './DatingProfile';
 import { ShareableCard } from './ShareableCard';
 import { SectionDivider } from './SectionDivider';
 import { SoulSpeakFAB } from './SoulSpeakFAB';
+import { SoulSpeakTeaser } from './SoulSpeakTeaser';
+import { YelpReviews } from './YelpReviews';
+import { IfICouldTalk } from './IfICouldTalk';
+import { CosmicAwards } from './CosmicAwards';
 
 // Re-export types for backward compatibility
 export type { ReportContent, ReportData, ChartPlacement, SectionContent };
@@ -445,6 +449,7 @@ export function CosmicReportViewer({
           {report.petMonologue && (
             <>
               <PetMonologue monologue={report.petMonologue} petName={petName} sunSign={sunSign} />
+              <SoulSpeakTeaser petName={petName} reportId={reportId} variant="monologue" />
               <SectionDivider />
             </>
           )}
@@ -537,6 +542,18 @@ export function CosmicReportViewer({
           <CosmicPlaylist petName={petName} report={report} />
           <SectionDivider />
 
+          {/* ═══ YELP REVIEWS ═══ */}
+          <YelpReviews petName={petName} report={report} />
+          <SectionDivider />
+
+          {/* ═══ IF I COULD TALK ═══ */}
+          <IfICouldTalk petName={petName} report={report} />
+          <SectionDivider />
+
+          {/* ═══ COSMIC AWARDS ═══ */}
+          <CosmicAwards petName={petName} report={report} />
+          <SectionDivider />
+
           {/* ══════════════════════════════════════════
               CHAPTER 5 — THE BOND
              ══════════════════════════════════════════ */}
@@ -557,6 +574,7 @@ export function CosmicReportViewer({
                 funFact={(report.keepersBond as SectionContent).funFact}
                 variant={1}
               />
+              <SoulSpeakTeaser petName={petName} reportId={reportId} variant="bond" />
               <SectionDivider />
             </>
           )}

@@ -188,6 +188,20 @@ export interface ReportContent {
     sixKeyTraits: string[];
     signatureLine: string;
   };
+  // Creative extras
+  yelpReviews?: Array<{
+    place: string;
+    rating: number;
+    review: string;
+  }>;
+  ifICouldTalk?: Array<{
+    situation: string;
+    quote: string;
+  }>;
+  cosmicAwards?: Array<{
+    award: string;
+    reason: string;
+  }>;
   // Legacy support
   sunSign?: string;
   element?: string;

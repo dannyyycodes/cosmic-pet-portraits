@@ -82,6 +82,15 @@ function convertReportMessages(data: NonNullable<ReportContent['textMessages']>)
   return segments;
 }
 
+function ReadReceipt({ isLastInSegment }: { isLastInSegment: boolean }) {
+  if (!isLastInSegment) return null;
+  return (
+    <div className="clear-both text-right text-[0.58rem] text-[#8e8e93] py-0.5 px-1 pb-1">
+      Read ✓✓
+    </div>
+  );
+}
+
 export function TextMessages({ petName, report, occasionMode }: TextMessagesProps) {
   const s = useScrollReveal();
   const element = report.dominantElement || 'Water';
@@ -97,6 +106,18 @@ export function TextMessages({ petName, report, occasionMode }: TextMessagesProp
       variants={s.variants}
       className="mx-4 my-2.5 p-5 px-4 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
     >
+      <style>{`
+        @keyframes typingPulse {
+          0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-2px); }
+        }
+        .typing-dot {
+          animation: typingPulse 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+      `}</style>
+
       <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-1">
         💬 What {petName} Would Text You
       </div>
@@ -105,36 +126,66 @@ export function TextMessages({ petName, report, occasionMode }: TextMessagesProp
       </h3>
 
       <div className="max-w-[340px] mx-auto">
-        {segments.map((segment, si) => (
-          <div key={si}>
-            <div className="clear-both text-center text-[0.62rem] text-[#8e8e93] py-2 pb-1.5">
-              {segment.time}
-            </div>
-            {segment.messages.map((msg, mi) => (
-              <div
-                key={mi}
-                className={`max-w-[80%] px-3.5 py-2 rounded-[18px] text-[0.82rem] leading-[1.45] mb-1 ${
-                  msg.sender === 'pet'
-                    ? 'float-left clear-both bg-[#e9e9eb] text-[#1a1a1a] rounded-bl-[6px]'
-                    : 'float-right clear-both bg-[#007aff] text-white rounded-br-[6px]'
-                }`}
-              >
-                {msg.text}
-              </div>
-            ))}
-            <div className="clear-both" />
-          </div>
-        ))}
+        {segments.map((segment, si) => {
+          // Find the index of the last human message in this segment
+          let lastHumanIdx = -1;
+          segment.messages.forEach((msg, mi) => {
+            if (msg.sender === 'human') lastHumanIdx = mi;
+          });
 
-        {/* Delivered + typing */}
+          // Check if there's a pet message that starts the segment (for typing indicator)
+          const startsWithPet = segment.messages.length > 0 && segment.messages[0].sender === 'pet';
+
+          return (
+            <div key={si}>
+              <div className="clear-both text-center text-[0.62rem] text-[#8e8e93] py-2 pb-1.5">
+                {segment.time}
+              </div>
+
+              {/* Typing indicator before first pet message in each segment */}
+              {startsWithPet && (
+                <div className="float-left clear-both px-4 py-2.5 bg-[#dce8f8] rounded-[18px] rounded-bl-[6px] mb-1 opacity-60">
+                  <div className="flex gap-1">
+                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
+                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
+                    <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
+                  </div>
+                </div>
+              )}
+              <div className="clear-both" />
+
+              {segment.messages.map((msg, mi) => (
+                <div key={mi}>
+                  <div
+                    className={`max-w-[80%] px-3.5 py-2 rounded-[18px] text-[0.82rem] leading-[1.45] mb-1 ${
+                      msg.sender === 'pet'
+                        ? 'float-left clear-both bg-[#dce8f8] text-[#1a1a1a] rounded-bl-[6px]'
+                        : 'float-right clear-both bg-[#e9e9eb] text-[#1a1a1a] rounded-br-[6px]'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                  {msg.sender === 'human' && mi === lastHumanIdx && (
+                    <ReadReceipt isLastInSegment={true} />
+                  )}
+                </div>
+              ))}
+              <div className="clear-both" />
+            </div>
+          );
+        })}
+
+        {/* Final delivered indicator */}
         <div className="clear-both text-right text-[0.58rem] text-[#8e8e93] py-0.5 px-1 pb-1.5">
           Delivered ✓
         </div>
-        <div className="float-left px-4 py-2.5 bg-[#e9e9eb] rounded-[18px] rounded-bl-[6px] mb-1">
+
+        {/* Typing indicator at the end */}
+        <div className="float-left px-4 py-2.5 bg-[#dce8f8] rounded-[18px] rounded-bl-[6px] mb-1">
           <div className="flex gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8e8e93] animate-bounce" style={{ animationDelay: '0s' }} />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8e8e93] animate-bounce" style={{ animationDelay: '0.2s' }} />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8e8e93] animate-bounce" style={{ animationDelay: '0.4s' }} />
+            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
+            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
+            <span className="typing-dot w-1.5 h-1.5 rounded-full bg-[#6b7d93]" />
           </div>
         </div>
         <div className="clear-both" />
