@@ -335,6 +335,11 @@ export function CosmicReportViewer({
         portraitUrl={portraitUrl}
       />
 
+      {/* ═══ COSMIC NICKNAME ═══ */}
+      {report.cosmicNickname && (
+        <CosmicNickname nickname={report.cosmicNickname} />
+      )}
+
       {/* ═══ TABLE OF CONTENTS ═══ */}
       {!isPreview && <TableOfContents />}
 
@@ -346,6 +351,14 @@ export function CosmicReportViewer({
       {/* ═══ METHODOLOGY ═══ */}
       <ReportMethodology petName={petName} />
       <SectionDivider />
+
+      {/* ═══ FIRST MEETING ═══ */}
+      {report.firstMeeting && (
+        <>
+          <FirstMeeting firstMeeting={report.firstMeeting} />
+          <SectionDivider />
+        </>
+      )}
 
       {/* ═══ READING TRANSITION ═══ */}
       <ReadingTransition petName={petName} />
@@ -364,6 +377,22 @@ export function CosmicReportViewer({
       {/* ═══ AURA VISUAL ═══ */}
       <AuraVisual aura={report.aura} sunSign={sunSign} />
 
+      {/* ═══ LUMINOUS FIELD (detailed aura) ═══ */}
+      {report.luminousField && (
+        <ReportSectionCard
+          icon="✨"
+          iconClass="bg-purple-400/10"
+          label="Luminous Field"
+          title={report.luminousField.title}
+          content={report.luminousField.content}
+          tipBox={
+            report.luminousField.howToSense
+              ? { icon: '👁️', label: 'How to sense it', text: report.luminousField.howToSense }
+              : undefined
+          }
+        />
+      )}
+
       {/* ═══ ELEMENTAL BALANCE ═══ */}
       <ElementalBalance
         elementalBalance={report.elementalBalance || {}}
@@ -374,6 +403,21 @@ export function CosmicReportViewer({
 
       {/* ═══ 12 READING SECTIONS (Sun through Saturn) ═══ */}
       {readingSections.map(renderReadingSection)}
+
+      {/* ═══ CELESTIAL CHOREOGRAPHY (planetary aspects) ═══ */}
+      {report.celestialChoreography && (
+        <>
+          <ReportSectionCard
+            icon="✶"
+            iconClass="bg-indigo-500/10"
+            label="Celestial Choreography"
+            title={report.celestialChoreography.title}
+            content={report.celestialChoreography.content}
+            funFact={report.celestialChoreography.funFact}
+          />
+          <SectionDivider />
+        </>
+      )}
 
       {/* ═══ UNLOCK CTA (preview mode) ═══ */}
       {isPreview && onUnlockFull && (
@@ -557,6 +601,22 @@ export function CosmicReportViewer({
             shareableCard={report.shareableCard}
           />
           <SectionDivider />
+
+          {/* ═══ CELESTIAL GEM ═══ */}
+          {report.celestialGem && (
+            <>
+              <CelestialGem gem={report.celestialGem} />
+              <SectionDivider />
+            </>
+          )}
+
+          {/* ═══ ETERNAL ARCHETYPE ═══ */}
+          {report.eternalArchetype && (
+            <>
+              <EternalArchetype archetype={report.eternalArchetype} petName={petName} />
+              <SectionDivider />
+            </>
+          )}
 
           {/* ═══ LUCKY ELEMENTS ═══ */}
           {report.luckyElements && (
@@ -1235,6 +1295,154 @@ function LuckyGrid({ luckyElements }: { luckyElements: ReportContent['luckyEleme
           <div className="font-dm-serif text-[1.05rem] text-[#3d2f2a]">{item.value}</div>
         </div>
       ))}
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// COSMIC NICKNAME
+// ═══════════════════════════════════════════════
+function CosmicNickname({ nickname }: { nickname: { nickname: string; explanation: string } }) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto text-center"
+    >
+      <div
+        className="p-6 rounded-[14px] relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.08) 0%, rgba(245,239,230,0.9) 50%, rgba(196,162,101,0.06) 100%)' }}
+      >
+        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#c4a265] mb-1">
+          Cosmic Nickname
+        </div>
+        <div
+          className="text-[1.4rem] text-[#3d2f2a] mb-2"
+          style={{ fontFamily: 'DM Serif Display, serif' }}
+        >
+          &ldquo;{nickname.nickname}&rdquo;
+        </div>
+        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.65] max-w-md mx-auto">
+          {nickname.explanation}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// FIRST MEETING
+// ═══════════════════════════════════════════════
+function FirstMeeting({ firstMeeting }: { firstMeeting: { title: string; paragraph: string } }) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+    >
+      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265] mb-1">
+        ✨ First Impressions
+      </div>
+      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mb-2.5">
+        {firstMeeting.title}
+      </h3>
+      <p className="text-[0.84rem] text-[#5a4a42] leading-[1.75]">
+        {firstMeeting.paragraph}
+      </p>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// CELESTIAL GEM
+// ═══════════════════════════════════════════════
+function CelestialGem({ gem }: { gem: SectionContent }) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+    >
+      <div className="flex items-center gap-2.5 mb-2.5">
+        <div className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-[1rem] flex-shrink-0 bg-emerald-500/10">
+          💎
+        </div>
+        <div>
+          <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265]">Celestial Gem</div>
+          <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mt-px">{gem.crystalName || gem.title}</h3>
+        </div>
+      </div>
+      {gem.crystalMeaning && (
+        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.65] mb-2">{gem.crystalMeaning}</p>
+      )}
+      {gem.howToUse && (
+        <div className="p-3 rounded-xl bg-[#faf6ef] border border-[#e8ddd0]/50">
+          <div className="text-[0.64rem] font-bold text-[#c4a265] uppercase tracking-[1px] mb-0.5">
+            💡 How to use
+          </div>
+          <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6]">{gem.howToUse}</p>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ETERNAL ARCHETYPE
+// ═══════════════════════════════════════════════
+function EternalArchetype({ archetype, petName }: { archetype: SectionContent; petName: string }) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+    >
+      <div
+        className="p-6 rounded-[14px] text-center relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #faf6ef, #f5ede0, #faf6ef)' }}
+      >
+        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#c4a265] mb-1">
+          🌟 Eternal Archetype
+        </div>
+        <div
+          className="text-[1.3rem] text-[#3d2f2a] mb-2"
+          style={{ fontFamily: 'DM Serif Display, serif' }}
+        >
+          {archetype.archetypeName || archetype.title}
+        </div>
+        {archetype.archetypeStory && (
+          <p
+            className="text-[0.9rem] text-[#5a4a42] leading-[1.7] italic max-w-md mx-auto mb-3"
+            style={{ fontFamily: 'Cormorant, serif' }}
+          >
+            {archetype.archetypeStory}
+          </p>
+        )}
+        {archetype.archetypeLesson && (
+          <div className="p-3 rounded-xl bg-white/60 border border-[#e8ddd0]/50 text-left">
+            <div className="text-[0.64rem] font-bold text-[#c4a265] uppercase tracking-[1px] mb-0.5">
+              ✦ {petName}'s Lesson
+            </div>
+            <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6]">{archetype.archetypeLesson}</p>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
