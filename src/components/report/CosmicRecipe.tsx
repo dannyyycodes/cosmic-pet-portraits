@@ -112,7 +112,14 @@ export function CosmicRecipe({ petName, report }: CosmicRecipeProps) {
   const s = useScrollReveal();
   const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Pisces';
   const element = report.dominantElement || 'Water';
-  const recipe = report.cosmicRecipe || generateDefaultRecipe(petName, sunSign, element);
+  const rawRecipe = report.cosmicRecipe || generateDefaultRecipe(petName, sunSign, element);
+  // Worker generates 'cosmicNote' instead of 'why', normalize
+  const recipe = {
+    ...rawRecipe,
+    why: rawRecipe.why || (rawRecipe as any).cosmicNote || '',
+    ingredients: rawRecipe.ingredients || [],
+    steps: rawRecipe.steps || [],
+  };
 
   return (
     <motion.div

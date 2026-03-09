@@ -518,40 +518,24 @@ export function CosmicReportViewer({
           <ChapterTitle chapter={chapters[3]} />
 
           {/* ═══ GOOGLE SEARCHES ═══ */}
-          {report.googleSearches && (
-            <>
-              <GoogleSearches petName={petName} report={report} />
-              <SectionDivider />
-            </>
-          )}
+          <GoogleSearches petName={petName} report={report} />
+          <SectionDivider />
 
           {/* ═══ TEXT MESSAGES ═══ */}
-          {report.textMessages && (
-            <>
-              <TextMessages petName={petName} report={report} occasionMode={occasionMode} />
-              <SectionDivider />
-            </>
-          )}
+          <TextMessages petName={petName} report={report} occasionMode={occasionMode} />
+          <SectionDivider />
 
           {/* ═══ HUMAN PROFILE ═══ */}
-          {report.humanProfile && (
-            <>
-              <HumanProfile petName={petName} report={report} occasionMode={occasionMode} />
-              <SectionDivider />
-            </>
-          )}
+          <HumanProfile petName={petName} report={report} occasionMode={occasionMode} />
+          <SectionDivider />
 
           {/* ═══ COSMIC RECIPE ═══ */}
           <CosmicRecipe petName={petName} report={report} />
           <SectionDivider />
 
           {/* ═══ COSMIC PLAYLIST ═══ */}
-          {report.cosmicPlaylist && (
-            <>
-              <CosmicPlaylist petName={petName} report={report} />
-              <SectionDivider />
-            </>
-          )}
+          <CosmicPlaylist petName={petName} report={report} />
+          <SectionDivider />
 
           {/* ══════════════════════════════════════════
               CHAPTER 5 — THE BOND
