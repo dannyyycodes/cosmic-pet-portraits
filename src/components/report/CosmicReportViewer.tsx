@@ -169,12 +169,12 @@ const readingSections = [
 
 // Chapter definitions
 const chapters = [
-  { number: 1, title: 'The Arrival', subtitle: 'The moment the stars aligned', icon: '✦' },
-  { number: 2, title: 'The Soul Map', subtitle: 'What the planets reveal', icon: '🗺️' },
-  { number: 3, title: 'The Lighter Side', subtitle: 'The bits you\'ll screenshot', icon: '😸' },
-  { number: 4, title: 'Their Secret World', subtitle: 'What they\u2019d never tell you', icon: '🔮' },
-  { number: 5, title: 'The Bond', subtitle: 'Why they chose you', icon: '💕' },
-  { number: 6, title: 'The Keepsake', subtitle: 'Take this with you', icon: '🎁' },
+  { number: 1, title: 'How They Came Into This World', subtitle: 'The stars were watching', icon: '✦' },
+  { number: 2, title: 'Their Soul, Decoded', subtitle: 'Planet by planet, layer by layer', icon: '🗺️' },
+  { number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '😸' },
+  { number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '🔮' },
+  { number: 5, title: 'Why They Chose You', subtitle: 'This was never random', icon: '💕' },
+  { number: 6, title: 'The Part That Makes People Cry', subtitle: 'You\u2019ve been warned', icon: '🎁' },
 ];
 
 export function CosmicReportViewer({
