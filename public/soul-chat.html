@@ -374,8 +374,8 @@ body::after {
 
 <script>
 // ─── Config ───
-var SUPABASE_URL = 'https://asmyxhisubzbblhivnea.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzbXl4aGlzdWJ6YmJsaGl2bmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NjgwODQsImV4cCI6MjA4MTU0NDA4NH0.6EVgWUN4jvgBveGSxt5RmVGHCCgeTgWuRmnpe4LphfY';
+var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.-axd-u-mY_73j2RPkySsLgG630WCUb05I8AbwYjIvkI';
 
 // ─── Credit Costs ───
 // Short message (under 50 chars) = 3 credits
@@ -587,6 +587,10 @@ async function loadReading() {
   }
 
   try {
+    // Get email from sessionStorage (set by ViewReport.tsx)
+    var storedEmail = '';
+    try { storedEmail = sessionStorage.getItem('cosmic_report_email') || ''; } catch(e) {}
+
     // Use the get-report function (same as ViewReport.tsx uses)
     var res = await fetch(SUPABASE_URL + '/functions/v1/get-report', {
       method: 'POST',
@@ -595,7 +599,7 @@ async function loadReading() {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
       },
-      body: JSON.stringify({ reportId: readingId }),
+      body: JSON.stringify({ reportId: readingId, email: storedEmail }),
     });
     var data = await res.json();
 
