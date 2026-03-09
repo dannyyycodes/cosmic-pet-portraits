@@ -44,16 +44,17 @@ export function ReportMethodology({ petName }: ReportMethodologyProps) {
         variants={header.variants}
         className="text-center px-8 py-8 max-w-[520px] mx-auto"
       >
-        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265]">
+        <div className="text-[0.55rem] font-bold tracking-[3px] uppercase text-[#c4a265]">
           Before Your Reading
         </div>
-        <h2 className="font-dm-serif text-2xl text-[#3d2f2a] leading-tight mt-1.5">
-          How We Mapped {petName}'s Soul
+        <h2 className="text-[1.6rem] text-[#3d2f2a] leading-tight mt-2" style={{ fontFamily: 'DM Serif Display, serif' }}>
+          How We Mapped {petName}&rsquo;s Soul
         </h2>
-        <p className="text-[0.84rem] leading-[1.75] text-[#9a8578] max-w-[400px] mx-auto mt-2">
-          Your reading is calculated from real astronomical data — the exact position of the Sun,
-          Moon, and planets at the moment {petName} was born. Nothing is random. Here's the science
-          behind it.
+        <p className="text-[0.9rem] leading-[1.8] text-[#9a8578] max-w-[380px] mx-auto mt-3 italic"
+          style={{ fontFamily: 'Cormorant, serif' }}
+        >
+          Every placement in this reading is calculated from real astronomical data. The exact position
+          of the Sun, Moon, and planets at the moment {petName} entered this world. Nothing here is random.
         </p>
       </motion.div>
 

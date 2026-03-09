@@ -788,32 +788,39 @@ function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
       ref={s.ref}
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
-      variants={s.variants}
-      className="text-center py-10 px-6 max-w-[520px] mx-auto"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1, ease: 'easeOut' } } }}
+      className="py-14 px-6 max-w-[520px] mx-auto"
     >
-      <div
-        className="py-8 px-6 rounded-2xl relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, rgba(196,162,101,0.06) 0%, rgba(245,239,230,0.8) 50%, rgba(196,162,101,0.04) 100%)',
-        }}
-      >
-        <div className="text-[0.6rem] font-bold tracking-[3px] uppercase text-[#c4a265] mb-2">
+      <div className="text-center relative py-10 px-8">
+        {/* Top decorative border */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-3">
+          <div className="w-12 h-[1px] bg-[#c4a265]/40" />
+          <span className="text-[#c4a265]/60 text-[0.7rem]">✦</span>
+          <div className="w-12 h-[1px] bg-[#c4a265]/40" />
+        </div>
+
+        <div className="text-[0.55rem] font-bold tracking-[4px] uppercase text-[#c4a265]/70 mb-3">
           Chapter {chapter.number}
         </div>
         <h2
-          className="text-[1.8rem] text-[#3d2f2a] leading-tight mb-1.5"
+          className="text-[1.9rem] sm:text-[2.1rem] text-[#3d2f2a] leading-[1.2] mb-3"
           style={{ fontFamily: 'DM Serif Display, serif' }}
         >
           {chapter.title}
         </h2>
         <p
-          className="text-[0.9rem] text-[#9a8578] italic"
-          style={{ fontFamily: 'Cormorant, serif' }}
+          className="text-[1rem] text-[#9a8578] leading-[1.6]"
+          style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
         >
           {chapter.subtitle}
         </p>
-        {/* Decorative line */}
-        <div className="w-12 h-[1px] bg-[#c4a265]/30 mx-auto mt-4" />
+
+        {/* Bottom decorative border */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-3">
+          <div className="w-12 h-[1px] bg-[#c4a265]/40" />
+          <span className="text-[#c4a265]/60 text-[0.7rem]">✦</span>
+          <div className="w-12 h-[1px] bg-[#c4a265]/40" />
+        </div>
       </div>
     </motion.div>
   );
@@ -983,26 +990,32 @@ function VillainOriginStory({
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px]"
+      style={{
+        background: 'linear-gradient(165deg, #2a1f2a 0%, #1a1520 100%)',
+        boxShadow: '0 4px 20px rgba(42,31,42,0.3)',
+      }}
     >
-      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265] mb-1">
-        🦹 Villain Origin Story
-      </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mb-3.5">
-        {petName}'s Descent into Chaos
-      </h3>
+      <div className="p-6">
+        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-purple-300/70 mb-1">
+          🦹 Villain Origin Story
+        </div>
+        <h3 className="text-[1.1rem] text-white mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>
+          {petName}&rsquo;s Descent into Chaos
+        </h3>
 
-      <div className="space-y-3">
-        {sections.map((s) => (
-          <div key={s.label}>
-            <div className="text-[0.68rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
-              {s.icon} {s.label}
+        <div className="space-y-4">
+          {sections.map((sec) => (
+            <div key={sec.label}>
+              <div className="text-[0.62rem] font-bold text-purple-300/60 uppercase tracking-[1.5px] mb-1">
+                {sec.icon} {sec.label}
+              </div>
+              <p className="text-[0.84rem] text-white/80 leading-[1.7]"
+                 dangerouslySetInnerHTML={{ __html: (sec.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+              />
             </div>
-            <p className="text-[0.82rem] text-[#5a4a42] leading-[1.65]"
-               dangerouslySetInnerHTML={{ __html: (s.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
-            />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </motion.div>
   );
@@ -1206,18 +1219,25 @@ function FunExtrasCard({
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 p-6 rounded-[18px] max-w-[520px] sm:mx-auto"
+      style={{
+        background: 'linear-gradient(135deg, #FFFDF5, #faf6ef)',
+        border: '1px solid rgba(196,162,101,0.15)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+      }}
     >
-      <div className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
+      <div className="text-[0.56rem] font-bold text-[#c4a265] uppercase tracking-[2px] mb-1">
         {icon} {label}
       </div>
-      <div className="font-dm-serif text-[0.95rem] text-[#3d2f2a]">{title}</div>
+      <div className="text-[1.15rem] text-[#3d2f2a] mb-2" style={{ fontFamily: 'DM Serif Display, serif' }}>
+        {title}
+      </div>
       {description && (
-        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.6] mt-1"
+        <p className="text-[0.84rem] text-[#5a4a42] leading-[1.7] mt-1"
            dangerouslySetInnerHTML={{ __html: (description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
         />
       )}
-      {extra && <div className="mt-1.5">{extra}</div>}
+      {extra && <div className="mt-2.5">{extra}</div>}
     </motion.div>
   );
 }
@@ -1234,18 +1254,35 @@ function CrimesSection({ crimes }: { crimes: string[] }) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px]"
+      style={{
+        background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 100%)',
+        boxShadow: '0 4px 20px rgba(61,47,42,0.25)',
+      }}
     >
-      <div className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
-        🚨 Criminal Record
-      </div>
-      <div className="text-[0.82rem] text-[#5a4a42] leading-[1.6]">
-        {crimes.map((crime, i) => (
-          <span key={i}>
-            <span dangerouslySetInnerHTML={{ __html: `${i + 1}. ${(crime || '').replace(/ — /g, '. ').replace(/ – /g, '. ')}` }} />
-            {i < crimes.length - 1 && <br />}
-          </span>
-        ))}
+      <div className="p-6">
+        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#c4a265] mb-1">
+          🚨 Criminal Record
+        </div>
+        <h3 className="text-[1.1rem] text-white mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>
+          Top 5 Crimes
+        </h3>
+
+        <div className="space-y-3">
+          {crimes.map((crime, i) => (
+            <div
+              key={i}
+              className="flex gap-3 items-start"
+            >
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#c4a265]/20 flex items-center justify-center text-[0.7rem] font-bold text-[#c4a265] mt-0.5">
+                {i + 1}
+              </span>
+              <p className="text-[0.84rem] text-white/85 leading-[1.6]"
+                 dangerouslySetInnerHTML={{ __html: (crime || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </motion.div>
   );
