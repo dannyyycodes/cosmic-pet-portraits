@@ -146,16 +146,6 @@ const readingSections = [
     tipLabel: 'Wild wisdom',
   },
   {
-    key: 'keepersBond' as const,
-    icon: '💕',
-    iconClass: 'bg-rose-500/10',
-    label: "X · Keeper's Bond",
-    whyBoxIcon: '💕',
-    whyPrefix: 'Synastry \u2014 the astrology of relationships \u2014 examines how two charts interact. The bond between a pet and their keeper is one of the most pure forms of connection astrologers can study, free from ego or pretence. This section maps that bond through planetary alignment.',
-    tipIcon: '💕',
-    tipLabel: 'Soul contract',
-  },
-  {
     key: 'cosmicExpansion' as const,
     icon: '♃',
     iconClass: 'bg-yellow-500/10',
@@ -182,7 +172,7 @@ const chapters = [
   { number: 1, title: 'The Arrival', subtitle: 'The moment the stars aligned', icon: '✦' },
   { number: 2, title: 'The Soul Map', subtitle: 'What the planets reveal', icon: '🗺️' },
   { number: 3, title: 'The Lighter Side', subtitle: 'The bits you\'ll screenshot', icon: '😸' },
-  { number: 4, title: 'Their Secret World', subtitle: 'The words they wish you could hear', icon: '🔮' },
+  { number: 4, title: 'Their Secret World', subtitle: 'What they\u2019d never tell you', icon: '🔮' },
   { number: 5, title: 'The Bond', subtitle: 'Why they chose you', icon: '💕' },
   { number: 6, title: 'The Keepsake', subtitle: 'Take this with you', icon: '🎁' },
 ];
@@ -341,6 +331,11 @@ export function CosmicReportViewer({
         <CosmicNickname nickname={report.cosmicNickname} />
       )}
 
+      {/* ═══ PROLOGUE ═══ */}
+      {report.prologue && (
+        <PrologueSection prologue={report.prologue} petName={petName} />
+      )}
+
       {/* ═══ TABLE OF CONTENTS ═══ */}
       {!isPreview && <TableOfContents />}
 
@@ -402,8 +397,14 @@ export function CosmicReportViewer({
       />
       <SectionDivider />
 
-      {/* ═══ 12 READING SECTIONS (Sun through Saturn) ═══ */}
-      {readingSections.map(renderReadingSection)}
+      {/* ═══ READING SECTIONS: First Half (I-VI) ═══ */}
+      {readingSections.slice(0, 6).map((config, i) => renderReadingSection(config, i))}
+
+      {/* ═══ MID-READING TRANSITION ═══ */}
+      <MidReadingTransition petName={petName} />
+
+      {/* ═══ READING SECTIONS: Second Half (VII-XII) ═══ */}
+      {readingSections.slice(6).map((config, i) => renderReadingSection(config, i + 6))}
 
       {/* ═══ CELESTIAL CHOREOGRAPHY (planetary aspects) ═══ */}
       {report.celestialChoreography && (
@@ -440,6 +441,14 @@ export function CosmicReportViewer({
       {/* ═══ EVERYTHING BELOW IS FULL (NOT PREVIEW) ═══ */}
       {!isPreview && (
         <>
+          {/* ═══ PET MONOLOGUE (emotional peak before lighter sections) ═══ */}
+          {report.petMonologue && (
+            <>
+              <PetMonologue monologue={report.petMonologue} petName={petName} sunSign={sunSign} />
+              <SectionDivider />
+            </>
+          )}
+
           {/* ══════════════════════════════════════════
               CHAPTER 3 — THE LIGHTER SIDE
              ══════════════════════════════════════════ */}
@@ -508,14 +517,6 @@ export function CosmicReportViewer({
              ══════════════════════════════════════════ */}
           <ChapterTitle chapter={chapters[3]} />
 
-          {/* ═══ PET MONOLOGUE ═══ */}
-          {report.petMonologue && (
-            <>
-              <PetMonologue monologue={report.petMonologue} petName={petName} sunSign={sunSign} />
-              <SectionDivider />
-            </>
-          )}
-
           {/* ═══ GOOGLE SEARCHES ═══ */}
           <GoogleSearches petName={petName} report={report} />
           <SectionDivider />
@@ -541,7 +542,24 @@ export function CosmicReportViewer({
              ══════════════════════════════════════════ */}
           <ChapterTitle chapter={chapters[4]} />
 
-          {/* ═══ KEEPER'S BOND (re-rendered in chapter context if needed) ═══ */}
+          {/* ═══ KEEPER'S BOND ═══ */}
+          {report.keepersBond && (
+            <>
+              <ReportSectionCard
+                icon="💕"
+                iconClass="bg-rose-500/10"
+                label="Keeper's Bond"
+                title={(report.keepersBond as SectionContent).title}
+                whyText="Synastry &mdash; the astrology of relationships &mdash; examines how two charts interact. The bond between a pet and their keeper is one of the most pure forms of connection astrologers can study, free from ego or pretence."
+                whyBoxIcon="💕"
+                content={(report.keepersBond as SectionContent).content}
+                tipBox={(report.keepersBond as SectionContent).soulContract ? { icon: '💕', label: 'Soul contract', text: (report.keepersBond as SectionContent).soulContract! } : undefined}
+                funFact={(report.keepersBond as SectionContent).funFact}
+                variant={1}
+              />
+              <SectionDivider />
+            </>
+          )}
 
           {/* ═══ ACCURACY PREDICTIONS ═══ */}
           {report.accuracyMoments && (
@@ -1371,6 +1389,65 @@ function LuckyGrid({ luckyElements }: { luckyElements: ReportContent['luckyEleme
           <div className="font-dm-serif text-[1.05rem] text-[#3d2f2a]">{item.value}</div>
         </div>
       ))}
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// PROLOGUE SECTION
+// ═══════════════════════════════════════════════
+function PrologueSection({ prologue, petName }: { prologue: string; petName: string }) {
+  const s = useScrollReveal();
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } } }}
+      className="mx-4 my-4 max-w-[520px] sm:mx-auto text-center"
+    >
+      <div className="text-[0.56rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-3">
+        Prologue
+      </div>
+      <p
+        className="text-[1rem] text-[#5a4a42] leading-[2] italic px-4"
+        style={{ fontFamily: 'Cormorant, serif' }}
+        dangerouslySetInnerHTML={{ __html: prologue.replace(/\n\n/g, '<br /><br />') }}
+      />
+      <div className="w-12 h-[1px] bg-[#c4a265]/30 mx-auto mt-6" />
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// MID-READING TRANSITION
+// ═══════════════════════════════════════════════
+function MidReadingTransition({ petName }: { petName: string }) {
+  const s = useScrollReveal();
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.8, ease: 'easeOut' } } }}
+      className="text-center px-8 py-10 max-w-[520px] mx-auto"
+    >
+      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-2">
+        Going Deeper
+      </div>
+      <h2
+        className="text-[1.4rem] text-[#3d2f2a] leading-tight mb-2"
+        style={{ fontFamily: 'DM Serif Display, serif' }}
+      >
+        The Hidden Layers of {petName}&rsquo;s Soul
+      </h2>
+      <p
+        className="text-[0.88rem] text-[#9a8578] italic leading-[1.7] max-w-[380px] mx-auto"
+        style={{ fontFamily: 'Cormorant, serif' }}
+      >
+        The outer planets, karmic points, and soul contracts reveal what lies beneath the surface.
+      </p>
+      <div className="w-10 h-0.5 bg-[#c4a265] mx-auto mt-5 rounded-sm" />
     </motion.div>
   );
 }
