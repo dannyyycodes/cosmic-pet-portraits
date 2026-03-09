@@ -11,6 +11,31 @@ interface ReportSectionCardProps {
   content: string;
   tipBox?: { icon: string; label: string; text: string };
   funFact?: string;
+  variant?: number;
+}
+
+const variantStyles: Record<number, { container: string; containerStyle: React.CSSProperties }> = {
+  0: {
+    container: 'bg-white rounded-[14px] border border-[#e8ddd0]',
+    containerStyle: { boxShadow: '0 1px 8px rgba(0,0,0,0.03)' },
+  },
+  1: {
+    container: 'rounded-[14px]',
+    containerStyle: { background: 'linear-gradient(135deg, #faf6ef, #f5ede0)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)' },
+  },
+  2: {
+    container: 'bg-white rounded-[14px] border-l-[3px] border-[#c4a265]',
+    containerStyle: { boxShadow: '0 1px 8px rgba(0,0,0,0.03)' },
+  },
+};
+
+function cleanContent(raw: string): string {
+  return raw
+    .replace(/\n\n/g, '<br /><br />')
+    .replace(/ — /g, '. ')
+    .replace(/ – /g, '. ')
+    .replace(/^- /gm, '• ')
+    .replace(/\n- /g, '<br />• ');
 }
 
 export function ReportSectionCard({
@@ -23,8 +48,10 @@ export function ReportSectionCard({
   content,
   tipBox,
   funFact,
+  variant = 0,
 }: ReportSectionCardProps) {
   const s = useScrollReveal();
+  const v = variantStyles[variant] || variantStyles[0];
 
   return (
     <motion.div
@@ -32,8 +59,8 @@ export function ReportSectionCard({
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
-      style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.03)' }}
+      className={`mx-4 my-2.5 p-[22px] px-5 max-w-[520px] sm:mx-auto ${v.container}`}
+      style={v.containerStyle}
     >
       {/* Icon + label row */}
       <div className="flex items-center gap-2.5 mb-2.5">
@@ -63,7 +90,7 @@ export function ReportSectionCard({
       {/* Content */}
       <div
         className="mt-2.5 text-[0.84rem] leading-[1.75] text-[#5a4a42]"
-        dangerouslySetInnerHTML={{ __html: content.replace(/\n\n/g, '<br /><br />') }}
+        dangerouslySetInnerHTML={{ __html: cleanContent(content) }}
       />
 
       {/* Tip box */}

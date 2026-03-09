@@ -61,7 +61,7 @@ const readingSections = [
     iconClass: 'bg-amber-500/10',
     label: 'I · Solar Soulprint',
     whyBoxIcon: '☉',
-    whyPrefix: 'The Sun sign is the foundation of personality, representing core identity, life force, and the energy that makes them who they are at the deepest level.',
+    whyPrefix: 'In natal astrology, the Sun is the single most defining placement in a chart. It governs the core self, the vital force, and the essential nature that remains constant throughout life. Every behaviour, instinct, and personality trait traces back to this one position.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -71,7 +71,7 @@ const readingSections = [
     iconClass: 'bg-violet-500/10',
     label: 'II · Lunar Heart',
     whyBoxIcon: '☽',
-    whyPrefix: 'For animals, the Moon is arguably more important than the Sun. It governs instinct, emotional needs, and the unconscious patterns that shape daily behaviour.',
+    whyPrefix: 'Astrologers have long recognised the Moon as the most powerful influence in an animal\u2019s chart. While humans rationalise their emotions, animals live entirely through instinct and feeling \u2014 the Moon\u2019s domain. This placement reveals the emotional blueprint that governs every reaction.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -81,7 +81,7 @@ const readingSections = [
     iconClass: 'bg-sky-400/10',
     label: 'III · Cosmic Curiosity',
     whyBoxIcon: '☿',
-    whyPrefix: 'Mercury governs communication and intelligence. It determines how your pet expresses themselves, processes information, and connects with you.',
+    whyPrefix: 'Mercury\u2019s position determines the precise way a soul processes and transmits information. In veterinary astrology, this placement correlates with observable communication patterns, learning speed, and the specific ways your pet tries to "speak" to you.',
     tipIcon: '💡',
     tipLabel: 'Try this',
   },
@@ -91,7 +91,7 @@ const readingSections = [
     iconClass: 'bg-pink-500/10',
     label: 'IV · Harmony & Heartbeats',
     whyBoxIcon: '♀',
-    whyPrefix: 'Venus is the planet of love and pleasure. It reveals love language: how your pet gives affection, what brings joy, and what they need to feel cherished.',
+    whyPrefix: 'Venus has governed love and attachment since the earliest astrological traditions. In an animal\u2019s chart, this placement is remarkably precise \u2014 it maps directly onto how they give and receive affection, what comforts them, and the specific gestures that mean "I love you."',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -101,7 +101,7 @@ const readingSections = [
     iconClass: 'bg-red-500/10',
     label: 'V · Spirit of Motion',
     whyBoxIcon: '♂',
-    whyPrefix: 'Mars governs physical energy, drive, and instinct. It determines whether your pet is a sprinter or a slow burner, a fighter or a lover.',
+    whyPrefix: 'Mars is the planet of raw physical energy and primal drive. In classical interpretation, its sign placement determines whether a creature burns energy in short intense bursts or sustains a slow, powerful momentum. This is one of the most observably accurate placements in animal charts.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -111,7 +111,7 @@ const readingSections = [
     iconClass: 'bg-purple-500/10',
     label: 'VI · Starlit Gaze',
     whyBoxIcon: '⬆',
-    whyPrefix: 'The rising sign is the "mask" your pet wears. It shapes what others see before they know the real personality, influencing first impressions and physical presence.',
+    whyPrefix: 'The Ascendant, or rising sign, changes every two hours \u2014 making it one of the most personalised elements of any birth chart. It shapes the immediate impression your pet makes: their posture, their energy when entering a room, and the aura others sense before knowing them.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -120,8 +120,8 @@ const readingSections = [
     icon: '🧭',
     iconClass: 'bg-green-500/10',
     label: 'VII · Destiny Compass',
-    whyBoxIcon: undefined,
-    whyPrefix: undefined,
+    whyBoxIcon: '🧭',
+    whyPrefix: 'The Lunar Nodes represent the soul\u2019s evolutionary trajectory \u2014 where it has been and where it is heading. Many astrologers consider the Nodes the most spiritually significant points in a chart, revealing the deeper purpose behind this particular lifetime.',
     tipIcon: '🧭',
     tipLabel: 'Past life hint',
   },
@@ -130,8 +130,8 @@ const readingSections = [
     icon: '💚',
     iconClass: 'bg-teal-500/10',
     label: 'VIII · Gentle Healer',
-    whyBoxIcon: undefined,
-    whyPrefix: undefined,
+    whyBoxIcon: '💚',
+    whyPrefix: 'Chiron, known as the Wounded Healer in astrology, occupies a unique orbital position between Saturn and Uranus. Its chart placement pinpoints the specific way your pet carries healing energy \u2014 and why certain people feel inexplicably better in their presence.',
     tipIcon: '💚',
     tipLabel: 'Healing tip',
   },
@@ -140,8 +140,8 @@ const readingSections = [
     icon: '🌀',
     iconClass: 'bg-violet-600/10',
     label: 'IX · Wild Spirit',
-    whyBoxIcon: undefined,
-    whyPrefix: undefined,
+    whyBoxIcon: '🌀',
+    whyPrefix: 'Uranus, Neptune, and Pluto \u2014 the outer planets \u2014 move slowly through the zodiac, shaping generational patterns. But their house placements and aspects create deeply individual signatures: the unpredictable quirks, hidden depths, and untamed instincts unique to this soul.',
     tipIcon: '🌀',
     tipLabel: 'Wild wisdom',
   },
@@ -150,8 +150,8 @@ const readingSections = [
     icon: '💕',
     iconClass: 'bg-rose-500/10',
     label: "X · Keeper's Bond",
-    whyBoxIcon: undefined,
-    whyPrefix: undefined,
+    whyBoxIcon: '💕',
+    whyPrefix: 'Synastry \u2014 the astrology of relationships \u2014 examines how two charts interact. The bond between a pet and their keeper is one of the most pure forms of connection astrologers can study, free from ego or pretence. This section maps that bond through planetary alignment.',
     tipIcon: '💕',
     tipLabel: 'Soul contract',
   },
@@ -161,7 +161,7 @@ const readingSections = [
     iconClass: 'bg-yellow-500/10',
     label: 'XI · Cosmic Expansion',
     whyBoxIcon: '♃',
-    whyPrefix: 'Jupiter is the planet of expansion, luck, and abundance. It reveals where life flows easily and joy naturally lives.',
+    whyPrefix: 'Jupiter completes its orbit every twelve years, spending roughly one year in each sign. Known as the Great Benefic since antiquity, its placement reveals where abundance, joy, and natural good fortune concentrate in your pet\u2019s life.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -171,7 +171,7 @@ const readingSections = [
     iconClass: 'bg-slate-500/10',
     label: 'XII · Cosmic Lessons',
     whyBoxIcon: '♄',
-    whyPrefix: 'Saturn is the teacher of discipline and boundaries. It shows where growth requires patience and where effort yields the greatest rewards.',
+    whyPrefix: 'Saturn, the Great Teacher, takes 29.5 years to complete its orbit. Its placement marks the areas where growth comes through patience and repetition. Far from limiting, Saturn\u2019s influence builds the quiet strength and resilience that defines character over time.',
     tipIcon: '💡',
     tipLabel: 'Practical tip',
   },
@@ -255,7 +255,7 @@ export function CosmicReportViewer({
   }
 
   // Helper: render a reading section
-  const renderReadingSection = (config: typeof readingSections[number]) => {
+  const renderReadingSection = (config: typeof readingSections[number], index: number) => {
     const section = report[config.key] as SectionContent | undefined;
     if (!section) return null;
 
@@ -290,6 +290,7 @@ export function CosmicReportViewer({
               : undefined
           }
           funFact={section.funFact}
+          variant={index % 3}
         />
         <SectionDivider />
       </div>
@@ -979,7 +980,9 @@ function VillainOriginStory({
             <div className="text-[0.68rem] font-bold text-[#9a8578] uppercase tracking-[1px] mb-0.5">
               {s.icon} {s.label}
             </div>
-            <p className="text-[0.82rem] text-[#5a4a42] leading-[1.65]">{s.text}</p>
+            <p className="text-[0.82rem] text-[#5a4a42] leading-[1.65]"
+               dangerouslySetInnerHTML={{ __html: (s.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+            />
           </div>
         ))}
       </div>
@@ -1192,7 +1195,9 @@ function FunExtrasCard({
       </div>
       <div className="font-dm-serif text-[0.95rem] text-[#3d2f2a]">{title}</div>
       {description && (
-        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.6] mt-1">{description}</p>
+        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.6] mt-1"
+           dangerouslySetInnerHTML={{ __html: (description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+        />
       )}
       {extra && <div className="mt-1.5">{extra}</div>}
     </motion.div>
@@ -1219,7 +1224,7 @@ function CrimesSection({ crimes }: { crimes: string[] }) {
       <div className="text-[0.82rem] text-[#5a4a42] leading-[1.6]">
         {crimes.map((crime, i) => (
           <span key={i}>
-            {i + 1}. {crime}
+            <span dangerouslySetInnerHTML={{ __html: `${i + 1}. ${(crime || '').replace(/ — /g, '. ').replace(/ – /g, '. ')}` }} />
             {i < crimes.length - 1 && <br />}
           </span>
         ))}
