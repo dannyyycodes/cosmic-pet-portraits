@@ -182,7 +182,7 @@ const chapters = [
   { number: 1, title: 'The Arrival', subtitle: 'The moment the stars aligned', icon: '✦' },
   { number: 2, title: 'The Soul Map', subtitle: 'What the planets reveal', icon: '🗺️' },
   { number: 3, title: 'The Lighter Side', subtitle: 'The bits you\'ll screenshot', icon: '😸' },
-  { number: 4, title: 'Their Secret World', subtitle: 'What they\'d say if they could', icon: '🔮' },
+  { number: 4, title: 'Their Secret World', subtitle: 'The words they wish you could hear', icon: '🔮' },
   { number: 5, title: 'The Bond', subtitle: 'Why they chose you', icon: '💕' },
   { number: 6, title: 'The Keepsake', subtitle: 'Take this with you', icon: '🎁' },
 ];
@@ -668,7 +668,47 @@ export function CosmicReportViewer({
             )}
           </div>
 
-          {/* ═══ SOULSPEAK FAB CTA ═══ */}
+          {/* ═══ SOULSPEAK CTA ═══ */}
+          {!isPreview && reportId && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+              className="mx-4 my-6 max-w-[520px] sm:mx-auto"
+            >
+              <a
+                href={`/soul-chat.html?id=${reportId}`}
+                className="block p-7 rounded-[18px] text-center no-underline relative overflow-hidden group"
+                style={{
+                  background: 'linear-gradient(165deg, #3d2f2a 0%, #5a3e2e 50%, #3d2f2a 100%)',
+                  boxShadow: '0 4px 24px rgba(61,47,42,0.3)',
+                }}
+              >
+                <div className="text-[1.6rem] mb-2">✨</div>
+                <div
+                  className="text-[1.15rem] text-white leading-tight mb-2"
+                  style={{ fontFamily: 'DM Serif Display, serif' }}
+                >
+                  {petName} has more to tell you
+                </div>
+                <p className="text-[0.82rem] text-white/70 leading-[1.6] max-w-xs mx-auto mb-4"
+                  style={{ fontFamily: 'Cormorant, serif' }}
+                >
+                  Ask {petName} anything. Why they do the things they do, what they dream about, or just tell them how you feel.
+                </p>
+                <span
+                  className="inline-block px-6 py-2.5 rounded-full text-[0.8rem] font-semibold tracking-[0.5px]"
+                  style={{
+                    background: 'linear-gradient(135deg, #c4a265, #d4b87a)',
+                    color: '#3d2f2a',
+                  }}
+                >
+                  Talk to {petName}&rsquo;s Soul
+                </span>
+              </a>
+            </motion.div>
+          )}
 
           {/* ═══ MULTI-PET NAVIGATION ═══ */}
           {(hasMultipleReports || onAllComplete) && (
@@ -712,7 +752,7 @@ export function CosmicReportViewer({
       <div className="h-[100px]" />
 
       {/* ═══ SOULSPEAK FAB ═══ */}
-      {!isPreview && <SoulSpeakFAB reportId={reportId} />}
+      {!isPreview && <SoulSpeakFAB reportId={reportId} petName={petName} />}
     </div>
   );
 }
@@ -822,49 +862,80 @@ function PetMonologue({
   petName: string;
   sunSign: string;
 }) {
+  const intro = useScrollReveal();
   const s = useScrollReveal();
   const signData = zodiacSigns[sunSign.toLowerCase()];
   const signIcon = signData?.icon || '⭐';
 
   return (
-    <motion.div
-      ref={s.ref}
-      initial="hidden"
-      animate={s.isInView ? 'visible' : 'hidden'}
-      variants={s.variants}
-      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
-    >
-      <div
-        className="p-8 rounded-[14px] text-center relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #faf6ef, #f5ede0, #faf6ef)' }}
+    <>
+      {/* Emotional intro before the monologue */}
+      <motion.div
+        ref={intro.ref}
+        initial="hidden"
+        animate={intro.isInView ? 'visible' : 'hidden'}
+        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1, ease: 'easeOut' } } }}
+        className="text-center px-6 py-6 max-w-[520px] mx-auto"
       >
-        {/* Opening quote */}
-        <div className="text-[4rem] leading-none text-[#c4a265]/30 font-serif mb-[-1rem]">&ldquo;</div>
-
         <p
-          className="text-[1rem] text-[#3d2f2a] leading-[1.9] italic px-4 max-w-md mx-auto"
+          className="text-[1.05rem] text-[#9a8578] italic leading-[1.7]"
           style={{ fontFamily: 'Cormorant, serif' }}
         >
-          {monologue.monologue}
+          If {petName} could speak to you, just once, in words you could understand&hellip;
         </p>
+      </motion.div>
 
-        {/* Closing quote */}
-        <div className="text-[4rem] leading-none text-[#c4a265]/30 font-serif mt-[-0.5rem]">&rdquo;</div>
+      <motion.div
+        ref={s.ref}
+        initial="hidden"
+        animate={s.isInView ? 'visible' : 'hidden'}
+        variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: 'easeOut' } } }}
+        className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+      >
+        <div
+          className="p-10 rounded-[18px] text-center relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(165deg, #faf6ef 0%, #f5ede0 40%, #f0e6d6 100%)',
+            boxShadow: '0 4px 24px rgba(196,162,101,0.1), inset 0 1px 0 rgba(255,255,255,0.5)',
+            border: '1px solid rgba(196,162,101,0.15)',
+          }}
+        >
+          {/* Soft corner accents */}
+          <div className="absolute top-0 left-0 w-24 h-24 rounded-full opacity-25 pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.15), transparent 70%)' }} />
+          <div className="absolute bottom-0 right-0 w-24 h-24 rounded-full opacity-25 pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.15), transparent 70%)' }} />
 
-        {/* Attribution */}
-        <div className="mt-2 text-[0.82rem] text-[#9a8578] font-medium">
-          — {petName} {signIcon}
-        </div>
-        <div className="text-[0.68rem] text-[#9a8578]/70 mt-0.5">{sunSign}</div>
+          {/* Opening quote */}
+          <div className="text-[4.5rem] leading-none text-[#c4a265]/35 font-serif mb-[-1.2rem]">&ldquo;</div>
 
-        {/* Post script */}
-        {monologue.postScript && (
-          <p className="mt-4 text-[0.78rem] text-[#6b4c3b] italic opacity-80 max-w-sm mx-auto" style={{ fontFamily: 'Cormorant, serif' }}>
-            P.S. {monologue.postScript}
+          <p
+            className="text-[1.08rem] text-[#3d2f2a] leading-[2] italic px-3 max-w-md mx-auto"
+            style={{ fontFamily: 'Cormorant, serif' }}
+          >
+            {monologue.monologue}
           </p>
-        )}
-      </div>
-    </motion.div>
+
+          {/* Closing quote */}
+          <div className="text-[4.5rem] leading-none text-[#c4a265]/35 font-serif mt-[-0.6rem]">&rdquo;</div>
+
+          <div className="w-10 h-[1px] bg-[#c4a265]/30 mx-auto my-3" />
+
+          {/* Attribution */}
+          <div className="text-[0.85rem] text-[#3d2f2a] font-bold">
+            — {petName} {signIcon}
+          </div>
+          <div className="text-[0.68rem] text-[#9a8578]/70 mt-0.5">{sunSign}</div>
+
+          {/* Post script */}
+          {monologue.postScript && (
+            <p className="mt-5 text-[0.82rem] text-[#6b4c3b] italic opacity-80 max-w-sm mx-auto" style={{ fontFamily: 'Cormorant, serif' }}>
+              P.S. {monologue.postScript}
+            </p>
+          )}
+        </div>
+      </motion.div>
+    </>
   );
 }
 
