@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+const OPENROUTER_API_KEY = (Deno.env.get("OPENROUTER_API_KEY") || "").trim();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -110,11 +110,11 @@ serve(async (req) => {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "https://cosmicpetportraits.com",
-        "X-Title": "Cosmic Pet Soul Chat",
+        "HTTP-Referer": "https://littlesouls-app.vercel.app",
+        "X-Title": "Little Souls - Soul Chat",
       },
       body: JSON.stringify({
-        model: "anthropic/claude-sonnet-4-20250514",
+        model: "anthropic/claude-sonnet-4",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages.slice(-20),
@@ -125,6 +125,14 @@ serve(async (req) => {
     });
 
     const data = await response.json();
+
+    if (data.error) {
+      console.error("OpenRouter error:", JSON.stringify(data.error));
+      return new Response(JSON.stringify({ reply: "The cosmic connection wavered... please try again in a moment.", debug: data.error?.message }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const reply = data.choices?.[0]?.message?.content || "Something stirred in the cosmos... try again.";
 
     // Store messages for analytics (fire and forget)
