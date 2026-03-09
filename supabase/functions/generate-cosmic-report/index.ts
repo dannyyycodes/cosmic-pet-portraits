@@ -1065,6 +1065,55 @@ JSON Structure:
     "luckyDay": "Day of the week",
     "luckyColor": "A color",
     "powerTime": "Time of day when they're most energetic"
+  },
+
+  "googleSearches": [
+    "8 funny Google searches ${petData.name} would make late at night. Make them specific to their ${sunSign} Sun, ${moonSign} Moon, and ${petData.species} nature. Mix cute, existential, and hilarious. Example style: 'why does my human stare at the glowing rectangle instead of me'. Each should feel unique to THIS pet's personality and chart placements. Do NOT use generic searches."
+  ],
+
+  "textMessages": {
+    "morning": {
+      "pet": ["4-5 messages from ${petData.name} waking up their human. Written in ${petData.name}'s voice based on their chart - a ${sunSign} Sun with ${moonSign} Moon energy. Casual, funny, endearing pet-speak."],
+      "human": ["1-2 short human responses"]
+    },
+    "afternoon": {
+      "pet": ["4-5 afternoon messages. Maybe ${petData.name} noticed their human is stressed, or wants something, or has an observation. Personality should match their Venus in ${venus} love style and Mars energy."],
+      "human": ["1-2 short human responses"]
+    },
+    "night": {
+      "pet": ["3-4 late night messages from ${petData.name}. This should be the emotional one - maybe a random 'i love you' or a sweet reflection. Match their Moon sign emotional style."],
+      "human": ["1 short human response"]
+    }
+  },
+
+  "humanProfile": {
+    "Aesthetic": "If ${petData.name} was a human, what would their aesthetic be? Based on their Venus and Rising sign. Be specific and funny.",
+    "Career": "What career would human-${petData.name} have? Based on their Sun, Mars, and Mercury placements.",
+    "Morning Routine": "Describe human-${petData.name}'s morning routine. Match their element and energy level.",
+    "Toxic Trait": "Their most endearing 'toxic trait' as a human. Based on their chart shadows.",
+    "Love Life": "How would human-${petData.name} handle romance? Based on Venus and Moon.",
+    "Spotify Wrapped": "What would their top genre and artist be? Match their overall chart vibe.",
+    "Red Flag": "A funny 'red flag' that's actually kind of charming. Based on Mars and Lilith.",
+    "Green Flag": "Their most lovable quality as a human. Based on their Sun and Venus.",
+    "In a Group": "What role do they play in a friend group? Based on their Rising and Mercury.",
+    "Catchphrase": "What would human-${petData.name}'s catchphrase be? Make it funny and specific to their personality."
+  },
+
+  "playlist": [
+    {"title": "A real song that matches ${petData.name}'s overall vibe", "artist": "Real artist", "vibe": "One-word mood"},
+    {"title": "A song for their ${moonSign} Moon emotional side", "artist": "Real artist", "vibe": "One-word mood"},
+    {"title": "A song for their ${sunSign} Sun energy", "artist": "Real artist", "vibe": "One-word mood"},
+    {"title": "A song for their wild/playful side", "artist": "Real artist", "vibe": "One-word mood"},
+    {"title": "A song that captures their bond with their human", "artist": "Real artist", "vibe": "One-word mood"}
+  ],
+
+  "cosmicRecipe": {
+    "name": "A creative recipe name inspired by ${petData.name}'s cosmic energy",
+    "emoji": "A food emoji that matches the dish",
+    "description": "One sentence connecting the recipe to ${petData.name}'s chart",
+    "why": "2-3 sentences explaining why this recipe channels ${petData.name}'s energy. Reference specific placements.",
+    "ingredients": ["6 ingredients with cosmic annotations in parentheses, e.g. '1 cup jasmine rice (for grounding Earth energy)'"],
+    "steps": ["5 cooking steps. Last step should mention ${petData.name}. Keep it fun and connected to their chart."]
   }
 }
 
