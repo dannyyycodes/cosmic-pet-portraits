@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MassiveReviews } from "./MassiveReviews";
 import { LiveActivityNotification } from "@/components/LiveActivityNotification";
-import { LiveActivityIndicator } from "@/components/LiveActivityIndicator";
 
 const COLORS = {
   black: "#141210",
@@ -87,51 +86,103 @@ const Beat = ({ children, minHeight = "100vh", mobileMinHeight, background }: { 
 };
 
 const GiftBanner = ({ onDismiss }: { onDismiss: () => void }) => (
-  <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 60, background: "#5CB85C", color: "#fff", textAlign: "center", fontSize: "0.88rem", padding: "10px 16px", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600 }}>
+  <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 60, background: COLORS.rose, color: "#fff", textAlign: "center", fontSize: "0.88rem", padding: "10px 16px", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600 }}>
     <a href="/gift" style={{ color: "#fff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
-      <span>🎁</span> The perfect gift for a pet lover <span style={{ fontSize: "0.75rem" }}>→</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M7.5 8C7.5 5.5 9 4 12 4s4.5 1.5 4.5 4"/></svg>
+      Buying for someone else? Tap here to gift <span style={{ fontSize: "0.75rem" }}>→</span>
     </a>
     <button onClick={onDismiss} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.8)", cursor: "pointer", padding: 4, fontSize: "1rem", lineHeight: 1 }} aria-label="Dismiss">✕</button>
   </div>
 );
 
-const StickyBottomCTA = ({ visible, trackCTAClick }: { visible: boolean; trackCTAClick: (cta: string, location: string) => void }) => (
-  <div style={{
-    position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
-    background: "rgba(255,253,245,0.97)", backdropFilter: "blur(10px)",
-    borderTop: `1px solid ${COLORS.cream3}`, padding: "10px 16px",
-    paddingBottom: "calc(10px + env(safe-area-inset-bottom, 0px))",
-    transform: visible ? "translateY(0)" : "translateY(100%)",
-    transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1)",
-    display: "flex", alignItems: "center", gap: 10,
-  }}>
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.9rem", color: COLORS.ink, lineHeight: 1.2 }}>Discover their soul</div>
-      <div style={{ fontSize: "0.7rem", color: COLORS.muted }}>From $27 — takes 2 minutes</div>
+const TICKER_MESSAGES = [
+  "Sarah from the UK just got a reading for Bruno 🐕",
+  "Maria from California discovered her cat's soul purpose 🐱",
+  "James from Australia got Luna's cosmic portrait 🌙",
+  "Emily from Canada just unwrapped a gift reading 🎁",
+  "Sophie from New York got Bella's personality blueprint 🐾",
+  "Tom from London discovered his dog's love language ❤️",
+  "Lisa from Sydney just ordered a soul reading 🌟",
+  "Anna from Dublin gifted a reading for her friend's cat 🎀",
+];
+
+const TickerBar = () => {
+  const [msgIndex, setMsgIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setMsgIndex(i => (i + 1) % TICKER_MESSAGES.length);
+        setFade(true);
+      }, 400);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{ position: "fixed", top: 42, left: 0, right: 0, zIndex: 59, background: "rgba(250,244,232,0.92)", backdropFilter: "blur(8px)", padding: "7px 16px", fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: COLORS.warm, textAlign: "center", borderBottom: `1px solid ${COLORS.cream3}` }}>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#4a8c5c", display: "inline-block", boxShadow: "0 0 6px rgba(74,140,92,0.5)", animation: "pulse-dot 2s infinite" }} />
+        <span style={{ opacity: fade ? 1 : 0, transition: "opacity 0.4s ease" }}>{TICKER_MESSAGES[msgIndex]}</span>
+      </span>
+      <style>{`@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
     </div>
-    <a href="/checkout" onClick={() => trackCTAClick("Sticky CTA", "sticky-bottom")} style={{
-      background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif",
-      fontWeight: 600, fontSize: "0.88rem", letterSpacing: "0.1em", textTransform: "uppercase" as const,
-      textDecoration: "none", padding: "12px 24px", borderRadius: 50, whiteSpace: "nowrap" as const,
-      flexShrink: 0,
-    }}>Get Reading</a>
-  </div>
-);
+  );
+};
+
+const useEodCountdown = () => {
+  const [timeLeft, setTimeLeft] = useState("");
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const eod = new Date(now);
+      eod.setHours(23, 59, 59, 999);
+      const diff = eod.getTime() - now.getTime();
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setTimeLeft(`${h}h ${m}m ${s}s`);
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  return timeLeft;
+};
+
+const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, location: string) => void }) => {
+  const timeLeft = useEodCountdown();
+  return (
+    <div style={{
+      position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
+      background: "rgba(255,253,245,0.97)", backdropFilter: "blur(10px)",
+      borderTop: `1px solid ${COLORS.cream3}`, padding: "10px 16px",
+      paddingBottom: "calc(10px + env(safe-area-inset-bottom, 0px))",
+      display: "flex", alignItems: "center", gap: 10,
+    }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.9rem", color: COLORS.ink, lineHeight: 1.2 }}>
+          <span style={{ textDecoration: "line-through", color: COLORS.muted, fontSize: "0.82rem", marginRight: 6 }}>$60</span>
+          <span style={{ color: COLORS.rose, fontWeight: 700 }}>$27</span>
+        </div>
+        <div style={{ fontSize: "0.68rem", color: COLORS.rose, fontWeight: 600 }}>Offer ends in {timeLeft}</div>
+      </div>
+      <a href="/checkout" onClick={() => trackCTAClick("Sticky CTA", "sticky-bottom")} style={{
+        background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif",
+        fontWeight: 600, fontSize: "0.88rem", letterSpacing: "0.1em", textTransform: "uppercase" as const,
+        textDecoration: "none", padding: "12px 24px", borderRadius: 50, whiteSpace: "nowrap" as const,
+        flexShrink: 0,
+      }}>Get Reading</a>
+    </div>
+  );
+};
 
 interface EmotionalJourneyProps { trackCTAClick: (cta: string, location: string) => void; }
 
 export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
   const [showGiftBanner, setShowGiftBanner] = useState(() => sessionStorage.getItem('gift-banner-dismissed') !== 'true');
-  const [showStickyCTA, setShowStickyCTA] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      // Show sticky CTA after scrolling past 1.5 screens
-      setShowStickyCTA(window.scrollY > window.innerHeight * 1.5);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const dismissGiftBanner = () => {
     setShowGiftBanner(false);
@@ -142,8 +193,9 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
     <div style={{ background: COLORS.cream, position: "relative" }}>
       <GrainOverlay />
 
-      {/* Gift banner */}
+      {/* Gift banner + ticker bar */}
       {showGiftBanner && <GiftBanner onDismiss={dismissGiftBanner} />}
+      {showGiftBanner && <TickerBar />}
 
       {/* Live purchase notifications (bottom-left toast) */}
       <LiveActivityNotification />
@@ -151,7 +203,6 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       <Beat mobileMinHeight="100vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (<div>
           <h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 12vw, 6rem)", fontWeight: 400, color: COLORS.black, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They Love You<br /><em>Without Conditions.</em></h2>
-          <div style={{ ...fadeUpStyle(v, 0.6), marginTop: 32 }}><LiveActivityIndicator /></div>
         </div>)}
       </Beat>
 
@@ -206,12 +257,11 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
 
       <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 4.5vw, 1.6rem)", color: COLORS.earth, marginBottom: 35 }}>Your pet loves you with everything they have.</p><h2 style={{ ...fadeUpStyle(v, 0.2), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 4.8rem)", color: COLORS.black, lineHeight: 1, marginBottom: 50 }}>Now it's your turn<br />to understand them.</h2><a href="/checkout" onClick={() => trackCTAClick("Get Their Reading", "emotional-journey-cta")} style={{ ...fadeUpStyle(v, 0.4), display: "inline-block", background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "1.1rem", letterSpacing: "0.15em", textTransform: "uppercase" as const, textDecoration: "none", padding: "20px 52px", borderRadius: 50, border: "none", cursor: "pointer", transition: "all 0.35s ease" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(191,82,74,0.25)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>Get Their Reading</a>
-          <div style={{ ...fadeUpStyle(v, 0.6), marginTop: 24 }}><LiveActivityIndicator /></div>
         </div>)}
       </Beat>
 
-      {/* Sticky bottom CTA bar — appears after scrolling past hero */}
-      <StickyBottomCTA visible={showStickyCTA} trackCTAClick={trackCTAClick} />
+      {/* Sticky bottom CTA bar — always visible */}
+      <StickyBottomCTA trackCTAClick={trackCTAClick} />
     </div>
   );
 };
