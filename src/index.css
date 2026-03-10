@@ -90,42 +90,42 @@
     --ring: 25 100% 63%;
   }
 
-  /* Variant C: Butternut Box-Inspired Warm Theme (Orange Accent) */
+  /* Variant C: Warm Cream & Rose Theme */
   .variant-c {
-    --background: 45 100% 91%;
-    --foreground: 25 30% 12%;
+    --background: 45 100% 98%;
+    --foreground: 30 15% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 30% 12%;
+    --card-foreground: 30 15% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 30% 12%;
+    --popover-foreground: 30 15% 11%;
 
-    --primary: 25 85% 55%;
+    --primary: 4 46% 52%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 35 30% 92%;
-    --secondary-foreground: 25 30% 12%;
+    --secondary-foreground: 30 15% 11%;
 
-    --muted: 35 30% 92%;
+    --muted: 38 40% 94%;
     --muted-foreground: 30 12% 44%;
 
-    --accent: 43 50% 56%;
-    --accent-foreground: 25 30% 12%;
+    --accent: 39 40% 56%;
+    --accent-foreground: 30 15% 11%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 35% 85%;
-    --input: 35 35% 85%;
-    --ring: 25 85% 55%;
+    --border: 35 35% 88%;
+    --input: 35 35% 88%;
+    --ring: 4 46% 52%;
 
     /* Warm custom tokens */
-    --warm-sage: 25 85% 55%;
-    --warm-gold: 43 80% 50%;
-    --warm-green: 25 85% 55%;
-    --warm-cream: 45 100% 91%;
-    --warm-cream-dark: 40 60% 87%;
+    --warm-sage: 4 46% 52%;
+    --warm-gold: 39 40% 56%;
+    --warm-green: 140 30% 42%;
+    --warm-cream: 45 100% 98%;
+    --warm-cream-dark: 38 40% 91%;
 
     --shadow-card: 0 4px 20px hsl(35 40% 30% / 0.08);
     --shadow-glow-orange: none;
