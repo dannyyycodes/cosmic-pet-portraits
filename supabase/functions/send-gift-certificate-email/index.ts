@@ -20,68 +20,66 @@ const getPurchaserEmailTemplate = (recipientName: string, giftCode: string, gift
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  
-  <!-- Outer container with gradient border -->
-  <div style="max-width: 600px; margin: 0 auto; padding: 2px; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f59e0b 100%); border-radius: 20px;">
-    
-    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 18px; padding: 48px 32px;">
-      
-      <!-- Header -->
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(52, 211, 153, 0.2) 100%); border-radius: 50px; border: 1px solid rgba(16, 185, 129, 0.3);">
-          <span style="font-size: 24px;">🎁✨</span>
-        </div>
-      </div>
+<body style="margin: 0; padding: 0; background-color: #faf6f1; font-family: Georgia, 'Times New Roman', serif;">
 
-      <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 16px 0; text-align: center;">
-        Your Gift is Ready to Share
-      </h1>
-      
-      <p style="color: #9ca3af; font-size: 16px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
-        Here's the gift code for ${recipientName}:
+  <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+
+    <div style="text-align: center; margin-bottom: 32px;">
+      <p style="font-size: 24px; margin: 0 0 6px 0;">🐾</p>
+      <p style="font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c4a265; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+    </div>
+
+    <div style="background: #ffffff; border-radius: 16px; border: 1px solid #e8ddd0; padding: 36px 28px; text-align: center;">
+
+      <p style="font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Your Gift is Ready
       </p>
 
-      <!-- Gift Code Card -->
-      <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); border-radius: 16px; padding: 28px; text-align: center; margin: 0 0 28px 0; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);">
-        <p style="color: rgba(255,255,255,0.7); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 10px 0; font-weight: 600;">
+      <h1 style="color: #3d2f2a; font-size: 24px; font-weight: 400; margin: 0 0 20px 0; line-height: 1.4;">
+        What a beautiful thing you've done.
+      </h1>
+
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 28px 0;">
+        You're giving ${recipientName} something they'll want to keep forever — a full soul portrait of their pet, written in the stars.
+      </p>
+
+      <!-- Gift Code -->
+      <div style="background: #faf6f1; border-radius: 12px; padding: 24px; margin: 0 0 24px 0;">
+        <p style="color: #c4a265; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 8px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
           Gift Code
         </p>
-        <p style="color: white; font-size: 28px; font-weight: 800; letter-spacing: 4px; font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        <p style="color: #3d2f2a; font-size: 26px; font-weight: 700; letter-spacing: 4px; margin: 0; font-family: 'SF Mono', Monaco, Consolas, monospace;">
           ${giftCode}
         </p>
       </div>
 
       <!-- Gift Details -->
-      <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 20px; margin: 0 0 28px 0; border: 1px solid rgba(255,255,255,0.06);">
-        <p style="color: #d1d5db; font-size: 14px; margin: 0 0 8px 0;">
-          <strong style="color: #ffffff;">To:</strong> ${recipientName}
+      <div style="text-align: left; border-left: 3px solid #e8ddd0; padding-left: 16px; margin: 0 0 24px 0;">
+        <p style="color: #3d2f2a; font-size: 14px; margin: 0 0 4px 0;">
+          <strong>To:</strong> ${recipientName}
         </p>
-        ${recipientEmail ? `<p style="color: #9ca3af; font-size: 13px; margin: 0 0 12px 0;">${recipientEmail}</p>` : ''}
-        <p style="color: #a78bfa; font-size: 14px; font-style: italic; margin: 0; padding-left: 12px; border-left: 3px solid #8b5cf6;">
+        ${recipientEmail ? `<p style="color: #7a6a60; font-size: 13px; margin: 0 0 8px 0;">${recipientEmail}</p>` : ''}
+        <p style="color: #5a4a42; font-size: 14px; font-style: italic; margin: 0;">
           "${giftMessage}"
         </p>
       </div>
 
-      <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
-        ${recipientEmail ? "We've sent the code to them directly." : "Share this code with your recipient so they can redeem their reading."}
+      <p style="color: #7a6a60; font-size: 13px; line-height: 1.6; margin: 0;">
+        ${recipientEmail ? "We've already sent the code to them with a lovely note." : "Share this code with them whenever you're ready. They'll use it at littlesouls.co/redeem."}
       </p>
 
-      <!-- Divider -->
-      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.3) 50%, transparent 100%); margin: 36px 0;"></div>
-
-      <!-- Footer -->
-      <div style="text-align: center;">
-        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          Little Souls
-        </p>
-      </div>
-
     </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+      <p style="color: #d4c8bc; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+    </div>
+
   </div>
-  
-  <div style="height: 20px;"></div>
-  
+
 </body>
 </html>
 `;
@@ -93,69 +91,68 @@ const getRecipientEmailTemplate = (recipientName: string, giftCode: string, gift
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  
-  <!-- Outer container with celebratory gradient border -->
-  <div style="max-width: 600px; margin: 0 auto; padding: 3px; background: linear-gradient(135deg, #f59e0b 0%, #d946ef 25%, #8b5cf6 50%, #6366f1 75%, #f59e0b 100%); border-radius: 20px;">
-    
-    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 17px; padding: 48px 32px;">
-      
-      <!-- Celebration Header -->
-      <div style="text-align: center; margin-bottom: 32px;">
-        <span style="font-size: 48px;">🎁</span>
-      </div>
+<body style="margin: 0; padding: 0; background-color: #faf6f1; font-family: Georgia, 'Times New Roman', serif;">
 
-      <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 8px 0; text-align: center;">
-        Hi ${recipientName}!
+  <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+
+    <div style="text-align: center; margin-bottom: 32px;">
+      <p style="font-size: 24px; margin: 0 0 6px 0;">🐾</p>
+      <p style="font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c4a265; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+    </div>
+
+    <div style="background: #ffffff; border-radius: 16px; border: 1px solid #e8ddd0; padding: 36px 28px; text-align: center;">
+
+      <h1 style="color: #3d2f2a; font-size: 26px; font-weight: 400; margin: 0 0 8px 0; line-height: 1.3;">
+        Hi ${recipientName},
       </h1>
-      
-      <p style="color: #9ca3af; font-size: 18px; line-height: 1.7; margin: 0 0 28px 0; text-align: center;">
-        Someone special has gifted you a <span style="color: #a78bfa; font-weight: 600;">Cosmic Pet Reading</span>
+
+      <p style="color: #5a4a42; font-size: 16px; line-height: 1.8; margin: 0 0 24px 0;">
+        Someone who loves you just gave you something truly special.
       </p>
 
       <!-- Gift Message -->
-      <div style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(217, 70, 239, 0.1) 100%); border-left: 4px solid #8b5cf6; padding: 20px 24px; margin: 0 0 32px 0; border-radius: 0 12px 12px 0;">
-        <p style="color: #e5e7eb; font-size: 16px; font-style: italic; margin: 0; line-height: 1.6;">
+      <div style="text-align: left; border-left: 3px solid #c4a265; padding: 16px 20px; margin: 0 0 28px 0; background: #faf6f1; border-radius: 0 12px 12px 0;">
+        <p style="color: #3d2f2a; font-size: 15px; font-style: italic; margin: 0; line-height: 1.7;">
           "${giftMessage}"
         </p>
       </div>
 
-      <!-- Gift Code Card -->
-      <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%); border-radius: 16px; padding: 28px; text-align: center; margin: 0 0 32px 0; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);">
-        <p style="color: rgba(255,255,255,0.7); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 10px 0; font-weight: 600;">
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 24px 0;">
+        They've gifted you a <strong>Cosmic Soul Reading</strong> for your pet — a personalised portrait of who your pet really is, written in the stars. Their personality, their quirks, the way they love you, and the cosmic reason they chose <em>you</em>.
+      </p>
+
+      <!-- Gift Code -->
+      <div style="background: #faf6f1; border-radius: 12px; padding: 24px; margin: 0 0 28px 0;">
+        <p style="color: #c4a265; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 8px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
           Your Gift Code
         </p>
-        <p style="color: white; font-size: 28px; font-weight: 800; letter-spacing: 4px; font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        <p style="color: #3d2f2a; font-size: 26px; font-weight: 700; letter-spacing: 4px; margin: 0; font-family: 'SF Mono', Monaco, Consolas, monospace;">
           ${giftCode}
         </p>
       </div>
 
-      <p style="color: #9ca3af; font-size: 15px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
-        Discover your pet's personality, cosmic energy, and what makes your bond so special.
-      </p>
-
-      <!-- CTA Button -->
-      <div style="text-align: center; margin: 36px 0;">
-        <a href="https://littlesouls.co/redeem?code=${giftCode}" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f59e0b 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;">
-          Redeem Your Gift →
+      <div style="margin: 28px 0;">
+        <a href="https://littlesouls.co/redeem?code=${giftCode}" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 16px 44px; border-radius: 50px; font-weight: 600; font-size: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+          Redeem Your Gift
         </a>
       </div>
 
-      <!-- Divider -->
-      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.3) 50%, transparent 100%); margin: 36px 0;"></div>
-
-      <!-- Footer -->
-      <div style="text-align: center;">
-        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          Little Souls
-        </p>
-      </div>
+      <p style="color: #b8a99e; font-size: 13px; line-height: 1.6; margin: 0;">
+        It only takes a few minutes. All you need is your pet's name and birthday.
+      </p>
 
     </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+      <p style="color: #d4c8bc; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+    </div>
+
   </div>
-  
-  <div style="height: 20px;"></div>
-  
+
 </body>
 </html>
 `;

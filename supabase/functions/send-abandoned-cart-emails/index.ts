@@ -19,89 +19,62 @@ const getAbandonedCartEmailTemplate = (petName: string, intakeUrl: string, unsub
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  
-  <!-- Outer container with gradient border -->
-  <div style="max-width: 600px; margin: 0 auto; padding: 2px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #d946ef 50%, #f59e0b 75%, #6366f1 100%); border-radius: 20px;">
-    
-    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 18px; padding: 48px 32px;">
-      
-      <!-- Header -->
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.2) 100%); border-radius: 50px; border: 1px solid rgba(245, 158, 11, 0.3);">
-          <span style="font-size: 24px;">✨🐾</span>
-        </div>
-      </div>
+<body style="margin: 0; padding: 0; background-color: #faf6f1; font-family: Georgia, 'Times New Roman', serif;">
 
-      <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 16px 0; text-align: center; line-height: 1.3;">
-        ${petName}'s Cosmic Journey Awaits
-      </h1>
-      
-      <p style="color: #9ca3af; font-size: 16px; line-height: 1.7; margin: 0 0 28px 0; text-align: center;">
-        We noticed you started creating a cosmic profile for <span style="color: #fbbf24; font-weight: 600;">${petName}</span> but didn't complete your reading.
+  <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
+
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 32px;">
+      <p style="font-size: 24px; margin: 0 0 6px 0;">🐾</p>
+      <p style="font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c4a265; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+    </div>
+
+    <!-- Content Card -->
+    <div style="background: #ffffff; border-radius: 16px; border: 1px solid #e8ddd0; padding: 36px 28px;">
+
+      <p style="color: #3d2f2a; font-size: 16px; line-height: 1.8; margin: 0 0 20px 0;">
+        You were so close.
       </p>
 
-      <p style="color: #d1d5db; font-size: 15px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
-        The stars are still aligned, and ${petName}'s unique astrological reading is waiting to be revealed! 🌟
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 20px 0;">
+        You got pretty far setting up ${petName}'s reading, and everything you entered is still saved. No starting over, no re-entering anything.
       </p>
 
-      <!-- Benefits Card -->
-      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 191, 36, 0.05) 100%); border-radius: 16px; padding: 24px; margin: 0 0 32px 0; border: 1px solid rgba(245, 158, 11, 0.2);">
-        <p style="color: #fbbf24; font-size: 13px; font-weight: 600; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">
-          🎁 Complete your order to discover:
-        </p>
-        <div style="display: block;">
-          <div style="display: flex; align-items: center; margin-bottom: 12px;">
-            <span style="width: 28px; height: 28px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 28px; font-size: 12px; margin-right: 12px;">⭐</span>
-            <span style="color: #e5e7eb; font-size: 14px;">${petName}'s unique personality traits</span>
-          </div>
-          <div style="display: flex; align-items: center; margin-bottom: 12px;">
-            <span style="width: 28px; height: 28px; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 28px; font-size: 12px; margin-right: 12px;">✨</span>
-            <span style="color: #e5e7eb; font-size: 14px;">Hidden talents and cosmic superpowers</span>
-          </div>
-          <div style="display: flex; align-items: center; margin-bottom: 12px;">
-            <span style="width: 28px; height: 28px; background: linear-gradient(135deg, #d946ef 0%, #f472b6 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 28px; font-size: 12px; margin-right: 12px;">💜</span>
-            <span style="color: #e5e7eb; font-size: 14px;">Compatibility insights with you</span>
-          </div>
-          <div style="display: flex; align-items: center;">
-            <span style="width: 28px; height: 28px; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 28px; font-size: 12px; margin-right: 12px;">🎨</span>
-            <span style="color: #e5e7eb; font-size: 14px;">Personalized AI-generated portrait</span>
-          </div>
-        </div>
-      </div>
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 20px 0;">
+        We'll look at the exact moment ${petName} was born and create something you'll want to keep forever — a full portrait of their personality, the way they love, their hidden quirks, and the cosmic reason they ended up with <em>you</em>.
+      </p>
+
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 28px 0;">
+        Most people tell us it's almost eerie how accurate it is.
+      </p>
 
       <!-- CTA Button -->
-      <div style="text-align: center; margin: 36px 0;">
-        <a href="${intakeUrl}" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: #1a1a2e; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-weight: 800; font-size: 16px; box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4), 0 0 0 1px rgba(255,255,255,0.2) inset;">
-          Complete ${petName}'s Reading →
+      <div style="text-align: center; margin: 28px 0;">
+        <a href="${intakeUrl}" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 50px; font-weight: 600; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+          Finish ${petName}'s Reading
         </a>
       </div>
 
-      <p style="color: #9ca3af; font-size: 14px; text-align: center; margin: 0;">
-        Your progress has been saved. Pick up right where you left off!
+      <p style="color: #b8a99e; font-size: 13px; text-align: center; margin: 0;">
+        Takes about 2 minutes to finish. Your progress is saved.
       </p>
-
-      <!-- Divider -->
-      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.3) 50%, transparent 100%); margin: 40px 0;"></div>
-
-      <!-- Footer -->
-      <p style="color: #6b7280; font-size: 12px; margin: 0; text-align: center; line-height: 1.6;">
-        You're receiving this because you started a cosmic reading for ${petName}.<br><br>
-        <a href="${unsubscribeUrl}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe</a>
-      </p>
-
-      <!-- Brand Footer -->
-      <div style="text-align: center; margin-top: 24px;">
-        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          Little Souls
-        </p>
-      </div>
 
     </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 32px;">
+      <p style="color: #d4c8bc; font-size: 11px; margin: 0 0 8px 0; letter-spacing: 1px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+      <p style="margin: 0;">
+        <a href="${unsubscribeUrl}" style="color: #b8a99e; font-size: 11px; text-decoration: underline; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">Unsubscribe</a>
+      </p>
+    </div>
+
   </div>
-  
-  <div style="height: 20px;"></div>
-  
+
 </body>
 </html>
 `;
@@ -177,7 +150,7 @@ serve(async (req) => {
         const emailResponse = await resend.emails.send({
           from: "Little Souls <hello@littlesouls.co>",
           to: [subscriber.email],
-          subject: `✨ ${petName}'s cosmic reading is waiting for you!`,
+          subject: `${petName}'s reading is still waiting for you`,
           html: getAbandonedCartEmailTemplate(petName, intakeUrl, unsubscribeUrl),
         });
 
@@ -202,7 +175,7 @@ serve(async (req) => {
         await supabaseClient.from("email_campaigns").insert({
           subscriber_id: subscriber.id,
           campaign_type: "abandoned_cart",
-          subject: `✨ ${petName}'s cosmic reading is waiting for you!`,
+          subject: `${petName}'s reading is still waiting for you`,
           content_preview: `Reminder email for ${petName}`,
           ai_generated: false,
         });

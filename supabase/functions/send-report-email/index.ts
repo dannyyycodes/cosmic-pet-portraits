@@ -8,94 +8,80 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const getEmailTemplate = (petName: string, reportUrl: string) => `
+const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  
-  <!-- Outer container with gradient border effect -->
-  <div style="max-width: 600px; margin: 0 auto; padding: 2px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 25%, #d946ef 50%, #f59e0b 75%, #6366f1 100%); border-radius: 20px;">
-    
-    <!-- Inner container -->
-    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 18px; padding: 48px 32px;">
-      
-      <!-- Logo/Header -->
-      <div style="text-align: center; margin-bottom: 40px;">
-        <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(217, 70, 239, 0.2) 100%); border-radius: 50px; border: 1px solid rgba(139, 92, 246, 0.3);">
-          <span style="font-size: 24px;">✨🐾✨</span>
-        </div>
-      </div>
+<body style="margin: 0; padding: 0; background-color: #faf6f1; font-family: Georgia, 'Times New Roman', serif;">
 
-      <!-- Status Badge -->
-      <div style="text-align: center; margin-bottom: 24px;">
-        <span style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">
-          ● Reading Complete
-        </span>
-      </div>
+  <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
 
-      <!-- Main Title -->
-      <h1 style="color: #ffffff; font-size: 32px; font-weight: 700; margin: 0 0 16px 0; text-align: center; line-height: 1.2; background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-        ${petName}'s Cosmic Profile is Ready
-      </h1>
-      
-      <p style="color: #9ca3af; font-size: 16px; line-height: 1.7; margin: 0 0 36px 0; text-align: center;">
-        We've analyzed the stars and uncovered ${petName}'s unique cosmic blueprint. Discover what makes your companion truly special.
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 36px;">
+      <p style="font-size: 28px; margin: 0 0 8px 0;">🐾</p>
+      <p style="font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c4a265; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+    </div>
+
+    <!-- Main Card -->
+    <div style="background: #ffffff; border-radius: 16px; border: 1px solid #e8ddd0; padding: 40px 32px; text-align: center;">
+
+      <p style="font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Your Reading is Ready
       </p>
 
-      <!-- Feature Cards -->
-      <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 24px; margin: 0 0 32px 0; border: 1px solid rgba(255,255,255,0.06);">
-        <p style="color: #d1d5db; font-size: 13px; font-weight: 600; margin: 0 0 16px 0; text-transform: uppercase; letter-spacing: 0.5px;">
-          What You'll Discover
+      <h1 style="color: #3d2f2a; font-size: 28px; font-weight: 400; margin: 0 0 20px 0; line-height: 1.3; font-family: Georgia, 'Times New Roman', serif;">
+        ${petName}'s soul has a story.<br>We wrote it down for you.
+      </h1>
+
+      <p style="color: #7a6a60; font-size: 15px; line-height: 1.8; margin: 0 0 32px 0;">
+        We looked at the exact moment ${petName} came into this world${sunSign ? ` as a ${sunSign}` : ''}, and something beautiful emerged. A full portrait of who they really are — their personality, their quirks, the way they love you, and all the little things that make them, <em>them</em>.
+      </p>
+
+      <!-- What's inside -->
+      <div style="text-align: left; background: #faf6f1; border-radius: 12px; padding: 24px 28px; margin: 0 0 32px 0;">
+        <p style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 14px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+          Inside ${petName}'s Reading
         </p>
-        <div style="display: block;">
-          <div style="display: flex; align-items: center; margin-bottom: 12px;">
-            <span style="width: 32px; height: 32px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 32px; font-size: 14px; margin-right: 12px;">🌟</span>
-            <span style="color: #e5e7eb; font-size: 14px;">Core personality traits & cosmic energy</span>
-          </div>
-          <div style="display: flex; align-items: center; margin-bottom: 12px;">
-            <span style="width: 32px; height: 32px; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 32px; font-size: 14px; margin-right: 12px;">💜</span>
-            <span style="color: #e5e7eb; font-size: 14px;">How ${petName} expresses & receives love</span>
-          </div>
-          <div style="display: flex; align-items: center;">
-            <span style="width: 32px; height: 32px; background: linear-gradient(135deg, #d946ef 0%, #f59e0b 100%); border-radius: 8px; display: inline-block; text-align: center; line-height: 32px; font-size: 14px; margin-right: 12px;">🔮</span>
-            <span style="color: #e5e7eb; font-size: 14px;">Tips for deeper bonding & understanding</span>
-          </div>
-        </div>
+        <p style="color: #5a4a42; font-size: 14px; line-height: 2; margin: 0;">
+          Their full birth chart and what it means<br>
+          Why they do that one thing you always wonder about<br>
+          How they show love (and how they need it back)<br>
+          Their cosmic playlist, dream job, and secret inner world<br>
+          A letter from their soul to yours
+        </p>
       </div>
 
       <!-- CTA Button -->
-      <div style="text-align: center; margin: 36px 0;">
-        <a href="${reportUrl}" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f59e0b 100%); color: white; text-decoration: none; padding: 18px 48px; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;">
-          View ${petName}'s Reading →
+      <div style="margin: 32px 0;">
+        <a href="${reportUrl}" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 16px 44px; border-radius: 50px; font-weight: 600; font-size: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: 0.5px;">
+          Read ${petName}'s Report
         </a>
       </div>
 
-      <!-- Divider -->
-      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.3) 50%, transparent 100%); margin: 40px 0;"></div>
-
-      <!-- Footer -->
-      <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
-        Save this email to access your reading anytime.<br>
-        Questions? Simply reply to this message.
+      <p style="color: #b8a99e; font-size: 13px; line-height: 1.6; margin: 0;">
+        This link is yours forever. Come back to it whenever you need a reminder of the little soul who chose you.
       </p>
 
-      <!-- Brand Footer -->
-      <div style="text-align: center; margin-top: 32px;">
-        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          Little Souls
-        </p>
-      </div>
-
     </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 36px;">
+      <p style="color: #b8a99e; font-size: 12px; line-height: 1.7; margin: 0 0 8px 0;">
+        Save this email — it's your permanent link to ${petName}'s reading.<br>
+        Questions? Just reply to this email. We read every one.
+      </p>
+      <p style="color: #d4c8bc; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        Little Souls
+      </p>
+    </div>
+
   </div>
-  
-  <!-- Spacer for email clients -->
-  <div style="height: 20px;"></div>
-  
+
 </body>
 </html>
 `;
@@ -135,7 +121,7 @@ serve(async (req) => {
       from: "Little Souls <hello@littlesouls.co>",
       to: [email],
       subject: `${petName}'s Cosmic Reading is Ready ✨`,
-      html: getEmailTemplate(petName, reportUrl),
+      html: getEmailTemplate(petName, reportUrl, sunSign),
     });
 
     const resendError = (emailResult as any)?.error;
