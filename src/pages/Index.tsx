@@ -23,7 +23,7 @@ const Index = () => {
       <EmotionalJourney trackCTAClick={trackCTAClick} />
 
       {/* Footer */}
-      <footer style={{ background: "#FFFDF5", borderTop: "1px solid #d6c8b6", padding: "36px 16px", textAlign: "center", position: "relative", zIndex: 10 }}>
+      <footer style={{ background: "#FFFDF5", borderTop: "1px solid #d6c8b6", padding: "36px 16px 80px", textAlign: "center", position: "relative", zIndex: 10 }}>
         <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px", fontSize: "0.82rem" }}>
           <Link to="/terms" style={{ color: "#958779", textDecoration: "none" }}>Terms</Link>
           <Link to="/privacy" style={{ color: "#958779", textDecoration: "none" }}>Privacy</Link>

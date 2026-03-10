@@ -35,26 +35,26 @@ export function LiveActivityIndicator() {
     return () => clearInterval(interval);
   }, []);
 
-  // Compact inline version for hero section
+  // Compact inline version — warm theme
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5 }}
-      className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground"
+      style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 10, fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem" }}
     >
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/30">
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+      <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: "rgba(191,82,74,0.08)", border: "1px solid rgba(191,82,74,0.2)" }}>
+        <span style={{ position: "relative", display: "inline-flex", width: 6, height: 6 }}>
+          <span className="animate-ping" style={{ position: "absolute", width: "100%", height: "100%", borderRadius: "50%", background: "#bf524a", opacity: 0.6 }}></span>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#bf524a" }}></span>
         </span>
-        <Eye className="w-3 h-3 text-red-400" />
-        <span className="text-foreground/80 font-medium">{viewersCount} shopping</span>
+        <Eye style={{ width: 12, height: 12, color: "#bf524a" }} />
+        <span style={{ color: "#4d443b", fontWeight: 600 }}>{viewersCount} shopping</span>
       </div>
 
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/30">
-        <Gift className="w-3 h-3 text-green-400" />
-        <span className="text-foreground/80 font-medium">{purchasesToday} gifts sent today</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: "rgba(74,140,92,0.08)", border: "1px solid rgba(74,140,92,0.2)" }}>
+        <Gift style={{ width: 12, height: 12, color: "#4a8c5c" }} />
+        <span style={{ color: "#4d443b", fontWeight: 600 }}>{purchasesToday} readings today</span>
       </div>
     </motion.div>
   );

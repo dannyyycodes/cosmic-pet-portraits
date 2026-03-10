@@ -64,22 +64,23 @@ export const LiveActivityNotification = () => {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: -400, opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed bottom-20 md:bottom-6 left-4 z-40 max-w-xs"
+          className="fixed left-4 z-40 max-w-xs"
+          style={{ bottom: "calc(70px + env(safe-area-inset-bottom, 0px))" }}
         >
-          <div className="bg-card/95 backdrop-blur-md border border-border/50 rounded-xl p-3 shadow-xl shadow-black/20">
+          <div style={{ background: "rgba(255,253,245,0.97)", backdropFilter: "blur(10px)", border: "1px solid #f3eadb", borderRadius: 14, padding: "12px 14px", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontFamily: "Cormorant, Georgia, serif" }}>
             <div className="flex items-start gap-3">
               {/* Icon */}
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, rgba(191,82,74,0.12), rgba(196,162,101,0.12))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid #f3eadb" }}>
+                <Sparkles className="w-4 h-4" style={{ color: "#bf524a" }} />
               </div>
-              
+
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground font-medium leading-snug">
-                  <span className="font-semibold">{currentActivity.name}</span> from {currentActivity.location} just ordered{" "}
-                  <span className="text-primary font-semibold">{currentActivity.petName}'s</span> cosmic report
+                <p style={{ fontSize: "0.85rem", color: "#1f1c18", fontWeight: 500, lineHeight: 1.35 }}>
+                  <span style={{ fontWeight: 700 }}>{currentActivity.name}</span> from {currentActivity.location} just ordered{" "}
+                  <span style={{ color: "#bf524a", fontWeight: 700 }}>{currentActivity.petName}'s</span> soul reading
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">{time}</p>
+                <p style={{ fontSize: "0.72rem", color: "#958779", marginTop: 3 }}>{time}</p>
               </div>
             </div>
           </div>

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MassiveReviews } from "./MassiveReviews";
+import { LiveActivityNotification } from "@/components/LiveActivityNotification";
+import { LiveActivityIndicator } from "@/components/LiveActivityIndicator";
 
 const COLORS = {
   black: "#141210",
@@ -84,15 +86,73 @@ const Beat = ({ children, minHeight = "100vh", mobileMinHeight, background }: { 
   return (<section ref={ref} className="relative overflow-hidden" style={{ minHeight: resolvedMin, display: "flex", alignItems: "center", justifyContent: "center", padding: mobile ? "clamp(24px, 6vw, 80px) clamp(16px, 4vw, 28px)" : "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px)", background: background ?? COLORS.cream }}><div style={{ maxWidth: 750, width: "100%", textAlign: "center" }}>{children(visible)}</div></section>);
 };
 
+const GiftBanner = ({ onDismiss }: { onDismiss: () => void }) => (
+  <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 60, background: "#5CB85C", color: "#fff", textAlign: "center", fontSize: "0.88rem", padding: "10px 16px", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600 }}>
+    <a href="/gift" style={{ color: "#fff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <span>🎁</span> The perfect gift for a pet lover <span style={{ fontSize: "0.75rem" }}>→</span>
+    </a>
+    <button onClick={onDismiss} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.8)", cursor: "pointer", padding: 4, fontSize: "1rem", lineHeight: 1 }} aria-label="Dismiss">✕</button>
+  </div>
+);
+
+const StickyBottomCTA = ({ visible, trackCTAClick }: { visible: boolean; trackCTAClick: (cta: string, location: string) => void }) => (
+  <div style={{
+    position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
+    background: "rgba(255,253,245,0.97)", backdropFilter: "blur(10px)",
+    borderTop: `1px solid ${COLORS.cream3}`, padding: "10px 16px",
+    paddingBottom: "calc(10px + env(safe-area-inset-bottom, 0px))",
+    transform: visible ? "translateY(0)" : "translateY(100%)",
+    transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+    display: "flex", alignItems: "center", gap: 10,
+  }}>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.9rem", color: COLORS.ink, lineHeight: 1.2 }}>Discover their soul</div>
+      <div style={{ fontSize: "0.7rem", color: COLORS.muted }}>From $27 — takes 2 minutes</div>
+    </div>
+    <a href="/checkout" onClick={() => trackCTAClick("Sticky CTA", "sticky-bottom")} style={{
+      background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif",
+      fontWeight: 600, fontSize: "0.88rem", letterSpacing: "0.1em", textTransform: "uppercase" as const,
+      textDecoration: "none", padding: "12px 24px", borderRadius: 50, whiteSpace: "nowrap" as const,
+      flexShrink: 0,
+    }}>Get Reading</a>
+  </div>
+);
+
 interface EmotionalJourneyProps { trackCTAClick: (cta: string, location: string) => void; }
 
 export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
+  const [showGiftBanner, setShowGiftBanner] = useState(() => sessionStorage.getItem('gift-banner-dismissed') !== 'true');
+  const [showStickyCTA, setShowStickyCTA] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show sticky CTA after scrolling past 1.5 screens
+      setShowStickyCTA(window.scrollY > window.innerHeight * 1.5);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const dismissGiftBanner = () => {
+    setShowGiftBanner(false);
+    sessionStorage.setItem('gift-banner-dismissed', 'true');
+  };
+
   return (
     <div style={{ background: COLORS.cream, position: "relative" }}>
       <GrainOverlay />
 
+      {/* Gift banner */}
+      {showGiftBanner && <GiftBanner onDismiss={dismissGiftBanner} />}
+
+      {/* Live purchase notifications (bottom-left toast) */}
+      <LiveActivityNotification />
+
       <Beat mobileMinHeight="100vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
-        {(v) => (<h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 12vw, 6rem)", fontWeight: 400, color: COLORS.black, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They Love You<br /><em>Without Conditions.</em></h2>)}
+        {(v) => (<div>
+          <h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 12vw, 6rem)", fontWeight: 400, color: COLORS.black, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They Love You<br /><em>Without Conditions.</em></h2>
+          <div style={{ ...fadeUpStyle(v, 0.6), marginTop: 32 }}><LiveActivityIndicator /></div>
+        </div>)}
       </Beat>
 
       <Beat minHeight="60vh" mobileMinHeight="35vh">
@@ -120,7 +180,10 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       <HeartPair opacity={0.16} />
 
       <Beat minHeight="60vh" mobileMinHeight="35vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream})`}>
-        {(v) => (<div><h2 style={{ ...scaleInStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 5rem)", color: COLORS.black }}>That means something.</h2><div style={{ width: 50, height: 2, background: COLORS.gold, opacity: v ? 0.5 : 0, margin: "30px auto 0", transition: "opacity 1s ease 0.5s" }} /></div>)}
+        {(v) => (<div><h2 style={{ ...scaleInStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 5rem)", color: COLORS.black }}>That means something.</h2><div style={{ width: 50, height: 2, background: COLORS.gold, opacity: v ? 0.5 : 0, margin: "30px auto 0", transition: "opacity 1s ease 0.5s" }} />
+          {/* Early CTA — emotionally primed, catch the impulsive ones */}
+          <a href="/checkout" onClick={() => trackCTAClick("Early CTA", "mid-page")} style={{ ...fadeUpStyle(v, 0.6), display: "inline-block", marginTop: 40, background: "transparent", color: COLORS.rose, fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "0.95rem", letterSpacing: "0.12em", textTransform: "uppercase" as const, textDecoration: "none", padding: "14px 40px", borderRadius: 50, border: `1.5px solid ${COLORS.rose}`, cursor: "pointer", transition: "all 0.35s ease" }} onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.rose; e.currentTarget.style.color = "#fff"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = COLORS.rose; }}>Discover Their Soul</a>
+        </div>)}
       </Beat>
 
       <Beat mobileMinHeight="auto" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
@@ -142,8 +205,13 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
       <MassiveReviews trackCTAClick={trackCTAClick} />
 
       <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2}, ${COLORS.cream})`}>
-        {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 4.5vw, 1.6rem)", color: COLORS.earth, marginBottom: 35 }}>Your pet loves you with everything they have.</p><h2 style={{ ...fadeUpStyle(v, 0.2), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 4.8rem)", color: COLORS.black, lineHeight: 1, marginBottom: 50 }}>Now it's your turn<br />to understand them.</h2><a href="/checkout" onClick={() => trackCTAClick("Get Their Reading", "emotional-journey-cta")} style={{ ...fadeUpStyle(v, 0.4), display: "inline-block", background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "1.1rem", letterSpacing: "0.15em", textTransform: "uppercase" as const, textDecoration: "none", padding: "20px 52px", borderRadius: 50, border: "none", cursor: "pointer", transition: "all 0.35s ease" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(191,82,74,0.25)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>Get Their Reading</a></div>)}
+        {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 4.5vw, 1.6rem)", color: COLORS.earth, marginBottom: 35 }}>Your pet loves you with everything they have.</p><h2 style={{ ...fadeUpStyle(v, 0.2), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 4.8rem)", color: COLORS.black, lineHeight: 1, marginBottom: 50 }}>Now it's your turn<br />to understand them.</h2><a href="/checkout" onClick={() => trackCTAClick("Get Their Reading", "emotional-journey-cta")} style={{ ...fadeUpStyle(v, 0.4), display: "inline-block", background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "1.1rem", letterSpacing: "0.15em", textTransform: "uppercase" as const, textDecoration: "none", padding: "20px 52px", borderRadius: 50, border: "none", cursor: "pointer", transition: "all 0.35s ease" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(191,82,74,0.25)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>Get Their Reading</a>
+          <div style={{ ...fadeUpStyle(v, 0.6), marginTop: 24 }}><LiveActivityIndicator /></div>
+        </div>)}
       </Beat>
+
+      {/* Sticky bottom CTA bar — appears after scrolling past hero */}
+      <StickyBottomCTA visible={showStickyCTA} trackCTAClick={trackCTAClick} />
     </div>
   );
 };

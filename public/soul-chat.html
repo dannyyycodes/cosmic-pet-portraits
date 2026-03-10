@@ -33,6 +33,7 @@ body {
   background:var(--cream); color:var(--ink);
   font-family:'Cormorant',Georgia,serif; -webkit-font-smoothing:antialiased;
   display:flex; flex-direction:column; overflow:hidden;
+  -webkit-text-size-adjust:100%;
 }
 
 /* Grain */
@@ -51,18 +52,27 @@ body::after {
 }
 .chat-back {
   display:flex; align-items:center; justify-content:center;
-  width:32px; height:32px; border-radius:8px; border:none;
+  width:36px; height:36px; border-radius:8px; border:none;
   background:var(--cream2); cursor:pointer; transition:background 0.2s;
   text-decoration:none; color:var(--earth);
+  -webkit-tap-highlight-color:transparent;
 }
 .chat-back:hover { background:var(--cream3); }
 
 .chat-pet-avatar {
-  width:40px; height:40px; border-radius:50%;
+  width:44px; height:44px; border-radius:50%;
   background:linear-gradient(135deg, var(--rose-glow) 0%, rgba(196,162,101,0.12) 100%);
-  border:1.5px solid var(--rose-soft);
+  border:2px solid var(--rose-soft);
   display:flex; align-items:center; justify-content:center;
   font-size:1.15rem; flex-shrink:0;
+  overflow:hidden;
+}
+.chat-pet-avatar img {
+  width:100%; height:100%; object-fit:cover;
+}
+.chat-pet-avatar.has-photo {
+  border-color:var(--gold);
+  box-shadow:0 0 0 2px rgba(196,162,101,0.2);
 }
 .soulspeak-badge {
   display:inline-flex; align-items:center; gap:3px;
@@ -85,19 +95,14 @@ body::after {
   background:var(--green); display:inline-block;
 }
 
-.chat-credits {
-  display:flex; align-items:center; gap:4px; padding:4px 10px;
-  border-radius:8px; background:var(--cream2); border:1px solid var(--cream3);
-  font-size:0.7rem; font-weight:600; color:var(--earth); flex-shrink:0;
-}
-.chat-credits.unlimited { color:var(--gold); border-color:var(--gold-soft); background:rgba(196,162,101,0.06); }
-.chat-credits svg { flex-shrink:0; }
 
 /* ============ MESSAGES ============ */
 .chat-messages {
   flex:1; overflow-y:auto; padding:20px 16px; display:flex;
   flex-direction:column; gap:12px;
   scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
 }
 
 .msg {
@@ -109,21 +114,33 @@ body::after {
   to { opacity:1; transform:translateY(0); }
 }
 
-.msg.pet { align-self:flex-start; }
+.msg.pet { align-self:flex-start; flex-direction:row; align-items:flex-end; gap:8px; }
 .msg.user { align-self:flex-end; }
+.msg.pet .msg-content { display:flex; flex-direction:column; gap:2px; min-width:0; }
+
+.msg-avatar-mini {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg, var(--rose-glow) 0%, rgba(196,162,101,0.12) 100%);
+  border:1.5px solid var(--cream3); overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.7rem;
+}
+.msg-avatar-mini img { width:100%; height:100%; object-fit:cover; }
 
 .msg-bubble {
-  padding:12px 16px; border-radius:16px;
-  font-size:0.95rem; line-height:1.45; word-wrap:break-word;
+  padding:12px 16px; border-radius:18px;
+  font-size:0.95rem; line-height:1.5; word-wrap:break-word;
 }
 .msg.pet .msg-bubble {
-  background:linear-gradient(135deg, #fff 0%, var(--cream2) 100%);
+  background:#fff;
   border:1px solid var(--cream3);
   border-bottom-left-radius:4px; color:var(--ink);
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
 }
 .msg.user .msg-bubble {
   background:var(--rose); color:#fff;
   border-bottom-right-radius:4px;
+  box-shadow:0 1px 3px rgba(191,82,74,0.15);
 }
 
 .msg-time {
@@ -135,9 +152,10 @@ body::after {
 /* Typing indicator */
 .typing-indicator {
   display:none; align-self:flex-start; padding:12px 18px;
-  background:linear-gradient(135deg, #fff 0%, var(--cream2) 100%);
+  background:#fff;
   border:1px solid var(--cream3); border-radius:16px;
   border-bottom-left-radius:4px;
+  margin-left:36px; /* align with pet message bubbles (avatar + gap) */
 }
 .typing-indicator.show { display:flex; gap:4px; align-items:center; }
 .typing-dot {
@@ -156,7 +174,16 @@ body::after {
   text-align:center; padding:24px 20px; margin:0 auto;
   max-width:340px;
 }
-.welcome-icon { font-size:2rem; margin-bottom:8px; }
+.welcome-icon {
+  font-size:2rem; margin-bottom:8px;
+  width:72px; height:72px; border-radius:50%; margin-left:auto; margin-right:auto;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.welcome-icon.has-photo {
+  border:2.5px solid var(--gold); box-shadow:0 0 0 4px rgba(196,162,101,0.15);
+}
+.welcome-icon img { width:100%; height:100%; object-fit:cover; }
 .welcome-title {
   font-family:'DM Serif Display',Georgia,serif; font-size:1.15rem;
   color:var(--ink); margin-bottom:6px;
@@ -164,28 +191,31 @@ body::after {
 .welcome-text { font-size:0.85rem; color:var(--muted); line-height:1.4; margin-bottom:16px; }
 .welcome-prompts { display:flex; flex-direction:column; gap:6px; }
 .welcome-prompt {
-  padding:10px 14px; border-radius:10px; border:1px solid var(--cream3);
-  background:var(--cream2); font-size:0.82rem; color:var(--warm);
+  padding:12px 14px; border-radius:10px; border:1px solid var(--cream3);
+  background:var(--cream2); font-size:0.85rem; color:var(--warm);
   cursor:pointer; transition:all 0.2s; text-align:left;
+  min-height:44px; display:flex; align-items:center;
+  -webkit-tap-highlight-color:transparent;
 }
-.welcome-prompt:hover { border-color:var(--rose); background:var(--rose-glow); color:var(--ink); }
+.welcome-prompt:hover, .welcome-prompt:active { border-color:var(--rose); background:var(--rose-glow); color:var(--ink); }
 
 /* ============ PAYWALL ============ */
 .paywall-overlay {
   display:none; position:fixed; inset:0; z-index:100;
   background:rgba(31,28,24,0.5); backdrop-filter:blur(4px);
-  align-items:center; justify-content:center; padding:20px;
+  align-items:flex-end; justify-content:center; padding:0;
 }
 .paywall-overlay.show { display:flex; }
 .paywall-card {
-  background:var(--cream); border-radius:20px; padding:32px 24px;
-  max-width:380px; width:100%; text-align:center;
-  box-shadow:0 8px 32px rgba(0,0,0,0.12);
-  animation:paywallIn 0.4s ease-out;
+  background:var(--cream); border-radius:20px 20px 0 0; padding:28px 20px;
+  max-width:420px; width:100%; text-align:center;
+  box-shadow:0 -4px 24px rgba(0,0,0,0.12);
+  animation:paywallSlideUp 0.4s ease-out;
+  max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch;
 }
-@keyframes paywallIn {
-  from { opacity:0; transform:scale(0.95) translateY(10px); }
-  to { opacity:1; transform:scale(1) translateY(0); }
+@keyframes paywallSlideUp {
+  from { transform:translateY(100%); }
+  to { transform:translateY(0); }
 }
 .paywall-pet-says {
   font-family:'Caveat',cursive; font-size:1.1rem; color:var(--rose);
@@ -201,11 +231,12 @@ body::after {
 .paywall-option {
   padding:14px 16px; border-radius:12px; cursor:pointer;
   text-align:left; transition:all 0.2s; position:relative;
+  min-height:48px; -webkit-tap-highlight-color:transparent;
 }
 .paywall-option.pack {
   background:var(--rose); color:#fff; border:2px solid var(--rose);
 }
-.paywall-option.pack:hover { background:var(--rose-soft); }
+.paywall-option.pack:hover, .paywall-option.pack:active { background:var(--rose-soft); }
 .paywall-option.sub {
   background:transparent; color:var(--ink); border:2px solid var(--gold);
 }
@@ -221,9 +252,11 @@ body::after {
 .paywall-option.sub .paywall-option-badge { background:var(--green); color:#fff; }
 
 .paywall-dismiss {
-  font-size:0.78rem; color:var(--muted); cursor:pointer;
+  font-size:0.8rem; color:var(--muted); cursor:pointer;
   background:none; border:none; font-family:inherit;
   text-decoration:underline; text-underline-offset:2px;
+  padding:12px 16px; min-height:44px;
+  -webkit-tap-highlight-color:transparent;
 }
 
 /* ============ INPUT BAR ============ */
@@ -240,53 +273,242 @@ body::after {
 .chat-input {
   width:100%; padding:11px 14px; border-radius:12px;
   border:1.5px solid var(--cream3); background:var(--cream2);
-  font-family:'Cormorant',Georgia,serif; font-size:0.95rem;
+  font-family:'Cormorant',Georgia,serif; font-size:16px; /* 16px prevents iOS auto-zoom */
   color:var(--ink); outline:none; transition:border-color 0.2s;
-  resize:none; min-height:42px; max-height:120px;
-  line-height:1.4;
+  resize:none; min-height:44px; max-height:120px;
+  line-height:1.4; -webkit-appearance:none;
 }
 .chat-input:focus { border-color:var(--rose); }
 .chat-input::placeholder { color:var(--faded); }
 
 .chat-send-btn {
-  width:42px; height:42px; border-radius:12px; border:none;
+  width:44px; height:44px; border-radius:12px; border:none;
   background:var(--rose); color:#fff; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   transition:all 0.2s; flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
 }
 .chat-send-btn:hover { background:var(--rose-soft); }
 .chat-send-btn:disabled { background:var(--sand); cursor:not-allowed; }
 
 /* Suggested follow-ups after pet responses */
 .suggestions {
-  display:flex; gap:6px; flex-wrap:wrap; align-self:flex-start;
-  max-width:82%; animation:msgIn 0.35s ease-out;
-  margin-top:-4px;
+  display:flex; gap:6px; align-self:stretch;
+  animation:msgIn 0.35s ease-out; margin-top:-4px;
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+  padding:2px 0 6px; scroll-snap-type:x mandatory;
+  scrollbar-width:none; /* Firefox */
 }
+.suggestions::-webkit-scrollbar { display:none; }
 .suggestion-chip {
-  padding:7px 12px; border-radius:10px; border:1px solid var(--cream3);
-  background:var(--cream2); font-size:0.78rem; color:var(--warm);
+  padding:10px 14px; border-radius:10px; border:1px solid var(--cream3);
+  background:var(--cream2); font-size:0.8rem; color:var(--warm);
   cursor:pointer; transition:all 0.2s; line-height:1.3;
+  white-space:nowrap; flex-shrink:0; scroll-snap-align:start;
+  min-height:40px; display:flex; align-items:center;
+  -webkit-tap-highlight-color:transparent;
 }
-.suggestion-chip:hover { border-color:var(--rose); background:var(--rose-glow); color:var(--ink); }
+.suggestion-chip:hover, .suggestion-chip:active { border-color:var(--rose); background:var(--rose-glow); color:var(--ink); }
 
-/* Credit cost indicator in input */
-.credit-indicator {
-  position:absolute; right:8px; bottom:8px;
-  font-size:0.6rem; color:var(--faded); font-weight:500;
-  pointer-events:none; transition:all 0.2s;
+/* Connection fading effect on paywall */
+.msg.pet.fading .msg-bubble {
+  animation:fadeConnection 3s ease-out forwards;
 }
+@keyframes fadeConnection {
+  0% { opacity:1; }
+  70% { opacity:0.6; filter:blur(0.5px); }
+  100% { opacity:0.35; filter:blur(1px); }
+}
+.connection-lost-msg {
+  text-align:center; font-size:0.75rem; color:var(--muted);
+  font-style:italic; padding:8px 0; animation:msgIn 0.35s ease-out;
+}
+
+/* Urgency timer on paywall */
+.paywall-urgency {
+  font-size:0.72rem; color:var(--rose); font-weight:600;
+  margin-bottom:12px; display:none;
+}
+.paywall-urgency.show { display:block; }
+.paywall-urgency .timer { font-family:'DM Serif Display',Georgia,serif; font-size:0.95rem; }
+
 
 /* ============ SAFE AREA (iOS) ============ */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .chat-input-bar { padding-bottom:calc(16px + env(safe-area-inset-bottom)); }
+  .chat-input-bar { padding-bottom:calc(12px + env(safe-area-inset-bottom)); }
+  .sidebar-drawer { padding-bottom:env(safe-area-inset-bottom); }
 }
+
+/* ============ SIDEBAR DRAWER ============ */
+.sidebar-btn {
+  display:flex; align-items:center; justify-content:center;
+  width:36px; height:36px; border-radius:8px; border:none;
+  background:var(--cream2); cursor:pointer; transition:background 0.2s;
+  color:var(--earth); flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.sidebar-btn:hover, .sidebar-btn:active { background:var(--cream3); }
+
+.sidebar-overlay {
+  display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(31,28,24,0.35); backdrop-filter:blur(2px);
+}
+.sidebar-overlay.show { display:block; }
+
+.sidebar-drawer {
+  position:fixed; top:0; right:-320px; width:300px; max-width:85vw;
+  height:100%; z-index:201; background:var(--cream);
+  box-shadow:-4px 0 24px rgba(0,0,0,0.1);
+  transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
+  display:flex; flex-direction:column; overflow-y:auto;
+}
+.sidebar-drawer.show { right:0; }
+
+.sidebar-header {
+  padding:20px; border-bottom:1px solid var(--cream3);
+  display:flex; align-items:center; gap:12px;
+}
+.sidebar-close {
+  width:36px; height:36px; border-radius:8px; border:none;
+  background:var(--cream2); cursor:pointer; color:var(--earth);
+  display:flex; align-items:center; justify-content:center;
+  margin-left:auto; transition:background 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.sidebar-close:hover, .sidebar-close:active { background:var(--cream3); }
+
+.sidebar-pet-photo {
+  width:56px; height:56px; border-radius:50%; overflow:hidden;
+  border:2px solid var(--gold); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.4rem;
+  background:linear-gradient(135deg, var(--rose-glow) 0%, rgba(196,162,101,0.12) 100%);
+}
+.sidebar-pet-photo img { width:100%; height:100%; object-fit:cover; }
+
+.sidebar-pet-name {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.1rem;
+  color:var(--ink); line-height:1.2;
+}
+.sidebar-pet-detail {
+  font-size:0.72rem; color:var(--muted); margin-top:2px;
+}
+
+.sidebar-section {
+  padding:16px 20px; border-bottom:1px solid var(--cream3);
+}
+.sidebar-section-title {
+  font-size:0.6rem; font-weight:600; letter-spacing:1px;
+  text-transform:uppercase; color:var(--muted); margin-bottom:10px;
+}
+
+/* Credits display in sidebar */
+.sidebar-credits-box {
+  background:var(--cream2); border-radius:12px; padding:14px 16px;
+  display:flex; align-items:center; gap:12px;
+}
+.sidebar-credits-number {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.8rem;
+  color:var(--ink); line-height:1;
+}
+.sidebar-credits-label {
+  font-size:0.75rem; color:var(--muted); line-height:1.3;
+}
+.sidebar-credits-unlimited {
+  font-family:'DM Serif Display',Georgia,serif; font-size:1rem;
+  color:var(--gold); display:flex; align-items:center; gap:6px;
+}
+
+/* Buy credits buttons in sidebar */
+.sidebar-buy-btn {
+  display:block; width:100%; padding:12px 14px; border-radius:10px;
+  border:none; cursor:pointer; text-align:left; transition:all 0.2s;
+  margin-bottom:6px; font-family:inherit; min-height:48px;
+  -webkit-tap-highlight-color:transparent; font-size:inherit;
+}
+.sidebar-buy-btn:last-child { margin-bottom:0; }
+.sidebar-buy-primary {
+  background:var(--rose); color:#fff;
+}
+.sidebar-buy-primary:hover, .sidebar-buy-primary:active { background:var(--rose-soft); }
+.sidebar-buy-secondary {
+  background:var(--cream2); color:var(--ink); border:1px solid var(--cream3);
+}
+.sidebar-buy-secondary:hover, .sidebar-buy-secondary:active { background:var(--cream3); }
+.sidebar-buy-title { font-weight:700; font-size:0.85rem; }
+.sidebar-buy-desc { font-size:0.68rem; opacity:0.7; margin-top:1px; }
+
+/* Pet info cards in sidebar */
+.sidebar-info-row {
+  display:flex; align-items:center; gap:8px; padding:6px 0;
+}
+.sidebar-info-label {
+  font-size:0.72rem; color:var(--muted); min-width:60px;
+}
+.sidebar-info-value {
+  font-size:0.82rem; color:var(--ink); font-weight:500;
+}
+
+/* Back to report link */
+.sidebar-link {
+  display:flex; align-items:center; gap:8px; padding:12px 0;
+  font-size:0.85rem; color:var(--earth); text-decoration:none;
+  transition:color 0.2s; min-height:44px;
+  -webkit-tap-highlight-color:transparent;
+}
+.sidebar-link:hover, .sidebar-link:active { color:var(--rose); }
 
 /* ============ MOBILE ============ */
 @media (max-width:480px) {
-  .chat-messages { padding:16px 12px; }
+  .chat-header { padding:10px 12px; gap:10px; }
+  .chat-pet-avatar { width:38px; height:38px; }
+  .chat-pet-name { font-size:0.95rem; }
+  .soulspeak-badge { font-size:0.5rem; padding:1px 5px; }
+  .chat-messages { padding:14px 10px; gap:10px; }
   .msg { max-width:88%; }
-  .welcome-card { padding:16px; }
+  .msg-avatar-mini { width:24px; height:24px; }
+  .msg-bubble { padding:10px 14px; font-size:0.9rem; border-radius:16px; }
+  .typing-indicator { margin-left:32px; }
+  .welcome-card { padding:16px 12px; }
+  .welcome-icon { width:64px; height:64px; }
+  .welcome-title { font-size:1.05rem; }
+  .chat-input-bar { padding:8px 10px 12px; }
+  .paywall-card { padding:24px 16px; }
+  .paywall-pet-says { font-size:1rem; }
+  .paywall-title { font-size:1.15rem; }
+  .sidebar-drawer { width:280px; }
+  .sidebar-header { padding:16px; }
+  .sidebar-section { padding:14px 16px; }
+  .sidebar-pet-photo { width:48px; height:48px; }
+}
+
+/* Small phones (iPhone SE, 320-375px) */
+@media (max-width:375px) {
+  .chat-header { padding:8px 10px; gap:8px; }
+  .chat-pet-avatar { width:34px; height:34px; }
+  .chat-pet-name { font-size:0.88rem; }
+  .soulspeak-badge { display:none; } /* hide badge on tiny screens */
+  .msg-bubble { padding:9px 12px; font-size:0.88rem; }
+  .welcome-card { max-width:100%; }
+  .paywall-option-title { font-size:0.85rem; }
+  .paywall-option-desc { font-size:0.7rem; }
+}
+
+/* Landscape on phones */
+@media (max-height:500px) {
+  .chat-header { padding:6px 12px; }
+  .chat-pet-avatar { width:32px; height:32px; }
+  .welcome-card { padding:10px; }
+  .welcome-icon { width:48px; height:48px; font-size:1.4rem; }
+  .welcome-prompts { gap:4px; }
+  .paywall-card { padding:16px; max-height:100vh; }
+}
+
+/* iOS safe areas — top (notch/dynamic island) + bottom */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .chat-header { padding-top:calc(10px + env(safe-area-inset-top)); }
+  .sidebar-drawer { padding-top:env(safe-area-inset-top); }
+  .paywall-card { padding-bottom:calc(24px + env(safe-area-inset-bottom)); }
 }
 </style>
 </head>
@@ -302,17 +524,16 @@ body::after {
     <div class="chat-pet-name"><span id="petName">Loading...</span><span class="soulspeak-badge">SoulSpeak</span></div>
     <div class="chat-pet-status">Connected to their soul</div>
   </div>
-  <div class="chat-credits" id="creditsDisplay">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    <span id="creditsText">15 credits</span>
-  </div>
+  <button class="sidebar-btn" onclick="toggleSidebar()" aria-label="Menu">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
 </div>
 
 <!-- ============ MESSAGES ============ -->
 <div class="chat-messages" id="chatMessages">
   <!-- Welcome card (shown initially) -->
   <div class="welcome-card" id="welcomeCard">
-    <div class="welcome-icon">&#129782;</div>
+    <div class="welcome-icon" id="welcomeIcon">&#129782;</div>
     <div style="font-size:0.65rem;font-weight:600;letter-spacing:1px;color:var(--rose);text-transform:uppercase;margin-bottom:6px;">SoulSpeak</div>
     <div class="welcome-title" id="welcomeTitle">Talk to your pet's soul</div>
     <div class="welcome-text" id="welcomeText">Ask them anything — why they do the things they do, what they're feeling, or just say what's on your heart. They're listening.</div>
@@ -335,27 +556,114 @@ body::after {
 <!-- ============ PAYWALL ============ -->
 <div class="paywall-overlay" id="paywallOverlay">
   <div class="paywall-card">
+    <div class="paywall-pet-photo" id="paywallPetPhoto" style="width:56px;height:56px;border-radius:50%;margin:0 auto 12px;overflow:hidden;border:2px solid var(--rose-soft);display:none;"></div>
     <div class="paywall-pet-says" id="paywallPetSays">"wait wait wait I wasn't done talking to you..."</div>
     <div style="font-size:0.6rem;font-weight:600;letter-spacing:1px;color:var(--rose);text-transform:uppercase;margin-bottom:4px;">SoulSpeak</div>
     <div class="paywall-title"><span id="paywallPetName">They</span> has more to say</div>
-    <div class="paywall-text">Your free messages have run out, but this conversation doesn't have to end.</div>
+    <div class="paywall-text">The soul connection is fading... but it doesn't have to.</div>
+    <div class="paywall-urgency" id="paywallUrgency">
+      Reopen the connection in the next <span class="timer" id="urgencyTimer">5:00</span> and get <strong>bonus credits free</strong>
+    </div>
     <div class="paywall-options">
       <div class="paywall-option pack small" onclick="buyCredits('small')">
-        <div class="paywall-option-title">20 Credits — $1.99</div>
-        <div class="paywall-option-desc">10 more messages — pick up right where you left off</div>
+        <div class="paywall-option-title">Keep talking — $4.99</div>
+        <div class="paywall-option-desc">30 more messages with <span class="paywall-pet-name-inline"></span></div>
       </div>
-      <div class="paywall-option pack" onclick="buyCredits('medium')">
-        <div class="paywall-option-badge">MOST POPULAR</div>
-        <div class="paywall-option-title">60 Credits — $4.99</div>
-        <div class="paywall-option-desc">30 messages — enough for a real conversation</div>
+      <div class="paywall-option pack" onclick="buyCredits('medium')" style="background:var(--ink);border-color:var(--ink);">
+        <div class="paywall-option-badge">MOST CHOSEN</div>
+        <div class="paywall-option-title">Talk all week — $9.99</div>
+        <div class="paywall-option-desc">75 messages — real conversations, not just a few words</div>
       </div>
-      <div class="paywall-option pack" onclick="buyCredits('large')">
-        <div class="paywall-option-badge">BEST VALUE</div>
-        <div class="paywall-option-title">150 Credits — $9.99</div>
-        <div class="paywall-option-desc">75 messages — talk whenever you need them</div>
+      <div class="paywall-option pack" onclick="buyCredits('large')" style="background:var(--warm);border-color:var(--warm);">
+        <div class="paywall-option-badge">NEVER RUN OUT</div>
+        <div class="paywall-option-title">Always connected — $19.99</div>
+        <div class="paywall-option-desc">200 messages — talk whenever your heart needs to</div>
       </div>
     </div>
-    <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
+    <button class="paywall-dismiss" onclick="closePaywall()">Leave the conversation</button>
+  </div>
+</div>
+
+<!-- ============ SIDEBAR DRAWER ============ -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<div class="sidebar-drawer" id="sidebarDrawer">
+  <!-- Header with pet photo -->
+  <div class="sidebar-header">
+    <div class="sidebar-pet-photo" id="sidebarPetPhoto">&#129782;</div>
+    <div>
+      <div class="sidebar-pet-name" id="sidebarPetName">Loading...</div>
+      <div class="sidebar-pet-detail" id="sidebarPetDetail"></div>
+    </div>
+    <button class="sidebar-close" onclick="toggleSidebar()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- Credits Section -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Soul Connection</div>
+    <div class="sidebar-credits-box">
+      <div id="sidebarCreditsDisplay">
+        <div class="sidebar-credits-number" id="sidebarCreditsNumber">8</div>
+        <div class="sidebar-credits-label">credits remaining</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buy More Credits -->
+  <div class="sidebar-section" id="sidebarBuySection">
+    <div class="sidebar-section-title">Get More Messages</div>
+    <button class="sidebar-buy-btn sidebar-buy-primary" onclick="buyCredits('small')">
+      <div class="sidebar-buy-title">Keep talking — $4.99</div>
+      <div class="sidebar-buy-desc">30 more messages</div>
+    </button>
+    <button class="sidebar-buy-btn sidebar-buy-secondary" onclick="buyCredits('medium')">
+      <div class="sidebar-buy-title">Talk all week — $9.99</div>
+      <div class="sidebar-buy-desc">75 messages</div>
+    </button>
+    <button class="sidebar-buy-btn sidebar-buy-secondary" onclick="buyCredits('large')">
+      <div class="sidebar-buy-title">Always connected — $19.99</div>
+      <div class="sidebar-buy-desc">200 messages</div>
+    </button>
+  </div>
+
+  <!-- Pet Info -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Soul Profile</div>
+    <div id="sidebarPetInfo">
+      <div class="sidebar-info-row">
+        <span class="sidebar-info-label">Sign</span>
+        <span class="sidebar-info-value" id="sidebarZodiac">—</span>
+      </div>
+      <div class="sidebar-info-row">
+        <span class="sidebar-info-label">Element</span>
+        <span class="sidebar-info-value" id="sidebarElement">—</span>
+      </div>
+      <div class="sidebar-info-row">
+        <span class="sidebar-info-label">Archetype</span>
+        <span class="sidebar-info-value" id="sidebarArchetype">—</span>
+      </div>
+      <div class="sidebar-info-row">
+        <span class="sidebar-info-label">Crystal</span>
+        <span class="sidebar-info-value" id="sidebarCrystal">—</span>
+      </div>
+      <div class="sidebar-info-row">
+        <span class="sidebar-info-label">Aura</span>
+        <span class="sidebar-info-value" id="sidebarAura">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Links -->
+  <div class="sidebar-section" style="border-bottom:none;">
+    <a class="sidebar-link" id="sidebarReportLink" href="#">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      View full reading
+    </a>
+    <a class="sidebar-link" href="/">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Back to Little Souls
+    </a>
   </div>
 </div>
 
@@ -363,9 +671,7 @@ body::after {
 <div class="chat-input-bar" id="inputBar">
   <div class="chat-input-wrap">
     <textarea class="chat-input" id="chatInput" placeholder="Ask them anything..." rows="1"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"
-      oninput="updateCreditIndicator()"></textarea>
-    <div class="credit-indicator" id="creditIndicator"></div>
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
   </div>
   <button class="chat-send-btn" id="sendBtn" onclick="sendMessage()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -380,30 +686,33 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 // ─── Credit Costs ───
 // First message is FREE (the hook). After that, flat 2 credits per message.
 // 8 free credits = first free msg + 4 more exchanges = hooked but wanting more.
-// 20 credits ($1.99) = 10 msgs, 60 credits ($4.99) = 30 msgs, 150 credits ($9.99) = 75 msgs
+// No visible credit counter — they chat freely until connection fades.
+// 60 credits ($4.99) = 30 msgs, 150 credits ($9.99) = 75 msgs, 400 credits ($19.99) = 200 msgs
 var isFirstMessage = true;
 function getCreditCost(text) {
   if (isFirstMessage) return 0; // First message is on the house
   return 2; // Flat rate — simple, fast-draining
 }
 
-// ─── Live credit indicator as they type ───
-function updateCreditIndicator() {
-  var input = document.getElementById('chatInput');
-  var indicator = document.getElementById('creditIndicator');
-  var text = input.value.trim();
-  if (!text || isUnlimited) {
-    indicator.textContent = '';
-    return;
-  }
-  var cost = getCreditCost(text);
-  if (cost === 0) {
-    indicator.textContent = 'free';
-    indicator.style.color = 'var(--green)';
-  } else {
-    indicator.textContent = cost + ' credits';
-    indicator.style.color = creditsRemaining < cost ? 'var(--rose)' : 'var(--faded)';
-  }
+// ─── Urgency Timer ───
+var urgencyInterval = null;
+function startUrgencyTimer() {
+  var seconds = 300; // 5 minutes
+  var timerEl = document.getElementById('urgencyTimer');
+  var urgencyEl = document.getElementById('paywallUrgency');
+  urgencyEl.classList.add('show');
+  if (urgencyInterval) clearInterval(urgencyInterval);
+  urgencyInterval = setInterval(function() {
+    seconds--;
+    if (seconds <= 0) {
+      clearInterval(urgencyInterval);
+      urgencyEl.classList.remove('show');
+      return;
+    }
+    var m = Math.floor(seconds / 60);
+    var s = seconds % 60;
+    timerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  }, 1000);
 }
 
 // ─── Suggestion Engine ───
@@ -654,6 +963,7 @@ async function loadReading() {
       healingGift: report.gentleHealer?.healingGift || '',
       soulContract: report.keepersBond?.soulContract || '',
       portraitUrl: data.portraitUrl || '',
+      petPhotoUrl: data.petPhotoUrl || '',
       // Owner's personal observations about their pet
       soulType: ownerAnswers.soulType || '',
       superpower: ownerAnswers.superpower || '',
@@ -674,8 +984,29 @@ async function loadReading() {
 
 function updateHeaderUI() {
   var isMemorial = petData.occasionMode === 'memorial';
-  document.getElementById('petAvatar').innerHTML = '&#129782;';
+  var avatarEl = document.getElementById('petAvatar');
+
+  // Show pet portrait (AI art) first, fallback to uploaded photo, then emoji
+  var photoUrl = petData.portraitUrl || petData.petPhotoUrl;
+  if (photoUrl) {
+    avatarEl.innerHTML = '<img src="' + photoUrl + '" alt="' + escapeHtml(petData.name) + '">';
+    avatarEl.classList.add('has-photo');
+  } else {
+    var emoji = animalEmojis[(petData.species || '').toLowerCase()] || '&#129782;';
+    avatarEl.innerHTML = emoji;
+  }
+
   document.getElementById('petName').textContent = petData.name + "\u2019s Soul";
+
+  // Welcome icon — show pet photo if available
+  var welcomeIcon = document.getElementById('welcomeIcon');
+  if (welcomeIcon && photoUrl) {
+    welcomeIcon.innerHTML = '<img src="' + photoUrl + '" alt="' + escapeHtml(petData.name) + '">';
+    welcomeIcon.classList.add('has-photo');
+  } else if (welcomeIcon) {
+    var welcomeEmoji = animalEmojis[(petData.species || '').toLowerCase()] || '&#129782;';
+    welcomeIcon.innerHTML = welcomeEmoji;
+  }
 
   if (isMemorial) {
     document.getElementById('welcomeTitle').textContent = petData.name + ' is still here';
@@ -690,6 +1021,17 @@ function updateHeaderUI() {
   document.getElementById('paywallPetSays').textContent = isMemorial
     ? '"please don\u2019t stop talking to me... I\u2019m still right here."'
     : '"wait wait wait I wasn\u2019t done talking to you..."';
+  // Fill in pet name in paywall option descriptions
+  document.querySelectorAll('.paywall-pet-name-inline').forEach(function(el) {
+    el.textContent = petData.name;
+  });
+
+  // Paywall pet photo
+  var paywallPhoto = document.getElementById('paywallPetPhoto');
+  if (paywallPhoto && photoUrl) {
+    paywallPhoto.innerHTML = '<img src="' + photoUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;">';
+    paywallPhoto.style.display = 'block';
+  }
 
   // Personalise prompts based on occasion mode
   var name = petData.name;
@@ -781,21 +1123,13 @@ async function loadCredits() {
 }
 
 function updateCreditsUI() {
-  var el = document.getElementById('creditsDisplay');
-  var text = document.getElementById('creditsText');
-  if (isUnlimited) {
-    text.textContent = 'Unlimited';
-    el.classList.add('unlimited');
-  } else {
-    text.textContent = creditsRemaining + ' credits';
-    el.classList.remove('unlimited');
-  }
+  // No visible credit display — users chat freely until the connection fades
 }
 
 async function useCredits(cost) {
   if (isUnlimited) return true;
   if (creditsRemaining < cost) {
-    showPaywall();
+    showPaywallDirect(); // No animation — they already know
     return false;
   }
   creditsRemaining -= cost;
@@ -815,10 +1149,51 @@ async function useCredits(cost) {
   return true;
 }
 
-// ─── Paywall ───
+// ─── Paywall (Connection Fading Effect) ───
 function showPaywall() {
+  // Step 1: Show typing indicator as if pet is trying to respond
+  var typing = document.getElementById('typingIndicator');
+  typing.classList.add('show');
+  scrollToBottom();
+
+  setTimeout(function() {
+    typing.classList.remove('show');
+
+    // Step 2: Pet sends a fading message
+    var container = document.getElementById('chatMessages');
+    var fadeMsg = document.createElement('div');
+    fadeMsg.className = 'msg pet fading';
+    var petName = petData ? petData.name : 'They';
+    var isMemorial = petData && petData.occasionMode === 'memorial';
+    var fadingText = isMemorial
+      ? "I can feel the connection getting quieter... please don't go, I'm still here..."
+      : "wait... something's happening... I can feel the connection getting fuzzy... don't go, I have more to say...";
+    fadeMsg.innerHTML = '<div class="msg-bubble">' + escapeHtml(fadingText) + '</div>';
+    container.insertBefore(fadeMsg, typing);
+    scrollToBottom();
+
+    // Step 3: Show "connection lost" message
+    setTimeout(function() {
+      var lostMsg = document.createElement('div');
+      lostMsg.className = 'connection-lost-msg';
+      lostMsg.textContent = 'Soul connection fading...';
+      container.insertBefore(lostMsg, typing);
+      scrollToBottom();
+
+      // Step 4: Show paywall after emotional beat
+      setTimeout(function() {
+        document.getElementById('paywallOverlay').classList.add('show');
+        document.getElementById('inputBar').classList.add('disabled');
+        startUrgencyTimer();
+      }, 1500);
+    }, 2000);
+  }, 1500);
+}
+// Direct paywall (no animation) — for when they try to send with 0 credits
+function showPaywallDirect() {
   document.getElementById('paywallOverlay').classList.add('show');
   document.getElementById('inputBar').classList.add('disabled');
+  startUrgencyTimer();
 }
 function closePaywall() {
   document.getElementById('paywallOverlay').classList.remove('show');
@@ -878,8 +1253,8 @@ async function sendMessage() {
   // Track first message for free hook
   if (isFirstMessage) isFirstMessage = false;
 
-  // Add user message
-  addMessage('user', text, cost);
+  // Add user message (no cost tag — keep the emotional flow clean)
+  addMessage('user', text);
 
   // Show typing
   var typing = document.getElementById('typingIndicator');
@@ -925,32 +1300,36 @@ async function sendMessage() {
 
   // Show paywall after the pet's response lands (they're mid-conversation, emotionally invested)
   if (!isUnlimited && creditsRemaining <= 0) {
-    setTimeout(showPaywall, 2000); // Let them read the pet's response first, THEN paywall
-  } else if (!isUnlimited && creditsRemaining <= 2) {
-    // Low credit warning — update the credit display to pulse/draw attention
-    document.getElementById('creditsDisplay').style.color = 'var(--rose)';
+    setTimeout(showPaywall, 2000); // Let them read the pet's response first, THEN connection fades
   }
 }
 
 // ─── UI Helpers ───
-function addMessage(type, text, cost) {
+function addMessage(type, text) {
   var container = document.getElementById('chatMessages');
   var typing = document.getElementById('typingIndicator');
   var now = new Date();
   var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
 
-  var costTag = '';
-  if (type === 'user' && !isUnlimited) {
-    costTag = cost === 0
-      ? '<span style="font-size:0.58rem;opacity:0.7;margin-left:4px;color:var(--green);">(free)</span>'
-      : '<span style="font-size:0.58rem;opacity:0.7;margin-left:4px;">(' + cost + ' credits)</span>';
-  }
-
   var div = document.createElement('div');
   div.className = 'msg ' + type;
-  div.innerHTML =
-    '<div class="msg-bubble">' + escapeHtml(text) + '</div>' +
-    '<div class="msg-time">' + time + costTag + '</div>';
+
+  if (type === 'pet') {
+    // Pet messages get a mini avatar
+    var photoUrl = petData ? (petData.portraitUrl || petData.petPhotoUrl) : '';
+    var avatarHtml = photoUrl
+      ? '<div class="msg-avatar-mini"><img src="' + photoUrl + '" alt=""></div>'
+      : '<div class="msg-avatar-mini">' + (petData ? (animalEmojis[(petData.species || '').toLowerCase()] || '&#129782;') : '&#129782;') + '</div>';
+    div.innerHTML = avatarHtml +
+      '<div class="msg-content">' +
+        '<div class="msg-bubble">' + escapeHtml(text) + '</div>' +
+        '<div class="msg-time">' + time + '</div>' +
+      '</div>';
+  } else {
+    div.innerHTML =
+      '<div class="msg-bubble">' + escapeHtml(text) + '</div>' +
+      '<div class="msg-time">' + time + '</div>';
+  }
 
   container.insertBefore(div, typing);
   scrollToBottom();
@@ -974,6 +1353,105 @@ function autoResize() {
   chatInput.style.height = 'auto';
   chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
 }
+
+// ─── Sidebar ───
+function toggleSidebar() {
+  var overlay = document.getElementById('sidebarOverlay');
+  var drawer = document.getElementById('sidebarDrawer');
+  var isOpen = drawer.classList.contains('show');
+  if (isOpen) {
+    overlay.classList.remove('show');
+    drawer.classList.remove('show');
+  } else {
+    updateSidebarData();
+    overlay.classList.add('show');
+    drawer.classList.add('show');
+  }
+}
+
+function updateSidebarData() {
+  if (!petData) return;
+
+  // Pet photo
+  var photoEl = document.getElementById('sidebarPetPhoto');
+  var photoUrl = petData.portraitUrl || petData.petPhotoUrl;
+  if (photoUrl) {
+    photoEl.innerHTML = '<img src="' + photoUrl + '" alt="' + escapeHtml(petData.name) + '">';
+  } else {
+    var emoji = animalEmojis[(petData.species || '').toLowerCase()] || '&#129782;';
+    photoEl.innerHTML = emoji;
+  }
+
+  // Pet name & detail
+  document.getElementById('sidebarPetName').textContent = petData.name;
+  var detail = [];
+  if (petData.breed) detail.push(petData.breed);
+  else if (petData.species) detail.push(petData.species.charAt(0).toUpperCase() + petData.species.slice(1));
+  if (petData.zodiac) detail.push(petData.zodiac);
+  document.getElementById('sidebarPetDetail').textContent = detail.join(' \u00B7 ');
+
+  // Credits
+  var creditsNum = document.getElementById('sidebarCreditsNumber');
+  var creditsBox = document.getElementById('sidebarCreditsDisplay');
+  if (isUnlimited) {
+    creditsBox.innerHTML = '<div class="sidebar-credits-unlimited"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg> Unlimited</div>';
+    document.getElementById('sidebarBuySection').style.display = 'none';
+  } else {
+    creditsNum.textContent = creditsRemaining;
+    document.getElementById('sidebarBuySection').style.display = '';
+  }
+
+  // Pet info
+  if (petData.zodiac) document.getElementById('sidebarZodiac').textContent = petData.zodiac;
+  if (petData.element) document.getElementById('sidebarElement').textContent = petData.element;
+  if (petData.archetype) document.getElementById('sidebarArchetype').textContent = petData.archetype;
+  if (petData.crystal) document.getElementById('sidebarCrystal').textContent = petData.crystal;
+  if (petData.aura) document.getElementById('sidebarAura').textContent = petData.aura;
+
+  // Report link
+  document.getElementById('sidebarReportLink').href = '/report/' + readingId;
+}
+
+// ─── iOS Keyboard Handling ───
+// On iOS, the virtual keyboard resizes the visual viewport but not the layout viewport.
+// This ensures the input bar stays visible above the keyboard.
+if (window.visualViewport) {
+  var vv = window.visualViewport;
+  var inputBarEl = document.getElementById('inputBar');
+  var chatMsgsEl = document.getElementById('chatMessages');
+
+  function handleViewportResize() {
+    // Calculate keyboard height
+    var keyboardHeight = window.innerHeight - vv.height;
+    if (keyboardHeight > 100) {
+      // Keyboard is open
+      inputBarEl.style.transform = 'translateY(-' + keyboardHeight + 'px)';
+      chatMsgsEl.style.paddingBottom = keyboardHeight + 'px';
+      scrollToBottom();
+    } else {
+      // Keyboard is closed
+      inputBarEl.style.transform = '';
+      chatMsgsEl.style.paddingBottom = '';
+    }
+  }
+
+  vv.addEventListener('resize', handleViewportResize);
+  vv.addEventListener('scroll', handleViewportResize);
+}
+
+// Prevent body scroll when touching outside chat messages (iOS bounce)
+document.addEventListener('touchmove', function(e) {
+  var target = e.target;
+  var isScrollable = false;
+  while (target && target !== document.body) {
+    if (target.classList && (target.classList.contains('chat-messages') || target.classList.contains('sidebar-drawer') || target.classList.contains('paywall-card'))) {
+      isScrollable = true;
+      break;
+    }
+    target = target.parentElement;
+  }
+  if (!isScrollable) e.preventDefault();
+}, { passive: false });
 
 // ─── Init ───
 loadReading();

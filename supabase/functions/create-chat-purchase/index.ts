@@ -9,9 +9,9 @@ const corsHeaders = {
 };
 
 const creditTiers = {
-  small:  { credits: 20,   price: 199,   name: "SoulSpeak — 20 Credits",  desc: "10 more messages with your pet's soul" },
-  medium: { credits: 60,   price: 499,   name: "SoulSpeak — 60 Credits",  desc: "30 heartfelt conversations — enough for a real talk" },
-  large:  { credits: 150,  price: 999,   name: "SoulSpeak — 150 Credits", desc: "75 messages — talk whenever you need them" },
+  small:  { credits: 60,   price: 499,   name: "SoulSpeak — Keep Talking",       desc: "30 more messages with your pet's soul" },
+  medium: { credits: 150,  price: 999,   name: "SoulSpeak — Talk All Week",      desc: "75 heartfelt conversations" },
+  large:  { credits: 400,  price: 1999,  name: "SoulSpeak — Always Connected",   desc: "200 messages — talk whenever your heart needs to" },
 };
 
 serve(async (req) => {
