@@ -14,7 +14,6 @@ interface MessageSegment {
 }
 
 function generateDefaultMessages(petName: string, element: string): MessageSegment[] {
-  // TODO: Add to generate-cosmic-report prompt
   return [
     {
       time: 'Today 8:47 AM',

@@ -15,7 +15,7 @@ import Index from "./pages/Index";
 import Intake from "./pages/Intake";
 // QuickCheckout kept as backup in src/pages/QuickCheckout.tsx for A/B testing
 import PaymentSuccess from "./pages/PaymentSuccess";
-import ViewReport from "./pages/ViewReport";
+const ViewReport = lazy(() => import("./pages/ViewReport"));
 // GiftPurchase kept as backup in src/pages/GiftPurchase.tsx
 import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";

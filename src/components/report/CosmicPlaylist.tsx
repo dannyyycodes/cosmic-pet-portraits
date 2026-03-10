@@ -14,7 +14,6 @@ interface PlaylistItem {
 }
 
 function generateDefaultPlaylist(element: string): PlaylistItem[] {
-  // TODO: Add to generate-cosmic-report prompt
   const templates: Record<string, PlaylistItem[]> = {
     Water: [
       { title: 'Clair de Lune', artist: 'Debussy', vibe: 'Dreamy' },

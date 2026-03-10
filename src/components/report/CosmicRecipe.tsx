@@ -17,7 +17,6 @@ interface RecipeData {
 }
 
 function generateDefaultRecipe(petName: string, sunSign: string, element: string): RecipeData {
-  // TODO: Add to generate-cosmic-report prompt
   const templates: Record<string, RecipeData> = {
     Water: {
       name: 'Moonlit Salmon Bites',

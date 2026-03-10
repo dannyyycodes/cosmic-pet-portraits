@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 interface ReportMethodologyProps {
@@ -34,6 +35,7 @@ const steps = [
 
 export function ReportMethodology({ petName }: ReportMethodologyProps) {
   const header = useScrollReveal();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <>
@@ -50,44 +52,50 @@ export function ReportMethodology({ petName }: ReportMethodologyProps) {
         <h2 className="text-[1.6rem] text-[#3d2f2a] leading-tight mt-2" style={{ fontFamily: 'DM Serif Display, serif' }}>
           How We Mapped {petName}&rsquo;s Soul
         </h2>
-        <p className="text-[0.9rem] leading-[1.8] text-[#9a8578] max-w-[380px] mx-auto mt-3 italic"
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-3 text-[0.82rem] text-[#c4a265] hover:text-[#a88a4a] transition-colors cursor-pointer bg-transparent border-none"
           style={{ fontFamily: 'Cormorant, serif' }}
         >
-          Every placement in this reading is calculated from real astronomical data. The exact position
-          of the Sun, Moon, and planets at the moment {petName} entered this world. Nothing here is random.
-        </p>
+          {isExpanded ? 'Hide details' : 'See how we calculated this'} {isExpanded ? '\u25B4' : '\u203A'}
+        </button>
       </motion.div>
 
-      <div className="relative flex flex-col max-w-[520px] mx-auto px-6">
-        {/* Connecting line */}
-        <div className="absolute left-[46px] top-7 bottom-7 w-[1.5px] bg-gradient-to-b from-[#c4a265] to-[#e8ddd0]" />
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="relative flex flex-col max-w-[520px] mx-auto px-6">
+              {/* Connecting line */}
+              <div className="absolute left-[46px] top-7 bottom-7 w-[1.5px] bg-gradient-to-b from-[#c4a265] to-[#e8ddd0]" />
 
-        {steps.map((step) => {
-          const s = useScrollReveal();
-          return (
-            <motion.div
-              key={step.num}
-              ref={s.ref}
-              initial="hidden"
-              animate={s.isInView ? 'visible' : 'hidden'}
-              variants={s.variants}
-              className="flex gap-4 py-3.5 relative"
-            >
-              <div className="w-11 h-11 rounded-full flex-shrink-0 bg-white border-[1.5px] border-[#c4a265] flex items-center justify-center text-[0.75rem] font-bold text-[#c4a265] relative z-[1]">
-                {step.num}
-              </div>
-              <div>
-                <h4 className="font-dm-serif text-[0.95rem] text-[#3d2f2a] mb-0.5">
-                  {step.title}
-                </h4>
-                <p className="text-[0.78rem] text-[#9a8578] leading-[1.55]">
-                  {step.desc(petName)}
-                </p>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+              {steps.map((step) => (
+                <div
+                  key={step.num}
+                  className="flex gap-4 py-3.5 relative"
+                >
+                  <div className="w-11 h-11 rounded-full flex-shrink-0 bg-white border-[1.5px] border-[#c4a265] flex items-center justify-center text-[0.75rem] font-bold text-[#c4a265] relative z-[1]">
+                    {step.num}
+                  </div>
+                  <div>
+                    <h4 className="font-dm-serif text-[0.95rem] text-[#3d2f2a] mb-0.5">
+                      {step.title}
+                    </h4>
+                    <p className="text-[0.78rem] text-[#9a8578] leading-[1.55]">
+                      {step.desc(petName)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

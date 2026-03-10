@@ -27,7 +27,6 @@ function generateDefaultProfile(
   element: string,
   archetype: string
 ): Record<string, string> {
-  // TODO: Add to generate-cosmic-report prompt
   const templates: Record<string, Record<string, string>> = {
     Water: {
       Aesthetic: 'Soft academia meets cottagecore — oversized sweaters, candlelight, rain on windows',

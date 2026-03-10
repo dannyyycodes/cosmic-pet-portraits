@@ -109,9 +109,9 @@ export function ShareableCard({
   }));
   const ovr = calculateOVR(stats.map((s) => s.value));
 
-  // Collector number from reportId
+  // Collector number from first 5 digits of reportId
   const collectorNum = reportId
-    ? reportId.replace(/[^0-9a-f]/gi, '').slice(0, 6).toUpperCase()
+    ? reportId.replace(/[^0-9]/g, '').slice(0, 5) || reportId.replace(/[^0-9a-f]/gi, '').slice(0, 5).toUpperCase()
     : 'UNIQUE';
 
   const shareUrl = reportId

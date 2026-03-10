@@ -178,7 +178,8 @@ const chapters = [
   { number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '😸' },
   { number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '🔮' },
   { number: 5, title: 'Why They Chose You', subtitle: 'This was never random', icon: '💕' },
-  { number: 6, title: 'The Part That Makes People Cry', subtitle: 'You\u2019ve been warned', icon: '🎁' },
+  { number: 6, title: 'The Keepsake', subtitle: 'Something to hold onto', icon: '🎁' },
+  { number: 7, title: 'The Part That Makes People Cry', subtitle: 'You\u2019ve been warned', icon: '💌' },
 ];
 
 export function CosmicReportViewer({
@@ -449,7 +450,7 @@ export function CosmicReportViewer({
           {report.petMonologue && (
             <>
               <PetMonologue monologue={report.petMonologue} petName={petName} sunSign={sunSign} />
-              <SoulSpeakTeaser petName={petName} reportId={reportId} variant="monologue" />
+              {/* SoulSpeak teaser removed — keeping only floating button + end closer */}
               <SectionDivider />
             </>
           )}
@@ -546,9 +547,7 @@ export function CosmicReportViewer({
           <YelpReviews petName={petName} report={report} />
           <SectionDivider />
 
-          {/* ═══ IF I COULD TALK ═══ */}
-          <IfICouldTalk petName={petName} report={report} />
-          <SectionDivider />
+          {/* If I Could Talk — removed per design doc */}
 
           {/* ═══ COSMIC AWARDS ═══ */}
           <CosmicAwards petName={petName} report={report} />
@@ -574,29 +573,14 @@ export function CosmicReportViewer({
                 funFact={(report.keepersBond as SectionContent).funFact}
                 variant={1}
               />
-              <SoulSpeakTeaser petName={petName} reportId={reportId} variant="bond" />
+              {/* SoulSpeak teaser removed — keeping only floating button + end closer */}
               <SectionDivider />
             </>
           )}
 
-          {/* ═══ ACCURACY PREDICTIONS ═══ */}
-          {report.accuracyMoments && (
-            <>
-              <AccuracyPredictions accuracyMoments={report.accuracyMoments} />
-              <SectionDivider />
-            </>
-          )}
+          {/* Accuracy predictions — removed per design doc */}
 
-          {/* ═══ COMPATIBILITY CHART ═══ */}
-          {report.compatibilityNotes && (
-            <>
-              <CompatibilityChart
-                compatibilityNotes={report.compatibilityNotes}
-                petName={petName}
-              />
-              <SectionDivider />
-            </>
-          )}
+          {/* Compatibility chart — removed per design doc */}
 
           {/* ═══ EARTHLY EXPRESSION (if exists) ═══ */}
           {report.earthlyExpression && (
@@ -668,13 +652,10 @@ export function CosmicReportViewer({
             </>
           )}
 
-          {/* ═══ BASED ON YOUR ANSWERS ═══ */}
-          {report.basedOnYourAnswers && (
-            <>
-              <BasedOnYourAnswers data={report.basedOnYourAnswers} />
-              <SectionDivider />
-            </>
-          )}
+          {/* ══════════════════════════════════════════
+              CHAPTER 7 — THE PART THAT MAKES PEOPLE CRY
+             ══════════════════════════════════════════ */}
+          <ChapterTitle chapter={chapters[6]} />
 
           {/* ═══ SOUL LETTER (epilogue) ═══ */}
           <SoulLetter
@@ -685,64 +666,32 @@ export function CosmicReportViewer({
           />
           <SectionDivider />
 
-          {/* ═══ HOROSCOPE SUBSCRIPTION ═══ */}
-          <div className="text-center py-8 px-6 max-w-[520px] mx-auto">
-            {!hasActiveHoroscope ? (
-              <Button
-                onClick={handleSubscribeWeekly}
-                disabled={isSubscribing}
-                className="gap-2"
-                variant="outline"
-              >
-                <Mail className="w-4 h-4" />
-                {isSubscribing ? 'Loading...' : 'Weekly Horoscopes - $4.99/mo'}
-              </Button>
-            ) : (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/10 border border-green-500/30 text-green-600 text-sm">
-                <Check className="w-4 h-4" />
-                Weekly Horoscopes Active
-              </div>
-            )}
-          </div>
-
-          {/* ═══ SOULSPEAK CTA ═══ */}
+          {/* ═══ GENTLE SOULSPEAK CLOSER ═══ */}
           {!isPreview && reportId && (
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="mx-4 my-6 max-w-[520px] sm:mx-auto"
+              transition={{ duration: 1, ease: 'easeOut' }}
+              className="mx-4 my-8 max-w-[520px] sm:mx-auto text-center"
             >
+              <p
+                className="text-[1rem] text-[#9a8578] italic leading-[1.8] mb-5"
+                style={{ fontFamily: 'Cormorant, serif' }}
+              >
+                {petName} has more to say to you&hellip;
+              </p>
               <a
                 href={`/soul-chat.html?id=${reportId}`}
-                className="block p-7 rounded-[18px] text-center no-underline relative overflow-hidden group"
+                className="inline-block px-8 py-3 rounded-full text-[0.85rem] font-medium tracking-[0.3px] no-underline transition-all hover:scale-105"
                 style={{
-                  background: 'linear-gradient(165deg, #3d2f2a 0%, #5a3e2e 50%, #3d2f2a 100%)',
-                  boxShadow: '0 4px 24px rgba(61,47,42,0.3)',
+                  background: 'linear-gradient(135deg, #f5ede0, #ebe1d1)',
+                  color: '#3d2f2a',
+                  border: '1px solid rgba(196,162,101,0.25)',
+                  boxShadow: '0 2px 12px rgba(196,162,101,0.1)',
                 }}
               >
-                <div className="text-[1.6rem] mb-2">✨</div>
-                <div
-                  className="text-[1.15rem] text-white leading-tight mb-2"
-                  style={{ fontFamily: 'DM Serif Display, serif' }}
-                >
-                  {petName} has more to tell you
-                </div>
-                <p className="text-[0.82rem] text-white/70 leading-[1.6] max-w-xs mx-auto mb-4"
-                  style={{ fontFamily: 'Cormorant, serif' }}
-                >
-                  Ask {petName} anything. Why they do the things they do, what they dream about, or just tell them how you feel.
-                </p>
-                <span
-                  className="inline-block px-6 py-2.5 rounded-full text-[0.8rem] font-semibold tracking-[0.5px]"
-                  style={{
-                    background: 'linear-gradient(135deg, #c4a265, #d4b87a)',
-                    color: '#3d2f2a',
-                  }}
-                >
-                  Talk to {petName}&rsquo;s Soul
-                </span>
+                Talk to {petName}
               </a>
             </motion.div>
           )}

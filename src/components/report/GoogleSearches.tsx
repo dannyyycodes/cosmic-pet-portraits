@@ -8,7 +8,6 @@ interface GoogleSearchesProps {
 }
 
 function generateDefaultSearches(petName: string, sunSign: string, element: string): string[] {
-  // TODO: Add to generate-cosmic-report prompt
   const templates: Record<string, string[]> = {
     Water: [
       `why does my human stare at the glowing rectangle instead of me`,
