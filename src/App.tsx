@@ -13,7 +13,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 // Eagerly loaded pages (core user journey)
 import Index from "./pages/Index";
 import Intake from "./pages/Intake";
-import QuickCheckout from "./pages/QuickCheckout";
+// QuickCheckout React component exists but /checkout routes to checkout-v3.html (the original design)
 import PaymentSuccess from "./pages/PaymentSuccess";
 const ViewReport = lazy(() => import("./pages/ViewReport"));
 import GiftPurchase from "./pages/GiftPurchase";
@@ -54,8 +54,13 @@ const AdminQATest = lazy(() => import("./pages/AdminQATest"));
 const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 const FindReport = lazy(() => import("./pages/FindReport"));
 
-// Redirect /checkout to the static HTML checkout page
-// QuickCheckout is now a React component (checkout-v3.html had stale Supabase credentials)
+// Redirect /checkout to the static HTML checkout page (Supabase credentials now fixed)
+function CheckoutRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const qs = params.toString();
+  window.location.href = '/checkout-v3.html' + (qs ? '?' + qs : '');
+  return null;
+}
 
 // GiftPurchase is now a React component (gift-v2.html had stale Supabase credentials)
 
@@ -90,7 +95,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/intake" element={<Intake />} />
-                  <Route path="/checkout" element={<QuickCheckout />} />
+                  <Route path="/checkout" element={<CheckoutRedirect />} />
                   <Route path="/gift" element={<GiftPurchase />} />
                   <Route path="/gift-success" element={<GiftSuccess />} />
                   <Route path="/redeem" element={<RedeemGift />} />
