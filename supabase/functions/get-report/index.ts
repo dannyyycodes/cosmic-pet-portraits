@@ -105,7 +105,7 @@ serve(async (req) => {
     // Fetch the report - include email for verification, share_token, portrait data, and occasion_mode
     const { data: report, error: fetchError } = await supabase
       .from("pet_reports")
-      .select("id, pet_name, report_content, payment_status, species, breed, email, share_token, pet_photo_url, portrait_url, occasion_mode")
+      .select("id, pet_name, report_content, payment_status, species, breed, gender, email, share_token, pet_photo_url, portrait_url, occasion_mode, soul_type, superpower, stranger_reaction")
       .eq("id", targetReportId)
       .single();
 
@@ -172,13 +172,18 @@ serve(async (req) => {
       report: report.report_content,
       species: report.species,
       breed: report.breed,
+      gender: report.gender,
       reportId: report.id,
-      shareToken: report.share_token, // Include for owner to share
+      shareToken: report.share_token,
       petPhotoUrl: report.pet_photo_url,
       portraitUrl: report.portrait_url,
       occasionMode: report.occasion_mode || 'discover',
       hasActiveHoroscope,
-      // Include email for testimonial submission (only if owner accessed via email verification)
+      ownerAnswers: {
+        soulType: report.soul_type,
+        superpower: report.superpower,
+        strangerReaction: report.stranger_reaction,
+      },
       email: !isPublicAccess ? report.email : undefined,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

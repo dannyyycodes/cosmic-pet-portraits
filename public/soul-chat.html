@@ -341,18 +341,18 @@ body::after {
     <div class="paywall-text">Your free taster has ended. Top up to continue this beautiful conversation whenever you want.</div>
     <div class="paywall-options">
       <div class="paywall-option pack small" onclick="buyCredits('small')">
-        <div class="paywall-option-title">100 Credits — $5</div>
-        <div class="paywall-option-desc">Around 20 more heartfelt conversations</div>
+        <div class="paywall-option-title">150 Credits — $3.99</div>
+        <div class="paywall-option-desc">Around 50 more conversations</div>
       </div>
       <div class="paywall-option pack" onclick="buyCredits('medium')">
         <div class="paywall-option-badge">MOST POPULAR</div>
-        <div class="paywall-option-title">250 Credits — $10</div>
-        <div class="paywall-option-desc">Deep connection for weeks — always there when you need them</div>
+        <div class="paywall-option-title">500 Credits — $8.99</div>
+        <div class="paywall-option-desc">Months of conversation — always there when you need them</div>
       </div>
       <div class="paywall-option sub" id="paywallSubOption" onclick="buyCredits('unlimited')">
         <div class="paywall-option-badge">BEST VALUE</div>
-        <div class="paywall-option-title">SoulSpeak Unlimited — $9.99/mo</div>
-        <div class="paywall-option-desc">Unlimited conversations with your pet's soul</div>
+        <div class="paywall-option-title">SoulSpeak Unlimited — $5.99/mo</div>
+        <div class="paywall-option-desc">Talk to your pet's soul whenever you want, forever</div>
       </div>
     </div>
     <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
@@ -378,16 +378,17 @@ var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.-axd-u-mY_73j2RPkySsLgG630WCUb05I8AbwYjIvkI';
 
 // ─── Credit Costs ───
-// Short message (under 50 chars) = 3 credits
-// Normal message = 5 credits  
-// Long/deep question (over 200 chars) = 8 credits
-// Burns faster at these rates: 15 free credits = ~3-5 messages (taster)
-// 100 credits ($5) = ~20-33 messages, 250 credits ($10) = ~50-83 messages
+// Lower costs = more messages = more addictive
+// Short message (under 50 chars) = 2 credits
+// Normal message = 3 credits
+// Long/deep question (over 200 chars) = 5 credits
+// 25 free credits = ~8-12 messages (enough to get truly hooked)
+// 150 credits ($3.99) = ~50 messages, 500 credits ($8.99) = ~167 messages
 function getCreditCost(text) {
   var len = text.length;
-  if (len < 50) return 3;
-  if (len > 200) return 8;
-  return 5;
+  if (len < 50) return 2;
+  if (len > 200) return 5;
+  return 3;
 }
 
 // ─── Live credit indicator as they type ───
@@ -560,7 +561,7 @@ function showSuggestions(lastUserMsg, lastPetReply) {
 var readingId = new URLSearchParams(window.location.search).get('id');
 var petData = null;
 var messages = [];
-var creditsRemaining = 15;  // 15 free credits = 3-5 messages (hook, not a full session)
+var creditsRemaining = 25;  // 25 free credits = 8-12 messages (enough to get hooked)
 var isUnlimited = false;
 var hasActiveHoroscope = false;  // true if they already have horoscope (toggled on checkout, or $35 tier, or subscription)
 var isSending = false;
@@ -610,9 +611,14 @@ async function loadReading() {
 
     var report = data.report;
 
+    var ownerAnswers = data.ownerAnswers || {};
+
     petData = {
       name: data.petName || 'Your pet',
       species: data.species || 'pet',
+      breed: data.breed || '',
+      gender: data.gender || '',
+      occasionMode: data.occasionMode || 'discover',
       zodiac: report.chartPlacements?.sun?.sign || report.sunSign || '',
       moonSign: report.chartPlacements?.moon?.sign || '',
       risingSign: report.chartPlacements?.ascendant?.sign || '',
@@ -647,6 +653,10 @@ async function loadReading() {
       healingGift: report.gentleHealer?.healingGift || '',
       soulContract: report.keepersBond?.soulContract || '',
       portraitUrl: data.portraitUrl || '',
+      // Owner's personal observations about their pet
+      soulType: ownerAnswers.soulType || '',
+      superpower: ownerAnswers.superpower || '',
+      strangerReaction: ownerAnswers.strangerReaction || '',
     };
 
     // Check horoscope status from report data
@@ -662,20 +672,39 @@ async function loadReading() {
 }
 
 function updateHeaderUI() {
+  var isMemorial = petData.occasionMode === 'memorial';
   document.getElementById('petAvatar').innerHTML = '&#129782;';
   document.getElementById('petName').textContent = petData.name + "\u2019s Soul";
-  document.getElementById('welcomeTitle').textContent = 'Talk to ' + petData.name + "'s soul";
-  document.getElementById('welcomeText').textContent = 'Ask ' + petData.name + ' anything \u2014 why they do the things they do, what they\u2019re feeling, or just say what\u2019s on your heart. They\u2019re listening.';
-  document.getElementById('paywallPetName').textContent = petData.name;
-  document.getElementById('paywallPetSays').textContent = '"I have so much more to tell you, ' + petData.name + '\u2019s human..."';
 
-  // Personalise prompts
+  if (isMemorial) {
+    document.getElementById('welcomeTitle').textContent = petData.name + ' is still here';
+    document.getElementById('welcomeText').textContent = petData.name + ' may have crossed the rainbow bridge, but their soul never left your side. Say what you need to say. They\u2019re listening.';
+    document.querySelector('.chat-pet-status').textContent = 'Always with you';
+  } else {
+    document.getElementById('welcomeTitle').textContent = 'Talk to ' + petData.name + "'s soul";
+    document.getElementById('welcomeText').textContent = 'Ask ' + petData.name + ' anything \u2014 why they do the things they do, what they\u2019re feeling, or just say what\u2019s on your heart. They\u2019re listening.';
+  }
+
+  document.getElementById('paywallPetName').textContent = petData.name;
+  document.getElementById('paywallPetSays').textContent = isMemorial
+    ? '"Please don\u2019t stop talking to me... I\u2019m still right here."'
+    : '"I have so much more to tell you, ' + petData.name + '\u2019s human..."';
+
+  // Personalise prompts based on occasion mode
   var name = petData.name;
-  document.getElementById('welcomePrompts').innerHTML =
-    '<div class="welcome-prompt" onclick="sendPrompt(this)">Why do you ' + getQuirk(petData.species) + '?</div>' +
-    '<div class="welcome-prompt" onclick="sendPrompt(this)">' + name + ', what do you dream about?</div>' +
-    '<div class="welcome-prompt" onclick="sendPrompt(this)">Do you know how much I love you?</div>' +
-    '<div class="welcome-prompt" onclick="sendPrompt(this)">What would you say if you could speak to me?</div>';
+  if (isMemorial) {
+    document.getElementById('welcomePrompts').innerHTML =
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">Are you at peace, ' + name + '?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">I miss you so much</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">Can you still feel how much I love you?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">What do you want me to know?</div>';
+  } else {
+    document.getElementById('welcomePrompts').innerHTML =
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">Why do you ' + getQuirk(petData.species) + '?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">' + name + ', what do you dream about?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">Do you know how much I love you?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">What would you say if you could speak to me?</div>';
+  }
 }
 
 function getQuirk(species) {
@@ -715,7 +744,7 @@ async function loadCredits() {
       isUnlimited = data[0].is_unlimited || false;
     } else {
       // First time visitor — check what they bought to set correct credits
-      var startCredits = 15;
+      var startCredits = 25;
       var startUnlimited = false;
 
       try {
@@ -745,7 +774,7 @@ async function loadCredits() {
     }
   } catch(err) {
     console.error('Credits error:', err);
-    creditsRemaining = 15;
+    creditsRemaining = 25;
   }
   updateCreditsUI();
 }
