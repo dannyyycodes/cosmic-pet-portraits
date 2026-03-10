@@ -784,7 +784,6 @@ body::after {
       <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.06), rgba(196,162,101,0.06));">
         <span style="font-size:1rem;">💌</span>
         <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">A Message From Their Soul</span>
-        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--rose); background:var(--rose-glow); padding:2px 6px; border-radius:4px;">TEAR-JERKER</span>
       </div>
       <div class="glimpse-card-body">
         <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.92rem; color:var(--ink); line-height:1.6;">"I know you worry about whether you're enough for me. So let me tell you something: you are not just enough — you are everything. Every morning when I hear your footsteps, my whole world starts again..."</p>
@@ -792,62 +791,52 @@ body::after {
       </div>
     </div>
 
-    <!-- 2. Cosmic Soul Card (report-style) -->
+    <!-- 2. Cosmic Soul Card (matches real CosmicPetCard component) -->
     <div class="glimpse-card" style="border:none; overflow:hidden;">
-      <div style="background:linear-gradient(160deg, #0f0d1a 0%, #1a1528 40%, #221a30 100%); padding:18px 16px 14px; text-align:center; position:relative; min-height:280px;">
-        <!-- Decorative stars -->
-        <div style="position:absolute; top:12px; left:16px; width:3px; height:3px; background:rgba(255,255,255,0.3); border-radius:50%;"></div>
-        <div style="position:absolute; top:28px; left:40px; width:2px; height:2px; background:rgba(255,255,255,0.2); border-radius:50%;"></div>
-        <div style="position:absolute; top:18px; right:50px; width:2px; height:2px; background:rgba(255,255,255,0.25); border-radius:50%;"></div>
-        <div style="position:absolute; bottom:30px; right:20px; width:3px; height:3px; background:rgba(255,255,255,0.2); border-radius:50%;"></div>
-
-        <div style="position:absolute; top:8px; right:8px; font-size:0.52rem; font-weight:700; color:var(--gold); background:rgba(196,162,101,0.15); padding:2px 6px; border-radius:4px; letter-spacing:0.06em;">SHAREABLE</div>
-        <p style="font-size:0.55rem; font-weight:600; color:rgba(196,162,101,0.6); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px;">✦ Cosmic Soul Card ✦</p>
-
-        <!-- Pet photo circle -->
-        <div style="width:64px; height:64px; border-radius:50%; border:2px solid var(--gold); margin:0 auto 8px; background:linear-gradient(135deg, rgba(196,162,101,0.15), rgba(196,162,101,0.05)); display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px rgba(196,162,101,0.15);">
-          <span style="font-size:1.6rem;">🐕</span>
-        </div>
-        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:1.05rem; color:#fff; margin-bottom:2px;">Your Pet's Name</p>
-        <p style="font-size:0.65rem; color:var(--gold); margin-bottom:10px;">♈ Aries Sun · ♋ Cancer Moon · ♌ Leo Rising</p>
-
-        <!-- Stats grid -->
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:10px;">
-          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(196,162,101,0.15); border-radius:8px; padding:6px 4px;">
-            <p style="font-size:0.5rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:2px;">Aura</p>
-            <p style="font-size:0.68rem; color:var(--gold); font-weight:600;">Gold</p>
+      <div style="background:linear-gradient(135deg, #ea580c, #dc2626, #eab308) padding-box; padding:3px; border-radius:16px;">
+       <div style="background:linear-gradient(160deg, #0f172a 0%, #1e1a2e 50%, #0f172a 100%); border-radius:13px; padding:0; position:relative; overflow:hidden;">
+        <!-- Star dot pattern overlay -->
+        <div style="position:absolute; inset:0; opacity:0.3; background-image:radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px); background-size:20px 20px;"></div>
+        <!-- Top bar -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:rgba(0,0,0,0.3);">
+          <div style="display:flex; align-items:center; gap:5px;">
+            <span style="font-size:1.1rem;">♈</span>
+            <span style="font-size:0.72rem; font-weight:700; color:rgba(255,255,255,0.8);">Aries</span>
           </div>
-          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(196,162,101,0.15); border-radius:8px; padding:6px 4px;">
-            <p style="font-size:0.5rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:2px;">Element</p>
-            <p style="font-size:0.68rem; color:var(--gold); font-weight:600;">Fire 🔥</p>
-          </div>
-          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(196,162,101,0.15); border-radius:8px; padding:6px 4px;">
-            <p style="font-size:0.5rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:2px;">Energy</p>
-            <p style="font-size:0.68rem; color:var(--gold); font-weight:600;">Radiant</p>
+          <div style="display:flex; align-items:center; gap:4px; padding:2px 8px; border-radius:20px; background:rgba(255,255,255,0.1);">
+            <span style="font-size:0.6rem;">✨</span>
+            <span style="font-size:0.72rem; font-weight:700; color:var(--gold);">82</span>
           </div>
         </div>
-
-        <!-- Mini stat bars -->
-        <div style="display:flex; flex-direction:column; gap:4px; text-align:left;">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:0.55rem; color:rgba(255,255,255,0.4); width:52px; flex-shrink:0;">Loyalty</span>
-            <div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:94%; height:100%; background:linear-gradient(90deg, var(--gold), #e8c97a); border-radius:2px;"></div></div>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:0.55rem; color:rgba(255,255,255,0.4); width:52px; flex-shrink:0;">Mischief</span>
-            <div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:72%; height:100%; background:linear-gradient(90deg, #bf524a, #d4736c); border-radius:2px;"></div></div>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="font-size:0.55rem; color:rgba(255,255,255,0.4); width:52px; flex-shrink:0;">Intuition</span>
-            <div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:88%; height:100%; background:linear-gradient(90deg, #4a8c5c, #6ab87e); border-radius:2px;"></div></div>
+        <!-- Portrait area -->
+        <div style="margin:8px 12px; height:90px; border-radius:10px; background:radial-gradient(ellipse at top, rgba(234,88,12,0.2), transparent 60%); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center;">
+          <div style="width:60px; height:60px; border-radius:50%; background:radial-gradient(circle, rgba(196,162,101,0.2), transparent); display:flex; align-items:center; justify-content:center; box-shadow:0 0 25px rgba(234,88,12,0.15);">
+            <span style="font-size:2rem;">🐕</span>
           </div>
         </div>
-
-        <p style="font-size:0.5rem; color:rgba(255,255,255,0.25); margin-top:8px; letter-spacing:0.06em;">LITTLE SOULS · littlesouls.love</p>
+        <!-- Name + archetype -->
+        <div style="text-align:center; padding:4px 12px 8px;">
+          <p style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:#fff; margin-bottom:1px;">Your Pet's Name</p>
+          <p style="font-size:0.62rem; color:var(--gold); font-style:italic;">The Radiant Guardian</p>
+        </div>
+        <!-- 6 stat bars (matches real card) -->
+        <div style="padding:6px 14px 10px; display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.55rem; width:14px;">⚡</span><span style="font-size:0.52rem; color:rgba(255,255,255,0.6); width:46px;">Vitality</span><div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:87%; height:100%; background:#eab308; border-radius:2px;"></div></div><span style="font-size:0.55rem; font-weight:700; color:rgba(255,255,255,0.8); width:16px; text-align:right;">87</span></div>
+          <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.55rem; width:14px;">💗</span><span style="font-size:0.52rem; color:rgba(255,255,255,0.6); width:46px;">Empathy</span><div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:91%; height:100%; background:#ec4899; border-radius:2px;"></div></div><span style="font-size:0.55rem; font-weight:700; color:rgba(255,255,255,0.8); width:16px; text-align:right;">91</span></div>
+          <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.55rem; width:14px;">🌟</span><span style="font-size:0.52rem; color:rgba(255,255,255,0.6); width:46px;">Curiosity</span><div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:74%; height:100%; background:#38bdf8; border-radius:2px;"></div></div><span style="font-size:0.55rem; font-weight:700; color:rgba(255,255,255,0.8); width:16px; text-align:right;">74</span></div>
+          <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.55rem; width:14px;">✨</span><span style="font-size:0.52rem; color:rgba(255,255,255,0.6); width:46px;">Charm</span><div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:83%; height:100%; background:#a855f7; border-radius:2px;"></div></div><span style="font-size:0.55rem; font-weight:700; color:rgba(255,255,255,0.8); width:16px; text-align:right;">83</span></div>
+          <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.55rem; width:14px;">🔥</span><span style="font-size:0.52rem; color:rgba(255,255,255,0.6); width:46px;">Energy</span><div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:95%; height:100%; background:#f97316; border-radius:2px;"></div></div><span style="font-size:0.55rem; font-weight:700; color:rgba(255,255,255,0.8); width:16px; text-align:right;">95</span></div>
+          <div style="display:flex; align-items:center; gap:5px;"><span style="font-size:0.55rem; width:14px;">🌙</span><span style="font-size:0.52rem; color:rgba(255,255,255,0.6); width:46px;">Mystery</span><div style="flex:1; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden;"><div style="width:68%; height:100%; background:#6366f1; border-radius:2px;"></div></div><span style="font-size:0.55rem; font-weight:700; color:rgba(255,255,255,0.8); width:16px; text-align:right;">68</span></div>
+        </div>
+        <!-- Footer -->
+        <div style="text-align:center; padding:4px 0 8px; border-top:1px solid rgba(255,255,255,0.06);">
+          <span style="font-size:0.5rem; color:rgba(255,255,255,0.3);">☽ Cancer Moon · littlesouls.love</span>
+        </div>
+       </div>
       </div>
     </div>
 
-    <!-- 3. Spotify Playlist -->
+    <!-- 3. Spotify Playlist (funny pet songs) -->
     <div class="glimpse-card">
       <div class="glimpse-card-header" style="background:#1DB954; border-bottom:none;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
@@ -856,83 +845,86 @@ body::after {
       <div class="glimpse-card-body">
         <div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--cream3);">
           <span style="font-size:0.65rem; color:var(--muted);">1</span>
-          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">Golden Hour</p><p style="font-size:0.65rem; color:var(--muted);">JVKE</p></div>
+          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">The Lazy Song</p><p style="font-size:0.65rem; color:var(--muted);">Bruno Mars</p></div>
         </div>
         <div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--cream3);">
           <span style="font-size:0.65rem; color:var(--muted);">2</span>
-          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">You Are My Sunshine</p><p style="font-size:0.65rem; color:var(--muted);">Jasmine Thompson</p></div>
+          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">Who Let The Dogs Out</p><p style="font-size:0.65rem; color:var(--muted);">Baha Men</p></div>
         </div>
         <div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--cream3);">
           <span style="font-size:0.65rem; color:var(--muted);">3</span>
-          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">Better Together</p><p style="font-size:0.65rem; color:var(--muted);">Jack Johnson</p></div>
+          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">Hound Dog</p><p style="font-size:0.65rem; color:var(--muted);">Elvis Presley</p></div>
         </div>
-        <p style="font-size:0.65rem; color:var(--muted); margin-top:6px; text-align:center;">+ 7 more tracks matched to their energy</p>
+        <p style="font-size:0.65rem; color:var(--muted); margin-top:6px; text-align:center;">+ 7 more tracks matched to their vibe</p>
       </div>
     </div>
 
-    <!-- 4. Birth Chart / Cosmic Blueprint -->
+    <!-- 4. Full Ephemeris Chart (14 placements) -->
     <div class="glimpse-card">
       <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(196,162,101,0.08), rgba(196,162,101,0.03));">
-        <span style="font-size:1rem;">🌟</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Cosmic Blueprint</span>
+        <span style="font-size:1rem;">🪐</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Full Ephemeris Chart</span>
       </div>
-      <div class="glimpse-card-body" style="display:flex; gap:12px; align-items:center;">
-        <div style="width:70px; height:70px; border-radius:50%; border:2px solid var(--gold-soft); background:radial-gradient(circle, var(--cream2), var(--cream)); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;">
-          <div style="position:absolute; inset:5px; border-radius:50%; border:1px dashed rgba(196,162,101,0.3);"></div>
-          <span style="font-size:1.2rem;">♈</span>
+      <div class="glimpse-card-body" style="padding:10px 14px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px 10px;">
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">☉ Sun: <strong style="color:var(--ink);">Aries 15°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">☽ Moon: <strong style="color:var(--ink);">Cancer 22°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">☿ Mercury: <strong style="color:var(--ink);">Pisces 8°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">♀ Venus: <strong style="color:var(--ink);">Taurus 3°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">♂ Mars: <strong style="color:var(--ink);">Leo 27°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">♃ Jupiter: <strong style="color:var(--ink);">Sag 11°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">♄ Saturn: <strong style="color:var(--ink);">Cap 19°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">⬆ Rising: <strong style="color:var(--ink);">Leo 5°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">♅ Uranus: <strong style="color:var(--ink);">Tau 24°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">♆ Neptune: <strong style="color:var(--ink);">Psc 29°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">♇ Pluto: <strong style="color:var(--ink);">Aqr 4°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">☊ N.Node: <strong style="color:var(--ink);">Ari 28°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">⚷ Chiron: <strong style="color:var(--ink);">Ari 20°</strong></p>
+          <p style="font-size:0.68rem; color:var(--muted); padding:3px 0;">⚸ Lilith: <strong style="color:var(--ink);">Vir 13°</strong></p>
         </div>
-        <div style="flex:1;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px 10px;">
-            <p style="font-size:0.72rem; color:var(--muted);">☀️ Sun: <strong style="color:var(--ink);">Aries</strong></p>
-            <p style="font-size:0.72rem; color:var(--muted);">🌙 Moon: <strong style="color:var(--ink);">Cancer</strong></p>
-            <p style="font-size:0.72rem; color:var(--muted);">⬆️ Rising: <strong style="color:var(--ink);">Leo</strong></p>
-            <p style="font-size:0.72rem; color:var(--muted);">💕 Venus: <strong style="color:var(--ink);">Pisces</strong></p>
-          </div>
-          <p style="font-size:0.62rem; color:var(--muted); margin-top:4px;">+ Mercury, Mars, Jupiter &amp; more</p>
-        </div>
+        <p style="font-size:0.58rem; color:var(--muted); margin-top:6px; text-align:center; font-style:italic;">14 placements calculated via Swiss Ephemeris</p>
       </div>
     </div>
 
-    <!-- 5. Chart Calculations -->
+    <!-- 5. Elemental Balance -->
     <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(106,90,205,0.06), rgba(196,162,101,0.06));">
-        <span style="font-size:1rem;">📊</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Chart Calculations</span>
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(234,88,12,0.06), rgba(59,130,246,0.06));">
+        <span style="font-size:1rem;">🔥</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Element Balance</span>
       </div>
       <div class="glimpse-card-body">
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--cream2); border-radius:8px;">
-            <span style="font-size:0.75rem; color:var(--earth);">Loyalty Index</span>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <div style="width:80px; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:92%; height:100%; background:var(--rose); border-radius:3px;"></div></div>
-              <span style="font-size:0.72rem; font-weight:700; color:var(--ink);">92%</span>
-            </div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--cream2); border-radius:8px;">
-            <span style="font-size:0.75rem; color:var(--earth);">Playfulness</span>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <div style="width:80px; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:78%; height:100%; background:var(--gold); border-radius:3px;"></div></div>
-              <span style="font-size:0.72rem; font-weight:700; color:var(--ink);">78%</span>
-            </div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--cream2); border-radius:8px;">
-            <span style="font-size:0.75rem; color:var(--earth);">Intuition</span>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <div style="width:80px; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:88%; height:100%; background:var(--green); border-radius:3px;"></div></div>
-              <span style="font-size:0.72rem; font-weight:700; color:var(--ink);">88%</span>
-            </div>
-          </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:0.75rem; width:16px;">🔥</span><span style="font-size:0.72rem; color:var(--earth); width:38px;">Fire</span><div style="flex:1; height:8px; background:var(--cream3); border-radius:4px; overflow:hidden;"><div style="width:42%; height:100%; background:linear-gradient(90deg,#ea580c,#f59e0b); border-radius:4px;"></div></div><span style="font-size:0.7rem; font-weight:700; color:var(--ink); width:28px; text-align:right;">42%</span></div>
+          <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:0.75rem; width:16px;">🌍</span><span style="font-size:0.72rem; color:var(--earth); width:38px;">Earth</span><div style="flex:1; height:8px; background:var(--cream3); border-radius:4px; overflow:hidden;"><div style="width:25%; height:100%; background:linear-gradient(90deg,#16a34a,#4ade80); border-radius:4px;"></div></div><span style="font-size:0.7rem; font-weight:700; color:var(--ink); width:28px; text-align:right;">25%</span></div>
+          <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:0.75rem; width:16px;">💨</span><span style="font-size:0.72rem; color:var(--earth); width:38px;">Air</span><div style="flex:1; height:8px; background:var(--cream3); border-radius:4px; overflow:hidden;"><div style="width:17%; height:100%; background:linear-gradient(90deg,#7c3aed,#a78bfa); border-radius:4px;"></div></div><span style="font-size:0.7rem; font-weight:700; color:var(--ink); width:28px; text-align:right;">17%</span></div>
+          <div style="display:flex; align-items:center; gap:8px;"><span style="font-size:0.75rem; width:16px;">💧</span><span style="font-size:0.72rem; color:var(--earth); width:38px;">Water</span><div style="flex:1; height:8px; background:var(--cream3); border-radius:4px; overflow:hidden;"><div style="width:16%; height:100%; background:linear-gradient(90deg,#2563eb,#38bdf8); border-radius:4px;"></div></div><span style="font-size:0.7rem; font-weight:700; color:var(--ink); width:28px; text-align:right;">16%</span></div>
         </div>
-        <p style="font-size:0.62rem; color:var(--muted); margin-top:8px; text-align:center;">15+ personality traits calculated from their chart</p>
       </div>
     </div>
 
-    <!-- 6. Text Messages (fun peek) -->
+    <!-- 6. Criminal Record -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(0,0,0,0.04), rgba(191,82,74,0.04));">
+        <span style="font-size:1rem;">🚨</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Criminal Record</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--rose); background:var(--rose-glow); padding:2px 6px; border-radius:4px;">VIRAL</span>
+      </div>
+      <div class="glimpse-card-body">
+        <div style="display:flex; flex-direction:column; gap:6px; font-size:0.78rem; color:var(--warm);">
+          <div style="display:flex; gap:8px;"><span>1.</span><span>Grand theft slipper (repeat offender)</span></div>
+          <div style="display:flex; gap:8px;"><span>2.</span><span>Emotional manipulation via sad eyes</span></div>
+          <div style="display:flex; gap:8px;"><span>3.</span><span>Trespassing on the sofa (while "sleeping")</span></div>
+          <div style="display:flex; gap:8px;"><span>4.</span><span>Identity fraud — pretending to not be fed</span></div>
+          <div style="display:flex; gap:8px;"><span>5.</span><span>Aggravated zoomies at 3am</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Text Messages -->
     <div class="glimpse-card">
       <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(74,140,92,0.06), rgba(196,162,101,0.06));">
         <span style="font-size:1rem;">💬</span>
         <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">If They Could Text You</span>
-        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--green); background:var(--green-soft); padding:2px 6px; border-radius:4px;">FAN FAVOURITE</span>
       </div>
       <div class="glimpse-card-body" style="background:var(--cream2); border-radius:0 0 14px 14px;">
         <div style="max-width:240px; margin:0 auto; display:flex; flex-direction:column; gap:6px;">
@@ -943,39 +935,77 @@ body::after {
       </div>
     </div>
 
-    <!-- 7. Love Language -->
+    <!-- 8. Cosmic Recipe (visual) -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(196,162,101,0.08), rgba(74,140,92,0.06));">
+        <span style="font-size:1rem;">🍽️</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Cosmic Recipe</span>
+      </div>
+      <div class="glimpse-card-body">
+        <div style="background:var(--cream2); border-radius:10px; padding:12px; margin-bottom:8px;">
+          <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.9rem; color:var(--ink); margin-bottom:6px;">🥕 The Aries Power Bites</p>
+          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.72rem; color:var(--earth);">
+            <span>• 1 cup oats (grounding earth energy)</span>
+            <span>• 2 tbsp peanut butter (Mars fuel)</span>
+            <span>• 1 mashed banana (solar sweetness)</span>
+            <span>• Dash of cinnamon (fire element)</span>
+          </div>
+        </div>
+        <p style="font-size:0.65rem; color:var(--muted); font-style:italic; text-align:center;">Mix, roll into balls, refrigerate. Made for your pet's element.</p>
+        <p style="font-size:0.6rem; color:var(--muted); text-align:center;">3 personalised recipes in every reading</p>
+      </div>
+    </div>
+
+    <!-- 9. Dating Profile -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.06), rgba(236,72,153,0.06));">
+        <span style="font-size:1rem;">💘</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Dating Profile</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--rose); background:var(--rose-glow); padding:2px 6px; border-radius:4px;">😂</span>
+      </div>
+      <div class="glimpse-card-body">
+        <p style="font-size:0.78rem; color:var(--ink); font-weight:600; margin-bottom:4px;">🐕 Your Pet, 4</p>
+        <p style="font-size:0.75rem; color:var(--earth); line-height:1.4; font-style:italic;">"Looking for someone who'll share their dinner and doesn't mind 3am zoomies. I'm loyal, I'm fluffy, and I WILL steal your spot on the bed. Swipe right if you have treats."</p>
+        <div style="display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;">
+          <span style="font-size:0.6rem; padding:2px 8px; background:var(--cream2); border-radius:20px; color:var(--earth);">🦴 Treat lover</span>
+          <span style="font-size:0.6rem; padding:2px 8px; background:var(--cream2); border-radius:20px; color:var(--earth);">🛋️ Sofa hogger</span>
+          <span style="font-size:0.6rem; padding:2px 8px; background:var(--cream2); border-radius:20px; color:var(--earth);">👃 Professional sniffer</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. Love Language -->
     <div class="glimpse-card">
       <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.05), rgba(255,200,200,0.08));">
         <span style="font-size:1rem;">💕</span>
         <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Their Love Language</span>
       </div>
       <div class="glimpse-card-body">
-        <p style="font-size:0.85rem; color:var(--earth); line-height:1.5; font-style:italic;">"Physical touch is everything to them. When they lean against your leg, it's not just comfort — it's their way of saying 'you're mine, and I'm yours, and nothing else matters right now.'"</p>
+        <p style="font-size:0.85rem; color:var(--earth); line-height:1.5; font-style:italic;">"Physical touch is everything to them. When they lean against your leg, it's not comfort — it's their way of saying 'you're mine, and I'm yours.'"</p>
       </div>
     </div>
 
-    <!-- 8. Past Life -->
+    <!-- 11. Past Life -->
     <div class="glimpse-card">
       <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(128,0,128,0.04), rgba(196,162,101,0.06));">
         <span style="font-size:1rem;">🔮</span>
         <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Past Life Glimpse</span>
       </div>
       <div class="glimpse-card-body">
-        <p style="font-size:0.85rem; color:var(--earth); line-height:1.5; font-style:italic;">"In a previous life, this soul was a loyal companion to a healer — which explains their instinct to stay close when you're unwell. This bond was never new. You've found each other again."</p>
+        <p style="font-size:0.85rem; color:var(--earth); line-height:1.5; font-style:italic;">"In a previous life, this soul was a loyal companion to a healer — which explains their instinct to stay close when you're unwell."</p>
       </div>
     </div>
 
-    <!-- 9. Cosmic Recipes -->
+    <!-- 12. Villain Origin Story -->
     <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(196,162,101,0.08), rgba(74,140,92,0.06));">
-        <span style="font-size:1rem;">🍽️</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Cosmic Recipes</span>
-        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--gold); background:var(--gold-soft); padding:2px 6px; border-radius:4px;">UNIQUE</span>
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(0,0,0,0.05), rgba(99,102,241,0.05));">
+        <span style="font-size:1rem;">🦹</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Villain Origin Story</span>
       </div>
       <div class="glimpse-card-body">
-        <p style="font-weight:600; font-size:0.82rem; color:var(--ink); margin-bottom:6px;">🥕 The Aries Energy Bowl</p>
-        <p style="font-size:0.78rem; color:var(--earth); line-height:1.45;">A homemade treat recipe matched to their zodiac element and energy type. Because even their snacks should be cosmic.</p>
-        <p style="font-size:0.62rem; color:var(--muted); margin-top:6px; font-style:italic;">3 personalised recipes included in every reading</p>
+        <p style="font-size:0.78rem; color:var(--earth); line-height:1.45;"><strong style="color:var(--ink);">The Trigger:</strong> You said "walk" but then put your shoes on slowly.</p>
+        <p style="font-size:0.78rem; color:var(--earth); line-height:1.45; margin-top:4px;"><strong style="color:var(--ink);">The Response:</strong> Knocked over the bin, stole a sock, did 47 laps of the garden.</p>
+        <p style="font-size:0.78rem; color:var(--earth); line-height:1.45; margin-top:4px;"><strong style="color:var(--ink);">The Redemption:</strong> Brought the sock back. Sat down. Looked innocent.</p>
       </div>
     </div>
 
