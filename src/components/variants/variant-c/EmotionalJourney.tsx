@@ -232,8 +232,6 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
 
       <Beat minHeight="60vh" mobileMinHeight="35vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream})`}>
         {(v) => (<div><h2 style={{ ...scaleInStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 5rem)", color: COLORS.black }}>That means something.</h2><div style={{ width: 50, height: 2, background: COLORS.gold, opacity: v ? 0.5 : 0, margin: "30px auto 0", transition: "opacity 1s ease 0.5s" }} />
-          {/* Early CTA — emotionally primed, catch the impulsive ones */}
-          <a href="/checkout" onClick={() => trackCTAClick("Early CTA", "mid-page")} style={{ ...fadeUpStyle(v, 0.6), display: "inline-block", marginTop: 40, background: "transparent", color: COLORS.rose, fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "0.95rem", letterSpacing: "0.12em", textTransform: "uppercase" as const, textDecoration: "none", padding: "14px 40px", borderRadius: 50, border: `1.5px solid ${COLORS.rose}`, cursor: "pointer", transition: "all 0.35s ease" }} onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.rose; e.currentTarget.style.color = "#fff"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = COLORS.rose; }}>Discover Their Soul</a>
         </div>)}
       </Beat>
 
