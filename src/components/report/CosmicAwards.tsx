@@ -50,8 +50,7 @@ function generateDefaultAwards(petName: string, element: string) {
 export function CosmicAwards({ petName, report }: CosmicAwardsProps) {
   const s = useScrollReveal();
   const element = report.dominantElement || 'Water';
-  const awards = report.cosmicAwards;
-  if (!awards || awards.length === 0) return null;
+  const awards = report.cosmicAwards || generateDefaultAwards(petName, element);
 
   return (
     <motion.div

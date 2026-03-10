@@ -89,8 +89,7 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
   const signData = zodiacSigns[sunSign.toLowerCase()];
   const signIcon = signData?.icon || '⭐';
 
-  const profile = report.humanProfile;
-  if (!profile) return null;
+  const profile = report.humanProfile || generateDefaultProfile(petName, element, archetype);
 
   return (
     <motion.div
