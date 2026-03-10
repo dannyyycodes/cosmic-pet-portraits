@@ -193,7 +193,7 @@ export default function QuickCheckout() {
       if (!data?.url) throw new Error("No checkout URL returned");
       window.location.href = data.url;
     } catch (err: any) {
-      console.error("[QuickCheckout] Error:", err);
+      // Error handled by toast below
       toast.error("Something went wrong. Please try again.");
       setIsLoading(false);
     }

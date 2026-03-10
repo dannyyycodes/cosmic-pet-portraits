@@ -110,7 +110,7 @@ export default function PaymentSuccess() {
         const storedTiers = sessionStorage.getItem('dev_checkout_petTiers');
         if (storedPhotos) { petPhotosFromStorage = JSON.parse(storedPhotos); sessionStorage.removeItem('dev_checkout_petPhotos'); }
         if (storedTiers) { petTiersFromStorage = JSON.parse(storedTiers); sessionStorage.removeItem('dev_checkout_petTiers'); }
-      } catch (e) { console.warn('Could not retrieve dev mode data:', e); }
+      } catch (e) { /* dev mode storage retrieval failed */ }
     }
 
     const tryVerify = async (): Promise<boolean | 'generating'> => {
