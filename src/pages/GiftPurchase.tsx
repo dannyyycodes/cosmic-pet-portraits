@@ -1,13 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2, ChevronRight, Users, User, Sparkles, Heart, Star, Quote, Shield, Clock } from 'lucide-react';
-import { GiftReportShowcase } from '@/components/GiftReportShowcase';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { VariantBackground } from '@/components/variants/VariantBackground';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 type DeliveryMethod = 'email' | 'link';
 type GiftTier = 'essential' | 'portrait';
@@ -17,54 +13,42 @@ interface GiftRecipient {
   name: string;
   email: string;
   tier: GiftTier;
-  horoscopeAddon?: 'none' | 'monthly' | 'yearly';
 }
 
 const TIERS = {
   essential: {
     cents: 2700,
-    label: 'Essential',
-    description: 'A thoughtful surprise',
-    icon: '⭐',
+    label: 'The Soul Reading',
+    tagline: 'A gift that speaks to the heart',
+    icon: '✨',
     features: [
       "Deep personality reading & emotional blueprint",
-      "Birth chart, aura colours & zodiac profile",
-      "A soul message that makes people cry",
-      "Pet-parent cosmic match, past life glimpse & cosmic name meaning",
-      "5 free soul chat messages",
-      "First month weekly horoscope free",
+      "Birth chart, zodiac profile & aura colours",
+      "A soul message that makes people cry (happy tears)",
+      "Past life glimpse & cosmic name meaning",
+      "5 free SoulSpeak chat messages",
     ],
-    shortFeatures: ['Personality', 'Soul Message', 'Horoscope'],
-    highlight: null,
   },
   portrait: {
     cents: 3500,
-    label: 'Portrait',
-    description: 'The gift they\'ll treasure',
+    label: 'The Portrait Edition',
+    tagline: 'The one they\'ll frame and keep forever',
     icon: '🎨',
+    popular: true,
     features: [
-      "Everything in Essential",
-      "Cosmic portrait of their pet",
+      "Everything in The Soul Reading",
+      "A stunning cosmic portrait of their pet",
       "Shareable social cosmic card",
       "Cosmic pet playlist",
     ],
-    shortFeatures: ['+ Portrait', '+ Cosmic Card'],
-    popular: true,
-    highlight: 'Best Value',
   },
 } as const;
 
-const HOROSCOPE_ADDONS = {
-  none: { cents: 0, label: 'No thanks', description: '', save: '' },
-  monthly: { cents: 499, label: 'Monthly', description: '$4.99/mo', save: '' },
-  yearly: { cents: 3999, label: 'Yearly', description: '$39.99/year', save: 'Save 33%' },
-} as const;
-
 const TESTIMONIALS = [
-  { quote: "My sister literally cried reading her cat's report. Best gift ever!", author: "Sarah M.", rating: 5 },
-  { quote: "Got this for my mom's birthday - she reads it to her dog every night now!", author: "David K.", rating: 5 },
-  { quote: "Gifted to 4 friends last Christmas. They still talk about it!", author: "Jessica L.", rating: 5 },
-  { quote: "My dad was skeptical but ended up LOVING his cat's reading!", author: "Michael R.", rating: 5 },
+  { quote: "My sister literally cried reading her cat's report. Best gift I've ever given anyone.", author: "Sarah M." },
+  { quote: "Got this for my mom's birthday — she reads it to her dog every single night now.", author: "David K." },
+  { quote: "Gifted to 4 friends last Christmas. They still talk about it!", author: "Jessica L." },
+  { quote: "My dad was so skeptical but ended up LOVING his cat's reading. He got emotional.", author: "Michael R." },
 ];
 
 const getVolumeDiscount = (count: number): number => {
@@ -75,105 +59,61 @@ const getVolumeDiscount = (count: number): number => {
   return 0;
 };
 
-function TestimonialBanner() {
-  const [index, setIndex] = useState(0);
-  
-  useEffect(() => {
-    const timer = setInterval(() => setIndex(i => (i + 1) % TESTIMONIALS.length), 4000);
-    return () => clearInterval(timer);
-  }, []);
+const C = {
+  cream: '#FFFDF5', cream2: '#faf4e8', cream3: '#f3eadb',
+  ink: '#1f1c18', deep: '#2e2a24', warm: '#4d443b', earth: '#6e6259', muted: '#958779',
+  rose: '#bf524a', roseSoft: '#c9665f', roseGlow: 'rgba(191,82,74,0.10)',
+  gold: '#c4a265', goldSoft: 'rgba(196,162,101,0.15)',
+  green: '#4a8c5c',
+};
 
+function RotatingTestimonial() {
+  const [i, setI] = useState(0);
+  useEffect(() => { const t = setInterval(() => setI(n => (n + 1) % TESTIMONIALS.length), 5000); return () => clearInterval(t); }, []);
   return (
-    <motion.div 
-      className="p-4 rounded-xl bg-card/50 border border-border/30 backdrop-blur-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="flex items-start gap-3"
-        >
-          <Quote className="w-5 h-5 text-gold/50 shrink-0 mt-0.5" />
+    <AnimatePresence mode="wait">
+      <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        style={{ padding: '16px 20px', background: 'white', borderRadius: 16, border: `1px solid ${C.cream3}` }}>
+        <div style={{ display: 'flex', alignItems: 'start', gap: 10 }}>
+          <Quote style={{ width: 16, height: 16, color: C.gold, flexShrink: 0, marginTop: 2, opacity: 0.5 }} />
           <div>
-            <p className="text-sm text-foreground/90 italic mb-2">"{TESTIMONIALS[index].quote}"</p>
-            <div className="flex items-center gap-2">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3 h-3 fill-gold text-gold" />
-                ))}
-              </div>
-              <span className="text-xs text-muted-foreground">— {TESTIMONIALS[index].author}</span>
+            <p style={{ fontSize: '0.88rem', color: C.warm, fontStyle: 'italic', lineHeight: 1.5, marginBottom: 6 }}>"{TESTIMONIALS[i].quote}"</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ display: 'flex' }}>{[...Array(5)].map((_, j) => <Star key={j} style={{ width: 11, height: 11, fill: C.gold, color: C.gold }} />)}</div>
+              <span style={{ fontSize: '0.72rem', color: C.muted }}>— {TESTIMONIALS[i].author}</span>
             </div>
           </div>
-        </motion.div>
-      </AnimatePresence>
-    </motion.div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
 export default function GiftPurchase() {
-  const { t } = useLanguage();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('link');
   const [giftType, setGiftType] = useState<'single' | 'multiple' | null>(null);
   const [purchaserEmail, setPurchaserEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  // Single recipient state
-  const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({
-    id: crypto.randomUUID(),
-    name: '',
-    email: '',
-    tier: 'portrait',
-    horoscopeAddon: 'monthly'
-  });
-
-  // Multiple recipients state
-  const [recipients, setRecipients] = useState<GiftRecipient[]>([
-    { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait', horoscopeAddon: 'monthly' }
-  ]);
+  const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({ id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' });
+  const [recipients, setRecipients] = useState<GiftRecipient[]>([{ id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' }]);
 
   const activeRecipients = giftType === 'single' ? [singleRecipient] : recipients;
   const giftCount = activeRecipients.length;
   const discount = getVolumeDiscount(giftCount);
 
   const pricing = useMemo(() => {
-    const baseTotal = activeRecipients.reduce((sum, r) => {
-      const tierCents = TIERS[r.tier].cents;
-      const addonCents = r.horoscopeAddon && r.horoscopeAddon !== 'none' ? HOROSCOPE_ADDONS[r.horoscopeAddon].cents : 0;
-      return sum + tierCents + addonCents;
-    }, 0);
+    const baseTotal = activeRecipients.reduce((sum, r) => sum + TIERS[r.tier].cents, 0);
     const discountAmount = Math.round(baseTotal * discount);
-    const finalTotal = baseTotal - discountAmount;
-    return { baseTotal, discountAmount, finalTotal };
+    return { baseTotal, discountAmount, finalTotal: baseTotal - discountAmount };
   }, [activeRecipients, discount]);
 
-  const addRecipient = () => {
-    if (recipients.length < 10) {
-      setRecipients([...recipients, { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait', horoscopeAddon: 'monthly' }]);
-    }
-  };
-
-  const removeRecipient = (id: string) => {
-    if (recipients.length > 1) {
-      setRecipients(recipients.filter(r => r.id !== id));
-    }
-  };
-
   const updateRecipient = (id: string, field: keyof GiftRecipient, value: string) => {
-    if (giftType === 'single') {
-      setSingleRecipient({ ...singleRecipient, [field]: value });
-    } else {
-      setRecipients(recipients.map(r => r.id === id ? { ...r, [field]: value } : r));
-    }
+    if (giftType === 'single') setSingleRecipient({ ...singleRecipient, [field]: value });
+    else setRecipients(recipients.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
 
-  const canProceedToStep2 = giftType !== null;
   const canProceedToStep3 = () => {
     if (deliveryMethod === 'link') return true;
     if (giftType === 'single') return singleRecipient.email.includes('@');
@@ -181,37 +121,22 @@ export default function GiftPurchase() {
   };
 
   const handlePurchase = async () => {
-    if (!purchaserEmail.includes('@')) {
-      toast.error('Please enter your email address');
-      return;
-    }
-
+    if (!purchaserEmail.includes('@')) { toast.error('Please enter your email address'); return; }
     setIsLoading(true);
     try {
-      const giftPets = activeRecipients.map(r => ({
-        id: r.id,
-        tier: r.tier,
-        recipientName: r.name || '',
-        recipientEmail: deliveryMethod === 'email' ? r.email : null,
-        horoscopeAddon: r.horoscopeAddon || 'none',
-      }));
-
       const { data, error } = await supabase.functions.invoke('purchase-gift-certificate', {
         body: {
           purchaserEmail,
           recipientEmail: giftType === 'single' && deliveryMethod === 'email' ? singleRecipient.email : '',
           recipientName: giftType === 'single' ? (singleRecipient.name || '') : '',
           giftMessage: giftMessage || '',
-          giftPets,
+          giftPets: activeRecipients.map(r => ({ id: r.id, tier: r.tier, recipientName: r.name || '', recipientEmail: deliveryMethod === 'email' ? r.email : null, horoscopeAddon: 'none' })),
           deliveryMethod,
           multiRecipient: giftType === 'multiple',
         },
       });
-
       if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      if (data?.url) window.location.href = data.url;
     } catch (error) {
       console.error('Gift purchase error:', error);
       toast.error('Something went wrong. Please try again.');
@@ -219,662 +144,335 @@ export default function GiftPurchase() {
     }
   };
 
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '14px 16px', borderRadius: 14, border: `1px solid ${C.cream3}`, background: C.cream2, fontSize: '0.95rem', color: C.ink, fontFamily: 'Cormorant, Georgia, serif', outline: 'none' };
+
   return (
-    <div className="variant-c min-h-screen bg-background flex items-center justify-center p-4 py-8 relative overflow-hidden">
-      <VariantBackground intensity="calm" />
-      
-      <div className="w-full max-w-xl relative z-10">
-        <Link 
-          to="/"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('nav.backHome')}
+    <div style={{ minHeight: '100vh', background: C.cream, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 16px 60px', fontFamily: 'Cormorant, Georgia, serif' }}>
+      <div style={{ width: '100%', maxWidth: 520 }}>
+
+        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: C.muted, textDecoration: 'none', fontSize: '0.85rem', marginBottom: 24 }}>
+          <ArrowLeft style={{ width: 16, height: 16 }} /> Back
         </Link>
 
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink via-nebula-purple to-primary shadow-xl shadow-nebula-purple/30 mb-4">
-            <Gift className="w-8 h-8 text-white" />
+        {/* Hero */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: `linear-gradient(135deg, ${C.roseGlow}, ${C.goldSoft})`, border: `2px solid ${C.cream3}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            <Gift style={{ width: 32, height: 32, color: C.rose }} />
           </div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-2">
-            Give the Gift of Cosmic Insight
+          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 'clamp(1.6rem, 7vw, 2.2rem)', color: C.ink, lineHeight: 1.1, marginBottom: 8 }}>
+            The Gift That<br /><em style={{ color: C.rose }}>Speaks to the Soul</em>
           </h1>
-          <p className="text-muted-foreground">
-            A unique, personalized reading for someone's beloved pet
-          </p>
-          <p className="text-sm text-muted-foreground/70 mt-1">
-            Works for dogs, cats, rabbits, birds, horses, reptiles, fish & more
+          <p style={{ color: C.earth, fontSize: '1rem', lineHeight: 1.5, maxWidth: 380, margin: '0 auto' }}>
+            Give someone the most personal, heartfelt gift they've ever received — a cosmic reading of their beloved pet.
           </p>
         </motion.div>
 
-        {/* Progress Steps */}
-        <div className="flex items-center justify-center gap-2 mb-8">
+        {/* Progress */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 28 }}>
           {[1, 2, 3].map((s) => (
-            <div key={s} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                step >= s 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted text-muted-foreground'
-              }`}>
-                {step > s ? <CheckCircle className="w-4 h-4" /> : s}
+            <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem', fontWeight: 700, background: step >= s ? C.rose : C.cream3, color: step >= s ? '#fff' : C.muted, transition: 'all 0.3s' }}>
+                {step > s ? <CheckCircle style={{ width: 14, height: 14 }} /> : s}
               </div>
-              {s < 3 && <div className={`w-8 h-0.5 ${step > s ? 'bg-primary' : 'bg-muted'}`} />}
+              {s < 3 && <div style={{ width: 28, height: 2, background: step > s ? C.rose : C.cream3, borderRadius: 2, transition: 'background 0.3s' }} />}
             </div>
           ))}
         </div>
 
         <AnimatePresence mode="wait">
-          {/* Step 1: Choose gift type - Action first, details below */}
+          {/* ── STEP 1 ── */}
           {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
-              {/* Primary Action First */}
-              <div className="text-center">
-                <h2 className="text-xl font-display font-semibold text-foreground mb-1">
-                  How many gifts are you sending?
-                </h2>
-                <p className="text-sm text-muted-foreground">Choose an option to continue</p>
-              </div>
+            <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setGiftType('single')}
-                  className={`p-6 rounded-2xl border-2 transition-all text-center ${
-                    giftType === 'single'
-                      ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                      : 'border-border/50 bg-card/40 hover:border-primary/50'
-                  }`}
-                >
-                  <User className={`w-10 h-10 mx-auto mb-3 ${giftType === 'single' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className="text-lg font-semibold text-foreground">One Person</p>
-                  <p className="text-sm text-muted-foreground mt-1">For their pet(s)</p>
-                </button>
+              <p style={{ textAlign: 'center', fontWeight: 600, fontSize: '1.1rem', color: C.ink }}>Who are you gifting?</p>
 
-                <button
-                  type="button"
-                  onClick={() => setGiftType('multiple')}
-                  className={`p-6 rounded-2xl border-2 transition-all text-center relative overflow-hidden ${
-                    giftType === 'multiple'
-                      ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                      : 'border-border/50 bg-card/40 hover:border-primary/50'
-                  }`}
-                >
-                  <div className="absolute top-2 right-2 px-2 py-0.5 bg-green-500/20 rounded-full">
-                    <span className="text-[10px] font-bold text-green-400">SAVE UP TO 30%</span>
-                  </div>
-                  <Users className={`w-10 h-10 mx-auto mb-3 ${giftType === 'multiple' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className="text-lg font-semibold text-foreground">Multiple People</p>
-                  <p className="text-sm text-muted-foreground mt-1">Great for holidays!</p>
-                </button>
-              </div>
-
-              {giftType && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <Button
-                    onClick={() => setStep(2)}
-                    disabled={!canProceedToStep2}
-                    className="w-full py-6 text-lg bg-gradient-to-r from-primary to-nebula-purple"
-                  >
-                    Continue
-                    <ChevronRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </motion.div>
-              )}
-
-              {/* Trust badges */}
-              <div className="flex items-center justify-center gap-6 py-2">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 {[
-                  { icon: Shield, text: "Secure checkout" },
-                  { icon: Clock, text: "Instant delivery" },
-                  { icon: Gift, text: "Valid 1 year" },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <item.icon className="w-3.5 h-3.5" />
-                    <span>{item.text}</span>
-                  </div>
+                  { key: 'single' as const, icon: User, title: 'One Lucky Person', sub: 'For their pet(s)' },
+                  { key: 'multiple' as const, icon: Users, title: 'Multiple People', sub: 'Birthdays, holidays!' },
+                ].map(opt => (
+                  <button key={opt.key} onClick={() => setGiftType(opt.key)} style={{
+                    padding: 24, borderRadius: 18, border: `2px solid ${giftType === opt.key ? C.rose : C.cream3}`,
+                    background: giftType === opt.key ? C.roseGlow : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s', position: 'relative',
+                  }}>
+                    {opt.key === 'multiple' && <span style={{ position: 'absolute', top: 8, right: 8, fontSize: '0.6rem', fontWeight: 700, background: C.green, color: '#fff', padding: '2px 8px', borderRadius: 20 }}>SAVE UP TO 30%</span>}
+                    <opt.icon style={{ width: 36, height: 36, margin: '0 auto 10px', color: giftType === opt.key ? C.rose : C.muted }} />
+                    <p style={{ fontWeight: 700, fontSize: '1rem', color: C.ink }}>{opt.title}</p>
+                    <p style={{ fontSize: '0.82rem', color: C.muted, marginTop: 4 }}>{opt.sub}</p>
+                  </button>
                 ))}
               </div>
 
-              {/* Collapsible details section - below the fold */}
-              <details className="group">
-                <summary className="cursor-pointer text-center text-sm text-primary/80 hover:text-primary transition-colors py-2">
-                  How does gifting work? ▾
-                </summary>
-                <div className="mt-4 space-y-4">
-                  {/* How It Works */}
-                  <div className="p-4 rounded-xl bg-card/40 border border-border/30 space-y-3">
-                    {[
-                      { step: "1", title: "You purchase the gift", desc: "Choose a package & checkout" },
-                      { step: "2", title: "Share it your way", desc: "Email, text, or print the link" },
-                      { step: "3", title: "They enter pet details", desc: "Name, birthday & photo" },
-                      { step: "4", title: "Magic happens", desc: "A personalized reading just for them" },
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-bold text-primary">{item.step}</span>
-                        </div>
-                        <div className="flex-1">
-                          <span className="text-sm font-medium text-foreground">{item.title}</span>
-                          <span className="text-xs text-muted-foreground ml-2">{item.desc}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {giftType && (
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                  <button onClick={() => setStep(2)} style={{
+                    width: '100%', padding: '16px 0', borderRadius: 50, background: C.rose, color: '#fff',
+                    fontFamily: 'Cormorant, Georgia, serif', fontWeight: 700, fontSize: '1rem', border: 'none', cursor: 'pointer', letterSpacing: '0.05em',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  }}>
+                    Continue <ChevronRight style={{ width: 18, height: 18 }} />
+                  </button>
+                </motion.div>
+              )}
 
-                  {/* Testimonial */}
-                  <TestimonialBanner />
+              {/* Trust */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 20, fontSize: '0.75rem', color: C.muted }}>
+                {[{ i: Shield, t: 'Secure' }, { i: Clock, t: 'Instant delivery' }, { i: Gift, t: 'Valid 1 year' }].map((b, i) => (
+                  <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}><b.i style={{ width: 13, height: 13 }} />{b.t}</span>
+                ))}
+              </div>
+
+              <RotatingTestimonial />
+
+              {/* How it works */}
+              <details style={{ cursor: 'pointer' }}>
+                <summary style={{ textAlign: 'center', fontSize: '0.85rem', color: C.rose, fontWeight: 500 }}>How does gifting work?</summary>
+                <div style={{ marginTop: 14, padding: 16, background: 'white', borderRadius: 16, border: `1px solid ${C.cream3}` }}>
+                  {[
+                    { n: '1', t: 'You choose & pay', d: 'Pick a package, checkout' },
+                    { n: '2', t: 'Share the magic link', d: 'Email, text, or in a card' },
+                    { n: '3', t: 'They enter pet details', d: 'Name, birthday & a photo' },
+                    { n: '4', t: 'Their reading appears', d: 'Personalised and instant' },
+                  ].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0' }}>
+                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: C.roseGlow, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, color: C.rose, flexShrink: 0 }}>{s.n}</div>
+                      <div><span style={{ fontWeight: 600, color: C.ink, fontSize: '0.88rem' }}>{s.t}</span><span style={{ color: C.muted, fontSize: '0.78rem', marginLeft: 8 }}>{s.d}</span></div>
+                    </div>
+                  ))}
                 </div>
               </details>
             </motion.div>
           )}
 
-          {/* Step 2: Add recipients */}
+          {/* ── STEP 2 ── */}
           {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => setStep(1)}
-                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Back
-                </button>
-                <h2 className="text-lg font-display font-semibold text-foreground">
-                  {giftType === 'single' ? 'Recipient Details' : 'Add Recipients'}
-                </h2>
-                <div className="w-12" />
+            <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.85rem' }}><ArrowLeft style={{ width: 14, height: 14 }} /> Back</button>
+                <p style={{ fontWeight: 700, fontSize: '1rem', color: C.ink }}>{giftType === 'single' ? 'Choose Their Gift' : 'Add Recipients'}</p>
+                <div style={{ width: 48 }} />
               </div>
 
-              {/* Delivery method - Enhanced design */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-card/80 to-card/40 border border-border/40 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center">
-                    <Gift className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">How should we deliver the gift?</h3>
-                    <p className="text-sm text-muted-foreground">Choose how your recipient receives it</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setDeliveryMethod('email')}
-                    className={`relative p-5 rounded-xl border-2 transition-all text-left group ${
-                      deliveryMethod === 'email'
-                        ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10'
-                        : 'border-border/50 bg-background/50 hover:border-primary/40 hover:bg-card/50'
-                    }`}
-                  >
-                    {deliveryMethod === 'email' && (
-                      <div className="absolute top-3 right-3">
-                        <CheckCircle className="w-5 h-5 text-primary" />
-                      </div>
-                    )}
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all ${
-                      deliveryMethod === 'email' 
-                        ? 'bg-primary/20' 
-                        : 'bg-muted/50 group-hover:bg-primary/10'
-                    }`}>
-                      <Send className={`w-6 h-6 ${deliveryMethod === 'email' ? 'text-primary' : 'text-muted-foreground group-hover:text-primary/70'}`} />
-                    </div>
-                    <p className="font-semibold text-foreground mb-1">Email directly</p>
-                    <p className="text-sm text-muted-foreground leading-snug">We'll send a beautiful gift email on your behalf</p>
-                    <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      <span>Instant delivery</span>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDeliveryMethod('link')}
-                    className={`relative p-5 rounded-xl border-2 transition-all text-left group ${
-                      deliveryMethod === 'link'
-                        ? 'border-gold bg-gold/10 shadow-lg shadow-gold/10'
-                        : 'border-border/50 bg-background/50 hover:border-gold/40 hover:bg-card/50'
-                    }`}
-                  >
-                    {/* Recommended badge */}
-                    <div className="absolute -top-2.5 left-4 px-2.5 py-0.5 bg-gradient-to-r from-gold to-amber-500 text-background text-[10px] font-bold rounded-full shadow-sm">
-                      ✨ FLEXIBLE
-                    </div>
-                    {deliveryMethod === 'link' && (
-                      <div className="absolute top-3 right-3">
-                        <CheckCircle className="w-5 h-5 text-gold" />
-                      </div>
-                    )}
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all ${
-                      deliveryMethod === 'link' 
-                        ? 'bg-gold/20' 
-                        : 'bg-muted/50 group-hover:bg-gold/10'
-                    }`}>
-                      <LinkIcon className={`w-6 h-6 ${deliveryMethod === 'link' ? 'text-gold' : 'text-muted-foreground group-hover:text-gold/70'}`} />
-                    </div>
-                    <p className="font-semibold text-foreground mb-1">Get a magic link</p>
-                    <p className="text-sm text-muted-foreground leading-snug">Share via text, card, or gift it in person</p>
-                    <div className="mt-3 flex items-center gap-1.5 text-xs text-gold">
-                      <Heart className="w-3 h-3" />
-                      <span>Perfect for surprises</span>
-                    </div>
-                  </button>
+              {/* Delivery method */}
+              <div style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}` }}>
+                <p style={{ fontWeight: 600, color: C.ink, fontSize: '0.92rem', marginBottom: 12 }}>How should we deliver it?</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {[
+                    { key: 'link' as const, icon: LinkIcon, title: 'Magic link', sub: 'Share via text, card, or in person', badge: 'Most flexible', color: C.gold },
+                    { key: 'email' as const, icon: Send, title: 'Email directly', sub: 'We send a beautiful gift email', badge: null, color: C.rose },
+                  ].map(opt => (
+                    <button key={opt.key} onClick={() => setDeliveryMethod(opt.key)} style={{
+                      padding: 16, borderRadius: 14, border: `2px solid ${deliveryMethod === opt.key ? opt.color : C.cream3}`,
+                      background: deliveryMethod === opt.key ? (opt.key === 'link' ? C.goldSoft : C.roseGlow) : 'transparent',
+                      cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', position: 'relative',
+                    }}>
+                      {opt.badge && <span style={{ position: 'absolute', top: -8, left: 12, fontSize: '0.58rem', fontWeight: 700, background: C.gold, color: '#fff', padding: '2px 8px', borderRadius: 20 }}>{opt.badge}</span>}
+                      <opt.icon style={{ width: 20, height: 20, color: deliveryMethod === opt.key ? opt.color : C.muted, marginBottom: 8 }} />
+                      <p style={{ fontWeight: 700, fontSize: '0.88rem', color: C.ink }}>{opt.title}</p>
+                      <p style={{ fontSize: '0.75rem', color: C.muted, marginTop: 2, lineHeight: 1.3 }}>{opt.sub}</p>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Single recipient form */}
+              {/* Single recipient */}
               {giftType === 'single' && (
-                <div className="p-5 rounded-2xl border border-border/50 bg-card/30 space-y-4">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-foreground mb-1.5 block">Recipient's name</label>
-                      <input
-                        type="text"
-                        value={singleRecipient.name}
-                        onChange={(e) => updateRecipient(singleRecipient.id, 'name', e.target.value)}
-                        placeholder="Their name"
-                        className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
-                      />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {/* Recipient name/email */}
+                  <div style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}` }}>
+                    <p style={{ fontWeight: 600, color: C.ink, fontSize: '0.92rem', marginBottom: 12 }}>Who's the lucky pet parent?</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <input type="text" value={singleRecipient.name} onChange={e => updateRecipient(singleRecipient.id, 'name', e.target.value)} placeholder="Their name (optional)" style={inputStyle} />
+                      {deliveryMethod === 'email' && (
+                        <input type="email" value={singleRecipient.email} onChange={e => updateRecipient(singleRecipient.id, 'email', e.target.value)} placeholder="Their email address" style={inputStyle} />
+                      )}
                     </div>
-                    {deliveryMethod === 'email' && (
-                      <div>
-                        <label className="text-sm font-medium text-foreground mb-1.5 block">Recipient's email</label>
-                        <input
-                          type="email"
-                          value={singleRecipient.email}
-                          onChange={(e) => updateRecipient(singleRecipient.id, 'email', e.target.value)}
-                          placeholder="their@email.com"
-                          className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
-                        />
-                      </div>
-                    )}
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-3 block">Choose their package</label>
-                    <div className="space-y-3">
-                      {(Object.entries(TIERS) as [GiftTier, typeof TIERS.portrait][]).map(([key, tier]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => updateRecipient(singleRecipient.id, 'tier', key)}
-                          className={`w-full p-4 rounded-xl border-2 transition-all text-left relative overflow-hidden ${
-                            singleRecipient.tier === key
-                              ? 'border-primary bg-gradient-to-br from-primary/15 to-primary/5 shadow-lg shadow-primary/10'
-                              : 'border-border/40 bg-card/40 hover:border-primary/40 hover:bg-card/60'
-                          } ${'popular' in tier && tier.popular ? 'ring-2 ring-gold/40' : ''}`}
-                        >
-                          {/* Badge */}
-                          {'highlight' in tier && tier.highlight && (
-                            <span className={`absolute -top-0 right-4 px-3 py-1 text-[10px] font-bold rounded-b-lg ${
-                              tier.highlight === 'Best Value' 
-                                ? 'bg-gradient-to-r from-gold to-amber-500 text-background' 
-                                : 'bg-gradient-to-r from-nebula-purple to-nebula-pink text-white'
-                            }`}>
-                              {tier.highlight}
-                            </span>
+                  {/* Tier selection */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {(Object.entries(TIERS) as [GiftTier, typeof TIERS.portrait][]).map(([key, tier]) => {
+                      const selected = singleRecipient.tier === key;
+                      return (
+                        <button key={key} onClick={() => updateRecipient(singleRecipient.id, 'tier', key)} style={{
+                          padding: 24, borderRadius: 18, border: `2px solid ${selected ? C.rose : C.cream3}`,
+                          background: selected ? 'white' : C.cream2, cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s', position: 'relative',
+                          boxShadow: selected ? `0 4px 20px ${C.roseGlow}` : 'none',
+                        }}>
+                          {'popular' in tier && tier.popular && (
+                            <span style={{ position: 'absolute', top: -10, right: 16, background: C.rose, color: '#fff', fontSize: '0.62rem', fontWeight: 700, padding: '4px 12px', borderRadius: 20, letterSpacing: '0.05em' }}>MOST GIFTED</span>
                           )}
-                          
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex items-center gap-3">
-                              <span className="text-2xl">{'icon' in tier ? tier.icon : '⭐'}</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <span style={{ fontSize: '1.6rem' }}>{tier.icon}</span>
                               <div>
-                                <p className={`font-bold text-lg ${singleRecipient.tier === key ? 'text-foreground' : 'text-foreground/90'}`}>
-                                  {tier.label}
-                                </p>
-                                <p className="text-sm text-muted-foreground">{tier.description}</p>
+                                <p style={{ fontWeight: 700, fontSize: '1.1rem', color: C.ink }}>{tier.label}</p>
+                                <p style={{ fontSize: '0.82rem', color: C.muted }}>{tier.tagline}</p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className={`text-2xl font-bold ${singleRecipient.tier === key ? 'text-primary' : 'text-foreground/80'}`}>
-                                ${tier.cents / 100}
-                              </p>
-                            </div>
+                            <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1.5rem', color: selected ? C.rose : C.ink }}>${tier.cents / 100}</p>
                           </div>
-                          
-                          <div className="space-y-1.5 pl-1">
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {tier.features.map((f, i) => (
-                              <p key={i} className="text-sm text-foreground/80 flex items-center gap-2">
-                                {f}
+                              <p key={i} style={{ fontSize: '0.82rem', color: C.warm, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <CheckCircle style={{ width: 13, height: 13, color: C.green, flexShrink: 0 }} />{f}
                               </p>
                             ))}
                           </div>
                         </button>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-
-                  {/* Weekly Updates Addon */}
-                  <div className="mt-5 p-4 rounded-xl bg-gradient-to-br from-nebula-purple/10 to-primary/10 border border-nebula-purple/30">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="w-5 h-5 text-nebula-purple" />
-                        <h4 className="font-semibold text-foreground">Add Weekly Cosmic Updates?</h4>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Give them fresh insights every week — a gift that keeps delighting!
-                      </p>
-                      <div className="grid grid-cols-3 gap-2">
-                        {(['none', 'monthly', 'yearly'] as const).map((option) => {
-                          const addon = HOROSCOPE_ADDONS[option];
-                          return (
-                            <button
-                              key={option}
-                              type="button"
-                              onClick={() => updateRecipient(singleRecipient.id, 'horoscopeAddon', option)}
-                              className={`p-3 rounded-lg border-2 transition-all text-center relative ${
-                                singleRecipient.horoscopeAddon === option
-                                  ? 'border-nebula-purple bg-nebula-purple/15'
-                                  : 'border-border/40 bg-background/40 hover:border-nebula-purple/40'
-                              }`}
-                            >
-                              {addon.save && (
-                                <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[9px] font-bold bg-green-500 text-white rounded-full">
-                                  {addon.save}
-                                </span>
-                              )}
-                              <p className={`text-sm font-semibold ${singleRecipient.horoscopeAddon === option ? 'text-nebula-purple' : 'text-foreground/80'}`}>
-                                {addon.label}
-                              </p>
-                              {option !== 'none' && (
-                                <p className="text-xs text-muted-foreground mt-0.5">{addon.description}</p>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
                 </div>
               )}
 
               {/* Multiple recipients */}
               {giftType === 'multiple' && (
-                <div className="space-y-3">
-                  {recipients.map((recipient, index) => (
-                    <motion.div
-                      key={recipient.id}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="p-4 rounded-xl border border-border/50 bg-card/30"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-nebula-purple flex items-center justify-center text-xs font-bold text-white">
-                            {index + 1}
-                          </span>
-                          <span className="text-sm font-medium text-foreground">
-                            {recipient.name || `Recipient ${index + 1}`}
-                          </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {recipients.map((r, idx) => (
+                    <div key={r.id} style={{ padding: 16, background: 'white', borderRadius: 16, border: `1px solid ${C.cream3}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ width: 24, height: 24, borderRadius: '50%', background: C.rose, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>{idx + 1}</span>
+                          <span style={{ fontWeight: 600, fontSize: '0.88rem', color: C.ink }}>{r.name || `Recipient ${idx + 1}`}</span>
                         </div>
-                        {recipients.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeRecipient(recipient.id)}
-                            className="p-1.5 rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        {recipients.length > 1 && <button onClick={() => setRecipients(recipients.filter(x => x.id !== r.id))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.muted, padding: 4 }}><Trash2 style={{ width: 16, height: 16 }} /></button>}
                       </div>
-
-                      <div className="grid grid-cols-2 gap-2 mb-3">
-                        <input
-                          type="text"
-                          value={recipient.name}
-                          onChange={(e) => updateRecipient(recipient.id, 'name', e.target.value)}
-                          placeholder="Name"
-                          className="px-3 py-2.5 text-sm rounded-lg bg-background/50 border border-border/40 focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
-                        />
-                        {deliveryMethod === 'email' && (
-                          <input
-                            type="email"
-                            value={recipient.email}
-                            onChange={(e) => updateRecipient(recipient.id, 'email', e.target.value)}
-                            placeholder="Email"
-                            className="px-3 py-2.5 text-sm rounded-lg bg-background/50 border border-border/40 focus:border-primary/50 transition-all text-foreground placeholder:text-muted-foreground"
-                          />
-                        )}
+                      <div style={{ display: 'grid', gridTemplateColumns: deliveryMethod === 'email' ? '1fr 1fr' : '1fr', gap: 8, marginBottom: 10 }}>
+                        <input type="text" value={r.name} onChange={e => updateRecipient(r.id, 'name', e.target.value)} placeholder="Name" style={{ ...inputStyle, padding: '10px 14px', fontSize: '0.88rem' }} />
+                        {deliveryMethod === 'email' && <input type="email" value={r.email} onChange={e => updateRecipient(r.id, 'email', e.target.value)} placeholder="Email" style={{ ...inputStyle, padding: '10px 14px', fontSize: '0.88rem' }} />}
                       </div>
-
-                      <div className="grid grid-cols-2 gap-2">
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                         {(Object.entries(TIERS) as [GiftTier, typeof TIERS.portrait][]).map(([key, tier]) => (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => updateRecipient(recipient.id, 'tier', key)}
-                            className={`p-3 rounded-lg border-2 transition-all text-center relative ${
-                              recipient.tier === key
-                                ? 'border-primary bg-primary/10 shadow-md'
-                                : 'border-border/30 bg-background/30 hover:border-primary/30'
-                            } ${'popular' in tier && tier.popular ? 'ring-1 ring-gold/30' : ''}`}
-                          >
-                            {'highlight' in tier && tier.highlight && (
-                              <span className={`absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0 text-[8px] font-bold rounded-full ${
-                                tier.highlight === 'Best Value'
-                                  ? 'bg-gold text-background'
-                                  : 'bg-nebula-purple text-white'
-                              }`}>
-                                {tier.highlight}
-                              </span>
-                            )}
-                            <span className="text-lg block mb-1">{'icon' in tier ? tier.icon : '⭐'}</span>
-                            <p className={`text-xs font-medium ${recipient.tier === key ? 'text-primary' : 'text-muted-foreground'}`}>
-                              {tier.label}
-                            </p>
-                            <p className={`text-sm font-bold ${recipient.tier === key ? 'text-foreground' : 'text-foreground/70'}`}>
-                              ${tier.cents / 100}
-                            </p>
+                          <button key={key} onClick={() => updateRecipient(r.id, 'tier', key)} style={{
+                            padding: '10px 8px', borderRadius: 12, border: `2px solid ${r.tier === key ? C.rose : C.cream3}`,
+                            background: r.tier === key ? C.roseGlow : 'transparent', cursor: 'pointer', textAlign: 'center',
+                          }}>
+                            <span style={{ fontSize: '1.1rem' }}>{tier.icon}</span>
+                            <p style={{ fontWeight: 700, fontSize: '0.82rem', color: r.tier === key ? C.rose : C.ink }}>{tier.label}</p>
+                            <p style={{ fontSize: '0.78rem', color: C.muted }}>${tier.cents / 100}</p>
                           </button>
                         ))}
                       </div>
-                      
-                      {/* Show features for selected tier */}
-                      <div className="mt-2 pt-2 border-t border-border/30">
-                        <div className="flex flex-wrap gap-1.5">
-                          {TIERS[recipient.tier].features.map((f, i) => (
-                            <span key={i} className="text-[10px] px-2 py-1 rounded-full bg-primary/10 text-primary/90 border border-primary/20">
-                              ✓ {f}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
+                    </div>
                   ))}
-
                   {recipients.length < 10 && (
-                    <button
-                      type="button"
-                      onClick={addRecipient}
-                      className="w-full p-4 rounded-xl border border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-all flex items-center justify-center gap-2 text-primary"
-                    >
-                      <Plus className="w-5 h-5" />
-                      <span className="font-medium">Add another recipient</span>
-                      {discount < 0.50 && recipients.length >= 1 && (
-                        <span className="text-xs text-green-400 ml-1">
-                          +{Math.round((getVolumeDiscount(recipients.length + 1) - discount) * 100)}% savings
-                        </span>
-                      )}
+                    <button onClick={() => setRecipients([...recipients, { id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' }])} style={{
+                      padding: 14, borderRadius: 14, border: `2px dashed ${C.rose}40`, background: C.roseGlow, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: C.rose, fontWeight: 600, fontSize: '0.88rem', fontFamily: 'Cormorant, Georgia, serif',
+                    }}>
+                      <Plus style={{ width: 18, height: 18 }} /> Add another person
+                      {discount < 0.30 && recipients.length >= 1 && <span style={{ fontSize: '0.72rem', color: C.green, marginLeft: 4 }}>+{Math.round((getVolumeDiscount(recipients.length + 1) - discount) * 100)}% off</span>}
                     </button>
                   )}
                 </div>
               )}
 
-              <Button
-                onClick={() => setStep(3)}
-                disabled={!canProceedToStep3()}
-                className="w-full py-6 text-lg bg-gradient-to-r from-primary to-nebula-purple"
-              >
-                Continue to Checkout
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </Button>
+              <button onClick={() => setStep(3)} disabled={!canProceedToStep3()} style={{
+                width: '100%', padding: '16px 0', borderRadius: 50, background: canProceedToStep3() ? C.rose : C.cream3,
+                color: canProceedToStep3() ? '#fff' : C.muted, fontFamily: 'Cormorant, Georgia, serif', fontWeight: 700, fontSize: '1rem',
+                border: 'none', cursor: canProceedToStep3() ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}>
+                Continue to Checkout <ChevronRight style={{ width: 18, height: 18 }} />
+              </button>
             </motion.div>
           )}
 
-          {/* Step 3: Checkout */}
+          {/* ── STEP 3 ── */}
           {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
-            >
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => setStep(2)}
-                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-                >
-                  <ArrowLeft className="w-4 h-4" /> Back
-                </button>
-                <h2 className="text-lg font-display font-semibold text-foreground">
-                  Complete Purchase
-                </h2>
-                <div className="w-12" />
+            <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <button onClick={() => setStep(2)} style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.85rem' }}><ArrowLeft style={{ width: 14, height: 14 }} /> Back</button>
+                <p style={{ fontWeight: 700, fontSize: '1rem', color: C.ink }}>Complete Your Gift</p>
+                <div style={{ width: 48 }} />
               </div>
 
-              {/* Order Summary */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-card to-card/50 border border-border/50 space-y-4">
-                <div className="flex items-center gap-2 pb-3 border-b border-border/30">
-                  <Gift className="w-5 h-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Order Summary</h3>
+              {/* Order summary */}
+              <div style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 12, borderBottom: `1px solid ${C.cream3}`, marginBottom: 12 }}>
+                  <Gift style={{ width: 18, height: 18, color: C.rose }} />
+                  <p style={{ fontWeight: 700, color: C.ink, fontSize: '0.92rem' }}>Gift Summary</p>
                 </div>
-
-                <div className="space-y-2">
-                  {activeRecipients.map((r, index) => (
-                    <div key={r.id} className="flex justify-between items-center py-2 border-b border-border/20 last:border-0">
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-                          {index + 1}
-                        </span>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{TIERS[r.tier].label} Reading</p>
-                          {(r.name || r.email) && deliveryMethod === 'email' && (
-                            <p className="text-xs text-primary">→ {r.name || r.email}</p>
-                          )}
-                        </div>
+                {activeRecipients.map((r, idx) => (
+                  <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: idx < activeRecipients.length - 1 ? `1px solid ${C.cream3}` : 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: C.roseGlow, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, color: C.rose }}>{idx + 1}</span>
+                      <div>
+                        <p style={{ fontWeight: 600, fontSize: '0.88rem', color: C.ink }}>{TIERS[r.tier].label}</p>
+                        {r.name && <p style={{ fontSize: '0.75rem', color: C.rose }}>for {r.name}</p>}
                       </div>
-                      <span className="text-sm text-muted-foreground">${(TIERS[r.tier].cents / 100).toFixed(2)}</span>
                     </div>
-                  ))}
-                </div>
-
-                <div className="pt-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="text-foreground">${(pricing.baseTotal / 100).toFixed(2)}</span>
+                    <span style={{ fontSize: '0.88rem', color: C.muted }}>${(TIERS[r.tier].cents / 100).toFixed(2)}</span>
                   </div>
+                ))}
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.cream3}` }}>
                   {discount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-green-400 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        {Math.round(discount * 100)}% Volume Discount
-                      </span>
-                      <span className="text-green-400">-${(pricing.discountAmount / 100).toFixed(2)}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.85rem' }}>
+                      <span style={{ color: C.green, display: 'flex', alignItems: 'center', gap: 4 }}><Sparkles style={{ width: 12, height: 12 }} />{Math.round(discount * 100)}% volume discount</span>
+                      <span style={{ color: C.green }}>-${(pricing.discountAmount / 100).toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-xl font-bold pt-3 border-t border-border/30">
-                    <span className="text-foreground">Total</span>
-                    <span className="text-primary">${(pricing.finalTotal / 100).toFixed(2)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 700 }}>
+                    <span style={{ color: C.ink }}>Total</span>
+                    <span style={{ color: C.rose, fontFamily: '"DM Serif Display", Georgia, serif' }}>${(pricing.finalTotal / 100).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Your details */}
-              <div className="space-y-4">
+              {/* Your email */}
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: C.ink, display: 'block', marginBottom: 6 }}>Your email (for receipt)</label>
+                <input type="email" value={purchaserEmail} onChange={e => setPurchaserEmail(e.target.value)} placeholder="your@email.com" style={inputStyle} />
+              </div>
+
+              {/* Personal message */}
+              <div>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600, color: C.ink, display: 'block', marginBottom: 6 }}>Add a personal message <span style={{ fontWeight: 400, color: C.muted }}>(they'll see this when they open their gift)</span></label>
+                <textarea value={giftMessage} onChange={e => setGiftMessage(e.target.value)} placeholder="Write something from the heart..." rows={3} maxLength={500}
+                  style={{ ...inputStyle, resize: 'none' as const }} />
+              </div>
+
+              {/* Guarantee */}
+              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(74,140,92,0.06)', border: '1px solid rgba(74,140,92,0.15)', display: 'flex', alignItems: 'start', gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(74,140,92,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Shield style={{ width: 18, height: 18, color: C.green }} />
+                </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1.5 block">Your email (for receipt)</label>
-                  <input
-                    type="email"
-                    value={purchaserEmail}
-                    onChange={(e) => setPurchaserEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    required
-                    className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-1.5 block">Personal message (optional)</label>
-                  <textarea
-                    value={giftMessage}
-                    onChange={(e) => setGiftMessage(e.target.value)}
-                    placeholder="Add a personal note to your gift..."
-                    className="w-full px-4 py-3 rounded-xl bg-background/50 border border-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all text-foreground placeholder:text-muted-foreground resize-none"
-                    rows={3}
-                    maxLength={500}
-                  />
+                  <p style={{ fontWeight: 700, fontSize: '0.85rem', color: C.green, marginBottom: 2 }}>100% happiness guarantee</p>
+                  <p style={{ fontSize: '0.78rem', color: C.warm, lineHeight: 1.4 }}>If they don't absolutely love it, full refund — no questions asked.</p>
                 </div>
               </div>
 
-              {/* Money-back guarantee */}
-              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
-                    <Shield className="w-5 h-5 text-green-400" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-green-400 text-sm mb-1">They'll Love It — Guaranteed</p>
-                    <p className="text-xs text-foreground/80 leading-relaxed">
-                      We're so confident they'll adore their cosmic pet reading that we offer a <span className="font-medium text-green-400">100% money-back guarantee</span>. If they're not amazed, full refund — no questions asked.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <Button
-                onClick={handlePurchase}
-                disabled={isLoading || !purchaserEmail.includes('@')}
-                className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-nebula-pink via-nebula-purple to-primary hover:opacity-90 transition-opacity shadow-xl shadow-nebula-purple/30"
-              >
+              {/* Purchase button */}
+              <button onClick={handlePurchase} disabled={isLoading || !purchaserEmail.includes('@')} style={{
+                width: '100%', padding: '18px 0', borderRadius: 50,
+                background: (isLoading || !purchaserEmail.includes('@')) ? C.cream3 : C.rose,
+                color: (isLoading || !purchaserEmail.includes('@')) ? C.muted : '#fff',
+                fontFamily: 'Cormorant, Georgia, serif', fontWeight: 700, fontSize: '1.05rem', border: 'none',
+                cursor: (isLoading || !purchaserEmail.includes('@')) ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                boxShadow: `0 4px 16px ${C.roseGlow}`,
+              }}>
                 {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing...
-                  </span>
+                  <><div style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} /> Processing...</>
                 ) : (
-                  <span className="flex items-center gap-2">
-                    <Gift className="w-5 h-5" />
-                    Complete Purchase — ${(pricing.finalTotal / 100).toFixed(2)}
-                  </span>
+                  <><Gift style={{ width: 20, height: 20 }} /> Send This Gift — ${(pricing.finalTotal / 100).toFixed(2)}</>
                 )}
-              </Button>
+              </button>
 
-              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-                  Secure checkout
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  Instant delivery
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Gift className="w-3.5 h-3.5" />
-                  Valid 1 year
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 16, fontSize: '0.72rem', color: C.muted }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Shield style={{ width: 12, height: 12 }} />Secure</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clock style={{ width: 12, height: 12 }} />Instant</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Gift style={{ width: 12, height: 12 }} />Valid 1 year</span>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
