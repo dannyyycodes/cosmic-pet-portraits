@@ -55,7 +55,8 @@ function spotifySearchUrl(title: string, artist: string): string {
 export function CosmicPlaylist({ petName, report }: CosmicPlaylistProps) {
   const s = useScrollReveal();
   const element = report.dominantElement || 'Water';
-  const playlist = report.playlist || generateDefaultPlaylist(element);
+  const playlist = report.playlist;
+  if (!playlist || playlist.length === 0) return null;
 
   return (
     <motion.div

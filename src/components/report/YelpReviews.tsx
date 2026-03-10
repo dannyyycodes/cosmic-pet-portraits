@@ -62,7 +62,8 @@ function Stars({ rating }: { rating: number }) {
 export function YelpReviews({ petName, report }: YelpReviewsProps) {
   const s = useScrollReveal();
   const element = report.dominantElement || 'Water';
-  const reviews = report.yelpReviews || generateDefaultReviews(petName, element);
+  const reviews = report.yelpReviews;
+  if (!reviews || reviews.length === 0) return null;
 
   return (
     <motion.div

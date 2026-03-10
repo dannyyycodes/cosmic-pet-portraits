@@ -93,9 +93,8 @@ function ReadReceipt({ isLastInSegment }: { isLastInSegment: boolean }) {
 export function TextMessages({ petName, report, occasionMode }: TextMessagesProps) {
   const s = useScrollReveal();
   const element = report.dominantElement || 'Water';
-  const segments = report.textMessages
-    ? convertReportMessages(report.textMessages)
-    : generateDefaultMessages(petName, element);
+  if (!report.textMessages) return null;
+  const segments = convertReportMessages(report.textMessages);
 
   return (
     <motion.div

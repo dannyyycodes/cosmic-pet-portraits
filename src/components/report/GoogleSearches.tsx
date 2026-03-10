@@ -69,7 +69,8 @@ export function GoogleSearches({ petName, report }: GoogleSearchesProps) {
   const s = useScrollReveal();
   const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Pisces';
   const element = report.dominantElement || 'Water';
-  const searches = report.googleSearches || generateDefaultSearches(petName, sunSign, element);
+  const searches = report.googleSearches;
+  if (!searches || searches.length === 0) return null;
 
   return (
     <motion.div
