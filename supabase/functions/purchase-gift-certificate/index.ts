@@ -10,8 +10,8 @@ const corsHeaders = {
 
 // Valid gift tiers with base amounts (server-side truth)
 const GIFT_TIERS = {
-  essential: { cents: 3500, name: 'Essential Cosmic Reading' },
-  portrait: { cents: 5000, name: 'Cosmic Portrait Edition' },
+  essential: { cents: 2700, name: 'Essential Cosmic Reading' },
+  portrait: { cents: 3500, name: 'Cosmic Portrait Edition' },
 } as const;
 
 // Horoscope subscription addons
@@ -26,10 +26,10 @@ type HoroscopeAddon = keyof typeof HOROSCOPE_ADDONS;
 
 // Volume discount tiers
 function getVolumeDiscount(petCount: number): number {
-  if (petCount >= 5) return 0.50;
-  if (petCount >= 4) return 0.40;
-  if (petCount >= 3) return 0.30;
-  if (petCount >= 2) return 0.20;
+  if (petCount >= 5) return 0.30;
+  if (petCount >= 4) return 0.25;
+  if (petCount >= 3) return 0.20;
+  if (petCount >= 2) return 0.15;
   return 0;
 }
 

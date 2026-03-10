@@ -148,7 +148,7 @@ serve(async (req) => {
       }
       // Check if this is a gift certificate purchase
       else if (session.metadata?.type === "gift_certificate") {
-        const giftCode = session.metadata.gift_code;
+        const giftCode = session.metadata.primary_gift_code || session.metadata.gift_code;
         
         // SECURITY: Strict gift code format validation (matches GIFT-XXXX-XXXX format)
         const GIFT_CODE_PATTERN = /^GIFT-[A-Z0-9]{4}-[A-Z0-9]{4}$/;

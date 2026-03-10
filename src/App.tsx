@@ -13,10 +13,10 @@ import { CookieConsent } from "@/components/CookieConsent";
 // Eagerly loaded pages (core user journey)
 import Index from "./pages/Index";
 import Intake from "./pages/Intake";
-// QuickCheckout kept as backup in src/pages/QuickCheckout.tsx for A/B testing
+import QuickCheckout from "./pages/QuickCheckout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 const ViewReport = lazy(() => import("./pages/ViewReport"));
-// GiftPurchase kept as backup in src/pages/GiftPurchase.tsx
+import GiftPurchase from "./pages/GiftPurchase";
 import GiftSuccess from "./pages/GiftSuccess";
 import RedeemGift from "./pages/RedeemGift";
 import GiftIntake from "./pages/GiftIntake";
@@ -55,16 +55,9 @@ const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 const FindReport = lazy(() => import("./pages/FindReport"));
 
 // Redirect /checkout to the static HTML checkout page
-function CheckoutRedirect() {
-  window.location.href = '/checkout-v3.html';
-  return null;
-}
+// QuickCheckout is now a React component (checkout-v3.html had stale Supabase credentials)
 
-// Redirect /gift to the static HTML gift page
-function GiftRedirect() {
-  window.location.href = '/gift-v2.html';
-  return null;
-}
+// GiftPurchase is now a React component (gift-v2.html had stale Supabase credentials)
 
 // Redirect /chat to the static HTML soul chat page
 function SoulChatRedirect() {
@@ -97,8 +90,8 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/intake" element={<Intake />} />
-                  <Route path="/checkout" element={<CheckoutRedirect />} />
-                  <Route path="/gift" element={<GiftRedirect />} />
+                  <Route path="/checkout" element={<QuickCheckout />} />
+                  <Route path="/gift" element={<GiftPurchase />} />
                   <Route path="/gift-success" element={<GiftSuccess />} />
                   <Route path="/redeem" element={<RedeemGift />} />
                   <Route path="/redeem-intake" element={<GiftIntake />} />

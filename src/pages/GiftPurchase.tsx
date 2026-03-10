@@ -220,7 +220,7 @@ export default function GiftPurchase() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 py-8 relative overflow-hidden">
+    <div className="variant-c min-h-screen bg-background flex items-center justify-center p-4 py-8 relative overflow-hidden">
       <VariantBackground intensity="calm" />
       
       <div className="w-full max-w-xl relative z-10">
