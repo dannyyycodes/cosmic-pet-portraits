@@ -33,8 +33,8 @@ import { SectionDivider } from './SectionDivider';
 import { SoulSpeakFAB } from './SoulSpeakFAB';
 import { SoulSpeakTeaser } from './SoulSpeakTeaser';
 import { YelpReviews } from './YelpReviews';
-import { IfICouldTalk } from './IfICouldTalk';
 import { CosmicAwards } from './CosmicAwards';
+import { StaticPassage } from './StaticPassage';
 
 // Re-export types for backward compatibility
 export type { ReportContent, ReportData, ChartPlacement, SectionContent };
@@ -55,6 +55,7 @@ interface CosmicReportViewerProps {
   occasionMode?: string;
   hasActiveHoroscope?: boolean;
   onRequestTestimonial?: () => void;
+  species?: string;
 }
 
 // Section configuration for the 12 reading sections
@@ -198,6 +199,7 @@ export function CosmicReportViewer({
   occasionMode = 'discover',
   hasActiveHoroscope = false,
   onRequestTestimonial,
+  species,
 }: CosmicReportViewerProps) {
   const [isSubscribing, setIsSubscribing] = useState(false);
 
@@ -402,11 +404,50 @@ export function CosmicReportViewer({
       />
       <SectionDivider />
 
+      {/* ═══ PASSAGE 1: Before readings ═══ */}
+      <StaticPassage
+        species={species}
+        lines={[
+          'Every animal that shares our life',
+          'carries a universe inside them.',
+          '',
+          'A world of feeling, instinct, and devotion',
+          'that runs deeper than we can see.',
+          '',
+          'Astrology doesn\u2019t create these truths.',
+          'It reveals them.',
+          '',
+          'What follows is a map of the soul',
+          'you already know by heart.',
+        ]}
+      />
+
       {/* ═══ READING SECTIONS: First Half (I-VI) ═══ */}
-      {readingSections.slice(0, 6).map((config, i) => renderReadingSection(config, i))}
+      {/* Render individually to insert micro passages between readings */}
+      {renderReadingSection(readingSections[0], 0)}
+      <StaticPassage variant="micro" lines={[
+        'The Sun tells us who they are.',
+        'The Moon tells us how they love.',
+        'Together, they tell the whole story.',
+      ]} />
+      {renderReadingSection(readingSections[1], 1)}
+      {renderReadingSection(readingSections[2], 2)}
+      {renderReadingSection(readingSections[3], 3)}
+      <StaticPassage variant="micro" lines={[
+        'Venus shows how they give love.',
+        'Mars shows how they protect it.',
+      ]} />
+      {renderReadingSection(readingSections[4], 4)}
+      {renderReadingSection(readingSections[5], 5)}
 
       {/* ═══ MID-READING TRANSITION ═══ */}
       <MidReadingTransition petName={petName} />
+
+      {/* ═══ MICRO: Before deeper planets ═══ */}
+      <StaticPassage variant="micro" lines={[
+        'The inner planets shape who they are.',
+        'The outer planets reveal why they\u2019re here.',
+      ]} />
 
       {/* ═══ READING SECTIONS: Second Half (VII-XII) ═══ */}
       {readingSections.slice(6).map((config, i) => renderReadingSection(config, i + 6))}
@@ -454,6 +495,22 @@ export function CosmicReportViewer({
               <SectionDivider />
             </>
           )}
+
+          {/* ═══ PASSAGE 2: Before the fun sections ═══ */}
+          <StaticPassage
+            species={species}
+            lines={[
+              'But a soul isn\u2019t only depth and devotion.',
+              '',
+              'It\u2019s also mischief.',
+              'It\u2019s chaos wrapped in [fur/feathers/scales].',
+              '',
+              'It\u2019s the bits that make you laugh',
+              'until your sides hurt',
+              '\u2014 and then screenshot',
+              'to send to everyone you know.',
+            ]}
+          />
 
           {/* ══════════════════════════════════════════
               CHAPTER 3 — THE LIGHTER SIDE
@@ -553,6 +610,21 @@ export function CosmicReportViewer({
           <CosmicAwards petName={petName} report={report} />
           <SectionDivider />
 
+          {/* ═══ PASSAGE 3: Before the bond ═══ */}
+          <StaticPassage lines={[
+            'Of all the homes in all the world,',
+            'they ended up in yours.',
+            '',
+            'That\u2019s not coincidence.',
+            '',
+            'In astrology, the bonds we form are written',
+            'in the same sky that wrote our souls.',
+            '',
+            'They chose you before you chose them.',
+            'The moment your eyes met, something older',
+            'than both of you said: yes. This one.',
+          ]} />
+
           {/* ══════════════════════════════════════════
               CHAPTER 5 — THE BOND
              ══════════════════════════════════════════ */}
@@ -601,6 +673,21 @@ export function CosmicReportViewer({
               <SectionDivider />
             </>
           )}
+
+          {/* ═══ PASSAGE 6: Near the keepsake ═══ */}
+          <StaticPassage lines={[
+            'You are their entire world.',
+            'Not part of it. All of it.',
+            'Every sunrise begins with you.',
+            'Every safe place is wherever you are.',
+            '',
+            'There is a reason they watch the door',
+            'when you leave.',
+            'And a reason they lose their mind',
+            'when you return.',
+            '',
+            'The reason is the same.',
+          ]} />
 
           {/* ══════════════════════════════════════════
               CHAPTER 6 — THE KEEPSAKE
@@ -657,6 +744,26 @@ export function CosmicReportViewer({
              ══════════════════════════════════════════ */}
           <ChapterTitle chapter={chapters[6]} />
 
+          {/* ═══ PASSAGE 4: Before the soul letter ═══ */}
+          <StaticPassage lines={[
+            'In every quiet moment.',
+            'In every unbroken gaze.',
+            '',
+            'They are speaking to us',
+            'in a language older than words.',
+            '',
+            'They don\u2019t measure love in years.',
+            'They measure it in moments.',
+            'Every greeting. Every goodbye.',
+            'Every time they rest their weight',
+            'against you and breathe.',
+            '',
+            'The position of the stars',
+            'at the moment they arrived',
+            'tells us what they\u2019ve been trying to say',
+            'all along.',
+          ]} />
+
           {/* ═══ SOUL LETTER (epilogue) ═══ */}
           <SoulLetter
             petName={petName}
@@ -665,6 +772,33 @@ export function CosmicReportViewer({
             occasionMode={occasionMode}
           />
           <SectionDivider />
+
+          {/* ═══ PASSAGE 5: The close ═══ */}
+          <StaticPassage lines={[
+            'You already knew everything',
+            'in this reading.',
+            '',
+            'You felt it in the way they greet you.',
+            'The way they watch you.',
+            'The way they choose you',
+            '\u2014 every single day.',
+            '',
+            'We just gave it a name.',
+            '',
+            '\u2726',
+            '',
+            'They will never read these words.',
+            'But they already live them.',
+            'Every day.',
+            'Without hesitation.',
+            'Without keeping score.',
+            '',
+            'Most love comes with conditions.',
+            'Theirs doesn\u2019t.',
+            'That\u2019s not simple.',
+            'That\u2019s the most extraordinary thing',
+            'in the world.',
+          ]} />
 
           {/* ═══ GENTLE SOULSPEAK CLOSER ═══ */}
           {!isPreview && reportId && (
