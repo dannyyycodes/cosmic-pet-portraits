@@ -470,8 +470,8 @@ serve(async (req) => {
                         }
                       }
 
-                      // Set SoulSpeak credits: 75 for hardcover, 25 for standard
-                      const creditAmount = isHardcover ? 75 : 25;
+                      // Set SoulSpeak credits: 30 for hardcover, 8 for standard
+                      const creditAmount = isHardcover ? 30 : 8;
                       await supabaseClient
                         .from("chat_credits")
                         .upsert({

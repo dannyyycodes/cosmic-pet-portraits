@@ -335,24 +335,24 @@ body::after {
 <!-- ============ PAYWALL ============ -->
 <div class="paywall-overlay" id="paywallOverlay">
   <div class="paywall-card">
-    <div class="paywall-pet-says" id="paywallPetSays">"I have so much more to tell you..."</div>
+    <div class="paywall-pet-says" id="paywallPetSays">"wait wait wait I wasn't done talking to you..."</div>
     <div style="font-size:0.6rem;font-weight:600;letter-spacing:1px;color:var(--rose);text-transform:uppercase;margin-bottom:4px;">SoulSpeak</div>
-    <div class="paywall-title">Keep talking to <span id="paywallPetName">them</span></div>
-    <div class="paywall-text">Your free taster has ended. Top up to continue this beautiful conversation whenever you want.</div>
+    <div class="paywall-title"><span id="paywallPetName">They</span> has more to say</div>
+    <div class="paywall-text">Your free messages have run out, but this conversation doesn't have to end.</div>
     <div class="paywall-options">
       <div class="paywall-option pack small" onclick="buyCredits('small')">
-        <div class="paywall-option-title">150 Credits — $3.99</div>
-        <div class="paywall-option-desc">Around 50 more conversations</div>
+        <div class="paywall-option-title">20 Credits — $1.99</div>
+        <div class="paywall-option-desc">10 more messages — pick up right where you left off</div>
       </div>
       <div class="paywall-option pack" onclick="buyCredits('medium')">
         <div class="paywall-option-badge">MOST POPULAR</div>
-        <div class="paywall-option-title">500 Credits — $8.99</div>
-        <div class="paywall-option-desc">Months of conversation — always there when you need them</div>
+        <div class="paywall-option-title">60 Credits — $4.99</div>
+        <div class="paywall-option-desc">30 messages — enough for a real conversation</div>
       </div>
-      <div class="paywall-option sub" id="paywallSubOption" onclick="buyCredits('unlimited')">
+      <div class="paywall-option pack" onclick="buyCredits('large')">
         <div class="paywall-option-badge">BEST VALUE</div>
-        <div class="paywall-option-title">SoulSpeak Unlimited — $5.99/mo</div>
-        <div class="paywall-option-desc">Talk to your pet's soul whenever you want, forever</div>
+        <div class="paywall-option-title">150 Credits — $9.99</div>
+        <div class="paywall-option-desc">75 messages — talk whenever you need them</div>
       </div>
     </div>
     <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
@@ -378,17 +378,13 @@ var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.-axd-u-mY_73j2RPkySsLgG630WCUb05I8AbwYjIvkI';
 
 // ─── Credit Costs ───
-// Lower costs = more messages = more addictive
-// Short message (under 50 chars) = 2 credits
-// Normal message = 3 credits
-// Long/deep question (over 200 chars) = 5 credits
-// 25 free credits = ~8-12 messages (enough to get truly hooked)
-// 150 credits ($3.99) = ~50 messages, 500 credits ($8.99) = ~167 messages
+// First message is FREE (the hook). After that, flat 2 credits per message.
+// 8 free credits = first free msg + 4 more exchanges = hooked but wanting more.
+// 20 credits ($1.99) = 10 msgs, 60 credits ($4.99) = 30 msgs, 150 credits ($9.99) = 75 msgs
+var isFirstMessage = true;
 function getCreditCost(text) {
-  var len = text.length;
-  if (len < 50) return 2;
-  if (len > 200) return 5;
-  return 3;
+  if (isFirstMessage) return 0; // First message is on the house
+  return 2; // Flat rate — simple, fast-draining
 }
 
 // ─── Live credit indicator as they type ───
@@ -401,8 +397,13 @@ function updateCreditIndicator() {
     return;
   }
   var cost = getCreditCost(text);
-  indicator.textContent = cost + ' credits';
-  indicator.style.color = creditsRemaining < cost ? 'var(--rose)' : 'var(--faded)';
+  if (cost === 0) {
+    indicator.textContent = 'free';
+    indicator.style.color = 'var(--green)';
+  } else {
+    indicator.textContent = cost + ' credits';
+    indicator.style.color = creditsRemaining < cost ? 'var(--rose)' : 'var(--faded)';
+  }
 }
 
 // ─── Suggestion Engine ───
@@ -561,7 +562,7 @@ function showSuggestions(lastUserMsg, lastPetReply) {
 var readingId = new URLSearchParams(window.location.search).get('id');
 var petData = null;
 var messages = [];
-var creditsRemaining = 25;  // 25 free credits = 8-12 messages (enough to get hooked)
+var creditsRemaining = 8;  // 8 free credits = first free + 4 more = hooked but wanting more
 var isUnlimited = false;
 var hasActiveHoroscope = false;  // true if they already have horoscope (toggled on checkout, or $35 tier, or subscription)
 var isSending = false;
@@ -687,8 +688,8 @@ function updateHeaderUI() {
 
   document.getElementById('paywallPetName').textContent = petData.name;
   document.getElementById('paywallPetSays').textContent = isMemorial
-    ? '"Please don\u2019t stop talking to me... I\u2019m still right here."'
-    : '"I have so much more to tell you, ' + petData.name + '\u2019s human..."';
+    ? '"please don\u2019t stop talking to me... I\u2019m still right here."'
+    : '"wait wait wait I wasn\u2019t done talking to you..."';
 
   // Personalise prompts based on occasion mode
   var name = petData.name;
@@ -744,7 +745,7 @@ async function loadCredits() {
       isUnlimited = data[0].is_unlimited || false;
     } else {
       // First time visitor — check what they bought to set correct credits
-      var startCredits = 25;
+      var startCredits = 8;
       var startUnlimited = false;
 
       try {
@@ -774,7 +775,7 @@ async function loadCredits() {
     }
   } catch(err) {
     console.error('Credits error:', err);
-    creditsRemaining = 25;
+    creditsRemaining = 8;
   }
   updateCreditsUI();
 }
@@ -816,16 +817,6 @@ async function useCredits(cost) {
 
 // ─── Paywall ───
 function showPaywall() {
-  // Adapt paywall options based on what customer already has
-  var subOption = document.getElementById('paywallSubOption');
-  if (subOption) {
-    if (hasActiveHoroscope || isUnlimited) {
-      // Already has horoscope/subscription — hide subscription option
-      subOption.style.display = 'none';
-    } else {
-      subOption.style.display = 'block';
-    }
-  }
   document.getElementById('paywallOverlay').classList.add('show');
   document.getElementById('inputBar').classList.add('disabled');
 }
@@ -884,6 +875,9 @@ async function sendMessage() {
   autoResize();
   document.getElementById('sendBtn').disabled = true;
 
+  // Track first message for free hook
+  if (isFirstMessage) isFirstMessage = false;
+
   // Add user message
   addMessage('user', text, cost);
 
@@ -929,9 +923,12 @@ async function sendMessage() {
   document.getElementById('sendBtn').disabled = false;
   input.focus();
 
-  // Check if credits running low
+  // Show paywall after the pet's response lands (they're mid-conversation, emotionally invested)
   if (!isUnlimited && creditsRemaining <= 0) {
-    setTimeout(showPaywall, 1500);
+    setTimeout(showPaywall, 2000); // Let them read the pet's response first, THEN paywall
+  } else if (!isUnlimited && creditsRemaining <= 2) {
+    // Low credit warning — update the credit display to pulse/draw attention
+    document.getElementById('creditsDisplay').style.color = 'var(--rose)';
   }
 }
 
@@ -943,8 +940,10 @@ function addMessage(type, text, cost) {
   var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
 
   var costTag = '';
-  if (type === 'user' && cost && !isUnlimited) {
-    costTag = '<span style="font-size:0.58rem;opacity:0.7;margin-left:4px;">(' + cost + ' credits)</span>';
+  if (type === 'user' && !isUnlimited) {
+    costTag = cost === 0
+      ? '<span style="font-size:0.58rem;opacity:0.7;margin-left:4px;color:var(--green);">(free)</span>'
+      : '<span style="font-size:0.58rem;opacity:0.7;margin-left:4px;">(' + cost + ' credits)</span>';
   }
 
   var div = document.createElement('div');

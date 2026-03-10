@@ -9,8 +9,9 @@ const corsHeaders = {
 };
 
 const creditTiers = {
-  small:   { credits: 150,  price: 399,   name: "Soul Chat — 150 Credits", desc: "~50 heartfelt conversations with your pet's soul" },
-  medium:  { credits: 500,  price: 899,   name: "Soul Chat — 500 Credits", desc: "Months of deep connection — always there when you need them" },
+  small:  { credits: 20,   price: 199,   name: "SoulSpeak — 20 Credits",  desc: "10 more messages with your pet's soul" },
+  medium: { credits: 60,   price: 499,   name: "SoulSpeak — 60 Credits",  desc: "30 heartfelt conversations — enough for a real talk" },
+  large:  { credits: 150,  price: 999,   name: "SoulSpeak — 150 Credits", desc: "75 messages — talk whenever you need them" },
 };
 
 serve(async (req) => {
@@ -22,47 +23,30 @@ serve(async (req) => {
     const { orderId, type } = await req.json();
     const baseUrl = req.headers.get("origin") || "https://littlesouls.co";
 
-    if (type === "small" || type === "medium") {
-      const tier = creditTiers[type as keyof typeof creditTiers];
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        line_items: [{
-          price_data: {
-            currency: "usd",
-            product_data: { name: tier.name, description: tier.desc },
-            unit_amount: tier.price,
-          },
-          quantity: 1,
-        }],
-        metadata: { orderId, type: "chat_credits", credits: String(tier.credits) },
-        success_url: `${baseUrl}/soul-chat.html?id=${orderId}&purchased=credits`,
-        cancel_url: `${baseUrl}/soul-chat.html?id=${orderId}`,
-      });
-
-      return new Response(JSON.stringify({ url: session.url }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-
-    } else if (type === "unlimited") {
-      // Monthly subscription: unlimited chat for $5.99/mo
-      // NOTE: Create this price in Stripe Dashboard first and replace below
-      const SUBSCRIPTION_PRICE_ID = "price_1T60YTEFEZSdxrGtwyYc0szo";
-
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        line_items: [{ price: SUBSCRIPTION_PRICE_ID, quantity: 1 }],
-        metadata: { orderId, type: "chat_subscription" },
-        success_url: `${baseUrl}/soul-chat.html?id=${orderId}&purchased=unlimited`,
-        cancel_url: `${baseUrl}/soul-chat.html?id=${orderId}`,
-      });
-
-      return new Response(JSON.stringify({ url: session.url }), {
+    const tier = creditTiers[type as keyof typeof creditTiers];
+    if (!tier) {
+      return new Response(JSON.stringify({ error: "Invalid type" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ error: "Invalid type" }), {
-      status: 400,
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [{
+        price_data: {
+          currency: "usd",
+          product_data: { name: tier.name, description: tier.desc },
+          unit_amount: tier.price,
+        },
+        quantity: 1,
+      }],
+      metadata: { orderId, type: "chat_credits", credits: String(tier.credits) },
+      success_url: `${baseUrl}/soul-chat.html?id=${orderId}&purchased=credits`,
+      cancel_url: `${baseUrl}/soul-chat.html?id=${orderId}`,
+    });
+
+    return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 

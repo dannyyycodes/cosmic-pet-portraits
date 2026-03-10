@@ -486,7 +486,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           </span>
           <span className="text-[10px] text-muted-foreground/60 block mt-0.5">Hear your pet speak back to you for the first time</span>
         </span>
-        <span className="text-[11px] text-muted-foreground/70 shrink-0">25 free credits</span>
+        <span className="text-[11px] text-muted-foreground/70 shrink-0">Included free</span>
       </div>
 
       {/* Redeem Code */}
