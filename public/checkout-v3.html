@@ -288,52 +288,72 @@ body::after {
 .urgency-bar .timer { font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--rose); font-weight:400; }
 .urgency-bar .timer-label { font-size:0.78rem; color:var(--earth); font-weight:500; }
 
-/* ============ INSIDE PREVIEW ============ */
-.inside-section { max-width:520px; margin:0 auto; padding:0 20px 32px; }
-.inside-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.inside-card {
-  background:#fff; border-radius:14px; border:1px solid var(--cream3);
-  padding:16px; text-align:center; position:relative; overflow:hidden;
+/* ============ GLIMPSE INSIDE CAROUSEL ============ */
+.inside-section { max-width:100%; margin:0 auto; padding:0 0 32px; }
+.inside-section .section-label,
+.inside-section .section-headline,
+.inside-section .section-sub { padding:0 20px; }
+.glimpse-carousel {
+  display:flex; gap:14px; overflow-x:auto; scroll-snap-type:x mandatory;
+  padding:0 20px 14px; -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
-.inside-card-icon { font-size:1.6rem; margin-bottom:8px; }
-.inside-card-title { font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink); margin-bottom:4px; }
-.inside-card-desc { font-size:0.75rem; color:var(--earth); line-height:1.4; }
-.inside-card-new {
-  position:absolute; top:8px; right:8px;
-  padding:2px 8px; font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px;
-  background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; border-radius:9px;
+.glimpse-carousel::-webkit-scrollbar { display:none; }
+.glimpse-card {
+  flex-shrink:0; width:280px; scroll-snap-align:start;
+  background:#fff; border-radius:16px; border:1px solid var(--cream3);
+  overflow:hidden; box-shadow:0 2px 16px rgba(0,0,0,0.04);
 }
-@media (max-width:420px) { .inside-grid { grid-template-columns:1fr; } }
+.glimpse-card-header {
+  padding:10px 14px; border-bottom:1px solid var(--cream3);
+  display:flex; align-items:center; gap:8px;
+}
+.glimpse-card-body { padding:14px 16px; }
+.glimpse-dots {
+  display:flex; align-items:center; justify-content:center; gap:6px; padding:4px 0;
+}
+.glimpse-dot {
+  width:6px; height:6px; border-radius:50%; background:var(--sand); transition:all 0.3s;
+}
+.glimpse-dot.active { background:var(--rose); width:18px; border-radius:3px; }
+@media (min-width:641px) { .glimpse-carousel { max-width:900px; margin:0 auto; } }
 
-/* ============ COMPACT REVIEWS (near top) ============ */
+/* ============ TOP REVIEWS (2 visible + collapsible) ============ */
 .top-reviews { max-width:520px; margin:0 auto; padding:0 20px 8px; }
-.top-reviews-toggle {
+.top-reviews-header {
   display:flex; align-items:center; justify-content:center; gap:8px;
-  padding:10px 16px; background:#fff; border-radius:12px;
-  border:1px solid var(--cream3); cursor:pointer; transition:all 0.2s;
+  margin-bottom:10px;
 }
-.top-reviews-toggle:hover { border-color:var(--sand); }
-.top-reviews-toggle .stars { color:var(--gold); font-size:0.85rem; letter-spacing:1px; }
-.top-reviews-toggle .label { font-size:0.82rem; font-weight:600; color:var(--ink); }
-.top-reviews-toggle .arrow { color:var(--muted); transition:transform 0.3s; font-size:0.8rem; }
-.top-reviews.open .top-reviews-toggle .arrow { transform:rotate(180deg); }
-.top-reviews-body { max-height:0; overflow:hidden; transition:max-height 0.4s ease; }
-.top-reviews-inner { padding-top:10px; }
+.top-reviews-header .stars { color:var(--gold); font-size:0.9rem; letter-spacing:1px; }
+.top-reviews-header .label { font-size:0.85rem; font-weight:600; color:var(--ink); }
 .top-review-item {
-  background:#fff; border-radius:10px; border:1px solid var(--cream3);
-  padding:12px 14px; margin-bottom:8px;
+  background:#fff; border-radius:12px; border:1px solid var(--cream3);
+  padding:14px 16px; margin-bottom:8px; box-shadow:0 1px 8px rgba(0,0,0,0.03);
 }
-.top-review-header { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.top-review-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
 .top-review-avatar {
-  width:28px; height:28px; border-radius:50%;
+  width:30px; height:30px; border-radius:50%;
   background:linear-gradient(135deg, var(--cream3), var(--sand));
   display:flex; align-items:center; justify-content:center;
   font-family:'Caveat',cursive; font-size:0.85rem; color:var(--earth);
 }
-.top-review-name { font-weight:600; font-size:0.78rem; color:var(--ink); }
-.top-review-pet { font-size:0.68rem; color:var(--muted); }
-.top-review-stars { color:var(--gold); font-size:0.7rem; letter-spacing:1px; }
-.top-review-text { font-size:0.82rem; color:var(--earth); line-height:1.4; font-style:italic; }
+.top-review-name { font-weight:600; font-size:0.8rem; color:var(--ink); }
+.top-review-pet { font-size:0.7rem; color:var(--muted); }
+.top-review-stars { color:var(--gold); font-size:0.72rem; letter-spacing:1px; }
+.top-review-text { font-size:0.84rem; color:var(--earth); line-height:1.45; font-style:italic; }
+.top-reviews-more {
+  max-height:0; overflow:hidden; transition:max-height 0.5s ease;
+}
+.top-reviews-more.open { max-height:2000px; }
+.top-reviews-toggle-btn {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:10px 20px; margin:6px auto 0; background:var(--cream2); border:1px solid var(--cream3);
+  border-radius:50px; cursor:pointer; font-family:'Cormorant',Georgia,serif;
+  font-size:0.82rem; font-weight:600; color:var(--earth); transition:all 0.2s;
+}
+.top-reviews-toggle-btn:hover { border-color:var(--sand); background:var(--cream3); }
+.top-reviews-toggle-btn .arrow { transition:transform 0.3s; font-size:0.7rem; }
+.top-reviews-toggle-btn.open .arrow { transform:rotate(180deg); }
 
 /* ============ SOULSPEAK SECTION ============ */
 .soulspeak-section { max-width:520px; margin:0 auto; padding:0 20px 32px; }
@@ -481,10 +501,6 @@ body::after {
   <div class="paw" style="top:22%;right:4%;transform:rotate(176deg) scaleX(-1);" data-paw><svg width="20" height="26" viewBox="0 0 28 34"><ellipse cx="14" cy="22" rx="7" ry="9" fill="var(--paw-color)"/><ellipse cx="7" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(-10 7 10)"/><ellipse cx="14" cy="6" rx="4" ry="5" fill="var(--paw-color)"/><ellipse cx="21" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(10 21 10)"/></svg></div>
   <div class="paw" style="top:60%;right:6%;transform:rotate(184deg) scaleX(-1);" data-paw><svg width="20" height="26" viewBox="0 0 28 34"><ellipse cx="14" cy="22" rx="7" ry="9" fill="var(--paw-color)"/><ellipse cx="7" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(-10 7 10)"/><ellipse cx="14" cy="6" rx="4" ry="5" fill="var(--paw-color)"/><ellipse cx="21" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(10 21 10)"/></svg></div>
 
-  <div class="hero-badge a">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-    Trusted by 12,000+ pet parents
-  </div>
   <h1 class="hero-headline a d1">Discover the Soul<br>Behind <em>Those Eyes</em></h1>
   <p class="hero-sub a d2">The reading that makes pet parents cry happy tears.<br>40+ deeply personal sections about YOUR pet.</p>
   <p class="a d3" style="margin-top:14px; font-size:0.78rem; font-weight:500; color:var(--muted); letter-spacing:0.02em;">
@@ -494,40 +510,94 @@ body::after {
 </section>
 
 
-<!-- ============ COMPACT REVIEWS (collapsible) ============ -->
+<!-- ============ TOP REVIEWS (2 featured + collapsible) ============ -->
 <div class="top-reviews a d3" id="topReviews">
-  <div class="top-reviews-toggle" onclick="var el=document.getElementById('topReviews');el.classList.toggle('open');var b=el.querySelector('.top-reviews-body');b.style.maxHeight=b.style.maxHeight?null:b.scrollHeight+'px'">
+  <div class="top-reviews-header">
     <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-    <span class="label">12,000+ pet parents — see what they say</span>
-    <span class="arrow">&#9660;</span>
+    <span class="label">12,000+ pet parents love their readings</span>
   </div>
-  <div class="top-reviews-body">
-    <div class="top-reviews-inner">
-      <div class="top-review-item">
-        <div class="top-review-header">
-          <div class="top-review-avatar">M</div>
-          <div><div class="top-review-name">Mia T. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Bruno the Labrador</div></div>
-          <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        </div>
-        <div class="top-review-text">"I was in tears by the first paragraph. How did they know about his head tilt thing?? Already sent it to my whole family."</div>
-      </div>
-      <div class="top-review-item">
-        <div class="top-review-header">
-          <div class="top-review-avatar">S</div>
-          <div><div class="top-review-name">Sarah M. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Rex the German Shepherd</div></div>
-          <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        </div>
-        <div class="top-review-text">"It explained why Rex freaks out every day at 6pm. My vet actually asked where I got it."</div>
-      </div>
-      <div class="top-review-item">
-        <div class="top-review-header">
-          <div class="top-review-avatar">M</div>
-          <div><div class="top-review-name">Mark D. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Mr. Whiskers the Tabby</div></div>
-          <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        </div>
-        <div class="top-review-text">"Ordered 4 more as gifts. Everyone wants one. My sister hasn't stopped showing people."</div>
-      </div>
+
+  <!-- Always visible: 2 best reviews -->
+  <div class="top-review-item">
+    <div class="top-review-header">
+      <div class="top-review-avatar">M</div>
+      <div><div class="top-review-name">Mia T. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Bruno the Labrador</div></div>
+      <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
     </div>
+    <div class="top-review-text">"I was in tears by the first paragraph. How did they know about his head tilt thing?? My husband thought I was crazy crying over a dog reading. Already sent it to my whole family."</div>
+  </div>
+  <div class="top-review-item">
+    <div class="top-review-header">
+      <div class="top-review-avatar">S</div>
+      <div><div class="top-review-name">Sarah M. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Rex the German Shepherd</div></div>
+      <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+    </div>
+    <div class="top-review-text">"It explained why Rex freaks out every day at 6pm. Started doing his evening walk earlier and he's like a different dog. My vet actually asked where I got it."</div>
+  </div>
+
+  <!-- Collapsible: more reviews -->
+  <div class="top-reviews-more" id="moreReviews">
+    <div class="top-review-item">
+      <div class="top-review-header">
+        <div class="top-review-avatar">M</div>
+        <div><div class="top-review-name">Mark D. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Mr. Whiskers the Tabby</div></div>
+        <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+      <div class="top-review-text">"Ordered 4 more as gifts. Everyone wants one. My sister hasn't stopped showing people. This is hands down the most unique gift I've ever found."</div>
+    </div>
+    <div class="top-review-item">
+      <div class="top-review-header">
+        <div class="top-review-avatar">J</div>
+        <div><div class="top-review-name">Jessica P. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Luna the Siamese</div></div>
+        <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+      <div class="top-review-text">"The soul message made me ugly cry. It said Luna chose me because I needed someone to teach me patience. She literally trained me to slow down."</div>
+    </div>
+    <div class="top-review-item">
+      <div class="top-review-header">
+        <div class="top-review-avatar">R</div>
+        <div><div class="top-review-name">Rachel &amp; Tom <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Benny the Golden Retriever</div></div>
+        <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+      <div class="top-review-text">"We read it aloud together and both cried. It described his little 'welcome home dance' perfectly. We had no idea astrology could be this personal."</div>
+    </div>
+    <div class="top-review-item">
+      <div class="top-review-header">
+        <div class="top-review-avatar">K</div>
+        <div><div class="top-review-name">Karen W. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Duchess the Persian</div></div>
+        <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+      <div class="top-review-text">"I'm 72 and I've had cats my whole life. This report knew things about Duchess that took me years to figure out. My granddaughter got it for my birthday — best present ever."</div>
+    </div>
+    <div class="top-review-item">
+      <div class="top-review-header">
+        <div class="top-review-avatar">D</div>
+        <div><div class="top-review-name">David R. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Thor the Husky</div></div>
+        <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+      <div class="top-review-text">"I'll be honest, I was sceptical. My wife made me try it. The part about Thor's past life as a sled dog companion had me choked up. Dead accurate about his personality."</div>
+    </div>
+    <div class="top-review-item">
+      <div class="top-review-header">
+        <div class="top-review-avatar">E</div>
+        <div><div class="top-review-name">Emma T. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Midnight the Horse</div></div>
+        <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+      <div class="top-review-text">"Did my horse!! So accurate it's scary. It knew about his thing with water troughs and his bond with the barn cat. The Spotify playlist was a lovely surprise."</div>
+    </div>
+    <div class="top-review-item">
+      <div class="top-review-header">
+        <div class="top-review-avatar">A</div>
+        <div><div class="top-review-name">Aisha N. <span style="font-size:0.58rem;font-weight:700;color:#fff;background:var(--green);padding:1px 4px;border-radius:3px;margin-left:4px;">VERIFIED</span></div><div class="top-review-pet">Noodle the Dachshund</div></div>
+        <div class="top-review-stars" style="margin-left:auto;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      </div>
+      <div class="top-review-text">"The SoulSpeak feature is EVERYTHING. I asked Noodle why she steals socks and her answer made me laugh-cry. This is the future of pet parenthood."</div>
+    </div>
+  </div>
+
+  <div class="top-reviews-toggle-btn" id="moreReviewsBtn" onclick="var m=document.getElementById('moreReviews');var b=this;m.classList.toggle('open');b.classList.toggle('open');b.querySelector('.btn-label').textContent=m.classList.contains('open')?'Show less':'Read 8 more reviews'">
+    <span class="btn-label">Read 8 more reviews</span>
+    <span class="arrow">&#9660;</span>
   </div>
 </div>
 
@@ -575,26 +645,9 @@ body::after {
         <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Shareable social soul card</div>
         <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Pet playlist</div>
         <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Pet compatibility checker</div>
-        <div class="bonus-item" style="grid-column:1/-1;padding:8px 10px;margin:4px -4px;background:linear-gradient(135deg,rgba(245,158,11,0.06),rgba(196,162,101,0.08));border:1px solid rgba(245,158,11,0.18);border-radius:10px;">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-  <span>
-    <span style="font-weight:600;">SoulSpeak by Little Souls</span>
-    <span style="margin-left:6px;padding:1px 7px;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border-radius:9px;">NEW</span>
-    ⭐
-    <span style="display:block;font-size:0.7rem;color:#9a8578;margin-top:2px;">Have real conversations with your pet's soul (15 free sessions)</span>
-  </span>
-</div>
+        <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>SoulSpeak conversations</div>
         <div class="bonus-item"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>First month horoscope free</div>
       </div>
-    </div>
-
-    <!-- SoulSpeak Highlight -->
-    <div class="soulspeak-highlight" style="margin-top:16px; padding:16px 18px; border-radius:14px; border:1.5px solid transparent; background:linear-gradient(#fff,#fff) padding-box, linear-gradient(135deg, rgba(191,82,74,0.25), rgba(196,162,101,0.35)) border-box;">
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-        <span style="padding:2px 8px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; border-radius:9px;">NEW</span>
-        <h4 style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink); margin:0;">Hear Your Pet Speak Back to You</h4>
-      </div>
-      <p style="font-size:0.82rem; color:var(--earth); line-height:1.5; margin:0;">SoulSpeak channels your pet's unique cosmic profile so you can have real conversations with their soul. Ask them anything — why they do what they do, how they feel about you, what they need. 15 free sessions included.</p>
     </div>
 
     <!-- Portrait upsell INSIDE card -->
@@ -727,105 +780,180 @@ body::after {
   </div>
 </div>
 
-<!-- ============ WHAT'S INSIDE PREVIEW ============ -->
+<!-- ============ WHAT'S INSIDE — SCROLLING CAROUSEL ============ -->
 <div class="inside-section">
   <p class="section-label a">WHAT YOU'LL RECEIVE</p>
-  <h2 class="section-headline a d1" style="max-width:520px; margin:0 auto 8px;">A Glimpse Inside <em>Your</em> Reading</h2>
-  <p class="section-sub a d2" style="margin-bottom:20px;">Every section is written specifically for your pet — here's what it looks like</p>
+  <h2 class="section-headline a d1">A Glimpse Inside <em>Your</em> Reading</h2>
+  <p class="section-sub a d2" style="margin-bottom:16px;">Every section is written specifically for your pet — swipe to explore</p>
 
-  <!-- Visual mock previews that look like actual report sections -->
-  <div class="a d3" style="display:flex; flex-direction:column; gap:12px;">
+  <div class="glimpse-carousel a d3" id="glimpseCarousel">
 
-    <!-- Soul Message Preview -->
-    <div style="background:#fff; border-radius:16px; border:1px solid var(--cream3); overflow:hidden; box-shadow:0 2px 16px rgba(0,0,0,0.04);">
-      <div style="padding:10px 16px; background:linear-gradient(135deg, rgba(191,82,74,0.06), rgba(196,162,101,0.06)); border-bottom:1px solid var(--cream3); display:flex; align-items:center; gap:8px;">
+    <!-- 1. Soul Message -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.06), rgba(196,162,101,0.06));">
         <span style="font-size:1rem;">💌</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">A Message From Their Soul</span>
-        <span style="margin-left:auto; font-size:0.6rem; font-weight:700; color:var(--rose); background:var(--rose-glow); padding:2px 6px; border-radius:4px;">THE ONE THAT MAKES YOU CRY</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">A Message From Their Soul</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--rose); background:var(--rose-glow); padding:2px 6px; border-radius:4px;">TEAR-JERKER</span>
       </div>
-      <div style="padding:18px 20px;">
-        <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:1rem; color:var(--ink); line-height:1.65;">"I know you worry about whether you're enough for me. So let me tell you something: you are not just enough — you are everything. Every morning when I hear your footsteps, my whole world starts again..."</p>
-        <p style="font-size:0.72rem; color:var(--muted); margin-top:8px; font-style:italic;">Your pet's unique soul message continues for 500+ words...</p>
+      <div class="glimpse-card-body">
+        <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.92rem; color:var(--ink); line-height:1.6;">"I know you worry about whether you're enough for me. So let me tell you something: you are not just enough — you are everything. Every morning when I hear your footsteps, my whole world starts again..."</p>
+        <p style="font-size:0.68rem; color:var(--muted); margin-top:8px; font-style:italic;">Continues for 500+ words, unique to your pet</p>
       </div>
     </div>
 
-    <!-- Two column row: Playlist + Cosmic Card -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-      <!-- Spotify Playlist Preview -->
-      <div style="background:#fff; border-radius:16px; border:1px solid var(--cream3); overflow:hidden; box-shadow:0 2px 16px rgba(0,0,0,0.04);">
-        <div style="padding:10px 14px; background:#1DB954; display:flex; align-items:center; gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-          <span style="font-size:0.72rem; font-weight:700; color:#fff;">THEIR SOUL PLAYLIST</span>
-        </div>
-        <div style="padding:10px 14px;">
-          <div style="display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid var(--cream3);">
-            <span style="font-size:0.65rem; color:var(--muted);">1</span>
-            <div><p style="font-size:0.75rem; color:var(--ink); font-weight:600;">Golden Hour</p><p style="font-size:0.62rem; color:var(--muted);">JVKE</p></div>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid var(--cream3);">
-            <span style="font-size:0.65rem; color:var(--muted);">2</span>
-            <div><p style="font-size:0.75rem; color:var(--ink); font-weight:600;">You Are My Sunshine</p><p style="font-size:0.62rem; color:var(--muted);">Jasmine Thompson</p></div>
-          </div>
-          <p style="font-size:0.65rem; color:var(--muted); margin-top:6px; text-align:center;">+ 8 more tracks matched to their energy</p>
-        </div>
-      </div>
-
-      <!-- Cosmic Card Preview -->
-      <div style="background:linear-gradient(135deg, #1a1520, #2a2035); border-radius:16px; overflow:hidden; box-shadow:0 2px 16px rgba(0,0,0,0.1); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 14px; text-align:center; position:relative;">
+    <!-- 2. Cosmic Soul Card -->
+    <div class="glimpse-card" style="border:none;">
+      <div style="background:linear-gradient(135deg, #1a1520, #2a2035); padding:20px 16px; text-align:center; min-height:240px; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;">
         <div style="position:absolute; top:8px; right:8px; font-size:0.55rem; font-weight:700; color:var(--gold); background:rgba(196,162,101,0.15); padding:2px 6px; border-radius:4px;">SHAREABLE</div>
-        <p style="font-size:0.62rem; font-weight:600; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:6px;">Cosmic Soul Card</p>
-        <div style="width:50px; height:50px; border-radius:50%; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; margin-bottom:8px; background:rgba(196,162,101,0.1);">
-          <span style="font-size:1.4rem;">🐾</span>
+        <p style="font-size:0.6rem; font-weight:600; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px;">Cosmic Soul Card</p>
+        <div style="width:56px; height:56px; border-radius:50%; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; margin-bottom:10px; background:rgba(196,162,101,0.1);">
+          <span style="font-size:1.5rem;">🐾</span>
         </div>
-        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.92rem; color:#fff; margin-bottom:2px;">Your Pet's Name</p>
-        <p style="font-size:0.68rem; color:var(--gold);">♈ Aries Sun · ♋ Cancer Moon</p>
-        <p style="font-size:0.62rem; color:rgba(255,255,255,0.5); margin-top:4px;">Aura: Gold & Amber · Element: Fire</p>
+        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:#fff; margin-bottom:4px;">Your Pet's Name</p>
+        <p style="font-size:0.72rem; color:var(--gold); margin-bottom:4px;">♈ Aries Sun · ♋ Cancer Moon · ♌ Leo Rising</p>
+        <div style="display:flex; gap:12px; margin-top:6px;">
+          <div style="text-align:center;"><p style="font-size:0.55rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.1em;">Aura</p><p style="font-size:0.72rem; color:var(--gold);">Gold & Amber</p></div>
+          <div style="text-align:center;"><p style="font-size:0.55rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.1em;">Element</p><p style="font-size:0.72rem; color:var(--gold);">Fire</p></div>
+          <div style="text-align:center;"><p style="font-size:0.55rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.1em;">Energy</p><p style="font-size:0.72rem; color:var(--gold);">Radiant</p></div>
+        </div>
       </div>
     </div>
 
-    <!-- Birth Chart Preview -->
-    <div style="background:#fff; border-radius:16px; border:1px solid var(--cream3); overflow:hidden; box-shadow:0 2px 16px rgba(0,0,0,0.04);">
-      <div style="padding:10px 16px; background:linear-gradient(135deg, rgba(196,162,101,0.08), rgba(196,162,101,0.03)); border-bottom:1px solid var(--cream3); display:flex; align-items:center; gap:8px;">
-        <span style="font-size:1rem;">🌟</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Their Cosmic Blueprint</span>
+    <!-- 3. Spotify Playlist -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:#1DB954; border-bottom:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+        <span style="font-size:0.72rem; font-weight:700; color:#fff;">THEIR SOUL PLAYLIST</span>
       </div>
-      <div style="padding:14px 18px; display:flex; gap:14px; align-items:center;">
-        <!-- Mini zodiac wheel -->
-        <div style="width:80px; height:80px; border-radius:50%; border:2px solid var(--gold-soft); background:radial-gradient(circle, var(--cream2), var(--cream)); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;">
-          <div style="position:absolute; inset:6px; border-radius:50%; border:1px dashed rgba(196,162,101,0.3);"></div>
-          <span style="font-size:1.4rem;">♈</span>
+      <div class="glimpse-card-body">
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--cream3);">
+          <span style="font-size:0.65rem; color:var(--muted);">1</span>
+          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">Golden Hour</p><p style="font-size:0.65rem; color:var(--muted);">JVKE</p></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--cream3);">
+          <span style="font-size:0.65rem; color:var(--muted);">2</span>
+          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">You Are My Sunshine</p><p style="font-size:0.65rem; color:var(--muted);">Jasmine Thompson</p></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--cream3);">
+          <span style="font-size:0.65rem; color:var(--muted);">3</span>
+          <div><p style="font-size:0.78rem; color:var(--ink); font-weight:600;">Better Together</p><p style="font-size:0.65rem; color:var(--muted);">Jack Johnson</p></div>
+        </div>
+        <p style="font-size:0.65rem; color:var(--muted); margin-top:6px; text-align:center;">+ 7 more tracks matched to their energy</p>
+      </div>
+    </div>
+
+    <!-- 4. Birth Chart / Cosmic Blueprint -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(196,162,101,0.08), rgba(196,162,101,0.03));">
+        <span style="font-size:1rem;">🌟</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Cosmic Blueprint</span>
+      </div>
+      <div class="glimpse-card-body" style="display:flex; gap:12px; align-items:center;">
+        <div style="width:70px; height:70px; border-radius:50%; border:2px solid var(--gold-soft); background:radial-gradient(circle, var(--cream2), var(--cream)); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;">
+          <div style="position:absolute; inset:5px; border-radius:50%; border:1px dashed rgba(196,162,101,0.3);"></div>
+          <span style="font-size:1.2rem;">♈</span>
         </div>
         <div style="flex:1;">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px 10px;">
             <p style="font-size:0.72rem; color:var(--muted);">☀️ Sun: <strong style="color:var(--ink);">Aries</strong></p>
             <p style="font-size:0.72rem; color:var(--muted);">🌙 Moon: <strong style="color:var(--ink);">Cancer</strong></p>
             <p style="font-size:0.72rem; color:var(--muted);">⬆️ Rising: <strong style="color:var(--ink);">Leo</strong></p>
             <p style="font-size:0.72rem; color:var(--muted);">💕 Venus: <strong style="color:var(--ink);">Pisces</strong></p>
           </div>
-          <p style="font-size:0.65rem; color:var(--muted); margin-top:6px;">+ Mercury, Mars, Jupiter, Saturn &amp; more</p>
+          <p style="font-size:0.62rem; color:var(--muted); margin-top:4px;">+ Mercury, Mars, Jupiter &amp; more</p>
         </div>
       </div>
     </div>
 
-    <!-- Love Language + Past Life row -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-      <div style="background:#fff; border-radius:16px; border:1px solid var(--cream3); padding:16px; box-shadow:0 2px 16px rgba(0,0,0,0.04);">
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-          <span style="font-size:1rem;">💕</span>
-          <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.82rem; color:var(--ink);">Love Language</span>
-        </div>
-        <p style="font-size:0.78rem; color:var(--earth); line-height:1.45; font-style:italic;">"Physical touch is everything to them. When they lean against your leg, it's not for warmth — it's their way of saying 'you're mine, and I'm yours.'"</p>
+    <!-- 5. Chart Calculations -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(106,90,205,0.06), rgba(196,162,101,0.06));">
+        <span style="font-size:1rem;">📊</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Chart Calculations</span>
       </div>
-      <div style="background:#fff; border-radius:16px; border:1px solid var(--cream3); padding:16px; box-shadow:0 2px 16px rgba(0,0,0,0.04);">
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-          <span style="font-size:1rem;">🔮</span>
-          <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.82rem; color:var(--ink);">Past Life</span>
+      <div class="glimpse-card-body">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--cream2); border-radius:8px;">
+            <span style="font-size:0.75rem; color:var(--earth);">Loyalty Index</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <div style="width:80px; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:92%; height:100%; background:var(--rose); border-radius:3px;"></div></div>
+              <span style="font-size:0.72rem; font-weight:700; color:var(--ink);">92%</span>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--cream2); border-radius:8px;">
+            <span style="font-size:0.75rem; color:var(--earth);">Playfulness</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <div style="width:80px; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:78%; height:100%; background:var(--gold); border-radius:3px;"></div></div>
+              <span style="font-size:0.72rem; font-weight:700; color:var(--ink);">78%</span>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--cream2); border-radius:8px;">
+            <span style="font-size:0.75rem; color:var(--earth);">Intuition</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <div style="width:80px; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:88%; height:100%; background:var(--green); border-radius:3px;"></div></div>
+              <span style="font-size:0.72rem; font-weight:700; color:var(--ink);">88%</span>
+            </div>
+          </div>
         </div>
-        <p style="font-size:0.78rem; color:var(--earth); line-height:1.45; font-style:italic;">"In a previous life, this soul was a loyal companion to a healer — which explains their instinct to stay close when you're unwell."</p>
+        <p style="font-size:0.62rem; color:var(--muted); margin-top:8px; text-align:center;">15+ personality traits calculated from their chart</p>
+      </div>
+    </div>
+
+    <!-- 6. Text Messages (fun peek) -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(74,140,92,0.06), rgba(196,162,101,0.06));">
+        <span style="font-size:1rem;">💬</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">If They Could Text You</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--green); background:var(--green-soft); padding:2px 6px; border-radius:4px;">FAN FAVOURITE</span>
+      </div>
+      <div class="glimpse-card-body" style="background:var(--cream2); border-radius:0 0 14px 14px;">
+        <div style="max-width:240px; margin:0 auto; display:flex; flex-direction:column; gap:6px;">
+          <div style="padding:8px 12px; background:#fff; border-radius:14px 14px 14px 4px; font-size:0.8rem; color:var(--ink); max-width:85%; font-style:italic;">Hey, you forgot to say goodbye this morning. Rude. 😤</div>
+          <div style="padding:8px 12px; background:var(--rose-glow); border-radius:14px 14px 4px 14px; font-size:0.8rem; color:var(--ink); max-width:85%; margin-left:auto; text-align:right;">Omg I'm sorry!! I was rushing!</div>
+          <div style="padding:8px 12px; background:#fff; border-radius:14px 14px 14px 4px; font-size:0.8rem; color:var(--ink); max-width:85%; font-style:italic;">It's fine. I ate your slipper. We're even. 🐾</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Love Language -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.05), rgba(255,200,200,0.08));">
+        <span style="font-size:1rem;">💕</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Their Love Language</span>
+      </div>
+      <div class="glimpse-card-body">
+        <p style="font-size:0.85rem; color:var(--earth); line-height:1.5; font-style:italic;">"Physical touch is everything to them. When they lean against your leg, it's not just comfort — it's their way of saying 'you're mine, and I'm yours, and nothing else matters right now.'"</p>
+      </div>
+    </div>
+
+    <!-- 8. Past Life -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(128,0,128,0.04), rgba(196,162,101,0.06));">
+        <span style="font-size:1rem;">🔮</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Past Life Glimpse</span>
+      </div>
+      <div class="glimpse-card-body">
+        <p style="font-size:0.85rem; color:var(--earth); line-height:1.5; font-style:italic;">"In a previous life, this soul was a loyal companion to a healer — which explains their instinct to stay close when you're unwell. This bond was never new. You've found each other again."</p>
+      </div>
+    </div>
+
+    <!-- 9. Cosmic Recipes -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(196,162,101,0.08), rgba(74,140,92,0.06));">
+        <span style="font-size:1rem;">🍽️</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.85rem; color:var(--ink);">Cosmic Recipes</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--gold); background:var(--gold-soft); padding:2px 6px; border-radius:4px;">UNIQUE</span>
+      </div>
+      <div class="glimpse-card-body">
+        <p style="font-weight:600; font-size:0.82rem; color:var(--ink); margin-bottom:6px;">🥕 The Aries Energy Bowl</p>
+        <p style="font-size:0.78rem; color:var(--earth); line-height:1.45;">A homemade treat recipe matched to their zodiac element and energy type. Because even their snacks should be cosmic.</p>
+        <p style="font-size:0.62rem; color:var(--muted); margin-top:6px; font-style:italic;">3 personalised recipes included in every reading</p>
       </div>
     </div>
 
   </div>
+
+  <div class="glimpse-dots a d4" id="glimpseDots"></div>
 </div>
 
 <!-- ============ SOULSPEAK HIGHLIGHT ============ -->
@@ -840,49 +968,72 @@ body::after {
     <p style="font-size:0.82rem; color:var(--muted); line-height:1.5; margin-bottom:16px;">Now you can find out. SoulSpeak channels your pet's cosmic profile and personality to let you have real, meaningful conversations with their soul. Ask them anything.</p>
 
     <div class="soulspeak-chat-preview">
-      <div class="soulspeak-msg user">Do you know how much I love you?</div>
-      <div class="soulspeak-msg pet">I knew before you did. I felt it the moment you walked in. That's why I chose you — my soul recognised yours. 🐾</div>
-      <div class="soulspeak-msg user">Why do you always sit by the door when I leave?</div>
-      <div class="soulspeak-msg pet">Because the house doesn't feel like home without you in it. I wait because I know you'll always come back.</div>
+      <div class="soulspeak-msg user">What's your favourite part of our day?</div>
+      <div class="soulspeak-msg pet">When you come home and kick your shoes off. That sound means my whole world just walked back through the door. 🐾</div>
+      <div class="soulspeak-msg user">Do you ever get lonely when I'm at work?</div>
+      <div class="soulspeak-msg pet">I nap in your spot on the bed because it still smells like you. That's not loneliness — that's love keeping me warm until you're back. 💛</div>
+      <div class="soulspeak-msg user">Why do you stare at me like that?</div>
+      <div class="soulspeak-msg pet">Because sometimes I can't believe you're real. I just need to look at you and remember — yes, this human is actually mine.</div>
     </div>
 
     <p style="font-size:0.82rem; color:var(--ink); font-weight:600; margin-bottom:4px;">15 free sessions included with every reading</p>
-    <p style="font-size:0.72rem; color:var(--muted); font-style:italic;">The feature that's making pet parents fall in love all over again</p>
+    <p style="font-size:0.72rem; color:var(--muted); font-style:italic;">Ask them anything — the answers will make your heart burst</p>
+  </div>
+</div>
+
+<!-- ============ GIANT "OR" DIVIDER ============ -->
+<div style="max-width:520px; margin:0 auto; padding:0 20px;">
+  <div style="display:flex; align-items:center; gap:16px; padding:20px 0;">
+    <div style="flex:1; height:1px; background:linear-gradient(to right, transparent, var(--sand), transparent);"></div>
+    <div style="width:56px; height:56px; border-radius:50%; border:2px solid var(--sand); display:flex; align-items:center; justify-content:center; background:#fff; box-shadow:0 2px 12px rgba(0,0,0,0.05);">
+      <span style="font-family:'DM Serif Display',Georgia,serif; font-size:1.1rem; color:var(--earth); font-style:italic;">Or</span>
+    </div>
+    <div style="flex:1; height:1px; background:linear-gradient(to right, transparent, var(--sand), transparent);"></div>
   </div>
 </div>
 
 <!-- ============ GIFT ============ -->
-<div class="inside-section" id="gift-section" style="padding-bottom:40px;">
-  <div class="gift-card-v2 a" style="background:linear-gradient(135deg, rgba(191,82,74,0.03) 0%, rgba(196,162,101,0.04) 100%); border:2px dashed rgba(191,82,74,0.25); border-radius:18px; position:relative;">
+<div style="max-width:520px; margin:0 auto; padding:0 20px 40px;" id="gift-section">
+  <div class="a" style="background:#fff; border-radius:20px; border:1px solid var(--cream3); box-shadow:0 4px 24px rgba(0,0,0,0.05); overflow:hidden;">
 
-    <!-- Gift tag top-right -->
-    <div style="position:absolute; top:-12px; right:20px; background:var(--rose); color:#fff; padding:4px 12px; border-radius:8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; box-shadow:0 2px 8px rgba(191,82,74,0.2);">GIFT</div>
+    <!-- Gift header with warm gradient -->
+    <div style="padding:24px 24px 18px; background:linear-gradient(135deg, rgba(191,82,74,0.06), rgba(196,162,101,0.08)); text-align:center; border-bottom:1px solid var(--cream3);">
+      <div style="width:60px; height:60px; border-radius:50%; background:var(--rose); display:inline-flex; align-items:center; justify-content:center; margin-bottom:12px; box-shadow:0 4px 16px rgba(191,82,74,0.2);">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+      </div>
+      <h3 style="font-family:'DM Serif Display',Georgia,serif; font-size:1.3rem; color:var(--ink); margin-bottom:4px;">Give the Gift That Makes Them Cry</h3>
+      <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.92rem; color:var(--earth);">The present they'll talk about for years</p>
+    </div>
 
-    <div class="gift-body">
-      <div style="text-align:center; margin-bottom:6px;">
-        <div style="width:52px; height:52px; border-radius:50%; background:var(--rose-glow); display:inline-flex; align-items:center; justify-content:center; margin-bottom:8px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+    <!-- Gift body -->
+    <div style="padding:20px 24px 24px;">
+      <p style="font-size:0.88rem; color:var(--warm); line-height:1.55; text-align:center; margin-bottom:18px;">Buy a gift link and share it however you like — email, WhatsApp, text, or printed inside a birthday card. They fill in their pet's details and discover the magic.</p>
+
+      <div style="display:flex; flex-direction:column; gap:10px; max-width:320px; margin:0 auto 18px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--rose-glow); color:var(--rose); font-weight:700; font-size:0.75rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;">1</div>
+          <span style="font-size:0.85rem; color:var(--warm); font-weight:500;">You buy a gift link instantly</span>
         </div>
-        <div class="gift-v2-title" style="text-align:center;">Give the Gift of Understanding Their Pet</div>
-        <div class="gift-v2-subtitle" style="text-align:center;">They open it, they cry, they love you forever</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--rose-glow); color:var(--rose); font-weight:700; font-size:0.75rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;">2</div>
+          <span style="font-size:0.85rem; color:var(--warm); font-weight:500;">Share it your way — text, email, or card</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:28px; height:28px; border-radius:50%; background:var(--rose-glow); color:var(--rose); font-weight:700; font-size:0.75rem; display:flex; align-items:center; justify-content:center; flex-shrink:0;">3</div>
+          <span style="font-size:0.85rem; color:var(--warm); font-weight:500;">They unwrap it and fall in love all over again</span>
+        </div>
       </div>
 
-      <div class="gift-v2-desc" style="text-align:center; max-width:360px; margin:0 auto;">Buy a gift link and share it however you like — email, WhatsApp, text, or printed inside a card. They redeem it and fill in their own pet's details.</div>
-
-      <div class="gift-v2-steps" style="max-width:300px; margin:12px auto 0;">
-        <div class="gift-v2-step"><span class="gift-v2-num">1</span>You buy a gift link</div>
-        <div class="gift-v2-step"><span class="gift-v2-num">2</span>Share it your way — email, text, card</div>
-        <div class="gift-v2-step"><span class="gift-v2-num">3</span>They redeem &amp; discover their pet's soul</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:18px;">
+        <span style="font-size:0.7rem; font-weight:600; color:var(--rose); background:var(--rose-glow); padding:4px 10px; border-radius:20px;">Birthdays</span>
+        <span style="font-size:0.7rem; font-weight:600; color:var(--rose); background:var(--rose-glow); padding:4px 10px; border-radius:20px;">Holidays</span>
+        <span style="font-size:0.7rem; font-weight:600; color:var(--rose); background:var(--rose-glow); padding:4px 10px; border-radius:20px;">Just because</span>
+        <span style="font-size:0.7rem; font-weight:600; color:var(--rose); background:var(--rose-glow); padding:4px 10px; border-radius:20px;">In memory</span>
       </div>
 
-      <div class="gift-v2-tags" style="justify-content:center;">
-        <span class="gift-v2-tag">Birthdays</span>
-        <span class="gift-v2-tag">Holidays</span>
-        <span class="gift-v2-tag">Just because</span>
-        <span class="gift-v2-tag">In memory</span>
-      </div>
+      <a href="/gift" style="display:block; text-align:center; padding:16px 20px; background:var(--rose); color:#fff; border-radius:14px; font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:1.05rem; text-decoration:none; letter-spacing:0.04em; transition:all 0.3s; box-shadow:0 4px 20px rgba(191,82,74,0.2);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(191,82,74,0.3)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(191,82,74,0.2)'">Send a Gift — from $27 &rarr;</a>
 
-      <a href="/gift" class="gift-v2-btn">Send a Gift — from $27 &rarr;</a>
+      <p style="font-size:0.72rem; color:var(--muted); text-align:center; margin-top:10px; font-style:italic;">No expiry date · Works for any pet · Includes a personal message</p>
     </div>
   </div>
 </div>
@@ -1277,6 +1428,28 @@ function updateUrgencyTimer() {
 }
 updateUrgencyTimer();
 setInterval(updateUrgencyTimer, 1000);
+
+// ─── Glimpse Carousel Dots ───
+(function() {
+  var carousel = document.getElementById('glimpseCarousel');
+  var dotsWrap = document.getElementById('glimpseDots');
+  if (!carousel || !dotsWrap) return;
+  var cards = carousel.querySelectorAll('.glimpse-card');
+  for (var i = 0; i < cards.length; i++) {
+    var dot = document.createElement('div');
+    dot.className = 'glimpse-dot' + (i === 0 ? ' active' : '');
+    dotsWrap.appendChild(dot);
+  }
+  carousel.addEventListener('scroll', function() {
+    var scrollLeft = carousel.scrollLeft;
+    var cardWidth = cards[0].offsetWidth + 14; // gap
+    var activeIdx = Math.round(scrollLeft / cardWidth);
+    var dots = dotsWrap.querySelectorAll('.glimpse-dot');
+    for (var j = 0; j < dots.length; j++) {
+      dots[j].className = 'glimpse-dot' + (j === activeIdx ? ' active' : '');
+    }
+  });
+})();
 
 // ─── Init ───
 updateUI();
