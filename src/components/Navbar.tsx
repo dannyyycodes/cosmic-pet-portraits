@@ -21,7 +21,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 
-export function Navbar() {
+export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const [giftBannerDismissed, setGiftBannerDismissed] = useState(() => {
     return sessionStorage.getItem('gift-banner-dismissed') === 'true';
@@ -51,7 +51,7 @@ export function Navbar() {
   return (
     <>
       {/* Gift Banner — Variant C only */}
-      {isVariantC && !giftBannerDismissed && (
+      {isVariantC && !giftBannerDismissed && !hideGiftBanner && (
         <div className="fixed top-0 left-0 right-0 z-[60] bg-[#5CB85C] text-white text-center text-sm py-2.5 px-4">
           <div className="max-w-6xl mx-auto flex items-center justify-center gap-2">
             <Link to="/gift" className="flex items-center gap-2 hover:underline underline-offset-2 font-medium">

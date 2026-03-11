@@ -40,7 +40,7 @@ export default function Contact() {
 
   return (
     <main style={{ background: '#FFFDF5', minHeight: '100vh' }}>
-      <Navbar />
+      <Navbar hideGiftBanner />
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-24">
         <div className="text-center mb-12">
@@ -94,23 +94,28 @@ export default function Contact() {
 
             <div className="p-6" style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}>
               <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>{t('contact.commonQuestions')}</h2>
-              <ul className="space-y-3" style={{ color: '#9a8578' }}>
-                <li>
-                  <Link to="/#faq" className="transition-colors hover:opacity-80" style={{ color: '#c4a265' }}>
-                    → {t('contact.faq1')}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/#faq" className="transition-colors hover:opacity-80" style={{ color: '#c4a265' }}>
-                    → {t('contact.faq2')}
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/#faq" className="transition-colors hover:opacity-80" style={{ color: '#c4a265' }}>
-                    → {t('contact.faq3')}
-                  </Link>
-                </li>
-              </ul>
+              <div className="space-y-5">
+                <div>
+                  <h3 className="font-medium mb-1" style={{ color: '#3d2f2a' }}>{t('contact.faq1')}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#9a8578' }}>{t('contact.faq1Answer')}</p>
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1" style={{ color: '#3d2f2a' }}>{t('contact.faq2')}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#9a8578' }}>{t('contact.faq2Answer')}</p>
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1" style={{ color: '#3d2f2a' }}>{t('contact.faq3')}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#9a8578' }}>{t('contact.faq3Answer')}</p>
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1" style={{ color: '#3d2f2a' }}>{t('contact.faq4')}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#9a8578' }}>{t('contact.faq4Answer')}</p>
+                </div>
+                <div>
+                  <h3 className="font-medium mb-1" style={{ color: '#3d2f2a' }}>{t('contact.faq5')}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#9a8578' }}>{t('contact.faq5Answer')}</p>
+                </div>
+              </div>
             </div>
           </div>
 

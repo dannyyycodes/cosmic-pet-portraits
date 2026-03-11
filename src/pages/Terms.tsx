@@ -7,7 +7,7 @@ export default function Terms() {
 
   return (
     <main className="min-h-screen" style={{ background: '#FFFDF5' }}>
-      <Navbar />
+      <Navbar hideGiftBanner />
 
       <div className="relative z-10 max-w-3xl mx-auto px-4 py-24">
         <div className="bg-white rounded-2xl border border-[#e8ddd0] shadow-sm p-8 md:p-12">
@@ -58,8 +58,18 @@ export default function Terms() {
 
             <section className="space-y-4">
               <h2 className="text-xl font-semibold text-[#3d2f2a]">{t('terms.section9Title')}</h2>
+              <p>{t('terms.section9Content')}</p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-[#3d2f2a]">{t('terms.section10Title')}</h2>
+              <p>{t('terms.section10Content')}</p>
+            </section>
+
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold text-[#3d2f2a]">{t('terms.section11Title')}</h2>
               <p>
-                {t('terms.section9Content')}{" "}
+                {t('terms.section11Content')}{" "}
                 <a href="mailto:hello@littlesouls.co" className="text-[#c4a265] hover:underline">
                   hello@littlesouls.co
                 </a>
