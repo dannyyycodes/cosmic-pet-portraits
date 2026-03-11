@@ -370,26 +370,33 @@ body::after {
 /* ============ SOULSPEAK SECTION ============ */
 .soulspeak-section { max-width:520px; margin:0 auto; padding:0 20px 32px; }
 .soulspeak-card {
-  background:linear-gradient(135deg, #fff 0%, #FFF9F0 100%);
-  border-radius:18px; border:2px solid var(--rose);
-  box-shadow:0 4px 30px rgba(191,82,74,0.1);
-  padding:24px; text-align:center; position:relative; overflow:hidden;
+  background:linear-gradient(160deg, #0f172a 0%, #1e1a2e 50%, #2a1f3d 100%);
+  border-radius:20px; border:1px solid rgba(196,162,101,0.25);
+  box-shadow:0 8px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(196,162,101,0.1);
+  padding:28px 24px; text-align:center; position:relative; overflow:hidden;
 }
 .soulspeak-card::before {
-  content:''; position:absolute; top:-40px; right:-40px;
-  width:120px; height:120px; border-radius:50%;
+  content:''; position:absolute; top:-60px; right:-60px;
+  width:180px; height:180px; border-radius:50%;
+  background:radial-gradient(circle, rgba(196,162,101,0.08), transparent 70%);
+}
+.soulspeak-card::after {
+  content:''; position:absolute; bottom:-40px; left:-40px;
+  width:140px; height:140px; border-radius:50%;
   background:radial-gradient(circle, rgba(191,82,74,0.06), transparent 70%);
 }
 .soulspeak-chat-preview {
-  background:var(--cream2); border-radius:14px; padding:14px; margin:16px 0;
-  text-align:left; max-width:320px; margin-left:auto; margin-right:auto;
+  background:rgba(255,255,255,0.06); border-radius:14px; padding:14px; margin:16px 0;
+  text-align:left; max-width:340px; margin-left:auto; margin-right:auto;
+  border:1px solid rgba(255,255,255,0.08);
+  backdrop-filter:blur(4px);
 }
 .soulspeak-msg {
-  padding:8px 12px; border-radius:12px; font-size:0.82rem; line-height:1.4;
-  margin-bottom:6px; max-width:85%;
+  padding:10px 14px; border-radius:14px; font-size:0.82rem; line-height:1.5;
+  margin-bottom:8px; max-width:85%;
 }
-.soulspeak-msg.user { background:var(--rose-glow); color:var(--ink); margin-left:auto; text-align:right; border-bottom-right-radius:4px; }
-.soulspeak-msg.pet { background:#fff; color:var(--ink); border:1px solid var(--cream3); border-bottom-left-radius:4px; font-style:italic; }
+.soulspeak-msg.user { background:rgba(196,162,101,0.15); color:#e8ddd0; margin-left:auto; text-align:right; border-bottom-right-radius:4px; font-weight:500; }
+.soulspeak-msg.pet { background:rgba(255,255,255,0.08); color:#e8ddd0; border:1px solid rgba(255,255,255,0.1); border-bottom-left-radius:4px; font-style:italic; }
 
 /* ============ GIFT CARD V2 ============ */
 .gift-card-v2 {
@@ -685,9 +692,9 @@ body::after {
 
 <!-- ============ HOW IT WORKS — CREDIBILITY ============ -->
 <div style="max-width:520px; margin:0 auto; padding:0 20px 32px;">
-  <p class="section-label a">THE SCIENCE BEHIND THE SOUL</p>
-  <h2 class="section-headline a d1" style="margin-bottom:6px;">Written in the Stars.<br>Delivered to Your Heart.</h2>
-  <p class="section-sub a d2" style="margin-bottom:20px;">This isn't a quiz result. It's a full astrological reading built from real planetary data — the same calculations human astrologers charge hundreds for.</p>
+  <p class="section-label a">HOW IT WORKS</p>
+  <h2 class="section-headline a d1" style="margin-bottom:6px;">Real Astrology. Real Depth.<br>Written Only for Them.</h2>
+  <p class="section-sub a d2" style="margin-bottom:20px;">This isn't a quiz or a template. We use the same professional-grade astrology engine behind human readings — then go further, breaking down absolutely everything about your pet so you can finally understand them the way they deserve.</p>
 
   <div class="a d3" style="display:flex; flex-direction:column; gap:12px;">
     <!-- Step 1 -->
@@ -696,8 +703,8 @@ body::after {
         <span style="font-size:0.85rem; font-weight:800; color:#c4a265;">1</span>
       </div>
       <div>
-        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.92rem; color:var(--ink); margin-bottom:3px;">We Calculate Their Exact Birth Chart</p>
-        <p style="font-size:0.78rem; color:var(--earth); line-height:1.5;">Using the <strong>Swiss Ephemeris</strong> — the gold standard in professional astrology — we compute 14 planetary positions, rising sign, elemental balance, modality, and celestial aspects for your pet's exact date and location of birth.</p>
+        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.92rem; color:var(--ink); margin-bottom:3px;">We Map Their Stars</p>
+        <p style="font-size:0.78rem; color:var(--earth); line-height:1.5;">Using the <strong>Swiss Ephemeris</strong> — the same engine professional astrologers trust — we calculate 14 planetary positions, rising sign, elemental balance, modality, and celestial aspects for your pet's exact birth date and location. This is real astronomical data, not a generic horoscope.</p>
       </div>
     </div>
     <!-- Step 2 -->
@@ -706,8 +713,8 @@ body::after {
         <span style="font-size:0.85rem; font-weight:800; color:#c4a265;">2</span>
       </div>
       <div>
-        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.92rem; color:var(--ink); margin-bottom:3px;">We Weave It Into Their Story</p>
-        <p style="font-size:0.78rem; color:var(--earth); line-height:1.5;">Every planetary position is interpreted through your pet's breed, personality, and everything you share about them — breaking down their emotions, instincts, quirks, love language, hidden fears, and soul purpose into a <strong>30+ section deep-dive</strong> that helps you truly understand who they are beneath the fur. Not surface-level fun facts — real insight into what makes your pet <em>them</em>.</p>
+        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.92rem; color:var(--ink); margin-bottom:3px;">We Break Down Everything</p>
+        <p style="font-size:0.78rem; color:var(--earth); line-height:1.5;">Every chart position gets deeply interpreted through your pet's breed, personality, and the details you share — their emotional world, instincts, how they love, what scares them, why they do <em>that thing</em>, their soul purpose, and what they'd say if they could talk. <strong>30+ sections</strong> covering every layer of who they are. This isn't surface-level — it's the kind of depth that makes you see your pet differently.</p>
       </div>
     </div>
     <!-- Step 3 -->
@@ -716,8 +723,8 @@ body::after {
         <span style="font-size:0.85rem; font-weight:800; color:#c4a265;">3</span>
       </div>
       <div>
-        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.92rem; color:var(--ink); margin-bottom:3px;">You Receive Something Irreplaceable</p>
-        <p style="font-size:0.78rem; color:var(--earth); line-height:1.5;">A beautifully designed digital reading delivered straight to your inbox — every section written so personally, so specifically about <em>your</em> pet, you'll read it wondering how a stranger could know them this well. The kind of thing you'll screenshot, share with everyone, and come back to on the hard days. <strong>Delivered in minutes. Kept forever.</strong></p>
+        <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.92rem; color:var(--ink); margin-bottom:3px;">It Lands in Your Inbox</p>
+        <p style="font-size:0.78rem; color:var(--earth); line-height:1.5;">Within minutes you'll receive a beautifully designed reading — every word written about <em>your</em> pet alone. The sections that make you laugh, the ones that make you cry, and the ones you'll screenshot and send to everyone. <strong>Nothing generic. Nothing recycled. Just them.</strong></p>
       </div>
     </div>
   </div>
@@ -1040,13 +1047,14 @@ body::after {
 <!-- ============ SOULSPEAK HIGHLIGHT ============ -->
 <div class="soulspeak-section">
   <div class="soulspeak-card a d2">
-    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px;">
-      <span style="padding:3px 10px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; border-radius:9px;">NEW</span>
-      <span style="padding:3px 10px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:var(--rose); color:#fff; border-radius:9px;">INCLUDED FREE</span>
+    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px;">
+      <span style="padding:4px 12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; background:linear-gradient(135deg,#c4a265,#d4af37); color:#0f172a; border-radius:20px; box-shadow:0 2px 8px rgba(196,162,101,0.3);">NEW</span>
+      <span style="padding:4px 12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; background:rgba(255,255,255,0.1); color:#c4a265; border-radius:20px; border:1px solid rgba(196,162,101,0.3);">INCLUDED FREE</span>
     </div>
-    <h3 style="font-family:'DM Serif Display',Georgia,serif; font-size:1.3rem; color:var(--ink); margin-bottom:6px;">SoulSpeak by Little Souls</h3>
-    <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:1rem; color:var(--earth); margin-bottom:4px;">What would your pet say if they could talk?</p>
-    <p style="font-size:0.82rem; color:var(--muted); line-height:1.5; margin-bottom:16px;">Now you can find out. SoulSpeak channels your pet's cosmic profile and personality to let you have real, meaningful conversations with their soul. Ask them anything.</p>
+    <p style="font-size:0.65rem; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:rgba(196,162,101,0.6); margin-bottom:8px;">After your reading</p>
+    <h3 style="font-family:'DM Serif Display',Georgia,serif; font-size:1.4rem; color:#e8ddd0; margin-bottom:8px; line-height:1.3;">Talk to Your Pet's Soul</h3>
+    <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:1.05rem; color:#c4a265; margin-bottom:6px;">What would they say if they could speak?</p>
+    <p style="font-size:0.8rem; color:rgba(232,221,208,0.7); line-height:1.6; margin-bottom:16px;">SoulSpeak uses your pet's full cosmic profile — their chart, personality, and everything from your reading — to let you have real conversations with them. Ask the questions you've always wanted to. Hear the answers you've always needed.</p>
 
     <div class="soulspeak-chat-preview">
       <div class="soulspeak-msg user">What's your favourite part of our day?</div>
@@ -1057,8 +1065,11 @@ body::after {
       <div class="soulspeak-msg pet">Because sometimes I can't believe you're real. I just need to look at you and remember — yes, this human is actually mine.</div>
     </div>
 
-    <p style="font-size:0.82rem; color:var(--ink); font-weight:600; margin-bottom:4px;">15 free sessions included with every reading</p>
-    <p style="font-size:0.72rem; color:var(--muted); font-style:italic;">Ask them anything — the answers will make your heart burst</p>
+    <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">
+      <span style="font-size:1rem;">💬</span>
+      <p style="font-size:0.88rem; color:#e8ddd0; font-weight:600;">15 heart-to-heart conversations included free</p>
+    </div>
+    <p style="font-size:0.72rem; color:rgba(196,162,101,0.7); font-style:italic;">Ask them anything — about your bond, their feelings, the things they wish you knew</p>
   </div>
 </div>
 
