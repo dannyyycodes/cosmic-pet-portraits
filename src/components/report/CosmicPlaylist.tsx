@@ -13,15 +13,39 @@ interface PlaylistItem {
   vibe: string;
 }
 
-function generateDefaultPlaylist(): PlaylistItem[] {
-  return [
-    { title: 'Just the Way You Are', artist: 'Bruno Mars', vibe: 'Adoring' },
-    { title: "I'm Too Sexy", artist: 'Right Said Fred', vibe: 'Sassy' },
-    { title: "U Can't Touch This", artist: 'MC Hammer', vibe: 'Untouchable' },
-    { title: 'Banana Pancakes', artist: 'Jack Johnson', vibe: 'Cosy' },
-    { title: 'Mission: Impossible Theme', artist: 'Lalo Schifrin', vibe: 'Mischievous' },
-    { title: "You've Got a Friend in Me", artist: 'Randy Newman', vibe: 'Soulmate' },
-  ];
+function generateDefaultPlaylist(element: string): PlaylistItem[] {
+  const templates: Record<string, PlaylistItem[]> = {
+    Water: [
+      { title: 'Clair de Lune', artist: 'Debussy', vibe: 'Dreamy' },
+      { title: 'Moon River', artist: 'Audrey Hepburn', vibe: 'Soulful' },
+      { title: 'Weightless', artist: 'Marconi Union', vibe: 'Calming' },
+      { title: 'Ocean Eyes', artist: 'Billie Eilish', vibe: 'Tender' },
+      { title: 'Saturn', artist: 'Sleeping At Last', vibe: 'Cosmic' },
+    ],
+    Fire: [
+      { title: 'Run the World', artist: 'Beyoncé', vibe: 'Powerful' },
+      { title: 'Eye of the Tiger', artist: 'Survivor', vibe: 'Fierce' },
+      { title: 'Firework', artist: 'Katy Perry', vibe: 'Explosive' },
+      { title: 'Stronger', artist: 'Kanye West', vibe: 'Bold' },
+      { title: 'Born This Way', artist: 'Lady Gaga', vibe: 'Iconic' },
+    ],
+    Earth: [
+      { title: 'Here Comes the Sun', artist: 'The Beatles', vibe: 'Warm' },
+      { title: 'Don\'t Know Why', artist: 'Norah Jones', vibe: 'Grounded' },
+      { title: 'Harvest Moon', artist: 'Neil Young', vibe: 'Earthy' },
+      { title: 'Sunday Morning', artist: 'Maroon 5', vibe: 'Cosy' },
+      { title: 'What a Wonderful World', artist: 'Louis Armstrong', vibe: 'Timeless' },
+    ],
+    Air: [
+      { title: 'Everything in Its Right Place', artist: 'Radiohead', vibe: 'Cerebral' },
+      { title: 'Dog Days Are Over', artist: 'Florence + The Machine', vibe: 'Free' },
+      { title: 'Breathe Me', artist: 'Sia', vibe: 'Ethereal' },
+      { title: 'Yellow', artist: 'Coldplay', vibe: 'Breezy' },
+      { title: 'Space Oddity', artist: 'David Bowie', vibe: 'Cosmic' },
+    ],
+  };
+
+  return templates[element] || templates.Water;
 }
 
 function spotifySearchUrl(title: string, artist: string): string {
@@ -30,7 +54,8 @@ function spotifySearchUrl(title: string, artist: string): string {
 
 export function CosmicPlaylist({ petName, report }: CosmicPlaylistProps) {
   const s = useScrollReveal();
-  const playlist = report.playlist || generateDefaultPlaylist();
+  const element = report.dominantElement || 'Water';
+  const playlist = report.playlist || generateDefaultPlaylist(element);
 
   return (
     <motion.div
