@@ -22,10 +22,10 @@ const GIFT_TIERS = {
 
 // Volume discount calculation - SERVER-SIDE (must match frontend)
 function getVolumeDiscount(petCount: number): number {
-  if (petCount >= 5) return 0.50;
-  if (petCount >= 4) return 0.40;
-  if (petCount >= 3) return 0.30;
-  if (petCount >= 2) return 0.20;
+  if (petCount >= 5) return 0.30;
+  if (petCount >= 4) return 0.25;
+  if (petCount >= 3) return 0.20;
+  if (petCount >= 2) return 0.15;
   return 0;
 }
 
