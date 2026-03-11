@@ -695,26 +695,40 @@ body::after {
 
     <div class="glimpse-carousel a d3" id="glimpseCarousel">
 
-    <!-- 1. Full Ephemeris Chart -->
+    <!-- 1. Full Ephemeris Chart — with ALL calculations listed -->
     <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, #1a1a2e, #16213e); border-bottom:none;">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, #0f172a, #1e1a2e); border-bottom:none;">
         <span style="font-size:1.1rem;">🪐</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:#e8ddd0;">Full Ephemeris Chart</span>
-        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:#c4a265; background:rgba(196,162,101,0.15); padding:2px 8px; border-radius:4px;">14 PLACEMENTS</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:#e8ddd0;">Full Birth Chart</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:#c4a265; background:rgba(196,162,101,0.15); padding:2px 8px; border-radius:4px;">REAL ASTROLOGY</span>
       </div>
-      <div class="glimpse-card-body" style="padding:12px 16px; background:linear-gradient(180deg, #faf8f5, #fff);">
-        <p style="font-size:0.72rem; color:var(--earth); margin-bottom:10px; font-style:italic;">Calculated using the Swiss Ephemeris — the same system used by professional astrologers</p>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 12px;">
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:rgba(196,162,101,0.06); border-radius:8px;"><span style="font-size:0.82rem;">☉</span><div><p style="font-size:0.62rem; color:var(--muted); line-height:1;">Sun</p><p style="font-size:0.75rem; font-weight:700; color:var(--ink);">Aries 15°</p></div></div>
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:rgba(196,162,101,0.06); border-radius:8px;"><span style="font-size:0.82rem;">☽</span><div><p style="font-size:0.62rem; color:var(--muted); line-height:1;">Moon</p><p style="font-size:0.75rem; font-weight:700; color:var(--ink);">Cancer 22°</p></div></div>
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:rgba(196,162,101,0.06); border-radius:8px;"><span style="font-size:0.82rem;">☿</span><div><p style="font-size:0.62rem; color:var(--muted); line-height:1;">Mercury</p><p style="font-size:0.75rem; font-weight:700; color:var(--ink);">Pisces 8°</p></div></div>
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:rgba(196,162,101,0.06); border-radius:8px;"><span style="font-size:0.82rem;">♀</span><div><p style="font-size:0.62rem; color:var(--muted); line-height:1;">Venus</p><p style="font-size:0.75rem; font-weight:700; color:var(--ink);">Taurus 3°</p></div></div>
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:rgba(196,162,101,0.06); border-radius:8px;"><span style="font-size:0.82rem;">♂</span><div><p style="font-size:0.62rem; color:var(--muted); line-height:1;">Mars</p><p style="font-size:0.75rem; font-weight:700; color:var(--ink);">Leo 27°</p></div></div>
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:rgba(196,162,101,0.06); border-radius:8px;"><span style="font-size:0.82rem;">♃</span><div><p style="font-size:0.62rem; color:var(--muted); line-height:1;">Jupiter</p><p style="font-size:0.75rem; font-weight:700; color:var(--ink);">Sag 11°</p></div></div>
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:rgba(196,162,101,0.06); border-radius:8px;"><span style="font-size:0.82rem;">♄</span><div><p style="font-size:0.62rem; color:var(--muted); line-height:1;">Saturn</p><p style="font-size:0.75rem; font-weight:700; color:var(--ink);">Cap 19°</p></div></div>
-          <div style="display:flex; align-items:center; gap:6px; padding:5px 8px; background:rgba(196,162,101,0.06); border-radius:8px;"><span style="font-size:0.82rem;">⬆</span><div><p style="font-size:0.62rem; color:var(--muted); line-height:1;">Rising</p><p style="font-size:0.75rem; font-weight:700; color:var(--ink);">Leo 5°</p></div></div>
+      <div class="glimpse-card-body" style="padding:14px 16px; background:linear-gradient(180deg, #faf8f5, #fff);">
+        <p style="font-size:0.72rem; color:var(--earth); margin-bottom:8px; font-style:italic;">Swiss Ephemeris — the same engine used by professional astrologers</p>
+        <!-- Planet grid -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:5px; padding:4px 7px; background:rgba(196,162,101,0.06); border-radius:6px;"><span style="font-size:0.78rem;">☉</span><div><p style="font-size:0.58rem; color:var(--muted); line-height:1;">Sun</p><p style="font-size:0.7rem; font-weight:700; color:var(--ink);">Aries 15°</p></div></div>
+          <div style="display:flex; align-items:center; gap:5px; padding:4px 7px; background:rgba(196,162,101,0.06); border-radius:6px;"><span style="font-size:0.78rem;">☽</span><div><p style="font-size:0.58rem; color:var(--muted); line-height:1;">Moon</p><p style="font-size:0.7rem; font-weight:700; color:var(--ink);">Cancer 22°</p></div></div>
+          <div style="display:flex; align-items:center; gap:5px; padding:4px 7px; background:rgba(196,162,101,0.06); border-radius:6px;"><span style="font-size:0.78rem;">☿</span><div><p style="font-size:0.58rem; color:var(--muted); line-height:1;">Mercury</p><p style="font-size:0.7rem; font-weight:700; color:var(--ink);">Pisces 8°</p></div></div>
+          <div style="display:flex; align-items:center; gap:5px; padding:4px 7px; background:rgba(196,162,101,0.06); border-radius:6px;"><span style="font-size:0.78rem;">♀</span><div><p style="font-size:0.58rem; color:var(--muted); line-height:1;">Venus</p><p style="font-size:0.7rem; font-weight:700; color:var(--ink);">Taurus 3°</p></div></div>
+          <div style="display:flex; align-items:center; gap:5px; padding:4px 7px; background:rgba(196,162,101,0.06); border-radius:6px;"><span style="font-size:0.78rem;">♂</span><div><p style="font-size:0.58rem; color:var(--muted); line-height:1;">Mars</p><p style="font-size:0.7rem; font-weight:700; color:var(--ink);">Leo 27°</p></div></div>
+          <div style="display:flex; align-items:center; gap:5px; padding:4px 7px; background:rgba(196,162,101,0.06); border-radius:6px;"><span style="font-size:0.78rem;">♃</span><div><p style="font-size:0.58rem; color:var(--muted); line-height:1;">Jupiter</p><p style="font-size:0.7rem; font-weight:700; color:var(--ink);">Sag 11°</p></div></div>
         </div>
-        <p style="font-size:0.6rem; color:var(--muted); margin-top:8px; text-align:center;">+ Uranus, Neptune, Pluto, N.Node, Chiron &amp; Lilith</p>
+        <!-- What we calculate -->
+        <div style="border-top:1px solid var(--cream3); padding-top:8px;">
+          <p style="font-size:0.6rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">We calculate</p>
+          <div style="display:flex; flex-wrap:wrap; gap:4px;">
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">14 planetary positions</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">Rising sign</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">Element balance</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">Modality</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">Chiron</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">North Node</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">Lilith</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">Aura colours</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">Crystal match</span>
+            <span style="font-size:0.58rem; padding:3px 7px; background:rgba(196,162,101,0.08); border-radius:12px; color:var(--earth); font-weight:500;">Soul archetype</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -722,7 +736,7 @@ body::after {
     <div class="glimpse-card">
       <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(234,88,12,0.08), rgba(59,130,246,0.08)); border-bottom:none;">
         <span style="font-size:1.1rem;">🔥</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Elemental Balance</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Element Mix</span>
       </div>
       <div class="glimpse-card-body" style="padding:16px 18px;">
         <p style="font-size:0.72rem; color:var(--earth); margin-bottom:12px; font-style:italic;">Your pet's cosmic energy split across the four elements</p>
@@ -841,7 +855,7 @@ body::after {
       </div>
     </div>
 
-    <!-- 6. Text Messages -->
+    <!-- 6. Text Messages — heartfelt -->
     <div class="glimpse-card">
       <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(74,140,92,0.08), rgba(196,162,101,0.08)); border-bottom:none;">
         <span style="font-size:1.1rem;">💬</span>
@@ -849,109 +863,164 @@ body::after {
       </div>
       <div class="glimpse-card-body" style="background:#f0ede8; border-radius:0 0 16px 16px; padding:18px;">
         <div style="max-width:260px; margin:0 auto; display:flex; flex-direction:column; gap:8px;">
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:85%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Hey, you forgot to say goodbye this morning. Rude. 😤</div>
-          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Omg I'm sorry!! I was rushing!</div>
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:85%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">It's fine. I ate your slipper. We're even. 🐾</div>
-          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">You're impossible 😂❤️</div>
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:85%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Impossibly cute, you mean. Now come home. 🐶</div>
+          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Do you know what my favourite sound is? 🐾</div>
+          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">What?</div>
+          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Your keys in the door. Because it means you came back. You always come back. 💛</div>
+          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">I'm literally crying rn 😭</div>
+          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Good. Now come sit with me. I saved your spot. I always save your spot.</div>
         </div>
       </div>
     </div>
 
-    <!-- 7. Cosmic Recipe -->
+    <!-- 7. Cosmic Treat Recipe — dog-safe -->
     <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(196,162,101,0.1), rgba(74,140,92,0.08)); border-bottom:none;">
-        <span style="font-size:1.1rem;">🍽️</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Cosmic Recipe</span>
-        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--green); background:rgba(74,140,92,0.1); padding:2px 8px; border-radius:4px;">PET-SAFE</span>
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, #faf8f5, rgba(74,140,92,0.1)); border-bottom:none;">
+        <span style="font-size:1.1rem;">🦴</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Cosmic Treat Recipe</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:#fff; background:var(--green); padding:2px 8px; border-radius:4px;">VET-APPROVED</span>
       </div>
-      <div class="glimpse-card-body">
-        <div style="background:linear-gradient(135deg, #faf8f5, #f5f0e8); border-radius:12px; padding:14px; margin-bottom:10px; border:1px solid var(--cream3);">
-          <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.95rem; color:var(--ink); margin-bottom:8px;">🥕 The Aries Power Bites</p>
-          <div style="display:flex; flex-direction:column; gap:5px; font-size:0.75rem; color:var(--earth);">
-            <div style="display:flex; align-items:center; gap:8px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0;"></span>1 cup oats (grounding earth energy)</div>
-            <div style="display:flex; align-items:center; gap:8px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0;"></span>2 tbsp peanut butter (Mars fuel)</div>
-            <div style="display:flex; align-items:center; gap:8px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0;"></span>1 mashed banana (solar sweetness)</div>
-            <div style="display:flex; align-items:center; gap:8px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0;"></span>Dash of cinnamon (fire element)</div>
+      <div class="glimpse-card-body" style="padding:16px 18px;">
+        <div style="background:linear-gradient(135deg, #faf8f5, #f5f0e8); border-radius:12px; padding:16px; margin-bottom:10px; border:1px solid var(--cream3);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <span style="font-size:1.8rem;">🥜</span>
+            <div>
+              <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.95rem; color:var(--ink);">Aries Fire Bites</p>
+              <p style="font-size:0.62rem; color:var(--muted);">Matched to their zodiac element</p>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; font-size:0.75rem; color:var(--earth);">
+            <div style="display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px dashed var(--cream3);"><span style="font-size:0.85rem; width:20px;">🎃</span><span>1 cup pumpkin puree <em style="color:var(--muted);">(digestion)</em></span></div>
+            <div style="display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px dashed var(--cream3);"><span style="font-size:0.85rem; width:20px;">🥜</span><span>2 tbsp peanut butter, no xylitol <em style="color:var(--muted);">(protein)</em></span></div>
+            <div style="display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px dashed var(--cream3);"><span style="font-size:0.85rem; width:20px;">🫐</span><span>Handful of blueberries <em style="color:var(--muted);">(antioxidants)</em></span></div>
+            <div style="display:flex; align-items:center; gap:8px; padding:4px 0;"><span style="font-size:0.85rem; width:20px;">🥚</span><span>1 egg <em style="color:var(--muted);">(coat &amp; shine)</em></span></div>
           </div>
         </div>
-        <p style="font-size:0.68rem; color:var(--earth); font-style:italic; text-align:center;">Mix, roll into balls, refrigerate. Matched to their element.</p>
-        <p style="font-size:0.62rem; color:var(--muted); text-align:center; margin-top:4px;">3 unique recipes in every reading</p>
+        <p style="font-size:0.68rem; color:var(--earth); text-align:center; font-style:italic;">Mix, spoon onto baking tray, bake 15 min at 175°C. Cool before serving.</p>
+        <p style="font-size:0.6rem; color:var(--muted); text-align:center; margin-top:4px;">3 unique recipes per reading — tailored to species, size &amp; element</p>
       </div>
     </div>
 
-    <!-- 8. Dating Profile -->
-    <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(236,72,153,0.08), rgba(191,82,74,0.06)); border-bottom:none;">
-        <span style="font-size:1.1rem;">💘</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Dating Profile</span>
-        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:var(--rose); background:var(--rose-glow); padding:2px 8px; border-radius:4px;">😂</span>
+    <!-- 8. Dating Profile — full app mockup -->
+    <div class="glimpse-card" style="border:none; overflow:hidden;">
+      <div style="background:linear-gradient(135deg, #ff6b6b, #ee5a24, #f0932b); padding:12px 16px; display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:0.75rem; font-weight:800; color:#fff; letter-spacing:1px;">PAWFECT MATCH</span>
+        <span style="font-size:0.85rem;">🔥</span>
       </div>
-      <div class="glimpse-card-body">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-          <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, var(--rose-glow), rgba(196,162,101,0.15)); display:flex; align-items:center; justify-content:center; font-size:1.3rem;">🐕</div>
-          <div><p style="font-size:0.88rem; color:var(--ink); font-weight:700;">Your Pet, 4</p><p style="font-size:0.65rem; color:var(--muted);">2km away</p></div>
+      <div class="glimpse-card-body" style="padding:0;">
+        <!-- Profile photo area -->
+        <div style="background:linear-gradient(180deg, #fef3ef, #fff); padding:16px; text-align:center; border-bottom:1px solid var(--cream3);">
+          <div style="width:70px; height:70px; border-radius:50%; background:linear-gradient(135deg, #ff9a9e, #fecfef); display:inline-flex; align-items:center; justify-content:center; font-size:2.2rem; box-shadow:0 4px 20px rgba(255,107,107,0.2); margin-bottom:8px;">🐕</div>
+          <p style="font-family:'DM Serif Display',Georgia,serif; font-size:1.1rem; color:var(--ink);">Your Pet, 4</p>
+          <p style="font-size:0.65rem; color:var(--muted);">📍 On your sofa &middot; 0m away</p>
+          <div style="display:flex; justify-content:center; gap:4px; margin-top:6px;">
+            <span style="font-size:0.82rem; color:#ff6b6b;">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            <span style="font-size:0.6rem; color:var(--muted); margin-top:2px;">4.9 (based on treat reviews)</span>
+          </div>
         </div>
-        <p style="font-size:0.8rem; color:var(--earth); line-height:1.5; font-style:italic; padding:10px 12px; background:var(--cream2); border-radius:10px;">"Looking for someone who'll share their dinner and doesn't mind 3am zoomies. I'm loyal, I'm fluffy, and I WILL steal your spot on the bed. Swipe right if you have treats."</p>
-        <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
-          <span style="font-size:0.65rem; padding:4px 10px; background:var(--cream2); border-radius:20px; color:var(--earth); font-weight:500;">🦴 Treat lover</span>
-          <span style="font-size:0.65rem; padding:4px 10px; background:var(--cream2); border-radius:20px; color:var(--earth); font-weight:500;">🛋️ Sofa hogger</span>
-          <span style="font-size:0.65rem; padding:4px 10px; background:var(--cream2); border-radius:20px; color:var(--earth); font-weight:500;">👃 Pro sniffer</span>
+        <!-- Bio -->
+        <div style="padding:14px 16px;">
+          <p style="font-size:0.82rem; color:var(--ink); line-height:1.55; font-style:italic; margin-bottom:10px;">"Full-time cuddler, part-time sock thief. Looking for someone who doesn't judge my 3am zoomies and will pretend they didn't see me eat that thing off the floor. I WILL steal your heart (and your spot on the bed)."</p>
+          <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px;">
+            <span style="font-size:0.6rem; padding:3px 8px; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.15); border-radius:20px; color:#ee5a24; font-weight:500;">🦴 Foodie</span>
+            <span style="font-size:0.6rem; padding:3px 8px; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.15); border-radius:20px; color:#ee5a24; font-weight:500;">🛋️ Bed hogger</span>
+            <span style="font-size:0.6rem; padding:3px 8px; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.15); border-radius:20px; color:#ee5a24; font-weight:500;">👃 Pro sniffer</span>
+            <span style="font-size:0.6rem; padding:3px 8px; background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.15); border-radius:20px; color:#ee5a24; font-weight:500;">🏃 Zoomies champion</span>
+          </div>
+          <div style="display:flex; gap:8px; justify-content:center;">
+            <div style="width:42px; height:42px; border-radius:50%; border:2px solid var(--cream3); display:flex; align-items:center; justify-content:center; font-size:1rem; cursor:pointer;">✕</div>
+            <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #ff6b6b, #ee5a24); display:flex; align-items:center; justify-content:center; font-size:1.4rem; box-shadow:0 4px 16px rgba(255,107,107,0.3); cursor:pointer;">❤️</div>
+            <div style="width:42px; height:42px; border-radius:50%; border:2px solid var(--cream3); display:flex; align-items:center; justify-content:center; font-size:1rem; cursor:pointer;">⭐</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 9. Love Language -->
+    <!-- 9. Love Language — full breakdown with all 5 -->
     <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.06), rgba(255,200,200,0.1)); border-bottom:none;">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.08), rgba(255,182,193,0.1)); border-bottom:none;">
         <span style="font-size:1.1rem;">💕</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Their Love Language</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Love Language</span>
       </div>
-      <div class="glimpse-card-body">
-        <div style="text-align:center; margin-bottom:10px;">
-          <span style="font-size:2rem;">🫶</span>
-          <p style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink); margin-top:4px;">Physical Touch</p>
-          <p style="font-size:0.65rem; color:var(--muted);">Primary love language</p>
+      <div class="glimpse-card-body" style="padding:16px 18px;">
+        <!-- Primary -->
+        <div style="text-align:center; margin-bottom:14px; padding:12px; background:linear-gradient(135deg, rgba(191,82,74,0.04), rgba(255,182,193,0.08)); border-radius:12px;">
+          <div style="width:48px; height:48px; border-radius:50%; background:var(--rose-glow); display:inline-flex; align-items:center; justify-content:center; margin-bottom:6px;"><span style="font-size:1.6rem;">🫶</span></div>
+          <p style="font-family:'DM Serif Display',Georgia,serif; font-size:1.05rem; color:var(--ink);">Physical Touch</p>
+          <p style="font-size:0.6rem; font-weight:700; color:var(--rose); text-transform:uppercase; letter-spacing:1px;">Primary love language</p>
         </div>
-        <p style="font-size:0.85rem; color:var(--earth); line-height:1.55; font-style:italic; text-align:center; padding:10px; background:var(--cream2); border-radius:10px;">"When they lean against your leg, it's not comfort — it's their way of saying 'you're mine, and I'm yours.'"</p>
+        <!-- All 5 bars -->
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:6px;"><span style="font-size:0.7rem; width:18px;">🫶</span><span style="font-size:0.65rem; color:var(--earth); width:70px;">Touch</span><div style="flex:1; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:92%; height:100%; background:var(--rose); border-radius:3px;"></div></div><span style="font-size:0.62rem; font-weight:700; color:var(--ink); width:22px; text-align:right;">92</span></div>
+          <div style="display:flex; align-items:center; gap:6px;"><span style="font-size:0.7rem; width:18px;">⏰</span><span style="font-size:0.65rem; color:var(--earth); width:70px;">Quality time</span><div style="flex:1; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:78%; height:100%; background:var(--gold); border-radius:3px;"></div></div><span style="font-size:0.62rem; font-weight:700; color:var(--ink); width:22px; text-align:right;">78</span></div>
+          <div style="display:flex; align-items:center; gap:6px;"><span style="font-size:0.7rem; width:18px;">🦴</span><span style="font-size:0.65rem; color:var(--earth); width:70px;">Gifts (treats)</span><div style="flex:1; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:65%; height:100%; background:#16a34a; border-radius:3px;"></div></div><span style="font-size:0.62rem; font-weight:700; color:var(--ink); width:22px; text-align:right;">65</span></div>
+          <div style="display:flex; align-items:center; gap:6px;"><span style="font-size:0.7rem; width:18px;">💬</span><span style="font-size:0.65rem; color:var(--earth); width:70px;">Words</span><div style="flex:1; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:54%; height:100%; background:#7c3aed; border-radius:3px;"></div></div><span style="font-size:0.62rem; font-weight:700; color:var(--ink); width:22px; text-align:right;">54</span></div>
+          <div style="display:flex; align-items:center; gap:6px;"><span style="font-size:0.7rem; width:18px;">🧹</span><span style="font-size:0.65rem; color:var(--earth); width:70px;">Acts of service</span><div style="flex:1; height:6px; background:var(--cream3); border-radius:3px; overflow:hidden;"><div style="width:41%; height:100%; background:#2563eb; border-radius:3px;"></div></div><span style="font-size:0.62rem; font-weight:700; color:var(--ink); width:22px; text-align:right;">41</span></div>
+        </div>
+        <p style="font-size:0.78rem; color:var(--earth); line-height:1.5; font-style:italic; padding:10px 12px; background:var(--cream2); border-radius:10px; text-align:center;">"When they lean into your leg, it's not comfort seeking — it's them saying <strong style="color:var(--ink);">'you're mine, and I'm yours, and nothing else matters.'</strong>"</p>
       </div>
     </div>
 
-    <!-- 10. Past Life -->
+    <!-- 10. Past Life — immersive timeline -->
     <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(128,0,128,0.06), rgba(99,102,241,0.06)); border-bottom:none;">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, #1a1028, #2d1b3d); border-bottom:none;">
         <span style="font-size:1.1rem;">🔮</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">Past Life Glimpse</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:#e8ddd0;">Past Life</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:#a78bfa; background:rgba(167,139,250,0.15); padding:2px 8px; border-radius:4px;">MYSTICAL</span>
       </div>
-      <div class="glimpse-card-body">
-        <div style="text-align:center; padding:8px 0;">
-          <div style="width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg, rgba(128,0,128,0.1), rgba(99,102,241,0.1)); display:inline-flex; align-items:center; justify-content:center; margin-bottom:8px;"><span style="font-size:1.5rem;">🏛️</span></div>
-          <p style="font-family:'DM Serif Display',Georgia,serif; font-size:0.9rem; color:var(--ink); margin-bottom:6px;">The Healer's Companion</p>
+      <div class="glimpse-card-body" style="padding:16px 18px; background:linear-gradient(180deg, #faf8f5, #fff);">
+        <!-- Era -->
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; padding:10px 12px; background:linear-gradient(135deg, rgba(128,0,128,0.04), rgba(99,102,241,0.04)); border-radius:10px;">
+          <div style="width:50px; height:50px; border-radius:12px; background:linear-gradient(135deg, rgba(167,139,250,0.15), rgba(99,102,241,0.1)); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><span style="font-size:1.5rem;">🏛️</span></div>
+          <div>
+            <p style="font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:600;">Previous incarnation</p>
+            <p style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">The Healer's Companion</p>
+            <p style="font-size:0.62rem; color:var(--muted);">Ancient Greece &middot; 400 BC</p>
+          </div>
         </div>
-        <p style="font-size:0.85rem; color:var(--earth); line-height:1.55; font-style:italic; text-align:center;">"In a previous life, this soul was a loyal companion to a healer — which explains their instinct to stay close when you're unwell."</p>
+        <!-- Soul thread -->
+        <div style="border-left:2px solid rgba(167,139,250,0.3); padding-left:14px; margin-left:8px;">
+          <div style="position:relative; margin-bottom:10px;">
+            <div style="position:absolute; left:-20px; top:2px; width:10px; height:10px; border-radius:50%; background:#a78bfa;"></div>
+            <p style="font-size:0.68rem; font-weight:600; color:#7c3aed; text-transform:uppercase; letter-spacing:0.5px;">Then</p>
+            <p style="font-size:0.78rem; color:var(--earth); line-height:1.45;">Guarded a travelling healer through mountain passes. Never left their side, even in storms.</p>
+          </div>
+          <div style="position:relative;">
+            <div style="position:absolute; left:-20px; top:2px; width:10px; height:10px; border-radius:50%; background:var(--rose);"></div>
+            <p style="font-size:0.68rem; font-weight:600; color:var(--rose); text-transform:uppercase; letter-spacing:0.5px;">Now</p>
+            <p style="font-size:0.78rem; color:var(--earth); line-height:1.45;">Still stays close when you're unwell. Still watches over you while you sleep. The bond carried over.</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 11. Villain Origin Story -->
+    <!-- 11. Villain Origin Story — comic book style -->
     <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, #1a1a2e, #2d1b3d); border-bottom:none;">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, #0f172a, #1e1a2e); border-bottom:none;">
         <span style="font-size:1.1rem;">🦹</span>
         <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:#e8ddd0;">Villain Origin Story</span>
+        <span style="margin-left:auto; font-size:0.55rem; font-weight:700; color:#ff6b6b; background:rgba(255,107,107,0.15); padding:2px 8px; border-radius:4px;">😈</span>
       </div>
-      <div class="glimpse-card-body">
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <div style="padding:8px 12px; background:rgba(99,102,241,0.05); border-radius:8px; border-left:3px solid #6366f1;">
-            <p style="font-size:0.65rem; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">The Trigger</p>
-            <p style="font-size:0.8rem; color:var(--ink); line-height:1.4;">You said "walk" but then put your shoes on slowly.</p>
-          </div>
-          <div style="padding:8px 12px; background:rgba(234,88,12,0.05); border-radius:8px; border-left:3px solid #ea580c;">
-            <p style="font-size:0.65rem; font-weight:700; color:#ea580c; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">The Response</p>
-            <p style="font-size:0.8rem; color:var(--ink); line-height:1.4;">Knocked over the bin, stole a sock, did 47 laps of the garden.</p>
-          </div>
-          <div style="padding:8px 12px; background:rgba(74,140,92,0.05); border-radius:8px; border-left:3px solid var(--green);">
-            <p style="font-size:0.65rem; font-weight:700; color:var(--green); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">The Redemption</p>
-            <p style="font-size:0.8rem; color:var(--ink); line-height:1.4;">Brought the sock back. Sat down. Looked innocent.</p>
-          </div>
+      <div class="glimpse-card-body" style="padding:0;">
+        <!-- Panel 1 -->
+        <div style="padding:14px 18px; border-bottom:2px solid var(--cream3); position:relative;">
+          <div style="position:absolute; top:8px; right:12px; font-size:0.55rem; font-weight:800; color:#6366f1; background:rgba(99,102,241,0.1); padding:2px 8px; border-radius:10px;">PANEL 1</div>
+          <p style="font-size:0.65rem; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">The Inciting Incident</p>
+          <p style="font-size:0.85rem; color:var(--ink); line-height:1.45;">You said <strong>"walkies"</strong> but then sat back down to finish your tea.</p>
+          <p style="font-size:0.65rem; color:var(--muted); margin-top:4px; font-style:italic;">Time of betrayal: 8:47am</p>
+        </div>
+        <!-- Panel 2 -->
+        <div style="padding:14px 18px; background:rgba(234,88,12,0.03); border-bottom:2px solid var(--cream3); position:relative;">
+          <div style="position:absolute; top:8px; right:12px; font-size:0.55rem; font-weight:800; color:#ea580c; background:rgba(234,88,12,0.1); padding:2px 8px; border-radius:10px;">PANEL 2</div>
+          <p style="font-size:0.65rem; font-weight:700; color:#ea580c; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">The Rampage</p>
+          <p style="font-size:0.85rem; color:var(--ink); line-height:1.45;">Knocked over the bin. Stole a sock. Did 47 laps of the garden. Barked at nothing. Barked at everything.</p>
+          <p style="font-size:0.65rem; color:var(--muted); margin-top:4px; font-style:italic;">Casualties: 1 slipper, 2 cushions, your dignity</p>
+        </div>
+        <!-- Panel 3 -->
+        <div style="padding:14px 18px; background:rgba(74,140,92,0.03); position:relative;">
+          <div style="position:absolute; top:8px; right:12px; font-size:0.55rem; font-weight:800; color:var(--green); background:rgba(74,140,92,0.1); padding:2px 8px; border-radius:10px;">PANEL 3</div>
+          <p style="font-size:0.65rem; font-weight:700; color:var(--green); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">The Redemption Arc</p>
+          <p style="font-size:0.85rem; color:var(--ink); line-height:1.45;">Brought the sock back. Sat down. Looked innocent. Placed head on your lap. <strong>Case dismissed.</strong></p>
+          <p style="font-size:0.65rem; color:var(--muted); margin-top:4px; font-style:italic;">Verdict: Not guilty by reason of cuteness</p>
         </div>
       </div>
     </div>
