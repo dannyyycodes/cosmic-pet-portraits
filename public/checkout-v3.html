@@ -1118,44 +1118,11 @@ body::after {
 
 <!-- ============ TESTIMONIALS ============ -->
 <div class="testimonials-section">
+  <!-- All reviews rendered by JS into one unified grid -->
+  <div class="testimonial-grid" id="reviewsGrid"></div>
 
-  <div class="testimonial-grid">
-    <div class="testimonial-card a d2">
-      <div class="tc-header"><div class="tc-avatar">M</div><div><div class="tc-name">Mia Thompson <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Bruno the Labrador</div></div></div>
-      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <div class="tc-quote">"I was in tears by the first paragraph"</div>
-      <div class="tc-body">How did they know about his head tilt thing?? And the thunder. My husband thought I was crazy crying over a dog reading. Already sent it to my whole family.</div>
-    </div>
-    <div class="testimonial-card a d3">
-      <div class="tc-header"><div class="tc-avatar">M</div><div><div class="tc-name">Mark Davies <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Mr. Whiskers the Tabby</div></div></div>
-      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <div class="tc-quote">"Ordered 4 more as gifts. Everyone wants one."</div>
-      <div class="tc-body">Got this for my sister's birthday. She hasn't stopped showing people. Now everyone in my family wants one for their pet.</div>
-    </div>
-    <div class="testimonial-card a d4">
-      <div class="tc-header"><div class="tc-avatar">S</div><div><div class="tc-name">Sarah Mitchell <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Rex the German Shepherd</div></div></div>
-      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <div class="tc-quote">"Even my vet was impressed"</div>
-      <div class="tc-body">It explained why Rex freaks out every day at 6pm. Started doing his evening walk earlier and he's like a different dog. My vet actually asked where I got it.</div>
-    </div>
-    <div class="testimonial-card a d5">
-      <div class="tc-header"><div class="tc-avatar">J</div><div><div class="tc-name">James Wilson <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Biscuit the Holland Lop</div></div></div>
-      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <div class="tc-quote">"Changed how we treat our rabbit entirely"</div>
-      <div class="tc-body">It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and he actually comes to us on his own now.</div>
-    </div>
-    <div class="testimonial-card a d6">
-      <div class="tc-header"><div class="tc-avatar">P</div><div><div class="tc-name">Priya Sharma <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Coco the Cockatiel</div></div></div>
-      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <div class="tc-quote">"My mum and I couldn't stop laughing"</div>
-      <div class="tc-body">It said Coco needs an audience and that is him to a tee. We moved his cage to the living room and he's been so much happier. Spot on.</div>
-    </div>
-    <div class="testimonial-card a d7">
-      <div class="tc-header"><div class="tc-avatar">M</div><div><div class="tc-name">Margaret &amp; Tom <span class="tc-verified">VERIFIED</span></div><div class="tc-pet">Duchess the Persian Cat</div></div></div>
-      <div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <div class="tc-quote">"Wish I'd had this 20 years ago"</div>
-      <div class="tc-body">My grandson got this for my 75th. I've had cats all my life and thought I knew everything. It called Duchess an old soul. Makes perfect sense.</div>
-    </div>
+  <div id="showMoreWrap" style="text-align:center; margin-top:20px;">
+    <button id="showMoreBtn" onclick="showMoreReviews()" style="background:none; border:1px solid var(--sand); border-radius:50px; padding:10px 28px; font-family:'Cormorant',Georgia,serif; font-size:0.88rem; font-weight:600; color:var(--earth); cursor:pointer; transition:all 0.2s;">Show More Reviews</button>
   </div>
 
   <div class="mini-row a d8">
@@ -1165,12 +1132,6 @@ body::after {
     <div class="mini-card"><div class="mini-avatar">E</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Did my horse!! So accurate"</div><div class="mini-name">— Emma T.</div></div>
     <div class="mini-card"><div class="mini-avatar">N</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Got all 3 pets done. No regrets."</div><div class="mini-name">— The Nguyens</div></div>
     <div class="mini-card"><div class="mini-avatar">B</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Best present my daughter's ever got"</div><div class="mini-name">— Bob, 68</div></div>
-  </div>
-
-  <!-- More reviews loaded dynamically -->
-  <div id="reviewsGrid" style="display:flex; flex-direction:column; gap:14px; margin-top:20px;"></div>
-  <div id="showMoreWrap" style="text-align:center; margin-top:20px;">
-    <button id="showMoreBtn" onclick="showMoreReviews()" style="background:none; border:1px solid var(--sand); border-radius:50px; padding:10px 28px; font-family:'Cormorant',Georgia,serif; font-size:0.88rem; font-weight:600; color:var(--earth); cursor:pointer; transition:all 0.2s;">Show More Reviews</button>
   </div>
 </div>
 
@@ -1585,6 +1546,12 @@ updateUI();
 
 // ─── Reviews ───
 var ALL_REVIEWS = [
+  { name:"Mia Thompson", pet:"Bruno the Labrador", quote:"I was in tears by the first paragraph", text:"How did they know about his head tilt thing?? And the thunder. My husband thought I was crazy crying over a dog reading. Already sent it to my whole family.", tag:"verified", time:"1 week ago" },
+  { name:"Mark Davies", pet:"Mr. Whiskers the Tabby", quote:"Ordered 4 more as gifts. Everyone wants one.", text:"Got this for my sister's birthday. She hasn't stopped showing people. Now everyone in my family wants one for their pet.", tag:"verified", time:"2 weeks ago" },
+  { name:"Sarah Mitchell", pet:"Rex the German Shepherd", quote:"Even my vet was impressed", text:"It explained why Rex freaks out every day at 6pm. Started doing his evening walk earlier and he's like a different dog. My vet actually asked where I got it.", tag:"verified", time:"3 weeks ago" },
+  { name:"James Wilson", pet:"Biscuit the Holland Lop", quote:"Changed how we treat our rabbit entirely", text:"It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and he actually comes to us on his own now.", tag:"verified", time:"2 weeks ago" },
+  { name:"Priya Sharma", pet:"Coco the Cockatiel", quote:"My mum and I couldn't stop laughing", text:"It said Coco needs an audience and that is him to a tee. We moved his cage to the living room and he's been so much happier. Spot on.", tag:"verified", time:"1 week ago" },
+  { name:"Margaret & Tom", pet:"Duchess the Persian Cat", quote:"Wish I'd had this 20 years ago", text:"My grandson got this for my 75th. I've had cats all my life and thought I knew everything. It called Duchess an old soul. Makes perfect sense.", tag:"verified", time:"3 weeks ago" },
   { name:"Sarah M.", pet:"Buddy, Labrador, 6", text:"It described things about Buddy that I've never been able to put into words. My partner and I both teared up reading it together.", tag:"verified", time:"2 weeks ago" },
   { name:"James T.", pet:"Luna, Golden Retriever, 4", text:"Bought it as a joke honestly. Then I read it and got genuinely emotional. The emotional blueprint section nailed Luna's personality.", tag:"verified", time:"3 weeks ago" },
   { name:"Mark D.", pet:"Charlie, Beagle, 4", text:"Best gift I've ever given my wife. She read it three times and kept reading quotes out loud to me.", tag:"top reviewer", time:"1 month ago" },
@@ -1651,12 +1618,12 @@ var REVIEWS_PER_BATCH = 10;
 function renderReview(r, i) {
   var initial = r.name.charAt(0);
   var tagHtml = r.tag ? ' <span class="tc-verified">' + r.tag.toUpperCase() + '</span>' : '';
-  // Extract a short quote from the text (first sentence or first ~50 chars)
-  var shortQuote = r.text.length > 60 ? r.text.substring(0, r.text.indexOf('.') > 10 ? r.text.indexOf('.') + 1 : 55) + '…' : r.text;
+  var quoteText = r.quote || '';
+  var quoteHtml = quoteText ? '<div class="tc-quote">\u201C' + quoteText + '\u201D</div>' : '';
   return '<div class="testimonial-card review-card-anim" style="opacity:0;transform:translateY(20px);transition:opacity 0.6s ease ' + ((i%4)*0.05) + 's, transform 0.6s ease ' + ((i%4)*0.05) + 's;">'
     + '<div class="tc-header"><div class="tc-avatar">' + initial + '</div><div><div class="tc-name">' + r.name + tagHtml + '</div><div class="tc-pet">' + r.pet + '</div></div></div>'
     + '<div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>'
-    + '<div class="tc-quote">\u201C' + shortQuote + '\u201D</div>'
+    + quoteHtml
     + '<div class="tc-body">' + r.text + '</div>'
     + '</div>';
 }
