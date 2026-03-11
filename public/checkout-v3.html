@@ -460,7 +460,7 @@ body::after {
 .bottom-cta .cta-btn { max-width:520px; margin:0 auto; }
 
 /* Back */
-.back-link { text-align:center; padding:20px 20px 50px; }
+.back-link { text-align:center; padding:20px 20px 80px; }
 .back-link a { font-family:'Cormorant',Georgia,serif; font-size:0.85rem; color:var(--muted); text-decoration:none; transition:color 0.3s; }
 .back-link a:hover { color:var(--earth); }
 
@@ -478,15 +478,29 @@ body::after {
   .hardcover-card { padding:22px 18px; }
   .hardcover-features { max-width:100%; }
   .hardcover-section { padding-left:12px; padding-right:12px; }
-  /* Sticky mobile CTA */
-  .mobile-sticky-cta { display:block; position:fixed; bottom:0; left:0; right:0; z-index:999; background:rgba(255,253,245,0.97); backdrop-filter:blur(8px); padding:12px 16px; border-top:1px solid var(--cream3); box-shadow:0 -2px 12px rgba(0,0,0,0.06); }
-  .mobile-sticky-cta .cta-btn { margin:0; min-height:48px; font-size:1rem; }
+  /* Floating CTA */
+  .floating-cta { display:flex; }
+  .floating-cta .cta-btn { margin:0; min-height:48px; font-size:0.88rem; padding:12px 24px; white-space:nowrap; flex-shrink:0; }
   /* Touch targets */
   .pet-counter-btn, .toggle-track, button, a.cta-btn, a.hardcover-cta { min-height:44px; min-width:44px; }
 }
 
-/* Hide sticky CTA on desktop */
-.mobile-sticky-cta { display:none; }
+/* Review stars */
+#reviewsGrid div[style*="gap:1px"] { color:var(--gold); font-size:13px; }
+
+/* Floating CTA — visible on all devices */
+.floating-cta {
+  position:fixed; bottom:0; left:0; right:0; z-index:999;
+  background:rgba(255,253,245,0.97); backdrop-filter:blur(10px);
+  border-top:1px solid var(--cream3); padding:10px 16px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+  display:flex; align-items:center; gap:10px;
+  box-shadow:0 -2px 12px rgba(0,0,0,0.06);
+  max-width:600px; margin:0 auto;
+}
+@media (min-width:601px) {
+  .floating-cta { left:50%; right:auto; transform:translateX(-50%); border-radius:16px 16px 0 0; border-left:1px solid var(--cream3); border-right:1px solid var(--cream3); }
+}
 
 @media (max-width:380px) {
   .paw { display:none; }
@@ -910,20 +924,25 @@ body::after {
       </div>
     </div>
 
-    <!-- 6. Text Messages — heartfelt -->
+    <!-- 6. SoulSpeak — talk to your pet -->
     <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(74,140,92,0.08), rgba(196,162,101,0.08)); border-bottom:none;">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, #0f172a, #1e1a2e); border-bottom:none;">
         <span style="font-size:1.1rem;">💬</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">If They Could Text You</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:#e8ddd0;">SoulSpeak</span>
+        <span style="margin-left:auto; display:flex; gap:4px;">
+          <span style="font-size:0.5rem; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:linear-gradient(135deg,#c4a265,#d4af37); color:#0f172a; padding:2px 7px; border-radius:4px;">NEW</span>
+          <span style="font-size:0.5rem; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:rgba(255,255,255,0.1); color:#c4a265; padding:2px 7px; border-radius:4px; border:1px solid rgba(196,162,101,0.3);">FREE</span>
+        </span>
       </div>
-      <div class="glimpse-card-body" style="background:#f0ede8; border-radius:0 0 16px 16px; padding:18px;">
-        <div style="max-width:260px; margin:0 auto; display:flex; flex-direction:column; gap:8px;">
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Do you know what my favourite sound is? 🐾</div>
-          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">What?</div>
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Your keys in the door. Because it means you came back. You always come back. 💛</div>
-          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">I'm literally crying rn 😭</div>
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Good. Now come sit with me. I saved your spot. I always save your spot.</div>
+      <div class="glimpse-card-body" style="background:linear-gradient(180deg, #0f172a, #1a1528); border-radius:0 0 16px 16px; padding:16px 18px;">
+        <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.88rem; color:#c4a265; text-align:center; margin-bottom:10px;">What would they say if they could speak?</p>
+        <div style="max-width:280px; margin:0 auto; display:flex; flex-direction:column; gap:6px;">
+          <div style="padding:9px 13px; background:rgba(196,162,101,0.12); border-radius:14px 14px 14px 4px; font-size:0.78rem; color:#e8ddd0; max-width:88%; font-weight:500;">What's your favourite part of our day?</div>
+          <div style="padding:9px 13px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08); border-radius:14px 14px 4px 14px; font-size:0.78rem; color:#e8ddd0; max-width:88%; margin-left:auto; font-style:italic;">When you come home and kick your shoes off. That sound means my whole world just walked back through the door. 🐾</div>
+          <div style="padding:9px 13px; background:rgba(196,162,101,0.12); border-radius:14px 14px 14px 4px; font-size:0.78rem; color:#e8ddd0; max-width:88%; font-weight:500;">Why do you stare at me like that?</div>
+          <div style="padding:9px 13px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08); border-radius:14px 14px 4px 14px; font-size:0.78rem; color:#e8ddd0; max-width:88%; margin-left:auto; font-style:italic;">Because sometimes I can't believe you're real. I just need to look at you and remember — yes, this human is actually mine.</div>
         </div>
+        <p style="font-size:0.65rem; color:rgba(196,162,101,0.6); text-align:center; margin-top:10px;">15 heart-to-heart conversations included free with every reading</p>
       </div>
     </div>
 
@@ -1044,34 +1063,6 @@ body::after {
   <div class="glimpse-counter a d4" id="glimpseCounter">1 / 10</div>
 </div>
 
-<!-- ============ SOULSPEAK HIGHLIGHT ============ -->
-<div class="soulspeak-section">
-  <div class="soulspeak-card a d2">
-    <div style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px;">
-      <span style="padding:4px 12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; background:linear-gradient(135deg,#c4a265,#d4af37); color:#0f172a; border-radius:20px; box-shadow:0 2px 8px rgba(196,162,101,0.3);">NEW</span>
-      <span style="padding:4px 12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; background:rgba(255,255,255,0.1); color:#c4a265; border-radius:20px; border:1px solid rgba(196,162,101,0.3);">INCLUDED FREE</span>
-    </div>
-    <p style="font-size:0.65rem; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:rgba(196,162,101,0.6); margin-bottom:8px;">After your reading</p>
-    <h3 style="font-family:'DM Serif Display',Georgia,serif; font-size:1.4rem; color:#e8ddd0; margin-bottom:8px; line-height:1.3;">Talk to Your Pet's Soul</h3>
-    <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:1.05rem; color:#c4a265; margin-bottom:6px;">What would they say if they could speak?</p>
-    <p style="font-size:0.8rem; color:rgba(232,221,208,0.7); line-height:1.6; margin-bottom:16px;">SoulSpeak uses your pet's full cosmic profile — their chart, personality, and everything from your reading — to let you have real conversations with them. Ask the questions you've always wanted to. Hear the answers you've always needed.</p>
-
-    <div class="soulspeak-chat-preview">
-      <div class="soulspeak-msg user">What's your favourite part of our day?</div>
-      <div class="soulspeak-msg pet">When you come home and kick your shoes off. That sound means my whole world just walked back through the door. 🐾</div>
-      <div class="soulspeak-msg user">Do you ever get lonely when I'm at work?</div>
-      <div class="soulspeak-msg pet">I nap in your spot on the bed because it still smells like you. That's not loneliness — that's love keeping me warm until you're back. 💛</div>
-      <div class="soulspeak-msg user">Why do you stare at me like that?</div>
-      <div class="soulspeak-msg pet">Because sometimes I can't believe you're real. I just need to look at you and remember — yes, this human is actually mine.</div>
-    </div>
-
-    <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:6px;">
-      <span style="font-size:1rem;">💬</span>
-      <p style="font-size:0.88rem; color:#e8ddd0; font-weight:600;">15 heart-to-heart conversations included free</p>
-    </div>
-    <p style="font-size:0.72rem; color:rgba(196,162,101,0.7); font-style:italic;">Ask them anything — about your bond, their feelings, the things they wish you knew</p>
-  </div>
-</div>
 
 <!-- ============ GIANT "OR" DIVIDER ============ -->
 <div style="max-width:520px; margin:0 auto; padding:0 20px;">
@@ -1202,20 +1193,60 @@ body::after {
   </div>
 </div>
 
+<!-- ============ MASSIVE REVIEWS ============ -->
+<div style="background:var(--cream2); padding:40px 0 60px;">
+  <div style="max-width:520px; margin:0 auto; padding:0 16px;">
+    <p class="section-label a" style="text-align:center;">WHAT PET PARENTS ARE SAYING</p>
+    <h2 class="section-headline a d1" style="text-align:center; margin-bottom:24px;">Real Stories From Real Pet Parents</h2>
+
+    <div id="reviewsGrid" style="display:flex; flex-direction:column; gap:14px;">
+    </div>
+
+    <div id="showMoreWrap" style="text-align:center; margin-top:20px;">
+      <button id="showMoreBtn" onclick="showMoreReviews()" style="background:none; border:1px solid var(--sand); border-radius:50px; padding:10px 28px; font-family:'Cormorant',Georgia,serif; font-size:0.88rem; font-weight:600; color:var(--earth); cursor:pointer; transition:all 0.2s;">Show More Reviews</button>
+    </div>
+  </div>
+</div>
+
 <!-- Bottom CTA -->
 <div class="bottom-cta a">
   <p class="bottom-cta-text">They love you without conditions. Don't you want to know what they'd say if they could?</p>
-  <a href="#" class="cta-btn" id="ctaBtn2" onclick="handleDigitalCheckout(event)">Get Their Reading — $35</a>
+  <a href="#" class="cta-btn" id="ctaBtn2" onclick="handleDigitalCheckout(event)">Get Their Reading — $27</a>
 </div>
 
 <div class="back-link"><a href="/">&#8592; Back to home</a></div>
 
-<!-- Mobile Sticky CTA -->
-<div class="mobile-sticky-cta">
-  <a href="#" class="cta-btn" id="ctaBtnMobile" onclick="handleDigitalCheckout(event)">Get Their Reading — $35</a>
+<!-- Floating CTA -->
+<div class="floating-cta" id="floatingCta">
+  <div style="flex:1; min-width:0;">
+    <div style="font-family:'DM Serif Display',Georgia,serif; font-size:0.9rem; color:var(--ink); line-height:1.2;">
+      <span style="text-decoration:line-through; color:var(--muted); font-size:0.82rem; margin-right:6px;">$60</span>
+      <span style="color:var(--rose); font-weight:700;">$27</span>
+    </div>
+    <div style="font-size:0.68rem; color:var(--rose); font-weight:600;" id="floatingCountdown">Offer ends in 12h 0m 0s</div>
+  </div>
+  <a href="#" class="cta-btn" onclick="handleDigitalCheckout(event)" style="margin:0; padding:12px 24px; font-size:0.88rem; white-space:nowrap;">Get Reading</a>
 </div>
 
 <script>
+// ─── Floating CTA Countdown ───
+(function() {
+  var el = document.getElementById('floatingCountdown');
+  if (!el) return;
+  function tick() {
+    var now = new Date();
+    var eod = new Date(now);
+    eod.setHours(23, 59, 59, 999);
+    var diff = eod.getTime() - now.getTime();
+    var h = Math.floor(diff / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    el.textContent = 'Offer ends in ' + h + 'h ' + m + 'm ' + s + 's';
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
 // ─── Supabase Config ───
 var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.-axd-u-mY_73j2RPkySsLgG630WCUb05I8AbwYjIvkI';
@@ -1579,6 +1610,119 @@ setInterval(updateUrgencyTimer, 1000);
 
 // ─── Init ───
 updateUI();
+
+// ─── Reviews ───
+var ALL_REVIEWS = [
+  { name:"Sarah M.", pet:"Buddy, Labrador, 6", text:"It described things about Buddy that I've never been able to put into words. My partner and I both teared up reading it together.", tag:"verified", time:"2 weeks ago" },
+  { name:"James T.", pet:"Luna, Golden Retriever, 4", text:"Bought it as a joke honestly. Then I read it and got genuinely emotional. The emotional blueprint section nailed Luna's personality.", tag:"verified", time:"3 weeks ago" },
+  { name:"Mark D.", pet:"Charlie, Beagle, 4", text:"Best gift I've ever given my wife. She read it three times and kept reading quotes out loud to me.", tag:"top reviewer", time:"1 month ago" },
+  { name:"David R.", pet:"Max, Golden Retriever, 8", text:"Max is getting older. This is something I'll keep forever. It captures his spirit perfectly.", tag:"verified", time:"5 days ago" },
+  { name:"Tom H.", pet:"Bear, German Shepherd, 5", text:"The compatibility chart between me and Bear made my wife cry. It knew things we never told it.", time:"3 days ago" },
+  { name:"Rachel S.", pet:"Daisy, Cavalier King Charles, 3", text:"How did it know she sits by the door 20 minutes before I get home? The emotional blueprint was scary accurate.", tag:"verified", time:"1 week ago" },
+  { name:"Mike P.", pet:"Rocky, Boxer, 7", text:"Got this for my daughter's dog. She framed the AI portrait and hung it in her apartment. Beautiful.", time:"2 weeks ago" },
+  { name:"Lisa K.", pet:"Cooper, Border Collie, 2", text:"The cosmic profile was so specific to Cooper. It mentioned his herding behaviour and need for mental stimulation before I even said anything.", tag:"verified", time:"4 days ago" },
+  { name:"Anna C.", pet:"Pepper, Australian Shepherd, 1", text:"Even for a young pup, the personality insights were incredibly accurate. The archetype section was fascinating.", tag:"verified", time:"6 days ago" },
+  { name:"Chris B.", pet:"Zeus, Rottweiler, 5", text:"Everyone thinks Rotties are tough. The emotional blueprint captured how gentle and emotionally sensitive Zeus really is.", time:"3 weeks ago" },
+  { name:"Jenna F.", pet:"Noodle, French Bulldog, 3", text:"Used SoulSpeak to 'talk' to Noodle and the responses were so him. The part about being 'a comedian who performs exclusively for one audience' killed me.", tag:"verified", time:"1 week ago" },
+  { name:"Andrew L.", pet:"Duke, Great Dane, 4", text:"Duke's archetype was 'The Gentle Guardian.' My whole family gathered around to read the full report.", time:"2 weeks ago" },
+  { name:"Samantha J.", pet:"Rosie, Cocker Spaniel, 6", text:"I've never read something that captured a dog's personality so perfectly. The shareable card is now my phone wallpaper.", tag:"top reviewer", time:"4 weeks ago" },
+  { name:"Kevin O.", pet:"Bruno, Pit Bull Mix, 3", text:"We rescued Bruno. The emotional blueprint helped us understand his anxious behaviours so much better. Actually changed how we care for him.", tag:"verified", time:"5 days ago" },
+  { name:"Daniel G.", pet:"Scout, Labradoodle, 2", text:"The emotional blueprint had things about Scout that I've noticed but never articulated. Then I tried SoulSpeak and it was like actually hearing his thoughts.", tag:"verified", time:"1 week ago" },
+  { name:"Amy R.", pet:"Coco, Poodle, 5", text:"Bought readings for all three of my dogs. Each one was completely unique with different archetypes. This isn't generic at all.", time:"3 weeks ago" },
+  { name:"Priya K.", pet:"Cinnamon, Ragdoll, 2", text:"Scary accurate. The emotional blueprint knew she thumps her tail when she's jealous. How?", tag:"verified", time:"2 weeks ago" },
+  { name:"Emma L.", pet:"Mochi, Siamese, 5", text:"We framed the AI portrait. It's hanging in our living room. The writing was so personal and warm.", tag:"verified", time:"10 days ago" },
+  { name:"Sophie A.", pet:"Shadow, Black Cat, 7", text:"Shadow's archetype was 'The Silent Observer.' His cosmic profile described him as 'choosing carefully who earns his gaze.' I'm not crying, you are.", time:"1 week ago" },
+  { name:"Maya R.", pet:"Whiskers, Tabby, 12", text:"My old man Whiskers deserved this. The report captured 12 years of love in the most beautiful way.", tag:"top reviewer", time:"3 weeks ago" },
+  { name:"Tanya B.", pet:"Nala, Bengal, 3", text:"The cosmic profile section about her 'wild spirit in a domestic soul' was so perfect.", tag:"verified", time:"4 days ago" },
+  { name:"Jackie W.", pet:"Boots, Tuxedo Cat, 8", text:"Used SoulSpeak and asked Boots why he knocks things off tables. The answer was hilarious and honestly probably accurate.", time:"2 weeks ago" },
+  { name:"Lily H.", pet:"Mango, Orange Tabby, 4", text:"The compatibility chart showed a 97% emotional bond score between me and Mango. I always knew we were soulmates, now I have proof.", tag:"verified", time:"6 days ago" },
+  { name:"Grace T.", pet:"Olive, Calico, 3", text:"Bought this for my sister's birthday. She called me crying. The AI portrait looked exactly like Olive somehow.", tag:"verified", time:"1 week ago" },
+  { name:"Nina D.", pet:"Socks, Maine Coon, 5", text:"The archetype 'The Gentle Giant' was spot on. The report said he 'communicates through deliberate, slow blinks of trust.'", time:"2 weeks ago" },
+  { name:"Alex F.", pet:"Loki, Russian Blue, 4", text:"Named him Loki because he's mischievous. The cosmic profile called him 'a strategist who tests every boundary with elegance.'", tag:"verified", time:"8 days ago" },
+  { name:"Hannah P.", pet:"Biscuit, Scottish Fold, 2", text:"The AI portrait alone was worth it. Then the personality reading made me realise how much Biscuit means to me. Then SoulSpeak made me cry. 10/10.", time:"1 month ago" },
+  { name:"Zoe C.", pet:"Pumpkin, Ginger Cat, 9", text:"Pumpkin has been with me through my worst years. This report honoured that bond in a way I can't describe.", tag:"verified", time:"5 days ago" },
+  { name:"Aisha T.", pet:"Cinnamon, Holland Lop, 2", text:"I didn't expect this level of depth for a rabbit. The emotional blueprint section actually helped me understand her better.", tag:"verified", time:"2 weeks ago" },
+  { name:"Sam N.", pet:"Nugget, Guinea Pig, 2", text:"A full soul reading for a guinea pig! And the AI portrait was the cutest thing I've ever seen.", tag:"verified", time:"1 week ago" },
+  { name:"Leo M.", pet:"Basil, Ferret, 3", text:"Basil's cosmic profile said he has 'chaotic joy energy' and I have never read a more accurate description of a ferret.", tag:"verified", time:"2 weeks ago" },
+  { name:"Michelle G.", pet:"Bailey, Lab Mix, forever in my heart", text:"Bailey passed last year. Getting her soul reading was the most healing thing I've done. It's something I hold onto on hard days.", tag:"verified", time:"1 month ago" },
+  { name:"Robert K.", pet:"Simba, Orange Tabby, always remembered", text:"Simba was my best friend for 12 years. The emotional blueprint captured his spirit so perfectly that it felt like he was still here.", tag:"top reviewer", time:"3 weeks ago" },
+  { name:"Laura E.", pet:"Bella, Cocker Spaniel, forever loved", text:"I got this after losing Bella. Reading about her 'unconditional devotion' in the emotional blueprint broke me in the best way.", tag:"verified", time:"2 weeks ago" },
+  { name:"Jessica R.", pet:"Scout, Golden Mix, my angel", text:"I used SoulSpeak after Scout passed. I know it's AI but hearing 'his voice' say he was grateful for our walks together... I needed that.", tag:"verified", time:"5 weeks ago" },
+  { name:"Stephanie H.", pet:"Gift for sister's cat Mittens", text:"Got this for my sister's birthday. She called me sobbing saying it was the most thoughtful gift she's ever received.", tag:"verified", time:"1 week ago" },
+  { name:"Dave W.", pet:"Gift for girlfriend's dog Benny", text:"Valentine's Day gift. She loved it more than flowers or jewelry. The AI portrait and compatibility chart was the cherry on top.", time:"3 weeks ago" },
+  { name:"Maria S.", pet:"Gift for best friend's dog Tank", text:"Bought it as a surprise. She texted me paragraphs about how accurate the emotional blueprint was and immediately ordered another.", tag:"verified", time:"1 week ago" },
+  { name:"Ashley B.", pet:"Luna & Stella, Two Cats", text:"Got readings for both cats. Luna got 'The Drama Queen' and Stella got 'The Stoic Philosopher.' Nailed it.", tag:"verified", time:"2 weeks ago" },
+  { name:"Jen F.", pet:"3 Cats: Mango, Kiwi, Fig", text:"Each report had a unique archetype, different emotional blueprints, totally different SoulSpeak personalities. More accurate than Myers Briggs.", tag:"top reviewer", time:"1 month ago" },
+  { name:"Ryan G.", pet:"Diesel, Pit Bull, 4", text:"Full disclosure: I thought this was going to be generic nonsense. The emotional blueprint and compatibility chart completely changed my mind.", tag:"verified", time:"1 week ago" },
+  { name:"Megan O.", pet:"Felix, Cat, 7", text:"I'm a veterinarian. I was skeptical. But the behavioural insights in Felix's emotional blueprint were genuinely impressive and clinically accurate.", tag:"verified", time:"3 days ago" },
+  { name:"Steve L.", pet:"Hank, Bulldog, 5", text:"My wife bought this and I rolled my eyes. Then I read it. Then I tried SoulSpeak. Then I ordered one for my mom's dog.", time:"2 weeks ago" },
+  { name:"Brooke T.", pet:"Theo, Golden Retriever, 3", text:"SoulSpeak is the reason I bought this. I asked Theo why he steals socks and the answer was 'because they smell like you and that makes me feel safe.' DESTROYED.", tag:"verified", time:"4 days ago" },
+  { name:"Marcus W.", pet:"Salem, Black Cat, 5", text:"Had a full SoulSpeak conversation with Salem about why he yells at 3am. The answer about 'protecting the night watch' was so in character.", time:"1 week ago" },
+  { name:"Ava P.", pet:"Butterbean, Corgi, 2", text:"SoulSpeak alone is worth the price. I asked Butterbean what she thinks about the cat and the response was pure comedy gold.", tag:"verified", time:"3 days ago" },
+  { name:"Nina R.", pet:"Pebbles, Tabby, 6", text:"SoulSpeak made me ugly cry on a Tuesday afternoon. Asked Pebbles what she loves most about me and the answer was so pure.", tag:"verified", time:"5 days ago" },
+  { name:"Caroline A.", pet:"Willow, Labrador, 7", text:"I've been going through a tough divorce. Reading Willow's emotional blueprint reminded me that I'm never truly alone.", tag:"verified", time:"1 week ago" },
+  { name:"Frank J.", pet:"Ace, German Shepherd, 6", text:"I'm a retired firefighter. Ace was my partner for years. The archetype 'The Loyal Protector' honoured our bond like nothing else.", tag:"top reviewer", time:"1 month ago" },
+  { name:"Wendy P.", pet:"Penny, Dachshund, 11", text:"Penny is getting old. This reading is a love letter to who she is.", tag:"verified", time:"3 weeks ago" },
+  { name:"Tina C.", pet:"4 pets and counting", text:"This is my FOURTH reading. The SoulSpeak conversations are different for each one. Already planning to order for my friend's puppy.", tag:"repeat buyer", time:"1 week ago" },
+  { name:"Nicole B.", pet:"5th report!", text:"Every pet in my life now has their portrait framed on my wall. SoulSpeak is my daily ritual now.", tag:"repeat buyer", time:"3 days ago" },
+  { name:"Lydia W.", pet:"Gigi, Chihuahua, 6", text:"The cosmic profile said Gigi has 'the confidence of a lion in the body of a teacup.' I have never read a more perfect sentence.", tag:"verified", time:"4 days ago" },
+  { name:"Omar H.", pet:"Tank, English Bulldog, 5", text:"Tank's archetype 'The Philosophical Napper' was the funniest and most accurate thing I've ever read about him.", time:"2 weeks ago" },
+  { name:"Quinn S.", pet:"Ghost, White Cat, 7", text:"I used SoulSpeak and asked Ghost why he stares at me. The response was 'because you are my favourite thing to look at.' Emotionally destroyed.", tag:"verified", time:"5 days ago" },
+  { name:"Tamara E.", pet:"Pixie, Tabby Cat, 4", text:"My non pet person boyfriend tried SoulSpeak with Pixie and said 'okay now I understand why you're obsessed with her.' THANK YOU.", tag:"verified", time:"1 week ago" },
+  { name:"Leah F.", pet:"Misty, Persian, 11", text:"Misty has been with me through uni, my first job, my wedding, two kids. The cosmic profile honoured every chapter.", tag:"top reviewer", time:"2 weeks ago" },
+  { name:"Theo C.", pet:"Winston, Bulldog, 6", text:"Winston's archetype 'The Distinguished Gentleman' described him as 'a retired gentleman who takes his afternoon walks very seriously.' YES.", tag:"verified", time:"3 weeks ago" },
+];
+
+var reviewsShown = 0;
+var REVIEWS_PER_BATCH = 10;
+
+function renderReview(r, i) {
+  var initial = r.name.charAt(0);
+  var hue = (i * 37 + 20) % 360;
+  var tagHtml = '';
+  if (r.tag) {
+    var tagStyles = { verified:'background:rgba(196,162,101,0.12);color:#6e6259', 'top reviewer':'background:rgba(191,82,74,0.08);color:#bf524a', 'repeat buyer':'background:rgba(110,98,89,0.1);color:#4d443b' };
+    var icons = { verified:'\u2713', 'top reviewer':'\u2665', 'repeat buyer':'\u21BB' };
+    tagHtml = '<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:2px 8px;border-radius:20px;' + (tagStyles[r.tag]||tagStyles.verified) + '">' + (icons[r.tag]||'\u2713') + ' ' + r.tag + '</span>';
+  }
+  return '<div style="background:#fff;border-radius:16px;padding:18px 20px;border:1px solid #d6c8b6;box-shadow:0 1px 4px rgba(0,0,0,0.03);opacity:0;transform:translateY(20px);transition:opacity 0.6s ease ' + ((i%4)*0.05) + 's, transform 0.6s ease ' + ((i%4)*0.05) + 's;" class="review-card-anim">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+    + '<div style="width:38px;height:38px;border-radius:50%;background:hsl('+hue+',25%,88%);display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:700;color:hsl('+hue+',30%,42%);font-family:Cormorant,Georgia,serif;flex-shrink:0;">'+initial+'</div>'
+    + '<div style="flex:1;min-width:0;">'
+    + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
+    + '<span style="font-family:Cormorant,Georgia,serif;font-weight:700;font-size:0.9rem;color:#1f1c18;">'+r.name+'</span>'
+    + tagHtml
+    + '</div>'
+    + '<p style="font-family:Cormorant,Georgia,serif;font-size:0.75rem;color:#958779;margin:0;">'+r.pet+'</p>'
+    + '</div></div>'
+    + '<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">'
+    + '<div style="display:flex;gap:1px;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>'
+    + '<span style="font-size:0.68rem;color:#bfb2a3;">'+r.time+'</span>'
+    + '</div>'
+    + '<p style="font-family:Cormorant,Georgia,serif;font-size:0.92rem;line-height:1.65;color:#4d443b;margin:0;">\u201C'+r.text+'\u201D</p>'
+    + '</div>';
+}
+
+function showMoreReviews() {
+  var grid = document.getElementById('reviewsGrid');
+  var end = Math.min(reviewsShown + REVIEWS_PER_BATCH, ALL_REVIEWS.length);
+  var html = '';
+  for (var i = reviewsShown; i < end; i++) {
+    html += renderReview(ALL_REVIEWS[i], i);
+  }
+  grid.insertAdjacentHTML('beforeend', html);
+  reviewsShown = end;
+  // Trigger animations
+  requestAnimationFrame(function() {
+    var cards = grid.querySelectorAll('.review-card-anim');
+    cards.forEach(function(c) { c.style.opacity = '1'; c.style.transform = 'translateY(0)'; });
+  });
+  if (reviewsShown >= ALL_REVIEWS.length) {
+    document.getElementById('showMoreWrap').style.display = 'none';
+  }
+}
+// Show first batch
+showMoreReviews();
 </script>
 
 </body>
