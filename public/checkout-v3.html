@@ -336,9 +336,6 @@ body::after {
 }
 .glimpse-dot:hover { background:var(--earth); }
 .glimpse-dot.active { background:var(--rose); width:22px; border-radius:4px; }
-.glimpse-counter {
-  text-align:center; font-size:0.72rem; color:var(--muted); font-weight:600; margin-top:2px;
-}
 @media (min-width:641px) { .glimpse-carousel { max-width:900px; margin:0 auto; } }
 @media (max-width:640px) { .glimpse-nav { width:34px; height:34px; font-size:0.9rem; } .glimpse-nav.prev { left:4px; } .glimpse-nav.next { right:4px; } }
 
@@ -856,7 +853,28 @@ body::after {
       </div>
     </div>
 
-    <!-- 5. Criminal Record -->
+    <!-- 5. SoulSpeak — talk to your pet -->
+    <div class="glimpse-card">
+      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.06), rgba(196,162,101,0.08)); border-bottom:none;">
+        <span style="font-size:1.1rem;">💬</span>
+        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">SoulSpeak</span>
+        <span style="margin-left:auto;">
+          <span style="font-size:0.5rem; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:linear-gradient(135deg,#c4a265,#d4af37); color:#fff; padding:2px 7px; border-radius:4px;">NEW</span>
+        </span>
+      </div>
+      <div class="glimpse-card-body" style="background:#f0ede8; border-radius:0 0 16px 16px; padding:16px 18px;">
+        <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.88rem; color:var(--earth); text-align:center; margin-bottom:10px;">Talk to your pet's soul. Ask them anything.</p>
+        <div style="max-width:280px; margin:0 auto; display:flex; flex-direction:column; gap:8px;">
+          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Do you know how much I love you?</div>
+          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">I don't need you to tell me. I feel it when you whisper my name for no reason, when you check on me in the middle of the night, when you hold me a little longer than you need to. I've always known. 💛</div>
+          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">What do you need from me?</div>
+          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Just keep coming home. That's all I've ever needed. Everything else is extra. You are my whole life, and I'd choose you again in every single one. 🐾</div>
+        </div>
+        <p style="font-size:0.65rem; color:var(--muted); text-align:center; margin-top:10px; font-style:italic;">15 heart-to-heart conversations included with every reading</p>
+      </div>
+    </div>
+
+    <!-- 6. Criminal Record -->
     <div class="glimpse-card">
       <div class="glimpse-card-header" style="background:linear-gradient(135deg, #1a1a1a, #2d1b1b); border-bottom:none;">
         <span style="font-size:1.1rem;">🚨</span>
@@ -887,29 +905,6 @@ body::after {
           </div>
         </div>
         <p style="font-size:0.62rem; color:var(--muted); margin-top:8px; text-align:center; font-style:italic;">Sentence: Unlimited belly rubs, no parole</p>
-      </div>
-    </div>
-
-    <!-- 6. SoulSpeak — talk to your pet -->
-    <div class="glimpse-card">
-      <div class="glimpse-card-header" style="background:linear-gradient(135deg, rgba(191,82,74,0.06), rgba(196,162,101,0.08)); border-bottom:none;">
-        <span style="font-size:1.1rem;">💬</span>
-        <span style="font-family:'DM Serif Display',Georgia,serif; font-size:0.88rem; color:var(--ink);">SoulSpeak</span>
-        <span style="margin-left:auto; display:flex; gap:4px;">
-          <span style="font-size:0.5rem; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:linear-gradient(135deg,#c4a265,#d4af37); color:#fff; padding:2px 7px; border-radius:4px;">NEW</span>
-          <span style="font-size:0.5rem; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:var(--rose); color:#fff; padding:2px 7px; border-radius:4px;">FREE</span>
-        </span>
-      </div>
-      <div class="glimpse-card-body" style="background:#f0ede8; border-radius:0 0 16px 16px; padding:16px 18px;">
-        <p style="font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.88rem; color:var(--earth); text-align:center; margin-bottom:10px;">What would they say if they could speak?</p>
-        <div style="max-width:280px; margin:0 auto; display:flex; flex-direction:column; gap:8px;">
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">What's your favourite part of our day? 🐾</div>
-          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Tell me!</div>
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">When you come home and kick your shoes off. That sound means my whole world just walked back through the door. 💛</div>
-          <div style="padding:10px 14px; background:var(--rose); color:#fff; border-radius:16px 16px 4px 16px; font-size:0.82rem; max-width:85%; margin-left:auto; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,0.06);">I'm literally crying 😭</div>
-          <div style="padding:10px 14px; background:#fff; border-radius:16px 16px 16px 4px; font-size:0.82rem; color:var(--ink); max-width:88%; font-style:italic; box-shadow:0 1px 3px rgba(0,0,0,0.06);">Good. Now come sit with me. I saved your spot. I always save your spot.</div>
-        </div>
-        <p style="font-size:0.65rem; color:var(--muted); text-align:center; margin-top:10px; font-style:italic;">15 heart-to-heart conversations included free</p>
       </div>
     </div>
 
@@ -1027,7 +1022,6 @@ body::after {
   </div>
 
   <div class="glimpse-dots a d4" id="glimpseDots"></div>
-  <div class="glimpse-counter a d4" id="glimpseCounter">1 / 10</div>
 </div>
 
 
@@ -1512,7 +1506,6 @@ setInterval(updateUrgencyTimer, 1000);
 (function() {
   var carousel = document.getElementById('glimpseCarousel');
   var dotsWrap = document.getElementById('glimpseDots');
-  var counter = document.getElementById('glimpseCounter');
   var prevBtn = document.getElementById('glimpsePrev');
   var nextBtn = document.getElementById('glimpseNext');
   if (!carousel || !dotsWrap) return;
@@ -1547,7 +1540,6 @@ setInterval(updateUrgencyTimer, 1000);
     for (var j = 0; j < dots.length; j++) {
       dots[j].className = 'glimpse-dot' + (j === activeIdx ? ' active' : '');
     }
-    if (counter) counter.textContent = (activeIdx + 1) + ' / ' + total;
     if (prevBtn) prevBtn.className = 'glimpse-nav prev' + (activeIdx <= 0 ? ' hidden' : '');
     if (nextBtn) nextBtn.className = 'glimpse-nav next' + (activeIdx >= total - 1 ? ' hidden' : '');
   }
@@ -1637,28 +1629,14 @@ var REVIEWS_PER_BATCH = 10;
 
 function renderReview(r, i) {
   var initial = r.name.charAt(0);
-  var hue = (i * 37 + 20) % 360;
-  var tagHtml = '';
-  if (r.tag) {
-    var tagStyles = { verified:'background:rgba(196,162,101,0.12);color:#6e6259', 'top reviewer':'background:rgba(191,82,74,0.08);color:#bf524a', 'repeat buyer':'background:rgba(110,98,89,0.1);color:#4d443b' };
-    var icons = { verified:'\u2713', 'top reviewer':'\u2665', 'repeat buyer':'\u21BB' };
-    tagHtml = '<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.62rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;padding:2px 8px;border-radius:20px;' + (tagStyles[r.tag]||tagStyles.verified) + '">' + (icons[r.tag]||'\u2713') + ' ' + r.tag + '</span>';
-  }
-  return '<div style="background:#fff;border-radius:16px;padding:18px 20px;border:1px solid #d6c8b6;box-shadow:0 1px 4px rgba(0,0,0,0.03);opacity:0;transform:translateY(20px);transition:opacity 0.6s ease ' + ((i%4)*0.05) + 's, transform 0.6s ease ' + ((i%4)*0.05) + 's;" class="review-card-anim">'
-    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
-    + '<div style="width:38px;height:38px;border-radius:50%;background:hsl('+hue+',25%,88%);display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:700;color:hsl('+hue+',30%,42%);font-family:Cormorant,Georgia,serif;flex-shrink:0;">'+initial+'</div>'
-    + '<div style="flex:1;min-width:0;">'
-    + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
-    + '<span style="font-family:Cormorant,Georgia,serif;font-weight:700;font-size:0.9rem;color:#1f1c18;">'+r.name+'</span>'
-    + tagHtml
-    + '</div>'
-    + '<p style="font-family:Cormorant,Georgia,serif;font-size:0.75rem;color:#958779;margin:0;">'+r.pet+'</p>'
-    + '</div></div>'
-    + '<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">'
-    + '<div style="display:flex;gap:1px;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>'
-    + '<span style="font-size:0.68rem;color:#bfb2a3;">'+r.time+'</span>'
-    + '</div>'
-    + '<p style="font-family:Cormorant,Georgia,serif;font-size:0.92rem;line-height:1.65;color:#4d443b;margin:0;">\u201C'+r.text+'\u201D</p>'
+  var tagHtml = r.tag ? ' <span class="tc-verified">' + r.tag.toUpperCase() + '</span>' : '';
+  // Extract a short quote from the text (first sentence or first ~50 chars)
+  var shortQuote = r.text.length > 60 ? r.text.substring(0, r.text.indexOf('.') > 10 ? r.text.indexOf('.') + 1 : 55) + '…' : r.text;
+  return '<div class="testimonial-card review-card-anim" style="opacity:0;transform:translateY(20px);transition:opacity 0.6s ease ' + ((i%4)*0.05) + 's, transform 0.6s ease ' + ((i%4)*0.05) + 's;">'
+    + '<div class="tc-header"><div class="tc-avatar">' + initial + '</div><div><div class="tc-name">' + r.name + tagHtml + '</div><div class="tc-pet">' + r.pet + '</div></div></div>'
+    + '<div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>'
+    + '<div class="tc-quote">\u201C' + shortQuote + '\u201D</div>'
+    + '<div class="tc-body">' + r.text + '</div>'
     + '</div>';
 }
 
