@@ -233,6 +233,8 @@ serve(async (req) => {
           includes_portrait: includesPortrait ? "true" : "false",
           includes_book: includesBook ? "true" : "false",
           occasion_mode: occasionMode,
+          include_horoscope: input.includeHoroscope ? "true" : "false",
+          horoscope_pet_count: input.includeHoroscope ? petCount.toString() : "0",
         },
       });
 

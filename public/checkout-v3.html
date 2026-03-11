@@ -614,7 +614,7 @@ body::after {
           <span style="font-size:1rem;">🐾</span>
           <div>
             <span style="font-weight:600; font-size:0.88rem; color:var(--ink);">More than one pet?</span>
-            <span style="font-size:0.75rem; color:var(--rose); font-weight:600; margin-left:6px;">Save up to 30%</span>
+            <span style="font-size:0.75rem; color:var(--rose); font-weight:600; margin-left:6px;">Save up to 50%</span>
           </div>
         </div>
         <div id="multiPetArrow" style="color:var(--muted); transition:transform 0.3s; font-size:0.9rem;">&#9660;</div>
@@ -637,19 +637,19 @@ body::after {
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
             <div class="discount-tier" data-tier="2" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(2)">
               <div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">2 pets</div>
-              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">15% off</div>
+              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">20% off</div>
             </div>
             <div class="discount-tier" data-tier="3" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(3)">
               <div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">3 pets</div>
-              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">20% off</div>
+              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">30% off</div>
             </div>
             <div class="discount-tier" data-tier="4" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(4)">
               <div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">4 pets</div>
-              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">25% off</div>
+              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">40% off</div>
             </div>
             <div class="discount-tier" data-tier="5" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(5)">
               <div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">5+ pets</div>
-              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">30% off</div>
+              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">50% off</div>
             </div>
           </div>
 
@@ -1173,8 +1173,8 @@ body::after {
 <div class="floating-cta" id="floatingCta">
   <div style="flex:1; min-width:0;">
     <div style="font-family:'DM Serif Display',Georgia,serif; font-size:0.9rem; color:var(--ink); line-height:1.2;">
-      <span style="text-decoration:line-through; color:var(--muted); font-size:0.82rem; margin-right:6px;">$60</span>
-      <span style="color:var(--rose); font-weight:700;">$27</span>
+      <span class="floating-old-price" style="text-decoration:line-through; color:var(--muted); font-size:0.82rem; margin-right:6px;">$60</span>
+      <span class="floating-price" style="color:var(--rose); font-weight:700;">$27</span>
     </div>
     <div style="font-size:0.68rem; color:var(--rose); font-weight:600;" id="floatingCountdown">Offer ends in 12h 0m 0s</div>
   </div>
@@ -1212,12 +1212,12 @@ var basePrice = 27;
 var portraitPrice = 8;
 var multiPetOpen = false;
 
-// ─── Volume Discounts ───
+// ─── Volume Discounts (MUST match server: create-checkout/index.ts) ───
 function getDiscount(n) {
-  if (n >= 5) return 0.30;
-  if (n >= 4) return 0.25;
-  if (n >= 3) return 0.20;
-  if (n >= 2) return 0.15;
+  if (n >= 5) return 0.50;
+  if (n >= 4) return 0.40;
+  if (n >= 3) return 0.30;
+  if (n >= 2) return 0.20;
   return 0;
 }
 
@@ -1269,7 +1269,7 @@ function updateUI() {
       html += '<div class="order-summary-row"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Portrait</span><span>$' + calc.portraitSub.toFixed(2) + '</span></div>';
     }
     if (horoscopeOn) {
-      html += '<div class="order-summary-row" style="color:var(--green);"><span>Weekly Horoscope (1st month free)</span><span>$0.00</span></div>';
+      html += '<div class="order-summary-row" style="color:var(--green);"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Weekly Horoscope (1st month free)</span><span>$0.00</span></div>';
     }
     if (calc.discountAmt > 0) {
       html += '<div class="order-summary-row discount"><span>Multi-pet discount (' + Math.round(calc.rate * 100) + '%)</span><span>-$' + calc.discountAmt.toFixed(2) + '</span></div>';
@@ -1285,8 +1285,15 @@ function updateUI() {
   var ctaText = 'Get Their Reading \u2014 $' + priceStr;
   document.getElementById('ctaBtn').textContent = ctaText;
   document.getElementById('ctaBtn2').textContent = ctaText;
-  var mobileCta = document.getElementById('ctaBtnMobile');
-  if (mobileCta) mobileCta.textContent = 'Get Their Reading \u2014 $' + priceStr;
+
+  // Update floating CTA price
+  var floatingPrice = document.querySelector('#floatingCta .floating-price');
+  if (floatingPrice) floatingPrice.textContent = '$' + priceStr;
+  var floatingOld = document.querySelector('#floatingCta .floating-old-price');
+  if (floatingOld) {
+    var originalPerPet = 60; // original price per pet
+    floatingOld.textContent = '$' + (originalPerPet * petCount);
+  }
 
   // Highlight active tier
   document.querySelectorAll('.discount-tier').forEach(function(el) {
@@ -1436,7 +1443,7 @@ async function handleDigitalCheckout(e) {
         abVariant: 'C',
         includesPortrait: portraitOn,
         includesBook: false,
-        includesHoroscope: horoscopeOn,
+        includeHoroscope: horoscopeOn,
         occasionMode: 'discover',
         petCount: petCount,
       }),
