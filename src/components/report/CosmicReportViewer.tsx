@@ -400,9 +400,6 @@ export function CosmicReportViewer({
         </>
       )}
 
-      {/* ═══ READING TRANSITION ═══ */}
-      <ReadingTransition petName={petName} />
-
       {/* ══════════════════════════════════════════
           CHAPTER 2 — THE SOUL MAP
          ══════════════════════════════════════════ */}
@@ -410,26 +407,16 @@ export function CosmicReportViewer({
 
       {/* ═══ BIRTH CHART TABLE ═══ */}
       <BirthChartTable chartPlacements={report.chartPlacements || {}} petName={petName} />
-      <SectionDivider />
-
-      {/* Planet explanations are now inline within each reading section via planetExplanation field */}
 
       {/* ═══ AURA VISUAL ═══ */}
       <AuraVisual aura={report.aura} sunSign={sunSign} />
 
       {/* ═══ LUMINOUS FIELD (detailed aura) ═══ */}
       {report.luminousField && (
-        <ReportSectionCard
-          icon="✨"
-          iconClass="bg-purple-400/10"
-          label="Luminous Field"
+        <LuminousFieldCard
           title={report.luminousField.title}
           content={report.luminousField.content}
-          tipBox={
-            report.luminousField.howToSense
-              ? { icon: '👁️', label: 'How to sense it', text: report.luminousField.howToSense }
-              : undefined
-          }
+          howToSense={report.luminousField.howToSense}
         />
       )}
 
@@ -439,25 +426,24 @@ export function CosmicReportViewer({
         dominantElement={element}
         petName={petName}
       />
-      <SectionDivider />
 
-      {/* ═══ PASSAGE 1: Before readings ═══ */}
-      <StaticPassage
-        species={species}
-        lines={[
-          'Every animal that shares our life',
-          'carries a universe inside them.',
-          '',
-          'A world of feeling, instinct, and devotion',
-          'that runs deeper than we can see.',
-          '',
-          'Astrology doesn\u2019t create these truths.',
-          'It reveals them.',
-          '',
-          'What follows is a map of the soul',
-          'you already know by heart.',
-        ]}
-      />
+      {/* ═══ READING TRANSITION (gateway into readings) ═══ */}
+      <ReadingTransition petName={petName} />
+
+      {/* ═══ PASSAGE 1: Before readings (dark Ch2 theme) ═══ */}
+      <DarkPassage lines={[
+        'Every animal that shares our life',
+        'carries a universe inside them.',
+        '',
+        'A world of feeling, instinct, and devotion',
+        'that runs deeper than we can see.',
+        '',
+        'Astrology doesn\u2019t create these truths.',
+        'It reveals them.',
+        '',
+        'What follows is a map of the soul',
+        'you already know by heart.',
+      ]} />
 
       {/* ═══ READING SECTIONS: First Half (I-VI) ═══ */}
       {readingSections.slice(0, 6).map((config, i) => renderReadingSection(config, i))}
@@ -471,10 +457,7 @@ export function CosmicReportViewer({
       {/* ═══ CELESTIAL CHOREOGRAPHY (planetary aspects) ═══ */}
       {report.celestialChoreography && (
         <>
-          <ReportSectionCard
-            icon="✶"
-            iconClass="bg-indigo-500/10"
-            label="Celestial Choreography"
+          <CelestialChoreographyCard
             title={report.celestialChoreography.title}
             content={report.celestialChoreography.content}
             funFact={report.celestialChoreography.funFact}
@@ -2097,6 +2080,233 @@ function PrologueSection({ prologue, petName }: { prologue: string; petName: str
 }
 
 // ═══════════════════════════════════════════════
+// DARK PASSAGE (Ch2 themed poetic interlude)
+// ═══════════════════════════════════════════════
+function DarkPassage({ lines }: { lines: string[] }) {
+  const s = useScrollReveal();
+
+  const stanzas: string[][] = [];
+  let current: string[] = [];
+  for (const line of lines) {
+    if (line === '') {
+      if (current.length > 0) { stanzas.push(current); current = []; }
+    } else {
+      current.push(line);
+    }
+  }
+  if (current.length > 0) stanzas.push(current);
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.15 } } }}
+      className="max-w-[480px] mx-auto"
+      style={{ padding: 'clamp(32px, 6vw, 48px) clamp(24px, 6vw, 40px)' }}
+    >
+      {/* Top accent */}
+      <motion.div
+        variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="w-12 h-[1px] mx-auto mb-5"
+        style={{ background: 'linear-gradient(90deg, transparent, #b8a0d4, transparent)', transformOrigin: 'center' }}
+      />
+
+      {stanzas.map((stanza, si) => (
+        <motion.div
+          key={si}
+          variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } } }}
+          className={si < stanzas.length - 1 ? 'mb-4' : ''}
+        >
+          {stanza.map((line, li) => {
+            const isKeyLine = (si === 0 && li === 0) ||
+              line.startsWith('Astrology') ||
+              line.startsWith('What follows');
+            return (
+              <p
+                key={li}
+                className={`leading-[1.7] mx-auto max-w-[400px] text-center ${isKeyLine ? 'text-white' : 'text-white/50 italic'}`}
+                style={{
+                  fontFamily: isKeyLine ? 'DM Serif Display, serif' : 'Cormorant, serif',
+                  fontSize: isKeyLine ? 'clamp(1rem, 3vw, 1.08rem)' : 'clamp(0.9rem, 2.6vw, 0.98rem)',
+                }}
+              >
+                {line}
+              </p>
+            );
+          })}
+        </motion.div>
+      ))}
+
+      {/* Bottom accent */}
+      <motion.div
+        variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
+        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
+        className="w-12 h-[1px] mx-auto mt-5"
+        style={{ background: 'linear-gradient(90deg, transparent, #b8a0d4, transparent)', transformOrigin: 'center' }}
+      />
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// LUMINOUS FIELD CARD (dark purple themed)
+// ═══════════════════════════════════════════════
+function formatDarkContent(raw: string): string {
+  return raw
+    .replace(/\n\n/g, '<br /><br />')
+    .replace(/ — /g, '. ')
+    .replace(/ – /g, '. ')
+    .replace(/^- /gm, '&bull; ')
+    .replace(/\n- /g, '<br />&bull; ');
+}
+
+function LuminousFieldCard({ title, content, howToSense }: { title: string; content: string; howToSense?: string }) {
+  const s = useScrollReveal();
+  const [showTip, setShowTip] = useState(false);
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto rounded-[20px] relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(165deg, #2a1f2a 0%, #1a1520 100%)',
+        border: '1px solid rgba(184,160,212,0.15)',
+        boxShadow: '0 8px 40px rgba(42,31,42,0.35)',
+      }}
+    >
+      {/* Corner glows */}
+      <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+        style={{ background: 'radial-gradient(circle, rgba(184,160,212,0.4), transparent 70%)' }} />
+      <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+        style={{ background: 'radial-gradient(circle, rgba(184,160,212,0.4), transparent 70%)' }} />
+
+      <div className="relative z-10 p-6 sm:p-7">
+        {/* Icon + label */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0"
+            style={{ background: 'rgba(184,160,212,0.12)', border: '1px solid rgba(184,160,212,0.2)' }}>
+            ✨
+          </div>
+          <div>
+            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#b8a0d4]">
+              Luminous Field
+            </div>
+            <h3 className="text-[1.1rem] text-white mt-0.5" style={{ fontFamily: 'DM Serif Display, serif' }}>{title}</h3>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div
+          className="text-[0.86rem] leading-[1.85] text-white/70"
+          dangerouslySetInnerHTML={{ __html: formatDarkContent(content) }}
+        />
+
+        {/* How to sense it tip */}
+        {howToSense && (
+          <div className="mt-5">
+            <button
+              onClick={() => setShowTip(!showTip)}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[0.68rem] font-semibold transition-all hover:scale-105 uppercase tracking-[1.5px]"
+              style={{
+                background: showTip ? 'rgba(184,160,212,0.15)' : 'rgba(184,160,212,0.08)',
+                border: '1px solid rgba(184,160,212,0.25)',
+                color: '#b8a0d4',
+              }}
+            >
+              <span className="text-[0.75rem]">👁️</span>
+              How to sense it
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showTip ? 'rotate-180' : ''}`} />
+            </button>
+            <AnimatePresence>
+              {showTip && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div className="mt-3 pl-4 border-l-2 border-[#b8a0d4]/30">
+                    <p className="text-[0.82rem] text-white/50 leading-[1.6] italic"
+                      style={{ fontFamily: 'Cormorant, serif' }}>
+                      {howToSense}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// CELESTIAL CHOREOGRAPHY CARD (dark purple themed)
+// ═══════════════════════════════════════════════
+function CelestialChoreographyCard({ title, content, funFact }: { title: string; content: string; funFact?: string }) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto rounded-[20px] relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(165deg, #2a1f2a 0%, #1a1520 100%)',
+        border: '1px solid rgba(184,160,212,0.15)',
+        boxShadow: '0 8px 40px rgba(42,31,42,0.35)',
+      }}
+    >
+      {/* Corner glows */}
+      <div className="absolute top-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+        style={{ background: 'radial-gradient(circle, rgba(184,160,212,0.4), transparent 70%)' }} />
+      <div className="absolute bottom-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+        style={{ background: 'radial-gradient(circle, rgba(184,160,212,0.4), transparent 70%)' }} />
+
+      <div className="relative z-10 p-6 sm:p-7">
+        {/* Icon + label */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0"
+            style={{ background: 'rgba(184,160,212,0.12)', border: '1px solid rgba(184,160,212,0.2)' }}>
+            ✶
+          </div>
+          <div>
+            <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#b8a0d4]">
+              Celestial Choreography
+            </div>
+            <h3 className="text-[1.1rem] text-white mt-0.5" style={{ fontFamily: 'DM Serif Display, serif' }}>{title}</h3>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div
+          className="text-[0.86rem] leading-[1.85] text-white/70"
+          dangerouslySetInnerHTML={{ __html: formatDarkContent(content) }}
+        />
+
+        {/* Fun fact */}
+        {funFact && (
+          <p className="mt-5 text-[0.78rem] text-[#b8a0d4]/70 italic leading-[1.6] pl-4 border-l-2 border-[#b8a0d4]/20"
+            style={{ fontFamily: 'Cormorant, serif' }}
+          >
+            {funFact}
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
 // MID-READING TRANSITION
 // ═══════════════════════════════════════════════
 function MidReadingTransition({ petName }: { petName: string }) {
@@ -2106,38 +2316,60 @@ function MidReadingTransition({ petName }: { petName: string }) {
       ref={s.ref}
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
-      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1, ease: 'easeOut' } } }}
-      className="py-14 px-6 max-w-[520px] mx-auto"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } } }}
+      className="mx-4 my-6 max-w-[520px] sm:mx-auto rounded-[20px] relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(165deg, #2a1f2a 0%, #1a1520 100%)',
+        border: '1px solid rgba(184,160,212,0.15)',
+      }}
     >
-      <div className="text-center relative py-8">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-3">
-          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-          <span className="text-[#c4a265]/40 text-[0.6rem]">✦</span>
-          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-        </div>
+      {/* Corner glows */}
+      <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none opacity-20"
+        style={{ background: 'radial-gradient(circle, rgba(184,160,212,0.4), transparent 70%)' }} />
+      <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full pointer-events-none opacity-20"
+        style={{ background: 'radial-gradient(circle, rgba(184,160,212,0.4), transparent 70%)' }} />
 
-        <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#c4a265]/70 mb-3">
+      <div className="text-center relative py-12 px-8">
+        {/* Vertical accent line */}
+        <div className="w-[1px] h-8 mx-auto mb-5"
+          style={{ background: 'linear-gradient(180deg, transparent, #b8a0d4, transparent)' }} />
+
+        {/* Pulsing star */}
+        <div className="mx-auto mb-5 w-3 h-3 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, #b8a0d4, transparent)',
+            boxShadow: '0 0 12px rgba(184,160,212,0.5), 0 0 24px rgba(184,160,212,0.2)',
+            animation: 'mid-pulse 2.5s ease-in-out infinite',
+          }}
+        />
+
+        <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#b8a0d4]/70 mb-3">
           Going Deeper
         </div>
         <h2
-          className="text-[1.6rem] sm:text-[1.8rem] text-[#3d2f2a] leading-[1.2] mb-3"
+          className="text-[1.6rem] sm:text-[1.8rem] text-white leading-[1.2] mb-3"
           style={{ fontFamily: 'DM Serif Display, serif' }}
         >
           The Hidden Layers of {petName}&rsquo;s Soul
         </h2>
         <p
-          className="text-[0.95rem] text-[#9a8578] leading-[1.8] max-w-[360px] mx-auto"
+          className="text-[0.95rem] text-white/60 leading-[1.8] max-w-[360px] mx-auto"
           style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
         >
           The outer planets, karmic points, and soul contracts reveal what lies beneath the surface.
         </p>
 
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-3">
-          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-          <span className="text-[#c4a265]/40 text-[0.6rem]">✦</span>
-          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-        </div>
+        {/* Bottom accent line */}
+        <div className="w-[1px] h-8 mx-auto mt-5"
+          style={{ background: 'linear-gradient(180deg, transparent, #b8a0d4, transparent)' }} />
       </div>
+
+      <style>{`
+        @keyframes mid-pulse {
+          0%, 100% { transform: scale(1); opacity: 0.7; }
+          50% { transform: scale(1.5); opacity: 1; }
+        }
+      `}</style>
     </motion.div>
   );
 }

@@ -22,68 +22,126 @@ const fillColors: Record<string, string> = {
 };
 
 export function ElementalBalance({ elementalBalance, dominantElement, petName }: ElementalBalanceProps) {
-  const header = useScrollReveal();
-  const bars = useScrollReveal();
-
+  const container = useScrollReveal();
   const elementOrder = ['Fire', 'Earth', 'Air', 'Water'];
 
   return (
-    <>
-      <motion.div
-        ref={header.ref}
-        initial="hidden"
-        animate={header.isInView ? 'visible' : 'hidden'}
-        variants={header.variants}
-        className="text-center px-6 py-5 max-w-[520px] mx-auto"
-      >
-        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265]">
-          Elemental Balance
-        </div>
-        <h2 className="font-dm-serif text-[1.2rem] text-[#3d2f2a] mt-1.5">
-          {petName}'s Inner Composition
-        </h2>
-        <p className="text-[0.84rem] leading-[1.75] text-[#9a8578] max-w-[380px] mx-auto mt-1.5 mb-2.5">
-          How the four elements shape {petName}'s temperament.
-        </p>
-      </motion.div>
+    <motion.div
+      ref={container.ref}
+      initial="hidden"
+      animate={container.isInView ? 'visible' : 'hidden'}
+      variants={container.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto relative rounded-[20px] overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #2a1f2a 0%, #1a1520 100%)',
+        border: '1px solid rgba(184,160,212,0.15)',
+      }}
+    >
+      {/* Corner glow accents */}
+      <div
+        className="pointer-events-none absolute top-0 left-0 w-32 h-32 rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(184,160,212,0.12) 0%, transparent 70%)',
+          transform: 'translate(-40%, -40%)',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 right-0 w-32 h-32 rounded-full"
+        style={{
+          background: 'radial-gradient(circle, rgba(184,160,212,0.10) 0%, transparent 70%)',
+          transform: 'translate(40%, 40%)',
+        }}
+      />
 
-      <motion.div
-        ref={bars.ref}
-        initial="hidden"
-        animate={bars.isInView ? 'visible' : 'hidden'}
-        variants={bars.variants}
-        className="px-6 max-w-[520px] mx-auto"
-      >
-        {elementOrder.map((element) => {
-          const config = elementConfig[element];
-          const pct = elementalBalance[element] || elementalBalance[element.toLowerCase()] || 0;
-          return (
-            <div key={element} className="flex items-center gap-2.5 mb-2">
-              <span className="w-[50px] text-[0.72rem] font-semibold text-[#3d2f2a] text-right">
-                {config.emoji} {element}
-              </span>
-              <div className="flex-1 h-2 bg-[#e8ddd0] rounded overflow-hidden">
-                <div
-                  className="h-full rounded transition-all duration-1000 ease-out"
-                  style={{
-                    width: bars.isInView ? `${pct}%` : '0%',
-                    background: fillColors[config.key],
-                  }}
-                />
-              </div>
-              <span className="text-[0.7rem] text-[#9a8578] w-[30px]">{pct}%</span>
-            </div>
-          );
-        })}
-
-        <div className="text-center py-1 px-6">
-          <p className="text-[0.78rem] text-[#9a8578] max-w-[360px] mx-auto">
-            {dominantElement ? (
-              <>Heavily {dominantElement}-dominant — {petName} lives through {dominantElement === 'Water' ? 'feelings' : dominantElement === 'Fire' ? 'passion' : dominantElement === 'Earth' ? 'stability' : 'thought'}.</>
-            ) : null}
+      <div className="relative z-10 px-6 pt-6 pb-5">
+        {/* Header inside dark container */}
+        <div className="text-center mb-5">
+          <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#b8a0d4] mb-1.5">
+            Elemental Balance
+          </div>
+          <h2 className="font-dm-serif text-[1.2rem] text-white mt-0">
+            {petName}'s Inner Composition
+          </h2>
+          <p className="text-[0.84rem] leading-[1.75] text-white/50 max-w-[360px] mx-auto mt-1.5">
+            How the four elements shape {petName}'s temperament.
           </p>
         </div>
-      </motion.div>
-    </>
+
+        {/* Element cards */}
+        <div className="flex flex-col gap-2.5">
+          {elementOrder.map((element, index) => {
+            const config = elementConfig[element];
+            const pct = elementalBalance[element] || elementalBalance[element.toLowerCase()] || 0;
+            const isDominant = dominantElement === element;
+
+            return (
+              <motion.div
+                key={element}
+                initial={{ opacity: 0, y: 10 }}
+                animate={container.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                transition={{ duration: 0.4, delay: 0.15 + index * 0.08, ease: 'easeOut' }}
+                className="rounded-[12px] px-4 py-3"
+                style={{
+                  background: isDominant
+                    ? 'rgba(184,160,212,0.10)'
+                    : 'rgba(255,255,255,0.05)',
+                  border: isDominant
+                    ? '1px solid rgba(184,160,212,0.35)'
+                    : '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-lg leading-none">{config.emoji}</span>
+                  <span className="text-[0.82rem] font-semibold text-white flex-1">
+                    {element}
+                    {isDominant && (
+                      <span
+                        className="ml-2 text-[0.6rem] font-bold tracking-[1.5px] uppercase align-middle"
+                        style={{ color: '#b8a0d4' }}
+                      >
+                        Dominant
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[0.78rem] text-white/60 font-medium tabular-nums">
+                    {pct}%
+                  </span>
+                </div>
+
+                {/* Animated gradient bar */}
+                <div
+                  className="w-full h-1.5 rounded-full overflow-hidden"
+                  style={{ background: 'rgba(255,255,255,0.10)' }}
+                >
+                  <motion.div
+                    className="h-full rounded-full"
+                    initial={{ width: '0%' }}
+                    animate={container.isInView ? { width: `${pct}%` } : { width: '0%' }}
+                    transition={{ duration: 0.9, delay: 0.25 + index * 0.1, ease: 'easeOut' }}
+                    style={{ background: fillColors[config.key] }}
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Summary text */}
+        {dominantElement && (
+          <div className="text-center mt-4">
+            <p className="text-[0.78rem] text-white/70 max-w-[360px] mx-auto">
+              Heavily {dominantElement}-dominant — {petName} lives through{' '}
+              {dominantElement === 'Water'
+                ? 'feelings'
+                : dominantElement === 'Fire'
+                ? 'passion'
+                : dominantElement === 'Earth'
+                ? 'stability'
+                : 'thought'}.
+            </p>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }

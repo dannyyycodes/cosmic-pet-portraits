@@ -45,50 +45,164 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-6 px-5 bg-white rounded-[14px] border border-[#e8ddd0] text-center max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+      style={{
+        background: 'linear-gradient(145deg, #2a1f2a 0%, #1f1828 50%, #1a1520 100%)',
+        borderRadius: '20px',
+        border: '1px solid rgba(184,160,212,0.15)',
+        padding: '28px 20px',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265]">
+      {/* Corner glow accents */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '140px',
+          height: '140px',
+          background: 'radial-gradient(circle at top left, rgba(184,160,212,0.12) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          right: 0,
+          width: '140px',
+          height: '140px',
+          background: 'radial-gradient(circle at bottom right, rgba(184,160,212,0.10) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          width: '100px',
+          height: '100px',
+          background: 'radial-gradient(circle at top right, rgba(139,92,246,0.08) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Label */}
+      <div
+        style={{
+          fontSize: '0.6rem',
+          fontWeight: 700,
+          letterSpacing: '2.5px',
+          textTransform: 'uppercase',
+          color: '#b8a0d4',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         Aura Reading
       </div>
-      <h2 className="font-dm-serif text-[1.2rem] text-[#3d2f2a] mt-1.5">
+
+      {/* Title */}
+      <h2
+        className="font-dm-serif"
+        style={{
+          fontSize: '1.25rem',
+          color: '#ffffff',
+          marginTop: '6px',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         {aura.primary}
         {aura.secondary ? ` with ${aura.secondary}` : ''}
       </h2>
 
-      {/* Gradient orb */}
-      <div className="w-[160px] h-[160px] rounded-full mx-auto my-6 relative flex items-center justify-center">
-        {/* Outer glow */}
+      {/* Orb container */}
+      <div
+        style={{
+          width: '200px',
+          height: '200px',
+          borderRadius: '50%',
+          margin: '28px auto',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1,
+        }}
+      >
+        {/* Outer glow ring — slowest */}
         <div
-          className="absolute inset-[-20px] rounded-full"
           style={{
-            background: `radial-gradient(circle, ${primaryColor}20 0%, transparent 70%)`,
-            animation: 'aura-breathe 3s ease-in-out infinite',
+            position: 'absolute',
+            inset: '-32px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${primaryColor}18 0%, transparent 68%)`,
+            animation: 'aura-breathe 4s ease-in-out infinite',
           }}
         />
-        {/* Middle ring */}
+        {/* Middle glow ring */}
         <div
-          className="absolute inset-[-10px] rounded-full"
           style={{
-            background: `radial-gradient(circle, ${secondaryColor}30 0%, transparent 70%)`,
-            animation: 'aura-breathe 3s ease-in-out infinite 0.4s',
+            position: 'absolute',
+            inset: '-18px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${secondaryColor}28 0%, transparent 68%)`,
+            animation: 'aura-breathe 4s ease-in-out infinite 0.6s',
+          }}
+        />
+        {/* Inner glow ring */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: '-8px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${primaryColor}35 0%, transparent 68%)`,
+            animation: 'aura-breathe 4s ease-in-out infinite 1.2s',
           }}
         />
         {/* Main orb */}
         <div
-          className="w-full h-full rounded-full"
           style={{
-            background: `radial-gradient(circle at 35% 35%, ${primaryColor}90, ${secondaryColor}70, ${primaryColor}40)`,
-            boxShadow: `0 0 40px ${primaryColor}40, 0 0 80px ${secondaryColor}20`,
-            animation: 'aura-breathe 3s ease-in-out infinite',
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            background: `radial-gradient(circle at 35% 35%, ${primaryColor}95, ${secondaryColor}75, ${primaryColor}45)`,
+            boxShadow: `0 0 50px ${primaryColor}50, 0 0 100px ${secondaryColor}28, inset 0 0 30px rgba(255,255,255,0.06)`,
+            animation: 'aura-breathe 4s ease-in-out infinite',
           }}
         />
         {/* Zodiac icon overlay */}
-        <span className="absolute text-[2.2rem] z-[1] drop-shadow-md" style={{ filter: 'brightness(0) invert(1)', opacity: 0.85 }}>
+        <span
+          style={{
+            position: 'absolute',
+            fontSize: '3.2rem',
+            zIndex: 2,
+            filter: 'brightness(0) invert(1)',
+            opacity: 0.9,
+            textShadow: `0 0 20px ${primaryColor}80`,
+          }}
+        >
           {zodiacIcon}
         </span>
       </div>
 
-      <p className="text-[0.84rem] leading-[1.75] text-[#5a4a42] max-w-[340px] mx-auto">
+      {/* Meaning text */}
+      <p
+        style={{
+          fontSize: '0.84rem',
+          lineHeight: 1.75,
+          color: 'rgba(255,255,255,0.80)',
+          maxWidth: '340px',
+          margin: '0 auto',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         {aura.meaning}
       </p>
 
