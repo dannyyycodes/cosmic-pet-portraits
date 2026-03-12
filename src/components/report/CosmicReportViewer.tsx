@@ -185,13 +185,13 @@ const chapters = [
   },
   {
     number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '🎭',
-    bg: 'linear-gradient(165deg, #fff8f0 0%, #ffefd9 100%)', accent: '#e8943a', textColor: '#3d2f2a',
-    border: '2px solid rgba(232,148,58,0.15)', ornament: '🐾',
+    bg: 'linear-gradient(165deg, #faf5f0 0%, #f0e8dc 100%)', accent: '#c4a265', textColor: '#3d2f2a',
+    border: '2px solid rgba(196,162,101,0.15)', ornament: '🐾',
   },
   {
-    number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '🔮',
-    bg: 'linear-gradient(165deg, #1a1f2a 0%, #0f1320 100%)', accent: '#7ba4d4', textColor: '#ffffff',
-    border: '1px solid rgba(123,164,212,0.2)', ornament: '💭',
+    number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '💭',
+    bg: 'linear-gradient(165deg, #f5efe6 0%, #ede5d8 100%)', accent: '#c4a265', textColor: '#3d2f2a',
+    border: '2px solid rgba(196,162,101,0.18)', ornament: '✦',
   },
   {
     number: 5, title: 'Why They Chose You', subtitle: 'This was never random', icon: '💕',
@@ -1155,7 +1155,7 @@ function ChapterProgressBar({ chapters: chapterList }: { chapters: typeof chapte
 // ═══════════════════════════════════════════════
 function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
   const s = useScrollReveal();
-  const isDark = [4, 7].includes(chapter.number);
+  const isDark = [7].includes(chapter.number);
   const subtitleColor = isDark ? `${chapter.accent}aa` : '#9a8578';
 
   return (
@@ -1297,94 +1297,88 @@ function PetMonologue({
     }, []);
 
   return (
-    <>
-      {/* Emotional intro */}
-      <motion.div
-        ref={intro.ref}
-        initial="hidden"
-        animate={intro.isInView ? 'visible' : 'hidden'}
-        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } } }}
-        className="text-center px-6 py-8 max-w-[520px] mx-auto"
+    <motion.div
+      ref={intro.ref}
+      initial="hidden"
+      animate={intro.isInView ? 'visible' : 'hidden'}
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } } }}
+      className="mx-4 my-3 max-w-[520px] sm:mx-auto rounded-[18px] overflow-hidden bg-white border border-[#e8ddd0]"
+      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+    >
+      {/* Header */}
+      <div
+        className="px-6 pt-7 pb-5 sm:px-8 text-center"
+        style={{ background: 'linear-gradient(170deg, #faf6ef 0%, #f5efe6 100%)' }}
       >
-        <div className="flex items-center justify-center gap-3 mb-5">
-          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-          <span className="text-[#c4a265]/50 text-[0.7rem]">✦</span>
-          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(196,162,101,0.4))' }} />
+          <span className="text-[#c4a265]/50 text-[0.5rem]">✦</span>
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(196,162,101,0.4))' }} />
         </div>
         <p
-          className="text-[1.1rem] text-[#3d2f2a] leading-[1.6] mb-2"
+          className="text-[1.15rem] text-[#3d2f2a] leading-[1.5] mb-1"
           style={{ fontFamily: 'DM Serif Display, serif' }}
         >
           If {petName} could speak to you
         </p>
         <p
-          className="text-[0.95rem] text-[#9a8578] italic leading-[1.7]"
+          className="text-[0.92rem] text-[#9a8578] italic leading-[1.6]"
           style={{ fontFamily: 'Cormorant, serif' }}
         >
           just once, in words you could understand&hellip;
         </p>
-      </motion.div>
-
-      {/* Dark immersive monologue container */}
-      <div
-        className="mx-4 my-2.5 max-w-[520px] sm:mx-auto rounded-[20px] relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 50%, #1a1210 100%)',
-          boxShadow: '0 8px 40px rgba(61,47,42,0.3)',
-          border: '1px solid rgba(196,162,101,0.15)',
-        }}
-      >
-        {/* Glow accents */}
-        <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
-          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
-        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
-          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
-
-        <div className="relative z-10 px-7 py-10 sm:px-9">
-          {/* Opening quote */}
-          <div className="text-[3.5rem] leading-none text-[#c4a265]/30 font-serif mb-2">&ldquo;</div>
-
-          {/* Staggered paragraphs */}
-          <div className="space-y-5">
-            {paragraphs.map((para, i) => (
-              <motion.p
-                key={i}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-20px' }}
-                transition={{ duration: 0.7, delay: i * 0.05, ease: 'easeOut' }}
-                className="text-[0.95rem] sm:text-[1rem] text-white/85 leading-[1.95] italic"
-                style={{ fontFamily: 'Cormorant, serif' }}
-              >
-                {para}
-              </motion.p>
-            ))}
-          </div>
-
-          {/* Closing quote */}
-          <div className="text-[3.5rem] leading-none text-[#c4a265]/30 font-serif mt-2 text-right">&rdquo;</div>
-
-          <div className="w-12 h-[1px] bg-[#c4a265]/25 mx-auto my-4" />
-
-          {/* Attribution */}
-          <div className="text-center">
-            <div className="text-[0.88rem] text-[#c4a265] font-bold">
-              — {petName} {signIcon}
-            </div>
-            <div className="text-[0.68rem] text-white/40 mt-0.5">{sunSign}</div>
-          </div>
-
-          {/* Post script — separate card feel */}
-          {monologue.postScript && (
-            <div className="mt-6 p-4 rounded-[12px]" style={{ background: 'rgba(196,162,101,0.08)', border: '1px solid rgba(196,162,101,0.12)' }}>
-              <p className="text-[0.82rem] text-white/70 italic leading-[1.7]" style={{ fontFamily: 'Cormorant, serif' }}>
-                P.S. {monologue.postScript}
-              </p>
-            </div>
-          )}
-        </div>
       </div>
-    </>
+
+      {/* Divider */}
+      <div className="flex items-center justify-center gap-3 py-1 px-6"
+        style={{ background: 'linear-gradient(90deg, transparent 5%, rgba(196,162,101,0.06) 50%, transparent 95%)' }}
+      >
+        <div className="w-10 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #c4a265)' }} />
+        <span className="text-[#c4a265]/40 text-[0.5rem]">&ldquo;</span>
+        <div className="w-10 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #c4a265)' }} />
+      </div>
+
+      {/* Monologue body */}
+      <div className="px-7 py-7 sm:px-9">
+        <div className="space-y-4">
+          {paragraphs.map((para, i) => (
+            <motion.p
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-20px' }}
+              transition={{ duration: 0.6, delay: i * 0.04, ease: 'easeOut' }}
+              className="text-[0.92rem] sm:text-[0.96rem] text-[#5a4a42] leading-[2] italic"
+              style={{ fontFamily: 'Cormorant, serif' }}
+            >
+              {para}
+            </motion.p>
+          ))}
+        </div>
+
+        {/* Attribution */}
+        <div className="flex items-center justify-center gap-3 mt-6 mb-2">
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(196,162,101,0.3))' }} />
+          <span className="text-[#c4a265]/40 text-[0.5rem]">&rdquo;</span>
+          <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(196,162,101,0.3))' }} />
+        </div>
+        <div className="text-center">
+          <div className="text-[0.85rem] text-[#c4a265] font-bold">
+            — {petName} {signIcon}
+          </div>
+          <div className="text-[0.65rem] text-[#9a8578] mt-0.5">{sunSign}</div>
+        </div>
+
+        {/* Post script */}
+        {monologue.postScript && (
+          <div className="mt-5 p-4 rounded-[12px] bg-[#faf6ef] border-l-[3px] border-[#c4a265]">
+            <p className="text-[0.82rem] text-[#5a4a42] italic leading-[1.7]" style={{ fontFamily: 'Cormorant, serif' }}>
+              P.S. {monologue.postScript}
+            </p>
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }
 
@@ -1413,32 +1407,37 @@ function VillainOriginStory({
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px]"
-      style={{
-        background: 'linear-gradient(165deg, #2a1f2a 0%, #1a1520 100%)',
-        boxShadow: '0 4px 20px rgba(42,31,42,0.3)',
-      }}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px] bg-white border border-[#e8ddd0]"
+      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
     >
-      <div className="p-6">
-        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-purple-300/70 mb-1">
-          🦹 Villain Origin Story
+      {/* Header */}
+      <div
+        className="px-6 pt-5 pb-4 sm:px-7"
+        style={{ background: 'linear-gradient(170deg, #faf6ef 0%, #f5efe6 100%)', borderBottom: '1px solid #e8ddd0' }}
+      >
+        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#c4a265] mb-1">
+          Villain Origin Story
         </div>
-        <h3 className="text-[1.1rem] text-white mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>
+        <h3 className="text-[1.15rem] text-[#3d2f2a]" style={{ fontFamily: 'DM Serif Display, serif' }}>
           {petName}&rsquo;s Descent into Chaos
         </h3>
+      </div>
 
-        <div className="space-y-4">
-          {sections.map((sec) => (
-            <div key={sec.label}>
-              <div className="text-[0.62rem] font-bold text-purple-300/60 uppercase tracking-[1.5px] mb-1">
-                {sec.icon} {sec.label}
-              </div>
-              <p className="text-[0.84rem] text-white/80 leading-[1.7]"
-                 dangerouslySetInnerHTML={{ __html: (sec.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
-              />
+      {/* Story sections */}
+      <div className="px-6 py-5 sm:px-7 space-y-5">
+        {sections.map((sec) => (
+          <div key={sec.label}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-[0.85rem]">{sec.icon}</span>
+              <span className="text-[0.58rem] font-bold text-[#c4a265] uppercase tracking-[1.5px]">
+                {sec.label}
+              </span>
             </div>
-          ))}
-        </div>
+            <p className="text-[0.86rem] text-[#5a4a42] leading-[1.75]"
+               dangerouslySetInnerHTML={{ __html: (sec.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ') }}
+            />
+          </div>
+        ))}
       </div>
     </motion.div>
   );
@@ -1875,35 +1874,55 @@ function CrimesSection({ crimes }: { crimes: string[] }) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px]"
-      style={{
-        background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 100%)',
-        boxShadow: '0 4px 20px rgba(61,47,42,0.25)',
-      }}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto overflow-hidden rounded-[18px] bg-white border border-[#e8ddd0]"
+      style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
     >
-      <div className="p-6">
-        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#c4a265] mb-1">
-          🚨 Criminal Record
+      {/* Header */}
+      <div
+        className="px-6 pt-5 pb-4 sm:px-7"
+        style={{ background: 'linear-gradient(170deg, #faf6ef 0%, #f5efe6 100%)', borderBottom: '1px solid #e8ddd0' }}
+      >
+        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#c4a265] mb-1">
+          Criminal Record
         </div>
-        <h3 className="text-[1.1rem] text-white mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>
+        <h3 className="text-[1.15rem] text-[#3d2f2a]" style={{ fontFamily: 'DM Serif Display, serif' }}>
           Top 5 Crimes
         </h3>
+      </div>
 
-        <div className="space-y-3">
-          {crimes.map((crime, i) => (
+      {/* Crimes list */}
+      <div className="px-6 py-5 sm:px-7 space-y-0">
+        {crimes.map((crime, i) => {
+          const isEven = i % 2 === 0;
+          return (
             <div
               key={i}
-              className="flex gap-3 items-start"
+              className="flex gap-3.5 items-start py-3.5"
+              style={{
+                background: isEven ? 'transparent' : '#fdf9f5',
+                marginLeft: '-1.5rem',
+                marginRight: '-1.5rem',
+                paddingLeft: '1.5rem',
+                paddingRight: '1.5rem',
+                borderBottom: i < crimes.length - 1 ? '1px solid #f0e8de' : 'none',
+              }}
             >
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#c4a265]/20 flex items-center justify-center text-[0.7rem] font-bold text-[#c4a265] mt-0.5">
+              <span
+                className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[0.72rem] font-bold mt-0.5"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(196,162,101,0.08))',
+                  border: '1px solid rgba(196,162,101,0.2)',
+                  color: '#c4a265',
+                }}
+              >
                 {i + 1}
               </span>
-              <p className="text-[0.84rem] text-white/85 leading-[1.6]"
-                 dangerouslySetInnerHTML={{ __html: (crime || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+              <p className="text-[0.86rem] text-[#5a4a42] leading-[1.7]"
+                 dangerouslySetInnerHTML={{ __html: (crime || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ') }}
               />
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </motion.div>
   );
@@ -2172,33 +2191,39 @@ function PrologueSection({ prologue, petName }: { prologue: string; petName: str
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.5, ease: 'easeOut' } } }}
-      className="px-6 py-8 max-w-[520px] mx-auto"
+      className="mx-4 my-3 max-w-[520px] sm:mx-auto"
     >
       <div
-        className="p-8 sm:p-10 rounded-[20px] text-center relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 50%, #1a1210 100%)',
-          boxShadow: '0 8px 32px rgba(61,47,42,0.3)',
-        }}
+        className="rounded-[18px] overflow-hidden bg-white border border-[#e8ddd0]"
+        style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
       >
-        {/* Corner glow */}
-        <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-20"
-          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.3), transparent 70%)' }} />
-        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-20"
-          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.3), transparent 70%)' }} />
-
-        <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#c4a265]/70 mb-4">
-          Prologue
+        {/* Warm-tinted header */}
+        <div
+          className="px-6 pt-7 pb-5 sm:px-8 text-center"
+          style={{ background: 'linear-gradient(170deg, #faf6ef 0%, #f5efe6 100%)' }}
+        >
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(196,162,101,0.4))' }} />
+            <span className="text-[#c4a265]/50 text-[0.5rem]">✦</span>
+            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(196,162,101,0.4))' }} />
+          </div>
+          <div className="text-[0.5rem] font-bold tracking-[3px] uppercase text-[#c4a265] mb-1">
+            Prologue
+          </div>
         </div>
-        <p
-          className="text-[1.02rem] sm:text-[1.08rem] text-white/85 leading-[2.1] px-2"
-          style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
-          dangerouslySetInnerHTML={{ __html: prologue.replace(/\n\n/g, '<br /><br />') }}
-        />
-        <div className="flex items-center justify-center gap-3 mt-6">
-          <div className="w-8 h-[1px] bg-[#c4a265]/30" />
-          <span className="text-[#c4a265]/40 text-[0.6rem]">✦</span>
-          <div className="w-8 h-[1px] bg-[#c4a265]/30" />
+
+        {/* Content */}
+        <div className="px-6 py-6 sm:px-8 text-center">
+          <p
+            className="text-[1rem] sm:text-[1.05rem] text-[#5a4a42] leading-[2.1]"
+            style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
+            dangerouslySetInnerHTML={{ __html: prologue.replace(/\n\n/g, '<br /><br />') }}
+          />
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(196,162,101,0.3))' }} />
+            <span className="text-[#c4a265]/40 text-[0.5rem]">✦</span>
+            <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, rgba(196,162,101,0.3))' }} />
+          </div>
         </div>
       </div>
     </motion.div>
