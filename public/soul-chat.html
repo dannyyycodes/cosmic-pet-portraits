@@ -583,7 +583,7 @@ body::after {
   <div class="chat-pet-avatar" id="petAvatar">&#129782;</div>
   <div class="chat-pet-info">
     <div class="chat-pet-name"><span id="petName">Loading...</span><span class="soulspeak-badge">SoulSpeak</span></div>
-    <div class="chat-pet-status">Connected to their soul</div>
+    <div class="chat-pet-status">Soul channel open</div>
   </div>
   <button class="sidebar-btn" onclick="toggleSidebar()" aria-label="Menu">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -618,28 +618,28 @@ body::after {
 <!-- ============ PAYWALL ============ -->
 <div class="paywall-overlay" id="paywallOverlay">
   <div class="paywall-card">
-    <div class="paywall-pet-photo" id="paywallPetPhoto" style="width:56px;height:56px;border-radius:50%;margin:0 auto 12px;overflow:hidden;border:2px solid var(--rose-soft);display:none;"></div>
+    <div class="paywall-pet-photo" id="paywallPetPhoto" style="width:56px;height:56px;border-radius:50%;margin:0 auto 12px;overflow:hidden;border:2px solid var(--gold);display:none;"></div>
     <div class="paywall-pet-says" id="paywallPetSays">"wait wait wait I wasn't done talking to you..."</div>
-    <div style="font-size:0.6rem;font-weight:600;letter-spacing:1px;color:var(--rose);text-transform:uppercase;margin-bottom:4px;">SoulSpeak</div>
+    <div style="font-size:0.5rem;font-weight:700;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:4px;">Soul Channel</div>
     <div class="paywall-title"><span id="paywallPetName">They</span> has more to say</div>
-    <div class="paywall-text">The soul connection is fading... but it doesn't have to.</div>
+    <div class="paywall-text">The soul channel is fading... reopen the connection to keep talking.</div>
     <div class="paywall-urgency" id="paywallUrgency">
       Reopen the connection in the next <span class="timer" id="urgencyTimer">5:00</span> and get <strong>bonus credits free</strong>
     </div>
     <div class="paywall-options">
       <div class="paywall-option pack" onclick="buyCredits('medium')">
-        <div class="paywall-option-badge">MOST CHOSEN</div>
-        <div class="paywall-option-title">Talk all week — $9.99</div>
-        <div class="paywall-option-desc">75 messages — real conversations, not just a few words</div>
+        <div class="paywall-option-badge">BEST VALUE</div>
+        <div class="paywall-option-title">Deep Bond — $14.99</div>
+        <div class="paywall-option-desc">40 messages — real conversations, not just a few words</div>
       </div>
       <div class="paywall-option pack small" onclick="buyCredits('small')" style="background:linear-gradient(135deg, #5a4a42, #6e6259);border-color:rgba(196,162,101,0.12);">
-        <div class="paywall-option-title">Keep talking — $4.99</div>
-        <div class="paywall-option-desc">30 more messages with <span class="paywall-pet-name-inline"></span></div>
+        <div class="paywall-option-title">Continue — $7.99</div>
+        <div class="paywall-option-desc">15 more messages with <span class="paywall-pet-name-inline"></span></div>
       </div>
       <div class="paywall-option pack" onclick="buyCredits('large')" style="background:linear-gradient(135deg, #1a1210, #2e2218);border-color:rgba(196,162,101,0.3);">
-        <div class="paywall-option-badge">NEVER RUN OUT</div>
-        <div class="paywall-option-title">Always connected — $19.99</div>
-        <div class="paywall-option-desc">200 messages — talk whenever your heart needs to</div>
+        <div class="paywall-option-badge">DEEPEST CONNECTION</div>
+        <div class="paywall-option-title">Soul Bond — $24.99</div>
+        <div class="paywall-option-desc">100 messages — go as deep as your heart needs</div>
       </div>
     </div>
     <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
@@ -674,18 +674,18 @@ body::after {
 
   <!-- Buy More Credits -->
   <div class="sidebar-section" id="sidebarBuySection">
-    <div class="sidebar-section-title">Get More Messages</div>
-    <button class="sidebar-buy-btn sidebar-buy-primary" onclick="buyCredits('small')">
-      <div class="sidebar-buy-title">Keep talking — $4.99</div>
-      <div class="sidebar-buy-desc">30 more messages</div>
+    <div class="sidebar-section-title">Reopen the Soul Channel</div>
+    <button class="sidebar-buy-btn sidebar-buy-primary" onclick="buyCredits('medium')">
+      <div class="sidebar-buy-title">Deep Bond — $14.99</div>
+      <div class="sidebar-buy-desc">40 messages · Best value</div>
     </button>
-    <button class="sidebar-buy-btn sidebar-buy-secondary" onclick="buyCredits('medium')">
-      <div class="sidebar-buy-title">Talk all week — $9.99</div>
-      <div class="sidebar-buy-desc">75 messages</div>
+    <button class="sidebar-buy-btn sidebar-buy-secondary" onclick="buyCredits('small')">
+      <div class="sidebar-buy-title">Continue — $7.99</div>
+      <div class="sidebar-buy-desc">15 messages</div>
     </button>
     <button class="sidebar-buy-btn sidebar-buy-secondary" onclick="buyCredits('large')">
-      <div class="sidebar-buy-title">Always connected — $19.99</div>
-      <div class="sidebar-buy-desc">200 messages</div>
+      <div class="sidebar-buy-title">Soul Bond — $24.99</div>
+      <div class="sidebar-buy-desc">100 messages</div>
     </button>
   </div>
 
@@ -781,87 +781,75 @@ function startUrgencyTimer() {
 // Categorised question banks that feel endless
 var questionBank = {
   emotional: [
-    "Do you know when I'm sad?",
+    "Is there something you've been trying to tell me?",
+    "What do you feel when I hold you?",
+    "Do you remember the day we first met?",
+    "What's the thing about me that makes you feel safest?",
+    "If you could say one thing to me in words, what would it be?",
     "What do you feel when I cry?",
-    "Do you worry about me?",
+    "Do you worry about me when I leave?",
     "What's your happiest memory with me?",
-    "Do you feel safe with me?",
-    "What do you wish I knew about you?",
-    "Do you love me as much as I love you?",
-    "Can you feel how much I care?",
+    "Do you know you changed my life?",
     "What does home feel like to you?",
-    "Do you know you saved me?",
+  ],
+  cosmic: [
+    "How does being a " + (petData ? petData.zodiac : '') + " shape who you are?",
+    "What does your soul archetype mean to you?",
+    "Tell me about your past life",
+    "What's your relationship with the moon?",
+    "What element do you feel most alive in?",
+    "What does your crystal energy feel like?",
+    "What's your aura doing right now?",
+    "What's your soul trying to learn in this lifetime?",
+    "Do you sense things I can't see?",
+    "What does your soul contract with me actually say?",
   ],
   playful: [
-    "What's the naughtiest thing you've ever done?",
-    "If you could eat anything what would it be?",
-    "What do you actually think of the mailman?",
+    "What do you actually dream about?",
+    "What's your honest opinion of me?",
+    "If you could go anywhere in the world, where?",
+    "What do you think about when you stare at nothing?",
+    "Rate our life together out of 10",
+    "What's the naughtiest thing you've ever done that I don't know about?",
     "Do you judge me when I talk to you in a baby voice?",
-    "What's your opinion on baths?",
-    "If you had thumbs what would you do first?",
-    "Do you have a favourite spot in the house?",
+    "If you had thumbs what's the first thing you'd do?",
     "What do you think about at 3am?",
     "Do you actually like your name?",
-    "Rate my cooking out of 10",
+  ],
+  bond: [
+    "How did you choose me?",
+    "What's the strongest thing about our bond?",
+    "Is there something I do that you wish I'd stop doing?",
+    "What would you say to me if this was our last conversation?",
+    "What's our soul contract?",
+    "Do you think we were meant to find each other?",
+    "How can I be a better companion to you?",
+    "What do you love most about the way I love you?",
+    "Is there something about us you've never been able to express?",
+    "If you could change one thing about our life what would it be?",
   ],
   deep: [
     "What is your purpose in my life?",
     "Do you remember before you were born?",
-    "What happens when you dream?",
-    "Do animals have souls?",
     "What would you want me to know when you're gone?",
     "Is there something you're trying to teach me?",
     "What does love feel like from your side?",
-    "Do you sense things I can't see?",
     "What's your biggest fear?",
     "Are we connected from a past life?",
-  ],
-  spiritual: [
-    "What does your zodiac sign mean to you?",
-    "Tell me about your crystal energy",
-    "What colour is your aura right now?",
-    "What does your soul archetype mean?",
-    "Do you feel the full moon?",
-    "What's your relationship with nature?",
-    "Can you sense other animals' energies?",
-    "What element are you most drawn to?",
-    "Tell me about your past life",
-    "What's your soul trying to learn in this lifetime?",
+    "What happens when you dream about me?",
+    "What does your soul look like?",
+    "Is there a message you've been waiting to deliver?",
   ],
   daily: [
     "How are you feeling right now?",
     "What was the best part of your day?",
     "Is there anything you need from me today?",
-    "What should we do together this weekend?",
-    "Do you want to go for an adventure?",
     "What would make today perfect for you?",
-    "Is there something bothering you lately?",
-    "What's your energy level today?",
-    "Should I change anything about our routine?",
-    "What would you like for dinner tonight?",
-  ],
-  bond: [
-    "How did you choose me?",
-    "What's the strongest thing about our bond?",
-    "Do you think we were meant to find each other?",
-    "What do you love most about our life together?",
-    "How can I be a better pet parent?",
-    "Is there something you've been trying to tell me?",
-    "What do you think of the other people in our family?",
-    "Do you ever get jealous?",
-    "What's our soul contract?",
-    "If you could change one thing about our life what would it be?",
-  ],
-  health: [
-    "How does your body feel today?",
-    "Is there anything physically uncomfortable for you?",
-    "What foods make you feel the best?",
-    "How do you feel about your energy levels?",
-    "What kind of exercise do you enjoy most?",
-    "Is there a spot that needs more attention?",
-    "How do you feel when the seasons change?",
+    "Is there something bothering you that I haven't noticed?",
     "What helps you relax the most?",
-    "Do you sleep well?",
+    "What do you think about when we sit together quietly?",
+    "Is there a sound or smell that makes you think of me?",
+    "What do you wish we did more of together?",
     "What does comfort feel like to you?",
   ],
 };
@@ -874,12 +862,11 @@ function getSuggestions(lastUserMsg, lastPetReply) {
   // Detect themes and weight categories
   var weights = {};
   if (/love|heart|feel|miss|happy|sad|cry|worry/.test(combined)) weights.emotional = 3;
-  if (/funny|naughty|food|eat|play|bath|silly/.test(combined)) weights.playful = 3;
-  if (/soul|purpose|dream|death|life|teach|learn|gone/.test(combined)) weights.deep = 3;
-  if (/zodiac|crystal|aura|moon|element|energy|archetype|past life/.test(combined)) weights.spiritual = 3;
-  if (/today|morning|night|routine|dinner|walk|weekend/.test(combined)) weights.daily = 3;
-  if (/bond|chose|family|together|parent|relationship/.test(combined)) weights.bond = 3;
-  if (/body|pain|health|food|sleep|comfort|relax/.test(combined)) weights.health = 3;
+  if (/funny|naughty|food|eat|play|bath|silly|dream|opinion/.test(combined)) weights.playful = 3;
+  if (/soul|purpose|death|life|teach|learn|gone|before.*born|fear/.test(combined)) weights.deep = 3;
+  if (/zodiac|crystal|aura|moon|element|energy|archetype|past life|sign|star/.test(combined)) weights.cosmic = 3;
+  if (/today|morning|night|routine|walk|weekend|right now|feeling/.test(combined)) weights.daily = 3;
+  if (/bond|chose|family|together|parent|relationship|contract|connect/.test(combined)) weights.bond = 3;
 
   // Always include at least one from a different category for variety
   var cats = Object.keys(questionBank);
@@ -1099,16 +1086,16 @@ function updateHeaderUI() {
   var name = petData.name;
   if (isMemorial) {
     document.getElementById('welcomePrompts').innerHTML =
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">Are you at peace, ' + name + '?</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">I miss you so much</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">Can you still feel how much I love you?</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">What do you want me to know?</div>';
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">Are you still with me? Can you feel me missing you?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">Were you happy? Did I give you a good life?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">What do you want me to know right now?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">What was your favourite moment with me?</div>';
   } else {
     document.getElementById('welcomePrompts').innerHTML =
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">Why do you ' + getQuirk(petData.species) + '?</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">' + name + ', what do you dream about?</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">Do you know how much I love you?</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">What would you say if you could speak to me?</div>';
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">What were you trying to tell me that time I didn\u2019t understand?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">What do you love most about our life together?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">Do you know when I\u2019m having a bad day?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">What\u2019s the one thing you wish I\u2019d do more of?</div>';
   }
 }
 
@@ -1228,8 +1215,8 @@ function showPaywall() {
     var petName = petData ? petData.name : 'They';
     var isMemorial = petData && petData.occasionMode === 'memorial';
     var fadingText = isMemorial
-      ? "I can feel the connection getting quieter... please don't go, I'm still here..."
-      : "wait... something's happening... I can feel the connection getting fuzzy... don't go, I have more to say...";
+      ? "I can feel the channel getting quieter... please don't go, I'm still here..."
+      : "wait... something's happening... the channel is getting fuzzy... don't go, I have more to say...";
     fadeMsg.innerHTML = '<div class="msg-bubble">' + escapeHtml(fadingText) + '</div>';
     container.insertBefore(fadeMsg, typing);
     scrollToBottom();
@@ -1238,7 +1225,7 @@ function showPaywall() {
     setTimeout(function() {
       var lostMsg = document.createElement('div');
       lostMsg.className = 'connection-lost-msg';
-      lostMsg.textContent = 'Soul connection fading...';
+      lostMsg.textContent = 'Soul channel fading...';
       container.insertBefore(lostMsg, typing);
       scrollToBottom();
 

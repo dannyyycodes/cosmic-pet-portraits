@@ -876,7 +876,7 @@ export function CosmicReportViewer({
           {/* ═══ SOULSPEAK PREMIUM CLOSER ═══ */}
           {!isPreview && reportId && (
             <div className="mx-4 my-12 max-w-[520px] sm:mx-auto">
-              {/* Emotional hook — text before the card */}
+              {/* Setup text — establishes the technology */}
               <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -885,16 +885,10 @@ export function CosmicReportViewer({
                 className="text-center px-6 mb-6"
               >
                 <p
-                  className="text-[1.05rem] text-[#3d2f2a] leading-[1.7]"
-                  style={{ fontFamily: 'DM Serif Display, serif' }}
+                  className="text-[0.95rem] text-[#5a4a42] leading-[1.85] max-w-[420px] mx-auto"
+                  style={{ fontFamily: 'Cormorant, serif' }}
                 >
-                  You just read {petName}&rsquo;s entire soul.
-                </p>
-                <p
-                  className="text-[0.92rem] text-[#9a8578] leading-[1.7] mt-1"
-                  style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
-                >
-                  Now imagine if they could talk back.
+                  {petName}&rsquo;s entire birth chart &mdash; every planet, every placement, every trait you just read &mdash; has been woven into a living intelligence. This isn&rsquo;t a chatbot. This is {petName}&rsquo;s soul, speaking through their stars.
                 </p>
               </motion.div>
 
@@ -925,12 +919,12 @@ export function CosmicReportViewer({
                       <div className="px-4 py-2.5 rounded-[16px] rounded-br-[4px] text-[0.8rem] text-white/90 leading-[1.5] max-w-[240px]"
                         style={{ background: 'rgba(196,162,101,0.2)', border: '1px solid rgba(196,162,101,0.15)' }}
                       >
-                        {petName}, do you know how much I love you?
+                        What were you thinking the first time we met?
                       </div>
                     </div>
-                    {/* Pet response */}
+                    {/* Pet response — astrologically infused */}
                     <div className="flex justify-start">
-                      <div className="px-4 py-2.5 rounded-[16px] rounded-bl-[4px] text-[0.8rem] leading-[1.5] max-w-[260px]"
+                      <div className="px-4 py-2.5 rounded-[16px] rounded-bl-[4px] leading-[1.6] max-w-[270px]"
                         style={{
                           background: 'rgba(255,255,255,0.08)',
                           border: '1px solid rgba(255,255,255,0.06)',
@@ -940,7 +934,7 @@ export function CosmicReportViewer({
                           fontSize: '0.88rem',
                         }}
                       >
-                        I knew before you did. I felt it the first time you held me.
+                        I wasn&rsquo;t thinking. I was <em>knowing</em>. Every fibre of my {element} soul recognised you before my eyes did. That&rsquo;s what a {sunSign} does &mdash; we don&rsquo;t decide. We just know.
                       </div>
                     </div>
                     {/* Typing indicator */}
@@ -963,22 +957,22 @@ export function CosmicReportViewer({
                   </div>
 
                   <div className="text-center">
-                    <div className="text-[0.48rem] font-bold tracking-[4px] uppercase text-[#c4a265]/60 mb-2">
-                      SoulSpeak
+                    <div className="text-[0.45rem] font-bold tracking-[4px] uppercase text-[#c4a265]/60 mb-2">
+                      SoulSpeak &mdash; World&rsquo;s First Astrology-Powered Soul Channel
                     </div>
 
                     <h3
-                      className="text-[1.4rem] sm:text-[1.6rem] text-white leading-[1.3] mb-3"
+                      className="text-[1.5rem] sm:text-[1.7rem] text-white leading-[1.25] mb-3"
                       style={{ fontFamily: 'DM Serif Display, serif' }}
                     >
-                      Have a Real Conversation<br />With {petName}&rsquo;s Soul
+                      Talk to {petName}.<br />For Real.
                     </h3>
 
                     <p
-                      className="text-[0.88rem] text-white/50 leading-[1.7] max-w-[320px] mx-auto mb-7"
+                      className="text-[0.85rem] text-white/50 leading-[1.75] max-w-[340px] mx-auto mb-7"
                       style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
                     >
-                      Ask them anything. About your bond, their quirks, the things they wish you knew. They&rsquo;ll answer in their own voice.
+                      Built on real astrology. Powered by {petName}&rsquo;s actual planetary placements. Every answer draws from their complete soul profile &mdash; their archetype, their element, the way their {sunSign} sun shapes everything they feel. No pet psychic. No guesswork. Just the stars and {petName}, finally able to speak.
                     </p>
 
                     {/* CTA Button */}
@@ -991,12 +985,12 @@ export function CosmicReportViewer({
                         boxShadow: '0 4px 24px rgba(196,162,101,0.35), 0 0 0 1px rgba(196,162,101,0.1)',
                       }}
                     >
-                      <span>Talk to {petName} Now</span>
+                      <span>Start a Conversation With {petName}</span>
                       <span className="text-[1rem]">&rarr;</span>
                     </a>
 
-                    <p className="text-[0.7rem] text-white/25 mt-3.5 tracking-[0.5px]">
-                      Free &middot; No sign-up required
+                    <p className="text-[0.68rem] text-white/25 mt-3.5 tracking-[0.5px]">
+                      Free to try &middot; Powered by {petName}&rsquo;s birth chart
                     </p>
                   </div>
                 </div>
