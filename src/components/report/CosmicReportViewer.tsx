@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
