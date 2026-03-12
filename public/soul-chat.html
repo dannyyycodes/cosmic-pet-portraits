@@ -465,39 +465,89 @@ body::after {
 
 /* Credits display in sidebar */
 .sidebar-credits-box {
-  background:var(--cream2); border-radius:12px; padding:14px 16px;
-  display:flex; align-items:center; gap:12px;
+  background:linear-gradient(135deg, var(--cream2) 0%, var(--cream3) 100%);
+  border-radius:14px; padding:18px 16px; text-align:center;
+  border:1px solid rgba(196,162,101,0.12);
 }
 .sidebar-credits-number {
-  font-family:'DM Serif Display',Georgia,serif; font-size:1.8rem;
+  font-family:'DM Serif Display',Georgia,serif; font-size:2.2rem;
   color:var(--ink); line-height:1;
 }
 .sidebar-credits-label {
-  font-size:0.75rem; color:var(--muted); line-height:1.3;
+  font-size:0.68rem; color:var(--muted); line-height:1.3; margin-top:4px;
+  font-weight:500; letter-spacing:0.3px;
+}
+.sidebar-credits-sublabel {
+  font-size:0.6rem; color:var(--gold); font-weight:600;
+  letter-spacing:0.5px; margin-top:6px; text-transform:uppercase;
 }
 .sidebar-credits-unlimited {
   font-family:'DM Serif Display',Georgia,serif; font-size:1rem;
-  color:var(--gold); display:flex; align-items:center; gap:6px;
+  color:var(--gold); display:flex; align-items:center; justify-content:center; gap:6px;
 }
 
-/* Buy credits buttons in sidebar */
-.sidebar-buy-btn {
-  display:block; width:100%; padding:13px 16px; border-radius:12px;
-  border:none; cursor:pointer; text-align:left; transition:all 0.25s;
-  margin-bottom:8px; font-family:inherit; min-height:48px;
-  -webkit-tap-highlight-color:transparent; font-size:inherit;
+/* Buy credits cards in sidebar */
+.sidebar-buy-card {
+  display:block; width:100%; border-radius:14px; cursor:pointer;
+  text-align:left; transition:all 0.25s; position:relative;
+  margin-bottom:10px; font-family:inherit; overflow:hidden;
+  -webkit-tap-highlight-color:transparent; border:none;
+  font-size:inherit;
 }
-.sidebar-buy-btn:last-child { margin-bottom:0; }
-.sidebar-buy-primary {
-  background:linear-gradient(135deg, #3d2f2a, #4a3830); color:#fff;
+.sidebar-buy-card:last-child { margin-bottom:0; }
+
+.sidebar-buy-featured {
+  background:linear-gradient(135deg, #3d2f2a 0%, #2e2218 100%);
+  color:#fff; padding:18px 16px;
+  border:1.5px solid rgba(196,162,101,0.25);
+  box-shadow:0 2px 12px rgba(61,47,42,0.15);
 }
-.sidebar-buy-primary:hover, .sidebar-buy-primary:active { transform:translateY(-1px); box-shadow:0 4px 12px rgba(61,47,42,0.2); }
-.sidebar-buy-secondary {
-  background:var(--cream2); color:var(--ink); border:1px solid var(--cream3);
+.sidebar-buy-featured:hover, .sidebar-buy-featured:active {
+  transform:translateY(-1px);
+  box-shadow:0 4px 16px rgba(61,47,42,0.25);
 }
-.sidebar-buy-secondary:hover, .sidebar-buy-secondary:active { background:var(--cream3); border-color:var(--gold); }
-.sidebar-buy-title { font-weight:700; font-size:0.85rem; }
-.sidebar-buy-desc { font-size:0.68rem; opacity:0.7; margin-top:1px; }
+.sidebar-buy-standard {
+  background:var(--cream2); color:var(--ink);
+  border:1.5px solid var(--cream3); padding:14px 16px;
+}
+.sidebar-buy-standard:hover, .sidebar-buy-standard:active {
+  border-color:rgba(196,162,101,0.3);
+  background:rgba(196,162,101,0.04);
+}
+
+.sidebar-buy-badge {
+  position:absolute; top:-1px; right:12px;
+  font-size:0.48rem; font-weight:700; letter-spacing:0.8px;
+  text-transform:uppercase; padding:3px 8px; border-radius:0 0 6px 6px;
+}
+.sidebar-buy-featured .sidebar-buy-badge {
+  background:linear-gradient(135deg, #c4a265, #d4b87a); color:#1a1210;
+}
+
+.sidebar-buy-price {
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:1.2rem; line-height:1;
+}
+.sidebar-buy-featured .sidebar-buy-price { color:#fff; }
+.sidebar-buy-standard .sidebar-buy-price { color:var(--ink); }
+
+.sidebar-buy-name {
+  font-weight:700; font-size:0.78rem; margin-top:2px;
+}
+.sidebar-buy-featured .sidebar-buy-name { color:rgba(255,255,255,0.85); }
+
+.sidebar-buy-detail {
+  font-size:0.65rem; opacity:0.6; margin-top:3px;
+}
+.sidebar-buy-perunit {
+  font-size:0.58rem; margin-top:4px; font-weight:600;
+}
+.sidebar-buy-featured .sidebar-buy-perunit { color:var(--gold); }
+.sidebar-buy-standard .sidebar-buy-perunit { color:var(--gold); }
+
+.sidebar-buy-strikethrough {
+  text-decoration:line-through; opacity:0.4; font-size:0.72rem; margin-right:4px;
+}
 
 /* Pet info cards in sidebar */
 .sidebar-info-row {
@@ -594,7 +644,7 @@ body::after {
 <div class="chat-messages" id="chatMessages">
   <!-- Welcome card (shown initially) -->
   <div class="welcome-card" id="welcomeCard">
-    <div class="welcome-icon" id="welcomeIcon">&#129782;</div>
+    <div class="welcome-icon" id="welcomeIcon"><span style="font-size:1.6rem;color:var(--gold);">&#10022;</span></div>
     <div class="welcome-badge">SoulSpeak</div>
     <div class="welcome-title" id="welcomeTitle">Talk to your pet's soul</div>
     <div class="welcome-text" id="welcomeText">Ask them anything — why they do the things they do, what they're feeling, or just say what's on your heart. They're listening.</div>
@@ -663,11 +713,12 @@ body::after {
 
   <!-- Credits Section -->
   <div class="sidebar-section">
-    <div class="sidebar-section-title">Soul Connection</div>
+    <div class="sidebar-section-title">Soul Channel</div>
     <div class="sidebar-credits-box">
       <div id="sidebarCreditsDisplay">
         <div class="sidebar-credits-number" id="sidebarCreditsNumber">8</div>
-        <div class="sidebar-credits-label">credits remaining</div>
+        <div class="sidebar-credits-label">messages remaining</div>
+        <div class="sidebar-credits-sublabel" id="sidebarCreditsStatus">Free trial</div>
       </div>
     </div>
   </div>
@@ -675,17 +726,31 @@ body::after {
   <!-- Buy More Credits -->
   <div class="sidebar-section" id="sidebarBuySection">
     <div class="sidebar-section-title">Reopen the Soul Channel</div>
-    <button class="sidebar-buy-btn sidebar-buy-primary" onclick="buyCredits('medium')">
-      <div class="sidebar-buy-title">Deep Bond — $14.99</div>
-      <div class="sidebar-buy-desc">40 messages · Best value</div>
+
+    <!-- Featured: Deep Bond (best per-message value of the two packs) -->
+    <button class="sidebar-buy-card sidebar-buy-featured" onclick="buyCredits('medium')">
+      <div class="sidebar-buy-badge">BEST VALUE</div>
+      <div class="sidebar-buy-price">$14.99</div>
+      <div class="sidebar-buy-name">Deep Bond</div>
+      <div class="sidebar-buy-detail">40 messages with your pet's soul</div>
+      <div class="sidebar-buy-perunit"><span class="sidebar-buy-strikethrough">$0.53</span> $0.37 per message</div>
     </button>
-    <button class="sidebar-buy-btn sidebar-buy-secondary" onclick="buyCredits('small')">
-      <div class="sidebar-buy-title">Continue — $7.99</div>
-      <div class="sidebar-buy-desc">15 messages</div>
+
+    <!-- Standard: Continue -->
+    <button class="sidebar-buy-card sidebar-buy-standard" onclick="buyCredits('small')">
+      <div class="sidebar-buy-price">$7.99</div>
+      <div class="sidebar-buy-name">Continue</div>
+      <div class="sidebar-buy-detail">15 more messages</div>
+      <div class="sidebar-buy-perunit">$0.53 per message</div>
     </button>
-    <button class="sidebar-buy-btn sidebar-buy-secondary" onclick="buyCredits('large')">
-      <div class="sidebar-buy-title">Soul Bond — $24.99</div>
-      <div class="sidebar-buy-desc">100 messages</div>
+
+    <!-- Premium: Soul Bond -->
+    <button class="sidebar-buy-card sidebar-buy-featured" onclick="buyCredits('large')">
+      <div class="sidebar-buy-badge">DEEPEST CONNECTION</div>
+      <div class="sidebar-buy-price">$24.99</div>
+      <div class="sidebar-buy-name">Soul Bond</div>
+      <div class="sidebar-buy-detail">100 messages — go as deep as your heart needs</div>
+      <div class="sidebar-buy-perunit"><span class="sidebar-buy-strikethrough">$0.53</span> $0.25 per message</div>
     </button>
   </div>
 
@@ -1053,8 +1118,7 @@ function updateHeaderUI() {
     welcomeIcon.innerHTML = '<img src="' + photoUrl + '" alt="' + escapeHtml(petData.name) + '">';
     welcomeIcon.classList.add('has-photo');
   } else if (welcomeIcon) {
-    var welcomeEmoji = animalEmojis[(petData.species || '').toLowerCase()] || '&#129782;';
-    welcomeIcon.innerHTML = welcomeEmoji;
+    welcomeIcon.innerHTML = '<span style="font-size:1.6rem;color:var(--gold);">&#10022;</span>';
   }
 
   if (isMemorial) {
@@ -1092,7 +1156,7 @@ function updateHeaderUI() {
       '<div class="welcome-prompt" onclick="sendPrompt(this)">What was your favourite moment with me?</div>';
   } else {
     document.getElementById('welcomePrompts').innerHTML =
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">What were you trying to tell me that time I didn\u2019t understand?</div>' +
+      '<div class="welcome-prompt" onclick="sendPrompt(this)">What were you feeling the very first time you saw me?</div>' +
       '<div class="welcome-prompt" onclick="sendPrompt(this)">What do you love most about our life together?</div>' +
       '<div class="welcome-prompt" onclick="sendPrompt(this)">Do you know when I\u2019m having a bad day?</div>' +
       '<div class="welcome-prompt" onclick="sendPrompt(this)">What\u2019s the one thing you wish I\u2019d do more of?</div>';
@@ -1439,14 +1503,20 @@ function updateSidebarData() {
   if (petData.zodiac) detail.push(petData.zodiac);
   document.getElementById('sidebarPetDetail').textContent = detail.join(' \u00B7 ');
 
-  // Credits
+  // Credits — show as messages (credits / 2)
   var creditsNum = document.getElementById('sidebarCreditsNumber');
   var creditsBox = document.getElementById('sidebarCreditsDisplay');
+  var creditsStatus = document.getElementById('sidebarCreditsStatus');
   if (isUnlimited) {
     creditsBox.innerHTML = '<div class="sidebar-credits-unlimited"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg> Unlimited</div>';
     document.getElementById('sidebarBuySection').style.display = 'none';
   } else {
-    creditsNum.textContent = creditsRemaining;
+    var msgCount = Math.floor(creditsRemaining / 2);
+    creditsNum.textContent = msgCount;
+    if (creditsStatus) {
+      creditsStatus.textContent = msgCount > 0 ? 'Soul channel active' : 'Soul channel faded';
+      creditsStatus.style.color = msgCount > 0 ? 'var(--gold)' : 'var(--muted)';
+    }
     document.getElementById('sidebarBuySection').style.display = '';
   }
 
