@@ -5,7 +5,6 @@ import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
 import { ReportLoadingSkeleton } from '@/components/report/ReportSkeletons';
 import { CinematicReveal } from '@/components/report/CinematicReveal';
-import { TestimonialPrompt } from '@/components/report/TestimonialPrompt';
 import { toast } from 'sonner';
 import { CosmicInput } from '@/components/cosmic/CosmicInput';
 import { CosmicButton } from '@/components/cosmic/CosmicButton';
@@ -24,7 +23,6 @@ export default function ViewReport() {
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [showTestimonialPrompt, setShowTestimonialPrompt] = useState(false);
 
   const reportId = searchParams.get('id');
   const code = searchParams.get('code'); // For gift redemption
@@ -169,37 +167,6 @@ export default function ViewReport() {
   const handleRevealComplete = () => {
     setShowCinematic(false);
     setRevealComplete(true);
-
-    const hasSubmittedTestimonial = localStorage.getItem(`testimonial_submitted_${reportId || code}`);
-    if (!hasSubmittedTestimonial) {
-      // 3-minute timer
-      const timer = setTimeout(() => {
-        setShowTestimonialPrompt(true);
-      }, 180000);
-
-      // 70% scroll trigger
-      const handleScroll = () => {
-        const scrollDepth = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
-        if (scrollDepth >= 0.7) {
-          setShowTestimonialPrompt(true);
-          window.removeEventListener('scroll', handleScroll);
-          clearTimeout(timer);
-        }
-      };
-      window.addEventListener('scroll', handleScroll);
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('scroll', handleScroll);
-      };
-    }
-  };
-
-  const handleRequestTestimonial = () => {
-    const hasSubmittedTestimonial = localStorage.getItem(`testimonial_submitted_${reportId || code}`);
-    if (!hasSubmittedTestimonial) {
-      setShowTestimonialPrompt(true);
-    }
   };
 
   // Email verification prompt
@@ -328,7 +295,6 @@ export default function ViewReport() {
               portraitUrl={reportData.portraitUrl}
               occasionMode={reportData.occasionMode}
               hasActiveHoroscope={reportData.hasActiveHoroscope}
-              onRequestTestimonial={handleRequestTestimonial}
             />
             {reportData.reportId && (
               <div className="flex justify-center my-8">
@@ -341,15 +307,6 @@ export default function ViewReport() {
                   SoulSpeak — Talk to {reportData.petName}'s Soul Free
                 </a>
               </div>
-            )}
-            {showTestimonialPrompt && reportData.reportId && reportData.email && (
-              <TestimonialPrompt
-                reportId={reportData.reportId}
-                petName={reportData.petName}
-                species={reportData.species || 'pet'}
-                email={reportData.email}
-                onClose={() => setShowTestimonialPrompt(false)}
-              />
             )}
           </>
         )}

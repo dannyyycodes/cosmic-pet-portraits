@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { OccasionMode } from '@/lib/occasionMode';
@@ -54,7 +54,6 @@ interface CosmicReportViewerProps {
   onAllComplete?: () => void;
   occasionMode?: string;
   hasActiveHoroscope?: boolean;
-  onRequestTestimonial?: () => void;
   species?: string;
 }
 
@@ -198,7 +197,6 @@ export function CosmicReportViewer({
   onAllComplete,
   occasionMode = 'discover',
   hasActiveHoroscope = false,
-  onRequestTestimonial,
   species,
 }: CosmicReportViewerProps) {
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -246,7 +244,6 @@ export function CosmicReportViewer({
         report={report}
         isPreview={isPreview}
         onUnlockFull={onUnlockFull}
-        onRequestTestimonial={onRequestTestimonial}
       />
     );
   }
@@ -288,6 +285,7 @@ export function CosmicReportViewer({
           }
           funFact={section.funFact}
           variant={index % 3}
+          collapsible
         />
         <SectionDivider />
       </div>
@@ -319,6 +317,9 @@ export function CosmicReportViewer({
           </div>
         </div>
       )}
+
+      {/* ═══ CHAPTER PROGRESS BAR ═══ */}
+      {!isPreview && <ChapterProgressBar chapters={chapters} />}
 
       {/* ═══ HERO SECTION ═══ */}
       <HeroSection
@@ -423,31 +424,10 @@ export function CosmicReportViewer({
       />
 
       {/* ═══ READING SECTIONS: First Half (I-VI) ═══ */}
-      {/* Render individually to insert micro passages between readings */}
-      {renderReadingSection(readingSections[0], 0)}
-      <StaticPassage variant="micro" lines={[
-        'The Sun tells us who they are.',
-        'The Moon tells us how they love.',
-        'Together, they tell the whole story.',
-      ]} />
-      {renderReadingSection(readingSections[1], 1)}
-      {renderReadingSection(readingSections[2], 2)}
-      {renderReadingSection(readingSections[3], 3)}
-      <StaticPassage variant="micro" lines={[
-        'Venus shows how they give love.',
-        'Mars shows how they protect it.',
-      ]} />
-      {renderReadingSection(readingSections[4], 4)}
-      {renderReadingSection(readingSections[5], 5)}
+      {readingSections.slice(0, 6).map((config, i) => renderReadingSection(config, i))}
 
       {/* ═══ MID-READING TRANSITION ═══ */}
       <MidReadingTransition petName={petName} />
-
-      {/* ═══ MICRO: Before deeper planets ═══ */}
-      <StaticPassage variant="micro" lines={[
-        'The inner planets shape who they are.',
-        'The outer planets reveal why they\u2019re here.',
-      ]} />
 
       {/* ═══ READING SECTIONS: Second Half (VII-XII) ═══ */}
       {readingSections.slice(6).map((config, i) => renderReadingSection(config, i + 6))}
@@ -873,6 +853,81 @@ export function CosmicReportViewer({
 
       {/* ═══ SOULSPEAK FAB ═══ */}
       {!isPreview && <SoulSpeakFAB reportId={reportId} petName={petName} />}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// CHAPTER PROGRESS BAR
+// ═══════════════════════════════════════════════
+function ChapterProgressBar({ chapters: chapterList }: { chapters: typeof chapters }) {
+  const [activeChapter, setActiveChapter] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show bar only after scrolling past hero (300px)
+      setIsVisible(window.scrollY > 300);
+
+      // Find which chapter is currently in view
+      for (let i = chapterList.length - 1; i >= 0; i--) {
+        const el = document.getElementById(`chapter-${chapterList[i].number}`);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 120) {
+            setActiveChapter(i);
+            return;
+          }
+        }
+      }
+      setActiveChapter(0);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [chapterList]);
+
+  if (!isVisible) return null;
+
+  const handleClick = (chapterNum: number) => {
+    const el = document.getElementById(`chapter-${chapterNum}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 z-40 transition-opacity duration-300"
+      style={{
+        background: 'rgba(245,239,230,0.92)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(196,162,101,0.15)',
+      }}
+    >
+      <div className="max-w-[520px] mx-auto px-4 py-2.5 flex items-center gap-1">
+        {chapterList.map((ch, i) => (
+          <button
+            key={ch.number}
+            onClick={() => handleClick(ch.number)}
+            className="flex-1 flex flex-col items-center gap-1 group"
+            title={ch.title}
+          >
+            <span className={`text-[0.65rem] transition-all ${
+              i <= activeChapter ? 'text-[#c4a265]' : 'text-[#c4a265]/30'
+            }`}>
+              {ch.icon}
+            </span>
+            <div
+              className={`w-full h-[3px] rounded-full transition-all duration-300 ${
+                i < activeChapter
+                  ? 'bg-[#c4a265]'
+                  : i === activeChapter
+                  ? 'bg-[#c4a265]/70'
+                  : 'bg-[#c4a265]/15'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1816,8 +1871,7 @@ function LegacyReportViewer({
   report,
   isPreview,
   onUnlockFull,
-  onRequestTestimonial,
-}: Pick<CosmicReportViewerProps, 'petName' | 'report' | 'isPreview' | 'onUnlockFull' | 'onRequestTestimonial'>) {
+}: Pick<CosmicReportViewerProps, 'petName' | 'report' | 'isPreview' | 'onUnlockFull'>) {
   const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Aries';
   const element = report.dominantElement || report.element || 'Fire';
   const signData = zodiacSigns[sunSign.toLowerCase()];
@@ -1908,16 +1962,6 @@ function LegacyReportViewer({
           </div>
         )}
 
-        {onRequestTestimonial && !isPreview && (
-          <div className="text-center pt-8 pb-4">
-            <button
-              onClick={onRequestTestimonial}
-              className="text-[0.82rem] text-[#9a8578] hover:text-[#bf524a] transition-colors font-[Cormorant,serif] underline underline-offset-4"
-            >
-              Rate your reading
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
