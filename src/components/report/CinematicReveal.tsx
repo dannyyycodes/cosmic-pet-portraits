@@ -42,18 +42,18 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
     },
     {
       title: petName,
-      sub: isMemorial ? 'Their cosmic soul lives on' : 'Your cosmic soul reading is ready',
+      sub: isMemorial ? 'Their cosmic soul lives on' : `${petName}'s soul reading is ready for you`,
     },
     {
       icon: signIcon,
-      overline: 'Sun Sign',
+      overline: `${petName}'s Sun Sign`,
       title: sunSign,
       badge: `${elementEmoji} ${element}`,
     },
     {
       overline: isMemorial ? `${petName}'s Eternal Archetype` : `${petName}'s Cosmic Archetype`,
       title: archetype,
-      sub: isMemorial ? 'A soul who will never be forgotten' : 'A soul who feels everything twice',
+      sub: isMemorial ? 'A soul who will never be forgotten' : `Everything the stars say about ${petName}`,
     },
   ];
 

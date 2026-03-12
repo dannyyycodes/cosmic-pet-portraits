@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
@@ -164,10 +164,10 @@ export default function ViewReport() {
     fetchReport(trimmedEmail);
   };
 
-  const handleRevealComplete = () => {
+  const handleRevealComplete = useCallback(() => {
     setShowCinematic(false);
     setRevealComplete(true);
-  };
+  }, []);
 
   // Email verification prompt
   if (needsEmailVerification && !isLoading) {
@@ -283,20 +283,19 @@ export default function ViewReport() {
             archetype={archetype}
             element={element}
             onComplete={handleRevealComplete}
+            occasionMode={reportData.occasionMode}
           />
         )}
-        {revealComplete && (
-          <>
-            <CosmicReportViewer
-              petName={reportData.petName}
-              report={reportData.report}
-              reportId={reportData.reportId}
-              shareToken={reportData.shareToken}
-              portraitUrl={reportData.portraitUrl}
-              occasionMode={reportData.occasionMode}
-              hasActiveHoroscope={reportData.hasActiveHoroscope}
-            />
-          </>
+        {(revealComplete || !showCinematic) && reportData.report && (
+          <CosmicReportViewer
+            petName={reportData.petName}
+            report={reportData.report}
+            reportId={reportData.reportId}
+            shareToken={reportData.shareToken}
+            portraitUrl={reportData.portraitUrl}
+            occasionMode={reportData.occasionMode}
+            hasActiveHoroscope={reportData.hasActiveHoroscope}
+          />
         )}
       </>
     );
