@@ -22,8 +22,23 @@ function processLine(line: string, species?: string): string {
 
 export function StaticPassage({ lines, variant = 'full', species }: StaticPassageProps) {
   const s = useScrollReveal();
-
   const isMicro = variant === 'micro';
+
+  // Group lines into stanzas (split by empty lines)
+  const stanzas: string[][] = [];
+  let current: string[] = [];
+  for (const line of lines) {
+    const processed = processLine(line, species);
+    if (processed === '') {
+      if (current.length > 0) {
+        stanzas.push(current);
+        current = [];
+      }
+    } else {
+      current.push(processed);
+    }
+  }
+  if (current.length > 0) stanzas.push(current);
 
   return (
     <motion.div
@@ -31,54 +46,81 @@ export function StaticPassage({ lines, variant = 'full', species }: StaticPassag
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={{
-        hidden: { opacity: 0, y: 14 },
-        visible: { opacity: 1, y: 0, transition: { duration: 1.2, ease: 'easeOut' } },
+        hidden: {},
+        visible: { transition: { staggerChildren: 0.15 } },
       }}
-      className="max-w-[480px] mx-auto text-center"
+      className="max-w-[480px] mx-auto"
       style={{
-        padding: isMicro ? 'clamp(28px, 5vw, 40px) clamp(24px, 6vw, 40px)' : 'clamp(48px, 8vw, 64px) clamp(24px, 6vw, 40px)',
+        padding: isMicro ? 'clamp(20px, 4vw, 28px) clamp(24px, 6vw, 40px)' : 'clamp(32px, 6vw, 48px) clamp(24px, 6vw, 40px)',
       }}
     >
-      {lines.map((line, i) => {
-        const processed = processLine(line, species);
+      {/* Top accent line */}
+      <motion.div
+        variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="w-12 h-[1px] mx-auto mb-5"
+        style={{ background: 'linear-gradient(90deg, transparent, #c4a265, transparent)', transformOrigin: 'center' }}
+      />
 
-        if (processed === '\u2726' || processed === '✦') {
-          return (
-            <div key={i} className="text-[#c4a265]/50 text-[0.9rem] my-4">
-              ✦
-            </div>
-          );
-        }
+      {stanzas.map((stanza, si) => (
+        <motion.div
+          key={si}
+          variants={{
+            hidden: { opacity: 0, y: 10 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+          }}
+          className={si < stanzas.length - 1 ? 'mb-4' : ''}
+        >
+          {stanza.map((line, li) => {
+            if (line === '\u2726' || line === '\u2726') {
+              return (
+                <div key={li} className="text-[#c4a265]/50 text-[0.8rem] my-2 text-center">
+                  \u2726
+                </div>
+              );
+            }
 
-        if (processed === '') {
-          return <div key={i} className="h-4" />;
-        }
+            const isKeyLine = !isMicro && (
+              (si === 0 && li === 0) ||
+              line.startsWith('Astrology') ||
+              line.startsWith('They chose') ||
+              line.startsWith('You already') ||
+              line.startsWith('We just gave')
+            );
 
-        const isKeyLine = !isMicro && (i === 0 || processed.startsWith('Astrology') || processed.startsWith('They chose') || processed.startsWith('You already'));
+            return (
+              <p
+                key={li}
+                className={`leading-[1.7] mx-auto max-w-[400px] text-center ${
+                  isMicro
+                    ? 'text-[#9a8578] italic'
+                    : isKeyLine
+                      ? 'text-[#3d2f2a]'
+                      : 'text-[#9a8578] italic'
+                }`}
+                style={{
+                  fontFamily: isKeyLine && !isMicro ? 'DM Serif Display, serif' : 'Cormorant, serif',
+                  fontSize: isMicro
+                    ? 'clamp(0.88rem, 2.5vw, 0.95rem)'
+                    : isKeyLine
+                      ? 'clamp(1rem, 3vw, 1.08rem)'
+                      : 'clamp(0.9rem, 2.6vw, 0.98rem)',
+                }}
+              >
+                {line}
+              </p>
+            );
+          })}
+        </motion.div>
+      ))}
 
-        return (
-          <p
-            key={i}
-            className={`leading-[1.9] mx-auto max-w-[420px] ${
-              isMicro
-                ? 'text-[#9a8578] italic'
-                : isKeyLine
-                  ? 'text-[#3d2f2a]'
-                  : 'text-[#9a8578] italic'
-            }`}
-            style={{
-              fontFamily: isKeyLine && !isMicro ? 'DM Serif Display, serif' : 'Cormorant, serif',
-              fontSize: isMicro
-                ? 'clamp(0.88rem, 2.5vw, 0.95rem)'
-                : isKeyLine
-                  ? 'clamp(1rem, 3vw, 1.1rem)'
-                  : 'clamp(0.92rem, 2.8vw, 1.02rem)',
-            }}
-          >
-            {processed}
-          </p>
-        );
-      })}
+      {/* Bottom accent line */}
+      <motion.div
+        variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
+        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
+        className="w-12 h-[1px] mx-auto mt-5"
+        style={{ background: 'linear-gradient(90deg, transparent, #c4a265, transparent)', transformOrigin: 'center' }}
+      />
     </motion.div>
   );
 }

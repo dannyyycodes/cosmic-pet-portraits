@@ -527,15 +527,20 @@ export function CosmicReportViewer({
 
           {/* ═══ MEME PERSONALITY ═══ */}
           {report.memePersonality && (
-            <MemePersonalityCard
-              type={report.memePersonality.type}
-              description={report.memePersonality.description}
-            />
+            <>
+              <SectionLabel icon="😼" label={`If ${petName} Were Online`} />
+              <MemePersonalityCard
+                type={report.memePersonality.type}
+                description={report.memePersonality.description}
+              />
+              <SectionDivider />
+            </>
           )}
 
           {/* ═══ TOP 5 CRIMES ═══ */}
           {report.topFiveCrimes?.crimes && (
             <>
+              <SectionLabel icon="🚨" label={`${petName}'s Criminal Record`} />
               <CrimesSection crimes={report.topFiveCrimes.crimes} />
               <SectionDivider />
             </>
@@ -544,6 +549,7 @@ export function CosmicReportViewer({
           {/* ═══ DATING PROFILE ═══ */}
           {report.datingProfile && (
             <>
+              <SectionLabel icon="💘" label={`${petName}'s Dating Profile`} />
               <DatingProfile
                 petName={petName}
                 datingProfile={report.datingProfile}
@@ -556,16 +562,21 @@ export function CosmicReportViewer({
 
           {/* ═══ DREAM JOB ═══ */}
           {report.dreamJob && (
-            <DreamJobCard
-              job={report.dreamJob.job}
-              description={report.dreamJob.description}
-              salary={report.dreamJob.salary}
-            />
+            <>
+              <SectionLabel icon="💼" label={`${petName}'s Dream Career`} />
+              <DreamJobCard
+                job={report.dreamJob.job}
+                description={report.dreamJob.description}
+                salary={report.dreamJob.salary}
+              />
+              <SectionDivider />
+            </>
           )}
 
           {/* ═══ VILLAIN ORIGIN STORY ═══ */}
           {report.villainOriginStory && (
             <>
+              <SectionLabel icon="🦹" label={`${petName}'s Villain Origin Story`} />
               <VillainOriginStory story={report.villainOriginStory} petName={petName} />
               <SectionDivider />
             </>
@@ -574,6 +585,7 @@ export function CosmicReportViewer({
           {/* ═══ QUIRK DECODER ═══ */}
           {report.quirkDecoder && (
             <>
+              <SectionLabel icon="🔍" label={`Why ${petName} Does That`} />
               <QuirkDecoder quirkDecoder={report.quirkDecoder} petName={petName} />
               <SectionDivider />
             </>
@@ -585,32 +597,39 @@ export function CosmicReportViewer({
           <ChapterTitle chapter={chapters[3]} />
 
           {/* ═══ GOOGLE SEARCHES ═══ */}
+          <SectionLabel icon="🔎" label={`${petName}'s Secret Google History`} />
           <GoogleSearches petName={petName} report={report} />
           <SectionDivider />
 
           {/* ═══ TEXT MESSAGES ═══ */}
+          <SectionLabel icon="💬" label={`${petName}'s Text Messages`} />
           <TextMessages petName={petName} report={report} occasionMode={occasionMode} />
           <SectionDivider />
 
           {/* ═══ HUMAN PROFILE ═══ */}
+          <SectionLabel icon="📁" label={`${petName}'s File on You`} />
           <HumanProfile petName={petName} report={report} occasionMode={occasionMode} />
           <SectionDivider />
 
           {/* ═══ COSMIC RECIPE ═══ */}
+          <SectionLabel icon="🍳" label={`Recipe for ${petName}`} />
           <CosmicRecipe petName={petName} report={report} />
           <SectionDivider />
 
           {/* ═══ COSMIC PLAYLIST ═══ */}
+          <SectionLabel icon="🎵" label={`${petName}'s Cosmic Playlist`} />
           <CosmicPlaylist petName={petName} report={report} />
           <SectionDivider />
 
           {/* ═══ YELP REVIEWS ═══ */}
+          <SectionLabel icon="⭐" label={`${petName}'s Yelp Reviews`} />
           <YelpReviews petName={petName} report={report} />
           <SectionDivider />
 
           {/* If I Could Talk — removed per design doc */}
 
           {/* ═══ COSMIC AWARDS ═══ */}
+          <SectionLabel icon="🏆" label={`${petName}'s Award Shelf`} />
           <CosmicAwards petName={petName} report={report} />
           <SectionDivider />
 
@@ -1013,6 +1032,23 @@ export function CosmicReportViewer({
 
       {/* ═══ SOULSPEAK FAB ═══ */}
       {!isPreview && <SoulSpeakFAB reportId={reportId} petName={petName} />}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// SECTION LABEL (mini-title before fun sections)
+// ═══════════════════════════════════════════════
+function SectionLabel({ icon, label }: { icon: string; label: string }) {
+  return (
+    <div className="mx-4 mt-6 mb-1 max-w-[520px] sm:mx-auto flex items-center gap-2.5">
+      <span className="text-[1rem]">{icon}</span>
+      <span
+        className="text-[0.7rem] font-bold tracking-[1.5px] uppercase text-[#9a8578]"
+      >
+        {label}
+      </span>
+      <div className="flex-1 h-[1px] bg-[#e8ddd0]" />
     </div>
   );
 }
@@ -1668,15 +1704,6 @@ function MemePersonalityCard({
           />
         </div>
 
-        {/* Engagement bar */}
-        <div className="px-4 py-3 border-t border-[#f0f0f0] flex items-center justify-between">
-          <span className="text-[0.76rem] font-semibold text-[#1a1a1a]">4,281 likes</span>
-          <div className="flex items-center gap-4 text-[#8e8e8e] text-[0.72rem]">
-            <span className="flex items-center gap-1">💬 312</span>
-            <span className="flex items-center gap-1">🔁 89</span>
-            <span className="flex items-center gap-1">📤</span>
-          </div>
-        </div>
       </div>
     </motion.div>
   );

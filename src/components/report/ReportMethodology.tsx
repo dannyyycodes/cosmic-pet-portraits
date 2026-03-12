@@ -54,10 +54,20 @@ export function ReportMethodology({ petName }: ReportMethodologyProps) {
         </h2>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-3 text-[0.82rem] text-[#c4a265] hover:text-[#a88a4a] transition-colors cursor-pointer bg-transparent border-none"
-          style={{ fontFamily: 'Cormorant, serif' }}
+          className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-full text-[0.78rem] font-medium cursor-pointer transition-all hover:scale-105"
+          style={{
+            background: 'linear-gradient(135deg, rgba(196,162,101,0.12), rgba(196,162,101,0.06))',
+            border: '1px solid rgba(196,162,101,0.25)',
+            color: '#c4a265',
+          }}
         >
-          {isExpanded ? 'Hide details' : 'See how we calculated this'} {isExpanded ? '\u25B4' : '\u203A'}
+          {isExpanded ? 'Hide details' : 'See how we calculated this'}
+          <svg
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </button>
       </motion.div>
 

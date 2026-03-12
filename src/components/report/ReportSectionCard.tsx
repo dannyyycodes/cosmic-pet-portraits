@@ -97,10 +97,14 @@ export function ReportSectionCard({
           {collapsible && (
             <button
               onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
-              className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#f5ede0] transition-colors"
+              className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all"
+              style={{
+                background: isExpanded ? 'rgba(196,162,101,0.1)' : 'rgba(196,162,101,0.06)',
+                border: '1px solid rgba(196,162,101,0.2)',
+              }}
             >
               <ChevronDown
-                className={`w-5 h-5 text-[#9a8578] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-[#c4a265] transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
               />
             </button>
           )}
@@ -129,9 +133,14 @@ export function ReportSectionCard({
                   <div className="mb-4">
                     <button
                       onClick={(e) => { e.stopPropagation(); setShowWhy(!showWhy); }}
-                      className="flex items-center gap-1.5 text-[0.7rem] font-semibold text-[#c4a265]/70 hover:text-[#c4a265] transition-colors uppercase tracking-[1.5px]"
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[0.68rem] font-semibold transition-all hover:scale-105 uppercase tracking-[1.5px]"
+                      style={{
+                        background: showWhy ? 'rgba(196,162,101,0.12)' : 'rgba(196,162,101,0.06)',
+                        border: '1px solid rgba(196,162,101,0.2)',
+                        color: '#c4a265',
+                      }}
                     >
-                      {whyBoxIcon && <span className="text-[0.8rem]">{whyBoxIcon}</span>}
+                      {whyBoxIcon && <span className="text-[0.75rem]">{whyBoxIcon}</span>}
                       Why this matters
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showWhy ? 'rotate-180' : ''}`} />
                     </button>
