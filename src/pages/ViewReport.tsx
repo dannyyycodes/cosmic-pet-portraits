@@ -286,17 +286,15 @@ export default function ViewReport() {
             occasionMode={reportData.occasionMode}
           />
         )}
-        {(revealComplete || !showCinematic) && reportData.report && (
-          <CosmicReportViewer
-            petName={reportData.petName}
-            report={reportData.report}
-            reportId={reportData.reportId}
-            shareToken={reportData.shareToken}
-            portraitUrl={reportData.portraitUrl}
-            occasionMode={reportData.occasionMode}
-            hasActiveHoroscope={reportData.hasActiveHoroscope}
-          />
-        )}
+        <CosmicReportViewer
+          petName={reportData.petName}
+          report={reportData.report}
+          reportId={reportData.reportId}
+          shareToken={reportData.shareToken}
+          portraitUrl={reportData.portraitUrl}
+          occasionMode={reportData.occasionMode}
+          hasActiveHoroscope={reportData.hasActiveHoroscope}
+        />
       </>
     );
   }
