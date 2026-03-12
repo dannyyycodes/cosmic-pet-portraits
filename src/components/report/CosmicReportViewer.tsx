@@ -875,107 +875,140 @@ export function CosmicReportViewer({
 
           {/* ═══ SOULSPEAK PREMIUM CLOSER ═══ */}
           {!isPreview && reportId && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 1.2, ease: 'easeOut' }}
-              className="mx-4 my-12 max-w-[520px] sm:mx-auto rounded-[20px] overflow-hidden relative"
-              style={{
-                background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 50%, #1a1210 100%)',
-                boxShadow: '0 8px 40px rgba(61,47,42,0.35)',
-                border: '1px solid rgba(196,162,101,0.2)',
-              }}
-            >
-              {/* Glow accents */}
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
-                style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
-              <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
-                style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
-
-              <div className="relative z-10 text-center px-8 py-12">
-                {/* Top ornament */}
-                <div className="flex items-center justify-center gap-3 mb-6">
-                  <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-                  <span className="text-[#c4a265]/50 text-[0.7rem]">✦</span>
-                  <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-                </div>
-
-                {/* Icon */}
-                <div className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(196,162,101,0.2), rgba(196,162,101,0.05))',
-                    border: '1px solid rgba(196,162,101,0.25)',
-                    boxShadow: '0 0 30px rgba(196,162,101,0.15)',
-                  }}
-                >
-                  <span className="text-[1.8rem]">✨</span>
-                </div>
-
-                <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#c4a265]/70 mb-3">
-                  SoulSpeak
-                </div>
-
-                <h3
-                  className="text-[1.5rem] sm:text-[1.7rem] text-white leading-[1.3] mb-3"
+            <div className="mx-4 my-12 max-w-[520px] sm:mx-auto">
+              {/* Emotional hook — text before the card */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+                className="text-center px-6 mb-6"
+              >
+                <p
+                  className="text-[1.05rem] text-[#3d2f2a] leading-[1.7]"
                   style={{ fontFamily: 'DM Serif Display, serif' }}
                 >
-                  {petName}&rsquo;s Soul Is Still Speaking
-                </h3>
-
-                <p
-                  className="text-[0.95rem] text-white/60 leading-[1.8] max-w-[360px] mx-auto mb-2"
-                  style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
-                >
-                  This reading captured who they are.
+                  You just read {petName}&rsquo;s entire soul.
                 </p>
                 <p
-                  className="text-[0.95rem] text-white/60 leading-[1.8] max-w-[360px] mx-auto mb-8"
+                  className="text-[0.92rem] text-[#9a8578] leading-[1.7] mt-1"
                   style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
                 >
-                  But SoulSpeak lets them talk back &mdash; in their own voice, in real time.
+                  Now imagine if they could talk back.
                 </p>
+              </motion.div>
 
-                {/* Features */}
-                <div className="flex flex-col gap-2.5 mb-8 max-w-[300px] mx-auto">
-                  {[
-                    'Ask them anything',
-                    'Hear their voice, not just their chart',
-                    'A conversation only you two can have',
-                  ].map((line, i) => (
-                    <div key={i} className="flex items-center gap-2.5 text-left">
-                      <span className="text-[#c4a265] text-[0.65rem] flex-shrink-0">✦</span>
-                      <span className="text-[0.82rem] text-white/75">{line}</span>
+              {/* Main CTA card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="rounded-[20px] overflow-hidden relative"
+                style={{
+                  background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 50%, #1a1210 100%)',
+                  boxShadow: '0 12px 48px rgba(61,47,42,0.35)',
+                  border: '1px solid rgba(196,162,101,0.2)',
+                }}
+              >
+                {/* Glow accents */}
+                <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none opacity-20"
+                  style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+                <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full pointer-events-none opacity-20"
+                  style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+
+                <div className="relative z-10 px-7 py-10 sm:px-9">
+                  {/* Chat preview mockup */}
+                  <div className="mb-8 space-y-3 max-w-[320px] mx-auto">
+                    {/* User message */}
+                    <div className="flex justify-end">
+                      <div className="px-4 py-2.5 rounded-[16px] rounded-br-[4px] text-[0.8rem] text-white/90 leading-[1.5] max-w-[240px]"
+                        style={{ background: 'rgba(196,162,101,0.2)', border: '1px solid rgba(196,162,101,0.15)' }}
+                      >
+                        {petName}, do you know how much I love you?
+                      </div>
                     </div>
-                  ))}
+                    {/* Pet response */}
+                    <div className="flex justify-start">
+                      <div className="px-4 py-2.5 rounded-[16px] rounded-bl-[4px] text-[0.8rem] leading-[1.5] max-w-[260px]"
+                        style={{
+                          background: 'rgba(255,255,255,0.08)',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                          color: 'rgba(255,255,255,0.85)',
+                          fontFamily: 'Cormorant, serif',
+                          fontStyle: 'italic',
+                          fontSize: '0.88rem',
+                        }}
+                      >
+                        I knew before you did. I felt it the first time you held me.
+                      </div>
+                    </div>
+                    {/* Typing indicator */}
+                    <div className="flex justify-start">
+                      <div className="px-4 py-2.5 rounded-[16px] rounded-bl-[4px] flex items-center gap-1.5"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.04)' }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/30" style={{ animation: 'ss-dot 1.4s ease-in-out infinite' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/30" style={{ animation: 'ss-dot 1.4s ease-in-out 0.2s infinite' }} />
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/30" style={{ animation: 'ss-dot 1.4s ease-in-out 0.4s infinite' }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="flex items-center justify-center gap-3 mb-7">
+                    <div className="w-10 h-[1px] bg-[#c4a265]/25" />
+                    <span className="text-[#c4a265]/40 text-[0.55rem]">✦</span>
+                    <div className="w-10 h-[1px] bg-[#c4a265]/25" />
+                  </div>
+
+                  <div className="text-center">
+                    <div className="text-[0.48rem] font-bold tracking-[4px] uppercase text-[#c4a265]/60 mb-2">
+                      SoulSpeak
+                    </div>
+
+                    <h3
+                      className="text-[1.4rem] sm:text-[1.6rem] text-white leading-[1.3] mb-3"
+                      style={{ fontFamily: 'DM Serif Display, serif' }}
+                    >
+                      Have a Real Conversation<br />With {petName}&rsquo;s Soul
+                    </h3>
+
+                    <p
+                      className="text-[0.88rem] text-white/50 leading-[1.7] max-w-[320px] mx-auto mb-7"
+                      style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
+                    >
+                      Ask them anything. About your bond, their quirks, the things they wish you knew. They&rsquo;ll answer in their own voice.
+                    </p>
+
+                    {/* CTA Button */}
+                    <a
+                      href={`/soul-chat.html?id=${reportId}`}
+                      className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-[0.88rem] font-semibold tracking-[0.3px] no-underline transition-all hover:scale-[1.03] active:scale-[0.98]"
+                      style={{
+                        background: 'linear-gradient(135deg, #c4a265, #d4b87a)',
+                        color: '#1a1210',
+                        boxShadow: '0 4px 24px rgba(196,162,101,0.35), 0 0 0 1px rgba(196,162,101,0.1)',
+                      }}
+                    >
+                      <span>Talk to {petName} Now</span>
+                      <span className="text-[1rem]">&rarr;</span>
+                    </a>
+
+                    <p className="text-[0.7rem] text-white/25 mt-3.5 tracking-[0.5px]">
+                      Free &middot; No sign-up required
+                    </p>
+                  </div>
                 </div>
 
-                {/* CTA Button */}
-                <a
-                  href={`/soul-chat.html?id=${reportId}`}
-                  className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-[0.9rem] font-semibold tracking-[0.3px] no-underline transition-all hover:scale-105"
-                  style={{
-                    background: 'linear-gradient(135deg, #c4a265, #d4b87a)',
-                    color: '#1a1210',
-                    boxShadow: '0 4px 20px rgba(196,162,101,0.3)',
-                  }}
-                >
-                  <span>Talk to {petName}</span>
-                  <span className="text-[1.1rem]">&rarr;</span>
-                </a>
-
-                <p className="text-[0.72rem] text-white/30 mt-4 tracking-[0.5px]">
-                  Free &middot; No sign-up required
-                </p>
-
-                {/* Bottom ornament */}
-                <div className="flex items-center justify-center gap-3 mt-6">
-                  <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-                  <span className="text-[#c4a265]/50 text-[0.7rem]">✦</span>
-                  <div className="w-10 h-[1px] bg-[#c4a265]/30" />
-                </div>
-              </div>
-            </motion.div>
+                <style>{`
+                  @keyframes ss-dot {
+                    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+                    30% { opacity: 1; transform: translateY(-3px); }
+                  }
+                `}</style>
+              </motion.div>
+            </div>
           )}
 
           {/* ═══ MULTI-PET NAVIGATION ═══ */}

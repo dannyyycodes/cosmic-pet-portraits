@@ -45,41 +45,48 @@ body::after {
 
 /* ============ HEADER ============ */
 .chat-header {
-  padding:14px 16px; background:rgba(255,253,245,0.95);
-  backdrop-filter:blur(10px); border-bottom:1px solid var(--cream3);
+  padding:16px 16px; background:rgba(255,253,245,0.97);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--cream3);
   display:flex; align-items:center; gap:12px; flex-shrink:0;
   position:relative; z-index:10;
+  box-shadow:0 1px 8px rgba(0,0,0,0.03);
 }
 .chat-back {
   display:flex; align-items:center; justify-content:center;
-  width:36px; height:36px; border-radius:8px; border:none;
-  background:var(--cream2); cursor:pointer; transition:background 0.2s;
+  width:36px; height:36px; border-radius:10px; border:none;
+  background:var(--cream2); cursor:pointer; transition:all 0.2s;
   text-decoration:none; color:var(--earth);
   -webkit-tap-highlight-color:transparent;
 }
-.chat-back:hover { background:var(--cream3); }
+.chat-back:hover { background:var(--cream3); color:var(--ink); }
 
 .chat-pet-avatar {
-  width:44px; height:44px; border-radius:50%;
-  background:linear-gradient(135deg, var(--rose-glow) 0%, rgba(196,162,101,0.12) 100%);
-  border:2px solid var(--rose-soft);
+  width:46px; height:46px; border-radius:50%;
+  background:linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(196,162,101,0.06) 100%);
+  border:2px solid var(--gold);
   display:flex; align-items:center; justify-content:center;
   font-size:1.15rem; flex-shrink:0;
-  overflow:hidden;
+  overflow:hidden; position:relative;
+  box-shadow:0 0 0 3px rgba(196,162,101,0.08);
 }
 .chat-pet-avatar img {
   width:100%; height:100%; object-fit:cover;
 }
 .chat-pet-avatar.has-photo {
   border-color:var(--gold);
-  box-shadow:0 0 0 2px rgba(196,162,101,0.2);
+  box-shadow:0 0 0 3px rgba(196,162,101,0.15);
+}
+.chat-pet-avatar::after {
+  content:''; position:absolute; bottom:1px; right:1px;
+  width:10px; height:10px; border-radius:50%;
+  background:var(--green); border:2px solid #FFFDF5;
 }
 .soulspeak-badge {
   display:inline-flex; align-items:center; gap:3px;
-  font-size:0.55rem; font-weight:600; letter-spacing:0.5px;
-  color:var(--rose); background:var(--rose-glow); padding:2px 7px;
+  font-size:0.5rem; font-weight:700; letter-spacing:1px;
+  color:var(--gold); background:rgba(196,162,101,0.1); padding:2px 7px;
   border-radius:6px; text-transform:uppercase; margin-left:6px;
-  vertical-align:middle;
+  vertical-align:middle; border:1px solid rgba(196,162,101,0.15);
 }
 .chat-pet-info { flex:1; min-width:0; }
 .chat-pet-name {
@@ -87,12 +94,18 @@ body::after {
   color:var(--ink); line-height:1.2;
 }
 .chat-pet-status {
-  font-size:0.72rem; color:var(--green); font-weight:500;
-  display:flex; align-items:center; gap:4px;
+  font-size:0.68rem; color:var(--gold); font-weight:600;
+  letter-spacing:0.3px;
+  display:flex; align-items:center; gap:5px;
 }
 .chat-pet-status::before {
   content:''; width:6px; height:6px; border-radius:50%;
   background:var(--green); display:inline-block;
+  animation:statusPulse 2s ease-in-out infinite;
+}
+@keyframes statusPulse {
+  0%, 100% { opacity:1; }
+  50% { opacity:0.4; }
 }
 
 
@@ -128,19 +141,21 @@ body::after {
 .msg-avatar-mini img { width:100%; height:100%; object-fit:cover; }
 
 .msg-bubble {
-  padding:12px 16px; border-radius:18px;
-  font-size:0.95rem; line-height:1.5; word-wrap:break-word;
+  padding:13px 17px; border-radius:18px;
+  font-size:0.95rem; line-height:1.55; word-wrap:break-word;
 }
 .msg.pet .msg-bubble {
   background:#fff;
   border:1px solid var(--cream3);
   border-bottom-left-radius:4px; color:var(--ink);
-  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+  box-shadow:0 1px 4px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(196,162,101,0.06);
+  font-family:'Cormorant',Georgia,serif;
+  font-size:1rem; line-height:1.6;
 }
 .msg.user .msg-bubble {
-  background:var(--rose); color:#fff;
+  background:linear-gradient(135deg, #3d2f2a, #4a3830); color:rgba(255,255,255,0.92);
   border-bottom-right-radius:4px;
-  box-shadow:0 1px 3px rgba(191,82,74,0.15);
+  box-shadow:0 2px 8px rgba(61,47,42,0.2);
 }
 
 .msg-time {
@@ -155,62 +170,86 @@ body::after {
   background:#fff;
   border:1px solid var(--cream3); border-radius:16px;
   border-bottom-left-radius:4px;
-  margin-left:36px; /* align with pet message bubbles (avatar + gap) */
+  margin-left:36px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.03);
 }
-.typing-indicator.show { display:flex; gap:4px; align-items:center; }
+.typing-indicator.show { display:flex; gap:5px; align-items:center; }
 .typing-dot {
-  width:7px; height:7px; border-radius:50%; background:var(--faded);
+  width:6px; height:6px; border-radius:50%; background:var(--gold);
   animation:typingBounce 1.4s infinite ease-in-out;
 }
 .typing-dot:nth-child(2) { animation-delay:0.2s; }
 .typing-dot:nth-child(3) { animation-delay:0.4s; }
 @keyframes typingBounce {
-  0%, 60%, 100% { transform:translateY(0); opacity:0.4; }
-  30% { transform:translateY(-6px); opacity:1; }
+  0%, 60%, 100% { transform:translateY(0); opacity:0.25; }
+  30% { transform:translateY(-5px); opacity:0.8; }
 }
 
 /* Welcome message */
 .welcome-card {
-  text-align:center; padding:24px 20px; margin:0 auto;
-  max-width:340px;
+  text-align:center; padding:32px 20px; margin:0 auto;
+  max-width:360px;
 }
 .welcome-icon {
-  font-size:2rem; margin-bottom:8px;
-  width:72px; height:72px; border-radius:50%; margin-left:auto; margin-right:auto;
+  font-size:2rem; margin-bottom:12px;
+  width:88px; height:88px; border-radius:50%; margin-left:auto; margin-right:auto;
   display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
+  overflow:hidden; position:relative;
+  background:linear-gradient(135deg, rgba(196,162,101,0.08) 0%, rgba(196,162,101,0.04) 100%);
+  border:2px solid rgba(196,162,101,0.15);
 }
 .welcome-icon.has-photo {
-  border:2.5px solid var(--gold); box-shadow:0 0 0 4px rgba(196,162,101,0.15);
+  border:2.5px solid var(--gold); box-shadow:0 0 0 5px rgba(196,162,101,0.1), 0 4px 20px rgba(196,162,101,0.15);
 }
 .welcome-icon img { width:100%; height:100%; object-fit:cover; }
+.welcome-badge {
+  font-size:0.5rem; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--gold); margin-bottom:10px;
+}
 .welcome-title {
-  font-family:'DM Serif Display',Georgia,serif; font-size:1.15rem;
-  color:var(--ink); margin-bottom:6px;
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.25rem;
+  color:var(--ink); margin-bottom:8px; line-height:1.3;
 }
-.welcome-text { font-size:0.85rem; color:var(--muted); line-height:1.4; margin-bottom:16px; }
-.welcome-prompts { display:flex; flex-direction:column; gap:6px; }
+.welcome-text { font-size:0.88rem; color:var(--muted); line-height:1.5; margin-bottom:20px;
+  font-family:'Cormorant',Georgia,serif; font-style:italic; }
+.welcome-divider {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin-bottom:18px;
+}
+.welcome-divider span { font-size:0.45rem; color:var(--gold); opacity:0.5; }
+.welcome-divider::before, .welcome-divider::after {
+  content:''; width:30px; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(196,162,101,0.3));
+}
+.welcome-divider::after { background:linear-gradient(270deg, transparent, rgba(196,162,101,0.3)); }
+.welcome-prompts { display:flex; flex-direction:column; gap:8px; }
 .welcome-prompt {
-  padding:12px 14px; border-radius:10px; border:1px solid var(--cream3);
-  background:var(--cream2); font-size:0.85rem; color:var(--warm);
-  cursor:pointer; transition:all 0.2s; text-align:left;
-  min-height:44px; display:flex; align-items:center;
+  padding:14px 16px; border-radius:12px; border:1px solid var(--cream3);
+  background:var(--cream2); font-size:0.88rem; color:var(--warm);
+  cursor:pointer; transition:all 0.25s; text-align:left;
+  min-height:48px; display:flex; align-items:center;
   -webkit-tap-highlight-color:transparent;
+  font-family:'Cormorant',Georgia,serif;
 }
-.welcome-prompt:hover, .welcome-prompt:active { border-color:var(--rose); background:var(--rose-glow); color:var(--ink); }
+.welcome-prompt:hover, .welcome-prompt:active {
+  border-color:var(--gold); background:rgba(196,162,101,0.06); color:var(--ink);
+  box-shadow:0 2px 8px rgba(196,162,101,0.08);
+  transform:translateY(-1px);
+}
 
 /* ============ PAYWALL ============ */
 .paywall-overlay {
   display:none; position:fixed; inset:0; z-index:100;
-  background:rgba(31,28,24,0.5); backdrop-filter:blur(4px);
+  background:rgba(20,18,16,0.6); backdrop-filter:blur(6px);
   align-items:flex-end; justify-content:center; padding:0;
 }
 .paywall-overlay.show { display:flex; }
 .paywall-card {
-  background:var(--cream); border-radius:20px 20px 0 0; padding:28px 20px;
+  background:linear-gradient(180deg, #FFFDF5 0%, #faf4e8 100%);
+  border-radius:24px 24px 0 0; padding:32px 22px 28px;
   max-width:420px; width:100%; text-align:center;
-  box-shadow:0 -4px 24px rgba(0,0,0,0.12);
-  animation:paywallSlideUp 0.4s ease-out;
+  box-shadow:0 -8px 40px rgba(0,0,0,0.15);
+  animation:paywallSlideUp 0.45s cubic-bezier(0.22,1,0.36,1);
   max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch;
 }
 @keyframes paywallSlideUp {
@@ -218,52 +257,65 @@ body::after {
   to { transform:translateY(0); }
 }
 .paywall-pet-says {
-  font-family:'Caveat',cursive; font-size:1.1rem; color:var(--rose);
-  font-style:italic; margin-bottom:16px; line-height:1.3;
+  font-family:'Cormorant',Georgia,serif; font-size:1.05rem; color:var(--warm);
+  font-style:italic; margin-bottom:18px; line-height:1.4;
+  padding:0 10px;
 }
 .paywall-title {
-  font-family:'DM Serif Display',Georgia,serif; font-size:1.3rem;
-  color:var(--ink); margin-bottom:8px;
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.35rem;
+  color:var(--ink); margin-bottom:8px; line-height:1.3;
 }
-.paywall-text { font-size:0.88rem; color:var(--muted); margin-bottom:20px; line-height:1.4; }
+.paywall-text {
+  font-size:0.85rem; color:var(--muted); margin-bottom:22px; line-height:1.5;
+  font-family:'Cormorant',Georgia,serif;
+}
 
-.paywall-options { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.paywall-options { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
 .paywall-option {
-  padding:14px 16px; border-radius:12px; cursor:pointer;
-  text-align:left; transition:all 0.2s; position:relative;
-  min-height:48px; -webkit-tap-highlight-color:transparent;
+  padding:16px 18px; border-radius:14px; cursor:pointer;
+  text-align:left; transition:all 0.25s; position:relative;
+  min-height:52px; -webkit-tap-highlight-color:transparent;
 }
 .paywall-option.pack {
-  background:var(--rose); color:#fff; border:2px solid var(--rose);
+  background:linear-gradient(135deg, #3d2f2a, #4a3830); color:#fff;
+  border:1.5px solid rgba(196,162,101,0.2);
 }
-.paywall-option.pack:hover, .paywall-option.pack:active { background:var(--rose-soft); }
+.paywall-option.pack:hover, .paywall-option.pack:active {
+  transform:translateY(-1px);
+  box-shadow:0 4px 16px rgba(61,47,42,0.2);
+}
 .paywall-option.sub {
-  background:transparent; color:var(--ink); border:2px solid var(--gold);
+  background:transparent; color:var(--ink); border:1.5px solid var(--gold);
 }
-.paywall-option.sub:hover { background:rgba(196,162,101,0.06); }
+.paywall-option.sub:hover { background:rgba(196,162,101,0.04); }
 .paywall-option-title { font-weight:700; font-size:0.92rem; margin-bottom:2px; }
-.paywall-option-desc { font-size:0.75rem; opacity:0.85; }
+.paywall-option-desc { font-size:0.72rem; opacity:0.75; }
 .paywall-option-badge {
-  position:absolute; top:-8px; right:12px; font-size:0.58rem;
-  font-weight:700; padding:2px 8px; border-radius:4px;
-  letter-spacing:0.04em; text-transform:uppercase;
+  position:absolute; top:-9px; right:14px; font-size:0.52rem;
+  font-weight:700; padding:3px 9px; border-radius:6px;
+  letter-spacing:0.8px; text-transform:uppercase;
 }
-.paywall-option.pack .paywall-option-badge { background:var(--gold); color:#fff; }
+.paywall-option.pack .paywall-option-badge {
+  background:linear-gradient(135deg, #c4a265, #d4b87a); color:#1a1210;
+}
 .paywall-option.sub .paywall-option-badge { background:var(--green); color:#fff; }
 
 .paywall-dismiss {
-  font-size:0.8rem; color:var(--muted); cursor:pointer;
-  background:none; border:none; font-family:inherit;
-  text-decoration:underline; text-underline-offset:2px;
-  padding:12px 16px; min-height:44px;
+  font-size:0.78rem; color:var(--faded); cursor:pointer;
+  background:none; border:none; font-family:'Cormorant',Georgia,serif;
+  font-style:italic;
+  text-decoration:none; padding:14px 16px; min-height:44px;
   -webkit-tap-highlight-color:transparent;
+  transition:color 0.2s;
 }
+.paywall-dismiss:hover { color:var(--muted); }
 
 /* ============ INPUT BAR ============ */
 .chat-input-bar {
-  padding:12px 16px 16px; background:rgba(255,253,245,0.95);
-  backdrop-filter:blur(10px); border-top:1px solid var(--cream3);
-  display:flex; gap:8px; align-items:flex-end; flex-shrink:0;
+  padding:12px 16px 16px; background:rgba(255,253,245,0.97);
+  backdrop-filter:blur(12px); border-top:1px solid var(--cream3);
+  display:flex; gap:10px; align-items:flex-end; flex-shrink:0;
+  box-shadow:0 -1px 8px rgba(0,0,0,0.02);
 }
 .chat-input-bar.disabled { opacity:0.5; pointer-events:none; }
 
@@ -271,25 +323,29 @@ body::after {
   flex:1; position:relative;
 }
 .chat-input {
-  width:100%; padding:11px 14px; border-radius:12px;
+  width:100%; padding:12px 16px; border-radius:14px;
   border:1.5px solid var(--cream3); background:var(--cream2);
-  font-family:'Cormorant',Georgia,serif; font-size:16px; /* 16px prevents iOS auto-zoom */
-  color:var(--ink); outline:none; transition:border-color 0.2s;
-  resize:none; min-height:44px; max-height:120px;
+  font-family:'Cormorant',Georgia,serif; font-size:16px;
+  color:var(--ink); outline:none; transition:border-color 0.25s, box-shadow 0.25s;
+  resize:none; min-height:46px; max-height:120px;
   line-height:1.4; -webkit-appearance:none;
 }
-.chat-input:focus { border-color:var(--rose); }
-.chat-input::placeholder { color:var(--faded); }
+.chat-input:focus {
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(196,162,101,0.08);
+}
+.chat-input::placeholder { color:var(--faded); font-style:italic; }
 
 .chat-send-btn {
-  width:44px; height:44px; border-radius:12px; border:none;
-  background:var(--rose); color:#fff; cursor:pointer;
+  width:46px; height:46px; border-radius:14px; border:none;
+  background:linear-gradient(135deg, #3d2f2a, #4a3830); color:rgba(255,255,255,0.9); cursor:pointer;
   display:flex; align-items:center; justify-content:center;
   transition:all 0.2s; flex-shrink:0;
   -webkit-tap-highlight-color:transparent;
+  box-shadow:0 2px 8px rgba(61,47,42,0.15);
 }
-.chat-send-btn:hover { background:var(--rose-soft); }
-.chat-send-btn:disabled { background:var(--sand); cursor:not-allowed; }
+.chat-send-btn:hover { background:linear-gradient(135deg, #4a3830, #5a4840); transform:scale(1.03); }
+.chat-send-btn:disabled { background:var(--sand); cursor:not-allowed; box-shadow:none; }
 
 /* Suggested follow-ups after pet responses */
 .suggestions {
@@ -302,13 +358,17 @@ body::after {
 .suggestions::-webkit-scrollbar { display:none; }
 .suggestion-chip {
   padding:10px 14px; border-radius:10px; border:1px solid var(--cream3);
-  background:var(--cream2); font-size:0.8rem; color:var(--warm);
-  cursor:pointer; transition:all 0.2s; line-height:1.3;
+  background:var(--cream2); font-size:0.82rem; color:var(--warm);
+  cursor:pointer; transition:all 0.25s; line-height:1.3;
   white-space:nowrap; flex-shrink:0; scroll-snap-align:start;
   min-height:40px; display:flex; align-items:center;
   -webkit-tap-highlight-color:transparent;
+  font-family:'Cormorant',Georgia,serif;
 }
-.suggestion-chip:hover, .suggestion-chip:active { border-color:var(--rose); background:var(--rose-glow); color:var(--ink); }
+.suggestion-chip:hover, .suggestion-chip:active {
+  border-color:var(--gold); background:rgba(196,162,101,0.06); color:var(--ink);
+  transform:translateY(-1px);
+}
 
 /* Connection fading effect on paywall */
 .msg.pet.fading .msg-bubble {
@@ -320,8 +380,9 @@ body::after {
   100% { opacity:0.35; filter:blur(1px); }
 }
 .connection-lost-msg {
-  text-align:center; font-size:0.75rem; color:var(--muted);
-  font-style:italic; padding:8px 0; animation:msgIn 0.35s ease-out;
+  text-align:center; font-size:0.75rem; color:var(--gold);
+  font-style:italic; padding:10px 0; animation:msgIn 0.35s ease-out;
+  font-family:'Cormorant',Georgia,serif; letter-spacing:0.3px;
 }
 
 /* Urgency timer on paywall */
@@ -421,20 +482,20 @@ body::after {
 
 /* Buy credits buttons in sidebar */
 .sidebar-buy-btn {
-  display:block; width:100%; padding:12px 14px; border-radius:10px;
-  border:none; cursor:pointer; text-align:left; transition:all 0.2s;
-  margin-bottom:6px; font-family:inherit; min-height:48px;
+  display:block; width:100%; padding:13px 16px; border-radius:12px;
+  border:none; cursor:pointer; text-align:left; transition:all 0.25s;
+  margin-bottom:8px; font-family:inherit; min-height:48px;
   -webkit-tap-highlight-color:transparent; font-size:inherit;
 }
 .sidebar-buy-btn:last-child { margin-bottom:0; }
 .sidebar-buy-primary {
-  background:var(--rose); color:#fff;
+  background:linear-gradient(135deg, #3d2f2a, #4a3830); color:#fff;
 }
-.sidebar-buy-primary:hover, .sidebar-buy-primary:active { background:var(--rose-soft); }
+.sidebar-buy-primary:hover, .sidebar-buy-primary:active { transform:translateY(-1px); box-shadow:0 4px 12px rgba(61,47,42,0.2); }
 .sidebar-buy-secondary {
   background:var(--cream2); color:var(--ink); border:1px solid var(--cream3);
 }
-.sidebar-buy-secondary:hover, .sidebar-buy-secondary:active { background:var(--cream3); }
+.sidebar-buy-secondary:hover, .sidebar-buy-secondary:active { background:var(--cream3); border-color:var(--gold); }
 .sidebar-buy-title { font-weight:700; font-size:0.85rem; }
 .sidebar-buy-desc { font-size:0.68rem; opacity:0.7; margin-top:1px; }
 
@@ -534,9 +595,10 @@ body::after {
   <!-- Welcome card (shown initially) -->
   <div class="welcome-card" id="welcomeCard">
     <div class="welcome-icon" id="welcomeIcon">&#129782;</div>
-    <div style="font-size:0.65rem;font-weight:600;letter-spacing:1px;color:var(--rose);text-transform:uppercase;margin-bottom:6px;">SoulSpeak</div>
+    <div class="welcome-badge">SoulSpeak</div>
     <div class="welcome-title" id="welcomeTitle">Talk to your pet's soul</div>
     <div class="welcome-text" id="welcomeText">Ask them anything — why they do the things they do, what they're feeling, or just say what's on your heart. They're listening.</div>
+    <div class="welcome-divider"><span>&#10022;</span></div>
     <div class="welcome-prompts" id="welcomePrompts">
       <div class="welcome-prompt" onclick="sendPrompt(this)">Why do you always follow me to the bathroom?</div>
       <div class="welcome-prompt" onclick="sendPrompt(this)">What do you dream about?</div>
@@ -565,22 +627,22 @@ body::after {
       Reopen the connection in the next <span class="timer" id="urgencyTimer">5:00</span> and get <strong>bonus credits free</strong>
     </div>
     <div class="paywall-options">
-      <div class="paywall-option pack small" onclick="buyCredits('small')">
-        <div class="paywall-option-title">Keep talking — $4.99</div>
-        <div class="paywall-option-desc">30 more messages with <span class="paywall-pet-name-inline"></span></div>
-      </div>
-      <div class="paywall-option pack" onclick="buyCredits('medium')" style="background:var(--ink);border-color:var(--ink);">
+      <div class="paywall-option pack" onclick="buyCredits('medium')">
         <div class="paywall-option-badge">MOST CHOSEN</div>
         <div class="paywall-option-title">Talk all week — $9.99</div>
         <div class="paywall-option-desc">75 messages — real conversations, not just a few words</div>
       </div>
-      <div class="paywall-option pack" onclick="buyCredits('large')" style="background:var(--warm);border-color:var(--warm);">
+      <div class="paywall-option pack small" onclick="buyCredits('small')" style="background:linear-gradient(135deg, #5a4a42, #6e6259);border-color:rgba(196,162,101,0.12);">
+        <div class="paywall-option-title">Keep talking — $4.99</div>
+        <div class="paywall-option-desc">30 more messages with <span class="paywall-pet-name-inline"></span></div>
+      </div>
+      <div class="paywall-option pack" onclick="buyCredits('large')" style="background:linear-gradient(135deg, #1a1210, #2e2218);border-color:rgba(196,162,101,0.3);">
         <div class="paywall-option-badge">NEVER RUN OUT</div>
         <div class="paywall-option-title">Always connected — $19.99</div>
         <div class="paywall-option-desc">200 messages — talk whenever your heart needs to</div>
       </div>
     </div>
-    <button class="paywall-dismiss" onclick="closePaywall()">Leave the conversation</button>
+    <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
   </div>
 </div>
 
