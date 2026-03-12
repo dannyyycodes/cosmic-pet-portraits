@@ -173,13 +173,41 @@ const readingSections = [
 
 // Chapter definitions
 const chapters = [
-  { number: 1, title: 'How They Came Into This World', subtitle: 'The stars were watching', icon: '✦' },
-  { number: 2, title: 'Their Soul, Decoded', subtitle: 'Planet by planet, layer by layer', icon: '🗺️' },
-  { number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '😸' },
-  { number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '🔮' },
-  { number: 5, title: 'Why They Chose You', subtitle: 'This was never random', icon: '💕' },
-  { number: 6, title: 'The Keepsake', subtitle: 'Something to hold onto', icon: '🎁' },
-  { number: 7, title: 'The Part That Makes People Cry', subtitle: 'You\u2019ve been warned', icon: '💌' },
+  {
+    number: 1, title: 'How They Came Into This World', subtitle: 'The stars were watching', icon: '✦',
+    bg: 'linear-gradient(165deg, #f5efe6 0%, #ede5d8 100%)', accent: '#c4a265', textColor: '#3d2f2a',
+    border: '2px solid rgba(196,162,101,0.2)', ornament: '✦',
+  },
+  {
+    number: 2, title: 'Their Soul, Decoded', subtitle: 'Planet by planet, layer by layer', icon: '🗺️',
+    bg: 'linear-gradient(165deg, #2a1f2a 0%, #1a1520 100%)', accent: '#b8a0d4', textColor: '#ffffff',
+    border: '1px solid rgba(184,160,212,0.2)', ornament: '☽',
+  },
+  {
+    number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '😸',
+    bg: 'linear-gradient(165deg, #fff8f0 0%, #ffefd9 100%)', accent: '#e8943a', textColor: '#3d2f2a',
+    border: '2px solid rgba(232,148,58,0.15)', ornament: '🐾',
+  },
+  {
+    number: 4, title: 'What They\u2019re Really Thinking', subtitle: 'Spoiler: it\u2019s mostly about you', icon: '🔮',
+    bg: 'linear-gradient(165deg, #1a1f2a 0%, #0f1320 100%)', accent: '#7ba4d4', textColor: '#ffffff',
+    border: '1px solid rgba(123,164,212,0.2)', ornament: '💭',
+  },
+  {
+    number: 5, title: 'Why They Chose You', subtitle: 'This was never random', icon: '💕',
+    bg: 'linear-gradient(165deg, #fdf5f5 0%, #f8e8e8 100%)', accent: '#c47a7a', textColor: '#3d2f2a',
+    border: '2px solid rgba(196,122,122,0.15)', ornament: '♡',
+  },
+  {
+    number: 6, title: 'The Keepsake', subtitle: 'Something to hold onto', icon: '🎁',
+    bg: 'linear-gradient(165deg, #f5f0e0 0%, #ede5c8 100%)', accent: '#b8962a', textColor: '#3d2f2a',
+    border: '2px solid rgba(184,150,42,0.2)', ornament: '⟡',
+  },
+  {
+    number: 7, title: 'The Part That Makes People Cry', subtitle: 'You\u2019ve been warned', icon: '💌',
+    bg: 'linear-gradient(165deg, #3d2f2a 0%, #1a1210 100%)', accent: '#c4a265', textColor: '#ffffff',
+    border: '1px solid rgba(196,162,101,0.25)', ornament: '✦',
+  },
 ];
 
 export function CosmicReportViewer({
@@ -837,33 +865,108 @@ export function CosmicReportViewer({
             'in the world.',
           ]} />
 
-          {/* ═══ GENTLE SOULSPEAK CLOSER ═══ */}
+          {/* ═══ SOULSPEAK PREMIUM CLOSER ═══ */}
           {!isPreview && reportId && (
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 1, ease: 'easeOut' }}
-              className="mx-4 my-8 max-w-[520px] sm:mx-auto text-center"
+              transition={{ duration: 1.2, ease: 'easeOut' }}
+              className="mx-4 my-12 max-w-[520px] sm:mx-auto rounded-[20px] overflow-hidden relative"
+              style={{
+                background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 50%, #1a1210 100%)',
+                boxShadow: '0 8px 40px rgba(61,47,42,0.35)',
+                border: '1px solid rgba(196,162,101,0.2)',
+              }}
             >
-              <p
-                className="text-[1rem] text-[#9a8578] italic leading-[1.8] mb-5"
-                style={{ fontFamily: 'Cormorant, serif' }}
-              >
-                {petName} has more to say to you&hellip;
-              </p>
-              <a
-                href={`/soul-chat.html?id=${reportId}`}
-                className="inline-block px-8 py-3 rounded-full text-[0.85rem] font-medium tracking-[0.3px] no-underline transition-all hover:scale-105"
-                style={{
-                  background: 'linear-gradient(135deg, #f5ede0, #ebe1d1)',
-                  color: '#3d2f2a',
-                  border: '1px solid rgba(196,162,101,0.25)',
-                  boxShadow: '0 2px 12px rgba(196,162,101,0.1)',
-                }}
-              >
-                Talk to {petName}
-              </a>
+              {/* Glow accents */}
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+                style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+              <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+                style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+
+              <div className="relative z-10 text-center px-8 py-12">
+                {/* Top ornament */}
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+                  <span className="text-[#c4a265]/50 text-[0.7rem]">✦</span>
+                  <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+                </div>
+
+                {/* Icon */}
+                <div className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(196,162,101,0.2), rgba(196,162,101,0.05))',
+                    border: '1px solid rgba(196,162,101,0.25)',
+                    boxShadow: '0 0 30px rgba(196,162,101,0.15)',
+                  }}
+                >
+                  <span className="text-[1.8rem]">✨</span>
+                </div>
+
+                <div className="text-[0.5rem] font-bold tracking-[4px] uppercase text-[#c4a265]/70 mb-3">
+                  SoulSpeak
+                </div>
+
+                <h3
+                  className="text-[1.5rem] sm:text-[1.7rem] text-white leading-[1.3] mb-3"
+                  style={{ fontFamily: 'DM Serif Display, serif' }}
+                >
+                  {petName}&rsquo;s Soul Is Still Speaking
+                </h3>
+
+                <p
+                  className="text-[0.95rem] text-white/60 leading-[1.8] max-w-[360px] mx-auto mb-2"
+                  style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
+                >
+                  This reading captured who they are.
+                </p>
+                <p
+                  className="text-[0.95rem] text-white/60 leading-[1.8] max-w-[360px] mx-auto mb-8"
+                  style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
+                >
+                  But SoulSpeak lets them talk back &mdash; in their own voice, in real time.
+                </p>
+
+                {/* Features */}
+                <div className="flex flex-col gap-2.5 mb-8 max-w-[300px] mx-auto">
+                  {[
+                    'Ask them anything',
+                    'Hear their voice, not just their chart',
+                    'A conversation only you two can have',
+                  ].map((line, i) => (
+                    <div key={i} className="flex items-center gap-2.5 text-left">
+                      <span className="text-[#c4a265] text-[0.65rem] flex-shrink-0">✦</span>
+                      <span className="text-[0.82rem] text-white/75">{line}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA Button */}
+                <a
+                  href={`/soul-chat.html?id=${reportId}`}
+                  className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-[0.9rem] font-semibold tracking-[0.3px] no-underline transition-all hover:scale-105"
+                  style={{
+                    background: 'linear-gradient(135deg, #c4a265, #d4b87a)',
+                    color: '#1a1210',
+                    boxShadow: '0 4px 20px rgba(196,162,101,0.3)',
+                  }}
+                >
+                  <span>Talk to {petName}</span>
+                  <span className="text-[1.1rem]">&rarr;</span>
+                </a>
+
+                <p className="text-[0.72rem] text-white/30 mt-4 tracking-[0.5px]">
+                  Free &middot; No sign-up required
+                </p>
+
+                {/* Bottom ornament */}
+                <div className="flex items-center justify-center gap-3 mt-6">
+                  <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+                  <span className="text-[#c4a265]/50 text-[0.7rem]">✦</span>
+                  <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -994,6 +1097,8 @@ function ChapterProgressBar({ chapters: chapterList }: { chapters: typeof chapte
 // ═══════════════════════════════════════════════
 function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
   const s = useScrollReveal();
+  const isDark = [2, 4, 7].includes(chapter.number);
+  const subtitleColor = isDark ? `${chapter.accent}aa` : '#9a8578';
 
   return (
     <motion.div
@@ -1002,37 +1107,51 @@ function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1, ease: 'easeOut' } } }}
-      className="py-14 px-6 max-w-[520px] mx-auto"
+      className="my-8 mx-4 max-w-[520px] sm:mx-auto rounded-[20px] overflow-hidden relative"
+      style={{ background: chapter.bg, border: chapter.border }}
     >
-      <div className="text-center relative py-10 px-8">
-        {/* Top decorative border */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-3">
-          <div className="w-12 h-[1px] bg-[#c4a265]/40" />
-          <span className="text-[#c4a265]/60 text-[0.7rem]">✦</span>
-          <div className="w-12 h-[1px] bg-[#c4a265]/40" />
+      {/* Corner glow accents for dark chapters */}
+      {isDark && (
+        <>
+          <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none opacity-20"
+            style={{ background: `radial-gradient(circle, ${chapter.accent}40, transparent 70%)` }} />
+          <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full pointer-events-none opacity-20"
+            style={{ background: `radial-gradient(circle, ${chapter.accent}40, transparent 70%)` }} />
+        </>
+      )}
+
+      <div className="text-center relative py-12 px-8">
+        {/* Top ornamental line */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-12 h-[1px]" style={{ background: `${chapter.accent}50` }} />
+          <span style={{ color: `${chapter.accent}80` }} className="text-[0.8rem]">{chapter.ornament}</span>
+          <div className="w-12 h-[1px]" style={{ background: `${chapter.accent}50` }} />
         </div>
 
-        <div className="text-[0.55rem] font-bold tracking-[4px] uppercase text-[#c4a265]/70 mb-3">
+        {/* Chapter icon - large centered */}
+        <div className="text-[2.5rem] mb-4">{chapter.icon}</div>
+
+        <div className="text-[0.55rem] font-bold tracking-[4px] uppercase mb-3" style={{ color: chapter.accent }}>
           Chapter {chapter.number}
         </div>
         <h2
-          className="text-[1.9rem] sm:text-[2.1rem] text-[#3d2f2a] leading-[1.2] mb-3"
-          style={{ fontFamily: 'DM Serif Display, serif' }}
+          className="text-[1.9rem] sm:text-[2.1rem] leading-[1.2] mb-3"
+          style={{ fontFamily: 'DM Serif Display, serif', color: chapter.textColor }}
         >
           {chapter.title}
         </h2>
         <p
-          className="text-[1rem] text-[#9a8578] leading-[1.6]"
-          style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
+          className="text-[1rem] leading-[1.6]"
+          style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic', color: subtitleColor }}
         >
           {chapter.subtitle}
         </p>
 
-        {/* Bottom decorative border */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-3">
-          <div className="w-12 h-[1px] bg-[#c4a265]/40" />
-          <span className="text-[#c4a265]/60 text-[0.7rem]">✦</span>
-          <div className="w-12 h-[1px] bg-[#c4a265]/40" />
+        {/* Bottom ornamental line */}
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <div className="w-12 h-[1px]" style={{ background: `${chapter.accent}50` }} />
+          <span style={{ color: `${chapter.accent}80` }} className="text-[0.8rem]">{chapter.ornament}</span>
+          <div className="w-12 h-[1px]" style={{ background: `${chapter.accent}50` }} />
         </div>
       </div>
     </motion.div>
