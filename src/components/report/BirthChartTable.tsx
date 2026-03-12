@@ -24,7 +24,7 @@ const planetRows = [
   { key: 'lilith', symbol: '⚸', label: 'Lilith' },
 ];
 
-const innerPlanetKeys = new Set(['sun', 'moon', 'mercury', 'venus', 'mars', 'ascendant']);
+const personalPlanetKeys = new Set(['sun', 'moon', 'mercury', 'venus', 'mars', 'ascendant']);
 
 function formatDegree(degree: number): string {
   const deg = Math.floor(degree);
@@ -33,244 +33,222 @@ function formatDegree(degree: number): string {
 }
 
 const rowVariants = {
-  hidden: { opacity: 0, x: -18 },
+  hidden: { opacity: 0, x: -20 },
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
     transition: {
-      duration: 0.5,
+      duration: 0.45,
       ease: [0.16, 1, 0.3, 1],
-      delay: i * 0.055,
+      delay: i * 0.05,
     },
   }),
 };
 
 export function BirthChartTable({ chartPlacements, petName }: BirthChartTableProps) {
   const header = useScrollReveal();
-  const innerSection = useScrollReveal();
+  const personalSection = useScrollReveal();
   const outerSection = useScrollReveal();
 
-  const innerRows = planetRows.filter((p) => innerPlanetKeys.has(p.key));
-  const outerRows = planetRows.filter((p) => !innerPlanetKeys.has(p.key));
+  const personalRows = planetRows.filter((p) => personalPlanetKeys.has(p.key));
+  const outerRows = planetRows.filter((p) => !personalPlanetKeys.has(p.key));
 
   return (
-    <>
-      {/* ── Header ── */}
+    <div
+      className="mx-4 my-3 max-w-[520px] sm:mx-auto rounded-[18px] overflow-hidden"
+      style={{
+        background: '#ffffff',
+        border: '1px solid #e8ddd0',
+        boxShadow: '0 2px 16px rgba(61,47,42,0.08), 0 1px 4px rgba(61,47,42,0.04)',
+      }}
+    >
+      {/* ── Card Header ── */}
       <motion.div
         ref={header.ref}
         initial="hidden"
         animate={header.isInView ? 'visible' : 'hidden'}
         variants={header.variants}
-        className="text-center px-6 py-5 max-w-[520px] mx-auto"
+        className="px-6 pt-6 pb-4 text-center"
+        style={{ borderBottom: '1px solid #e8ddd0' }}
       >
         <div
-          className="text-[0.6rem] font-bold tracking-[2.5px] uppercase"
-          style={{ color: '#b8a0d4' }}
+          className="text-[0.58rem] font-bold tracking-[2.5px] uppercase mb-1.5"
+          style={{ color: '#c4a265' }}
         >
-          {petName}'s Birth Chart
+          Birth Chart
         </div>
         <h2
-          className="text-2xl text-white leading-tight mt-1.5"
-          style={{ fontFamily: 'DM Serif Display, serif' }}
+          className="text-[1.45rem] leading-tight"
+          style={{
+            fontFamily: 'DM Serif Display, serif',
+            color: '#3d2f2a',
+          }}
         >
-          Planetary Positions
+          {petName}'s Planetary Positions
         </h2>
         <p
-          className="text-[0.84rem] leading-[1.75] max-w-[380px] mx-auto mt-1.5"
-          style={{ color: 'rgba(255,255,255,0.55)' }}
+          className="text-[0.82rem] leading-relaxed mt-1.5 max-w-[340px] mx-auto"
+          style={{
+            fontFamily: 'Cormorant, serif',
+            color: '#9a8578',
+            fontStyle: 'italic',
+          }}
         >
           The exact celestial coordinates at the moment {petName} entered this world.
         </p>
       </motion.div>
 
-      {/* ── Main container ── */}
+      {/* ── Column header ── */}
       <div
-        className="mx-4 rounded-[18px] overflow-hidden max-w-[520px] sm:mx-auto relative"
+        className="grid grid-cols-3 px-5 py-2 text-[0.58rem] font-bold tracking-[1.5px] uppercase"
         style={{
-          background: 'linear-gradient(160deg, #2a1f2a 0%, #1a1520 100%)',
-          border: '1px solid rgba(184,160,212,0.22)',
-          boxShadow:
-            '0 0 0 1px rgba(184,160,212,0.08), 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(184,160,212,0.12)',
+          color: '#9a8578',
+          background: '#faf6ef',
+          borderBottom: '1px solid #e8ddd0',
         }}
       >
-        {/* Corner glow accents */}
-        <div
-          className="absolute top-0 left-0 w-[120px] h-[120px] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle at 0% 0%, rgba(184,160,212,0.18) 0%, transparent 70%)',
-          }}
-        />
-        <div
-          className="absolute bottom-0 right-0 w-[120px] h-[120px] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle at 100% 100%, rgba(184,160,212,0.14) 0%, transparent 70%)',
-          }}
-        />
-
-        {/* ── Column header ── */}
-        <div
-          className="grid grid-cols-3 px-4 py-2.5 text-[0.6rem] font-bold tracking-[1.5px] uppercase"
-          style={{
-            color: 'rgba(184,160,212,0.7)',
-            borderBottom: '1px solid rgba(184,160,212,0.12)',
-            background: 'rgba(184,160,212,0.06)',
-          }}
-        >
-          <span>Planet</span>
-          <span>Sign</span>
-          <span>Position</span>
-        </div>
-
-        {/* ── Inner Planets section ── */}
-        <motion.div
-          ref={innerSection.ref}
-          initial="hidden"
-          animate={innerSection.isInView ? 'visible' : 'hidden'}
-        >
-          <div
-            className="px-4 pt-3 pb-1 text-[0.55rem] font-bold tracking-[2px] uppercase"
-            style={{ color: 'rgba(184,160,212,0.45)' }}
-          >
-            Inner Planets
-          </div>
-          {innerRows.map((planet, i) => {
-            const placement = chartPlacements[planet.key];
-            if (!placement) return null;
-            return (
-              <motion.div
-                key={planet.key}
-                custom={i}
-                variants={rowVariants}
-                className="grid grid-cols-3 px-4 py-2.5 items-center"
-                style={{
-                  borderBottom: '1px solid rgba(184,160,212,0.08)',
-                }}
-              >
-                {/* Planet symbol + label */}
-                <span
-                  className="font-semibold flex items-center gap-2 text-[0.82rem]"
-                  style={{ color: 'rgba(255,255,255,0.9)' }}
-                >
-                  <span
-                    className="inline-flex items-center justify-center w-[22px] h-[22px] rounded-full flex-shrink-0 text-[0.85rem]"
-                    style={{
-                      background: 'rgba(184,160,212,0.12)',
-                      border: '1px solid rgba(184,160,212,0.25)',
-                      textShadow: '0 0 8px rgba(184,160,212,0.8)',
-                      boxShadow: '0 0 6px rgba(184,160,212,0.2)',
-                      color: '#d4bff0',
-                    }}
-                  >
-                    {planet.symbol}
-                  </span>
-                  {planet.label}
-                </span>
-
-                {/* Sign */}
-                <span
-                  className="text-[0.82rem]"
-                  style={{ color: 'rgba(255,255,255,0.75)' }}
-                >
-                  {placement.sign}
-                </span>
-
-                {/* Degree */}
-                <span
-                  className="text-[0.75rem] font-mono"
-                  style={{ color: 'rgba(184,160,212,0.65)' }}
-                >
-                  {formatDegree(placement.degree)}
-                </span>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-
-        {/* ── Divider ── */}
-        <div className="px-4 py-1.5 flex items-center gap-3">
-          <div
-            className="flex-1 h-px"
-            style={{ background: 'rgba(184,160,212,0.18)' }}
-          />
-          <span
-            className="text-[0.55rem] font-bold tracking-[1.5px] uppercase"
-            style={{ color: 'rgba(184,160,212,0.4)' }}
-          >
-            ✦
-          </span>
-          <div
-            className="flex-1 h-px"
-            style={{ background: 'rgba(184,160,212,0.18)' }}
-          />
-        </div>
-
-        {/* ── Outer & Karmic Planets section ── */}
-        <motion.div
-          ref={outerSection.ref}
-          initial="hidden"
-          animate={outerSection.isInView ? 'visible' : 'hidden'}
-        >
-          <div
-            className="px-4 pt-1 pb-1 text-[0.55rem] font-bold tracking-[2px] uppercase"
-            style={{ color: 'rgba(184,160,212,0.45)' }}
-          >
-            Outer &amp; Karmic
-          </div>
-          {outerRows.map((planet, i) => {
-            const placement = chartPlacements[planet.key];
-            if (!placement) return null;
-            return (
-              <motion.div
-                key={planet.key}
-                custom={i}
-                variants={rowVariants}
-                className="grid grid-cols-3 px-4 py-2.5 items-center last:pb-3.5"
-                style={{
-                  borderBottom: i < outerRows.length - 1 ? '1px solid rgba(184,160,212,0.08)' : 'none',
-                }}
-              >
-                {/* Planet symbol + label */}
-                <span
-                  className="font-semibold flex items-center gap-2 text-[0.82rem]"
-                  style={{ color: 'rgba(255,255,255,0.9)' }}
-                >
-                  <span
-                    className="inline-flex items-center justify-center w-[22px] h-[22px] rounded-full flex-shrink-0 text-[0.85rem]"
-                    style={{
-                      background: 'rgba(184,160,212,0.08)',
-                      border: '1px solid rgba(184,160,212,0.18)',
-                      textShadow: '0 0 8px rgba(184,160,212,0.7)',
-                      boxShadow: '0 0 5px rgba(184,160,212,0.15)',
-                      color: '#c4aee8',
-                    }}
-                  >
-                    {planet.symbol}
-                  </span>
-                  {planet.label}
-                </span>
-
-                {/* Sign */}
-                <span
-                  className="text-[0.82rem]"
-                  style={{ color: 'rgba(255,255,255,0.75)' }}
-                >
-                  {placement.sign}
-                </span>
-
-                {/* Degree */}
-                <span
-                  className="text-[0.75rem] font-mono"
-                  style={{ color: 'rgba(184,160,212,0.55)' }}
-                >
-                  {formatDegree(placement.degree)}
-                </span>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+        <span>Planet</span>
+        <span>Sign</span>
+        <span>Position</span>
       </div>
-    </>
+
+      {/* ── Personal Planets ── */}
+      <motion.div
+        ref={personalSection.ref}
+        initial="hidden"
+        animate={personalSection.isInView ? 'visible' : 'hidden'}
+      >
+        <div
+          className="px-5 pt-3 pb-1 text-[0.55rem] font-bold tracking-[2px] uppercase"
+          style={{ color: '#c4a265' }}
+        >
+          Personal Planets
+        </div>
+        {personalRows.map((planet, i) => {
+          const placement = chartPlacements[planet.key];
+          if (!placement) return null;
+          const isEven = i % 2 === 0;
+          return (
+            <motion.div
+              key={planet.key}
+              custom={i}
+              variants={rowVariants}
+              className="grid grid-cols-3 px-5 py-2.5 items-center"
+              style={{
+                background: isEven ? '#ffffff' : '#fdf9f5',
+                borderBottom: '1px solid #f0e8de',
+              }}
+            >
+              <span
+                className="flex items-center gap-2 text-[0.82rem] font-semibold"
+                style={{ color: '#3d2f2a' }}
+              >
+                <span
+                  className="inline-flex items-center justify-center w-[24px] h-[24px] rounded-full flex-shrink-0 text-[0.88rem]"
+                  style={{
+                    background: '#faf6ef',
+                    border: '1px solid #e8ddd0',
+                    color: '#c4a265',
+                  }}
+                >
+                  {planet.symbol}
+                </span>
+                {planet.label}
+              </span>
+
+              <span
+                className="text-[0.82rem]"
+                style={{ color: '#5a4a42' }}
+              >
+                {placement.sign}
+              </span>
+
+              <span
+                className="text-[0.75rem] font-mono"
+                style={{ color: '#9a8578' }}
+              >
+                {formatDegree(placement.degree)}
+              </span>
+            </motion.div>
+          );
+        })}
+      </motion.div>
+
+      {/* ── Section Divider ── */}
+      <div className="px-5 py-2.5 flex items-center gap-3">
+        <div className="flex-1 h-px" style={{ background: '#e8ddd0' }} />
+        <span
+          className="text-[0.65rem]"
+          style={{ color: '#c4a265' }}
+        >
+          ✦
+        </span>
+        <div className="flex-1 h-px" style={{ background: '#e8ddd0' }} />
+      </div>
+
+      {/* ── Outer & Karmic Planets ── */}
+      <motion.div
+        ref={outerSection.ref}
+        initial="hidden"
+        animate={outerSection.isInView ? 'visible' : 'hidden'}
+      >
+        <div
+          className="px-5 pt-1 pb-1 text-[0.55rem] font-bold tracking-[2px] uppercase"
+          style={{ color: '#c4a265' }}
+        >
+          Outer &amp; Karmic
+        </div>
+        {outerRows.map((planet, i) => {
+          const placement = chartPlacements[planet.key];
+          if (!placement) return null;
+          const isEven = i % 2 === 0;
+          const isLast = i === outerRows.length - 1;
+          return (
+            <motion.div
+              key={planet.key}
+              custom={i}
+              variants={rowVariants}
+              className="grid grid-cols-3 px-5 py-2.5 items-center"
+              style={{
+                background: isEven ? '#ffffff' : '#fdf9f5',
+                borderBottom: isLast ? 'none' : '1px solid #f0e8de',
+                paddingBottom: isLast ? '1rem' : undefined,
+              }}
+            >
+              <span
+                className="flex items-center gap-2 text-[0.82rem] font-semibold"
+                style={{ color: '#3d2f2a' }}
+              >
+                <span
+                  className="inline-flex items-center justify-center w-[24px] h-[24px] rounded-full flex-shrink-0 text-[0.88rem]"
+                  style={{
+                    background: '#faf6ef',
+                    border: '1px solid #e8ddd0',
+                    color: '#c4a265',
+                  }}
+                >
+                  {planet.symbol}
+                </span>
+                {planet.label}
+              </span>
+
+              <span
+                className="text-[0.82rem]"
+                style={{ color: '#5a4a42' }}
+              >
+                {placement.sign}
+              </span>
+
+              <span
+                className="text-[0.75rem] font-mono"
+                style={{ color: '#9a8578' }}
+              >
+                {formatDegree(placement.degree)}
+              </span>
+            </motion.div>
+          );
+        })}
+      </motion.div>
+    </div>
   );
 }

@@ -45,62 +45,27 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+      className="mx-4 my-3 max-w-[520px] sm:mx-auto"
       style={{
-        background: 'linear-gradient(145deg, #2a1f2a 0%, #1f1828 50%, #1a1520 100%)',
-        borderRadius: '20px',
-        border: '1px solid rgba(184,160,212,0.15)',
-        padding: '28px 20px',
+        background: '#ffffff',
+        borderRadius: '18px',
+        border: '1px solid #e8ddd0',
+        boxShadow: '0 2px 12px rgba(61,47,42,0.07)',
+        padding: '28px 24px 24px',
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Corner glow accents */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '140px',
-          height: '140px',
-          background: 'radial-gradient(circle at top left, rgba(184,160,212,0.12) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          right: 0,
-          width: '140px',
-          height: '140px',
-          background: 'radial-gradient(circle at bottom right, rgba(184,160,212,0.10) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: '100px',
-          height: '100px',
-          background: 'radial-gradient(circle at top right, rgba(139,92,246,0.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Label */}
+      {/* Gold label */}
       <div
         style={{
           fontSize: '0.6rem',
           fontWeight: 700,
           letterSpacing: '2.5px',
           textTransform: 'uppercase',
-          color: '#b8a0d4',
-          position: 'relative',
-          zIndex: 1,
+          color: '#c4a265',
+          marginBottom: '6px',
         }}
       >
         Aura Reading
@@ -111,104 +76,214 @@ export function AuraVisual({ aura, sunSign }: AuraVisualProps) {
         className="font-dm-serif"
         style={{
           fontSize: '1.25rem',
-          color: '#ffffff',
-          marginTop: '6px',
-          position: 'relative',
-          zIndex: 1,
+          fontFamily: 'DM Serif Display, serif',
+          color: '#3d2f2a',
+          margin: '0 0 24px',
+          lineHeight: 1.3,
         }}
       >
         {aura.primary}
         {aura.secondary ? ` with ${aura.secondary}` : ''}
       </h2>
 
-      {/* Orb container */}
+      {/* Orb backdrop + orb */}
       <div
         style={{
-          width: '200px',
-          height: '200px',
+          width: '240px',
+          height: '240px',
           borderRadius: '50%',
-          margin: '28px auto',
+          margin: '0 auto 24px',
           position: 'relative',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1,
+          /* Warm backdrop gradient */
+          background: `radial-gradient(circle, rgba(196,162,101,0.10) 0%, rgba(245,239,230,0.55) 55%, transparent 75%)`,
         }}
       >
-        {/* Outer glow ring — slowest */}
+        {/* Outer breathing glow — slowest */}
         <div
           style={{
             position: 'absolute',
-            inset: '-32px',
+            inset: '10px',
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${primaryColor}18 0%, transparent 68%)`,
+            background: `radial-gradient(circle, ${primaryColor}20 0%, transparent 70%)`,
             animation: 'aura-breathe 4s ease-in-out infinite',
           }}
         />
-        {/* Middle glow ring */}
+        {/* Middle breathing glow */}
         <div
           style={{
             position: 'absolute',
-            inset: '-18px',
+            inset: '22px',
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${secondaryColor}28 0%, transparent 68%)`,
+            background: `radial-gradient(circle, ${secondaryColor}2e 0%, transparent 70%)`,
             animation: 'aura-breathe 4s ease-in-out infinite 0.6s',
           }}
         />
-        {/* Inner glow ring */}
+        {/* Inner breathing glow */}
         <div
           style={{
             position: 'absolute',
-            inset: '-8px',
+            inset: '34px',
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${primaryColor}35 0%, transparent 68%)`,
+            background: `radial-gradient(circle, ${primaryColor}38 0%, transparent 70%)`,
             animation: 'aura-breathe 4s ease-in-out infinite 1.2s',
           }}
         />
-        {/* Main orb */}
+        {/* Main orb — 180px */}
         <div
           style={{
-            width: '100%',
-            height: '100%',
+            width: '180px',
+            height: '180px',
             borderRadius: '50%',
-            background: `radial-gradient(circle at 35% 35%, ${primaryColor}95, ${secondaryColor}75, ${primaryColor}45)`,
-            boxShadow: `0 0 50px ${primaryColor}50, 0 0 100px ${secondaryColor}28, inset 0 0 30px rgba(255,255,255,0.06)`,
+            background: `radial-gradient(circle at 35% 35%, ${primaryColor}cc, ${secondaryColor}99, ${primaryColor}66)`,
+            boxShadow: `0 0 40px ${primaryColor}40, 0 0 80px ${secondaryColor}22, inset 0 0 24px rgba(255,255,255,0.18)`,
             animation: 'aura-breathe 4s ease-in-out infinite',
-          }}
-        />
-        {/* Zodiac icon overlay */}
-        <span
-          style={{
-            position: 'absolute',
-            fontSize: '3.2rem',
-            zIndex: 2,
-            filter: 'brightness(0) invert(1)',
-            opacity: 0.9,
-            textShadow: `0 0 20px ${primaryColor}80`,
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          {zodiacIcon}
-        </span>
+          {/* Zodiac icon overlay */}
+          <span
+            style={{
+              fontSize: '3.2rem',
+              lineHeight: 1,
+              zIndex: 2,
+              filter: 'brightness(0) invert(1)',
+              opacity: 0.88,
+              textShadow: `0 0 18px rgba(255,255,255,0.6)`,
+              userSelect: 'none',
+            }}
+          >
+            {zodiacIcon}
+          </span>
+        </div>
       </div>
 
       {/* Meaning text */}
       <p
         style={{
-          fontSize: '0.84rem',
-          lineHeight: 1.75,
-          color: 'rgba(255,255,255,0.80)',
-          maxWidth: '340px',
-          margin: '0 auto',
-          position: 'relative',
-          zIndex: 1,
+          fontSize: '0.875rem',
+          lineHeight: 1.8,
+          color: '#5a4a42',
+          maxWidth: '360px',
+          margin: '0 auto 20px',
         }}
       >
         {aura.meaning}
       </p>
 
+      {/* Color pills */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '10px',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
+        {/* Primary pill */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#f5efe6',
+            border: '1px solid #e8ddd0',
+            borderRadius: '999px',
+            padding: '5px 13px 5px 8px',
+          }}
+        >
+          <span
+            style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background: primaryColor,
+              flexShrink: 0,
+              boxShadow: `0 0 4px ${primaryColor}80`,
+              display: 'inline-block',
+            }}
+          />
+          <span
+            style={{
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              letterSpacing: '0.4px',
+              color: '#9a8578',
+              textTransform: 'uppercase',
+            }}
+          >
+            Primary:
+          </span>
+          <span
+            style={{
+              fontSize: '0.78rem',
+              fontWeight: 500,
+              color: '#3d2f2a',
+              textTransform: 'capitalize',
+            }}
+          >
+            {aura.primary}
+          </span>
+        </div>
+
+        {/* Secondary pill */}
+        {aura.secondary && (
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: '#f5efe6',
+              border: '1px solid #e8ddd0',
+              borderRadius: '999px',
+              padding: '5px 13px 5px 8px',
+            }}
+          >
+            <span
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                background: secondaryColor,
+                flexShrink: 0,
+                boxShadow: `0 0 4px ${secondaryColor}80`,
+                display: 'inline-block',
+              }}
+            />
+            <span
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                letterSpacing: '0.4px',
+                color: '#9a8578',
+                textTransform: 'uppercase',
+              }}
+            >
+              Secondary:
+            </span>
+            <span
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 500,
+                color: '#3d2f2a',
+                textTransform: 'capitalize',
+              }}
+            >
+              {aura.secondary}
+            </span>
+          </div>
+        )}
+      </div>
+
       <style>{`
         @keyframes aura-breathe {
-          0%, 100% { transform: scale(1); opacity: 0.85; }
+          0%, 100% { transform: scale(1); opacity: 0.82; }
           50% { transform: scale(1.06); opacity: 1; }
         }
       `}</style>
