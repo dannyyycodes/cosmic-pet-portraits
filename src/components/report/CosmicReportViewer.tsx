@@ -1894,89 +1894,176 @@ function HeroSection({
   signIcon: string;
   portraitUrl?: string;
 }) {
-  const s = useScrollReveal();
-
   return (
-    <div className="text-center px-6 pt-14 pb-8 max-w-[520px] mx-auto relative">
-      {/* Subtle radial glow behind portrait */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[300px] h-[300px] rounded-full pointer-events-none opacity-30"
-        style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.15), transparent 70%)' }} />
-      {/* Zodiac circle / portrait */}
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, type: 'spring' }}
-        className="relative mx-auto mb-6"
-        style={{ width: portraitUrl ? 160 : 130, height: portraitUrl ? 160 : 130 }}
-      >
-        {portraitUrl ? (
-          <>
-            <img
-              src={portraitUrl}
-              alt={petName}
-              className="w-full h-full object-cover rounded-full"
-              style={{ border: '3px solid #c4a265', boxShadow: '0 0 40px rgba(196,162,101,0.2)' }}
-            />
-            <div className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md border border-[#e8ddd0]">
-              <span className="text-xl">{signIcon}</span>
-            </div>
-          </>
-        ) : (
+    <div className="relative overflow-hidden">
+      {/* Full-width dark cinematic backdrop */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(196,162,101,0.08) 0%, transparent 70%)',
+        }}
+      />
+
+      <div className="text-center px-6 pt-16 pb-10 max-w-[520px] mx-auto relative">
+        {/* Decorative top line */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          className="w-16 h-[1px] mx-auto mb-8"
+          style={{ background: 'linear-gradient(90deg, transparent, #c4a265, transparent)', transformOrigin: 'center' }}
+        />
+
+        {/* Zodiac circle / portrait with breathing glow */}
+        <motion.div
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          className="relative mx-auto mb-7"
+          style={{ width: portraitUrl ? 170 : 140, height: portraitUrl ? 170 : 140 }}
+        >
+          {/* Outer breathing glow */}
           <div
-            className="w-full h-full rounded-full flex items-center justify-center text-[4rem]"
+            className="absolute rounded-full"
             style={{
-              background: 'linear-gradient(135deg, rgba(196,162,101,0.2), rgba(196,162,101,0.05))',
-              border: '2px solid rgba(196,162,101,0.3)',
-              boxShadow: '0 0 60px rgba(196,162,101,0.15)',
+              inset: '-24px',
+              background: 'radial-gradient(circle, rgba(196,162,101,0.15) 0%, transparent 70%)',
+              animation: 'hero-glow 3.5s ease-in-out infinite',
             }}
+          />
+          {/* Middle ring */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              inset: '-12px',
+              background: 'radial-gradient(circle, rgba(196,162,101,0.10) 0%, transparent 70%)',
+              animation: 'hero-glow 3.5s ease-in-out infinite 0.5s',
+            }}
+          />
+
+          {portraitUrl ? (
+            <>
+              <img
+                src={portraitUrl}
+                alt={petName}
+                className="w-full h-full object-cover rounded-full relative z-[1]"
+                style={{
+                  border: '3px solid rgba(196,162,101,0.6)',
+                  boxShadow: '0 0 50px rgba(196,162,101,0.2), 0 8px 32px rgba(0,0,0,0.1)',
+                }}
+              />
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.8, type: 'spring', stiffness: 200 }}
+                className="absolute -bottom-1.5 -right-1.5 w-11 h-11 rounded-full bg-white flex items-center justify-center z-[2]"
+                style={{
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
+                  border: '2px solid rgba(196,162,101,0.3)',
+                }}
+              >
+                <span className="text-[1.3rem]">{signIcon}</span>
+              </motion.div>
+            </>
+          ) : (
+            <div
+              className="w-full h-full rounded-full flex items-center justify-center text-[4.5rem] relative z-[1]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(196,162,101,0.03))',
+                border: '2px solid rgba(196,162,101,0.25)',
+                boxShadow: '0 0 60px rgba(196,162,101,0.12), inset 0 0 30px rgba(196,162,101,0.05)',
+              }}
+            >
+              {signIcon}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Archetype label */}
+        <motion.div
+          initial={{ opacity: 0, y: 12, letterSpacing: '1px' }}
+          animate={{ opacity: 1, y: 0, letterSpacing: '2.5px' }}
+          transition={{ delay: 0.5, duration: 0.8, ease: 'easeOut' }}
+          className="text-[0.58rem] font-bold uppercase text-[#c4a265] mb-2"
+        >
+          {archetype}
+        </motion.div>
+
+        {/* Pet name — dramatic entrance */}
+        <motion.h1
+          initial={{ opacity: 0, y: 28, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.6, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="font-dm-serif text-[3rem] sm:text-[3.4rem] text-[#3d2f2a] leading-[1.05] mb-1.5"
+        >
+          {petName}
+        </motion.h1>
+
+        {/* Archetype description */}
+        {archetypeDesc && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.7 }}
+            className="text-[0.88rem] text-[#9a8578] italic leading-[1.6] max-w-[340px] mx-auto mb-5"
+            style={{ fontFamily: 'Cormorant, serif' }}
           >
-            {signIcon}
-          </div>
+            {archetypeDesc}
+          </motion.p>
         )}
-      </motion.div>
 
-      {/* Archetype */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-1"
-      >
-        {archetype}
-      </motion.div>
+        {/* Stats badges with staggered entrance */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.9 } } }}
+          className="flex flex-wrap items-center justify-center gap-2 text-[0.74rem]"
+        >
+          {[
+            { symbol: '☉', label: sunSign },
+            { symbol: '☽', label: moonSign },
+            ...(ascendant ? [{ symbol: '⬆', label: ascendant }] : []),
+            { symbol: element === 'Fire' ? '🔥' : element === 'Earth' ? '🌍' : element === 'Air' ? '💨' : '💧', label: element },
+          ].map((stat) => (
+            <motion.span
+              key={stat.label}
+              variants={{
+                hidden: { opacity: 0, y: 8, scale: 0.9 },
+                visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } },
+              }}
+              className="px-3.5 py-1.5 rounded-full text-[#5a4a42] font-medium"
+              style={{
+                background: 'rgba(255,255,255,0.8)',
+                border: '1px solid rgba(196,162,101,0.2)',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                backdropFilter: 'blur(4px)',
+              }}
+            >
+              {stat.symbol} {stat.label}
+            </motion.span>
+          ))}
+        </motion.div>
 
-      {/* Pet name */}
-      <motion.h1
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="font-dm-serif text-[2.8rem] text-[#3d2f2a] leading-tight mb-2"
-      >
-        {petName}
-      </motion.h1>
+        {/* Bottom decorative divider */}
+        <motion.div
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={{ scaleX: 1, opacity: 1 }}
+          transition={{ delay: 1.3, duration: 0.8, ease: 'easeOut' }}
+          className="flex items-center justify-center gap-3 mt-8"
+          style={{ transformOrigin: 'center' }}
+        >
+          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+          <span className="text-[#c4a265]/40 text-[0.6rem]">✦</span>
+          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+        </motion.div>
+      </div>
 
-      {/* Stats row */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="flex flex-wrap items-center justify-center gap-2 text-[0.75rem]"
-      >
-        <span className="px-3 py-1 rounded-full bg-white border border-[#e8ddd0] text-[#5a4a42]">
-          ☉ {sunSign}
-        </span>
-        <span className="px-3 py-1 rounded-full bg-white border border-[#e8ddd0] text-[#5a4a42]">
-          ☽ {moonSign}
-        </span>
-        {ascendant && (
-          <span className="px-3 py-1 rounded-full bg-white border border-[#e8ddd0] text-[#5a4a42]">
-            ⬆ {ascendant}
-          </span>
-        )}
-        <span className="px-3 py-1 rounded-full bg-white border border-[#e8ddd0] text-[#5a4a42]">
-          {element === 'Fire' ? '🔥' : element === 'Earth' ? '🌍' : element === 'Air' ? '💨' : '💧'} {element}
-        </span>
-      </motion.div>
+      <style>{`
+        @keyframes hero-glow {
+          0%, 100% { transform: scale(1); opacity: 0.7; }
+          50% { transform: scale(1.08); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
