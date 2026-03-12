@@ -17,19 +17,15 @@ interface ReportSectionCardProps {
   collapsible?: boolean;
 }
 
+const cleanWhiteStyle = {
+  container: 'bg-white rounded-[18px] border border-[#e8ddd0]',
+  containerStyle: { boxShadow: '0 2px 12px rgba(0,0,0,0.04)' } as React.CSSProperties,
+};
+
 const variantStyles: Record<number, { container: string; containerStyle: React.CSSProperties }> = {
-  0: {
-    container: 'bg-white rounded-[18px] border border-[#e8ddd0]',
-    containerStyle: { boxShadow: '0 2px 12px rgba(0,0,0,0.04)' },
-  },
-  1: {
-    container: 'rounded-[18px]',
-    containerStyle: { background: 'linear-gradient(165deg, #FFFDF5, #faf6ef)', boxShadow: '0 2px 12px rgba(0,0,0,0.03)', border: '1px solid rgba(196,162,101,0.12)' },
-  },
-  2: {
-    container: 'bg-white rounded-[18px]',
-    containerStyle: { boxShadow: '0 2px 12px rgba(0,0,0,0.04)', borderLeft: '3px solid #c4a265', border: '1px solid #e8ddd0', borderLeftWidth: '3px', borderLeftColor: '#c4a265' },
-  },
+  0: cleanWhiteStyle,
+  1: cleanWhiteStyle,
+  2: cleanWhiteStyle,
 };
 
 function cleanContent(raw: string): string {

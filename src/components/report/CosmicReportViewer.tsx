@@ -499,10 +499,8 @@ export function CosmicReportViewer({
 
           {/* ═══ MEME PERSONALITY ═══ */}
           {report.memePersonality && (
-            <FunExtrasCard
-              icon="😼"
-              label="Internet Personality"
-              title={report.memePersonality.type}
+            <MemePersonalityCard
+              type={report.memePersonality.type}
               description={report.memePersonality.description}
             />
           )}
@@ -530,12 +528,10 @@ export function CosmicReportViewer({
 
           {/* ═══ DREAM JOB ═══ */}
           {report.dreamJob && (
-            <FunExtrasCard
-              icon="💼"
-              label="Dream Job"
-              title={report.dreamJob.job}
+            <DreamJobCard
+              job={report.dreamJob.job}
               description={report.dreamJob.description}
-              extra={<span className="text-[0.72rem] text-[#9a8578] italic">Salary: {report.dreamJob.salary}</span>}
+              salary={report.dreamJob.salary}
             />
           )}
 
@@ -611,48 +607,109 @@ export function CosmicReportViewer({
           <ChapterTitle chapter={chapters[4]} />
 
           {/* ═══ KEEPER'S BOND ═══ */}
-          {report.keepersBond && (
-            <>
-              <ReportSectionCard
-                icon="💕"
-                iconClass="bg-rose-500/10"
-                label="Keeper's Bond"
-                title={(report.keepersBond as SectionContent).title}
-                whyText="Synastry &mdash; the astrology of relationships &mdash; examines how two charts interact. The bond between a pet and their keeper is one of the most pure forms of connection astrologers can study, free from ego or pretence."
-                whyBoxIcon="💕"
-                content={(report.keepersBond as SectionContent).content}
-                tipBox={(report.keepersBond as SectionContent).soulContract ? { icon: '💕', label: 'Soul contract', text: (report.keepersBond as SectionContent).soulContract! } : undefined}
-                funFact={(report.keepersBond as SectionContent).funFact}
-                variant={1}
-              />
-              {/* SoulSpeak teaser removed — keeping only floating button + end closer */}
-              <SectionDivider />
-            </>
-          )}
+          {report.keepersBond && (() => {
+            const kb = report.keepersBond as SectionContent;
+            return (
+              <>
+                <div className="mx-4 my-3 max-w-[520px] sm:mx-auto">
+                  <div
+                    className="py-7 px-6 sm:px-7 rounded-[18px]"
+                    style={{ background: '#fdf5f5' }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0 bg-rose-500/10">
+                        {'\uD83D\uDC95'}
+                      </div>
+                      <div>
+                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#c4a265]">
+                          Keeper&rsquo;s Bond
+                        </div>
+                        <h3 className="text-[1.1rem] text-[#3d2f2a] mt-0.5" style={{ fontFamily: 'DM Serif Display, serif' }}>{kb.title}</h3>
+                      </div>
+                    </div>
+
+                    <div
+                      className="text-[0.88rem] leading-[1.9] text-[#5a4a42]"
+                      dangerouslySetInnerHTML={{ __html: (kb.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ') }}
+                    />
+
+                    {kb.soulContract && (
+                      <div className="mt-5 p-4 rounded-[12px] bg-white/70 border-l-[3px] border-[#c4a265]">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#c4a265] mb-1">
+                          {'\uD83D\uDC95'} Soul contract
+                        </div>
+                        <p className="text-[0.84rem] text-[#5a4a42] leading-[1.65]">{kb.soulContract}</p>
+                      </div>
+                    )}
+
+                    {kb.funFact && (
+                      <p className="mt-4 text-[0.8rem] text-[#9a8578] italic leading-[1.65]"
+                        style={{ fontFamily: 'Cormorant, serif' }}
+                      >
+                        {kb.funFact}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {/* SoulSpeak teaser removed — keeping only floating button + end closer */}
+                <SectionDivider />
+              </>
+            );
+          })()}
 
           {/* Accuracy predictions — removed per design doc */}
 
           {/* Compatibility chart — removed per design doc */}
 
           {/* ═══ EARTHLY EXPRESSION (if exists) ═══ */}
-          {report.earthlyExpression && (
-            <>
-              <ReportSectionCard
-                icon="🌎"
-                iconClass="bg-green-500/10"
-                label="Earthly Expression"
-                title={report.earthlyExpression.title}
-                content={report.earthlyExpression.content}
-                tipBox={
-                  report.earthlyExpression.practicalTip
-                    ? { icon: '💡', label: 'Practical tip', text: report.earthlyExpression.practicalTip }
-                    : undefined
-                }
-                funFact={report.earthlyExpression.funFact}
-              />
-              <SectionDivider />
-            </>
-          )}
+          {report.earthlyExpression && (() => {
+            const ee = report.earthlyExpression;
+            return (
+              <>
+                <div className="mx-4 my-3 max-w-[520px] sm:mx-auto">
+                  <div
+                    className="py-7 px-6 sm:px-7 rounded-[18px]"
+                    style={{ background: '#f3f8f3' }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0 bg-green-500/10">
+                        {'\uD83C\uDF0E'}
+                      </div>
+                      <div>
+                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#c4a265]">
+                          Earthly Expression
+                        </div>
+                        <h3 className="text-[1.1rem] text-[#3d2f2a] mt-0.5" style={{ fontFamily: 'DM Serif Display, serif' }}>{ee.title}</h3>
+                      </div>
+                    </div>
+
+                    <div
+                      className="text-[0.88rem] leading-[1.9] text-[#5a4a42]"
+                      dangerouslySetInnerHTML={{ __html: (ee.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ') }}
+                    />
+
+                    {ee.practicalTip && (
+                      <div className="mt-5 p-4 rounded-[12px] bg-white/70 border-l-[3px] border-[#c4a265]">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#c4a265] mb-1">
+                          {'\uD83D\uDCA1'} Practical tip
+                        </div>
+                        <p className="text-[0.84rem] text-[#5a4a42] leading-[1.65]">{ee.practicalTip}</p>
+                      </div>
+                    )}
+
+                    {ee.funFact && (
+                      <p className="mt-4 text-[0.8rem] text-[#9a8578] italic leading-[1.65]"
+                        style={{ fontFamily: 'Cormorant, serif' }}
+                      >
+                        {ee.funFact}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <SectionDivider />
+              </>
+            );
+          })()}
 
           {/* ═══ PASSAGE 6: Near the keepsake ═══ */}
           <StaticPassage lines={[
@@ -1201,31 +1258,70 @@ function QuirkDecoder({
       variants={s.variants}
       className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265] mb-1 px-1">
-        🔍 Quirk Decoder
-      </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mb-3 px-1">
-        Why {petName} Does That
-      </h3>
+      <div
+        className="rounded-[16px] overflow-hidden"
+        style={{
+          background: '#f5e6d0',
+          border: '1px solid #d9c9a8',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        }}
+      >
+        {/* Case file header */}
+        <div className="px-5 pt-5 pb-3 border-b border-[#d9c9a8]">
+          <div
+            className="inline-block text-[0.6rem] font-black tracking-[3px] uppercase px-3 py-1.5 mb-2"
+            style={{
+              color: '#8b2500',
+              border: '2px solid #8b2500',
+              borderRadius: '4px',
+              opacity: 0.7,
+            }}
+          >
+            CASE FILE
+          </div>
+          <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a]">
+            Why {petName} Does That
+          </h3>
+        </div>
 
-      <div className="space-y-3">
-        {quirks.map((quirk, i) => (
-          <div key={i} className="p-4 bg-white rounded-[14px] border border-[#e8ddd0]">
-            <h4 className="font-dm-serif text-[0.95rem] text-[#3d2f2a] mb-2.5">
-              {quirk.behavior}
-            </h4>
-            <div className="space-y-2">
-              <div>
-                <span className="text-[0.64rem] font-bold text-[#c4a265] uppercase tracking-[1px]">Cosmic explanation</span>
-                <p className="text-[0.8rem] text-[#5a4a42] leading-[1.6] mt-0.5">{quirk.cosmicExplanation}</p>
+        {/* Evidence notes */}
+        <div className="px-5 py-4 space-y-4">
+          {quirks.map((quirk, i) => (
+            <div
+              key={i}
+              className="p-4 bg-white rounded-[10px]"
+              style={{
+                transform: `rotate(${i % 2 === 0 ? '-1' : '1'}deg)`,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
+                border: '1px solid #ece4d4',
+              }}
+            >
+              <div className="text-[0.56rem] font-bold tracking-[1.5px] uppercase text-[#8b6914] mb-1">
+                Evidence #{i + 1}
               </div>
-              <div>
-                <span className="text-[0.64rem] font-bold text-[#9a8578] uppercase tracking-[1px]">What it really means</span>
-                <p className="text-[0.8rem] text-[#5a4a42] leading-[1.6] mt-0.5">{quirk.whatItReallyMeans}</p>
+              <h4 className="font-dm-serif text-[0.95rem] text-[#3d2f2a] mb-3">
+                {quirk.behavior}
+              </h4>
+              <div className="space-y-2.5">
+                <div>
+                  <span className="text-[0.64rem] font-bold text-[#c4a265] uppercase tracking-[1px]">
+                    🔍 Cosmic Explanation
+                  </span>
+                  <p className="text-[0.8rem] text-[#5a4a42] leading-[1.6] mt-0.5">{quirk.cosmicExplanation}</p>
+                </div>
+                <div
+                  className="pt-2 mt-2"
+                  style={{ borderTop: '1px dashed #d9c9a8' }}
+                >
+                  <span className="text-[0.64rem] font-bold text-[#6b5b4f] uppercase tracking-[1px]">
+                    🕵️ Detective's Conclusion
+                  </span>
+                  <p className="text-[0.8rem] text-[#5a4a42] leading-[1.6] mt-0.5 italic">{quirk.whatItReallyMeans}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </motion.div>
   );
@@ -1399,6 +1495,174 @@ function FunExtrasCard({
 }
 
 // ═══════════════════════════════════════════════
+// MEME PERSONALITY CARD (social media post style)
+// ═══════════════════════════════════════════════
+function MemePersonalityCard({
+  type,
+  description,
+}: {
+  type: string;
+  description: string;
+}) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+    >
+      <div
+        className="rounded-[16px] overflow-hidden"
+        style={{
+          background: '#ffffff',
+          border: '1px solid #e0e0e0',
+          boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+        }}
+      >
+        {/* Top bar — profile row */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#f0f0f0]">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center text-xl flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #fce4ec, #f3e5f5)' }}
+          >
+            😼
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-[0.88rem] text-[#1a1a1a]">Internet Personality</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#1d9bf0" className="flex-shrink-0">
+              <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.818-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.437 2.25c-.415-.165-.866-.25-1.336-.25-2.11 0-3.818 1.79-3.818 4 0 .494.083.964.237 1.4-1.272.65-2.147 2.018-2.147 3.6 0 1.495.782 2.798 1.942 3.486-.02.17-.032.34-.032.514 0 2.21 1.708 4 3.818 4 .47 0 .92-.086 1.335-.25.62 1.334 1.926 2.25 3.437 2.25 1.512 0 2.818-.916 3.437-2.25.415.163.865.248 1.336.248 2.11 0 3.818-1.79 3.818-4 0-.174-.012-.344-.033-.513 1.158-.687 1.943-1.99 1.943-3.484zm-6.616-3.334l-4.334 6.5c-.145.217-.382.334-.625.334-.143 0-.288-.04-.416-.126l-.115-.094-2.415-2.415c-.293-.293-.293-.768 0-1.06s.768-.294 1.06 0l1.77 1.767 3.825-5.74c.23-.345.696-.436 1.04-.207.346.23.44.696.21 1.04z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Post content */}
+        <div className="px-4 py-4">
+          <p className="text-[1.05rem] font-bold text-[#1a1a1a] leading-snug mb-2" style={{ fontFamily: 'DM Serif Display, serif' }}>
+            {type}
+          </p>
+          <p
+            className="text-[0.84rem] text-[#4a4a4a] leading-[1.7]"
+            dangerouslySetInnerHTML={{ __html: (description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+          />
+        </div>
+
+        {/* Engagement bar */}
+        <div className="px-4 py-3 border-t border-[#f0f0f0] flex items-center justify-between">
+          <span className="text-[0.76rem] font-semibold text-[#1a1a1a]">4,281 likes</span>
+          <div className="flex items-center gap-4 text-[#8e8e8e] text-[0.72rem]">
+            <span className="flex items-center gap-1">💬 312</span>
+            <span className="flex items-center gap-1">🔁 89</span>
+            <span className="flex items-center gap-1">📤</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// DREAM JOB CARD (job listing style)
+// ═══════════════════════════════════════════════
+function DreamJobCard({
+  job,
+  description,
+  salary,
+}: {
+  job: string;
+  description: string;
+  salary: string;
+}) {
+  const s = useScrollReveal();
+
+  return (
+    <motion.div
+      ref={s.ref}
+      initial="hidden"
+      animate={s.isInView ? 'visible' : 'hidden'}
+      variants={s.variants}
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+    >
+      <div
+        className="rounded-[16px] overflow-hidden relative"
+        style={{
+          border: '1px solid #e0e0e0',
+          boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+        }}
+      >
+        {/* Header — dark gradient */}
+        <div
+          className="px-5 py-5"
+          style={{ background: 'linear-gradient(135deg, #2a2f3a, #1a1f2a)' }}
+        >
+          <div className="text-[0.6rem] font-bold tracking-[2px] uppercase text-[#8b9dc3] mb-1">
+            The Universe, Inc.
+          </div>
+          <div className="text-[0.5rem] tracking-[1px] uppercase text-[#5a6a8a] mb-3">
+            Cosmic Careers Division
+          </div>
+          <h3
+            className="text-[1.15rem] text-white leading-snug"
+            style={{ fontFamily: 'DM Serif Display, serif' }}
+          >
+            {job}
+          </h3>
+        </div>
+
+        {/* Body — light background */}
+        <div className="px-5 py-5 bg-white relative">
+          {/* HIRED stamp watermark */}
+          <div
+            className="absolute top-4 right-4 text-[2.2rem] font-black tracking-[3px] uppercase pointer-events-none select-none"
+            style={{
+              color: 'rgba(34, 197, 94, 0.12)',
+              transform: 'rotate(-12deg)',
+              fontFamily: 'sans-serif',
+              border: '3px solid rgba(34, 197, 94, 0.12)',
+              borderRadius: '8px',
+              padding: '2px 12px',
+              lineHeight: 1.2,
+            }}
+          >
+            HIRED
+          </div>
+
+          {/* Job Description */}
+          <div className="mb-4">
+            <div className="text-[0.6rem] font-bold tracking-[1.5px] uppercase text-[#9a8578] mb-1.5">
+              Job Description
+            </div>
+            <p
+              className="text-[0.84rem] text-[#5a4a42] leading-[1.7] relative z-10"
+              dangerouslySetInnerHTML={{ __html: (description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+            />
+          </div>
+
+          {/* Compensation */}
+          <div>
+            <div className="text-[0.6rem] font-bold tracking-[1.5px] uppercase text-[#9a8578] mb-1.5">
+              Compensation
+            </div>
+            <span
+              className="inline-block text-[0.78rem] font-semibold px-3 py-1.5 rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
+                color: '#166534',
+                border: '1px solid #bbf7d0',
+              }}
+            >
+              {salary}
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════
 // CRIMES SECTION
 // ═══════════════════════════════════════════════
 function CrimesSection({ crimes }: { crimes: string[] }) {
@@ -1561,30 +1825,50 @@ function HeroSection({
 function LuckyGrid({ luckyElements }: { luckyElements: ReportContent['luckyElements'] }) {
   const s = useScrollReveal();
 
+  const items = [
+    { label: 'Lucky Number', value: luckyElements.luckyNumber, icon: '#\uFE0F\u20E3', bg: 'rgba(196,162,101,0.07)' },
+    { label: 'Lucky Day', value: luckyElements.luckyDay, icon: '\uD83D\uDCC5', bg: 'rgba(147,130,210,0.07)' },
+    { label: 'Lucky Colour', value: luckyElements.luckyColor, icon: '\uD83C\uDFA8', bg: 'rgba(210,150,130,0.07)' },
+    { label: 'Power Time', value: luckyElements.powerTime, icon: '\uD83D\uDD70\uFE0F', bg: 'rgba(130,180,160,0.07)' },
+  ];
+
   return (
     <motion.div
       ref={s.ref}
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="grid grid-cols-2 gap-2 mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
     >
-      {[
-        { label: 'Lucky Number', value: luckyElements.luckyNumber },
-        { label: 'Lucky Day', value: luckyElements.luckyDay },
-        { label: 'Lucky Colour', value: luckyElements.luckyColor },
-        { label: 'Power Time', value: luckyElements.powerTime },
-      ].map((item) => (
-        <div
-          key={item.label}
-          className="bg-white border border-[#e8ddd0] rounded-xl p-3.5 text-center"
-        >
-          <div className="text-[0.56rem] font-bold tracking-[1.5px] uppercase text-[#9a8578] mb-0.5">
-            {item.label}
+      {/* Section header */}
+      <div className="flex items-center gap-2 mb-3 px-1">
+        <span className="text-[0.9rem]">{'\u2728'}</span>
+        <span className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#c4a265]">
+          Lucky Elements
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="rounded-[14px] p-4 text-center"
+            style={{
+              background: item.bg,
+              border: '1px solid rgba(232,221,208,0.8)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            }}
+          >
+            <div className="flex items-center justify-center gap-1.5 mb-1">
+              <span className="text-[0.7rem]">{item.icon}</span>
+              <div className="text-[0.54rem] font-bold tracking-[1.5px] uppercase text-[#9a8578]">
+                {item.label}
+              </div>
+            </div>
+            <div className="font-dm-serif text-[1.1rem] text-[#3d2f2a]">{item.value}</div>
           </div>
-          <div className="font-dm-serif text-[1.05rem] text-[#3d2f2a]">{item.value}</div>
-        </div>
-      ))}
+        ))}
+      </div>
     </motion.div>
   );
 }
@@ -1746,6 +2030,7 @@ function FirstMeeting({ firstMeeting }: { firstMeeting: { title: string; paragra
 // ═══════════════════════════════════════════════
 function CelestialGem({ gem }: { gem: SectionContent }) {
   const s = useScrollReveal();
+  const gemColor = gem.crystalColor || '#7bc8a4';
 
   return (
     <motion.div
@@ -1753,28 +2038,47 @@ function CelestialGem({ gem }: { gem: SectionContent }) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
     >
-      <div className="flex items-center gap-2.5 mb-2.5">
-        <div className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-[1rem] flex-shrink-0 bg-emerald-500/10">
-          💎
-        </div>
-        <div>
-          <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265]">Celestial Gem</div>
-          <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] mt-px">{gem.crystalName || gem.title}</h3>
-        </div>
-      </div>
-      {gem.crystalMeaning && (
-        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.65] mb-2">{gem.crystalMeaning}</p>
-      )}
-      {gem.howToUse && (
-        <div className="p-3 rounded-xl bg-[#faf6ef] border border-[#e8ddd0]/50">
-          <div className="text-[0.64rem] font-bold text-[#c4a265] uppercase tracking-[1px] mb-0.5">
-            💡 How to use
+      <div
+        className="p-[22px] px-5 rounded-[18px] border border-[#e8ddd0] relative overflow-hidden"
+        style={{
+          background: `linear-gradient(165deg, white 0%, white 70%, ${gemColor}08 100%)`,
+          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+        }}
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <div
+            className="w-[42px] h-[42px] rounded-full flex items-center justify-center text-[1.1rem] flex-shrink-0"
+            style={{
+              background: `radial-gradient(circle, ${gemColor}25 0%, ${gemColor}10 60%, transparent 100%)`,
+              boxShadow: `0 0 16px ${gemColor}15`,
+            }}
+          >
+            {'\uD83D\uDC8E'}
           </div>
-          <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6]">{gem.howToUse}</p>
+          <div>
+            <div className="text-[0.56rem] font-bold tracking-[1.8px] uppercase text-[#c4a265]">Celestial Gem</div>
+            <h3
+              className="text-[1.2rem] text-[#3d2f2a] mt-px"
+              style={{ fontFamily: 'DM Serif Display, serif' }}
+            >
+              {gem.crystalName || gem.title}
+            </h3>
+          </div>
         </div>
-      )}
+        {gem.crystalMeaning && (
+          <p className="text-[0.82rem] text-[#5a4a42] leading-[1.65] mb-2">{gem.crystalMeaning}</p>
+        )}
+        {gem.howToUse && (
+          <div className="p-3 rounded-xl bg-[#faf6ef] border border-[#e8ddd0]/50">
+            <div className="text-[0.64rem] font-bold text-[#c4a265] uppercase tracking-[1px] mb-0.5">
+              {'\uD83D\uDCA1'} How to use
+            </div>
+            <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6]">{gem.howToUse}</p>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -1794,34 +2098,63 @@ function EternalArchetype({ archetype, petName }: { archetype: SectionContent; p
       className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
     >
       <div
-        className="p-6 rounded-[14px] text-center relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #faf6ef, #f5ede0, #faf6ef)' }}
+        className="p-7 sm:p-8 rounded-[18px] text-center relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 50%, #1a1210 100%)',
+          boxShadow: '0 8px 32px rgba(61,47,42,0.3)',
+        }}
       >
-        <div className="text-[0.56rem] font-bold tracking-[2px] uppercase text-[#c4a265] mb-1">
-          🌟 Eternal Archetype
+        {/* Corner glow */}
+        <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+
+        {/* Gold border top */}
+        <div className="flex items-center justify-center gap-3 mb-5">
+          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #c4a265)' }} />
+          <span className="text-[#c4a265]/60 text-[0.5rem]">{'\u2726'}</span>
+          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #c4a265)' }} />
+        </div>
+
+        <div className="text-[0.56rem] font-bold tracking-[3px] uppercase text-[#c4a265]/70 mb-2">
+          {'\uD83C\uDF1F'} Eternal Archetype
         </div>
         <div
-          className="text-[1.3rem] text-[#3d2f2a] mb-2"
+          className="text-[1.5rem] sm:text-[1.7rem] text-[#c4a265] mb-3"
           style={{ fontFamily: 'DM Serif Display, serif' }}
         >
           {archetype.archetypeName || archetype.title}
         </div>
         {archetype.archetypeStory && (
           <p
-            className="text-[0.9rem] text-[#5a4a42] leading-[1.7] italic max-w-md mx-auto mb-3"
+            className="text-[0.92rem] text-white/70 leading-[1.8] italic max-w-md mx-auto mb-4"
             style={{ fontFamily: 'Cormorant, serif' }}
           >
             {archetype.archetypeStory}
           </p>
         )}
         {archetype.archetypeLesson && (
-          <div className="p-3 rounded-xl bg-white/60 border border-[#e8ddd0]/50 text-left">
-            <div className="text-[0.64rem] font-bold text-[#c4a265] uppercase tracking-[1px] mb-0.5">
-              ✦ {petName}'s Lesson
+          <div
+            className="p-4 rounded-[14px] text-left"
+            style={{
+              background: 'rgba(196,162,101,0.08)',
+              border: '1px solid rgba(196,162,101,0.15)',
+            }}
+          >
+            <div className="text-[0.64rem] font-bold text-[#c4a265]/80 uppercase tracking-[1px] mb-1">
+              {'\u2726'} {petName}&rsquo;s Lesson
             </div>
-            <p className="text-[0.78rem] text-[#5a4a42] leading-[1.6]">{archetype.archetypeLesson}</p>
+            <p className="text-[0.8rem] text-white/65 leading-[1.65]">{archetype.archetypeLesson}</p>
           </div>
         )}
+
+        {/* Gold border bottom */}
+        <div className="flex items-center justify-center gap-3 mt-5">
+          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, #c4a265)' }} />
+          <span className="text-[#c4a265]/60 text-[0.5rem]">{'\u2726'}</span>
+          <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(to left, transparent, #c4a265)' }} />
+        </div>
       </div>
     </motion.div>
   );

@@ -58,40 +58,66 @@ export function CosmicAwards({ petName, report }: CosmicAwardsProps) {
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] mb-1">
-        Cosmic Awards Ceremony
-      </div>
-      <p className="text-[0.72rem] text-[#9a8578] mb-4">
-        The awards {petName} has earned just by being themselves.
-      </p>
+      <div
+        className="p-6 sm:p-7 rounded-[18px] relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 60%, #1f1613 100%)',
+          boxShadow: '0 8px 32px rgba(61,47,42,0.3)',
+        }}
+      >
+        {/* Corner glow accents */}
+        <div className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+        <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full pointer-events-none opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
 
-      <div className="space-y-3">
-        {awards.map((award, i) => (
-          <div
-            key={i}
-            className="flex gap-3 items-start p-2.5 rounded-lg hover:bg-[#faf6ef] transition-colors"
-          >
-            <span className="text-[1.3rem] flex-shrink-0 mt-0.5">
-              {trophyEmojis[i % trophyEmojis.length]}
-            </span>
-            <div>
-              <div className="font-dm-serif text-[0.88rem] text-[#3d2f2a]">
-                {award.award}
-              </div>
-              <p className="text-[0.75rem] text-[#5a4a42] leading-[1.55] mt-0.5">
-                {award.reason}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 pt-2.5 border-t border-[#f0e8de] text-center">
-        <p className="text-[0.65rem] text-[#b8a99e] italic">
-          Acceptance speech: *tail wag* *head tilt* *exist perfectly*
+        <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265]/80 mb-1 text-center">
+          Cosmic Awards Ceremony
+        </div>
+        <p className="text-[0.72rem] text-white/50 mb-5 text-center">
+          The awards {petName} has earned just by being themselves.
         </p>
+
+        <div className="space-y-3">
+          {awards.map((award, i) => (
+            <div
+              key={i}
+              className="flex gap-3 items-start p-3.5 rounded-[12px] relative"
+              style={{
+                background: 'rgba(196,162,101,0.06)',
+                border: '1px solid rgba(196,162,101,0.18)',
+              }}
+            >
+              <div className="relative flex-shrink-0 mt-0.5">
+                <div
+                  className="w-[36px] h-[36px] rounded-full flex items-center justify-center"
+                  style={{
+                    background: 'radial-gradient(circle, rgba(196,162,101,0.25) 0%, rgba(196,162,101,0.08) 60%, transparent 100%)',
+                    boxShadow: '0 0 12px rgba(196,162,101,0.15)',
+                  }}
+                >
+                  <span className="text-[1.2rem]">{trophyEmojis[i % trophyEmojis.length]}</span>
+                </div>
+              </div>
+              <div>
+                <div className="font-dm-serif text-[0.88rem] text-[#c4a265]">
+                  {award.award}
+                </div>
+                <p className="text-[0.75rem] text-white/65 leading-[1.55] mt-0.5">
+                  {award.reason}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-[#c4a265]/15 text-center">
+          <p className="text-[0.65rem] text-[#c4a265]/40 italic">
+            Acceptance speech: *tail wag* *head tilt* *exist perfectly*
+          </p>
+        </div>
       </div>
     </motion.div>
   );

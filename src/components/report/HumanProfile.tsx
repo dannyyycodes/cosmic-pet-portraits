@@ -97,35 +97,87 @@ export function HumanProfile({ petName, report, occasionMode }: HumanProfileProp
       initial="hidden"
       animate={s.isInView ? 'visible' : 'hidden'}
       variants={s.variants}
-      className="mx-4 my-2.5 p-[22px] px-5 bg-white rounded-[14px] border border-[#e8ddd0] max-w-[520px] sm:mx-auto"
+      className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
     >
-      <div className="text-[0.6rem] font-bold tracking-[2.5px] uppercase text-[#c4a265] text-center mb-1">
-        👤 If {petName} Was a Human
-      </div>
-      <h3 className="font-dm-serif text-[1.05rem] text-[#3d2f2a] text-center mb-3.5">
-        The Human Version of {petName}
-      </h3>
-
-      {/* Avatar */}
       <div
-        className="w-[70px] h-[70px] rounded-full mx-auto mb-3 flex items-center justify-center text-[1.8rem]"
-        style={{ background: 'linear-gradient(135deg, #c4a265, #8b6f3a)' }}
+        className="rounded-[18px] overflow-hidden"
+        style={{ boxShadow: '0 3px 16px rgba(0,0,0,0.06)' }}
       >
-        {signIcon}
-      </div>
-
-      {traitOrder.map((trait) => {
-        const value = profile[trait];
-        if (!value) return null;
-        return (
-          <div key={trait} className="flex items-center gap-2.5 py-2 border-b border-[#e8ddd0] last:border-b-0">
-            <span className="text-[0.7rem] font-semibold text-[#9a8578] w-[90px] flex-shrink-0">
-              {trait}
-            </span>
-            <span className="text-[0.82rem] text-[#3d2f2a]">{value}</span>
+        {/* Manila folder tab header */}
+        <div
+          className="px-5 py-4 relative"
+          style={{
+            background: 'linear-gradient(135deg, #e8d5b8 0%, #d4c0a0 100%)',
+            borderBottom: '2px solid #c4a265',
+          }}
+        >
+          <div className="text-[0.56rem] font-bold tracking-[2.5px] uppercase text-[#6b5a45]">
+            Classified Dossier
           </div>
-        );
-      })}
+          <h3
+            className="text-[1.05rem] text-[#3d2f2a] mt-0.5"
+            style={{ fontFamily: 'DM Serif Display, serif' }}
+          >
+            Subject: {petName}&rsquo;s Human
+          </h3>
+
+          {/* TOP SECRET stamp */}
+          <div
+            className="absolute top-3 right-4 text-[0.7rem] font-black tracking-[2px] uppercase select-none pointer-events-none"
+            style={{
+              color: 'rgba(180,60,60,0.22)',
+              transform: 'rotate(-12deg)',
+              border: '2px solid rgba(180,60,60,0.18)',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontFamily: 'monospace',
+            }}
+          >
+            Top Secret
+          </div>
+        </div>
+
+        {/* Dossier body */}
+        <div className="bg-white px-5 py-4">
+          {/* Avatar */}
+          <div className="flex items-center gap-3 mb-4 pb-3" style={{ borderBottom: '1px dashed #d4c5b0' }}>
+            <div
+              className="w-[52px] h-[52px] rounded-full flex items-center justify-center text-[1.5rem] flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #c4a265, #8b6f3a)' }}
+            >
+              {signIcon}
+            </div>
+            <div>
+              <div className="text-[0.62rem] font-bold tracking-[1.5px] uppercase text-[#9a8578]">
+                Profile Assessment
+              </div>
+              <div className="text-[0.78rem] text-[#5a4a42] mt-0.5">
+                As observed by {petName}
+              </div>
+            </div>
+          </div>
+
+          {traitOrder.map((trait) => {
+            const value = profile[trait];
+            if (!value) return null;
+            return (
+              <div key={trait} className="flex items-baseline gap-2 py-2.5">
+                <span
+                  className="text-[0.68rem] font-semibold text-[#9a8578] w-[95px] flex-shrink-0 uppercase tracking-[0.5px]"
+                  style={{ fontFamily: 'monospace' }}
+                >
+                  {trait}
+                </span>
+                <span
+                  className="flex-1 border-b border-dotted border-[#d4c5b0] mx-1 mb-1 self-end"
+                  style={{ minWidth: '12px' }}
+                />
+                <span className="text-[0.8rem] text-[#3d2f2a] max-w-[55%] text-right leading-[1.45]">{value}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </motion.div>
   );
 }
