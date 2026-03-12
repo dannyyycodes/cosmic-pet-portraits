@@ -179,12 +179,12 @@ const chapters = [
     border: '2px solid rgba(196,162,101,0.2)', ornament: '✦',
   },
   {
-    number: 2, title: 'Their Soul, Decoded', subtitle: 'Planet by planet, layer by layer', icon: '🗺️',
+    number: 2, title: 'Their Soul, Decoded', subtitle: 'Planet by planet, layer by layer', icon: '✨',
     bg: 'linear-gradient(165deg, #2a1f2a 0%, #1a1520 100%)', accent: '#b8a0d4', textColor: '#ffffff',
     border: '1px solid rgba(184,160,212,0.2)', ornament: '☽',
   },
   {
-    number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '😸',
+    number: 3, title: 'The Fun Stuff', subtitle: 'Crimes, chaos, and questionable life choices', icon: '🎭',
     bg: 'linear-gradient(165deg, #fff8f0 0%, #ffefd9 100%)', accent: '#e8943a', textColor: '#3d2f2a',
     border: '2px solid rgba(232,148,58,0.15)', ornament: '🐾',
   },
@@ -204,7 +204,7 @@ const chapters = [
     border: '2px solid rgba(184,150,42,0.2)', ornament: '⟡',
   },
   {
-    number: 7, title: 'The Part That Makes People Cry', subtitle: 'You\u2019ve been warned', icon: '💌',
+    number: 7, title: 'A Letter From Their Soul', subtitle: 'In their own words, at last', icon: '💌',
     bg: 'linear-gradient(165deg, #3d2f2a 0%, #1a1210 100%)', accent: '#c4a265', textColor: '#ffffff',
     border: '1px solid rgba(196,162,101,0.25)', ornament: '✦',
   },
@@ -392,6 +392,14 @@ export function CosmicReportViewer({
         </>
       )}
 
+      {/* ═══ COSMIC NAME MEANING (moved here from Ch6) ═══ */}
+      {report.nameMeaning && (
+        <>
+          <CosmicNameMeaning nameMeaning={report.nameMeaning} />
+          <SectionDivider />
+        </>
+      )}
+
       {/* ═══ READING TRANSITION ═══ */}
       <ReadingTransition petName={petName} />
 
@@ -525,6 +533,15 @@ export function CosmicReportViewer({
              ══════════════════════════════════════════ */}
           <ChapterTitle chapter={chapters[2]} />
 
+          {/* ═══ TOP 5 CRIMES ═══ */}
+          {report.topFiveCrimes?.crimes && (
+            <>
+              <SectionLabel icon="🚨" label={`${petName}'s Criminal Record`} />
+              <CrimesSection crimes={report.topFiveCrimes.crimes} />
+              <SectionDivider />
+            </>
+          )}
+
           {/* ═══ MEME PERSONALITY ═══ */}
           {report.memePersonality && (
             <>
@@ -533,15 +550,6 @@ export function CosmicReportViewer({
                 type={report.memePersonality.type}
                 description={report.memePersonality.description}
               />
-              <SectionDivider />
-            </>
-          )}
-
-          {/* ═══ TOP 5 CRIMES ═══ */}
-          {report.topFiveCrimes?.crimes && (
-            <>
-              <SectionLabel icon="🚨" label={`${petName}'s Criminal Record`} />
-              <CrimesSection crimes={report.topFiveCrimes.crimes} />
               <SectionDivider />
             </>
           )}
@@ -815,16 +823,8 @@ export function CosmicReportViewer({
             <LuckyGrid luckyElements={report.luckyElements} />
           )}
 
-          {/* ═══ COSMIC NAME MEANING ═══ */}
-          {report.nameMeaning && (
-            <>
-              <CosmicNameMeaning nameMeaning={report.nameMeaning} />
-              <SectionDivider />
-            </>
-          )}
-
           {/* ══════════════════════════════════════════
-              CHAPTER 7 — THE PART THAT MAKES PEOPLE CRY
+              CHAPTER 7 — A LETTER FROM THEIR SOUL
              ══════════════════════════════════════════ */}
           <ChapterTitle chapter={chapters[6]} />
 
@@ -1257,78 +1257,111 @@ function PetMonologue({
   sunSign: string;
 }) {
   const intro = useScrollReveal();
-  const s = useScrollReveal();
   const signData = zodiacSigns[sunSign.toLowerCase()];
   const signIcon = signData?.icon || '⭐';
 
+  // Split monologue into paragraphs for staggered reveal
+  const paragraphs = monologue.monologue
+    .split(/(?<=[.!?])\s+(?=[A-Z])/)
+    .reduce((acc: string[], sentence, i) => {
+      // Group every 2-3 sentences into a paragraph
+      const lastIdx = acc.length - 1;
+      if (lastIdx >= 0 && acc[lastIdx].split(/[.!?]/).length < 4) {
+        acc[lastIdx] += ' ' + sentence;
+      } else {
+        acc.push(sentence);
+      }
+      return acc;
+    }, []);
+
   return (
     <>
-      {/* Emotional intro before the monologue */}
+      {/* Emotional intro */}
       <motion.div
         ref={intro.ref}
         initial="hidden"
         animate={intro.isInView ? 'visible' : 'hidden'}
-        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1, ease: 'easeOut' } } }}
-        className="text-center px-6 py-6 max-w-[520px] mx-auto"
+        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } } }}
+        className="text-center px-6 py-8 max-w-[520px] mx-auto"
       >
+        <div className="flex items-center justify-center gap-3 mb-5">
+          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+          <span className="text-[#c4a265]/50 text-[0.7rem]">✦</span>
+          <div className="w-10 h-[1px] bg-[#c4a265]/30" />
+        </div>
         <p
-          className="text-[1.05rem] text-[#9a8578] italic leading-[1.7]"
+          className="text-[1.1rem] text-[#3d2f2a] leading-[1.6] mb-2"
+          style={{ fontFamily: 'DM Serif Display, serif' }}
+        >
+          If {petName} could speak to you
+        </p>
+        <p
+          className="text-[0.95rem] text-[#9a8578] italic leading-[1.7]"
           style={{ fontFamily: 'Cormorant, serif' }}
         >
-          If {petName} could speak to you, just once, in words you could understand&hellip;
+          just once, in words you could understand&hellip;
         </p>
       </motion.div>
 
-      <motion.div
-        ref={s.ref}
-        initial="hidden"
-        animate={s.isInView ? 'visible' : 'hidden'}
-        variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: 'easeOut' } } }}
-        className="mx-4 my-2.5 max-w-[520px] sm:mx-auto"
+      {/* Dark immersive monologue container */}
+      <div
+        className="mx-4 my-2.5 max-w-[520px] sm:mx-auto rounded-[20px] relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(165deg, #3d2f2a 0%, #2a1f1a 50%, #1a1210 100%)',
+          boxShadow: '0 8px 40px rgba(61,47,42,0.3)',
+          border: '1px solid rgba(196,162,101,0.15)',
+        }}
       >
-        <div
-          className="p-10 rounded-[18px] text-center relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(165deg, #faf6ef 0%, #f5ede0 40%, #f0e6d6 100%)',
-            boxShadow: '0 4px 24px rgba(196,162,101,0.1), inset 0 1px 0 rgba(255,255,255,0.5)',
-            border: '1px solid rgba(196,162,101,0.15)',
-          }}
-        >
-          {/* Soft corner accents */}
-          <div className="absolute top-0 left-0 w-24 h-24 rounded-full opacity-25 pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.15), transparent 70%)' }} />
-          <div className="absolute bottom-0 right-0 w-24 h-24 rounded-full opacity-25 pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.15), transparent 70%)' }} />
+        {/* Glow accents */}
+        <div className="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
+        <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full pointer-events-none opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(196,162,101,0.4), transparent 70%)' }} />
 
+        <div className="relative z-10 px-7 py-10 sm:px-9">
           {/* Opening quote */}
-          <div className="text-[4.5rem] leading-none text-[#c4a265]/35 font-serif mb-[-1.2rem]">&ldquo;</div>
+          <div className="text-[3.5rem] leading-none text-[#c4a265]/30 font-serif mb-2">&ldquo;</div>
 
-          <p
-            className="text-[1.08rem] text-[#3d2f2a] leading-[2] italic px-3 max-w-md mx-auto"
-            style={{ fontFamily: 'Cormorant, serif' }}
-          >
-            {monologue.monologue}
-          </p>
+          {/* Staggered paragraphs */}
+          <div className="space-y-5">
+            {paragraphs.map((para, i) => (
+              <motion.p
+                key={i}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20px' }}
+                transition={{ duration: 0.7, delay: i * 0.05, ease: 'easeOut' }}
+                className="text-[0.95rem] sm:text-[1rem] text-white/85 leading-[1.95] italic"
+                style={{ fontFamily: 'Cormorant, serif' }}
+              >
+                {para}
+              </motion.p>
+            ))}
+          </div>
 
           {/* Closing quote */}
-          <div className="text-[4.5rem] leading-none text-[#c4a265]/35 font-serif mt-[-0.6rem]">&rdquo;</div>
+          <div className="text-[3.5rem] leading-none text-[#c4a265]/30 font-serif mt-2 text-right">&rdquo;</div>
 
-          <div className="w-10 h-[1px] bg-[#c4a265]/30 mx-auto my-3" />
+          <div className="w-12 h-[1px] bg-[#c4a265]/25 mx-auto my-4" />
 
           {/* Attribution */}
-          <div className="text-[0.85rem] text-[#3d2f2a] font-bold">
-            — {petName} {signIcon}
+          <div className="text-center">
+            <div className="text-[0.88rem] text-[#c4a265] font-bold">
+              — {petName} {signIcon}
+            </div>
+            <div className="text-[0.68rem] text-white/40 mt-0.5">{sunSign}</div>
           </div>
-          <div className="text-[0.68rem] text-[#9a8578]/70 mt-0.5">{sunSign}</div>
 
-          {/* Post script */}
+          {/* Post script — separate card feel */}
           {monologue.postScript && (
-            <p className="mt-5 text-[0.82rem] text-[#6b4c3b] italic opacity-80 max-w-sm mx-auto" style={{ fontFamily: 'Cormorant, serif' }}>
-              P.S. {monologue.postScript}
-            </p>
+            <div className="mt-6 p-4 rounded-[12px]" style={{ background: 'rgba(196,162,101,0.08)', border: '1px solid rgba(196,162,101,0.12)' }}>
+              <p className="text-[0.82rem] text-white/70 italic leading-[1.7]" style={{ fontFamily: 'Cormorant, serif' }}>
+                P.S. {monologue.postScript}
+              </p>
+            </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </>
   );
 }
