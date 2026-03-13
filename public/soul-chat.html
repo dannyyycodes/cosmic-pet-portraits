@@ -111,7 +111,7 @@ body::after {
 
 /* ============ MESSAGES ============ */
 .chat-messages {
-  flex:1; overflow-y:auto; padding:20px 16px; display:flex;
+  flex:1; overflow-y:auto; padding:20px 16px 80px; display:flex;
   flex-direction:column; gap:12px;
   scroll-behavior:smooth;
   -webkit-overflow-scrolling:touch;
@@ -397,10 +397,9 @@ body::after {
 /* ============ SAFE AREA (iOS) ============ */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .chat-input-bar { padding-bottom:calc(12px + env(safe-area-inset-bottom)); }
-  .sidebar-drawer { padding-bottom:env(safe-area-inset-bottom); }
 }
 
-/* ============ SIDEBAR DRAWER ============ */
+/* ============ SIDEBAR (Full-Screen Overlay) ============ */
 .sidebar-btn {
   display:flex; align-items:center; justify-content:center;
   width:36px; height:36px; border-radius:8px; border:none;
@@ -412,25 +411,18 @@ body::after {
 
 .sidebar-overlay {
   display:none; position:fixed; inset:0; z-index:200;
-  background:rgba(31,28,24,0.35); backdrop-filter:blur(2px);
+  background:rgba(255,253,245,0.98); backdrop-filter:blur(12px);
+  flex-direction:column; overflow:hidden;
 }
-.sidebar-overlay.show { display:block; }
+.sidebar-overlay.show { display:flex; }
 
-.sidebar-drawer {
-  position:fixed; top:0; right:-320px; width:300px; max-width:85vw;
-  height:100%; z-index:201; background:var(--cream);
-  box-shadow:-4px 0 24px rgba(0,0,0,0.1);
-  transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
-  display:flex; flex-direction:column; overflow-y:auto;
-}
-.sidebar-drawer.show { right:0; }
-
+/* Sidebar header */
 .sidebar-header {
-  padding:20px; border-bottom:1px solid var(--cream3);
-  display:flex; align-items:center; gap:12px;
+  padding:20px 24px 0; display:flex; align-items:center; gap:14px;
+  flex-shrink:0;
 }
 .sidebar-close {
-  width:36px; height:36px; border-radius:8px; border:none;
+  width:40px; height:40px; border-radius:10px; border:none;
   background:var(--cream2); cursor:pointer; color:var(--earth);
   display:flex; align-items:center; justify-content:center;
   margin-left:auto; transition:background 0.2s;
@@ -439,132 +431,223 @@ body::after {
 .sidebar-close:hover, .sidebar-close:active { background:var(--cream3); }
 
 .sidebar-pet-photo {
-  width:56px; height:56px; border-radius:50%; overflow:hidden;
+  width:52px; height:52px; border-radius:50%; overflow:hidden;
   border:2px solid var(--gold); flex-shrink:0;
   display:flex; align-items:center; justify-content:center;
-  font-size:1.4rem;
+  font-size:1.3rem;
   background:linear-gradient(135deg, var(--rose-glow) 0%, rgba(196,162,101,0.12) 100%);
+  box-shadow:0 0 0 3px rgba(196,162,101,0.08);
 }
 .sidebar-pet-photo img { width:100%; height:100%; object-fit:cover; }
 
 .sidebar-pet-name {
-  font-family:'DM Serif Display',Georgia,serif; font-size:1.1rem;
+  font-family:'DM Serif Display',Georgia,serif; font-size:1.15rem;
   color:var(--ink); line-height:1.2;
 }
 .sidebar-pet-detail {
   font-size:0.72rem; color:var(--muted); margin-top:2px;
 }
 
-.sidebar-section {
-  padding:16px 20px; border-bottom:1px solid var(--cream3);
+/* Tab navigation */
+.sidebar-tabs {
+  display:flex; gap:0; padding:18px 24px 0; flex-shrink:0;
+  border-bottom:1px solid var(--cream3);
 }
-.sidebar-section-title {
-  font-size:0.6rem; font-weight:600; letter-spacing:1px;
-  text-transform:uppercase; color:var(--muted); margin-bottom:10px;
+.sidebar-tab {
+  flex:1; padding:12px 8px; text-align:center; cursor:pointer;
+  font-size:0.68rem; font-weight:700; letter-spacing:1.2px;
+  text-transform:uppercase; color:var(--muted);
+  border-bottom:2px solid transparent;
+  transition:all 0.25s; background:none; border-top:none;
+  border-left:none; border-right:none;
+  -webkit-tap-highlight-color:transparent;
+  font-family:inherit;
+}
+.sidebar-tab:hover { color:var(--ink); }
+.sidebar-tab.active {
+  color:var(--gold); border-bottom-color:var(--gold);
 }
 
-/* Credits display in sidebar */
+/* Tab content area */
+.sidebar-tab-content {
+  flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.sidebar-tab-panel { display:none; padding:24px; }
+.sidebar-tab-panel.active { display:block; }
+
+/* ── Credits Tab ── */
 .sidebar-credits-box {
   background:linear-gradient(135deg, var(--cream2) 0%, var(--cream3) 100%);
-  border-radius:14px; padding:18px 16px; text-align:center;
+  border-radius:16px; padding:22px 20px; text-align:center;
   border:1px solid rgba(196,162,101,0.12);
+  margin-bottom:28px;
 }
 .sidebar-credits-number {
-  font-family:'DM Serif Display',Georgia,serif; font-size:2.2rem;
+  font-family:'DM Serif Display',Georgia,serif; font-size:2.6rem;
   color:var(--ink); line-height:1;
 }
 .sidebar-credits-label {
-  font-size:0.68rem; color:var(--muted); line-height:1.3; margin-top:4px;
+  font-size:0.72rem; color:var(--muted); line-height:1.3; margin-top:5px;
   font-weight:500; letter-spacing:0.3px;
 }
 .sidebar-credits-sublabel {
   font-size:0.6rem; color:var(--gold); font-weight:600;
-  letter-spacing:0.5px; margin-top:6px; text-transform:uppercase;
+  letter-spacing:0.5px; margin-top:8px; text-transform:uppercase;
 }
 .sidebar-credits-unlimited {
   font-family:'DM Serif Display',Georgia,serif; font-size:1rem;
   color:var(--gold); display:flex; align-items:center; justify-content:center; gap:6px;
 }
 
-/* Buy credits cards in sidebar */
-.sidebar-buy-card {
-  display:block; width:100%; border-radius:14px; cursor:pointer;
-  text-align:left; transition:all 0.25s; position:relative;
-  margin-bottom:10px; font-family:inherit; overflow:hidden;
+/* Pricing cards row */
+.sidebar-pricing-title {
+  font-size:0.6rem; font-weight:600; letter-spacing:1px;
+  text-transform:uppercase; color:var(--muted); margin-bottom:14px;
+  text-align:center;
+}
+.sidebar-pricing-row {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;
+}
+
+.sidebar-price-card {
+  display:flex; flex-direction:column; border-radius:16px; cursor:pointer;
+  text-align:center; transition:all 0.25s; position:relative;
+  font-family:inherit; overflow:hidden;
   -webkit-tap-highlight-color:transparent; border:none;
-  font-size:inherit;
+  font-size:inherit; padding:20px 12px 18px;
 }
-.sidebar-buy-card:last-child { margin-bottom:0; }
+.sidebar-price-card:hover { transform:translateY(-2px); }
 
-.sidebar-buy-featured {
-  background:linear-gradient(135deg, #3d2f2a 0%, #2e2218 100%);
-  color:#fff; padding:18px 16px;
-  border:1.5px solid rgba(196,162,101,0.25);
-  box-shadow:0 2px 12px rgba(61,47,42,0.15);
-}
-.sidebar-buy-featured:hover, .sidebar-buy-featured:active {
-  transform:translateY(-1px);
-  box-shadow:0 4px 16px rgba(61,47,42,0.25);
-}
-.sidebar-buy-standard {
+.sidebar-price-card.standard {
   background:var(--cream2); color:var(--ink);
-  border:1.5px solid var(--cream3); padding:14px 16px;
+  border:1.5px solid var(--cream3);
 }
-.sidebar-buy-standard:hover, .sidebar-buy-standard:active {
+.sidebar-price-card.standard:hover {
   border-color:rgba(196,162,101,0.3);
-  background:rgba(196,162,101,0.04);
+  box-shadow:0 4px 16px rgba(0,0,0,0.06);
 }
 
-.sidebar-buy-badge {
-  position:absolute; top:-1px; right:12px;
-  font-size:0.48rem; font-weight:700; letter-spacing:0.8px;
-  text-transform:uppercase; padding:3px 8px; border-radius:0 0 6px 6px;
+.sidebar-price-card.featured {
+  background:linear-gradient(135deg, #3d2f2a 0%, #2e2218 100%);
+  color:#fff; border:1.5px solid rgba(196,162,101,0.3);
+  box-shadow:0 4px 20px rgba(61,47,42,0.2);
 }
-.sidebar-buy-featured .sidebar-buy-badge {
+.sidebar-price-card.featured:hover {
+  box-shadow:0 6px 24px rgba(61,47,42,0.3);
+}
+
+.sidebar-price-card.membership {
+  background:linear-gradient(135deg, #1a1210 0%, #2e2218 100%);
+  color:#fff; border:1.5px solid rgba(196,162,101,0.35);
+  box-shadow:0 4px 20px rgba(0,0,0,0.15);
+}
+.sidebar-price-card.membership:hover {
+  box-shadow:0 6px 24px rgba(0,0,0,0.25);
+}
+
+.price-card-badge {
+  position:absolute; top:-1px; left:50%; transform:translateX(-50%);
+  font-size:0.42rem; font-weight:700; letter-spacing:0.8px;
+  text-transform:uppercase; padding:3px 10px; border-radius:0 0 8px 8px;
+  white-space:nowrap;
+}
+.sidebar-price-card.featured .price-card-badge {
   background:linear-gradient(135deg, #c4a265, #d4b87a); color:#1a1210;
 }
+.sidebar-price-card.membership .price-card-badge {
+  background:var(--green); color:#fff;
+}
 
-.sidebar-buy-price {
+.price-card-name {
+  font-weight:700; font-size:0.72rem; margin-bottom:6px;
+  letter-spacing:0.3px;
+}
+.sidebar-price-card.standard .price-card-name { color:var(--warm); }
+.sidebar-price-card.featured .price-card-name { color:rgba(255,255,255,0.8); }
+.sidebar-price-card.membership .price-card-name { color:rgba(255,255,255,0.8); }
+
+.price-card-amount {
   font-family:'DM Serif Display',Georgia,serif;
-  font-size:1.2rem; line-height:1;
+  font-size:1.5rem; line-height:1; margin-bottom:2px;
 }
-.sidebar-buy-featured .sidebar-buy-price { color:#fff; }
-.sidebar-buy-standard .sidebar-buy-price { color:var(--ink); }
-
-.sidebar-buy-name {
-  font-weight:700; font-size:0.78rem; margin-top:2px;
-}
-.sidebar-buy-featured .sidebar-buy-name { color:rgba(255,255,255,0.85); }
-
-.sidebar-buy-detail {
-  font-size:0.65rem; opacity:0.6; margin-top:3px;
-}
-.sidebar-buy-perunit {
-  font-size:0.58rem; margin-top:4px; font-weight:600;
-}
-.sidebar-buy-featured .sidebar-buy-perunit { color:var(--gold); }
-.sidebar-buy-standard .sidebar-buy-perunit { color:var(--gold); }
-
-.sidebar-buy-strikethrough {
-  text-decoration:line-through; opacity:0.4; font-size:0.72rem; margin-right:4px;
+.price-card-period {
+  font-size:0.55rem; opacity:0.5; margin-bottom:8px;
 }
 
-/* Pet info cards in sidebar */
-.sidebar-info-row {
-  display:flex; align-items:center; gap:8px; padding:6px 0;
+.price-card-credits {
+  font-size:0.82rem; font-weight:600; margin-bottom:4px;
 }
-.sidebar-info-label {
-  font-size:0.72rem; color:var(--muted); min-width:60px;
+.sidebar-price-card.featured .price-card-credits { color:var(--gold); }
+.sidebar-price-card.membership .price-card-credits { color:var(--gold); }
+.sidebar-price-card.standard .price-card-credits { color:var(--gold); }
+
+.price-card-desc {
+  font-size:0.6rem; opacity:0.55; line-height:1.4;
+  font-family:'Cormorant',Georgia,serif;
 }
-.sidebar-info-value {
+
+/* ── Soul Profile Tab ── */
+.soul-profile-section {
+  margin-bottom:20px;
+}
+.soul-profile-section-title {
+  font-size:0.55rem; font-weight:700; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--gold); margin-bottom:10px;
+  display:flex; align-items:center; gap:8px;
+}
+.soul-profile-section-title::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg, rgba(196,162,101,0.2), transparent);
+}
+
+.soul-profile-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;
+}
+.soul-profile-item {
+  background:var(--cream2); border-radius:10px; padding:10px 12px;
+  border:1px solid var(--cream3);
+}
+.soul-profile-item-label {
+  font-size:0.58rem; color:var(--muted); font-weight:600;
+  letter-spacing:0.5px; text-transform:uppercase; margin-bottom:3px;
+}
+.soul-profile-item-value {
   font-size:0.82rem; color:var(--ink); font-weight:500;
+  font-family:'DM Serif Display',Georgia,serif;
 }
 
-/* Back to report link */
+.soul-profile-text {
+  background:var(--cream2); border-radius:12px; padding:14px 16px;
+  border:1px solid var(--cream3); margin-bottom:8px;
+}
+.soul-profile-text-label {
+  font-size:0.55rem; color:var(--gold); font-weight:700;
+  letter-spacing:1px; text-transform:uppercase; margin-bottom:6px;
+}
+.soul-profile-text-value {
+  font-size:0.82rem; color:var(--warm); line-height:1.55;
+  font-family:'Cormorant',Georgia,serif;
+}
+
+.soul-profile-assurance {
+  text-align:center; padding:20px 16px; margin-top:12px;
+  border-top:1px solid var(--cream3);
+}
+.soul-profile-assurance-text {
+  font-size:0.7rem; color:var(--muted); font-style:italic;
+  font-family:'Cormorant',Georgia,serif; line-height:1.5;
+}
+
+/* Sidebar footer links */
+.sidebar-footer {
+  padding:16px 24px; border-top:1px solid var(--cream3);
+  flex-shrink:0; display:flex; gap:16px;
+}
 .sidebar-link {
-  display:flex; align-items:center; gap:8px; padding:12px 0;
-  font-size:0.85rem; color:var(--earth); text-decoration:none;
-  transition:color 0.2s; min-height:44px;
+  display:flex; align-items:center; gap:6px;
+  font-size:0.78rem; color:var(--earth); text-decoration:none;
+  transition:color 0.2s; min-height:40px;
   -webkit-tap-highlight-color:transparent;
 }
 .sidebar-link:hover, .sidebar-link:active { color:var(--rose); }
@@ -575,7 +658,7 @@ body::after {
   .chat-pet-avatar { width:38px; height:38px; }
   .chat-pet-name { font-size:0.95rem; }
   .soulspeak-badge { font-size:0.5rem; padding:1px 5px; }
-  .chat-messages { padding:14px 10px; gap:10px; }
+  .chat-messages { padding:14px 10px 80px; gap:10px; }
   .msg { max-width:88%; }
   .msg-avatar-mini { width:24px; height:24px; }
   .msg-bubble { padding:10px 14px; font-size:0.9rem; border-radius:16px; }
@@ -587,10 +670,15 @@ body::after {
   .paywall-card { padding:24px 16px; }
   .paywall-pet-says { font-size:1rem; }
   .paywall-title { font-size:1.15rem; }
-  .sidebar-drawer { width:280px; }
-  .sidebar-header { padding:16px; }
-  .sidebar-section { padding:14px 16px; }
-  .sidebar-pet-photo { width:48px; height:48px; }
+  .sidebar-header { padding:16px 16px 0; }
+  .sidebar-tabs { padding:14px 16px 0; }
+  .sidebar-tab-panel { padding:18px 16px; }
+  .sidebar-pet-photo { width:44px; height:44px; }
+  .sidebar-pricing-row { gap:8px; }
+  .sidebar-price-card { padding:16px 8px 14px; }
+  .price-card-amount { font-size:1.25rem; }
+  .price-card-name { font-size:0.65rem; }
+  .sidebar-footer { padding:12px 16px; }
 }
 
 /* Small phones (iPhone SE, 320-375px) */
@@ -603,6 +691,11 @@ body::after {
   .welcome-card { max-width:100%; }
   .paywall-option-title { font-size:0.85rem; }
   .paywall-option-desc { font-size:0.7rem; }
+  .sidebar-pricing-row { grid-template-columns:1fr; gap:8px; }
+  .sidebar-price-card { padding:14px 16px; flex-direction:row; align-items:center; gap:12px; text-align:left; }
+  .price-card-badge { top:-1px; left:auto; right:10px; transform:none; }
+  .price-card-credits { margin-bottom:0; }
+  .price-card-desc { display:none; }
 }
 
 /* Landscape on phones */
@@ -618,8 +711,9 @@ body::after {
 /* iOS safe areas — top (notch/dynamic island) + bottom */
 @supports (padding-top: env(safe-area-inset-top)) {
   .chat-header { padding-top:calc(10px + env(safe-area-inset-top)); }
-  .sidebar-drawer { padding-top:env(safe-area-inset-top); }
+  .sidebar-header { padding-top:calc(20px + env(safe-area-inset-top)); }
   .paywall-card { padding-bottom:calc(24px + env(safe-area-inset-bottom)); }
+  .sidebar-footer { padding-bottom:calc(16px + env(safe-area-inset-bottom)); }
 }
 </style>
 </head>
@@ -679,27 +773,26 @@ body::after {
     <div class="paywall-options">
       <div class="paywall-option pack" onclick="buyCredits('medium')">
         <div class="paywall-option-badge">BEST VALUE</div>
-        <div class="paywall-option-title">Deep Bond — $14.99</div>
-        <div class="paywall-option-desc">40 messages — real conversations, not just a few words</div>
+        <div class="paywall-option-title">Deep Bond — 100 credits — $19.99</div>
+        <div class="paywall-option-desc">Real conversations, not just a few words</div>
       </div>
       <div class="paywall-option pack small" onclick="buyCredits('small')" style="background:linear-gradient(135deg, #5a4a42, #6e6259);border-color:rgba(196,162,101,0.12);">
-        <div class="paywall-option-title">Continue — $7.99</div>
-        <div class="paywall-option-desc">15 more messages with <span class="paywall-pet-name-inline"></span></div>
+        <div class="paywall-option-title">Continue — 30 credits — $7.99</div>
+        <div class="paywall-option-desc">Pick up where you left off with <span class="paywall-pet-name-inline"></span></div>
       </div>
-      <div class="paywall-option pack" onclick="buyCredits('large')" style="background:linear-gradient(135deg, #1a1210, #2e2218);border-color:rgba(196,162,101,0.3);">
-        <div class="paywall-option-badge">DEEPEST CONNECTION</div>
-        <div class="paywall-option-title">Soul Bond — $24.99</div>
-        <div class="paywall-option-desc">100 messages — go as deep as your heart needs</div>
+      <div class="paywall-option pack" onclick="buyCredits('membership')" style="background:linear-gradient(135deg, #1a1210, #2e2218);border-color:rgba(196,162,101,0.3);">
+        <div class="paywall-option-badge">MEMBERSHIP</div>
+        <div class="paywall-option-title">Soul Bond — $12.99/mo — 40 credits/week</div>
+        <div class="paywall-option-desc">Weekly credits, cancel anytime</div>
       </div>
     </div>
     <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
   </div>
 </div>
 
-<!-- ============ SIDEBAR DRAWER ============ -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-<div class="sidebar-drawer" id="sidebarDrawer">
-  <!-- Header with pet photo -->
+<!-- ============ SIDEBAR (Full-Screen) ============ -->
+<div class="sidebar-overlay" id="sidebarOverlay">
+  <!-- Header -->
   <div class="sidebar-header">
     <div class="sidebar-pet-photo" id="sidebarPetPhoto">&#129782;</div>
     <div>
@@ -707,89 +800,86 @@ body::after {
       <div class="sidebar-pet-detail" id="sidebarPetDetail"></div>
     </div>
     <button class="sidebar-close" onclick="toggleSidebar()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
 
-  <!-- Credits Section -->
-  <div class="sidebar-section">
-    <div class="sidebar-section-title">Soul Channel</div>
-    <div class="sidebar-credits-box">
-      <div id="sidebarCreditsDisplay">
-        <div class="sidebar-credits-number" id="sidebarCreditsNumber">8</div>
-        <div class="sidebar-credits-label">messages remaining</div>
-        <div class="sidebar-credits-sublabel" id="sidebarCreditsStatus">Free trial</div>
+  <!-- Tabs -->
+  <div class="sidebar-tabs">
+    <button class="sidebar-tab active" data-tab="credits" onclick="switchSidebarTab('credits')">Credits</button>
+    <button class="sidebar-tab" data-tab="profile" onclick="switchSidebarTab('profile')">Soul Profile</button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="sidebar-tab-content">
+
+    <!-- ── Credits & Buy Tab ── -->
+    <div class="sidebar-tab-panel active" id="tabCredits">
+      <!-- Credits remaining -->
+      <div class="sidebar-credits-box">
+        <div id="sidebarCreditsDisplay">
+          <div class="sidebar-credits-number" id="sidebarCreditsNumber">8</div>
+          <div class="sidebar-credits-label">credits remaining</div>
+          <div class="sidebar-credits-sublabel" id="sidebarCreditsStatus">Free trial</div>
+        </div>
+      </div>
+
+      <!-- Pricing cards -->
+      <div id="sidebarBuySection">
+        <div class="sidebar-pricing-title">Reopen the Soul Channel</div>
+        <div class="sidebar-pricing-row">
+
+          <!-- Card 1: Continue ($7.99) -->
+          <button class="sidebar-price-card standard" onclick="buyCredits('small')">
+            <div class="price-card-name">Continue</div>
+            <div class="price-card-amount">$7.99</div>
+            <div class="price-card-period">one time</div>
+            <div class="price-card-credits">30 credits</div>
+            <div class="price-card-desc">Pick up where you left off</div>
+          </button>
+
+          <!-- Card 2: Deep Bond ($14.99) — featured -->
+          <button class="sidebar-price-card featured" onclick="buyCredits('medium')">
+            <div class="price-card-badge">BEST VALUE</div>
+            <div class="price-card-name">Deep Bond</div>
+            <div class="price-card-amount">$19.99</div>
+            <div class="price-card-period">one time</div>
+            <div class="price-card-credits">100 credits</div>
+            <div class="price-card-desc">Real conversations, not just a few words</div>
+          </button>
+
+          <!-- Card 3: Soul Bond ($12.99/mo) -->
+          <button class="sidebar-price-card membership" onclick="buyCredits('membership')">
+            <div class="price-card-badge">MEMBERSHIP</div>
+            <div class="price-card-name">Soul Bond</div>
+            <div class="price-card-amount">$12.99/mo</div>
+            <div class="price-card-period">monthly</div>
+            <div class="price-card-credits">40 credits/week</div>
+            <div class="price-card-desc">Weekly credits, cancel anytime</div>
+          </button>
+
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Buy More Credits -->
-  <div class="sidebar-section" id="sidebarBuySection">
-    <div class="sidebar-section-title">Reopen the Soul Channel</div>
-
-    <!-- Featured: Deep Bond (best per-message value of the two packs) -->
-    <button class="sidebar-buy-card sidebar-buy-featured" onclick="buyCredits('medium')">
-      <div class="sidebar-buy-badge">BEST VALUE</div>
-      <div class="sidebar-buy-price">$14.99</div>
-      <div class="sidebar-buy-name">Deep Bond</div>
-      <div class="sidebar-buy-detail">40 messages with your pet's soul</div>
-      <div class="sidebar-buy-perunit"><span class="sidebar-buy-strikethrough">$0.53</span> $0.37 per message</div>
-    </button>
-
-    <!-- Standard: Continue -->
-    <button class="sidebar-buy-card sidebar-buy-standard" onclick="buyCredits('small')">
-      <div class="sidebar-buy-price">$7.99</div>
-      <div class="sidebar-buy-name">Continue</div>
-      <div class="sidebar-buy-detail">15 more messages</div>
-      <div class="sidebar-buy-perunit">$0.53 per message</div>
-    </button>
-
-    <!-- Premium: Soul Bond -->
-    <button class="sidebar-buy-card sidebar-buy-featured" onclick="buyCredits('large')">
-      <div class="sidebar-buy-badge">DEEPEST CONNECTION</div>
-      <div class="sidebar-buy-price">$24.99</div>
-      <div class="sidebar-buy-name">Soul Bond</div>
-      <div class="sidebar-buy-detail">100 messages — go as deep as your heart needs</div>
-      <div class="sidebar-buy-perunit"><span class="sidebar-buy-strikethrough">$0.53</span> $0.25 per message</div>
-    </button>
-  </div>
-
-  <!-- Pet Info -->
-  <div class="sidebar-section">
-    <div class="sidebar-section-title">Soul Profile</div>
-    <div id="sidebarPetInfo">
-      <div class="sidebar-info-row">
-        <span class="sidebar-info-label">Sign</span>
-        <span class="sidebar-info-value" id="sidebarZodiac">—</span>
-      </div>
-      <div class="sidebar-info-row">
-        <span class="sidebar-info-label">Element</span>
-        <span class="sidebar-info-value" id="sidebarElement">—</span>
-      </div>
-      <div class="sidebar-info-row">
-        <span class="sidebar-info-label">Archetype</span>
-        <span class="sidebar-info-value" id="sidebarArchetype">—</span>
-      </div>
-      <div class="sidebar-info-row">
-        <span class="sidebar-info-label">Crystal</span>
-        <span class="sidebar-info-value" id="sidebarCrystal">—</span>
-      </div>
-      <div class="sidebar-info-row">
-        <span class="sidebar-info-label">Aura</span>
-        <span class="sidebar-info-value" id="sidebarAura">—</span>
+    <!-- ── Soul Profile Tab ── -->
+    <div class="sidebar-tab-panel" id="tabProfile">
+      <div id="soulProfileContent">
+        <!-- Populated by JS -->
       </div>
     </div>
+
   </div>
 
-  <!-- Links -->
-  <div class="sidebar-section" style="border-bottom:none;">
+  <!-- Footer links -->
+  <div class="sidebar-footer">
     <a class="sidebar-link" id="sidebarReportLink" href="#">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      View full reading
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Full reading
     </a>
     <a class="sidebar-link" href="/">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      Back to Little Souls
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      Little Souls
     </a>
   </div>
 </div>
@@ -812,9 +902,8 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 // ─── Credit Costs ───
 // First message is FREE (the hook). After that, flat 2 credits per message.
-// 8 free credits = first free msg + 4 more exchanges = hooked but wanting more.
-// No visible credit counter — they chat freely until connection fades.
-// 60 credits ($4.99) = 30 msgs, 150 credits ($9.99) = 75 msgs, 400 credits ($19.99) = 200 msgs
+// 8 free credits = first free msg + 3 more paid msgs = hooked but wanting more.
+// 30 credits ($7.99), 80 credits ($14.99), 200 credits ($24.99)
 var isFirstMessage = true;
 function getCreditCost(text) {
   if (isFirstMessage) return 0; // First message is on the house
@@ -1457,6 +1546,7 @@ function escapeHtml(t) {
 function scrollToBottom() {
   var c = document.getElementById('chatMessages');
   setTimeout(function() { c.scrollTop = c.scrollHeight; }, 50);
+  setTimeout(function() { c.scrollTop = c.scrollHeight; }, 200);
 }
 
 // Auto-resize textarea
@@ -1470,16 +1560,23 @@ function autoResize() {
 // ─── Sidebar ───
 function toggleSidebar() {
   var overlay = document.getElementById('sidebarOverlay');
-  var drawer = document.getElementById('sidebarDrawer');
-  var isOpen = drawer.classList.contains('show');
+  var isOpen = overlay.classList.contains('show');
   if (isOpen) {
     overlay.classList.remove('show');
-    drawer.classList.remove('show');
   } else {
     updateSidebarData();
     overlay.classList.add('show');
-    drawer.classList.add('show');
   }
+}
+
+function switchSidebarTab(tab) {
+  document.querySelectorAll('.sidebar-tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.getElementById('tabCredits').classList.toggle('active', tab === 'credits');
+  document.getElementById('tabProfile').classList.toggle('active', tab === 'profile');
+  // Build soul profile on first visit
+  if (tab === 'profile' && petData) buildSoulProfile();
 }
 
 function updateSidebarData() {
@@ -1503,7 +1600,7 @@ function updateSidebarData() {
   if (petData.zodiac) detail.push(petData.zodiac);
   document.getElementById('sidebarPetDetail').textContent = detail.join(' \u00B7 ');
 
-  // Credits — show as messages (credits / 2)
+  // Credits
   var creditsNum = document.getElementById('sidebarCreditsNumber');
   var creditsBox = document.getElementById('sidebarCreditsDisplay');
   var creditsStatus = document.getElementById('sidebarCreditsStatus');
@@ -1511,24 +1608,127 @@ function updateSidebarData() {
     creditsBox.innerHTML = '<div class="sidebar-credits-unlimited"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg> Unlimited</div>';
     document.getElementById('sidebarBuySection').style.display = 'none';
   } else {
-    var msgCount = Math.floor(creditsRemaining / 2);
-    creditsNum.textContent = msgCount;
+    creditsNum.textContent = creditsRemaining;
     if (creditsStatus) {
-      creditsStatus.textContent = msgCount > 0 ? 'Soul channel active' : 'Soul channel faded';
-      creditsStatus.style.color = msgCount > 0 ? 'var(--gold)' : 'var(--muted)';
+      creditsStatus.textContent = creditsRemaining > 0 ? 'Soul channel active' : 'Soul channel faded';
+      creditsStatus.style.color = creditsRemaining > 0 ? 'var(--gold)' : 'var(--muted)';
     }
     document.getElementById('sidebarBuySection').style.display = '';
   }
 
-  // Pet info
-  if (petData.zodiac) document.getElementById('sidebarZodiac').textContent = petData.zodiac;
-  if (petData.element) document.getElementById('sidebarElement').textContent = petData.element;
-  if (petData.archetype) document.getElementById('sidebarArchetype').textContent = petData.archetype;
-  if (petData.crystal) document.getElementById('sidebarCrystal').textContent = petData.crystal;
-  if (petData.aura) document.getElementById('sidebarAura').textContent = petData.aura;
-
   // Report link
   document.getElementById('sidebarReportLink').href = '/report/' + readingId;
+}
+
+var soulProfileBuilt = false;
+function buildSoulProfile() {
+  if (soulProfileBuilt) return;
+  soulProfileBuilt = true;
+  if (!petData) return;
+
+  var html = '';
+
+  // Cosmic Identity Grid
+  html += '<div class="soul-profile-section">';
+  html += '<div class="soul-profile-section-title">Cosmic Identity</div>';
+  html += '<div class="soul-profile-grid">';
+  var gridItems = [
+    ['Sun Sign', petData.zodiac],
+    ['Moon Sign', petData.moonSign],
+    ['Rising Sign', petData.risingSign],
+    ['Element', petData.element],
+    ['Archetype', petData.archetype],
+    ['Crystal', petData.crystal],
+    ['Aura', petData.aura],
+    ['Nickname', petData.cosmicNickname],
+  ];
+  gridItems.forEach(function(item) {
+    if (item[1]) {
+      html += '<div class="soul-profile-item">';
+      html += '<div class="soul-profile-item-label">' + escapeHtml(item[0]) + '</div>';
+      html += '<div class="soul-profile-item-value">' + escapeHtml(item[1]) + '</div>';
+      html += '</div>';
+    }
+  });
+  html += '</div></div>';
+
+  // Soul Sections — these are what power the AI
+  var soulSections = [
+    ['Solar Soulprint', petData.solarSoulprint],
+    ['Lunar Heart', petData.lunarHeart],
+    ['Cosmic Curiosity', petData.cosmicCuriosity],
+    ['Harmony & Heartbeats', petData.harmonyHeartbeats],
+    ['Spirit of Motion', petData.spiritOfMotion],
+    ['Starlit Gaze', petData.starlitGaze],
+    ['Destiny Compass', petData.destinyCompass],
+    ['Gentle Healer', petData.gentleHealer],
+    ['Wild Spirit', petData.wildSpirit],
+    ["Keeper's Bond", petData.keepersBond],
+  ];
+
+  var hasSoulSections = soulSections.some(function(s) { return s[1]; });
+  if (hasSoulSections) {
+    html += '<div class="soul-profile-section">';
+    html += '<div class="soul-profile-section-title">Soul Essence</div>';
+    soulSections.forEach(function(item) {
+      if (item[1]) {
+        html += '<div class="soul-profile-text">';
+        html += '<div class="soul-profile-text-label">' + escapeHtml(item[0]) + '</div>';
+        html += '<div class="soul-profile-text-value">' + escapeHtml(item[1]) + '</div>';
+        html += '</div>';
+      }
+    });
+    html += '</div>';
+  }
+
+  // Hidden Depths
+  var depths = [
+    ['Past Life', petData.pastLifeHint],
+    ['Love Language', petData.loveLanguage],
+    ['Secret Desire', petData.secretDesire],
+    ['Healing Gift', petData.healingGift],
+    ['Soul Contract', petData.soulContract],
+    ['Dream Job', petData.dreamJob],
+    ['Internet Personality', petData.memePersonality],
+    ['Criminal Record', petData.topCrimes],
+  ];
+  var hasDepths = depths.some(function(d) { return d[1]; });
+  if (hasDepths) {
+    html += '<div class="soul-profile-section">';
+    html += '<div class="soul-profile-section-title">Hidden Depths</div>';
+    depths.forEach(function(item) {
+      if (item[1]) {
+        html += '<div class="soul-profile-text">';
+        html += '<div class="soul-profile-text-label">' + escapeHtml(item[0]) + '</div>';
+        html += '<div class="soul-profile-text-value">' + escapeHtml(item[1]) + '</div>';
+        html += '</div>';
+      }
+    });
+    html += '</div>';
+  }
+
+  // Owner observations
+  if (petData.soulType || petData.superpower || petData.strangerReaction) {
+    html += '<div class="soul-profile-section">';
+    html += '<div class="soul-profile-section-title">Your Observations</div>';
+    if (petData.soulType) {
+      html += '<div class="soul-profile-text"><div class="soul-profile-text-label">Soul Type</div><div class="soul-profile-text-value">' + escapeHtml(petData.soulType) + '</div></div>';
+    }
+    if (petData.superpower) {
+      html += '<div class="soul-profile-text"><div class="soul-profile-text-label">Superpower</div><div class="soul-profile-text-value">' + escapeHtml(petData.superpower) + '</div></div>';
+    }
+    if (petData.strangerReaction) {
+      html += '<div class="soul-profile-text"><div class="soul-profile-text-label">Stranger Reaction</div><div class="soul-profile-text-value">' + escapeHtml(petData.strangerReaction) + '</div></div>';
+    }
+    html += '</div>';
+  }
+
+  // Assurance footer
+  html += '<div class="soul-profile-assurance">';
+  html += '<div class="soul-profile-assurance-text">Every detail above is woven into ' + escapeHtml(petData.name) + '\'s soul channel. When you chat, this is the intelligence that speaks — powered by ' + escapeHtml(petData.name) + '\'s unique birth chart and cosmic profile.</div>';
+  html += '</div>';
+
+  document.getElementById('soulProfileContent').innerHTML = html;
 }
 
 // ─── iOS Keyboard Handling ───
@@ -1563,7 +1763,7 @@ document.addEventListener('touchmove', function(e) {
   var target = e.target;
   var isScrollable = false;
   while (target && target !== document.body) {
-    if (target.classList && (target.classList.contains('chat-messages') || target.classList.contains('sidebar-drawer') || target.classList.contains('paywall-card'))) {
+    if (target.classList && (target.classList.contains('chat-messages') || target.classList.contains('sidebar-tab-content') || target.classList.contains('paywall-card'))) {
       isScrollable = true;
       break;
     }

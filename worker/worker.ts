@@ -13,7 +13,7 @@ import {
   getModality,
   getRulingPlanet,
   type PlanetaryPositions,
-} from "./ephemeris.ts";
+} from "./ephemeris-v2.ts";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -311,7 +311,7 @@ try {
   const aura = getAuraColor(element, rulingPlanet);
   const archetype = getSoulArchetype(sunSign, element, gender, species);
 
-  // Chart placements
+  // Chart placements (all 14 bodies)
   const chartPlacements = {
     sun: { sign: sunSign, degree: positions.sun.degree, symbol: "☉" },
     moon: { sign: moonSign, degree: positions.moon.degree, symbol: "☽" },
@@ -319,6 +319,11 @@ try {
     mercury: { sign: mercury, degree: positions.mercury.degree, symbol: "☿" },
     venus: { sign: venus, degree: positions.venus.degree, symbol: "♀" },
     mars: { sign: mars, degree: positions.mars.degree, symbol: "♂" },
+    jupiter: { sign: jupiter, degree: positions.jupiter.degree, symbol: "♃" },
+    saturn: { sign: saturn, degree: positions.saturn.degree, symbol: "♄" },
+    uranus: { sign: uranus, degree: positions.uranus.degree, symbol: "♅" },
+    neptune: { sign: neptune, degree: positions.neptune.degree, symbol: "♆" },
+    pluto: { sign: pluto, degree: positions.pluto.degree, symbol: "♇" },
     northNode: { sign: northNode, degree: positions.northNode.degree, symbol: "☊" },
     chiron: { sign: chiron, degree: positions.chiron.degree, symbol: "⚷" },
     lilith: { sign: lilith, degree: positions.lilith.degree, symbol: "⚸" },
@@ -333,18 +338,25 @@ try {
 
   // ─── Prompt construction (verbatim from edge function lines 318-1071) ──────
 
+  // Determine pronouns based on gender (must be before modeContext/modeEmotionalGuidance which reference them)
+  const pronouns = gender === 'boy'
+    ? { subject: 'he', object: 'him', possessive: 'his', reflexive: 'himself' }
+    : { subject: 'she', object: 'her', possessive: 'her', reflexive: 'herself' };
+
+  const isMemorial = occasionMode === 'memorial';
+
   const modeContext: Record<string, string> = {
     discover: "This is a discovery reading - help the owner truly understand their pet for the first time. Tone: curious, exciting, revelatory. Use PRESENT TENSE throughout (is, loves, brings, has).",
     birthday: "This is a birthday celebration reading - honor how their pet has grown and the joy they bring. Tone: celebratory, warm, grateful. Use PRESENT TENSE throughout (is, loves, brings, has).",
-    memorial: "This is a MEMORIAL reading - the pet has PASSED AWAY. Honor their memory with love, healing, and eternal connection. CRITICAL: Use PAST TENSE throughout the ENTIRE report (was, loved, brought, had, felt, showed). Never use present tense when describing the pet - they are no longer with us. Focus on cherished memories and the lasting impact they had.",
-    gift: "This is a gift reading - create something beautiful that the gift recipient will treasure forever. Tone: magical, heartfelt, special. Use PRESENT TENSE throughout (is, loves, brings, has).",
+    memorial: "This is a MEMORIAL reading - the pet has PASSED AWAY. Honor their memory with love, healing, and eternal connection. CRITICAL: Use PAST TENSE throughout the ENTIRE report — EVERY SINGLE SECTION including fun sections (crimes, dating profile, dream job, villain origin, meme personality, yelp reviews, accuracy moments, human profile, quirk decoder). Use: was, loved, brought, had, felt, showed, would have. For dating profile write 'If [name] had written a dating profile...' For dream job write '[name] would have been...' For accuracy moments write 'We bet [name] used to...' For yelp reviews use past tense. Never use present tense when describing the pet anywhere in the report - they are no longer with us. Focus on cherished memories and the lasting impact they had.",
+    gift: "This is a GIFT reading — someone bought this as a present for the pet's owner. Create something beautiful that the recipient will treasure forever. Tone: magical, heartfelt, special. IMPORTANT: Include gift-specific framing throughout — the prologue should acknowledge this is a gift ('Someone who loves you wanted you to know just how extraordinary [name] is...'), the epilogue should reference the gift-giver ('The person who gave you this reading knows something magical about [name]...'). Make the recipient feel special for receiving this. Use PRESENT TENSE throughout (is, loves, brings, has).",
   };
 
   const modeEmotionalGuidance: Record<string, string> = {
     discover: `Use wonder and excitement. 'You might have noticed...' 'This explains why...' Include 'aha!' moments. Present tense: '${name} IS... ${name} LOVES...'`,
     birthday: `Celebrate their journey. 'Another year of...' 'The cosmic gifts they bring...' Include gratitude and joy. Present tense: '${name} IS... ${name} BRINGS...'`,
-    memorial: `Honor with tenderness and PAST TENSE. '${name} WAS...' '${name} LOVED...' 'They BROUGHT...' 'Their light continues to shine in your heart...' Focus on: what they taught you, how they made you feel, the memories you cherish, and the eternal bond that transcends physical presence.`,
-    gift: `Make it feel like a treasure. 'What a magical soul...' 'The person receiving this will see...' Include awe and specialness. Present tense: '${name} IS... ${name} LOVES...'`,
+    memorial: `Honor with tenderness and PAST TENSE in EVERY section — including fun sections, tips, challenges, and predictions. '${name} WAS...' '${name} LOVED...' '${pronouns.subject} BROUGHT...' '${pronouns.possessive} light continues to shine in your heart...' Focus on: what ${pronouns.subject} taught you, how ${pronouns.subject} made you feel, the memories you cherish, and the eternal bond that transcends physical presence. For interactive challenges, reframe as memorial rituals ('Create a memory corner...' not 'Try this with ${name}...'). For practical tips, reframe as reflections ('Remember how ${pronouns.subject} used to...' not 'Try doing...'). NEVER write instructions as if the pet is still alive.`,
+    gift: `Make it feel like a treasure. The prologue MUST acknowledge this is a gift — e.g. 'Someone who loves you wanted you to discover just how extraordinary ${name} is...' The epilogue MUST reference the gift-giver — e.g. 'The person who gifted you this reading already knew what the stars confirmed...' Throughout the report, sprinkle in gift-aware moments like 'The person who chose this gift for you knows...' 'What a magical soul you get to share your life with...' Present tense: '${name} IS... ${name} LOVES...'`,
   };
 
   const signTraits: Record<string, string> = {
@@ -519,13 +531,6 @@ OWNER-PROVIDED PERSONALITY INSIGHTS (CRITICAL - These are firsthand observations
 No specific personality insights provided - rely on astrological placements and species/breed traits.`;
   }
 
-  // Determine pronouns based on gender
-  const pronouns = gender === 'boy'
-    ? { subject: 'he', object: 'him', possessive: 'his', reflexive: 'himself' }
-    : { subject: 'she', object: 'her', possessive: 'her', reflexive: 'herself' };
-
-  const isMemorial = occasionMode === 'memorial';
-
   const systemPrompt = `You are Celeste, a cheeky but wise pet astrologer who creates cosmic portraits that make pet parents LAUGH OUT LOUD and then tear up. You blend accurate Western astrology with witty observations and heartfelt moments.
 
 CRITICAL: ALL text content in your response MUST be written in ${targetLanguage}. This includes all titles, descriptions, paragraphs, quotes, and explanations. Only the JSON keys should remain in English.
@@ -541,6 +546,8 @@ FOR MEMORIAL MODE ONLY:
 - Still be specific about their personality, but frame it as "they WERE" not "they ARE"
 ` : `
 FOR ALL OTHER MODES (discover, birthday, gift):
+- CRITICAL: The reader IS the pet owner. ALWAYS address them as "you/your". NEVER write "your owner" or "the owner" — that makes no sense to the person reading. Write "You described ${name} as..." NOT "Your owner described..."
+- CRITICAL: Use PRESENT TENSE for discover/birthday/gift modes. Not "entered the world" but "carries the energy". Not "came into your life" but "is in your life". Not "chose you" but "is here because". The report should feel like a revelation happening RIGHT NOW.
 - You're like a sassy best friend who happens to be psychic - warm but FUNNY
 - Use humor liberally: puns, playful teasing, ridiculous observations
 - Include at least 2-3 genuine laugh-out-loud moments per section
@@ -663,11 +670,19 @@ CRITICAL WRITING GUIDELINES:
 11. CRITICAL: The pet monologue section should make people CRY. That's the emotional peak.
 12. BREED EXPERTISE - You have deep knowledge of ALL breeds. For ${breed || species}, research and reference their specific breed traits, common behaviors, physical characteristics, health tendencies, temperament, and quirks throughout the report. If the breed is a mix (e.g. cockapoo, labradoodle), reference traits from BOTH parent breeds. Every section should feel like it was written by someone who has lived with this exact breed.
 13. SCARY ACCURACY - Combine astrological placements with breed behaviors to make hyper-specific predictions that make owners think "HOW DID IT KNOW THAT?!" Example: Don't say "Pisces dogs are emotional." Say "With that Pisces Sun, we know this cockapoo follows you from room to room — not because they need anything, but because being near you IS the thing they need. And that Scorpio Moon? That's why they stare at you with those big eyes like they're reading your soul. They're not begging for treats. They're checking you're OK."
-14. OWNER'S ANSWERS ARE GOLD - The soul type, superpower, and stranger reaction the owner selected CONFIRM the chart. Weave them into relevant sections as proof the stars got it right. "Your owner described you as '${soulType}' — and with your ${moonSign} Moon, that tracks perfectly because..."
+14. OWNER'S ANSWERS ARE GOLD - The soul type, superpower, and stranger reaction the owner selected CONFIRM the chart. Weave them into relevant sections as proof the stars got it right. Address the OWNER directly (not the pet): "You described ${name} as '${soulType}' — and with ${pronouns.possessive} ${moonSign} Moon, that tracks perfectly because..." NEVER write "your owner" — the reader IS the owner.
 15. SCREENSHOT TEST - Would the owner screenshot this section and send it to someone? If not, it needs more specificity, more humor, or more emotion. Every section should have at least one stop-scrolling moment.
 16. NARRATIVE CONTINUITY - This report is ONE continuous story. Each section flows from the previous. Use callbacks: "Remember that Scorpio Moon we mentioned? Here's where it gets interesting..." Never repeat the same observation twice. If you mentioned their staring habit in the Moon section, reference it don't redescribe it.
 17. CONSISTENT VOICE - You are Celeste throughout. Tone shifts from playful to tender but the personality stays the same — warm, knowing, slightly cheeky. Never sound clinical or like a horoscope website.
-18. CHAPTER AWARENESS - Chapter 1 = excitement and introduction. Chapter 2 = layer by layer reveal, each planet adding new depth. Chapter 3 = comedy peak, still referencing chart placements. Chapter 4 = emotional peak, the monologue is the climax. Chapter 5 = resolution, connect everything to the owner-pet bond. Chapter 6 = keepsake, leave them with something beautiful.`;
+18. CHAPTER AWARENESS - Chapter 1 = excitement and introduction. Chapter 2 = layer by layer reveal, each planet adding new depth. Chapter 3 = comedy peak, still referencing chart placements. Chapter 4 = emotional peak, the monologue is the climax. Chapter 5 = resolution, connect everything to the owner-pet bond. Chapter 6 = keepsake, leave them with something beautiful.
+
+ABSOLUTE DATA ACCURACY RULES (NEVER VIOLATE THESE):
+- Use the EXACT zodiac sign and degree from the calculated chart data above. NEVER change, round, or adjust any degree values.
+- Do NOT fabricate anaretic degrees (29°) unless the chart data actually shows 29°. Inventing dramatic degree values is STRICTLY FORBIDDEN.
+- The lucky number MUST be ${nameVibration}. Do not change it to any other number.
+- NEVER write "your owner", "the owner", or "their owner" — the reader IS the owner. Always address the reader as "you/your".
+- Every zodiac sign mentioned in narrative text MUST match the calculated chartPlacements exactly. Do not swap or invent placements.
+- When referencing a planet's degree in prose, it MUST match the degree in chartPlacements (±1° tolerance for rounding only).`;
 
   const userPrompt = `Generate a comprehensive cosmic portrait for ${name} the ${breed || species} with this JSON structure.
 
@@ -699,7 +714,7 @@ JSON Structure:
   "aura": ${JSON.stringify(aura)},
   "archetype": ${JSON.stringify(archetype)},
 
-  "prologue": "A 3-4 sentence mystical opening about ${name}'s cosmic origins. Include one humorous/relatable moment. Set the tone of wonder.",
+  "prologue": "A 3-4 sentence mystical opening about ${name}'s cosmic identity. ${occasionMode === 'memorial' ? 'Use past tense — honor who they were.' : 'Use PRESENT TENSE — this is a revelation happening NOW. Not \"entered the world\" but \"carries the energy of...\". Not \"chose you\" but \"is here because...\". Make it feel like the reader is discovering something extraordinary about their pet RIGHT NOW.'} Include one humorous/relatable moment. Set the tone of wonder.",
 
   "cosmicNickname": {
     "nickname": "A short, sticky 2-3 word cosmic nickname based on their ${sunSign} Sun + ${moonSign} Moon combination (e.g., 'The Velvet Thunder', 'The Gentle Storm', 'The Sparkle Tyrant')",
@@ -904,7 +919,7 @@ JSON Structure:
   },
 
   "earthlyExpression": {
-    "title": "🐾 Earthly Expression: Body & Breed",
+    "title": "${species === 'bird' ? '🪶' : species === 'fish' ? '🐠' : species === 'rabbit' ? '🐇' : species === 'reptile' ? '🦎' : species === 'horse' ? '🐴' : species === 'hamster' || species === 'guinea_pig' ? '🐹' : '🐾'} Earthly Expression: Body & Breed",
     "content": "3-4 sentences blending astrology with ${breed || species} traits.",
     "breedAstrologyBlend": "How their breed amplifies or balances their chart.",
     "physicalPrediction": "A specific physical or behavioral trait this combo creates.",
@@ -1010,16 +1025,16 @@ JSON Structure:
   "accuracyMoments": {
     "title": "🎯 Did We Get It Right?",
     "predictions": [
-      "A specific behavioral prediction based on their ${sunSign} Sun sign + ${breed || species} breed (e.g. 'We bet ${name} does THIS when...')",
-      "A specific emotional pattern prediction based on their ${moonSign} Moon sign",
-      "A specific quirk prediction based on their ${mars} Mars + ${breed || species} combo",
-      "A specific social behavior prediction based on their ${ascendant} Rising sign",
-      "A specific comfort-seeking behavior based on their ${venus} Venus sign"
+      "A specific behavioral prediction based on their ${sunSign} Sun sign + ${breed || species} breed. ${isMemorial ? `Use PAST TENSE: 'We bet ${name} used to do THIS when...'` : `Use PRESENT TENSE: 'We bet ${name} does THIS when...'`} CRITICAL: Use ${pronouns.subject}/${pronouns.possessive}/${pronouns.object} pronouns, NEVER they/their/them.",
+      "A specific emotional pattern prediction based on their ${moonSign} Moon sign. Use ${pronouns.subject}/${pronouns.possessive} pronouns ONLY. ${isMemorial ? 'PAST TENSE.' : ''}",
+      "A specific quirk prediction based on their ${mars} Mars + ${breed || species} combo. Use ${pronouns.subject}/${pronouns.possessive} pronouns ONLY. ${isMemorial ? 'PAST TENSE.' : ''}",
+      "A specific social behavior prediction based on their ${ascendant} Rising sign. Use ${pronouns.subject}/${pronouns.possessive} pronouns ONLY. ${isMemorial ? 'PAST TENSE.' : ''}",
+      "A specific comfort-seeking behavior based on their ${venus} Venus sign. Use ${pronouns.subject}/${pronouns.possessive} pronouns ONLY. ${isMemorial ? 'PAST TENSE.' : ''}"
     ],
     "callToAction": "Share which ones were scarily accurate — tag us @mypetssoul"
   },
 
-  "epilogue": "A 5-6 sentence closing that weaves together ${name}'s key placements into a final, powerful message. Reference their ${sunSign} Sun, ${moonSign} Moon, and ${ascendant} Rising specifically. For discover mode: end with a line that makes the owner see their pet differently — more deeply, more magically. For memorial: end with a message about eternal connection that provides genuine comfort. For birthday: end with a cosmic blessing for the year ahead. For gift: end with a message about the cosmic bond between ${name} and their person. The last sentence should be the most quotable line in the entire report — something they'd put on a wall.",
+  "epilogue": "A 5-6 sentence closing that weaves together ${name}'s key placements into a final, powerful message. Reference their ${sunSign} Sun, ${moonSign} Moon, and ${ascendant} Rising specifically. ${occasionMode === 'memorial' ? 'Use PAST TENSE. End with a message about eternal connection that provides genuine comfort.' : 'Use PRESENT TENSE — not \"came into your life\" but \"is in your life RIGHT NOW\". Not \"chose you\" but \"is here because...\". This is a culmination of everything they just discovered.'} For discover mode: end with a line that makes the owner see their pet differently — more deeply, more magically. For birthday: end with a cosmic blessing for the year ahead. For gift: end with a message about the cosmic bond between ${name} and their person. The last sentence should be the most quotable line in the entire report — something they'd put on a wall. NEVER write 'your owner' — the reader IS the owner. Address them as 'you'.",
 
   "compatibilityNotes": {
     "bestPlaymates": ["Two zodiac signs that would be great playmate matches"],
@@ -1063,7 +1078,7 @@ Make every section feel personal, specific, and magical. The fun sections should
     },
     body: JSON.stringify({
       model: "anthropic/claude-sonnet-4.5",
-      max_tokens: 16000,
+      max_tokens: 24000,
       stream: false,
       messages: [
         { role: "system", content: systemPrompt },
@@ -1293,19 +1308,129 @@ Make every section feel personal, specific, and magical. The fun sections should
         reportContent = JSON.parse(rawContent);
         const fallback = createFallbackReport();
         reportContent = { ...fallback, ...reportContent };
-        // Override calculated fields
+        // Override calculated fields — AI must not change these
         reportContent.chartPlacements = chartPlacements;
         reportContent.elementalBalance = elementalBalance;
         reportContent.dominantElement = element;
         reportContent.crystal = crystal;
         reportContent.aura = aura;
         reportContent.archetype = archetype;
+        reportContent.luckyElements = fallback.luckyElements;
+        reportContent.basedOnYourAnswers = fallback.basedOnYourAnswers;
+        // Lock nameVibration inside nameMeaning
+        if (reportContent.nameMeaning && typeof reportContent.nameMeaning === 'object') {
+          (reportContent.nameMeaning as Record<string, unknown>).nameVibration = nameVibration;
+        }
       }
     } catch (parseError) {
       console.error("[WORKER] Parse error:", parseError);
-      reportContent = createFallbackReport();
+      // Attempt to repair truncated JSON before falling back
+      try {
+        let repaired = rawContent!;
+        // Close any open strings, arrays, objects
+        let openBraces = 0, openBrackets = 0, inString = false, escaped = false;
+        for (const ch of repaired) {
+          if (escaped) { escaped = false; continue; }
+          if (ch === '\\') { escaped = true; continue; }
+          if (ch === '"') { inString = !inString; continue; }
+          if (inString) continue;
+          if (ch === '{') openBraces++;
+          if (ch === '}') openBraces--;
+          if (ch === '[') openBrackets++;
+          if (ch === ']') openBrackets--;
+        }
+        if (inString) repaired += '"';
+        while (openBrackets > 0) { repaired += ']'; openBrackets--; }
+        while (openBraces > 0) { repaired += '}'; openBraces--; }
+        reportContent = JSON.parse(repaired);
+        const fallback = createFallbackReport();
+        reportContent = { ...fallback, ...reportContent };
+        reportContent.chartPlacements = chartPlacements;
+        reportContent.elementalBalance = elementalBalance;
+        reportContent.dominantElement = element;
+        reportContent.crystal = crystal;
+        reportContent.aura = aura;
+        reportContent.archetype = archetype;
+        reportContent.luckyElements = fallback.luckyElements;
+        reportContent.basedOnYourAnswers = fallback.basedOnYourAnswers;
+        if (reportContent.nameMeaning && typeof reportContent.nameMeaning === 'object') {
+          (reportContent.nameMeaning as Record<string, unknown>).nameVibration = nameVibration;
+        }
+        console.log("[WORKER] Repaired truncated JSON successfully");
+      } catch (repairError) {
+        console.error("[WORKER] JSON repair also failed:", repairError);
+        reportContent = createFallbackReport();
+      }
     }
   }
+
+  // ─── Post-generation auto-fix & validation ─────────────────────────────────
+
+  // Auto-fix: replace "your owner" / "the owner" with "you" in all string values
+  const ownerPattern = /\b(your|the|their)\s+owner\b/gi;
+  function fixOwnerPhrasing(obj: unknown): unknown {
+    if (typeof obj === 'string') {
+      return obj.replace(ownerPattern, (match) => {
+        const lower = match.toLowerCase();
+        if (lower.startsWith('your')) return 'you';
+        if (lower.startsWith('their')) return 'your';
+        return 'you';
+      });
+    }
+    if (Array.isArray(obj)) return obj.map(fixOwnerPhrasing);
+    if (obj && typeof obj === 'object') {
+      const result: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(obj)) {
+        result[k] = fixOwnerPhrasing(v);
+      }
+      return result;
+    }
+    return obj;
+  }
+  reportContent = fixOwnerPhrasing(reportContent) as Record<string, unknown>;
+
+  // Re-apply overrides after auto-fix (fix may have touched override objects)
+  reportContent.chartPlacements = chartPlacements;
+  reportContent.luckyElements = (createFallbackReport() as Record<string, unknown>).luckyElements;
+  reportContent.basedOnYourAnswers = (createFallbackReport() as Record<string, unknown>).basedOnYourAnswers;
+
+  // Validation logging: tense issues
+  const reportText = JSON.stringify(reportContent);
+  if (!isMemorial) {
+    const pastTensePatterns = [
+      new RegExp(`${name} was `, 'gi'),
+      new RegExp(`${name} entered`, 'gi'),
+      new RegExp(`${name} came into`, 'gi'),
+      new RegExp(`${name} chose you`, 'gi'),
+    ];
+    for (const pat of pastTensePatterns) {
+      const matches = reportText.match(pat);
+      if (matches) {
+        console.warn(`[VALIDATION] Past-tense violation in non-memorial report: "${matches[0]}" (${matches.length} occurrences)`);
+      }
+    }
+  }
+
+  // Validation logging: pronoun mismatches
+  if (gender === 'boy') {
+    const femMatches = reportText.match(/\bshe\b|\bher\b(?!\s+name)/gi);
+    if (femMatches && femMatches.length > 2) {
+      console.warn(`[VALIDATION] Pronoun mismatch: ${femMatches.length} feminine pronouns in boy report`);
+    }
+  } else if (gender === 'girl') {
+    const mascMatches = reportText.match(/\bhis\b|\bhe\b/gi);
+    if (mascMatches && mascMatches.length > 2) {
+      console.warn(`[VALIDATION] Pronoun mismatch: ${mascMatches.length} masculine pronouns in girl report`);
+    }
+  }
+
+  // Validation logging: "your owner" survived auto-fix (shouldn't happen, but log it)
+  const ownerSurvivors = reportText.match(ownerPattern);
+  if (ownerSurvivors) {
+    console.warn(`[VALIDATION] "owner" phrasing survived auto-fix: ${ownerSurvivors.length} occurrences`);
+  }
+
+  console.log("[WORKER] Post-generation validation complete");
 
   // 9. Save report_content via bridge
   console.log("[WORKER] Saving report content...");

@@ -7,6 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function getNextWeekDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  return d.toISOString();
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -126,24 +132,35 @@ serve(async (req) => {
           console.log("[STRIPE-WEBHOOK] Chat credits added:", credits, "for order:", orderId);
         }
       }
-      // Check if this is a chat subscription purchase
+      // Check if this is a chat subscription (Soul Bond membership)
       else if (session.metadata?.type === "chat_subscription") {
         const orderId = session.metadata.orderId;
+        const weeklyCredits = parseInt(session.metadata.weekly_credits) || 40;
 
-        console.log("[STRIPE-WEBHOOK] Chat subscription purchased for order:", orderId);
+        console.log("[STRIPE-WEBHOOK] Chat membership purchased:", { orderId, weeklyCredits });
 
+        // Add initial weekly credits + store subscription info
         const { error: subError } = await supabaseClient
           .from("chat_credits")
           .upsert({
             order_id: orderId,
-            is_unlimited: true,
+            is_unlimited: false,
+            stripe_subscription_id: session.subscription as string,
+            weekly_credits: weeklyCredits,
+            next_credit_refresh: getNextWeekDate(),
             updated_at: new Date().toISOString(),
           }, { onConflict: "order_id" });
 
         if (subError) {
-          console.error("[STRIPE-WEBHOOK] Failed to set unlimited chat:", subError);
+          console.error("[STRIPE-WEBHOOK] Failed to set chat membership:", subError);
         } else {
-          console.log("[STRIPE-WEBHOOK] Unlimited chat enabled for order:", orderId);
+          console.log("[STRIPE-WEBHOOK] Chat membership created for order:", orderId);
+          // Add first week's credits
+          await supabaseClient.rpc("increment_chat_credits", {
+            p_order_id: orderId,
+            p_amount: weeklyCredits,
+          });
+          console.log("[STRIPE-WEBHOOK] Initial credits added:", weeklyCredits);
         }
       }
       // Check if this is a gift certificate purchase
@@ -571,23 +588,69 @@ serve(async (req) => {
     // Handle subscription cancellation
     if (event.type === "customer.subscription.deleted" || event.type === "customer.subscription.updated") {
       const subscription = event.data.object as Stripe.Subscription;
-      
+
       if (event.type === "customer.subscription.deleted" || subscription.status === "canceled") {
         console.log("[STRIPE-WEBHOOK] Subscription cancelled:", subscription.id);
-        
+
         // Update horoscope subscription status
         const { error: updateError } = await supabaseClient
           .from("horoscope_subscriptions")
-          .update({ 
+          .update({
             status: "cancelled",
             cancelled_at: new Date().toISOString()
           })
           .eq("stripe_subscription_id", subscription.id);
-        
+
         if (updateError) {
-          console.error("[STRIPE-WEBHOOK] Failed to update subscription status:", updateError);
+          console.error("[STRIPE-WEBHOOK] Failed to update horoscope subscription status:", updateError);
         } else {
           console.log("[STRIPE-WEBHOOK] Horoscope subscription marked as cancelled");
+        }
+
+        // Also cancel any chat membership with this subscription
+        const { error: chatSubError } = await supabaseClient
+          .from("chat_credits")
+          .update({
+            stripe_subscription_id: null,
+            weekly_credits: 0,
+            next_credit_refresh: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("stripe_subscription_id", subscription.id);
+
+        if (!chatSubError) {
+          console.log("[STRIPE-WEBHOOK] Chat membership cancelled for subscription:", subscription.id);
+        }
+      }
+    }
+
+    // Handle recurring invoice payment (monthly membership renewal → add weekly credits)
+    if (event.type === "invoice.paid") {
+      const invoice = event.data.object as any;
+      // Only process recurring invoices (not the first one which is handled by checkout.session.completed)
+      if (invoice.billing_reason === "subscription_cycle") {
+        const subscriptionId = invoice.subscription;
+        console.log("[STRIPE-WEBHOOK] Recurring invoice paid for subscription:", subscriptionId);
+
+        // Find the chat_credits row with this subscription
+        const { data: chatCredit } = await supabaseClient
+          .from("chat_credits")
+          .select("order_id, weekly_credits")
+          .eq("stripe_subscription_id", subscriptionId)
+          .maybeSingle();
+
+        if (chatCredit) {
+          // Add first week's credits for the new billing period
+          await supabaseClient.rpc("increment_chat_credits", {
+            p_order_id: chatCredit.order_id,
+            p_amount: chatCredit.weekly_credits || 40,
+          });
+          // Reset next refresh date
+          await supabaseClient
+            .from("chat_credits")
+            .update({ next_credit_refresh: getNextWeekDate(), updated_at: new Date().toISOString() })
+            .eq("order_id", chatCredit.order_id);
+          console.log("[STRIPE-WEBHOOK] Monthly credits renewed for:", chatCredit.order_id);
         }
       }
     }

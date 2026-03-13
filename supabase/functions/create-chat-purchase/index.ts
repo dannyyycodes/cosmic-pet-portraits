@@ -1,7 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@13.10.0?target=deno";
-
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2023-10-16" });
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,9 +7,8 @@ const corsHeaders = {
 };
 
 const creditTiers = {
-  small:  { credits: 30,   price: 799,   name: "SoulSpeak — Continue",           desc: "15 more messages with your pet's soul" },
-  medium: { credits: 80,   price: 1499,  name: "SoulSpeak — Deep Bond",          desc: "40 heartfelt conversations" },
-  large:  { credits: 200,  price: 2499,  name: "SoulSpeak — Soul Bond",          desc: "100 messages — go as deep as your heart needs" },
+  small:  { credits: 30,  price: 799,  name: "SoulSpeak — Continue",  desc: "15 more messages with your pet's soul" },
+  medium: { credits: 100, price: 1999, name: "SoulSpeak — Deep Bond", desc: "50 heartfelt conversations" },
 };
 
 serve(async (req) => {
@@ -20,9 +17,44 @@ serve(async (req) => {
   }
 
   try {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) {
+      return new Response(JSON.stringify({ error: "Service unavailable" }), {
+        status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+
     const { orderId, type } = await req.json();
     const baseUrl = req.headers.get("origin") || "https://littlesouls.co";
 
+    // Handle membership subscription
+    if (type === "membership") {
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "SoulSpeak — Soul Bond",
+              description: "40 credits per week, cancel anytime",
+            },
+            unit_amount: 1299,
+            recurring: { interval: "month" },
+          },
+          quantity: 1,
+        }],
+        metadata: { orderId, type: "chat_subscription", weekly_credits: "40" },
+        success_url: `${baseUrl}/soul-chat.html?id=${orderId}&purchased=credits`,
+        cancel_url: `${baseUrl}/soul-chat.html?id=${orderId}`,
+      });
+
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Handle one-time credit purchases
     const tier = creditTiers[type as keyof typeof creditTiers];
     if (!tier) {
       return new Response(JSON.stringify({ error: "Invalid type" }), {
