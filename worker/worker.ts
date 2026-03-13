@@ -1447,7 +1447,12 @@ Make every section feel personal, specific, and magical. The fun sections should
           "Content-Type": "application/json",
           "Authorization": "Bearer " + N8N_BRIDGE_SECRET,
         },
-        body: JSON.stringify({ reportId }),
+        body: JSON.stringify({
+          reportId,
+          email: reportRow.email,
+          petName: name,
+          sunSign,
+        }),
       }
     );
     console.log("[WORKER] Email trigger:", emailRes.status);

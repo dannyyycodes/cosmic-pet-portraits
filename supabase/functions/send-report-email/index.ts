@@ -91,11 +91,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // SECURITY: Require service role authorization
-  const authHeader = req.headers.get("Authorization");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  
-  if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
+  // SECURITY: Require service role or bridge secret authorization
+  const authHeader = req.headers.get("Authorization") || "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const bridgeSecret = Deno.env.get("N8N_BRIDGE_SECRET") || "";
+
+  const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
+  const isBridgeAuth = bridgeSecret && authHeader.includes(bridgeSecret);
+
+  if (!isServiceRole && !isBridgeAuth) {
     console.error("[SEND-REPORT-EMAIL] Unauthorized request - missing or invalid authorization");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,

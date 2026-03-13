@@ -108,6 +108,56 @@ const TEST_CASES: TestCase[] = [
       chiron: "Libra",  // ~1 Libra
     },
   },
+  {
+    label: "January 15, 1990 (near start of Chiron table)",
+    date: new Date("1990-01-15T12:00:00Z"),
+    expected: {
+      sun: "Capricorn",
+      mercury: "Capricorn",
+      venus: "Aquarius",
+      mars: "Sagittarius",
+      jupiter: "Cancer",
+      saturn: "Capricorn",
+      chiron: "Cancer",
+    },
+  },
+  {
+    label: "June 15, 2029 (near end of Chiron table)",
+    date: new Date("2029-06-15T12:00:00Z"),
+    expected: {
+      sun: "Gemini",
+      mercury: "Gemini",
+      venus: "Cancer",
+      mars: "Libra",
+      jupiter: "Libra",
+      saturn: "Taurus",
+      chiron: "Taurus",
+    },
+  },
+  {
+    label: "January 20, 2024 (Pluto enters Aquarius)",
+    date: new Date("2024-01-20T18:00:00Z"),
+    expected: {
+      sun: "Capricorn",  // Sun at 29° Cap at 18:00 UTC, enters Aquarius later
+      mercury: "Capricorn",
+      venus: "Sagittarius",
+      mars: "Capricorn",
+      jupiter: "Taurus",
+      saturn: "Pisces",
+    },
+  },
+  {
+    label: "December 13, 2023 (Mercury retrograde in Capricorn)",
+    date: new Date("2023-12-13T12:00:00Z"),
+    expected: {
+      sun: "Sagittarius",
+      mercury: "Capricorn",  // Mercury retrograde stationed in Cap
+      venus: "Scorpio",
+      mars: "Sagittarius",
+      jupiter: "Taurus",
+      saturn: "Pisces",
+    },
+  },
 ];
 
 // Run tests

@@ -62,4 +62,26 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 
 ---
 
+## Production-Readiness Progress
+
+### Phase 1 (P0 Critical Fixes) — DONE
+- [x] P0-1: Replaced horoscope ephemeris with ephemeris-v2 (VSOP87) — deployed
+- [x] P0-2: Fixed worker email auth (was 401, now passes auth with bridge secret) — 502 is Resend delivery issue, not auth
+- [x] P0-3: Created email nurture cron jobs (process-email-nurture every 30min, abandoned-cart every 6hr) — migration applied
+- [x] P1-1: Moved horoscope delivery to Sunday 9am UTC — migration applied
+- [x] P1-6: Added 4 more ephemeris edge cases — 74/74 passing (1990-2029 coverage)
+
+### Phase 2 (In Progress)
+- [ ] P1-2: Horoscope content quality review
+- [ ] P1-3: SoulSpeak paywall marketing upgrade
+- [ ] P1-4: Free lead magnet ("Pet Zodiac Snapshot")
+- [ ] P1-5: End-to-end Stripe flow testing
+- [ ] P1-7: Horoscope subscriber welcome email
+- [ ] Investigate Resend 502 — may need domain/API key verification
+
+### Phase 3 (Later)
+- [ ] P2-1: Horoscope archive UI
+- [ ] P2-2: Generation error monitoring
+- [ ] P2-3: Horoscope subscriber email sequence
+
 *Last updated: 2026-03-13*
