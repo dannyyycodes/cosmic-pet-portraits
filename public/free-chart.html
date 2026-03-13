@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Pet Zodiac Snapshot — Little Souls</title>
+  <meta name="description" content="Discover your pet's Sun and Moon signs instantly. Free cosmic personality snapshot based on their exact birth date.">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #3d2f2a;
+      --warm: #5a4a42;
+      --muted: #9a8578;
+      --faded: #b8a99e;
+      --gold: #c4a265;
+      --cream: #faf6f1;
+      --cream2: #f5efe6;
+      --cream3: #e8ddd0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--cream);
+      font-family: 'Cormorant', Georgia, serif;
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .header-icon { font-size: 32px; margin-bottom: 8px; }
+    .header-brand {
+      font-size: 11px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--gold);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid var(--cream3);
+      padding: 36px 28px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+    }
+
+    .card-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gold);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      text-align: center; margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.5rem; text-align: center; line-height: 1.3;
+      margin-bottom: 12px; color: var(--ink);
+    }
+
+    .card-subtitle {
+      text-align: center; font-size: 0.95rem; color: var(--muted);
+      line-height: 1.6; margin-bottom: 28px; font-style: italic;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block; font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin-bottom: 6px;
+    }
+    .form-input, .form-select {
+      width: 100%; padding: 14px 16px; border: 1.5px solid var(--cream3);
+      border-radius: 12px; font-size: 1rem; color: var(--ink);
+      background: var(--cream); font-family: 'Cormorant', Georgia, serif;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: var(--gold);
+    }
+    .form-input::placeholder { color: var(--faded); }
+
+    .submit-btn {
+      width: 100%; padding: 16px; border: none; border-radius: 50px;
+      background: linear-gradient(135deg, var(--ink), #5a3e2e);
+      color: #fff; font-size: 1rem; font-weight: 600;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      cursor: pointer; transition: all 0.25s; letter-spacing: 0.5px;
+      margin-top: 8px;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(61,47,42,0.2); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .free-tag {
+      text-align: center; font-size: 0.8rem; color: var(--gold);
+      margin-top: 12px; font-weight: 600;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .privacy-note {
+      text-align: center; font-size: 0.75rem; color: var(--faded);
+      margin-top: 10px; line-height: 1.5;
+    }
+
+    /* ── Result section ── */
+    .result-section { display: none; }
+    .result-section.show { display: block; }
+
+    .result-header {
+      text-align: center; margin-bottom: 24px;
+    }
+    .result-signs {
+      display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;
+    }
+    .result-sign-card {
+      background: var(--cream); border-radius: 14px; padding: 16px 20px;
+      text-align: center; flex: 1; border: 1px solid var(--cream3);
+    }
+    .result-sign-label {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--gold);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin-bottom: 4px;
+    }
+    .result-sign-value {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.1rem; color: var(--ink);
+    }
+    .result-sign-degree {
+      font-size: 0.7rem; color: var(--muted);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .result-title-card {
+      text-align: center; background: linear-gradient(135deg, var(--ink), #2a2018);
+      border-radius: 14px; padding: 20px; margin-bottom: 20px; color: #fff;
+    }
+    .result-title-label {
+      font-size: 0.55rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: rgba(196,162,101,0.7);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin-bottom: 6px;
+    }
+    .result-title-value {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.3rem; color: #fff;
+    }
+
+    .result-section-block { margin-bottom: 20px; }
+    .result-section-label {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--gold);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin-bottom: 6px;
+    }
+    .result-section-text {
+      font-size: 0.95rem; color: var(--warm); line-height: 1.7;
+    }
+
+    .result-divider {
+      border: none; border-top: 1px solid var(--cream3);
+      margin: 24px 0;
+    }
+
+    .upsell-card {
+      background: var(--cream); border-radius: 16px; padding: 24px;
+      text-align: center; border: 1px solid var(--cream3); margin-top: 28px;
+    }
+    .upsell-badge {
+      font-size: 0.55rem; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gold);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin-bottom: 8px;
+    }
+    .upsell-title {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.15rem; margin-bottom: 10px; color: var(--ink);
+    }
+    .upsell-text {
+      font-size: 0.85rem; color: var(--muted); line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .upsell-btn {
+      display: inline-block; padding: 14px 36px; border-radius: 50px;
+      background: linear-gradient(135deg, var(--ink), #5a3e2e);
+      color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      transition: all 0.25s; letter-spacing: 0.5px;
+    }
+    .upsell-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(61,47,42,0.2); }
+    .upsell-price {
+      font-size: 0.75rem; color: var(--faded); margin-top: 8px;
+    }
+
+    .error-msg {
+      color: #c0392b; font-size: 0.85rem; text-align: center;
+      margin-top: 12px; display: none;
+    }
+
+    .loading { display: none; text-align: center; padding: 20px; }
+    .loading.show { display: block; }
+    .loading-text {
+      color: var(--muted); font-style: italic; font-size: 1rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .result-section.show { animation: fadeIn 0.5s ease; }
+
+    .footer {
+      text-align: center; margin-top: 40px;
+    }
+    .footer a {
+      color: var(--faded); font-size: 0.8rem; text-decoration: none;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .footer a:hover { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="header-icon">&#10024;</div>
+    <div class="header-brand">Little Souls</div>
+  </div>
+
+  <!-- ── Form Card ── -->
+  <div class="card" id="formCard">
+    <div class="card-badge">Free Cosmic Snapshot</div>
+    <div class="card-title">What do the stars say<br>about your pet?</div>
+    <div class="card-subtitle">
+      Enter their birth date and we'll reveal their Sun and Moon signs,
+      personality blueprint, and the cosmic reason they ended up with you.
+    </div>
+
+    <form id="snapshotForm" onsubmit="handleSubmit(event)">
+      <div class="form-group">
+        <label class="form-label" for="petName">Pet's Name</label>
+        <input class="form-input" id="petName" type="text" placeholder="Luna, Biscuit, Milo..." required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="species">Species</label>
+        <select class="form-select" id="species">
+          <option value="dog">Dog</option>
+          <option value="cat">Cat</option>
+          <option value="rabbit">Rabbit</option>
+          <option value="hamster">Hamster</option>
+          <option value="bird">Bird</option>
+          <option value="horse">Horse</option>
+          <option value="guinea pig">Guinea Pig</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="dob">Date of Birth</label>
+        <input class="form-input" id="dob" type="date" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Your Email</label>
+        <input class="form-input" id="email" type="email" placeholder="you@example.com" required>
+      </div>
+
+      <button class="submit-btn" type="submit" id="submitBtn">Reveal Their Cosmic Blueprint</button>
+      <div class="free-tag">100% free — no card required</div>
+      <div class="privacy-note">We'll send you their snapshot and occasional cosmic updates. Unsubscribe anytime.</div>
+      <div class="error-msg" id="errorMsg"></div>
+    </form>
+  </div>
+
+  <!-- ── Loading ── -->
+  <div class="loading" id="loadingState">
+    <div class="card" style="padding: 48px 28px;">
+      <div style="font-size: 28px; text-align: center; margin-bottom: 12px;">&#10024;</div>
+      <div class="loading-text">Reading the stars for <span id="loadingName">your pet</span>...</div>
+    </div>
+  </div>
+
+  <!-- ── Result Card ── -->
+  <div class="result-section" id="resultSection">
+    <div class="card">
+      <div class="result-header">
+        <div class="card-badge">Cosmic Snapshot</div>
+        <div class="card-title" id="resultTitle"></div>
+      </div>
+
+      <div class="result-signs">
+        <div class="result-sign-card">
+          <div class="result-sign-label">Sun Sign</div>
+          <div class="result-sign-value" id="resultSun"></div>
+          <div class="result-sign-degree" id="resultSunDeg"></div>
+        </div>
+        <div class="result-sign-card">
+          <div class="result-sign-label">Moon Sign</div>
+          <div class="result-sign-value" id="resultMoon"></div>
+          <div class="result-sign-degree" id="resultMoonDeg"></div>
+        </div>
+      </div>
+
+      <div class="result-title-card">
+        <div class="result-title-label">Soul Archetype</div>
+        <div class="result-title-value" id="resultArchetype"></div>
+      </div>
+
+      <div class="result-section-block">
+        <div class="result-section-label">Personality</div>
+        <div class="result-section-text" id="resultTraits"></div>
+      </div>
+
+      <div class="result-section-block">
+        <div class="result-section-label">How They Love</div>
+        <div class="result-section-text" id="resultLove"></div>
+      </div>
+
+      <div class="result-section-block">
+        <div class="result-section-label">Emotional World</div>
+        <div class="result-section-text" id="resultMood"></div>
+      </div>
+
+      <div class="result-section-block">
+        <div class="result-section-label">Cosmic Quirk</div>
+        <div class="result-section-text" id="resultQuirk"></div>
+      </div>
+
+      <hr class="result-divider">
+
+      <div class="upsell-card">
+        <div class="upsell-badge">Go Deeper</div>
+        <div class="upsell-title" id="upsellTitle">This is just the surface</div>
+        <div class="upsell-text" id="upsellText">
+          Their full reading maps all 8 planetary placements, reveals their past life, love language,
+          soul contract with you, and includes a letter written from their soul to yours.
+        </div>
+        <a class="upsell-btn" href="/intake" id="upsellBtn">Get the Full Reading</a>
+        <div class="upsell-price">From $35 — a keepsake you'll treasure forever</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="/">Back to Little Souls</a>
+  </div>
+
+</div>
+
+<script>
+var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.gpzR9Pnh8PVQMWt2TfBFGH5rT-sRR8x0gwrFbzJtpgU';
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  var petName = document.getElementById('petName').value.trim();
+  var species = document.getElementById('species').value;
+  var dob = document.getElementById('dob').value;
+  var email = document.getElementById('email').value.trim();
+  var errorEl = document.getElementById('errorMsg');
+
+  if (!petName || !dob || !email) {
+    errorEl.textContent = 'Please fill in all fields.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  errorEl.style.display = 'none';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('formCard').style.display = 'none';
+  document.getElementById('loadingName').textContent = petName;
+  document.getElementById('loadingState').classList.add('show');
+
+  try {
+    var res = await fetch(SUPABASE_URL + '/functions/v1/generate-free-snapshot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ petName: petName, species: species, dateOfBirth: dob, email: email }),
+    });
+
+    var data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Something went wrong');
+    }
+
+    // Populate results
+    document.getElementById('resultTitle').textContent = petName + '\u2019s Cosmic Blueprint';
+    document.getElementById('resultSun').textContent = data.sunSign;
+    document.getElementById('resultSunDeg').textContent = data.sunDegree + '\u00B0 ' + data.sunElement;
+    document.getElementById('resultMoon').textContent = data.moonSign;
+    document.getElementById('resultMoonDeg').textContent = data.moonDegree + '\u00B0 ' + data.moonElement;
+    document.getElementById('resultArchetype').textContent = data.sunTitle;
+    document.getElementById('resultTraits').textContent = data.sunTraits;
+    document.getElementById('resultLove').textContent = data.sunLove;
+    document.getElementById('resultMood').textContent = data.moonMood;
+    document.getElementById('resultQuirk').textContent = data.sunQuirk;
+
+    document.getElementById('upsellTitle').textContent = 'This is just 2 of ' + petName + '\u2019s 8 placements';
+    document.getElementById('upsellText').textContent =
+      petName + '\u2019s full soul reading maps every planet in their birth chart, reveals their past life, love language, soul contract with you, cosmic crimes, dream job, and includes a letter written from their soul to yours. It\u2019s the kind of thing that makes people cry (the good kind).';
+
+    // Show result
+    document.getElementById('loadingState').classList.remove('show');
+    document.getElementById('resultSection').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch (err) {
+    document.getElementById('loadingState').classList.remove('show');
+    document.getElementById('formCard').style.display = 'block';
+    document.getElementById('submitBtn').disabled = false;
+    errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+    errorEl.style.display = 'block';
+  }
+}
+</script>
+
+</body>
+</html>

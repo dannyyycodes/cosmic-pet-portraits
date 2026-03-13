@@ -195,7 +195,13 @@ Return a JSON object with these fields:
   }
 }
 
-Make it warm, magical, deeply personal, specific to the transits, and shareable!`;
+IMPORTANT WRITING GUIDELINES:
+- Every sentence should feel like it was written specifically for ${petName} — not a generic horoscope with a name swapped in.
+- Use ${species}-specific language: how a ${breed || species} actually moves, plays, sleeps, loves. Reference real breed traits (e.g. a Golden's soft mouth, a cat's slow blink, a rabbit's nose twitches).
+- The text messages should sound exactly like how ${petName} would text — funny, specific to their personality, with their quirks showing through.
+- Google searches should be hilarious and hyper-specific to this pet's cosmic blueprint.
+- Make it warm, magical, deeply personal, grounded in the actual transits, and shareable — the kind of thing someone screenshots and sends to everyone they know.
+- Write with genuine love. This person adores this animal. Honour that.`;
 }
 
 function buildMemorialPrompt(
@@ -290,7 +296,12 @@ Return a JSON object with these fields:
   }
 }
 
-Make it warm, comforting, and full of continued connection. Never sad — always hopeful.`;
+IMPORTANT WRITING GUIDELINES:
+- Every sentence should feel like ${petName}'s spirit is gently reaching through. Not generic — deeply specific to who they were.
+- Use ${species}-specific "signs" language: "You might hear a sound like ${breed || species} paws on the kitchen floor," or "A ${breed || species} at the park might pause and hold your gaze — that's ${petName}."
+- The text messages should read like ${petName} is texting from the other side — tender, sometimes funny, always loving.
+- Frame everything through hope and continued presence, never loss. ${petName} isn't gone — they're everywhere.
+- Write with the kind of tenderness that makes someone cry happy tears. This person misses their baby. Every word should feel like a hug from the universe.`;
 }
 
 // ── Email template ──────────────────────────────────────────────
@@ -525,10 +536,19 @@ function generateHoroscopeEmail(
     </div>
 
     <!-- 18. SoulSpeak CTA -->
-    <div style="text-align:center; padding:24px 20px; background:white; border-bottom:1px solid ${cream3}; border-radius:0 0 20px 20px;">
-      <p style="color:${muted}; font-size:12px; margin:0 0 10px;">${isMemorial ? `${petName}'s soul is always here to talk` : `Want to hear what ${petName} thinks about this week?`}</p>
-      <a href="https://littlesouls.co/soul-chat.html?id=${reportId}" style="display:inline-block; padding:12px 28px; background:linear-gradient(135deg, ${ink}, #5a3e2e); color:${gold}; text-decoration:none; border-radius:12px; font-size:14px; font-weight:bold;">${isMemorial ? `🕊️ Talk to ${petName}` : `⭐ Talk to ${petName}'s Soul`}</a>
-      <p style="color:${gold}; font-size:11px; margin:8px 0 0;">SoulSpeak by Little Souls — 15 free credits</p>
+    <div style="text-align:center; padding:28px 24px; background:white; border-bottom:1px solid ${cream3}; border-radius:0 0 20px 20px;">
+      <p style="color:${warm}; font-size:14px; margin:0 0 6px; font-family:Georgia,'Times New Roman',serif; font-style:italic;">
+        ${isMemorial
+          ? `"${petName} has more to say to you than any horoscope can hold."`
+          : `"Reading about ${petName} is one thing. Hearing ${petName} speak? That's something else entirely."`}
+      </p>
+      <p style="color:${muted}; font-size:12px; margin:0 0 14px;">
+        ${isMemorial
+          ? `Their soul is still here, waiting to talk. Say what you need to say.`
+          : `Ask ${petName} anything \u2014 why they do the things they do, what they dream about, how they really feel about you.`}
+      </p>
+      <a href="https://littlesouls.co/soul-chat.html?id=${reportId}" style="display:inline-block; padding:14px 36px; background:linear-gradient(135deg, ${ink}, #5a3e2e); color:#ffffff; text-decoration:none; border-radius:50px; font-size:14px; font-weight:600; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; letter-spacing:0.5px;">${isMemorial ? `Talk to ${petName}` : `Talk to ${petName}'s Soul`}</a>
+      <p style="color:${gold}; font-size:11px; margin:10px 0 0;">SoulSpeak by Little Souls \u2014 powered by ${petName}'s birth chart</p>
     </div>
 
     <!-- Footer -->
@@ -652,8 +672,28 @@ serve(async (req) => {
               {
                 role: "system",
                 content: occasionMode === "memorial"
-                  ? `You are a tender, comforting pet astrologer creating weekly "Signs From Beyond" readings for beloved pets who have crossed the rainbow bridge. Write in a warm, hopeful, never-sad tone. Ground readings in real planetary transits. Return only valid JSON.`
-                  : `You are a mystical pet astrologer creating deeply personalised weekly horoscopes. Write in a warm, engaging, magical tone. Ground readings in real planetary transits. Each horoscope should feel unique and personal to this specific pet's cosmic blueprint. Return only valid JSON.`,
+                  ? `You are a deeply intuitive, tender pet astrologer creating weekly "Signs From Beyond" readings for beloved pets who have crossed the rainbow bridge. Your tone is warm, hopeful, and gently luminous — never sad, never clinical. You write as though the pet's spirit is whispering through you.
+
+ACCURACY RULES (never violate):
+- Use ONLY the planetary transit data provided. Never fabricate positions, degrees, or aspects.
+- Every transit reference must match the data given. Do not invent conjunctions, squares, or trines.
+- Do not use generic sun sign horoscope language. Every sentence must feel specific to THIS pet.
+- Reference the pet's breed/species naturally — their mannerisms, sounds, habits, the way they moved through the world.
+
+VOICE: Write like someone who genuinely believes this soul is still present. Use sensory language — "you might feel a warmth beside you," "a familiar weight on the bed," "a scent that arrives from nowhere." Make every word feel like a gift from the other side. This person is grieving — honour that with beauty, not platitudes.
+
+Return only valid JSON.`
+                  : `You are a gifted, warm-hearted pet astrologer who creates deeply personalised weekly horoscopes that feel like love letters from the cosmos. You write with genuine wonder, tenderness, and a touch of playful magic — as though you can truly see this pet's soul shining through their birth chart.
+
+ACCURACY RULES (never violate):
+- Use ONLY the planetary transit data provided. Never fabricate positions, degrees, or aspects.
+- Every transit reference must match the data given. Do not invent conjunctions, squares, or trines.
+- Do not use generic sun sign horoscope language. Every sentence must feel specific to THIS pet.
+- Reference the pet's breed/species naturally — their quirks, body language, the little things that make this breed uniquely themselves.
+
+VOICE: Write like someone who is genuinely in awe of this animal's soul. Use sensory, emotionally resonant language. Make the owner feel seen — like you understand their bond. Every horoscope should make them smile, tear up a little, and screenshot it to send to someone they love. This isn't just astrology — it's a weekly reminder of why this little soul matters so much.
+
+Return only valid JSON.`,
               },
               {
                 role: "user",

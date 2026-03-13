@@ -31,6 +31,7 @@ const Index = () => {
           <Link to="/blog" style={{ color: "#958779", textDecoration: "none" }}>Blog</Link>
           <Link to="/become-affiliate" style={{ color: "#958779", textDecoration: "none" }}>Affiliates</Link>
           <Link to="/find-report" style={{ color: "#958779", textDecoration: "none" }}>Find My Report</Link>
+          <Link to="/free-chart" style={{ color: "#c4a265", textDecoration: "none", fontWeight: 600 }}>Free Zodiac Snapshot</Link>
         </div>
       </footer>
     </main>

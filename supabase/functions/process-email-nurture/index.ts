@@ -166,6 +166,9 @@ function getEmailContent(campaignType: string, petName: string, _tier?: string):
       <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 20px 0;">
         Thank you for trusting us with something so personal. The bond between you and ${petName} is clearly something special, and it was an honour to put it into words.
       </p>
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 24px 0;">
+        <strong>One more thing:</strong> You have free SoulSpeak credits waiting. It lets you actually <em>talk</em> to ${petName}'s soul — ask them anything, hear them answer in their own voice. It's powered by their exact birth chart, so every response is genuinely <em>them</em>.
+      </p>
       <p style="color: #7a6a60; font-size: 14px; line-height: 1.7; margin: 0;">
         If anything in the reading surprised you or felt spot-on, we'd love to hear about it. Just reply to this email.
       </p>
@@ -206,7 +209,7 @@ function getEmailContent(campaignType: string, petName: string, _tier?: string):
         Their soul report captured who they are at their core. But the cosmos keeps shifting — and so does ${petName}'s energy, mood, and cosmic weather.
       </p>
       <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 20px 0;">
-        We've started offering <strong>Weekly Cosmic Updates</strong> — a personalised mini-reading for ${petName} delivered to your inbox every Monday. It covers their energy for the week, what to watch for, and how to make the most of your time together.
+        We've started offering <strong>Weekly Cosmic Updates</strong> — a personalised mini-reading for ${petName} delivered to your inbox every Sunday morning. It covers their energy for the week ahead, what to watch for, and how to make the most of your time together.
       </p>
       <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 20px 0;">
         It's like a horoscope, but actually about <em>your</em> pet, based on <em>their</em> actual chart.

@@ -1455,7 +1455,8 @@ Make every section feel personal, specific, and magical. The fun sections should
         }),
       }
     );
-    console.log("[WORKER] Email trigger:", emailRes.status);
+    const emailBody = await emailRes.text();
+    console.log("[WORKER] Email trigger:", emailRes.status, emailBody);
   } catch (e) {
     console.error("[WORKER] Email failed:", e);
   }

@@ -72,16 +72,25 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 - [x] P1-6: Added 4 more ephemeris edge cases — 74/74 passing (1990-2029 coverage)
 
 ### Phase 2 (In Progress)
-- [ ] P1-2: Horoscope content quality review
-- [ ] P1-3: SoulSpeak paywall marketing upgrade
-- [ ] P1-4: Free lead magnet ("Pet Zodiac Snapshot")
+- [x] P1-2: Horoscope content quality — upgraded system prompts with anti-hallucination rules, breed-specific NLP, heartwarming voice guidelines for both standard and memorial modes. Updated SoulSpeak CTA in horoscope email.
+- [x] P1-3: SoulSpeak paywall marketing upgrade — Soul Engine card with chart data, occasion-mode NLP copy, upgraded pricing descriptions, birthday mode support
+- [x] P1-7: Horoscope subscriber welcome email — sends on subscription creation with Sunday delivery schedule, SoulSpeak cross-sell, beautiful template
+- [x] Fixed: Sunday delivery references (nextMonday → nextSunday in stripe-webhook, Monday → Sunday in nurture email)
+- [x] Upgraded sidebar pricing cards with heartwarming language ("credits" → "messages", warmer descriptions)
+- [x] Added SoulSpeak cross-sell to post-purchase nurture email
+- [x] P1-4: Free lead magnet ("Pet Zodiac Snapshot") — `/free-chart` page with Sun+Moon calculation, personality snapshot, email capture into nurture sequence, upsell to full reading
 - [ ] P1-5: End-to-end Stripe flow testing
-- [ ] P1-7: Horoscope subscriber welcome email
-- [ ] Investigate Resend 502 — may need domain/API key verification
+- [ ] Investigate Resend 502 — needs Resend dashboard check (domain verification for littlesouls.co)
 
 ### Phase 3 (Later)
 - [ ] P2-1: Horoscope archive UI
 - [ ] P2-2: Generation error monitoring
 - [ ] P2-3: Horoscope subscriber email sequence
+
+### Remaining
+- [ ] P1-5: End-to-end Stripe flow testing (10 purchase paths)
+- [ ] Resend 502: Check Resend dashboard — verify `littlesouls.co` domain, confirm RESEND_API_KEY is valid
+- [ ] Deploy new/updated edge functions: generate-free-snapshot, stripe-webhook, generate-weekly-horoscopes, process-email-nurture
+- [ ] Push code and deploy frontend (free-chart.html, soul-chat.html, App.tsx)
 
 *Last updated: 2026-03-13*

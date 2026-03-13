@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,6 +12,94 @@ function getNextWeekDate(): string {
   const d = new Date();
   d.setDate(d.getDate() + 7);
   return d.toISOString();
+}
+
+async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign: string, reportId: string) {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) {
+    console.error("[STRIPE-WEBHOOK] No RESEND_API_KEY for welcome email");
+    return;
+  }
+  const resend = new Resend(resendKey);
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#faf6f1;font-family:Georgia,'Times New Roman',serif;">
+<div style="max-width:560px;margin:0 auto;padding:40px 20px;">
+
+  <div style="text-align:center;margin-bottom:36px;">
+    <p style="font-size:28px;margin:0 0 8px 0;">&#10024;</p>
+    <p style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#c4a265;margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Little Souls</p>
+  </div>
+
+  <div style="background:#ffffff;border-radius:16px;border:1px solid #e8ddd0;padding:40px 32px;text-align:center;">
+    <p style="font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#c4a265;margin:0 0 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+      Your Cosmic Connection is Live
+    </p>
+
+    <h1 style="color:#3d2f2a;font-size:26px;font-weight:400;margin:0 0 20px 0;line-height:1.3;">
+      ${petName}'s weekly horoscope<br>starts this Sunday
+    </h1>
+
+    <p style="color:#7a6a60;font-size:15px;line-height:1.8;margin:0 0 28px 0;">
+      Every Sunday morning, a personalised cosmic reading for ${petName} will arrive in your inbox &#8212; calculated from their exact birth chart against that week's real planetary transits. Not generic sun sign predictions. Real astrology, written with real love, just for your ${sunSign} soul.
+    </p>
+
+    <div style="text-align:left;background:#faf6f1;border-radius:12px;padding:24px 28px;margin:0 0 28px 0;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c4a265;margin:0 0 14px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+        Every Week You'll Get
+      </p>
+      <p style="color:#5a4a42;font-size:14px;line-height:2;margin:0;">
+        ${petName}'s cosmic mood forecast for each day<br>
+        Their lucky day, power move, and energy peaks<br>
+        Hilarious texts and Google searches from ${petName}<br>
+        A pet-parent cosmic sync reading<br>
+        A weekly affirmation written just for your bond
+      </p>
+    </div>
+
+    <div style="margin:28px 0;">
+      <a href="https://littlesouls.co/soul-chat.html?id=${reportId}" style="display:inline-block;background:#3d2f2a;color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:600;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0.5px;">
+        Talk to ${petName}'s Soul
+      </a>
+    </div>
+
+    <p style="color:#b8a99e;font-size:13px;line-height:1.6;margin:0;">
+      While you wait for Sunday, ${petName}'s soul is ready to chat.<br>You've got free SoulSpeak credits waiting.
+    </p>
+  </div>
+
+  <div style="text-align:center;margin-top:36px;">
+    <p style="color:#b8a99e;font-size:12px;line-height:1.7;margin:0 0 8px 0;">
+      Your first horoscope arrives this Sunday at 9am UTC.<br>
+      Questions? Just reply to this email.
+    </p>
+    <p style="color:#d4c8bc;font-size:11px;margin:0;letter-spacing:1px;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+      Little Souls
+    </p>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+  try {
+    const result = await resend.emails.send({
+      from: "Little Souls <hello@littlesouls.co>",
+      to: [email],
+      subject: `${petName}'s weekly cosmic updates start this Sunday ✨`,
+      html,
+    });
+    const resendError = (result as any)?.error;
+    if (resendError) {
+      console.error("[STRIPE-WEBHOOK] Welcome email Resend error:", resendError);
+    } else {
+      console.log("[STRIPE-WEBHOOK] Horoscope welcome email sent to:", email);
+    }
+  } catch (err) {
+    console.error("[STRIPE-WEBHOOK] Welcome email send error:", err);
+  }
 }
 
 serve(async (req) => {
@@ -94,7 +183,10 @@ serve(async (req) => {
           console.error("[STRIPE-WEBHOOK] Failed to create horoscope subscription:", subError);
         } else {
           console.log("[STRIPE-WEBHOOK] Horoscope subscription created successfully");
-          
+
+          // Send welcome email
+          await sendHoroscopeWelcomeEmail(email, petName, plan || "cosmic", petReportId);
+
           // Trigger immediate first horoscope generation
           const supabaseUrl = Deno.env.get("SUPABASE_URL");
           const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -456,10 +548,11 @@ serve(async (req) => {
                       .maybeSingle();
 
                     if (!existingSub) {
-                      // Calculate next Monday for first horoscope
-                      const nextMonday = new Date();
-                      nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
-                      nextMonday.setHours(9, 0, 0, 0);
+                      // Calculate next Sunday 9am UTC for first horoscope
+                      const nextSunday = new Date();
+                      const daysUntilSunday = (7 - nextSunday.getDay()) % 7 || 7;
+                      nextSunday.setDate(nextSunday.getDate() + daysUntilSunday);
+                      nextSunday.setHours(9, 0, 0, 0);
 
                       // Determine occasion mode from report
                       const petOccasionMode = report.occasion_mode || "discover";
@@ -505,7 +598,7 @@ serve(async (req) => {
                           pet_name: report.pet_name,
                           pet_report_id: reportId,
                           status: "active",
-                          next_send_at: nextMonday.toISOString(),
+                          next_send_at: nextSunday.toISOString(),
                           plan,
                           occasion_mode: petOccasionMode,
                           ...(stripeSubId ? { stripe_subscription_id: stripeSubId } : {}),
@@ -515,6 +608,9 @@ serve(async (req) => {
                         console.error("[STRIPE-WEBHOOK] Failed to create horoscope subscription:", subError);
                       } else {
                         console.log("[STRIPE-WEBHOOK] Horoscope subscription created for:", report.email, report.pet_name, { plan, occasionMode: petOccasionMode });
+
+                        // Send horoscope welcome email
+                        await sendHoroscopeWelcomeEmail(report.email, report.pet_name, sunSign, reportId);
                       }
                     } else {
                       console.log("[STRIPE-WEBHOOK] Horoscope subscription already exists for:", reportId);

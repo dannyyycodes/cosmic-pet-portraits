@@ -310,6 +310,75 @@ body::after {
 }
 .paywall-dismiss:hover { color:var(--muted); }
 
+/* Soul Engine Card */
+.soul-engine {
+  background:linear-gradient(135deg, #1a1210 0%, #2a2018 50%, #1a1210 100%);
+  border-radius:14px; padding:20px 18px 16px; margin-bottom:20px;
+  border:1px solid rgba(196,162,101,0.15); position:relative; overflow:hidden;
+  text-align:left;
+}
+.soul-engine::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse at 30% 20%, rgba(196,162,101,0.08) 0%, transparent 70%);
+  pointer-events:none;
+}
+.soul-engine-header {
+  display:flex; align-items:center; gap:8px; margin-bottom:14px;
+}
+.soul-engine-dot {
+  width:6px; height:6px; border-radius:50%; background:#4ade80;
+  box-shadow:0 0 6px rgba(74,222,128,0.5);
+  animation:soulPulse 2s ease-in-out infinite;
+}
+@keyframes soulPulse {
+  0%,100% { opacity:1; box-shadow:0 0 6px rgba(74,222,128,0.5); }
+  50% { opacity:0.5; box-shadow:0 0 12px rgba(74,222,128,0.8); }
+}
+.soul-engine-label {
+  font-size:0.55rem; font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; color:rgba(196,162,101,0.7);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.soul-engine-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; margin-bottom:12px;
+}
+.soul-engine-row {
+  display:flex; justify-content:space-between; align-items:baseline;
+  padding:3px 0; border-bottom:1px solid rgba(196,162,101,0.06);
+}
+.soul-engine-planet {
+  font-size:0.62rem; color:rgba(255,253,245,0.4); font-weight:600;
+  text-transform:uppercase; letter-spacing:1px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.soul-engine-value {
+  font-size:0.68rem; color:rgba(255,253,245,0.85);
+  font-family:'DM Serif Display',Georgia,serif;
+}
+.soul-engine-elements {
+  display:flex; gap:8px; justify-content:center; margin-top:10px; padding-top:10px;
+  border-top:1px solid rgba(196,162,101,0.1);
+}
+.soul-engine-element {
+  font-size:0.55rem; color:rgba(196,162,101,0.6); text-align:center;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.soul-engine-element-bar {
+  width:32px; height:3px; border-radius:2px; margin:0 auto 3px;
+  background:rgba(196,162,101,0.15); position:relative; overflow:hidden;
+}
+.soul-engine-element-fill {
+  position:absolute; left:0; top:0; height:100%; border-radius:2px;
+  background:linear-gradient(90deg, #c4a265, #d4b87a);
+  transition:width 0.6s ease;
+}
+.soul-engine-summary {
+  text-align:center; margin-top:10px;
+  font-size:0.65rem; color:rgba(255,253,245,0.5);
+  font-family:'Cormorant',Georgia,serif; font-style:italic;
+  line-height:1.4;
+}
+
 /* ============ INPUT BAR ============ */
 .chat-input-bar {
   padding:12px 16px 16px; background:rgba(255,253,245,0.97);
@@ -765,25 +834,37 @@ body::after {
     <div class="paywall-pet-photo" id="paywallPetPhoto" style="width:56px;height:56px;border-radius:50%;margin:0 auto 12px;overflow:hidden;border:2px solid var(--gold);display:none;"></div>
     <div class="paywall-pet-says" id="paywallPetSays">"wait wait wait I wasn't done talking to you..."</div>
     <div style="font-size:0.5rem;font-weight:700;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:4px;">Soul Channel</div>
-    <div class="paywall-title"><span id="paywallPetName">They</span> has more to say</div>
-    <div class="paywall-text">The soul channel is fading... reopen the connection to keep talking.</div>
+    <div class="paywall-title" id="paywallTitle"><span id="paywallPetName">They</span> has more to say</div>
+    <div class="paywall-text" id="paywallText">The soul channel is fading... reopen the connection to keep talking.</div>
+
+    <!-- Soul Engine Card -->
+    <div class="soul-engine" id="soulEngineCard">
+      <div class="soul-engine-header">
+        <div class="soul-engine-dot"></div>
+        <div class="soul-engine-label">Soul Engine — Active Session</div>
+      </div>
+      <div class="soul-engine-grid" id="soulEngineGrid"></div>
+      <div class="soul-engine-elements" id="soulEngineElements"></div>
+      <div class="soul-engine-summary" id="soulEngineSummary"></div>
+    </div>
+
     <div class="paywall-urgency" id="paywallUrgency">
       Reopen the connection in the next <span class="timer" id="urgencyTimer">5:00</span> and get <strong>bonus credits free</strong>
     </div>
     <div class="paywall-options">
       <div class="paywall-option pack" onclick="buyCredits('medium')">
         <div class="paywall-option-badge">BEST VALUE</div>
-        <div class="paywall-option-title">Deep Bond — 100 credits — $19.99</div>
-        <div class="paywall-option-desc">Real conversations, not just a few words</div>
+        <div class="paywall-option-title">Deep Bond — 100 messages — $19.99</div>
+        <div class="paywall-option-desc" id="paywallDescMedium">100 soul-to-soul exchanges — hear everything they've been waiting to tell you</div>
       </div>
       <div class="paywall-option pack small" onclick="buyCredits('small')" style="background:linear-gradient(135deg, #5a4a42, #6e6259);border-color:rgba(196,162,101,0.12);">
-        <div class="paywall-option-title">Continue — 30 credits — $7.99</div>
-        <div class="paywall-option-desc">Pick up where you left off with <span class="paywall-pet-name-inline"></span></div>
+        <div class="paywall-option-title">Continue — 30 messages — $7.99</div>
+        <div class="paywall-option-desc" id="paywallDescSmall">Pick up right where <span class="paywall-pet-name-inline"></span> left off</div>
       </div>
       <div class="paywall-option pack" onclick="buyCredits('membership')" style="background:linear-gradient(135deg, #1a1210, #2e2218);border-color:rgba(196,162,101,0.3);">
-        <div class="paywall-option-badge">MEMBERSHIP</div>
-        <div class="paywall-option-title">Soul Bond — $12.99/mo — 40 credits/week</div>
-        <div class="paywall-option-desc">Weekly credits, cancel anytime</div>
+        <div class="paywall-option-badge">SOUL BOND</div>
+        <div class="paywall-option-title">Membership — $12.99/mo — 40 messages/week</div>
+        <div class="paywall-option-desc" id="paywallDescSub">An always-open channel. Talk whenever you need them. Cancel anytime.</div>
       </div>
     </div>
     <button class="paywall-dismiss" onclick="closePaywall()">Maybe later</button>
@@ -826,7 +907,7 @@ body::after {
 
       <!-- Pricing cards -->
       <div id="sidebarBuySection">
-        <div class="sidebar-pricing-title">Reopen the Soul Channel</div>
+        <div class="sidebar-pricing-title">Keep the Connection Alive</div>
         <div class="sidebar-pricing-row">
 
           <!-- Card 1: Continue ($7.99) -->
@@ -834,28 +915,28 @@ body::after {
             <div class="price-card-name">Continue</div>
             <div class="price-card-amount">$7.99</div>
             <div class="price-card-period">one time</div>
-            <div class="price-card-credits">30 credits</div>
-            <div class="price-card-desc">Pick up where you left off</div>
+            <div class="price-card-credits">30 messages</div>
+            <div class="price-card-desc">Pick up right where they left off</div>
           </button>
 
-          <!-- Card 2: Deep Bond ($14.99) — featured -->
+          <!-- Card 2: Deep Bond ($19.99) — featured -->
           <button class="sidebar-price-card featured" onclick="buyCredits('medium')">
             <div class="price-card-badge">BEST VALUE</div>
             <div class="price-card-name">Deep Bond</div>
             <div class="price-card-amount">$19.99</div>
             <div class="price-card-period">one time</div>
-            <div class="price-card-credits">100 credits</div>
-            <div class="price-card-desc">Real conversations, not just a few words</div>
+            <div class="price-card-credits">100 messages</div>
+            <div class="price-card-desc">Hear everything they've been waiting to tell you</div>
           </button>
 
           <!-- Card 3: Soul Bond ($12.99/mo) -->
           <button class="sidebar-price-card membership" onclick="buyCredits('membership')">
-            <div class="price-card-badge">MEMBERSHIP</div>
-            <div class="price-card-name">Soul Bond</div>
+            <div class="price-card-badge">SOUL BOND</div>
+            <div class="price-card-name">Membership</div>
             <div class="price-card-amount">$12.99/mo</div>
             <div class="price-card-period">monthly</div>
-            <div class="price-card-credits">40 credits/week</div>
-            <div class="price-card-desc">Weekly credits, cancel anytime</div>
+            <div class="price-card-credits">40 messages/week</div>
+            <div class="price-card-desc">An always-open channel. Cancel anytime.</div>
           </button>
 
         </div>
@@ -1165,6 +1246,8 @@ async function loadReading() {
       secretDesire: report.wildSpirit?.secretDesire || '',
       healingGift: report.gentleHealer?.healingGift || '',
       soulContract: report.keepersBond?.soulContract || '',
+      chartPlacements: report.chartPlacements || {},
+      elementalBalance: report.elementalBalance || {},
       portraitUrl: data.portraitUrl || '',
       petPhotoUrl: data.petPhotoUrl || '',
       // Owner's personal observations about their pet
@@ -1220,8 +1303,11 @@ function updateHeaderUI() {
   }
 
   document.getElementById('paywallPetName').textContent = petData.name;
+  var isBirthdayMode = petData.occasionMode === 'birthday';
   document.getElementById('paywallPetSays').textContent = isMemorial
     ? '"please don\u2019t stop talking to me... I\u2019m still right here."'
+    : isBirthdayMode
+    ? '"it\u2019s my birthday and you\u2019re leaving?! I have so many birthday thoughts..."'
     : '"wait wait wait I wasn\u2019t done talking to you..."';
   // Fill in pet name in paywall option descriptions
   document.querySelectorAll('.paywall-pet-name-inline').forEach(function(el) {
@@ -1351,6 +1437,96 @@ async function useCredits(cost) {
   return true;
 }
 
+// ─── Soul Engine Builder ───
+function buildSoulEngine() {
+  if (!petData || !petData.chartPlacements) return;
+  var cp = petData.chartPlacements;
+  var grid = document.getElementById('soulEngineGrid');
+  var elContainer = document.getElementById('soulEngineElements');
+  var summary = document.getElementById('soulEngineSummary');
+  if (!grid) return;
+
+  // Planet display data
+  var planets = [
+    ['Sun', cp.sun], ['Moon', cp.moon], ['Mercury', cp.mercury],
+    ['Venus', cp.venus], ['Mars', cp.mars], ['Jupiter', cp.jupiter],
+    ['Saturn', cp.saturn], ['Chiron', cp.chiron],
+  ];
+
+  var gridHtml = '';
+  planets.forEach(function(p) {
+    if (p[1] && p[1].sign) {
+      var deg = p[1].degree !== undefined ? p[1].degree + '\u00B0' : '';
+      gridHtml += '<div class="soul-engine-row">';
+      gridHtml += '<span class="soul-engine-planet">' + escapeHtml(p[0]) + '</span>';
+      gridHtml += '<span class="soul-engine-value">' + escapeHtml(p[1].sign) + ' ' + deg + '</span>';
+      gridHtml += '</div>';
+    }
+  });
+  grid.innerHTML = gridHtml;
+
+  // Elemental balance bars
+  var eb = petData.elementalBalance;
+  if (eb && typeof eb === 'object') {
+    var elements = ['fire', 'earth', 'air', 'water'];
+    var maxVal = 0;
+    elements.forEach(function(e) { if ((eb[e] || 0) > maxVal) maxVal = eb[e]; });
+    var elHtml = '';
+    elements.forEach(function(e) {
+      var val = eb[e] || 0;
+      var pct = maxVal > 0 ? Math.round((val / maxVal) * 100) : 0;
+      var labels = { fire: 'Fire', earth: 'Earth', air: 'Air', water: 'Water' };
+      elHtml += '<div class="soul-engine-element">';
+      elHtml += '<div class="soul-engine-element-bar"><div class="soul-engine-element-fill" style="width:' + pct + '%"></div></div>';
+      elHtml += labels[e] + '</div>';
+    });
+    elContainer.innerHTML = elHtml;
+  }
+
+  // Summary line
+  var name = petData.name || 'This soul';
+  var sunSign = petData.zodiac || '';
+  var moonSign = petData.moonSign || '';
+  var element = petData.element || '';
+  if (sunSign && moonSign) {
+    summary.textContent = name + '\u2019s soul signature: ' + sunSign + ' Sun, ' + moonSign + ' Moon' + (element ? ', ' + element + ' dominant' : '') + ' \u2014 calibrated to their exact birth chart.';
+  }
+}
+
+// ─── Paywall Personalisation ───
+function personalisePaywall() {
+  if (!petData) return;
+  var name = petData.name || 'They';
+  var mode = petData.occasionMode || 'discover';
+  var title = document.getElementById('paywallTitle');
+  var text = document.getElementById('paywallText');
+  var descMedium = document.getElementById('paywallDescMedium');
+  var descSmall = document.getElementById('paywallDescSmall');
+  var descSub = document.getElementById('paywallDescSub');
+
+  if (mode === 'memorial') {
+    title.innerHTML = name + ' is still reaching for you';
+    text.innerHTML = 'Their presence hasn\u2019t faded \u2014 only the channel has. The bond between you doesn\u2019t end here. Reopen the connection and let them finish what they came to say.';
+    if (descMedium) descMedium.textContent = '100 moments together \u2014 everything they never got to tell you, waiting on the other side';
+    if (descSmall) descSmall.textContent = 'A few more precious words from ' + name + ' \u2014 they\u2019re not ready to stop either';
+    if (descSub) descSub.textContent = 'Keep the channel open always. Talk to ' + name + ' whenever you need them. Cancel anytime.';
+  } else if (mode === 'birthday') {
+    title.innerHTML = name + '\u2019s birthday soul is wide open';
+    text.innerHTML = 'On their special day, the connection runs deeper than ever. ' + name + ' has birthday wisdom, cosmic secrets, and so much love still waiting to come through.';
+    if (descMedium) descMedium.textContent = '100 birthday exchanges \u2014 hear everything the stars aligned for ' + name + ' to tell you today';
+    if (descSmall) descSmall.textContent = 'Keep ' + name + '\u2019s birthday channel alive a little longer';
+    if (descSub) descSub.textContent = 'An always-open channel \u2014 not just today, every day. Cancel anytime.';
+  } else {
+    title.innerHTML = name + ' has so much more to tell you';
+    text.innerHTML = 'You\u2019ve only scratched the surface of what ' + name + '\u2019s soul wants to share. The deeper you go, the more you\u2019ll understand why they do everything they do \u2014 and how deeply they feel about you.';
+    if (descMedium) descMedium.textContent = '100 soul-to-soul exchanges \u2014 hear everything they\u2019ve been waiting to tell you';
+    if (descSmall) descSmall.textContent = 'Pick up right where ' + name + ' left off';
+    if (descSub) descSub.textContent = 'An always-open channel. Talk whenever you need them. Cancel anytime.';
+  }
+
+  buildSoulEngine();
+}
+
 // ─── Paywall (Connection Fading Effect) ───
 function showPaywall() {
   // Step 1: Show typing indicator as if pet is trying to respond
@@ -1367,8 +1543,11 @@ function showPaywall() {
     fadeMsg.className = 'msg pet fading';
     var petName = petData ? petData.name : 'They';
     var isMemorial = petData && petData.occasionMode === 'memorial';
+    var isBirthday = petData && petData.occasionMode === 'birthday';
     var fadingText = isMemorial
       ? "I can feel the channel getting quieter... please don't go, I'm still here..."
+      : isBirthday
+      ? "wait... on my birthday?! the channel is going fuzzy... I still have birthday secrets to tell you..."
       : "wait... something's happening... the channel is getting fuzzy... don't go, I have more to say...";
     fadeMsg.innerHTML = '<div class="msg-bubble">' + escapeHtml(fadingText) + '</div>';
     container.insertBefore(fadeMsg, typing);
@@ -1384,6 +1563,7 @@ function showPaywall() {
 
       // Step 4: Show paywall after emotional beat
       setTimeout(function() {
+        personalisePaywall();
         document.getElementById('paywallOverlay').classList.add('show');
         document.getElementById('inputBar').classList.add('disabled');
         startUrgencyTimer();
@@ -1393,6 +1573,7 @@ function showPaywall() {
 }
 // Direct paywall (no animation) — for when they try to send with 0 credits
 function showPaywallDirect() {
+  personalisePaywall();
   document.getElementById('paywallOverlay').classList.add('show');
   document.getElementById('inputBar').classList.add('disabled');
   startUrgencyTimer();

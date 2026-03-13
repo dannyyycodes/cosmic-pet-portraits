@@ -71,6 +71,12 @@ function SoulChatRedirect() {
   return null;
 }
 
+// Redirect /free-chart to the static HTML free chart page
+function FreeChartRedirect() {
+  window.location.href = '/free-chart.html';
+  return null;
+}
+
 const queryClient = new QueryClient();
 
 // Loading fallback for lazy components
@@ -133,6 +139,7 @@ const App = () => (
                   <Route path="/blog/:slug" element={<BlogPost />} />
                   <Route path="/find-report" element={<FindReport />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
+                  <Route path="/free-chart" element={<FreeChartRedirect />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

@@ -64,7 +64,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
       : `${petNames.slice(0, -1).join(', ')}, and ${petNames[petNames.length - 1]}`;
 
   const redeemUrl = giftInfo?.giftCode 
-    ? `${window.location.origin}/redeem-gift?code=${giftInfo.giftCode}`
+    ? `${window.location.origin}/redeem?code=${giftInfo.giftCode}`
     : '';
 
   const copyGiftLink = () => {

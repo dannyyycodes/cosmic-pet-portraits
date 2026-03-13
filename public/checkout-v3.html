@@ -1186,6 +1186,7 @@ var petCount = 1;
 var basePrice = 27;
 var portraitPrice = 8;
 var multiPetOpen = false;
+var occasionMode = (new URLSearchParams(window.location.search).get('mode')) || 'discover';
 
 // ─── Volume Discounts ───
 function getDiscount(n) {
@@ -1419,7 +1420,7 @@ async function handleDigitalCheckout(e) {
         includesPortrait: portraitOn,
         includesBook: false,
         includeHoroscope: horoscopeOn,
-        occasionMode: 'discover',
+        occasionMode: occasionMode,
         petCount: petCount,
       }),
     });

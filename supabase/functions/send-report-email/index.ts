@@ -130,8 +130,9 @@ serve(async (req) => {
 
     const resendError = (emailResult as any)?.error;
     if (resendError) {
-      console.error("[SEND-REPORT-EMAIL] Resend error:", resendError);
-      return new Response(JSON.stringify({ error: "Email delivery failed" }), {
+      console.error("[SEND-REPORT-EMAIL] Resend error:", JSON.stringify(resendError));
+      console.error("[SEND-REPORT-EMAIL] Full response:", JSON.stringify(emailResult));
+      return new Response(JSON.stringify({ error: "Email delivery failed", detail: resendError }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
