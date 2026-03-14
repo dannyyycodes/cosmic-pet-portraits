@@ -96,7 +96,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const origin = req.headers.get("origin") || "https://littlesouls.co";
+    const origin = req.headers.get("origin") || "https://littlesouls.app";
 
     // ========== QUICK CHECKOUT MODE (Variant C) ==========
     if (input.quickCheckout) {

@@ -85,7 +85,7 @@ const getConfirmationEmailTemplate = (safeName: string, safeSubjectLabel: string
       </div>
 
       <p style="color: #9ca3af; font-size: 15px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
-        In the meantime, check out our <a href="https://littlesouls.co/#faq" style="color: #34d399; text-decoration: none; font-weight: 600;">FAQ section</a> for quick answers.
+        In the meantime, check out our <a href="https://littlesouls.app/#faq" style="color: #34d399; text-decoration: none; font-weight: 600;">FAQ section</a> for quick answers.
       </p>
 
       <!-- Divider -->
@@ -203,8 +203,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification to support
     const supportEmailResponse = await resend.emails.send({
-      from: "Little Souls <hello@littlesouls.co>",
-      to: ["hello@littlesouls.co"],
+      from: "Little Souls <hello@littlesouls.app>",
+      to: ["hello@littlesouls.app"],
       subject: `[${safeSubjectLabel}] New contact from ${safeName}`,
       html: `
         <h2>New Contact Form Submission</h2>
@@ -223,7 +223,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation to customer
     const confirmationEmailResponse = await resend.emails.send({
-      from: "Little Souls <hello@littlesouls.co>",
+      from: "Little Souls <hello@littlesouls.app>",
       to: [email],
       subject: "We received your message! ✨",
       html: getConfirmationEmailTemplate(safeName, safeSubjectLabel, safeMessage),

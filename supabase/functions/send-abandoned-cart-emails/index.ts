@@ -141,14 +141,14 @@ serve(async (req) => {
     for (const subscriber of abandonedCarts) {
       try {
         const petName = subscriber.pet_name || "your pet";
-        const baseUrl = "https://littlesouls.co";
+        const baseUrl = "https://littlesouls.app";
         const intakeUrl = `${baseUrl}/intake`;
         const unsubscribeUrl = `${baseUrl}/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
         
         logStep("Sending abandoned cart email", { email: subscriber.email, petName });
 
         const emailResponse = await resend.emails.send({
-          from: "Little Souls <hello@littlesouls.co>",
+          from: "Little Souls <hello@littlesouls.app>",
           to: [subscriber.email],
           subject: `${petName}'s reading is still waiting for you`,
           html: getAbandonedCartEmailTemplate(petName, intakeUrl, unsubscribeUrl),

@@ -119,10 +119,10 @@ serve(async (req) => {
       });
     }
 
-    const reportUrl = `https://littlesouls.co/report?id=${reportId}`;
+    const reportUrl = `https://littlesouls.app/report?id=${reportId}`;
 
     const emailResult = await resend.emails.send({
-      from: "Little Souls <hello@littlesouls.co>",
+      from: "Little Souls <hello@littlesouls.app>",
       to: [email],
       subject: `${petName}'s Cosmic Reading is Ready ✨`,
       html: getEmailTemplate(petName, reportUrl, sunSign),

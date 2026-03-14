@@ -67,7 +67,7 @@ const getPurchaserEmailTemplate = (recipientName: string, giftCode: string, gift
       </div>
 
       <p style="color: #7a6a60; font-size: 13px; line-height: 1.6; margin: 0;">
-        ${recipientEmail ? "We've already sent the code to them with a lovely note." : "Share this code with them whenever you're ready. They'll use it at littlesouls.co/redeem."}
+        ${recipientEmail ? "We've already sent the code to them with a lovely note." : "Share this code with them whenever you're ready. They'll use it at littlesouls.app/redeem."}
       </p>
 
     </div>
@@ -134,7 +134,7 @@ const getRecipientEmailTemplate = (recipientName: string, giftCode: string, gift
       </div>
 
       <div style="margin: 28px 0;">
-        <a href="https://littlesouls.co/redeem?code=${giftCode}" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 16px 44px; border-radius: 50px; font-weight: 600; font-size: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        <a href="https://littlesouls.app/redeem?code=${giftCode}" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 16px 44px; border-radius: 50px; font-weight: 600; font-size: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
           Redeem Your Gift
         </a>
       </div>
@@ -203,7 +203,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to purchaser (confirmation)
     const purchaserEmailResult = await resend.emails.send({
-      from: "Little Souls <hello@littlesouls.co>",
+      from: "Little Souls <hello@littlesouls.app>",
       to: [giftCert.purchaser_email],
       subject: "🎁 Your Gift Certificate is Ready",
       html: getPurchaserEmailTemplate(recipientName, giftCert.code, giftMessage, giftCert.recipient_email),
@@ -226,7 +226,7 @@ const handler = async (req: Request): Promise<Response> => {
     // If there's a recipient email, send them the gift notification
     if (giftCert.recipient_email) {
       const recipientEmailResult = await resend.emails.send({
-        from: "Little Souls <hello@littlesouls.co>",
+        from: "Little Souls <hello@littlesouls.app>",
         to: [giftCert.recipient_email],
         subject: `🎁 ${recipientName}, you've received a special gift!`,
         html: getRecipientEmailTemplate(recipientName, giftCert.code, giftMessage),

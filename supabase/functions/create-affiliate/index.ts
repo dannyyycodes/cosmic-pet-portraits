@@ -119,7 +119,7 @@ serve(async (req) => {
     }
 
     // Create onboarding link
-    const origin = req.headers.get("origin") || "https://littlesouls.co";
+    const origin = req.headers.get("origin") || "https://littlesouls.app";
     const accountLink = await stripe.accountLinks.create({
       account: account.id,
       refresh_url: `${origin}/affiliate/onboarding?refresh=true`,
@@ -137,7 +137,7 @@ serve(async (req) => {
         const referralLink = `${origin}/?ref=${referralCode}`;
         
         await resend.emails.send({
-          from: "Little Souls <hello@littlesouls.co>",
+          from: "Little Souls <hello@littlesouls.app>",
           to: [input.email],
           subject: "🎉 Welcome to the Little Souls Affiliate Program!",
           html: `

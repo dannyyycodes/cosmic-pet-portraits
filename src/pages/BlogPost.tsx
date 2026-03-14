@@ -174,8 +174,8 @@ const BlogPost = () => {
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.meta_description} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://littlesouls.co/blog/${post.slug}`} />
-        <link rel="canonical" href={`https://littlesouls.co/blog/${post.slug}`} />
+        <meta property="og:url" content={`https://littlesouls.app/blog/${post.slug}`} />
+        <link rel="canonical" href={`https://littlesouls.app/blog/${post.slug}`} />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -190,11 +190,11 @@ const BlogPost = () => {
             "publisher": {
               "@type": "Organization",
               "name": "Little Souls",
-              "url": "https://littlesouls.co"
+              "url": "https://littlesouls.app"
             },
             "mainEntityOfPage": {
               "@type": "WebPage",
-              "@id": `https://littlesouls.co/blog/${post.slug}`
+              "@id": `https://littlesouls.app/blog/${post.slug}`
             }
           })}
         </script>

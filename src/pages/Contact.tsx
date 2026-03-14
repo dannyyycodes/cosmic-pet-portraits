@@ -62,8 +62,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{t('contact.email')}</h3>
-                    <a href="mailto:hello@littlesouls.co" className="hover:underline" style={{ color: '#c4a265' }}>
-                      hello@littlesouls.co
+                    <a href="mailto:hello@littlesouls.app" className="hover:underline" style={{ color: '#c4a265' }}>
+                      hello@littlesouls.app
                     </a>
                   </div>
                 </div>

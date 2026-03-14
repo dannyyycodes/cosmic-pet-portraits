@@ -75,18 +75,18 @@ const Blog = () => {
         />
         <meta property="og:title" content="Pet Behavior & Astrology Blog | Little Souls" />
         <meta property="og:description" content="Discover why your pet does what they do. Expert articles on dog and cat behavior, zodiac personalities, and cosmic pet insights." />
-        <link rel="canonical" href="https://littlesouls.co/blog" />
+        <link rel="canonical" href="https://littlesouls.app/blog" />
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Blog",
             "name": "Little Souls Blog",
             "description": "Expert articles on pet behavior and cosmic pet personalities",
-            "url": "https://littlesouls.co/blog",
+            "url": "https://littlesouls.app/blog",
             "publisher": {
               "@type": "Organization",
               "name": "Little Souls",
-              "url": "https://littlesouls.co"
+              "url": "https://littlesouls.app"
             }
           })}
         </script>

@@ -207,7 +207,7 @@ serve(async (req) => {
     const primaryGiftCode = giftCodes[0];
     logStep("Generated gift codes", { giftCodes, primary: primaryGiftCode });
 
-    const origin = req.headers.get("origin") ?? "https://littlesouls.co";
+    const origin = req.headers.get("origin") ?? "https://littlesouls.app";
     
     // Build product description
     const tierCounts = giftPets.reduce((acc, pet) => {
@@ -242,7 +242,7 @@ serve(async (req) => {
         product_data: {
           name: productName,
           description: productDescription,
-          images: ["https://littlesouls.co/og-image.jpg"],
+          images: ["https://littlesouls.app/og-image.jpg"],
         },
         unit_amount: giftAmount,
       },

@@ -209,7 +209,7 @@ export default function PaymentSuccess() {
           <button onClick={() => navigate('/')} className="text-sm text-[#9B8E84] hover:text-[#2D2926] underline-offset-4 hover:underline transition-colors block w-full mt-3">
             Go back home
           </button>
-          <p className="text-xs text-[#9B8E84] mt-6">If this persists, please contact hello@littlesouls.co</p>
+          <p className="text-xs text-[#9B8E84] mt-6">If this persists, please contact hello@littlesouls.app</p>
         </div>
       </div>
     );

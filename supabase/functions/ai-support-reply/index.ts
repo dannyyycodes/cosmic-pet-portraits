@@ -27,7 +27,7 @@ function escapeHtml(unsafe: string): string {
     .replace(/'/g, '&#039;');
 }
 
-const SYSTEM_PROMPT = `You are Little Souls, the friendly AI support assistant for Little Souls (littlesouls.co) - a cosmic pet astrology service that creates personalized astrological readings for pets.
+const SYSTEM_PROMPT = `You are Little Souls, the friendly AI support assistant for Little Souls (littlesouls.app) - a cosmic pet astrology service that creates personalized astrological readings for pets.
 
 ABOUT THE SERVICE:
 - Little Souls Reading ($27): Personalized astrology reading based on pet's birth date, species, and personality
@@ -314,11 +314,11 @@ const handler = async (req: Request): Promise<Response> => {
     const safeName = escapeHtml(name);
 
     const emailResponse = await resend.emails.send({
-      from: "Little Souls <hello@littlesouls.co>",
+      from: "Little Souls <hello@littlesouls.app>",
       to: [email],
       subject: emailSubject,
       html: buildEmailHtml(safeName, safeAiResponse),
-      reply_to: "hello@littlesouls.co",
+      reply_to: "hello@littlesouls.app",
     });
 
     console.log("[AI-SUPPORT] Auto-reply sent successfully:", emailResponse);

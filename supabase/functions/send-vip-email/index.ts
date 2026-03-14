@@ -104,7 +104,7 @@ const getVipEmailTemplate = (petName: string, reportUrl: string, accountUrl: str
           <span style="color: #fbbf24; font-size: 20px; font-weight: 800; letter-spacing: 2px; font-family: monospace;">${customerReferralCode}</span>
         </div>
         <p style="color: #6b7280; font-size: 11px; margin: 14px 0 0 0;">
-          littlesouls.co/ref/${customerReferralCode}
+          littlesouls.app/ref/${customerReferralCode}
         </p>
       </div>
 
@@ -166,7 +166,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const origin = "https://littlesouls.co";
+    const origin = "https://littlesouls.app";
     const reportUrl = `${origin}/report?id=${reportId}`;
     const accountUrl = `${origin}/account`;
     
@@ -187,7 +187,7 @@ serve(async (req) => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "Little Souls <hello@littlesouls.co>",
+      from: "Little Souls <hello@littlesouls.app>",
       to: [email],
       subject: `🌟 Welcome to the VIP Experience, ${petName}'s Human!`,
       html: getVipEmailTemplate(petName, reportUrl, accountUrl, customerReferralCode, portraitUrl),

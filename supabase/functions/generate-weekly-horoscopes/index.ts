@@ -547,7 +547,7 @@ function generateHoroscopeEmail(
           ? `Their soul is still here, waiting to talk. Say what you need to say.`
           : `Ask ${petName} anything \u2014 why they do the things they do, what they dream about, how they really feel about you.`}
       </p>
-      <a href="https://littlesouls.co/soul-chat.html?id=${reportId}" style="display:inline-block; padding:14px 36px; background:linear-gradient(135deg, ${ink}, #5a3e2e); color:#ffffff; text-decoration:none; border-radius:50px; font-size:14px; font-weight:600; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; letter-spacing:0.5px;">${isMemorial ? `Talk to ${petName}` : `Talk to ${petName}'s Soul`}</a>
+      <a href="https://littlesouls.app/soul-chat.html?id=${reportId}" style="display:inline-block; padding:14px 36px; background:linear-gradient(135deg, ${ink}, #5a3e2e); color:#ffffff; text-decoration:none; border-radius:50px; font-size:14px; font-weight:600; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; letter-spacing:0.5px;">${isMemorial ? `Talk to ${petName}` : `Talk to ${petName}'s Soul`}</a>
       <p style="color:${gold}; font-size:11px; margin:10px 0 0;">SoulSpeak by Little Souls \u2014 powered by ${petName}'s birth chart</p>
     </div>
 
@@ -748,7 +748,7 @@ Return only valid JSON.`,
         );
 
         const { error: emailError } = await resend.emails.send({
-          from: "Little Souls <hello@littlesouls.co>",
+          from: "Little Souls <hello@littlesouls.app>",
           to: [sub.email],
           subject: emailSubject,
           html: emailHtml,

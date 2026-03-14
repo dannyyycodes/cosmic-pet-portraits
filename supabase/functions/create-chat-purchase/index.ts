@@ -26,7 +26,7 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
     const { orderId, type } = await req.json();
-    const baseUrl = req.headers.get("origin") || "https://littlesouls.co";
+    const baseUrl = req.headers.get("origin") || "https://littlesouls.app";
 
     // Handle membership subscription
     if (type === "membership") {

@@ -226,7 +226,7 @@ export default function AdminQATest() {
 
   const runTest = useCallback(async (idx: number) => {
     const pet = TEST_PETS[idx];
-    const email = `qa+${pet.name.toLowerCase()}@littlesouls.co`;
+    const email = `qa+${pet.name.toLowerCase()}@littlesouls.app`;
     const start = Date.now();
 
     // Start elapsed timer

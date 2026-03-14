@@ -77,7 +77,7 @@ serve(async (req) => {
     const { data: report, error: insertError } = await supabase
       .from("pet_reports")
       .insert({
-        email: email || "pending@redeem.littlesouls.co",
+        email: email || "pending@redeem.littlesouls.app",
         pet_name: petName || "Pending",
         species: species || "pending",
         payment_status: "paid",
@@ -102,7 +102,7 @@ serve(async (req) => {
       .from("chat_credits")
       .insert({
         report_id: report.id,
-        email: email || "pending@redeem.littlesouls.co",
+        email: email || "pending@redeem.littlesouls.app",
         credits_remaining: creditAmount,
         plan: "redeemed",
         order_id: report.id,

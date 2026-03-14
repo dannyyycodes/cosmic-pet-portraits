@@ -1073,7 +1073,7 @@ Make every section feel personal, specific, and magical. The fun sections should
     headers: {
       Authorization: `Bearer ${OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://littlesouls.co",
+      "HTTP-Referer": "https://littlesouls.app",
       "X-Title": "Little Souls Reading",
     },
     body: JSON.stringify({

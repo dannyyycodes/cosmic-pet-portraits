@@ -21,7 +21,7 @@ function getEmailTemplate(reports: ReportRow[]) {
       (r) =>
         `<tr>
           <td style="padding: 12px 16px;">
-            <a href="https://littlesouls.co/report?id=${r.id}" style="color: #a78bfa; text-decoration: none; font-size: 15px; font-weight: 600;">${r.pet_name}'s Reading &rarr;</a>
+            <a href="https://littlesouls.app/report?id=${r.id}" style="color: #a78bfa; text-decoration: none; font-size: 15px; font-weight: 600;">${r.pet_name}'s Reading &rarr;</a>
             <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">Purchased ${new Date(r.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
           </td>
         </tr>
@@ -96,7 +96,7 @@ serve(async (req) => {
 
     if (reports && reports.length > 0) {
       const emailResult = await resend.emails.send({
-        from: "Little Souls <hello@littlesouls.co>",
+        from: "Little Souls <hello@littlesouls.app>",
         to: [email.toLowerCase().trim()],
         subject: `Your Little Souls Report Links`,
         html: getEmailTemplate(reports),

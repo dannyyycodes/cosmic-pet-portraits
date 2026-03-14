@@ -261,7 +261,7 @@ export default function ViewReport() {
           </div>
           {isTimeout && (
             <p className="text-xs text-muted-foreground mt-6">
-              If this persists, please contact hello@littlesouls.co
+              If this persists, please contact hello@littlesouls.app
             </p>
           )}
         </div>

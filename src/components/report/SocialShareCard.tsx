@@ -70,7 +70,7 @@ export function SocialShareCard({ petName, sunSign, moonSign, element, archetype
   };
 
   const shareToTwitter = () => {
-    const text = `✨ ${petName} is a ${sunSign} Sun with ${element} energy! Their cosmic archetype: ${archetype} 🐾\n\nDiscover your pet's cosmic destiny at littlesouls.co`;
+    const text = `✨ ${petName} is a ${sunSign} Sun with ${element} energy! Their cosmic archetype: ${archetype} 🐾\n\nDiscover your pet's cosmic destiny at littlesouls.app`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -142,7 +142,7 @@ export function SocialShareCard({ petName, sunSign, moonSign, element, archetype
           </div>
           
           {/* Watermark */}
-          <p className="absolute bottom-3 text-white/30 text-xs">littlesouls.co</p>
+          <p className="absolute bottom-3 text-white/30 text-xs">littlesouls.app</p>
         </div>
       </div>
 

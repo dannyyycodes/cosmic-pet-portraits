@@ -70,8 +70,8 @@ export default function Terms() {
               <h2 className="text-xl font-semibold text-[#3d2f2a]">{t('terms.section11Title')}</h2>
               <p>
                 {t('terms.section11Content')}{" "}
-                <a href="mailto:hello@littlesouls.co" className="text-[#c4a265] hover:underline">
-                  hello@littlesouls.co
+                <a href="mailto:hello@littlesouls.app" className="text-[#c4a265] hover:underline">
+                  hello@littlesouls.app
                 </a>
               </p>
             </section>

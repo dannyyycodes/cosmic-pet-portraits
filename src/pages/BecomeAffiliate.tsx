@@ -286,7 +286,7 @@ export default function BecomeAffiliate() {
                   {t('affiliate.customCode')} <span style={{ color: '#9a8578', fontWeight: 'normal' }}>{t('affiliate.customCodeOptional')}</span>
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm whitespace-nowrap" style={{ color: '#9a8578' }}>littlesouls.co/ref/</span>
+                  <span className="text-sm whitespace-nowrap" style={{ color: '#9a8578' }}>littlesouls.app/ref/</span>
                   <input
                     type="text"
                     value={referralCode}

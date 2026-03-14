@@ -55,7 +55,7 @@ const CAMPAIGNS = {
 // ─── Handcrafted Email Templates ────────────────────────────────────────────
 
 function getEmailContent(campaignType: string, petName: string, _tier?: string): string {
-  const intakeUrl = "https://littlesouls.co/intake";
+  const intakeUrl = "https://littlesouls.app/intake";
 
   const templates: Record<string, string> = {
     // ── WELCOME 1: Gentle intro (30 mins after email capture) ────────
@@ -194,7 +194,7 @@ function getEmailContent(campaignType: string, petName: string, _tier?: string):
         </p>
       </div>
       <div style="text-align: center; margin: 28px 0;">
-        <a href="https://littlesouls.co/gift" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 50px; font-weight: 600; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        <a href="https://littlesouls.app/gift" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 50px; font-weight: 600; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
           Send a Gift Reading
         </a>
       </div>
@@ -223,7 +223,7 @@ function getEmailContent(campaignType: string, petName: string, _tier?: string):
         </p>
       </div>
       <div style="text-align: center; margin: 28px 0;">
-        <a href="https://littlesouls.co/weekly" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 50px; font-weight: 600; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        <a href="https://littlesouls.app/weekly" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 50px; font-weight: 600; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
           Start ${petName}'s Weekly Updates
         </a>
       </div>
@@ -265,7 +265,7 @@ function getEmailContent(campaignType: string, petName: string, _tier?: string):
 // ─── Email Wrapper ──────────────────────────────────────────────────────────
 
 function wrapEmailTemplate(content: string, petName: string, email: string): string {
-  const unsubscribeUrl = `https://littlesouls.co/unsubscribe?email=${encodeURIComponent(email)}`;
+  const unsubscribeUrl = `https://littlesouls.app/unsubscribe?email=${encodeURIComponent(email)}`;
   return `
 <!DOCTYPE html>
 <html>
@@ -322,7 +322,7 @@ async function sendNurtureEmail(
   const html = wrapEmailTemplate(content, petName, subscriber.email);
 
   await resend.emails.send({
-    from: "Little Souls <hello@littlesouls.co>",
+    from: "Little Souls <hello@littlesouls.app>",
     to: [subscriber.email],
     subject,
     html,

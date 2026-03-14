@@ -126,11 +126,11 @@ serve(async (req) => {
         const safeName = escapeHtml(scheduled.name);
 
         await resend.emails.send({
-          from: "Little Souls <hello@littlesouls.co>",
+          from: "Little Souls <hello@littlesouls.app>",
           to: [scheduled.email],
           subject: "Re: Your Little Souls inquiry ✨",
           html: buildEmailHtml(safeName, safeAiResponse),
-          reply_to: "hello@littlesouls.co",
+          reply_to: "hello@littlesouls.app",
         });
 
         // Mark as sent

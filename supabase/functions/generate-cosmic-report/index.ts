@@ -1156,7 +1156,7 @@ QUALITY STANDARD: This report costs $35. Every section must justify that price.
       headers: {
         Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://littlesouls.co",
+        "HTTP-Referer": "https://littlesouls.app",
         "X-Title": "Little Souls Reading",
       },
       body: JSON.stringify({

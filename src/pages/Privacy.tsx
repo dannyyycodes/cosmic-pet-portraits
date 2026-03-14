@@ -87,8 +87,8 @@ export default function Privacy() {
               <h2 className="text-xl font-semibold text-[#3d2f2a]">{t('privacy.section10Title')}</h2>
               <p>
                 {t('privacy.section10Content')}{" "}
-                <a href="mailto:hello@littlesouls.co" className="text-[#c4a265] hover:underline">
-                  hello@littlesouls.co
+                <a href="mailto:hello@littlesouls.app" className="text-[#c4a265] hover:underline">
+                  hello@littlesouls.app
                 </a>
               </p>
             </section>

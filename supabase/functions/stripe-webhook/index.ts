@@ -60,7 +60,7 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
     </div>
 
     <div style="margin:28px 0;">
-      <a href="https://littlesouls.co/soul-chat.html?id=${reportId}" style="display:inline-block;background:#3d2f2a;color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:600;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0.5px;">
+      <a href="https://littlesouls.app/soul-chat.html?id=${reportId}" style="display:inline-block;background:#3d2f2a;color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:600;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0.5px;">
         Talk to ${petName}'s Soul
       </a>
     </div>
@@ -86,7 +86,7 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
 
   try {
     const result = await resend.emails.send({
-      from: "Little Souls <hello@littlesouls.co>",
+      from: "Little Souls <hello@littlesouls.app>",
       to: [email],
       subject: `${petName}'s weekly cosmic updates start this Sunday ✨`,
       html,

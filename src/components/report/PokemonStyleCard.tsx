@@ -193,14 +193,14 @@ export function PokemonStyleCard({
 
   const handleShare = async () => {
     const text = occasionMode === 'memorial'
-      ? `👼 ${petName} - Guardian Angel Card 👼\n\n"${theme.flavorText}"\n\n🌟 HP: ∞ | Type: ${element}\n✨ Ability: ${moves.ability}\n\n#CosmicCard #ForeverLoved #RainbowBridge\n\n${shareUrl || 'littlesouls.co'}`
+      ? `👼 ${petName} - Guardian Angel Card 👼\n\n"${theme.flavorText}"\n\n🌟 HP: ∞ | Type: ${element}\n✨ Ability: ${moves.ability}\n\n#CosmicCard #ForeverLoved #RainbowBridge\n\n${shareUrl || 'littlesouls.app'}`
       : occasionMode === 'birthday'
-        ? `🎂 ${petName}'s BIRTHDAY CARD! 🎂\n\n"${theme.flavorText}"\n\n💪 HP: ${totalHP} | Type: ${element}\n🎉 Special Move: ${moves.attack2.name}!\n\n#CosmicCard #PetBirthday #LegendaryPet\n\n${shareUrl || 'littlesouls.co'}`
-        : `✨ Check out ${petName}'s Cosmic Card! ✨\n\n💪 HP: ${totalHP} | Type: ${element}\n⚡ ${moves.attack1.name}: ${moves.attack1.damage} DMG\n🔥 ${moves.attack2.name}: ${moves.attack2.damage} DMG\n\n#CosmicCard #CosmicPets #PetCard\n\n${shareUrl || 'littlesouls.co'}`;
+        ? `🎂 ${petName}'s BIRTHDAY CARD! 🎂\n\n"${theme.flavorText}"\n\n💪 HP: ${totalHP} | Type: ${element}\n🎉 Special Move: ${moves.attack2.name}!\n\n#CosmicCard #PetBirthday #LegendaryPet\n\n${shareUrl || 'littlesouls.app'}`
+        : `✨ Check out ${petName}'s Cosmic Card! ✨\n\n💪 HP: ${totalHP} | Type: ${element}\n⚡ ${moves.attack1.name}: ${moves.attack1.damage} DMG\n🔥 ${moves.attack2.name}: ${moves.attack2.damage} DMG\n\n#CosmicCard #CosmicPets #PetCard\n\n${shareUrl || 'littlesouls.app'}`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: `${petName}'s Cosmic Card`, text, url: shareUrl || 'https://littlesouls.co' });
+        await navigator.share({ title: `${petName}'s Cosmic Card`, text, url: shareUrl || 'https://littlesouls.app' });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
           await navigator.clipboard.writeText(text);
@@ -535,7 +535,7 @@ export function PokemonStyleCard({
             >
               <span>Illus. Little Souls AI</span>
               <span className="font-bold">{theme.badge}</span>
-              <span>littlesouls.co</span>
+              <span>littlesouls.app</span>
             </div>
           </div>
         </div>

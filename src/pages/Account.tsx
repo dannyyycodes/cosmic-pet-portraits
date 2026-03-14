@@ -554,11 +554,11 @@ const Account = () => {
                     For refunds, order issues, or questions, email us at:
                   </p>
                   <a
-                    href="mailto:hello@littlesouls.co"
+                    href="mailto:hello@littlesouls.app"
                     className="hover:underline"
                     style={{ color: '#c4a265' }}
                   >
-                    hello@littlesouls.co
+                    hello@littlesouls.app
                   </a>
                 </div>
               </div>
