@@ -435,7 +435,10 @@ body::after {
 /* ============ RESPONSIVE ============ */
 @media (max-width:640px) {
   body { padding-top:66px; padding-bottom:72px; }
-  .hero { padding:36px 20px 24px; min-height:auto; }
+  .hero { padding:28px 20px 20px; min-height:auto; }
+  .hero-sub { font-size:0.92rem; max-width:100%; }
+  .hero-sub br { display:none; }
+  .memorial-note { font-size:0.75rem !important; line-height:1.5 !important; }
   .testimonial-grid { grid-template-columns:1fr; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:12px; padding-bottom:8px; -webkit-overflow-scrolling:touch; }
   .testimonial-grid::-webkit-scrollbar { display:none; }
   .testimonial-card { flex-shrink:0; width:85vw; scroll-snap-align:start; }
@@ -448,14 +451,19 @@ body::after {
   .hardcover-section { padding-left:12px; padding-right:12px; }
   /* Floating CTA — always show on mobile */
   .floating-cta { display:flex !important; }
-  /* Touch targets */
+  /* Touch targets (not toggles — they stay at natural size) */
   .pet-counter-btn, button, a.cta-btn, a.hardcover-cta { min-height:44px; min-width:44px; }
-  /* Keep toggles at natural size on mobile — 44px min makes them too big */
-  .toggle-track { min-height:22px; min-width:40px; }
-  /* Fix upsell rows wrapping on small screens */
-  #upsellPortrait, #upsellHoroscope { flex-wrap:wrap; gap:8px; }
-  /* Hero subtitle line break */
-  .hero-sub br { display:none; }
+
+  /* ── Portrait & Horoscope toggle rows: stack on mobile ── */
+  #upsellPortrait, #upsellHoroscope {
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:10px !important;
+  }
+  #upsellPortrait > div:last-child,
+  #upsellHoroscope > div:last-child {
+    align-self:flex-end;
+  }
 }
 
 /* Review stars */
@@ -473,13 +481,13 @@ body::after {
 
 @media (max-width:380px) {
   .paw { display:none; }
-  .hero-headline { font-size:clamp(1.7rem,8vw,2.2rem); }
-  .hero-sub { font-size:0.88rem; }
-  .memorial-note { font-size:0.72rem !important; }
-  .gift-banner { font-size:0.75rem; padding:7px 12px; }
-  .ticker-bar { font-size:0.72rem; padding:6px 12px; }
-  /* Upsell rows stack label above toggle on tiny screens */
-  #upsellPortrait > div:last-child, #upsellHoroscope > div:last-child { margin-left:auto; }
+  .hero { padding:20px 16px 16px; }
+  .hero-headline { font-size:clamp(1.7rem,8vw,2.2rem); margin-bottom:10px; }
+  .hero-sub { font-size:0.84rem; line-height:1.5; }
+  .hero-badge { font-size:0.72rem; padding:5px 12px; margin-bottom:16px; }
+  .gift-banner { font-size:0.72rem; padding:6px 10px; }
+  .gift-banner svg { width:12px; height:12px; }
+  .ticker-bar { font-size:0.72rem; padding:6px 10px; }
 }
 </style>
 </head>
