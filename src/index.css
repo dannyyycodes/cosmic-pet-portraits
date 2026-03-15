@@ -69,26 +69,65 @@
   }
 
   .dark {
-    --background: 220 35% 6%;
-    --foreground: 240 20% 97%;
-    --card: 220 30% 10%;
-    --card-foreground: 240 20% 97%;
-    --popover: 220 30% 10%;
-    --popover-foreground: 240 20% 97%;
-    --primary: 25 100% 63%;
-    --primary-foreground: 220 35% 6%;
-    --secondary: 220 25% 15%;
-    --secondary-foreground: 240 20% 97%;
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 15% 65%;
-    --accent: 43 69% 52%;
-    --accent-foreground: 220 35% 6%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 25 100% 63%;
+    --background: 30 15% 8%;
+    --foreground: 38 30% 90%;
+    --card: 30 12% 11%;
+    --card-foreground: 38 30% 90%;
+    --popover: 30 12% 11%;
+    --popover-foreground: 38 30% 90%;
+    --primary: 4 46% 55%;
+    --primary-foreground: 38 30% 95%;
+    --secondary: 30 10% 15%;
+    --secondary-foreground: 38 30% 90%;
+    --muted: 30 8% 16%;
+    --muted-foreground: 30 15% 55%;
+    --accent: 39 40% 50%;
+    --accent-foreground: 30 15% 8%;
+    --destructive: 0 62.8% 40%;
+    --destructive-foreground: 38 30% 95%;
+    --border: 30 10% 16%;
+    --input: 30 10% 16%;
+    --ring: 4 46% 55%;
+    --shadow-card: 0 4px 20px hsl(30 20% 4% / 0.4);
   }
+
+  /* Variant C Dark: warm dark cream */
+  .variant-c.dark {
+    --background: 30 15% 8%;
+    --foreground: 38 30% 88%;
+    --card: 30 12% 12%;
+    --card-foreground: 38 30% 88%;
+    --popover: 30 12% 12%;
+    --popover-foreground: 38 30% 88%;
+    --primary: 4 46% 55%;
+    --primary-foreground: 38 30% 95%;
+    --secondary: 30 10% 16%;
+    --secondary-foreground: 38 30% 88%;
+    --muted: 30 8% 18%;
+    --muted-foreground: 30 15% 52%;
+    --accent: 39 40% 50%;
+    --accent-foreground: 30 15% 8%;
+    --border: 30 10% 18%;
+    --input: 30 10% 18%;
+    --ring: 4 46% 55%;
+    --warm-cream: 30 15% 8%;
+    --warm-cream-dark: 30 12% 12%;
+    --shadow-card: 0 4px 20px hsl(30 20% 4% / 0.4);
+  }
+
+  .variant-c.dark .glass-card,
+  .variant-c.dark .cosmic-card,
+  .variant-c.dark .testimonial-card {
+    background: hsl(30 12% 12%);
+    border: 1px solid hsl(30 10% 18%);
+    box-shadow: 0 4px 20px hsl(30 20% 4% / 0.3);
+  }
+
+  /* Dark mode overrides for EmotionalJourney inline styles */
+  .dark section[class*="relative"] {
+    background-color: hsl(30 15% 8%) !important;
+  }
+  .dark .grain-overlay { opacity: 0.02 !important; }
 
   /* Variant C: Warm Cream & Rose Theme */
   .variant-c {

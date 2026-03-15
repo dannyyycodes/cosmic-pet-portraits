@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Little Souls — Discover Your Pet's Soul</title>
+<meta name="description" content="A deeply personal astrology reading for your pet. 30+ sections covering personality, love language, soul purpose, and more. Loved by 10,000+ pet parents.">
+<link rel="canonical" href="https://littlesouls.app/checkout-v3">
+<meta property="og:type" content="product">
+<meta property="og:url" content="https://littlesouls.app/checkout-v3">
+<meta property="og:title" content="Little Souls — Discover Your Pet's Soul">
+<meta property="og:description" content="A deeply personal astrology reading for your pet. 30+ sections covering personality, love language, soul purpose, and more.">
+<meta property="og:image" content="https://littlesouls.app/og-image.png">
+<meta property="og:site_name" content="Little Souls">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Little Souls — Discover Your Pet's Soul">
+<meta name="twitter:description" content="A deeply personal astrology reading for your pet. 30+ sections.">
+<meta name="twitter:image" content="https://littlesouls.app/og-image.png">
+<!-- Google Analytics — replace G-XXXXXXXXXX with your GA4 measurement ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -31,7 +46,8 @@
 }
 
 html { scroll-behavior:smooth; }
-body { background:var(--cream); color:var(--ink); font-family:'Cormorant',Georgia,serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; padding-top:72px; }
+html.dark { --black:#e8ddd0; --ink:#ddd0c2; --deep:#c8baa8; --warm:#a09080; --earth:#8a7d6e; --muted:#6e6259; --faded:#4d443b; --sand:#2e2a24; --cream:#1a1714; --cream2:#1e1a16; --cream3:#252019; --rose:#cf6b63; --rose-soft:#d4857e; --rose-glow:rgba(207,107,99,0.15); --gold:#c4a265; --gold-soft:rgba(196,162,101,0.2); --paw-color:#5a4a42; --green:#6aad7c; --green-soft:rgba(106,173,124,0.1); }
+body { background:var(--cream); color:var(--ink); font-family:'Cormorant',Georgia,serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; padding-top:72px; transition:background 0.3s, color 0.3s; }
 
 /* Grain */
 body::after {
@@ -39,6 +55,28 @@ body::after {
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
   background-size:256px; pointer-events:none; z-index:9999;
 }
+
+/* ============ DARK MODE OVERRIDES ============ */
+html.dark .product-card, html.dark .upsell-card { background:var(--cream2); border-color:var(--sand); }
+html.dark .pf-odd { background:var(--cream3); }
+html.dark .pf-even { background:var(--cream2); }
+html.dark .order-summary { background:var(--cream3); border-color:var(--sand); }
+html.dark .cta-btn { box-shadow:0 4px 20px rgba(207,107,99,0.3); }
+html.dark .gift-banner { background:var(--rose); }
+html.dark .ticker-bar { background:rgba(26,23,20,0.92); border-bottom-color:rgba(255,255,255,0.06); }
+html.dark .ticker-logo { color:var(--ink); }
+html.dark .ticker-account { color:var(--earth); }
+html.dark .ticker-account:hover { color:var(--ink); }
+html.dark .bonus-section { background:linear-gradient(135deg, rgba(106,173,124,0.06) 0%, rgba(196,162,101,0.06) 100%); border-color:rgba(106,173,124,0.15); }
+html.dark .guarantee-expand { background:rgba(106,173,124,0.08); border-color:rgba(106,173,124,0.15); }
+html.dark .privacy-expand { background:rgba(196,162,101,0.06); border-color:rgba(196,162,101,0.12); }
+html.dark .review-card { background:var(--cream2); border-color:var(--sand); }
+html.dark .inside-card { background:var(--cream2); border-color:var(--sand); }
+html.dark .testimonial-card-v3, html.dark .testimonial-card { background:var(--cream2); border-color:var(--sand); }
+html.dark .floating-cta { background:rgba(26,23,20,0.97); border-top-color:var(--sand); }
+html.dark .mini-card { background:var(--cream2); border-color:var(--sand); }
+html.dark input[type="text"] { background:var(--cream2) !important; color:var(--ink) !important; border-color:var(--sand) !important; }
+html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 
 /* ============ PINNED BARS ============ */
 .pinned-bars { position:fixed; top:0; left:0; right:0; z-index:1000; }
@@ -56,13 +94,19 @@ body::after {
 .gift-banner:hover .gift-banner-arrow { transform:translateX(3px); }
 
 .ticker-bar {
-  display:flex; align-items:center; justify-content:center; gap:8px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
   padding:8px 16px;
   background:rgba(255,253,245,0.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
   border-bottom:1px solid rgba(0,0,0,0.06);
   font-size:0.8rem; color:var(--earth); font-weight:500;
   min-height:36px;
 }
+.ticker-logo { font-family:'DM Serif Display',Georgia,serif; font-size:0.82rem; font-weight:400; color:var(--ink); text-decoration:none; white-space:nowrap; letter-spacing:-0.01em; }
+.ticker-logo:hover { opacity:0.8; }
+.ticker-center { display:flex; align-items:center; gap:8px; flex:1; justify-content:center; }
+.ticker-account { display:flex; align-items:center; gap:5px; font-size:0.76rem; font-weight:500; color:var(--earth); text-decoration:none; white-space:nowrap; transition:color 0.2s; }
+.ticker-account:hover { color:var(--ink); }
+.ticker-account svg { flex-shrink:0; }
 .ticker-dot {
   width:6px; height:6px; border-radius:50%; background:var(--green);
   animation:pulse 2s infinite; flex-shrink:0;
@@ -501,8 +545,21 @@ body::after {
     <span class="gift-banner-arrow">&rarr;</span>
   </a>
   <div class="ticker-bar">
-    <div class="ticker-dot"></div>
-    <div class="ticker-text" id="ticker"></div>
+    <a href="/" class="ticker-logo">Little Souls</a>
+    <div class="ticker-center">
+      <div class="ticker-dot"></div>
+      <div class="ticker-text" id="ticker"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="dark-toggle" onclick="toggleDarkMode()" style="background:none;border:none;cursor:pointer;padding:2px;color:var(--muted);display:flex;align-items:center;" aria-label="Toggle dark mode">
+        <svg id="dark-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        <svg id="dark-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <a href="/auth" class="ticker-account" id="account-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Sign In</span>
+      </a>
+    </div>
   </div>
 </div>
 
@@ -1204,6 +1261,41 @@ body::after {
 // ─── Supabase Config ───
 var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.-axd-u-mY_73j2RPkySsLgG630WCUb05I8AbwYjIvkI';
+
+// ─── Dark Mode ───
+function toggleDarkMode() {
+  var isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('ls-dark-mode', isDark ? 'true' : 'false');
+  updateDarkIcons(isDark);
+}
+function updateDarkIcons(isDark) {
+  var moon = document.getElementById('dark-icon-moon');
+  var sun = document.getElementById('dark-icon-sun');
+  if (moon && sun) { moon.style.display = isDark ? 'none' : 'block'; sun.style.display = isDark ? 'block' : 'none'; }
+}
+(function() {
+  if (localStorage.getItem('ls-dark-mode') === 'true') {
+    document.documentElement.classList.add('dark');
+    updateDarkIcons(true);
+  }
+})();
+
+// ─── Auth Detection (update account link) ───
+(function() {
+  try {
+    var stored = localStorage.getItem('sb-aduibsyrnenzobuyetmn-auth-token');
+    if (stored) {
+      var data = JSON.parse(stored);
+      if (data && data.access_token && data.expires_at && data.expires_at * 1000 > Date.now()) {
+        var link = document.getElementById('account-link');
+        if (link) {
+          link.href = '/my-reports';
+          link.querySelector('span').textContent = 'My Reports';
+        }
+      }
+    }
+  } catch(e) {}
+})();
 
 // ─── State ───
 var portraitOn = true; // Pre-toggled ON

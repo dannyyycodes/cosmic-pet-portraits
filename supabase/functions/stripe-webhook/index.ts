@@ -351,9 +351,22 @@ serve(async (req) => {
             }
           }
           
+          // Idempotency check: skip if already processed this session
+          const { data: alreadyProcessed } = await supabaseClient
+            .from("pet_reports")
+            .select("id")
+            .eq("stripe_session_id", session.id)
+            .eq("payment_status", "paid")
+            .limit(1);
+
+          if (alreadyProcessed && alreadyProcessed.length > 0) {
+            console.log("[STRIPE-WEBHOOK] Already processed session:", session.id, "— skipping");
+            return new Response(JSON.stringify({ received: true, skipped: true }), { status: 200, headers: { "Content-Type": "application/json" } });
+          }
+
           // Update all reports as paid - also set gift mode if applicable
-          const updateData: any = { 
-            payment_status: "paid", 
+          const updateData: any = {
+            payment_status: "paid",
             stripe_session_id: session.id,
             updated_at: new Date().toISOString()
           };

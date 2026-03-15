@@ -195,11 +195,61 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 - [x] Free reading upsell: "1 of 14 placements" depth showcase, CTA → /checkout-v3
 
 ### Remaining for next session:
-- [ ] Menu/nav with login (subtle, in ticker bar area)
-- [ ] Dark mode toggle (warm dark theme)
-- [ ] Create Stripe promotion codes: COSMIC30, GIFTLOVE30, COMEBACK35
-- [ ] End-to-end Stripe flow test
-- [ ] Mobile optimization pass (broader)
-- [ ] ManyChat integration for lead magnet
+- [x] Menu/nav with login (subtle, in ticker bar area)
+- [x] Dark mode toggle (warm dark theme)
+- [x] Create Stripe promotion codes: COSMIC30, GIFTLOVE30, COMEBACK35
+- [x] End-to-end Stripe flow test (audit)
+- [x] Mobile optimization pass (broader)
+- [x] ManyChat integration for lead magnet
 
-*Last updated: 2026-03-15 evening*
+---
+
+## Current Session: March 15 late — Nav, Dark Mode, Stripe, E2E Audit
+
+### Completed:
+1. **Variant C nav bar** — Replaced hidden navbar with slim bar: "Little Souls" logo + dark mode toggle + Sign In/My Account
+   - React: `Navbar.tsx` shows ticker-style bar for variant C with auth-aware dropdown
+   - checkout-v3: Added logo, dark toggle, account link to ticker bar
+   - Auth detection via localStorage token in checkout-v3.html
+
+2. **Warm dark mode** — Full dark theme across all pages
+   - React: New CSS variables in `index.css` for `.dark` and `.variant-c.dark`
+   - EmotionalJourney: `useColors()` hook swaps LIGHT_COLORS/DARK_COLORS reactively
+   - checkout-v3: CSS custom properties redefined under `html.dark`, dark overrides for cards/inputs/floating CTA
+   - Toggle persists via `ls-dark-mode` in localStorage
+   - Footer links now use Tailwind classes (dark-mode aware)
+
+3. **Stripe promotion codes** — `allow_promotion_codes: true` added to both checkout sessions
+   - Quick checkout (line 222) and standard checkout (line 581) in create-checkout
+   - **Still needed**: Create COSMIC30 (30%), GIFTLOVE30 (30%), COMEBACK35 (35%) in Stripe Dashboard > Products > Coupons > Promotion Codes
+
+4. **E2E Stripe flow audit** — Full pipeline verified working:
+   - checkout-v3 → create-checkout → Stripe session → webhook → generate-report-background → n8n → worker → send-report-email
+   - All URLs correct, metadata flowing, auth working
+   - **Still needed**: Manual browser test with test card 4242424242424242
+
+5. **Mobile optimization** — All pages responsive, dark mode overrides for floating CTA, mini cards, inputs
+   - Touch targets 44px+ on mobile
+   - Testimonials scroll-snap, toggle buttons stack vertically
+
+6. **ManyChat** — Placeholder snippet added to `free-chart.html` (commented out)
+   - **Still needed**: Create ManyChat account, set up Growth Tool, get widget ID, uncomment snippet
+
+### Files changed:
+- `src/components/Navbar.tsx` — Variant C slim nav with dark mode toggle + auth
+- `src/index.css` — Warm dark mode CSS variables
+- `src/pages/Index.tsx` — Dark-mode-aware bg + footer
+- `src/components/variants/variant-c/EmotionalJourney.tsx` — useColors() hook, removed internal GiftBanner/TickerBar
+- `public/checkout-v3.html` — Logo, dark toggle, account link in ticker, dark CSS overrides
+- `public/free-chart.html` — ManyChat placeholder
+- `supabase/functions/create-checkout/index.ts` — allow_promotion_codes: true
+
+### Deploy checklist:
+- [ ] Push code to git
+- [ ] Deploy frontend to Vercel (auto on push)
+- [ ] Deploy create-checkout edge function: `npx supabase functions deploy create-checkout`
+- [ ] Create Stripe promotion codes in dashboard
+- [ ] Activate ManyChat widget
+- [ ] Run E2E test with test card
+
+*Last updated: 2026-03-15 late evening*

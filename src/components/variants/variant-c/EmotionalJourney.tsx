@@ -3,22 +3,31 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MassiveReviews } from "./MassiveReviews";
 import { LiveActivityNotification } from "@/components/LiveActivityNotification";
 
-const COLORS = {
-  black: "#141210",
-  ink: "#1f1c18",
-  deep: "#2e2a24",
-  warm: "#4d443b",
-  earth: "#6e6259",
-  muted: "#958779",
-  faded: "#bfb2a3",
-  sand: "#d6c8b6",
-  cream: "#FFFDF5",
-  cream2: "#faf4e8",
-  cream3: "#f3eadb",
-  rose: "#bf524a",
-  roseLight: "#d4857e",
-  gold: "#c4a265",
+const LIGHT_COLORS = {
+  black: "#141210", ink: "#1f1c18", deep: "#2e2a24", warm: "#4d443b",
+  earth: "#6e6259", muted: "#958779", faded: "#bfb2a3", sand: "#d6c8b6",
+  cream: "#FFFDF5", cream2: "#faf4e8", cream3: "#f3eadb",
+  rose: "#bf524a", roseLight: "#d4857e", gold: "#c4a265",
 };
+const DARK_COLORS = {
+  black: "#e8ddd0", ink: "#ddd0c2", deep: "#c8baa8", warm: "#a09080",
+  earth: "#8a7d6e", muted: "#6e6259", faded: "#4d443b", sand: "#2e2a24",
+  cream: "#1a1714", cream2: "#1e1a16", cream3: "#252019",
+  rose: "#cf6b63", roseLight: "#d4857e", gold: "#c4a265",
+};
+
+function useColors() {
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  useEffect(() => {
+    const obs = new MutationObserver(() => setIsDark(document.documentElement.classList.contains('dark')));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => obs.disconnect();
+  }, []);
+  return isDark ? DARK_COLORS : LIGHT_COLORS;
+}
+
+// Keep static COLORS for components that don't need reactivity (SVGs, etc)
+const COLORS = LIGHT_COLORS;
 
 function useScrollReveal(options?: { threshold?: number; rootMargin?: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -82,7 +91,7 @@ const Beat = ({ children, minHeight = "100vh", mobileMinHeight, background }: { 
   const { ref, visible } = useScrollReveal();
   const mobile = useIsMobile();
   const resolvedMin = mobile && mobileMinHeight ? mobileMinHeight : minHeight;
-  return (<section ref={ref} className="relative overflow-hidden" style={{ minHeight: resolvedMin, display: "flex", alignItems: "center", justifyContent: "center", padding: mobile ? "clamp(24px, 6vw, 80px) clamp(16px, 4vw, 28px)" : "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px)", background: background ?? COLORS.cream }}><div style={{ maxWidth: 750, width: "100%", textAlign: "center" }}>{children(visible)}</div></section>);
+  return (<section ref={ref} className="relative overflow-hidden bg-background" style={{ minHeight: resolvedMin, display: "flex", alignItems: "center", justifyContent: "center", padding: mobile ? "clamp(24px, 6vw, 80px) clamp(16px, 4vw, 28px)" : "clamp(40px, 8vw, 80px) clamp(16px, 4vw, 28px)", ...(background ? { background } : {}) }}><div style={{ maxWidth: 750, width: "100%", textAlign: "center" }}>{children(visible)}</div></section>);
 };
 
 const GiftBanner = ({ onDismiss }: { onDismiss: () => void }) => (
@@ -154,23 +163,25 @@ const useEodCountdown = () => {
 
 const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, location: string) => void }) => {
   const timeLeft = useEodCountdown();
+  const c = useColors();
   return (
     <div style={{
       position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
-      background: "rgba(255,253,245,0.97)", backdropFilter: "blur(10px)",
-      borderTop: `1px solid ${COLORS.cream3}`, padding: "10px 16px",
+      background: document.documentElement.classList.contains('dark') ? "rgba(26,23,20,0.97)" : "rgba(255,253,245,0.97)",
+      backdropFilter: "blur(10px)",
+      borderTop: `1px solid ${c.cream3}`, padding: "10px 16px",
       paddingBottom: "calc(10px + env(safe-area-inset-bottom, 0px))",
       display: "flex", alignItems: "center", gap: 10,
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.9rem", color: COLORS.ink, lineHeight: 1.2 }}>
-          <span style={{ textDecoration: "line-through", color: COLORS.muted, fontSize: "0.82rem", marginRight: 6 }}>$60</span>
-          <span style={{ color: COLORS.rose, fontWeight: 700 }}>$27</span>
+        <div style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.9rem", color: c.ink, lineHeight: 1.2 }}>
+          <span style={{ textDecoration: "line-through", color: c.muted, fontSize: "0.82rem", marginRight: 6 }}>$60</span>
+          <span style={{ color: c.rose, fontWeight: 700 }}>$27</span>
         </div>
-        <div style={{ fontSize: "0.68rem", color: COLORS.rose, fontWeight: 600 }}>Offer ends in {timeLeft}</div>
+        <div style={{ fontSize: "0.68rem", color: c.rose, fontWeight: 600 }}>Offer ends in {timeLeft}</div>
       </div>
       <a href="/checkout" onClick={() => trackCTAClick("Sticky CTA", "sticky-bottom")} style={{
-        background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif",
+        background: c.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif",
         fontWeight: 600, fontSize: "0.88rem", letterSpacing: "0.1em", textTransform: "uppercase" as const,
         textDecoration: "none", padding: "12px 24px", borderRadius: 50, whiteSpace: "nowrap" as const,
         flexShrink: 0,
@@ -182,79 +193,71 @@ const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, locat
 interface EmotionalJourneyProps { trackCTAClick: (cta: string, location: string) => void; }
 
 export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
-  const [showGiftBanner, setShowGiftBanner] = useState(() => sessionStorage.getItem('gift-banner-dismissed') !== 'true');
-
-  const dismissGiftBanner = () => {
-    setShowGiftBanner(false);
-    sessionStorage.setItem('gift-banner-dismissed', 'true');
-  };
-
+  const C = useColors();
   return (
-    <div style={{ background: COLORS.cream, position: "relative" }}>
+    <div className="bg-background" style={{ position: "relative" }}>
       <GrainOverlay />
 
-      {/* Gift banner + ticker bar */}
-      {showGiftBanner && <GiftBanner onDismiss={dismissGiftBanner} />}
-      {showGiftBanner && <TickerBar />}
+      {/* Gift banner + ticker bar now handled by Navbar */}
 
       {/* Live purchase notifications (bottom-left toast) */}
       <LiveActivityNotification />
 
-      <Beat mobileMinHeight="100vh" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
+      <Beat mobileMinHeight="100vh" background={`radial-gradient(circle at 50% 50%, ${C.cream2}, ${C.cream})`}>
         {(v) => (<div>
-          <h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 12vw, 6rem)", fontWeight: 400, color: COLORS.black, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They Love You<br /><em>Without Conditions.</em></h2>
+          <h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 12vw, 6rem)", fontWeight: 400, color: C.black, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They Love You<br /><em>Without Conditions.</em></h2>
         </div>)}
       </Beat>
 
       <Beat minHeight="60vh" mobileMinHeight="35vh">
-        {(v) => (<p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.5rem, 5.5vw, 2.2rem)", color: COLORS.earth, lineHeight: 1.75 }}>On your best days.<br />On your worst days.<br />No judgement.<br />No expectations.</p>)}
+        {(v) => (<p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.5rem, 5.5vw, 2.2rem)", color: C.earth, lineHeight: 1.75 }}>On your best days.<br />On your worst days.<br />No judgement.<br />No expectations.</p>)}
       </Beat>
 
       <PawPair opacity={0.14} />
 
-      <Beat minHeight="70vh" mobileMinHeight="45vh" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2})`}>
-        {(v) => (<div><p style={{ ...fadeOnlyStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "clamp(2rem, 10vw, 5rem)", color: COLORS.sand, letterSpacing: "0.04em", marginBottom: 16 }}>Just</p>{["loyalty.", "presence.", "& love."].map((word, i) => (<span key={i} style={{ ...fadeUpStyle(v, 0.2 + i * 0.35), display: "block", fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 8vw, 3.8rem)", color: COLORS.ink, lineHeight: 1.25, letterSpacing: "-0.025em" }}>{word}</span>))}<DrawHeart visible={v} /></div>)}
+      <Beat minHeight="70vh" mobileMinHeight="45vh" background={`linear-gradient(to bottom, ${C.cream}, ${C.cream2})`}>
+        {(v) => (<div><p style={{ ...fadeOnlyStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontWeight: 400, fontSize: "clamp(2rem, 10vw, 5rem)", color: C.sand, letterSpacing: "0.04em", marginBottom: 16 }}>Just</p>{["loyalty.", "presence.", "& love."].map((word, i) => (<span key={i} style={{ ...fadeUpStyle(v, 0.2 + i * 0.35), display: "block", fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 8vw, 3.8rem)", color: C.ink, lineHeight: 1.25, letterSpacing: "-0.025em" }}>{word}</span>))}<DrawHeart visible={v} /></div>)}
       </Beat>
 
       <HeartPair opacity={0.18} />
 
-      <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream3}, ${COLORS.cream2})`}>
-        {(v) => (<div><h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 11vw, 5.5rem)", color: COLORS.black, marginBottom: 40, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They're Not "Just a Pet."</h2><p style={{ ...fadeUpStyle(v, 0.2), fontFamily: "Cormorant, Georgia, serif", fontWeight: 400, fontSize: "clamp(1.15rem, 4vw, 1.4rem)", color: COLORS.earth, lineHeight: 1.9, maxWidth: 480, margin: "0 auto" }}>They are a living, feeling soul with their own personality, their own quirks, their own inner world.</p></div>)}
+      <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${C.cream2}, ${C.cream3}, ${C.cream2})`}>
+        {(v) => (<div><h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 11vw, 5.5rem)", color: C.black, marginBottom: 40, lineHeight: 0.98, letterSpacing: "-0.04em" }}>They're Not "Just a Pet."</h2><p style={{ ...fadeUpStyle(v, 0.2), fontFamily: "Cormorant, Georgia, serif", fontWeight: 400, fontSize: "clamp(1.15rem, 4vw, 1.4rem)", color: C.earth, lineHeight: 1.9, maxWidth: 480, margin: "0 auto" }}>They are a living, feeling soul with their own personality, their own quirks, their own inner world.</p></div>)}
       </Beat>
 
       <PawPair opacity={0.12} />
 
-      <Beat minHeight="80vh" mobileMinHeight="50vh" background={COLORS.cream2}>
-        {(v) => (<div>{[{ text: "The way they comfort you.", size: "clamp(1.4rem, 5vw, 2rem)", color: COLORS.muted }, { text: "The way they protect you.", size: "clamp(1.65rem, 6vw, 2.4rem)", color: COLORS.warm }, { text: "The way they choose you — every single day.", size: "clamp(1.95rem, 7vw, 2.9rem)", color: COLORS.ink }].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.2 + i * 0.35), fontFamily: '"DM Serif Display", Georgia, serif', fontStyle: "italic", fontSize: line.size, color: line.color, lineHeight: 1.4, marginBottom: i < 2 ? 20 : 0 }}>{line.text}</p>))}</div>)}
+      <Beat minHeight="80vh" mobileMinHeight="50vh" background={C.cream2}>
+        {(v) => (<div>{[{ text: "The way they comfort you.", size: "clamp(1.4rem, 5vw, 2rem)", color: C.muted }, { text: "The way they protect you.", size: "clamp(1.65rem, 6vw, 2.4rem)", color: C.warm }, { text: "The way they choose you — every single day.", size: "clamp(1.95rem, 7vw, 2.9rem)", color: C.ink }].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.2 + i * 0.35), fontFamily: '"DM Serif Display", Georgia, serif', fontStyle: "italic", fontSize: line.size, color: line.color, lineHeight: 1.4, marginBottom: i < 2 ? 20 : 0 }}>{line.text}</p>))}</div>)}
       </Beat>
 
       <HeartPair opacity={0.16} />
 
-      <Beat minHeight="60vh" mobileMinHeight="35vh" background={`linear-gradient(to bottom, ${COLORS.cream2}, ${COLORS.cream})`}>
-        {(v) => (<div><h2 style={{ ...scaleInStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 5rem)", color: COLORS.black }}>That means something.</h2><div style={{ width: 50, height: 2, background: COLORS.gold, opacity: v ? 0.5 : 0, margin: "30px auto 0", transition: "opacity 1s ease 0.5s" }} />
+      <Beat minHeight="60vh" mobileMinHeight="35vh" background={`linear-gradient(to bottom, ${C.cream2}, ${C.cream})`}>
+        {(v) => (<div><h2 style={{ ...scaleInStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 5rem)", color: C.black }}>That means something.</h2><div style={{ width: 50, height: 2, background: C.gold, opacity: v ? 0.5 : 0, margin: "30px auto 0", transition: "opacity 1s ease 0.5s" }} />
         </div>)}
       </Beat>
 
-      <Beat mobileMinHeight="auto" background={`radial-gradient(circle at 50% 50%, ${COLORS.cream2}, ${COLORS.cream})`}>
-        {(v) => (<div><h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 11vw, 5.5rem)", color: COLORS.black, lineHeight: 1, marginBottom: 40 }}>This Is an<br /><em>Act of Love.</em></h2>{["Taking the time to understand them more deeply.", "To see who they are as an individual soul.", "To honour the bond you share."].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.3 + i * 0.15), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.25rem, 4.5vw, 1.6rem)", color: COLORS.earth, lineHeight: 1.75, marginBottom: 8 }}>{line}</p>))}</div>)}
+      <Beat mobileMinHeight="auto" background={`radial-gradient(circle at 50% 50%, ${C.cream2}, ${C.cream})`}>
+        {(v) => (<div><h2 style={{ ...fadeUpStyle(v), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 11vw, 5.5rem)", color: C.black, lineHeight: 1, marginBottom: 40 }}>This Is an<br /><em>Act of Love.</em></h2>{["Taking the time to understand them more deeply.", "To see who they are as an individual soul.", "To honour the bond you share."].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.3 + i * 0.15), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.25rem, 4.5vw, 1.6rem)", color: C.earth, lineHeight: 1.75, marginBottom: 8 }}>{line}</p>))}</div>)}
       </Beat>
 
       <PawPair opacity={0.14} />
 
       <Beat minHeight="75vh" mobileMinHeight="50vh">
-        {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.25em", color: COLORS.earth, marginBottom: 30 }}>It's a small way of saying:</p><div style={{ position: "relative", display: "inline-block", textAlign: "left", paddingLeft: 30 }}><div style={{ position: "absolute", left: 0, top: 0, width: 3, height: v ? "100%" : "0%", background: `linear-gradient(to bottom, ${COLORS.gold}, ${COLORS.rose})`, transition: "height 1.5s ease 0.3s" }} />{['"I see you.', '"I appreciate you.', '"I\'m grateful you\'re in my life."'].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.3 + i * 0.35), fontFamily: '"DM Serif Display", Georgia, serif', fontStyle: "italic", fontSize: "clamp(1.8rem, 7vw, 3.2rem)", color: COLORS.deep, marginBottom: 12, lineHeight: 1.2 }}>{line}</p>))}</div><GoldStars visible={v} /></div>)}
+        {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.25em", color: C.earth, marginBottom: 30 }}>It's a small way of saying:</p><div style={{ position: "relative", display: "inline-block", textAlign: "left", paddingLeft: 30 }}><div style={{ position: "absolute", left: 0, top: 0, width: 3, height: v ? "100%" : "0%", background: `linear-gradient(to bottom, ${C.gold}, ${C.rose})`, transition: "height 1.5s ease 0.3s" }} />{['"I see you.', '"I appreciate you.', '"I\'m grateful you\'re in my life."'].map((line, i) => (<p key={i} style={{ ...fadeUpStyle(v, 0.3 + i * 0.35), fontFamily: '"DM Serif Display", Georgia, serif', fontStyle: "italic", fontSize: "clamp(1.8rem, 7vw, 3.2rem)", color: C.deep, marginBottom: 12, lineHeight: 1.2 }}>{line}</p>))}</div><GoldStars visible={v} /></div>)}
       </Beat>
 
       <Beat mobileMinHeight="auto">
-        {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 4.2vw, 1.5rem)", color: COLORS.muted, marginBottom: 30 }}>Because when someone loves you unconditionally…</p><p style={{ ...fadeUpStyle(v, 0.25), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 6vw, 2.6rem)", color: COLORS.deep, marginBottom: 24 }}>the most beautiful thing you can do</p><p style={{ opacity: v ? 1 : 0, filter: v ? "blur(0px)" : "blur(10px)", transition: "opacity 0.8s ease 0.5s, filter 0.8s ease 0.5s", fontFamily: "Caveat, cursive", fontSize: "clamp(1.6rem, 10vw, 6rem)", color: COLORS.ink }}>is try to understand them<br />in return.</p><WavyUnderline visible={v} /></div>)}
+        {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 4.2vw, 1.5rem)", color: C.muted, marginBottom: 30 }}>Because when someone loves you unconditionally…</p><p style={{ ...fadeUpStyle(v, 0.25), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 6vw, 2.6rem)", color: C.deep, marginBottom: 24 }}>the most beautiful thing you can do</p><p style={{ opacity: v ? 1 : 0, filter: v ? "blur(0px)" : "blur(10px)", transition: "opacity 0.8s ease 0.5s, filter 0.8s ease 0.5s", fontFamily: "Caveat, cursive", fontSize: "clamp(1.6rem, 10vw, 6rem)", color: C.ink }}>is try to understand them<br />in return.</p><WavyUnderline visible={v} /></div>)}
       </Beat>
 
       <HeartPair opacity={0.18} />
 
       <MassiveReviews trackCTAClick={trackCTAClick} />
 
-      <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${COLORS.cream}, ${COLORS.cream2}, ${COLORS.cream})`}>
-        {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 4.5vw, 1.6rem)", color: COLORS.earth, marginBottom: 35 }}>Your pet loves you with everything they have.</p><h2 style={{ ...fadeUpStyle(v, 0.2), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 4.8rem)", color: COLORS.black, lineHeight: 1, marginBottom: 50 }}>Now it's your turn<br />to understand them.</h2><a href="/checkout" onClick={() => trackCTAClick("Get Their Reading", "emotional-journey-cta")} style={{ ...fadeUpStyle(v, 0.4), display: "inline-block", background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "1.1rem", letterSpacing: "0.15em", textTransform: "uppercase" as const, textDecoration: "none", padding: "20px 52px", borderRadius: 50, border: "none", cursor: "pointer", transition: "all 0.35s ease" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(191,82,74,0.25)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>Get Their Reading</a>
+      <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${C.cream}, ${C.cream2}, ${C.cream})`}>
+        {(v) => (<div><p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "clamp(1.2rem, 4.5vw, 1.6rem)", color: C.earth, marginBottom: 35 }}>Your pet loves you with everything they have.</p><h2 style={{ ...fadeUpStyle(v, 0.2), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.6rem, 10vw, 4.8rem)", color: C.black, lineHeight: 1, marginBottom: 50 }}>Now it's your turn<br />to understand them.</h2><a href="/checkout" onClick={() => trackCTAClick("Get Their Reading", "emotional-journey-cta")} style={{ ...fadeUpStyle(v, 0.4), display: "inline-block", background: C.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "1.1rem", letterSpacing: "0.15em", textTransform: "uppercase" as const, textDecoration: "none", padding: "20px 52px", borderRadius: 50, border: "none", cursor: "pointer", transition: "all 0.35s ease" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(191,82,74,0.25)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>Get Their Reading</a>
         </div>)}
       </Beat>
 

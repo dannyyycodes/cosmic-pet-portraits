@@ -222,6 +222,7 @@ serve(async (req) => {
       const session = await stripe.checkout.sessions.create({
         line_items: lineItems,
         mode: "payment",
+        allow_promotion_codes: true,
         success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}&quick=true`,
         cancel_url: `${origin}/checkout-v3`,
         metadata: {
@@ -581,6 +582,7 @@ serve(async (req) => {
       customer_email: sanitizedEmail,
       line_items: lineItems,
       mode: checkoutMode,
+      allow_promotion_codes: true,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
       cancel_url: `${origin}/checkout-v3`,
       metadata: {

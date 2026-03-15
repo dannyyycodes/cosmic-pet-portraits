@@ -17,21 +17,21 @@ const Index = () => {
   }, []);
 
   return (
-    <main className="min-h-screen overflow-hidden" style={{ background: "#FFFDF5" }}>
+    <main className="min-h-screen overflow-hidden bg-background">
       <VariantBackground />
       <FloatingDecorations />
       <EmotionalJourney trackCTAClick={trackCTAClick} />
 
       {/* Footer */}
-      <footer style={{ background: "#FFFDF5", borderTop: "1px solid #d6c8b6", padding: "36px 16px 80px", textAlign: "center", position: "relative", zIndex: 10 }}>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "16px", fontSize: "0.82rem" }}>
-          <Link to="/terms" style={{ color: "#958779", textDecoration: "none" }}>Terms</Link>
-          <Link to="/privacy" style={{ color: "#958779", textDecoration: "none" }}>Privacy</Link>
-          <Link to="/contact" style={{ color: "#958779", textDecoration: "none" }}>Contact</Link>
-          <Link to="/blog" style={{ color: "#958779", textDecoration: "none" }}>Blog</Link>
-          <Link to="/become-affiliate" style={{ color: "#958779", textDecoration: "none" }}>Affiliates</Link>
-          <Link to="/find-report" style={{ color: "#958779", textDecoration: "none" }}>Find My Report</Link>
-          <Link to="/free-chart" style={{ color: "#c4a265", textDecoration: "none", fontWeight: 600 }}>Free Zodiac Snapshot</Link>
+      <footer className="bg-background" style={{ borderTop: "1px solid hsl(var(--border))", padding: "36px 16px 80px", textAlign: "center", position: "relative", zIndex: 10 }}>
+        <div className="flex flex-wrap justify-center gap-4 text-[0.82rem]">
+          <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Terms</Link>
+          <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Privacy</Link>
+          <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Contact</Link>
+          <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Blog</Link>
+          <Link to="/become-affiliate" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Affiliates</Link>
+          <Link to="/find-report" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Find My Report</Link>
+          <Link to="/free-chart" className="text-accent font-semibold hover:text-accent/80 transition-colors no-underline">Free Zodiac Snapshot</Link>
         </div>
       </footer>
     </main>

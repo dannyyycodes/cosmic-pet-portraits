@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, ArrowRight, X } from "lucide-react";
+import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, ArrowRight, X, Sun, Moon } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,27 +46,87 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
     { href: "#faq", label: t('nav.faq'), icon: HelpCircle },
   ];
 
+  const [isDark, setIsDark] = useState(() => {
+    return localStorage.getItem('ls-dark-mode') === 'true';
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('ls-dark-mode', String(isDark));
+  }, [isDark]);
+
   const hoverClass = isVariantC ? "hover:text-primary" : "hover:text-gold";
 
   return (
     <>
-      {/* Gift Banner — Variant C only */}
-      {isVariantC && !giftBannerDismissed && !hideGiftBanner && (
-        <div className="fixed top-0 left-0 right-0 z-[60] bg-[#5CB85C] text-white text-center text-sm py-2.5 px-4">
-          <div className="max-w-6xl mx-auto flex items-center justify-center gap-2">
-            <Link to="/gift" className="flex items-center gap-2 hover:underline underline-offset-2 font-medium">
-              <span>🎁</span>
-              <span>The perfect gift for a pet lover</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+      {/* Variant C: Slim nav bar with logo + account */}
+      {isVariantC && (
+        <div className="fixed top-0 left-0 right-0 z-[61]">
+          {/* Gift Banner */}
+          {!giftBannerDismissed && !hideGiftBanner && (
+            <div className="bg-[#bf524a] text-white text-center text-[0.78rem] py-2 px-4 font-medium relative">
+              <Link to="/gift" className="inline-flex items-center gap-2 hover:underline underline-offset-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+                <span>Buying for someone else? Tap here to gift</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+              <button onClick={dismissGiftBanner} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/20 rounded transition-colors" aria-label="Dismiss">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Ticker / Nav bar */}
+          <div className="flex items-center justify-between px-4 py-2 bg-[#FFFDF5]/92 dark:bg-[#1a1714]/92 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06]" style={{ minHeight: 36 }}>
+            <Link to="/" className="font-serif text-[0.82rem] font-semibold text-[#141210] dark:text-[#e8ddd0] tracking-tight hover:opacity-80 transition-opacity">
+              Little Souls
             </Link>
-            <button onClick={dismissGiftBanner} className="absolute right-3 p-1 hover:bg-white/20 rounded transition-colors" aria-label="Dismiss">
-              <X className="w-4 h-4" />
-            </button>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsDark(!isDark)}
+                className="p-1 text-[#958779] hover:text-[#141210] dark:text-[#958779] dark:hover:text-[#e8ddd0] transition-colors"
+                aria-label="Toggle dark mode"
+              >
+                {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              </button>
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-1.5 text-[0.76rem] font-medium text-[#6e6259] dark:text-[#a09080] hover:text-[#141210] dark:hover:text-[#e8ddd0] transition-colors">
+                      <User className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">My Account</span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44 bg-white dark:bg-[#1e1a16] border border-[#e8ddd0] dark:border-[#2e2a24]">
+                    <DropdownMenuItem asChild>
+                      <Link to="/my-reports" className="flex items-center gap-2 cursor-pointer text-[0.82rem]">
+                        <Sparkles className="w-3.5 h-3.5 text-[#c4a265]" />
+                        My Reports
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer text-[0.82rem]">
+                      <LogOut className="w-3.5 h-3.5" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link to="/auth" className="flex items-center gap-1.5 text-[0.76rem] font-medium text-[#6e6259] dark:text-[#a09080] hover:text-[#141210] dark:hover:text-[#e8ddd0] transition-colors">
+                  <User className="w-3.5 h-3.5" />
+                  <span>Sign In</span>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-    {/* Hide entire nav for Variant C — only gift banner shows */}
+    {/* Full nav for non-Variant C */}
     {!isVariantC && (
     <nav className={`fixed left-0 right-0 z-50 border-b top-0 bg-background/80 backdrop-blur-lg border-border/30`}>
       <div className="max-w-6xl mx-auto px-4">
@@ -74,7 +134,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <span className="font-serif text-lg font-semibold text-foreground">
-              Pet Readings
+              Little Souls
             </span>
           </Link>
 
@@ -96,7 +156,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
           {/* Right side: Language + Auth/CTA */}
           <div className="hidden md:flex items-center gap-4">
             <LanguageSelector variant="minimal" />
-            
+
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -149,7 +209,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                     </SheetTitle>
                   </div>
                 </SheetHeader>
-                
+
                 <div className="flex flex-col h-[calc(100%-80px)]">
                   {/* Navigation Links */}
                   <div className="flex-1 py-4">
@@ -165,9 +225,9 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                           </a>
                         </SheetClose>
                       ))}
-                      
+
                       <div className="h-px bg-border/50 my-3" />
-                      
+
                       <SheetClose asChild>
                         <Link
                           to="/gift"
