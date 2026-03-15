@@ -184,14 +184,22 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 - Added free reading link to checkout hero
 - Improved free reading upsell copy with "1 of 14 placements" depth showcase
 
-### Known issues to fix:
-- [ ] Email asked twice (free-chart captures it, then intake asks again) — need to skip email step if already captured
-- [ ] Old promotional content at end of intake form (testimonials, cosmic card, reviews) — user has already paid, remove these
-- [ ] "Discover your bond" page has white text on light bg — need screenshot to identify
-- [ ] Free chart page design could be more polished
-- [ ] Menu/nav with login link
-- [ ] Dark mode toggle
+### Fixed later in session:
+- [x] Routing overhaul: all CTAs → /checkout-v3, /intake redirects to /checkout-v3 (gift flow preserved)
+- [x] Yellow background → cream #FFFDF5 (VariantBackground.tsx)
+- [x] "Discover Your Bond" white text → dark readable text with gold/green accents
+- [x] Photo upload text updated in CheckoutPanel + PostPurchaseIntake
+- [x] Old petreports.co email → hello@littlesouls.app
+- [x] Stripe cancel URL → /checkout-v3
+- [x] Vercel routing: static HTML pages served before SPA catch-all
+- [x] Free reading upsell: "1 of 14 placements" depth showcase, CTA → /checkout-v3
+
+### Remaining for next session:
+- [ ] Menu/nav with login (subtle, in ticker bar area)
+- [ ] Dark mode toggle (warm dark theme)
 - [ ] Create Stripe promotion codes: COSMIC30, GIFTLOVE30, COMEBACK35
+- [ ] End-to-end Stripe flow test
+- [ ] Mobile optimization pass (broader)
 - [ ] ManyChat integration for lead magnet
 
-*Last updated: 2026-03-15*
+*Last updated: 2026-03-15 evening*
