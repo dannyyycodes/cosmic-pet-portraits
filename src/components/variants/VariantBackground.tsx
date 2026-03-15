@@ -9,7 +9,7 @@ export const VariantBackground = ({ intensity: _intensity, interactive: _interac
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(180deg, hsl(45 100% 91%) 0%, hsl(40 60% 87%) 50%, hsl(45 100% 91%) 100%)',
+          background: '#FFFDF5',
         }}
       />
     </div>

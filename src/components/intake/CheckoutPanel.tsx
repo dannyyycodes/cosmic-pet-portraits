@@ -922,7 +922,7 @@ function SinglePetPhotoUploadInline({
                   <span className="text-xs text-muted-foreground">
                     {dragActive ? 'Drop photo here!' : 'Click or drag photo'}
                   </span>
-                  <span className="text-[10px] text-muted-foreground/70">JPG, PNG up to 10MB</span>
+                  <span className="text-[10px] text-muted-foreground/70">Any photo, we'll optimize it</span>
                 </>
               )}
             </label>

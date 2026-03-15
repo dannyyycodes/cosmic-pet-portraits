@@ -4,6 +4,7 @@ import { Camera, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import imageCompression from 'browser-image-compression';
 
 interface PostPurchaseIntakeProps {
   reportId: string;
@@ -147,19 +148,26 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const screen1Ready = !!petName.trim() && !!species && !!gender;
 
   const handlePhotoUpload = async (file: File) => {
-    if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
-      toast.error("Please upload a JPEG, PNG, or WebP image.");
+    const isImage = file.type.startsWith('image/') || /\.(heic|heif|webp|avif)$/i.test(file.name);
+    if (!isImage) {
+      toast.error("Please upload an image file.");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image must be under 10MB.");
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Image is too large. Please use an image under 50MB.");
       return;
     }
     setIsUploading(true);
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from('pet-photos').upload(filename, file, { cacheControl: '3600', upsert: false });
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+        initialQuality: 0.85,
+      });
+      const filename = `${crypto.randomUUID()}.jpg`;
+      const { error } = await supabase.storage.from('pet-photos').upload(filename, compressedFile, { cacheControl: '31536000', upsert: false, contentType: 'image/jpeg' });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from('pet-photos').getPublicUrl(filename);
       setPetPhotoUrl(urlData.publicUrl);
