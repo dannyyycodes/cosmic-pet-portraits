@@ -14,7 +14,9 @@ const corsHeaders = {
 // Inner card: #faf4e8 (cream2)  |  Inner border: #e8ddd0
 // CTA button: #bf524a (rose)  |  Accent: #c4a265 (gold)  |  Faded: #d6c8b6
 
-const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, petPhotoUrl?: string) => `
+const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, petPhotoUrl?: string, reportId?: string) => {
+  const soulSpeakUrl = reportId ? `https://littlesouls.app/soul-chat?id=${reportId}` : '';
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -93,6 +95,44 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
         We are so grateful you trusted us with this. Truly.
       </p>
 
+      <!-- Mini Guide -->
+      <div style="text-align: left; background: #faf4e8; border-radius: 12px; padding: 20px 22px; margin: 24px 0; border: 1px solid #e8ddd0;">
+        <p style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 10px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+          How to enjoy ${petName}'s reading
+        </p>
+        <p style="color: #4d443b; font-size: 13px; line-height: 2; margin: 0;">
+          &#10024; Read it out loud to ${petName} &mdash; they respond to the energy<br>
+          &#128247; Screenshot the parts that feel most "them" and share with a friend<br>
+          &#128140; Save the soul letter at the end for when you need it most<br>
+          &#127793; Come back in a few weeks &mdash; you'll notice new things each time
+        </p>
+      </div>
+
+      ${soulSpeakUrl ? `
+      <!-- SoulSpeak -->
+      <div style="text-align: center; background: #faf4e8; border-radius: 12px; padding: 18px; border: 1px solid #e8ddd0; margin: 0 0 20px 0;">
+        <p style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+          SoulSpeak
+        </p>
+        <p style="color: #5a4a42; font-size: 14px; margin: 0 0 12px; line-height: 1.6;">
+          Talk to ${petName}'s soul. Ask them anything.
+        </p>
+        <a href="${soulSpeakUrl}" style="display: inline-block; background: #141210; color: #fff; text-decoration: none; padding: 10px 28px; border-radius: 50px; font-size: 13px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+          Open SoulSpeak &#10024;
+        </a>
+      </div>
+      ` : ''}
+
+      <!-- Gift Code -->
+      <div style="text-align: center; background: #faf4e8; border-radius: 12px; padding: 16px; border: 1px solid #e8ddd0; margin: 0 0 20px 0;">
+        <p style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+          Gift a reading to someone you love &mdash; 30% off
+        </p>
+        <p style="color: #141210; font-size: 20px; font-weight: 700; letter-spacing: 4px; margin: 0; font-family: 'SF Mono', Monaco, Consolas, monospace;">
+          GIFTLOVE30
+        </p>
+      </div>
+
       <!-- Divider -->
       <div style="width: 40px; height: 1px; background: linear-gradient(90deg, transparent, #c4a265, transparent); margin: 20px auto;"></div>
 
@@ -122,6 +162,7 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
 </body>
 </html>
 `;
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -145,7 +186,9 @@ serve(async (req) => {
   }
 
   try {
-    const { reportId, email, petName, sunSign, petPhotoUrl } = await req.json();
+    const { reportId, email, petName, sunSign, petPhotoUrl } = await req.json() as {
+      reportId: string; email: string; petName: string; sunSign?: string; petPhotoUrl?: string;
+    };
 
     console.log("[SEND-REPORT-EMAIL] Sending email for report:", reportId?.substring(0, 8));
 
@@ -162,7 +205,7 @@ serve(async (req) => {
       from: "Little Souls <hello@littlesouls.app>",
       to: [email],
       subject: `Thank you for choosing Little Souls — ${petName}'s reading is ready`,
-      html: getEmailTemplate(petName, reportUrl, sunSign, petPhotoUrl),
+      html: getEmailTemplate(petName, reportUrl, sunSign, petPhotoUrl, reportId),
     });
 
     const resendError = (emailResult as any)?.error;
