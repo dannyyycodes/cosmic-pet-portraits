@@ -108,7 +108,7 @@ function giftBlock(code: string, discount: string): string {
   return `
     <div style="background:#faf4e8;border-radius:12px;padding:18px;border:1px solid #e8ddd0;margin:20px 0;text-align:center">
       <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c4a265;margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-        Gift a reading &mdash; ${discount} off
+        Gift a reading. ${discount} off
       </p>
       <p style="color:#141210;font-size:22px;font-weight:700;letter-spacing:4px;margin:0;font-family:'SF Mono',Monaco,Consolas,monospace">
         ${code}
@@ -132,13 +132,13 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
         Thank you for being here.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        The fact that you care enough to understand ${petName} on a deeper level says something beautiful about you. Not everyone takes the time to truly see their pet &mdash; but you do. And that matters more than you know.
+        The fact that you care enough to understand ${petName} on a deeper level says something beautiful about you. Not everyone takes the time to truly see their pet. But you do. And that matters more than you know.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        ${petName}'s full cosmic reading takes about 3 minutes to set up. We'll look at the exact moment they were born and map out who they really are &mdash; their personality, how they love, what they need, and all the things you've always sensed but never had words for.
+        ${petName}'s full cosmic reading takes about 3 minutes to set up. We'll look at the exact moment they were born and map out who they really are. Their personality, how they love, what they need, and all the things you've always sensed but never had words for.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 24px">
-        Your progress is saved. Come back whenever you're ready &mdash; ${petName}'s stars aren't going anywhere.
+        Your progress is saved. Come back whenever you're ready. ${petName}'s stars aren't going anywhere.
       </p>
       <div style="text-align:center;margin:24px 0">
         <a href="${intakeUrl}" style="display:inline-block;background:#bf524a;color:#fff;text-decoration:none;padding:14px 40px;border-radius:50px;font-weight:600;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 4px 16px rgba(191,82,74,0.2)">
@@ -147,20 +147,20 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
       </div>
     `,
 
-    // ── WELCOME 2: Build curiosity (24 hours later) ────────────────────
+    // ── WELCOME 2: Lead with love (24 hours later) ────────────────────
     welcome_2: `
       ${photo}
       <p style="color:#141210;font-size:16px;line-height:1.8;margin:0 0 18px">
-        Can we tell you something about ${petName}?
+        You love ${petName}. We can tell.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        Every animal is born under a specific arrangement of stars. And just like with people, those placements shape who they are in ways that feel almost uncanny once you see them.
+        The way you ended up here tells us that ${petName} isn't just a pet to you. They're family. They're the one who greets you at the door, the one who knows when something's wrong before you do, the one who chose you just as much as you chose them.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        That thing ${petName} does that makes you laugh? The way they react when you're having a bad day? The little habits that feel so specifically <em>them</em>? There's usually a reason written in their chart.
+        We built Little Souls for exactly that kind of love. Because we believe every pet has a soul worth understanding. And when you finally see ${petName}'s full cosmic personality laid out in front of you, all those little things they do will suddenly make perfect sense.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 24px">
-        We'd love to show you what we find. We think it'll change the way you see ${petName}.
+        We'd love to show you what the stars say about ${petName}. We think it'll make you love them even more (if that's even possible).
       </p>
       <div style="text-align:center;margin:24px 0">
         <a href="${intakeUrl}" style="display:inline-block;background:#bf524a;color:#fff;text-decoration:none;padding:14px 40px;border-radius:50px;font-weight:600;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 4px 16px rgba(191,82,74,0.2)">
@@ -199,13 +199,13 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
     abandoned_cart: `
       ${photo}
       <p style="color:#141210;font-size:16px;line-height:1.8;margin:0 0 18px">
-        You were almost there.
+        ${petName}'s reading is waiting for you.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        We saved everything for ${petName}'s reading so you can pick up exactly where you left off. No starting over, no re-entering details.
+        We noticed you started setting up ${petName}'s cosmic reading and wanted you to know that everything is saved. You can pick up right where you left off whenever you're ready.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        Most people tell us the reading is almost eerie in how accurate it is. We think you and ${petName} deserve to experience that.
+        We know how much ${petName} means to you. That's exactly why we think you'll love seeing who they are through the stars. It's the kind of reading that makes you look at your pet and think "so that's why you do that." And honestly, it just makes you appreciate them even more.
       </p>
       ${giftBlock('COSMIC30', '30% off')}
       <div style="text-align:center;margin:24px 0">
@@ -225,7 +225,7 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
         You know that friend who's completely obsessed with their pet? The one who shows you photos unprompted and talks about them like they're a person?
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        A Little Souls reading makes the kind of gift that actually makes someone cry (the good kind). You can send one to anyone &mdash; we'll create a beautiful gift certificate and deliver it straight to them.
+        A Little Souls reading makes the kind of gift that actually makes someone cry (the good kind). You can send one to anyone and we'll create a beautiful gift certificate and deliver it straight to them.
       </p>
       ${giftBlock('GIFTLOVE30', '30% off a gift reading')}
       <div style="text-align:center;margin:24px 0">
@@ -248,10 +248,10 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
           ${petName}'s stars don't stop moving.
         </p>
         <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-          Their soul reading captured who they are at their core. But the cosmos keeps shifting &mdash; and so does ${petName}'s energy, mood, and cosmic weather.
+          Their soul reading captured who they are at their core. But the cosmos keeps shifting, and so does ${petName}'s energy, mood, and cosmic weather.
         </p>
         <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-          <strong>Weekly Cosmic Updates</strong> &mdash; a personalised mini-reading for ${petName} delivered to your inbox every Sunday morning. Their energy for the week, what to watch for, and how to make the most of your time together.
+          <strong>Weekly Cosmic Updates</strong>: a personalised mini-reading for ${petName} delivered to your inbox every Sunday morning. Their energy for the week, what to watch for, and how to make the most of your time together.
         </p>
         <div style="background:#faf4e8;border-radius:12px;padding:18px;border:1px solid #e8ddd0;margin:20px 0;text-align:center">
           <p style="color:#141210;font-size:18px;font-weight:600;margin:0 0 4px">$4.99/month</p>
@@ -267,7 +267,7 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
           Have you tried talking to ${petName}?
         </p>
         <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-          SoulSpeak lets you have a real conversation with ${petName}'s soul &mdash; powered by their exact birth chart. Ask them anything. Hear them answer in their own voice. It's the part of Little Souls that surprises people the most.
+          SoulSpeak lets you have a real conversation with ${petName}'s soul, powered by their exact birth chart. Ask them anything. Hear them answer in their own voice. It's the part of Little Souls that surprises people the most.
         </p>
         ${soulSpeakBlock(ctx)}
       `}
@@ -281,13 +281,13 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
     re_engagement: `
       ${photo}
       <p style="color:#141210;font-size:16px;line-height:1.8;margin:0 0 18px">
-        It's been a little while, and we just wanted to check in.
+        We've been thinking about ${petName}.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        We still think about ${petName}. (Occupational hazard of running a pet astrology company &mdash; we get attached.)
+        It's been a little while since you visited, and we just wanted you to know that ${petName}'s cosmic reading is still here whenever you're ready. No rush at all.
       </p>
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
-        If you ever want to come back and discover what the stars say about ${petName}, the door is always open. And because we genuinely want you to experience it:
+        Every pet deserves to be truly understood. And ${petName} deserves someone who cares enough to look deeper. The fact that you're on this list tells us you're that person. So whenever the time feels right, we'd love to show you what the stars have been holding for ${petName}.
       </p>
       ${giftBlock('COMEBACK35', '35% off')}
       <div style="text-align:center;margin:24px 0">

@@ -55,15 +55,15 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
       </h1>
 
       <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 8px 0;">
-        The fact that you're here means something beautiful &mdash; it means ${petName} is loved deeply enough for someone to want to understand them on a soul level. That's a rare and wonderful kind of love.
+        The fact that you're here means something beautiful. It means ${petName} is loved deeply enough for someone to want to understand them on a soul level. That's a rare and wonderful kind of love.
       </p>
 
       <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 12px 0;">
-        We took the exact moment ${petName} arrived in this world${sunSign ? `, born under the ${sunSign} sky` : ''}, and asked the stars to tell us everything. What came back moved us. We poured our hearts into every word &mdash; and we truly hope it moves you too.
+        We took the exact moment ${petName} arrived in this world${sunSign ? `, born under the ${sunSign} sky` : ''}, and asked the stars to tell us everything. What came back moved us. We poured our hearts into every word, and we truly hope it moves you too.
       </p>
 
       <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 28px 0;">
-        This reading was made with so much love. Not just for ${petName} &mdash; but for the bond you share. Because that bond? It's written in the stars.
+        This reading was made with so much love. Not just for ${petName}, but for the bond you share. Because that bond? It's written in the stars.
       </p>
 
       <!-- What awaits -->
@@ -72,11 +72,11 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
           What we lovingly prepared for you
         </p>
         <p style="color: #4d443b; font-size: 14px; line-height: 2.1; margin: 0;">
-          &#10024; ${petName}'s complete cosmic birth chart &mdash; decoded with care<br>
+          &#10024; ${petName}'s complete cosmic birth chart, decoded with care<br>
           &#128156; How ${petName} loves you (and exactly what they need to feel it back)<br>
           &#127775; The cosmic reasons behind every adorable quirk<br>
           &#127926; Their dream playlist, secret dating profile, and hidden talents<br>
-          &#128140; A letter written from ${petName}'s soul &mdash; to yours
+          &#128140; A letter written from ${petName}'s soul to yours
         </p>
       </div>
 
@@ -101,10 +101,10 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
           How to enjoy ${petName}'s reading
         </p>
         <p style="color: #4d443b; font-size: 13px; line-height: 2; margin: 0;">
-          &#10024; Read it out loud to ${petName} &mdash; they respond to the energy<br>
+          &#10024; Read it out loud to ${petName}. They respond to the energy<br>
           &#128247; Screenshot the parts that feel most "them" and share with a friend<br>
           &#128140; Save the soul letter at the end for when you need it most<br>
-          &#127793; Come back in a few weeks &mdash; you'll notice new things each time
+          &#127793; Come back in a few weeks. You'll notice new things each time
         </p>
       </div>
 
@@ -126,7 +126,7 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
       <!-- Gift Code -->
       <div style="text-align: center; background: #faf4e8; border-radius: 12px; padding: 16px; border: 1px solid #e8ddd0; margin: 0 0 20px 0;">
         <p style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 4px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-          Gift a reading to someone you love &mdash; 30% off
+          Gift a reading to someone you love. 30% off
         </p>
         <p style="color: #141210; font-size: 20px; font-weight: 700; letter-spacing: 4px; margin: 0; font-family: 'SF Mono', Monaco, Consolas, monospace;">
           GIFTLOVE30
@@ -137,7 +137,7 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
       <div style="width: 40px; height: 1px; background: linear-gradient(90deg, transparent, #c4a265, transparent); margin: 20px auto;"></div>
 
       <p style="color: #958779; font-size: 13px; line-height: 1.6; margin: 0;">
-        This link is yours forever &mdash; a keepsake of ${petName}'s soul. Save it, revisit it, and share it with anyone who loves ${petName} as much as you do.
+        This link is yours forever, a keepsake of ${petName}'s soul. Save it, revisit it, and share it with anyone who loves ${petName} as much as you do.
       </p>
 
     </div>
@@ -146,7 +146,7 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
     <div style="text-align: center; margin-top: 32px;">
       <p style="color: #958779; font-size: 13px; line-height: 1.7; margin: 0 0 6px 0;">
         We would love to hear how ${petName}'s reading made you feel.<br>
-        Just reply to this email &mdash; every message is read by a real person who genuinely cares.
+        Just reply to this email. Every message is read by a real person who genuinely cares.
       </p>
       <p style="color: #c4a265; font-size: 12px; margin: 14px 0 0 0; font-style: italic;">
         With love and gratitude,<br>
