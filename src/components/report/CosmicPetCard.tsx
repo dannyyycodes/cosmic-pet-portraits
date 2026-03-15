@@ -256,20 +256,20 @@ Discover your pet's cosmic soul at cosmicpet.report`;
 export function calculateCardStats(report: any): CardStats {
   const getSignStrength = (sign: string): number => {
     const strengths: Record<string, number> = {
-      Aries: 85, Taurus: 70, Gemini: 75, Cancer: 65,
-      Leo: 90, Virgo: 72, Libra: 68, Scorpio: 88,
-      Sagittarius: 82, Capricorn: 78, Aquarius: 76, Pisces: 62
+      Aries: 94, Taurus: 86, Gemini: 88, Cancer: 84,
+      Leo: 96, Virgo: 85, Libra: 83, Scorpio: 95,
+      Sagittarius: 92, Capricorn: 89, Aquarius: 87, Pisces: 82
     };
-    return strengths[sign] || 70;
+    return strengths[sign] || 85;
   };
 
   const getEmotionalDepth = (moonSign: string): number => {
     const depths: Record<string, number> = {
-      Cancer: 95, Pisces: 92, Scorpio: 90, Taurus: 75,
-      Virgo: 70, Capricorn: 65, Leo: 72, Libra: 78,
-      Aries: 60, Gemini: 68, Sagittarius: 65, Aquarius: 62
+      Cancer: 97, Pisces: 95, Scorpio: 96, Taurus: 88,
+      Virgo: 85, Capricorn: 84, Leo: 90, Libra: 89,
+      Aries: 82, Gemini: 86, Sagittarius: 84, Aquarius: 83
     };
-    return depths[moonSign] || 70;
+    return depths[moonSign] || 85;
   };
 
   const sunSign = report.chartPlacements?.sun?.sign || report.sunSign || 'Leo';
@@ -284,12 +284,12 @@ export function calculateCardStats(report: any): CardStats {
   const variance = (seed: number) => ((nameHash * seed) % 15) - 7;
 
   return {
-    vitality: Math.min(99, Math.max(40, getSignStrength(sunSign) + variance(1))),
-    empathy: Math.min(99, Math.max(40, getEmotionalDepth(moonSign) + variance(2))),
-    curiosity: Math.min(99, Math.max(40, getSignStrength(mercurySign) + variance(3))),
-    charm: Math.min(99, Math.max(40, getEmotionalDepth(venusSign) + variance(4))),
-    energy: Math.min(99, Math.max(40, getSignStrength(marsSign) + variance(5))),
-    mystery: Math.min(99, Math.max(40, (getSignStrength(lilithSign) + getEmotionalDepth(lilithSign)) / 2 + variance(6))),
+    vitality: Math.min(99, Math.max(75, getSignStrength(sunSign) + variance(1))),
+    empathy: Math.min(99, Math.max(75, getEmotionalDepth(moonSign) + variance(2))),
+    curiosity: Math.min(99, Math.max(75, getSignStrength(mercurySign) + variance(3))),
+    charm: Math.min(99, Math.max(75, getEmotionalDepth(venusSign) + variance(4))),
+    energy: Math.min(99, Math.max(75, getSignStrength(marsSign) + variance(5))),
+    mystery: Math.min(99, Math.max(75, (getSignStrength(lilithSign) + getEmotionalDepth(lilithSign)) / 2 + variance(6))),
   };
 }
 

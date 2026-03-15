@@ -341,11 +341,13 @@ try {
     ? `TRUE Ascendant calculated from birth time (${birthTime || 'noon'}) and location (${birthCoords?.displayName})`
     : "Ascendant estimated (no birth time/location) - defaults to Sun sign. For accurate Rising sign, birth time and location are needed.";
 
-  const element = getElement(sunSign);
+  const sunElement = getElement(sunSign);
   const modality = getModality(sunSign);
   const rulingPlanet = getRulingPlanet(sunSign);
   const nameVibration = calculateNameVibration(name);
   const elementalBalance = getElementalBalance(positions);
+  // Dominant element = highest percentage in the actual chart balance (not just Sun sign)
+  const element = Object.entries(elementalBalance).sort((a, b) => (b[1] as number) - (a[1] as number))[0][0];
   const crystal = getCrystal(rulingPlanet, element);
   const aura = getAuraColor(element, rulingPlanet);
   const archetype = getSoulArchetype(sunSign, element, gender, species);
@@ -907,10 +909,9 @@ JSON Structure:
 
   "dreamJob": {
     "title": "💼 Dream Career",
-    "job": "If ${name} had a job, what would it be? The job should feel inevitable based on their breed + chart combo. A Border Collie with Mars in Virgo has a VERY different career than a Bulldog with Mars in Taurus.",
-    "whyPerfect": "2 sentences explaining why this job suits their Sun, Moon, and Mars — reference breed traits.",
-    "workStyle": "How they'd behave at this job (funny observations)",
-    "reasonForFiring": "The humorous reason they'd eventually get fired"
+    "job": "If ${name} had a job, what would it be? Make it EPIC and specific. The job should feel inevitable based on their breed + chart combo. A Border Collie with Mars in Virgo has a VERY different career than a Bulldog with Mars in Taurus.",
+    "description": "3-4 sentences: why this job suits them (reference Sun, Moon, Mars + breed), how they'd behave at work (funny), and the dramatic reason they'd eventually get fired. Make it hilarious and shareable.",
+    "salary": "A funny fictional salary (e.g. '47 treats/hour + unlimited belly rubs' or '6 figures in kibble')"
   },
 
   "villainOriginStory": {
@@ -1091,19 +1092,40 @@ JSON Structure:
   },
 
   "cosmicRecipe": {
-    "name": "A creative recipe name inspired by ${name}'s dominant element and personality",
-    "emoji": "A food emoji that matches the recipe",
+    "name": "A fun, creative recipe name inspired by ${name}'s personality — this is a PET-SAFE treat recipe",
+    "emoji": "A food emoji that matches",
     "description": "1-2 sentences about why this recipe captures ${name}'s cosmic energy",
     "element": "${element}",
-    "servings": "2-4",
+    "servings": "Makes 10-12 treats",
     "prepTime": "A realistic prep time",
-    "ingredients": ["6-8 ingredients with quantities - CRITICAL SAFETY: This recipe is for HUMANS inspired by the pet's cosmic energy. Do NOT include any ingredients toxic to ${species}: no chocolate, onions, garlic, grapes, xylitol, caffeine, alcohol, or excessively spicy ingredients like cayenne. If the element is Fire, use warming spices like cinnamon or paprika (mild), not hot chili peppers."],
-    "steps": ["4-6 clear cooking steps"],
-    "cosmicNote": "A whimsical note about how this dish channels ${name}'s energy"
+    "ingredients": ["6-8 PET-SAFE ingredients ONLY. For ${species}: use ingredients like pumpkin, peanut butter (xylitol-free), oats, banana, sweet potato, blueberries, carrots, plain yogurt, coconut oil, eggs, rice flour. NEVER use: chocolate, xylitol, grapes/raisins, onion, garlic, macadamia nuts, avocado, caffeine, alcohol, or artificial sweeteners."],
+    "steps": ["4-6 clear steps to make the treats"],
+    "cosmicNote": "A whimsical note about how ${name} would react to this treat"
+  },
+
+  "textMessages": {
+    "morning": {
+      "pet": ["2 funny morning texts FROM ${name} to their human — written in first person as ${name}. Include ${species}-specific humor. Make them hilarious and shareable."],
+      "human": ["1 loving reply from the human"]
+    },
+    "afternoon": {
+      "pet": ["2 funny afternoon texts FROM ${name} — maybe about their day, complaints, demands"],
+      "human": ["1 amused reply"]
+    },
+    "night": {
+      "pet": ["2 funny bedtime texts FROM ${name} — maybe guilt trips, dramatic goodnight, demands"],
+      "human": ["1 warm reply"]
+    }
   }
 }
 
-Make every section feel personal, specific, and magical. The fun sections should make people want to screenshot and share!`;
+IMPORTANT CONTENT QUALITY RULES:
+- Every section must feel PERSONAL, SPECIFIC to ${name}, and deeply connected to their chart data
+- Fun sections (dreamJob, datingProfile, textMessages, villainOriginStory) should be HILARIOUS and screenshot-worthy
+- The dreamJob should feel EPIC — hype up their cosmic career potential
+- Text messages should read like REAL texts — casual, funny, with ${species}-specific quirks
+- The recipe MUST be safe for ${species} to eat — this is a pet treat recipe, not human food
+- Make every section make the reader feel like you truly KNOW their pet`;
 
   // ─── Call OpenRouter (non-streaming) ───────────────────────────────────────
 

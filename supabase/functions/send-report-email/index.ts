@@ -199,7 +199,24 @@ serve(async (req) => {
       });
     }
 
-    const reportUrl = `https://littlesouls.app/report?id=${reportId}`;
+    // Ensure shareToken exists so the email link bypasses email verification
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const { data: reportRow } = await fetch(
+      `${supabaseUrl}/rest/v1/pet_reports?id=eq.${reportId}&select=share_token`,
+      { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
+    ).then(r => r.json()).then(rows => ({ data: rows?.[0] }));
+
+    let shareToken = reportRow?.share_token;
+    if (!shareToken) {
+      shareToken = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+      await fetch(`${supabaseUrl}/rest/v1/pet_reports?id=eq.${reportId}`, {
+        method: "PATCH",
+        headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+        body: JSON.stringify({ share_token: shareToken }),
+      });
+    }
+
+    const reportUrl = `https://littlesouls.app/report?id=${reportId}&token=${shareToken}`;
 
     const emailResult = await resend.emails.send({
       from: "Little Souls <hello@littlesouls.app>",
