@@ -186,7 +186,7 @@ const Blog = () => {
               <div className="text-center py-12">
                 <p className="mb-4" style={{ color: '#9a8578' }}>No articles found yet.</p>
                 <button
-                  onClick={() => navigate("/intake")}
+                  onClick={() => navigate("/checkout-v3")}
                   className="inline-flex items-center gap-2 px-6 py-3 font-medium transition-opacity hover:opacity-90"
                   style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
                 >
@@ -254,7 +254,7 @@ const Blog = () => {
               Get a personalized cosmic reading that reveals your pet's unique traits, behaviors, and soul connection.
             </p>
             <button
-              onClick={() => navigate("/intake")}
+              onClick={() => navigate("/checkout-v3")}
               className="inline-flex items-center gap-2 px-8 py-4 font-medium text-lg transition-opacity hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
             >

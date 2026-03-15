@@ -178,7 +178,7 @@ export default function MyReports() {
               </p>
               <div className="flex flex-col items-center gap-3">
                 <button
-                  onClick={() => navigate('/intake')}
+                  onClick={() => navigate('/checkout-v3')}
                   className="flex items-center gap-2 px-8 py-4 font-medium text-lg transition-opacity hover:opacity-90"
                   style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
                 >
@@ -278,7 +278,7 @@ export default function MyReports() {
               className="text-center mt-10"
             >
               <button
-                onClick={() => navigate('/intake')}
+                onClick={() => navigate('/checkout-v3')}
                 className="flex items-center gap-2 mx-auto px-6 py-3 font-medium transition-opacity hover:opacity-80"
                 style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
               >

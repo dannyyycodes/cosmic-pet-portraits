@@ -223,7 +223,7 @@ serve(async (req) => {
         line_items: lineItems,
         mode: "payment",
         success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}&quick=true`,
-        cancel_url: `${origin}/checkout?tier=${tierKey}`,
+        cancel_url: `${origin}/checkout-v3`,
         metadata: {
           report_ids: reportIds.join(","),
           pet_count: petCount.toString(),
@@ -582,7 +582,7 @@ serve(async (req) => {
       line_items: lineItems,
       mode: checkoutMode,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
-      cancel_url: `${origin}/intake?checkout=true`,
+      cancel_url: `${origin}/checkout-v3`,
       metadata: {
         report_ids: allReportIds.join(","),
         pet_count: actualPetCount.toString(),
