@@ -9,9 +9,10 @@ interface CinematicRevealProps {
   element: string;
   onComplete: () => void;
   occasionMode?: string;
+  petPhotoUrl?: string;
 }
 
-export function CinematicReveal({ petName, sunSign, archetype, element, onComplete, occasionMode }: CinematicRevealProps) {
+export function CinematicReveal({ petName, sunSign, archetype, element, onComplete, occasionMode, petPhotoUrl }: CinematicRevealProps) {
   const [stage, setStage] = useState(0);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
@@ -141,7 +142,7 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
               </motion.div>
             )}
 
-            {/* Stage 2: Pet name reveal */}
+            {/* Stage 2: Pet photo + name reveal */}
             {stage === 2 && (
               <motion.div
                 key="s2"
@@ -151,6 +152,38 @@ export function CinematicReveal({ petName, sunSign, archetype, element, onComple
                 exit={{ opacity: 0, y: -30 }}
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
               >
+                {/* Pet photo circle */}
+                {petPhotoUrl && (
+                  <motion.div
+                    initial={{ scale: 0.3, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.8, type: 'spring', stiffness: 100 }}
+                    className="mx-auto mb-5 relative"
+                    style={{ width: 130, height: 130 }}
+                  >
+                    <div
+                      className="w-full h-full rounded-full overflow-hidden"
+                      style={{
+                        border: '2.5px solid rgba(196,162,101,0.5)',
+                        boxShadow: '0 0 60px rgba(196,162,101,0.3), 0 0 120px rgba(196,162,101,0.15)',
+                      }}
+                    >
+                      <img
+                        src={petPhotoUrl}
+                        alt={petName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {/* Breathing ring around photo */}
+                    <div
+                      className="absolute inset-[-10px] rounded-full pointer-events-none"
+                      style={{
+                        border: '1px solid rgba(196,162,101,0.2)',
+                        animation: 'cr-ring 3s ease-in-out infinite',
+                      }}
+                    />
+                  </motion.div>
+                )}
                 <motion.h1
                   initial={{ opacity: 0, y: 30, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}

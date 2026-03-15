@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import imageCompression from 'browser-image-compression';
 
 interface PetPhotoUploadProps {
   petName: string;
@@ -19,29 +20,46 @@ export function PetPhotoUpload({ petName, onPhotoUploaded, photoUrl, isRequired 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file (JPG, PNG, etc.)');
+    // Accept all image types including HEIC/HEIF from iPhones
+    const isImage = file.type.startsWith('image/') ||
+      /\.(heic|heif|webp|avif|jfif|bmp|tiff?)$/i.test(file.name);
+
+    if (!isImage) {
+      toast.error('Please upload an image file (JPG, PNG, HEIC, etc.)');
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      toast.error('Image is too large. Please use an image under 10MB.');
+    if (file.size > 50 * 1024 * 1024) { // 50MB hard limit (compression handles the rest)
+      toast.error('Image is too large. Please use an image under 50MB.');
       return;
     }
 
     setIsUploading(true);
-    
+
     try {
-      // Create unique filename
-      const ext = file.name.split('.').pop() || 'jpg';
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      
+      // Compress and convert to JPEG — handles HEIC, large files, any format
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.8,           // Target 800KB
+        maxWidthOrHeight: 1200,   // Max dimension 1200px
+        useWebWorker: true,
+        fileType: 'image/jpeg',   // Always output JPEG for compatibility
+        initialQuality: 0.85,
+      });
+
+      const originalKB = Math.round(file.size / 1024);
+      const compressedKB = Math.round(compressedFile.size / 1024);
+      console.log(`[PHOTO] Compressed ${originalKB}KB → ${compressedKB}KB`);
+
+      // Always use .jpg extension since we convert to JPEG
+      const filename = `${crypto.randomUUID()}.jpg`;
+
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
         .from('pet-photos')
-        .upload(filename, file, {
-          cacheControl: '3600',
+        .upload(filename, compressedFile, {
+          cacheControl: '31536000', // 1 year cache — pet photos don't change
           upsert: false,
+          contentType: 'image/jpeg',
         });
 
       if (error) throw error;
@@ -109,7 +127,7 @@ export function PetPhotoUpload({ petName, onPhotoUploaded, photoUrl, isRequired 
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         onChange={handleInputChange}
         className="hidden"
       />
@@ -198,7 +216,7 @@ export function PetPhotoUpload({ petName, onPhotoUploaded, photoUrl, isRequired 
                     {dragActive ? 'Drop photo here!' : 'Click or drag photo'}
                   </span>
                   <p className="text-xs text-muted-foreground mt-1">
-                    JPG, PNG up to 10MB
+                    Any photo — we'll optimize it for you
                   </p>
                 </div>
               </>

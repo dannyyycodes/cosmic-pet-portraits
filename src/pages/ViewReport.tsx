@@ -284,6 +284,7 @@ export default function ViewReport() {
             element={element}
             onComplete={handleRevealComplete}
             occasionMode={reportData.occasionMode}
+            petPhotoUrl={reportData.portraitUrl || reportData.petPhotoUrl}
           />
         )}
         <CosmicReportViewer

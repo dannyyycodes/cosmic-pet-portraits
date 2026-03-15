@@ -1,247 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Free Pet Zodiac Snapshot — Little Souls</title>
-  <meta name="description" content="Discover your pet's Sun and Moon signs instantly. Free cosmic personality snapshot based on their exact birth date.">
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --ink: #3d2f2a;
-      --warm: #5a4a42;
-      --muted: #9a8578;
-      --faded: #b8a99e;
-      --gold: #c4a265;
-      --cream: #faf6f1;
-      --cream2: #f5efe6;
-      --cream3: #e8ddd0;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      background: var(--cream);
-      font-family: 'Cormorant', Georgia, serif;
-      color: var(--ink);
-      min-height: 100vh;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Pet Zodiac Reading — Little Souls</title>
+<meta name="description" content="Discover your pet's cosmic personality instantly. Free zodiac reading based on their exact birth date — no card required.">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #141210; --deep: #2e2a24; --warm: #5a4a42; --earth: #6e6259;
+  --muted: #958779; --faded: #bfb2a3; --sand: #d6c8b6;
+  --gold: #c4a265; --rose: #bf524a; --rose-soft: #d4857e;
+  --cream: #FFFDF5; --cream2: #faf4e8; --cream3: #e8ddd0;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);font-family:'Cormorant',Georgia,serif;color:var(--ink);min-height:100vh;-webkit-text-size-adjust:100%}
+.container{max-width:500px;margin:0 auto;padding:32px 20px 60px}
+.header{text-align:center;margin-bottom:28px}
+.header-brand{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.card{background:#fff;border-radius:20px;border:1px solid var(--cream3);padding:32px 24px;box-shadow:0 4px 24px rgba(0,0,0,0.04)}
+.badge{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:center;margin-bottom:8px}
+.title{font-family:'DM Serif Display',Georgia,serif;font-size:1.45rem;text-align:center;line-height:1.3;margin-bottom:10px;color:var(--ink)}
+.subtitle{text-align:center;font-size:0.92rem;color:var(--earth);line-height:1.6;margin-bottom:24px;font-style:italic}
 
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 40px 24px 60px;
-    }
+/* Form */
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:0.72rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-bottom:5px}
+.form-input,.form-select{width:100%;padding:13px 15px;border:1.5px solid var(--cream3);border-radius:12px;font-size:1rem;color:var(--ink);background:var(--cream2);font-family:'Cormorant',Georgia,serif;transition:border-color 0.2s}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--gold)}
+.form-input::placeholder{color:var(--faded)}
+.submit-btn{width:100%;padding:15px;border:none;border-radius:50px;background:var(--rose);color:#fff;font-size:0.95rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer;transition:all 0.25s;letter-spacing:0.5px;margin-top:6px;box-shadow:0 4px 16px rgba(191,82,74,0.2)}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(191,82,74,0.3)}
+.submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.free-tag{text-align:center;font-size:0.78rem;color:var(--gold);margin-top:10px;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.privacy-note{text-align:center;font-size:0.72rem;color:var(--faded);margin-top:8px;line-height:1.5}
+.error-msg{color:#c0392b;font-size:0.85rem;text-align:center;margin-top:10px;display:none}
 
-    .header {
-      text-align: center;
-      margin-bottom: 36px;
-    }
-    .header-icon { font-size: 32px; margin-bottom: 8px; }
-    .header-brand {
-      font-size: 11px; font-weight: 700; letter-spacing: 3px;
-      text-transform: uppercase; color: var(--gold);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
+/* Loading */
+.loading{display:none;text-align:center;padding:20px}
+.loading.show{display:block}
+.loading-spinner{width:36px;height:36px;border:3px solid var(--cream3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--muted);font-style:italic;font-size:1rem}
 
-    .card {
-      background: #fff;
-      border-radius: 20px;
-      border: 1px solid var(--cream3);
-      padding: 36px 28px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.04);
-    }
+/* Results */
+.results{display:none}
+.results.show{display:block;animation:fadeUp 0.5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
-    .card-badge {
-      font-size: 10px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--gold);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      text-align: center; margin-bottom: 8px;
-    }
+/* Result hero */
+.result-hero{text-align:center;margin-bottom:20px}
+.result-symbol{font-size:3rem;margin-bottom:4px}
+.result-name{font-family:'DM Serif Display',Georgia,serif;font-size:1.6rem;color:var(--ink)}
+.result-sign-name{font-size:1.1rem;color:var(--gold);font-weight:500;margin-top:2px}
+.result-dates{font-size:0.75rem;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-top:2px}
 
-    .card-title {
-      font-family: 'DM Serif Display', Georgia, serif;
-      font-size: 1.5rem; text-align: center; line-height: 1.3;
-      margin-bottom: 12px; color: var(--ink);
-    }
+/* Sign cards row */
+.sign-row{display:flex;gap:10px;margin-bottom:20px}
+.sign-card{flex:1;background:var(--cream2);border-radius:14px;padding:14px 12px;text-align:center;border:1px solid var(--cream3)}
+.sign-card-label{font-size:0.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-bottom:3px}
+.sign-card-value{font-family:'DM Serif Display',Georgia,serif;font-size:1rem;color:var(--ink)}
+.sign-card-sub{font-size:0.68rem;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 
-    .card-subtitle {
-      text-align: center; font-size: 0.95rem; color: var(--muted);
-      line-height: 1.6; margin-bottom: 28px; font-style: italic;
-    }
+/* Archetype bar */
+.archetype-bar{background:linear-gradient(135deg,var(--deep),#3d2f2a);border-radius:14px;padding:18px;text-align:center;margin-bottom:20px;color:#fff}
+.archetype-label{font-size:0.55rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(196,162,101,0.7);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-bottom:4px}
+.archetype-value{font-family:'DM Serif Display',Georgia,serif;font-size:1.2rem}
+.archetype-desc{font-size:0.82rem;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;line-height:1.5}
 
-    .form-group { margin-bottom: 20px; }
-    .form-label {
-      display: block; font-size: 0.75rem; font-weight: 600;
-      letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin-bottom: 6px;
-    }
-    .form-input, .form-select {
-      width: 100%; padding: 14px 16px; border: 1.5px solid var(--cream3);
-      border-radius: 12px; font-size: 1rem; color: var(--ink);
-      background: var(--cream); font-family: 'Cormorant', Georgia, serif;
-      transition: border-color 0.2s;
-    }
-    .form-input:focus, .form-select:focus {
-      outline: none; border-color: var(--gold);
-    }
-    .form-input::placeholder { color: var(--faded); }
+/* Section blocks */
+.section{margin-bottom:22px}
+.section-label{font-size:0.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;margin-bottom:6px}
+.section-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.05rem;color:var(--ink);margin-bottom:6px}
+.section-text{font-size:0.92rem;color:var(--warm);line-height:1.7}
+.section-signs{font-size:0.82rem;color:var(--muted);margin-top:8px;font-style:italic}
 
-    .submit-btn {
-      width: 100%; padding: 16px; border: none; border-radius: 50px;
-      background: linear-gradient(135deg, var(--ink), #5a3e2e);
-      color: #fff; font-size: 1rem; font-weight: 600;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      cursor: pointer; transition: all 0.25s; letter-spacing: 0.5px;
-      margin-top: 8px;
-    }
-    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(61,47,42,0.2); }
-    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+/* Quirk list */
+.quirk-list{list-style:none;padding:0;margin:0}
+.quirk-list li{font-size:0.9rem;color:var(--warm);line-height:1.6;padding:8px 0 8px 20px;border-bottom:1px solid var(--cream3);position:relative}
+.quirk-list li:last-child{border-bottom:none}
+.quirk-list li::before{content:'';position:absolute;left:0;top:15px;width:8px;height:8px;border-radius:50%;background:var(--gold);opacity:0.5}
 
-    .free-tag {
-      text-align: center; font-size: 0.8rem; color: var(--gold);
-      margin-top: 12px; font-weight: 600;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
+/* Celebrity card */
+.celeb-card{background:var(--cream2);border-radius:14px;padding:18px;border:1px solid var(--cream3);margin-bottom:22px}
+.celeb-card-title{font-family:'DM Serif Display',Georgia,serif;font-size:0.95rem;color:var(--ink);margin-bottom:12px;text-align:center}
+.celeb-list{list-style:none;padding:0;margin:0}
+.celeb-list li{font-size:0.85rem;color:var(--warm);padding:8px 0;border-bottom:1px dotted var(--cream3);display:flex;align-items:center;gap:10px}
+.celeb-list li:last-child{border-bottom:none}
+.celeb-img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid var(--cream3);flex-shrink:0;background:var(--cream3)}
+.celeb-initial{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cream3),var(--sand));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:600;color:var(--earth);flex-shrink:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+.celeb-info{flex:1;min-width:0}
+.celeb-name{font-weight:600;color:var(--ink)}
+.celeb-known{font-size:0.78rem;color:var(--muted)}
+.celeb-list li:last-child{border-bottom:none}
+.celeb-list li strong{color:var(--ink)}
 
-    .privacy-note {
-      text-align: center; font-size: 0.75rem; color: var(--faded);
-      margin-top: 10px; line-height: 1.5;
-    }
+/* Divider */
+.divider{border:none;border-top:1px solid var(--cream3);margin:24px 0}
 
-    /* ── Result section ── */
-    .result-section { display: none; }
-    .result-section.show { display: block; }
+/* Locked teaser */
+.locked{position:relative;overflow:hidden;border-radius:14px;padding:16px;margin-bottom:14px;background:var(--cream2);border:1px solid var(--cream3)}
+.locked-blur{filter:blur(4px);opacity:0.5;font-size:0.85rem;color:var(--warm);line-height:1.6}
+.locked-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.locked-icon{font-size:1.2rem}
+.locked-text{font-size:0.72rem;font-weight:600;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 
-    .result-header {
-      text-align: center; margin-bottom: 24px;
-    }
-    .result-signs {
-      display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;
-    }
-    .result-sign-card {
-      background: var(--cream); border-radius: 14px; padding: 16px 20px;
-      text-align: center; flex: 1; border: 1px solid var(--cream3);
-    }
-    .result-sign-label {
-      font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--gold);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin-bottom: 4px;
-    }
-    .result-sign-value {
-      font-family: 'DM Serif Display', Georgia, serif;
-      font-size: 1.1rem; color: var(--ink);
-    }
-    .result-sign-degree {
-      font-size: 0.7rem; color: var(--muted);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
+/* Upsell */
+.upsell{background:#fff;border-radius:20px;border:2px solid var(--cream3);padding:28px 24px;text-align:center;margin-top:24px;box-shadow:0 4px 24px rgba(0,0,0,0.04)}
+.upsell-title{font-family:'DM Serif Display',Georgia,serif;font-size:1.15rem;color:var(--ink);margin-bottom:8px}
+.upsell-text{font-size:0.85rem;color:var(--earth);line-height:1.6;margin-bottom:18px}
+.upsell-btn{display:inline-block;padding:15px 40px;border-radius:50px;background:var(--rose);color:#fff;text-decoration:none;font-size:0.9rem;font-weight:600;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;transition:all 0.25s;box-shadow:0 4px 16px rgba(191,82,74,0.2)}
+.upsell-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(191,82,74,0.3)}
+.upsell-price{font-size:0.75rem;color:var(--faded);margin-top:8px}
 
-    .result-title-card {
-      text-align: center; background: linear-gradient(135deg, var(--ink), #2a2018);
-      border-radius: 14px; padding: 20px; margin-bottom: 20px; color: #fff;
-    }
-    .result-title-label {
-      font-size: 0.55rem; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: rgba(196,162,101,0.7);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin-bottom: 6px;
-    }
-    .result-title-value {
-      font-family: 'DM Serif Display', Georgia, serif;
-      font-size: 1.3rem; color: #fff;
-    }
-
-    .result-section-block { margin-bottom: 20px; }
-    .result-section-label {
-      font-size: 0.6rem; font-weight: 700; letter-spacing: 1.5px;
-      text-transform: uppercase; color: var(--gold);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin-bottom: 6px;
-    }
-    .result-section-text {
-      font-size: 0.95rem; color: var(--warm); line-height: 1.7;
-    }
-
-    .result-divider {
-      border: none; border-top: 1px solid var(--cream3);
-      margin: 24px 0;
-    }
-
-    .upsell-card {
-      background: var(--cream); border-radius: 16px; padding: 24px;
-      text-align: center; border: 1px solid var(--cream3); margin-top: 28px;
-    }
-    .upsell-badge {
-      font-size: 0.55rem; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--gold);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      margin-bottom: 8px;
-    }
-    .upsell-title {
-      font-family: 'DM Serif Display', Georgia, serif;
-      font-size: 1.15rem; margin-bottom: 10px; color: var(--ink);
-    }
-    .upsell-text {
-      font-size: 0.85rem; color: var(--muted); line-height: 1.6;
-      margin-bottom: 16px;
-    }
-    .upsell-btn {
-      display: inline-block; padding: 14px 36px; border-radius: 50px;
-      background: linear-gradient(135deg, var(--ink), #5a3e2e);
-      color: #fff; text-decoration: none; font-size: 0.9rem; font-weight: 600;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      transition: all 0.25s; letter-spacing: 0.5px;
-    }
-    .upsell-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(61,47,42,0.2); }
-    .upsell-price {
-      font-size: 0.75rem; color: var(--faded); margin-top: 8px;
-    }
-
-    .error-msg {
-      color: #c0392b; font-size: 0.85rem; text-align: center;
-      margin-top: 12px; display: none;
-    }
-
-    .loading { display: none; text-align: center; padding: 20px; }
-    .loading.show { display: block; }
-    .loading-text {
-      color: var(--muted); font-style: italic; font-size: 1rem;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .result-section.show { animation: fadeIn 0.5s ease; }
-
-    .footer {
-      text-align: center; margin-top: 40px;
-    }
-    .footer a {
-      color: var(--faded); font-size: 0.8rem; text-decoration: none;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-    .footer a:hover { color: var(--muted); }
-  </style>
+.footer{text-align:center;margin-top:36px}
+.footer a{color:var(--faded);font-size:0.78rem;text-decoration:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.footer a:hover{color:var(--muted)}
+</style>
 </head>
 <body>
-
 <div class="container">
 
   <div class="header">
-    <div class="header-icon">&#10024;</div>
     <div class="header-brand">Little Souls</div>
   </div>
 
-  <!-- ── Form Card ── -->
+  <!-- ── FORM ── -->
   <div class="card" id="formCard">
-    <div class="card-badge">Free Cosmic Snapshot</div>
-    <div class="card-title">What do the stars say<br>about your pet?</div>
-    <div class="card-subtitle">
-      Enter their birth date and we'll reveal their Sun and Moon signs,
-      personality blueprint, and the cosmic reason they ended up with you.
+    <div class="badge">Free Cosmic Reading</div>
+    <div class="title">Discover who your pet<br>really is inside</div>
+    <div class="subtitle">
+      Enter their birth date and we'll instantly reveal their zodiac personality,
+      how they love, what they need, and why they do that one thing.
     </div>
 
     <form id="snapshotForm" onsubmit="handleSubmit(event)">
@@ -249,7 +140,6 @@
         <label class="form-label" for="petName">Pet's Name</label>
         <input class="form-input" id="petName" type="text" placeholder="Luna, Biscuit, Milo..." required>
       </div>
-
       <div class="form-group">
         <label class="form-label" for="species">Species</label>
         <select class="form-select" id="species">
@@ -260,98 +150,171 @@
           <option value="bird">Bird</option>
           <option value="horse">Horse</option>
           <option value="guinea pig">Guinea Pig</option>
+          <option value="fish">Fish</option>
+          <option value="reptile">Reptile</option>
           <option value="other">Other</option>
         </select>
       </div>
-
       <div class="form-group">
         <label class="form-label" for="dob">Date of Birth</label>
         <input class="form-input" id="dob" type="date" required>
       </div>
-
       <div class="form-group">
         <label class="form-label" for="email">Your Email</label>
         <input class="form-input" id="email" type="email" placeholder="you@example.com" required>
       </div>
-
-      <button class="submit-btn" type="submit" id="submitBtn">Reveal Their Cosmic Blueprint</button>
-      <div class="free-tag">100% free — no card required</div>
+      <button class="submit-btn" type="submit" id="submitBtn">Reveal Their Cosmic Personality</button>
+      <div class="free-tag">100% free — instant results — no card required</div>
       <div class="privacy-note">We'll send you their snapshot and occasional cosmic updates. Unsubscribe anytime.</div>
       <div class="error-msg" id="errorMsg"></div>
     </form>
   </div>
 
-  <!-- ── Loading ── -->
+  <!-- ── LOADING ── -->
   <div class="loading" id="loadingState">
-    <div class="card" style="padding: 48px 28px;">
-      <div style="font-size: 28px; text-align: center; margin-bottom: 12px;">&#10024;</div>
-      <div class="loading-text">Reading the stars for <span id="loadingName">your pet</span>...</div>
+    <div class="card" style="padding:40px 24px">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Reading the stars for <strong id="loadingName">your pet</strong>...</div>
     </div>
   </div>
 
-  <!-- ── Result Card ── -->
-  <div class="result-section" id="resultSection">
-    <div class="card">
-      <div class="result-header">
-        <div class="card-badge">Cosmic Snapshot</div>
-        <div class="card-title" id="resultTitle"></div>
+  <!-- ── RESULTS ── -->
+  <div class="results" id="resultsSection">
+
+    <!-- Hero -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="result-hero">
+        <div class="result-symbol" id="rSymbol"></div>
+        <div class="result-name" id="rName"></div>
+        <div class="result-sign-name" id="rSignName"></div>
+        <div class="result-dates" id="rDates"></div>
       </div>
 
-      <div class="result-signs">
-        <div class="result-sign-card">
-          <div class="result-sign-label">Sun Sign</div>
-          <div class="result-sign-value" id="resultSun"></div>
-          <div class="result-sign-degree" id="resultSunDeg"></div>
+      <!-- Sun + Element + Modality row -->
+      <div class="sign-row">
+        <div class="sign-card">
+          <div class="sign-card-label">Sun Sign</div>
+          <div class="sign-card-value" id="rSunSign"></div>
+          <div class="sign-card-sub" id="rSunElement"></div>
         </div>
-        <div class="result-sign-card">
-          <div class="result-sign-label">Moon Sign</div>
-          <div class="result-sign-value" id="resultMoon"></div>
-          <div class="result-sign-degree" id="resultMoonDeg"></div>
+        <div class="sign-card">
+          <div class="sign-card-label">Element</div>
+          <div class="sign-card-value" id="rElement"></div>
+          <div class="sign-card-sub" id="rModality"></div>
+        </div>
+        <div class="sign-card">
+          <div class="sign-card-label">Ruler</div>
+          <div class="sign-card-value" id="rRuler"></div>
+          <div class="sign-card-sub">Ruling Planet</div>
         </div>
       </div>
 
-      <div class="result-title-card">
-        <div class="result-title-label">Soul Archetype</div>
-        <div class="result-title-value" id="resultArchetype"></div>
+      <!-- Archetype -->
+      <div class="archetype-bar">
+        <div class="archetype-label">Cosmic Archetype</div>
+        <div class="archetype-value" id="rArchetype"></div>
+        <div class="archetype-desc" id="rArchetypeDesc"></div>
       </div>
 
-      <div class="result-section-block">
-        <div class="result-section-label">Personality</div>
-        <div class="result-section-text" id="resultTraits"></div>
+      <!-- Personality -->
+      <div class="section">
+        <div class="section-label">Personality</div>
+        <div class="section-text" id="rPersonality"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px" id="rTraitBadges"></div>
       </div>
+    </div>
 
-      <div class="result-section-block">
-        <div class="result-section-label">How They Love</div>
-        <div class="result-section-text" id="resultLove"></div>
+    <!-- How They Love -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="section">
+        <div class="section-label" id="rLoveLabel">How They Show Love</div>
+        <div class="section-title" id="rLoveStyle"></div>
+        <div class="section-text" id="rLoveDesc"></div>
+        <div class="section-signs" id="rLoveSigns"></div>
       </div>
+    </div>
 
-      <div class="result-section-block">
-        <div class="result-section-label">Emotional World</div>
-        <div class="result-section-text" id="resultMood"></div>
+    <!-- What They Need -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="section">
+        <div class="section-label">The One Thing They Need From You</div>
+        <div class="section-title" id="rNeedTitle"></div>
+        <div class="section-text" id="rNeedDesc"></div>
       </div>
+    </div>
 
-      <div class="result-section-block">
-        <div class="result-section-label">Cosmic Quirk</div>
-        <div class="result-section-text" id="resultQuirk"></div>
+    <!-- 5 Things That Are SO Their Sign -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="section">
+        <div class="section-label" id="rQuirkLabel">5 Things That Are SO Their Sign</div>
+        <ul class="quirk-list" id="rQuirks"></ul>
       </div>
+    </div>
 
-      <hr class="result-divider">
+    <!-- Celebrity Birthday -->
+    <div class="celeb-card" id="celebCard" style="display:none">
+      <div class="badge" style="margin-bottom:6px">Born On The Same Day</div>
+      <div class="celeb-card-title" id="celebTitle"></div>
+      <ul class="celeb-list" id="celebList"></ul>
+    </div>
 
-      <div class="upsell-card">
-        <div class="upsell-badge">Go Deeper</div>
-        <div class="upsell-title" id="upsellTitle">This is just the surface</div>
-        <div class="upsell-text" id="upsellText">
-          Their full reading maps all 8 planetary placements, reveals their past life, love language,
-          soul contract with you, and includes a letter written from their soul to yours.
-        </div>
-        <a class="upsell-btn" href="/intake" id="upsellBtn">Get the Full Reading</a>
-        <div class="upsell-price">From $35 — a keepsake you'll treasure forever</div>
+    <!-- Compatibility -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="section">
+        <div class="section-label">Best Match</div>
+        <div class="section-text" id="rCompat"></div>
       </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Locked teasers -->
+    <div class="badge" style="margin-bottom:12px;color:var(--muted)">What's in the full reading</div>
+
+    <div class="locked">
+      <div class="locked-blur">Their Moon sign reveals how they process emotions, find comfort, and what makes them feel truly safe. Combined with their Mercury placement, it explains how they communicate and learn...</div>
+      <div class="locked-overlay">
+        <div class="locked-icon">&#128274;</div>
+        <div class="locked-text">Moon Sign &amp; Emotional World</div>
+      </div>
+    </div>
+
+    <div class="locked">
+      <div class="locked-blur">A heartfelt letter written from your pet's perspective, channelling their exact birth chart energy. This is the section that makes people cry — the good kind of tears...</div>
+      <div class="locked-overlay">
+        <div class="locked-icon">&#128274;</div>
+        <div class="locked-text">A Letter From Their Soul</div>
+      </div>
+    </div>
+
+    <div class="locked">
+      <div class="locked-blur">Their top 5 cosmic crimes, dream job, dating profile, and what their Yelp reviews would say. The fun stuff that makes you screenshot and send to every friend who has a pet...</div>
+      <div class="locked-overlay">
+        <div class="locked-icon">&#128274;</div>
+        <div class="locked-text">Cosmic Crimes, Dream Job &amp; More</div>
+      </div>
+    </div>
+
+    <div class="locked">
+      <div class="locked-blur">Talk directly to your pet's soul — powered by their exact birth chart. Ask them anything and hear them answer in their own voice. Every response is genuinely them...</div>
+      <div class="locked-overlay">
+        <div class="locked-icon">&#128274;</div>
+        <div class="locked-text">SoulSpeak — Talk To Their Soul</div>
+      </div>
+    </div>
+
+    <!-- Upsell CTA -->
+    <div class="upsell">
+      <div class="badge">This was just the surface</div>
+      <div class="upsell-title" id="upsellTitle"></div>
+      <div class="upsell-text" id="upsellText"></div>
+      <a class="upsell-btn" href="/intake" id="upsellBtn">Get The Full Reading</a>
+      <div class="upsell-price">From $27 — a keepsake you'll treasure forever</div>
     </div>
   </div>
 
   <div class="footer">
-    <a href="/">Back to Little Souls</a>
+    <a href="/">littlesouls.app</a>
   </div>
 
 </div>
@@ -359,6 +322,38 @@
 <script>
 var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.gpzR9Pnh8PVQMWt2TfBFGH5rT-sRR8x0gwrFbzJtpgU';
+
+var zodiacData = null;
+var celebData = null;
+
+// Load data on page load
+fetch('/data/zodiac-signs.json').then(function(r){return r.json()}).then(function(d){zodiacData=d});
+fetch('/data/celebrity-birthdays.json').then(function(r){return r.json()}).then(function(d){celebData=d}).catch(function(){celebData={}});
+
+function getSunSign(month, day) {
+  var signs = [
+    {sign:'capricorn',start:[1,1],end:[1,19]},
+    {sign:'aquarius',start:[1,20],end:[2,18]},
+    {sign:'pisces',start:[2,19],end:[3,20]},
+    {sign:'aries',start:[3,21],end:[4,19]},
+    {sign:'taurus',start:[4,20],end:[5,20]},
+    {sign:'gemini',start:[5,21],end:[6,20]},
+    {sign:'cancer',start:[6,21],end:[7,22]},
+    {sign:'leo',start:[7,23],end:[8,22]},
+    {sign:'virgo',start:[8,23],end:[9,22]},
+    {sign:'libra',start:[9,23],end:[10,22]},
+    {sign:'scorpio',start:[10,23],end:[11,21]},
+    {sign:'sagittarius',start:[11,22],end:[12,21]},
+    {sign:'capricorn',start:[12,22],end:[12,31]}
+  ];
+  for (var i = 0; i < signs.length; i++) {
+    var s = signs[i];
+    var afterStart = month > s.start[0] || (month === s.start[0] && day >= s.start[1]);
+    var beforeEnd = month < s.end[0] || (month === s.end[0] && day <= s.end[1]);
+    if (afterStart && beforeEnd) return s.sign;
+  }
+  return 'capricorn';
+}
 
 function escapeHtml(str) {
   var div = document.createElement('div');
@@ -372,11 +367,17 @@ async function handleSubmit(e) {
   var petName = document.getElementById('petName').value.trim();
   var species = document.getElementById('species').value;
   var dob = document.getElementById('dob').value;
-  var email = document.getElementById('email').value.trim();
+  var email = document.getElementById('email').value.trim().toLowerCase();
   var errorEl = document.getElementById('errorMsg');
 
   if (!petName || !dob || !email) {
     errorEl.textContent = 'Please fill in all fields.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email)) {
+    errorEl.textContent = 'Please enter a valid email address.';
     errorEl.style.display = 'block';
     return;
   }
@@ -387,53 +388,142 @@ async function handleSubmit(e) {
   document.getElementById('loadingName').textContent = petName;
   document.getElementById('loadingState').classList.add('show');
 
-  try {
-    var res = await fetch(SUPABASE_URL + '/functions/v1/generate-free-snapshot', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ petName: petName, species: species, dateOfBirth: dob, email: email }),
-    });
+  // Track subscriber (non-blocking)
+  fetch(SUPABASE_URL + '/functions/v1/track-subscriber', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+    },
+    body: JSON.stringify({email: email, petName: petName, event: 'intake_started', source: 'free_reading'})
+  }).catch(function(){});
 
-    var data = await res.json();
+  // Small delay for dramatic effect
+  await new Promise(function(r){setTimeout(r, 1200)});
 
-    if (!res.ok || data.error) {
-      throw new Error(data.error || 'Something went wrong');
-    }
+  // Calculate sun sign
+  var parts = dob.split('-');
+  var month = parseInt(parts[1]);
+  var day = parseInt(parts[2]);
+  var signKey = getSunSign(month, day);
 
-    // Populate results
-    document.getElementById('resultTitle').textContent = petName + '\u2019s Cosmic Blueprint';
-    document.getElementById('resultSun').textContent = data.sunSign;
-    document.getElementById('resultSunDeg').textContent = data.sunDegree + '\u00B0 ' + data.sunElement;
-    document.getElementById('resultMoon').textContent = data.moonSign;
-    document.getElementById('resultMoonDeg').textContent = data.moonDegree + '\u00B0 ' + data.moonElement;
-    document.getElementById('resultArchetype').textContent = data.sunTitle;
-    document.getElementById('resultTraits').textContent = data.sunTraits;
-    document.getElementById('resultLove').textContent = data.sunLove;
-    document.getElementById('resultMood').textContent = data.moonMood;
-    document.getElementById('resultQuirk').textContent = data.sunQuirk;
-
-    document.getElementById('upsellTitle').textContent = 'This is just 2 of ' + petName + '\u2019s 8 placements';
-    document.getElementById('upsellText').textContent =
-      petName + '\u2019s full soul reading maps every planet in their birth chart, reveals their past life, love language, soul contract with you, cosmic crimes, dream job, and includes a letter written from their soul to yours. It\u2019s the kind of thing that makes people cry (the good kind).';
-
-    // Show result
-    document.getElementById('loadingState').classList.remove('show');
-    document.getElementById('resultSection').classList.add('show');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  } catch (err) {
+  if (!zodiacData || !zodiacData[signKey]) {
+    errorEl.textContent = 'Something went wrong. Please try again.';
+    errorEl.style.display = 'block';
     document.getElementById('loadingState').classList.remove('show');
     document.getElementById('formCard').style.display = 'block';
     document.getElementById('submitBtn').disabled = false;
-    errorEl.textContent = err.message || 'Something went wrong. Please try again.';
-    errorEl.style.display = 'block';
+    return;
   }
+
+  var z = zodiacData[signKey];
+  var safeName = escapeHtml(petName);
+
+  // Populate results
+  document.getElementById('rSymbol').textContent = z.symbol;
+  document.getElementById('rName').textContent = safeName;
+  document.getElementById('rSignName').textContent = z.sign + ' ' + z.symbol;
+  document.getElementById('rDates').textContent = z.dates + ' \u2022 ' + z.element + ' \u2022 ' + z.modality;
+
+  document.getElementById('rSunSign').textContent = z.sign;
+  document.getElementById('rSunElement').textContent = z.elementEmoji + ' ' + z.element;
+  document.getElementById('rElement').textContent = z.elementEmoji;
+  document.getElementById('rModality').textContent = z.modality;
+  document.getElementById('rRuler').textContent = z.rulingPlanet;
+
+  document.getElementById('rArchetype').textContent = z.personality.title;
+  document.getElementById('rArchetypeDesc').textContent = z.personality.summary;
+
+  document.getElementById('rPersonality').textContent = z.personality.summary;
+  var badgesHtml = '';
+  z.personality.traits.forEach(function(t) {
+    badgesHtml += '<span style="display:inline-block;padding:4px 12px;border-radius:20px;background:var(--cream2);border:1px solid var(--cream3);font-size:0.72rem;color:var(--earth);font-family:-apple-system,BlinkMacSystemFont,sans-serif">' + escapeHtml(t) + '</span>';
+  });
+  document.getElementById('rTraitBadges').innerHTML = badgesHtml;
+
+  document.getElementById('rLoveStyle').textContent = z.howTheyLove.style;
+  document.getElementById('rLoveDesc').textContent = z.howTheyLove.description;
+  var signsHtml = z.howTheyLove.signs.map(function(s){return '\u2022 ' + s}).join('<br>');
+  document.getElementById('rLoveSigns').innerHTML = signsHtml;
+
+  document.getElementById('rNeedTitle').textContent = z.whatTheyNeed.need;
+  document.getElementById('rNeedDesc').textContent = z.whatTheyNeed.description;
+
+  document.getElementById('rQuirkLabel').textContent = '5 Things That Are SO ' + z.sign;
+  var quirksHtml = '';
+  z.soTheirSign.forEach(function(q) {
+    quirksHtml += '<li>' + escapeHtml(q) + '</li>';
+  });
+  document.getElementById('rQuirks').innerHTML = quirksHtml;
+
+  document.getElementById('rCompat').textContent = safeName + ' vibes best with ' + z.compatibleSigns.join(', ') + ' owners. If that\'s you, you already know — the connection is cosmic.';
+
+  // Celebrity birthdays with Wikipedia photos
+  var mmdd = String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+  if (celebData && celebData[mmdd] && celebData[mmdd].length > 0) {
+    var celebs = celebData[mmdd];
+    document.getElementById('celebTitle').textContent = safeName + ' shares a birthday with:';
+
+    // Render with initial placeholders first
+    var cHtml = '';
+    var wikiNames = [];
+    celebs.forEach(function(c, i) {
+      var parts = c.split(' \u2014 ');
+      var name = parts[0] || c;
+      var known = parts[1] || '';
+      var initial = name.charAt(0).toUpperCase();
+      var wikiKey = name.replace(/ /g, '_');
+      wikiNames.push(wikiKey);
+      cHtml += '<li id="celeb-' + i + '">' +
+        '<div class="celeb-initial" id="celeb-img-' + i + '">' + escapeHtml(initial) + '</div>' +
+        '<div class="celeb-info"><span class="celeb-name">' + escapeHtml(name) + '</span>' +
+        (known ? '<br><span class="celeb-known">' + escapeHtml(known) + '</span>' : '') +
+        '</div></li>';
+    });
+    document.getElementById('celebList').innerHTML = cHtml;
+    document.getElementById('celebCard').style.display = 'block';
+
+    // Fetch Wikipedia thumbnails (non-blocking, free, no key)
+    if (wikiNames.length > 0) {
+      var titles = wikiNames.join('|');
+      fetch('https://en.wikipedia.org/w/api.php?action=query&titles=' + encodeURIComponent(titles) + '&prop=pageimages&pithumbsize=80&format=json&origin=*')
+        .then(function(r){return r.json()})
+        .then(function(data) {
+          var pages = data.query && data.query.pages || {};
+          // Map normalised titles back to our index
+          var normMap = {};
+          if (data.query && data.query.normalized) {
+            data.query.normalized.forEach(function(n){ normMap[n.to] = n.from; });
+          }
+          Object.values(pages).forEach(function(page) {
+            if (page.thumbnail && page.thumbnail.source) {
+              var pageTitle = page.title.replace(/ /g, '_');
+              var origTitle = normMap[page.title] ? normMap[page.title].replace(/ /g, '_') : pageTitle;
+              var idx = wikiNames.indexOf(origTitle);
+              if (idx === -1) idx = wikiNames.indexOf(pageTitle);
+              if (idx >= 0) {
+                var el = document.getElementById('celeb-img-' + idx);
+                if (el) {
+                  el.outerHTML = '<img class="celeb-img" src="' + page.thumbnail.source + '" alt="" loading="lazy">';
+                }
+              }
+            }
+          });
+        }).catch(function(){});
+    }
+  }
+
+  // Upsell
+  document.getElementById('upsellTitle').textContent = 'This was just ' + safeName + '\'s Sun sign';
+  document.getElementById('upsellText').textContent =
+    'The full reading maps all 14 cosmic placements in ' + safeName + '\'s chart \u2014 Moon, Mercury, Venus, Mars, and more. It reveals their past life, love language, cosmic crimes, dream job, dating profile, and ends with a letter written from ' + safeName + '\'s soul to yours. It\u2019s the kind of thing that makes people cry (the good kind).';
+
+  // Show results
+  document.getElementById('loadingState').classList.remove('show');
+  document.getElementById('resultsSection').classList.add('show');
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 </script>
-
 </body>
 </html>

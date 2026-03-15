@@ -93,4 +93,82 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 - [ ] Deploy new/updated edge functions: generate-free-snapshot, stripe-webhook, generate-weekly-horoscopes, process-email-nurture
 - [ ] Push code and deploy frontend (free-chart.html, soul-chat.html, App.tsx)
 
-*Last updated: 2026-03-13*
+---
+
+## Current Session: Pet Photo + Email + Test Run (2026-03-14)
+
+**Status:** Test report generating, email template deployed
+
+### What's been done:
+
+1. **Client-side image compression** (`PetPhotoUpload.tsx`, `MultiPetPhotoUpload.tsx`)
+   - Added `browser-image-compression` — auto-compresses to 800KB/JPEG
+   - Handles HEIC/HEIF (iPhone photos), accepts up to 50MB input
+   - Cache bumped from 1hr to 1yr (pet photos never change)
+   - Updated both single and multi-pet upload components
+
+2. **AI Vision Analysis** (`worker/worker.ts`)
+   - Worker now calls Claude Haiku vision on the pet photo before report generation
+   - Extracts: coat color, markings, expression, size, distinguishing features
+   - Description injected into system prompt so report prose references ACTUAL appearance
+   - Cost: ~$0.003 per report (negligible)
+   - Non-fatal: if vision fails, report generates normally without photo description
+
+3. **Pet photo in CinematicReveal** (`CinematicReveal.tsx`)
+   - Added circular pet photo with gold border + breathing ring animation
+   - Appears in Stage 2 (name reveal) — photo fades in above the pet's name
+   - Prop passed from ViewReport via `petPhotoUrl`
+
+4. **Green active dot on SoulSpeak avatars** (`soul-chat.html`)
+   - Header avatar already had green dot — fixed `overflow:hidden` clipping
+   - Added green dot to welcome icon (88px) and sidebar avatar (52px)
+   - `has-photo` class added to sidebar when photo loaded
+
+5. **Email template upgrade** (`send-report-email/index.ts`)
+   - Rewrote with deeply loving, grateful language
+   - Added pet photo in circular frame with gold border + glow
+   - Sun sign badge, warmer "what awaits inside" section
+   - Subject: "Thank you for choosing Little Souls — {name}'s reading is ready"
+   - Footer: "With love and gratitude, The Little Souls family"
+   - Worker now passes `petPhotoUrl` to email function
+   - Deployed to Supabase
+
+6. **Test report: Teddy the Cockapoo**
+   - Report ID: `a415952a-3e98-4fe5-ba02-711b2b5069d0`
+   - Email: testreports1.pacifier967@passmail.net
+   - Details: boy, Cockapoo, DOB March 3 2019, London UK, discover mode
+   - Soul type: old-soul, Superpower: empathy, Stranger: charmer
+   - Photo uploaded to Supabase storage
+   - Worker deployed to DO droplet, generation triggered
+
+7. **Pluto ephemeris fix** (`ephemeris-v2.ts`)
+   - Old formula gave Scorpio 28° — completely wrong for 2019
+   - Replaced with pre-computed lookup table (monthly 1990-2030, verified vs Swiss Ephemeris)
+   - March 2019 now correctly gives Capricorn 21°
+
+8. **Vision model fix** — Claude Haiku via Bedrock doesn't support images
+   - Switched to Gemini 2.0 Flash (`google/gemini-2.0-flash-001`) — fast, cheap, great at image description
+
+9. **Email colors aligned to landing page**
+   - Background: #FFFDF5 (cream), CTA: #bf524a (rose), Accent: #c4a265 (gold)
+   - Headings: #141210, Body: #5a4a42, Inner card: #faf4e8 with #e8ddd0 border
+
+### Audit results (final report fa6806fe):
+- Pluto: Capricorn 21° — FIXED
+- Vision refs: silver 6x, curl 7x, gray 6x, expressive eyes 1x, gentle 20x
+- Pronouns: he=123, she=0 — perfect
+- Teddy 115x, Cockapoo 19x — consistent
+- All sections present, lucky number matches name vibration
+
+### Deployed:
+- [x] worker.ts + ephemeris-v2.ts → DO droplet (scp)
+- [x] send-report-email → Supabase (npx supabase functions deploy)
+
+### Still needs (pick up tomorrow):
+- [ ] Apply warm email style to ALL nurture emails (process-email-nurture 8 templates)
+- [ ] Mobile optimization pass (landing → checkout → report → SoulSpeak)
+- [ ] Push code to git + deploy frontend to Vercel (compression, CinematicReveal photo changes)
+- [ ] End-to-end Stripe flow testing (10 purchase paths)
+- [ ] Phase 3: Horoscope archive UI, generation error monitoring
+
+*Last updated: 2026-03-14 evening*

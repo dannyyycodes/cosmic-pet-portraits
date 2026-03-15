@@ -227,6 +227,7 @@ try {
   const soulType: string = (petData.soul_type ?? petData.soulType ?? "").trim();
   const superpower: string = (petData.superpower ?? "").trim();
   const strangerReaction: string = (petData.stranger_reaction ?? petData.strangerReaction ?? "").trim();
+  const petPhotoUrl: string = (reportRow.pet_photo_url ?? petData.pet_photo_url ?? petData.petPhotoUrl ?? "").trim();
 
   const languageNames: Record<string, string> = {
     en: 'English', es: 'Spanish', de: 'German',
@@ -235,6 +236,44 @@ try {
   const targetLanguage = languageNames[language] || 'English';
 
   console.log("[WORKER] Processing for:", name, "Mode:", occasionMode, "Language:", targetLanguage);
+
+  // ─── AI Vision Analysis of Pet Photo ──────────────────────────────────────
+  let petPhotoDescription = "";
+  if (petPhotoUrl) {
+    try {
+      console.log("[WORKER] Analyzing pet photo via vision...", petPhotoUrl);
+      const visionRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://littlesouls.app",
+          "X-Title": "Little Souls Vision",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.0-flash-001",
+          max_tokens: 300,
+          messages: [{
+            role: "user",
+            content: [
+              { type: "image_url", image_url: { url: petPhotoUrl } },
+              { type: "text", text: `Describe this pet in 2-3 sentences. Focus on: coat color and pattern, distinguishing physical features, expression/demeanor, and approximate size. Be specific and warm. Do not mention the background or any humans.` },
+            ],
+          }],
+        }),
+      });
+      if (visionRes.ok) {
+        const visionData = await visionRes.json();
+        petPhotoDescription = visionData.choices?.[0]?.message?.content?.trim() || "";
+        console.log("[WORKER] Vision analysis:", petPhotoDescription);
+      } else {
+        const errBody = await visionRes.text();
+        console.warn("[WORKER] Vision API returned:", visionRes.status, errBody);
+      }
+    } catch (e) {
+      console.warn("[WORKER] Vision analysis failed (non-fatal):", e);
+    }
+  }
 
   // Parse date and calculate all astrological positions
   const dob = new Date(dateOfBirth);
@@ -586,7 +625,9 @@ CRITICAL CONTEXT:
 - Emotional Tone: ${modeEmotionalGuidance[occasionMode]}
 - Pet: ${name}, a ${gender === 'boy' ? 'male' : 'female'} ${breed || species}
 - Species: ${species} - ${speciesContext}
-- Breed: ${breed || 'mixed/unknown'}
+- Breed: ${breed || 'mixed/unknown'}${petPhotoDescription ? `
+- ACTUAL APPEARANCE (from their photo): ${petPhotoDescription}
+  → Use these real physical details throughout the report. Reference their actual coat color, markings, expression, and features wherever relevant. Make descriptions feel personal and specific to THIS pet, not generic.` : ''}
 - Birth: ${dob.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}${birthTime ? ` at ${birthTime}` : ' (time unknown)'}
 - Location: ${birthCoords ? birthCoords.displayName : location || 'Unknown'}
 - ${birthTimeNote}
@@ -1452,6 +1493,7 @@ Make every section feel personal, specific, and magical. The fun sections should
           email: reportRow.email,
           petName: name,
           sunSign,
+          petPhotoUrl,
         }),
       }
     );

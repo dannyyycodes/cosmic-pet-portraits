@@ -1,0 +1,410 @@
+{
+  "aries": {
+    "sign": "Aries",
+    "symbol": "♈",
+    "dates": "Mar 21 – Apr 19",
+    "element": "Fire",
+    "elementEmoji": "🔥",
+    "modality": "Cardinal",
+    "rulingPlanet": "Mars",
+    "personality": {
+      "title": "The Fearless Fireball",
+      "summary": "Bold, impatient, and absolutely convinced they're in charge. An Aries pet doesn't walk into a room — they own it.",
+      "traits": ["Courageous", "Energetic", "Impulsive", "Competitive", "Fiercely loyal"]
+    },
+    "soTheirSign": [
+      "Sprints full speed at literally nothing, then looks at you like YOU'RE the weird one",
+      "Has to be first through every door, every time, no exceptions",
+      "Picks fights with animals three times their size and genuinely thinks they'll win",
+      "Gets bored of a new toy in approximately 4 minutes",
+      "Somehow turns every walk into an extreme sport"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Physical, intense, and impossible to ignore",
+      "description": "An Aries pet loves you like a freight train — full speed, no brakes. They'll body-slam you with affection, follow you everywhere, and physically place themselves between you and anything they consider a threat. Their love language is presence. Aggressive, enthusiastic presence.",
+      "signs": ["Jumps on you the second you walk in", "Brings you things (whether you want them or not)", "Sleeps pressed directly against you, preferably on you"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Adventure",
+      "description": "Aries pets wilt without stimulation. They need new routes, new challenges, new things to conquer. A bored Aries is a destructive Aries. Give them a mission and they'll give you their whole heart."
+    },
+    "compatibleSigns": ["Leo", "Sagittarius", "Gemini", "Aquarius"],
+    "famousPets": ["Lassie", "Buddy (Air Bud)"]
+  },
+  "taurus": {
+    "sign": "Taurus",
+    "symbol": "♉",
+    "dates": "Apr 20 – May 20",
+    "element": "Earth",
+    "elementEmoji": "🌍",
+    "modality": "Fixed",
+    "rulingPlanet": "Venus",
+    "personality": {
+      "title": "The Royal Couch Potato",
+      "summary": "Stubborn, food-obsessed, and deeply committed to comfort. A Taurus pet has never met a nap they didn't love.",
+      "traits": ["Loyal", "Stubborn", "Food-motivated", "Gentle", "Routine-loving"]
+    },
+    "soTheirSign": [
+      "Will not move from their spot. Not for you, not for anyone, not for a fire drill",
+      "Knows the exact sound of their treat bag opening from three rooms away",
+      "Has claimed one specific cushion/bed/chair and will stare at you until you move",
+      "Takes the scenic route on walks because rushing is beneath them",
+      "Shows affection by sitting on you — all of their weight, no apology"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Steady, warm, and always within arm's reach",
+      "description": "A Taurus pet loves through consistency. They're the one who's always there — same spot on the couch, same greeting at the door, same gentle lean against your leg when you're having a bad day. Their love isn't flashy, but it's the most reliable thing in your life.",
+      "signs": ["Leans their full weight against you", "Follows your routine like a shadow", "Brings you their favourite thing (the ultimate Taurus honour)"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Consistency",
+      "description": "Taurus pets thrive on routine. Same walk time, same feeding time, same spot on the sofa. Change stresses them out. Give them predictability and they'll give you the most steadfast companionship you've ever known."
+    },
+    "compatibleSigns": ["Virgo", "Capricorn", "Cancer", "Pisces"],
+    "famousPets": ["Garfield", "Winnie the Pooh"]
+  },
+  "gemini": {
+    "sign": "Gemini",
+    "symbol": "♊",
+    "dates": "May 21 – Jun 20",
+    "element": "Air",
+    "elementEmoji": "💨",
+    "modality": "Mutable",
+    "rulingPlanet": "Mercury",
+    "personality": {
+      "title": "The Chaos Communicator",
+      "summary": "Noisy, curious, and never the same pet two days in a row. A Gemini pet has opinions and they WILL share them.",
+      "traits": ["Chatty", "Curious", "Restless", "Clever", "Two-faced (lovingly)"]
+    },
+    "soTheirSign": [
+      "Has a different vocal sound for every single emotion and expects you to learn them all",
+      "Can go from zoomies to dead asleep in under 30 seconds",
+      "Investigates every single bag, box, and pocket that enters the house",
+      "Learns tricks suspiciously fast, then pretends not to know them when convenient",
+      "Has genuinely tried to communicate with you using eye contact alone"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Chatty, playful, and endlessly entertaining",
+      "description": "A Gemini pet loves through interaction. They want to talk to you, play with you, show you things, and generally narrate their entire existence in your direction. Silence worries them. If they're making noise at you, that's love.",
+      "signs": ["Talks at you constantly", "Brings you random objects as conversation starters", "Does that head-tilt thing when you speak, like they're genuinely processing"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Mental stimulation",
+      "description": "A bored Gemini will redecorate your house (not in a good way). They need puzzle toys, new experiences, and someone who actually talks back to them. Engage their mind and they'll never stop making you laugh."
+    },
+    "compatibleSigns": ["Libra", "Aquarius", "Aries", "Leo"],
+    "famousPets": ["Toto (Wizard of Oz)", "Salem (Sabrina)"]
+  },
+  "cancer": {
+    "sign": "Cancer",
+    "symbol": "♋",
+    "dates": "Jun 21 – Jul 22",
+    "element": "Water",
+    "elementEmoji": "💧",
+    "modality": "Cardinal",
+    "rulingPlanet": "Moon",
+    "personality": {
+      "title": "The Emotional Bodyguard",
+      "summary": "Sensitive, clingy, and will literally absorb your emotions. A Cancer pet feels everything — especially your feelings.",
+      "traits": ["Nurturing", "Moody", "Protective", "Intuitive", "Home-loving"]
+    },
+    "soTheirSign": [
+      "Can tell you're upset before you even know you're upset",
+      "Gets genuinely offended if you pay attention to another animal",
+      "Has a comfort object they cannot sleep without",
+      "Becomes a different pet entirely around strangers (shy, cautious, suspicious)",
+      "Treats your bed like sacred ground and defends it accordingly"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Deep, emotional, and almost psychic",
+      "description": "A Cancer pet's love is the most emotionally intelligent thing you'll ever experience. They don't just sense your mood — they respond to it. Sad? They're in your lap. Anxious? They're pressed against you. Happy? They mirror it right back. It's like living with a furry therapist.",
+      "signs": ["Appears out of nowhere when you're crying", "Tucks themselves into the smallest space next to you", "Guards you while you sleep"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Emotional safety",
+      "description": "Cancer pets need to feel secure. Loud voices, chaos, and unpredictability stress them deeply. Give them a calm, loving home and they'll be the most devoted companion you could imagine."
+    },
+    "compatibleSigns": ["Scorpio", "Pisces", "Taurus", "Virgo"],
+    "famousPets": ["Old Yeller", "Marley (Marley & Me)"]
+  },
+  "leo": {
+    "sign": "Leo",
+    "symbol": "♌",
+    "dates": "Jul 23 – Aug 22",
+    "element": "Fire",
+    "elementEmoji": "🔥",
+    "modality": "Fixed",
+    "rulingPlanet": "Sun",
+    "personality": {
+      "title": "The Main Character",
+      "summary": "Dramatic, generous, and fully aware of how good they look. A Leo pet doesn't want your attention — they require it.",
+      "traits": ["Dramatic", "Warm-hearted", "Proud", "Generous", "Attention-loving"]
+    },
+    "soTheirSign": [
+      "Has an actual signature pose they strike when they know you're watching",
+      "Will sulk — visibly, dramatically — if they feel ignored",
+      "Positions themselves in the exact centre of any room, group, or photo",
+      "Greets guests like a celebrity greeting fans",
+      "Has never once been subtle about anything in their entire life"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Grand, warm, and impossible to miss",
+      "description": "A Leo pet loves you like you're their favourite person in the world (because you are, and they need you to know it). Their affection is big, warm, and public. They'll show off for you, protect you, and make you feel like the most important human alive.",
+      "signs": ["Performs for you — tricks, rolls, zoomies — and looks for applause", "Puts their paw on you possessively when others are around", "Literally beams when you praise them"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Recognition",
+      "description": "Leo pets need to feel special. Tell them they're beautiful. Praise them when they do literally anything. A Leo who feels seen is the most loyal, generous, joyful companion alive. A Leo who feels ignored will make sure you regret it."
+    },
+    "compatibleSigns": ["Aries", "Sagittarius", "Gemini", "Libra"],
+    "famousPets": ["Simba (The Lion King)", "Beethoven"]
+  },
+  "virgo": {
+    "sign": "Virgo",
+    "symbol": "♍",
+    "dates": "Aug 23 – Sep 22",
+    "element": "Earth",
+    "elementEmoji": "🌍",
+    "modality": "Mutable",
+    "rulingPlanet": "Mercury",
+    "personality": {
+      "title": "The Perfectionist Angel",
+      "summary": "Clean, observant, and quietly judging you. A Virgo pet has standards — and you may or may not be meeting them.",
+      "traits": ["Observant", "Helpful", "Particular", "Devoted", "Anxious"]
+    },
+    "soTheirSign": [
+      "Stares at you with an expression that clearly says 'I would have done that differently'",
+      "Has very specific preferences about food, sleeping position, and walking route — and will not compromise",
+      "Grooms themselves obsessively and looks personally offended when they get dirty",
+      "Notices every tiny change in the house and investigates it thoroughly",
+      "Brings you things they think you need (shoes, blankets, their lead at walk time)"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Quiet, practical, and shown through actions",
+      "description": "A Virgo pet won't smother you with affection — they'll show love through service. They fetch your slippers. They alert you to the postman. They herd the children. Their love is useful, practical, and always paying attention to what you need before you ask.",
+      "signs": ["Checks on you throughout the day", "Brings you things without being asked", "Waits patiently while you're busy, then appears the second you're free"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "A job to do",
+      "description": "Virgo pets need purpose. They want to be helpful. Give them tasks, training, and structure and they'll be the most dependable companion you've ever had. Without purpose, they get anxious."
+    },
+    "compatibleSigns": ["Taurus", "Capricorn", "Cancer", "Scorpio"],
+    "famousPets": ["Rin Tin Tin", "Hachikō"]
+  },
+  "libra": {
+    "sign": "Libra",
+    "symbol": "♎",
+    "dates": "Sep 23 – Oct 22",
+    "element": "Air",
+    "elementEmoji": "💨",
+    "modality": "Cardinal",
+    "rulingPlanet": "Venus",
+    "personality": {
+      "title": "The Social Diplomat",
+      "summary": "Charming, indecisive, and deeply committed to keeping the peace. A Libra pet wants everyone to get along — especially with them.",
+      "traits": ["Charming", "Social", "People-pleasing", "Indecisive", "Harmonious"]
+    },
+    "soTheirSign": [
+      "Freezes with genuine anxiety when two people in the house are arguing",
+      "Is friends with literally every animal and human they've ever met",
+      "Cannot choose between two toys and will sit staring at both for an unreasonable amount of time",
+      "Has perfected the art of looking adorable to get out of trouble",
+      "Physically positions themselves between people to maintain group harmony"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Gentle, balanced, and always seeking closeness",
+      "description": "A Libra pet loves through togetherness. They don't need to be ON you — just near you. Same room, same sofa, same vibe. They're the pet who matches your energy perfectly, calms down when you're calm, and perks up when you do. They're your emotional mirror.",
+      "signs": ["Always in the same room as you, never the centre of attention but always present", "Rests their head on you gently", "Looks at you with an expression that says 'we're a team'"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Companionship",
+      "description": "Libra pets cannot handle being alone. They need company — yours, another pet's, anyone's. Loneliness genuinely distresses them. If you can give them partnership, they'll give you the most harmonious relationship of your life."
+    },
+    "compatibleSigns": ["Gemini", "Aquarius", "Leo", "Sagittarius"],
+    "famousPets": ["Lady (Lady and the Tramp)", "Babe"]
+  },
+  "scorpio": {
+    "sign": "Scorpio",
+    "symbol": "♏",
+    "dates": "Oct 23 – Nov 21",
+    "element": "Water",
+    "elementEmoji": "💧",
+    "modality": "Fixed",
+    "rulingPlanet": "Pluto",
+    "personality": {
+      "title": "The Intense One",
+      "summary": "Loyal, secretive, and watching you with an intensity that borders on unsettling. A Scorpio pet has depths you'll never fully understand.",
+      "traits": ["Intense", "Loyal", "Mysterious", "Possessive", "Perceptive"]
+    },
+    "soTheirSign": [
+      "Stares at you with an intensity that makes you wonder what they know",
+      "Has a hiding spot you've never found and will never find",
+      "Holds grudges. Actually holds grudges. You'll know when you're forgiven",
+      "Bonds with one person so deeply it's almost unsettling to everyone else",
+      "Has 100% caught you doing something embarrassing and you can see it in their eyes"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Fiercely, exclusively, and with their entire soul",
+      "description": "When a Scorpio pet loves you, you become their entire world. It's not casual. It's not shared easily. They chose you, and that choice is permanent. Their loyalty is almost frightening in its intensity — they would genuinely do anything for you.",
+      "signs": ["Follows you and only you", "Gets visibly jealous when you give attention elsewhere", "Watches over you while you sleep like a tiny, furry guardian"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Trust",
+      "description": "Scorpio pets need to know they're safe with you. Betrayal (rehoming threats, harsh discipline, inconsistency) breaks something in them that's hard to repair. Earn their trust and you'll have the most devoted companion alive."
+    },
+    "compatibleSigns": ["Cancer", "Pisces", "Virgo", "Capricorn"],
+    "famousPets": ["Church (Pet Sematary)", "Binx (Hocus Pocus)"]
+  },
+  "sagittarius": {
+    "sign": "Sagittarius",
+    "symbol": "♐",
+    "dates": "Nov 22 – Dec 21",
+    "element": "Fire",
+    "elementEmoji": "🔥",
+    "modality": "Mutable",
+    "rulingPlanet": "Jupiter",
+    "personality": {
+      "title": "The Happy Wanderer",
+      "summary": "Adventurous, clumsy, and pathologically optimistic. A Sagittarius pet treats every day like the best day of their life.",
+      "traits": ["Adventurous", "Optimistic", "Clumsy", "Freedom-loving", "Honest"]
+    },
+    "soTheirSign": [
+      "Has escaped from the garden/house/lead at least once and came back like nothing happened",
+      "Gets genuinely excited about things that have happened every single day of their life (walks, dinner, you coming home)",
+      "Crashes into furniture with zero shame or learning curve",
+      "Makes friends with strangers faster than you do",
+      "Cannot be contained, restrained, or convinced to stay still for a photo"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Joyful, physical, and overwhelmingly enthusiastic",
+      "description": "A Sagittarius pet loves like every reunion is the best moment of their life. They bring pure, unfiltered joy to everything. Their love isn't complicated — it's just big, happy, and constant. Being loved by a Sag pet is like having a personal cheerleader who thinks you're the greatest thing that's ever existed.",
+      "signs": ["Full-body wiggles when they see you", "Brings you outdoor treasures (sticks, leaves, things you'd rather not identify)", "Wants to go everywhere with you, always"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Freedom",
+      "description": "Sagittarius pets need space to explore. Keeping them cooped up is like caging a bird. Give them long walks, new places, and off-lead time when safe. Their spirit needs room to run."
+    },
+    "compatibleSigns": ["Aries", "Leo", "Libra", "Aquarius"],
+    "famousPets": ["Dug (Up)", "Scooby-Doo"]
+  },
+  "capricorn": {
+    "sign": "Capricorn",
+    "symbol": "♑",
+    "dates": "Dec 22 – Jan 19",
+    "element": "Earth",
+    "elementEmoji": "🌍",
+    "modality": "Cardinal",
+    "rulingPlanet": "Saturn",
+    "personality": {
+      "title": "The Old Soul",
+      "summary": "Dignified, patient, and suspiciously wise. A Capricorn pet has the energy of a retired professor who's seen it all.",
+      "traits": ["Disciplined", "Patient", "Dignified", "Reserved", "Quietly ambitious"]
+    },
+    "soTheirSign": [
+      "Looked like an old man even as a baby",
+      "Judges other animals' behaviour with visible disapproval",
+      "Has a daily routine they invented themselves and gets annoyed when you disrupt it",
+      "Sits with a posture that suggests they're about to deliver a TED talk",
+      "Earned your trust slowly, deliberately, and on their own terms"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Quiet, steady, and earned over time",
+      "description": "A Capricorn pet doesn't give love away freely. You earn it. But once earned, it's the most solid, dependable love you'll ever know. They won't smother you — they'll simply always be there. Every morning, every evening, same spot, same quiet devotion. It's love built to last.",
+      "signs": ["Sits near you in comfortable silence", "Checks on you with a single look, then goes back to their business", "Chooses you over food (the highest Capricorn honour)"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Respect",
+      "description": "Capricorn pets need to be treated with dignity. Don't baby-talk them. Don't dress them up (unless they initiate it). Treat them like the wise, capable being they are and they'll respect you right back."
+    },
+    "compatibleSigns": ["Taurus", "Virgo", "Scorpio", "Pisces"],
+    "famousPets": ["Grumpy Cat", "Jiji (Kiki's Delivery Service)"]
+  },
+  "aquarius": {
+    "sign": "Aquarius",
+    "symbol": "♒",
+    "dates": "Jan 20 – Feb 18",
+    "element": "Air",
+    "elementEmoji": "💨",
+    "modality": "Fixed",
+    "rulingPlanet": "Uranus",
+    "personality": {
+      "title": "The Loveable Weirdo",
+      "summary": "Independent, eccentric, and doing things no other animal has ever thought to do. An Aquarius pet is genuinely one of a kind.",
+      "traits": ["Independent", "Eccentric", "Friendly", "Unpredictable", "Innovative"]
+    },
+    "soTheirSign": [
+      "Does something so bizarre on a daily basis that you've stopped questioning it",
+      "Likes people but on their own terms — comes to you when THEY decide, not when called",
+      "Has figured out how to open/reach/access something they absolutely should not have",
+      "Sleeps in positions that look physically impossible and genuinely uncomfortable",
+      "Reacts to normal situations in completely unexpected ways"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Unconventional, independent, but deeply meaningful",
+      "description": "An Aquarius pet won't love you the way other pets do. They'll invent their own way. Maybe it's a specific sound they only make for you. Maybe it's the way they bring you weird gifts. Maybe it's the 3am check-in where they just stare at you, confirm you're alive, and leave. It's weird. It's perfect. It's theirs.",
+      "signs": ["Has a unique greeting ritual they do for no one else", "Shows affection at unexpected moments", "Respects your space but always knows where you are"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Acceptance",
+      "description": "Aquarius pets need you to let them be weird. Don't try to make them 'normal.' Celebrate the strange little rituals, the odd habits, the inexplicable preferences. The more you accept their uniqueness, the more they'll let you into their world."
+    },
+    "compatibleSigns": ["Gemini", "Libra", "Aries", "Sagittarius"],
+    "famousPets": ["Hedwig (Harry Potter)", "Brian Griffin"]
+  },
+  "pisces": {
+    "sign": "Pisces",
+    "symbol": "♓",
+    "dates": "Feb 19 – Mar 20",
+    "element": "Water",
+    "elementEmoji": "💧",
+    "modality": "Mutable",
+    "rulingPlanet": "Neptune",
+    "personality": {
+      "title": "The Gentle Dreamer",
+      "summary": "Sensitive, intuitive, and permanently in their own little world. A Pisces pet feels everything — and forgives everything too.",
+      "traits": ["Empathic", "Gentle", "Dreamy", "Intuitive", "Forgiving"]
+    },
+    "soTheirSign": [
+      "Stares out the window for 20 minutes at a time watching absolutely nothing",
+      "Gets their feelings hurt and you can literally see it on their face",
+      "Falls asleep in the most inconvenient places because they just drift off",
+      "Reacts to music — actually reacts, like they're feeling it",
+      "Has an uncanny ability to appear in your lap the exact moment you need comfort"
+    ],
+    "howTheyLove": {
+      "title": "How They Show Love",
+      "style": "Gentle, intuitive, and almost telepathic",
+      "description": "A Pisces pet doesn't just love you — they feel you. They absorb your emotions and reflect them back with compassion. Bad day? They know. They're already there, pressed against you, offering the kind of silent comfort that no human can match. Their love is the softest, most healing thing you'll ever experience.",
+      "signs": ["Appears when you're sad without being called", "Looks at you with eyes that seem to understand everything", "Gently places their head on you during quiet moments"]
+    },
+    "whatTheyNeed": {
+      "title": "The One Thing They Need From You",
+      "need": "Gentleness",
+      "description": "Pisces pets are emotionally porous — they absorb the energy around them. Harsh tones, stress, and conflict physically affect them. Give them a peaceful environment and gentle handling, and they'll be the most healing presence in your life."
+    },
+    "compatibleSigns": ["Cancer", "Scorpio", "Taurus", "Capricorn"],
+    "famousPets": ["Nemo", "Boo (the Pomeranian)"]
+  }
+}

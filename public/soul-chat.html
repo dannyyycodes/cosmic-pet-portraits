@@ -66,11 +66,11 @@ body::after {
   border:2px solid var(--gold);
   display:flex; align-items:center; justify-content:center;
   font-size:1.15rem; flex-shrink:0;
-  overflow:hidden; position:relative;
+  position:relative;
   box-shadow:0 0 0 3px rgba(196,162,101,0.08);
 }
 .chat-pet-avatar img {
-  width:100%; height:100%; object-fit:cover;
+  width:100%; height:100%; object-fit:cover; border-radius:50%;
 }
 .chat-pet-avatar.has-photo {
   border-color:var(--gold);
@@ -194,14 +194,20 @@ body::after {
   font-size:2rem; margin-bottom:12px;
   width:88px; height:88px; border-radius:50%; margin-left:auto; margin-right:auto;
   display:flex; align-items:center; justify-content:center;
-  overflow:hidden; position:relative;
+  position:relative;
   background:linear-gradient(135deg, rgba(196,162,101,0.08) 0%, rgba(196,162,101,0.04) 100%);
   border:2px solid rgba(196,162,101,0.15);
 }
 .welcome-icon.has-photo {
   border:2.5px solid var(--gold); box-shadow:0 0 0 5px rgba(196,162,101,0.1), 0 4px 20px rgba(196,162,101,0.15);
 }
-.welcome-icon img { width:100%; height:100%; object-fit:cover; }
+.welcome-icon.has-photo::after {
+  content:''; position:absolute; bottom:4px; right:4px;
+  width:14px; height:14px; border-radius:50%;
+  background:var(--green); border:2.5px solid #FFFDF5;
+  z-index:2;
+}
+.welcome-icon img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 .welcome-badge {
   font-size:0.5rem; font-weight:700; letter-spacing:2px;
   text-transform:uppercase; color:var(--gold); margin-bottom:10px;
@@ -500,14 +506,21 @@ body::after {
 .sidebar-close:hover, .sidebar-close:active { background:var(--cream3); }
 
 .sidebar-pet-photo {
-  width:52px; height:52px; border-radius:50%; overflow:hidden;
+  width:52px; height:52px; border-radius:50%;
   border:2px solid var(--gold); flex-shrink:0;
   display:flex; align-items:center; justify-content:center;
   font-size:1.3rem;
   background:linear-gradient(135deg, var(--rose-glow) 0%, rgba(196,162,101,0.12) 100%);
   box-shadow:0 0 0 3px rgba(196,162,101,0.08);
+  position:relative;
 }
-.sidebar-pet-photo img { width:100%; height:100%; object-fit:cover; }
+.sidebar-pet-photo.has-photo::after {
+  content:''; position:absolute; bottom:1px; right:1px;
+  width:11px; height:11px; border-radius:50%;
+  background:var(--green); border:2px solid #FFFDF5;
+  z-index:2;
+}
+.sidebar-pet-photo img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 
 .sidebar-pet-name {
   font-family:'DM Serif Display',Georgia,serif; font-size:1.15rem;
@@ -1768,6 +1781,7 @@ function updateSidebarData() {
   var photoUrl = petData.portraitUrl || petData.petPhotoUrl;
   if (photoUrl) {
     photoEl.innerHTML = '<img src="' + photoUrl + '" alt="' + escapeHtml(petData.name) + '">';
+    photoEl.classList.add('has-photo');
   } else {
     var emoji = animalEmojis[(petData.species || '').toLowerCase()] || '&#129782;';
     photoEl.innerHTML = emoji;

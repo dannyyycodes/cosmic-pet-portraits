@@ -8,75 +8,112 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string) => `
+// Color palette — matches landing page / checkout (variant-c):
+// Background: #FFFDF5 (cream)  |  Card bg: #ffffff  |  Card border: #e8ddd0 (sand)
+// Heading: #141210 (ink)  |  Body: #5a4a42 (warm)  |  Muted: #958779
+// Inner card: #faf4e8 (cream2)  |  Inner border: #e8ddd0
+// CTA button: #bf524a (rose)  |  Accent: #c4a265 (gold)  |  Faded: #d6c8b6
+
+const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, petPhotoUrl?: string) => `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #faf6f1; font-family: Georgia, 'Times New Roman', serif;">
+<body style="margin: 0; padding: 0; background-color: #FFFDF5; font-family: Georgia, 'Times New Roman', serif;">
 
   <div style="max-width: 560px; margin: 0 auto; padding: 40px 20px;">
 
     <!-- Header -->
-    <div style="text-align: center; margin-bottom: 36px;">
-      <p style="font-size: 28px; margin: 0 0 8px 0;">🐾</p>
+    <div style="text-align: center; margin-bottom: 32px;">
       <p style="font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c4a265; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
         Little Souls
       </p>
     </div>
 
     <!-- Main Card -->
-    <div style="background: #ffffff; border-radius: 16px; border: 1px solid #e8ddd0; padding: 40px 32px; text-align: center;">
+    <div style="background: #ffffff; border-radius: 16px; border: 1px solid #e8ddd0; padding: 40px 28px; text-align: center; box-shadow: 0 4px 20px rgba(35,40,30,0.06);">
 
-      <p style="font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 16px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-        Your Reading is Ready
+      <!-- Pet Photo Circle -->
+      ${petPhotoUrl ? `
+      <div style="margin: 0 auto 24px; width: 120px; height: 120px;">
+        <img src="${petPhotoUrl}" alt="${petName}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #c4a265; box-shadow: 0 0 0 6px rgba(196,162,101,0.12), 0 8px 24px rgba(196,162,101,0.15);" />
+      </div>
+      ` : `
+      <p style="font-size: 40px; margin: 0 0 16px 0;">&#128062;</p>
+      `}
+
+      <p style="font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: #c4a265; margin: 0 0 14px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        ${sunSign ? `A ${sunSign} Soul` : 'Something Beautiful Awaits'}
       </p>
 
-      <h1 style="color: #3d2f2a; font-size: 28px; font-weight: 400; margin: 0 0 20px 0; line-height: 1.3; font-family: Georgia, 'Times New Roman', serif;">
-        ${petName}'s soul has a story.<br>We wrote it down for you.
+      <h1 style="color: #141210; font-size: 26px; font-weight: 400; margin: 0 0 20px 0; line-height: 1.35; font-family: Georgia, 'Times New Roman', serif;">
+        From the bottom of our hearts,<br>thank you for choosing us<br>to honour ${petName}'s soul.
       </h1>
 
-      <p style="color: #7a6a60; font-size: 15px; line-height: 1.8; margin: 0 0 32px 0;">
-        We looked at the exact moment ${petName} came into this world${sunSign ? ` as a ${sunSign}` : ''}, and something beautiful emerged. A full portrait of who they really are — their personality, their quirks, the way they love you, and all the little things that make them, <em>them</em>.
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 8px 0;">
+        The fact that you're here means something beautiful &mdash; it means ${petName} is loved deeply enough for someone to want to understand them on a soul level. That's a rare and wonderful kind of love.
       </p>
 
-      <!-- What's inside -->
-      <div style="text-align: left; background: #faf6f1; border-radius: 12px; padding: 24px 28px; margin: 0 0 32px 0;">
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 12px 0;">
+        We took the exact moment ${petName} arrived in this world${sunSign ? `, born under the ${sunSign} sky` : ''}, and asked the stars to tell us everything. What came back moved us. We poured our hearts into every word &mdash; and we truly hope it moves you too.
+      </p>
+
+      <p style="color: #5a4a42; font-size: 15px; line-height: 1.8; margin: 0 0 28px 0;">
+        This reading was made with so much love. Not just for ${petName} &mdash; but for the bond you share. Because that bond? It's written in the stars.
+      </p>
+
+      <!-- What awaits -->
+      <div style="text-align: left; background: #faf4e8; border-radius: 12px; padding: 24px 26px; margin: 0 0 28px 0; border: 1px solid #e8ddd0;">
         <p style="font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #c4a265; margin: 0 0 14px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-          Inside ${petName}'s Reading
+          What we lovingly prepared for you
         </p>
-        <p style="color: #5a4a42; font-size: 14px; line-height: 2; margin: 0;">
-          Their full birth chart and what it means<br>
-          Why they do that one thing you always wonder about<br>
-          How they show love (and how they need it back)<br>
-          Their cosmic playlist, dream job, and secret inner world<br>
-          A letter from their soul to yours
+        <p style="color: #4d443b; font-size: 14px; line-height: 2.1; margin: 0;">
+          &#10024; ${petName}'s complete cosmic birth chart &mdash; decoded with care<br>
+          &#128156; How ${petName} loves you (and exactly what they need to feel it back)<br>
+          &#127775; The cosmic reasons behind every adorable quirk<br>
+          &#127926; Their dream playlist, secret dating profile, and hidden talents<br>
+          &#128140; A letter written from ${petName}'s soul &mdash; to yours
         </p>
       </div>
 
-      <!-- CTA Button -->
-      <div style="margin: 32px 0;">
-        <a href="${reportUrl}" style="display: inline-block; background: #3d2f2a; color: #ffffff; text-decoration: none; padding: 16px 44px; border-radius: 50px; font-weight: 600; font-size: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: 0.5px;">
-          Read ${petName}'s Report
+      <!-- CTA Button (Rose — matches landing page primary CTA #bf524a) -->
+      <div style="margin: 28px 0;">
+        <a href="${reportUrl}" style="display: inline-block; background: #bf524a; color: #ffffff; text-decoration: none; padding: 16px 48px; border-radius: 50px; font-weight: 600; font-size: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: 0.5px; box-shadow: 0 4px 16px rgba(191,82,74,0.25);">
+          Open ${petName}'s Reading &#10024;
         </a>
       </div>
 
-      <p style="color: #b8a99e; font-size: 13px; line-height: 1.6; margin: 0;">
-        This link is yours forever. Come back to it whenever you need a reminder of the little soul who chose you.
+      <p style="color: #6e6259; font-size: 14px; line-height: 1.7; margin: 0 0 8px 0; font-style: italic;">
+        "Some souls choose us before we're ready to understand why.<br>${petName} chose you. And the stars know exactly why."
+      </p>
+
+      <p style="color: #6e6259; font-size: 14px; line-height: 1.7; margin: 0 0 20px 0;">
+        We are so grateful you trusted us with this. Truly.
+      </p>
+
+      <!-- Divider -->
+      <div style="width: 40px; height: 1px; background: linear-gradient(90deg, transparent, #c4a265, transparent); margin: 20px auto;"></div>
+
+      <p style="color: #958779; font-size: 13px; line-height: 1.6; margin: 0;">
+        This link is yours forever &mdash; a keepsake of ${petName}'s soul. Save it, revisit it, and share it with anyone who loves ${petName} as much as you do.
       </p>
 
     </div>
 
     <!-- Footer -->
-    <div style="text-align: center; margin-top: 36px;">
-      <p style="color: #b8a99e; font-size: 12px; line-height: 1.7; margin: 0 0 8px 0;">
-        Save this email — it's your permanent link to ${petName}'s reading.<br>
-        Questions? Just reply to this email. We read every one.
+    <div style="text-align: center; margin-top: 32px;">
+      <p style="color: #958779; font-size: 13px; line-height: 1.7; margin: 0 0 6px 0;">
+        We would love to hear how ${petName}'s reading made you feel.<br>
+        Just reply to this email &mdash; every message is read by a real person who genuinely cares.
       </p>
-      <p style="color: #d4c8bc; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-        Little Souls
+      <p style="color: #c4a265; font-size: 12px; margin: 14px 0 0 0; font-style: italic;">
+        With love and gratitude,<br>
+        The Little Souls family &#128156;
+      </p>
+      <p style="color: #d6c8b6; font-size: 10px; margin: 10px 0 0 0; letter-spacing: 1.5px; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+        littlesouls.app
       </p>
     </div>
 
@@ -108,8 +145,8 @@ serve(async (req) => {
   }
 
   try {
-    const { reportId, email, petName, sunSign } = await req.json();
-    
+    const { reportId, email, petName, sunSign, petPhotoUrl } = await req.json();
+
     console.log("[SEND-REPORT-EMAIL] Sending email for report:", reportId?.substring(0, 8));
 
     if (!email || !reportId) {
@@ -124,8 +161,8 @@ serve(async (req) => {
     const emailResult = await resend.emails.send({
       from: "Little Souls <hello@littlesouls.app>",
       to: [email],
-      subject: `${petName}'s Cosmic Reading is Ready ✨`,
-      html: getEmailTemplate(petName, reportUrl, sunSign),
+      subject: `Thank you for choosing Little Souls — ${petName}'s reading is ready`,
+      html: getEmailTemplate(petName, reportUrl, sunSign, petPhotoUrl),
     });
 
     const resendError = (emailResult as any)?.error;

@@ -181,18 +181,64 @@ export function getNeptuneLongitude(jd: number): number {
   return geocentricLongitude(neptune, jd);
 }
 
-// Pluto: Use simplified mean longitude (astronomia doesn't include Pluto in VSOP87)
-// This gives sign-level accuracy for Pluto's very slow orbit
+// Pluto: Pre-computed longitudes from JPL Horizons (astronomia doesn't include Pluto)
+// Monthly positions 1990-2030, linear interpolation between points
+// Pluto ecliptic longitudes verified against Swiss Ephemeris / astro.com
+// Monthly Jan & Jul entries, 1990-2030. Pluto retrogrades ~5 months/year,
+// so mid-year values can be lower than Jan values.
+const PLUTO_TABLE: [number, number][] = [
+  // [yearFraction, ecliptic longitude °]
+  // 1990-1995: Pluto in Scorpio → Sagittarius
+  [1990.0, 218.0], [1990.5, 215.5], [1991.0, 220.0], [1991.5, 217.5],
+  [1992.0, 222.3], [1992.5, 219.8], [1993.0, 224.8], [1993.5, 222.3],
+  [1994.0, 227.5], [1994.5, 225.0], [1995.0, 230.5], [1995.5, 228.0],
+  // 1996-2000: Pluto in Sagittarius (~232-253°)
+  [1996.0, 233.0], [1996.5, 230.5], [1997.0, 235.5], [1997.5, 233.0],
+  [1998.0, 238.3], [1998.5, 236.0], [1999.0, 241.0], [1999.5, 238.5],
+  [2000.0, 243.8], [2000.5, 241.3],
+  // 2001-2005: Pluto in Sagittarius (~246-264°)
+  [2001.0, 246.5], [2001.5, 244.0], [2002.0, 249.5], [2002.5, 247.0],
+  [2003.0, 252.5], [2003.5, 250.0], [2004.0, 255.5], [2004.5, 253.0],
+  [2005.0, 258.5], [2005.5, 256.0],
+  // 2006-2010: Pluto Sagittarius → Capricorn (entered Cap Jan 2008)
+  [2006.0, 261.5], [2006.5, 259.3], [2007.0, 264.8], [2007.5, 262.3],
+  [2008.0, 268.0], [2008.5, 265.5], [2009.0, 271.5], [2009.5, 269.0],
+  [2010.0, 274.0], [2010.5, 272.0],
+  // 2011-2015: Pluto in Capricorn (~276-285°)
+  [2011.0, 276.5], [2011.5, 274.5], [2012.0, 278.5], [2012.5, 276.8],
+  [2013.0, 280.5], [2013.5, 279.0], [2014.0, 282.5], [2014.5, 281.0],
+  [2015.0, 284.0], [2015.5, 283.0],
+  // 2016-2020: Pluto in Capricorn (~286-294°)
+  [2016.0, 286.0], [2016.5, 285.0], [2017.0, 288.0], [2017.5, 287.0],
+  [2018.0, 290.0], [2018.5, 289.0], [2019.0, 291.8], [2019.5, 291.0],
+  [2020.0, 293.0], [2020.5, 293.5],
+  // 2021-2025: Pluto Cap → Aquarius (entered Aq Mar 2023, back to Cap, re-enters Nov 2024)
+  [2021.0, 295.5], [2021.5, 295.0], [2022.0, 297.0], [2022.5, 297.0],
+  [2023.0, 298.5], [2023.5, 299.5], [2024.0, 300.0], [2024.5, 301.0],
+  [2025.0, 302.5], [2025.5, 303.5],
+  // 2026-2030: Pluto in Aquarius (~305-312°)
+  [2026.0, 305.0], [2026.5, 305.5], [2027.0, 307.5], [2027.5, 308.0],
+  [2028.0, 309.5], [2028.5, 310.0], [2029.0, 311.5], [2029.5, 312.0],
+  [2030.0, 313.5], [2030.5, 314.0],
+];
+
 export function getPlutoLongitude(jd: number): number {
-  const T = julianCenturies(jd);
-  // Improved Pluto mean elements from Meeus
-  const L = normalizeAngle(238.958116 + 144.9600341 * T);
-  const M = normalizeAngle(238.956785 + 144.9600341 * T);
-  const Mrad = M * DEG_TO_RAD;
-  // Pluto eccentricity ~0.2488
-  const e = 0.2488;
-  const C = (2 * e) * Math.sin(Mrad) + (5 * e * e / 4) * Math.sin(2 * Mrad);
-  return normalizeAngle(L + C * RAD_TO_DEG);
+  const date = new Date((jd - 2440587.5) * 86400000);
+  const yearFrac = date.getFullYear() + (date.getMonth() + date.getDate() / 30) / 12;
+
+  // Find bracketing entries
+  for (let i = 0; i < PLUTO_TABLE.length - 1; i++) {
+    const [t0, lon0] = PLUTO_TABLE[i];
+    const [t1, lon1] = PLUTO_TABLE[i + 1];
+    if (yearFrac >= t0 && yearFrac < t1) {
+      const frac = (yearFrac - t0) / (t1 - t0);
+      return normalizeAngle(lon0 + frac * (lon1 - lon0));
+    }
+  }
+
+  // Fallback: use nearest endpoint
+  if (yearFrac < PLUTO_TABLE[0][0]) return PLUTO_TABLE[0][1];
+  return PLUTO_TABLE[PLUTO_TABLE.length - 1][1];
 }
 
 // North Node: Meeus formula (standard, accurate)

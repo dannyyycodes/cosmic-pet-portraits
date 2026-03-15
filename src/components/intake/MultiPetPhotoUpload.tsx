@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import imageCompression from 'browser-image-compression';
 import { PetData } from './IntakeWizard';
 
 export type PhotoProcessingMode = 'original' | 'cosmic' | 'pokemon' | 'watercolor' | 'neon';
@@ -70,27 +71,38 @@ function SinglePetPhotoUpload({
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string | null>(null);
 
   const handleFileSelect = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file (JPG, PNG, etc.)');
+    const isImage = file.type.startsWith('image/') ||
+      /\.(heic|heif|webp|avif|jfif|bmp|tiff?)$/i.test(file.name);
+
+    if (!isImage) {
+      toast.error('Please upload an image file (JPG, PNG, HEIC, etc.)');
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Image is too large. Please use an image under 10MB.');
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('Image is too large. Please use an image under 50MB.');
       return;
     }
 
     setIsUploading(true);
-    
+
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1200,
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+        initialQuality: 0.85,
+      });
+
+      const filename = `${crypto.randomUUID()}.jpg`;
+
       const { data, error } = await supabase.storage
         .from('pet-photos')
-        .upload(filename, file, {
-          cacheControl: '3600',
+        .upload(filename, compressedFile, {
+          cacheControl: '31536000',
           upsert: false,
+          contentType: 'image/jpeg',
         });
 
       if (error) throw error;
