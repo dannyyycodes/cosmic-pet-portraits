@@ -171,4 +171,27 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 - [ ] End-to-end Stripe flow testing (10 purchase paths)
 - [ ] Phase 3: Horoscope archive UI, generation error monitoring
 
-*Last updated: 2026-03-14 evening*
+---
+
+## Current Session: March 15 — Lead Magnet, Emails, Mobile, Routing
+
+### Completed:
+- Free mini reading lead magnet (`/free-chart.html`) with zodiac JSON, celebrity birthdays, Wikipedia photos
+- Email sequence redesign: smart upsells, SoulSpeak links, pet photos, 30%+ discounts
+- Removed all em-dashes from emails, rewrote Welcome 2 + Abandoned Cart + Win-back
+- Fixed Vercel routing (static HTML pages weren't being served)
+- Fixed checkout-v3 mobile: hero text, toggle buttons, show more reviews
+- Added free reading link to checkout hero
+- Improved free reading upsell copy with "1 of 14 placements" depth showcase
+
+### Known issues to fix:
+- [ ] Email asked twice (free-chart captures it, then intake asks again) — need to skip email step if already captured
+- [ ] Old promotional content at end of intake form (testimonials, cosmic card, reviews) — user has already paid, remove these
+- [ ] "Discover your bond" page has white text on light bg — need screenshot to identify
+- [ ] Free chart page design could be more polished
+- [ ] Menu/nav with login link
+- [ ] Dark mode toggle
+- [ ] Create Stripe promotion codes: COSMIC30, GIFTLOVE30, COMEBACK35
+- [ ] ManyChat integration for lead magnet
+
+*Last updated: 2026-03-15*
