@@ -1120,12 +1120,28 @@ JSON Structure:
 }
 
 IMPORTANT CONTENT QUALITY RULES:
-- Every section must feel PERSONAL, SPECIFIC to ${name}, and deeply connected to their chart data
-- Fun sections (dreamJob, datingProfile, textMessages, villainOriginStory) should be HILARIOUS and screenshot-worthy
-- The dreamJob should feel EPIC — hype up their cosmic career potential
-- Text messages should read like REAL texts — casual, funny, with ${species}-specific quirks
-- The recipe MUST be safe for ${species} to eat — this is a pet treat recipe, not human food
-- Make every section make the reader feel like you truly KNOW their pet`;
+
+OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they paid. Every section should make them think "this is insane, how does it know this?"
+
+1. TEXT MESSAGES — Write like REAL iMessage conversations. Short messages. Typos optional. Pet texts should be in their "voice" (a cat texts very differently from a golden retriever). Examples of GOOD pet texts: "hey. HEY. you awake?" / "i can hear the treat bag from two rooms away don't even try" / "you left me alone for 47 minutes. i have filed for emotional damages." Examples of BAD: "Dear human, I wish to express my displeasure..." (too formal, not how texts work)
+
+2. DREAM JOB — Make the salary FUNNY (e.g., "85,000 treats/year + dental" or "6 figures in belly rubs"). The description should paint a vivid picture of them AT the job, not just describe the job. Include a funny reason they'd get promoted AND fired.
+
+3. RECIPE — This MUST be a real, makeable PET TREAT recipe. Use actual measurements. The pet should be able to safely eat this. Think: peanut butter oat balls, sweet potato chews, frozen banana bites. NOT human recipes like shortbread or lattes.
+
+4. COSMIC CRIMES — Each crime needs a "charge" (the crime name), a "severity" rating, and a vivid 1-2 sentence description. They should be hyper-specific to ${breed || species} behaviors that owners will recognize instantly.
+
+5. DATING PROFILE — Write it like an ACTUAL dating app profile. The headline should be punchy (under 8 words). The bio should be first-person from ${name}'s perspective.
+
+6. VILLAIN ORIGIN — This should read like a dramatic movie trailer narrator. "It started with a closed door..."
+
+7. EMOTIONAL SECTIONS — The prologue, keepersBond, and epilogue should make people CRY. Use specific, intimate details about the pet-owner relationship. Not generic "they love you" but "the way ${name} presses ${pronouns.possessive} head into your palm when you're sad — that's not random. That's ${pronouns.possessive} ${moonSign} Moon, reading your energy and responding with exactly what you need."
+
+8. GOOGLE SEARCHES — Make them absurdly funny and specific. Not "why does my human leave" but "how to open fridge without thumbs" / "am i adopted" / "why does the mailman keep coming back i clearly scared him away yesterday"
+
+9. YELP REVIEWS — These should be reviews of real things (the vet, the car ride, bath time, the vacuum) written from ${name}'s perspective as if they're a disgruntled Yelp reviewer. Star ratings included.
+
+10. NARRATIVE THREAD — The ENTIRE report should feel like one cohesive story. The prologue introduces a theme. Each chapter builds on it. The epilogue brings it home. If ${name} is described as a "gentle old soul" in the prologue, that thread should weave through every section.`;
 
   // ─── Call OpenRouter (non-streaming) ───────────────────────────────────────
 

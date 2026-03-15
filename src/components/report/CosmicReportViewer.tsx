@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star, ChevronDown } from 'lucide-react';
+import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star, ChevronDown, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
 import { OccasionMode } from '@/lib/occasionMode';
@@ -347,7 +347,7 @@ export function CosmicReportViewer({
       )}
 
       {/* ═══ CHAPTER PROGRESS BAR ═══ */}
-      {!isPreview && <ChapterProgressBar chapters={chapters} />}
+      {!isPreview && <ChapterProgressBar chapters={chapters} petName={petName} reportId={reportId} />}
 
       {/* ═══ HERO SECTION ═══ */}
       <HeroSection
@@ -546,13 +546,14 @@ export function CosmicReportViewer({
           {/* ═══ DATING PROFILE ═══ */}
           {report.datingProfile && (
             <>
-              <SectionLabel icon="💘" label={`${petName}'s Dating Profile`} />
+              <SectionLabel icon="💘" label={`If ${petName} Was on Tinder...`} />
               <DatingProfile
                 petName={petName}
                 datingProfile={report.datingProfile}
                 sunSign={sunSign}
                 element={element}
               />
+              <SectionShareHint petName={petName} section="Dating Profile" />
               <SectionDivider />
             </>
           )}
@@ -560,12 +561,13 @@ export function CosmicReportViewer({
           {/* ═══ DREAM JOB ═══ */}
           {report.dreamJob && (
             <>
-              <SectionLabel icon="💼" label={`${petName}'s Dream Career`} />
+              <SectionLabel icon="💼" label={`If ${petName} Had a LinkedIn...`} />
               <DreamJobCard
                 job={report.dreamJob.job}
                 description={report.dreamJob.description}
                 salary={report.dreamJob.salary}
               />
+              <SectionShareHint petName={petName} section="Dream Career" />
               <SectionDivider />
             </>
           )}
@@ -575,6 +577,7 @@ export function CosmicReportViewer({
             <>
               <SectionLabel icon="🦹" label={`${petName}'s Villain Origin Story`} />
               <VillainOriginStory story={report.villainOriginStory} petName={petName} />
+              <SectionShareHint petName={petName} section="Villain Origin Story" />
               <SectionDivider />
             </>
           )}
@@ -594,13 +597,15 @@ export function CosmicReportViewer({
           <ChapterTitle chapter={chapters[3]} />
 
           {/* ═══ GOOGLE SEARCHES ═══ */}
-          <SectionLabel icon="🔎" label={`${petName}'s Secret Google History`} />
+          <SectionLabel icon="🔎" label={`What ${petName} Googles When You're Asleep`} />
           <GoogleSearches petName={petName} report={report} />
+          <SectionShareHint petName={petName} section="Google History" />
           <SectionDivider />
 
           {/* ═══ TEXT MESSAGES ═══ */}
-          <SectionLabel icon="💬" label={`${petName}'s Text Messages`} />
+          <SectionLabel icon="💬" label={`${petName}'s Text Messages to You`} />
           <TextMessages petName={petName} report={report} occasionMode={occasionMode} />
+          <SectionShareHint petName={petName} section="Text Messages" />
           <SectionDivider />
 
           {/* ═══ HUMAN PROFILE ═══ */}
@@ -609,7 +614,7 @@ export function CosmicReportViewer({
           <SectionDivider />
 
           {/* ═══ COSMIC RECIPE ═══ */}
-          <SectionLabel icon="🍳" label={`Recipe for ${petName}`} />
+          <SectionLabel icon="🍳" label={`${petName}'s Cosmic Treat Recipe`} />
           <CosmicRecipe petName={petName} report={report} />
           <SectionDivider />
 
@@ -628,6 +633,7 @@ export function CosmicReportViewer({
           {/* ═══ COSMIC AWARDS ═══ */}
           <SectionLabel icon="🏆" label={`${petName}'s Award Shelf`} />
           <CosmicAwards petName={petName} report={report} />
+          <SectionShareHint petName={petName} section="Awards" />
           <SectionDivider />
 
           {/* ═══ PASSAGE 3: Before the bond ═══ */}
@@ -1072,7 +1078,60 @@ function SectionLabel({ icon, label }: { icon: string; label: string }) {
 // ═══════════════════════════════════════════════
 // CHAPTER PROGRESS BAR
 // ═══════════════════════════════════════════════
-function ChapterProgressBar({ chapters: chapterList }: { chapters: typeof chapters }) {
+function SectionShareHint({ petName, section }: { petName: string; section: string }) {
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${petName}'s ${section}`,
+          text: `You NEED to see ${petName}'s ${section} from their soul reading 😂`,
+          url: window.location.href,
+        });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied!');
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center gap-2 pt-2 pb-1">
+      <button
+        onClick={handleShare}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[0.7rem] font-medium text-[#958779] hover:text-[#5a4a42] hover:bg-[#f3eadb] transition-all"
+      >
+        <Share2 className="w-3 h-3" />
+        Share this section
+      </button>
+    </div>
+  );
+}
+
+function ShareButton({ petName, reportId }: { petName: string; reportId?: string }) {
+  const [copied, setCopied] = useState(false);
+  const shareUrl = reportId ? `${window.location.origin}/view-report?id=${reportId}` : window.location.href;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${petName}'s Soul Reading`, text: `Check out ${petName}'s cosmic soul reading!`, url: shareUrl });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <button onClick={handleShare} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[0.68rem] font-medium transition-all bg-[#3d2f2a] text-white hover:bg-[#2a1f1a]" title="Share this reading">
+      {copied ? <Check className="w-3 h-3" /> : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>}
+      <span className="hidden sm:inline">{copied ? 'Copied!' : 'Share'}</span>
+    </button>
+  );
+}
+
+function ChapterProgressBar({ chapters: chapterList, petName, reportId }: { chapters: typeof chapters; petName?: string; reportId?: string }) {
   const [activeChapter, setActiveChapter] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -1115,30 +1174,33 @@ function ChapterProgressBar({ chapters: chapterList }: { chapters: typeof chapte
         borderBottom: '1px solid rgba(196,162,101,0.15)',
       }}
     >
-      <div className="max-w-[520px] mx-auto px-4 py-2.5 flex items-center gap-1">
-        {chapterList.map((ch, i) => (
-          <button
-            key={ch.number}
-            onClick={() => handleClick(ch.number)}
-            className="flex-1 flex flex-col items-center gap-1 group"
-            title={ch.title}
-          >
-            <span className={`text-[0.65rem] transition-all ${
-              i <= activeChapter ? 'text-[#c4a265]' : 'text-[#c4a265]/30'
-            }`}>
-              {ch.icon}
-            </span>
-            <div
-              className={`w-full h-[3px] rounded-full transition-all duration-300 ${
-                i < activeChapter
-                  ? 'bg-[#c4a265]'
-                  : i === activeChapter
-                  ? 'bg-[#c4a265]/70'
-                  : 'bg-[#c4a265]/15'
-              }`}
-            />
-          </button>
-        ))}
+      <div className="max-w-[600px] mx-auto px-3 py-2.5 flex items-center gap-1">
+        <div className="flex-1 flex items-center gap-1">
+          {chapterList.map((ch, i) => (
+            <button
+              key={ch.number}
+              onClick={() => handleClick(ch.number)}
+              className="flex-1 flex flex-col items-center gap-1 group"
+              title={ch.title}
+            >
+              <span className={`text-[0.65rem] transition-all ${
+                i <= activeChapter ? 'text-[#c4a265]' : 'text-[#c4a265]/30'
+              }`}>
+                {ch.icon}
+              </span>
+              <div
+                className={`w-full h-[3px] rounded-full transition-all duration-300 ${
+                  i < activeChapter
+                    ? 'bg-[#c4a265]'
+                    : i === activeChapter
+                    ? 'bg-[#c4a265]/70'
+                    : 'bg-[#c4a265]/15'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+        <ShareButton petName={petName || ''} reportId={reportId} />
       </div>
     </div>
   );
