@@ -47,16 +47,16 @@ export function IntakeStepOwnerDetails({
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', delay: 0.2 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#c4a265]/10 to-[#c4a265]/5 border border-[#c4a265]/20"
         >
-          <Heart className="w-4 h-4 text-pink-400" />
-          <span className="text-sm font-medium text-pink-300">Optional: Cosmic Connection</span>
+          <Heart className="w-4 h-4 text-[#c4a265]" />
+          <span className="text-sm font-medium text-[#c4a265]">Optional: Cosmic Connection</span>
         </motion.div>
         
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className="text-2xl font-bold text-foreground">
           Discover Your Bond with {petName}
         </h2>
-        <p className="text-white/70">
+        <p className="text-foreground/70">
           Add your birth details to unlock personalized compatibility insights
         </p>
       </div>
@@ -66,24 +66,24 @@ export function IntakeStepOwnerDetails({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/30"
+        className="p-4 rounded-xl bg-gradient-to-br from-[#4a8c5c]/10 to-[#4a8c5c]/5 border border-[#4a8c5c]/20"
       >
         <div className="flex items-start gap-3">
-          <div className="p-2 rounded-full bg-emerald-500/20">
-            <Shield className="w-5 h-5 text-emerald-400" />
+          <div className="p-2 rounded-full bg-[#4a8c5c]/15">
+            <Shield className="w-5 h-5 text-[#4a8c5c]" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-emerald-300 flex items-center gap-2">
+            <h3 className="font-semibold text-[#4a8c5c] flex items-center gap-2">
               <Lock className="w-3.5 h-3.5" />
               Your Privacy is Sacred
             </h3>
-            <p className="text-sm text-white/70 mt-1">
+            <p className="text-sm text-foreground/70 mt-1">
               Your data is encrypted end-to-end and never shared. We use it only for your compatibility reading.
             </p>
             
             <button
               onClick={() => setShowPrivacyDetails(!showPrivacyDetails)}
-              className="text-xs text-emerald-400 hover:text-emerald-300 mt-2 flex items-center gap-1"
+              className="text-xs text-[#4a8c5c] hover:text-[#4a8c5c] mt-2 flex items-center gap-1"
             >
               {showPrivacyDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               {showPrivacyDetails ? 'Hide details' : 'Learn more about our privacy practices'}
@@ -93,23 +93,23 @@ export function IntakeStepOwnerDetails({
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="mt-3 text-xs text-white/60 space-y-1.5 border-t border-emerald-500/20 pt-3"
+                className="mt-3 text-xs text-foreground/60 space-y-1.5 border-t border-[#4a8c5c]/15 pt-3"
               >
                 <div className="flex items-center gap-2">
-                  <Lock className="w-3 h-3 text-emerald-400" />
+                  <Lock className="w-3 h-3 text-[#4a8c5c]" />
                   <span>256-bit AES encryption for all personal data</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <EyeOff className="w-3 h-3 text-emerald-400" />
+                  <EyeOff className="w-3 h-3 text-[#4a8c5c]" />
                   <span>We never sell or share your information</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Shield className="w-3 h-3 text-emerald-400" />
+                  <Shield className="w-3 h-3 text-[#4a8c5c]" />
                   <span>Data is used only for your reading, then secured</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Eye className="w-3 h-3 text-emerald-400" />
-                  <span>You can request deletion anytime via contact@petreports.co</span>
+                  <Eye className="w-3 h-3 text-[#4a8c5c]" />
+                  <span>You can request deletion anytime via hello@littlesouls.app</span>
                 </div>
               </motion.div>
             )}
@@ -121,7 +121,7 @@ export function IntakeStepOwnerDetails({
       <div className="space-y-4">
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">
+          <label className="block text-sm font-medium text-foreground/80 mb-2">
             Your Name
           </label>
           <CosmicInput
@@ -135,8 +135,8 @@ export function IntakeStepOwnerDetails({
 
         {/* Birth Date - Required */}
         <div>
-          <label className="block text-sm font-medium text-white/80 mb-2">
-            Your Birth Date <span className="text-pink-400">*</span>
+          <label className="block text-sm font-medium text-foreground/80 mb-2">
+            Your Birth Date <span className="text-[#c4a265]">*</span>
           </label>
           <CosmicInput
             type="date"
@@ -154,7 +154,7 @@ export function IntakeStepOwnerDetails({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-violet-400" />
-              <span className="text-sm text-white/80">
+              <span className="text-sm text-foreground/80">
                 Add more details for deeper insights
               </span>
             </div>
@@ -162,10 +162,10 @@ export function IntakeStepOwnerDetails({
               animate={{ rotate: showAdvanced ? 180 : 0 }}
               transition={{ duration: 0.2 }}
             >
-              <ChevronDown className="w-4 h-4 text-white/50" />
+              <ChevronDown className="w-4 h-4 text-foreground/50" />
             </motion.div>
           </div>
-          <p className="text-xs text-white/50 mt-1 ml-6">
+          <p className="text-xs text-foreground/50 mt-1 ml-6">
             Optional: birth time & location for more accurate compatibility
           </p>
         </button>
@@ -178,7 +178,7 @@ export function IntakeStepOwnerDetails({
             className="space-y-4 pl-4 border-l-2 border-violet-500/30"
           >
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
+              <label className="block text-sm font-medium text-foreground/70 mb-2">
                 Birth Time (optional)
               </label>
               <CosmicInput
@@ -186,13 +186,13 @@ export function IntakeStepOwnerDetails({
                 value={ownerBirthTime}
                 onChange={(e) => onUpdate({ ownerBirthTime: e.target.value })}
               />
-              <p className="text-xs text-white/50 mt-1">
+              <p className="text-xs text-foreground/50 mt-1">
                 Helps calculate your rising sign for deeper compatibility
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white/70 mb-2">
+              <label className="block text-sm font-medium text-foreground/70 mb-2">
                 Birth City (optional)
               </label>
               <CosmicInput
@@ -202,7 +202,7 @@ export function IntakeStepOwnerDetails({
                 placeholder="e.g., New York, USA"
                 maxLength={100}
               />
-              <p className="text-xs text-white/50 mt-1">
+              <p className="text-xs text-foreground/50 mt-1">
                 For precise planetary positions
               </p>
             </div>
@@ -225,12 +225,12 @@ export function IntakeStepOwnerDetails({
 
         <button
           onClick={onSkip}
-          className="w-full py-3 text-sm text-white/60 hover:text-white/80 transition-colors"
+          className="w-full py-3 text-sm text-foreground/60 hover:text-foreground/80 transition-colors"
         >
           Skip for now - I just want {petName}'s report
         </button>
         
-        <p className="text-xs text-center text-white/40">
+        <p className="text-xs text-center text-foreground/40">
           You can always add your details later from your report
         </p>
       </div>
