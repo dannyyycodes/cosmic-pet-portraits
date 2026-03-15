@@ -449,7 +449,13 @@ body::after {
   /* Floating CTA — always show on mobile */
   .floating-cta { display:flex !important; }
   /* Touch targets */
-  .pet-counter-btn, .toggle-track, button, a.cta-btn, a.hardcover-cta { min-height:44px; min-width:44px; }
+  .pet-counter-btn, button, a.cta-btn, a.hardcover-cta { min-height:44px; min-width:44px; }
+  /* Keep toggles at natural size on mobile — 44px min makes them too big */
+  .toggle-track { min-height:22px; min-width:40px; }
+  /* Fix upsell rows wrapping on small screens */
+  #upsellPortrait, #upsellHoroscope { flex-wrap:wrap; gap:8px; }
+  /* Hero subtitle line break */
+  .hero-sub br { display:none; }
 }
 
 /* Review stars */
@@ -468,8 +474,12 @@ body::after {
 @media (max-width:380px) {
   .paw { display:none; }
   .hero-headline { font-size:clamp(1.7rem,8vw,2.2rem); }
+  .hero-sub { font-size:0.88rem; }
+  .memorial-note { font-size:0.72rem !important; }
   .gift-banner { font-size:0.75rem; padding:7px 12px; }
   .ticker-bar { font-size:0.72rem; padding:6px 12px; }
+  /* Upsell rows stack label above toggle on tiny screens */
+  #upsellPortrait > div:last-child, #upsellHoroscope > div:last-child { margin-left:auto; }
 }
 </style>
 </head>
