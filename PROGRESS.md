@@ -253,3 +253,65 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 - [ ] Run E2E test with test card
 
 *Last updated: 2026-03-15 late evening*
+
+---
+
+## Completed: Frontend Audit & Launch Prep (March 16)
+
+**Status:** DONE — deployed, all endpoints tested live, site ready for orders
+
+### What was done:
+
+1. **Pricing alignment (CRITICAL FIX)**
+   - Server `create-checkout` TIERS were $35/$50 (old Lovable values) — fixed to $27/$35
+   - Server GIFT_TIERS were $17.50/$25 — fixed to $13.50/$17.50
+   - React CheckoutPanel volume discounts were 50/40/30/20% — fixed to 30/25/20/15% (matches server + checkout.html)
+   - All three pricing sources (checkout.html frontend, React CheckoutPanel, server edge function) now aligned
+
+2. **Renamed checkout-v3 → checkout**
+   - `public/checkout-v3.html` → `public/checkout.html`
+   - Updated 15+ references across src/pages, src/components, vercel.json, free-chart.html
+   - Backward-compat rewrite in vercel.json: `/checkout-v3` → `/checkout.html`
+   - Canonical URL and og:url updated in HTML
+
+3. **Error boundary added**
+   - Installed `react-error-boundary`
+   - Wraps all routes in App.tsx with friendly "Something went wrong" fallback + Try Again button
+   - Prevents white-screen crashes from lazy-loaded pages
+
+4. **Security headers added (vercel.json)**
+   - `X-Frame-Options: DENY` (clickjacking protection)
+   - `X-Content-Type-Options: nosniff`
+   - `Referrer-Policy: strict-origin-when-cross-origin`
+   - `Permissions-Policy: camera=(), microphone=(), geolocation=(self)`
+
+5. **Edge function deployed**
+   - `create-checkout` redeployed to Supabase with corrected pricing
+
+### Live site test results (all passing):
+- All 13 routes return HTTP 200
+- `create-checkout` creates correct Stripe sessions ($27 basic, $35 premium, volume discounts work)
+- `redeem-free-code` validates codes correctly
+- `verify-payment` responds correctly
+- `get-report` returns full report data (tested with Monty)
+- `purchase-gift-certificate` endpoint live
+- `send-report-email` endpoint live
+- n8n webhook responds HTTP 200
+- Worker on DO droplet active
+- Stripe in live mode (cs_live_ sessions)
+
+### Files changed:
+- `supabase/functions/create-checkout/index.ts` — Fixed TIERS, GIFT_TIERS pricing
+- `public/checkout.html` — Renamed from checkout-v3.html, updated canonical/og URLs
+- `src/App.tsx` — Error boundary, checkout redirect path update
+- `src/components/intake/CheckoutPanel.tsx` — Volume discount fix
+- `src/components/Navbar.tsx` — /checkout links
+- `src/components/CTASection.tsx` — /checkout links
+- `src/components/report/AllReportsComplete.tsx` — /checkout links
+- `src/pages/Intake.tsx` — /checkout redirect
+- `src/pages/Account.tsx`, `Blog.tsx`, `BlogPost.tsx`, `MyReports.tsx` — /checkout links
+- `public/free-chart.html` — /checkout upsell link
+- `vercel.json` — Rewrites + security headers
+- `package.json` — Added react-error-boundary
+
+*Last updated: 2026-03-16*
