@@ -483,8 +483,8 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
   .hero-sub { font-size:0.92rem; max-width:100%; }
   .hero-sub br { display:none; }
   .memorial-note { font-size:0.75rem !important; line-height:1.5 !important; }
-  .testimonial-grid { grid-template-columns:1fr; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:12px; padding-bottom:8px; -webkit-overflow-scrolling:touch; }
-  .testimonial-grid::-webkit-scrollbar { display:none; }
+  .testimonial-grid { grid-template-columns:1fr; display:flex; flex-direction:column; gap:12px; padding-bottom:8px; }
+  .testimonial-grid .testimonial-card { width:100%; flex-shrink:0; }
   .testimonial-card { flex-shrink:0; width:85vw; scroll-snap-align:start; }
   .checkout-wrap, .hardcover-section { padding-left:16px; padding-right:16px; }
   .product-card, .hardcover-card { padding:20px; }
@@ -545,8 +545,7 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
     <span class="gift-banner-arrow">&rarr;</span>
   </a>
   <div class="ticker-bar">
-    <a href="/" class="ticker-logo">Little Souls</a>
-    <div class="ticker-center">
+    <div class="ticker-center" style="padding-left:0;">
       <div class="ticker-dot"></div>
       <div class="ticker-text" id="ticker"></div>
     </div>

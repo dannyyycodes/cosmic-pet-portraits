@@ -81,11 +81,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
           )}
 
           {/* Ticker / Nav bar */}
-          <div className="flex items-center justify-between px-4 py-2 bg-[#FFFDF5]/92 dark:bg-[#1a1714]/92 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06]" style={{ minHeight: 36 }}>
-            <Link to="/" className="font-serif text-[0.82rem] font-semibold text-[#141210] dark:text-[#e8ddd0] tracking-tight hover:opacity-80 transition-opacity">
-              Little Souls
-            </Link>
-
+          <div className="flex items-center justify-end px-4 py-2 bg-[#FFFDF5]/92 dark:bg-[#1a1714]/92 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06]" style={{ minHeight: 36 }}>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsDark(!isDark)}
