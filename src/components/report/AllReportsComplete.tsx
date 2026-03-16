@@ -357,7 +357,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               {/* Weekly horoscope - show if not already purchased */}
               {!horoscopeInfo?.enabled && (
                 <Button
-                  onClick={() => navigate('/checkout-v3')}
+                  onClick={() => navigate('/checkout')}
                   variant="outline"
                   className="w-full justify-start gap-3 p-4 h-auto"
                 >
@@ -372,7 +372,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               {/* Upgrade - show only if basic */}
               {giftedInfo.giftedTier === 'basic' && (
                 <Button
-                  onClick={() => navigate('/checkout-v3')}
+                  onClick={() => navigate('/checkout')}
                   variant="outline"
                   className="w-full justify-start gap-3 p-4 h-auto"
                 >

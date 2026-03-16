@@ -51,7 +51,7 @@ export function CTASection({ variant = "mid" }: CTASectionProps) {
         )}
 
         <div className="flex flex-col items-center gap-4 mb-6">
-          <Link to="/checkout-v3">
+          <Link to="/checkout">
             <Button variant="cosmic" size="lg" className="text-lg px-8 py-6 group shadow-[0_0_25px_hsl(var(--primary)/0.3)]">
               <Sparkles className="w-5 h-5 mr-2" />
               {isFinal ? "Get My Pet's Report →" : "Discover My Pet's Personality →"}

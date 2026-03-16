@@ -78,18 +78,18 @@ const TIERS = {
   },
 };
 
-// Gift tiers - 50% off all tiers for friends
+// Gift tiers - 50% off all tiers for friends (must match server)
 const GIFT_TIERS = {
   basic: { priceCents: 1350, originalCents: 2700, name: 'Cosmic Pet Reading' },
-  premium: { priceCents: 1750, originalCents: 3500, name: 'Little Souls Reading Edition' },
+  premium: { priceCents: 1750, originalCents: 3500, name: 'Portrait Edition' },
 };
 
-// Volume discount calculation
+// Volume discount calculation - must match server
 function getVolumeDiscount(petCount: number): number {
-  if (petCount >= 5) return 0.50; // 50% off for 5+ pets
-  if (petCount >= 4) return 0.40; // 40% off for 4 pets
-  if (petCount >= 3) return 0.30; // 30% off for 3 pets
-  if (petCount >= 2) return 0.20; // 20% off for 2 pets
+  if (petCount >= 5) return 0.30; // 30% off for 5+ pets
+  if (petCount >= 4) return 0.25; // 25% off for 4 pets
+  if (petCount >= 3) return 0.20; // 20% off for 3 pets
+  if (petCount >= 2) return 0.15; // 15% off for 2 pets
   return 0;
 }
 

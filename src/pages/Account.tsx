@@ -255,7 +255,7 @@ const Account = () => {
                     <FileText className="w-12 h-12 mx-auto mb-4" style={{ color: '#9a8578' }} />
                     <p className="mb-4" style={{ color: '#9a8578' }}>No reports yet</p>
                     <button
-                      onClick={() => navigate("/checkout-v3")}
+                      onClick={() => navigate("/checkout")}
                       className="px-6 py-3 font-medium transition-opacity hover:opacity-90"
                       style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
                     >

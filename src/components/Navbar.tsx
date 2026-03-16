@@ -184,7 +184,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                   <Link to="/auth">Sign In</Link>
                 </Button>
                 <Button variant="cosmic" size="sm" asChild>
-                  <Link to="/checkout-v3">
+                  <Link to="/checkout">
                     {t('nav.getReading')}
                   </Link>
                 </Button>
@@ -276,7 +276,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                       </SheetClose>
                     )}
                     <SheetClose asChild>
-                      <Link to="/checkout-v3" className="block">
+                      <Link to="/checkout" className="block">
                         <Button variant="cosmic" className="w-full justify-center gap-2">
                           <Sparkles className="w-4 h-4" />
                           {t('nav.getReading')}

@@ -119,7 +119,7 @@ const BlogPost = () => {
       user_agent: navigator.userAgent,
     });
 
-    navigate("/checkout-v3");
+    navigate("/checkout");
   };
 
   const handleShare = async () => {
@@ -303,7 +303,7 @@ const BlogPost = () => {
                     <hr className="my-8" style={{ borderColor: '#e8ddd0' }} />
                   ),
                   a: ({ href, children }) => {
-                    if (href === "/intake" || href === "/checkout-v3") {
+                    if (href === "/intake" || href === "/checkout") {
                       return (
                         <button
                           onClick={trackCTAClick}

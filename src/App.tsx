@@ -1,5 +1,6 @@
 // Build trigger v2 - March 8 2026
 import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,7 +14,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 // Eagerly loaded pages (core user journey)
 import Index from "./pages/Index";
 import Intake from "./pages/Intake";
-// QuickCheckout React component exists but /checkout routes to checkout-v3.html (the original design)
+// QuickCheckout React component exists but /checkout routes to checkout.html (the original design)
 import PaymentSuccess from "./pages/PaymentSuccess";
 const ViewReport = lazy(() => import("./pages/ViewReport"));
 import GiftPurchase from "./pages/GiftPurchase";
@@ -58,7 +59,7 @@ const FindReport = lazy(() => import("./pages/FindReport"));
 function CheckoutRedirect() {
   const params = new URLSearchParams(window.location.search);
   const qs = params.toString();
-  window.location.href = '/checkout-v3.html' + (qs ? '?' + qs : '');
+  window.location.href = '/checkout.html' + (qs ? '?' + qs : '');
   return null;
 }
 
@@ -86,6 +87,22 @@ const PageLoader = () => (
   </div>
 );
 
+// Error fallback for crashed pages
+const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => (
+  <div className="min-h-screen bg-background flex items-center justify-center p-6">
+    <div className="text-center max-w-md">
+      <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+      <p className="text-muted-foreground mb-4">We hit a cosmic hiccup. Please try again.</p>
+      <button
+        onClick={resetErrorBoundary}
+        className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+      >
+        Try Again
+      </button>
+    </div>
+  </div>
+);
+
 // App component with all providers
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -97,6 +114,7 @@ const App = () => (
             <Sonner />
             <CookieConsent />
             <BrowserRouter>
+              <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.href = '/'}>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -144,6 +162,7 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              </ErrorBoundary>
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>

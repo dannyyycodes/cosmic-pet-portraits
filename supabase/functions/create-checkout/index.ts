@@ -10,14 +10,14 @@ const corsHeaders = {
 
 // Fixed pricing tiers - SERVER-SIDE TRUTH
 const TIERS = {
-  basic: { name: 'Little Souls Reading', priceCents: 3500 },
-  premium: { name: 'Little Souls Reading + Portrait', priceCents: 5000 },
+  basic: { name: 'Little Souls Reading', priceCents: 2700 },
+  premium: { name: 'Little Souls Reading + Portrait', priceCents: 3500 },
 } as const;
 
 // Gift tiers - 50% off all tiers for friends
 const GIFT_TIERS = {
-  basic: { priceCents: 1750, name: 'Gift: Little Souls Reading' },
-  premium: { priceCents: 2500, name: 'Gift: Little Souls Reading + Portrait' },
+  basic: { priceCents: 1350, name: 'Gift: Little Souls Reading' },
+  premium: { priceCents: 1750, name: 'Gift: Little Souls Reading + Portrait' },
 } as const;
 
 // Volume discount calculation - SERVER-SIDE (must match frontend)
@@ -224,7 +224,7 @@ serve(async (req) => {
         mode: "payment",
         allow_promotion_codes: true,
         success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}&quick=true`,
-        cancel_url: `${origin}/checkout-v3`,
+        cancel_url: `${origin}/checkout`,
         metadata: {
           report_ids: reportIds.join(","),
           pet_count: petCount.toString(),
@@ -584,7 +584,7 @@ serve(async (req) => {
       mode: checkoutMode,
       allow_promotion_codes: true,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
-      cancel_url: `${origin}/checkout-v3`,
+      cancel_url: `${origin}/checkout`,
       metadata: {
         report_ids: allReportIds.join(","),
         pet_count: actualPetCount.toString(),

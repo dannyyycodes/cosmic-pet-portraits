@@ -14,7 +14,7 @@ const Intake = () => {
 
   // Everyone else should go to checkout-v3 (the proper purchase flow)
   if (!isGiftFlow && !isCheckoutReturn) {
-    return <Navigate to="/checkout-v3" replace />;
+    return <Navigate to="/checkout" replace />;
   }
 
   return (
