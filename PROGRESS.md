@@ -315,3 +315,50 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 - `package.json` — Added react-error-boundary
 
 *Last updated: 2026-03-16*
+
+---
+
+## Session: March 16 (continued) — Report Quality Overhaul & Final Polish
+
+### Completed:
+1. **Report content fixes** (worker prompt)
+   - Dominant element now uses actual chart balance math (not just Sun sign element)
+   - Pet-safe recipe (real treats with pumpkin, oats, sweet potato — not human food)
+   - Text messages section added (morning/afternoon/night iMessage-style)
+   - Dream job fields aligned with viewer (description + funny salary)
+   - 10-point overdelivery content quality standard
+
+2. **Humanizer anti-slop rules** in worker prompt
+   - Banned 15+ AI crutch words (fascinating, gorgeous, profound, tapestry, etc.)
+   - Banned patterns: "creates this", "here's the thing", excessive ALL CAPS
+   - "Love test": emotional sections sound like a best friend, not an AI
+   - Result: 51% reduction in AI markers (76 → 37)
+
+3. **Report viewer upgrades**
+   - Share button in sticky chapter progress bar (always visible)
+   - Per-section share hints on 7 viral sections
+   - Better section labels: "If X Was on Tinder...", "What X Googles When You're Asleep"
+   - Cosmic card stats boosted (floor 75, base 82-97)
+
+4. **Email link fix** — shareToken auto-generated, included in report email link (bypasses email verification wall)
+
+5. **SEO & analytics** — OG tags + GA4 placeholder on checkout.html and free-chart.html
+
+6. **Stripe webhook idempotency** — prevents duplicate payment processing
+
+7. **UI polish** — Removed "Little Souls" text from nav bar, reviews scroll vertically on mobile
+
+### Test reports generated:
+- Willow (Ragdoll, pre-humanizer): `f319bf43-e004-4520-a64d-d18294806e1c`
+- Mochi (Shiba Inu, post-quality): `93e11511-19de-44cb-8b80-d08eeee1e8a6`
+- Bear (Golden Retriever, post-humanizer): `8f4f5501-fd53-4590-9b29-45e2890c5505`
+
+### Before launch — next session:
+- [ ] E2E Stripe test purchase with test card in browser
+- [ ] Create Stripe promo codes: COSMIC30 (30%), GIFTLOVE30 (30%), COMEBACK35 (35%)
+- [ ] Set up GA4 (analytics.google.com) — replace G-XXXXXXXXXX in checkout.html + free-chart.html
+- [ ] Create OG image (1200x630px) → public/og-image.png
+- [ ] Activate ManyChat widget on free-chart
+- [ ] Final content quality review of Bear's report
+
+*Last updated: 2026-03-16 evening*
