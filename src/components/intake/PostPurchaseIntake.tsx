@@ -83,36 +83,24 @@ const grainStyle: React.CSSProperties = {
 };
 
 export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeProps) {
-  // Persist intake progress to sessionStorage
-  const storageKey = (key: string) => `ls-intake-${reportId}-${key}`;
-  const loadSaved = <T,>(key: string, fallback: T): T => {
-    try {
-      const val = sessionStorage.getItem(storageKey(key));
-      return val !== null ? JSON.parse(val) : fallback;
-    } catch { return fallback; }
-  };
-  const save = (key: string, value: unknown) => {
-    try { sessionStorage.setItem(storageKey(key), JSON.stringify(value)); } catch { /* quota */ }
-  };
-
-  const [screen, setScreen] = useState(() => loadSaved('screen', 0));
-  const [occasionMode, setOccasionMode] = useState(() => loadSaved('occasionMode', "discover"));
-  const [petName, setPetName] = useState(() => loadSaved('petName', ""));
-  const [species, setSpecies] = useState(() => loadSaved('species', ""));
-  const [gender, setGender] = useState(() => loadSaved('gender', ""));
-  const [birthDate, setBirthDate] = useState(() => loadSaved('birthDate', ""));
-  const [birthTime, setBirthTime] = useState(() => loadSaved('birthTime', ""));
-  const [breed, setBreed] = useState(() => loadSaved('breed', ""));
-  const [location, setLocation] = useState(() => loadSaved('location', ""));
+  const [screen, setScreen] = useState(0);
+  const [occasionMode, setOccasionMode] = useState("discover");
+  const [petName, setPetName] = useState("");
+  const [species, setSpecies] = useState("");
+  const [gender, setGender] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [birthTime, setBirthTime] = useState("");
+  const [breed, setBreed] = useState("");
+  const [location, setLocation] = useState("");
   const [locationResults, setLocationResults] = useState<Array<{ display_name: string; address?: { city?: string; town?: string; village?: string; country?: string; state?: string }; name?: string }>>([]);
   const [showLocationResults, setShowLocationResults] = useState(false);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const locationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [soulTypes, setSoulTypes] = useState<string[]>(() => loadSaved('soulTypes', []));
-  const [superpowers, setSuperpowers] = useState<string[]>(() => loadSaved('superpowers', []));
-  const [strangerReaction, setStrangerReaction] = useState(() => loadSaved('strangerReaction', ""));
-  const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(() => loadSaved('petPhotoUrl', null));
-  const [email, setEmail] = useState(() => loadSaved('email', ""));
+  const [soulTypes, setSoulTypes] = useState<string[]>([]);
+  const [superpowers, setSuperpowers] = useState<string[]>([]);
+  const [strangerReaction, setStrangerReaction] = useState("");
+  const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -144,20 +132,6 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
     })();
   }, [reportId]);
 
-  // Auto-save all form state to sessionStorage
-  useEffect(() => {
-    save('screen', screen); save('occasionMode', occasionMode); save('petName', petName);
-    save('species', species); save('gender', gender); save('birthDate', birthDate);
-    save('birthTime', birthTime); save('breed', breed); save('location', location);
-    save('soulTypes', soulTypes); save('superpowers', superpowers);
-    save('strangerReaction', strangerReaction); save('petPhotoUrl', petPhotoUrl);
-    save('email', email); save('useEstimateAge', useEstimateAge);
-    save('estimateYears', estimateYears); save('estimateMonths', estimateMonths);
-    save('birthMonth', birthMonth); save('birthYear', birthYear); save('birthDay', birthDay);
-  }, [screen, occasionMode, petName, species, gender, birthDate, birthTime, breed,
-      location, soulTypes, superpowers, strangerReaction, petPhotoUrl, email,
-      useEstimateAge, estimateYears, estimateMonths, birthMonth, birthYear, birthDay, reportId]);
-
   // Prevent browser from navigating away on accidental file drops outside the drop zone
   useEffect(() => {
     const prevent = (e: DragEvent) => { e.preventDefault(); e.stopPropagation(); };
@@ -170,12 +144,12 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   }, []);
 
   // Improved date picker state
-  const [useEstimateAge, setUseEstimateAge] = useState(() => loadSaved('useEstimateAge', false));
-  const [estimateYears, setEstimateYears] = useState(() => loadSaved('estimateYears', ""));
-  const [estimateMonths, setEstimateMonths] = useState(() => loadSaved('estimateMonths', ""));
-  const [birthMonth, setBirthMonth] = useState(() => loadSaved('birthMonth', ""));
-  const [birthYear, setBirthYear] = useState(() => loadSaved('birthYear', ""));
-  const [birthDay, setBirthDay] = useState(() => loadSaved('birthDay', ""));
+  const [useEstimateAge, setUseEstimateAge] = useState(false);
+  const [estimateYears, setEstimateYears] = useState("");
+  const [estimateMonths, setEstimateMonths] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [birthDay, setBirthDay] = useState("");
 
   const currentYear = new Date().getFullYear();
   const years = useMemo(() => Array.from({ length: 30 }, (_, i) => currentYear - i), [currentYear]);
