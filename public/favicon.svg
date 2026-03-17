@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Paw pads -->
+  <circle cx="10" cy="13" r="3" fill="#c4a265"/>
+  <circle cx="18" cy="10" r="3" fill="#c4a265"/>
+  <circle cx="24" cy="15" r="2.5" fill="#c4a265"/>
+  <circle cx="5" cy="18" r="2.5" fill="#c4a265"/>
+  <!-- Main pad -->
+  <ellipse cx="14" cy="22" rx="6" ry="5" fill="#c4a265"/>
+  <!-- Sparkle star -->
+  <path d="M26 4 L27 7 L30 8 L27 9 L26 12 L25 9 L22 8 L25 7 Z" fill="#c4a265"/>
+</svg>
