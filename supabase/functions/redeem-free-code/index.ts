@@ -97,7 +97,7 @@ serve(async (req) => {
     console.log("[REDEEM] Report created:", report.id, "tier:", tier);
 
     // Set SoulSpeak credits
-    const creditAmount = includesBook ? 50 : 15;
+    const creditAmount = includesBook ? 500 : 150;
     await supabase
       .from("chat_credits")
       .insert({

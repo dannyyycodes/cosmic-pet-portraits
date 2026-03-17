@@ -227,7 +227,7 @@ serve(async (req) => {
       // Check if this is a chat subscription (Soul Bond membership)
       else if (session.metadata?.type === "chat_subscription") {
         const orderId = session.metadata.orderId;
-        const weeklyCredits = parseInt(session.metadata.weekly_credits) || 40;
+        const weeklyCredits = parseInt(session.metadata.weekly_credits) || 400;
 
         console.log("[STRIPE-WEBHOOK] Chat membership purchased:", { orderId, weeklyCredits });
 
@@ -593,8 +593,8 @@ serve(async (req) => {
                         }
                       }
 
-                      // Set SoulSpeak credits: 30 for hardcover, 8 for standard
-                      const creditAmount = isHardcover ? 30 : 8;
+                      // Set SoulSpeak credits: 300 for hardcover, 80 for standard
+                      const creditAmount = isHardcover ? 300 : 80;
                       await supabaseClient
                         .from("chat_credits")
                         .upsert({
@@ -752,7 +752,7 @@ serve(async (req) => {
           // Add first week's credits for the new billing period
           await supabaseClient.rpc("increment_chat_credits", {
             p_order_id: chatCredit.order_id,
-            p_amount: chatCredit.weekly_credits || 40,
+            p_amount: chatCredit.weekly_credits || 400,
           });
           // Reset next refresh date
           await supabaseClient

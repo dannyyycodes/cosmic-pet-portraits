@@ -165,7 +165,7 @@ serve(async (req) => {
             })
             .eq("id", id);
 
-          const creditAmount = includesBook ? 50 : 15;
+          const creditAmount = includesBook ? 500 : 150;
           await supabaseClient
             .from("chat_credits")
             .upsert({
@@ -431,7 +431,7 @@ serve(async (req) => {
           .eq("id", id);
 
         // Set SoulSpeak credits
-        const creditAmount = input.includesBook ? 50 : 15;
+        const creditAmount = input.includesBook ? 500 : 150;
         await supabaseClient
           .from("chat_credits")
           .upsert({

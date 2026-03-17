@@ -7,8 +7,8 @@ const corsHeaders = {
 };
 
 const creditTiers = {
-  small:  { credits: 30,  price: 799,  name: "SoulSpeak — Continue",  desc: "30 soul-to-soul messages" },
-  medium: { credits: 100, price: 1999, name: "SoulSpeak — Deep Bond", desc: "100 soul-to-soul messages" },
+  small:  { credits: 300,  price: 799,  name: "SoulSpeak — Continue",  desc: "300 credits of SoulSpeak" },
+  medium: { credits: 1000, price: 1999, name: "SoulSpeak — Deep Bond", desc: "1,000 credits of SoulSpeak" },
 };
 
 serve(async (req) => {
@@ -44,7 +44,7 @@ serve(async (req) => {
           },
           quantity: 1,
         }],
-        metadata: { orderId, type: "chat_subscription", weekly_credits: "40" },
+        metadata: { orderId, type: "chat_subscription", weekly_credits: "400" },
         success_url: `${baseUrl}/soul-chat.html?id=${orderId}&purchased=credits`,
         cancel_url: `${baseUrl}/soul-chat.html?id=${orderId}`,
       });

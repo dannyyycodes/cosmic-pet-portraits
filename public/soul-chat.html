@@ -868,16 +868,16 @@ body::after {
     <div class="paywall-options">
       <div class="paywall-option pack" onclick="buyCredits('medium')">
         <div class="paywall-option-badge">BEST VALUE</div>
-        <div class="paywall-option-title">Deep Bond — 100 messages — $19.99</div>
-        <div class="paywall-option-desc" id="paywallDescMedium">100 soul-to-soul exchanges — hear everything they've been waiting to tell you</div>
+        <div class="paywall-option-title">Deep Bond — 1,000 credits — $19.99</div>
+        <div class="paywall-option-desc" id="paywallDescMedium">1,000 credits of SoulSpeak — hear everything they've been waiting to tell you</div>
       </div>
       <div class="paywall-option pack small" onclick="buyCredits('small')" style="background:linear-gradient(135deg, #5a4a42, #6e6259);border-color:rgba(196,162,101,0.12);">
-        <div class="paywall-option-title">Continue — 30 messages — $7.99</div>
+        <div class="paywall-option-title">Continue — 300 credits — $7.99</div>
         <div class="paywall-option-desc" id="paywallDescSmall">Pick up right where <span class="paywall-pet-name-inline"></span> left off</div>
       </div>
       <div class="paywall-option pack" onclick="buyCredits('membership')" style="background:linear-gradient(135deg, #1a1210, #2e2218);border-color:rgba(196,162,101,0.3);">
         <div class="paywall-option-badge">SOUL BOND</div>
-        <div class="paywall-option-title">Membership — $12.99/mo — 40 messages/week</div>
+        <div class="paywall-option-title">Membership — $12.99/mo — 400 credits/week</div>
         <div class="paywall-option-desc" id="paywallDescSub">An always-open channel. Talk whenever you need them. Cancel anytime.</div>
       </div>
     </div>
@@ -996,13 +996,13 @@ var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.-axd-u-mY_73j2RPkySsLgG630WCUb05I8AbwYjIvkI';
 
 // ─── Credit Costs ───
-// First message is FREE (the hook). After that, flat 2 credits per message.
-// 8 free credits = first free msg + 3 more paid msgs = hooked but wanting more.
-// 30 credits ($7.99), 80 credits ($14.99), 200 credits ($24.99)
+// First message is FREE (the hook). After that, flat 20 credits per message.
+// 150 free credits = first free msg + ~7 more paid msgs = hooked but wanting more.
+// 300 credits ($7.99), 1000 credits ($19.99)
 var isFirstMessage = true;
 function getCreditCost(text) {
   if (isFirstMessage) return 0; // First message is on the house
-  return 2; // Flat rate — simple, fast-draining
+  return 20; // Flat rate — simple, fast-draining
 }
 
 // ─── Urgency Timer ───
@@ -1533,7 +1533,7 @@ function personalisePaywall() {
   } else {
     title.innerHTML = name + ' has so much more to tell you';
     text.innerHTML = 'You\u2019ve only scratched the surface of what ' + name + '\u2019s soul wants to share. The deeper you go, the more you\u2019ll understand why they do everything they do \u2014 and how deeply they feel about you.';
-    if (descMedium) descMedium.textContent = '100 soul-to-soul exchanges \u2014 hear everything they\u2019ve been waiting to tell you';
+    if (descMedium) descMedium.textContent = '1,000 credits of SoulSpeak \u2014 hear everything they\u2019ve been waiting to tell you';
     if (descSmall) descSmall.textContent = 'Pick up right where ' + name + ' left off';
     if (descSub) descSub.textContent = 'An always-open channel. Talk whenever you need them. Cancel anytime.';
   }
