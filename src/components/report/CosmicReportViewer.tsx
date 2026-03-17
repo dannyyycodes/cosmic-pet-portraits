@@ -707,9 +707,147 @@ export function CosmicReportViewer({
             );
           })()}
 
-          {/* Accuracy predictions — removed per design doc */}
+          {/* ═══ PET-PARENT SOUL BOND (premium) ═══ */}
+          {report.petParentSoulBond && (() => {
+            const sb = report.petParentSoulBond;
+            return (
+              <>
+                <div className="mx-4 my-3 max-w-[520px] sm:mx-auto">
+                  <div
+                    className="py-7 px-6 sm:px-7 rounded-[18px] relative overflow-hidden"
+                    style={{ background: 'linear-gradient(165deg, #fdf5f5 0%, #faf0e8 100%)' }}
+                  >
+                    {/* Premium badge */}
+                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[0.55rem] font-bold tracking-[1.5px] uppercase"
+                      style={{ background: 'linear-gradient(135deg, #c4a265, #d4b67a)', color: '#fff' }}>
+                      Soul Bond
+                    </div>
 
-          {/* Compatibility chart — removed per design doc */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[1.1rem] flex-shrink-0"
+                        style={{ background: 'linear-gradient(135deg, rgba(196,122,122,0.15), rgba(196,162,101,0.15))' }}>
+                        {'\uD83D\uDC9E'}
+                      </div>
+                      <div>
+                        <div className="text-[0.52rem] font-bold tracking-[2px] uppercase text-[#c4a265]">
+                          Pet-Parent Soul Bond
+                        </div>
+                        <h3 className="text-[1.1rem] text-[#3d2f2a] mt-0.5 pr-16" style={{ fontFamily: 'DM Serif Display, serif' }}>{sb.title}</h3>
+                      </div>
+                    </div>
+
+                    <p className="text-[0.88rem] leading-[1.9] text-[#5a4a42] mb-5">{sb.intro}</p>
+
+                    {/* Elemental Harmony */}
+                    {sb.elementalHarmony && (
+                      <div className="mb-4 p-4 rounded-[12px] bg-white/60">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#c47a7a]">
+                            {'\u2728'} {sb.elementalHarmony.title}
+                          </div>
+                          <div className="text-[0.72rem] font-bold text-[#c4a265]">
+                            {sb.elementalHarmony.compatibilityScore}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2 py-0.5 rounded-full text-[0.68rem] font-medium"
+                            style={{ background: sb.elementalHarmony.petElement === 'Fire' ? '#fff0e6' : sb.elementalHarmony.petElement === 'Earth' ? '#eef5ee' : sb.elementalHarmony.petElement === 'Air' ? '#eef0f8' : '#eee8f5', color: '#5a4a42' }}>
+                            {sb.elementalHarmony.petElement}
+                          </span>
+                          <span className="text-[0.7rem] text-[#9a8578]">&amp;</span>
+                          <span className="px-2 py-0.5 rounded-full text-[0.68rem] font-medium"
+                            style={{ background: sb.elementalHarmony.ownerElement === 'Fire' ? '#fff0e6' : sb.elementalHarmony.ownerElement === 'Earth' ? '#eef5ee' : sb.elementalHarmony.ownerElement === 'Air' ? '#eef0f8' : '#eee8f5', color: '#5a4a42' }}>
+                            {sb.elementalHarmony.ownerElement}
+                          </span>
+                        </div>
+                        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.7]">{sb.elementalHarmony.harmony}</p>
+                      </div>
+                    )}
+
+                    {/* Sun-Moon Dance */}
+                    {sb.sunMoonDance && (
+                      <div className="mb-4 p-4 rounded-[12px] bg-white/60">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#c47a7a] mb-2">
+                          {'\u2600\uFE0F'}{'\uD83C\uDF19'} {sb.sunMoonDance.title}
+                        </div>
+                        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.7] mb-2">{sb.sunMoonDance.content}</p>
+                        <p className="text-[0.78rem] text-[#9a8578] italic leading-[1.6]" style={{ fontFamily: 'Cormorant, serif' }}>
+                          {sb.sunMoonDance.crossAspect}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Venus Connection */}
+                    {sb.venusConnection && (
+                      <div className="mb-4 p-4 rounded-[12px] bg-white/60">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#c47a7a] mb-2">
+                          {'\u2665\uFE0F'} {sb.venusConnection.title}
+                        </div>
+                        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.7] mb-2">{sb.venusConnection.content}</p>
+                        <div className="text-[0.75rem] text-[#c4a265] font-medium">
+                          {sb.venusConnection.loveLanguageMatch}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mars Energy */}
+                    {sb.marsEnergy && (
+                      <div className="mb-4 p-4 rounded-[12px] bg-white/60">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#c47a7a] mb-2">
+                          {'\u26A1'} {sb.marsEnergy.title}
+                        </div>
+                        <p className="text-[0.82rem] text-[#5a4a42] leading-[1.7] mb-2">{sb.marsEnergy.content}</p>
+                        <div className="text-[0.75rem] text-[#c4a265] font-medium">
+                          Best together: {sb.marsEnergy.activityMatch}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Soul Contract */}
+                    {sb.soulContract && (
+                      <div className="mb-4 p-4 rounded-[12px] border-l-[3px] border-[#c4a265] bg-white/70">
+                        <div className="text-[0.65rem] font-bold tracking-[1.5px] uppercase text-[#c4a265] mb-2">
+                          {'\uD83D\uDCDC'} {sb.soulContract.title}
+                        </div>
+                        <p className="text-[0.84rem] text-[#5a4a42] leading-[1.8] mb-3">{sb.soulContract.content}</p>
+                        {sb.soulContract.lessonForOwner && (
+                          <div className="mb-2 pl-3 border-l-2 border-[#e8ddd0]">
+                            <div className="text-[0.62rem] font-bold tracking-[1px] uppercase text-[#9a8578] mb-0.5">What they teach you</div>
+                            <p className="text-[0.8rem] text-[#5a4a42] leading-[1.6]">{sb.soulContract.lessonForOwner}</p>
+                          </div>
+                        )}
+                        {sb.soulContract.lessonForPet && (
+                          <div className="pl-3 border-l-2 border-[#e8ddd0]">
+                            <div className="text-[0.62rem] font-bold tracking-[1px] uppercase text-[#9a8578] mb-0.5">What you give them</div>
+                            <p className="text-[0.8rem] text-[#5a4a42] leading-[1.6]">{sb.soulContract.lessonForPet}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Cosmic Rating */}
+                    {sb.cosmicRating && (
+                      <div className="mt-5 p-4 rounded-[12px] text-center"
+                        style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.1), rgba(196,122,122,0.1))' }}>
+                        <div className="text-[2rem] font-bold text-[#c4a265] mb-1" style={{ fontFamily: 'DM Serif Display, serif' }}>
+                          {sb.cosmicRating.overallScore}
+                        </div>
+                        <p className="text-[0.82rem] text-[#5a4a42] mb-3">{sb.cosmicRating.verdict}</p>
+                        <div className="flex flex-wrap justify-center gap-1.5">
+                          {sb.cosmicRating.strengthAreas?.map((area, i) => (
+                            <span key={i} className="px-2 py-0.5 rounded-full text-[0.65rem] bg-white/70 text-[#5a4a42]">
+                              {'\u2728'} {area}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <SectionDivider />
+              </>
+            );
+          })()}
 
           {/* ═══ EARTHLY EXPRESSION (if exists) ═══ */}
           {report.earthlyExpression && (() => {

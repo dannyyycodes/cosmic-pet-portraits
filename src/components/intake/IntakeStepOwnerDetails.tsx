@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { Shield, Lock, Eye, EyeOff, Heart, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { Shield, Lock, Eye, EyeOff, Heart, Sparkles, ChevronDown, ChevronUp, MapPin, Loader2 } from 'lucide-react';
 import { CosmicButton } from '../cosmic/CosmicButton';
 import { CosmicInput } from '../cosmic/CosmicInput';
 
@@ -32,8 +32,42 @@ export function IntakeStepOwnerDetails({
 }: OwnerDetailsProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showPrivacyDetails, setShowPrivacyDetails] = useState(false);
+  const [locationResults, setLocationResults] = useState<Array<{ display_name: string; address?: { city?: string; town?: string; village?: string; country?: string; state?: string }; name?: string }>>([]);
+  const [showLocationResults, setShowLocationResults] = useState(false);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const locationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const canProceed = ownerName.trim() && ownerBirthDate;
+
+  // Location autocomplete
+  useEffect(() => {
+    if (locationTimeout.current) clearTimeout(locationTimeout.current);
+    const query = ownerBirthLocation.trim();
+    if (query.length < 2) { setLocationResults([]); setShowLocationResults(false); return; }
+    setIsSearchingLocation(true);
+    locationTimeout.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=6`, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        setLocationResults(data);
+        setShowLocationResults(true);
+      } catch { setLocationResults([]); }
+      finally { setIsSearchingLocation(false); }
+    }, 300);
+    return () => { if (locationTimeout.current) clearTimeout(locationTimeout.current); };
+  }, [ownerBirthLocation]);
+
+  const selectLocation = (result: typeof locationResults[0]) => {
+    const city = result.address?.city || result.address?.town || result.address?.village || result.name || '';
+    const country = result.address?.country || '';
+    const state = result.address?.state;
+    let formatted: string;
+    if (country === 'United States' && state && city) formatted = `${city}, ${state}, USA`;
+    else if (city && country) formatted = `${city}, ${country}`;
+    else formatted = result.display_name.split(',').slice(0, 3).join(',').trim();
+    onUpdate({ ownerBirthLocation: formatted });
+    setShowLocationResults(false);
+  };
 
   return (
     <motion.div
@@ -47,17 +81,17 @@ export function IntakeStepOwnerDetails({
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', delay: 0.2 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#c4a265]/10 to-[#c4a265]/5 border border-[#c4a265]/20"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#bf524a]/10 to-[#c4a265]/5 border border-[#bf524a]/20"
         >
-          <Heart className="w-4 h-4 text-[#c4a265]" />
-          <span className="text-sm font-medium text-[#c4a265]">Optional: Cosmic Connection</span>
+          <Heart className="w-4 h-4 text-[#bf524a]" />
+          <span className="text-sm font-medium text-[#bf524a]">Pet-Parent Soul Bond</span>
         </motion.div>
-        
+
         <h2 className="text-2xl font-bold text-foreground">
-          Discover Your Bond with {petName}
+          Your Cosmic Bond with {petName}
         </h2>
         <p className="text-foreground/70">
-          Add your birth details to unlock personalized compatibility insights
+          Share your birth details and we'll reveal the invisible thread that connects your souls
         </p>
       </div>
 
@@ -191,17 +225,38 @@ export function IntakeStepOwnerDetails({
               </p>
             </div>
 
-            <div>
+            <div className="relative">
               <label className="block text-sm font-medium text-foreground/70 mb-2">
                 Birth City (optional)
               </label>
-              <CosmicInput
-                type="text"
-                value={ownerBirthLocation}
-                onChange={(e) => onUpdate({ ownerBirthLocation: e.target.value })}
-                placeholder="e.g., New York, USA"
-                maxLength={100}
-              />
+              <div className="relative">
+                <CosmicInput
+                  type="text"
+                  value={ownerBirthLocation}
+                  onChange={(e) => onUpdate({ ownerBirthLocation: e.target.value })}
+                  placeholder="Start typing a city..."
+                  maxLength={100}
+                  onFocus={() => { if (ownerBirthLocation.length >= 2) setShowLocationResults(true); }}
+                  onBlur={() => setTimeout(() => setShowLocationResults(false), 200)}
+                />
+                {isSearchingLocation && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
+                )}
+              </div>
+              <AnimatePresence>
+                {showLocationResults && locationResults.length > 0 && (
+                  <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                    className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                    {locationResults.map((r, i) => (
+                      <button key={i} onMouseDown={e => e.preventDefault()} onClick={() => selectLocation(r)}
+                        className="w-full px-4 py-3 text-left hover:bg-primary/10 transition-colors border-b border-border/30 last:border-0 text-sm text-foreground flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-primary/60 flex-shrink-0" />
+                        {r.display_name.split(',').slice(0, 3).join(',')}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <p className="text-xs text-foreground/50 mt-1">
                 For precise planetary positions
               </p>
@@ -219,7 +274,7 @@ export function IntakeStepOwnerDetails({
         >
           <span className="flex items-center gap-2">
             <Heart className="w-4 h-4" />
-            Reveal Our Cosmic Connection
+            Reveal Our Soul Bond
           </span>
         </CosmicButton>
 
@@ -227,9 +282,9 @@ export function IntakeStepOwnerDetails({
           onClick={onSkip}
           className="w-full py-3 text-sm text-foreground/60 hover:text-foreground/80 transition-colors"
         >
-          Skip for now - I just want {petName}'s report
+          Skip for now — I just want {petName}'s reading
         </button>
-        
+
         <p className="text-xs text-center text-foreground/40">
           You can always add your details later from your report
         </p>

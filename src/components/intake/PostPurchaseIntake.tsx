@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, X } from "lucide-react";
+import { Camera, X, MapPin, Loader2, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -105,6 +105,127 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Soul Bond (premium) — owner details
+  const [includesSoulBond, setIncludesSoulBond] = useState(false);
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerBirthMonth, setOwnerBirthMonth] = useState("");
+  const [ownerBirthYear, setOwnerBirthYear] = useState("");
+  const [ownerBirthDay, setOwnerBirthDay] = useState("");
+  const [ownerBirthDate, setOwnerBirthDate] = useState("");
+  const [ownerBirthTime, setOwnerBirthTime] = useState("");
+  const [ownerBirthLocation, setOwnerBirthLocation] = useState("");
+  const [ownerLocationResults, setOwnerLocationResults] = useState<Array<{ display_name: string; address?: { city?: string; town?: string; village?: string; country?: string; state?: string }; name?: string }>>([]);
+  const [showOwnerLocationResults, setShowOwnerLocationResults] = useState(false);
+  const [isSearchingOwnerLocation, setIsSearchingOwnerLocation] = useState(false);
+  const ownerLocationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Fetch report row to check if premium (includes_portrait)
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from('pet_reports').select('includes_portrait').eq('id', reportId).single();
+        if (data?.includes_portrait) setIncludesSoulBond(true);
+      } catch { /* non-fatal */ }
+    })();
+  }, [reportId]);
+
+  // Improved date picker state
+  const [useEstimateAge, setUseEstimateAge] = useState(false);
+  const [estimateYears, setEstimateYears] = useState("");
+  const [estimateMonths, setEstimateMonths] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+  const [birthDay, setBirthDay] = useState("");
+
+  const currentYear = new Date().getFullYear();
+  const years = useMemo(() => Array.from({ length: 30 }, (_, i) => currentYear - i), [currentYear]);
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  // Sync month/year/day selects → birthDate string
+  useEffect(() => {
+    if (birthMonth && birthYear && birthDay) {
+      const m = (parseInt(birthMonth) + 1).toString().padStart(2, '0');
+      const d = birthDay.padStart(2, '0');
+      setBirthDate(`${birthYear}-${m}-${d}`);
+    }
+  }, [birthMonth, birthYear, birthDay]);
+
+  // Calculate days in selected month
+  const daysInMonth = useMemo(() => {
+    if (birthMonth === "" || !birthYear) return 31;
+    return new Date(parseInt(birthYear), parseInt(birthMonth) + 1, 0).getDate();
+  }, [birthMonth, birthYear]);
+
+  // Estimate age → birthDate
+  useEffect(() => {
+    if (useEstimateAge && (estimateYears || estimateMonths)) {
+      const y = parseInt(estimateYears) || 0;
+      const m = parseInt(estimateMonths) || 0;
+      if (y > 0 || m > 0) {
+        const d = new Date();
+        d.setFullYear(d.getFullYear() - y);
+        d.setMonth(d.getMonth() - m);
+        setBirthDate(d.toISOString().split('T')[0]);
+      }
+    }
+  }, [estimateYears, estimateMonths, useEstimateAge]);
+
+  // Sync owner month/year/day → ownerBirthDate
+  useEffect(() => {
+    if (ownerBirthMonth && ownerBirthYear && ownerBirthDay) {
+      const m = (parseInt(ownerBirthMonth) + 1).toString().padStart(2, '0');
+      const d = ownerBirthDay.padStart(2, '0');
+      setOwnerBirthDate(`${ownerBirthYear}-${m}-${d}`);
+    }
+  }, [ownerBirthMonth, ownerBirthYear, ownerBirthDay]);
+
+  const ownerDaysInMonth = useMemo(() => {
+    if (ownerBirthMonth === "" || !ownerBirthYear) return 31;
+    return new Date(parseInt(ownerBirthYear), parseInt(ownerBirthMonth) + 1, 0).getDate();
+  }, [ownerBirthMonth, ownerBirthYear]);
+
+  const ownerYears = useMemo(() => Array.from({ length: 80 }, (_, i) => currentYear - 16 - i), [currentYear]);
+
+  // Owner location autocomplete
+  useEffect(() => {
+    if (ownerLocationTimeout.current) clearTimeout(ownerLocationTimeout.current);
+    const query = ownerBirthLocation.trim();
+    if (query.length < 2) { setOwnerLocationResults([]); setShowOwnerLocationResults(false); return; }
+    setIsSearchingOwnerLocation(true);
+    ownerLocationTimeout.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        setOwnerLocationResults(data);
+        setShowOwnerLocationResults(true);
+      } catch { setOwnerLocationResults([]); }
+      finally { setIsSearchingOwnerLocation(false); }
+    }, 300);
+    return () => { if (ownerLocationTimeout.current) clearTimeout(ownerLocationTimeout.current); };
+  }, [ownerBirthLocation]);
+
+  const selectOwnerLocation = (result: typeof ownerLocationResults[0]) => {
+    const city = result.address?.city || result.address?.town || result.address?.village || result.name || '';
+    const country = result.address?.country || '';
+    const state = result.address?.state;
+    let formatted: string;
+    if (country === 'United States' && state && city) formatted = `${city}, ${state}, USA`;
+    else if (city && country) formatted = `${city}, ${country}`;
+    else formatted = result.display_name.split(',').slice(0, 3).join(',').trim();
+    setOwnerBirthLocation(formatted);
+    setShowOwnerLocationResults(false);
+  };
+
+  // Quick-select cities for location
+  const quickCities = [
+    { city: 'New York', country: 'USA', flag: '🇺🇸' },
+    { city: 'London', country: 'UK', flag: '🇬🇧' },
+    { city: 'Sydney', country: 'Australia', flag: '🇦🇺' },
+    { city: 'Toronto', country: 'Canada', flag: '🇨🇦' },
+    { city: 'Dubai', country: 'UAE', flag: '🇦🇪' },
+    { city: 'Paris', country: 'France', flag: '🇫🇷' },
+  ];
+
   const pronouns = getPronouns(gender);
 
   // Location autocomplete (Nominatim)
@@ -191,6 +312,12 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
           soulType: soulTypes.join(', ') || undefined, superpower: superpowers.join(', ') || undefined,
           strangerReaction: strangerReaction || undefined, petPhotoUrl: petPhotoUrl || undefined,
           email: email.trim() || undefined,
+          ...(includesSoulBond && ownerBirthDate ? {
+            ownerName: ownerName.trim() || undefined,
+            ownerBirthDate: ownerBirthDate || undefined,
+            ownerBirthTime: ownerBirthTime || undefined,
+            ownerBirthLocation: ownerBirthLocation || undefined,
+          } : {}),
         },
       });
       if (error) {
@@ -224,9 +351,15 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const labelClass = "text-[0.7rem] text-[#9B8E84] uppercase tracking-widest font-[Cormorant,serif] font-semibold mb-1 block";
   const roseBtn = "w-full py-[0.9rem] rounded-xl text-white font-[Cormorant,serif] font-semibold text-[1rem] transition-all";
 
+  const totalScreens = includesSoulBond ? 7 : 6;
+  // For premium: 0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=soul bond, 6=confirm
+  // For basic:   0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=confirm
+  const confirmScreen = includesSoulBond ? 6 : 5;
+  const soulBondScreen = 5; // only used when includesSoulBond
+
   const ProgressDots = () => (
     <div className="flex items-center gap-2 justify-center mb-8">
-      {[0, 1, 2, 3, 4, 5].map(i => (
+      {Array.from({ length: totalScreens }, (_, i) => (
         <motion.div
           key={i}
           animate={i === screen ? { scale: [1, 1.3, 1] } : {}}
@@ -350,16 +483,132 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
               <p className="text-center text-[0.92rem] text-[#6B5E54] italic" style={{ fontFamily: 'Cormorant, serif' }}>
                 Every planetary position in {pronouns.possessive} chart is calculated from this exact date.
               </p>
-              <p className="text-center text-[1.1rem] text-[#bf524a]" style={{ fontFamily: 'Caveat, cursive' }}>
-                The stars don't lie.
-              </p>
 
-              <div>
-                <label className={labelClass}>Date of birth</label>
-                <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)}
-                  className={inputClass} aria-label="Date of birth" style={{ fontSize: '16px' }} />
+              {/* Toggle: Know exact date vs Estimate age */}
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => { setUseEstimateAge(false); setBirthDate(''); }}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-[0.82rem] font-[Cormorant,serif] font-semibold border-[1.5px] transition-all",
+                    !useEstimateAge ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)] text-[#2D2926]" : "border-[#E8DFD6] bg-white text-[#9B8E84]"
+                  )}
+                >
+                  📅 I know the date
+                </button>
+                <button
+                  onClick={() => { setUseEstimateAge(true); setBirthDate(''); }}
+                  className={cn(
+                    "px-4 py-2 rounded-full text-[0.82rem] font-[Cormorant,serif] font-semibold border-[1.5px] transition-all",
+                    useEstimateAge ? "border-[#bf524a] bg-[rgba(240,213,210,0.3)] text-[#2D2926]" : "border-[#E8DFD6] bg-white text-[#9B8E84]"
+                  )}
+                >
+                  🤔 Estimate age
+                </button>
               </div>
 
+              <AnimatePresence mode="wait">
+                {!useEstimateAge ? (
+                  <motion.div key="exact-date" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+                    {/* Month + Year selects */}
+                    <div className="flex gap-2">
+                      <div className="flex-1 relative">
+                        <select
+                          value={birthMonth}
+                          onChange={e => setBirthMonth(e.target.value)}
+                          className={cn(inputClass, "appearance-none pr-8")}
+                          style={{ fontSize: '16px' }}
+                        >
+                          <option value="">Month</option>
+                          {months.map((m, i) => (
+                            <option key={m} value={i.toString()}>{m}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                      </div>
+                      <div className="w-[100px] relative">
+                        <select
+                          value={birthYear}
+                          onChange={e => setBirthYear(e.target.value)}
+                          className={cn(inputClass, "appearance-none pr-8")}
+                          style={{ fontSize: '16px' }}
+                        >
+                          <option value="">Year</option>
+                          {years.map(y => (
+                            <option key={y} value={y.toString()}>{y}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Day select - only show after month/year selected */}
+                    {birthMonth !== "" && birthYear && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                        <label className={labelClass}>Day</label>
+                        <div className="grid grid-cols-7 gap-1">
+                          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => (
+                            <button
+                              key={day}
+                              onClick={() => setBirthDay(day.toString())}
+                              className={cn(
+                                "py-2 rounded-lg text-[0.88rem] font-[Cormorant,serif] font-semibold transition-all",
+                                birthDay === day.toString()
+                                  ? "bg-[#bf524a] text-white"
+                                  : "bg-white border border-[#E8DFD6] text-[#2D2926] hover:border-[#c9665f]"
+                              )}
+                            >
+                              {day}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div key="estimate-age" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="space-y-3">
+                    <p className="text-center text-[0.85rem] text-[#6B5E54]" style={{ fontFamily: 'Cormorant, serif' }}>
+                      How old is {petName}?
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <div className="w-[110px] relative">
+                        <select
+                          value={estimateYears}
+                          onChange={e => setEstimateYears(e.target.value)}
+                          className={cn(inputClass, "appearance-none pr-8 text-center")}
+                          style={{ fontSize: '16px' }}
+                        >
+                          <option value="">Years</option>
+                          {Array.from({ length: 26 }, (_, i) => (
+                            <option key={i} value={i.toString()}>{i} {i === 1 ? 'year' : 'years'}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                      </div>
+                      <div className="w-[120px] relative">
+                        <select
+                          value={estimateMonths}
+                          onChange={e => setEstimateMonths(e.target.value)}
+                          className={cn(inputClass, "appearance-none pr-8 text-center")}
+                          style={{ fontSize: '16px' }}
+                        >
+                          <option value="">Months</option>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <option key={i} value={i.toString()}>{i} {i === 1 ? 'month' : 'months'}</option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                      </div>
+                    </div>
+                    {birthDate && (
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-[0.82rem] text-[#bf524a]" style={{ fontFamily: 'Cormorant, serif' }}>
+                        Estimated: ~{new Date(birthDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </motion.p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Time of birth - optional */}
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <label className={cn(labelClass, "mb-0")}>Time of birth</label>
@@ -378,7 +627,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 </p>
               </div>
 
-              <button onClick={() => setScreen(3)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(3)} disabled={!birthDate} className={cn(roseBtn, birthDate ? "bg-[#bf524a] hover:bg-[#c9665f]" : "bg-[#bf524a]/50 cursor-not-allowed")}>
                 Continue →
               </button>
             </motion.div>
@@ -404,24 +653,65 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
 
               <div className="relative">
                 <label className={labelClass}>Birth location</label>
-                <input value={location} onChange={e => setLocation(e.target.value)}
-                  placeholder="City or country"
-                  className={inputClass} aria-label="Location" style={{ fontSize: '16px' }}
-                  onFocus={() => { if (location.length >= 2) setShowLocationResults(true); }}
-                  onBlur={() => setTimeout(() => setShowLocationResults(false), 200)} />
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84]" />
+                  <input value={location} onChange={e => setLocation(e.target.value)}
+                    placeholder="Start typing a city..."
+                    className={cn(inputClass, "pl-10")} aria-label="Location" style={{ fontSize: '16px' }}
+                    onFocus={() => { if (location.length >= 2) setShowLocationResults(true); }}
+                    onBlur={() => setTimeout(() => setShowLocationResults(false), 200)} />
+                  {isSearchingLocation && (
+                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bf524a] animate-spin" />
+                  )}
+                </div>
                 <AnimatePresence>
                   {showLocationResults && locationResults.length > 0 && (
                     <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
                       className="absolute z-50 w-full mt-1 bg-white border border-[#E8DFD6] rounded-xl shadow-lg overflow-hidden">
                       {locationResults.map((r, i) => (
                         <button key={i} onMouseDown={e => e.preventDefault()} onClick={() => selectLocation(r)}
-                          className="w-full px-4 py-3 text-left hover:bg-[rgba(240,213,210,0.2)] transition-colors border-b border-[#E8DFD6] last:border-0 text-[0.85rem] font-[Cormorant,serif] text-[#2D2926]">
+                          className="w-full px-4 py-3 text-left hover:bg-[rgba(240,213,210,0.2)] transition-colors border-b border-[#E8DFD6] last:border-0 text-[0.85rem] font-[Cormorant,serif] text-[#2D2926] flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-[#9B8E84] flex-shrink-0" />
                           {r.display_name.split(',').slice(0, 3).join(',')}
                         </button>
                       ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Use current location button */}
+                <button
+                  onClick={async () => {
+                    if (!navigator.geolocation) return;
+                    try {
+                      const pos = await new Promise<GeolocationPosition>((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 10000 }));
+                      const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&addressdetails=1`);
+                      const data = await resp.json();
+                      const city = data.address?.city || data.address?.town || data.address?.village || '';
+                      const country = data.address?.country || '';
+                      setLocation(city && country ? `${city}, ${country}` : city || country);
+                      setShowLocationResults(false);
+                    } catch { /* silently fail */ }
+                  }}
+                  className="flex items-center gap-1.5 mt-2 text-[0.78rem] text-[#bf524a] font-[Cormorant,serif] font-semibold hover:underline"
+                >
+                  📍 Use my current location
+                </button>
+
+                {/* Quick-select cities */}
+                {!location && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3">
+                    <p className="text-[0.7rem] text-[#9B8E84] mb-2">Or quick-select:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {quickCities.map(c => (
+                        <button key={c.city} onClick={() => { setLocation(`${c.city}, ${c.country}`); setShowLocationResults(false); }}
+                          className="px-3 py-1.5 rounded-full border border-[#E8DFD6] bg-white text-[0.78rem] font-[Cormorant,serif] text-[#2D2926] hover:border-[#c9665f] transition-all">
+                          {c.flag} {c.city}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
                 <p className={hintClass}>Affects which stars were visible — refines house placements in the chart.</p>
               </div>
 
@@ -508,17 +798,132 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 </div>
               </div>
 
-              <button onClick={() => setScreen(5)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(includesSoulBond ? soulBondScreen : confirmScreen)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
                 Continue →
               </button>
-              <button onClick={() => setScreen(5)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+              <button onClick={() => setScreen(includesSoulBond ? soulBondScreen : confirmScreen)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
                 Skip — let the stars do the talking
               </button>
             </motion.div>
           )}
 
-          {/* SCREEN 5: Confirmation */}
-          {screen === 5 && (
+          {/* SCREEN 5: Soul Bond (premium only) */}
+          {includesSoulBond && screen === soulBondScreen && (
+            <motion.div key="s-sb" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
+                  style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(196,122,122,0.15))', border: '1px solid rgba(196,162,101,0.3)' }}>
+                  <span className="text-[0.78rem] font-semibold" style={{ color: '#c4a265' }}>💞 Soul Bond — Premium</span>
+                </div>
+                <h1 className="text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+                  Now let's look at your stars
+                </h1>
+                <p className="text-[0.88rem] text-[#6B5E54] mt-2" style={{ fontFamily: 'Cormorant, serif' }}>
+                  We'll compare your natal chart with {petName}'s to reveal why you two were cosmically destined to find each other.
+                </p>
+              </div>
+
+              {/* Owner name */}
+              <div>
+                <label className={labelClass}>Your first name</label>
+                <input value={ownerName} onChange={e => setOwnerName(e.target.value)}
+                  placeholder="Your name" className={inputClass} style={{ fontSize: '16px' }} />
+              </div>
+
+              {/* Owner birthday */}
+              <div>
+                <label className={labelClass}>Your date of birth</label>
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <select value={ownerBirthMonth} onChange={e => setOwnerBirthMonth(e.target.value)}
+                      className={cn(inputClass, "appearance-none pr-8")} style={{ fontSize: '16px' }}>
+                      <option value="">Month</option>
+                      {months.map((m, i) => <option key={m} value={i.toString()}>{m}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                  </div>
+                  <div className="w-[100px] relative">
+                    <select value={ownerBirthYear} onChange={e => setOwnerBirthYear(e.target.value)}
+                      className={cn(inputClass, "appearance-none pr-8")} style={{ fontSize: '16px' }}>
+                      <option value="">Year</option>
+                      {ownerYears.map(y => <option key={y} value={y.toString()}>{y}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                  </div>
+                </div>
+                {ownerBirthMonth !== "" && ownerBirthYear && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-3">
+                    <label className={labelClass}>Day</label>
+                    <div className="grid grid-cols-7 gap-1">
+                      {Array.from({ length: ownerDaysInMonth }, (_, i) => i + 1).map(day => (
+                        <button key={day} onClick={() => setOwnerBirthDay(day.toString())}
+                          className={cn(
+                            "py-2 rounded-lg text-[0.88rem] font-[Cormorant,serif] font-semibold transition-all",
+                            ownerBirthDay === day.toString()
+                              ? "bg-[#bf524a] text-white"
+                              : "bg-white border border-[#E8DFD6] text-[#2D2926] hover:border-[#c9665f]"
+                          )}>
+                          {day}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Owner birth time */}
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <label className={cn(labelClass, "mb-0")}>Time of birth</label>
+                  <span className="text-[0.6rem] font-bold text-[#c4a265] bg-[rgba(196,162,101,0.15)] px-2 py-[2px] rounded">OPTIONAL</span>
+                </div>
+                <input type="time" value={ownerBirthTime} onChange={e => setOwnerBirthTime(e.target.value)}
+                  className={inputClass} style={{ fontSize: '16px' }} />
+              </div>
+
+              {/* Owner birth location */}
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-1">
+                  <label className={cn(labelClass, "mb-0")}>Birth location</label>
+                  <span className="text-[0.6rem] font-bold text-[#c4a265] bg-[rgba(196,162,101,0.15)] px-2 py-[2px] rounded">OPTIONAL</span>
+                </div>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84]" />
+                  <input value={ownerBirthLocation} onChange={e => setOwnerBirthLocation(e.target.value)}
+                    placeholder="Start typing a city..."
+                    className={cn(inputClass, "pl-10")} style={{ fontSize: '16px' }}
+                    onFocus={() => { if (ownerBirthLocation.length >= 2) setShowOwnerLocationResults(true); }}
+                    onBlur={() => setTimeout(() => setShowOwnerLocationResults(false), 200)} />
+                  {isSearchingOwnerLocation && (
+                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#bf524a] animate-spin" />
+                  )}
+                </div>
+                <AnimatePresence>
+                  {showOwnerLocationResults && ownerLocationResults.length > 0 && (
+                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                      className="absolute z-50 w-full mt-1 bg-white border border-[#E8DFD6] rounded-xl shadow-lg overflow-hidden">
+                      {ownerLocationResults.map((r, i) => (
+                        <button key={i} onMouseDown={e => e.preventDefault()} onClick={() => selectOwnerLocation(r)}
+                          className="w-full px-4 py-3 text-left hover:bg-[rgba(240,213,210,0.2)] transition-colors border-b border-[#E8DFD6] last:border-0 text-[0.85rem] font-[Cormorant,serif] text-[#2D2926] flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-[#9B8E84] flex-shrink-0" />
+                          {r.display_name.split(',').slice(0, 3).join(',')}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <button onClick={() => setScreen(confirmScreen)}
+                disabled={!ownerName.trim() || !ownerBirthDate}
+                className={cn(roseBtn, ownerName.trim() && ownerBirthDate ? "bg-[#bf524a] hover:bg-[#c9665f]" : "bg-[#bf524a]/50 cursor-not-allowed")}>
+                Continue →
+              </button>
+            </motion.div>
+          )}
+
+          {/* CONFIRMATION SCREEN */}
+          {screen === confirmScreen && (
             <motion.div key="s5" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
                 Ready to read {petName}'s stars
@@ -542,10 +947,10 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
               {/* Photo Upload */}
               <div>
                 <p className="text-[0.95rem] text-[#2D2926] font-[Cormorant,serif] font-semibold mb-1">
-                  📸 Add {petName}'s photo
+                  📸 Upload {petName}'s photo
                 </p>
                 <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-3">
-                  Your favourite photo of {petName}. Used on the report and shareable card.
+                  We'll weave {pronouns.possessive} photo through the report, emails, and SoulSpeak. It brings everything to life.
                 </p>
                 <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
                   onChange={e => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); }} />

@@ -42,11 +42,11 @@ export interface CheckoutData {
   petHoroscopes?: Record<number, boolean>;
 }
 
-// Product tiers - $35 without portrait, $50 with photo on card
+// Product tiers
 const TIERS = {
   basic: {
     id: 'basic',
-    name: 'Full Reading',
+    name: 'Soul Reading',
     shortName: 'Reading',
     description: "Finally understand your pet",
     priceCents: 2700, // $27
@@ -55,33 +55,33 @@ const TIERS = {
     highlight: false,
     includesPortrait: false,
     benefits: [
+      "Full astrology reading with pet photo",
       "Decode your pet's quirky behaviors",
-      "Learn your pet's emotional needs",
-      "⭐ SoulSpeak by Little Souls — hear your pet's voice",
+      "⭐ SoulSpeak — hear your pet's voice",
     ],
   },
   premium: {
     id: 'premium',
-    name: 'Keepsake Card',
-    shortName: 'Card',
-    description: 'A treasure you can hold',
+    name: 'Soul Bond',
+    shortName: 'Bond',
+    description: 'Deep pet-parent compatibility',
     priceCents: 3500, // $35
     originalPriceCents: 7000, // $70 anchoring
-    icon: Crown,
+    icon: Heart,
     highlight: true,
     includesPortrait: true,
     benefits: [
       "Everything in Reading, plus...",
-      "Beautiful printed cosmic card",
-      "⭐ SoulSpeak by Little Souls — hear your pet's voice",
+      "Pet-Parent Soul Bond analysis",
+      "Your cosmic compatibility decoded",
     ],
   },
 };
 
 // Gift tiers - 50% off all tiers for friends (must match server)
 const GIFT_TIERS = {
-  basic: { priceCents: 1350, originalCents: 2700, name: 'Cosmic Pet Reading' },
-  premium: { priceCents: 1750, originalCents: 3500, name: 'Portrait Edition' },
+  basic: { priceCents: 1350, originalCents: 2700, name: 'Soul Reading' },
+  premium: { priceCents: 1750, originalCents: 3500, name: 'Soul Bond Edition' },
 };
 
 // Volume discount calculation - must match server
@@ -148,10 +148,9 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     return () => clearInterval(interval);
   }, []);
 
-  // Calculate which pets need photo upload (Premium tier)
+  // All pets can upload photos now (not gated to premium)
   const petsNeedingPhotos = allPets
-    .map((pet, idx) => ({ pet, idx, tier: petTiers[idx] }))
-    .filter(({ tier }) => tier === 'premium');
+    .map((pet, idx) => ({ pet, idx, tier: petTiers[idx] }));
 
   // Calculate total with per-pet tiers AND horoscope subscriptions
   const calculateTotal = () => {
@@ -192,15 +191,6 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
 
   const handleTierChange = (petIndex: number, tier: 'basic' | 'premium') => {
     setPetTiers(prev => ({ ...prev, [petIndex]: tier }));
-    
-    // If downgrading from portrait tier, remove photo
-    if (tier === 'basic' && petPhotos[petIndex]) {
-      setPetPhotos(prev => {
-        const updated = { ...prev };
-        delete updated[petIndex];
-        return updated;
-      });
-    }
   };
 
   const handleRedeem = async () => {
@@ -293,11 +283,6 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     const newTiers: Record<number, 'basic' | 'premium'> = {};
     allPets.forEach((_, idx) => { newTiers[idx] = tier; });
     setPetTiers(newTiers);
-    
-    // Clear photos if setting all to basic
-    if (tier === 'basic') {
-      setPetPhotos({});
-    }
   };
 
   return (
@@ -420,10 +405,11 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="p-3 rounded-lg bg-nebula-purple/10 border border-nebula-purple/30">
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
               <div className="flex items-center gap-2 mb-2">
-                <Camera className="w-4 h-4 text-nebula-purple" />
-                <span className="text-xs font-medium text-foreground">Upload photo for card</span>
+                <Camera className="w-4 h-4 text-primary" />
+                <span className="text-xs font-medium text-foreground">Upload your pet's photo</span>
+                <span className="text-[9px] font-bold text-green-400 ml-auto">INCLUDED</span>
               </div>
               <div className="space-y-2">
                 {petsNeedingPhotos.map(({ pet, idx }) => (

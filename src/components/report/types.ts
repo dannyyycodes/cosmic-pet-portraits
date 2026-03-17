@@ -188,6 +188,48 @@ export interface ReportContent {
     sixKeyTraits: string[];
     signatureLine: string;
   };
+  petParentSoulBond?: {
+    title: string;
+    intro: string;
+    elementalHarmony: {
+      title: string;
+      petElement: string;
+      ownerElement: string;
+      harmony: string;
+      compatibilityScore: string;
+    };
+    sunMoonDance: {
+      title: string;
+      content: string;
+      crossAspect: string;
+    };
+    venusConnection: {
+      title: string;
+      petVenus: string;
+      ownerVenus: string;
+      content: string;
+      loveLanguageMatch: string;
+    };
+    marsEnergy: {
+      title: string;
+      petMars: string;
+      ownerMars: string;
+      content: string;
+      activityMatch: string;
+    };
+    soulContract: {
+      title: string;
+      content: string;
+      lessonForOwner: string;
+      lessonForPet: string;
+    };
+    cosmicRating: {
+      overallScore: string;
+      verdict: string;
+      strengthAreas: string[];
+      growthAreas: string[];
+    };
+  };
   // Creative extras
   yelpReviews?: Array<{
     place: string;

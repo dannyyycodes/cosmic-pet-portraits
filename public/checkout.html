@@ -617,13 +617,24 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
       <div class="pf-row pf-even"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>SoulSpeak</strong> <span style="padding:2px 8px; font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:linear-gradient(135deg,#c4a265,#d4af37); color:#fff; border-radius:8px; vertical-align:1px; margin-left:4px; box-shadow:0 1px 4px rgba(196,162,101,0.3);">NEW</span> — hear what they'd say if they could speak. 15 free heart-to-heart conversations with their soul</div></div>
     </div>
 
-    <!-- Portrait upsell INSIDE card -->
-    <div style="border-top:1px solid var(--cream3); padding-top:14px; margin-top:16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;" id="upsellPortrait">
+    <!-- Pet photo included badge -->
+    <div style="border-top:1px solid var(--cream3); padding-top:14px; margin-top:16px; display:flex; align-items:center; gap:10px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <div>
+        <span style="font-weight:600; font-size:0.85rem; color:var(--ink);">Upload your pet's photo</span>
+        <span style="font-size:0.72rem; color:var(--muted); display:block; margin-top:1px;">We'll weave it into every page of the report</span>
+      </div>
+      <span style="font-size:0.72rem; font-weight:600; color:var(--green); white-space:nowrap; margin-left:auto;">Included</span>
+    </div>
+
+    <!-- Pet-Parent Soul Bond upsell INSIDE card -->
+    <div style="border-top:1px solid var(--cream3); padding-top:14px; margin-top:12px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;" id="upsellPortrait">
       <div style="display:flex; align-items:center; gap:10px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         <div>
-          <span style="font-weight:600; font-size:0.88rem; color:var(--ink);">Add Portrait</span>
+          <span style="font-weight:600; font-size:0.88rem; color:var(--ink);">Add Pet-Parent Soul Bond</span>
           <span class="upsell-popular" style="margin-left:6px;">MOST POPULAR</span>
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:2px;">Deep compatibility analysis of your cosmic connection</div>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
@@ -1359,7 +1370,7 @@ function updateUI() {
     var html = '';
     html += '<div class="order-summary-row"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Little Souls Reading</span><span>$' + calc.readingSub.toFixed(2) + '</span></div>';
     if (portraitOn) {
-      html += '<div class="order-summary-row"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Portrait</span><span>$' + calc.portraitSub.toFixed(2) + '</span></div>';
+      html += '<div class="order-summary-row"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Pet-Parent Soul Bond</span><span>$' + calc.portraitSub.toFixed(2) + '</span></div>';
     }
     if (horoscopeOn) {
       html += '<div class="order-summary-row" style="color:var(--green);"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Weekly Horoscope (1st month free)</span><span>$0.00</span></div>';
@@ -1442,7 +1453,7 @@ function toggleHoroscope() {
   updateUI();
 }
 
-// ─── Portrait Toggle ───
+// ─── Soul Bond Toggle ───
 document.getElementById('upsellPortrait').addEventListener('click', function() {
   portraitOn = !portraitOn;
   document.getElementById('togglePortrait').classList.toggle('on', portraitOn);

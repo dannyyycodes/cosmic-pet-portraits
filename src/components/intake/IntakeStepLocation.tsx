@@ -31,10 +31,12 @@ interface LocationResult {
 const famousCities = [
   { city: 'New York', country: 'USA', flag: '🇺🇸' },
   { city: 'London', country: 'UK', flag: '🇬🇧' },
-  { city: 'Paris', country: 'France', flag: '🇫🇷' },
-  { city: 'Tokyo', country: 'Japan', flag: '🇯🇵' },
   { city: 'Sydney', country: 'Australia', flag: '🇦🇺' },
+  { city: 'Toronto', country: 'Canada', flag: '🇨🇦' },
   { city: 'Dubai', country: 'UAE', flag: '🇦🇪' },
+  { city: 'Mumbai', country: 'India', flag: '🇮🇳' },
+  { city: 'Berlin', country: 'Germany', flag: '🇩🇪' },
+  { city: 'São Paulo', country: 'Brazil', flag: '🇧🇷' },
 ];
 
 export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSteps, modeContent }: IntakeStepLocationProps) {

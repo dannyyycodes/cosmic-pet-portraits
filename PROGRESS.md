@@ -362,3 +362,122 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 - [ ] Final content quality review of Bear's report
 
 *Last updated: 2026-03-16 evening*
+
+---
+
+## Session: March 16 (late) — Intake Form Overhaul & Tier Restructure
+
+### Completed:
+
+**Strategic Change:** Photo upload is now FREE for all tiers. Premium upsell is now "Pet-Parent Soul Bond" (compatibility analysis) instead of portrait/keepsake card. Same pricing ($27 base, +$8 for Soul Bond).
+
+1. **checkout.html (sales page)**
+   - "Add Portrait" toggle → "Add Pet-Parent Soul Bond" with heart icon + description
+   - Added "Upload your pet's photo — Included" badge for all tiers
+   - Order summary label: "Portrait" → "Pet-Parent Soul Bond"
+
+2. **CheckoutPanel.tsx (IntakeWizard checkout)**
+   - Basic tier: "Full Reading" → "Soul Reading", benefits mention pet photo included
+   - Premium tier: "Keepsake Card" → "Soul Bond" with "Deep pet-parent compatibility"
+   - Photo upload ungated — available for ALL tiers (not just premium)
+   - Photo section shows "INCLUDED" badge
+   - Tier changes no longer clear photos
+   - Gift tier names: "Cosmic Pet Reading"/"Portrait Edition" → "Soul Reading"/"Soul Bond Edition"
+
+3. **PostPurchaseIntake.tsx (main post-checkout form — what regular purchasers see)**
+   - **Date picker rebuilt**: month/year dropdowns + day grid, OR "estimate age" toggle
+   - No more scrolling through native date picker — tap month, tap year, tap day
+   - **Location improved**: MapPin icon, loading spinner, "Use my current location" GPS button
+   - Quick-select cities: New York, London, Sydney, Toronto, Dubai, Paris
+   - Photo upload copy updated: "We'll weave it into every page of the report"
+
+4. **IntakeStepOwnerDetails.tsx (owner birth details for compatibility)**
+   - Rebranded: "Optional: Cosmic Connection" → "Pet-Parent Soul Bond"
+   - CTA: "Reveal Our Cosmic Connection" → "Reveal Our Soul Bond"
+   - **Location autocomplete added** — Nominatim search with dropdown (was plain text input)
+
+5. **IntakeStepLocation.tsx (pet location in IntakeWizard)**
+   - Quick-select cities expanded: 6 → 8, more globally diverse (added Toronto, Mumbai, Berlin, São Paulo)
+
+6. **IntakeWizard.tsx (gift flow)**
+   - Photo upload now shown for ALL gift recipients (not just portrait tier)
+   - Multi-pet photo selection works for all gifts
+
+### Files changed:
+- `public/checkout.html` — Soul Bond upsell, photo included badge
+- `src/components/intake/CheckoutPanel.tsx` — Tier rename, photo ungated
+- `src/components/intake/PostPurchaseIntake.tsx` — Date picker, location improvements
+- `src/components/intake/IntakeStepOwnerDetails.tsx` — Soul Bond branding, location autocomplete
+- `src/components/intake/IntakeStepLocation.tsx` — More global cities
+- `src/components/intake/IntakeWizard.tsx` — Photo upload for all gift recipients
+
+### Build: Clean ✓ (tsc + vite build pass)
+
+### Still needed:
+- [x] **Worker prompt: Pet-Parent Soul Bond section** — DONE (see March 17 session below)
+- [ ] **create-checkout edge function** — verify labels still work (internal tier names `basic`/`premium` unchanged, should be fine)
+- [ ] E2E Stripe test purchase with test card in browser
+- [ ] Create Stripe promo codes: COSMIC30, GIFTLOVE30, COMEBACK35
+- [ ] Set up GA4
+- [ ] Create OG image (1200x630px)
+- [ ] Activate ManyChat widget
+- [ ] Push code + deploy (includes Soul Bond + all intake changes)
+
+*Last updated: 2026-03-16 late night*
+
+---
+
+## Session: March 17 — Pet-Parent Soul Bond (Premium Section)
+
+### Completed:
+
+1. **Worker: Owner chart calculation** (`worker/worker.ts`)
+   - Extracts `owner_name`, `owner_birth_date`, `owner_birth_time`, `owner_birth_location` from bridge data
+   - Detects premium tier via `includes_portrait` flag
+   - Calculates full natal chart for the owner (Sun, Moon, Venus, Mars, etc.) using same ephemeris-v2
+   - Geocodes owner birth location for accurate positions
+   - Non-fatal: if owner chart fails, report generates normally without Soul Bond
+
+2. **Worker: Soul Bond prompt section** (`worker/worker.ts`)
+   - Conditionally injected into the JSON schema ONLY when `includesSoulBond && ownerBirthDate`
+   - 6 subsections: Elemental Harmony, Sun-Moon Dance, Venus Connection, Mars Energy, Soul Contract, Cosmic Rating
+   - Uses REAL chart data from both pet and owner natal charts
+   - Includes compatibility scores, strength areas, growth areas
+   - Prompt instructs AI to make Soul Contract subsection the emotional peak
+   - Added to Chapter 5 story flow and anchoring rules
+
+3. **Fallback Soul Bond** (`worker/worker.ts`)
+   - Full fallback report builder includes Soul Bond section when data available
+   - All subsections populated with elemental-logic-based defaults
+
+4. **Report viewer: Soul Bond renderer** (`CosmicReportViewer.tsx`)
+   - Premium "Soul Bond" badge in top-right corner (gold gradient)
+   - Elemental harmony with element pills and compatibility score
+   - Sun-Moon Dance with italic cross-aspect insight
+   - Venus Connection with love language match
+   - Mars Energy with activity recommendation
+   - Soul Contract with gold left-border, "What they teach you" / "What you give them" sub-blocks
+   - Cosmic Rating with large score, verdict, and strength area pills
+   - Warm rose-to-cream gradient background, matches Chapter 5 aesthetic
+
+5. **TypeScript types** (`types.ts`)
+   - Added `petParentSoulBond` interface with all 6 subsections
+
+### Build: Clean ✓ (tsc + vite build pass)
+
+### How it works end-to-end:
+1. User selects "Soul Bond" (+$8) on checkout → `includes_portrait: true` saved to DB
+2. User fills in their birth details on IntakeStepOwnerDetails → `owner_birth_date`, `owner_birth_time`, `owner_birth_location` saved
+3. Worker fetches report row via bridge → detects `includes_portrait` + `owner_birth_date`
+4. Worker calculates owner natal chart → injects `petParentSoulBond` section into AI prompt
+5. AI generates deep compatibility analysis using both charts
+6. Report viewer renders Soul Bond section in Chapter 5 (after Keeper's Bond)
+
+### Still needed:
+- [ ] Deploy worker to DO droplet (`scp worker.ts` + restart service)
+- [ ] Deploy frontend to Vercel (push to git)
+- [ ] Test with a premium purchase that includes owner birth details
+- [ ] Verify `create-checkout` labels still work
+- [ ] E2E Stripe test, promo codes, GA4, OG image, ManyChat
+
+*Last updated: 2026-03-17*

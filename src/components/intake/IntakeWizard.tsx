@@ -925,20 +925,15 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 petCount={petCount}
                 onUpdate={() => {}} 
                 onReveal={(checkoutData) => {
-                  // For gift redemptions with portrait included, go to portrait selection first
-                  if (giftCodeFromUrl && giftData?.includesPortrait) {
-                    // If multiple pets have portrait tier, show selection; else go straight to photo
-                    const portraitIndices = giftData.portraitPetIndices || [];
-                    if (portraitIndices.length > 1) {
-                      goToStep(14); // Portrait selection step
-                    } else if (portraitIndices.length === 1) {
-                      setPortraitPetIndex(portraitIndices[0]);
-                      setCurrentPetIndex(portraitIndices[0]);
-                      goToStep(15); // Photo upload step
+                  // For gift redemptions, always offer photo upload
+                  if (giftCodeFromUrl) {
+                    if (petCount > 1) {
+                      // Multi-pet: let them pick which pet to upload photo for
+                      goToStep(14);
                     } else {
-                      // Fallback: all pets get portrait if includesPortrait is true but no indices
                       setPortraitPetIndex(0);
-                      goToStep(15);
+                      setCurrentPetIndex(0);
+                      goToStep(15); // Photo upload step
                     }
                   } else {
                     handleReveal(checkoutData);
@@ -964,12 +959,12 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             </motion.div>
           )}
 
-          {/* Portrait pet selection step - when multiple pets have portrait tier */}
-          {step === 14 && giftCodeFromUrl && giftData?.includesPortrait && (giftData.portraitPetIndices?.length || 0) > 1 && (
+          {/* Pet selection step for photo upload - when multiple pets */}
+          {step === 14 && giftCodeFromUrl && petCount > 1 && (
             <motion.div key="step-portrait-select" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepPortraitSelect
                 petsData={petsData}
-                portraitPetIndices={giftData.portraitPetIndices || []}
+                portraitPetIndices={Array.from({ length: petCount }, (_, i) => i)}
                 selectedPetIndex={portraitPetIndex}
                 onSelect={(idx) => {
                   setPortraitPetIndex(idx);
@@ -981,8 +976,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
             </motion.div>
           )}
 
-          {/* Photo upload step - only for portrait gift recipients */}
-          {step === 15 && giftCodeFromUrl && giftData?.includesPortrait && (
+          {/* Photo upload step - for all gift recipients */}
+          {step === 15 && giftCodeFromUrl && (
             <motion.div key="step-photo" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
               <IntakeStepPhoto
                 petName={petsData[portraitPetIndex ?? 0]?.name || 'Your pet'}
@@ -995,11 +990,10 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 }}
                 onNext={() => handleReveal()}
                 onBack={() => {
-                  const portraitIndices = giftData.portraitPetIndices || [];
-                  if (portraitIndices.length > 1) {
-                    setStep(14); // Back to selection
+                  if (petCount > 1) {
+                    setStep(14); // Back to pet selection
                   } else {
-                    setStep(13); // Back to checkout
+                    setStep(13); // Back to reveal
                   }
                 }}
                 onSkip={() => handleReveal()}

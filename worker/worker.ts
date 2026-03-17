@@ -229,6 +229,13 @@ try {
   const strangerReaction: string = (petData.stranger_reaction ?? petData.strangerReaction ?? "").trim();
   const petPhotoUrl: string = (reportRow.pet_photo_url ?? petData.pet_photo_url ?? petData.petPhotoUrl ?? "").trim();
 
+  // Owner data for Soul Bond (premium tier)
+  const includesSoulBond: boolean = !!(reportRow.includes_portrait);
+  const ownerName: string = (reportRow.owner_name ?? "").trim();
+  const ownerBirthDate: string = (reportRow.owner_birth_date ?? "").trim();
+  const ownerBirthTime: string = (reportRow.owner_birth_time ?? "").trim();
+  const ownerBirthLocation: string = (reportRow.owner_birth_location ?? "").trim();
+
   const languageNames: Record<string, string> = {
     en: 'English', es: 'Spanish', de: 'German',
     fr: 'French', pt: 'Portuguese', ar: 'Arabic',
@@ -376,6 +383,56 @@ try {
     venus: `${venus} ${positions.venus.degree}°`,
     mars: `${mars} ${positions.mars.degree}°`,
   });
+
+  // ─── Owner Chart Calculation (for Soul Bond premium section) ────────────────
+  let ownerPositions: PlanetaryPositions | null = null;
+  let ownerSunSign = "";
+  let ownerMoonSign = "";
+  let ownerVenus = "";
+  let ownerMars = "";
+  let ownerElement = "";
+  let hasSoulBondData = false;
+
+  if (includesSoulBond && ownerBirthDate) {
+    try {
+      const ownerDob = new Date(ownerBirthDate);
+      let ownerBirthHour = 12;
+      let ownerBirthMinute = 0;
+      if (ownerBirthTime && ownerBirthTime.includes(':')) {
+        const [h, m] = ownerBirthTime.split(':').map(Number);
+        if (!isNaN(h) && h >= 0 && h < 24) {
+          ownerBirthHour = h;
+          ownerBirthMinute = m || 0;
+        }
+      }
+      ownerDob.setHours(ownerBirthHour, ownerBirthMinute, 0, 0);
+
+      let ownerCoords: { lat: number; lon: number; displayName: string } | null = null;
+      if (ownerBirthLocation) {
+        ownerCoords = await geocodeLocation(ownerBirthLocation);
+      }
+
+      ownerPositions = ownerCoords
+        ? calculateAllPositions(ownerDob, ownerCoords.lat, ownerCoords.lon)
+        : calculateAllPositions(ownerDob);
+
+      ownerSunSign = ownerPositions.sun.sign;
+      ownerMoonSign = ownerPositions.moon.sign;
+      ownerVenus = ownerPositions.venus.sign;
+      ownerMars = ownerPositions.mars.sign;
+      ownerElement = getElement(ownerSunSign);
+      hasSoulBondData = true;
+
+      console.log("[WORKER] Owner chart calculated:", {
+        sun: `${ownerSunSign} ${ownerPositions.sun.degree}°`,
+        moon: `${ownerMoonSign} ${ownerPositions.moon.degree}°`,
+        venus: `${ownerVenus} ${ownerPositions.venus.degree}°`,
+        mars: `${ownerMars} ${ownerPositions.mars.degree}°`,
+      });
+    } catch (e) {
+      console.warn("[WORKER] Owner chart calculation failed (non-fatal):", e);
+    }
+  }
 
   // ─── Prompt construction (verbatim from edge function lines 318-1071) ──────
 
@@ -758,7 +815,7 @@ THE REPORT SHOULD FLOW LIKE A STORY:
 2. CHAPTER 2 - THE SOUL REVEALED: Core planetary insights (all planet sections)
 3. CHAPTER 3 - THE LIGHTER SIDE: Fun, shareable, meme-worthy content
 4. CHAPTER 4 - THE DEEP DIVE: Emotional connection & healing
-5. CHAPTER 5 - THE BOND: Keeper's connection & closing
+5. CHAPTER 5 - THE BOND: Keeper's connection${hasSoulBondData ? `, Pet-Parent Soul Bond (${ownerName || 'owner'} is a ${ownerSunSign} Sun / ${ownerMoonSign} Moon — use BOTH charts for the Soul Bond section)` : ''} & closing
 
 ANCHORING RULES (follow these exactly):
 1. Before writing each section, re-read the pet's name, breed, gender, and pronouns. Never get these wrong mid-report.
@@ -768,6 +825,7 @@ ANCHORING RULES (follow these exactly):
 5. Every planet section must contain: one specific breed behavior, one reference to the astrological placement, and one "you've probably noticed..." moment directed at the owner.
 6. The fun sections (crimes, dating, dream job) must reference at least 2 specific chart placements each — not just generic comedy.
 7. Use the pet's name at least twice per section. Never use generic terms like "your pet" or "this animal".
+${hasSoulBondData ? `8. SOUL BOND PREMIUM SECTION — ${ownerName || 'The owner'} paid extra for this deep compatibility analysis. It MUST feel worth the upgrade. Use REAL chart data from BOTH ${name}'s and ${ownerName || 'the owner'}'s natal charts. Don't be generic — reference specific sign combinations and what they mean for THIS pair. The Soul Contract subsection should make the reader cry.` : ''}
 
 IMPORTANT: Each section should feel deeply personal, specific to THIS ${species}, and emotionally resonant for ${occasionMode} mode.
 
@@ -1026,7 +1084,56 @@ JSON Structure:
     "dailyRitual": "A simple daily ritual to honor your bond.",
     "affirmation": "An affirmation for your relationship."
   },
+${hasSoulBondData ? `
+  "petParentSoulBond": {
+    "title": "💞 Pet-Parent Soul Bond: ${ownerName || 'You'} & ${name}",
+    "intro": "A 2-3 sentence warm introduction to this section. Acknowledge that ${ownerName || 'the reader'} (${ownerSunSign} Sun) and ${name} (${sunSign} Sun) chose each other for a reason. This section is the premium deep-dive into WHY this specific human and this specific pet are cosmically paired.",
 
+    "elementalHarmony": {
+      "title": "Elemental Chemistry",
+      "petElement": "${element}",
+      "ownerElement": "${ownerElement}",
+      "harmony": "3-4 sentences analyzing the elemental dynamic between ${element} (${name}) and ${ownerElement} (${ownerName || 'you'}). Are they the same element (deep understanding) or different (complementary growth)? ${element === ownerElement ? 'Same element = instant recognition, shared rhythms, but watch for amplifying each other\\'s blind spots.' : `${element} meets ${ownerElement} = ${(element === 'Fire' && ownerElement === 'Air') || (element === 'Air' && ownerElement === 'Fire') ? 'natural fuel — Air feeds Fire, Fire inspires Air' : (element === 'Earth' && ownerElement === 'Water') || (element === 'Water' && ownerElement === 'Earth') ? 'nurturing combo — Water nourishes Earth, Earth gives Water form' : (element === 'Fire' && ownerElement === 'Water') || (element === 'Water' && ownerElement === 'Fire') ? 'steam! Intense chemistry with lessons in balance' : (element === 'Earth' && ownerElement === 'Air') || (element === 'Air' && ownerElement === 'Earth') ? 'grounding meets freedom — they teach each other what they need most' : 'a unique dynamic with its own cosmic rhythm'}.`} Use real examples of how this plays out daily.",
+      "compatibilityScore": "A percentage 60-99 with a one-line explanation"
+    },
+
+    "sunMoonDance": {
+      "title": "The Sun-Moon Dance",
+      "content": "3-4 sentences about the interplay between ${ownerName || 'your'} Sun (${ownerSunSign}) and ${name}'s Moon (${moonSign}), AND ${name}'s Sun (${sunSign}) and ${ownerName || 'your'} Moon (${ownerMoonSign}). The Sun-Moon cross-connection is the heart of any relationship in astrology. How does ${ownerName || 'your'} core identity (${ownerSunSign} Sun) nurture ${name}'s emotional needs (${moonSign} Moon)? How does ${name}'s personality (${sunSign} Sun) make ${ownerName || 'you'} feel emotionally safe (${ownerMoonSign} Moon)? Be specific about actual daily moments.",
+      "crossAspect": "One powerful observation about this Sun-Moon cross-pattern"
+    },
+
+    "venusConnection": {
+      "title": "Love Languages Compared",
+      "petVenus": "${venus}",
+      "ownerVenus": "${ownerVenus}",
+      "content": "3-4 sentences comparing how ${name} (Venus in ${venus}) and ${ownerName || 'you'} (Venus in ${ownerVenus}) give and receive love. ${venus === ownerVenus ? 'Same Venus = you literally speak the same love language.' : 'Different Venus signs = you show love differently, which can be beautiful once you understand each other\\'s style.'} Give specific examples: how ${name} shows love as a ${breed || species}, and how ${ownerName || 'you'} probably respond based on ${ownerVenus} Venus. Include one sweet 'you probably don\\'t realize this, but...' moment.",
+      "loveLanguageMatch": "A cute one-liner about their love language compatibility"
+    },
+
+    "marsEnergy": {
+      "title": "Energy & Play Dynamic",
+      "petMars": "${mars}",
+      "ownerMars": "${ownerMars}",
+      "content": "2-3 sentences about how ${name}'s ${mars} Mars energy and ${ownerName || 'your'} ${ownerMars} Mars interact. Do they motivate each other? Does one bring calm to the other's chaos? How does their play/activity dynamic work?",
+      "activityMatch": "The perfect shared activity for this Mars combination"
+    },
+
+    "soulContract": {
+      "title": "The Soul Contract",
+      "content": "4-5 sentences about the deeper cosmic agreement between ${ownerName || 'you'} and ${name}. Based on their combined charts: What did they agree to teach each other? What wound does ${name} heal in ${ownerName || 'you'} (look at ${ownerName || 'your'} ${ownerPositions ? ownerPositions.chiron.sign : 'Chiron'} Chiron)? What does ${ownerName || 'your'} presence heal in ${name} (look at ${name}'s ${chiron} Chiron)? This should be the emotional peak of the Soul Bond section — make it deeply moving and specific.",
+      "lessonForOwner": "The one thing ${name} came to teach ${ownerName || 'you'}",
+      "lessonForPet": "The one thing ${ownerName || 'you'} give ${name} that ${pronouns.subject} couldn't find anywhere else"
+    },
+
+    "cosmicRating": {
+      "overallScore": "A percentage 75-99 — the cosmic compatibility score",
+      "verdict": "A warm, funny 1-2 sentence verdict on this pairing (e.g., '94% — Basically soulmates who argue about bedtime')",
+      "strengthAreas": ["3 areas where this pet-parent combo excels — be specific"],
+      "growthAreas": ["1-2 areas where they challenge each other in a good way"]
+    }
+  },
+` : ''}
   "shareableCard": {
     "title": "✨ ${name}'s Cosmic Summary",
     "cosmicNickname": "Same nickname from earlier",
@@ -1326,6 +1433,56 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
       dailyRitual: `Each day, take a moment to look into ${name}'s eyes and silently acknowledge the soul you see there. This simple practice strengthens your cosmic bond.`,
       affirmation: `"${name} and I are cosmically connected. Our bond transcends time and space, written in the language of the stars."`
     },
+    ...(hasSoulBondData ? {
+      petParentSoulBond: {
+        title: `💞 Pet-Parent Soul Bond: ${ownerName || 'You'} & ${name}`,
+        intro: `${ownerName || 'You'} (${ownerSunSign} Sun) and ${name} (${sunSign} Sun) share a cosmic connection that runs deeper than either of you may realize. The stars brought you together for a reason.`,
+        elementalHarmony: {
+          title: "Elemental Chemistry",
+          petElement: element,
+          ownerElement: ownerElement,
+          harmony: `${name}'s ${element} energy ${element === ownerElement ? `harmonizes naturally with your shared ${element} nature — you understand each other instinctively` : `meets your ${ownerElement} energy in a complementary dance — what one lacks, the other provides`}. This elemental pairing creates a home environment that feels balanced and whole.`,
+          compatibilityScore: `${element === ownerElement ? '92' : '85'}% — ${element === ownerElement ? 'Same element soulmates' : 'Complementary cosmic pair'}`
+        },
+        sunMoonDance: {
+          title: "The Sun-Moon Dance",
+          content: `Your ${ownerSunSign} Sun illuminates ${name}'s ${moonSign} Moon, creating a natural caretaker dynamic. Meanwhile, ${name}'s ${sunSign} Sun warms your ${ownerMoonSign} Moon, providing exactly the emotional comfort you need. This cross-connection is the heart of your bond.`,
+          crossAspect: `The ${ownerSunSign}-${moonSign} axis reveals why ${name} always seems to know when you need comfort.`
+        },
+        venusConnection: {
+          title: "Love Languages Compared",
+          petVenus: venus,
+          ownerVenus: ownerVenus,
+          content: `${name} expresses love through ${venus} Venus energy — ${getElement(venus) === 'Fire' ? 'enthusiastic demonstrations' : getElement(venus) === 'Earth' ? 'physical closeness and loyalty' : getElement(venus) === 'Air' ? 'playful engagement' : 'deep emotional attunement'}. Your ${ownerVenus} Venus ${venus === ownerVenus ? 'speaks the exact same language' : 'adds a complementary dimension to how you connect'}.`,
+          loveLanguageMatch: `${venus === ownerVenus ? 'Perfect match — you love the same way' : `${venus} meets ${ownerVenus} — beautifully complementary`}`
+        },
+        marsEnergy: {
+          title: "Energy & Play Dynamic",
+          petMars: mars,
+          ownerMars: ownerMars,
+          content: `${name}'s ${mars} Mars energy ${mars === ownerMars ? 'perfectly matches your pace' : 'creates a dynamic balance with your ' + ownerMars + ' Mars'}. Together, you find a natural rhythm for play, rest, and adventure.`,
+          activityMatch: `${getElement(mars) === 'Fire' || getElement(ownerMars) === 'Fire' ? 'Outdoor adventures and high-energy play' : getElement(mars) === 'Earth' || getElement(ownerMars) === 'Earth' ? 'Nature walks and cozy evening routines' : getElement(mars) === 'Air' || getElement(ownerMars) === 'Air' ? 'Exploring new places and puzzle games' : 'Quiet bonding and intuitive play'}`
+        },
+        soulContract: {
+          title: "The Soul Contract",
+          content: `You and ${name} made a cosmic agreement before either of you arrived here. ${name}'s ${chiron} Chiron holds the key to healing something deep within you, while your presence gives ${name} the ${getElement(ownerElement) === 'Fire' ? 'courage' : getElement(ownerElement) === 'Earth' ? 'stability' : getElement(ownerElement) === 'Air' ? 'freedom' : 'emotional depth'} ${pronouns.subject} needs to fully blossom. This isn't just pet ownership — it's a soul partnership.`,
+          lessonForOwner: `${name} teaches you about ${getElement(element) === 'Fire' ? 'living with abandon and pure joy' : getElement(element) === 'Earth' ? 'being present and finding peace in simplicity' : getElement(element) === 'Air' ? 'staying curious and embracing change' : 'trusting your emotions and loving without walls'}.`,
+          lessonForPet: `You give ${name} ${getElement(ownerElement) === 'Fire' ? 'the confidence to be fully themselves' : getElement(ownerElement) === 'Earth' ? 'the security of knowing they are home' : getElement(ownerElement) === 'Air' ? 'the freedom to explore and be independent' : 'the emotional safety to be vulnerable'}.`
+        },
+        cosmicRating: {
+          overallScore: `${element === ownerElement ? '94' : '88'}%`,
+          verdict: `${element === ownerElement ? '94% — Basically cosmic twins who finish each other\\'s thoughts' : '88% — The perfect complementary pair, better together than apart'}`,
+          strengthAreas: [
+            "Emotional understanding",
+            `Shared ${element === ownerElement ? element : element + '/' + ownerElement} energy rhythm`,
+            "Intuitive communication"
+          ],
+          growthAreas: [
+            `${element === ownerElement ? 'Balancing your shared blind spots' : 'Learning each other\\'s different pace'}`
+          ]
+        }
+      }
+    } : {}),
     cosmicExpansion: {
       title: "♃ Cosmic Expansion: Growth & Abundance",
       planetExplanation: "Jupiter is the planet of expansion, luck, and abundance — it shows where your pet naturally grows and thrives.",
