@@ -82,25 +82,37 @@ const grainStyle: React.CSSProperties = {
   backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
 };
 
+// Persist intake progress to sessionStorage so users don't lose data on refresh/navigation
+const STORAGE_KEY_PREFIX = 'ls-intake-';
+function loadSaved<T>(reportId: string, key: string, fallback: T): T {
+  try {
+    const val = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}${reportId}-${key}`);
+    return val !== null ? JSON.parse(val) : fallback;
+  } catch { return fallback; }
+}
+function saveTo(reportId: string, key: string, value: unknown) {
+  try { sessionStorage.setItem(`${STORAGE_KEY_PREFIX}${reportId}-${key}`, JSON.stringify(value)); } catch { /* quota */ }
+}
+
 export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeProps) {
-  const [screen, setScreen] = useState(0);
-  const [occasionMode, setOccasionMode] = useState("discover");
-  const [petName, setPetName] = useState("");
-  const [species, setSpecies] = useState("");
-  const [gender, setGender] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [birthTime, setBirthTime] = useState("");
-  const [breed, setBreed] = useState("");
-  const [location, setLocation] = useState("");
+  const [screen, setScreen] = useState(() => loadSaved(reportId, 'screen', 0));
+  const [occasionMode, setOccasionMode] = useState(() => loadSaved(reportId, 'occasionMode', "discover"));
+  const [petName, setPetName] = useState(() => loadSaved(reportId, 'petName', ""));
+  const [species, setSpecies] = useState(() => loadSaved(reportId, 'species', ""));
+  const [gender, setGender] = useState(() => loadSaved(reportId, 'gender', ""));
+  const [birthDate, setBirthDate] = useState(() => loadSaved(reportId, 'birthDate', ""));
+  const [birthTime, setBirthTime] = useState(() => loadSaved(reportId, 'birthTime', ""));
+  const [breed, setBreed] = useState(() => loadSaved(reportId, 'breed', ""));
+  const [location, setLocation] = useState(() => loadSaved(reportId, 'location', ""));
   const [locationResults, setLocationResults] = useState<Array<{ display_name: string; address?: { city?: string; town?: string; village?: string; country?: string; state?: string }; name?: string }>>([]);
   const [showLocationResults, setShowLocationResults] = useState(false);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const locationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [soulTypes, setSoulTypes] = useState<string[]>([]);
-  const [superpowers, setSuperpowers] = useState<string[]>([]);
-  const [strangerReaction, setStrangerReaction] = useState("");
-  const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
+  const [soulTypes, setSoulTypes] = useState<string[]>(() => loadSaved(reportId, 'soulTypes', []));
+  const [superpowers, setSuperpowers] = useState<string[]>(() => loadSaved(reportId, 'superpowers', []));
+  const [strangerReaction, setStrangerReaction] = useState(() => loadSaved(reportId, 'strangerReaction', ""));
+  const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(() => loadSaved(reportId, 'petPhotoUrl', null));
+  const [email, setEmail] = useState(() => loadSaved(reportId, 'email', ""));
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -119,6 +131,9 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const [isSearchingOwnerLocation, setIsSearchingOwnerLocation] = useState(false);
   const ownerLocationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Drag-and-drop state
+  const [isDragging, setIsDragging] = useState(false);
+
   // Fetch report row to check if premium (includes_portrait)
   useEffect(() => {
     (async () => {
@@ -129,13 +144,39 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
     })();
   }, [reportId]);
 
+  // Auto-save all form state to sessionStorage
+  useEffect(() => {
+    const s = saveTo.bind(null, reportId);
+    s('screen', screen); s('occasionMode', occasionMode); s('petName', petName);
+    s('species', species); s('gender', gender); s('birthDate', birthDate);
+    s('birthTime', birthTime); s('breed', breed); s('location', location);
+    s('soulTypes', soulTypes); s('superpowers', superpowers);
+    s('strangerReaction', strangerReaction); s('petPhotoUrl', petPhotoUrl);
+    s('email', email); s('useEstimateAge', useEstimateAge);
+    s('estimateYears', estimateYears); s('estimateMonths', estimateMonths);
+    s('birthMonth', birthMonth); s('birthYear', birthYear); s('birthDay', birthDay);
+  }, [screen, occasionMode, petName, species, gender, birthDate, birthTime, breed,
+      location, soulTypes, superpowers, strangerReaction, petPhotoUrl, email,
+      useEstimateAge, estimateYears, estimateMonths, birthMonth, birthYear, birthDay, reportId]);
+
+  // Prevent browser from navigating away on accidental file drops outside the drop zone
+  useEffect(() => {
+    const prevent = (e: DragEvent) => { e.preventDefault(); e.stopPropagation(); };
+    window.addEventListener('dragover', prevent);
+    window.addEventListener('drop', prevent);
+    return () => {
+      window.removeEventListener('dragover', prevent);
+      window.removeEventListener('drop', prevent);
+    };
+  }, []);
+
   // Improved date picker state
-  const [useEstimateAge, setUseEstimateAge] = useState(false);
-  const [estimateYears, setEstimateYears] = useState("");
-  const [estimateMonths, setEstimateMonths] = useState("");
-  const [birthMonth, setBirthMonth] = useState("");
-  const [birthYear, setBirthYear] = useState("");
-  const [birthDay, setBirthDay] = useState("");
+  const [useEstimateAge, setUseEstimateAge] = useState(() => loadSaved(reportId, 'useEstimateAge', false));
+  const [estimateYears, setEstimateYears] = useState(() => loadSaved(reportId, 'estimateYears', ""));
+  const [estimateMonths, setEstimateMonths] = useState(() => loadSaved(reportId, 'estimateMonths', ""));
+  const [birthMonth, setBirthMonth] = useState(() => loadSaved(reportId, 'birthMonth', ""));
+  const [birthYear, setBirthYear] = useState(() => loadSaved(reportId, 'birthYear', ""));
+  const [birthDay, setBirthDay] = useState(() => loadSaved(reportId, 'birthDay', ""));
 
   const currentYear = new Date().getFullYear();
   const years = useMemo(() => Array.from({ length: 30 }, (_, i) => currentYear - i), [currentYear]);
@@ -952,7 +993,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-3">
                   We'll weave {pronouns.possessive} photo through the report, emails, and SoulSpeak. It brings everything to life.
                 </p>
-                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" className="hidden"
                   onChange={e => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); }} />
                 {petPhotoUrl ? (
                   <div className="flex items-center gap-3">
@@ -963,17 +1004,33 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                     </button>
                   </div>
                 ) : (
-                  <button onClick={() => fileInputRef.current?.click()} disabled={isUploading}
-                    className="w-full h-[120px] border-2 border-dashed border-[#E8DFD6] rounded-[14px] flex flex-col items-center justify-center gap-1 hover:border-[#c9665f] transition-colors">
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragEnter={e => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
+                    onDragOver={e => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
+                    onDragLeave={e => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }}
+                    onDrop={e => {
+                      e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) handlePhotoUpload(file);
+                    }}
+                    className={cn(
+                      "w-full h-[120px] border-2 border-dashed rounded-[14px] flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer",
+                      isDragging ? "border-[#bf524a] bg-[rgba(240,213,210,0.2)]" : "border-[#E8DFD6] hover:border-[#c9665f]",
+                      isUploading && "pointer-events-none opacity-60"
+                    )}
+                  >
                     {isUploading ? (
                       <span className="text-[0.82rem] text-[#9B8E84]">Uploading...</span>
                     ) : (
                       <>
                         <Camera className="w-5 h-5 text-[#9B8E84]" />
-                        <span className="text-[0.82rem] text-[#9B8E84] font-[Cormorant,serif]">Tap to upload</span>
+                        <span className="text-[0.82rem] text-[#9B8E84] font-[Cormorant,serif]">
+                          {isDragging ? 'Drop photo here' : 'Tap or drag photo here'}
+                        </span>
                       </>
                     )}
-                  </button>
+                  </div>
                 )}
               </div>
 
