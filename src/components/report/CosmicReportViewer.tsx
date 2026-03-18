@@ -1121,7 +1121,7 @@ export function CosmicReportViewer({
 
                     {/* CTA Button */}
                     <a
-                      href={`/soul-chat.html?id=${reportId}`}
+                      href={`/soul-chat.html?id=${reportId}${shareToken ? '&token=' + shareToken : ''}`}
                       className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-full text-[0.88rem] font-semibold tracking-[0.3px] no-underline transition-all hover:scale-[1.03] active:scale-[0.98]"
                       style={{
                         background: 'linear-gradient(135deg, #c4a265, #d4b87a)',
@@ -1191,7 +1191,7 @@ export function CosmicReportViewer({
       <div className="h-[100px]" />
 
       {/* ═══ SOULSPEAK FAB ═══ */}
-      {!isPreview && <SoulSpeakFAB reportId={reportId} petName={petName} />}
+      {!isPreview && <SoulSpeakFAB reportId={reportId} petName={petName} shareToken={shareToken} />}
     </div>
   );
 }

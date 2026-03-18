@@ -1,10 +1,11 @@
 interface SoulSpeakFABProps {
   reportId?: string;
   petName?: string;
+  shareToken?: string;
 }
 
-export function SoulSpeakFAB({ reportId, petName }: SoulSpeakFABProps) {
-  const href = reportId ? `/soul-chat.html?id=${reportId}` : '/soul-chat.html';
+export function SoulSpeakFAB({ reportId, petName, shareToken }: SoulSpeakFABProps) {
+  const href = reportId ? `/soul-chat.html?id=${reportId}${shareToken ? '&token=' + shareToken : ''}` : '/soul-chat.html';
   const label = petName ? `Talk to ${petName}` : 'Soul Chat';
 
   return (

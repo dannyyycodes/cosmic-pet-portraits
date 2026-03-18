@@ -1166,7 +1166,9 @@ function showSuggestions(lastUserMsg, lastPetReply) {
 }
 
 // ─── State ───
-var readingId = new URLSearchParams(window.location.search).get('id');
+var _params = new URLSearchParams(window.location.search);
+var readingId = _params.get('id');
+var shareTokenFromUrl = _params.get('token') || '';
 var petData = null;
 var messages = [];
 var creditsRemaining = 8;  // 8 free credits = first free + 4 more = hooked but wanting more
@@ -1200,6 +1202,12 @@ async function loadReading() {
     var storedEmail = '';
     try { storedEmail = sessionStorage.getItem('cosmic_report_email') || ''; } catch(e) {}
 
+    // Build request body — prefer share token (bypasses email check)
+    var requestBody = { reportId: readingId, email: storedEmail };
+    if (shareTokenFromUrl) {
+      requestBody = { reportId: readingId, shareToken: shareTokenFromUrl };
+    }
+
     // Use the get-report function (same as ViewReport.tsx uses)
     var res = await fetch(SUPABASE_URL + '/functions/v1/get-report', {
       method: 'POST',
@@ -1208,7 +1216,7 @@ async function loadReading() {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
       },
-      body: JSON.stringify({ reportId: readingId, email: storedEmail }),
+      body: JSON.stringify(requestBody),
     });
     var data = await res.json();
 

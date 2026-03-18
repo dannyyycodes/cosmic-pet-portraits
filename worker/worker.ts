@@ -1671,6 +1671,21 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
 
   // ─── Post-generation auto-fix & validation ─────────────────────────────────
 
+  // Auto-fix: replace raw unicode escapes like \u2726 with actual characters
+  function fixUnicodeEscapes(obj: unknown): unknown {
+    if (typeof obj === 'string') {
+      return obj.replace(/\\u([0-9a-fA-F]{4})/g, (_m, hex) => String.fromCharCode(parseInt(hex, 16)));
+    }
+    if (Array.isArray(obj)) return obj.map(fixUnicodeEscapes);
+    if (obj && typeof obj === 'object') {
+      const result: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(obj)) result[k] = fixUnicodeEscapes(v);
+      return result;
+    }
+    return obj;
+  }
+  reportContent = fixUnicodeEscapes(reportContent) as typeof reportContent;
+
   // Auto-fix: replace "your owner" / "the owner" with "you" in all string values
   const ownerPattern = /\b(your|the|their)\s+owner\b/gi;
   function fixOwnerPhrasing(obj: unknown): unknown {

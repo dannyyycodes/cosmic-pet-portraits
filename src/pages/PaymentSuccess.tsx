@@ -288,7 +288,7 @@ export default function PaymentSuccess() {
         {activeReportId && (
           <div className="flex justify-center my-8">
             <a
-              href={`/soul-chat.html?id=${activeReportId}`}
+              href={`/soul-chat.html?id=${activeReportId}${currentReport?.report?.shareToken ? '&token=' + currentReport.report.shareToken : ''}`}
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold text-base no-underline transition-all hover:opacity-90 hover:scale-[1.02] shadow-lg"
               style={{ background: '#bf524a', fontFamily: "'DM Serif Display', Georgia, serif" }}
             >
