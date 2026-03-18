@@ -17,9 +17,9 @@
 <meta name="twitter:title" content="Little Souls — Discover Your Pet's Soul">
 <meta name="twitter:description" content="A deeply personal astrology reading for your pet. 30+ sections.">
 <meta name="twitter:image" content="https://littlesouls.app/og-image.png">
-<!-- Google Analytics — replace G-XXXXXXXXXX with your GA4 measurement ID -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6J6ZFT3RWY"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-6J6ZFT3RWY');</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -1526,6 +1526,35 @@ async function handleRedeem() {
   }
 }
 
+// ─── Referral code reader (mirrors src/lib/referralTracking.ts) ───
+function getReferralCode() {
+  var cookies = document.cookie.split(';');
+  for (var i = 0; i < cookies.length; i++) {
+    var parts = cookies[i].trim().split('=');
+    if (parts[0] === 'cosmic_ref' && parts[1]) {
+      return decodeURIComponent(parts[1]);
+    }
+  }
+  try {
+    var code = localStorage.getItem('cosmic_ref');
+    var expires = localStorage.getItem('cosmic_ref_expires');
+    if (code && expires && new Date(expires) > new Date()) return code;
+  } catch(e) {}
+  return null;
+}
+
+// Also capture ?ref= on checkout.html load (in case user lands here directly)
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var ref = params.get('ref');
+  if (ref && /^[a-zA-Z0-9_-]+$/.test(ref)) {
+    var exp = new Date();
+    exp.setTime(exp.getTime() + 30 * 24 * 60 * 60 * 1000);
+    document.cookie = 'cosmic_ref=' + encodeURIComponent(ref) + ';expires=' + exp.toUTCString() + ';path=/;SameSite=Lax';
+    try { localStorage.setItem('cosmic_ref', ref); localStorage.setItem('cosmic_ref_expires', exp.toISOString()); } catch(e) {}
+  }
+})();
+
 // ─── Checkout: Digital Reading ───
 async function handleDigitalCheckout(e) {
   e.preventDefault();
@@ -1535,6 +1564,8 @@ async function handleDigitalCheckout(e) {
   btn.textContent = 'Taking you to checkout...';
   btn2.classList.add('loading');
   btn2.textContent = 'Taking you to checkout...';
+
+  var refCode = getReferralCode();
 
   try {
     var res = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
@@ -1553,6 +1584,7 @@ async function handleDigitalCheckout(e) {
         includeHoroscope: horoscopeOn,
         occasionMode: occasionMode,
         petCount: petCount,
+        referralCode: refCode || undefined,
       }),
     });
     var data = await res.json();
