@@ -324,7 +324,7 @@ serve(async (req) => {
           if (!coupon.max_uses || coupon.current_uses < coupon.max_uses) {
             const subtotal = baseTotal - volumeDiscount;
             if (!coupon.min_purchase_cents || subtotal >= coupon.min_purchase_cents) {
-              if (coupon.discount_type === 'percent') {
+              if (coupon.discount_type === 'percentage' || coupon.discount_type === 'percent') {
                 couponDiscount = Math.round(subtotal * (coupon.discount_value / 100));
               } else {
                 couponDiscount = coupon.discount_value;
