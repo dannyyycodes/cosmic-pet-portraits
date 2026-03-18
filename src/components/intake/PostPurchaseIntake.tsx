@@ -348,7 +348,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
 
       // Fire and forget — report generates in the background
       supabase.functions.invoke("generate-report-background", {
-        body: { reportId },
+        body: { reportId, includesPortrait: includesSoulBond },
       }).catch(err => console.warn("[PostPurchaseIntake] Generation trigger:", err));
     } catch (err: any) {
       console.error("[PostPurchaseIntake] Full error:", err);

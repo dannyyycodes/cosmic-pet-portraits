@@ -98,7 +98,7 @@ export default function PaymentSuccess() {
   const verifyAndFetchReport = async () => {
     setStage('generating');
     
-    const maxAttempts = 20;
+    const maxAttempts = 80;
     let attempts = 0;
     
     let petPhotosFromStorage: Record<string, { url: string; processingMode?: string }> = {};
@@ -170,7 +170,7 @@ export default function PaymentSuccess() {
 
     const poll = async () => {
       attempts++;
-      if (attempts >= 40) { setError(t('paymentSuccess.errorTimeout')); setStage('error'); return; }
+      if (attempts >= 80) { setError(t('paymentSuccess.errorTimeout')); setStage('error'); return; }
       const result = await tryVerify();
       if (result === true) return;
       setTimeout(poll, Math.min(3000 + attempts * 300, 6000));
