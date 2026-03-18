@@ -259,8 +259,8 @@ serve(async (req) => {
     // Build line items - main gift + any horoscope addons
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
     
-    // Main gift certificate (with tier discount applied)
-    const giftAmount = tierTotal - discountAmount;
+    // Main gift certificate (with tier + coupon discount applied)
+    const giftAmount = tierTotal - discountAmount - couponDiscount;
     lineItems.push({
       price_data: {
         currency: "usd",
