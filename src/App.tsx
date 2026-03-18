@@ -1,6 +1,8 @@
 // Build trigger v2 - March 8 2026
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import * as Sentry from "@sentry/react";
+import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -78,6 +80,12 @@ function FreeChartRedirect() {
   return null;
 }
 
+// Capture ?ref= on any page load (not just Index)
+function ReferralCapture({ children }: { children: React.ReactNode }) {
+  useEffect(() => { checkAndStoreReferralFromURL(); }, []);
+  return <>{children}</>;
+}
+
 const queryClient = new QueryClient();
 
 // Loading fallback for lazy components
@@ -88,20 +96,23 @@ const PageLoader = () => (
 );
 
 // Error fallback for crashed pages
-const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => (
-  <div className="min-h-screen bg-background flex items-center justify-center p-6">
-    <div className="text-center max-w-md">
-      <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-      <p className="text-muted-foreground mb-4">We hit a cosmic hiccup. Please try again.</p>
-      <button
-        onClick={resetErrorBoundary}
-        className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
-      >
-        Try Again
-      </button>
+const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) => {
+  useEffect(() => { Sentry.captureException(error); }, [error]);
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="text-center max-w-md">
+        <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+        <p className="text-muted-foreground mb-4">We hit a cosmic hiccup. Please try again.</p>
+        <button
+          onClick={resetErrorBoundary}
+          className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+        >
+          Try Again
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // App component with all providers
 const App = () => (
@@ -114,6 +125,7 @@ const App = () => (
             <Sonner />
             <CookieConsent />
             <BrowserRouter>
+              <ReferralCapture>
               <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.href = '/'}>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -163,6 +175,7 @@ const App = () => (
                 </Routes>
               </Suspense>
               </ErrorBoundary>
+              </ReferralCapture>
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>

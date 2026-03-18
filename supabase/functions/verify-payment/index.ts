@@ -266,8 +266,9 @@ serve(async (req) => {
       }
 
       // Trigger generation if not already done
+      const redeemIncludesPortrait = redeemReport.includes_portrait === true;
       if (!redeemReport.report_content) {
-        triggerBackgroundGeneration(reportId, false);
+        triggerBackgroundGeneration(reportId, redeemIncludesPortrait);
       }
 
       return new Response(JSON.stringify({

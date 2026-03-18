@@ -66,6 +66,36 @@ async function saveError(message: string) {
   try {
     await bridgePatch({ reportId, reportContent: { status: "failed", error: message } });
   } catch (_) { /* best-effort */ }
+  // Report to Sentry via HTTP (no SDK needed for Deno)
+  await reportToSentry(message);
+}
+
+const SENTRY_DSN = Deno.env.get("SENTRY_DSN") || "";
+async function reportToSentry(message: string, extra?: Record<string, unknown>) {
+  if (!SENTRY_DSN) return;
+  try {
+    const match = SENTRY_DSN.match(/https:\/\/([^@]+)@([^/]+)\/(\d+)/);
+    if (!match) return;
+    const [, publicKey, host, projectId] = match;
+    await fetch(`https://${host}/api/${projectId}/store/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Sentry-Auth": `Sentry sentry_version=7,sentry_key=${publicKey}`,
+      },
+      body: JSON.stringify({
+        event_id: crypto.randomUUID().replace(/-/g, ""),
+        timestamp: new Date().toISOString(),
+        platform: "node",
+        level: "error",
+        server_name: "littlesouls-worker",
+        environment: "production",
+        message: { formatted: message },
+        tags: { reportId, component: "worker" },
+        extra: { reportId, ...extra },
+      }),
+    });
+  } catch (_) { /* best-effort */ }
 }
 
 // ─── Helpers (copied from edge function) ─────────────────────────────────────
@@ -1093,7 +1123,7 @@ ${hasSoulBondData ? `
       "title": "Elemental Chemistry",
       "petElement": "${element}",
       "ownerElement": "${ownerElement}",
-      "harmony": "3-4 sentences analyzing the elemental dynamic between ${element} (${name}) and ${ownerElement} (${ownerName || 'you'}). Are they the same element (deep understanding) or different (complementary growth)? ${element === ownerElement ? 'Same element = instant recognition, shared rhythms, but watch for amplifying each other\\'s blind spots.' : `${element} meets ${ownerElement} = ${(element === 'Fire' && ownerElement === 'Air') || (element === 'Air' && ownerElement === 'Fire') ? 'natural fuel — Air feeds Fire, Fire inspires Air' : (element === 'Earth' && ownerElement === 'Water') || (element === 'Water' && ownerElement === 'Earth') ? 'nurturing combo — Water nourishes Earth, Earth gives Water form' : (element === 'Fire' && ownerElement === 'Water') || (element === 'Water' && ownerElement === 'Fire') ? 'steam! Intense chemistry with lessons in balance' : (element === 'Earth' && ownerElement === 'Air') || (element === 'Air' && ownerElement === 'Earth') ? 'grounding meets freedom — they teach each other what they need most' : 'a unique dynamic with its own cosmic rhythm'}.`} Use real examples of how this plays out daily.",
+      "harmony": "3-4 sentences analyzing the elemental dynamic between ${element} (${name}) and ${ownerElement} (${ownerName || 'you'}). Are they the same element (deep understanding) or different (complementary growth)? ${element === ownerElement ? 'Same element = instant recognition, shared rhythms, but watch for amplifying each other\u0027s blind spots.' : `${element} meets ${ownerElement} = ${(element === 'Fire' && ownerElement === 'Air') || (element === 'Air' && ownerElement === 'Fire') ? 'natural fuel — Air feeds Fire, Fire inspires Air' : (element === 'Earth' && ownerElement === 'Water') || (element === 'Water' && ownerElement === 'Earth') ? 'nurturing combo — Water nourishes Earth, Earth gives Water form' : (element === 'Fire' && ownerElement === 'Water') || (element === 'Water' && ownerElement === 'Fire') ? 'steam! Intense chemistry with lessons in balance' : (element === 'Earth' && ownerElement === 'Air') || (element === 'Air' && ownerElement === 'Earth') ? 'grounding meets freedom — they teach each other what they need most' : 'a unique dynamic with its own cosmic rhythm'}.`} Use real examples of how this plays out daily.",
       "compatibilityScore": "A percentage 60-99 with a one-line explanation"
     },
 
@@ -1107,7 +1137,7 @@ ${hasSoulBondData ? `
       "title": "Love Languages Compared",
       "petVenus": "${venus}",
       "ownerVenus": "${ownerVenus}",
-      "content": "3-4 sentences comparing how ${name} (Venus in ${venus}) and ${ownerName || 'you'} (Venus in ${ownerVenus}) give and receive love. ${venus === ownerVenus ? 'Same Venus = you literally speak the same love language.' : 'Different Venus signs = you show love differently, which can be beautiful once you understand each other\\'s style.'} Give specific examples: how ${name} shows love as a ${breed || species}, and how ${ownerName || 'you'} probably respond based on ${ownerVenus} Venus. Include one sweet 'you probably don\\'t realize this, but...' moment.",
+      "content": "3-4 sentences comparing how ${name} (Venus in ${venus}) and ${ownerName || 'you'} (Venus in ${ownerVenus}) give and receive love. ${venus === ownerVenus ? 'Same Venus = you literally speak the same love language.' : 'Different Venus signs = you show love differently, which can be beautiful once you understand each other\u0027s style.'} Give specific examples: how ${name} shows love as a ${breed || species}, and how ${ownerName || 'you'} probably respond based on ${ownerVenus} Venus. Include one sweet 'you probably don\\'t realize this, but...' moment.",
       "loveLanguageMatch": "A cute one-liner about their love language compatibility"
     },
 
@@ -1471,14 +1501,14 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
         },
         cosmicRating: {
           overallScore: `${element === ownerElement ? '94' : '88'}%`,
-          verdict: `${element === ownerElement ? '94% — Basically cosmic twins who finish each other\\'s thoughts' : '88% — The perfect complementary pair, better together than apart'}`,
+          verdict: `${element === ownerElement ? '94% — Basically cosmic twins who finish each other\u0027s thoughts' : '88% — The perfect complementary pair, better together than apart'}`,
           strengthAreas: [
             "Emotional understanding",
             `Shared ${element === ownerElement ? element : element + '/' + ownerElement} energy rhythm`,
             "Intuitive communication"
           ],
           growthAreas: [
-            `${element === ownerElement ? 'Balancing your shared blind spots' : 'Learning each other\\'s different pace'}`
+            `${element === ownerElement ? 'Balancing your shared blind spots' : 'Learning each other\u0027s different pace'}`
           ]
         }
       }

@@ -426,10 +426,10 @@ serve(async (req) => {
           if (includeGift && session.customer_email) {
             const giftTierForFriend = session.metadata?.gift_tier_for_friend || 'basic';
             
-            // Map tier to amount and tier name
+            // Map tier to amount and tier name (must match GIFT_TIERS in create-checkout)
             const giftTierMap: Record<string, { cents: number; tier: string }> = {
-              basic: { cents: 3500, tier: 'essential' },
-              premium: { cents: 5000, tier: 'portrait' },
+              basic: { cents: 1350, tier: 'basic' },
+              premium: { cents: 1750, tier: 'premium' },
             };
             const giftInfo = giftTierMap[giftTierForFriend] || giftTierMap.basic;
             
@@ -623,7 +623,7 @@ serve(async (req) => {
                         console.log("[STRIPE-WEBHOOK] Horoscope subscription created for:", report.email, report.pet_name, { plan, occasionMode: petOccasionMode });
 
                         // Send horoscope welcome email
-                        await sendHoroscopeWelcomeEmail(report.email, report.pet_name, sunSign, reportId);
+                        await sendHoroscopeWelcomeEmail(report.email, report.pet_name, genData?.report?.sunSign || 'cosmic', reportId);
                       }
                     } else {
                       console.log("[STRIPE-WEBHOOK] Horoscope subscription already exists for:", reportId);
@@ -651,7 +651,8 @@ serve(async (req) => {
                         reportId,
                         email: emailTo,
                         petName: report.pet_name,
-                        sunSign: genData.report?.sunSign,
+                        sunSign: genData?.report?.sunSign,
+                        petPhotoUrl: report.pet_photo_url,
                         ...emailContext,
                       }),
                     }

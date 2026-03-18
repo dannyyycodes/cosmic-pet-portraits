@@ -62,6 +62,21 @@ serve(async (req) => {
       });
     }
 
+    // Skip if already generating (prevent duplicate n8n triggers)
+    if (content?.status === "generating") {
+      const startedAt = content.started_at ? new Date(content.started_at).getTime() : 0;
+      const elapsed = Date.now() - startedAt;
+      // Only skip if generation started less than 10 minutes ago
+      if (elapsed < 10 * 60 * 1000) {
+        console.log("[BACKGROUND-GEN] Already generating, skipping duplicate trigger:", reportId, `(${Math.round(elapsed/1000)}s ago)`);
+        return new Response(JSON.stringify({ success: true, already_generating: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+      console.log("[BACKGROUND-GEN] Previous generation stale (>10min), retrying:", reportId);
+    }
+
     // Mark as generating
     await supabaseClient
       .from("pet_reports")

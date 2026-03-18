@@ -82,6 +82,16 @@ serve(async (req) => {
       });
     }
 
+    // Sync email to chat_credits if email was updated (e.g. redeem flow where email starts as placeholder)
+    if (email) {
+      const normalizedEmail = email.toLowerCase().trim();
+      await supabaseClient
+        .from("chat_credits")
+        .update({ email: normalizedEmail })
+        .eq("report_id", reportId);
+      console.log("[UPDATE-PET-DATA] Synced email to chat_credits:", normalizedEmail);
+    }
+
     console.log("[UPDATE-PET-DATA] Updated report:", reportId, "pet:", petName, "species:", species);
 
     return new Response(JSON.stringify({ success: true, reportId }), {
