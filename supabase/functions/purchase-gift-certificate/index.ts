@@ -117,9 +117,14 @@ serve(async (req) => {
       throw new Error("Must provide either giftPets array or tier");
     }
     
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
     const petCount = giftPets.length;
     const discount = getVolumeDiscount(petCount);
-    
+
     // Calculate total based on individual pet tiers + horoscope addons
     const tierTotal = giftPets.reduce((sum, pet) => sum + GIFT_TIERS[pet.tier].cents, 0);
     const addonTotal = giftPets.reduce((sum, pet) => sum + HOROSCOPE_ADDONS[pet.horoscopeAddon].cents, 0);
@@ -201,11 +206,6 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
