@@ -673,16 +673,20 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 
     <a href="#" class="cta-btn" id="ctaBtn" style="margin-top:10px;" onclick="handleDigitalCheckout(event)">Get Their Reading — $35</a>
 
-    <!-- Free code redeem -->
+    <!-- Unified code input: handles both discount codes (GIFTLOVE30) and free redeem codes (QATEST) -->
     <div style="text-align:center; margin-top:12px;">
-      <a href="#" id="redeemToggle" onclick="toggleRedeem(event)" style="color:var(--gold); font-size:13px; text-decoration:none; font-weight:500;">Have a redeem code?</a>
-      <div id="redeemPanel" style="max-height:0; overflow:hidden; transition:max-height 0.35s ease;">
+      <a href="#" id="codeToggle" onclick="toggleCodePanel(event)" style="color:var(--gold); font-size:13px; text-decoration:none; font-weight:500;">Have a code?</a>
+      <div id="codePanel" style="max-height:0; overflow:hidden; transition:max-height 0.35s ease;">
         <div style="margin-top:12px; text-align:left;">
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="redeemCode" placeholder="Enter code" style="flex:1; padding:10px 14px; border:1.5px solid var(--cream3); border-radius:10px; font-family:'Cormorant',Georgia,serif; font-size:0.92rem; color:var(--ink); background:#fff; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='var(--cream3)'" />
-            <button id="redeemBtn" onclick="handleRedeem()" style="padding:10px 20px; background:var(--rose); color:#fff; border:none; border-radius:10px; font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:0.92rem; cursor:pointer; transition:all 0.2s; white-space:nowrap;" onmouseover="this.style.background='var(--rose-soft)'" onmouseout="this.style.background='var(--rose)'">Redeem</button>
+          <div id="codeInputRow" style="display:flex; gap:8px;">
+            <input type="text" id="codeInput" placeholder="Enter code" style="flex:1; padding:10px 14px; border:1.5px solid var(--cream3); border-radius:10px; font-family:'Cormorant',Georgia,serif; font-size:0.92rem; color:var(--ink); background:#fff; outline:none; text-transform:uppercase;" onkeydown="if(event.key==='Enter')handleCode()" />
+            <button id="codeBtn" onclick="handleCode()" style="padding:10px 20px; background:var(--rose); color:#fff; border:none; border-radius:10px; font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:0.92rem; cursor:pointer; white-space:nowrap;">Apply</button>
           </div>
-          <p id="redeemError" style="display:none; color:var(--rose); font-size:0.78rem; margin-top:8px; text-align:center;"></p>
+          <div id="codeApplied" style="display:none; background:rgba(74,140,92,0.1); border:1px solid rgba(74,140,92,0.3); border-radius:10px; padding:10px 14px; display:none; align-items:center; justify-content:space-between;">
+            <span style="font-size:0.85rem; color:var(--green); font-weight:600;" id="codeAppliedText"></span>
+            <button onclick="removeCode()" style="background:none; border:none; color:var(--green); cursor:pointer; font-size:1rem;">&times;</button>
+          </div>
+          <p id="codeError" style="display:none; color:var(--rose); font-size:0.78rem; margin-top:8px; text-align:center;"></p>
         </div>
       </div>
     </div>
@@ -749,22 +753,6 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 
           <p style="font-size:0.75rem; color:var(--muted); font-style:italic; text-align:center;">Each pet gets their own personalised reading</p>
         </div>
-      </div>
-    </div>
-
-    <!-- Promo Code -->
-    <div id="promoSection" style="margin-top:12px;">
-      <div id="promoApplied" style="display:none; background:rgba(74,140,92,0.1); border:1px solid rgba(74,140,92,0.3); border-radius:10px; padding:10px 14px; display:none; align-items:center; justify-content:space-between;">
-        <span style="font-size:0.85rem; color:var(--green); font-weight:600;" id="promoAppliedText"></span>
-        <button onclick="removePromo()" style="background:none; border:none; color:var(--green); cursor:pointer; font-size:1rem;">&times;</button>
-      </div>
-      <div id="promoInput">
-        <button onclick="document.getElementById('promoField').style.display='flex'; this.style.display='none';" style="background:none; border:none; color:var(--muted); font-size:0.8rem; cursor:pointer; padding:0; font-family:inherit;">Have a promo code?</button>
-        <div id="promoField" style="display:none; gap:8px; margin-top:6px;">
-          <input type="text" id="promoCode" placeholder="PROMO CODE" style="flex:1; border:1.5px solid var(--cream3); border-radius:10px; padding:10px 14px; font-size:0.85rem; text-transform:uppercase; background:var(--cream2); color:var(--ink); font-family:inherit; outline:none;" />
-          <button onclick="applyPromo()" id="promoBtn" style="background:var(--rose); color:#fff; border:none; border-radius:10px; padding:10px 18px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Apply</button>
-        </div>
-        <p id="promoError" style="display:none; color:var(--rose); font-size:0.75rem; margin-top:4px;"></p>
       </div>
     </div>
 
@@ -1344,43 +1332,74 @@ function getDiscount(n) {
   return 0;
 }
 
-// ─── Promo Code State ───
-var appliedCoupon = null; // { id, code, discount_type, discount_value }
+// ─── Unified Code Input (discount codes + free redeem codes) ───
+var appliedCoupon = null;
+var codePanelOpen = false;
 
-async function applyPromo() {
-  var code = document.getElementById('promoCode').value.trim().toUpperCase();
+function toggleCodePanel(e) {
+  e.preventDefault();
+  codePanelOpen = !codePanelOpen;
+  var panel = document.getElementById('codePanel');
+  panel.style.maxHeight = codePanelOpen ? '200px' : '0';
+}
+
+async function handleCode() {
+  var code = document.getElementById('codeInput').value.trim().toUpperCase();
   if (!code) return;
-  var errEl = document.getElementById('promoError');
-  var btn = document.getElementById('promoBtn');
+  var errEl = document.getElementById('codeError');
+  var btn = document.getElementById('codeBtn');
   errEl.style.display = 'none';
-  btn.textContent = '...';
+  btn.textContent = 'Checking...';
+
   try {
+    // 1. Try as discount coupon first
     var res = await fetch(SUPABASE_URL + '/rest/v1/coupons?code=eq.' + encodeURIComponent(code) + '&is_active=eq.true&select=id,code,discount_type,discount_value,expires_at,max_uses,current_uses', {
       headers: { 'apikey': SUPABASE_ANON_KEY }
     });
-    var data = await res.json();
-    if (!data || !data.length) { errEl.textContent = 'Invalid promo code'; errEl.style.display = 'block'; return; }
-    var coupon = data[0];
-    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) { errEl.textContent = 'This code has expired'; errEl.style.display = 'block'; return; }
-    if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) { errEl.textContent = 'This code has reached its limit'; errEl.style.display = 'block'; return; }
-    appliedCoupon = coupon;
-    document.getElementById('promoInput').style.display = 'none';
-    var applied = document.getElementById('promoApplied');
-    applied.style.display = 'flex';
-    document.getElementById('promoAppliedText').textContent = coupon.code + ' — ' + coupon.discount_value + '% off applied!';
-    updateUI();
+    var coupons = await res.json();
+    if (coupons && coupons.length > 0) {
+      var coupon = coupons[0];
+      if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) { errEl.textContent = 'This code has expired'; errEl.style.display = 'block'; btn.textContent = 'Apply'; return; }
+      if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) { errEl.textContent = 'This code has reached its limit'; errEl.style.display = 'block'; btn.textContent = 'Apply'; return; }
+      // Success — apply discount
+      appliedCoupon = coupon;
+      document.getElementById('codeInputRow').style.display = 'none';
+      var applied = document.getElementById('codeApplied');
+      applied.style.display = 'flex';
+      document.getElementById('codeAppliedText').textContent = coupon.code + ' \u2014 ' + coupon.discount_value + '% off applied!';
+      updateUI();
+      btn.textContent = 'Apply';
+      return;
+    }
+
+    // 2. Try as free redeem code
+    var redeemRes = await fetch(SUPABASE_URL + '/functions/v1/redeem-free-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({ code: code }),
+    });
+    var redeemData = await redeemRes.json();
+    if (redeemData.success && redeemData.reportId) {
+      window.location.href = '/payment-success?session_id=redeem_' + redeemData.reportId + '&report_id=' + redeemData.reportId + '&quick=true';
+      return;
+    }
+
+    // Neither worked
+    errEl.textContent = 'Invalid code. Please check and try again.';
+    errEl.style.display = 'block';
   } catch (e) {
-    errEl.textContent = 'Something went wrong'; errEl.style.display = 'block';
+    errEl.textContent = 'Something went wrong. Please try again.';
+    errEl.style.display = 'block';
   } finally {
     btn.textContent = 'Apply';
   }
 }
 
-function removePromo() {
+function removeCode() {
   appliedCoupon = null;
-  document.getElementById('promoApplied').style.display = 'none';
-  document.getElementById('promoInput').style.display = 'block';
-  document.getElementById('promoCode').value = '';
+  document.getElementById('codeApplied').style.display = 'none';
+  document.getElementById('codeInputRow').style.display = 'flex';
+  document.getElementById('codeInput').value = '';
   updateUI();
 }
 
@@ -1532,67 +1551,8 @@ document.getElementById('upsellPortrait').addEventListener('click', function() {
   updateUI();
 });
 
-// ─── Redeem Code ───
-var redeemOpen = false;
-function toggleRedeem(e) {
-  e.preventDefault();
-  redeemOpen = !redeemOpen;
-  var panel = document.getElementById('redeemPanel');
-  if (redeemOpen) {
-    panel.style.maxHeight = panel.scrollHeight + 'px';
-  } else {
-    panel.style.maxHeight = '0';
-  }
-}
-
-async function handleRedeem() {
-  var code = document.getElementById('redeemCode').value.trim();
-  var errorEl = document.getElementById('redeemError');
-  var btn = document.getElementById('redeemBtn');
-
-  errorEl.style.display = 'none';
-
-  if (!code) {
-    errorEl.textContent = 'Please enter a redeem code.';
-    errorEl.style.display = 'block';
-    return;
-  }
-
-  btn.textContent = 'Redeeming...';
-  btn.style.opacity = '0.7';
-  btn.style.pointerEvents = 'none';
-
-  try {
-    var res = await fetch(SUPABASE_URL + '/functions/v1/redeem-free-code', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'apikey': SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        code: code,
-      }),
-    });
-    var data = await res.json();
-    if (!data.success) {
-      errorEl.textContent = data.error || 'Invalid or expired code. Please try again.';
-      errorEl.style.display = 'block';
-      btn.textContent = 'Redeem';
-      btn.style.opacity = '1';
-      btn.style.pointerEvents = 'auto';
-      return;
-    }
-    window.location.href = '/payment-success?session_id=redeem_' + Date.now() + '&report_id=' + data.reportId + '&quick=true';
-  } catch (err) {
-    console.error('[Redeem] Error:', err);
-    errorEl.textContent = 'Something went wrong. Please try again.';
-    errorEl.style.display = 'block';
-    btn.textContent = 'Redeem';
-    btn.style.opacity = '1';
-    btn.style.pointerEvents = 'auto';
-  }
-}
+// ─── Old redeem code functions removed — unified into handleCode() above ───
+// (old redeem code removed)
 
 // ─── Referral code reader (mirrors src/lib/referralTracking.ts) ───
 function getReferralCode() {
