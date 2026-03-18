@@ -31,15 +31,15 @@ const TIERS = {
   },
   portrait: {
     cents: 3500,
-    label: 'The Portrait Edition',
-    tagline: 'The one they\'ll frame and keep forever',
-    icon: '🎨',
+    label: 'The Soul Bond Edition',
+    tagline: 'Discover why you were meant to find each other',
+    icon: '💫',
     popular: true,
     features: [
       "Everything in The Soul Reading",
-      "A stunning cosmic portrait of their pet",
+      "Pet-Parent compatibility analysis",
+      "Deep cosmic bond & emotional connection map",
       "Shareable social cosmic card",
-      "Cosmic pet playlist",
     ],
   },
 } as const;

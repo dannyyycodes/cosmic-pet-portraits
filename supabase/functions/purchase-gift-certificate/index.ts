@@ -10,8 +10,8 @@ const corsHeaders = {
 
 // Valid gift tiers with base amounts (server-side truth)
 const GIFT_TIERS = {
-  essential: { cents: 2700, name: 'Essential Cosmic Reading' },
-  portrait: { cents: 3500, name: 'Cosmic Portrait Edition' },
+  essential: { cents: 2700, name: 'Soul Reading' },
+  portrait: { cents: 3500, name: 'Soul Bond Edition' },
 } as const;
 
 // Horoscope subscription addons
