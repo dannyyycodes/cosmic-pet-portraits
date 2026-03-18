@@ -214,11 +214,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   };
 
   const handleCheckoutClick = () => {
-    if (shouldShowGiftUpsell) {
-      setShowGiftUpsell(true);
-    } else {
-      proceedToCheckout(false);
-    }
+    proceedToCheckout(false);
   };
 
   const proceedToCheckout = (withGift: boolean) => {
@@ -543,9 +539,9 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         Finally know what {petData.gender === 'boy' ? 'he' : 'she'}'s thinking.
       </p>
 
-      {/* Gift Upsell Modal */}
+      {/* Gift Upsell Modal removed — gifts available at /gift */}
       <AnimatePresence>
-        {showGiftUpsell && (
+        {false && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

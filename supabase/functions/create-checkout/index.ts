@@ -14,10 +14,11 @@ const TIERS = {
   premium: { name: 'Little Souls Reading + Portrait', priceCents: 3500 },
 } as const;
 
-// Gift tiers - 50% off all tiers for friends
+// Gift add-on removed — standalone gifts available at /gift page
+// Legacy constant kept for type safety but no longer used in checkout
 const GIFT_TIERS = {
-  basic: { priceCents: 1350, name: 'Gift: Little Souls Reading' },
-  premium: { priceCents: 1750, name: 'Gift: Little Souls Reading + Portrait' },
+  basic: { priceCents: 0, name: 'Gift: Little Souls Reading' },
+  premium: { priceCents: 0, name: 'Gift: Little Souls Reading + Portrait' },
 } as const;
 
 // Volume discount calculation - SERVER-SIDE (must match frontend)

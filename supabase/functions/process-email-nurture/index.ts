@@ -184,7 +184,7 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
         We'd love for you to experience what the stars have to say. So here's a genuine thank you for being part of this community:
       </p>
-      ${giftBlock('COSMIC30', '30% off')}
+      ${giftBlock('GIFTLOVE30', '30% off')}
       <p style="color:#958779;font-size:14px;line-height:1.7;margin:0 0 24px;text-align:center">
         No rush, no pressure. ${petName} will still be a star whenever you're ready.
       </p>
@@ -207,7 +207,7 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
         We know how much ${petName} means to you. That's exactly why we think you'll love seeing who they are through the stars. It's the kind of reading that makes you look at your pet and think "so that's why you do that." And honestly, it just makes you appreciate them even more.
       </p>
-      ${giftBlock('COSMIC30', '30% off')}
+      ${giftBlock('GIFTLOVE30', '30% off')}
       <div style="text-align:center;margin:24px 0">
         <a href="${intakeUrl}" style="display:inline-block;background:#bf524a;color:#fff;text-decoration:none;padding:14px 40px;border-radius:50px;font-weight:600;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 4px 16px rgba(191,82,74,0.2)">
           Finish ${petName}'s Reading
@@ -289,7 +289,7 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
       <p style="color:#5a4a42;font-size:15px;line-height:1.8;margin:0 0 18px">
         Every pet deserves to be truly understood. And ${petName} deserves someone who cares enough to look deeper. The fact that you're on this list tells us you're that person. So whenever the time feels right, we'd love to show you what the stars have been holding for ${petName}.
       </p>
-      ${giftBlock('COMEBACK35', '35% off')}
+      ${giftBlock('GIFTLOVE30', '30% off')}
       <div style="text-align:center;margin:24px 0">
         <a href="${intakeUrl}" style="display:inline-block;background:#bf524a;color:#fff;text-decoration:none;padding:14px 40px;border-radius:50px;font-weight:600;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 4px 16px rgba(191,82,74,0.2)">
           Come Back to ${petName}'s Reading
