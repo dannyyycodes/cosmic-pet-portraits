@@ -96,6 +96,10 @@ export default function GiftPurchase() {
   const [purchaserEmail, setPurchaserEmail] = useState('');
   const [giftMessage, setGiftMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; discount_value: number } | null>(null);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({ id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' });
   const [recipients, setRecipients] = useState<GiftRecipient[]>([{ id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' }]);
 
@@ -106,8 +110,25 @@ export default function GiftPurchase() {
   const pricing = useMemo(() => {
     const baseTotal = activeRecipients.reduce((sum, r) => sum + TIERS[r.tier].cents, 0);
     const discountAmount = Math.round(baseTotal * discount);
-    return { baseTotal, discountAmount, finalTotal: baseTotal - discountAmount };
-  }, [activeRecipients, discount]);
+    const afterVolume = baseTotal - discountAmount;
+    const promoAmount = appliedCoupon ? Math.round(afterVolume * (appliedCoupon.discount_value / 100)) : 0;
+    return { baseTotal, discountAmount, promoAmount, finalTotal: afterVolume - promoAmount };
+  }, [activeRecipients, discount, appliedCoupon]);
+
+  const applyPromo = async () => {
+    if (!promoCode.trim()) return;
+    setIsValidatingPromo(true);
+    setPromoError('');
+    try {
+      const { data } = await supabase.from('coupons').select('id,code,discount_type,discount_value,expires_at,max_uses,current_uses').eq('code', promoCode.trim().toUpperCase()).eq('is_active', true).single();
+      if (!data) { setPromoError('Invalid promo code'); return; }
+      if (data.expires_at && new Date(data.expires_at) < new Date()) { setPromoError('This code has expired'); return; }
+      if (data.max_uses && data.current_uses >= data.max_uses) { setPromoError('This code has reached its limit'); return; }
+      setAppliedCoupon({ id: data.id, code: data.code, discount_value: data.discount_value });
+      setPromoCode('');
+    } catch { setPromoError('Something went wrong'); }
+    finally { setIsValidatingPromo(false); }
+  };
 
   const updateRecipient = (id: string, field: keyof GiftRecipient, value: string) => {
     if (giftType === 'single') setSingleRecipient({ ...singleRecipient, [field]: value });
@@ -133,6 +154,7 @@ export default function GiftPurchase() {
           giftPets: activeRecipients.map(r => ({ id: r.id, tier: r.tier, recipientName: r.name || '', recipientEmail: deliveryMethod === 'email' ? r.email : null, horoscopeAddon: 'none' })),
           deliveryMethod,
           multiRecipient: giftType === 'multiple',
+          couponId: appliedCoupon?.id || null,
         },
       });
       if (error) throw error;
@@ -414,11 +436,37 @@ export default function GiftPurchase() {
                       <span style={{ color: C.green }}>-${(pricing.discountAmount / 100).toFixed(2)}</span>
                     </div>
                   )}
+                  {pricing.promoAmount > 0 && appliedCoupon && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: '0.85rem' }}>
+                      <span style={{ color: C.green, display: 'flex', alignItems: 'center', gap: 4 }}><Sparkles style={{ width: 12, height: 12 }} />{appliedCoupon.code} ({appliedCoupon.discount_value}% off)</span>
+                      <span style={{ color: C.green }}>-${(pricing.promoAmount / 100).toFixed(2)}</span>
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 700 }}>
                     <span style={{ color: C.ink }}>Total</span>
                     <span style={{ color: C.rose, fontFamily: '"DM Serif Display", Georgia, serif' }}>${(pricing.finalTotal / 100).toFixed(2)}</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Promo code */}
+              <div>
+                {appliedCoupon ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 10, background: 'rgba(74,140,92,0.1)', border: '1px solid rgba(74,140,92,0.3)' }}>
+                    <span style={{ fontSize: '0.85rem', color: C.green, fontWeight: 600 }}>{appliedCoupon.code} — {appliedCoupon.discount_value}% off applied!</span>
+                    <button onClick={() => setAppliedCoupon(null)} style={{ background: 'none', border: 'none', color: C.green, cursor: 'pointer', fontSize: '1rem' }}>&times;</button>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="PROMO CODE" onKeyDown={e => e.key === 'Enter' && applyPromo()} style={{ ...inputStyle, flex: 1, textTransform: 'uppercase' as const }} />
+                      <button onClick={applyPromo} disabled={!promoCode.trim() || isValidatingPromo} style={{ padding: '14px 20px', borderRadius: 14, background: C.rose, color: '#fff', border: 'none', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', opacity: (!promoCode.trim() || isValidatingPromo) ? 0.5 : 1 }}>
+                        {isValidatingPromo ? '...' : 'Apply'}
+                      </button>
+                    </div>
+                    {promoError && <p style={{ color: C.rose, fontSize: '0.75rem', marginTop: 4 }}>{promoError}</p>}
+                  </div>
+                )}
               </div>
 
               {/* Your email */}

@@ -71,6 +71,8 @@ const giftSchema = z.object({
   // Legacy support
   tier: z.enum(["essential", "portrait"]).optional(),
   petCount: z.number().int().min(1).max(10).optional(),
+  // Promo code
+  couponId: z.string().uuid().nullable().optional(),
 });
 
 const logStep = (step: string, details?: unknown) => {
@@ -123,7 +125,30 @@ serve(async (req) => {
     const addonTotal = giftPets.reduce((sum, pet) => sum + HOROSCOPE_ADDONS[pet.horoscopeAddon].cents, 0);
     const baseTotal = tierTotal + addonTotal;
     const discountAmount = Math.round(tierTotal * discount); // Only discount tiers, not addons
-    const finalTotal = baseTotal - discountAmount;
+
+    // Apply promo code discount
+    let couponDiscount = 0;
+    if (input.couponId) {
+      const { data: coupon } = await supabaseClient
+        .from("coupons")
+        .select("*")
+        .eq("id", input.couponId)
+        .eq("is_active", true)
+        .single();
+      if (coupon) {
+        const afterVolume = baseTotal - discountAmount;
+        if (coupon.discount_type === 'percentage') {
+          couponDiscount = Math.round(afterVolume * (coupon.discount_value / 100));
+        } else {
+          couponDiscount = coupon.discount_value;
+        }
+        // Increment usage
+        await supabaseClient.from("coupons").update({ current_uses: coupon.current_uses + 1 }).eq("id", coupon.id);
+        logStep("Coupon applied", { code: coupon.code, discount: couponDiscount });
+      }
+    }
+
+    const finalTotal = baseTotal - discountAmount - couponDiscount;
     
     // Group pets by recipient (for multi-recipient mode)
     const recipientGroups: RecipientGroup[] = [];

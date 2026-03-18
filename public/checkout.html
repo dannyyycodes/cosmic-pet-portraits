@@ -752,6 +752,22 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
       </div>
     </div>
 
+    <!-- Promo Code -->
+    <div id="promoSection" style="margin-top:12px;">
+      <div id="promoApplied" style="display:none; background:rgba(74,140,92,0.1); border:1px solid rgba(74,140,92,0.3); border-radius:10px; padding:10px 14px; display:none; align-items:center; justify-content:space-between;">
+        <span style="font-size:0.85rem; color:var(--green); font-weight:600;" id="promoAppliedText"></span>
+        <button onclick="removePromo()" style="background:none; border:none; color:var(--green); cursor:pointer; font-size:1rem;">&times;</button>
+      </div>
+      <div id="promoInput">
+        <button onclick="document.getElementById('promoField').style.display='flex'; this.style.display='none';" style="background:none; border:none; color:var(--muted); font-size:0.8rem; cursor:pointer; padding:0; font-family:inherit;">Have a promo code?</button>
+        <div id="promoField" style="display:none; gap:8px; margin-top:6px;">
+          <input type="text" id="promoCode" placeholder="PROMO CODE" style="flex:1; border:1.5px solid var(--cream3); border-radius:10px; padding:10px 14px; font-size:0.85rem; text-transform:uppercase; background:var(--cream2); color:var(--ink); font-family:inherit; outline:none;" />
+          <button onclick="applyPromo()" id="promoBtn" style="background:var(--rose); color:#fff; border:none; border-radius:10px; padding:10px 18px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Apply</button>
+        </div>
+        <p id="promoError" style="display:none; color:var(--rose); font-size:0.75rem; margin-top:4px;"></p>
+      </div>
+    </div>
+
     <!-- Order Summary (shows when 2+ pets or portrait on) -->
     <div class="order-summary" id="orderSummary" style="display:none;">
       <div class="order-summary-title">Order summary</div>
@@ -1328,6 +1344,46 @@ function getDiscount(n) {
   return 0;
 }
 
+// ─── Promo Code State ───
+var appliedCoupon = null; // { id, code, discount_type, discount_value }
+
+async function applyPromo() {
+  var code = document.getElementById('promoCode').value.trim().toUpperCase();
+  if (!code) return;
+  var errEl = document.getElementById('promoError');
+  var btn = document.getElementById('promoBtn');
+  errEl.style.display = 'none';
+  btn.textContent = '...';
+  try {
+    var res = await fetch(SUPABASE_URL + '/rest/v1/coupons?code=eq.' + encodeURIComponent(code) + '&is_active=eq.true&select=id,code,discount_type,discount_value,expires_at,max_uses,current_uses', {
+      headers: { 'apikey': SUPABASE_ANON_KEY }
+    });
+    var data = await res.json();
+    if (!data || !data.length) { errEl.textContent = 'Invalid promo code'; errEl.style.display = 'block'; return; }
+    var coupon = data[0];
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) { errEl.textContent = 'This code has expired'; errEl.style.display = 'block'; return; }
+    if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) { errEl.textContent = 'This code has reached its limit'; errEl.style.display = 'block'; return; }
+    appliedCoupon = coupon;
+    document.getElementById('promoInput').style.display = 'none';
+    var applied = document.getElementById('promoApplied');
+    applied.style.display = 'flex';
+    document.getElementById('promoAppliedText').textContent = coupon.code + ' — ' + coupon.discount_value + '% off applied!';
+    updateUI();
+  } catch (e) {
+    errEl.textContent = 'Something went wrong'; errEl.style.display = 'block';
+  } finally {
+    btn.textContent = 'Apply';
+  }
+}
+
+function removePromo() {
+  appliedCoupon = null;
+  document.getElementById('promoApplied').style.display = 'none';
+  document.getElementById('promoInput').style.display = 'block';
+  document.getElementById('promoCode').value = '';
+  updateUI();
+}
+
 // ─── Calculate Total ───
 function getTotal() {
   var readingSub = basePrice * petCount;
@@ -1335,8 +1391,17 @@ function getTotal() {
   var subtotal = readingSub + portraitSub;
   var rate = getDiscount(petCount);
   var discountAmt = Math.round(subtotal * rate * 100) / 100;
-  var total = subtotal - discountAmt;
-  return { readingSub:readingSub, portraitSub:portraitSub, subtotal:subtotal, rate:rate, discountAmt:discountAmt, total:total };
+  var afterVolume = subtotal - discountAmt;
+  var promoAmt = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discount_type === 'percentage') {
+      promoAmt = Math.round(afterVolume * (appliedCoupon.discount_value / 100) * 100) / 100;
+    } else {
+      promoAmt = appliedCoupon.discount_value / 100;
+    }
+  }
+  var total = afterVolume - promoAmt;
+  return { readingSub:readingSub, portraitSub:portraitSub, subtotal:subtotal, rate:rate, discountAmt:discountAmt, promoAmt:promoAmt, total:total };
 }
 
 // ─── Update All UI ───
@@ -1368,7 +1433,7 @@ function updateUI() {
   // Order summary
   var summary = document.getElementById('orderSummary');
   var rows = document.getElementById('summaryRows');
-  if (petCount > 1 || portraitOn || horoscopeOn) {
+  if (petCount > 1 || portraitOn || horoscopeOn || appliedCoupon) {
     summary.style.display = 'block';
     var html = '';
     html += '<div class="order-summary-row"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Little Souls Reading</span><span>$' + calc.readingSub.toFixed(2) + '</span></div>';
@@ -1380,6 +1445,9 @@ function updateUI() {
     }
     if (calc.discountAmt > 0) {
       html += '<div class="order-summary-row discount"><span>Multi-pet discount (' + Math.round(calc.rate * 100) + '%)</span><span>-$' + calc.discountAmt.toFixed(2) + '</span></div>';
+    }
+    if (calc.promoAmt > 0 && appliedCoupon) {
+      html += '<div class="order-summary-row discount"><span>' + appliedCoupon.code + ' (' + appliedCoupon.discount_value + '% off)</span><span>-$' + calc.promoAmt.toFixed(2) + '</span></div>';
     }
     html += '<div class="order-summary-row total"><span>Total</span><span class="order-total-price">$' + calc.total.toFixed(2) + '</span></div>';
     rows.innerHTML = html;
@@ -1585,6 +1653,7 @@ async function handleDigitalCheckout(e) {
         occasionMode: occasionMode,
         petCount: petCount,
         referralCode: refCode || undefined,
+        couponId: appliedCoupon ? appliedCoupon.id : null,
       }),
     });
     var data = await res.json();
