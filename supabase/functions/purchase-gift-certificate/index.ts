@@ -267,7 +267,7 @@ serve(async (req) => {
         product_data: {
           name: productName,
           description: productDescription,
-          images: ["https://littlesouls.app/og-image.jpg"],
+          // No product image on Stripe checkout
         },
         unit_amount: giftAmount,
       },
