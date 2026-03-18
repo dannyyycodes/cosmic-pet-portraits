@@ -127,6 +127,29 @@ serve(async (req) => {
         var totalAmount = readingTotal - discountAmount;
       }
 
+      // Apply coupon discount for quick checkout
+      if (input.couponId) {
+        const { data: coupon } = await supabaseClient
+          .from("coupons")
+          .select("*")
+          .eq("id", input.couponId)
+          .eq("is_active", true)
+          .single();
+        if (coupon) {
+          const valid = (!coupon.expires_at || new Date(coupon.expires_at) > new Date())
+            && (!coupon.max_uses || coupon.current_uses < coupon.max_uses);
+          if (valid) {
+            const discount = (coupon.discount_type === 'percentage' || coupon.discount_type === 'percent')
+              ? Math.round(totalAmount * (coupon.discount_value / 100))
+              : coupon.discount_value;
+            totalAmount = totalAmount - discount;
+            console.log("[CREATE-CHECKOUT] Quick checkout coupon applied:", coupon.code, "discount:", discount, "new total:", totalAmount);
+            // Increment usage
+            await supabaseClient.from("coupons").update({ current_uses: coupon.current_uses + 1 }).eq("id", coupon.id);
+          }
+        }
+      }
+
       // Create placeholder report(s)
       const reportIds: string[] = [];
       for (let i = 0; i < petCount; i++) {
