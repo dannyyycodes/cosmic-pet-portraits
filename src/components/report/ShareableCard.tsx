@@ -55,14 +55,14 @@ function calculateStat(
   for (const p of planets) {
     const placement = chartPlacements[p];
     if (placement) {
-      // Normalize degree (0-360) to a 60-100 range
-      const degNorm = 60 + (placement.degree / 360) * 40;
+      // Degree is 0-30 (within sign), normalize to 70-98 range
+      const degNorm = 70 + (placement.degree / 30) * 28;
       total += degNorm;
       count++;
     }
   }
-  const base = count > 0 ? total / count : 75;
-  const inflated = Math.round(base + 15); // +15 base inflation
+  const base = count > 0 ? total / count : 82;
+  const inflated = Math.round(base + 5);
   return Math.max(min, Math.min(99, inflated));
 }
 

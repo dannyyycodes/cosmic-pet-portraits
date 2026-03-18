@@ -141,12 +141,27 @@ function getElementalBalance(positions: PlanetaryPositions): Record<string, numb
   }
 
   const total = positions.ascendant ? 6 : 5;
-  return {
+  const raw = {
     Fire: Math.round((elements.Fire / total) * 100),
     Earth: Math.round((elements.Earth / total) * 100),
     Air: Math.round((elements.Air / total) * 100),
     Water: Math.round((elements.Water / total) * 100),
   };
+  // Ensure minimum 5% for every element — no being has zero of any element
+  const MIN = 5;
+  const keys = ['Fire', 'Earth', 'Air', 'Water'] as const;
+  const zeros = keys.filter(k => raw[k] === 0);
+  if (zeros.length > 0 && zeros.length < 4) {
+    const borrowed = zeros.length * MIN;
+    const nonZeros = keys.filter(k => raw[k] > 0);
+    zeros.forEach(k => raw[k] = MIN);
+    // Subtract proportionally from non-zero elements
+    const nonZeroTotal = nonZeros.reduce((s, k) => s + raw[k], 0);
+    nonZeros.forEach(k => {
+      raw[k] = Math.max(MIN, Math.round(raw[k] - (borrowed * raw[k] / nonZeroTotal)));
+    });
+  }
+  return raw;
 }
 
 function getCrystal(rulingPlanet: string, element: string): { name: string; meaning: string; color: string } {
