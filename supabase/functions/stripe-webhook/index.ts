@@ -3,10 +3,15 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 function getNextWeekDate(): string {
   const d = new Date();
@@ -104,7 +109,7 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -119,7 +124,7 @@ serve(async (req) => {
   if (!webhookSecret) {
     console.error("[STRIPE-WEBHOOK] STRIPE_WEBHOOK_SECRET is required for security");
     return new Response(JSON.stringify({ error: "Service unavailable" }), { 
-      headers: corsHeaders, 
+      headers: getCorsHeaders(req), 
       status: 500 
     });
   }
@@ -138,7 +143,7 @@ serve(async (req) => {
     if (!signature) {
       console.error("[STRIPE-WEBHOOK] Missing stripe-signature header");
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 
-        headers: corsHeaders, 
+        headers: getCorsHeaders(req), 
         status: 401 
       });
     }
@@ -150,7 +155,7 @@ serve(async (req) => {
     } catch (err) {
       console.error("[STRIPE-WEBHOOK] Signature verification failed:", err);
       return new Response(JSON.stringify({ error: "Unauthorized" }), { 
-        headers: corsHeaders, 
+        headers: getCorsHeaders(req), 
         status: 401 
       });
     }
@@ -766,7 +771,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ received: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -774,7 +779,7 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error("[STRIPE-WEBHOOK] Error:", message);
     return new Response(JSON.stringify({ error: "Internal error" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

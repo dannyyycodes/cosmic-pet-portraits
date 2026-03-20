@@ -5,10 +5,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 interface SupportRequest {
   name: string;
@@ -198,7 +203,7 @@ function buildEmailHtml(safeName: string, safeAiResponse: string): string {
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   // Require service role authorization
@@ -208,7 +213,7 @@ const handler = async (req: Request): Promise<Response> => {
   if (!authHeader || !serviceRoleKey || !authHeader.includes(serviceRoleKey)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 
@@ -262,7 +267,7 @@ const handler = async (req: Request): Promise<Response> => {
       if (!aiResponse) {
         return new Response(JSON.stringify({ success: false, reason: "No AI response" }), {
           status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -287,7 +292,7 @@ const handler = async (req: Request): Promise<Response> => {
         send_at: sendAt.toISOString()
       }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
       
     } else {
@@ -299,7 +304,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("[AI-SUPPORT] No AI response generated, skipping auto-reply");
       return new Response(JSON.stringify({ success: false, reason: "No AI response" }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -328,14 +333,14 @@ const handler = async (req: Request): Promise<Response> => {
       type: isRefund && previousRefundRequests >= 2 ? "refund_confirmation" : "standard"
     }), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
 
   } catch (error: any) {
     console.error("[AI-SUPPORT] Error:", error);
     return new Response(JSON.stringify({ error: "Service unavailable" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 };

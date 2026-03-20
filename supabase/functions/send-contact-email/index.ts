@@ -4,11 +4,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 interface ContactEmailRequest {
   name: string;
@@ -116,7 +120,7 @@ const getConfirmationEmailTemplate = (safeName: string, safeSubjectLabel: string
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -131,14 +135,14 @@ const handler = async (req: Request): Promise<Response> => {
     if (!name || !email || !subject || !message) {
       return new Response(
         JSON.stringify({ error: "All fields are required" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 400, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
       );
     }
 
     if (name.length > 100 || email.length > 255 || message.length > 5000) {
       return new Response(
         JSON.stringify({ error: "Field length exceeded" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 400, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
       );
     }
 
@@ -146,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (!EMAIL_PATTERN.test(email)) {
       return new Response(
         JSON.stringify({ error: "Invalid email format" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 400, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
       );
     }
 
@@ -168,7 +172,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`Rate limit exceeded for IP: ${clientIP}`);
       return new Response(
         JSON.stringify({ error: "Too many requests. Please try again later." }),
-        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 429, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
       );
     }
 
@@ -183,7 +187,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`Rate limit exceeded for email: ${email}`);
       return new Response(
         JSON.stringify({ error: "Too many requests. Please try again later." }),
-        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 429, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
       );
     }
 
@@ -249,7 +253,7 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        ...corsHeaders,
+        ...getCorsHeaders(req),
       },
     });
   } catch (error: any) {
@@ -258,7 +262,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ error: "Failed to send message. Please try again." }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
       }
     );
   }

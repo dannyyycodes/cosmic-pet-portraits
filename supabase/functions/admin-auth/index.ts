@@ -2,10 +2,15 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 // Secure password hashing using PBKDF2 (Web Crypto API - works in Edge Functions)
 async function hashPassword(password: string): Promise<string> {
@@ -103,7 +108,7 @@ const validateSchema = z.object({
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   const supabaseClient = createClient(
@@ -130,7 +135,7 @@ serve(async (req) => {
       if (error || !session) {
         return new Response(JSON.stringify({ valid: false }), {
           status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -144,13 +149,13 @@ serve(async (req) => {
         
         return new Response(JSON.stringify({ valid: false, reason: "expired" }), {
           status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
       return new Response(JSON.stringify({ valid: true, admin_id: session.admin_id }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -165,7 +170,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -173,12 +178,19 @@ serve(async (req) => {
       const input = registerSchema.parse(body);
       
       // Trim setup key to handle whitespace
-      const setupKey = (Deno.env.get("ADMIN_SETUP_KEY") || "cosmic-admin-setup-2024").trim();
+      const setupKey = Deno.env.get("ADMIN_SETUP_KEY")?.trim();
+      if (!setupKey) {
+        console.error("[ADMIN-AUTH] ADMIN_SETUP_KEY environment variable is not configured");
+        return new Response(JSON.stringify({ error: "Registration is not available" }), {
+          status: 503,
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        });
+      }
       if (input.setupKey.trim() !== setupKey) {
         console.log("[ADMIN-AUTH] Setup key mismatch");
         return new Response(JSON.stringify({ error: "Invalid setup key" }), {
           status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -191,7 +203,7 @@ serve(async (req) => {
       if (existing) {
         return new Response(JSON.stringify({ error: "Admin already exists" }), {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -209,14 +221,14 @@ serve(async (req) => {
         console.error("[ADMIN-AUTH] Insert error:", insertError);
         return new Response(JSON.stringify({ error: "Failed to create admin" }), {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
       console.log("[ADMIN-AUTH] Admin registered:", input.email);
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -233,7 +245,7 @@ serve(async (req) => {
     if (fetchError || !admin) {
       return new Response(JSON.stringify({ error: "Invalid credentials" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -254,7 +266,7 @@ serve(async (req) => {
     if (!isValid) {
       return new Response(JSON.stringify({ error: "Invalid credentials" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -277,7 +289,7 @@ serve(async (req) => {
       console.error("[ADMIN-AUTH] Session creation error:", sessionError);
       return new Response(JSON.stringify({ error: "Failed to create session" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -289,21 +301,21 @@ serve(async (req) => {
       token: sessionToken
     }), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
 
   } catch (error) {
     if (error instanceof z.ZodError) {
       return new Response(JSON.stringify({ error: "Invalid input" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
     console.error("[ADMIN-AUTH] Error:", error);
     return new Response(JSON.stringify({ error: "Service unavailable" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

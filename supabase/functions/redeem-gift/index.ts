@@ -2,10 +2,15 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 // Input validation schema - flexible to support various gift code formats
 const redeemSchema = z.object({
@@ -21,7 +26,7 @@ const redeemSchema = z.object({
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -52,7 +57,7 @@ serve(async (req) => {
         error: "Invalid gift code",
         success: false 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -64,7 +69,7 @@ serve(async (req) => {
         error: "This gift has already been redeemed",
         success: false 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -76,7 +81,7 @@ serve(async (req) => {
         error: "This gift code has expired",
         success: false 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -89,7 +94,7 @@ serve(async (req) => {
         error: `This gift covers ${giftPetCount} pet${giftPetCount > 1 ? 's' : ''}, but ${allReportIds.length} were submitted`,
         success: false 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -111,7 +116,7 @@ serve(async (req) => {
         error: "Failed to redeem gift. Please try again.",
         success: false 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 500,
       });
     }
@@ -285,7 +290,7 @@ serve(async (req) => {
       includesPortrait: hasAnyPortrait,
       includesWeeklyHoroscope: hasAnyHoroscope,
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -296,7 +301,7 @@ serve(async (req) => {
         error: "Invalid request format",
         success: false 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -307,7 +312,7 @@ serve(async (req) => {
       error: "Failed to redeem gift",
       success: false 
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

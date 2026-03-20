@@ -1,17 +1,22 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -20,7 +25,7 @@ serve(async (req) => {
     if (!reportId) {
       console.error("[BACKGROUND-GEN] Missing reportId");
       return new Response(JSON.stringify({ error: "Missing reportId" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -42,7 +47,7 @@ serve(async (req) => {
     if (fetchError || !report) {
       console.error("[BACKGROUND-GEN] Report not found:", reportId, fetchError);
       return new Response(JSON.stringify({ error: "Report not found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 404,
       });
     }
@@ -57,7 +62,7 @@ serve(async (req) => {
     if (hasRealContent) {
       console.log("[BACKGROUND-GEN] Report already generated:", reportId);
       return new Response(JSON.stringify({ success: true, already_generated: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -70,7 +75,7 @@ serve(async (req) => {
       if (elapsed < 10 * 60 * 1000) {
         console.log("[BACKGROUND-GEN] Already generating, skipping duplicate trigger:", reportId, `(${Math.round(elapsed/1000)}s ago)`);
         return new Response(JSON.stringify({ success: true, already_generating: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 200,
         });
       }
@@ -112,7 +117,7 @@ serve(async (req) => {
       }).catch(err => console.error("[BACKGROUND-GEN] n8n error:", err));
 
       return new Response(JSON.stringify({ success: true, reportId, worker: "n8n" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -144,14 +149,14 @@ serve(async (req) => {
     sendEmailBackground(supabaseUrl, serviceRoleKey, reportId, report.email, report.pet_name);
 
     return new Response(JSON.stringify({ success: true, reportId }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
   } catch (error) {
     console.error("[BACKGROUND-GEN] Error:", error);
     return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

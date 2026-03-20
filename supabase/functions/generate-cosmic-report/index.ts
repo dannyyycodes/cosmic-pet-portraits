@@ -9,10 +9,15 @@ import {
   type PlanetaryPositions 
 } from "./ephemeris.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 // Sanitize and coerce string values
 const safeString = (maxLen: number) =>
@@ -191,7 +196,7 @@ async function geocodeLocation(location: string): Promise<{ lat: number; lon: nu
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -218,7 +223,7 @@ serve(async (req) => {
       console.error("[GENERATE-REPORT] Missing OpenRouter API key");
       return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
         status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -1431,7 +1436,7 @@ QUALITY STANDARD: This report costs $35. Every section must justify that price.
     await backgroundGeneration();
 
     return new Response(JSON.stringify({ success: true, reportId: input.reportId }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -1442,7 +1447,7 @@ QUALITY STANDARD: This report costs $35. Every section must justify that price.
       error: "We're experiencing high demand. Please try again in a moment." 
     }), {
       status: 503,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

@@ -1,14 +1,19 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -19,7 +24,7 @@ serve(async (req) => {
     if (!reportId && !giftCode && !shareToken) {
       console.log("[GET-REPORT] Missing required parameters");
       return new Response(JSON.stringify({ error: "Report not available" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -33,7 +38,7 @@ serve(async (req) => {
     if (reportId && !UUID_PATTERN.test(reportId)) {
       console.log("[GET-REPORT] Invalid report ID format");
       return new Response(JSON.stringify({ error: "Report not available" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -41,7 +46,7 @@ serve(async (req) => {
     if (giftCode && !GIFT_CODE_PATTERN.test(giftCode)) {
       console.log("[GET-REPORT] Invalid gift code format");
       return new Response(JSON.stringify({ error: "Report not available" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -49,7 +54,7 @@ serve(async (req) => {
     if (shareToken && !SHARE_TOKEN_PATTERN.test(shareToken)) {
       console.log("[GET-REPORT] Invalid share token format");
       return new Response(JSON.stringify({ error: "Report not available" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -73,7 +78,7 @@ serve(async (req) => {
       if (tokenError || !tokenReport) {
         console.log("[GET-REPORT] Share token lookup failed:", shareToken);
         return new Response(JSON.stringify({ error: "Report not available" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 404,
         });
       }
@@ -93,7 +98,7 @@ serve(async (req) => {
       if (giftError || !giftCert?.redeemed_by_report_id) {
         console.log("[GET-REPORT] Gift certificate lookup failed:", giftCode);
         return new Response(JSON.stringify({ error: "Report not available" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 404,
         });
       }
@@ -112,7 +117,7 @@ serve(async (req) => {
     if (fetchError || !report) {
       console.log("[GET-REPORT] Report not found:", targetReportId);
       return new Response(JSON.stringify({ error: "Report not available" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 404,
       });
     }
@@ -122,7 +127,7 @@ serve(async (req) => {
       if (!email || !EMAIL_PATTERN.test(email)) {
         console.log("[GET-REPORT] Email verification required for report access");
         return new Response(JSON.stringify({ error: "Email verification required" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 401,
         });
       }
@@ -130,7 +135,7 @@ serve(async (req) => {
       if (email.toLowerCase().trim() !== report.email.toLowerCase().trim()) {
         console.log("[GET-REPORT] Email mismatch for report:", targetReportId);
         return new Response(JSON.stringify({ error: "Report not available" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 403,
         });
       }
@@ -140,7 +145,7 @@ serve(async (req) => {
     if (!report.report_content) {
       console.log("[GET-REPORT] Report content not yet generated:", targetReportId);
       return new Response(JSON.stringify({ error: "Report not available" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 404,
       });
     }
@@ -148,7 +153,7 @@ serve(async (req) => {
     if (report.payment_status !== "paid") {
       console.log("[GET-REPORT] Report not paid:", targetReportId, report.payment_status);
       return new Response(JSON.stringify({ error: "Report not available" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 403,
       });
     }
@@ -186,7 +191,7 @@ serve(async (req) => {
       },
       email: !isPublicAccess ? report.email : undefined,
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -194,7 +199,7 @@ serve(async (req) => {
     // SECURITY FIX: Generic error message - log details server-side only
     console.error("[GET-REPORT] Unexpected error:", error);
     return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

@@ -3,10 +3,15 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 // Color palette — matches landing page / checkout (variant-c):
 // Background: #FFFDF5 (cream)  |  Card bg: #ffffff  |  Card border: #e8ddd0 (sand)
@@ -166,7 +171,7 @@ const getEmailTemplate = (petName: string, reportUrl: string, sunSign?: string, 
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   // SECURITY: Require service role or bridge secret authorization
@@ -181,7 +186,7 @@ serve(async (req) => {
     console.error("[SEND-REPORT-EMAIL] Unauthorized request - missing or invalid authorization");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 
@@ -195,7 +200,7 @@ serve(async (req) => {
     if (!email || !reportId) {
       return new Response(JSON.stringify({ error: "Invalid request" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -231,7 +236,7 @@ serve(async (req) => {
       console.error("[SEND-REPORT-EMAIL] Full response:", JSON.stringify(emailResult));
       return new Response(JSON.stringify({ error: "Email delivery failed", detail: resendError }), {
         status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -243,14 +248,14 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
 
   } catch (error) {
     console.error("[SEND-REPORT-EMAIL] Error:", error);
     return new Response(JSON.stringify({ error: "Service unavailable" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

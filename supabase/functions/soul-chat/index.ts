@@ -2,10 +2,15 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const OPENROUTER_API_KEY = (Deno.env.get("OPENROUTER_API_KEY") || "").trim();
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 function buildSystemPrompt(pet: any) {
   const isMemorial = pet.occasionMode === 'memorial';
@@ -149,7 +154,7 @@ ACCURACY & ANTI-HALLUCINATION:
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -158,7 +163,7 @@ serve(async (req) => {
     if (!orderId || !messages || !petData) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -221,7 +226,7 @@ You're ${userMsgCount} messages deep. This is where you go ALL IN emotionally:
     if (data.error) {
       console.error("OpenRouter error:", JSON.stringify(data.error));
       return new Response(JSON.stringify({ reply: "The cosmic connection wavered... please try again in a moment.", debug: data.error?.message }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -245,14 +250,14 @@ You're ${userMsgCount} messages deep. This is where you go ALL IN emotionally:
     }
 
     return new Response(JSON.stringify({ reply }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
 
   } catch (error) {
     console.error("Soul chat error:", error);
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

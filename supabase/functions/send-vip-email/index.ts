@@ -4,10 +4,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 const getVipEmailTemplate = (petName: string, reportUrl: string, accountUrl: string, customerReferralCode: string, portraitUrl?: string) => `
 <!DOCTYPE html>
@@ -134,7 +139,7 @@ const getVipEmailTemplate = (petName: string, reportUrl: string, accountUrl: str
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   // SECURITY: Require service role authorization
@@ -145,7 +150,7 @@ serve(async (req) => {
     console.error("[VIP-EMAIL] Unauthorized request");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 
@@ -157,7 +162,7 @@ serve(async (req) => {
     if (!email || !reportId || !petName) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -197,14 +202,14 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ success: true, referralCode: customerReferralCode }), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
 
   } catch (error) {
     console.error("[VIP-EMAIL] Error:", error);
     return new Response(JSON.stringify({ error: "Service unavailable" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

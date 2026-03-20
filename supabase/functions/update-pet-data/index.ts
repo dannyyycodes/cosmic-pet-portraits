@@ -1,14 +1,19 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -16,7 +21,7 @@ serve(async (req) => {
 
     if (!reportId || !petName || !species) {
       return new Response(JSON.stringify({ error: "Missing required fields: reportId, petName, species" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -35,14 +40,14 @@ serve(async (req) => {
 
     if (fetchError || !report) {
       return new Response(JSON.stringify({ error: "Report not found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 404,
       });
     }
 
     if (report.payment_status !== "paid") {
       return new Response(JSON.stringify({ error: "Payment not confirmed" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 403,
       });
     }
@@ -77,7 +82,7 @@ serve(async (req) => {
     if (updateError) {
       console.error("[UPDATE-PET-DATA] Update error:", updateError);
       return new Response(JSON.stringify({ error: "Failed to update pet data" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 500,
       });
     }
@@ -95,13 +100,13 @@ serve(async (req) => {
     console.log("[UPDATE-PET-DATA] Updated report:", reportId, "pet:", petName, "species:", species);
 
     return new Response(JSON.stringify({ success: true, reportId }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     console.error("[UPDATE-PET-DATA] Error:", error);
     return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

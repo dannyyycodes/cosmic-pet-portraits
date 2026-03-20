@@ -3,10 +3,15 @@ import { z } from "https://esm.sh/zod@3.23.8";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 // Fixed pricing tiers - SERVER-SIDE TRUTH
 const TIERS = {
@@ -75,7 +80,7 @@ const checkoutSchema = z.object({
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -86,7 +91,7 @@ serve(async (req) => {
     if (!stripeKey) {
       console.error("[CREATE-CHECKOUT] Missing Stripe configuration");
       return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 503,
       });
     }
@@ -206,7 +211,7 @@ serve(async (req) => {
           reportIds,
           url: `${origin}/payment-success?session_id=free&report_id=${primaryReportId}&free=true&quick=true`,
         }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 200,
         });
       }
@@ -264,7 +269,7 @@ serve(async (req) => {
       });
 
       return new Response(JSON.stringify({ url: session.url }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -499,7 +504,7 @@ serve(async (req) => {
         reportIds: allReportIds,
         url: `${origin}/payment-success?session_id=free&report_id=${primaryReportId}&free=true`,
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -637,7 +642,7 @@ serve(async (req) => {
     console.log("[CREATE-CHECKOUT] Session created:", session.id);
 
     return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -649,13 +654,13 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         error: "Invalid request parameters"
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
     
     return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

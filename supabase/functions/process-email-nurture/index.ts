@@ -2,10 +2,15 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 // ─── Color palette (matches landing page) ──────────────────────────────────
 // Background: #FFFDF5 | Card: #fff with #e8ddd0 border | Inner: #faf4e8
@@ -437,7 +442,7 @@ async function sendNurtureEmail(
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -564,13 +569,13 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, emailsSent, errors: errors.length }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     console.error("[EMAIL-NURTURE] Fatal error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      { headers: { ...getCorsHeaders(req), "Content-Type": "application/json" }, status: 500 }
     );
   }
 });

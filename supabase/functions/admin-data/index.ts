@@ -1,10 +1,15 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token",
+  };
+}
 
 // Validate admin token against the database
 async function validateAdminToken(supabaseClient: any, token: string | null): Promise<{ valid: boolean; adminId?: string }> {
@@ -43,7 +48,7 @@ async function validateAdminToken(supabaseClient: any, token: string | null): Pr
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -61,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Admin authentication failed");
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        { status: 401, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
       );
     }
 
@@ -102,7 +107,7 @@ const handler = async (req: Request): Promise<Response> => {
             affiliates: affiliatesResult.data || [],
             gifts: giftsResult.data || [],
           }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 200, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
         );
       }
 
@@ -116,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         return new Response(
           JSON.stringify({ reports: data || [] }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 200, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
         );
       }
 
@@ -130,7 +135,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         return new Response(
           JSON.stringify({ subscriptions: data || [] }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 200, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
         );
       }
 
@@ -144,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         return new Response(
           JSON.stringify({ gifts: data || [] }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 200, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
         );
       }
 
@@ -165,21 +170,21 @@ const handler = async (req: Request): Promise<Response> => {
 
         return new Response(
           JSON.stringify({ posts: postsResult.data || [], topics: topicsResult.data || [] }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 200, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
         );
       }
 
       default:
         return new Response(
           JSON.stringify({ error: "Invalid action" }),
-          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          { status: 400, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
         );
     }
   } catch (error: any) {
     console.error("Admin data error:", error);
     return new Response(
       JSON.stringify({ error: "An error occurred" }),
-      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      { status: 500, headers: { "Content-Type": "application/json", ...getCorsHeaders(req) } }
     );
   }
 };

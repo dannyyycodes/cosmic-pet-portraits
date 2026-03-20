@@ -1,10 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 // Helper to convert base64 to Uint8Array
 function base64ToUint8Array(base64: string): Uint8Array {
@@ -18,7 +23,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -147,7 +152,7 @@ CRITICAL REQUIREMENTS:
             error: "We're experiencing high demand. Please try again in a moment." 
           }), {
             status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           });
         }
         
@@ -156,7 +161,7 @@ CRITICAL REQUIREMENTS:
             error: "Service temporarily unavailable. Please try again later." 
           }), {
             status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           });
         }
 
@@ -220,7 +225,7 @@ REQUIREMENTS:
             error: "We're experiencing high demand. Please try again in a moment." 
           }), {
             status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           });
         }
         
@@ -229,7 +234,7 @@ REQUIREMENTS:
             error: "Service temporarily unavailable. Please try again later." 
           }), {
             status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           });
         }
 
@@ -303,7 +308,7 @@ REQUIREMENTS:
       prompt,
       usedPetImage: !!petImageUrl
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -313,7 +318,7 @@ REQUIREMENTS:
       error: error instanceof Error ? error.message : "Failed to generate portrait" 
     }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

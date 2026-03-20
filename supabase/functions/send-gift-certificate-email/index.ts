@@ -4,10 +4,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 interface GiftCertificateEmailRequest {
   giftCertificateId: string;
@@ -159,7 +164,7 @@ const getRecipientEmailTemplate = (recipientName: string, giftCode: string, gift
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   // SECURITY: Require service role authorization
@@ -170,7 +175,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.error("[SEND-GIFT-EMAIL] Unauthorized request - missing or invalid authorization");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
+      headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
     });
   }
 
@@ -194,7 +199,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("[SEND-GIFT-EMAIL] Gift certificate not found");
       return new Response(JSON.stringify({ error: "Resource not found" }), {
         status: 404,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
       });
     }
 
@@ -214,7 +219,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("[SEND-GIFT-EMAIL] Purchaser email provider error:", purchaserResendError);
       return new Response(JSON.stringify({ error: "Email delivery failed" }), {
         status: 502,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
       });
     }
 
@@ -246,7 +251,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
+      headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
     });
   } catch (error: any) {
     console.error("[SEND-GIFT-EMAIL] Error:", error);
@@ -254,7 +259,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ error: "Service unavailable" }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...getCorsHeaders(req) },
       }
     );
   }

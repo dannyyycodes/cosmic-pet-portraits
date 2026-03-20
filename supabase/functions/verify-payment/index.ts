@@ -2,14 +2,19 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -27,7 +32,7 @@ serve(async (req) => {
     if (!sessionId || !reportId) {
       // SECURITY FIX: Generic error message
       return new Response(JSON.stringify({ error: "Invalid request" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -39,7 +44,7 @@ serve(async (req) => {
       // SECURITY FIX: Generic error - don't reveal config details
       console.error("[VERIFY-PAYMENT] Missing STRIPE_SECRET_KEY configuration");
       return new Response(JSON.stringify({ error: "Service temporarily unavailable" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 503,
       });
     }
@@ -50,193 +55,16 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Handle dev mode sessions
+    // SECURITY: Dev mode bypass disabled - all payments must go through Stripe
     if (sessionId.startsWith('dev_test_')) {
-      console.log("[VERIFY-PAYMENT] Dev mode - skipping Stripe verification");
-      
-      // Get checkout options from request body (passed from frontend)
-      const includeGiftParam = includeGiftFromBody === true;
-      const includeHoroscopeParam = includeHoroscopeFromBody === true;
-      const selectedTierParam = selectedTierFromBody;
-      const includesPortraitParam = includesPortraitFromBody === true;
-      
-      // Parse pet photos and pet tiers from request body
-      const petPhotosFromBody = body.petPhotos || {};
-      const petTiersFromBody = body.petTiers || {};
-      
-      // First get the primary report to find the email
-      const { data: primaryReport } = await supabaseClient
-        .from("pet_reports")
-        .select("*")
-        .eq("id", reportId)
-        .single();
-
-      if (!primaryReport) {
-        return new Response(JSON.stringify({ error: "Report not found" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 404,
-        });
-      }
-
-      // Find all reports with the same email created within last 10 minutes (multi-pet order)
-      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-      const { data: recentReports } = await supabaseClient
-        .from("pet_reports")
-        .select("*")
-        .eq("email", primaryReport.email)
-        .gte("created_at", tenMinutesAgo)
-        .order("created_at", { ascending: true });
-
-      // Always include the primary report even if not in recent window
-      let allPetReports = recentReports || [];
-      const primaryIncluded = allPetReports.some((r: any) => r.id === reportId);
-      if (!primaryIncluded) {
-        allPetReports = [primaryReport, ...allPetReports];
-      }
-
-      const reportIds = allPetReports.map((r: any) => r.id);
-      console.log("[VERIFY-PAYMENT] Dev mode - found reports:", reportIds.length, "petPhotos:", Object.keys(petPhotosFromBody));
-
-      // Generate share tokens for each report
-      const generateShareToken = () => {
-        const bytes = new Uint8Array(12);
-        crypto.getRandomValues(bytes);
-        return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-      };
-
-      // Update all reports as paid with share tokens AND save pet photos
-      for (let i = 0; i < reportIds.length; i++) {
-        const id = reportIds[i];
-        const shareToken = generateShareToken();
-        const tierKey = petTiersFromBody[String(i)] || selectedTierParam || 'premium';
-        const tierIncludesPortrait = tierKey === 'premium';
-        const petPhoto = petPhotosFromBody[String(i)];
-        
-        const updateData: Record<string, unknown> = { 
-          payment_status: "paid",
-          share_token: shareToken,
-          updated_at: new Date().toISOString()
-        };
-        
-        // Save pet photo URL if tier includes portrait
-        if (tierIncludesPortrait && petPhoto?.url) {
-          updateData.pet_photo_url = petPhoto.url;
-          console.log("[VERIFY-PAYMENT] Dev mode - saving pet photo for report:", id);
-        }
-        
-        await supabaseClient
-          .from("pet_reports")
-          .update(updateData)
-          .eq("id", id);
-      }
-      
-      // Generate reports for each pet (wait for all to complete before fetching final data)
-      for (let i = 0; i < reportIds.length; i++) {
-        const id = reportIds[i];
-        const tierKey = petTiersFromBody[String(i)] || selectedTierParam || 'premium';
-        const includesPortrait = tierKey === 'premium';
-        
-        const { data: report } = await supabaseClient
-          .from("pet_reports")
-          .select("*")
-          .eq("id", id)
-          .single();
-
-        if (report && !report.report_content) {
-          // Trigger background generation (fire and forget with retries)
-          triggerBackgroundGeneration(id, includesPortrait);
-        }
-      }
-
-      // Handle gift for friend in dev mode
-      let giftCode: string | null = null;
-      if (includeGiftParam) {
-        const randomBytes = new Uint8Array(8);
-        crypto.getRandomValues(randomBytes);
-        giftCode = "GIFT-" + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase().slice(0, 12);
-        
-        const { error: giftError } = await supabaseClient
-          .from("gift_certificates")
-          .insert({
-            code: giftCode,
-            amount_cents: 3500,
-            purchaser_email: primaryReport.email,
-            stripe_session_id: sessionId,
-          });
-        
-        if (giftError) {
-          console.error("[VERIFY-PAYMENT] Failed to create gift certificate:", giftError);
-          giftCode = null;
-        } else {
-          console.log("[VERIFY-PAYMENT] Dev mode - Gift certificate created:", giftCode);
-        }
-      }
-
-      // Handle horoscope subscription in dev mode
-      const horoscopeEnabled = includeHoroscopeParam;
-      if (horoscopeEnabled) {
-        console.log("[VERIFY-PAYMENT] Dev mode - Creating horoscope subscriptions");
-        
-        for (const id of reportIds) {
-          const { data: petReport } = await supabaseClient
-            .from("pet_reports")
-            .select("email, pet_name")
-            .eq("id", id)
-            .single();
-          
-          if (petReport) {
-            const { data: existingSub } = await supabaseClient
-              .from("horoscope_subscriptions")
-              .select("id")
-              .eq("pet_report_id", id)
-              .single();
-            
-            if (!existingSub) {
-              const { error: subError } = await supabaseClient
-                .from("horoscope_subscriptions")
-                .insert({
-                  email: petReport.email,
-                  pet_name: petReport.pet_name,
-                  pet_report_id: id,
-                  status: "active",
-                  stripe_subscription_id: `dev_horoscope_${sessionId}`,
-                  next_send_at: new Date().toISOString(),
-                });
-              
-              if (subError) {
-                console.error("[VERIFY-PAYMENT] Failed to create horoscope subscription:", subError);
-              } else {
-                console.log("[VERIFY-PAYMENT] Dev mode - Horoscope subscription created for:", petReport.pet_name);
-              }
-            }
-          }
-        }
-      }
-
-      // Fetch ALL updated reports
-      const { data: allReports } = await supabaseClient
-        .from("pet_reports")
-        .select("*")
-        .in("id", reportIds)
-        .order("created_at", { ascending: true });
-
-      const updatedPrimaryReport = allReports?.find((r: any) => r.id === reportId) || allReports?.[0];
-
-      return new Response(JSON.stringify({ 
-        success: true, 
-        report: updatedPrimaryReport,
-        allReports: allReports || [updatedPrimaryReport],
-        reportIds: reportIds,
-        includeGift: includeGiftParam,
-        giftCode,
-        horoscopeEnabled,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+      console.log('[VERIFY-PAYMENT] SECURITY: Blocked dev_test_ payment bypass attempt');
+      return new Response(JSON.stringify({ error: 'Invalid session' }), {
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+        status: 403,
       });
     }
 
-    // Handle redeem code sessions (already paid via free code)
+        // Handle redeem code sessions (already paid via free code)
     if (sessionId.startsWith('redeem_')) {
       console.log("[VERIFY-PAYMENT] Redeem code session - skipping Stripe verification");
 
@@ -248,7 +76,7 @@ serve(async (req) => {
 
       if (!redeemReport || redeemReport.payment_status !== 'paid') {
         return new Response(JSON.stringify({ error: "Report not found" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 404,
         });
       }
@@ -280,7 +108,7 @@ serve(async (req) => {
         giftCode: null,
         horoscopeEnabled: false,
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -376,7 +204,7 @@ serve(async (req) => {
         giftCode: null,
         horoscopeEnabled: hasAnyPortrait,
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -394,7 +222,7 @@ serve(async (req) => {
         success: false, 
         status: session.payment_status 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -549,7 +377,7 @@ serve(async (req) => {
       giftCode,
       horoscopeEnabled: includeHoroscope,
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -557,7 +385,7 @@ serve(async (req) => {
     // SECURITY FIX: Generic error message - log details server-side only
     console.error("[VERIFY-PAYMENT] Error:", error);
     return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }
