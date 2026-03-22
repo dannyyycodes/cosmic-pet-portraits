@@ -409,7 +409,6 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                           <span className="text-[9px] md:text-xs text-primary font-semibold uppercase tracking-wider flex items-center gap-1">
                             <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3" /> Soul Snapshot
                           </span>
-                          <span className="text-[9px] md:text-xs px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-500 font-medium">FREE</span>
                         </div>
                         
                         <div className="grid grid-cols-3 gap-1.5 md:gap-2 text-center">
@@ -436,7 +435,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               })}
             </div>
 
-            {/* FREE Mini Reading - Compact mobile layout */}
+            {/* Mini Reading - Compact mobile layout */}
             {!giftCode && (
             <motion.div
               initial={{ opacity: 0, y: 15 }}
@@ -451,11 +450,10 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-display font-bold text-base md:text-lg text-foreground truncate">
-                    Your Free Cosmic Preview
+                    Your Cosmic Preview
                   </h3>
                   <p className="text-[10px] md:text-xs text-muted-foreground">A glimpse into the cosmic truth...</p>
                 </div>
-                <span className="text-xs px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-green-500/20 text-green-500 font-bold border border-green-500/30 shrink-0">🎁 FREE</span>
               </div>
               
               {/* Pet Tabs for multiple pets */}

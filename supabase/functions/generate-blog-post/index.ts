@@ -134,7 +134,7 @@ Make the CTA feel natural and helpful, not salesy. Frame the pet report as the u
     // Add the intake link to the content
     const contentWithCTA = blogData.content.replace(
       /\[get their personalized reading\]|\[personalized reading\]|\[cosmic reading\]|\[pet report\]/gi,
-      "[Get Your Pet's Free Cosmic Reading →](/intake)"
+      "[Get Your Pet's Cosmic Reading →](/intake)"
     );
 
     // If no link was replaced, append a CTA
