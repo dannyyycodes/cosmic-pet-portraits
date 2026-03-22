@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
@@ -62,7 +63,7 @@ serve(async (req) => {
     // Verify the subscription belongs to this user
     const { data: subscription, error: fetchError } = await supabaseAdmin
       .from("horoscope_subscriptions")
-      .select("id, email, status")
+      .select("id, email, status, stripe_subscription_id")
       .eq("id", subscriptionId)
       .eq("email", email)
       .single();
@@ -82,7 +83,22 @@ serve(async (req) => {
       });
     }
 
-    // Cancel the subscription
+    // Cancel the Stripe subscription if it exists
+    if (subscription.stripe_subscription_id) {
+      try {
+        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+        if (stripeKey) {
+          const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+          await stripe.subscriptions.cancel(subscription.stripe_subscription_id);
+          console.log("[CANCEL-SUB] Stripe subscription cancelled:", subscription.stripe_subscription_id);
+        }
+      } catch (stripeErr) {
+        console.error("[CANCEL-SUB] Stripe cancel error (continuing with DB cancel):", stripeErr);
+        // Continue with DB cancellation even if Stripe fails
+      }
+    }
+
+    // Cancel in database
     const { error: updateError } = await supabaseAdmin
       .from("horoscope_subscriptions")
       .update({

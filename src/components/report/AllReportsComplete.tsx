@@ -329,32 +329,50 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             </motion.div>
           )}
 
-          {/* Gifted Upsells - Show relevant options based on gifted tier */}
+          {/* Gift CTA — shown for everyone */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+            className="mb-6 p-5 rounded-2xl text-left"
+            style={{
+              background: 'linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(191,82,74,0.08) 100%)',
+              border: '1px solid rgba(196,162,101,0.25)',
+            }}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)' }}>
+                <Gift className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground text-sm md:text-base">Know someone who'd love this?</h3>
+                <p className="text-xs text-muted-foreground">Gift a cosmic pet reading — 30% off today</p>
+              </div>
+            </div>
+
+            <p className="text-xs md:text-sm text-muted-foreground mb-4">
+              Every pet has a soul story waiting to be told. Gift one to a friend and the code <span className="font-mono font-semibold" style={{ color: '#c4a265' }}>GIFTLOVE30</span> is already applied!
+            </p>
+
+            <Button
+              onClick={() => navigate('/gift?code=GIFTLOVE30')}
+              className="w-full text-white font-semibold"
+              style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)' }}
+            >
+              <Gift className="w-4 h-4 mr-2" />
+              Gift a Reading — 30% Off
+            </Button>
+          </motion.div>
+
+          {/* Extra upsells for gifted users */}
           {giftedInfo?.isGifted && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
+              transition={{ delay: 0.58 }}
               className="mb-6 space-y-3"
             >
-              <p className="text-sm text-muted-foreground mb-4">
-                🎁 You received this reading as a gift! Here's what you can do next:
-              </p>
-              
-              {/* Gift for a friend - always show */}
-              <Button
-                onClick={() => navigate('/gift')}
-                variant="outline"
-                className="w-full justify-start gap-3 p-4 h-auto"
-              >
-                <Gift className="w-5 h-5 text-cosmic-gold shrink-0" />
-                <div className="text-left">
-                  <p className="font-medium">Gift a Reading to a Friend</p>
-                  <p className="text-xs text-muted-foreground">Share the cosmic love with someone special</p>
-                </div>
-              </Button>
-
-              {/* Weekly horoscope - show if not already purchased */}
               {!horoscopeInfo?.enabled && (
                 <Button
                   onClick={() => navigate('/checkout')}
@@ -369,7 +387,6 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 </Button>
               )}
 
-              {/* Upgrade - show only if basic */}
               {giftedInfo.giftedTier === 'basic' && (
                 <Button
                   onClick={() => navigate('/checkout')}
@@ -378,8 +395,8 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 >
                   <Sparkles className="w-5 h-5 text-nebula-pink shrink-0" />
                   <div className="text-left">
-                    <p className="font-medium">Add Little Souls Reading</p>
-                    <p className="text-xs text-muted-foreground">Get an AI-generated cosmic trading card</p>
+                    <p className="font-medium">Upgrade to Soul Bond Edition</p>
+                    <p className="text-xs text-muted-foreground">Get the full cosmic portrait + soul bond</p>
                   </div>
                 </Button>
               )}

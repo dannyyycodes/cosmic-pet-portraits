@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2, ChevronRight, Users, User, Sparkles, Heart, Star, Quote, Shield, Clock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -90,6 +90,7 @@ function RotatingTestimonial() {
 }
 
 export default function GiftPurchase() {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('link');
   const [giftType, setGiftType] = useState<'single' | 'multiple' | null>(null);
@@ -102,6 +103,24 @@ export default function GiftPurchase() {
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({ id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' });
   const [recipients, setRecipients] = useState<GiftRecipient[]>([{ id: crypto.randomUUID(), name: '', email: '', tier: 'portrait' }]);
+
+  // Auto-apply promo code from URL (e.g. /gift?code=GIFTLOVE30)
+  useEffect(() => {
+    const urlCode = searchParams.get('code');
+    if (urlCode && !appliedCoupon) {
+      setPromoCode(urlCode.toUpperCase());
+      // Auto-validate the code
+      (async () => {
+        try {
+          const { data } = await supabase.from('coupons').select('id,code,discount_type,discount_value,expires_at,max_uses,current_uses').eq('code', urlCode.toUpperCase()).eq('is_active', true).single();
+          if (data && (!data.expires_at || new Date(data.expires_at) >= new Date()) && (!data.max_uses || data.current_uses < data.max_uses)) {
+            setAppliedCoupon({ id: data.id, code: data.code, discount_value: data.discount_value });
+            setPromoCode('');
+          }
+        } catch { /* ignore */ }
+      })();
+    }
+  }, [searchParams]);
 
   const activeRecipients = giftType === 'single' ? [singleRecipient] : recipients;
   const giftCount = activeRecipients.length;
