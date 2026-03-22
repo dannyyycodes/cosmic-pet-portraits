@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(() => {
             supabase.functions.invoke('link-user-reports').then(({ data, error }) => {
               if (data?.linked > 0) {
-                console.log(`Linked ${data.linked} reports to account: ${data.petNames}`);
+                // Reports linked to account
               }
             }).catch(console.error);
           }, 0);

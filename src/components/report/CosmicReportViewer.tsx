@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star, ChevronDown, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { zodiacSigns } from '@/lib/zodiac';
@@ -38,6 +39,9 @@ import { StaticPassage } from './StaticPassage';
 
 // Re-export types for backward compatibility
 export type { ReportContent, ReportData, ChartPlacement, SectionContent };
+
+// Sanitize HTML content before rendering
+const safeHtml = (html: string) => DOMPurify.sanitize(html);
 
 interface CosmicReportViewerProps {
   petName: string;
@@ -680,7 +684,7 @@ export function CosmicReportViewer({
 
                     <div
                       className="text-[0.88rem] leading-[1.9] text-[#5a4a42]"
-                      dangerouslySetInnerHTML={{ __html: (kb.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ') }}
+                      dangerouslySetInnerHTML={{ __html: safeHtml((kb.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ')) }}
                     />
 
                     {kb.soulContract && (
@@ -873,7 +877,7 @@ export function CosmicReportViewer({
 
                     <div
                       className="text-[0.88rem] leading-[1.9] text-[#5a4a42]"
-                      dangerouslySetInnerHTML={{ __html: (ee.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ') }}
+                      dangerouslySetInnerHTML={{ __html: safeHtml((ee.content || '').replace(/\n\n/g, '<br /><br />').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '\u2022 ').replace(/\n- /g, '<br />\u2022 ')) }}
                     />
 
                     {ee.practicalTip && (
@@ -1628,7 +1632,7 @@ function VillainOriginStory({
               </span>
             </div>
             <p className="text-[0.86rem] text-[#5a4a42] leading-[1.75]"
-               dangerouslySetInnerHTML={{ __html: (sec.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ') }}
+               dangerouslySetInnerHTML={{ __html: safeHtml((sec.text || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ')) }}
             />
           </div>
         ))}
@@ -1889,7 +1893,7 @@ function FunExtrasCard({
       </div>
       {description && (
         <p className="text-[0.84rem] text-[#5a4a42] leading-[1.7] mt-1"
-           dangerouslySetInnerHTML={{ __html: (description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+           dangerouslySetInnerHTML={{ __html: safeHtml((description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ')) }}
         />
       )}
       {extra && <div className="mt-2.5">{extra}</div>}
@@ -1948,7 +1952,7 @@ function MemePersonalityCard({
           </p>
           <p
             className="text-[0.84rem] text-[#4a4a4a] leading-[1.7]"
-            dangerouslySetInnerHTML={{ __html: (description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+            dangerouslySetInnerHTML={{ __html: safeHtml((description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ')) }}
           />
         </div>
 
@@ -2030,7 +2034,7 @@ function DreamJobCard({
             </div>
             <p
               className="text-[0.84rem] text-[#5a4a42] leading-[1.7] relative z-10"
-              dangerouslySetInnerHTML={{ __html: (description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ') }}
+              dangerouslySetInnerHTML={{ __html: safeHtml((description || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '• ')) }}
             />
           </div>
 
@@ -2112,7 +2116,7 @@ function CrimesSection({ crimes }: { crimes: string[] }) {
                 {i + 1}
               </span>
               <p className="text-[0.86rem] text-[#5a4a42] leading-[1.7]"
-                 dangerouslySetInnerHTML={{ __html: (crime || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ') }}
+                 dangerouslySetInnerHTML={{ __html: safeHtml((crime || '').replace(/ — /g, '. ').replace(/ – /g, '. ').replace(/^- /gm, '&bull; ')) }}
               />
             </div>
           );
@@ -2411,7 +2415,7 @@ function PrologueSection({ prologue, petName }: { prologue: string; petName: str
           <p
             className="text-[1rem] sm:text-[1.05rem] text-[#5a4a42] leading-[2.1]"
             style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
-            dangerouslySetInnerHTML={{ __html: prologue.replace(/\n\n/g, '<br /><br />') }}
+            dangerouslySetInnerHTML={{ __html: safeHtml(prologue.replace(/\n\n/g, '<br /><br />')) }}
           />
           <div className="flex items-center justify-center gap-3 mt-6">
             <div className="w-8 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(196,162,101,0.3))' }} />
@@ -2466,7 +2470,7 @@ function LuminousFieldCard({ title, content, howToSense }: { title: string; cont
         {/* Content */}
         <div
           className="text-[0.86rem] leading-[1.85] text-[#5a4a42]"
-          dangerouslySetInnerHTML={{ __html: formatSectionContent(content) }}
+          dangerouslySetInnerHTML={{ __html: safeHtml(formatSectionContent(content)) }}
         />
 
         {/* How to sense it tip */}
@@ -2542,7 +2546,7 @@ function CelestialChoreographyCard({ title, content, funFact }: { title: string;
         {/* Content */}
         <div
           className="text-[0.86rem] leading-[1.85] text-[#5a4a42]"
-          dangerouslySetInnerHTML={{ __html: formatSectionContent(content) }}
+          dangerouslySetInnerHTML={{ __html: safeHtml(formatSectionContent(content)) }}
         />
 
         {/* Fun fact */}

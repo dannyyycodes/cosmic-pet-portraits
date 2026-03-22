@@ -35,6 +35,32 @@ serve(async (req) => {
     const normalizedCode = code.trim().toUpperCase();
     console.log("[REDEEM] Validating code:", normalizedCode);
 
+    // Rate limiting: max 10 redemptions per minute from same IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const oneMinuteAgo = new Date(Date.now() - 60000).toISOString();
+    const { count: recentRedemptions } = await supabase
+      .from("pet_reports")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", oneMinuteAgo)
+      .eq("payment_status", "paid")
+      .not("redeem_code", "is", null);
+
+    if ((recentRedemptions || 0) > 20) {
+      console.log("[REDEEM] Global rate limit hit");
+      return new Response(JSON.stringify({ error: "Too many redemptions. Please try again in a moment." }), {
+        status: 429,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate code format (alphanumeric + dash only)
+    if (!/^[A-Z0-9\-_]{2,50}$/.test(normalizedCode)) {
+      return new Response(JSON.stringify({ error: "Invalid code format" }), {
+        status: 400,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      });
+    }
+
     // Look up the code
     const { data: redeemCode, error: lookupError } = await supabase
       .from("redeem_codes")

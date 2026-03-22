@@ -264,6 +264,8 @@ serve(async (req) => {
     }
 
     if (!isValid) {
+      // Add small delay to slow down brute-force attempts
+      await new Promise(r => setTimeout(r, 1000));
       return new Response(JSON.stringify({ error: "Invalid credentials" }), {
         status: 401,
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },

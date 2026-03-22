@@ -485,21 +485,21 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       );
 
       if (intakeError || !intakeResult?.reportIds) {
-        console.error('[INTAKE] Edge function error:', intakeError || intakeResult);
+        console.error('[INTAKE] Edge function error');
         toast.error('Failed to save pet data. Please try again.');
         setIsLoading(false);
         return;
       }
 
       const reportIds: string[] = intakeResult.reportIds;
-      console.log('[INTAKE] Reports created:', reportIds);
+      // Reports created successfully
 
       const primaryReportId = reportIds[0];
       const primaryPetData = petsData[0];
 
       // GIFT REDEMPTION: If a gift code is present and validated, skip checkout entirely
       if (giftCodeFromUrl && giftData) {
-        console.log('[INTAKE] Gift code detected, redeeming:', giftCodeFromUrl, 'for', reportIds.length, 'pets');
+        // Gift code detected, proceeding with redemption
         
         // Build petPhotoUrls map for multi-pet gifts
         const petPhotoUrls: Record<string, string> = {};
@@ -523,13 +523,13 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         );
 
         if (redeemError || !redeemResult?.success) {
-          console.error('[INTAKE] Gift redemption error:', redeemError || redeemResult?.error);
+          console.error('[INTAKE] Gift redemption failed');
           toast.error(redeemResult?.error || 'Failed to redeem gift. Please try again.');
           setIsLoading(false);
           return;
         }
 
-        console.log('[INTAKE] Gift redeemed successfully:', redeemResult);
+        // Gift redeemed successfully
         clearIntakeProgress();
         toast.success(`🎁 Gift redeemed! Generating ${reportIds.length > 1 ? `${reportIds.length} cosmic reports` : 'your cosmic report'}...`);
         

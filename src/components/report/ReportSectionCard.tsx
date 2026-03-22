@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
+import DOMPurify from 'dompurify';
 import { ChevronDown } from 'lucide-react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
@@ -157,7 +158,7 @@ export function ReportSectionCard({
                             <p className="text-[0.78rem] text-[#6b4c3b] leading-[1.6] italic"
                               style={{ fontFamily: 'Cormorant, serif' }}
                             >
-                              <span dangerouslySetInnerHTML={{ __html: whyText }} />
+                              <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(whyText) }} />
                             </p>
                           </div>
                         </motion.div>
@@ -169,7 +170,7 @@ export function ReportSectionCard({
                 {/* Content */}
                 <div
                   className="text-[0.86rem] leading-[1.85] text-[#5a4a42]"
-                  dangerouslySetInnerHTML={{ __html: cleanContent(content) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cleanContent(content)) }}
                 />
 
                 {/* Tip box */}

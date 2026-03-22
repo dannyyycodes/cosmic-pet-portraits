@@ -100,7 +100,7 @@ export default function PaymentSuccess() {
 
     const maxAttempts = 80;
     let attempts = 0;
-    console.log('[PaymentSuccess] Starting verification for session:', sessionId, 'report:', reportId);
+    console.log('[PaymentSuccess] Starting verification');
     
     let petPhotosFromStorage: Record<string, { url: string; processingMode?: string }> = {};
     let petTiersFromStorage: Record<string, 'basic' | 'premium'> = {};
@@ -120,8 +120,8 @@ export default function PaymentSuccess() {
           body: { sessionId, reportId, report_ids: reportIdsParam, includeGift: includeGiftParam, includeHoroscope: includeHoroscopeParam, selectedTier: selectedTierParam, includesPortrait: includesPortraitParam, petPhotos: petPhotosFromStorage, petTiers: petTiersFromStorage }
         });
 
-        if (verifyError) { console.error('[PaymentSuccess] verify-payment invoke error:', verifyError); return false; }
-        if (!data?.success) { console.warn('[PaymentSuccess] verify-payment returned:', data); return false; }
+        if (verifyError) { console.error('[PaymentSuccess] verify-payment invoke error'); return false; }
+        if (!data?.success) { console.warn('[PaymentSuccess] verify-payment not successful'); return false; }
 
         const reports = data.allReports || [data.report];
         const processedReports: ReportData[] = [];
@@ -163,7 +163,7 @@ export default function PaymentSuccess() {
           return true;
         }
         return 'generating';
-      } catch (err) { console.error('[PaymentSuccess] tryVerify exception:', err); return false; }
+      } catch (err) { console.error('[PaymentSuccess] tryVerify exception'); return false; }
     };
 
     const result = await tryVerify();

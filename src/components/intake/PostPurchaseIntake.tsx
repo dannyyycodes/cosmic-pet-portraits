@@ -24,7 +24,11 @@ const SPECIES_OPTIONS = [
   { value: "cat", emoji: "🐈", label: "Cat" },
   { value: "rabbit", emoji: "🐇", label: "Rabbit" },
   { value: "bird", emoji: "🐦", label: "Bird" },
-  { value: "small_pet", emoji: "🐹", label: "Small pet" },
+  { value: "hamster", emoji: "🐹", label: "Hamster" },
+  { value: "guinea_pig", emoji: "🐹", label: "Guinea pig" },
+  { value: "fish", emoji: "🐠", label: "Fish" },
+  { value: "reptile", emoji: "🦎", label: "Reptile" },
+  { value: "horse", emoji: "🐴", label: "Horse" },
   { value: "other", emoji: "✨", label: "Other" },
 ];
 
@@ -316,7 +320,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    console.log("[PostPurchaseIntake] Submitting:", { reportId, petName, species, gender, email: email.trim() });
+    // Submission logged server-side only
     try {
       const { data, error } = await supabase.functions.invoke("update-pet-data", {
         body: {
@@ -351,9 +355,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
         body: { reportId, includesPortrait: includesSoulBond },
       }).catch(err => console.warn("[PostPurchaseIntake] Generation trigger:", err));
     } catch (err: any) {
-      console.error("[PostPurchaseIntake] Full error:", err);
-      console.error("[PostPurchaseIntake] Error message:", err?.message);
-      console.error("[PostPurchaseIntake] Report ID:", reportId);
+      console.error("[PostPurchaseIntake] Submission failed");
       const errorMsg = err?.message || "Something went wrong";
       toast.error(errorMsg + ". Please try again.");
       setIsSubmitting(false);
