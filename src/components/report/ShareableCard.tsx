@@ -115,7 +115,7 @@ export function ShareableCard({
     : 'UNIQUE';
 
   const shareUrl = reportId
-    ? `${window.location.origin}/view-report?id=${reportId}`
+    ? `${window.location.origin}/report?id=${reportId}`
     : window.location.href;
 
   const handleCopy = async () => {

@@ -19,11 +19,10 @@ const TIERS = {
   premium: { name: 'Little Souls Reading + Portrait', priceCents: 3500 },
 } as const;
 
-// Gift add-on removed — standalone gifts available at /gift page
-// Legacy constant kept for type safety but no longer used in checkout
+// Gift add-on — 50% off all tiers for friends (must match frontend CheckoutPanel)
 const GIFT_TIERS = {
-  basic: { priceCents: 0, name: 'Gift: Little Souls Reading' },
-  premium: { priceCents: 0, name: 'Gift: Little Souls Reading + Portrait' },
+  basic: { priceCents: 1350, name: 'Gift: Little Souls Reading' },
+  premium: { priceCents: 1750, name: 'Gift: Little Souls Reading + Portrait' },
 } as const;
 
 // Volume discount calculation - SERVER-SIDE (must match frontend)
@@ -510,7 +509,7 @@ serve(async (req) => {
     }
 
     // Build line items
-    const mainItemAmount = calculatedTotal - giftAmount - horoscopeCost - bookAmount;
+    const mainItemAmount = Math.max(0, calculatedTotal - giftAmount - horoscopeCost - bookAmount);
     
     const tierCounts = { basic: 0, premium: 0 };
     for (let i = 0; i < actualPetCount; i++) {

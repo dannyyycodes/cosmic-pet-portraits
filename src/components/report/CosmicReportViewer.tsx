@@ -1247,7 +1247,7 @@ function SectionShareHint({ petName, section }: { petName: string; section: stri
 
 function ShareButton({ petName, reportId }: { petName: string; reportId?: string }) {
   const [copied, setCopied] = useState(false);
-  const shareUrl = reportId ? `${window.location.origin}/view-report?id=${reportId}` : window.location.href;
+  const shareUrl = reportId ? `${window.location.origin}/report?id=${reportId}` : window.location.href;
 
   const handleShare = async () => {
     if (navigator.share) {
