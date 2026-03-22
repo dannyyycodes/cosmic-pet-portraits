@@ -292,7 +292,7 @@ export default function ViewReport() {
           report={reportData.report}
           reportId={reportData.reportId}
           shareToken={reportData.shareToken}
-          portraitUrl={reportData.portraitUrl}
+          portraitUrl={reportData.portraitUrl || reportData.petPhotoUrl}
           occasionMode={reportData.occasionMode}
           hasActiveHoroscope={reportData.hasActiveHoroscope}
         />

@@ -97,9 +97,10 @@ export default function PaymentSuccess() {
 
   const verifyAndFetchReport = async () => {
     setStage('generating');
-    
+
     const maxAttempts = 80;
     let attempts = 0;
+    console.log('[PaymentSuccess] Starting verification for session:', sessionId, 'report:', reportId);
     
     let petPhotosFromStorage: Record<string, { url: string; processingMode?: string }> = {};
     let petTiersFromStorage: Record<string, 'basic' | 'premium'> = {};
@@ -119,8 +120,8 @@ export default function PaymentSuccess() {
           body: { sessionId, reportId, report_ids: reportIdsParam, includeGift: includeGiftParam, includeHoroscope: includeHoroscopeParam, selectedTier: selectedTierParam, includesPortrait: includesPortraitParam, petPhotos: petPhotosFromStorage, petTiers: petTiersFromStorage }
         });
 
-        if (verifyError) return false;
-        if (!data?.success) return false;
+        if (verifyError) { console.error('[PaymentSuccess] verify-payment invoke error:', verifyError); return false; }
+        if (!data?.success) { console.warn('[PaymentSuccess] verify-payment returned:', data); return false; }
 
         const reports = data.allReports || [data.report];
         const processedReports: ReportData[] = [];
@@ -162,7 +163,7 @@ export default function PaymentSuccess() {
           return true;
         }
         return 'generating';
-      } catch { return false; }
+      } catch (err) { console.error('[PaymentSuccess] tryVerify exception:', err); return false; }
     };
 
     const result = await tryVerify();
@@ -217,7 +218,7 @@ export default function PaymentSuccess() {
 
   // Generating
   if (stage === 'verifying' || stage === 'generating') {
-    return <ReportGenerating petName={currentReport?.petName || 'Your pet'} gender={currentReport?.gender} sunSign={currentReport?.report?.sunSign} />;
+    return <ReportGenerating petName={currentReport?.petName || 'Your pet'} gender={currentReport?.gender} sunSign={currentReport?.report?.sunSign} reportId={reportId || undefined} />;
   }
 
   // Ready next

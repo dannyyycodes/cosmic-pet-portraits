@@ -211,7 +211,7 @@ You're ${userMsgCount} messages deep. This is where you go ALL IN emotionally:
         "X-Title": "Little Souls - Soul Chat",
       },
       body: JSON.stringify({
-        model: "anthropic/claude-haiku-4-5-20241022",
+        model: "anthropic/claude-haiku-4.5",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages.slice(-20),

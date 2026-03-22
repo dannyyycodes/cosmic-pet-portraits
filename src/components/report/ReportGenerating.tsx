@@ -5,6 +5,7 @@ interface ReportGeneratingProps {
   petName: string;
   gender?: string;
   sunSign?: string;
+  reportId?: string;
 }
 
 function getPronouns(gender?: string) {
@@ -36,10 +37,11 @@ const STEPS = [
   { label: 'Adding personal touches', threshold: 75 },
 ];
 
-export function ReportGenerating({ petName, gender, sunSign }: ReportGeneratingProps) {
+export function ReportGenerating({ petName, gender, sunSign, reportId }: ReportGeneratingProps) {
   const p = getPronouns(gender);
   const [progress, setProgress] = useState(0);
   const [factIndex, setFactIndex] = useState(0);
+  const [showFallback, setShowFallback] = useState(false);
 
   // Progress increments ~0.8% per second → reaches ~96% in 2 minutes
   useEffect(() => {
@@ -55,6 +57,12 @@ export function ReportGenerating({ petName, gender, sunSign }: ReportGeneratingP
       setFactIndex(prev => (prev + 1) % FUN_FACTS.length);
     }, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Show fallback "View Report" link after 2.5 minutes
+  useEffect(() => {
+    const timer = setTimeout(() => setShowFallback(true), 150000);
+    return () => clearTimeout(timer);
   }, []);
 
   // Generate paw print positions once
@@ -172,6 +180,23 @@ export function ReportGenerating({ petName, gender, sunSign }: ReportGeneratingP
         <p className="text-[0.72rem] text-[#9B8E84] mt-2">
           A link to your report has been sent to your email
         </p>
+
+        {/* Fallback link if polling fails */}
+        {showFallback && reportId && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="mt-6 text-center">
+            <p className="text-[0.78rem] text-[#6B5E54] mb-2">
+              Taking longer than expected?
+            </p>
+            <a
+              href={`/report?id=${reportId}`}
+              className="inline-block px-5 py-2.5 rounded-xl text-white text-[0.85rem] font-semibold no-underline transition-opacity hover:opacity-90"
+              style={{ background: '#bf524a' }}
+            >
+              View Your Report
+            </a>
+          </motion.div>
+        )}
       </div>
     </div>
   );
