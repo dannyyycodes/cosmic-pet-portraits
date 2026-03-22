@@ -258,7 +258,7 @@ const Blog = () => {
               className="inline-flex items-center gap-2 px-8 py-4 font-medium text-lg transition-opacity hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
             >
-              Get Your Pet's Free Reading
+              Get Your Pet's Reading
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
