@@ -31,7 +31,6 @@ const Index = () => {
           <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Blog</Link>
           <Link to="/become-affiliate" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Affiliates</Link>
           <Link to="/find-report" className="text-muted-foreground hover:text-foreground transition-colors no-underline">Find My Report</Link>
-          <Link to="/free-chart" className="text-accent font-semibold hover:text-accent/80 transition-colors no-underline">Free Zodiac Snapshot</Link>
         </div>
       </footer>
     </main>

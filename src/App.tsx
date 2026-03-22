@@ -74,12 +74,6 @@ function SoulChatRedirect() {
   return null;
 }
 
-// Redirect /free-chart to the static HTML free chart page
-function FreeChartRedirect() {
-  window.location.href = '/free-chart.html';
-  return null;
-}
-
 // Capture ?ref= on any page load (not just Index)
 function ReferralCapture({ children }: { children: React.ReactNode }) {
   useEffect(() => { checkAndStoreReferralFromURL(); }, []);
@@ -169,7 +163,6 @@ const App = () => (
                   <Route path="/blog/:slug" element={<BlogPost />} />
                   <Route path="/find-report" element={<FindReport />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
-                  <Route path="/free-chart" element={<FreeChartRedirect />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

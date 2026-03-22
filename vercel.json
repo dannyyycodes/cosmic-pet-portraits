@@ -14,7 +14,6 @@
   "rewrites": [
     { "source": "/checkout", "destination": "/checkout.html" },
     { "source": "/checkout-v3", "destination": "/checkout.html" },
-    { "source": "/free-chart", "destination": "/free-chart.html" },
     { "source": "/soul-chat", "destination": "/soul-chat.html" },
     { "source": "/gift-v2", "destination": "/gift-v2.html" },
     { "source": "/report-full-v2", "destination": "/report-full-v2.html" },

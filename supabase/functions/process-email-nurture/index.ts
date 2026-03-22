@@ -124,7 +124,6 @@ function giftBlock(code: string, discount: string): string {
 function getEmailContent(campaignType: string, ctx: EmailContext): string {
   const { petName } = ctx;
   const intakeUrl = "https://littlesouls.app/intake";
-  const freeReadingUrl = "https://littlesouls.app/free-chart";
   const rLink = reportLink(ctx);
   const photo = petPhotoHtml(ctx);
 
@@ -172,9 +171,6 @@ function getEmailContent(campaignType: string, ctx: EmailContext): string {
           Get ${petName}'s Reading
         </a>
       </div>
-      <p style="color:#958779;font-size:13px;text-align:center;margin-top:16px">
-        Not ready for the full reading? <a href="${freeReadingUrl}" style="color:#c4a265;text-decoration:underline">Try the free cosmic snapshot</a> first.
-      </p>
     `,
 
     // ── WELCOME 3: Gift + generous discount (72 hours) ─────────────────
