@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breed Photo Review — Little Souls</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --cream: #FFFDF5; --rose: #bf524a; --gold: #c4a265;
+  --ink: #141210; --earth: #6e6259; --muted: #958779;
+  --green: #4a8c5c; --sand: #e8ddd0;
+}
+body { background: var(--cream); font-family: 'Cormorant', Georgia, serif; color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+.header { text-align: center; padding: 40px 20px 20px; }
+.header h1 { font-family: 'Cormorant', Georgia, serif; font-size: 1.8rem; font-weight: 600; color: var(--ink); }
+.header p { color: var(--muted); font-size: 0.95rem; margin-top: 8px; }
+.stats { display: flex; gap: 24px; justify-content: center; margin: 16px 0 24px; font-size: 0.85rem; font-family: -apple-system, sans-serif; }
+.stat { text-align: center; }
+.stat-num { font-size: 1.4rem; font-weight: 700; }
+.stat-label { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.stat-green .stat-num { color: var(--green); }
+.stat-red .stat-num { color: var(--rose); }
+.stat-gold .stat-num { color: var(--gold); }
+
+.card { width: 340px; max-width: 90vw; background: #fff; border-radius: 16px; border: 1px solid var(--sand); overflow: hidden; box-shadow: 0 4px 20px rgba(35,40,30,0.08); margin: 0 auto; }
+.card img { width: 100%; height: 400px; object-fit: cover; display: block; }
+.card-info { padding: 20px; text-align: center; }
+.breed-name { font-size: 1.3rem; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.breed-question { color: var(--earth); font-size: 1rem; font-style: italic; }
+.confidence { font-size: 0.75rem; color: var(--muted); margin-top: 8px; font-family: -apple-system, sans-serif; }
+.confidence span { font-weight: 600; }
+.actions { display: flex; gap: 16px; justify-content: center; padding: 20px; }
+.btn { width: 80px; height: 80px; border-radius: 50%; border: 2px solid; font-size: 2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.15s, box-shadow 0.15s; background: #fff; }
+.btn:active { transform: scale(0.9); }
+.btn-no { border-color: var(--rose); color: var(--rose); }
+.btn-no:hover { background: var(--rose); color: #fff; box-shadow: 0 4px 16px rgba(191,82,74,0.3); }
+.btn-yes { border-color: var(--green); color: var(--green); }
+.btn-yes:hover { background: var(--green); color: #fff; box-shadow: 0 4px 16px rgba(74,140,92,0.3); }
+.btn-skip { width: 50px; height: 50px; font-size: 1.2rem; border-color: var(--sand); color: var(--muted); align-self: center; }
+
+.empty { text-align: center; padding: 80px 20px; }
+.empty h2 { font-size: 1.6rem; color: var(--green); margin-bottom: 12px; }
+.empty p { color: var(--earth); }
+
+.loading { text-align: center; padding: 80px 20px; color: var(--muted); }
+.breed-filter { margin: 0 auto 20px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 600px; padding: 0 16px; }
+.breed-tag { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--sand); background: #fff; color: var(--earth); font-size: 0.78rem; cursor: pointer; font-family: -apple-system, sans-serif; transition: all 0.15s; }
+.breed-tag:hover, .breed-tag.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+
+@keyframes slideOut { to { transform: translateX(-120%); opacity: 0; } }
+@keyframes slideOutRight { to { transform: translateX(120%); opacity: 0; } }
+.card.reject { animation: slideOut 0.3s ease forwards; }
+.card.approve { animation: slideOutRight 0.3s ease forwards; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="header">
+  <h1>Breed Photo Review</h1>
+  <p>Swipe to verify — is this photo the right breed?</p>
+</div>
+
+<div class="stats">
+  <div class="stat stat-gold"><div class="stat-num" id="remaining">0</div><div class="stat-label">Remaining</div></div>
+  <div class="stat stat-green"><div class="stat-num" id="approved">0</div><div class="stat-label">Approved</div></div>
+  <div class="stat stat-red"><div class="stat-num" id="rejected">0</div><div class="stat-label">Rejected</div></div>
+</div>
+
+<div class="breed-filter" id="breedFilter"></div>
+
+<div id="cardContainer">
+  <div class="loading">Loading photos to review...</div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo';
+
+let queue = [];
+let currentIndex = 0;
+let stats = { approved: 0, rejected: 0 };
+let currentBreedFilter = null;
+
+async function supabase(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...opts.headers
+    },
+    method: opts.method || 'GET',
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function loadQueue(breed) {
+  let url = '/rest/v1/breed_photo_review?status=eq.pending&order=confidence.asc&limit=200';
+  if (breed) url += '&expected_breed=eq.' + encodeURIComponent(breed);
+  queue = await supabase(url);
+  currentIndex = 0;
+  updateStats();
+  renderCard();
+}
+
+async function loadBreeds() {
+  const breeds = await supabase('/rest/v1/breed_photo_review?status=eq.pending&select=expected_breed&order=expected_breed');
+  const unique = [...new Set(breeds.map(b => b.expected_breed))];
+  const container = document.getElementById('breedFilter');
+
+  const allTag = document.createElement('span');
+  allTag.className = 'breed-tag active';
+  allTag.textContent = 'All (' + breeds.length + ')';
+  allTag.onclick = () => { currentBreedFilter = null; setActiveTag(allTag); loadQueue(); };
+  container.appendChild(allTag);
+
+  for (const breed of unique) {
+    const count = breeds.filter(b => b.expected_breed === breed).length;
+    const tag = document.createElement('span');
+    tag.className = 'breed-tag';
+    tag.textContent = breed + ' (' + count + ')';
+    tag.onclick = () => { currentBreedFilter = breed; setActiveTag(tag); loadQueue(breed); };
+    container.appendChild(tag);
+  }
+}
+
+function setActiveTag(activeTag) {
+  document.querySelectorAll('.breed-tag').forEach(t => t.classList.remove('active'));
+  activeTag.classList.add('active');
+}
+
+function updateStats() {
+  document.getElementById('remaining').textContent = queue.length - currentIndex;
+  document.getElementById('approved').textContent = stats.approved;
+  document.getElementById('rejected').textContent = stats.rejected;
+}
+
+function renderCard() {
+  const container = document.getElementById('cardContainer');
+
+  if (currentIndex >= queue.length) {
+    container.innerHTML = '<div class="empty"><h2>All done!</h2><p>' + stats.approved + ' photos approved, ' + stats.rejected + ' rejected.</p></div>';
+    return;
+  }
+
+  const item = queue[currentIndex];
+  const conf = item.gemini_confidence ? Math.round(item.gemini_confidence * 100) : null;
+  const geminiSays = item.gemini_breed || '?';
+
+  container.innerHTML = `
+    <div class="card" id="currentCard">
+      <img src="${item.photo_url}" alt="Photo to review" loading="eager">
+      <div class="card-info">
+        <div class="breed-name">${item.expected_breed}</div>
+        <div class="breed-question">Is this a ${item.expected_breed}?</div>
+        ${conf !== null ? '<div class="confidence">Gemini thinks: <span>' + geminiSays + '</span> (' + conf + '% confident)</div>' : ''}
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-no" onclick="vote('rejected')" title="No, wrong breed">✕</button>
+      <button class="btn btn-skip" onclick="vote('skipped')" title="Skip">→</button>
+      <button class="btn btn-yes" onclick="vote('approved')" title="Yes, correct breed">✓</button>
+    </div>
+  `;
+  updateStats();
+}
+
+async function vote(status) {
+  const item = queue[currentIndex];
+  const card = document.getElementById('currentCard');
+
+  if (status === 'approved') {
+    card.classList.add('approve');
+    stats.approved++;
+  } else if (status === 'rejected') {
+    card.classList.add('reject');
+    stats.rejected++;
+  }
+
+  // Update the record in Supabase
+  if (status !== 'skipped') {
+    try {
+      await supabase('/rest/v1/breed_photo_review?id=eq.' + item.id, {
+        method: 'PATCH',
+        body: { status, reviewed_at: new Date().toISOString() }
+      });
+
+      // If approved, copy to verified storage
+      if (status === 'approved') {
+        await supabase('/rest/v1/breed_photo_review?id=eq.' + item.id, {
+          method: 'PATCH',
+          body: { status: 'approved', verified: true }
+        });
+      }
+    } catch(e) {
+      console.error('Failed to update:', e);
+    }
+  }
+
+  setTimeout(() => {
+    currentIndex++;
+    renderCard();
+  }, 300);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft' || e.key === 'n') vote('rejected');
+  if (e.key === 'ArrowRight' || e.key === 'y') vote('approved');
+  if (e.key === 'ArrowDown' || e.key === 's') vote('skipped');
+});
+
+// Touch swipe support
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', (e) => {
+  const diff = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(diff) > 80) {
+    if (diff > 0) vote('approved');
+    else vote('rejected');
+  }
+});
+
+// Init
+loadBreeds();
+loadQueue();
+</script>
+</body>
+</html>
