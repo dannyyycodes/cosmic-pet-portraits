@@ -12,6 +12,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ABTestProvider } from "@/contexts/ABTestContext";
 import { CookieConsent } from "@/components/CookieConsent";
+import { Analytics } from "@vercel/analytics/react";
 
 // Eagerly loaded pages (core user journey)
 import Index from "./pages/Index";
@@ -170,6 +171,7 @@ const App = () => (
               </ErrorBoundary>
               </ReferralCapture>
             </BrowserRouter>
+            <Analytics />
           </TooltipProvider>
         </AuthProvider>
       </LanguageProvider>
