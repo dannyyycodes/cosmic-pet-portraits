@@ -467,6 +467,16 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 .mini-quote { font-size:0.72rem; color:var(--warm); line-height:1.35; font-style:italic; margin-bottom:3px; }
 .mini-name { font-size:0.65rem; color:var(--muted); }
 
+/* FAQ */
+.faq-item { background:#fff; border-bottom:1px solid var(--sand); cursor:pointer; }
+.faq-item:last-child { border-bottom:none; }
+.faq-item:nth-child(odd) { background:var(--cream2); }
+.faq-q { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; font-size:0.88rem; font-weight:600; color:var(--ink); line-height:1.4; }
+.faq-arrow { flex-shrink:0; transition:transform 0.25s; color:var(--earth); }
+.faq-item.open .faq-arrow { transform:rotate(180deg); }
+.faq-a { max-height:0; overflow:hidden; transition:max-height 0.3s ease; font-size:0.83rem; color:var(--warm); line-height:1.6; padding:0 16px; }
+.faq-item.open .faq-a { max-height:200px; padding-bottom:14px; }
+
 /* Bottom CTA */
 .bottom-cta { text-align:center; padding:24px 20px 16px; max-width:520px; margin:0 auto; }
 .bottom-cta-text { font-family:'Cormorant',Georgia,serif; font-style:italic; font-size:0.95rem; color:var(--earth); margin-bottom:16px; }
@@ -571,7 +581,7 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
   <div class="paw" style="top:60%;right:6%;transform:rotate(184deg) scaleX(-1);" data-paw><svg width="20" height="26" viewBox="0 0 28 34"><ellipse cx="14" cy="22" rx="7" ry="9" fill="var(--paw-color)"/><ellipse cx="7" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(-10 7 10)"/><ellipse cx="14" cy="6" rx="4" ry="5" fill="var(--paw-color)"/><ellipse cx="21" cy="10" rx="4" ry="5" fill="var(--paw-color)" transform="rotate(10 21 10)"/></svg></div>
 
   <h1 class="hero-headline a d1">Discover the Soul<br>Behind <em>Those Eyes</em></h1>
-  <p class="hero-sub a d2" style="max-width:380px; margin-left:auto; margin-right:auto;">Finally understand your pet on a soul level. 30+ sections that know them better than you thought possible.</p>
+  <p class="hero-sub a d2" style="max-width:380px; margin-left:auto; margin-right:auto;">30 pages written about your pet alone — from their birth chart to the message they've been trying to tell you for years. The reading that makes grown adults cry.</p>
   <p class="a d3" style="margin-top:16px; font-size:0.85rem; font-weight:500; color:var(--earth); letter-spacing:0.02em;">
     Dogs, cats, rabbits, birds, horses, reptiles, fish &amp; more
   </p>
@@ -820,9 +830,9 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 
 <!-- ============ WHAT'S INSIDE — SCROLLING CAROUSEL ============ -->
 <div class="inside-section">
-  <p class="section-label a">WHAT YOU'LL RECEIVE</p>
-  <h2 class="section-headline a d1">A Glimpse Inside <em>Your</em> Reading</h2>
-  <p class="section-sub a d2" style="margin-bottom:16px;">Each section goes deep — these are just a visual taste of what's inside. Swipe to explore.</p>
+  <p class="section-label a">INSIDE THE READING</p>
+  <h2 class="section-headline a d1">40+ Sections. All About <em>Your</em> Pet.</h2>
+  <p class="section-sub a d2" style="margin-bottom:16px;">From their soul message to their criminal record — swipe to see what's waiting inside.</p>
 
   <div class="glimpse-carousel-wrap">
     <button class="glimpse-nav prev hidden" id="glimpsePrev" aria-label="Previous card">&#8249;</button>
@@ -1233,10 +1243,50 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 </div>
 
 
+<!-- ============ FAQ ============ -->
+<div class="checkout-wrap" style="padding-top:32px; padding-bottom:32px;">
+  <p style="text-align:center; font-size:0.72rem; font-weight:700; letter-spacing:0.25em; color:var(--earth); text-transform:uppercase; margin-bottom:8px;">Common Questions</p>
+  <h2 style="text-align:center; font-family:'DM Serif Display',Georgia,serif; font-size:1.6rem; color:var(--ink); margin-bottom:24px; font-weight:400;">Before You Order</h2>
+
+  <div id="faqList" style="display:flex; flex-direction:column; gap:2px; border-radius:14px; overflow:hidden; border:1px solid var(--sand);">
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Is this actually personal to my pet, or is it generic?<svg class="faq-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Every reading is generated from your pet's exact birth date, name, and photo. The astrology uses a professional-grade ephemeris to calculate their precise planetary positions — so two pets born on the same day get completely different readings. Real data, real personality, not a template.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">How long does it take to receive?<svg class="faq-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Most readings land in your inbox within 5–10 minutes. Occasionally up to 20 minutes during busy periods. You'll get a confirmation email first, then a second email with your full reading as a downloadable PDF.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What if I don't know my pet's exact birth date?<svg class="faq-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">An approximate date works fine — even just the month and year from your adoption records or vet notes. Rescue pets get beautiful readings too. Just use your best estimate.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What animals can I get a reading for?<svg class="faq-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Dogs, cats, rabbits, horses, birds, reptiles, fish — any animal you love. We also do memorial readings for pets who have crossed the rainbow bridge, as a way to honour their memory.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What if I'm not happy with it?<svg class="faq-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">We have a 100% money-back guarantee. If your reading doesn't move you — if it doesn't feel true to your pet — email us and we'll refund you in full, no questions asked. We stand behind every reading completely.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Can I order one as a gift?<svg class="faq-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+      <div class="faq-a">Absolutely — it's one of the most personal gifts you can give a pet owner. Just enter their pet's details and put the recipient's email address. They'll receive the full reading directly. People screenshot and share these constantly.</div>
+    </div>
+
+  </div>
+</div>
+
 <!-- Bottom CTA -->
 <div class="bottom-cta a">
   <p class="bottom-cta-text">They love you without conditions. Don't you want to know what they'd say if they could?</p>
-  <a href="#" class="cta-btn" id="ctaBtn2" onclick="handleDigitalCheckout(event)">Get Their Reading — $27</a>
+  <a href="#" class="cta-btn" id="ctaBtn2" onclick="handleDigitalCheckout(event)">Start Their Reading — $27</a>
 </div>
 
 <div class="back-link"><a href="/">&#8592; Back to home</a></div>
@@ -1250,7 +1300,7 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
     </div>
     <div style="font-size:0.68rem; color:var(--rose); font-weight:600;" id="floatingCountdown">Offer ends in 12h 0m 0s</div>
   </div>
-  <a href="#" onclick="handleDigitalCheckout(event)" style="background:var(--rose); color:#fff; font-family:'Cormorant',Georgia,serif; font-weight:600; font-size:0.88rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:12px 24px; border-radius:50px; white-space:nowrap; flex-shrink:0;">Get Reading</a>
+  <a href="#" onclick="handleDigitalCheckout(event)" style="background:var(--rose); color:#fff; font-family:'Cormorant',Georgia,serif; font-weight:600; font-size:0.88rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; padding:12px 24px; border-radius:50px; white-space:nowrap; flex-shrink:0;">Start Their Reading</a>
 </div>
 
 <script>
@@ -1830,6 +1880,12 @@ function renderReview(r, i) {
     + '<div class="tc-body">' + r.text + '</div>'
     + timeHtml
     + '</div>';
+}
+
+function toggleFaq(el) {
+  var isOpen = el.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(f) { f.classList.remove('open'); });
+  if (!isOpen) el.classList.add('open');
 }
 
 function showMoreReviews() {
