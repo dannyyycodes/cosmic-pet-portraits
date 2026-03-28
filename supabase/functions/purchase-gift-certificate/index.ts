@@ -17,6 +17,7 @@ function getCorsHeaders(req: Request) {
 const GIFT_TIERS = {
   essential: { cents: 2700, name: 'Soul Reading' },
   portrait: { cents: 3500, name: 'Soul Bond Edition' },
+  hardcover: { cents: 9900, name: 'Hardcover Cosmic Portrait Book' },
 } as const;
 
 // Horoscope subscription addons
@@ -57,7 +58,7 @@ function generateGiftCode(): string {
 // Pet schema for individual pet tiers with optional recipient
 const giftPetSchema = z.object({
   id: z.string(),
-  tier: z.enum(["essential", "portrait"]),
+  tier: z.enum(["essential", "portrait", "hardcover"]),
   recipientName: z.string().max(100).optional(),
   recipientEmail: z.string().email().max(255).optional().or(z.literal("")).or(z.null()),
   horoscopeAddon: z.enum(["none", "monthly", "yearly"]).optional().default("none"),
@@ -74,7 +75,7 @@ const giftSchema = z.object({
   // New: array of pets with individual tiers and recipients
   giftPets: z.array(giftPetSchema).min(1).max(10).optional(),
   // Legacy support
-  tier: z.enum(["essential", "portrait"]).optional(),
+  tier: z.enum(["essential", "portrait", "hardcover"]).optional(),
   petCount: z.number().int().min(1).max(10).optional(),
   // Promo code
   couponId: z.string().uuid().nullable().optional(),
@@ -305,12 +306,23 @@ serve(async (req) => {
       });
     }
 
+    const isHardcoverOrder = giftPets.some(p => p.tier === 'hardcover');
+
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: input.purchaserEmail,
       line_items: lineItems,
-      success_url: `${origin}/gift-success?code=${primaryGiftCode}&delivery=${input.deliveryMethod}&count=${recipientGroups.length}`,
+      // Collect shipping address for physical hardcover orders
+      ...(isHardcoverOrder ? {
+        shipping_address_collection: {
+          allowed_countries: ["US", "GB", "CA", "AU", "IE", "NZ", "DE", "FR", "NL", "SE", "NO", "DK", "FI", "ES", "IT", "PT", "BE", "CH", "AT", "SG", "HK", "JP"],
+        },
+        phone_number_collection: { enabled: true },
+      } : {}),
+      success_url: isHardcoverOrder
+        ? `${origin}/gift-success?code=${primaryGiftCode}&type=hardcover`
+        : `${origin}/gift-success?code=${primaryGiftCode}&delivery=${input.deliveryMethod}&count=${recipientGroups.length}`,
       cancel_url: `${origin}/gift`,
       metadata: {
         type: "gift_certificate",

@@ -16,6 +16,7 @@ export default function GiftSuccess() {
   const giftCode = searchParams.get('code') || '';
   const deliveryMethod = searchParams.get('delivery') || 'email';
   const recipientCount = parseInt(searchParams.get('count') || '1', 10);
+  const isHardcover = searchParams.get('type') === 'hardcover';
 
   const redeemUrl = `${window.location.origin}/redeem?code=${giftCode}`;
   const isMulti = recipientCount > 1;
@@ -48,19 +49,41 @@ export default function GiftSuccess() {
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} style={{ marginBottom: 28 }}>
           <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 'clamp(1.6rem, 8vw, 2.4rem)', color: C.ink, lineHeight: 1.1, marginBottom: 8 }}>
-            You just made<br />someone's <em style={{ color: C.rose }}>whole day</em>
+            {isHardcover ? <>Your order is<br /><em style={{ color: C.gold }}>confirmed</em></> : <>You just made<br />someone's <em style={{ color: C.rose }}>whole day</em></>}
           </h1>
           <p style={{ color: C.earth, fontSize: '1rem', lineHeight: 1.5, maxWidth: 340, margin: '0 auto' }}>
-            {isMulti
-              ? `${recipientCount} cosmic gifts are ready to be shared!`
-              : isLink
-                ? 'Your gift is ready — share the magic link below.'
-                : 'A beautiful gift email has been sent on your behalf.'}
+            {isHardcover
+              ? "We've received your order and will be in touch within 24 hours to confirm the delivery address."
+              : isMulti
+                ? `${recipientCount} cosmic gifts are ready to be shared!`
+                : isLink
+                  ? 'Your gift is ready — share the magic link below.'
+                  : 'A beautiful gift email has been sent on your behalf.'}
           </p>
         </motion.div>
 
+        {/* Hardcover order confirmation */}
+        {isHardcover && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+            style={{ padding: 24, background: 'white', borderRadius: 20, border: `1px solid ${C.cream3}`, boxShadow: '0 4px 24px rgba(0,0,0,0.04)', marginBottom: 20 }}>
+            <p style={{ fontWeight: 700, fontSize: '0.88rem', color: C.ink, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Sparkles style={{ width: 14, height: 14, color: C.gold }} /> What happens next
+            </p>
+            {[
+              'We\'ll email you within 24 hours to collect the shipping address',
+              'Your book is printed and quality-checked (allow 4–6 weeks)',
+              'It arrives in gift-ready packaging with your personal message inside',
+            ].map((text, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'start', gap: 10, padding: '8px 0', borderBottom: i < 2 ? `1px solid ${C.cream3}` : 'none' }}>
+                <span style={{ color: '#c4a265', fontWeight: 700, fontSize: '0.88rem', flexShrink: 0 }}>{i + 1}.</span>
+                <p style={{ fontSize: '0.85rem', color: C.warm, lineHeight: 1.4 }}>{text}</p>
+              </div>
+            ))}
+          </motion.div>
+        )}
+
         {/* Gift code / link card */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+        {!isHardcover && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           style={{ padding: 28, background: 'white', borderRadius: 20, border: `1px solid ${C.cream3}`, boxShadow: '0 4px 24px rgba(0,0,0,0.04)', marginBottom: 20 }}>
 
           {isLink ? (
@@ -103,10 +126,10 @@ export default function GiftSuccess() {
               <p style={{ fontSize: '0.75rem', color: C.muted, marginTop: 10 }}>Keep this code as a backup — you can also share it manually</p>
             </>
           )}
-        </motion.div>
+        </motion.div>}
 
-        {/* What happens next */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+        {/* What happens next — digital only */}
+        {!isHardcover && <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
           style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}`, textAlign: 'left', marginBottom: 24 }}>
           <p style={{ fontWeight: 700, fontSize: '0.88rem', color: C.ink, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
             <Sparkles style={{ width: 14, height: 14, color: C.gold }} /> What happens next
@@ -127,7 +150,7 @@ export default function GiftSuccess() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </motion.div>}
 
         {/* Actions */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
