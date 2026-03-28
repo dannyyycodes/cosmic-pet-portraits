@@ -566,13 +566,13 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
   <p class="tier-select-label a d1">Choose Your Reading</p>
 
   <!-- ══ CARD 1: Soul Reading $27 ══ -->
-  <div class="product-card selectable a d2" id="tierEssential" onclick="selectTier('essential')" style="margin-bottom:12px;">
+  <div class="product-card selectable selected a d2" id="tierEssential" onclick="selectTier('essential')" style="margin-bottom:12px;border:2px solid var(--rose);">
 
     <!-- header -->
     <div class="product-header">
       <div style="display:flex;align-items:center;min-width:0;">
         <div class="product-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--rose)" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
         </div>
         <div class="product-title-wrap">
           <div class="product-title">The Soul Reading</div>
@@ -597,7 +597,7 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
   </div>
 
   <!-- ══ CARD 2: Soul Bond Edition $35 — MOST POPULAR ══ -->
-  <div class="product-card selectable selected a d3" id="tierPortrait" onclick="selectTier('portrait')" style="margin-bottom:12px;">
+  <div class="product-card selectable a d3" id="tierPortrait" onclick="selectTier('portrait')" style="margin-bottom:12px;border:2px solid rgba(191,82,74,0.25);">
     <div class="card-badge" style="background:var(--rose);">✦ MOST POPULAR</div>
     <!-- header -->
     <div class="product-header">
@@ -649,7 +649,6 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
     <div class="product-features-list">
       <div class="pf-row pf-odd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Printed hardcover book</strong> — every word about your pet, beautifully bound</div></div>
       <div class="pf-row pf-even"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Gift-ready packaging</strong> — arrives wrapped with your personal message inside</div></div>
-      <div class="pf-row pf-odd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Ships in 4–6 weeks</strong> — handcrafted to order · worldwide shipping</div></div>
     </div>
     <p style="font-size:0.74rem;color:var(--muted);text-align:center;margin-top:12px;font-style:italic;">Tap to select · order confirmed by email within 24h</p>
   </div>
@@ -1045,20 +1044,20 @@ function selectTier(tier) {
   currentTier = tier;
   portraitOn = (tier === 'portrait');
 
-  // Remove all selected states
-  ['tierEssential','tierPortrait','tierHardcover'].forEach(function(id) {
-    var card = document.getElementById(id);
-    if (card) { card.classList.remove('selected'); card.classList.remove('selected-gold'); }
-  });
+  // Remove all selected states and reset borders
+  var ess = document.getElementById('tierEssential');
+  var por = document.getElementById('tierPortrait');
+  var hc  = document.getElementById('tierHardcover');
+  if (ess) { ess.classList.remove('selected'); ess.style.border = '2px solid rgba(191,82,74,0.25)'; }
+  if (por) { por.classList.remove('selected'); por.style.border = '2px solid rgba(191,82,74,0.25)'; }
+  if (hc)  { hc.classList.remove('selected'); hc.classList.remove('selected-gold'); }
 
-  // Apply correct selected class
+  // Apply selected state
   if (tier === 'hardcover') {
-    var hc = document.getElementById('tierHardcover');
     if (hc) hc.classList.add('selected-gold');
   } else {
-    var id = tier === 'essential' ? 'tierEssential' : 'tierPortrait';
-    var card = document.getElementById(id);
-    if (card) card.classList.add('selected');
+    var active = tier === 'essential' ? ess : por;
+    if (active) { active.classList.add('selected'); active.style.border = '2px solid var(--rose)'; }
   }
 
   // Show/hide digital vs hardcover checkout sections
@@ -1431,7 +1430,7 @@ setInterval(updateUrgencyTimer, 1000);
 
 
 // ─── Init ───
-selectTier('portrait'); // default to Soul Bond Edition
+selectTier('essential'); // default to Soul Reading $27
 
 // ─── Reviews ───
 var ALL_REVIEWS = [
