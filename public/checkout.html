@@ -497,6 +497,49 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
   .gift-banner svg { width:12px; height:12px; }
   .ticker-bar { font-size:0.72rem; padding:6px 10px; }
 }
+
+/* ============ TIER CARDS ============ */
+.tier-select-label { font-size:0.72rem; font-weight:700; color:var(--muted); text-align:center; letter-spacing:0.1em; margin-bottom:16px; }
+.tier-card {
+  background:#fff; border-radius:18px; border:2px solid var(--cream3);
+  padding:22px 20px; cursor:pointer; position:relative;
+  transition:border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  margin-bottom:14px; text-align:left; width:100%;
+}
+.tier-card:hover { border-color:rgba(191,82,74,0.3); }
+.tier-card.selected { border-color:var(--rose); background:rgba(191,82,74,0.025); box-shadow:0 6px 28px rgba(191,82,74,0.1); }
+html.dark .tier-card { background:var(--cream2); border-color:var(--sand); }
+html.dark .tier-card.selected { background:rgba(207,107,99,0.08); }
+.tier-badge { position:absolute; top:-11px; left:50%; transform:translateX(-50%); background:var(--rose); color:#fff; font-size:0.58rem; font-weight:800; padding:3px 14px; border-radius:20px; letter-spacing:0.1em; white-space:nowrap; }
+.tier-head { display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; }
+.tier-emoji { font-size:2rem; line-height:1; flex-shrink:0; }
+.tier-info { flex:1; min-width:0; }
+.tier-name { font-family:'DM Serif Display',Georgia,serif; font-size:1.1rem; color:var(--ink); line-height:1.2; margin-bottom:3px; }
+.tier-tagline { font-size:0.8rem; color:var(--muted); line-height:1.3; }
+.tier-pc { text-align:right; flex-shrink:0; }
+.tier-price { font-family:'DM Serif Display',Georgia,serif; font-size:2rem; line-height:1; color:var(--ink); transition:color 0.2s; }
+.tier-card.selected .tier-price { color:var(--rose); }
+.tier-price-note { font-size:0.65rem; color:var(--muted); margin-top:2px; }
+.tier-feats { display:flex; flex-direction:column; gap:7px; }
+.tier-feat { display:flex; align-items:flex-start; gap:8px; font-size:0.83rem; color:var(--warm); line-height:1.4; }
+.tier-feat svg { flex-shrink:0; margin-top:2px; }
+.tier-footer { margin-top:14px; padding-top:12px; border-top:1px solid var(--cream3); text-align:center; font-size:0.8rem; font-weight:600; }
+.tier-card.selected .tier-footer { color:var(--rose); }
+.tier-card:not(.selected) .tier-footer { color:var(--muted); font-weight:400; }
+
+/* Addon card */
+.addon-card {
+  background:#fff; border-radius:14px; border:1px solid var(--cream3);
+  padding:14px 18px; margin-bottom:14px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer;
+  transition:border-color 0.2s, background 0.2s; box-shadow:0 1px 8px rgba(0,0,0,0.03);
+}
+.addon-card.on { border-color:rgba(74,140,92,0.3); background:rgba(74,140,92,0.02); }
+html.dark .addon-card { background:var(--cream2); }
+.addon-left { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
+.addon-emoji { font-size:1.3rem; flex-shrink:0; }
+.addon-name { font-weight:600; font-size:0.88rem; color:var(--ink); margin-bottom:2px; }
+.addon-desc { font-size:0.74rem; color:var(--muted); line-height:1.35; }
 </style>
 </head>
 <body>
@@ -549,180 +592,154 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 
 <!-- ============ DIGITAL READING ============ -->
 <div class="checkout-wrap">
-  <div class="product-card a d2" style="border:2px solid var(--rose);">
 
-    <div class="product-header">
-      <div style="display:flex;align-items:center;min-width:0;">
-        <div class="product-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--rose)"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        </div>
-        <div class="product-title-wrap">
-          <div class="product-title">The Little Souls Reading</div>
-          <div class="product-subtitle">Finally understand the soul behind those eyes</div>
-        </div>
+  <p class="tier-select-label a d1">CHOOSE YOUR READING</p>
+
+  <!-- ── TIER 1: Soul Reading $27 ── -->
+  <button class="tier-card a d2" id="tierEssential" onclick="selectTier('essential')">
+    <div class="tier-head">
+      <div class="tier-emoji">✨</div>
+      <div class="tier-info">
+        <div class="tier-name">The Soul Reading</div>
+        <div class="tier-tagline">The one that makes grown adults cry (happy tears)</div>
       </div>
-      <div class="product-price-wrap">
-        <div class="product-price-old">$60</div>
-        <div class="product-price">$27</div>
-        <p style="font-size:0.65rem; font-weight:600; color:var(--green); margin:2px 0 0;">Save 55%</p>
+      <div class="tier-pc">
+        <div class="tier-price">$27</div>
+        <div class="tier-price-note">one-time</div>
       </div>
     </div>
-    <p style="font-size:0.72rem; color:var(--muted); text-align:center; margin:0 0 12px; font-weight:400;">40+ personalised sections about YOUR pet</p>
-
-    <div class="product-features-list">
-      <div class="pf-row pf-odd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Full astrology reading</strong> — 14-planet birth chart, aura &amp; soul archetype from professional-grade ephemeris data. Nothing left out.</div></div>
-      <div class="pf-row pf-even"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>The message they've been trying to tell you</strong> — the part that makes everyone cry</div></div>
-      <div class="pf-row pf-odd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Every quirk finally explained</strong> — the staring, the zoomies, <em>that thing</em> they do. It all means something.</div></div>
-      <div class="pf-row pf-even"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>How they've been saying "I love you"</strong> — and you didn't even know</div></div>
-      <div class="pf-row pf-odd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>The bits you'll screenshot</strong> — criminal record, dating profile, dream job, villain origin story, meme personality, text messages &amp; more</div></div>
-      <div class="pf-row pf-even"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Portrait Edition</strong> <span style="padding:2px 8px; font-size:8px; font-weight:800; text-transform:uppercase; letter-spacing:0.8px; background:linear-gradient(135deg,#c4a265,#d4af37); color:#fff; border-radius:8px; vertical-align:1px; margin-left:4px; box-shadow:0 1px 4px rgba(196,162,101,0.3);">INCLUDED</span></div></div>
+    <div class="tier-feats">
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>40+ personalised sections</strong> — birth chart, aura, soul archetype &amp; more</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>The message they've been trying to tell you</strong> — the part that makes everyone tear up</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Every quirk finally explained</strong> — the staring, the zoomies, <em>that thing</em> they do</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Their love language</strong> — how they've been saying "I love you" without words</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>💬 SoulSpeak</strong> — ask them anything. 150 free credits included.</div></div>
     </div>
+    <div class="tier-footer" id="tierEssentialFooter">Tap to select</div>
+  </button>
 
-    <!-- SoulSpeak featured card -->
-    <div style="margin-top:16px;">
-      <div style="position:relative; background:linear-gradient(135deg, #fdf8f0 0%, #f5ecda 100%); border:1.5px solid rgba(196,162,101,0.4); border-radius:14px; padding:16px; overflow:hidden;">
-        <div style="position:absolute; top:0; right:0; background:linear-gradient(135deg,#c4a265,#b8962a); color:#fff; font-size:0.55rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; padding:4px 12px 4px 14px; border-radius:0 0 0 10px;">NEW</div>
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:0.95rem;">💬</span>
-          <span style="font-family:'DM Serif Display',serif; font-size:1.05rem; color:var(--ink);">SoulSpeak</span>
-        </div>
-        <p style="font-size:0.78rem; color:var(--earth); line-height:1.5; margin:0;">Hear what they'd say if they could speak. Ask them anything — why they follow you to the bathroom, what they dream about, what they really think of the vet. <strong>150 free credits included.</strong></p>
+  <!-- ── TIER 2: Soul Bond Edition $35 ── -->
+  <button class="tier-card selected a d3" id="tierPortrait" onclick="selectTier('portrait')">
+    <div class="tier-badge">MOST POPULAR</div>
+    <div class="tier-head">
+      <div class="tier-emoji">💫</div>
+      <div class="tier-info">
+        <div class="tier-name">The Soul Bond Edition</div>
+        <div class="tier-tagline">Discover why you were always meant to find each other</div>
       </div>
-    </div>
-
-    <!-- Pet-Parent Soul Bond upsell -->
-    <div style="border-top:1px solid var(--cream3); padding-top:14px; margin-top:14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;" id="upsellPortrait">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        <div>
-          <span style="font-weight:600; font-size:0.88rem; color:var(--ink);">Add Pet-Parent Soul Bond</span>
-          <span class="upsell-popular" style="margin-left:6px;">MOST POPULAR</span>
-          <div style="font-size:0.72rem; color:var(--muted); margin-top:2px;">Deep compatibility analysis of your cosmic connection</div>
-        </div>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-weight:700; font-size:0.88rem; color:var(--earth);">+$8</span>
-        <div class="toggle-track on" id="togglePortrait"><div class="toggle-knob"></div></div>
+      <div class="tier-pc">
+        <div class="tier-price">$35</div>
+        <div class="tier-price-note">one-time</div>
       </div>
     </div>
+    <div class="tier-feats">
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Everything in The Soul Reading</strong></div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Pet–Parent cosmic compatibility</strong> — the science of why you belong together</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Deep bond &amp; emotional connection map</strong> — what you truly mean to each other</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Shareable cosmic card</strong> — the screenshot everyone will want</div></div>
+    </div>
+    <div class="tier-footer" id="tierPortraitFooter">✓ Selected — continue below</div>
+  </button>
 
-    <!-- Weekly Horoscope Subscription upsell -->
-    <div style="border-top:1px solid var(--cream3); padding-top:14px; margin-top:12px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;" id="upsellHoroscope" onclick="toggleHoroscope()">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 000 20 14.5 14.5 0 000-20"/><path d="M2 12h20"/></svg>
-        <div>
-          <span style="font-weight:600; font-size:0.88rem; color:var(--ink);">Weekly Horoscope</span>
-          <span style="font-size:0.58rem; font-weight:700; color:#fff; background:var(--green); padding:2px 6px; border-radius:4px; letter-spacing:0.05em; margin-left:6px;">FREE</span>
-          <div style="font-size:0.72rem; color:var(--muted); margin-top:2px;">Personalised weekly insights for your pet &middot; 30 days free, then $4.99/mo</div>
-          <div style="font-size:0.68rem; color:var(--muted); font-style:italic; margin-top:1px;">Cancel anytime &middot; No card charged today</div>
-        </div>
-      </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-weight:700; font-size:0.78rem; color:var(--green);">$0</span>
-        <div class="toggle-track on" id="toggleHoroscope"><div class="toggle-knob"></div></div>
+  <!-- ── HOROSCOPE ADD-ON ── -->
+  <div class="addon-card on a d4" id="horoscopeAddonCard" onclick="toggleHoroscope()">
+    <div class="addon-left">
+      <div class="addon-emoji">🌙</div>
+      <div>
+        <div class="addon-name">Weekly Horoscope <span style="font-size:0.6rem;font-weight:700;color:#fff;background:var(--green);padding:2px 7px;border-radius:4px;margin-left:4px;vertical-align:1px;letter-spacing:0.04em;">FREE</span></div>
+        <div class="addon-desc">Personalised weekly insights for your pet · 30 days free, then $4.99/mo · Cancel anytime · No card charged today</div>
       </div>
     </div>
-
-    <!-- CTA INSIDE card -->
-    <!-- Urgency Timer -->
-    <div class="urgency-bar" style="margin-top:16px;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <span class="timer-label">55% off ends in</span>
-      <span class="timer" id="urgencyTimer">—</span>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+      <span style="font-size:0.78rem;font-weight:700;color:var(--green);">$0</span>
+      <div class="toggle-track on" id="toggleHoroscope"><div class="toggle-knob"></div></div>
     </div>
-
-    <a href="#" class="cta-btn" id="ctaBtn" style="margin-top:10px;" onclick="handleDigitalCheckout(event)">Get Their Reading — $35</a>
-
-    <!-- Unified code input: handles both discount codes (GIFTLOVE30) and free redeem codes (QATEST) -->
-    <div style="text-align:center; margin-top:12px;">
-      <a href="#" id="codeToggle" onclick="toggleCodePanel(event)" style="color:var(--gold); font-size:13px; text-decoration:none; font-weight:500;">Have a code?</a>
-      <div id="codePanel" style="max-height:0; overflow:hidden; transition:max-height 0.35s ease;">
-        <div style="margin-top:12px; text-align:left;">
-          <div id="codeInputRow" style="display:flex; gap:8px;">
-            <input type="text" id="codeInput" placeholder="Enter code" style="flex:1; padding:10px 14px; border:1.5px solid var(--cream3); border-radius:10px; font-family:'Cormorant',Georgia,serif; font-size:0.92rem; color:var(--ink); background:#fff; outline:none; text-transform:uppercase;" onkeydown="if(event.key==='Enter')handleCode()" />
-            <button id="codeBtn" onclick="handleCode()" style="padding:10px 20px; background:var(--rose); color:#fff; border:none; border-radius:10px; font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:0.92rem; cursor:pointer; white-space:nowrap;">Apply</button>
-          </div>
-          <div id="codeApplied" style="display:none; background:rgba(74,140,92,0.1); border:1px solid rgba(74,140,92,0.3); border-radius:10px; padding:10px 14px; display:none; align-items:center; justify-content:space-between;">
-            <span style="font-size:0.85rem; color:var(--green); font-weight:600;" id="codeAppliedText"></span>
-            <button onclick="removeCode()" style="background:none; border:none; color:var(--green); cursor:pointer; font-size:1rem;">&times;</button>
-          </div>
-          <p id="codeError" style="display:none; color:var(--rose); font-size:0.78rem; margin-top:8px; text-align:center;"></p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Trust INSIDE card -->
-    <div style="margin-top:14px; text-align:center;">
-      <p style="font-size:0.78rem; color:var(--muted); font-style:italic; margin-bottom:10px;">You'll tell us about your pet after checkout — takes 60 seconds</p>
-      <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:8px;">
-        <div class="tp-stars"><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div></div>
-        <span class="tp-text"><strong>Excellent</strong> on Trustpilot</span>
-      </div>
-      <div style="display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; font-size:0.72rem; font-weight:500; color:var(--earth);">
-        <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Secure checkout</span>
-        <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Instant delivery</span>
-        <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>100% money-back</span>
-      </div>
-    </div>
-
-    <!-- Multi-Pet Section (below trust, inside card) -->
-    <div style="border-top:1px solid var(--cream3); margin-top:14px; padding-top:14px;">
-      <div id="multiPetToggle" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="toggleMultiPet()">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:1rem;">🐾</span>
-          <div>
-            <span style="font-weight:600; font-size:0.88rem; color:var(--ink);">More than one pet?</span>
-            <span style="font-size:0.75rem; color:var(--rose); font-weight:600; margin-left:6px;">Save up to 30%</span>
-          </div>
-        </div>
-        <div id="multiPetArrow" style="color:var(--muted); transition:transform 0.3s; font-size:0.9rem;">&#9660;</div>
-      </div>
-
-      <div id="multiPetPanel" style="max-height:0; overflow:hidden; transition:max-height 0.4s ease;">
-        <div style="padding-top:14px;">
-          <!-- Counter -->
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-            <span style="font-size:0.88rem; color:var(--earth); font-weight:500;">How many souls are we reading?</span>
-            <div class="pet-counter-row">
-              <button class="pet-counter-btn" id="petMinus" onclick="changePetCount(-1)" disabled>&minus;</button>
-              <div class="pet-counter-num" id="petCountDisplay">1</div>
-              <button class="pet-counter-btn" id="petPlus" onclick="changePetCount(1)">+</button>
-              <span class="discount-badge" id="discountBadge" style="display:none;"></span>
-            </div>
-          </div>
-
-          <!-- Discount Tiers Visual -->
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
-            <div class="discount-tier" data-tier="2" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(2)">
-              <div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">2 pets</div>
-              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">15% off</div>
-            </div>
-            <div class="discount-tier" data-tier="3" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(3)">
-              <div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">3 pets</div>
-              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">20% off</div>
-            </div>
-            <div class="discount-tier" data-tier="4" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(4)">
-              <div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">4 pets</div>
-              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">25% off</div>
-            </div>
-            <div class="discount-tier" data-tier="5" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(5)">
-              <div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">5+ pets</div>
-              <div style="font-size:0.72rem; font-weight:600; color:var(--rose);">30% off</div>
-            </div>
-          </div>
-
-          <p style="font-size:0.75rem; color:var(--muted); font-style:italic; text-align:center;">Each pet gets their own personalised reading</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Order Summary (shows when 2+ pets or portrait on) -->
-    <div class="order-summary" id="orderSummary" style="display:none;">
-      <div class="order-summary-title">Order summary</div>
-      <div id="summaryRows"></div>
-    </div>
-
   </div>
+
+  <!-- ── MORE THAN ONE PET ── -->
+  <div style="background:#fff; border-radius:14px; border:1px solid var(--cream3); padding:14px 18px; margin-bottom:14px;" class="a d5">
+    <div id="multiPetToggle" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="toggleMultiPet()">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1rem;">🐾</span>
+        <div>
+          <span style="font-weight:600; font-size:0.88rem; color:var(--ink);">More than one pet?</span>
+          <span style="font-size:0.75rem; color:var(--rose); font-weight:600; margin-left:6px;">Save up to 30%</span>
+        </div>
+      </div>
+      <div id="multiPetArrow" style="color:var(--muted); transition:transform 0.3s; font-size:0.9rem;">&#9660;</div>
+    </div>
+    <div id="multiPetPanel" style="max-height:0; overflow:hidden; transition:max-height 0.4s ease;">
+      <div style="padding-top:14px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <span style="font-size:0.88rem; color:var(--earth); font-weight:500;">How many souls are we reading?</span>
+          <div class="pet-counter-row">
+            <button class="pet-counter-btn" id="petMinus" onclick="changePetCount(-1)" disabled>&minus;</button>
+            <div class="pet-counter-num" id="petCountDisplay">1</div>
+            <button class="pet-counter-btn" id="petPlus" onclick="changePetCount(1)">+</button>
+            <span class="discount-badge" id="discountBadge" style="display:none;"></span>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px;">
+          <div class="discount-tier" data-tier="2" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(2)"><div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">2 pets</div><div style="font-size:0.72rem; font-weight:600; color:var(--rose);">15% off</div></div>
+          <div class="discount-tier" data-tier="3" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(3)"><div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">3 pets</div><div style="font-size:0.72rem; font-weight:600; color:var(--rose);">20% off</div></div>
+          <div class="discount-tier" data-tier="4" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(4)"><div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">4 pets</div><div style="font-size:0.72rem; font-weight:600; color:var(--rose);">25% off</div></div>
+          <div class="discount-tier" data-tier="5" style="padding:8px 10px; border-radius:8px; border:1px solid var(--cream3); background:var(--cream2); text-align:center; cursor:pointer; transition:all 0.2s;" onclick="setTier(5)"><div style="font-family:'DM Serif Display',Georgia,serif; font-size:1rem; color:var(--ink);">5+ pets</div><div style="font-size:0.72rem; font-weight:600; color:var(--rose);">30% off</div></div>
+        </div>
+        <p style="font-size:0.75rem; color:var(--muted); font-style:italic; text-align:center;">Each pet gets their own personalised reading</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── URGENCY TIMER ── -->
+  <div class="urgency-bar a d5">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rose)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span class="timer-label">55% off ends in</span>
+    <span class="timer" id="urgencyTimer">—</span>
+  </div>
+
+  <!-- ── ORDER SUMMARY ── -->
+  <div class="order-summary a d5" id="orderSummary" style="display:none;">
+    <div class="order-summary-title">Order summary</div>
+    <div id="summaryRows"></div>
+  </div>
+
+  <!-- ── PROMO CODE ── -->
+  <div style="text-align:center; margin-bottom:14px;" class="a d5">
+    <a href="#" id="codeToggle" onclick="toggleCodePanel(event)" style="color:var(--gold); font-size:0.82rem; text-decoration:none; font-weight:500;">Have a promo or gift code?</a>
+    <div id="codePanel" style="max-height:0; overflow:hidden; transition:max-height 0.35s ease;">
+      <div style="margin-top:12px; text-align:left;">
+        <div id="codeInputRow" style="display:flex; gap:8px;">
+          <input type="text" id="codeInput" placeholder="Enter code" style="flex:1; padding:11px 14px; border:1.5px solid var(--cream3); border-radius:10px; font-family:'Cormorant',Georgia,serif; font-size:0.92rem; color:var(--ink); background:#fff; outline:none; text-transform:uppercase;" onkeydown="if(event.key==='Enter')handleCode()" />
+          <button id="codeBtn" onclick="handleCode()" style="padding:11px 20px; background:var(--rose); color:#fff; border:none; border-radius:10px; font-family:'Cormorant',Georgia,serif; font-weight:700; font-size:0.92rem; cursor:pointer; white-space:nowrap;">Apply</button>
+        </div>
+        <div id="codeApplied" style="display:none; background:rgba(74,140,92,0.1); border:1px solid rgba(74,140,92,0.3); border-radius:10px; padding:10px 14px; align-items:center; justify-content:space-between;">
+          <span style="font-size:0.85rem; color:var(--green); font-weight:600;" id="codeAppliedText"></span>
+          <button onclick="removeCode()" style="background:none; border:none; color:var(--green); cursor:pointer; font-size:1rem;">&times;</button>
+        </div>
+        <p id="codeError" style="display:none; color:var(--rose); font-size:0.78rem; margin-top:8px; text-align:center;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CTA ── -->
+  <div class="cta-wrap a d6">
+    <a href="#" class="cta-btn" id="ctaBtn" onclick="handleDigitalCheckout(event)">Start Their Reading — $35</a>
+    <p class="cta-note">You'll tell us about your pet after checkout — takes 60 seconds</p>
+  </div>
+
+  <!-- ── TRUST ROW ── -->
+  <div style="margin-bottom:16px; text-align:center;" class="a d6">
+    <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:10px;">
+      <div class="tp-stars"><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div></div>
+      <span class="tp-text"><strong>Excellent</strong> · Loved by thousands of pet parents</span>
+    </div>
+    <div style="display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; font-size:0.72rem; font-weight:500; color:var(--earth);">
+      <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Secure checkout</span>
+      <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Instant delivery</span>
+      <span style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--earth)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>100% money-back</span>
+    </div>
+  </div>
+
 </div>
 
 <!-- ============ HOW IT WORKS — CREDIBILITY ============ -->
@@ -978,8 +995,22 @@ function updateDarkIcons(isDark) {
   } catch(e) {}
 })();
 
+// ─── Tier Selection ───
+function selectTier(tier) {
+  portraitOn = (tier === 'portrait');
+  var essCard = document.getElementById('tierEssential');
+  var portCard = document.getElementById('tierPortrait');
+  if (essCard) essCard.classList.toggle('selected', !portraitOn);
+  if (portCard) portCard.classList.toggle('selected', portraitOn);
+  var essFooter = document.getElementById('tierEssentialFooter');
+  var portFooter = document.getElementById('tierPortraitFooter');
+  if (essFooter) essFooter.textContent = portraitOn ? 'Tap to select' : '✓ Selected — continue below';
+  if (portFooter) portFooter.textContent = portraitOn ? '✓ Selected — continue below' : 'Tap to select';
+  updateUI();
+}
+
 // ─── State ───
-var portraitOn = true; // Pre-toggled ON
+var portraitOn = true; // driven by selectTier()
 var horoscopeOn = true; // Pre-toggled ON (first month free)
 var petCount = 1;
 var basePrice = 27;
@@ -1207,13 +1238,8 @@ function toggleHoroscope() {
   updateUI();
 }
 
-// ─── Soul Bond Toggle ───
-document.getElementById('upsellPortrait').addEventListener('click', function() {
-  portraitOn = !portraitOn;
-  document.getElementById('togglePortrait').classList.toggle('on', portraitOn);
-  this.classList.toggle('active', portraitOn);
-  updateUI();
-});
+// ─── Tier cards initialised on load ───
+selectTier('portrait'); // Pre-select Soul Bond Edition
 
 // ─── Old redeem code functions removed — unified into handleCode() above ───
 // (old redeem code removed)
