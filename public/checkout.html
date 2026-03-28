@@ -499,47 +499,58 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 }
 
 /* ============ TIER CARDS ============ */
-.tier-select-label { font-size:0.72rem; font-weight:700; color:var(--muted); text-align:center; letter-spacing:0.1em; margin-bottom:16px; }
+.tier-select-label { font-size:0.7rem; font-weight:800; color:var(--muted); text-align:center; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:18px; }
 .tier-card {
-  background:#fff; border-radius:18px; border:2px solid var(--cream3);
+  background:#fff; border-radius:20px; border:2px solid var(--cream3);
   padding:22px 20px; cursor:pointer; position:relative;
-  transition:border-color 0.2s, box-shadow 0.2s, background 0.2s;
-  margin-bottom:14px; text-align:left; width:100%;
+  transition:border-color 0.2s, box-shadow 0.2s, background 0.2s, transform 0.15s;
+  margin-bottom:12px; text-align:left; width:100%; display:block;
 }
-.tier-card:hover { border-color:rgba(191,82,74,0.3); }
-.tier-card.selected { border-color:var(--rose); background:rgba(191,82,74,0.025); box-shadow:0 6px 28px rgba(191,82,74,0.1); }
+.tier-card:hover { transform:translateY(-1px); box-shadow:0 4px 20px rgba(0,0,0,0.06); }
+.tier-card.selected { border-color:var(--rose); background:rgba(191,82,74,0.025); box-shadow:0 8px 32px rgba(191,82,74,0.12); transform:none; }
 html.dark .tier-card { background:var(--cream2); border-color:var(--sand); }
 html.dark .tier-card.selected { background:rgba(207,107,99,0.08); }
-.tier-badge { position:absolute; top:-11px; left:50%; transform:translateX(-50%); background:var(--rose); color:#fff; font-size:0.58rem; font-weight:800; padding:3px 14px; border-radius:20px; letter-spacing:0.1em; white-space:nowrap; }
+
+/* Hardcover gold accent */
+.tier-card.hardcover-tier.selected { border-color:var(--gold); background:rgba(196,162,101,0.04); box-shadow:0 8px 32px rgba(196,162,101,0.14); }
+.tier-card.hardcover-tier.selected .tier-price { color:var(--gold); }
+.tier-card.hardcover-tier.selected .tier-footer { color:var(--gold); }
+.tier-card.hardcover-tier:hover { border-color:rgba(196,162,101,0.4); }
+.tier-card.hardcover-tier .tier-badge { background:linear-gradient(135deg,#c4a265,#a88347); }
+html.dark .tier-card.hardcover-tier.selected { background:rgba(196,162,101,0.07); }
+
+.tier-badge { position:absolute; top:-11px; left:50%; transform:translateX(-50%); background:var(--rose); color:#fff; font-size:0.57rem; font-weight:800; padding:3px 14px; border-radius:20px; letter-spacing:0.1em; white-space:nowrap; }
 .tier-head { display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; }
-.tier-emoji { font-size:2rem; line-height:1; flex-shrink:0; }
+.tier-emoji { font-size:1.9rem; line-height:1; flex-shrink:0; }
 .tier-info { flex:1; min-width:0; }
 .tier-name { font-family:'DM Serif Display',Georgia,serif; font-size:1.1rem; color:var(--ink); line-height:1.2; margin-bottom:3px; }
-.tier-tagline { font-size:0.8rem; color:var(--muted); line-height:1.3; }
+.tier-tagline { font-size:0.79rem; color:var(--muted); line-height:1.35; }
 .tier-pc { text-align:right; flex-shrink:0; }
 .tier-price { font-family:'DM Serif Display',Georgia,serif; font-size:2rem; line-height:1; color:var(--ink); transition:color 0.2s; }
-.tier-card.selected .tier-price { color:var(--rose); }
+.tier-card.selected:not(.hardcover-tier) .tier-price { color:var(--rose); }
 .tier-price-note { font-size:0.65rem; color:var(--muted); margin-top:2px; }
 .tier-feats { display:flex; flex-direction:column; gap:7px; }
-.tier-feat { display:flex; align-items:flex-start; gap:8px; font-size:0.83rem; color:var(--warm); line-height:1.4; }
+.tier-feat { display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; color:var(--warm); line-height:1.4; }
 .tier-feat svg { flex-shrink:0; margin-top:2px; }
-.tier-footer { margin-top:14px; padding-top:12px; border-top:1px solid var(--cream3); text-align:center; font-size:0.8rem; font-weight:600; }
-.tier-card.selected .tier-footer { color:var(--rose); }
+.tier-footer { margin-top:14px; padding-top:12px; border-top:1px solid var(--cream3); text-align:center; font-size:0.79rem; font-weight:600; letter-spacing:0.01em; }
+.tier-card.selected:not(.hardcover-tier) .tier-footer { color:var(--rose); }
 .tier-card:not(.selected) .tier-footer { color:var(--muted); font-weight:400; }
 
-/* Addon card */
-.addon-card {
-  background:#fff; border-radius:14px; border:1px solid var(--cream3);
-  padding:14px 18px; margin-bottom:14px;
-  display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer;
-  transition:border-color 0.2s, background 0.2s; box-shadow:0 1px 8px rgba(0,0,0,0.03);
+/* Horoscope addon */
+.horoscope-addon {
+  background:linear-gradient(135deg,rgba(74,140,92,0.05),rgba(74,140,92,0.02));
+  border:1.5px solid rgba(74,140,92,0.25); border-radius:16px;
+  padding:16px 18px; margin-bottom:12px; cursor:pointer;
+  transition:border-color 0.2s, background 0.2s;
 }
-.addon-card.on { border-color:rgba(74,140,92,0.3); background:rgba(74,140,92,0.02); }
-html.dark .addon-card { background:var(--cream2); }
-.addon-left { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
-.addon-emoji { font-size:1.3rem; flex-shrink:0; }
-.addon-name { font-weight:600; font-size:0.88rem; color:var(--ink); margin-bottom:2px; }
-.addon-desc { font-size:0.74rem; color:var(--muted); line-height:1.35; }
+.horoscope-addon:hover { border-color:rgba(74,140,92,0.4); }
+.horoscope-addon.off { background:#fff; border-color:var(--cream3); }
+html.dark .horoscope-addon { background:rgba(74,140,92,0.06); }
+html.dark .horoscope-addon.off { background:var(--cream2); border-color:var(--sand); }
+.horoscope-addon-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+.horoscope-addon-left { display:flex; align-items:center; gap:10px; }
+.horoscope-addon-title { font-weight:700; font-size:0.9rem; color:var(--ink); }
+.horoscope-addon-subtitle { font-size:0.74rem; color:var(--earth); margin-top:2px; line-height:1.35; }
 </style>
 </head>
 <body>
@@ -593,7 +604,7 @@ html.dark .addon-card { background:var(--cream2); }
 <!-- ============ DIGITAL READING ============ -->
 <div class="checkout-wrap">
 
-  <p class="tier-select-label a d1">CHOOSE YOUR READING</p>
+  <p class="tier-select-label a d1">Choose Your Reading</p>
 
   <!-- ── TIER 1: Soul Reading $27 ── -->
   <button class="tier-card a d2" id="tierEssential" onclick="selectTier('essential')">
@@ -611,14 +622,14 @@ html.dark .addon-card { background:var(--cream2); }
     <div class="tier-feats">
       <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>40+ personalised sections</strong> — birth chart, aura, soul archetype &amp; more</div></div>
       <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>The message they've been trying to tell you</strong> — the part that makes everyone tear up</div></div>
-      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Every quirk finally explained</strong> — the staring, the zoomies, <em>that thing</em> they do</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Every quirk explained</strong> — the staring, the zoomies, <em>that thing</em> they do</div></div>
       <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Their love language</strong> — how they've been saying "I love you" without words</div></div>
       <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>💬 SoulSpeak</strong> — ask them anything. 150 free credits included.</div></div>
     </div>
     <div class="tier-footer" id="tierEssentialFooter">Tap to select</div>
   </button>
 
-  <!-- ── TIER 2: Soul Bond Edition $35 ── -->
+  <!-- ── TIER 2: Soul Bond Edition $35 (default) ── -->
   <button class="tier-card selected a d3" id="tierPortrait" onclick="selectTier('portrait')">
     <div class="tier-badge">MOST POPULAR</div>
     <div class="tier-head">
@@ -634,30 +645,64 @@ html.dark .addon-card { background:var(--cream2); }
     </div>
     <div class="tier-feats">
       <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Everything in The Soul Reading</strong></div></div>
-      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Pet–Parent cosmic compatibility</strong> — the science of why you belong together</div></div>
-      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Deep bond &amp; emotional connection map</strong> — what you truly mean to each other</div></div>
-      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Shareable cosmic card</strong> — the screenshot everyone will want</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.85"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Pet–Parent cosmic compatibility</strong> — the science of why you belong together</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.85"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Deep bond &amp; connection map</strong> — what you truly mean to each other</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="var(--rose)" opacity="0.85"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div><strong>Shareable cosmic card</strong> — the screenshot everyone wants</div></div>
     </div>
     <div class="tier-footer" id="tierPortraitFooter">✓ Selected — continue below</div>
   </button>
 
-  <!-- ── HOROSCOPE ADD-ON ── -->
-  <div class="addon-card on a d4" id="horoscopeAddonCard" onclick="toggleHoroscope()">
-    <div class="addon-left">
-      <div class="addon-emoji">🌙</div>
-      <div>
-        <div class="addon-name">Weekly Horoscope <span style="font-size:0.6rem;font-weight:700;color:#fff;background:var(--green);padding:2px 7px;border-radius:4px;margin-left:4px;vertical-align:1px;letter-spacing:0.04em;">FREE</span></div>
-        <div class="addon-desc">Personalised weekly insights for your pet · 30 days free, then $4.99/mo · Cancel anytime · No card charged today</div>
+  <!-- ── TIER 3: Hardcover Book $99 — price anchor ── -->
+  <button class="tier-card hardcover-tier a d4" id="tierHardcover" onclick="selectTier('hardcover')">
+    <div class="tier-badge">PREMIUM GIFT</div>
+    <div class="tier-head">
+      <div class="tier-emoji">📖</div>
+      <div class="tier-info">
+        <div class="tier-name">The Hardcover Portrait Book</div>
+        <div class="tier-tagline">A beautiful keepsake — their soul, in print, forever</div>
+      </div>
+      <div class="tier-pc">
+        <div class="tier-price" style="font-size:1.8rem;">$99</div>
+        <div class="tier-price-note">printed &amp; shipped</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-      <span style="font-size:0.78rem;font-weight:700;color:var(--green);">$0</span>
-      <div class="toggle-track on" id="toggleHoroscope"><div class="toggle-knob"></div></div>
+    <div class="tier-feats">
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Full Soul Bond reading printed in hardcover</strong></div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Gift-ready packaging</strong> — arrives wrapped with a personal message inside</div></div>
+      <div class="tier-feat"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Ships in 4–6 weeks</strong> — handcrafted to order, worldwide shipping</div></div>
+    </div>
+    <div class="tier-footer" id="tierHardcoverFooter">Tap to select</div>
+  </button>
+
+  <!-- ── DIGITAL CHECKOUT SECTION (hidden when hardcover selected) ── -->
+  <div id="digitalCheckoutSection">
+
+  <!-- ── HOROSCOPE ADD-ON ── -->
+  <div class="horoscope-addon a d5" id="horoscopeAddonCard" onclick="toggleHoroscope()">
+    <div class="horoscope-addon-top">
+      <div class="horoscope-addon-left">
+        <span style="font-size:1.6rem;line-height:1;">🌙</span>
+        <div>
+          <div class="horoscope-addon-title">
+            Weekly Cosmic Forecast
+            <span style="font-size:0.58rem;font-weight:800;color:#fff;background:var(--green);padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:2px;letter-spacing:0.05em;">FREE TRIAL</span>
+          </div>
+          <div class="horoscope-addon-subtitle">Personalised weekly insights, just for your pet</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <span style="font-size:0.82rem;font-weight:700;color:var(--green);">FREE</span>
+        <div class="toggle-track on" id="toggleHoroscope"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(74,140,92,0.08);border-radius:10px;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      <span style="font-size:0.74rem;color:var(--green);font-weight:600;">30 days free · then $4.99/mo · cancel anytime · no card charged today</span>
     </div>
   </div>
 
   <!-- ── MORE THAN ONE PET ── -->
-  <div style="background:#fff; border-radius:14px; border:1px solid var(--cream3); padding:14px 18px; margin-bottom:14px;" class="a d5">
+  <div style="background:#fff; border-radius:16px; border:1px solid var(--cream3); padding:14px 18px; margin-bottom:12px;" class="a d6">
     <div id="multiPetToggle" style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" onclick="toggleMultiPet()">
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="font-size:1rem;">🐾</span>
@@ -722,13 +767,13 @@ html.dark .addon-card { background:var(--cream2); }
   </div>
 
   <!-- ── CTA ── -->
-  <div class="cta-wrap a d6">
-    <a href="#" class="cta-btn" id="ctaBtn" onclick="handleDigitalCheckout(event)">Start Their Reading — $35</a>
+  <div class="cta-wrap">
+    <a href="#" class="cta-btn" id="ctaBtn" onclick="handleDigitalCheckout(event)">Get Their Reading — $35</a>
     <p class="cta-note">You'll tell us about your pet after checkout — takes 60 seconds</p>
   </div>
 
   <!-- ── TRUST ROW ── -->
-  <div style="margin-bottom:16px; text-align:center;" class="a d6">
+  <div style="margin-bottom:16px; text-align:center;">
     <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:10px;">
       <div class="tp-stars"><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div class="tp-star"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div></div>
       <span class="tp-text"><strong>Excellent</strong> · Loved by thousands of pet parents</span>
@@ -740,7 +785,34 @@ html.dark .addon-card { background:var(--cream2); }
     </div>
   </div>
 
-</div>
+  </div><!-- /digitalCheckoutSection -->
+
+  <!-- ── HARDCOVER SECTION (shown when hardcover selected) ── -->
+  <div id="hardcoverSection" style="display:none;">
+    <div style="background:linear-gradient(135deg,rgba(196,162,101,0.07),rgba(196,162,101,0.03));border:1.5px solid rgba(196,162,101,0.25);border-radius:18px;padding:22px 20px;margin-bottom:14px;text-align:center;">
+      <p style="font-size:0.7rem;font-weight:800;color:var(--gold);letter-spacing:0.1em;margin-bottom:10px;">📦 HOW IT WORKS</p>
+      <div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:18px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="font-size:0.72rem;font-weight:800;color:var(--gold);flex-shrink:0;background:rgba(196,162,101,0.12);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;">1</span>
+          <p style="font-size:0.83rem;color:var(--warm);line-height:1.45;">Place your order — we'll email you within 24 hours to confirm the delivery address and any personal message</p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="font-size:0.72rem;font-weight:800;color:var(--gold);flex-shrink:0;background:rgba(196,162,101,0.12);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;">2</span>
+          <p style="font-size:0.83rem;color:var(--warm);line-height:1.45;">Your book is handcrafted and quality-checked — please allow 4–6 weeks</p>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <span style="font-size:0.72rem;font-weight:800;color:var(--gold);flex-shrink:0;background:rgba(196,162,101,0.12);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;">3</span>
+          <p style="font-size:0.83rem;color:var(--warm);line-height:1.45;">It arrives in gift-ready packaging — the kind of thing you keep forever</p>
+        </div>
+      </div>
+      <a href="/gift?tier=hardcover" class="cta-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#c4a265,#a88347);box-shadow:0 6px 24px rgba(196,162,101,0.3);text-decoration:none;margin-bottom:10px;">
+        📖 Order the Hardcover Book — $99
+      </a>
+      <p style="font-size:0.73rem;color:var(--muted);">Worldwide shipping · Handcrafted to order · 100% satisfaction guaranteed</p>
+    </div>
+  </div>
+
+</div><!-- /checkout-wrap -->
 
 <!-- ============ HOW IT WORKS — CREDIBILITY ============ -->
 <div style="max-width:520px; margin:0 auto; padding:0 20px 32px;">
@@ -996,17 +1068,39 @@ function updateDarkIcons(isDark) {
 })();
 
 // ─── Tier Selection ───
+var currentTier = 'portrait'; // 'essential' | 'portrait' | 'hardcover'
+
 function selectTier(tier) {
+  currentTier = tier;
   portraitOn = (tier === 'portrait');
-  var essCard = document.getElementById('tierEssential');
-  var portCard = document.getElementById('tierPortrait');
-  if (essCard) essCard.classList.toggle('selected', !portraitOn);
-  if (portCard) portCard.classList.toggle('selected', portraitOn);
-  var essFooter = document.getElementById('tierEssentialFooter');
-  var portFooter = document.getElementById('tierPortraitFooter');
-  if (essFooter) essFooter.textContent = portraitOn ? 'Tap to select' : '✓ Selected — continue below';
-  if (portFooter) portFooter.textContent = portraitOn ? '✓ Selected — continue below' : 'Tap to select';
-  updateUI();
+
+  // Update selected states on all 3 cards
+  ['tierEssential','tierPortrait','tierHardcover'].forEach(function(id) {
+    var card = document.getElementById(id);
+    if (card) card.classList.remove('selected');
+  });
+  var activeId = tier === 'essential' ? 'tierEssential' : tier === 'hardcover' ? 'tierHardcover' : 'tierPortrait';
+  var activeCard = document.getElementById(activeId);
+  if (activeCard) activeCard.classList.add('selected');
+
+  // Footer text
+  var footers = {
+    tierEssential: tier === 'essential',
+    tierPortrait: tier === 'portrait',
+    tierHardcover: tier === 'hardcover'
+  };
+  Object.keys(footers).forEach(function(id) {
+    var el = document.getElementById(id + 'Footer');
+    if (el) el.textContent = footers[id] ? '✓ Selected — continue below' : 'Tap to select';
+  });
+
+  // Show/hide digital vs hardcover checkout sections
+  var digitalSection = document.getElementById('digitalCheckoutSection');
+  var hardcoverSection = document.getElementById('hardcoverSection');
+  if (digitalSection) digitalSection.style.display = tier === 'hardcover' ? 'none' : 'block';
+  if (hardcoverSection) hardcoverSection.style.display = tier === 'hardcover' ? 'block' : 'none';
+
+  if (tier !== 'hardcover') updateUI();
 }
 
 // ─── State ───
@@ -1136,12 +1230,10 @@ function updateUI() {
     badge.style.display = 'none';
   }
 
-  // Price display in header
+  // Price display in header (element may not exist)
   var priceEl = document.querySelector('.product-price');
-  if (petCount > 1) {
-    priceEl.textContent = '$' + basePrice + ' each';
-  } else {
-    priceEl.textContent = '$' + basePrice;
+  if (priceEl) {
+    priceEl.textContent = petCount > 1 ? '$' + basePrice + ' each' : '$' + basePrice;
   }
 
   // Order summary
@@ -1172,8 +1264,10 @@ function updateUI() {
   // CTA buttons
   var priceStr = calc.total % 1 === 0 ? calc.total : calc.total.toFixed(2);
   var ctaText = 'Get Their Reading \u2014 $' + priceStr;
-  document.getElementById('ctaBtn').textContent = ctaText;
-  document.getElementById('ctaBtn2').textContent = ctaText;
+  var ctaEl = document.getElementById('ctaBtn');
+  var ctaEl2 = document.getElementById('ctaBtn2');
+  if (ctaEl) ctaEl.textContent = ctaText;
+  if (ctaEl2) ctaEl2.textContent = ctaText;
 
   // Update floating CTA price
   var floatingPrice = document.querySelector('#floatingCta .floating-price');
@@ -1235,11 +1329,12 @@ function changePetCount(delta) {
 function toggleHoroscope() {
   horoscopeOn = !horoscopeOn;
   document.getElementById('toggleHoroscope').classList.toggle('on', horoscopeOn);
+  var card = document.getElementById('horoscopeAddonCard');
+  if (card) card.classList.toggle('off', !horoscopeOn);
   updateUI();
 }
 
-// ─── Tier cards initialised on load ───
-selectTier('portrait'); // Pre-select Soul Bond Edition
+// (tier initialised at bottom with selectTier('portrait'))
 
 // ─── Old redeem code functions removed — unified into handleCode() above ───
 // (old redeem code removed)
@@ -1369,7 +1464,7 @@ setInterval(updateUrgencyTimer, 1000);
 
 
 // ─── Init ───
-updateUI();
+selectTier('portrait'); // default to Soul Bond Edition
 
 // ─── Reviews ───
 var ALL_REVIEWS = [
