@@ -4,10 +4,15 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 const logStep = (step: string, details?: unknown) => {
   console.log(`[CREATE-AFFILIATE] ${step}`, details ? JSON.stringify(details) : '');
@@ -31,7 +36,7 @@ const affiliateSchema = z.object({
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -88,7 +93,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({ 
           error: `The referral code "${input.referralCode}" is already taken. Please choose another.`
         }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 400,
         });
       }
@@ -99,7 +104,7 @@ serve(async (req) => {
       referralCode = `${sanitizedName}_${Math.random().toString(36).slice(2, 8)}`;
     }
 
-    // Store affiliate in database - AUTO-APPROVED (status: 'active')
+    // Store affiliate in database - PENDING until admin approval
     const { data: affiliate, error: dbError } = await supabaseClient
       .from('affiliates')
       .insert({
@@ -108,7 +113,7 @@ serve(async (req) => {
         stripe_account_id: account.id,
         referral_code: referralCode,
         commission_rate: 0.50,
-        status: 'active', // Auto-approved!
+        status: 'pending',
       })
       .select()
       .single();
@@ -145,21 +150,21 @@ serve(async (req) => {
               <h1 style="color: #1a1a2e; margin-bottom: 20px;">Welcome aboard, ${input.name}! 🌟</h1>
               
               <p style="color: #333; font-size: 16px; line-height: 1.6;">
-                You're now an official Little Souls affiliate! Your account is <strong>active</strong> and ready to start earning.
+                Thank you for applying to the Little Souls affiliate programme! Your application is <strong>under review</strong> and we'll notify you once approved.
               </p>
-              
-              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 24px; border-radius: 12px; margin: 24px 0;">
-                <p style="color: white; margin: 0 0 12px 0; font-size: 14px;">Your unique referral link:</p>
-                <a href="${referralLink}" style="display: block; background: white; color: #667eea; padding: 14px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; text-align: center;">
+
+              <div style="background: #faf6ef; border: 2px solid #c4a265; padding: 24px; border-radius: 12px; margin: 24px 0;">
+                <p style="color: #3d2f2a; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Your referral link (active after approval):</p>
+                <p style="background: white; color: #c4a265; padding: 14px 20px; border-radius: 8px; font-weight: 600; font-size: 16px; text-align: center; margin: 0; word-break: break-all;">
                   ${referralLink}
-                </a>
+                </p>
               </div>
-              
-              <h2 style="color: #1a1a2e; margin-top: 32px;">How it works:</h2>
+
+              <h2 style="color: #1a1a2e; margin-top: 32px;">What happens next:</h2>
               <ul style="color: #333; font-size: 16px; line-height: 1.8;">
-                <li>💰 Earn <strong>50% commission</strong> on every sale</li>
-                <li>📊 Track your referrals in your dashboard</li>
-                <li>💳 Payouts happen automatically every week (min $10)</li>
+                <li>We'll review your application (usually within 24 hours)</li>
+                <li>Once approved, earn <strong>50% commission</strong> on every sale</li>
+                <li>Track referrals in your dashboard &amp; get paid weekly (min $10)</li>
               </ul>
               
               <div style="margin-top: 32px;">
@@ -193,7 +198,7 @@ serve(async (req) => {
       onboardingUrl: accountLink.url,
       affiliateId: affiliate.id,
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -205,7 +210,7 @@ serve(async (req) => {
         error: "Invalid input",
         details: error.errors.map(e => e.message).join(", ")
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -213,7 +218,7 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message });
     return new Response(JSON.stringify({ error: message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

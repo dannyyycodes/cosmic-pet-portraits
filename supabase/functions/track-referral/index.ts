@@ -3,10 +3,15 @@ import { z } from "https://esm.sh/zod@3.23.8";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 const logStep = (step: string, details?: unknown) => {
   console.log(`[TRACK-REFERRAL] ${step}`, details ? JSON.stringify(details) : '');
@@ -21,7 +26,7 @@ const referralSchema = z.object({
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
@@ -37,7 +42,7 @@ serve(async (req) => {
     if (!stripeKey) {
       logStep("Missing Stripe configuration");
       return new Response(JSON.stringify({ error: "Service unavailable" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 503,
       });
     }
@@ -49,31 +54,35 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
-    // SECURITY: Verify the Stripe session is actually paid
+    // SECURITY: Verify the Stripe session is actually paid and get verified amount
     let customerEmail: string | null = null;
+    let verifiedAmount: number;
     try {
       const session = await stripe.checkout.sessions.retrieve(input.sessionId);
-      
+
       if (session.payment_status !== 'paid') {
         logStep("Session not paid", { status: session.payment_status });
-        return new Response(JSON.stringify({ 
-          success: false, 
-          reason: 'Payment not completed' 
+        return new Response(JSON.stringify({
+          success: false,
+          reason: 'Payment not completed'
         }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 400,
         });
       }
-      
+
+      // SECURITY: Use Stripe-verified amount, never trust client-provided amount
+      verifiedAmount = session.amount_total || 0;
+
       // Get customer email for self-referral check
       customerEmail = session.customer_email || session.customer_details?.email || null;
     } catch (stripeError) {
       logStep("Invalid Stripe session");
-      return new Response(JSON.stringify({ 
-        success: false, 
-        reason: 'Invalid session' 
+      return new Response(JSON.stringify({
+        success: false,
+        reason: 'Invalid session'
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -91,7 +100,7 @@ serve(async (req) => {
         success: false, 
         reason: 'Already tracked' 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
@@ -109,7 +118,7 @@ serve(async (req) => {
     if (affError || !affiliate) {
       logStep("Affiliate not found or inactive");
       return new Response(JSON.stringify({ success: false, reason: 'Invalid referral code' }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -121,18 +130,19 @@ serve(async (req) => {
         success: false, 
         reason: 'Self-referral not allowed' 
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
 
-    // Calculate commission
-    const commissionAmount = Math.round(input.amount * affiliate.commission_rate);
+    // Calculate commission using Stripe-verified amount
+    const commissionAmount = Math.round(verifiedAmount * affiliate.commission_rate);
 
-    logStep("Commission calculated", { 
-      affiliateId: affiliate.id, 
-      rate: affiliate.commission_rate, 
-      commission: commissionAmount 
+    logStep("Commission calculated", {
+      affiliateId: affiliate.id,
+      rate: affiliate.commission_rate,
+      verifiedAmount,
+      commission: commissionAmount
     });
 
     // Record the referral
@@ -141,7 +151,7 @@ serve(async (req) => {
       .insert({
         affiliate_id: affiliate.id,
         stripe_session_id: input.sessionId,
-        amount_cents: input.amount,
+        amount_cents: verifiedAmount,
         commission_cents: commissionAmount,
         status: 'pending',
       })
@@ -151,7 +161,7 @@ serve(async (req) => {
     if (refError) {
       logStep("Failed to record referral");
       return new Response(JSON.stringify({ error: "Service unavailable" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 500,
       });
     }
@@ -177,7 +187,7 @@ serve(async (req) => {
       referralId: referral.id,
       commission: commissionAmount,
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -188,14 +198,14 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         error: "Invalid request"
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 400,
       });
     }
 
     logStep("ERROR");
     return new Response(JSON.stringify({ error: "Service unavailable" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

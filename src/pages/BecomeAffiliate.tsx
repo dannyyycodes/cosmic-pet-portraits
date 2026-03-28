@@ -389,10 +389,10 @@ export default function BecomeAffiliate() {
             </motion.div>
 
             <h2 className="text-2xl font-semibold mb-2" style={{ color: '#3d2f2a' }}>
-              {t('affiliate.successTitle')}
+              Application Submitted!
             </h2>
             <p className="mb-8" style={{ color: '#9a8578' }}>
-              {t('affiliate.successSubtitle')}
+              We'll review your application and get back to you within 24 hours.
             </p>
 
             {/* Referral Link */}

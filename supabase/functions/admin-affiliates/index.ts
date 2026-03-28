@@ -2,10 +2,15 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token",
+  };
+}
 
 // Helper function to validate admin token against database
 async function validateAdminToken(
@@ -45,7 +50,7 @@ async function validateAdminToken(
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -59,23 +64,13 @@ serve(async (req) => {
     console.log("[ADMIN-AFFILIATES] Unauthorized access attempt");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
   
   console.log("[ADMIN-AFFILIATES] Authenticated admin:", authResult.adminId);
 
   const supabaseClient = createClient(supabaseUrl, serviceRoleKey);
-  
-  if (!authResult.valid) {
-    console.log("[ADMIN-AFFILIATES] Unauthorized access attempt");
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-  
-  console.log("[ADMIN-AFFILIATES] Authenticated admin:", authResult.adminId);
 
   try {
     const url = new URL(req.url);
@@ -113,7 +108,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ affiliates: affiliatesWithStats }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -123,7 +118,7 @@ serve(async (req) => {
       if (!affiliateId) {
         return new Response(JSON.stringify({ error: "Missing affiliate ID" }), {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -141,7 +136,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ affiliate, referrals }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -153,7 +148,7 @@ serve(async (req) => {
       if (!affiliateId || !status || !validStatuses.includes(status)) {
         return new Response(JSON.stringify({ error: "Invalid parameters" }), {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -166,7 +161,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -177,7 +172,7 @@ serve(async (req) => {
       if (!affiliateId || typeof commissionRate !== "number" || commissionRate < 0 || commissionRate > 1) {
         return new Response(JSON.stringify({ error: "Invalid parameters" }), {
           status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         });
       }
 
@@ -190,7 +185,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -211,7 +206,7 @@ serve(async (req) => {
       const result = await response.json();
       return new Response(JSON.stringify(result), {
         status: response.ok ? 200 : 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -237,20 +232,20 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ stats }), {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
 
   } catch (error) {
     console.error("[ADMIN-AFFILIATES] Error:", error);
     return new Response(JSON.stringify({ error: "Service unavailable" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 });

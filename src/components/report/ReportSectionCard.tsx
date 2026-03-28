@@ -11,6 +11,7 @@ interface ReportSectionCardProps {
   title: string;
   whyText?: string;
   whyBoxIcon?: string;
+  whyLabel?: string;
   content: string;
   tipBox?: { icon: string; label: string; text: string };
   funFact?: string;
@@ -60,6 +61,7 @@ export function ReportSectionCard({
   title,
   whyText,
   whyBoxIcon,
+  whyLabel,
   content,
   tipBox,
   funFact,
@@ -142,7 +144,7 @@ export function ReportSectionCard({
                       }}
                     >
                       {whyBoxIcon && <span className="text-[0.75rem]">{whyBoxIcon}</span>}
-                      Why this matters
+                      {whyLabel || 'Why this matters'}
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showWhy ? 'rotate-180' : ''}`} />
                     </button>
                     <AnimatePresence>

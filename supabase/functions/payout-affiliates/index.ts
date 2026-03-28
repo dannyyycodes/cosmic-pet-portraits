@@ -2,10 +2,15 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") || "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 const logStep = (step: string, details?: unknown) => {
   console.log(`[PAYOUT-AFFILIATES] ${step}`, details ? JSON.stringify(details) : '');
@@ -13,25 +18,30 @@ const logStep = (step: string, details?: unknown) => {
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
-  // SECURITY: Require authorization header (accepts anon key for cron jobs or service role)
-  const authHeader = req.headers.get("Authorization");
+  // SECURITY: Require proper Bearer token authorization
+  const authHeader = req.headers.get("Authorization") || "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  
-  // Accept either service role key or anon key (for cron jobs)
-  const isValidAuth = authHeader && (
-    authHeader.includes(serviceRoleKey || '') || 
-    authHeader.includes(anonKey || '')
-  );
-  
-  if (!authHeader || !isValidAuth) {
-    logStep("Unauthorized request - missing or invalid authorization");
+
+  if (!serviceRoleKey) {
+    logStep("Missing service role key configuration");
+    return new Response(JSON.stringify({ error: "Service unavailable" }), {
+      status: 503,
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+    });
+  }
+
+  // Strict Bearer token comparison (not substring match)
+  const isValidAuth = authHeader === `Bearer ${serviceRoleKey}` || authHeader === `Bearer ${anonKey}`;
+
+  if (!isValidAuth) {
+    logStep("Unauthorized request - invalid authorization");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   }
 
@@ -43,13 +53,13 @@ serve(async (req) => {
       logStep("Missing Stripe configuration");
       return new Response(JSON.stringify({ error: "Service unavailable" }), {
         status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      serviceRoleKey
     );
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
@@ -64,7 +74,7 @@ serve(async (req) => {
       logStep("Failed to fetch pending referrals");
       return new Response(JSON.stringify({ error: "Service unavailable" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -72,7 +82,7 @@ serve(async (req) => {
 
     if (!pendingReferrals || pendingReferrals.length === 0) {
       return new Response(JSON.stringify({ success: true, message: 'No pending payouts' }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });
     }
@@ -83,7 +93,7 @@ serve(async (req) => {
       totalCommission: number;
       referralIds: string[];
     }
-    
+
     const affiliatePayouts = pendingReferrals.reduce((acc, ref) => {
       const affId = ref.affiliate_id;
       if (!acc[affId]) {
@@ -110,15 +120,32 @@ serve(async (req) => {
       }
 
       // Check if Stripe account is ready for payouts
-      const account = await stripe.accounts.retrieve(affiliate.stripe_account_id);
-      
-      if (!account.payouts_enabled) {
-        logStep("Affiliate payouts not enabled", { affiliateId });
+      try {
+        const account = await stripe.accounts.retrieve(affiliate.stripe_account_id);
+        if (!account.payouts_enabled) {
+          logStep("Affiliate payouts not enabled", { affiliateId });
+          continue;
+        }
+      } catch (accountErr) {
+        logStep("Failed to retrieve Stripe account", { affiliateId });
+        continue;
+      }
+
+      // SECURITY: Mark referrals as 'processing' to prevent double-payout from concurrent runs
+      const { error: lockError } = await supabaseClient
+        .from('affiliate_referrals')
+        .update({ status: 'processing' })
+        .in('id', referralIds)
+        .eq('status', 'pending'); // Only update if still pending (atomic check)
+
+      if (lockError) {
+        logStep("Failed to lock referrals for processing", { affiliateId });
         continue;
       }
 
       try {
-        // Create transfer to connected account
+        // Create transfer with idempotency key to prevent duplicate transfers
+        const idempotencyKey = `payout_${affiliateId}_${referralIds.sort().join('_')}`.slice(0, 255);
         const transfer = await stripe.transfers.create({
           amount: totalCommission,
           currency: 'usd',
@@ -127,6 +154,8 @@ serve(async (req) => {
             affiliate_id: affiliateId,
             referral_count: referralIds.length.toString(),
           },
+        }, {
+          idempotencyKey,
         });
 
         logStep("Transfer created", { transferId: transfer.id, amount: totalCommission });
@@ -137,11 +166,11 @@ serve(async (req) => {
           .update({ status: 'paid', paid_at: new Date().toISOString() })
           .in('id', referralIds);
 
-        // Update affiliate pending balance
-        await supabaseClient
-          .from('affiliates')
-          .update({ pending_balance_cents: 0 })
-          .eq('id', affiliateId);
+        // SECURITY FIX: Atomic decrement instead of reset to 0
+        await supabaseClient.rpc('decrement_affiliate_balance', {
+          p_affiliate_id: affiliateId,
+          p_amount_cents: totalCommission,
+        });
 
         payoutResults.push({
           affiliateId,
@@ -152,7 +181,15 @@ serve(async (req) => {
 
       } catch (transferError) {
         const msg = transferError instanceof Error ? transferError.message : String(transferError);
-        logStep("Transfer failed", { affiliateId, error: msg });
+        logStep("Transfer failed, reverting referrals to pending", { affiliateId, error: msg });
+
+        // Revert referrals back to pending on failure
+        await supabaseClient
+          .from('affiliate_referrals')
+          .update({ status: 'pending' })
+          .in('id', referralIds)
+          .eq('status', 'processing');
+
         payoutResults.push({
           affiliateId,
           amount: totalCommission,
@@ -168,7 +205,7 @@ serve(async (req) => {
       success: true,
       payouts: payoutResults,
     }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 200,
     });
 
@@ -176,7 +213,7 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message });
     return new Response(JSON.stringify({ error: "Service unavailable" }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       status: 500,
     });
   }

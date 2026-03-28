@@ -14,7 +14,8 @@ import {
   CheckCircle,
   RefreshCw,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Mail
 } from 'lucide-react';
 
 interface AffiliateStats {
@@ -41,65 +42,115 @@ interface AffiliateData {
   name: string;
   email: string;
   createdAt: string;
-  stripeAccountId: string;
+  stripeOnboarded: boolean;
 }
+
+type AuthStep = 'email' | 'code' | 'dashboard';
 
 export default function AffiliateDashboard() {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authStep, setAuthStep] = useState<AuthStep>('email');
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
 
-  // Check localStorage for saved email
+  // Check for existing session on mount
   useEffect(() => {
-    const savedEmail = localStorage.getItem('affiliate_email');
-    if (savedEmail) {
-      setEmail(savedEmail);
-      fetchDashboard(savedEmail);
+    const sessionToken = localStorage.getItem('affiliate_session_token');
+    if (sessionToken) {
+      fetchDashboard(sessionToken);
     }
   }, []);
 
-  const fetchDashboard = async (affiliateEmail: string) => {
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('affiliate-dashboard', {
-        body: { email: affiliateEmail },
+        body: { action: 'login', email },
+      });
+
+      if (error) {
+        toast.error('Something went wrong. Please try again.');
+        return;
+      }
+
+      toast.success('Check your email for a verification code.');
+      setAuthStep('code');
+    } catch (err) {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('affiliate-dashboard', {
+        body: { action: 'verify', email, token: verificationCode },
       });
 
       if (error || data?.error) {
-        toast.error(data?.error || 'Failed to load dashboard');
+        toast.error(data?.error || 'Invalid or expired code. Please try again.');
+        return;
+      }
+
+      if (data.sessionToken) {
+        localStorage.setItem('affiliate_session_token', data.sessionToken);
+        localStorage.setItem('affiliate_email', email);
+        await fetchDashboard(data.sessionToken);
+      }
+    } catch (err) {
+      toast.error('Verification failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchDashboard = async (sessionToken: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('affiliate-dashboard', {
+        body: { action: 'dashboard', sessionToken },
+      });
+
+      if (error || data?.error) {
+        // Session expired or invalid
+        localStorage.removeItem('affiliate_session_token');
         localStorage.removeItem('affiliate_email');
-        setIsLoggedIn(false);
+        setAuthStep('email');
+        if (data?.error) toast.error(data.error);
         return;
       }
 
       setAffiliate(data.affiliate);
       setStats(data.stats);
       setReferrals(data.referrals);
-      setIsLoggedIn(true);
-      localStorage.setItem('affiliate_email', affiliateEmail);
+      setAuthStep('dashboard');
+      setEmail(data.affiliate.email);
     } catch (err) {
       toast.error('Failed to load dashboard');
+      localStorage.removeItem('affiliate_session_token');
+      setAuthStep('email');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await fetchDashboard(email);
-  };
-
   const handleLogout = () => {
+    localStorage.removeItem('affiliate_session_token');
     localStorage.removeItem('affiliate_email');
-    setIsLoggedIn(false);
+    setAuthStep('email');
     setAffiliate(null);
     setStats(null);
     setReferrals([]);
     setEmail('');
+    setVerificationCode('');
   };
 
   const copyReferralLink = () => {
@@ -122,6 +173,11 @@ export default function AffiliateDashboard() {
       day: 'numeric',
       year: 'numeric',
     });
+  };
+
+  const refreshDashboard = () => {
+    const sessionToken = localStorage.getItem('affiliate_session_token');
+    if (sessionToken) fetchDashboard(sessionToken);
   };
 
   return (
@@ -157,27 +213,30 @@ export default function AffiliateDashboard() {
             className="text-4xl md:text-5xl font-bold mb-4"
             style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}
           >
-            {isLoggedIn ? `Welcome, ${affiliate?.name}` : 'Affiliate Dashboard'}
+            {authStep === 'dashboard' ? `Welcome, ${affiliate?.name}` : 'Affiliate Dashboard'}
           </h1>
-          {isLoggedIn && (
+          {authStep === 'dashboard' && (
             <p className="text-lg" style={{ color: '#9a8578' }}>
               Track your referrals and earnings
             </p>
           )}
         </motion.div>
 
-        {/* Login Form */}
-        {!isLoggedIn && (
+        {/* Step 1: Email Input */}
+        {authStep === 'email' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-md mx-auto rounded-2xl p-8"
             style={{ background: 'white', border: '1px solid #e8ddd0' }}
           >
-            <h2 className="text-xl font-semibold mb-6 text-center" style={{ color: '#3d2f2a' }}>
+            <h2 className="text-xl font-semibold mb-2 text-center" style={{ color: '#3d2f2a' }}>
               Access Your Dashboard
             </h2>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <p className="text-sm text-center mb-6" style={{ color: '#9a8578' }}>
+              We'll send a verification code to your email
+            </p>
+            <form onSubmit={handleSendCode} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: '#3d2f2a' }}>
                   Email Address
@@ -201,10 +260,13 @@ export default function AffiliateDashboard() {
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    Loading...
+                    Sending code...
                   </span>
                 ) : (
-                  'Access Dashboard'
+                  <span className="flex items-center justify-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    Send Verification Code
+                  </span>
                 )}
               </button>
             </form>
@@ -217,8 +279,79 @@ export default function AffiliateDashboard() {
           </motion.div>
         )}
 
+        {/* Step 2: Verification Code */}
+        {authStep === 'code' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md mx-auto rounded-2xl p-8"
+            style={{ background: 'white', border: '1px solid #e8ddd0' }}
+          >
+            <div className="text-center mb-6">
+              <div
+                className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+                style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+              >
+                <Mail className="w-8 h-8" style={{ color: '#c4a265' }} />
+              </div>
+              <h2 className="text-xl font-semibold mb-2" style={{ color: '#3d2f2a' }}>
+                Check Your Email
+              </h2>
+              <p className="text-sm" style={{ color: '#9a8578' }}>
+                We sent a 6-digit code to <strong style={{ color: '#3d2f2a' }}>{email}</strong>
+              </p>
+            </div>
+            <form onSubmit={handleVerifyCode} className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="w-full px-4 py-4 rounded-xl focus:outline-none focus:ring-2 transition-all text-center text-2xl font-mono tracking-[0.5em]"
+                  style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
+                  placeholder="000000"
+                  maxLength={6}
+                  required
+                  autoFocus
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full px-4 py-3.5 rounded-xl font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white' }}
+                disabled={isLoading || verificationCode.length !== 6}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Verifying...
+                  </span>
+                ) : (
+                  'Verify & Access Dashboard'
+                )}
+              </button>
+            </form>
+            <div className="flex items-center justify-between mt-6">
+              <button
+                onClick={() => { setAuthStep('email'); setVerificationCode(''); }}
+                className="text-sm transition-opacity hover:opacity-70"
+                style={{ color: '#9a8578', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Use a different email
+              </button>
+              <button
+                onClick={handleSendCode as any}
+                className="text-sm transition-opacity hover:opacity-70"
+                style={{ color: '#c4a265', background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Resend code
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Dashboard Content */}
-        {isLoggedIn && stats && (
+        {authStep === 'dashboard' && stats && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -226,7 +359,22 @@ export default function AffiliateDashboard() {
             className="space-y-6"
           >
             {/* Status Banner */}
-            {stats.status !== 'active' && (
+            {stats.status === 'pending' && (
+              <div
+                className="flex items-center gap-3 p-4 rounded-xl"
+                style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+              >
+                <AlertCircle className="w-5 h-5" style={{ color: '#c4a265' }} />
+                <div>
+                  <p className="font-medium" style={{ color: '#3d2f2a' }}>Application Under Review</p>
+                  <p className="text-sm" style={{ color: '#9a8578' }}>
+                    Your affiliate application is being reviewed. You'll be notified once approved.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {stats.status === 'active' && !affiliate?.stripeOnboarded && (
               <div
                 className="flex items-center gap-3 p-4 rounded-xl"
                 style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
@@ -235,7 +383,7 @@ export default function AffiliateDashboard() {
                 <div>
                   <p className="font-medium" style={{ color: '#3d2f2a' }}>Complete Stripe Setup</p>
                   <p className="text-sm" style={{ color: '#9a8578' }}>
-                    Your account is pending. Complete Stripe onboarding to start earning.
+                    Complete Stripe onboarding to receive payouts.
                   </p>
                 </div>
               </div>
@@ -243,55 +391,36 @@ export default function AffiliateDashboard() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Total Earnings */}
               <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
-                  >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
                     <DollarSign className="w-5 h-5" style={{ color: '#c4a265' }} />
                   </div>
                 </div>
                 <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>{formatCurrency(stats.totalEarnings)}</p>
                 <p className="text-sm" style={{ color: '#9a8578' }}>Total Earnings</p>
               </div>
-
-              {/* Pending Payout */}
               <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
-                  >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
                     <Clock className="w-5 h-5" style={{ color: '#6b8f5e' }} />
                   </div>
                 </div>
                 <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>{formatCurrency(stats.pendingBalance)}</p>
                 <p className="text-sm" style={{ color: '#9a8578' }}>Pending Payout</p>
               </div>
-
-              {/* Total Referrals */}
               <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
-                  >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
                     <Users className="w-5 h-5" style={{ color: '#5a4a42' }} />
                   </div>
                 </div>
                 <p className="text-2xl font-bold" style={{ color: '#3d2f2a' }}>{stats.totalReferrals}</p>
                 <p className="text-sm" style={{ color: '#9a8578' }}>Total Referrals</p>
               </div>
-
-              {/* Commission Rate */}
               <div className="rounded-2xl p-5" style={{ background: 'white', border: '1px solid #e8ddd0' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
-                  >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
                     <TrendingUp className="w-5 h-5" style={{ color: '#c4a265' }} />
                   </div>
                 </div>
@@ -306,18 +435,11 @@ export default function AffiliateDashboard() {
                 <Sparkles className="w-5 h-5" style={{ color: '#c4a265' }} />
                 Your Referral Link
               </h3>
-              <div
-                className="flex items-center gap-3 p-3 rounded-xl"
-                style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
-              >
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
                 <code className="flex-1 text-sm break-all font-mono" style={{ color: '#c4a265' }}>
                   {window.location.origin}/ref/{stats.referralCode}
                 </code>
-                <button
-                  onClick={copyReferralLink}
-                  className="p-2.5 rounded-lg transition-opacity hover:opacity-70"
-                  style={{ border: '1px solid #e8ddd0' }}
-                >
+                <button onClick={copyReferralLink} className="p-2.5 rounded-lg transition-opacity hover:opacity-70" style={{ border: '1px solid #e8ddd0' }}>
                   <Copy className="w-4 h-4" style={{ color: '#9a8578' }} />
                 </button>
               </div>
@@ -334,7 +456,7 @@ export default function AffiliateDashboard() {
                   Recent Referrals
                 </h3>
                 <button
-                  onClick={() => fetchDashboard(email)}
+                  onClick={refreshDashboard}
                   className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-opacity hover:opacity-70"
                   style={{ color: '#5a4a42' }}
                 >
@@ -362,31 +484,17 @@ export default function AffiliateDashboard() {
                     <tbody>
                       {referrals.map((referral) => (
                         <tr key={referral.id} style={{ borderBottom: '1px solid #e8ddd0' }} className="last:border-0">
-                          <td className="py-3 px-3 text-sm" style={{ color: '#5a4a42' }}>
-                            {formatDate(referral.date)}
-                          </td>
-                          <td className="py-3 px-3 text-sm text-right" style={{ color: '#5a4a42' }}>
-                            {formatCurrency(referral.amount)}
-                          </td>
-                          <td className="py-3 px-3 text-sm font-medium text-right" style={{ color: '#c4a265' }}>
-                            +{formatCurrency(referral.commission)}
-                          </td>
+                          <td className="py-3 px-3 text-sm" style={{ color: '#5a4a42' }}>{formatDate(referral.date)}</td>
+                          <td className="py-3 px-3 text-sm text-right" style={{ color: '#5a4a42' }}>{formatCurrency(referral.amount)}</td>
+                          <td className="py-3 px-3 text-sm font-medium text-right" style={{ color: '#c4a265' }}>+{formatCurrency(referral.commission)}</td>
                           <td className="py-3 px-3 text-center">
                             {referral.status === 'paid' ? (
-                              <span
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full"
-                                style={{ background: 'rgba(107,143,94,0.12)', color: '#6b8f5e' }}
-                              >
-                                <CheckCircle className="w-3 h-3" />
-                                Paid
+                              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full" style={{ background: 'rgba(107,143,94,0.12)', color: '#6b8f5e' }}>
+                                <CheckCircle className="w-3 h-3" /> Paid
                               </span>
                             ) : (
-                              <span
-                                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full"
-                                style={{ background: 'rgba(196,162,101,0.12)', color: '#c4a265' }}
-                              >
-                                <Clock className="w-3 h-3" />
-                                Pending
+                              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full" style={{ background: 'rgba(196,162,101,0.12)', color: '#c4a265' }}>
+                                <Clock className="w-3 h-3" /> Pending
                               </span>
                             )}
                           </td>
@@ -400,11 +508,7 @@ export default function AffiliateDashboard() {
 
             {/* Logout */}
             <div className="text-center">
-              <button
-                onClick={handleLogout}
-                className="text-sm transition-opacity hover:opacity-70"
-                style={{ color: '#9a8578' }}
-              >
+              <button onClick={handleLogout} className="text-sm transition-opacity hover:opacity-70" style={{ color: '#9a8578' }}>
                 Sign out of dashboard
               </button>
             </div>
