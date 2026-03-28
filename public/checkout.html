@@ -771,7 +771,7 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
           <p style="font-size:0.83rem;color:var(--warm);line-height:1.45;">It arrives in gift-ready packaging — the kind of thing you keep on the shelf forever</p>
         </div>
       </div>
-      <a href="/gift?tier=hardcover" class="cta-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#c4a265,#a88347);box-shadow:0 6px 24px rgba(196,162,101,0.28);text-decoration:none;margin-bottom:10px;">
+      <a href="#" id="ctaBtnHardcover" onclick="handleDigitalCheckout(event)" class="cta-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#c4a265,#a88347);box-shadow:0 6px 24px rgba(196,162,101,0.28);text-decoration:none;margin-bottom:10px;">
         📖 Order the Hardcover Book — $99
       </a>
       <p style="font-size:0.73rem;color:var(--muted);text-align:center;">Worldwide shipping · Handcrafted to order · 100% satisfaction guaranteed</p>
@@ -1334,12 +1334,13 @@ function getReferralCode() {
 // ─── Checkout: Digital Reading ───
 async function handleDigitalCheckout(e) {
   e.preventDefault();
+  var isHardcover = currentTier === 'hardcover';
   var btn = document.getElementById('ctaBtn');
   var btn2 = document.getElementById('ctaBtn2');
-  btn.classList.add('loading');
-  btn.textContent = 'Taking you to checkout...';
-  btn2.classList.add('loading');
-  btn2.textContent = 'Taking you to checkout...';
+  var btnHC = document.getElementById('ctaBtnHardcover');
+  if (btn) { btn.classList.add('loading'); btn.textContent = 'Taking you to checkout...'; }
+  if (btn2) { btn2.classList.add('loading'); btn2.textContent = 'Taking you to checkout...'; }
+  if (btnHC) { btnHC.classList.add('loading'); btnHC.textContent = 'Taking you to checkout...'; }
 
   var refCode = getReferralCode();
 
@@ -1353,11 +1354,11 @@ async function handleDigitalCheckout(e) {
       },
       body: JSON.stringify({
         quickCheckout: true,
-        selectedTier: portraitOn ? 'premium' : 'basic',
+        selectedTier: isHardcover ? 'premium' : (portraitOn ? 'premium' : 'basic'),
         abVariant: 'C',
-        includesPortrait: portraitOn,
-        includesBook: false,
-        includeHoroscope: horoscopeOn,
+        includesPortrait: isHardcover ? true : portraitOn,
+        includesBook: isHardcover,
+        includeHoroscope: isHardcover ? false : horoscopeOn,
         occasionMode: occasionMode,
         petCount: petCount,
         referralCode: refCode || undefined,
@@ -1371,8 +1372,9 @@ async function handleDigitalCheckout(e) {
   } catch (err) {
     console.error('[Checkout] Error:', err);
     alert('Something went wrong. Please try again.');
-    btn.classList.remove('loading');
-    btn2.classList.remove('loading');
+    if (btn) { btn.classList.remove('loading'); }
+    if (btn2) { btn2.classList.remove('loading'); }
+    if (btnHC) { btnHC.classList.remove('loading'); }
     updateUI();
   }
 }
