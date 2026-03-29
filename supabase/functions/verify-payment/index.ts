@@ -209,6 +209,64 @@ serve(async (req) => {
       });
     }
 
+    // Handle PaymentIntent from Express Checkout (Apple Pay / Google Pay)
+    if (sessionId.startsWith("pi_")) {
+      console.log("[VERIFY-PAYMENT] Handling PaymentIntent:", sessionId);
+      const pi = await stripe.paymentIntents.retrieve(sessionId);
+
+      if (pi.status !== "succeeded") {
+        return new Response(JSON.stringify({ success: false, status: pi.status }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      const piEmail = pi.receipt_email || "";
+      const piReportIds = pi.metadata?.report_ids?.split(",").filter(Boolean) || [reportId];
+      const piIncludesPortrait = pi.metadata?.includes_portrait === "true";
+
+      const generateShareToken = () => {
+        const bytes = new Uint8Array(12);
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes).map((b: number) => b.toString(16).padStart(2, "0")).join("");
+      };
+
+      for (const id of piReportIds) {
+        const shareToken = generateShareToken();
+        const updateData: Record<string, unknown> = {
+          payment_status: "paid",
+          stripe_session_id: sessionId,
+          share_token: shareToken,
+          updated_at: new Date().toISOString(),
+        };
+        if (piEmail) updateData.email = piEmail.toLowerCase().trim();
+        await supabaseClient.from("pet_reports").update(updateData).eq("id", id);
+      }
+
+      for (const id of piReportIds) {
+        const { data: report } = await supabaseClient.from("pet_reports").select("*").eq("id", id).single();
+        if (report && !report.report_content) {
+          triggerBackgroundGeneration(id, piIncludesPortrait);
+        }
+      }
+
+      const { data: allReports } = await supabaseClient.from("pet_reports").select("*").in("id", piReportIds);
+      const primaryReport = allReports?.find((r: any) => r.id === reportId) || allReports?.[0];
+
+      return new Response(JSON.stringify({
+        success: true,
+        report: primaryReport,
+        allReports: allReports || [primaryReport],
+        reportIds: piReportIds,
+        includeGift: false,
+        giftCode: null,
+        horoscopeEnabled: false,
+      }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Verify with Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
+const ExpressCheckoutButton = lazy(() => import("@/components/ExpressCheckoutButton"));
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -554,6 +555,27 @@ export default function QuickCheckout() {
           <p className="text-center text-[0.75rem] text-muted-foreground/60 mt-1.5 font-cormorant">
             No account needed · speeds up Apple Pay &amp; Google Pay
           </p>
+        </motion.div>
+
+        {/* ── Express Checkout (Apple Pay / Google Pay) ── */}
+        <motion.div initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.44 }} className="mb-3">
+          <Suspense fallback={null}>
+            <ExpressCheckoutButton
+              totalCents={totalCents}
+              petCount={petCount}
+              selectedTier={includePortrait ? "premium" : "basic"}
+              includesPortrait={includePortrait}
+              includesBook={includeBook}
+              occasionMode={selectedMode}
+              email={email}
+              onError={(msg) => toast.error(msg)}
+            />
+          </Suspense>
+          <div className="flex items-center gap-3 my-3">
+            <div className="flex-1 h-px bg-border" />
+            <span className="font-cormorant text-[0.78rem] text-muted-foreground/60 shrink-0">or pay with card</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
         </motion.div>
 
         {/* ── Primary CTA ── */}

@@ -700,6 +700,54 @@ serve(async (req) => {
       }
     }
     
+    // Handle Express Checkout PaymentIntent (safety-net — frontend verify-payment handles primary flow)
+    if (event.type === "payment_intent.succeeded") {
+      const pi = event.data.object as Stripe.PaymentIntent;
+      if (pi.metadata?.quick_checkout === "true") {
+        console.log("[STRIPE-WEBHOOK] Express Checkout PI succeeded:", pi.id);
+        const piReportIds = pi.metadata?.report_ids?.split(",").filter(Boolean) || [];
+        const piEmail = pi.receipt_email || "";
+
+        if (piReportIds.length > 0) {
+          // Idempotency: skip if any report already marked paid from this PI
+          const { data: alreadyPaid } = await supabaseClient
+            .from("pet_reports")
+            .select("id")
+            .eq("stripe_session_id", pi.id)
+            .eq("payment_status", "paid")
+            .limit(1);
+
+          if (alreadyPaid && alreadyPaid.length > 0) {
+            console.log("[STRIPE-WEBHOOK] PI already processed:", pi.id, "— skipping");
+          } else {
+            for (const reportId of piReportIds) {
+              try {
+                const shareToken = (() => {
+                  const bytes = new Uint8Array(12);
+                  crypto.getRandomValues(bytes);
+                  return Array.from(bytes).map((b: number) => b.toString(16).padStart(2, "0")).join("");
+                })();
+                await supabaseClient
+                  .from("pet_reports")
+                  .update({
+                    payment_status: "paid",
+                    stripe_session_id: pi.id,
+                    share_token: shareToken,
+                    ...(piEmail ? { email: piEmail.toLowerCase().trim() } : {}),
+                    updated_at: new Date().toISOString(),
+                  })
+                  .eq("id", reportId)
+                  .eq("payment_status", "pending");
+              } catch (err) {
+                console.error("[STRIPE-WEBHOOK] Failed to mark PI report as paid:", reportId, err);
+              }
+            }
+            console.log("[STRIPE-WEBHOOK] Express Checkout reports marked paid:", piReportIds);
+          }
+        }
+      }
+    }
+
     // Handle subscription cancellation
     if (event.type === "customer.subscription.deleted" || event.type === "customer.subscription.updated") {
       const subscription = event.data.object as Stripe.Subscription;
