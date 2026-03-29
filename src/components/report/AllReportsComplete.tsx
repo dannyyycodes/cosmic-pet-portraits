@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, Share2, Star, Heart, Gift, Copy, Check, User, Lock, Mail, UserPlus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Share2, Star, Heart, Gift, Copy, Check, User, Lock, Mail, UserPlus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +37,10 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const [showGiftUpsell, setShowGiftUpsell] = useState(true);
+  const [giftRecipientEmail, setGiftRecipientEmail] = useState('');
+  const [giftRecipientName, setGiftRecipientName] = useState('');
+  const [isGiftLoading, setIsGiftLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   
@@ -119,6 +123,30 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
 
   const skipSignup = () => {
     setShowSignupPrompt(false);
+  };
+
+  const handleGiftUpsell = async () => {
+    if (!email) {
+      toast.error('We need your email to send you the gift code');
+      return;
+    }
+    setIsGiftLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          giftUpsellCheckout: true,
+          purchaserEmail: email,
+          ...(giftRecipientEmail.trim() ? { giftRecipientEmail: giftRecipientEmail.trim() } : {}),
+          ...(giftRecipientName.trim() ? { giftRecipientName: giftRecipientName.trim() } : {}),
+        },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error('No checkout URL');
+      window.location.href = data.url;
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+      setIsGiftLoading(false);
+    }
   };
 
   return (
@@ -329,41 +357,79 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             </motion.div>
           )}
 
-          {/* Gift CTA — shown for everyone */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55 }}
-            className="mb-6 p-5 rounded-2xl text-left"
-            style={{
-              background: 'linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(191,82,74,0.08) 100%)',
-              border: '1px solid rgba(196,162,101,0.25)',
-            }}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)' }}>
-                <Gift className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground text-sm md:text-base">Know someone who'd love this?</h3>
-                <p className="text-xs text-muted-foreground">Gift a cosmic pet reading — 30% off today</p>
-              </div>
-            </div>
+          {/* Gift upsell — 30% off direct checkout */}
+          <AnimatePresence>
+            {showGiftUpsell && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: 0.55 }}
+                className="mb-6 p-5 rounded-2xl text-left relative"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(191,82,74,0.08) 100%)',
+                  border: '1.5px solid rgba(196,162,101,0.35)',
+                }}
+              >
+                <button
+                  onClick={() => setShowGiftUpsell(false)}
+                  className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
 
-            <p className="text-xs md:text-sm text-muted-foreground mb-4">
-              Every pet has a soul story waiting to be told. Gift one to a friend and the code <span className="font-mono font-semibold" style={{ color: '#c4a265' }}>GIFTLOVE30</span> is already applied!
-            </p>
+                <div className="inline-flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-3 text-white"
+                  style={{ background: '#bf524a' }}>
+                  <span>🎁</span> Thank-you offer — 30% off
+                </div>
 
-            <Button
-              onClick={() => navigate('/gift?code=GIFTLOVE30')}
-              className="w-full text-white font-semibold"
-              style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)' }}
-            >
-              <Gift className="w-4 h-4 mr-2" />
-              Gift a Reading — 30% Off
-            </Button>
-          </motion.div>
+                <h3 className="font-semibold text-foreground text-sm md:text-base mb-1">
+                  Know someone who'd love this?
+                </h3>
+                <p className="text-xs md:text-sm text-muted-foreground mb-4">
+                  Send a friend a full reading for{' '}
+                  <strong style={{ color: '#bf524a' }}>$18.90</strong>{' '}
+                  <span className="line-through text-xs text-muted-foreground">$27</span>
+                  {' '}— they get a code that never expires.
+                </p>
+
+                <div className="space-y-2 mb-3">
+                  <input
+                    type="text"
+                    value={giftRecipientName}
+                    onChange={(e) => setGiftRecipientName(e.target.value)}
+                    placeholder="Friend's name (optional)"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none transition-colors"
+                    style={{ borderColor: 'rgba(196,162,101,0.3)', background: 'rgba(255,253,245,0.8)', color: '#141210' }}
+                  />
+                  <input
+                    type="email"
+                    value={giftRecipientEmail}
+                    onChange={(e) => setGiftRecipientEmail(e.target.value)}
+                    placeholder="Friend's email (optional — or we'll give you a shareable code)"
+                    className="w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none transition-colors"
+                    style={{ borderColor: 'rgba(196,162,101,0.3)', background: 'rgba(255,253,245,0.8)', color: '#141210' }}
+                  />
+                </div>
+
+                <Button
+                  onClick={handleGiftUpsell}
+                  disabled={isGiftLoading}
+                  className="w-full text-white font-semibold"
+                  style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)' }}
+                >
+                  {isGiftLoading ? (
+                    <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 animate-spin" /> Loading...</span>
+                  ) : (
+                    <span className="flex items-center gap-2"><Gift className="w-4 h-4" /> Send gift for $18.90</span>
+                  )}
+                </Button>
+                <p className="text-center text-xs text-muted-foreground mt-2">
+                  They receive a full $27 reading · code never expires
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Extra upsells for gifted users */}
           {giftedInfo?.isGifted && (

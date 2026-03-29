@@ -75,6 +75,11 @@ const checkoutSchema = z.object({
   quickCheckout: z.boolean().optional().default(false),
   abVariant: z.string().max(5).optional(),
   occasionMode: z.string().max(20).optional(),
+  giftUpsellCheckout: z.boolean().optional().default(false),
+  purchaserEmail: z.string().email().max(255).optional().or(z.literal('')),
+  giftRecipientEmail: z.string().email().max(255).optional().or(z.literal('')),
+  giftRecipientName: z.string().max(100).optional(),
+  quickCheckoutEmail: z.string().email().max(255).optional().or(z.literal('')),
 });
 
 serve(async (req) => {
@@ -102,6 +107,65 @@ serve(async (req) => {
     );
 
     const origin = req.headers.get("origin") || "https://littlesouls.app";
+
+    // ========== GIFT UPSELL CHECKOUT (post-purchase 30% off) ==========
+    if (input.giftUpsellCheckout) {
+      const GIFT_UPSELL_PRICE_CENTS = 1890;
+      const GIFT_CERT_VALUE_CENTS = 2700;
+      const purchaserEmail = input.purchaserEmail;
+      if (!purchaserEmail) {
+        return new Response(JSON.stringify({ error: "Purchaser email required" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const randomBytes = new Uint8Array(8);
+      crypto.getRandomValues(randomBytes);
+      let giftCode = "GIFT-";
+      for (let i = 0; i < 4; i++) giftCode += chars[randomBytes[i] % chars.length];
+      giftCode += "-";
+      for (let i = 4; i < 8; i++) giftCode += chars[randomBytes[i] % chars.length];
+      const expiresAt = new Date();
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      const giftSession = await stripe.checkout.sessions.create({
+        customer_email: purchaserEmail,
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "🎁 Gift a Little Souls Reading",
+              description: input.giftRecipientName
+                ? `A cosmic reading for ${input.giftRecipientName} — they'll discover their pet's soul`
+                : "A cosmic pet reading gift certificate — worth $27",
+            },
+            unit_amount: GIFT_UPSELL_PRICE_CENTS,
+          },
+          quantity: 1,
+        }],
+        mode: "payment",
+        payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
+        success_url: `${origin}/gift-success?code=${giftCode}&delivery=link`,
+        cancel_url: `${origin}/`,
+        metadata: { type: "gift_certificate", gift_code: giftCode, gift_upsell: "true" },
+      });
+      await supabaseClient.from("gift_certificates").insert({
+        code: giftCode,
+        purchaser_email: purchaserEmail,
+        recipient_email: input.giftRecipientEmail || null,
+        recipient_name: input.giftRecipientName || null,
+        gift_message: "Here's a special gift — a cosmic soul reading for your pet! 🌟",
+        amount_cents: GIFT_CERT_VALUE_CENTS,
+        gift_tier: "essential",
+        stripe_session_id: giftSession.id,
+        expires_at: expiresAt.toISOString(),
+      });
+      console.log("[CREATE-CHECKOUT] Gift upsell session:", giftSession.id, giftCode);
+      return new Response(JSON.stringify({ url: giftSession.url }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     // ========== QUICK CHECKOUT MODE (Variant C) ==========
     if (input.quickCheckout) {
@@ -160,7 +224,7 @@ serve(async (req) => {
         const { data: placeholderReport, error: insertError } = await supabaseClient
           .from("pet_reports")
           .insert({
-            email: "pending@checkout.temp",
+            email: input.quickCheckoutEmail || "pending@checkout.temp",
             pet_name: "Pending",
             species: "pending",
             payment_status: "pending",
@@ -248,8 +312,10 @@ serve(async (req) => {
       }
 
       const session = await stripe.checkout.sessions.create({
+        ...(input.quickCheckoutEmail ? { customer_email: input.quickCheckoutEmail } : {}),
         line_items: lineItems,
         mode: "payment",
+        payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
         allow_promotion_codes: false,
         success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}&quick=true`,
         cancel_url: `${origin}/checkout`,
@@ -610,6 +676,7 @@ serve(async (req) => {
       customer_email: sanitizedEmail,
       line_items: lineItems,
       mode: checkoutMode,
+      payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
       allow_promotion_codes: false,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
       cancel_url: `${origin}/checkout`,

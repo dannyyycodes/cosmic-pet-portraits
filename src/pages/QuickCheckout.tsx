@@ -127,6 +127,7 @@ export default function QuickCheckout() {
   const [petCount, setPetCount] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMode, setSelectedMode] = useState<OccasionMode>("discover");
+  const [email, setEmail] = useState("");
   const [tickerIndex, setTickerIndex] = useState(0);
   const [tickerVisible, setTickerVisible] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -186,6 +187,7 @@ export default function QuickCheckout() {
           includesBook: includeBook,
           occasionMode: selectedMode,
           petCount,
+          ...(email.trim() ? { quickCheckoutEmail: email.trim() } : {}),
         },
       });
       if (error) throw error;
@@ -535,6 +537,23 @@ export default function QuickCheckout() {
               <span className="font-dm-serif text-lg text-foreground">${(totalCents / 100).toFixed(2)}</span>
             </div>
           </div>
+        </motion.div>
+
+        {/* ── Email capture ── */}
+        <motion.div initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.43 }} className="mb-3">
+          <p className="font-cormorant text-[0.82rem] text-muted-foreground mb-1.5 text-center">
+            Where should we send your reading?
+          </p>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-card font-cormorant text-[0.95rem] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 transition-colors"
+          />
+          <p className="text-center text-[0.75rem] text-muted-foreground/60 mt-1.5 font-cormorant">
+            No account needed · speeds up Apple Pay &amp; Google Pay
+          </p>
         </motion.div>
 
         {/* ── Primary CTA ── */}
