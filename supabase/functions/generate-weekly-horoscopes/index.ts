@@ -560,7 +560,7 @@ function generateHoroscopeEmail(
     <div style="text-align:center; padding:28px 20px;">
       <p style="color:${muted}; font-size:12px; margin:0;">${footerText} ✨</p>
       <p style="color:${muted}; font-size:11px; margin:8px 0 0;">
-        <a href="{{{unsubscribe_url}}}" style="color:${muted}; text-decoration:underline;">Unsubscribe</a>
+        <a href="https://littlesouls.app/unsubscribe?id=${reportId}" style="color:${muted}; text-decoration:underline;">Unsubscribe</a>
       </p>
     </div>
 
@@ -664,15 +664,17 @@ serve(async (req) => {
           ? buildMemorialPrompt(sub.pet_name, species, breed, sunSign, moonSign, element, archetype, superpower, petTransits)
           : buildStandardPrompt(sub.pet_name, species, breed, sunSign, moonSign, element, archetype, superpower, petTransits);
 
-        // Generate horoscope using Claude Sonnet
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        // Generate horoscope using Claude Sonnet via OpenRouter
+        const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+            Authorization: `Bearer ${Deno.env.get("OPENROUTER_API_KEY")}`,
             "Content-Type": "application/json",
+            "HTTP-Referer": "https://littlesouls.app",
+            "X-Title": "Little Souls",
           },
           body: JSON.stringify({
-            model: "anthropic/claude-sonnet-4-20250514",
+            model: "anthropic/claude-sonnet-4-5",
             messages: [
               {
                 role: "system",
