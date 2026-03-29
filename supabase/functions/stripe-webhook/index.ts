@@ -549,13 +549,12 @@ serve(async (req) => {
                    // Portrait AI temporarily disabled — we use the uploaded photo directly on the card now.
                    // (pet_photo_url is stored on the report and used in the frontend.)
                   
-                  // Create horoscope subscription if hardcover or horoscope add-on enabled
+                  // Create horoscope subscription only when explicitly opted in — hardcover does NOT get free horoscopes
                   const includeHoroscope = session.metadata?.include_horoscope === "true";
-                  const isHardcover = session.metadata?.includes_book === "true";
-                  const thisPetGetsHoroscope = isHardcover || includeHoroscope;
+                  const thisPetGetsHoroscope = includeHoroscope;
 
                   if (thisPetGetsHoroscope && report.email) {
-                    console.log("[STRIPE-WEBHOOK] Creating horoscope subscription for:", reportId, { isHardcover, includeHoroscope });
+                    console.log("[STRIPE-WEBHOOK] Creating horoscope subscription for:", reportId, { includeHoroscope });
 
                     // Check if subscription already exists
                     const { data: existingSub } = await supabaseClient
@@ -575,12 +574,11 @@ serve(async (req) => {
                       // Determine occasion mode from report
                       const petOccasionMode = report.occasion_mode || "discover";
 
-                      // Hardcover buyers get horoscopes forever; others get 30-day trial
-                      const plan = isHardcover ? "hardcover_included" : "trial";
+                      const plan = "trial";
 
-                      // For non-hardcover, create a Stripe recurring subscription with 30-day trial
+                      // Create Stripe recurring subscription with 30-day free trial
                       let stripeSubId: string | null = null;
-                      if (!isHardcover && session.customer) {
+                      if (session.customer) {
                         try {
                           const stripeSub = await stripe.subscriptions.create({
                             customer: session.customer as string,
@@ -598,15 +596,14 @@ serve(async (req) => {
                         }
                       }
 
-                      // Set SoulSpeak credits: 300 for hardcover, 80 for standard
-                      const creditAmount = isHardcover ? 300 : 80;
+                      // SoulSpeak credits for horoscope subscribers
                       await supabaseClient
                         .from("chat_credits")
                         .upsert({
                           report_id: reportId,
                           email: report.email,
-                          credits_remaining: creditAmount,
-                          plan: isHardcover ? "hardcover" : "free",
+                          credits_remaining: 80,
+                          plan: "free",
                         }, { onConflict: "report_id" });
 
                       const { error: subError } = await supabaseClient
