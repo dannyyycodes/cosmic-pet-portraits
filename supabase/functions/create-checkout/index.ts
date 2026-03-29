@@ -677,6 +677,11 @@ serve(async (req) => {
       line_items: lineItems,
       mode: checkoutMode,
       payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
+      // Save the payment method for future off-session subscription charges.
+      // Required so the $4.99/month horoscope subscription can charge after the 30-day trial.
+      // Klarna/Afterpay don't support off_session — Stripe will filter them out automatically
+      // when horoscopes are included, which is correct (recurring billing needs a saved card).
+      ...(horoscopePetCount > 0 ? { payment_intent_data: { setup_future_usage: "off_session" } } : {}),
       allow_promotion_codes: false,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
       cancel_url: `${origin}/checkout`,
