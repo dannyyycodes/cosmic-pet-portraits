@@ -527,18 +527,48 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
   );
 
+  // Parse optional test body
+  let testReportId: string | null = null;
+  let testEmail: string | null = null;
+  try {
+    const body = await req.json().catch(() => ({}));
+    testReportId = body.testReportId || null;
+    testEmail = body.testEmail || null;
+  } catch (_) { /* no body is fine */ }
+
   try {
     console.log("[WEEKLY-HOROSCOPE] Starting weekly horoscope generation...");
 
-    // Get all active subscriptions (include plan & occasion_mode)
-    const { data: subscriptions, error: subError } = await supabase
-      .from("horoscope_subscriptions")
-      .select("*, pet_reports(*)")
-      .eq("status", "active");
+    // Test mode: send directly to a specific report+email, skip subscription table
+    let subscriptions: any[];
+    if (testReportId && testEmail) {
+      console.log(`[WEEKLY-HOROSCOPE] TEST MODE — report ${testReportId} → ${testEmail}`);
+      const { data: report } = await supabase
+        .from("pet_reports")
+        .select("*")
+        .eq("id", testReportId)
+        .single();
+      if (!report) throw new Error(`Report ${testReportId} not found`);
+      subscriptions = [{
+        id: `test-${Date.now()}`,
+        pet_name: report.pet_name,
+        email: testEmail,
+        pet_report_id: testReportId,
+        occasion_mode: report.occasion_mode || "discover",
+        pet_reports: report,
+        _testMode: true,
+      }];
+    } else {
+      // Get all active subscriptions (include plan & occasion_mode)
+      const { data: subs, error: subError } = await supabase
+        .from("horoscope_subscriptions")
+        .select("*, pet_reports(*)")
+        .eq("status", "active");
+      if (subError) throw subError;
+      subscriptions = subs || [];
+    }
 
-    if (subError) throw subError;
-
-    console.log(`[WEEKLY-HOROSCOPE] Found ${subscriptions?.length || 0} active subscriptions`);
+    console.log(`[WEEKLY-HOROSCOPE] Found ${subscriptions.length} active subscriptions`);
 
     // Calculate global transits once (shared across all pets)
     const { text: globalTransits, positions: currentPositions } = getGlobalTransits();
@@ -561,22 +591,25 @@ serve(async (req) => {
       try {
         console.log(`[WEEKLY-HOROSCOPE] Processing ${sub.pet_name}...`);
 
-        // Check if horoscope already generated for this week
-        const { data: existing } = await supabase
-          .from("weekly_horoscopes")
-          .select("id")
-          .eq("subscription_id", sub.id)
-          .eq("week_start", weekStartStr)
-          .single();
+        // Check if horoscope already generated for this week (skip in test mode)
+        if (!sub._testMode) {
+          const { data: existing } = await supabase
+            .from("weekly_horoscopes")
+            .select("id")
+            .eq("subscription_id", sub.id)
+            .eq("week_start", weekStartStr)
+            .single();
 
-        if (existing) {
-          console.log(`[WEEKLY-HOROSCOPE] Already generated for ${sub.pet_name} this week`);
-          continue;
+          if (existing) {
+            console.log(`[WEEKLY-HOROSCOPE] Already generated for ${sub.pet_name} this week`);
+            continue;
+          }
         }
 
         const petReport = sub.pet_reports;
         if (!petReport?.report_content) {
           console.log(`[WEEKLY-HOROSCOPE] No report content for ${sub.pet_name}`);
+          results.push({ pet: sub.pet_name, status: "skipped", reason: "no_report_content" });
           continue;
         }
 
@@ -621,6 +654,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: "anthropic/claude-sonnet-4-5",
+            max_tokens: 2000,
             messages: [
               {
                 role: "system",
@@ -659,6 +693,7 @@ Return only valid JSON.`,
         if (!aiResponse.ok) {
           const errorText = await aiResponse.text();
           console.error(`[WEEKLY-HOROSCOPE] AI error for ${sub.pet_name}:`, errorText);
+          results.push({ pet: sub.pet_name, status: "error", reason: "ai_failed", detail: errorText.slice(0, 200) });
           continue;
         }
 
@@ -669,21 +704,23 @@ Return only valid JSON.`,
           const content = aiData.choices[0].message.content;
           const jsonMatch = content.match(/\{[\s\S]*\}/);
           horoscopeContent = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
-        } catch (parseError) {
+        } catch (parseError: any) {
           console.error(`[WEEKLY-HOROSCOPE] Parse error for ${sub.pet_name}:`, parseError);
+          results.push({ pet: sub.pet_name, status: "error", reason: "parse_failed", detail: parseError?.message });
           continue;
         }
 
-        // Save horoscope to database
-        const { error: insertError } = await supabase
-          .from("weekly_horoscopes")
-          .insert({
-            subscription_id: sub.id,
-            week_start: weekStartStr,
-            content: horoscopeContent,
-          });
-
-        if (insertError) throw insertError;
+        // Save horoscope to database (skip in test mode)
+        if (!sub._testMode) {
+          const { error: insertError } = await supabase
+            .from("weekly_horoscopes")
+            .insert({
+              subscription_id: sub.id,
+              week_start: weekStartStr,
+              content: horoscopeContent,
+            });
+          if (insertError) throw insertError;
+        }
 
         // Send email
         const emailSubject = occasionMode === "memorial"
@@ -712,20 +749,22 @@ Return only valid JSON.`,
           console.error(`[WEEKLY-HOROSCOPE] Email error for ${sub.pet_name}:`, emailError);
         } else {
           // Mark as sent and update next_send_at
-          const nextSend = new Date();
-          nextSend.setDate(nextSend.getDate() + 7);
-          nextSend.setHours(9, 0, 0, 0);
+          if (!sub._testMode) {
+            const nextSend = new Date();
+            nextSend.setDate(nextSend.getDate() + 7);
+            nextSend.setHours(9, 0, 0, 0);
 
-          await supabase
-            .from("weekly_horoscopes")
-            .update({ sent_at: new Date().toISOString() })
-            .eq("subscription_id", sub.id)
-            .eq("week_start", weekStartStr);
+            await supabase
+              .from("weekly_horoscopes")
+              .update({ sent_at: new Date().toISOString() })
+              .eq("subscription_id", sub.id)
+              .eq("week_start", weekStartStr);
 
-          await supabase
-            .from("horoscope_subscriptions")
-            .update({ next_send_at: nextSend.toISOString() })
-            .eq("id", sub.id);
+            await supabase
+              .from("horoscope_subscriptions")
+              .update({ next_send_at: nextSend.toISOString() })
+              .eq("id", sub.id);
+          }
         }
 
         results.push({ pet: sub.pet_name, status: "success" });
@@ -737,7 +776,7 @@ Return only valid JSON.`,
       }
     }
 
-    return new Response(JSON.stringify({ success: true, results }), {
+    return new Response(JSON.stringify({ success: true, results, subCount: subscriptions.length }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
     });
   } catch (error: any) {
