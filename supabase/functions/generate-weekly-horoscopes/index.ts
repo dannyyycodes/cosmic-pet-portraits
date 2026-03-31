@@ -119,7 +119,68 @@ function buildStandardPrompt(
   superpower: string,
   transits: string
 ): string {
-  return `Create a deeply personalised weekly horoscope for a ${species}${breed ? ` (${breed})` : ""} named "${petName}".
+  return `You are writing this week's cosmic reading for ${petName}, a ${breed || species}. The person reading this adores this animal completely. Your job is to make them feel — not just informed.
+
+THEIR CHART
+- Sun Sign: ${sunSign} | Moon Sign: ${moonSign}
+- Dominant Element: ${element}
+- Soul Archetype: ${archetype}
+- Core Superpower: ${superpower}
+- Species: ${species}${breed ? ` (${breed})` : ""}
+
+THIS WEEK'S REAL PLANETARY DATA
+${transits}
+
+---
+
+WHAT GOOD LOOKS LIKE — read these examples carefully before writing:
+
+BAD hook: "This is a powerful week for your little one full of love and connection."
+GOOD hook: "Venus is sitting on ${petName}'s natal Moon this week. You might notice them seeking you out more than usual — positioning themselves in your line of sight, asking quietly to be seen."
+
+BAD daily: "Thursday is a great day for adventure and play!"
+GOOD daily: "Thursday — the Moon moves into their sign and trines Jupiter. If you've been wanting to try something new together, this is the window. Don't overthink it."
+
+BAD bond ritual: "Spend quality time with your pet this week!"
+GOOD bond ritual: "Sit with them on the floor tonight — no phone, no TV. Just your hand on their side. With Saturn slowing through their 4th house right now, they are processing something quiet and deep. They don't need you to fix it. They just need you present."
+
+BAD affirmation: "I am loved and cherished by the universe!"
+GOOD affirmation: "I already know where you are in every room. I always have."
+
+The difference: specificity, emotional truth, and restraint. No exclamation marks on serious moments. No filler. Every sentence earns its place.
+
+---
+
+Return ONLY valid JSON with exactly these fields:
+
+{
+  "theme": "One word — the emotional spine of this week for ${petName}. Not generic (not 'growth' or 'love') — specific to their chart and the transits.",
+  "hookLine": "One sentence. Name a specific planet and what it's doing in or near ${petName}'s chart. Make it feel like a secret the owner didn't know but immediately recognises as true.",
+  "overview": "Two paragraphs separated by a blank line. First paragraph: what's happening in the sky this week and what it means specifically for a ${sunSign} ${species} with ${moonSign} moon. Second paragraph: what the owner will likely notice — behaviour, mood, small moments. Be concrete. No vague cosmic language. Max 160 words total.",
+  "cosmicMoment": {
+    "day": "The single most significant day this week for ${petName}",
+    "timeOfDay": "morning / afternoon / evening",
+    "what": "One sentence: exactly what to watch for or do. Specific and actionable.",
+    "why": "One sentence: the transit reason. Name the planet and sign."
+  },
+  "dailyGuide": {
+    "monday": "One sentence + one emoji. Reference a transit or the week's theme. No filler.",
+    "tuesday": "One sentence + one emoji.",
+    "wednesday": "One sentence + one emoji.",
+    "thursday": "One sentence + one emoji.",
+    "friday": "One sentence + one emoji.",
+    "saturday": "One sentence + one emoji.",
+    "sunday": "One sentence + one emoji."
+  },
+  "bondRitual": {
+    "title": "5-8 words. Specific, not generic.",
+    "instruction": "2-3 sentences. What to do, when, and why this week's transits make it the right moment. Write it like advice from someone who genuinely knows this animal.",
+    "bestDay": "Which day, and why briefly."
+  },
+  "affirmation": "One sentence from ${petName}'s perspective. Warm, specific to their archetype, not cheesy. No exclamation marks. Should make the owner go quiet for a second.",
+  "nextWeekTeaser": "One sentence. Name a real upcoming transit and why it will matter for ${petName}. Specific enough to feel earned, vague enough to create anticipation. Do NOT give the full reading — just the hook.",
+  "replyPrompt": "One casual question tied to something specific in this week's reading — a behaviour to watch for, a moment to notice. Sounds like it's from a person, not a system. Max 20 words."
+}
 
 ASTROLOGICAL PROFILE
 - Sun Sign: ${sunSign}
@@ -220,93 +281,65 @@ function buildMemorialPrompt(
   superpower: string,
   transits: string
 ): string {
-  return `Create a tender weekly "Signs From ${petName}" reading for a beloved ${species}${breed ? ` (${breed})` : ""} who has crossed the rainbow bridge.
+  return `You are writing this week's "Signs From Beyond" reading for ${petName}, a ${breed || species} who has crossed the rainbow bridge. The person reading this misses them every single day. Your job is to make them feel held.
 
-THEIR ASTROLOGICAL PROFILE
-- Sun Sign: ${sunSign}
-- Moon Sign: ${moonSign}
+THEIR CHART
+- Sun Sign: ${sunSign} | Moon Sign: ${moonSign}
 - Dominant Element: ${element}
 - Soul Archetype: ${archetype}
-- Superpower: ${superpower}
+- Core Superpower: ${superpower}
+- Species: ${species}${breed ? ` (${breed})` : ""}
 
-THIS WEEK'S PLANETARY TRANSITS (real astronomical data)
+THIS WEEK'S REAL PLANETARY DATA
 ${transits}
 
-TONE: Tender, comforting, hopeful — never sad. Frame everything as signs, visits, and continued connection. This is about a soul who is still present in starlight, dreams, and quiet moments.
+---
 
-Species/breed context: Reference ${breed || species}-specific behaviours as "signs" — e.g. "You might feel a phantom weight on the bed where they used to sleep" or "A ${breed || species} in the park might pause and look at you — that's ${petName} saying hello."
+WHAT GOOD LOOKS LIKE:
 
-Return a JSON object with these fields:
+BAD: "Your little one is sending you love from beyond the stars this week!"
+GOOD: "Venus is moving through the part of the sky where ${petName}'s Moon lives. If you find yourself thinking of them at an unexpected moment this week — while making coffee, or just before sleep — that's not random. That's the chart doing what it does."
+
+BAD: "Watch for signs from ${petName} on Tuesday."
+GOOD: "Tuesday, the Moon crosses the degree where ${petName}'s Sun sat. It's a quiet thing, astrologically. But grief moves in quiet things. Be gentle with yourself that day."
+
+BAD affirmation: "I am always with you, forever and always!"
+GOOD affirmation: "I still follow you from room to room. I just do it differently now."
+
+The tone is: warm, grounded, honest. This person doesn't need to be told everything is fine. They need to feel accompanied. Never performatively cheerful. Never hollow. Write like someone who has also loved an animal and lost them.
+
+---
+
+Return ONLY valid JSON with exactly these fields:
+
 {
-  "theme": "One comforting word for the week",
-  "overview": "3-4 tender sentences about how ${petName}'s spirit connects through this week's transits (max 120 words)",
-  "luckyDay": "Day when ${petName}'s presence will feel strongest",
-  "luckyActivity": "Something to do to feel close to ${petName} this week",
-  "unluckyDay": "Day grief might visit — and that's okay",
-  "moodPredictions": {
-    "overall": "Emotional forecast for the human (gentle/reflective/warm/peaceful)",
-    "peakEnergy": "Moment when ${petName}'s presence feels closest",
-    "restNeeds": "When to be extra gentle with yourself"
+  "theme": "One word — the emotional quality of this week's sky for ${petName}'s human. Specific to the transits, not generic.",
+  "hookLine": "One sentence. Name a specific planet and what it's doing near ${petName}'s chart. Should feel like a moment of recognition — the kind that makes someone put their phone down.",
+  "overview": "Two paragraphs separated by a blank line. First: what's in the sky this week and what it stirs for people grieving a ${sunSign} ${species}. Second: what ${petName}'s human might notice or feel — a moment, a memory, a sensation. Grounded and true. Max 160 words.",
+  "cosmicMoment": {
+    "day": "The single day this week when ${petName}'s presence might feel closest",
+    "timeOfDay": "morning / afternoon / evening",
+    "what": "One sentence: something specific to do or notice in that moment.",
+    "why": "One sentence: the transit reason. Name the planet and what it's crossing."
   },
-  "energyForecast": {
-    "monday": "1-sentence about signs to watch for + emoji",
-    "tuesday": "1-sentence + emoji",
-    "wednesday": "1-sentence + emoji",
-    "thursday": "1-sentence + emoji",
-    "friday": "1-sentence + emoji",
-    "saturday": "1-sentence + emoji",
-    "sunday": "1-sentence + emoji"
+  "dailyGuide": {
+    "monday": "One sentence + one emoji. A sign to watch for, or a feeling to allow.",
+    "tuesday": "One sentence + one emoji.",
+    "wednesday": "One sentence + one emoji.",
+    "thursday": "One sentence + one emoji.",
+    "friday": "One sentence + one emoji.",
+    "saturday": "One sentence + one emoji.",
+    "sunday": "One sentence + one emoji."
   },
-  "cosmicAdvice": "Comforting guidance for ${petName}'s human (max 60 words)",
-  "bonusInsight": "A beautiful observation about how ${petName}'s cosmic energy lingers",
-  "photoPrompt": "A gentle prompt — look through old photos, or photograph a sign from ${petName}",
-  "compatibilityTip": "How ${petName}'s spirit will show up through other animals this week",
-  "affirmation": "A comforting affirmation about eternal bonds",
-  "textMessages": [
-    {
-      "time": "Tuesday morning",
-      "messages": [
-        "Sweet message from ${petName} from beyond ✨",
-        "Another tender message",
-        "Comforting sign-off"
-      ]
-    },
-    {
-      "time": "Saturday night",
-      "messages": [
-        "Late-night message from ${petName}",
-        "Comforting words about always being near",
-        "Final sweet message with emoji"
-      ]
-    }
-  ],
-  "googleSearches": [
-    "Bittersweet search about missing ${petName}",
-    "Another tender search",
-    "Another search"
-  ],
-  "petParentSync": {
-    "syncLevel": 5,
-    "syncEmoji": "🔗🔗🔗🔗🔗",
-    "description": "3 sentences about how ${petName}'s energy still guides their human this week. Eternal bond framing."
+  "bondRitual": {
+    "title": "5-8 words. Something tender and specific.",
+    "instruction": "2-3 sentences. A simple thing to do this week to feel close to ${petName}. Reference their breed/species — how they sounded, how they felt, what they loved. The transits should make this the right week for it.",
+    "bestDay": "Which day, and why briefly."
   },
-  "memePersonality": {
-    "vibe": "This week ${petName}'s spirit is giving: '[tender internet moment description]'",
-    "energyLevel": "Presence level: ✨✨✨✨✨ (always here, always watching)"
-  },
-  "powerMove": {
-    "title": "The most powerful sign ${petName} will send this week",
-    "description": "Why this moment connects to the transits (2 sentences max)",
-    "bestDay": "When to watch for it"
-  }
-}
-
-IMPORTANT WRITING GUIDELINES:
-- Every sentence should feel like ${petName}'s spirit is gently reaching through. Not generic — deeply specific to who they were.
-- Use ${species}-specific "signs" language: "You might hear a sound like ${breed || species} paws on the kitchen floor," or "A ${breed || species} at the park might pause and hold your gaze — that's ${petName}."
-- The text messages should read like ${petName} is texting from the other side — tender, sometimes funny, always loving.
-- Frame everything through hope and continued presence, never loss. ${petName} isn't gone — they're everywhere.
-- Write with the kind of tenderness that makes someone cry happy tears. This person misses their baby. Every word should feel like a hug from the universe.`;
+  "affirmation": "One sentence from ${petName}. Spoken from wherever they are now. Warm, specific to their archetype. Should make the person reading it go still for a moment.",
+  "nextWeekTeaser": "One sentence. Name a real upcoming transit and why it will matter for ${petName}'s human. Gentle anticipation — not hype.",
+  "replyPrompt": "One honest question. Did something happen this week that felt like ${petName}? Something small and true. Max 20 words."
+}`;
 }
 
 // ── Email template ──────────────────────────────────────────────
@@ -318,20 +351,21 @@ function generateHoroscopeEmail(
   element: string,
   occasionMode: string,
   reportId: string,
-  weekDateRange: string
+  weekDateRange: string,
+  petPhotoUrl?: string
 ): string {
   const isMemorial = occasionMode === "memorial";
 
-  // Warm earthy palette
+  // Warm earthy palette (matching landing page variant-c)
   const gold = "#c4a265";
-  const ink = "#3d2f2a";
+  const ink = "#141210";
   const warm = "#5a4a42";
-  const muted = "#9a8578";
-  const cream = "#f5efe6";
-  const cream2 = "#faf6ef";
+  const muted = "#958779";
+  const cream = "#FFFDF5";
+  const cream2 = "#faf4e8";
   const cream3 = "#e8ddd0";
+  const rose = "#bf524a";
 
-  const headerEmoji = isMemorial ? "🕊️" : "✨";
   const headerTitle = isMemorial
     ? `Signs From ${petName} This Week`
     : `${petName}'s Weekly Forecast`;
@@ -339,8 +373,52 @@ function generateHoroscopeEmail(
     ? `Sent with love from beyond the stars`
     : `Sent with cosmic love from Little Souls`;
 
-  const textMessages = content.textMessages || [];
-  const googleSearches = content.googleSearches || [];
+  // Daily guide rows — supports both new array format and legacy energyForecast object
+  const dailyGuideRows = (() => {
+    if (Array.isArray(content.dailyGuide) && content.dailyGuide.length > 0) {
+      return content.dailyGuide.map((d: any) => `
+        <tr>
+          <td style="padding:10px 0; color:${gold}; font-size:13px; font-weight:bold; width:90px; vertical-align:top;">${d.day || ""}</td>
+          <td style="padding:10px 0; font-size:16px; width:28px; vertical-align:top;">${d.emoji || ""}</td>
+          <td style="padding:10px 0; color:${warm}; font-size:13px; line-height:1.55; border-bottom:1px solid ${cream3};">${d.energy || ""}</td>
+        </tr>
+      `).join("");
+    }
+    // Legacy fallback
+    return Object.entries(content.energyForecast || {}).map(([day, energy]) => `
+      <tr>
+        <td style="padding:10px 0; color:${gold}; font-size:13px; font-weight:bold; width:90px; vertical-align:top;">${day}</td>
+        <td style="padding:10px 0; color:${warm}; font-size:13px; line-height:1.55; border-bottom:1px solid ${cream3};" colspan="2">${energy}</td>
+      </tr>
+    `).join("");
+  })();
+
+  // Cosmic moment block
+  const cosmicMoment = content.cosmicMoment;
+  const cosmicMomentHtml = cosmicMoment ? `
+    <!-- Cosmic Moment -->
+    <div style="background:${cream2}; padding:24px; border-bottom:1px solid ${cream3};">
+      <p style="color:${muted}; margin:0 0 6px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-weight:bold;">⭐ The Moment That Matters</p>
+      <p style="color:${ink}; margin:0 0 4px; font-size:16px; font-weight:bold; font-family:Georgia,'Times New Roman',serif;">
+        ${cosmicMoment.day || ""}${cosmicMoment.time ? ` · ${cosmicMoment.time}` : ""}
+        ${cosmicMoment.planet ? ` <span style="color:${gold}; font-size:13px; font-weight:normal;">(${cosmicMoment.planet})</span>` : ""}
+      </p>
+      ${cosmicMoment.what ? `<p style="color:${warm}; margin:8px 0 4px; font-size:14px; font-weight:600; line-height:1.5;">${cosmicMoment.what}</p>` : ""}
+      ${cosmicMoment.why ? `<p style="color:${warm}; margin:0; font-size:13px; line-height:1.65; font-style:italic;">${cosmicMoment.why}</p>` : ""}
+    </div>
+  ` : "";
+
+  // Bond ritual block
+  const bondRitual = content.bondRitual;
+  const bondRitualHtml = bondRitual ? `
+    <!-- Bond Ritual -->
+    <div style="background:white; padding:24px; border-left:3px solid ${gold}; border-bottom:1px solid ${cream3};">
+      <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-weight:bold;">🕯️ This Week's Ritual</p>
+      <p style="color:${ink}; margin:0 0 6px; font-size:16px; font-weight:bold; font-family:Georgia,'Times New Roman',serif;">${typeof bondRitual === 'object' ? (bondRitual.title || "") : bondRitual}</p>
+      ${typeof bondRitual === 'object' && bondRitual.action ? `<p style="color:${warm}; margin:0 0 6px; font-size:14px; line-height:1.65;">${bondRitual.action}</p>` : ""}
+      ${typeof bondRitual === 'object' && bondRitual.why ? `<p style="color:${muted}; margin:0; font-size:12px; font-style:italic; line-height:1.6;">${bondRitual.why}</p>` : ""}
+    </div>
+  ` : "";
 
   return `<!DOCTYPE html>
 <html>
@@ -348,218 +426,86 @@ function generateHoroscopeEmail(
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0; padding:0; background-color:${cream}; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;">
+<body style="margin:0; padding:0; background-color:${cream}; font-family:Georgia,'Times New Roman',serif;">
   <div style="max-width:600px; margin:0 auto; padding:20px;">
 
-    <!-- 1. Header -->
-    <div style="text-align:center; padding:40px 20px 30px; background:linear-gradient(135deg, ${cream2} 0%, ${cream} 100%); border-radius:20px 20px 0 0; border-bottom:1px solid ${cream3};">
-      <div style="font-size:42px; margin-bottom:8px;">${headerEmoji}</div>
-      <h1 style="color:${ink}; margin:0; font-size:26px; font-family:Georgia,'Times New Roman',serif;">${headerTitle}</h1>
-      <p style="color:${gold}; margin:8px 0 0; font-size:13px; text-transform:uppercase; letter-spacing:2px;">${sunSign} · ${element} Energy</p>
-      <p style="color:${muted}; margin:6px 0 0; font-size:11px; opacity:0.6;">${weekDateRange}</p>
-    </div>
-
-    <!-- 2. Transit accuracy intro -->
-    <div style="padding:14px 20px; background:${cream2}; border-bottom:1px solid ${cream3};">
-      <table style="width:100%;" cellpadding="0" cellspacing="0">
-        <tr>
-          <td style="width:30px; vertical-align:top; padding-top:2px; font-size:14px;">🔭</td>
-          <td style="color:${muted}; font-size:11px; line-height:1.5;">
-            <strong style="color:${ink};">Based on real planetary transits.</strong> This reading is calculated from ${petName}'s exact birth chart against this week's sky positions — not generic sun sign predictions.
-          </td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- 3. Theme Badge -->
-    <div style="background:${cream2}; padding:20px; text-align:center; border-bottom:1px solid ${cream3};">
-      <p style="color:${muted}; margin:0 0 4px; font-size:11px; text-transform:uppercase; letter-spacing:2px;">This Week's Theme</p>
-      <h2 style="color:${gold}; margin:0; font-size:30px; font-weight:bold; font-family:Georgia,'Times New Roman',serif;">${content.theme || "Cosmic"}</h2>
-    </div>
-
-    <!-- 4. This Week Is Giving (meme personality) -->
-    ${content.memePersonality ? `
-    <div style="background:white; padding:18px 22px; text-align:center; border-bottom:1px solid ${cream3};">
-      <p style="color:${muted}; margin:0 0 2px; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; font-weight:bold;">This Week ${petName} Is Giving</p>
-      <p style="color:${ink}; margin:0; font-size:17px; font-family:Georgia,'Times New Roman',serif; font-style:italic;">${typeof content.memePersonality === 'object' ? content.memePersonality.vibe : content.memePersonality}</p>
-      ${typeof content.memePersonality === 'object' && content.memePersonality.energyLevel ? `<p style="color:${muted}; margin:8px 0 0; font-size:11px;">${content.memePersonality.energyLevel}</p>` : ''}
-    </div>
-    ` : ""}
-
-    <!-- 5. Overview -->
-    <div style="background:white; padding:28px 24px; border-bottom:1px solid ${cream3};">
-      <p style="color:${warm}; line-height:1.85; font-size:15px; margin:0;">${content.overview || ""}</p>
-    </div>
-
-    <!-- 6. Lucky Day / Go Easy Day / Lucky Activity (TABLE not flexbox) -->
-    <table style="width:100%; border-collapse:collapse; background:white; border-bottom:1px solid ${cream3};">
-      <tr>
-        <td style="padding:20px; text-align:center; border-right:1px solid ${cream3}; width:33%;">
-          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Lucky Day</p>
-          <p style="color:${gold}; margin:0; font-size:16px; font-weight:bold;">🌟 ${content.luckyDay || ""}</p>
-        </td>
-        <td style="padding:20px; text-align:center; border-right:1px solid ${cream3}; width:33%;">
-          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Go Easy Day</p>
-          <p style="color:${warm}; margin:0; font-size:16px; font-weight:bold;">🌸 ${content.unluckyDay || ""}</p>
-        </td>
-        <td style="padding:20px; text-align:center; width:33%;">
-          <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1px;">Lucky Activity</p>
-          <p style="color:${ink}; margin:0; font-size:14px; font-weight:bold;">🎯 ${content.luckyActivity || ""}</p>
-        </td>
-      </tr>
-    </table>
-
-    <!-- 7. Power Move -->
-    ${content.powerMove ? `
-    <div style="background:${cream2}; padding:18px 22px; border-left:3px solid ${gold}; border-bottom:1px solid ${cream3};">
-      <p style="color:${gold}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:1.5px; font-weight:bold;">⚡ This Week's Power Move</p>
-      <p style="color:${ink}; margin:0; font-size:15px; font-weight:bold; line-height:1.4;">${typeof content.powerMove === 'object' ? `${content.powerMove.bestDay || ''}: ${content.powerMove.title}` : content.powerMove}</p>
-      ${typeof content.powerMove === 'object' && content.powerMove.description ? `<p style="color:${muted}; margin:6px 0 0; font-size:12px; font-style:italic;">${content.powerMove.description}</p>` : ''}
-    </div>
-    ` : ""}
-
-    <!-- 8. Mood Predictions -->
-    ${content.moodPredictions ? `
-    <div style="background:${cream2}; padding:20px 24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">🌙 Mood Forecast</h3>
-      <table style="width:100%; border-collapse:collapse;">
-        <tr>
-          <td style="padding:8px 12px; background:white; border-radius:8px; color:${muted}; font-size:13px;">Overall Vibe</td>
-          <td style="padding:8px 12px; background:white; border-radius:8px; color:${gold}; font-size:13px; font-weight:bold; text-align:right;">${content.moodPredictions.overall || ""}</td>
-        </tr>
-        <tr><td style="padding:3px;"></td><td></td></tr>
-        <tr>
-          <td style="padding:8px 12px; background:white; border-radius:8px; color:${muted}; font-size:13px;">⚡ Peak Energy</td>
-          <td style="padding:8px 12px; background:white; border-radius:8px; color:${ink}; font-size:13px; text-align:right;">${content.moodPredictions.peakEnergy || ""}</td>
-        </tr>
-        <tr><td style="padding:3px;"></td><td></td></tr>
-        <tr>
-          <td style="padding:8px 12px; background:white; border-radius:8px; color:${muted}; font-size:13px;">😴 Rest Needed</td>
-          <td style="padding:8px 12px; background:white; border-radius:8px; color:${ink}; font-size:13px; text-align:right;">${content.moodPredictions.restNeeds || ""}</td>
-        </tr>
-      </table>
-    </div>
-    ` : ""}
-
-    <!-- 9. Daily Energy (TABLE not flexbox) -->
-    <div style="background:${cream2}; padding:24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">📅 ${isMemorial ? 'Where to Feel ' + petName + ' This Week' : 'Daily Energy Guide'}</h3>
-      <table style="width:100%; border-collapse:collapse;">
-        ${Object.entries(content.energyForecast || {}).map(([day, energy]) => `
-          <tr>
-            <td style="padding:10px 0; color:${gold}; font-size:13px; text-transform:capitalize; font-weight:bold; width:90px; vertical-align:top;">${day}</td>
-            <td style="padding:10px 0; color:${warm}; font-size:13px; border-bottom:1px solid ${cream3};">${energy}</td>
-          </tr>
-        `).join("")}
-      </table>
-    </div>
-
-    <!-- 10. Pet-Parent Cosmic Sync -->
-    ${content.petParentSync ? `
-    <div style="background:white; padding:22px 24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 6px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">💫 Pet-Parent Cosmic Sync</h3>
-      <div style="padding:12px 14px; background:${cream2}; border-radius:10px;">
-        <p style="color:${ink}; margin:0 0 6px; font-size:13px; font-weight:bold;">Sync Level: ${typeof content.petParentSync === 'object' ? content.petParentSync.syncEmoji || '🔗🔗🔗░░' : '🔗🔗🔗░░'} (${typeof content.petParentSync === 'object' && content.petParentSync.syncLevel >= 4 ? 'Strong' : 'Moderate'})</p>
-        <p style="color:${warm}; margin:0; font-size:13px; line-height:1.6;">${typeof content.petParentSync === 'object' ? content.petParentSync.description : content.petParentSync}</p>
+    <!-- 1. Header with pet photo -->
+    <div style="text-align:center; padding:40px 20px 32px; background:linear-gradient(160deg, ${cream2} 0%, ${cream} 100%); border-radius:20px 20px 0 0; border-bottom:1px solid ${cream3};">
+      ${petPhotoUrl ? `
+      <div style="margin-bottom:18px;">
+        <img src="${petPhotoUrl}" alt="${petName}" width="96" height="96"
+          style="width:96px; height:96px; border-radius:50%; object-fit:cover; border:3px solid ${gold}; display:inline-block;" />
       </div>
+      ` : ""}
+      <h1 style="color:${ink}; margin:0; font-size:26px; font-family:Georgia,'Times New Roman',serif;">${headerTitle}</h1>
+      <p style="color:${gold}; margin:8px 0 0; font-size:12px; text-transform:uppercase; letter-spacing:2px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${sunSign} · ${element} Energy</p>
+      <p style="color:${muted}; margin:6px 0 0; font-size:11px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${weekDateRange}</p>
     </div>
-    ` : ""}
 
-    <!-- 11. Bonus Insight -->
-    ${content.bonusInsight ? `
-    <div style="background:white; padding:20px 24px; border-left:3px solid ${gold}; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${gold}; margin:0 0 6px; font-size:13px;">💡 Cosmic Insight</h3>
-      <p style="color:${warm}; margin:0; font-size:14px; line-height:1.65;">${content.bonusInsight}</p>
+    <!-- 2. Hook Line -->
+    <div style="background:${ink}; padding:22px 28px; text-align:center;">
+      <p style="color:#FFFDF5; margin:0; font-size:17px; font-style:italic; line-height:1.55;">"${content.hookLine || content.theme || ""}"</p>
     </div>
-    ` : ""}
 
-    <!-- 12. Text Messages (iMessage style with timestamps) -->
-    ${Array.isArray(textMessages) && textMessages.length > 0 ? `
-    <div style="background:white; padding:24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">💬 ${isMemorial ? 'A Message From ' + petName : 'What ' + petName + ' Would Text You This Week'}</h3>
-      ${textMessages.map((segment: any) => {
-        // Handle new format [{time, messages}]
-        if (segment.time && Array.isArray(segment.messages)) {
-          return `
-            <p style="text-align:center; color:${muted}; font-size:10px; margin:12px 0 8px;">${segment.time}</p>
-            ${segment.messages.map((msg: string) => `
-              <div style="margin-bottom:4px;">
-                <div style="background:#e9e9eb; color:#1a1a1a; padding:10px 14px; border-radius:18px 18px 18px 6px; font-size:13px; line-height:1.4; max-width:80%; display:inline-block;">${msg}</div>
-              </div>
-            `).join('')}
-          `;
-        // Backward compat with old format [{sender, text}]
-        } else if (segment.sender && segment.text) {
-          const isPet = segment.sender === 'pet';
-          return `<div style="margin-bottom:6px; text-align:${isPet ? 'left' : 'right'};">
-            <div style="display:inline-block; max-width:80%; padding:10px 14px; border-radius:${isPet ? '18px 18px 18px 6px' : '18px 18px 6px 18px'}; font-size:13px; line-height:1.4; background:${isPet ? '#e9e9eb' : gold}; color:${isPet ? '#1a1a1a' : 'white'};">${segment.text}</div>
-          </div>`;
-        }
-        return '';
-      }).join('')}
+    <!-- 3. Overview -->
+    <div style="background:white; padding:30px 26px; border-bottom:1px solid ${cream3};">
+      <p style="color:${warm}; line-height:1.85; font-size:15px; margin:0 0 14px;">${typeof content.overview === 'object' ? (content.overview.para1 || "") : (content.overview || "")}</p>
+      ${typeof content.overview === 'object' && content.overview.para2 ? `<p style="color:${warm}; line-height:1.85; font-size:15px; margin:0;">${content.overview.para2}</p>` : ""}
     </div>
-    ` : ""}
 
-    <!-- 13. Google Searches -->
-    ${googleSearches.length > 0 ? `
+    ${cosmicMomentHtml}
+
+    <!-- 4. Daily Guide -->
     <div style="background:${cream2}; padding:24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 14px; font-size:15px; font-family:Georgia,'Times New Roman',serif;">🔍 ${petName}'s Search History</h3>
-      ${googleSearches.map((q: string) => `
-        <div style="background:white; border:1px solid ${cream3}; border-radius:20px; padding:10px 16px; margin-bottom:8px; font-size:13px; color:${warm};">
-          ${q}
-        </div>
-      `).join("")}
+      <p style="color:${muted}; margin:0 0 14px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-weight:bold; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">📅 ${isMemorial ? "Where to Feel " + petName + " Each Day" : "Daily Guide"}</p>
+      <table style="width:100%; border-collapse:collapse;">
+        ${dailyGuideRows}
+      </table>
+    </div>
+
+    ${bondRitualHtml}
+
+    <!-- 5. Affirmation — from the pet -->
+    <div style="background:white; padding:32px 26px; text-align:center; border-bottom:1px solid ${cream3};">
+      <p style="color:${muted}; margin:0 0 10px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${isMemorial ? "From " + petName + "'s Soul" : petName + " Says"}</p>
+      <p style="color:${ink}; margin:0; font-size:18px; font-style:italic; line-height:1.6;">"${content.affirmation || ""}"</p>
+    </div>
+
+    <!-- 6. Next Week Teaser -->
+    ${content.nextWeekTeaser ? `
+    <div style="background:${cream2}; padding:18px 24px; border-bottom:1px solid ${cream3}; text-align:center;">
+      <p style="color:${muted}; margin:0 0 4px; font-size:10px; text-transform:uppercase; letter-spacing:2px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Coming Next Week</p>
+      <p style="color:${warm}; margin:0; font-size:13px; font-style:italic; line-height:1.55;">${content.nextWeekTeaser}</p>
     </div>
     ` : ""}
 
-    <!-- 14. Social Forecast -->
-    ${content.compatibilityTip ? `
-    <div style="background:${cream2}; padding:20px 24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 6px; font-size:13px;">💕 Social Forecast</h3>
-      <p style="color:${warm}; margin:0; font-size:14px; line-height:1.65;">${content.compatibilityTip}</p>
-    </div>
-    ` : ""}
-
-    <!-- 15. Cosmic Advice -->
-    <div style="background:white; padding:24px; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${ink}; margin:0 0 8px; font-size:13px;">💫 Cosmic Advice for ${petName}'s Human</h3>
-      <p style="color:${warm}; margin:0; font-size:15px; line-height:1.65;">${content.cosmicAdvice || ""}</p>
-    </div>
-
-    <!-- 16. Photo Challenge -->
-    ${content.photoPrompt ? `
-    <div style="background:${cream2}; padding:20px 24px; text-align:center; border-bottom:1px solid ${cream3};">
-      <h3 style="color:${gold}; margin:0 0 6px; font-size:13px;">📸 Photo Challenge</h3>
-      <p style="color:${warm}; margin:0; font-size:14px; font-style:italic;">"${content.photoPrompt}"</p>
-    </div>
-    ` : ""}
-
-    <!-- 17. Affirmation -->
-    <div style="background:white; padding:30px 24px; text-align:center; border-bottom:1px solid ${cream3};">
-      <p style="color:${muted}; margin:0 0 8px; font-size:11px; text-transform:uppercase; letter-spacing:2px;">Weekly Affirmation</p>
-      <p style="color:${ink}; margin:0; font-size:17px; font-style:italic; font-family:Georgia,'Times New Roman',serif;">"${content.affirmation || ""}"</p>
-    </div>
-
-    <!-- 18. SoulSpeak CTA -->
-    <div style="text-align:center; padding:28px 24px; background:white; border-bottom:1px solid ${cream3}; border-radius:0 0 20px 20px;">
-      <p style="color:${warm}; font-size:14px; margin:0 0 6px; font-family:Georgia,'Times New Roman',serif; font-style:italic;">
+    <!-- 7. SoulSpeak CTA -->
+    <div style="text-align:center; padding:32px 26px; background:white; border-bottom:1px solid ${cream3};">
+      <p style="color:${warm}; font-size:15px; margin:0 0 8px; font-style:italic;">
         ${isMemorial
-          ? `"${petName} has more to say to you than any horoscope can hold."`
-          : `"Reading about ${petName} is one thing. Hearing ${petName} speak? That's something else entirely."`}
+          ? `"${petName} has more to say than any horoscope can hold."`
+          : `"Reading about ${petName} is one thing. Hearing ${petName} speak? That's something else."`}
       </p>
-      <p style="color:${muted}; font-size:12px; margin:0 0 14px;">
+      <p style="color:${muted}; font-size:13px; margin:0 0 18px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
         ${isMemorial
-          ? `Their soul is still here, waiting to talk. Say what you need to say.`
-          : `Ask ${petName} anything \u2014 why they do the things they do, what they dream about, how they really feel about you.`}
+          ? `Their soul is still here, waiting. Say what you need to say.`
+          : `Ask ${petName} anything \u2014 what they dream about, how they really feel about you.`}
       </p>
-      <a href="https://littlesouls.app/soul-chat.html?id=${reportId}" style="display:inline-block; padding:14px 36px; background:linear-gradient(135deg, ${ink}, #5a3e2e); color:#ffffff; text-decoration:none; border-radius:50px; font-size:14px; font-weight:600; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; letter-spacing:0.5px;">${isMemorial ? `Talk to ${petName}` : `Talk to ${petName}'s Soul`}</a>
-      <p style="color:${gold}; font-size:11px; margin:10px 0 0;">SoulSpeak by Little Souls \u2014 powered by ${petName}'s birth chart</p>
+      <a href="https://littlesouls.app/soul-chat.html?id=${reportId}" style="display:inline-block; padding:14px 38px; background:${rose}; color:#ffffff; text-decoration:none; border-radius:50px; font-size:14px; font-weight:600; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; letter-spacing:0.3px;">${isMemorial ? `Talk to ${petName}` : `Talk to ${petName}'s Soul`}</a>
+      <p style="color:${gold}; font-size:11px; margin:12px 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">SoulSpeak by Little Souls \u2014 powered by ${petName}'s birth chart</p>
     </div>
+
+    <!-- 8. Reply Invite -->
+    ${content.replyPrompt ? `
+    <div style="background:${cream2}; padding:20px 26px; border-bottom:1px solid ${cream3}; text-align:center;">
+      <p style="color:${warm}; margin:0; font-size:13px; line-height:1.6; font-style:italic;">${content.replyPrompt} Just hit reply \u2014 we read every one.</p>
+    </div>
+    ` : ""}
 
     <!-- Footer -->
     <div style="text-align:center; padding:28px 20px;">
-      <p style="color:${muted}; font-size:12px; margin:0;">${footerText} ✨</p>
-      <p style="color:${muted}; font-size:11px; margin:8px 0 0;">
+      <p style="color:${muted}; font-size:12px; margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">${footerText} ✨</p>
+      <p style="color:${muted}; font-size:11px; margin:8px 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
         <a href="https://littlesouls.app/unsubscribe?id=${reportId}" style="color:${muted}; text-decoration:underline;">Unsubscribe</a>
       </p>
     </div>
@@ -751,7 +697,8 @@ Return only valid JSON.`,
           element,
           occasionMode,
           sub.pet_report_id,
-          weekDateRange
+          weekDateRange,
+          petReport.pet_photo_url || undefined
         );
 
         const { error: emailError } = await resend.emails.send({
