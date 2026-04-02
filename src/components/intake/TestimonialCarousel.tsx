@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote } from 'lucide-react';
 
-// Breed-matched pet images
-import miaImg from '@/assets/breeds/labrador-1.jpg';        // Bruno — dog
-import davidImg from '@/assets/breeds/golden-retriever-1.jpg'; // generic dog
-import chloeImg from '@/assets/breeds/maine-coon-1.jpg';    // Luna — cat
-import markImg from '@/assets/breeds/tabby-1.jpg';          // Mr. Whiskers — tabby cat
-import sarahImg from '@/assets/breeds/german-shepherd-1.jpg'; // Rex — dog
-import patelsImg from '@/assets/breeds/golden-retriever-2.jpg'; // Ginger — dog
-import jamesImg from '@/assets/breeds/labradoodle-1.jpg';   // River — dog
-import granImg from '@/assets/breeds/beagle-1.jpg';         // Buddy — dog
-import emmaImg from '@/assets/breeds/cockapoo-1.jpg';       // Moose — dog
-import customer1 from '@/assets/breeds/dachshund-1.jpg';    // Biscuit — dog
-import customer2 from '@/assets/breeds/cat-generic-1.jpg';  // Maple
-import customer3 from '@/assets/breeds/corgi-1.jpg';        // Ziggy
+// Breed-matched pet images (served from /public/breeds/)
+const miaImg    = '/breeds/labrador-1.jpg';         // Bruno — dog
+const davidImg  = '/breeds/golden-retriever-1.jpg'; // generic dog
+const chloeImg  = '/breeds/maine-coon-1.jpg';       // Luna — cat
+const markImg   = '/breeds/tabby-1.jpg';            // Mr. Whiskers — tabby cat
+const sarahImg  = '/breeds/german-shepherd-1.jpg';  // Rex — dog
+const patelsImg = '/breeds/golden-retriever-2.jpg'; // Ginger — dog
+const jamesImg  = '/breeds/labradoodle-1.jpg';      // River — dog
+const granImg   = '/breeds/beagle-1.jpg';           // Buddy — dog
+const emmaImg   = '/breeds/cockapoo-1.jpg';         // Moose — dog
+const customer1 = '/breeds/dachshund-1.jpg';        // Biscuit — dog
+const customer2 = '/breeds/cat-generic-1.jpg';      // Maple
+const customer3 = '/breeds/corgi-1.jpg';            // Ziggy
 
 const testimonials = [
   // Original uploaded images first

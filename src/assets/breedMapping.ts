@@ -1,175 +1,46 @@
-import labrador_1 from '@/assets/breeds/labrador-1.jpg';
-import labrador_2 from '@/assets/breeds/labrador-2.jpg';
-import labrador_3 from '@/assets/breeds/labrador-3.jpg';
-import golden_retriever_1 from '@/assets/breeds/golden-retriever-1.jpg';
-import golden_retriever_2 from '@/assets/breeds/golden-retriever-2.jpg';
-import golden_retriever_3 from '@/assets/breeds/golden-retriever-3.jpg';
-import beagle_1 from '@/assets/breeds/beagle-1.jpg';
-import beagle_2 from '@/assets/breeds/beagle-2.jpg';
-import beagle_3 from '@/assets/breeds/beagle-3.jpg';
-import german_shepherd_1 from '@/assets/breeds/german-shepherd-1.jpg';
-import german_shepherd_2 from '@/assets/breeds/german-shepherd-2.jpg';
-import german_shepherd_3 from '@/assets/breeds/german-shepherd-3.jpg';
-import cavalier_kcs_1 from '@/assets/breeds/cavalier-kcs-1.jpg';
-import cavalier_kcs_2 from '@/assets/breeds/cavalier-kcs-2.jpg';
-import cavalier_kcs_3 from '@/assets/breeds/cavalier-kcs-3.jpg';
-import boxer_1 from '@/assets/breeds/boxer-1.jpg';
-import boxer_2 from '@/assets/breeds/boxer-2.jpg';
-import boxer_3 from '@/assets/breeds/boxer-3.jpg';
-import border_collie_1 from '@/assets/breeds/border-collie-1.jpg';
-import border_collie_2 from '@/assets/breeds/border-collie-2.jpg';
-import border_collie_3 from '@/assets/breeds/border-collie-3.jpg';
-import dachshund_1 from '@/assets/breeds/dachshund-1.jpg';
-import dachshund_2 from '@/assets/breeds/dachshund-2.jpg';
-import dachshund_3 from '@/assets/breeds/dachshund-3.jpg';
-import australian_shepherd_1 from '@/assets/breeds/australian-shepherd-1.jpg';
-import australian_shepherd_2 from '@/assets/breeds/australian-shepherd-2.jpg';
-import australian_shepherd_3 from '@/assets/breeds/australian-shepherd-3.jpg';
-import rottweiler_1 from '@/assets/breeds/rottweiler-1.jpg';
-import rottweiler_2 from '@/assets/breeds/rottweiler-2.jpg';
-import rottweiler_3 from '@/assets/breeds/rottweiler-3.jpg';
-import french_bulldog_1 from '@/assets/breeds/french-bulldog-1.jpg';
-import french_bulldog_2 from '@/assets/breeds/french-bulldog-2.jpg';
-import french_bulldog_3 from '@/assets/breeds/french-bulldog-3.jpg';
-import great_dane_1 from '@/assets/breeds/great-dane-1.jpg';
-import great_dane_2 from '@/assets/breeds/great-dane-2.jpg';
-import great_dane_3 from '@/assets/breeds/great-dane-3.jpg';
-import cocker_spaniel_1 from '@/assets/breeds/cocker-spaniel-1.jpg';
-import cocker_spaniel_2 from '@/assets/breeds/cocker-spaniel-2.jpg';
-import cocker_spaniel_3 from '@/assets/breeds/cocker-spaniel-3.jpg';
-import pit_bull_1 from '@/assets/breeds/pit-bull-1.jpg';
-import pit_bull_2 from '@/assets/breeds/pit-bull-2.jpg';
-import pit_bull_3 from '@/assets/breeds/pit-bull-3.jpg';
-import shih_tzu_1 from '@/assets/breeds/shih-tzu-1.jpg';
-import shih_tzu_2 from '@/assets/breeds/shih-tzu-2.jpg';
-import shih_tzu_3 from '@/assets/breeds/shih-tzu-3.jpg';
-import labradoodle_1 from '@/assets/breeds/labradoodle-1.jpg';
-import labradoodle_2 from '@/assets/breeds/labradoodle-2.jpg';
-import labradoodle_3 from '@/assets/breeds/labradoodle-3.jpg';
-import poodle_1 from '@/assets/breeds/poodle-1.jpg';
-import poodle_2 from '@/assets/breeds/poodle-2.jpg';
-import poodle_3 from '@/assets/breeds/poodle-3.jpg';
-import corgi_1 from '@/assets/breeds/corgi-1.jpg';
-import corgi_2 from '@/assets/breeds/corgi-2.jpg';
-import corgi_3 from '@/assets/breeds/corgi-3.jpg';
-import bulldog_1 from '@/assets/breeds/bulldog-1.jpg';
-import bulldog_2 from '@/assets/breeds/bulldog-2.jpg';
-import bulldog_3 from '@/assets/breeds/bulldog-3.jpg';
-import chihuahua_1 from '@/assets/breeds/chihuahua-1.jpg';
-import chihuahua_2 from '@/assets/breeds/chihuahua-2.jpg';
-import chihuahua_3 from '@/assets/breeds/chihuahua-3.jpg';
-import staffy_1 from '@/assets/breeds/staffy-1.jpg';
-import staffy_2 from '@/assets/breeds/staffy-2.jpg';
-import staffy_3 from '@/assets/breeds/staffy-3.jpg';
-import maltese_1 from '@/assets/breeds/maltese-1.jpg';
-import maltese_2 from '@/assets/breeds/maltese-2.jpg';
-import maltese_3 from '@/assets/breeds/maltese-3.jpg';
-import cockapoo_1 from '@/assets/breeds/cockapoo-1.jpg';
-import cockapoo_2 from '@/assets/breeds/cockapoo-2.jpg';
-import cockapoo_3 from '@/assets/breeds/cockapoo-3.jpg';
-import ragdoll_1 from '@/assets/breeds/ragdoll-1.jpg';
-import ragdoll_2 from '@/assets/breeds/ragdoll-2.jpg';
-import ragdoll_3 from '@/assets/breeds/ragdoll-3.jpg';
-import siamese_1 from '@/assets/breeds/siamese-1.jpg';
-import siamese_2 from '@/assets/breeds/siamese-2.jpg';
-import siamese_3 from '@/assets/breeds/siamese-3.jpg';
-import black_cat_1 from '@/assets/breeds/black-cat-1.jpg';
-import black_cat_2 from '@/assets/breeds/black-cat-2.jpg';
-import black_cat_3 from '@/assets/breeds/black-cat-3.jpg';
-import tabby_1 from '@/assets/breeds/tabby-1.jpg';
-import tabby_2 from '@/assets/breeds/tabby-2.jpg';
-import tabby_3 from '@/assets/breeds/tabby-3.jpg';
-import bengal_1 from '@/assets/breeds/bengal-1.jpg';
-import bengal_2 from '@/assets/breeds/bengal-2.jpg';
-import bengal_3 from '@/assets/breeds/bengal-3.jpg';
-import tuxedo_cat_1 from '@/assets/breeds/tuxedo-cat-1.jpg';
-import tuxedo_cat_2 from '@/assets/breeds/tuxedo-cat-2.jpg';
-import tuxedo_cat_3 from '@/assets/breeds/tuxedo-cat-3.jpg';
-import orange_tabby_1 from '@/assets/breeds/orange-tabby-1.jpg';
-import orange_tabby_2 from '@/assets/breeds/orange-tabby-2.jpg';
-import orange_tabby_3 from '@/assets/breeds/orange-tabby-3.jpg';
-import persian_1 from '@/assets/breeds/persian-1.jpg';
-import persian_2 from '@/assets/breeds/persian-2.jpg';
-import persian_3 from '@/assets/breeds/persian-3.jpg';
-import calico_1 from '@/assets/breeds/calico-1.jpg';
-import calico_2 from '@/assets/breeds/calico-2.jpg';
-import calico_3 from '@/assets/breeds/calico-3.jpg';
-import maine_coon_1 from '@/assets/breeds/maine-coon-1.jpg';
-import maine_coon_2 from '@/assets/breeds/maine-coon-2.jpg';
-import maine_coon_3 from '@/assets/breeds/maine-coon-3.jpg';
-import russian_blue_1 from '@/assets/breeds/russian-blue-1.jpg';
-import russian_blue_2 from '@/assets/breeds/russian-blue-2.jpg';
-import russian_blue_3 from '@/assets/breeds/russian-blue-3.jpg';
-import scottish_fold_1 from '@/assets/breeds/scottish-fold-1.jpg';
-import scottish_fold_2 from '@/assets/breeds/scottish-fold-2.jpg';
-import scottish_fold_3 from '@/assets/breeds/scottish-fold-3.jpg';
-import ginger_cat_1 from '@/assets/breeds/ginger-cat-1.jpg';
-import ginger_cat_2 from '@/assets/breeds/ginger-cat-2.jpg';
-import ginger_cat_3 from '@/assets/breeds/ginger-cat-3.jpg';
-import british_shorthair_1 from '@/assets/breeds/british-shorthair-1.jpg';
-import british_shorthair_2 from '@/assets/breeds/british-shorthair-2.jpg';
-import british_shorthair_3 from '@/assets/breeds/british-shorthair-3.jpg';
-import cat_generic_1 from '@/assets/breeds/cat-generic-1.jpg';
-import cat_generic_2 from '@/assets/breeds/cat-generic-2.jpg';
-import cat_generic_3 from '@/assets/breeds/cat-generic-3.jpg';
-import holland_lop_1 from '@/assets/breeds/holland-lop-1.jpg';
-import holland_lop_2 from '@/assets/breeds/holland-lop-2.jpg';
-import holland_lop_3 from '@/assets/breeds/holland-lop-3.jpg';
-import guinea_pig_1 from '@/assets/breeds/guinea-pig-1.jpg';
-import guinea_pig_2 from '@/assets/breeds/guinea-pig-2.jpg';
-import guinea_pig_3 from '@/assets/breeds/guinea-pig-3.jpg';
-import hamster_1 from '@/assets/breeds/hamster-1.jpg';
-import hamster_2 from '@/assets/breeds/hamster-2.jpg';
-import hamster_3 from '@/assets/breeds/hamster-3.jpg';
-import ferret_1 from '@/assets/breeds/ferret-1.jpg';
-import ferret_2 from '@/assets/breeds/ferret-2.jpg';
-import ferret_3 from '@/assets/breeds/ferret-3.jpg';
-import dog_generic_1 from '@/assets/breeds/dog-generic-1.jpg';
-import dog_generic_2 from '@/assets/breeds/dog-generic-2.jpg';
-import dog_generic_3 from '@/assets/breeds/dog-generic-3.jpg';
-
+// Breed image URLs served from /public/breeds/ — no static imports, no bundle impact
 export const breedImages: Record<string, string[]> = {
-  'labrador': [labrador_1, labrador_2, labrador_3],
-  'golden-retriever': [golden_retriever_1, golden_retriever_2, golden_retriever_3],
-  'beagle': [beagle_1, beagle_2, beagle_3],
-  'german-shepherd': [german_shepherd_1, german_shepherd_2, german_shepherd_3],
-  'cavalier-kcs': [cavalier_kcs_1, cavalier_kcs_2, cavalier_kcs_3],
-  'boxer': [boxer_1, boxer_2, boxer_3],
-  'border-collie': [border_collie_1, border_collie_2, border_collie_3],
-  'dachshund': [dachshund_1, dachshund_2, dachshund_3],
-  'australian-shepherd': [australian_shepherd_1, australian_shepherd_2, australian_shepherd_3],
-  'rottweiler': [rottweiler_1, rottweiler_2, rottweiler_3],
-  'french-bulldog': [french_bulldog_1, french_bulldog_2, french_bulldog_3],
-  'great-dane': [great_dane_1, great_dane_2, great_dane_3],
-  'cocker-spaniel': [cocker_spaniel_1, cocker_spaniel_2, cocker_spaniel_3],
-  'pit-bull': [pit_bull_1, pit_bull_2, pit_bull_3],
-  'shih-tzu': [shih_tzu_1, shih_tzu_2, shih_tzu_3],
-  'labradoodle': [labradoodle_1, labradoodle_2, labradoodle_3],
-  'poodle': [poodle_1, poodle_2, poodle_3],
-  'corgi': [corgi_1, corgi_2, corgi_3],
-  'bulldog': [bulldog_1, bulldog_2, bulldog_3],
-  'chihuahua': [chihuahua_1, chihuahua_2, chihuahua_3],
-  'staffy': [staffy_1, staffy_2, staffy_3],
-  'maltese': [maltese_1, maltese_2, maltese_3],
-  'cockapoo': [cockapoo_1, cockapoo_2, cockapoo_3],
-  'ragdoll': [ragdoll_1, ragdoll_2, ragdoll_3],
-  'siamese': [siamese_1, siamese_2, siamese_3],
-  'black-cat': [black_cat_1, black_cat_2, black_cat_3],
-  'tabby': [tabby_1, tabby_2, tabby_3],
-  'bengal': [bengal_1, bengal_2, bengal_3],
-  'tuxedo-cat': [tuxedo_cat_1, tuxedo_cat_2, tuxedo_cat_3],
-  'orange-tabby': [orange_tabby_1, orange_tabby_2, orange_tabby_3],
-  'persian': [persian_1, persian_2, persian_3],
-  'calico': [calico_1, calico_2, calico_3],
-  'maine-coon': [maine_coon_1, maine_coon_2, maine_coon_3],
-  'russian-blue': [russian_blue_1, russian_blue_2, russian_blue_3],
-  'scottish-fold': [scottish_fold_1, scottish_fold_2, scottish_fold_3],
-  'ginger-cat': [ginger_cat_1, ginger_cat_2, ginger_cat_3],
-  'british-shorthair': [british_shorthair_1, british_shorthair_2, british_shorthair_3],
-  'cat-generic': [cat_generic_1, cat_generic_2, cat_generic_3],
-  'holland-lop': [holland_lop_1, holland_lop_2, holland_lop_3],
-  'guinea-pig': [guinea_pig_1, guinea_pig_2, guinea_pig_3],
-  'hamster': [hamster_1, hamster_2, hamster_3],
-  'ferret': [ferret_1, ferret_2, ferret_3],
-  'dog-generic': [dog_generic_1, dog_generic_2, dog_generic_3],
+  'labrador':             ['/breeds/labrador-1.jpg', '/breeds/labrador-2.jpg', '/breeds/labrador-3.jpg'],
+  'golden-retriever':     ['/breeds/golden-retriever-1.jpg', '/breeds/golden-retriever-2.jpg', '/breeds/golden-retriever-3.jpg'],
+  'beagle':               ['/breeds/beagle-1.jpg', '/breeds/beagle-2.jpg', '/breeds/beagle-3.jpg'],
+  'german-shepherd':      ['/breeds/german-shepherd-1.jpg', '/breeds/german-shepherd-2.jpg', '/breeds/german-shepherd-3.jpg'],
+  'cavalier-kcs':         ['/breeds/cavalier-kcs-1.jpg', '/breeds/cavalier-kcs-2.jpg', '/breeds/cavalier-kcs-3.jpg'],
+  'boxer':                ['/breeds/boxer-1.jpg', '/breeds/boxer-2.jpg', '/breeds/boxer-3.jpg'],
+  'border-collie':        ['/breeds/border-collie-1.jpg', '/breeds/border-collie-2.jpg', '/breeds/border-collie-3.jpg'],
+  'dachshund':            ['/breeds/dachshund-1.jpg', '/breeds/dachshund-2.jpg', '/breeds/dachshund-3.jpg'],
+  'australian-shepherd':  ['/breeds/australian-shepherd-1.jpg', '/breeds/australian-shepherd-2.jpg', '/breeds/australian-shepherd-3.jpg'],
+  'rottweiler':           ['/breeds/rottweiler-1.jpg', '/breeds/rottweiler-2.jpg', '/breeds/rottweiler-3.jpg'],
+  'french-bulldog':       ['/breeds/french-bulldog-1.jpg', '/breeds/french-bulldog-2.jpg', '/breeds/french-bulldog-3.jpg'],
+  'great-dane':           ['/breeds/great-dane-1.jpg', '/breeds/great-dane-2.jpg', '/breeds/great-dane-3.jpg'],
+  'cocker-spaniel':       ['/breeds/cocker-spaniel-1.jpg', '/breeds/cocker-spaniel-2.jpg', '/breeds/cocker-spaniel-3.jpg'],
+  'pit-bull':             ['/breeds/pit-bull-1.jpg', '/breeds/pit-bull-2.jpg', '/breeds/pit-bull-3.jpg'],
+  'shih-tzu':             ['/breeds/shih-tzu-1.jpg', '/breeds/shih-tzu-2.jpg', '/breeds/shih-tzu-3.jpg'],
+  'labradoodle':          ['/breeds/labradoodle-1.jpg', '/breeds/labradoodle-2.jpg', '/breeds/labradoodle-3.jpg'],
+  'poodle':               ['/breeds/poodle-1.jpg', '/breeds/poodle-2.jpg', '/breeds/poodle-3.jpg'],
+  'corgi':                ['/breeds/corgi-1.jpg', '/breeds/corgi-2.jpg', '/breeds/corgi-3.jpg'],
+  'bulldog':              ['/breeds/bulldog-1.jpg', '/breeds/bulldog-2.jpg', '/breeds/bulldog-3.jpg'],
+  'chihuahua':            ['/breeds/chihuahua-1.jpg', '/breeds/chihuahua-2.jpg', '/breeds/chihuahua-3.jpg'],
+  'staffy':               ['/breeds/staffy-1.jpg', '/breeds/staffy-2.jpg', '/breeds/staffy-3.jpg'],
+  'maltese':              ['/breeds/maltese-1.jpg', '/breeds/maltese-2.jpg', '/breeds/maltese-3.jpg'],
+  'cockapoo':             ['/breeds/cockapoo-1.jpg', '/breeds/cockapoo-2.jpg', '/breeds/cockapoo-3.jpg'],
+  'ragdoll':              ['/breeds/ragdoll-1.jpg', '/breeds/ragdoll-2.jpg', '/breeds/ragdoll-3.jpg'],
+  'siamese':              ['/breeds/siamese-1.jpg', '/breeds/siamese-2.jpg', '/breeds/siamese-3.jpg'],
+  'black-cat':            ['/breeds/black-cat-1.jpg', '/breeds/black-cat-2.jpg', '/breeds/black-cat-3.jpg'],
+  'tabby':                ['/breeds/tabby-1.jpg', '/breeds/tabby-2.jpg', '/breeds/tabby-3.jpg'],
+  'bengal':               ['/breeds/bengal-1.jpg', '/breeds/bengal-2.jpg', '/breeds/bengal-3.jpg'],
+  'tuxedo-cat':           ['/breeds/tuxedo-cat-1.jpg', '/breeds/tuxedo-cat-2.jpg', '/breeds/tuxedo-cat-3.jpg'],
+  'orange-tabby':         ['/breeds/orange-tabby-1.jpg', '/breeds/orange-tabby-2.jpg', '/breeds/orange-tabby-3.jpg'],
+  'persian':              ['/breeds/persian-1.jpg', '/breeds/persian-2.jpg', '/breeds/persian-3.jpg'],
+  'calico':               ['/breeds/calico-1.jpg', '/breeds/calico-2.jpg', '/breeds/calico-3.jpg'],
+  'maine-coon':           ['/breeds/maine-coon-1.jpg', '/breeds/maine-coon-2.jpg', '/breeds/maine-coon-3.jpg'],
+  'russian-blue':         ['/breeds/russian-blue-1.jpg', '/breeds/russian-blue-2.jpg', '/breeds/russian-blue-3.jpg'],
+  'scottish-fold':        ['/breeds/scottish-fold-1.jpg', '/breeds/scottish-fold-2.jpg', '/breeds/scottish-fold-3.jpg'],
+  'ginger-cat':           ['/breeds/ginger-cat-1.jpg', '/breeds/ginger-cat-2.jpg', '/breeds/ginger-cat-3.jpg'],
+  'british-shorthair':    ['/breeds/british-shorthair-1.jpg', '/breeds/british-shorthair-2.jpg', '/breeds/british-shorthair-3.jpg'],
+  'cat-generic':          ['/breeds/cat-generic-1.jpg', '/breeds/cat-generic-2.jpg', '/breeds/cat-generic-3.jpg'],
+  'holland-lop':          ['/breeds/holland-lop-1.jpg', '/breeds/holland-lop-2.jpg', '/breeds/holland-lop-3.jpg'],
+  'guinea-pig':           ['/breeds/guinea-pig-1.jpg', '/breeds/guinea-pig-2.jpg', '/breeds/guinea-pig-3.jpg'],
+  'hamster':              ['/breeds/hamster-1.jpg', '/breeds/hamster-2.jpg', '/breeds/hamster-3.jpg'],
+  'ferret':               ['/breeds/ferret-1.jpg', '/breeds/ferret-2.jpg', '/breeds/ferret-3.jpg'],
+  'dog-generic':          ['/breeds/dog-generic-1.jpg', '/breeds/dog-generic-2.jpg', '/breeds/dog-generic-3.jpg'],
 };
