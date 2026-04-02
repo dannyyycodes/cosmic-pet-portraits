@@ -1,5 +1,57 @@
 import { useState, useEffect, useRef } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { breedImages } from "@/assets/breedMapping";
+
+// Parse breed slug from pet string e.g. "Buddy, Labrador, 6" → "labrador"
+function getBreedImage(pet: string): string | null {
+  const breed = pet.split(',')[1]?.trim().toLowerCase() ?? '';
+  const map: Record<string, string> = {
+    'labrador': 'labrador', 'lab mix': 'labrador', 'lab': 'labrador',
+    'golden retriever': 'golden-retriever', 'golden mix': 'golden-retriever',
+    'beagle': 'beagle',
+    'german shepherd': 'german-shepherd',
+    'cavalier king charles': 'cavalier-kcs',
+    'boxer': 'boxer',
+    'border collie': 'border-collie',
+    'dachshund': 'dachshund',
+    'australian shepherd': 'australian-shepherd',
+    'rottweiler': 'rottweiler',
+    'french bulldog': 'french-bulldog',
+    'great dane': 'great-dane',
+    'cocker spaniel': 'cocker-spaniel',
+    'pit bull mix': 'pit-bull', 'pit bull': 'pit-bull',
+    'shih tzu': 'shih-tzu',
+    'labradoodle': 'labradoodle',
+    'poodle': 'poodle',
+    'corgi': 'corgi',
+    'bulldog': 'bulldog', 'english bulldog': 'bulldog',
+    'chihuahua': 'chihuahua',
+    'staffy': 'staffy',
+    'maltese': 'maltese',
+    'cockapoo': 'cockapoo',
+    'ragdoll': 'ragdoll',
+    'siamese': 'siamese',
+    'black cat': 'black-cat',
+    'tabby': 'tabby', 'tabby cat': 'tabby',
+    'bengal': 'bengal',
+    'tuxedo cat': 'tuxedo-cat',
+    'orange tabby': 'orange-tabby',
+    'persian': 'persian', 'white persian': 'persian',
+    'calico': 'calico',
+    'maine coon': 'maine-coon',
+    'russian blue': 'russian-blue',
+    'scottish fold': 'scottish-fold',
+    'ginger cat': 'ginger-cat',
+    'british shorthair': 'british-shorthair',
+    'cat': 'cat-generic',
+    'holland lop': 'holland-lop',
+    'guinea pig': 'guinea-pig',
+    'hamster': 'hamster',
+    'ferret': 'ferret',
+  };
+  const slug = map[breed];
+  return slug ? breedImages[slug] ?? null : null;
+}
 
 const COLORS = {
   black: "#141210", ink: "#1f1c18", deep: "#2e2a24", warm: "#4d443b",
@@ -126,11 +178,15 @@ const ReviewCard = ({ review, index }: { review: Review; index: number }) => {
 
   const initial = review.name.charAt(0).toUpperCase();
   const hue = (index * 37 + 20) % 360;
+  const petImg = getBreedImage(review.pet);
 
   return (
     <div ref={ref} style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)", transition: `opacity 0.6s ease ${(index % 4) * 0.05}s, transform 0.6s ease ${(index % 4) * 0.05}s`, background: "#fff", borderRadius: 16, padding: "18px 20px", border: `1px solid ${COLORS.sand}`, boxShadow: "0 1px 4px rgba(0,0,0,0.03)", breakInside: "avoid" as const, marginBottom: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        <div style={{ width: 38, height: 38, borderRadius: "50%", background: `hsl(${hue}, 25%, 88%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.95rem", fontWeight: 700, color: `hsl(${hue}, 30%, 42%)`, fontFamily: "Cormorant, Georgia, serif", flexShrink: 0 }}>{initial}</div>
+        {petImg
+          ? <img src={petImg} alt={review.pet} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: `1px solid ${COLORS.sand}` }} />
+          : <div style={{ width: 38, height: 38, borderRadius: "50%", background: `hsl(${hue}, 25%, 88%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.95rem", fontWeight: 700, color: `hsl(${hue}, 30%, 42%)`, fontFamily: "Cormorant, Georgia, serif", flexShrink: 0 }}>{initial}</div>
+        }
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
             <span style={{ fontFamily: "Cormorant, Georgia, serif", fontWeight: 700, fontSize: "0.9rem", color: COLORS.ink }}>{review.name}</span>

@@ -19,15 +19,15 @@ export function HomeTestimonials() {
   const [startIndex, setStartIndex] = useState(0);
 
   const testimonials = [
-    { name: "Mia", pet: "Bruno", textKey: "testimonial.1", image: miaImg },
-    { name: "David R.", pet: "", textKey: "testimonial.2", image: davidImg },
-    { name: "Chloe", pet: "Luna", textKey: "testimonial.3", image: chloeImg },
-    { name: "Mark", pet: "Mr. Whiskers", textKey: "testimonial.4", image: markImg },
-    { name: "Sarah", pet: "Rex", textKey: "testimonial.5", image: sarahImg },
-    { name: "The Patel Family", pet: "Ginger", textKey: "testimonial.6", image: patelsImg },
-    { name: "Jamie", pet: "River", textKey: "testimonial.7", image: jamesImg },
-    { name: "Linda K.", pet: "Buddy", textKey: "testimonial.8", image: granImg },
-    { name: "Elena", pet: "Moose", textKey: "testimonial.9", image: emmaImg },
+    { name: "Mia", pet: "Bruno", species: "Labrador", textKey: "testimonial.1", image: miaImg },
+    { name: "David R.", pet: "Max", species: "Golden Retriever", textKey: "testimonial.2", image: davidImg },
+    { name: "Chloe", pet: "Luna", species: "Maine Coon", textKey: "testimonial.3", image: chloeImg },
+    { name: "Mark", pet: "Mr. Whiskers", species: "Tabby Cat", textKey: "testimonial.4", image: markImg },
+    { name: "Sarah", pet: "Rex", species: "German Shepherd", textKey: "testimonial.5", image: sarahImg },
+    { name: "The Patel Family", pet: "Ginger", species: "British Shorthair", textKey: "testimonial.6", image: patelsImg },
+    { name: "Jamie", pet: "River", species: "Cockapoo", textKey: "testimonial.7", image: jamesImg },
+    { name: "Linda K.", pet: "Buddy", species: "Beagle", textKey: "testimonial.8", image: granImg },
+    { name: "Elena", pet: "Moose", species: "Shih Tzu", textKey: "testimonial.9", image: emmaImg },
   ];
 
   useEffect(() => {
@@ -67,14 +67,19 @@ export function HomeTestimonials() {
               "{t(testimonial.textKey)}"
             </p>
             <div className="flex items-center gap-3">
-              <img 
-                src={testimonial.image} 
-                alt={testimonial.name}
+              <img
+                src={testimonial.image}
+                alt={testimonial.pet || testimonial.name}
                 className="w-10 h-10 rounded-full object-cover border border-gold/30"
               />
-              <span className="text-sm text-muted-foreground">
-                {testimonial.name}{testimonial.pet && <> {t('testimonial.with')} <span className="text-gold">{testimonial.pet}</span></>}
-              </span>
+              <div>
+                <span className="text-sm text-muted-foreground block">
+                  {testimonial.name}{testimonial.pet && <> {t('testimonial.with')} <span className="text-gold">{testimonial.pet}</span></>}
+                </span>
+                {testimonial.species && (
+                  <span className="text-xs text-muted-foreground/60">{testimonial.species}</span>
+                )}
+              </div>
             </div>
           </div>
         ))}
