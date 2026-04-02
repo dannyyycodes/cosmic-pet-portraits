@@ -10,13 +10,6 @@ const jamesImg  = '/breeds/holland-lop-1.jpg';       // James — Holland Lop
 const priyaImg  = '/breeds/guinea-pig-1.jpg';        // Priya — Cockatiel (closest small pet)
 const granImg   = '/breeds/persian-1.jpg';           // Margaret — Persian Cat
 
-// Mini testimonial images — breeds not used in main reviews grid
-const chloeImg   = '/breeds/british-shorthair-1.jpg'; // Chloe
-const patelsImg  = '/breeds/cockapoo-2.jpg';           // The Patels
-const davidImg   = '/breeds/staffy-1.jpg';             // David R.
-const emmaImg    = '/breeds/maltese-1.jpg';            // Emma
-const nguyensImg = '/breeds/shih-tzu-1.jpg';           // The Nguyens
-const bobImg     = '/breeds/british-shorthair-2.jpg';  // Bob
 
 interface FeaturedTestimonialProps {
   name: string;
@@ -144,14 +137,6 @@ export function PremiumTestimonials() {
     },
   ];
 
-  const miniTestimonials = [
-    { name: "Chloe L.", text: "Sent it to 5 friends. They all bought one", image: chloeImg },
-    { name: "The Patels", text: "Read it out loud as a family lol", image: patelsImg },
-    { name: "David R.", text: "Ok this was actually really good", image: davidImg },
-    { name: "Emma T.", text: "Did my horse!! So accurate", image: emmaImg },
-    { name: "The Nguyens", text: "Got all 3 pets done. No regrets", image: nguyensImg },
-    { name: "Bob, 68", text: "Best present my daughter ever got me", image: bobImg },
-  ];
 
   return (
     <section className="relative py-16 sm:py-20 px-4 overflow-hidden">
@@ -186,36 +171,6 @@ export function PremiumTestimonials() {
             />
           ))}
         </div>
-
-        {/* Mini testimonials row */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3"
-        >
-          {miniTestimonials.map((t, i) => (
-            <div 
-              key={i}
-              className="flex items-center gap-2.5 bg-card/40 backdrop-blur-sm border border-border/30 rounded-xl p-3"
-            >
-              <img 
-                src={t.image} 
-                alt={t.name}
-                className="w-10 h-10 rounded-full object-cover ring-1 ring-border/50 shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex gap-0.5 mb-0.5">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-2.5 h-2.5 fill-primary text-primary" />
-                  ))}
-                </div>
-                <p className="text-xs text-foreground leading-tight line-clamp-2">"{t.text}"</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">— {t.name}</p>
-              </div>
-            </div>
-          ))}
-        </motion.div>
 
         {/* Trust indicators */}
         <motion.div
