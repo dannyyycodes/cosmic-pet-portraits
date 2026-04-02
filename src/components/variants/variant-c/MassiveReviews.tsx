@@ -66,8 +66,6 @@ function assignPetImages(reviews: Review[]): (string | null)[] {
   });
 }
 
-const PET_IMAGES = assignPetImages(ALL_REVIEWS);
-
 const COLORS = {
   black: "#141210", ink: "#1f1c18", deep: "#2e2a24", warm: "#4d443b",
   earth: "#6e6259", muted: "#958779", faded: "#bfb2a3", sand: "#d6c8b6",
@@ -148,6 +146,8 @@ const ALL_REVIEWS = [
   { name: "Leah F.", pet: "Misty, Persian, 11", text: "Misty has been with me through uni, my first job, my wedding, two kids. The cosmic profile honoured every chapter.", rating: 5, tag: "top reviewer", time: "2 weeks ago" },
   { name: "Theo C.", pet: "Winston, Bulldog, 6", text: "Winston's archetype 'The Distinguished Gentleman' described him as 'a retired gentleman who takes his afternoon walks very seriously.' YES.", rating: 5, tag: "verified", time: "3 weeks ago" },
 ];
+
+const PET_IMAGES = assignPetImages(ALL_REVIEWS);
 
 interface Review { name: string; pet: string; text: string; rating: number; tag?: string; time: string; }
 
