@@ -416,7 +416,8 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 .mini-row { display:flex; gap:10px; overflow-x:auto; padding:0 0 12px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
 .mini-row::-webkit-scrollbar { display:none; }
 .mini-card { flex-shrink:0; width:145px; background:#fff; border-radius:10px; border:1px solid rgba(0,0,0,0.05); padding:12px; text-align:center; }
-.mini-avatar { width:28px; height:28px; border-radius:50%; margin:0 auto 5px; background:linear-gradient(135deg, var(--cream3), var(--sand)); display:flex; align-items:center; justify-content:center; font-family:'Caveat',cursive; font-size:0.8rem; color:var(--earth); }
+.mini-avatar { width:28px; height:28px; border-radius:50%; margin:0 auto 5px; background:linear-gradient(135deg, var(--cream3), var(--sand)); display:flex; align-items:center; justify-content:center; font-family:'Caveat',cursive; font-size:0.8rem; color:var(--earth); overflow:hidden; }
+.mini-avatar img { width:28px; height:28px; border-radius:50%; object-fit:cover; display:block; }
 .mini-stars { color:var(--gold); font-size:0.65rem; margin-bottom:4px; }
 .mini-quote { font-size:0.72rem; color:var(--warm); line-height:1.35; font-style:italic; margin-bottom:3px; }
 .mini-name { font-size:0.65rem; color:var(--muted); }
@@ -888,12 +889,12 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
 <div class="testimonials-section" id="reviews">
   <!-- Mini quote cards first -->
   <div class="mini-row a d8">
-    <div class="mini-card"><div class="mini-avatar">C</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Sent it to 5 friends. They all bought…"</div><div class="mini-name">— Chloe L.</div></div>
-    <div class="mini-card"><div class="mini-avatar">P</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"We read it out loud as a family"</div><div class="mini-name">— The Patels</div></div>
-    <div class="mini-card"><div class="mini-avatar">D</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Ok this was actually really…"</div><div class="mini-name">— David R.</div></div>
-    <div class="mini-card"><div class="mini-avatar">E</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Did my horse!! So accurate"</div><div class="mini-name">— Emma T.</div></div>
-    <div class="mini-card"><div class="mini-avatar">N</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Got all 3 pets done. No regrets."</div><div class="mini-name">— The Nguyens</div></div>
-    <div class="mini-card"><div class="mini-avatar">B</div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Best present my daughter's ever got"</div><div class="mini-name">— Bob, 68</div></div>
+    <div class="mini-card"><div class="mini-avatar"><img src="/breeds/maine-coon-2.jpg" alt="Chloe's cat" loading="lazy"></div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Sent it to 5 friends. They all bought…"</div><div class="mini-name">— Chloe L.</div></div>
+    <div class="mini-card"><div class="mini-avatar"><img src="/breeds/golden-retriever-3.jpg" alt="The Patels' dog" loading="lazy"></div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"We read it out loud as a family"</div><div class="mini-name">— The Patels</div></div>
+    <div class="mini-card"><div class="mini-avatar"><img src="/breeds/golden-retriever-1.jpg" alt="David's dog" loading="lazy"></div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Ok this was actually really…"</div><div class="mini-name">— David R.</div></div>
+    <div class="mini-card"><div class="mini-avatar"><img src="/breeds/dog-generic-1.jpg" alt="Emma's horse" loading="lazy"></div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Did my horse!! So accurate"</div><div class="mini-name">— Emma T.</div></div>
+    <div class="mini-card"><div class="mini-avatar"><img src="/breeds/tabby-2.jpg" alt="The Nguyens' pet" loading="lazy"></div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Got all 3 pets done. No regrets."</div><div class="mini-name">— The Nguyens</div></div>
+    <div class="mini-card"><div class="mini-avatar"><img src="/breeds/labrador-3.jpg" alt="Bob's dog" loading="lazy"></div><div class="mini-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="mini-quote">"Best present my daughter's ever got"</div><div class="mini-name">— Bob, 68</div></div>
   </div>
 
   <!-- Full reviews grid (loaded by JS) -->

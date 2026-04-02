@@ -2,21 +2,21 @@ import { motion } from 'framer-motion';
 import { Star, BadgeCheck, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-// Featured testimonial images
-import miaImg from '@/assets/testimonials/mia.jpg';
-import markImg from '@/assets/testimonials/mark.jpg';
-import sarahImg from '@/assets/testimonials/sarah.jpg';
-import jamesImg from '@/assets/testimonials/james.jpg';
-import priyaImg from '@/assets/testimonials/priya.jpg';
-import granImg from '@/assets/testimonials/gran.jpg';
+// Featured testimonial — breed-matched pet photos from /public/breeds/
+const miaImg    = '/breeds/labrador-1.jpg';          // Mia — Labrador
+const markImg   = '/breeds/tabby-1.jpg';             // Mark — Tabby Cat
+const sarahImg  = '/breeds/german-shepherd-1.jpg';   // Sarah — German Shepherd
+const jamesImg  = '/breeds/holland-lop-1.jpg';       // James — Holland Lop
+const priyaImg  = '/breeds/guinea-pig-1.jpg';        // Priya — Cockatiel (closest small pet)
+const granImg   = '/breeds/persian-1.jpg';           // Margaret — Persian Cat
 
 // Mini testimonial images
-import chloeImg from '@/assets/testimonials/chloe.jpg';
-import patelsImg from '@/assets/testimonials/patels.jpg';
-import davidImg from '@/assets/testimonials/david.jpg';
-import emmaImg from '@/assets/testimonials/emma.jpg';
-import nguyensImg from '@/assets/testimonials/nguyens.jpg';
-import bobImg from '@/assets/testimonials/bob.jpg';
+const chloeImg   = '/breeds/maine-coon-2.jpg';       // Chloe — cat
+const patelsImg  = '/breeds/golden-retriever-3.jpg'; // The Patels — Ginger (golden)
+const davidImg   = '/breeds/golden-retriever-1.jpg'; // David R. — Max (golden)
+const emmaImg    = '/breeds/dog-generic-1.jpg';      // Emma — horse (no horse img)
+const nguyensImg = '/breeds/tabby-2.jpg';            // The Nguyens — mixed pets
+const bobImg     = '/breeds/labrador-3.jpg';         // Bob — daughter's dog
 
 interface FeaturedTestimonialProps {
   name: string;
