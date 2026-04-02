@@ -10,13 +10,13 @@ const jamesImg  = '/breeds/holland-lop-1.jpg';       // James — Holland Lop
 const priyaImg  = '/breeds/guinea-pig-1.jpg';        // Priya — Cockatiel (closest small pet)
 const granImg   = '/breeds/persian-1.jpg';           // Margaret — Persian Cat
 
-// Mini testimonial images
-const chloeImg   = '/breeds/maine-coon-2.jpg';       // Chloe — cat
-const patelsImg  = '/breeds/golden-retriever-3.jpg'; // The Patels — Ginger (golden)
-const davidImg   = '/breeds/golden-retriever-1.jpg'; // David R. — Max (golden)
-const emmaImg    = '/breeds/dog-generic-1.jpg';      // Emma — horse (no horse img)
-const nguyensImg = '/breeds/tabby-2.jpg';            // The Nguyens — mixed pets
-const bobImg     = '/breeds/labrador-3.jpg';         // Bob — daughter's dog
+// Mini testimonial images — breeds not used in main reviews grid
+const chloeImg   = '/breeds/british-shorthair-1.jpg'; // Chloe
+const patelsImg  = '/breeds/cockapoo-2.jpg';           // The Patels
+const davidImg   = '/breeds/staffy-1.jpg';             // David R.
+const emmaImg    = '/breeds/maltese-1.jpg';            // Emma
+const nguyensImg = '/breeds/shih-tzu-1.jpg';           // The Nguyens
+const bobImg     = '/breeds/british-shorthair-2.jpg';  // Bob
 
 interface FeaturedTestimonialProps {
   name: string;
