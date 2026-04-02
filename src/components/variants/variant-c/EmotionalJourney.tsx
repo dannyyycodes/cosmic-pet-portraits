@@ -254,40 +254,6 @@ export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
 
       <HeartPair opacity={0.18} />
 
-      {/* Product Reveal — what the reading actually is */}
-      <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${C.cream2}, ${C.cream3}, ${C.cream2})`}>
-        {(v) => (<div>
-          <p style={{ ...fadeUpStyle(v), fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "0.8rem", textTransform: "uppercase" as const, letterSpacing: "0.3em", color: C.earth, marginBottom: 24 }}>Introducing</p>
-          <h2 style={{ ...fadeUpStyle(v, 0.1), fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.8rem, 9vw, 4.2rem)", color: C.black, lineHeight: 1.05, marginBottom: 20, letterSpacing: "-0.03em" }}>The Little Souls<br /><em>Reading</em></h2>
-          <p style={{ ...fadeUpStyle(v, 0.2), fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(1rem, 3.5vw, 1.2rem)", color: C.earth, lineHeight: 1.85, maxWidth: 460, margin: "0 auto 40px" }}>30 pages written about your pet alone. Their birth chart, their cosmic blueprint, their quirks explained — and the message they've been trying to tell you for years.</p>
-          <div style={{ maxWidth: 420, margin: "0 auto", textAlign: "left" }}>
-            {[
-              "The moment you read it and whisper 'that's them exactly'",
-              "A message from their soul that makes grown adults cry",
-              "Every weird thing they do — finally explained by Mercury and Mars",
-              "Their criminal record, dating profile & dream job (you'll screenshot all of it)",
-              "What they actually think of you. Honestly. (Most people are shocked.)",
-              "Ready in minutes. Written for them alone. Nothing recycled.",
-            ].map((line, i) => (
-              <div key={i} style={{ ...fadeUpStyle(v, 0.28 + i * 0.07), display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 18 }}>
-                <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.rose, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(0.95rem, 3vw, 1.08rem)", color: C.warm, lineHeight: 1.65 }}>{line}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 44 }}>
-            <a href="/checkout" onClick={() => trackCTAClick("Start Their Reading", "product-reveal")} style={{ ...fadeUpStyle(v, 0.75), display: "inline-block", background: C.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "1.05rem", letterSpacing: "0.15em", textTransform: "uppercase" as const, textDecoration: "none", padding: "20px 52px", borderRadius: 50, transition: "all 0.35s ease" }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(191,82,74,0.25)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-              Start Their Reading — $27
-            </a>
-            <p style={{ ...fadeOnlyStyle(v, 0.85), marginTop: 14, fontFamily: "Cormorant, Georgia, serif", fontSize: "0.8rem", color: C.muted }}>Ready in minutes · 100% money-back guarantee</p>
-          </div>
-        </div>)}
-      </Beat>
-
       <MassiveReviews trackCTAClick={trackCTAClick} />
 
       <Beat mobileMinHeight="auto" background={`linear-gradient(to bottom, ${C.cream}, ${C.cream2}, ${C.cream})`}>
