@@ -110,10 +110,10 @@ const chapters = [
 
 // ─── Volume Discount ───
 function getVolumeDiscount(petCount: number): number {
-  if (petCount >= 5) return 0.50;
-  if (petCount >= 4) return 0.40;
-  if (petCount >= 3) return 0.30;
-  if (petCount >= 2) return 0.20;
+  if (petCount >= 5) return 0.30;
+  if (petCount >= 4) return 0.25;
+  if (petCount >= 3) return 0.20;
+  if (petCount >= 2) return 0.15;
   return 0;
 }
 
@@ -238,10 +238,36 @@ export default function QuickCheckout() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/15 text-primary text-xs font-semibold tracking-wide mb-7"
+          className="flex flex-col items-center gap-2 mb-7"
         >
-          <Heart className="w-3.5 h-3.5 fill-primary" />
-          Loved by 12,000+ pet parents
+          <div className="flex items-center gap-3">
+            {/* Avatar stack */}
+            <div className="flex -space-x-2">
+              {["🐕","🐱","🐇","🐦","🐩"].map((emoji, i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-accent/20 border-2 border-background flex items-center justify-center text-sm leading-none">
+                  {emoji}
+                </div>
+              ))}
+            </div>
+            {/* Stars */}
+            <div className="flex items-center gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} className="w-3.5 h-3.5 fill-[#c4a265]" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              ))}
+            </div>
+          </div>
+          <p className="font-cormorant text-[0.92rem] text-muted-foreground">
+            Loved by <strong className="text-foreground font-semibold">12,000+</strong> pet parents
+            <span className="mx-1.5 opacity-30">·</span>
+            <a
+              href="#reviews"
+              className="text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary transition-colors"
+            >
+              See reviews
+            </a>
+          </p>
         </motion.div>
 
         <motion.h1
@@ -573,7 +599,7 @@ export default function QuickCheckout() {
           </Suspense>
           <div className="flex items-center gap-3 my-3">
             <div className="flex-1 h-px bg-border" />
-            <span className="font-cormorant text-[0.78rem] text-muted-foreground/60 shrink-0">or pay with card</span>
+            <span className="font-cormorant text-[0.78rem] text-muted-foreground/60 shrink-0">or pay with card · Klarna · Afterpay</span>
             <div className="flex-1 h-px bg-border" />
           </div>
         </motion.div>
@@ -602,7 +628,7 @@ export default function QuickCheckout() {
         </motion.div>
 
         {/* ── Trustpilot ── */}
-        <div className="flex items-center justify-center gap-2 mt-6">
+        <div id="reviews" className="flex items-center justify-center gap-2 mt-6">
           <div className="flex items-center gap-0.5">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="w-5 h-5 bg-[#00B67A] flex items-center justify-center rounded-sm">
@@ -673,6 +699,23 @@ export default function QuickCheckout() {
 
       {/* ═══ SECOND CTA ═══ */}
       <div className="max-w-[520px] mx-auto px-5 pb-5 text-center">
+        <Suspense fallback={null}>
+          <ExpressCheckoutButton
+            totalCents={totalCents}
+            petCount={petCount}
+            selectedTier={includePortrait ? "premium" : "basic"}
+            includesPortrait={includePortrait}
+            includesBook={includeBook}
+            occasionMode={selectedMode}
+            email={email}
+            onError={(msg) => toast.error(msg)}
+          />
+        </Suspense>
+        <div className="flex items-center gap-3 my-3">
+          <div className="flex-1 h-px bg-border" />
+          <span className="font-cormorant text-[0.78rem] text-muted-foreground/60 shrink-0">or pay with card · Klarna · Afterpay</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
         <Button
           size="lg"
           className="w-full py-7 text-lg font-cormorant font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-[0_4px_20px_hsl(var(--primary)/0.2)] hover:shadow-[0_8px_30px_hsl(var(--primary)/0.3)] hover:-translate-y-0.5 transition-all group"
