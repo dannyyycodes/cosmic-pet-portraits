@@ -2,21 +2,19 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote } from 'lucide-react';
 
-// Original uploaded images (shown first)
-import miaImg from '@/assets/testimonials/mia.jpg';
-import davidImg from '@/assets/testimonials/david.jpg';
-import chloeImg from '@/assets/testimonials/chloe.jpg';
-import markImg from '@/assets/testimonials/mark.jpg';
-import sarahImg from '@/assets/testimonials/sarah.jpg';
-import patelsImg from '@/assets/testimonials/patels.jpg';
-import jamesImg from '@/assets/testimonials/james.jpg';
-import granImg from '@/assets/testimonials/gran.jpg';
-import emmaImg from '@/assets/testimonials/emma.jpg';
-
-// Generated images (shown after, less prominent)
-import customer1 from '@/assets/testimonials/customer-1.png';
-import customer2 from '@/assets/testimonials/customer-2.png';
-import customer3 from '@/assets/testimonials/customer-3.jpg';
+// Breed-matched pet images
+import miaImg from '@/assets/breeds/labrador-1.jpg';        // Bruno — dog
+import davidImg from '@/assets/breeds/golden-retriever-1.jpg'; // generic dog
+import chloeImg from '@/assets/breeds/maine-coon-1.jpg';    // Luna — cat
+import markImg from '@/assets/breeds/tabby-1.jpg';          // Mr. Whiskers — tabby cat
+import sarahImg from '@/assets/breeds/german-shepherd-1.jpg'; // Rex — dog
+import patelsImg from '@/assets/breeds/golden-retriever-2.jpg'; // Ginger — dog
+import jamesImg from '@/assets/breeds/labradoodle-1.jpg';   // River — dog
+import granImg from '@/assets/breeds/beagle-1.jpg';         // Buddy — dog
+import emmaImg from '@/assets/breeds/cockapoo-1.jpg';       // Moose — dog
+import customer1 from '@/assets/breeds/dachshund-1.jpg';    // Biscuit — dog
+import customer2 from '@/assets/breeds/cat-generic-1.jpg';  // Maple
+import customer3 from '@/assets/breeds/corgi-1.jpg';        // Ziggy
 
 const testimonials = [
   // Original uploaded images first

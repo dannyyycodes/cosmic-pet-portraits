@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { Star, BadgeCheck } from "lucide-react";
-import sarahImg from "@/assets/testimonials/sarah.jpg";
-import jamesImg from "@/assets/testimonials/james.jpg";
-import priyaImg from "@/assets/testimonials/priya.jpg";
-import emmaImg from "@/assets/testimonials/emma.jpg";
-import davidImg from "@/assets/testimonials/david.jpg";
-import markImg from "@/assets/testimonials/mark.jpg";
+import sarahImg from "@/assets/breeds/labrador-2.jpg";
+import jamesImg from "@/assets/breeds/persian-2.jpg";
+import priyaImg from "@/assets/breeds/holland-lop-2.jpg";
+import emmaImg from "@/assets/breeds/siamese-2.jpg";
+import davidImg from "@/assets/breeds/golden-retriever-2.jpg";
+import markImg from "@/assets/breeds/beagle-2.jpg";
 
 const accentColors = [
   "hsl(25 85% 55%)",

@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote } from 'lucide-react';
 
-// Original uploaded images (shown first)
-import miaImg from '@/assets/testimonials/mia.jpg';
-import sarahImg from '@/assets/testimonials/sarah.jpg';
-import patelsImg from '@/assets/testimonials/patels.jpg';
-import chloeImg from '@/assets/testimonials/chloe.jpg';
-import markImg from '@/assets/testimonials/mark.jpg';
-import jamesImg from '@/assets/testimonials/james.jpg';
-import emmaImg from '@/assets/testimonials/emma.jpg';
-import davidImg from '@/assets/testimonials/david.jpg';
-import granImg from '@/assets/testimonials/gran.jpg';
+// Breed-matched pet images
+import miaImg from '@/assets/breeds/labrador-1.jpg';           // Bruno — dog (Aries)
+import sarahImg from '@/assets/breeds/german-shepherd-1.jpg';  // Rex — dog (Leo)
+import patelsImg from '@/assets/breeds/golden-retriever-2.jpg';// Ginger — dog (Taurus)
+import chloeImg from '@/assets/breeds/maine-coon-1.jpg';       // Luna — cat (Pisces)
+import markImg from '@/assets/breeds/tabby-1.jpg';             // Mr. Whiskers — cat (Scorpio)
+import jamesImg from '@/assets/breeds/black-cat-1.jpg';        // Shadow — cat (Capricorn)
+import emmaImg from '@/assets/breeds/cockapoo-1.jpg';          // Moose — dog (Cancer)
+import davidImg from '@/assets/breeds/labrador-3.jpg';         // Bella — dog (Gemini)
+import granImg from '@/assets/breeds/beagle-2.jpg';            // Buddy — older dog
 
 interface Testimonial {
   name: string;
