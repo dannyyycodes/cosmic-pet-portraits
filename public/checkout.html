@@ -403,7 +403,8 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
 .testimonial-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
 .testimonial-card { background:#fff; border-radius:14px; border:1px solid rgba(0,0,0,0.05); box-shadow:0 1px 10px rgba(0,0,0,0.03); padding:18px; }
 .tc-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-.tc-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, var(--cream3), var(--sand)); display:flex; align-items:center; justify-content:center; font-family:'Caveat',cursive; font-size:0.95rem; color:var(--earth); }
+.tc-avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg, var(--cream3), var(--sand)); display:flex; align-items:center; justify-content:center; font-family:'Caveat',cursive; font-size:0.95rem; color:var(--earth); flex-shrink:0; }
+.tc-avatar img { width:34px; height:34px; border-radius:50%; object-fit:cover; display:block; }
 .tc-name { font-weight:600; font-size:0.82rem; color:var(--ink); }
 .tc-pet { font-size:0.72rem; color:var(--muted); }
 .tc-verified { font-size:0.58rem; font-weight:700; color:#fff; background:var(--green); padding:2px 5px; border-radius:3px; margin-left:4px; }
@@ -1504,14 +1505,55 @@ var ALL_REVIEWS = [
 var reviewsShown = 0;
 var REVIEWS_PER_BATCH = 10;
 
+var BREED_IMAGES = {
+  'labrador':['labrador-1','labrador-2','labrador-3'],'lab mix':['labrador-1','labrador-2','labrador-3'],'lab':['labrador-1','labrador-2','labrador-3'],
+  'golden retriever':['golden-retriever-1','golden-retriever-2','golden-retriever-3'],'golden mix':['golden-retriever-1','golden-retriever-2','golden-retriever-3'],
+  'beagle':['beagle-1','beagle-2','beagle-3'],'german shepherd':['german-shepherd-1','german-shepherd-2','german-shepherd-3'],
+  'cavalier king charles':['cavalier-kcs-1','cavalier-kcs-2','cavalier-kcs-3'],'boxer':['boxer-1','boxer-2','boxer-3'],
+  'border collie':['border-collie-1','border-collie-2','border-collie-3'],'dachshund':['dachshund-1','dachshund-2','dachshund-3'],
+  'australian shepherd':['australian-shepherd-1','australian-shepherd-2','australian-shepherd-3'],'rottweiler':['rottweiler-1','rottweiler-2','rottweiler-3'],
+  'french bulldog':['french-bulldog-1','french-bulldog-2','french-bulldog-3'],'great dane':['great-dane-1','great-dane-2','great-dane-3'],
+  'cocker spaniel':['cocker-spaniel-1','cocker-spaniel-2','cocker-spaniel-3'],'pit bull mix':['pit-bull-1','pit-bull-2','pit-bull-3'],'pit bull':['pit-bull-1','pit-bull-2','pit-bull-3'],
+  'shih tzu':['shih-tzu-1','shih-tzu-2','shih-tzu-3'],'labradoodle':['labradoodle-1','labradoodle-2','labradoodle-3'],'poodle':['poodle-1','poodle-2','poodle-3'],
+  'corgi':['corgi-1','corgi-2','corgi-3'],'bulldog':['bulldog-1','bulldog-2','bulldog-3'],'english bulldog':['bulldog-1','bulldog-2','bulldog-3'],
+  'chihuahua':['chihuahua-1','chihuahua-2','chihuahua-3'],'staffy':['staffy-1','staffy-2','staffy-3'],'maltese':['maltese-1','maltese-2','maltese-3'],
+  'cockapoo':['cockapoo-1','cockapoo-2','cockapoo-3'],'ragdoll':['ragdoll-1','ragdoll-2','ragdoll-3'],'siamese':['siamese-1','siamese-2','siamese-3'],
+  'black cat':['black-cat-1','black-cat-2','black-cat-3'],'tabby':['tabby-1','tabby-2','tabby-3'],'tabby cat':['tabby-1','tabby-2','tabby-3'],
+  'bengal':['bengal-1','bengal-2','bengal-3'],'tuxedo cat':['tuxedo-cat-1','tuxedo-cat-2','tuxedo-cat-3'],
+  'orange tabby':['orange-tabby-1','orange-tabby-2','orange-tabby-3'],'ginger cat':['ginger-cat-1','ginger-cat-2','ginger-cat-3'],
+  'persian':['persian-1','persian-2','persian-3'],'white persian':['persian-1','persian-2','persian-3'],
+  'calico':['calico-1','calico-2','calico-3'],'maine coon':['maine-coon-1','maine-coon-2','maine-coon-3'],
+  'russian blue':['russian-blue-1','russian-blue-2','russian-blue-3'],'scottish fold':['scottish-fold-1','scottish-fold-2','scottish-fold-3'],
+  'british shorthair':['british-shorthair-1','british-shorthair-2','british-shorthair-3'],
+  'cat':['cat-generic-1','cat-generic-2','cat-generic-3'],'holland lop':['holland-lop-1','holland-lop-2','holland-lop-3'],
+  'guinea pig':['guinea-pig-1','guinea-pig-2','guinea-pig-3'],'ferret':['ferret-1','ferret-2','ferret-3'],
+};
+var breedCounters = {};
+
+function getBreedImage(pet) {
+  var breed = (pet || '').split(',')[1];
+  if (!breed) return null;
+  breed = breed.trim().toLowerCase();
+  var imgs = BREED_IMAGES[breed];
+  if (!imgs) return null;
+  var idx = breedCounters[breed] || 0;
+  breedCounters[breed] = idx + 1;
+  if (idx >= imgs.length) return null;
+  return '/breeds/' + imgs[idx] + '.jpg';
+}
+
 function renderReview(r, i) {
   var initial = r.name.charAt(0);
   var tagHtml = r.tag ? ' <span class="tc-verified">' + r.tag.toUpperCase() + '</span>' : '';
   var quoteText = r.quote || '';
   var quoteHtml = quoteText ? '<div class="tc-quote">\u201C' + quoteText + '\u201D</div>' : '';
   var timeHtml = r.time ? '<div style="font-size:0.68rem; color:#b8a99a; margin-top:8px;">' + r.time + '</div>' : '';
+  var imgUrl = getBreedImage(r.pet);
+  var avatarHtml = imgUrl
+    ? '<div class="tc-avatar"><img src="' + imgUrl + '" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'' + initial + '\'"></div>'
+    : '<div class="tc-avatar">' + initial + '</div>';
   return '<div class="testimonial-card review-card-anim" style="opacity:0;transform:translateY(20px);transition:opacity 0.6s ease ' + ((i%4)*0.05) + 's, transform 0.6s ease ' + ((i%4)*0.05) + 's;">'
-    + '<div class="tc-header"><div class="tc-avatar">' + initial + '</div><div><div class="tc-name">' + r.name + tagHtml + '</div><div class="tc-pet">' + r.pet + '</div></div></div>'
+    + '<div class="tc-header">' + avatarHtml + '<div><div class="tc-name">' + r.name + tagHtml + '</div><div class="tc-pet">' + r.pet + '</div></div></div>'
     + '<div class="tc-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>'
     + quoteHtml
     + '<div class="tc-body">' + r.text + '</div>'

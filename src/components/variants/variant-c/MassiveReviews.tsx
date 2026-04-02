@@ -52,7 +52,7 @@ function getBreedSlug(pet: string): string | null {
   return map[breed] ?? null;
 }
 
-// Pre-assign a unique image to each review, cycling through per-breed arrays
+// Pre-assign a unique image to each review — never reuse the same image
 function assignPetImages(reviews: Review[]): (string | null)[] {
   const counters: Record<string, number> = {};
   return reviews.map(r => {
@@ -62,7 +62,8 @@ function assignPetImages(reviews: Review[]): (string | null)[] {
     if (!imgs?.length) return null;
     const i = counters[slug] ?? 0;
     counters[slug] = i + 1;
-    return imgs[i % imgs.length];
+    if (i >= imgs.length) return null; // exhausted unique images for this breed
+    return imgs[i];
   });
 }
 
