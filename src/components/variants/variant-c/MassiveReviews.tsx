@@ -3,7 +3,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { breedImages } from "@/assets/breedMapping";
 
 // Parse breed slug from pet string e.g. "Buddy, Labrador, 6" → "labrador"
-function getBreedImage(pet: string): string | null {
+function getBreedSlug(pet: string): string | null {
   const breed = pet.split(',')[1]?.trim().toLowerCase() ?? '';
   const map: Record<string, string> = {
     'labrador': 'labrador', 'lab mix': 'labrador', 'lab': 'labrador',
@@ -49,9 +49,24 @@ function getBreedImage(pet: string): string | null {
     'hamster': 'hamster',
     'ferret': 'ferret',
   };
-  const slug = map[breed];
-  return slug ? breedImages[slug] ?? null : null;
+  return map[breed] ?? null;
 }
+
+// Pre-assign a unique image to each review, cycling through per-breed arrays
+function assignPetImages(reviews: Review[]): (string | null)[] {
+  const counters: Record<string, number> = {};
+  return reviews.map(r => {
+    const slug = getBreedSlug(r.pet);
+    if (!slug) return null;
+    const imgs = breedImages[slug];
+    if (!imgs?.length) return null;
+    const i = counters[slug] ?? 0;
+    counters[slug] = i + 1;
+    return imgs[i % imgs.length];
+  });
+}
+
+const PET_IMAGES = assignPetImages(ALL_REVIEWS);
 
 const COLORS = {
   black: "#141210", ink: "#1f1c18", deep: "#2e2a24", warm: "#4d443b",
@@ -165,7 +180,7 @@ const CTAButton = ({ label, trackCTAClick }: { label: string; trackCTAClick?: (c
   </div>
 );
 
-const ReviewCard = ({ review, index }: { review: Review; index: number }) => {
+const ReviewCard = ({ review, index, petImage }: { review: Review; index: number; petImage: string | null }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -178,13 +193,12 @@ const ReviewCard = ({ review, index }: { review: Review; index: number }) => {
 
   const initial = review.name.charAt(0).toUpperCase();
   const hue = (index * 37 + 20) % 360;
-  const petImg = getBreedImage(review.pet);
 
   return (
     <div ref={ref} style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)", transition: `opacity 0.6s ease ${(index % 4) * 0.05}s, transform 0.6s ease ${(index % 4) * 0.05}s`, background: "#fff", borderRadius: 16, padding: "18px 20px", border: `1px solid ${COLORS.sand}`, boxShadow: "0 1px 4px rgba(0,0,0,0.03)", breakInside: "avoid" as const, marginBottom: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        {petImg
-          ? <img src={petImg} alt={review.pet} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: `1px solid ${COLORS.sand}` }} />
+        {petImage
+          ? <img src={petImage} alt={review.pet} style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: `1px solid ${COLORS.sand}` }} />
           : <div style={{ width: 38, height: 38, borderRadius: "50%", background: `hsl(${hue}, 25%, 88%)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.95rem", fontWeight: 700, color: `hsl(${hue}, 30%, 42%)`, fontFamily: "Cormorant, Georgia, serif", flexShrink: 0 }}>{initial}</div>
         }
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -217,7 +231,7 @@ export const MassiveReviews = ({ trackCTAClick }: MassiveReviewsProps) => {
           <h2 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: mobile ? "clamp(1.5rem, 8vw, 2.2rem)" : "clamp(1.8rem, 4vw, 2.6rem)", fontWeight: 400, color: COLORS.black, lineHeight: 1.15 }}>Real Stories From Real Pet Parents</h2>
         </div>
         <div style={{ maxWidth: 900, margin: "0 auto", columnCount: mobile ? 1 : 2, columnGap: 16 }}>
-          {ALL_REVIEWS.map((review, i) => <ReviewCard key={i} review={review} index={i} />)}
+          {ALL_REVIEWS.map((review, i) => <ReviewCard key={i} review={review} index={i} petImage={PET_IMAGES[i]} />)}
         </div>
       </div>
       <CTAButton label="Get Their Soul Reading" trackCTAClick={trackCTAClick} />
