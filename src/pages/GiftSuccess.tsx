@@ -53,7 +53,7 @@ export default function GiftSuccess() {
           </h1>
           <p style={{ color: C.earth, fontSize: '1rem', lineHeight: 1.5, maxWidth: 340, margin: '0 auto' }}>
             {isHardcover
-              ? "We've received your order and will be in touch within 24 hours to confirm the delivery address."
+              ? "Your order is confirmed and your book is heading to print. Check your email — your pet calendar upload link is on its way."
               : isMulti
                 ? `${recipientCount} cosmic gifts are ready to be shared!`
                 : isLink
@@ -70,11 +70,12 @@ export default function GiftSuccess() {
               <Sparkles style={{ width: 14, height: 14, color: C.gold }} /> What happens next
             </p>
             {[
-              'We\'ll email you within 24 hours to collect the shipping address',
-              'Your book is printed and quality-checked (allow 4–6 weeks)',
-              'It arrives in gift-ready packaging with your personal message inside',
+              'Your delivery address was confirmed at checkout',
+              'Your book goes to print — estimated 7–12 business days',
+              'Check your email to upload photos for your 12-month pet calendar',
+              'Everything arrives beautifully packaged',
             ].map((text, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'start', gap: 10, padding: '8px 0', borderBottom: i < 2 ? `1px solid ${C.cream3}` : 'none' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'start', gap: 10, padding: '8px 0', borderBottom: i < 3 ? `1px solid ${C.cream3}` : 'none' }}>
                 <span style={{ color: '#c4a265', fontWeight: 700, fontSize: '0.88rem', flexShrink: 0 }}>{i + 1}.</span>
                 <p style={{ fontSize: '0.85rem', color: C.warm, lineHeight: 1.4 }}>{text}</p>
               </div>

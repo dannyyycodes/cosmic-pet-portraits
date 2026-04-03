@@ -51,7 +51,7 @@ const TIERS = {
     description: "Finally understand your pet",
     priceCents: 2700, // $27
     originalPriceCents: 5400, // $54 anchoring
-    icon: Sparkles,
+    icon: Moon,
     highlight: false,
     includesPortrait: false,
     benefits: [
@@ -67,7 +67,7 @@ const TIERS = {
     description: 'Deep pet-parent compatibility',
     priceCents: 3500, // $35
     originalPriceCents: 7000, // $70 anchoring
-    icon: Heart,
+    icon: Crown,
     highlight: true,
     includesPortrait: true,
     benefits: [

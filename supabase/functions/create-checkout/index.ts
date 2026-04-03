@@ -317,6 +317,12 @@ serve(async (req) => {
         mode: "payment",
         payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
         allow_promotion_codes: false,
+        ...(includesBook ? {
+          shipping_address_collection: {
+            allowed_countries: ["US", "GB", "CA", "AU", "IE", "NZ", "DE", "FR", "NL", "SE", "NO", "DK", "FI", "ES", "IT", "PT", "BE", "CH", "AT", "SG", "HK", "JP"],
+          },
+          phone_number_collection: { enabled: true },
+        } : {}),
         success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}&quick=true`,
         cancel_url: `${origin}/checkout`,
         metadata: {
@@ -677,6 +683,12 @@ serve(async (req) => {
       line_items: lineItems,
       mode: checkoutMode,
       payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
+      ...(input.includesBook ? {
+        shipping_address_collection: {
+          allowed_countries: ["US", "GB", "CA", "AU", "IE", "NZ", "DE", "FR", "NL", "SE", "NO", "DK", "FI", "ES", "IT", "PT", "BE", "CH", "AT", "SG", "HK", "JP"],
+        },
+        phone_number_collection: { enabled: true },
+      } : {}),
       // Save the payment method for future off-session subscription charges.
       // Required so the $4.99/month horoscope subscription can charge after the 30-day trial.
       // Klarna/Afterpay don't support off_session — Stripe will filter them out automatically

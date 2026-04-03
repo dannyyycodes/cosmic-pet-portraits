@@ -693,6 +693,67 @@ serve(async (req) => {
               // Continue with other reports
             }
           }
+
+          // ── Hardcover fulfillment ──────────────────────────────────────────
+          // Fires once per order after all reports are generated.
+          // Saves shipping address and triggers the n8n PDF→Lulu→Gelato pipeline.
+          const isBookOrder = session.metadata?.includes_book === "true";
+          if (isBookOrder) {
+            const shippingDetails = session.shipping_details;
+            if (shippingDetails?.address) {
+              const shippingAddress = {
+                name: shippingDetails.name || session.customer_details?.name || "",
+                line1: shippingDetails.address.line1 || "",
+                line2: shippingDetails.address.line2 || null,
+                city: shippingDetails.address.city || "",
+                state: shippingDetails.address.state || null,
+                postal_code: shippingDetails.address.postal_code || "",
+                country: shippingDetails.address.country || "",
+                phone: session.customer_details?.phone || null,
+              };
+
+              // Persist to pet_reports
+              const { error: addrError } = await supabaseClient
+                .from("pet_reports")
+                .update({ shipping_address: shippingAddress, fulfillment_status: "pending" })
+                .in("id", reportIds);
+
+              if (addrError) {
+                console.error("[STRIPE-WEBHOOK] Failed to save shipping address:", addrError);
+              } else {
+                console.log("[STRIPE-WEBHOOK] Shipping address saved for reports:", reportIds);
+              }
+
+              // Fire n8n fulfillment webhook (non-blocking)
+              const n8nFulfillmentUrl = Deno.env.get("N8N_HARDCOVER_FULFILLMENT_WEBHOOK");
+              if (n8nFulfillmentUrl) {
+                try {
+                  await fetch(n8nFulfillmentUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      report_id: reportIds[0],
+                      report_ids: reportIds,
+                      customer_email: session.customer_details?.email || "",
+                      shipping_address: shippingAddress,
+                      stripe_session_id: session.id,
+                      pet_count: reportIds.length,
+                    }),
+                  });
+                  console.log("[STRIPE-WEBHOOK] Hardcover fulfillment webhook fired:", reportIds[0]);
+                } catch (n8nError) {
+                  console.error("[STRIPE-WEBHOOK] Failed to fire fulfillment webhook:", n8nError);
+                  // Non-fatal — fulfillment can be re-triggered from Supabase
+                }
+              } else {
+                console.warn("[STRIPE-WEBHOOK] N8N_HARDCOVER_FULFILLMENT_WEBHOOK not configured");
+              }
+            } else {
+              console.warn("[STRIPE-WEBHOOK] Hardcover order missing shipping address:", session.id);
+            }
+          }
+          // ─────────────────────────────────────────────────────────────────
+
         }
       }
     }
