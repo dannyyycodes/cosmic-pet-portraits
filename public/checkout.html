@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#bf524a">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Little Souls — Discover Your Pet's Soul</title>
 <meta name="description" content="A deeply personal astrology reading for your pet. 30+ sections covering personality, love language, soul purpose, and more. Loved by 10,000+ pet parents.">
 <link rel="canonical" href="https://littlesouls.app/checkout">
@@ -12,6 +14,9 @@
 <meta property="og:title" content="Little Souls — Discover Your Pet's Soul">
 <meta property="og:description" content="A deeply personal astrology reading for your pet. 30+ sections covering personality, love language, soul purpose, and more.">
 <meta property="og:image" content="https://littlesouls.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:site_name" content="Little Souls">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Little Souls — Discover Your Pet's Soul">
@@ -512,10 +517,24 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
   .hero { padding:20px 16px 16px; }
   .hero-headline { font-size:clamp(1.7rem,8vw,2.2rem); margin-bottom:10px; }
   .hero-sub { font-size:0.84rem; line-height:1.5; }
-  .hero-badge { font-size:0.72rem; padding:5px 12px; margin-bottom:16px; }
-  .gift-banner { font-size:0.72rem; padding:6px 10px; }
+  .hero-badge { font-size:0.75rem; padding:5px 12px; margin-bottom:16px; }
+  .gift-banner { font-size:0.8rem; padding:6px 10px; }
   .gift-banner svg { width:12px; height:12px; }
-  .ticker-bar { font-size:0.72rem; padding:6px 10px; }
+  .ticker-bar { font-size:0.8rem; padding:6px 10px; }
+}
+
+/* ─── Mobile touch targets & readability ─── */
+@media (max-width:600px) {
+  /* Minimum 44px tap targets */
+  .pet-counter-btn { min-height:44px; min-width:44px; }
+  #showMoreBtn { min-height:44px; padding:12px 28px; }
+  /* Prevent ticker from being too small to read */
+  .ticker-bar { font-size:0.8rem; }
+  .ticker-account { font-size:0.8rem; }
+  /* Trust items stay readable */
+  .trust-item { font-size:0.78rem; }
+  /* Upsell description */
+  .upsell-desc { font-size:0.8rem; }
 }
 
 /* ============ SELECTABLE PRODUCT CARDS ============ */
@@ -766,8 +785,8 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
       <div id="codePanel" style="max-height:0;overflow:hidden;transition:max-height 0.35s ease;">
         <div style="margin-top:12px;text-align:left;">
           <div id="codeInputRow" style="display:flex;gap:8px;">
-            <input type="text" id="codeInput" placeholder="Enter code" style="flex:1;padding:10px 14px;border:1.5px solid var(--cream3);border-radius:10px;font-family:'Cormorant',Georgia,serif;font-size:0.92rem;color:var(--ink);background:#fff;outline:none;text-transform:uppercase;" onkeydown="if(event.key==='Enter')handleCode()" />
-            <button id="codeBtn" onclick="handleCode()" style="padding:10px 20px;background:var(--rose);color:#fff;border:none;border-radius:10px;font-family:'Cormorant',Georgia,serif;font-weight:700;font-size:0.92rem;cursor:pointer;white-space:nowrap;">Apply</button>
+            <input type="text" id="codeInput" placeholder="Enter code" style="flex:1;padding:12px 14px;border:1.5px solid var(--cream3);border-radius:10px;font-family:'Cormorant',Georgia,serif;font-size:16px;color:var(--ink);background:#fff;outline:none;text-transform:uppercase;min-height:44px;" onkeydown="if(event.key==='Enter')handleCode()" />
+            <button id="codeBtn" onclick="handleCode()" style="padding:12px 20px;background:var(--rose);color:#fff;border:none;border-radius:10px;font-family:'Cormorant',Georgia,serif;font-weight:700;font-size:0.95rem;cursor:pointer;white-space:nowrap;min-height:44px;">Apply</button>
           </div>
           <div id="codeApplied" style="display:none;background:rgba(74,140,92,0.1);border:1px solid rgba(74,140,92,0.3);border-radius:10px;padding:10px 14px;align-items:center;justify-content:space-between;">
             <span style="font-size:0.85rem;color:var(--green);font-weight:600;" id="codeAppliedText"></span>

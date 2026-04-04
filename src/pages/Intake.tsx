@@ -1,4 +1,4 @@
-import { useSearchParams, Navigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { IntakeWizard } from '@/components/intake/IntakeWizard';
 import { OccasionMode } from '@/lib/occasionMode';
 import { ExitIntentPopup } from '@/components/ExitIntentPopup';
@@ -12,9 +12,10 @@ const Intake = () => {
   // Returning from Stripe cancel also needs the wizard (to restore progress)
   const isCheckoutReturn = searchParams.get('checkout') === 'true';
 
-  // Everyone else should go to checkout-v3 (the proper purchase flow)
+  // Everyone else should go to checkout (direct navigation, no React Router redirect)
   if (!isGiftFlow && !isCheckoutReturn) {
-    return <Navigate to="/checkout" replace />;
+    window.location.replace('/checkout.html');
+    return null;
   }
 
   return (

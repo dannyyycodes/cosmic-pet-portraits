@@ -68,14 +68,14 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
         <div className="fixed top-0 left-0 right-0 z-[61]">
           {/* Gift Banner */}
           {!giftBannerDismissed && !hideGiftBanner && (
-            <div className="bg-[#bf524a] text-white text-center text-[0.78rem] py-2 px-4 font-medium relative">
+            <div className="bg-[#bf524a] text-white text-center text-sm py-2 px-4 font-medium relative">
               <Link to="/gift" className="inline-flex items-center gap-2 hover:underline underline-offset-2">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
                 <span>Buying for someone else? Tap here to gift</span>
                 <ArrowRight className="w-3 h-3" />
               </Link>
-              <button onClick={dismissGiftBanner} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/20 rounded transition-colors" aria-label="Dismiss">
-                <X className="w-3.5 h-3.5" />
+              <button onClick={dismissGiftBanner} className="absolute right-2 top-1/2 -translate-y-1/2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-white/20 rounded transition-colors" aria-label="Dismiss">
+                <X className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -112,7 +112,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link to="/auth" className="flex items-center gap-1.5 text-[0.76rem] font-medium text-[#6e6259] dark:text-[#a09080] hover:text-[#141210] dark:hover:text-[#e8ddd0] transition-colors">
+                <Link to="/auth" className="flex items-center gap-1.5 text-sm font-medium text-[#6e6259] dark:text-[#a09080] hover:text-[#141210] dark:hover:text-[#e8ddd0] transition-colors">
                   <User className="w-3.5 h-3.5" />
                   <span>Sign In</span>
                 </Link>
@@ -180,9 +180,9 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                   <Link to="/auth">Sign In</Link>
                 </Button>
                 <Button variant="cosmic" size="sm" asChild>
-                  <Link to="/checkout">
+                  <a href="/checkout.html">
                     {t('nav.getReading')}
-                  </Link>
+                  </a>
                 </Button>
               </div>
             )}
@@ -271,14 +271,12 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                         </Link>
                       </SheetClose>
                     )}
-                    <SheetClose asChild>
-                      <Link to="/checkout" className="block">
-                        <Button variant="cosmic" className="w-full justify-center gap-2">
-                          <Sparkles className="w-4 h-4" />
-                          {t('nav.getReading')}
-                        </Button>
-                      </Link>
-                    </SheetClose>
+                    <Button variant="cosmic" className="w-full justify-center gap-2" asChild>
+                      <a href="/checkout.html">
+                        <Sparkles className="w-4 h-4" />
+                        {t('nav.getReading')}
+                      </a>
+                    </Button>
                   </div>
                 </div>
               </SheetContent>
