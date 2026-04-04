@@ -174,7 +174,7 @@ const TagBadge = ({ tag }: { tag: string }) => {
 
 const CTAButton = ({ label, trackCTAClick }: { label: string; trackCTAClick?: (cta: string, location: string) => void }) => (
   <div style={{ textAlign: "center", padding: "32px 16px" }}>
-    <a href="/checkout" onClick={() => trackCTAClick?.(label, "reviews-section")} style={{ display: "inline-block", background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "1.05rem", letterSpacing: "0.15em", textTransform: "uppercase" as const, textDecoration: "none", padding: "18px 48px", borderRadius: 50, cursor: "pointer", transition: "all 0.35s ease", boxShadow: "0 4px 20px rgba(191,82,74,0.18)" }}
+    <a href="/checkout.html" onClick={() => trackCTAClick?.(label, "reviews-section")} style={{ display: "inline-block", background: COLORS.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif", fontWeight: 600, fontSize: "1.05rem", letterSpacing: "0.15em", textTransform: "uppercase" as const, textDecoration: "none", padding: "18px 48px", borderRadius: 50, cursor: "pointer", transition: "all 0.35s ease", boxShadow: "0 4px 20px rgba(191,82,74,0.18)" }}
       onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(191,82,74,0.28)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(191,82,74,0.18)"; }}
     >{label}</a>

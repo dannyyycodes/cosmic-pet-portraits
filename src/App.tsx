@@ -60,9 +60,11 @@ const FindReport = lazy(() => import("./pages/FindReport"));
 
 // Redirect /checkout to the static HTML checkout page (Supabase credentials now fixed)
 function CheckoutRedirect() {
-  const params = new URLSearchParams(window.location.search);
-  const qs = params.toString();
-  window.location.href = '/checkout.html' + (qs ? '?' + qs : '');
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const qs = params.toString();
+    window.location.href = '/checkout.html' + (qs ? '?' + qs : '');
+  }, []);
   return null;
 }
 

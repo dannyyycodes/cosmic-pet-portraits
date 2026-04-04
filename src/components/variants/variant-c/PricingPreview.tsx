@@ -18,7 +18,7 @@ const tiers = [
     cta: "Get Started",
     variant: "outline" as const,
     elevated: false,
-    link: "/checkout?tier=basic",
+    link: "/checkout.html?tier=basic",
   },
   {
     name: "Premium with Portrait",
@@ -34,7 +34,7 @@ const tiers = [
     cta: "Get Premium",
     variant: "default" as const,
     elevated: true,
-    link: "/checkout?tier=premium",
+    link: "/checkout.html?tier=premium",
   },
 ];
 
@@ -96,15 +96,15 @@ export const PricingPreview = () => {
                 </ul>
 
                 {/* CTA */}
-                <Link to={tier.link} className="block">
-                  <Button 
-                    variant={tier.variant} 
+                <a href={tier.link} className="block">
+                  <Button
+                    variant={tier.variant}
                     className={`w-full ${tier.elevated ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""}`}
                   >
                     {tier.cta}
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
-                </Link>
+                </a>
 
               </div>
             </motion.div>

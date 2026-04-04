@@ -48,8 +48,8 @@ export const CTAVariantC = ({ variant, trackCTAClick }: CTAVariantCProps) => {
               : "A beautiful keepsake that captures everything you love about them. 100% money-back guarantee."}
           </p>
 
-          <Link
-            to="/checkout?tier=premium"
+          <a
+            href="/checkout.html?tier=premium"
             onClick={() => trackCTAClick?.('get_reading', `cta_${variant}`)}
             className="block"
           >
@@ -57,7 +57,7 @@ export const CTAVariantC = ({ variant, trackCTAClick }: CTAVariantCProps) => {
               {variant === "mid" ? "Discover Our Bond" : "Create Their Story Now"}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-          </Link>
+          </a>
 
           {variant === "mid" && (
             <p className="text-xs text-muted-foreground mt-3">
