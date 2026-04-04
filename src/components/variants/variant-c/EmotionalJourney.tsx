@@ -161,9 +161,27 @@ const useEodCountdown = () => {
   return timeLeft;
 };
 
+function useIsInAppBrowser() {
+  const [isInApp, setIsInApp] = useState(false);
+  useEffect(() => {
+    const ua = navigator.userAgent || '';
+    setIsInApp(/BytedanceWebview|BytedanceWebkit|musical_ly|TikTok|FBAN|FBAV|Instagram|FB_IAB/i.test(ua));
+  }, []);
+  return isInApp;
+}
+
 const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, location: string) => void }) => {
   const timeLeft = useEodCountdown();
   const c = useColors();
+  const isInApp = useIsInAppBrowser();
+
+  // In-app browser (TikTok / Instagram): link opens checkout in the real browser via target="_blank"
+  // Normal browser: standard navigation
+  const ctaHref = "/checkout.html";
+  const ctaTarget = isInApp ? "_blank" : undefined;
+  const ctaLabel = isInApp ? "Open Checkout →" : "Get Reading";
+  const subLabel = isInApp ? "Opens in Safari / Chrome ✓" : `Offer ends in ${timeLeft}`;
+
   return (
     <div style={{
       position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
@@ -178,14 +196,20 @@ const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, locat
           <span style={{ textDecoration: "line-through", color: c.muted, fontSize: "0.82rem", marginRight: 6 }}>$60</span>
           <span style={{ color: c.rose, fontWeight: 700 }}>$27</span>
         </div>
-        <div style={{ fontSize: "0.68rem", color: c.rose, fontWeight: 600 }}>Offer ends in {timeLeft}</div>
+        <div style={{ fontSize: "0.68rem", color: c.rose, fontWeight: 600 }}>{subLabel}</div>
       </div>
-      <a href="/checkout.html" onClick={() => trackCTAClick("Sticky CTA", "sticky-bottom")} style={{
-        background: c.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif",
-        fontWeight: 600, fontSize: "0.88rem", letterSpacing: "0.1em", textTransform: "uppercase" as const,
-        textDecoration: "none", padding: "12px 24px", borderRadius: 50, whiteSpace: "nowrap" as const,
-        flexShrink: 0,
-      }}>Get Reading</a>
+      <a
+        href={ctaHref}
+        target={ctaTarget}
+        rel={isInApp ? "noopener" : undefined}
+        onClick={() => trackCTAClick("Sticky CTA", "sticky-bottom")}
+        style={{
+          background: c.rose, color: "#fff", fontFamily: "Cormorant, Georgia, serif",
+          fontWeight: 600, fontSize: "0.88rem", letterSpacing: "0.1em", textTransform: "uppercase" as const,
+          textDecoration: "none", padding: "12px 24px", borderRadius: 50, whiteSpace: "nowrap" as const,
+          flexShrink: 0,
+        }}
+      >{ctaLabel}</a>
     </div>
   );
 };

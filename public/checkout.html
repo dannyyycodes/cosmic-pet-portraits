@@ -523,6 +523,10 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
   .ticker-bar { font-size:0.8rem; padding:6px 10px; }
 }
 
+/* ─── In-app browser bottom sheet animations ─── */
+@keyframes fadeInOverlay { from { opacity:0; } to { opacity:1; } }
+@keyframes slideUpSheet { from { transform:translateY(100%); } to { transform:translateY(0); } }
+
 /* ─── Mobile touch targets & readability ─── */
 @media (max-width:600px) {
   /* Minimum 44px tap targets */
@@ -1391,17 +1395,78 @@ function isInAppBrowser() {
   return /BytedanceWebview|BytedanceWebkit|musical_ly|TikTok|FBAN|FBAV|Instagram|FB_IAB|Line\/|KAKAOTALK|MicroMessenger/i.test(ua);
 }
 
-// ─── Show "open in browser" fallback for in-app browsers that block external redirects ───
-function showOpenInBrowserFallback(url) {
-  var existing = document.getElementById('inapp-fallback');
+// ─── Shared bottom sheet renderer ───
+function showBottomSheet(opts) {
+  // opts: { id, heading, body, ctaText, ctaHref, footnote }
+  var existing = document.getElementById(opts.id);
   if (existing) { existing.remove(); }
-  var box = document.createElement('div');
-  box.id = 'inapp-fallback';
-  box.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--cream);border-top:2px solid var(--rose);padding:20px 24px 32px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,0.15);';
-  box.innerHTML = '<p style="font-family:\'Cormorant\',Georgia,serif;font-size:1rem;color:var(--ink);margin-bottom:14px;line-height:1.5;">TikTok\'s browser can\'t open the payment page.<br><strong>Tap the button below to continue:</strong></p>'
-    + '<a href="' + url + '" target="_blank" rel="noopener" style="display:inline-block;background:var(--rose);color:#fff;font-family:\'Cormorant\',Georgia,serif;font-weight:700;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 20px rgba(191,82,74,0.3);">Open Secure Checkout</a>'
-    + '<p style="font-size:0.72rem;color:var(--muted);margin-top:10px;">Opens in your default browser — 100% secure</p>';
-  document.body.appendChild(box);
+
+  var overlay = document.createElement('div');
+  overlay.id = opts.id;
+  overlay.style.cssText = [
+    'position:fixed;inset:0;z-index:99999;',
+    'background:rgba(20,18,16,0.65);',
+    'backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);',
+    'display:flex;align-items:flex-end;justify-content:center;',
+    'animation:fadeInOverlay 0.25s ease;',
+  ].join('');
+
+  var sheet = document.createElement('div');
+  sheet.style.cssText = [
+    'background:var(--cream);',
+    'border-radius:24px 24px 0 0;',
+    'padding:28px 24px calc(32px + env(safe-area-inset-bottom,0px));',
+    'text-align:center;width:100%;max-width:520px;',
+    'animation:slideUpSheet 0.3s cubic-bezier(0.34,1.56,0.64,1);',
+  ].join('');
+
+  sheet.innerHTML =
+    '<div style="width:36px;height:4px;background:var(--sand);border-radius:2px;margin:0 auto 22px;"></div>'
+    + '<p style="font-family:\'DM Serif Display\',Georgia,serif;font-size:1.55rem;color:var(--ink);margin-bottom:8px;line-height:1.2;">' + opts.heading + '</p>'
+    + '<p style="font-family:\'Cormorant\',Georgia,serif;font-size:1.05rem;color:var(--earth);margin-bottom:26px;line-height:1.55;">' + opts.body + '</p>'
+    + '<a href="' + opts.ctaHref + '" target="_blank" rel="noopener" style="display:block;background:var(--rose);color:#fff;font-family:\'Cormorant\',Georgia,serif;font-weight:700;font-size:1.05rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:18px 40px;border-radius:50px;box-shadow:0 4px 24px rgba(191,82,74,0.28);margin-bottom:12px;">' + opts.ctaText + '</a>'
+    + '<p style="font-size:0.78rem;color:var(--muted);">' + opts.footnote + '</p>';
+
+  overlay.appendChild(sheet);
+  // Tap outside to dismiss
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+// ─── Early page-load prompt for in-app browser users ───
+// Shows as soon as checkout.html loads — one tap to open in real browser
+// before they even start the checkout flow.
+(function() {
+  if (!isInAppBrowser()) return;
+  var targetUrl = 'https://littlesouls.app/checkout.html' + window.location.search;
+  function showEarlyPrompt() {
+    showBottomSheet({
+      id: 'inapp-early',
+      heading: 'Open to get your reading ✨',
+      body: 'Tap the button below to open this page — then pick your reading and pay in seconds.',
+      ctaText: 'Open Checkout →',
+      ctaHref: targetUrl,
+      footnote: '🔒 Stripe-secured · 100% money-back guarantee'
+    });
+  }
+  if (document.body) { showEarlyPrompt(); }
+  else { document.addEventListener('DOMContentLoaded', showEarlyPrompt); }
+})();
+
+// ─── Payment fallback sheet (after Stripe URL is fetched) ───
+function showOpenInBrowserFallback(url) {
+  // Try window.open first — works in some in-app browser versions
+  var w = window.open(url, '_blank');
+  // Show the sheet regardless: if open worked, user is in browser completing payment;
+  // if it was blocked, the sheet CTA gets them there.
+  showBottomSheet({
+    id: 'inapp-fallback',
+    heading: 'Almost there! ✨',
+    body: 'Tap below to complete your order securely.',
+    ctaText: 'Complete My Order →',
+    ctaHref: url,
+    footnote: '🔒 Stripe-secured · 256-bit encryption · 100% money-back'
+  });
 }
 
 // ─── Checkout: Digital Reading ───
