@@ -57,6 +57,7 @@ const AdminRedeemCodes = lazy(() => import("./pages/AdminRedeemCodes"));
 const AdminQATest = lazy(() => import("./pages/AdminQATest"));
 const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 const FindReport = lazy(() => import("./pages/FindReport"));
+const LandingV2 = lazy(() => import("./pages/LandingV2"));
 
 // Redirect /checkout to the static HTML checkout page (Supabase credentials now fixed)
 function CheckoutRedirect() {
@@ -165,6 +166,7 @@ const App = () => (
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
                   <Route path="/find-report" element={<FindReport />} />
+                  <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
