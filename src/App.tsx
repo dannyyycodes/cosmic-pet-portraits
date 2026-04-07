@@ -16,6 +16,7 @@ import { Analytics } from "@vercel/analytics/react";
 
 // Eagerly loaded pages (core user journey)
 import Index from "./pages/Index";
+import LandingV2 from "./pages/LandingV2";
 import Intake from "./pages/Intake";
 // QuickCheckout React component exists but /checkout routes to checkout.html (the original design)
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -57,7 +58,7 @@ const AdminRedeemCodes = lazy(() => import("./pages/AdminRedeemCodes"));
 const AdminQATest = lazy(() => import("./pages/AdminQATest"));
 const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 const FindReport = lazy(() => import("./pages/FindReport"));
-const LandingV2 = lazy(() => import("./pages/LandingV2"));
+// LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the static HTML checkout page (Supabase credentials now fixed)
 function CheckoutRedirect() {
@@ -127,7 +128,8 @@ const App = () => (
               <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.href = '/'}>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={<LandingV2 />} />
+                  <Route path="/legacy" element={<Index />} />
                   <Route path="/intake" element={<Intake />} />
                   <Route path="/checkout" element={<CheckoutRedirect />} />
                   <Route path="/gift" element={<GiftPurchase />} />
