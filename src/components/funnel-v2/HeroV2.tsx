@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import lunaImg from "@/assets/samples/luna-persian.jpg";
 import maxImg from "@/assets/samples/max-golden.jpg";
@@ -49,15 +49,9 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
             transform: visible ? "translateY(0)" : "translateY(20px)",
           }}
         >
-          {/* Pet photo stack */}
           <div className="flex -space-x-2">
             {petPhotos.map((photo, i) => (
-              <img
-                key={i}
-                src={photo}
-                alt=""
-                className="w-8 h-8 rounded-full object-cover border-2 border-[var(--cream,#FFFDF5)] shadow-sm"
-              />
+              <img key={i} src={photo} alt="" className="w-8 h-8 rounded-full object-cover border-2 border-[var(--cream,#FFFDF5)] shadow-sm" />
             ))}
           </div>
           <div className="flex items-center gap-1.5">
@@ -69,29 +63,29 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
               ))}
             </div>
             <span className="text-sm text-[var(--muted,#958779)] font-medium" style={{ fontFamily: "Cormorant, Georgia, serif" }}>
-              <strong className="text-[var(--ink,#1f1c18)]">4.9</strong> from 12,000+ readings
+              Loved by <strong className="text-[var(--ink,#1f1c18)]">12,000+</strong> pet parents
             </span>
           </div>
         </div>
 
-        {/* Main headline */}
+        {/* Main headline — curiosity gap */}
         <h1
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: isMobile ? "clamp(2.2rem, 11vw, 3.5rem)" : "clamp(3rem, 6vw, 4.5rem)",
+            fontSize: isMobile ? "clamp(2rem, 10vw, 3.2rem)" : "clamp(2.8rem, 5.5vw, 4.2rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
-            lineHeight: 1.02,
+            lineHeight: 1.05,
             letterSpacing: "-0.04em",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(30px)",
             transitionDelay: "0.15s",
           }}
         >
-          They Love You
+          There's a Reason
           <br />
-          <em>Without Conditions.</em>
+          <em>They Chose You.</em>
         </h1>
 
         {/* Subheadline */}
@@ -104,14 +98,14 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
             fontWeight: 400,
             color: "var(--earth, #6e6259)",
             lineHeight: 1.7,
-            maxWidth: 420,
+            maxWidth: 440,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
             transitionDelay: "0.35s",
           }}
         >
-          Discover the hidden personality, emotions, and cosmic blueprint
-          of the soul who loves you most.
+          A deeply personal cosmic reading that reveals who they really are,
+          what they feel, and what they'd say if they could speak.
         </p>
 
         {/* CTA Button */}
@@ -134,24 +128,28 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
               textTransform: "uppercase",
               background: "var(--rose, #bf524a)",
               boxShadow: "0 4px 24px rgba(191,82,74,0.25)",
+              minHeight: 56,
             }}
           >
-            Get Their Soul Reading
+            Reveal Their Soul
             <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </button>
-          <p
-            className="mt-3 text-center"
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "0.85rem",
-              fontStyle: "italic",
-              color: "var(--muted, #958779)",
-            }}
-          >
-            100% money-back guarantee · Delivered instantly
-          </p>
+
+          {/* Trust signals */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mt-4">
+            {[
+              "Ready in minutes",
+              "No account needed",
+              "100% money back guarantee",
+            ].map((text, i) => (
+              <span key={i} className="flex items-center gap-1" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--muted, #958779)" }}>
+                <svg className="w-3.5 h-3.5 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                {text}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 

@@ -17,48 +17,94 @@ function useScrollReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
+function useAnimatedCounter(target: number, duration = 2000, start = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!start) return;
+    let startTime: number;
+    const animate = (time: number) => {
+      if (!startTime) startTime = time;
+      const progress = Math.min((time - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [target, duration, start]);
+  return count;
+}
+
+// Best reviews from the live site — curated for variety and emotional impact
 const CURATED_REVIEWS = [
   {
-    name: "Sarah M.",
-    pet: "Buddy the Labrador",
-    text: "It described things about Buddy that I've never been able to put into words. My partner and I both teared up reading it together.",
-    initial: "S",
+    name: "Ava P.",
+    pet: "Butterbean, Corgi, 2",
+    breed: "corgi",
+    text: "SoulSpeak alone is worth the price. I asked Butterbean what she thinks about the cat and the response was pure comedy gold.",
+    tag: "verified",
+    time: "3 days ago",
   },
   {
-    name: "James T.",
-    pet: "Luna the Golden Retriever",
-    text: "Bought it as a joke honestly. Then I read it and got genuinely emotional. The emotional blueprint nailed Luna's personality.",
-    initial: "J",
+    name: "Tom H.",
+    pet: "Bear, German Shepherd, 5",
+    breed: "german-shepherd",
+    text: "The compatibility chart between me and Bear made my wife cry. It knew things we never told it.",
+    tag: "verified",
+    time: "3 days ago",
   },
   {
-    name: "Mark D.",
-    pet: "Charlie the Beagle",
-    text: "Best gift I've ever given my wife. She read it three times and kept reading quotes out loud to me.",
-    initial: "M",
+    name: "Brooke T.",
+    pet: "Theo, Golden Retriever, 3",
+    breed: "golden-retriever",
+    text: "I asked Theo why he steals socks and the answer was 'because they smell like you and that makes me feel safe.' DESTROYED.",
+    tag: "verified",
+    time: "4 days ago",
   },
   {
-    name: "Emily R.",
-    pet: "Mochi the Persian",
-    text: "This is the most personal thing I've ever bought online. It perfectly captured who Mochi is — every quirk, every comfort habit.",
-    initial: "E",
+    name: "Lisa K.",
+    pet: "Cooper, Border Collie, 2",
+    breed: "border-collie",
+    text: "The cosmic profile was so specific to Cooper. It mentioned his herding behaviour before I even said anything.",
+    tag: "verified",
+    time: "4 days ago",
   },
   {
-    name: "Sophie L.",
-    pet: "Bella the Cavalier",
-    text: "I cried at the 'what your pet wants you to know' section. It felt like Bella was speaking directly to me.",
-    initial: "S",
+    name: "Rachel S.",
+    pet: "Daisy, Cavalier King Charles, 3",
+    breed: "cavalier-kcs",
+    text: "How did it know she sits by the door 20 minutes before I get home? The emotional blueprint was scarily accurate.",
+    tag: "verified",
+    time: "5 days ago",
   },
   {
-    name: "Anna K.",
-    pet: "Oliver the Tabby Cat",
-    text: "Ordered for three of my pets. Each one was completely unique and spot-on accurate. Worth every penny.",
-    initial: "A",
+    name: "James Wilson",
+    pet: "Biscuit the Holland Lop",
+    breed: "holland-lop",
+    text: "It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and he actually comes to us on his own now.",
+    tag: "verified",
+    time: "2 weeks ago",
+  },
+  {
+    name: "Steve L.",
+    pet: "Hank, Bulldog, 5",
+    breed: "bulldog",
+    text: "My wife bought this and I rolled my eyes. Then I read it. Then I tried SoulSpeak. Then I ordered one for my mom's dog.",
+    time: "2 weeks ago",
+  },
+  {
+    name: "Sam N.",
+    pet: "Nugget, Guinea Pig, 2",
+    breed: "guinea-pig",
+    text: "A full soul reading for a guinea pig! And the cosmic portrait was the cutest thing I've ever seen.",
+    tag: "verified",
+    time: "1 week ago",
   },
 ];
 
 export const CompactReviews = () => {
   const { ref, visible } = useScrollReveal(0.1);
   const isMobile = useIsMobile();
+  const counter = useAnimatedCounter(12847, 2500, visible);
 
   return (
     <section
@@ -69,37 +115,43 @@ export const CompactReviews = () => {
       }}
     >
       <div className="max-w-3xl mx-auto">
+        {/* Live counter */}
+        <div
+          className="text-center mb-4 transition-all duration-1000"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(15px)" }}
+        >
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+            style={{ background: "rgba(74,140,92,0.06)", border: "1px solid rgba(74,140,92,0.12)" }}
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--green,#4a8c5c)] opacity-50" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--green,#4a8c5c)]" />
+            </span>
+            <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
+              <strong style={{ color: "var(--ink, #1f1c18)" }}>{counter.toLocaleString()}</strong> readings created
+            </span>
+          </div>
+        </div>
+
         {/* Header */}
         <div
           className="text-center mb-10 transition-all duration-1000"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-          }}
+          style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)", transitionDelay: "0.1s" }}
         >
-          <p
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontWeight: 600,
-              fontSize: "0.78rem",
-              letterSpacing: "0.25em",
-              textTransform: "uppercase",
-              color: "var(--earth, #6e6259)",
-              marginBottom: 8,
-            }}
-          >
-            Loved by Pet Parents
-          </p>
           <h2
             style={{
               fontFamily: '"DM Serif Display", Georgia, serif',
               fontSize: "clamp(1.4rem, 5vw, 2rem)",
               fontWeight: 400,
               color: "var(--black, #141210)",
+              lineHeight: 1.2,
               marginBottom: 8,
             }}
           >
-            "It's Like They Wrote It Themselves"
+            12,000+ Pet Parents.
+            <br />
+            <span style={{ color: "var(--rose, #bf524a)" }}>Under 1% Asked for a Refund.</span>
           </h2>
           <div className="flex items-center justify-center gap-2">
             <div className="flex gap-0.5">
@@ -109,14 +161,8 @@ export const CompactReviews = () => {
                 </svg>
               ))}
             </div>
-            <span
-              style={{
-                fontFamily: "Cormorant, Georgia, serif",
-                fontSize: "0.9rem",
-                color: "var(--muted, #958779)",
-              }}
-            >
-              <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9</strong> from 2,400+ reviews
+            <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem", color: "var(--muted, #958779)" }}>
+              Rated <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9</strong> across all readings
             </span>
           </div>
         </div>
@@ -133,13 +179,25 @@ export const CompactReviews = () => {
                 boxShadow: "0 1px 8px rgba(0,0,0,0.03)",
                 opacity: visible ? 1 : 0,
                 transform: visible ? "translateY(0)" : "translateY(15px)",
-                transitionDelay: `${0.1 + i * 0.07}s`,
+                transitionDelay: `${0.15 + i * 0.06}s`,
               }}
             >
-              {/* Header: avatar + name + stars */}
+              {/* Header: breed photo + name + badge */}
               <div className="flex items-center gap-2.5 mb-2.5">
+                <img
+                  src={`/breeds/${review.breed}-1.jpg`}
+                  alt=""
+                  className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                  style={{ border: "2px solid var(--cream3, #f3eadb)" }}
+                  onError={(e) => {
+                    const el = e.currentTarget;
+                    el.style.display = "none";
+                    const fallback = el.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = "flex";
+                  }}
+                />
                 <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  className="w-9 h-9 rounded-full items-center justify-center flex-shrink-0 hidden"
                   style={{
                     background: "linear-gradient(135deg, var(--cream3, #f3eadb), var(--sand, #d6c8b6))",
                     fontFamily: "Caveat, cursive",
@@ -147,35 +205,24 @@ export const CompactReviews = () => {
                     color: "var(--earth, #6e6259)",
                   }}
                 >
-                  {review.initial}
+                  {review.name.charAt(0)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span
-                      style={{
-                        fontWeight: 600,
-                        fontSize: "0.82rem",
-                        color: "var(--ink, #1f1c18)",
-                      }}
-                    >
+                    <span style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--ink, #1f1c18)" }}>
                       {review.name}
                     </span>
-                    <span
-                      className="px-1.5 py-0.5 rounded text-white"
-                      style={{
-                        fontSize: "0.55rem",
-                        fontWeight: 700,
-                        background: "var(--green, #4a8c5c)",
-                      }}
-                    >
-                      verified
-                    </span>
+                    {review.tag && (
+                      <span
+                        className="px-1.5 py-0.5 rounded text-white"
+                        style={{ fontSize: "0.55rem", fontWeight: 700, background: "var(--green, #4a8c5c)" }}
+                      >
+                        {review.tag.toUpperCase()}
+                      </span>
+                    )}
                   </div>
-                  <p style={{ fontSize: "0.72rem", color: "var(--muted, #958779)" }}>
-                    {review.pet}
-                  </p>
+                  <p style={{ fontSize: "0.72rem", color: "var(--muted, #958779)" }}>{review.pet}</p>
                 </div>
-                {/* Stars */}
                 <div className="flex gap-0.5 flex-shrink-0">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <svg key={s} className="w-3 h-3 text-[var(--gold,#c4a265)]" fill="currentColor" viewBox="0 0 20 20">
@@ -193,10 +240,12 @@ export const CompactReviews = () => {
                   fontSize: "0.88rem",
                   color: "var(--earth, #6e6259)",
                   lineHeight: 1.5,
+                  marginBottom: 4,
                 }}
               >
                 "{review.text}"
               </p>
+              <p style={{ fontSize: "0.68rem", color: "var(--faded, #bfb2a3)" }}>{review.time}</p>
             </div>
           ))}
         </div>

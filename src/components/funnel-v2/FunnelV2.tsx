@@ -1,10 +1,13 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
 import { HeroV2 } from "./HeroV2";
 import { EmotionBridge } from "./EmotionBridge";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
+import { AstrologyCredibility } from "./AstrologyCredibility";
+import { HowItWorks } from "./HowItWorks";
 
 export const FunnelV2 = () => {
   const checkoutRef = useRef<HTMLDivElement>(null);
@@ -14,6 +17,8 @@ export const FunnelV2 = () => {
   const [exitIntentShown, setExitIntentShown] = useState(false);
   const [exitEmail, setExitEmail] = useState("");
   const [exitSubmitted, setExitSubmitted] = useState(false);
+  const [showScrollNudge, setShowScrollNudge] = useState(false);
+  const [scrollNudgeDismissed, setScrollNudgeDismissed] = useState(false);
   const isMobile = useIsMobile();
 
   const scrollToCheckout = useCallback(() => {
@@ -23,37 +28,48 @@ export const FunnelV2 = () => {
   // Show sticky CTA after scrolling past the hero
   useEffect(() => {
     const handleScroll = () => {
+      const scrollPct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
       setShowStickyCta(window.scrollY > window.innerHeight * 0.7);
+
+      // Mobile scroll nudge at ~60% depth
+      if (isMobile && scrollPct > 0.55 && scrollPct < 0.75 && !scrollNudgeDismissed && !showScrollNudge) {
+        setShowScrollNudge(true);
+        setTimeout(() => { setShowScrollNudge(false); setScrollNudgeDismissed(true); }, 5000);
+      }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isMobile, scrollNudgeDismissed, showScrollNudge]);
 
-  // Exit intent detection (desktop: mouse leaves viewport top, mobile: back button)
+  // Exit intent — desktop only
   useEffect(() => {
-    if (exitIntentShown) return;
+    if (exitIntentShown || isMobile) return;
 
     const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 5 && !exitIntentShown) {
+      if (e.clientY <= 5) {
         setShowExitIntent(true);
         setExitIntentShown(true);
       }
     };
 
-    // Desktop only
-    if (!isMobile) {
-      document.addEventListener("mouseleave", handleMouseLeave);
-      return () => document.removeEventListener("mouseleave", handleMouseLeave);
-    }
+    document.addEventListener("mouseleave", handleMouseLeave);
+    return () => document.removeEventListener("mouseleave", handleMouseLeave);
   }, [exitIntentShown, isMobile]);
 
-  const handleExitSubmit = () => {
+  const handleExitSubmit = async () => {
     if (!exitEmail.trim() || !exitEmail.includes("@")) return;
-    // Store email for future follow-up (could send to Supabase)
-    try {
-      localStorage.setItem("ls_exit_email", exitEmail.trim());
-    } catch {}
     setExitSubmitted(true);
+
+    try {
+      await supabase.from("email_leads").insert({
+        email: exitEmail.trim().toLowerCase(),
+        source: "v2_exit_intent",
+        created_at: new Date().toISOString(),
+      });
+    } catch {
+      try { localStorage.setItem("ls_exit_email", exitEmail.trim()); } catch {}
+    }
+
     setTimeout(() => setShowExitIntent(false), 2500);
   };
 
@@ -71,8 +87,31 @@ export const FunnelV2 = () => {
         }}
       />
 
-      {/* Sections */}
-      <div ref={heroRef}>
+      {/* Gift banner — fixed at top */}
+      <a
+        href="/gift"
+        className="fixed top-0 left-0 right-0 flex items-center justify-center gap-2 py-2 px-4 text-white transition-colors duration-300 hover:opacity-90"
+        style={{
+          zIndex: 1000,
+          background: "var(--rose, #bf524a)",
+          fontFamily: "Cormorant, Georgia, serif",
+          fontSize: "0.82rem",
+          fontWeight: 600,
+          letterSpacing: "0.02em",
+          textDecoration: "none",
+        }}
+      >
+        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+        </svg>
+        <span style={{ textDecoration: "underline", textUnderlineOffset: "2px" }}>
+          Know a pet parent who'd love this? Send as a gift
+        </span>
+        <span className="transition-transform duration-300">→</span>
+      </a>
+
+      {/* Sections — padded for fixed banner */}
+      <div ref={heroRef} style={{ paddingTop: 36 }}>
         <HeroV2 onCtaClick={scrollToCheckout} />
       </div>
       <EmotionBridge />
@@ -80,8 +119,13 @@ export const FunnelV2 = () => {
       <CompactReviews />
       <InlineCheckout ref={checkoutRef} />
 
-      {/* FAQ Section */}
+      {/* Below checkout: objection-handlers for hesitators */}
+      <AstrologyCredibility />
+      <HowItWorks />
       <FAQSection />
+
+      {/* Final emotional CTA */}
+      <FinalCTA onCtaClick={scrollToCheckout} />
 
       {/* Footer */}
       <footer
@@ -112,11 +156,11 @@ export const FunnelV2 = () => {
           ))}
         </div>
         <p className="mt-4" style={{ fontSize: "0.75rem", color: "var(--faded, #bfb2a3)" }}>
-          Little Souls — Cosmic Pet Portraits
+          Little Souls
         </p>
       </footer>
 
-      {/* Sticky bottom CTA (appears after scrolling past hero) */}
+      {/* Sticky bottom CTA (mobile, appears after hero) */}
       {isMobile && (
         <div
           className="fixed bottom-0 left-0 right-0 transition-all duration-300"
@@ -134,7 +178,7 @@ export const FunnelV2 = () => {
         >
           <button
             onClick={scrollToCheckout}
-            className="w-full py-3 rounded-full text-white font-bold transition-all duration-200 active:scale-[0.98]"
+            className="w-full py-3.5 rounded-full text-white font-bold transition-all duration-200 active:scale-[0.98]"
             style={{
               fontFamily: "Cormorant, Georgia, serif",
               fontSize: "0.95rem",
@@ -143,14 +187,45 @@ export const FunnelV2 = () => {
               textTransform: "uppercase",
               background: "var(--rose, #bf524a)",
               boxShadow: "0 2px 16px rgba(191,82,74,0.2)",
+              minHeight: 52,
             }}
           >
-            Get Their Soul Reading — $27
+            Reveal Their Soul · From $27
           </button>
         </div>
       )}
 
-      {/* Exit intent overlay */}
+      {/* Mobile scroll nudge */}
+      {showScrollNudge && isMobile && (
+        <div
+          className="fixed top-4 left-4 right-4 rounded-xl p-3 text-center shadow-lg"
+          style={{
+            zIndex: 60,
+            background: "rgba(255,253,245,0.97)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid var(--cream3, #f3eadb)",
+            animation: "nudgeSlideDown 0.4s ease-out",
+          }}
+          onClick={() => { scrollToCheckout(); setShowScrollNudge(false); setScrollNudgeDismissed(true); }}
+        >
+          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.88rem", color: "var(--ink, #1f1c18)", marginBottom: 2 }}>
+            Their reading is waiting
+          </p>
+          <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", color: "var(--rose, #bf524a)", fontWeight: 600 }}>
+            Tap to reveal their cosmic soul
+          </p>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes nudgeSlideDown {
+          from { opacity: 0; transform: translateY(-15px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
+      {/* Exit intent overlay — desktop only */}
       {showExitIntent && (
         <div
           className="fixed inset-0 flex items-center justify-center p-4"
@@ -165,7 +240,6 @@ export const FunnelV2 = () => {
               animation: "exitSlideUp 0.4s ease-out",
             }}
           >
-            {/* Close */}
             <button
               onClick={() => setShowExitIntent(false)}
               className="absolute top-3 right-3 p-1.5 rounded-full transition-opacity hover:opacity-70"
@@ -177,7 +251,6 @@ export const FunnelV2 = () => {
               </svg>
             </button>
 
-            {/* Heart icon */}
             <div className="mb-4">
               <svg className="w-10 h-10 mx-auto" viewBox="0 0 24 24" fill="var(--rose, #bf524a)" opacity={0.8}>
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -186,51 +259,21 @@ export const FunnelV2 = () => {
 
             {exitSubmitted ? (
               <div>
-                <h3
-                  style={{
-                    fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontSize: "1.3rem",
-                    color: "var(--black, #141210)",
-                    marginBottom: 8,
-                  }}
-                >
+                <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.3rem", color: "var(--black, #141210)", marginBottom: 8 }}>
                   Check your inbox!
                 </h3>
-                <p
-                  style={{
-                    fontFamily: "Cormorant, Georgia, serif",
-                    fontSize: "0.95rem",
-                    color: "var(--earth, #6e6259)",
-                  }}
-                >
+                <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--earth, #6e6259)" }}>
                   Your pet's free mini reading is on the way.
                 </p>
               </div>
             ) : (
               <>
-                <h3
-                  style={{
-                    fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontSize: "1.3rem",
-                    color: "var(--black, #141210)",
-                    marginBottom: 8,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  Wait — your pet's reading
-                  <br />is almost ready
+                <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.3rem", color: "var(--black, #141210)", marginBottom: 8, lineHeight: 1.2 }}>
+                  Before you go...
                 </h3>
-                <p
-                  style={{
-                    fontFamily: "Cormorant, Georgia, serif",
-                    fontSize: "0.95rem",
-                    color: "var(--earth, #6e6259)",
-                    lineHeight: 1.6,
-                    marginBottom: 16,
-                  }}
-                >
-                  Enter your email and we'll send a <strong>free mini cosmic reading</strong> —
-                  their sun sign, one personality insight, and today's cosmic forecast.
+                <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--earth, #6e6259)", lineHeight: 1.6, marginBottom: 16 }}>
+                  Enter your email and we'll send a <strong>free mini cosmic reading</strong> with
+                  their sun sign personality and today's forecast.
                 </p>
                 <div className="flex gap-2">
                   <input
@@ -245,6 +288,7 @@ export const FunnelV2 = () => {
                       fontSize: "0.95rem",
                       border: "1.5px solid var(--cream3, #f3eadb)",
                       color: "var(--ink, #1f1c18)",
+                      minHeight: 48,
                     }}
                   />
                   <button
@@ -255,6 +299,7 @@ export const FunnelV2 = () => {
                       fontWeight: 700,
                       background: "var(--rose, #bf524a)",
                       whiteSpace: "nowrap",
+                      minHeight: 48,
                     }}
                   >
                     Send it
@@ -279,32 +324,28 @@ export const FunnelV2 = () => {
   );
 };
 
-/* ──────── FAQ Section ──────── */
+/* ──────── FAQ ──────── */
 
 const FAQ_ITEMS = [
   {
-    q: "What exactly do I get?",
-    a: "A 15+ page personalised cosmic report covering your pet's personality, emotional blueprint, soul purpose, love language, hidden fears, and much more. Premium includes a custom AI portrait and owner compatibility insights. Delivered instantly as a beautiful digital PDF.",
+    q: "What exactly do I receive?",
+    a: "A deeply personal cosmic reading with 30+ sections covering personality, emotional blueprint, soul purpose, love language, hidden fears, and more. Plus SoulSpeak chat where you can ask your pet anything and hear what they'd say. Revealed through a cinematic experience the moment it's ready.",
   },
   {
-    q: "How is the reading created?",
-    a: "We use your pet's birth details and species to generate a deeply personal astrological profile, then our AI crafts a one-of-a-kind reading that's unique to them. No two reports are ever the same.",
+    q: "Do I need my pet's exact birthday?",
+    a: "No. A birthday is ideal, but an estimated date or adoption date works well too. Birth time is optional. Even approximate dates produce readings our customers call 'scarily accurate.'",
   },
   {
-    q: "Do I need to know my pet's exact birth time?",
-    a: "No! While an exact birth time gives the most detailed reading, we can create a beautiful and accurate report with just their birthday. An approximate time works great too.",
+    q: "What's the difference between Soul Reading and Soul Bond?",
+    a: "Soul Reading ($27) gives you the full cosmic portrait plus SoulSpeak chat. Soul Bond ($35) adds a deep compatibility analysis between you and your pet, plus a custom cosmic portrait.",
   },
   {
-    q: "What if I don't know my pet's birthday?",
-    a: "That's okay! You can use an estimated date or adoption date. Many pet parents discover that even approximate dates produce surprisingly accurate readings.",
+    q: "What if it's not accurate?",
+    a: "Full refund, no questions asked. We've delivered 12,000+ readings and our refund rate is under 1%. But if yours doesn't resonate, you don't pay.",
   },
   {
-    q: "Is there a money-back guarantee?",
-    a: "Absolutely. If your reading doesn't make you smile, we'll refund you in full — no questions asked. We're that confident you'll love it.",
-  },
-  {
-    q: "Can I buy this as a gift?",
-    a: 'Yes! Tap "Send as a gift" on the checkout section. You\'ll receive a beautiful digital gift card with a redemption code that your recipient can use anytime.',
+    q: "Can I get a reading for a pet who's passed away?",
+    a: "Yes. Every reading includes a memorial mode for pets who've crossed the rainbow bridge. The reading is written to honour their memory, and SoulSpeak lets you hear their voice one more time.",
   },
 ];
 
@@ -312,10 +353,7 @@ const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section
-      className="py-14 md:py-18 px-5"
-      style={{ background: "var(--cream, #FFFDF5)" }}
-    >
+    <section className="py-14 md:py-18 px-5" style={{ background: "var(--cream, #FFFDF5)" }}>
       <div className="max-w-xl mx-auto">
         <h2
           className="text-center mb-8"
@@ -326,61 +364,31 @@ const FAQSection = () => {
             color: "var(--black, #141210)",
           }}
         >
-          Questions? We've got answers.
+          Common Questions
         </h2>
 
         <div className="space-y-0">
           {FAQ_ITEMS.map((item, i) => {
             const isOpen = openIndex === i;
             return (
-              <div
-                key={i}
-                className="border-b"
-                style={{ borderColor: "var(--cream3, #f3eadb)" }}
-              >
+              <div key={i} className="border-b" style={{ borderColor: "var(--cream3, #f3eadb)" }}>
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : i)}
                   className="w-full flex items-center justify-between gap-3 py-4 text-left transition-opacity hover:opacity-80"
                 >
-                  <span
-                    style={{
-                      fontFamily: '"DM Serif Display", Georgia, serif',
-                      fontSize: "0.95rem",
-                      color: "var(--ink, #1f1c18)",
-                    }}
-                  >
+                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.95rem", color: "var(--ink, #1f1c18)" }}>
                     {item.q}
                   </span>
                   <svg
                     className="w-4 h-4 flex-shrink-0 transition-transform duration-300"
-                    style={{
-                      color: "var(--muted, #958779)",
-                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
+                    style={{ color: "var(--muted, #958779)", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <div
-                  className="overflow-hidden transition-all duration-300"
-                  style={{
-                    maxHeight: isOpen ? 200 : 0,
-                    opacity: isOpen ? 1 : 0,
-                  }}
-                >
-                  <p
-                    className="pb-4"
-                    style={{
-                      fontFamily: "Cormorant, Georgia, serif",
-                      fontSize: "0.9rem",
-                      color: "var(--earth, #6e6259)",
-                      lineHeight: 1.6,
-                    }}
-                  >
+                <div className="overflow-hidden transition-all duration-300" style={{ maxHeight: isOpen ? 200 : 0, opacity: isOpen ? 1 : 0 }}>
+                  <p className="pb-4" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem", color: "var(--earth, #6e6259)", lineHeight: 1.6 }}>
                     {item.a}
                   </p>
                 </div>
@@ -392,3 +400,65 @@ const FAQSection = () => {
     </section>
   );
 };
+
+/* ──────── Final CTA ──────── */
+
+/* ──────── Final CTA ──────── */
+
+const FinalCTA = ({ onCtaClick }: { onCtaClick: () => void }) => (
+  <section
+    className="py-16 md:py-20 px-5 text-center"
+    style={{ background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))" }}
+  >
+    <div className="max-w-lg mx-auto">
+      {/* Emotional close */}
+      <p
+        style={{
+          fontFamily: '"DM Serif Display", Georgia, serif',
+          fontSize: "clamp(1.3rem, 5.5vw, 2rem)",
+          color: "var(--black, #141210)",
+          lineHeight: 1.2,
+          marginBottom: 10,
+        }}
+      >
+        They can't tell you who they are.
+      </p>
+      <p
+        style={{
+          fontFamily: '"DM Serif Display", Georgia, serif',
+          fontStyle: "italic",
+          fontSize: "clamp(1.3rem, 5.5vw, 2rem)",
+          color: "var(--rose, #bf524a)",
+          lineHeight: 1.2,
+          marginBottom: 20,
+        }}
+      >
+        But the stars can.
+      </p>
+
+      <button
+        onClick={onCtaClick}
+        className="group inline-flex items-center gap-2 px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontSize: "1.05rem",
+          fontWeight: 700,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          background: "var(--rose, #bf524a)",
+          boxShadow: "0 4px 24px rgba(191,82,74,0.25)",
+          minHeight: 56,
+        }}
+      >
+        Reveal Their Soul
+        <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </button>
+
+      <p className="mt-4" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", fontStyle: "italic", color: "var(--muted, #958779)" }}>
+        Also available in memorial mode for pets who've crossed the rainbow bridge.
+      </p>
+    </div>
+  </section>
+);

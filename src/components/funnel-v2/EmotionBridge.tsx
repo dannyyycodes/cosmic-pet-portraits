@@ -22,47 +22,65 @@ export const EmotionBridge = () => {
   return (
     <section
       ref={ref}
-      className="relative py-20 md:py-28 px-5 overflow-hidden"
+      className="relative py-16 md:py-24 px-5 overflow-hidden"
       style={{
         background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8), var(--cream, #FFFDF5))",
       }}
     >
-      <div className="max-w-[620px] mx-auto text-center">
-        {/* Opening line */}
+      <div className="max-w-[580px] mx-auto text-center">
+        {/* Problem */}
         <h2
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.5rem, 8vw, 3rem)",
+            fontSize: "clamp(1.5rem, 8vw, 2.8rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
             lineHeight: 1.1,
             letterSpacing: "-0.03em",
-            marginBottom: 24,
+            marginBottom: 20,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(30px)",
           }}
         >
-          They're Not "Just a Pet."
+          You Know They're Special.
         </h2>
 
-        {/* Body text */}
+        {/* Agitation */}
         <p
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontWeight: 400,
-            fontSize: "clamp(1.1rem, 4vw, 1.35rem)",
+            fontSize: "clamp(1.05rem, 3.8vw, 1.3rem)",
             color: "var(--earth, #6e6259)",
-            lineHeight: 1.85,
-            marginBottom: 32,
+            lineHeight: 1.8,
+            marginBottom: 24,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
-            transitionDelay: "0.15s",
+            transitionDelay: "0.12s",
           }}
         >
-          They are a living, feeling soul — with their own personality, their own emotional world,
-          and a bond with you that runs deeper than words.
+          The way they greet you at the door. The look they give you
+          when no one else is around. The way they somehow always know
+          when you need them most.
+        </p>
+
+        <p
+          className="transition-all duration-[1200ms] ease-out"
+          style={{
+            fontFamily: "Cormorant, Georgia, serif",
+            fontWeight: 400,
+            fontSize: "clamp(1.05rem, 3.8vw, 1.3rem)",
+            color: "var(--earth, #6e6259)",
+            lineHeight: 1.8,
+            marginBottom: 28,
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(25px)",
+            transitionDelay: "0.2s",
+          }}
+        >
+          You feel it every day. But you've never been able to put it into words.
         </p>
 
         {/* Gold divider */}
@@ -74,34 +92,29 @@ export const EmotionBridge = () => {
             background: "var(--gold, #c4a265)",
             opacity: 0.5,
             transitionDelay: "0.3s",
-            marginBottom: 32,
+            marginBottom: 28,
           }}
         />
 
-        {/* Emotional close — the bridge to product */}
+        {/* Solution pivot */}
         <p
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
             fontStyle: "italic",
-            fontSize: "clamp(1.2rem, 5vw, 1.8rem)",
+            fontSize: "clamp(1.15rem, 4.5vw, 1.65rem)",
             color: "var(--deep, #2e2a24)",
             lineHeight: 1.35,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.4s",
+            transitionDelay: "0.35s",
           }}
         >
-          What if you could truly
-          <br />
-          understand them?
+          Now you can.
         </p>
 
         {/* Heart drawing */}
-        <svg
-          viewBox="0 0 100 100"
-          className="w-12 h-12 md:w-16 md:h-16 mt-6 mx-auto"
-        >
+        <svg viewBox="0 0 100 100" className="w-10 h-10 md:w-14 md:h-14 mt-5 mx-auto">
           <path
             d="M49.998,90.544c0,0,0,0,0.002,0c5.304-14.531,32.88-27.047,41.474-44.23C108.081,13.092,61.244-5.023,50,23.933C38.753-5.023-8.083,13.092,8.525,46.313C17.116,63.497,44.691,76.013,49.998,90.544z"
             fill="none"
