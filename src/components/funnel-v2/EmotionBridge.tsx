@@ -43,10 +43,12 @@ export const EmotionBridge = () => {
             transform: visible ? "translateY(0)" : "translateY(30px)",
           }}
         >
-          You Know They're Special.
+          They Love You Like
+          <br />
+          <em style={{ color: "var(--rose, #bf524a)" }}>No One Ever Has.</em>
         </h2>
 
-        {/* Agitation */}
+        {/* Agitation — universal bond */}
         <p
           className="transition-all duration-[1200ms] ease-out"
           style={{
@@ -61,10 +63,10 @@ export const EmotionBridge = () => {
             transitionDelay: "0.12s",
           }}
         >
-          The way they wait by the door ten minutes before you get home.
-          The look they give you when no one else is around. The way they
-          somehow always know — without being told — the exact moment
-          you need them most.
+          You see it in the way they look at you when the world gets heavy.
+          The way they press into you without being asked. The way they
+          somehow always know — long before you do — that today is the
+          day you need them a little closer.
         </p>
 
         <p
@@ -81,7 +83,8 @@ export const EmotionBridge = () => {
             transitionDelay: "0.2s",
           }}
         >
-          You feel it every single day. You've just never been able to put it into words.
+          You've felt this bond your whole life together.
+          You just never had the words for it.
         </p>
 
         {/* Gold divider */}
@@ -103,7 +106,7 @@ export const EmotionBridge = () => {
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
             fontStyle: "italic",
-            fontSize: "clamp(1.15rem, 4.5vw, 1.65rem)",
+            fontSize: "clamp(1.2rem, 4.8vw, 1.7rem)",
             color: "var(--deep, #2e2a24)",
             lineHeight: 1.35,
             opacity: visible ? 1 : 0,
@@ -111,7 +114,7 @@ export const EmotionBridge = () => {
             transitionDelay: "0.35s",
           }}
         >
-          Now you can.
+          Now you do.
         </p>
 
         {/* Heart drawing */}

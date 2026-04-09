@@ -20,14 +20,14 @@ const COPY = {
     heroLine1: "There's a Reason",
     heroLine2: "They Chose You.",
     heroSub:
-      "A deeply personal cosmic reading that reveals who they really are, what they feel, and what they'd say if they could speak.",
+      "A deeply personal cosmic reading that reveals who they really are, what they feel, and the words they've always wanted to say.",
     ctaPrimary: "Reveal Their Soul",
     checkoutSub:
       "Read what they'd say. Know what they mean. Love them with the full story.",
   },
   B: {
-    heroLine1: "Your Pet Is Telling You",
-    heroLine2: "Who They Are.",
+    heroLine1: "Before Them,",
+    heroLine2: "You Didn't Know Love Could Look Like This.",
     heroSub:
       "The deeply personal cosmic reading that shows you who they really are — and finally lets them speak in their own words.",
     ctaPrimary: "Begin Their Reading",

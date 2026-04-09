@@ -45,31 +45,34 @@ export const AstrologyCredibility = () => {
             transform: visible ? "translateY(0)" : "translateY(15px)",
           }}
         >
-          Not Generic. Not Guesswork.
+          Real Astronomy. Not Guesswork.
         </p>
         <h2
-          className="text-center mb-4 transition-all duration-[1200ms] ease-out"
+          className="text-center mb-5 transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.3rem, 5vw, 1.9rem)",
+            fontSize: "clamp(1.4rem, 5.5vw, 2rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
             lineHeight: 1.15,
+            letterSpacing: "-0.02em",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
             transitionDelay: "0.08s",
           }}
         >
-          Real Astronomy. Real Astrology.
+          The Same Sky That Shaped You
+          <br />
+          <em style={{ color: "var(--rose, #bf524a)" }}>Shaped Them Too.</em>
         </h2>
         <p
           className="text-center mb-10 transition-all duration-1000"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
-            fontSize: "clamp(0.92rem, 3.2vw, 1.05rem)",
-            color: "var(--muted, #958779)",
-            maxWidth: 480,
+            fontSize: "clamp(0.95rem, 3.3vw, 1.08rem)",
+            color: "var(--earth, #6e6259)",
+            maxWidth: 500,
             margin: "0 auto",
             lineHeight: 1.6,
             opacity: visible ? 1 : 0,
@@ -77,8 +80,9 @@ export const AstrologyCredibility = () => {
             transitionDelay: "0.12s",
           }}
         >
-          Every reading is calculated from your pet's exact birth data using
-          the same planetary algorithms trusted by professional astrologers worldwide.
+          Every reading is calculated from the exact planetary positions at the
+          moment they were born — using VSOP87, the same mathematical model
+          professional astronomers use to map the real night sky.
         </p>
 
         {/* Credibility points */}
@@ -86,7 +90,7 @@ export const AstrologyCredibility = () => {
           {[
             {
               label: "Real Planetary Positions",
-              desc: "Calculated using VSOP87, the same mathematical models that map the real night sky.",
+              desc: "Calculated to the minute they were born. The same math that tracks the actual night sky.",
               icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
@@ -95,7 +99,7 @@ export const AstrologyCredibility = () => {
             },
             {
               label: "13 Celestial Bodies",
-              desc: "Every planet from Sun to Pluto, plus Chiron, the North Node, and Lilith. A full natal chart.",
+              desc: "Every planet from Sun to Pluto, plus Chiron, the North Node, and Lilith — their full cosmic fingerprint.",
               icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -104,8 +108,8 @@ export const AstrologyCredibility = () => {
               ),
             },
             {
-              label: "Location Matters",
-              desc: "Your pet's birth location is used to calculate their rising sign. Where they were born shapes who they are.",
+              label: "Where They Arrived",
+              desc: "Their birth location sets their rising sign. Where they came into this world shaped who they became.",
               icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -177,17 +181,20 @@ export const AstrologyCredibility = () => {
         </div>
 
         <p
-          className="text-center mt-6 transition-all duration-1000"
+          className="text-center mt-7 transition-all duration-1000"
           style={{
-            fontFamily: "Cormorant, Georgia, serif",
+            fontFamily: '"DM Serif Display", Georgia, serif',
             fontStyle: "italic",
-            fontSize: "0.85rem",
-            color: "var(--muted, #958779)",
+            fontSize: "clamp(0.95rem, 3.2vw, 1.05rem)",
+            color: "var(--deep, #2e2a24)",
             opacity: visible ? 1 : 0,
             transitionDelay: "0.6s",
+            lineHeight: 1.5,
           }}
         >
-          Every reading is cosmically unique. No two are the same.
+          No two souls. No two skies.
+          <br />
+          <span style={{ color: "var(--rose, #bf524a)" }}>No two readings ever the same.</span>
         </p>
       </div>
     </section>

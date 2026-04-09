@@ -356,56 +356,83 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           No account needed. Tell us about your pet right after checkout (60 seconds).
         </p>
 
-        {/* Trust stack — payment methods + security */}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 mt-5">
-          <span className="inline-flex items-center gap-1.5" style={{ fontSize: "0.74rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
-            <svg className="w-3.5 h-3.5 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            256-bit secured
-          </span>
-          <span className="inline-flex items-center gap-1.5" style={{ fontSize: "0.74rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
-            <svg className="w-3.5 h-3.5 text-[var(--gold,#c4a265)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Revealed in minutes
-          </span>
-          <span className="inline-flex items-center gap-1.5" style={{ fontSize: "0.74rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
-            <svg className="w-3.5 h-3.5 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            100% money back
-          </span>
+        {/* Trust row — elegant hand-drawn line icons */}
+        <div className="flex items-center justify-center gap-5 sm:gap-7 mt-5">
+          {[
+            {
+              label: "Secure checkout",
+              icon: (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="5" y="10.5" width="14" height="9" rx="1.5" />
+                  <path d="M8 10.5V7a4 4 0 018 0v3.5" />
+                </svg>
+              ),
+            },
+            {
+              label: "Ready in minutes",
+              icon: (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 2" />
+                </svg>
+              ),
+            },
+            {
+              label: "Full refund guarantee",
+              icon: (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.5 10.8c0 5.2-8.5 10.2-8.5 10.2s-8.5-5-8.5-10.2a4.8 4.8 0 018.5-3.1 4.8 4.8 0 018.5 3.1z" />
+                </svg>
+              ),
+            },
+          ].map((item) => (
+            <div key={item.label} className="flex flex-col items-center text-center">
+              <div
+                className="flex items-center justify-center mb-1.5"
+                style={{
+                  width: 34,
+                  height: 34,
+                  color: "var(--rose, #bf524a)",
+                }}
+                aria-hidden="true"
+              >
+                <div style={{ width: 22, height: 22 }}>{item.icon}</div>
+              </div>
+              <span
+                style={{
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  color: "var(--earth, #6e6259)",
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {item.label}
+              </span>
+            </div>
+          ))}
         </div>
 
-        {/* Payment method badges (visual trust) */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-          {[
-            { label: "Stripe", text: "Stripe" },
-            { label: "Apple Pay", text: " Pay" },
-            { label: "Google Pay", text: "G Pay" },
-            { label: "Klarna", text: "Klarna" },
-            { label: "Visa", text: "VISA" },
-            { label: "Mastercard", text: "MC" },
-          ].map((m) => (
-            <span
-              key={m.label}
-              className="inline-flex items-center justify-center px-2 py-1 rounded"
-              style={{
-                fontFamily: "system-ui, -apple-system, sans-serif",
-                fontSize: "0.65rem",
-                fontWeight: 700,
-                color: "var(--earth, #6e6259)",
-                background: "#fff",
-                border: "1px solid var(--cream3, #f3eadb)",
-                letterSpacing: "0.02em",
-                minWidth: 38,
-              }}
-              aria-label={m.label}
-            >
-              {m.text}
-            </span>
-          ))}
+        {/* Payment method line — single elegant sentence, no broken badges */}
+        <div
+          className="flex items-center justify-center gap-2 mt-5"
+          style={{ opacity: 0.75 }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted, #958779)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="3" y="6" width="18" height="13" rx="2" />
+            <path d="M3 10h18" />
+          </svg>
+          <p
+            className="text-center"
+            style={{
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.76rem",
+              color: "var(--muted, #958779)",
+              letterSpacing: "0.01em",
+            }}
+          >
+            Apple Pay · Google Pay · Klarna · every major card — secured by Stripe
+          </p>
         </div>
 
         {/* Multi-pet note */}

@@ -147,17 +147,31 @@ export const CompactReviews = () => {
           <h2
             style={{
               fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.4rem, 5vw, 2rem)",
+              fontSize: "clamp(1.5rem, 5.5vw, 2.1rem)",
               fontWeight: 400,
               color: "var(--black, #141210)",
-              lineHeight: 1.2,
-              marginBottom: 8,
+              lineHeight: 1.15,
+              marginBottom: 10,
+              letterSpacing: "-0.02em",
             }}
           >
             12,000+ Pet Parents.
             <br />
-            <span style={{ color: "var(--rose, #bf524a)" }}>Under 1% Asked for a Refund.</span>
+            <em style={{ color: "var(--rose, #bf524a)" }}>One Universal Reaction.</em>
           </h2>
+          <p
+            style={{
+              fontFamily: "Cormorant, Georgia, serif",
+              fontStyle: "italic",
+              fontSize: "clamp(0.98rem, 3.3vw, 1.12rem)",
+              color: "var(--earth, #6e6259)",
+              maxWidth: 460,
+              margin: "0 auto 14px",
+              lineHeight: 1.55,
+            }}
+          >
+            "That's exactly them. How did you know?"
+          </p>
           <div className="flex items-center justify-center gap-2">
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -167,7 +181,7 @@ export const CompactReviews = () => {
               ))}
             </div>
             <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem", color: "var(--muted, #958779)" }}>
-              Rated <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9</strong> across all readings
+              <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9</strong> average · under 1% refunded
             </span>
           </div>
         </div>

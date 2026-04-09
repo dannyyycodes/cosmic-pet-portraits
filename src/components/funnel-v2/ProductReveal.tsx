@@ -17,15 +17,111 @@ function useScrollReveal(threshold = 0.2) {
   return { ref, visible };
 }
 
+/* ──────── Hand-drawn line-art icons (match the Astral Fauna palette) ──────── */
+
+const IconStars = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />
+    <circle cx="12" cy="12" r="2.4" />
+  </svg>
+);
+
+const IconHeartPulse = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.5 10.8c0 5.2-8.5 10.2-8.5 10.2s-8.5-5-8.5-10.2a4.8 4.8 0 018.5-3.1 4.8 4.8 0 018.5 3.1z" />
+    <path d="M3.5 12.5h3.2l1.6-2.5 2.2 5 1.6-3.2h5.7" />
+  </svg>
+);
+
+const IconSpeechPaw = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H13l-3.8 3.4V16H6.5A2.5 2.5 0 014 13.5v-7z" />
+    <circle cx="9" cy="9.6" r="0.9" />
+    <circle cx="12" cy="8.6" r="0.9" />
+    <circle cx="15" cy="9.6" r="0.9" />
+    <path d="M10 12.4c.5.8 1.2 1.2 2 1.2s1.5-.4 2-1.2" />
+  </svg>
+);
+
+const IconCompass = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 3v1.8M12 19.2V21M3 12h1.8M19.2 12H21" />
+    <path d="M8.8 15.2l2.2-6 4.2 4.2-6 2.2z" />
+  </svg>
+);
+
+const IconEnvelope = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="6" width="18" height="13" rx="2" />
+    <path d="M3.5 7.5l8.5 6.3 8.5-6.3" />
+    <path d="M7.5 14.2l-3.5 4.3M16.5 14.2l3.5 4.3" />
+  </svg>
+);
+
+const IconCrystal = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2.5l5.5 5-5.5 14-5.5-14 5.5-5z" />
+    <path d="M6.5 7.5h11M12 2.5v19" />
+  </svg>
+);
+
+const IconMoonCycle = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.5 13.5A8.5 8.5 0 1110.5 3.5a6.5 6.5 0 0010 10z" />
+    <circle cx="17.2" cy="6.8" r="0.9" />
+    <circle cx="20.2" cy="10" r="0.7" />
+  </svg>
+);
+
+const IconBookStar = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 5.5A1.5 1.5 0 015.5 4H11v15H5.5A1.5 1.5 0 014 17.5v-12zM20 5.5A1.5 1.5 0 0018.5 4H13v15h5.5a1.5 1.5 0 001.5-1.5v-12z" />
+    <path d="M15.5 9l.6 1.3 1.4.2-1 1 .2 1.4-1.2-.7-1.2.7.2-1.4-1-1 1.4-.2.6-1.3z" />
+  </svg>
+);
+
 const VALUE_ITEMS = [
-  { icon: "✨", title: "Full Cosmic Personality Profile", desc: "13 planetary placements decoded. Who they are beneath the fur.", included: true },
-  { icon: "💛", title: "Emotional Blueprint", desc: "What soothes them. What stresses them. What they've been trying to tell you.", included: true },
-  { icon: "💬", title: "SoulSpeak Chat", desc: "Ask them anything. Hear what they'd actually say back to you.", included: true },
-  { icon: "🔮", title: "Soul Purpose & Life Path", desc: "The deeper reason they came into your life.", included: true },
-  { icon: "💌", title: "A Letter From Their Soul", desc: "What they would write to you if they could hold a pen.", included: true },
-  { icon: "🐾", title: "Archetype, Aura & Crystal Match", desc: "Their soul archetype, energy colour, and cosmic crystal.", included: true },
-  { icon: "📅", title: "Weekly Cosmic Horoscope", desc: "Personalised to their chart. First month free.", included: true },
-  { icon: "📖", title: "30+ Deeply Personal Sections", desc: "Love language, superpower, hidden fears, dream job, and more.", included: true },
+  {
+    Icon: IconStars,
+    title: "Full Cosmic Personality Profile",
+    desc: "The soul sitting behind those eyes — decoded from 13 celestial bodies. Who they really are when no one else is watching.",
+  },
+  {
+    Icon: IconHeartPulse,
+    title: "Emotional Blueprint",
+    desc: "What soothes them. What stresses them. What they've been trying to tell you their whole life together.",
+  },
+  {
+    Icon: IconSpeechPaw,
+    title: "SoulSpeak Chat",
+    desc: "Ask them anything. Hear the words they've wanted to say to you since the day you met.",
+  },
+  {
+    Icon: IconCompass,
+    title: "Soul Purpose & Life Path",
+    desc: "The reason the universe brought them to you — and what they came here to teach you about love.",
+  },
+  {
+    Icon: IconEnvelope,
+    title: "A Letter From Their Soul",
+    desc: "What they would write to you if they could hold a pen. Read it once and you'll never be the same.",
+  },
+  {
+    Icon: IconCrystal,
+    title: "Archetype, Aura & Crystal Match",
+    desc: "The energy they carry, the colour of their aura, and the crystal that holds their frequency.",
+  },
+  {
+    Icon: IconMoonCycle,
+    title: "Weekly Cosmic Horoscope",
+    desc: "A weekly forecast written just for them. Know what they'll feel before they feel it.",
+  },
+  {
+    Icon: IconBookStar,
+    title: "30+ Deeply Personal Sections",
+    desc: "Their love language. Their hidden fears. Their superpower. The things you've always wondered but never knew how to ask.",
+  },
 ];
 
 interface ProductRevealProps {
@@ -58,13 +154,13 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transform: visible ? "translateY(0)" : "translateY(20px)",
           }}
         >
-          What You'll Receive
+          Everything You'll Discover
         </p>
         <h2
           className="text-center mb-4 transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.4rem, 6vw, 2.2rem)",
+            fontSize: "clamp(1.5rem, 6.2vw, 2.3rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
             lineHeight: 1.15,
@@ -73,23 +169,27 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transitionDelay: "0.1s",
           }}
         >
-          A Reading Unlike Anything Else
+          The Soul You've Always Loved,
+          <br />
+          <em style={{ color: "var(--rose, #bf524a)" }}>Finally in Words.</em>
         </h2>
         <p
           className="text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-1000"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
-            fontSize: "clamp(0.95rem, 3.5vw, 1.1rem)",
-            color: "var(--muted, #958779)",
-            maxWidth: 440,
+            fontSize: "clamp(0.98rem, 3.5vw, 1.12rem)",
+            color: "var(--earth, #6e6259)",
+            maxWidth: 480,
             margin: "0 auto",
+            lineHeight: 1.6,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(15px)",
             transitionDelay: "0.15s",
           }}
         >
-          Based on their exact birth chart. Calculated from real planetary positions. No two readings are the same.
+          Every reading is calculated from the exact moment they arrived in this world.
+          Which means no two are ever the same — because no two souls ever are.
         </p>
 
         <div className={`flex ${isMobile ? "flex-col items-center gap-8" : "items-start gap-12"}`}>
@@ -120,7 +220,15 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: "var(--rose-glow, rgba(191,82,74,0.12))" }}>💛</div>
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(191,82,74,0.1)", color: "var(--rose, #bf524a)" }}
+                    aria-hidden="true"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.5 10.8c0 5.2-8.5 10.2-8.5 10.2s-8.5-5-8.5-10.2a4.8 4.8 0 018.5-3.1 4.8 4.8 0 018.5 3.1z" />
+                    </svg>
+                  </div>
                   <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.85rem", color: "var(--ink, #1f1c18)" }}>
                     Emotional Blueprint
                   </span>
@@ -176,11 +284,13 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             >
               <div className="px-4 py-2.5" style={{ background: "linear-gradient(135deg, var(--cream2, #faf4e8), var(--cream3, #f3eadb))", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">💬</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rose, #bf524a)" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H13l-3.8 3.4V16H6.5A2.5 2.5 0 014 13.5v-7z" />
+                  </svg>
                   <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.8rem", color: "var(--ink, #1f1c18)" }}>
                     SoulSpeak
                   </span>
-                  <span className="ml-auto text-[0.6rem] px-1.5 py-0.5 rounded-full font-semibold" style={{ background: "var(--green-soft, #e8f5ec)", color: "var(--green, #4a8c5c)" }}>
+                  <span className="ml-auto text-[0.58rem] px-1.5 py-0.5 rounded-full font-semibold tracking-wider" style={{ background: "rgba(74,140,92,0.1)", color: "var(--green, #4a8c5c)" }}>
                     INCLUDED
                   </span>
                 </div>
@@ -206,42 +316,54 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
 
           {/* Value stack */}
           <div className="flex-1 min-w-0">
-            <div className="space-y-3.5">
-              {VALUE_ITEMS.map((item, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 transition-all duration-[1000ms] ease-out"
-                  style={{
-                    opacity: visible ? 1 : 0,
-                    transform: visible ? "translateX(0)" : "translateX(20px)",
-                    transitionDelay: `${0.25 + i * 0.06}s`,
-                  }}
-                >
-                  <span className="text-base flex-shrink-0 mt-0.5">{item.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
+            <div className="space-y-4">
+              {VALUE_ITEMS.map((item, i) => {
+                const Icon = item.Icon;
+                return (
+                  <div
+                    key={i}
+                    className="flex items-start gap-3.5 transition-all duration-[1000ms] ease-out"
+                    style={{
+                      opacity: visible ? 1 : 0,
+                      transform: visible ? "translateX(0)" : "translateX(20px)",
+                      transitionDelay: `${0.25 + i * 0.06}s`,
+                    }}
+                  >
+                    {/* Hand-drawn SVG icon in a soft rose circle */}
+                    <div
+                      className="flex-shrink-0 flex items-center justify-center rounded-full"
+                      style={{
+                        width: 38,
+                        height: 38,
+                        background: "rgba(191,82,74,0.06)",
+                        border: "1px solid rgba(191,82,74,0.14)",
+                        color: "var(--rose, #bf524a)",
+                      }}
+                      aria-hidden="true"
+                    >
+                      <div style={{ width: 20, height: 20 }}>
+                        <Icon />
+                      </div>
+                    </div>
+                    <div className="flex-1 pt-0.5">
                       <h3
                         style={{
                           fontFamily: '"DM Serif Display", Georgia, serif',
-                          fontSize: "0.92rem",
+                          fontSize: "0.98rem",
                           color: "var(--ink, #1f1c18)",
-                          marginBottom: 1,
+                          marginBottom: 2,
+                          lineHeight: 1.2,
                         }}
                       >
                         {item.title}
                       </h3>
-                      {item.included && (
-                        <svg className="w-3.5 h-3.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
+                      <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.88rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
+                        {item.desc}
+                      </p>
                     </div>
-                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", color: "var(--muted, #958779)", lineHeight: 1.45 }}>
-                      {item.desc}
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Mid-section CTA */}
