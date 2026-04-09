@@ -48,13 +48,13 @@ export const EmotionBridge = () => {
           <em style={{ color: "var(--rose, #bf524a)" }}>No One Ever Has.</em>
         </h2>
 
-        {/* Agitation — universal bond */}
+        {/* Agitation — universal bond, power phrases bolded for skim path */}
         <p
-          className="transition-all duration-[1200ms] ease-out"
+          className="transition-all duration-[1200ms] ease-out emotion-body"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontWeight: 400,
-            fontSize: "clamp(1.05rem, 3.8vw, 1.3rem)",
+            fontSize: "clamp(1.08rem, 4vw, 1.32rem)",
             color: "var(--earth, #6e6259)",
             lineHeight: 1.7,
             marginBottom: 20,
@@ -63,18 +63,18 @@ export const EmotionBridge = () => {
             transitionDelay: "0.12s",
           }}
         >
-          You see it in the way they look at you when the world gets heavy.
-          The way they press into you without being asked. The way they
-          somehow always know, long before you do, that today is the day
+          You see it in the way they look at you <b>when the world gets heavy</b>.
+          The way they press into you without being asked. The way they{" "}
+          <b>somehow always know, long before you do,</b> that today is the day
           you need them a little closer.
         </p>
 
         <p
-          className="transition-all duration-[1200ms] ease-out"
+          className="transition-all duration-[1200ms] ease-out emotion-body"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontWeight: 400,
-            fontSize: "clamp(1.05rem, 3.8vw, 1.3rem)",
+            fontSize: "clamp(1.08rem, 4vw, 1.32rem)",
             color: "var(--earth, #6e6259)",
             lineHeight: 1.7,
             marginBottom: 26,
@@ -83,9 +83,16 @@ export const EmotionBridge = () => {
             transitionDelay: "0.2s",
           }}
         >
-          You've felt this bond your whole life together.
-          You just never had the words for it.
+          You've felt this bond <b>your whole life together</b>.
+          You just <b>never had the words for it</b>.
         </p>
+        <style>{`
+          .emotion-body b {
+            font-weight: 600;
+            color: var(--ink, #1f1c18);
+            font-style: normal;
+          }
+        `}</style>
 
         {/* Gold divider */}
         <div

@@ -331,18 +331,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           )}
         </button>
 
-        {/* Risk reversal */}
+        {/* Risk reversal — trust-level anchor, sized up for skim hierarchy */}
         <p
-          className="text-center mt-3"
+          className="text-center mt-4"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
-            fontSize: "0.88rem",
+            fontSize: "clamp(0.98rem, 3.2vw, 1.08rem)",
             fontStyle: "italic",
             color: "var(--earth, #6e6259)",
             lineHeight: 1.5,
+            maxWidth: 440,
+            margin: "16px auto 0",
           }}
         >
-          If the reading doesn't feel like <em>them</em>, we refund every cent.
+          If the reading doesn't feel like <em>them</em>,{" "}
+          <strong style={{ color: "var(--ink, #1f1c18)", fontWeight: 600, fontStyle: "normal" }}>
+            we refund every cent.
+          </strong>
         </p>
 
         {/* Post CTA clarity */}

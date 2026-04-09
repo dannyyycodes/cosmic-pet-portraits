@@ -35,12 +35,14 @@ function useAnimatedCounter(target: number, duration = 2000, start = false) {
 }
 
 // Best reviews from the live site — curated for variety and emotional impact
+// Reviews use <b>…</b> around the punchy power phrase so skimmers
+// reading only the bold bits still catch the emotional hit.
 const CURATED_REVIEWS = [
   {
     name: "Ava P.",
     pet: "Butterbean, Corgi, 2",
     breed: "corgi",
-    text: "SoulSpeak alone is worth the price. I asked Butterbean what she thinks about the cat and the response was pure comedy gold.",
+    text: "SoulSpeak alone is worth the price. I asked Butterbean what she thinks about the cat and <b>the response was pure comedy gold</b>.",
     tag: "verified",
     time: "3 days ago",
   },
@@ -48,7 +50,7 @@ const CURATED_REVIEWS = [
     name: "Tom H.",
     pet: "Bear, German Shepherd, 5",
     breed: "german-shepherd",
-    text: "The compatibility chart between me and Bear made my wife cry. It knew things we never told it.",
+    text: "The compatibility chart between me and Bear <b>made my wife cry</b>. It knew things we never told it.",
     tag: "verified",
     time: "3 days ago",
   },
@@ -56,7 +58,7 @@ const CURATED_REVIEWS = [
     name: "Brooke T.",
     pet: "Theo, Golden Retriever, 3",
     breed: "golden-retriever",
-    text: "I asked Theo why he steals socks and the answer was 'because they smell like you and that makes me feel safe.' DESTROYED.",
+    text: "I asked Theo why he steals socks and the answer was <b>'because they smell like you and that makes me feel safe.'</b> DESTROYED.",
     tag: "verified",
     time: "4 days ago",
   },
@@ -64,7 +66,7 @@ const CURATED_REVIEWS = [
     name: "Lisa K.",
     pet: "Cooper, Border Collie, 2",
     breed: "border-collie",
-    text: "The cosmic profile was so specific to Cooper. It mentioned his herding behaviour before I even said anything.",
+    text: "The cosmic profile was so specific to Cooper. <b>It mentioned his herding behaviour before I even said anything.</b>",
     tag: "verified",
     time: "4 days ago",
   },
@@ -72,7 +74,7 @@ const CURATED_REVIEWS = [
     name: "Rachel S.",
     pet: "Daisy, Cavalier King Charles, 3",
     breed: "cavalier-kcs",
-    text: "How did it know she sits by the door 20 minutes before I get home? The emotional blueprint was scarily accurate.",
+    text: "How did it know she sits by the door 20 minutes before I get home? <b>The emotional blueprint was scarily accurate.</b>",
     tag: "verified",
     time: "5 days ago",
   },
@@ -80,7 +82,7 @@ const CURATED_REVIEWS = [
     name: "James Wilson",
     pet: "Biscuit the Holland Lop",
     breed: "holland-lop",
-    text: "It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and he actually comes to us on his own now.",
+    text: "It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and <b>he actually comes to us on his own now</b>.",
     tag: "verified",
     time: "2 weeks ago",
   },
@@ -88,14 +90,14 @@ const CURATED_REVIEWS = [
     name: "Steve L.",
     pet: "Hank, Bulldog, 5",
     breed: "bulldog",
-    text: "My wife bought this and I rolled my eyes. Then I read it. Then I tried SoulSpeak. Then I ordered one for my mom's dog.",
+    text: "My wife bought this and I rolled my eyes. Then I read it. Then I tried SoulSpeak. <b>Then I ordered one for my mom's dog.</b>",
     time: "2 weeks ago",
   },
   {
     name: "Sam N.",
     pet: "Nugget, Guinea Pig, 2",
     breed: "guinea-pig",
-    text: "A full soul reading for a guinea pig! And the cosmic portrait was the cutest thing I've ever seen.",
+    text: "A full soul reading for a guinea pig! And <b>the cosmic portrait was the cutest thing I've ever seen</b>.",
     tag: "verified",
     time: "1 week ago",
   },
@@ -317,23 +319,31 @@ export const CompactReviews = () => {
                 </div>
               </div>
 
-              {/* Review text */}
+              {/* Review text with bolded punch phrase for skim path */}
               <p
+                className="review-body"
                 style={{
                   fontFamily: "Cormorant, Georgia, serif",
                   fontStyle: "italic",
-                  fontSize: "0.88rem",
+                  fontSize: "0.92rem",
                   color: "var(--earth, #6e6259)",
-                  lineHeight: 1.5,
+                  lineHeight: 1.55,
                   marginBottom: 4,
                 }}
-              >
-                "{review.text}"
-              </p>
+                dangerouslySetInnerHTML={{ __html: `&ldquo;${review.text}&rdquo;` }}
+              />
               <p style={{ fontSize: "0.68rem", color: "var(--faded, #bfb2a3)" }}>{review.time}</p>
             </div>
           ))}
         </div>
+
+        <style>{`
+          .review-body b {
+            font-weight: 600;
+            font-style: italic;
+            color: var(--ink, #1f1c18);
+          }
+        `}</style>
 
         {/* Mobile expand button */}
         {isMobile && !expanded && CURATED_REVIEWS.length > visibleReviews.length && (

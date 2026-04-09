@@ -174,13 +174,13 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           <em style={{ color: "var(--rose, #bf524a)" }}>Finally in Words.</em>
         </h2>
         <p
-          className="text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-1000"
+          className="text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-1000 product-sub"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
-            fontSize: "clamp(0.98rem, 3.5vw, 1.12rem)",
+            fontSize: "clamp(1rem, 3.5vw, 1.15rem)",
             color: "var(--earth, #6e6259)",
-            maxWidth: 480,
+            maxWidth: 520,
             margin: "0 auto",
             lineHeight: 1.6,
             opacity: visible ? 1 : 0,
@@ -188,9 +188,16 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transitionDelay: "0.15s",
           }}
         >
-          Every reading is calculated from the exact moment they arrived in this world.
-          Which means no two are ever the same. Because no two souls ever are.
+          Every reading is calculated from <b>the exact moment they arrived in this world</b>.
+          Which means <b>no two are ever the same</b>. Because no two souls ever are.
         </p>
+        <style>{`
+          .product-sub b {
+            font-weight: 600;
+            font-style: normal;
+            color: var(--ink, #1f1c18);
+          }
+        `}</style>
 
         <div className={`flex ${isMobile ? "flex-col items-center gap-8" : "items-start gap-12"}`}>
           {/* Report mockup with SoulSpeak preview */}

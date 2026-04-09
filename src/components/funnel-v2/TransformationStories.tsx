@@ -255,7 +255,11 @@ export const TransformationStories = () => {
   );
 };
 
-/* ─── Narrative beat ─── */
+/* ─── Narrative beat ───
+ * Typographic hierarchy: the "reveal" beat (tint="rose") is the
+ * MONEY LINE in each card and must be the largest text. Skimmers
+ * reading only the rose pull-quotes still get the full story arc.
+ */
 
 const Beat = ({
   label,
@@ -280,13 +284,22 @@ const Beat = ({
         ? "var(--ink, #1f1c18)"
         : "var(--earth, #6e6259)";
 
+  // The "reveal" quote is visibly larger than the other beats.
+  const bodySize =
+    tint === "rose"
+      ? "clamp(1.02rem, 3vw, 1.15rem)" // money line — largest
+      : "0.86rem"; // context beats — smaller
+
+  const bodyWeight = tint === "rose" ? 500 : 400;
+  const bodyLineHeight = tint === "rose" ? 1.5 : 1.55;
+
   return (
     <div>
       <p
-        className="mb-1"
+        className="mb-1.5"
         style={{
           fontFamily: "Cormorant, Georgia, serif",
-          fontSize: "0.66rem",
+          fontSize: "0.64rem",
           fontWeight: 700,
           letterSpacing: "0.16em",
           textTransform: "uppercase",
@@ -297,11 +310,16 @@ const Beat = ({
       </p>
       <p
         style={{
-          fontFamily: "Cormorant, Georgia, serif",
-          fontSize: "0.88rem",
+          fontFamily:
+            tint === "rose"
+              ? '"DM Serif Display", Georgia, serif'
+              : "Cormorant, Georgia, serif",
+          fontSize: bodySize,
+          fontWeight: bodyWeight,
           color: bodyColor,
-          lineHeight: 1.55,
+          lineHeight: bodyLineHeight,
           fontStyle: tint === "rose" ? "italic" : "normal",
+          letterSpacing: tint === "rose" ? "-0.005em" : "normal",
         }}
       >
         {tint === "rose" ? `"${body}"` : body}

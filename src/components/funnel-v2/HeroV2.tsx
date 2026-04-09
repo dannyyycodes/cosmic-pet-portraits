@@ -137,9 +137,9 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
           <em>{headlineLine2}</em>
         </h1>
 
-        {/* Subheadline */}
+        {/* Subheadline with bolded power phrases */}
         <p
-          className="mt-4 sm:mt-5 mx-auto transition-all duration-[1200ms] ease-out"
+          className="mt-4 sm:mt-5 mx-auto transition-all duration-[1200ms] ease-out hero-subhead"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
@@ -147,14 +147,20 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
             fontWeight: 400,
             color: "var(--earth, #6e6259)",
             lineHeight: 1.6,
-            maxWidth: 440,
+            maxWidth: 460,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
             transitionDelay: "0.35s",
           }}
-        >
-          {subhead}
-        </p>
+          dangerouslySetInnerHTML={{ __html: subhead }}
+        />
+        <style>{`
+          .hero-subhead b {
+            font-style: normal;
+            font-weight: 600;
+            color: var(--ink, #1f1c18);
+          }
+        `}</style>
 
         {/* CTA Button */}
         <div

@@ -18,24 +18,29 @@ import { GoldDivider } from "./GoldDivider";
  * Tested: hero headline, hero subhead, primary CTA, checkout subheader.
  * Tracked via usePageAnalytics (funnel_v2_variant field on every event).
  */
+/**
+ * Copy variants use a simple inline-HTML convention for typographic
+ * emphasis: wrap power phrases in <b>…</b> and HeroV2 renders them
+ * via dangerouslySetInnerHTML so skimmers catch the bolded path.
+ */
 const COPY = {
   A: {
     heroLine1: "There's a Reason",
     heroLine2: "They Chose You.",
     heroSub:
-      "A deeply personal cosmic reading that reveals who they really are, what they feel, and the words they've always wanted to say.",
+      "A deeply personal cosmic reading that reveals <b>who they really are</b>, what they feel, and <b>the words they've always wanted to say</b>.",
     ctaPrimary: "Reveal Their Soul",
     checkoutSub:
-      "Read what they'd say. Know what they mean. Love them with the full story.",
+      "Read what they'd say. Know what they mean. <b>Love them with the full story.</b>",
   },
   B: {
     heroLine1: "Before Them,",
     heroLine2: "You Didn't Know Love Could Look Like This.",
     heroSub:
-      "The deeply personal cosmic reading that shows you who they really are, and finally lets them speak in their own words.",
+      "The deeply personal cosmic reading that <b>shows you who they really are</b>, and finally lets them <b>speak in their own words</b>.",
     ctaPrimary: "Begin Their Reading",
     checkoutSub:
-      "Finally hear them in their own words. Understand the little soul you've been loving all along.",
+      "Finally hear them in their own words. <b>Understand the little soul you've been loving all along.</b>",
   },
 } as const;
 
