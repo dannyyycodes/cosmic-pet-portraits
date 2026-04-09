@@ -16,9 +16,24 @@ function useScrollReveal(threshold = 0.2) {
   return { ref, visible };
 }
 
-const PLANETS = [
-  "Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter",
-  "Saturn", "Uranus", "Neptune", "Pluto", "Chiron", "North Node", "Lilith",
+/**
+ * Astrological glyphs as unicode + VS15 text-variation selector
+ * (forces text rendering so iOS doesn't turn them into color emoji).
+ */
+const PLANETS: { name: string; symbol: string }[] = [
+  { name: "Sun", symbol: "\u2609\uFE0E" },
+  { name: "Moon", symbol: "\u263D\uFE0E" },
+  { name: "Mercury", symbol: "\u263F\uFE0E" },
+  { name: "Venus", symbol: "\u2640\uFE0E" },
+  { name: "Mars", symbol: "\u2642\uFE0E" },
+  { name: "Jupiter", symbol: "\u2643\uFE0E" },
+  { name: "Saturn", symbol: "\u2644\uFE0E" },
+  { name: "Uranus", symbol: "\u2645\uFE0E" },
+  { name: "Neptune", symbol: "\u2646\uFE0E" },
+  { name: "Pluto", symbol: "\u2647\uFE0E" },
+  { name: "Chiron", symbol: "\u26B7\uFE0E" },
+  { name: "North Node", symbol: "\u260A\uFE0E" },
+  { name: "Lilith", symbol: "\u26B8\uFE0E" },
 ];
 
 export const AstrologyCredibility = () => {
@@ -153,7 +168,7 @@ export const AstrologyCredibility = () => {
           ))}
         </div>
 
-        {/* Planet pills */}
+        {/* Planet pills with glyphs */}
         <div
           className="flex flex-wrap justify-center gap-2 transition-all duration-1000"
           style={{
@@ -164,8 +179,8 @@ export const AstrologyCredibility = () => {
         >
           {PLANETS.map((p) => (
             <span
-              key={p}
-              className="px-3 py-1 rounded-full"
+              key={p.name}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full"
               style={{
                 fontFamily: "Cormorant, Georgia, serif",
                 fontSize: "0.78rem",
@@ -175,7 +190,20 @@ export const AstrologyCredibility = () => {
                 border: "1px solid var(--cream3, #f3eadb)",
               }}
             >
-              {p}
+              <span
+                aria-hidden="true"
+                style={{
+                  fontFamily:
+                    '"DejaVu Sans", "Noto Sans Symbols", "Noto Sans Symbols 2", "Apple Symbols", "Segoe UI Symbol", system-ui, sans-serif',
+                  fontSize: "0.95rem",
+                  lineHeight: 1,
+                  color: "var(--rose, #bf524a)",
+                  fontVariantEmoji: "text" as never,
+                }}
+              >
+                {p.symbol}
+              </span>
+              {p.name}
             </span>
           ))}
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, forwardRef } from "react";
+import { useState, useEffect, useRef, forwardRef, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getReferralCode } from "@/lib/referralTracking";
 
@@ -413,27 +413,19 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           ))}
         </div>
 
-        {/* Payment method line — single elegant sentence, no broken badges */}
-        <div
-          className="flex items-center justify-center gap-2 mt-5"
-          style={{ opacity: 0.75 }}
+        {/* Real payment brand logos — legit trust row */}
+        <PaymentBrandLogos />
+        <p
+          className="text-center mt-2"
+          style={{
+            fontFamily: "Cormorant, Georgia, serif",
+            fontSize: "0.72rem",
+            color: "var(--muted, #958779)",
+            letterSpacing: "0.02em",
+          }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted, #958779)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="3" y="6" width="18" height="13" rx="2" />
-            <path d="M3 10h18" />
-          </svg>
-          <p
-            className="text-center"
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "0.76rem",
-              color: "var(--muted, #958779)",
-              letterSpacing: "0.01em",
-            }}
-          >
-            Apple Pay · Google Pay · Klarna · every major card — secured by Stripe
-          </p>
-        </div>
+          Secure checkout powered by Stripe
+        </p>
 
         {/* Multi-pet note */}
         <p
@@ -449,3 +441,154 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 });
 
 InlineCheckout.displayName = "InlineCheckout";
+
+/* ──────── Real brand logos (inline SVG) ────────
+ * Used on merchant sites to indicate payment support. Simplified
+ * wordmarks/marks rendered in each brand's official hex.
+ */
+
+const BadgeWrap = ({ children, label, width = 52 }: { children: ReactNode; label: string; width?: number }) => (
+  <div
+    aria-label={label}
+    role="img"
+    className="flex items-center justify-center"
+    style={{
+      width,
+      height: 30,
+      background: "#fff",
+      border: "1px solid var(--cream3, #f3eadb)",
+      borderRadius: 5,
+      padding: "0 6px",
+    }}
+  >
+    {children}
+  </div>
+);
+
+const StripeLogo = () => (
+  <BadgeWrap label="Stripe" width={56}>
+    <svg viewBox="0 0 60 25" width="40" height="16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path
+        fill="#635BFF"
+        d="M59.5 14.3c0-4.2-2-7.5-5.9-7.5-3.9 0-6.3 3.3-6.3 7.5 0 5 2.8 7.5 6.8 7.5 2 0 3.5-.4 4.6-1.1v-3.3c-1.1.6-2.4 1-4.1 1-1.6 0-3-.6-3.2-2.5h8.1c0-.2.1-1.1.1-1.6zm-8.2-1.5c0-1.8 1.1-2.6 2.1-2.6 1 0 2 .8 2 2.6h-4.1zM42.6 6.8c-1.6 0-2.7.8-3.3 1.3l-.2-1.1h-3.7v19.1l4.2-.9.01-4.6c.6.4 1.5 1 3 1 3 0 5.8-2.4 5.8-7.6 0-4.8-2.8-7.2-5.8-7.2zm-1 11.4c-1 0-1.6-.4-2-.8l0-6.4c.5-.4 1.1-.8 2-.8 1.5 0 2.6 1.7 2.6 4 0 2.3-1.1 4-2.6 4zM28.5 5.8l4.2-.9V1.5l-4.2.9v3.4zM28.5 7.1h4.2v14.4h-4.2V7.1zM24 8.3l-.3-1.2h-3.6v14.4h4.2V11.7c1-1.3 2.6-1 3.2-.9V7.1c-.6-.2-2.5-.6-3.5 1.2zM15.8 3.5l-4.1.9-.1 13.5c0 2.5 1.9 4.3 4.3 4.3 1.4 0 2.4-.3 3-.6v-3.4c-.6.2-3.1 1-3.1-1.5V10.7h3.1V7.1h-3.1l.1-3.6zM4.2 11.2c0-.7.6-1 1.5-1 1.3 0 3 .4 4.3 1.1v-4c-1.4-.6-2.9-.8-4.3-.8C2.2 6.6 0 8.4 0 11.4c0 4.8 6.5 4 6.5 6 0 .7-.7 1-1.7 1-1.4 0-3.3-.6-4.8-1.4v4c1.6.7 3.3 1 4.8 1 3.6 0 5.9-1.8 5.9-4.7 0-5.2-6.5-4.2-6.5-6.1z"
+      />
+    </svg>
+  </BadgeWrap>
+);
+
+const VisaLogo = () => (
+  <BadgeWrap label="Visa">
+    <svg viewBox="0 0 48 16" width="40" height="14" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <text
+        x="24"
+        y="13"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontSize="14"
+        fontWeight="900"
+        fontStyle="italic"
+        fill="#1A1F71"
+        textAnchor="middle"
+        letterSpacing="0.5"
+      >
+        VISA
+      </text>
+    </svg>
+  </BadgeWrap>
+);
+
+const MastercardLogo = () => (
+  <BadgeWrap label="Mastercard">
+    <svg viewBox="0 0 40 25" width="34" height="20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="15" cy="12.5" r="9.5" fill="#EB001B" />
+      <circle cx="25" cy="12.5" r="9.5" fill="#F79E1B" />
+      <path
+        d="M20 5.4a9.5 9.5 0 010 14.2 9.5 9.5 0 010-14.2z"
+        fill="#FF5F00"
+      />
+    </svg>
+  </BadgeWrap>
+);
+
+const AppleIconPath =
+  "M17.05 20.28c-.98.95-2.05.88-3.08.41-1.09-.47-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.41C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM13 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z";
+
+const ApplePayLogo = () => (
+  <BadgeWrap label="Apple Pay" width={58}>
+    <svg viewBox="0 0 50 22" width="44" height="18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d={AppleIconPath} fill="#000" transform="translate(1, 1.5) scale(0.72)" />
+      <text
+        x="16"
+        y="15"
+        fontFamily="-apple-system, system-ui, Helvetica, sans-serif"
+        fontSize="11"
+        fontWeight="700"
+        fill="#000"
+      >
+        Pay
+      </text>
+    </svg>
+  </BadgeWrap>
+);
+
+const GooglePayLogo = () => (
+  <BadgeWrap label="Google Pay" width={62}>
+    <svg viewBox="0 0 60 22" width="48" height="18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      {/* Google "G" multi-color */}
+      <path fill="#4285F4" d="M11.8 11.3v2.5h3.5c-.1.8-.6 1.5-1.3 2-.7.5-1.6.8-2.7.8-2.2 0-4-1.8-4-4 0-2.2 1.8-4 4-4 1 0 1.9.4 2.6 1l1.8-1.8C14.5 6.7 13.2 6.2 11.8 6.2c-3.4 0-6.2 2.8-6.2 6.2s2.8 6.2 6.2 6.2c1.8 0 3.3-.6 4.4-1.8 1.1-1.1 1.5-2.7 1.5-4 0-.4 0-.8-.1-1.1h-5.8z" />
+      <path fill="#34A853" d="M6.2 14.6l-.6 1.2 1.3.7c.6-.8 1-1.8 1.2-2.9l-1.9.1c-.1.3-.1.6 0 .9z" />
+      <path fill="#FBBC04" d="M5.6 10.6c.2-1.1.6-2 1.3-2.8l-1.7-1.3c-.9 1-1.5 2.2-1.7 3.5l2.1.6z" />
+      <path fill="#EA4335" d="M11.8 6.2c1.4 0 2.7.5 3.6 1.5l1.6-1.6C15.5 4.7 13.8 4 11.8 4 9.2 4 6.9 5.5 5.8 7.8l1.7 1.3c.5-1.8 2.2-2.9 4.3-2.9z" />
+      {/* Pay wordmark */}
+      <text
+        x="20"
+        y="15"
+        fontFamily="Roboto, -apple-system, system-ui, sans-serif"
+        fontSize="11"
+        fontWeight="600"
+        fill="#5F6368"
+      >
+        Pay
+      </text>
+    </svg>
+  </BadgeWrap>
+);
+
+const KlarnaLogo = () => (
+  <div
+    aria-label="Klarna"
+    role="img"
+    className="flex items-center justify-center"
+    style={{
+      width: 56,
+      height: 30,
+      background: "#FFA8CD",
+      borderRadius: 5,
+    }}
+  >
+    <svg viewBox="0 0 60 20" width="44" height="16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <text
+        x="30"
+        y="14"
+        fontFamily="-apple-system, system-ui, Helvetica, sans-serif"
+        fontSize="11"
+        fontWeight="800"
+        fill="#0F0F0F"
+        textAnchor="middle"
+        letterSpacing="-0.1"
+      >
+        Klarna.
+      </text>
+    </svg>
+  </div>
+);
+
+const PaymentBrandLogos = () => (
+  <div className="flex flex-wrap items-center justify-center gap-2 mt-5">
+    <StripeLogo />
+    <ApplePayLogo />
+    <GooglePayLogo />
+    <KlarnaLogo />
+    <VisaLogo />
+    <MastercardLogo />
+  </div>
+);
