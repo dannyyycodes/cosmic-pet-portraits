@@ -65,8 +65,8 @@ export const EmotionBridge = () => {
         >
           You see it in the way they look at you when the world gets heavy.
           The way they press into you without being asked. The way they
-          somehow always know — long before you do — that today is the
-          day you need them a little closer.
+          somehow always know, long before you do, that today is the day
+          you need them a little closer.
         </p>
 
         <p

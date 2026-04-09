@@ -95,8 +95,8 @@ export const AstrologyCredibility = () => {
             transitionDelay: "0.12s",
           }}
         >
-          Every reading is calculated from the exact planetary positions at the
-          moment they were born — using VSOP87, the same mathematical model
+          Every reading is calculated from the exact planetary positions at
+          the moment they were born, using VSOP87, the same mathematical model
           professional astronomers use to map the real night sky.
         </p>
 
@@ -114,7 +114,7 @@ export const AstrologyCredibility = () => {
             },
             {
               label: "13 Celestial Bodies",
-              desc: "Every planet from Sun to Pluto, plus Chiron, the North Node, and Lilith — their full cosmic fingerprint.",
+              desc: "Every planet from Sun to Pluto, plus Chiron, the North Node, and Lilith. Their full cosmic fingerprint.",
               icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

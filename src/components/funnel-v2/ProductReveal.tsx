@@ -85,7 +85,7 @@ const VALUE_ITEMS = [
   {
     Icon: IconStars,
     title: "Full Cosmic Personality Profile",
-    desc: "The soul sitting behind those eyes — decoded from 13 celestial bodies. Who they really are when no one else is watching.",
+    desc: "The soul sitting behind those eyes. Decoded from 13 celestial bodies. Who they really are when no one else is watching.",
   },
   {
     Icon: IconHeartPulse,
@@ -100,7 +100,7 @@ const VALUE_ITEMS = [
   {
     Icon: IconCompass,
     title: "Soul Purpose & Life Path",
-    desc: "The reason the universe brought them to you — and what they came here to teach you about love.",
+    desc: "The reason the universe brought them to you, and what they came here to teach you about love.",
   },
   {
     Icon: IconEnvelope,
@@ -189,7 +189,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           }}
         >
           Every reading is calculated from the exact moment they arrived in this world.
-          Which means no two are ever the same — because no two souls ever are.
+          Which means no two are ever the same. Because no two souls ever are.
         </p>
 
         <div className={`flex ${isMobile ? "flex-col items-center gap-8" : "items-start gap-12"}`}>

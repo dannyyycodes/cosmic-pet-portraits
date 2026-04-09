@@ -57,7 +57,7 @@ const STORIES: Story[] = [
     before:
       "He'd steal my socks every time I left the house. I thought it was just a silly habit.",
     reveal:
-      "The reading said his love language was scent-based and that he held onto things that smelled like me when I was gone — because he was anchoring himself to me.",
+      "The reading said his love language was scent based and that he held onto things that smelled like me when I was gone. He was anchoring himself to me.",
     after:
       "Now I leave a worn t-shirt on his bed when I travel. He hasn't taken a single sock since.",
   },
@@ -69,7 +69,7 @@ const STORIES: Story[] = [
     before:
       "Bear got anxious every Sunday night like clockwork. The vet said there was nothing wrong.",
     reveal:
-      "His Moon was in Cancer. The reading said he was picking up the emotional shift in the house as the weekend ended — my own dread about Monday.",
+      "His Moon was in Cancer. The reading said he was picking up the emotional shift in the house as the weekend ended. My own dread about Monday.",
     after:
       "I started taking him on long walks on Sunday evenings to reset us both. The anxiety is gone. It was mine all along.",
   },
@@ -150,7 +150,7 @@ export const TransformationStories = () => {
               transitionDelay: "0.15s",
             }}
           >
-            Three stories that kept us up at night. Every reading lands differently —
+            Three stories that kept us up at night. Every reading lands differently,
             but the way it lands is almost always the same.
           </p>
         </div>

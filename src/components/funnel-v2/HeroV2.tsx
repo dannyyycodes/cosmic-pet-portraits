@@ -235,15 +235,11 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
             className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
             style={{
               fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "0.88rem",
+              fontSize: "0.92rem",
               color: "var(--earth, #6e6259)",
               letterSpacing: "0.02em",
             }}
           >
-            <span>@howanimalslove</span>
-            <span style={{ color: "var(--faded, #bfb2a3)", fontSize: "0.6rem" }}>◆</span>
-            <span>@mypetssoul</span>
-            <span style={{ color: "var(--faded, #bfb2a3)", fontSize: "0.6rem" }}>◆</span>
             <span>12,847 Pet Parents</span>
             <span style={{ color: "var(--faded, #bfb2a3)", fontSize: "0.6rem" }}>◆</span>
             <span>37 Countries</span>

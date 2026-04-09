@@ -236,7 +236,7 @@ export const CompactReviews = () => {
               lineHeight: 1.55,
             }}
           >
-            "That's exactly them. How did you know?"
+            "That's exactly them. How did the stars know?"
           </p>
           <div className="flex items-center justify-center gap-2">
             <div className="flex gap-0.5">
@@ -247,7 +247,7 @@ export const CompactReviews = () => {
               ))}
             </div>
             <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem", color: "var(--muted, #958779)" }}>
-              <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9</strong> average · under 1% refunded
+              <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9</strong> average across all readings
             </span>
           </div>
         </div>

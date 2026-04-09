@@ -336,16 +336,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           className="text-center mt-3"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
-            fontSize: "0.85rem",
+            fontSize: "0.88rem",
             fontStyle: "italic",
             color: "var(--earth, #6e6259)",
             lineHeight: 1.5,
           }}
         >
           If the reading doesn't feel like <em>them</em>, we refund every cent.
-          <br className="hidden sm:inline" />
-          <span className="sm:hidden"> </span>
-          12,847 readings. Under 1% refunded.
         </p>
 
         {/* Post CTA clarity */}

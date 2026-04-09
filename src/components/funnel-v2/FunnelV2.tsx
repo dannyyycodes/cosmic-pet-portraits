@@ -32,7 +32,7 @@ const COPY = {
     heroLine1: "Before Them,",
     heroLine2: "You Didn't Know Love Could Look Like This.",
     heroSub:
-      "The deeply personal cosmic reading that shows you who they really are — and finally lets them speak in their own words.",
+      "The deeply personal cosmic reading that shows you who they really are, and finally lets them speak in their own words.",
     ctaPrimary: "Begin Their Reading",
     checkoutSub:
       "Finally hear them in their own words. Understand the little soul you've been loving all along.",
