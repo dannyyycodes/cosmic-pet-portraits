@@ -81,47 +81,47 @@ const IconBookStar = () => (
   </svg>
 );
 
-// Pet voice — every item is something they want you to know about them.
+// Brand voice, universal — works for any species, soul-level language.
 const VALUE_ITEMS = [
   {
     Icon: IconStars,
-    title: "Who I Really Am",
-    desc: "When no one else is watching. The part of me even you haven't fully seen yet.",
+    title: "Who They Are at Their Soul",
+    desc: "The truest version of them. The part of them you've always sensed but never fully seen.",
   },
   {
     Icon: IconHeartPulse,
-    title: "What I'm Feeling",
-    desc: "What calms me. What scares me. What I've been trying to tell you since the day we met.",
+    title: "Their Emotional Language",
+    desc: "What soothes them. What stirs them. The way they feel love, and the way they give it back.",
   },
   {
     Icon: IconSpeechPaw,
-    title: "What I'd Say to You",
-    desc: "Ask me anything. I'll answer in the words I've always wanted to use.",
+    title: "SoulSpeak Chat",
+    desc: "Ask them anything. Hear what they've been trying to say to you all along.",
   },
   {
     Icon: IconCompass,
-    title: "Why I'm Here",
-    desc: "The reason we found each other. And what I came to teach you about love.",
+    title: "Their Soul Purpose",
+    desc: "The reason the two of you found each other. And what they came here to teach you.",
   },
   {
     Icon: IconEnvelope,
-    title: "A Letter From Me",
-    desc: "The one I'd write if I could hold a pen. Read it once and you'll never be the same.",
+    title: "A Letter From Their Soul",
+    desc: "What they would write to you if they had the words. Read it once and you'll feel it in your chest.",
   },
   {
     Icon: IconCrystal,
-    title: "What I Carry",
-    desc: "The energy of my soul. The colour of my aura. The crystal that holds my frequency.",
+    title: "Their Cosmic Signature",
+    desc: "Their soul archetype, the colour of their aura, and the crystal that holds their frequency.",
   },
   {
     Icon: IconMoonCycle,
-    title: "My Week Ahead",
-    desc: "A forecast written just for me. So you'll know what I'll feel before I feel it.",
+    title: "Weekly Cosmic Horoscope",
+    desc: "A weekly forecast written from their chart. First month free.",
   },
   {
     Icon: IconBookStar,
-    title: "30 Things You Don't Know",
-    desc: "My love language. My hidden fears. My superpower. All the things you've always wondered about me.",
+    title: "30+ Deeply Personal Sections",
+    desc: "Their love language. Their hidden depths. Everything you've wondered about but never knew how to ask.",
   },
 ];
 
@@ -141,7 +141,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       style={{ background: "var(--cream2, #faf4e8)" }}
     >
       <div className="max-w-4xl mx-auto">
-        {/* Section label — pet voice */}
+        {/* Section label — brand voice */}
         <p
           className="text-center mb-3 transition-all duration-1000"
           style={{
@@ -155,7 +155,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transform: visible ? "translateY(0)" : "translateY(20px)",
           }}
         >
-          What I'd Tell You
+          Everything You'll Discover
         </p>
         <h2
           className="text-center mb-4 transition-all duration-[1200ms] ease-out"
@@ -171,9 +171,9 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transitionDelay: "0.1s",
           }}
         >
-          If I Had
+          The Soul You've Always Loved,
           <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>the Words.</em>
+          <em style={{ color: "var(--rose, #bf524a)" }}>Finally in Words.</em>
         </h2>
         <p
           className="text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-1000"
@@ -237,7 +237,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                 </div>
               </div>
 
-              {/* Visible teaser — pet voice preview */}
+              {/* Visible teaser — universal, no species behaviour */}
               <div className="px-5 py-4">
                 <p
                   style={{
@@ -249,10 +249,10 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                     marginBottom: 12,
                   }}
                 >
-                  "When you're hurting, I don't ask why. I just come
-                  closer. I feel what you're feeling before you've said
-                  a word. My instinct is always to move toward you.
-                  Never away..."
+                  "They know what you're feeling before you've said a
+                  word. They've always known when you need them most,
+                  long before you've understood it yourself. It isn't
+                  a trick. It's a language..."
                 </p>
 
                 {/* Blurred/locked content */}

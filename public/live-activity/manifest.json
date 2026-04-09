@@ -1,0 +1,152 @@
+[
+  {
+    "file": "pet-01.jpg",
+    "species": "dog",
+    "breed": "labrador",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-02.jpg",
+    "species": "dog",
+    "breed": "husky",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-03.jpg",
+    "species": "dog",
+    "breed": "poodle miniature",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-04.jpg",
+    "species": "dog",
+    "breed": "pug",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-05.jpg",
+    "species": "dog",
+    "breed": "dachshund",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-06.jpg",
+    "species": "dog",
+    "breed": "beagle",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-07.jpg",
+    "species": "dog",
+    "breed": "malamute",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-08.jpg",
+    "species": "dog",
+    "breed": "samoyed",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-09.jpg",
+    "species": "dog",
+    "breed": "shiba",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-10.jpg",
+    "species": "dog",
+    "breed": "boxer",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-11.jpg",
+    "species": "dog",
+    "breed": "rottweiler",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-12.jpg",
+    "species": "dog",
+    "breed": "pomeranian",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-13.jpg",
+    "species": "dog",
+    "breed": "pointer german",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-14.jpg",
+    "species": "dog",
+    "breed": "vizsla",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-15.jpg",
+    "species": "dog",
+    "breed": "maltese",
+    "source": "dog.ceo"
+  },
+  {
+    "file": "pet-16.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-17.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-18.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-19.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-20.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-21.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-22.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-23.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-24.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  },
+  {
+    "file": "pet-25.jpg",
+    "species": "cat",
+    "breed": "cat",
+    "source": "thecatapi.com"
+  }
+]

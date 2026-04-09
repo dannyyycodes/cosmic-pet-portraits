@@ -21,31 +21,40 @@ type Activity = {
   name: string;
   location: string;
   pet: string;
-  breed: string; // must match /public/breeds/{breed}-1.jpg
+  image: string; // /public/live-activity/{image}, sourced from dog.ceo + thecatapi
   minutesAgo: number;
 };
 
+// 25 fresh images live at /public/live-activity/pet-01..25.jpg (15 dogs
+// via dog.ceo + 10 cats via thecatapi). Zero overlap with the breed
+// images used in CompactReviews. Re-run scripts/fetch-live-activity-pets.cjs
+// to refresh the pool.
 const POOL: Activity[] = [
-  { name: "Emma", location: "London", pet: "Luna", breed: "golden-retriever", minutesAgo: 2 },
-  { name: "James", location: "Dublin", pet: "Bear", breed: "german-shepherd", minutesAgo: 4 },
-  { name: "Sophie", location: "Manchester", pet: "Biscuit", breed: "cavalier-kcs", minutesAgo: 6 },
-  { name: "Michael", location: "Austin", pet: "Cooper", breed: "border-collie", minutesAgo: 8 },
-  { name: "Rachel", location: "Toronto", pet: "Daisy", breed: "dachshund", minutesAgo: 11 },
-  { name: "Tom", location: "Sydney", pet: "Rosie", breed: "french-bulldog", minutesAgo: 13 },
-  { name: "Priya", location: "Edinburgh", pet: "Milo", breed: "labrador", minutesAgo: 15 },
-  { name: "Hannah", location: "Bristol", pet: "Teddy", breed: "cockapoo", minutesAgo: 18 },
-  { name: "Olivia", location: "Denver", pet: "Maple", breed: "bernese-mountain-dog", minutesAgo: 21 },
-  { name: "Daniel", location: "Glasgow", pet: "Finn", breed: "beagle", minutesAgo: 24 },
-  { name: "Ava", location: "Melbourne", pet: "Ziggy", breed: "boston-terrier", minutesAgo: 27 },
-  { name: "Noah", location: "Brighton", pet: "Pepper", breed: "miniature-schnauzer", minutesAgo: 31 },
-  { name: "Isla", location: "Vancouver", pet: "Willow", breed: "shiba-inu", minutesAgo: 35 },
-  { name: "Ben", location: "Leeds", pet: "Scout", breed: "australian-shepherd", minutesAgo: 38 },
-  { name: "Freya", location: "Portland", pet: "Nala", breed: "bengal", minutesAgo: 42 },
-  { name: "Jack", location: "Cardiff", pet: "Archie", breed: "cocker-spaniel", minutesAgo: 47 },
-  { name: "Maya", location: "Wellington", pet: "Luna", breed: "black-cat", minutesAgo: 52 },
-  { name: "Chloe", location: "Bath", pet: "Ollie", breed: "pug", minutesAgo: 58 },
-  { name: "Leo", location: "Oxford", pet: "Poppy", breed: "jack-russell-terrier", minutesAgo: 64 },
-  { name: "Zara", location: "Chicago", pet: "Rex", breed: "boxer", minutesAgo: 73 },
+  { name: "Emma", location: "London", pet: "Luna", image: "pet-01.jpg", minutesAgo: 2 },
+  { name: "James", location: "Dublin", pet: "Bear", image: "pet-02.jpg", minutesAgo: 4 },
+  { name: "Sophie", location: "Manchester", pet: "Biscuit", image: "pet-03.jpg", minutesAgo: 6 },
+  { name: "Michael", location: "Austin", pet: "Cooper", image: "pet-04.jpg", minutesAgo: 8 },
+  { name: "Rachel", location: "Toronto", pet: "Daisy", image: "pet-05.jpg", minutesAgo: 11 },
+  { name: "Tom", location: "Sydney", pet: "Rosie", image: "pet-06.jpg", minutesAgo: 13 },
+  { name: "Priya", location: "Edinburgh", pet: "Milo", image: "pet-07.jpg", minutesAgo: 15 },
+  { name: "Hannah", location: "Bristol", pet: "Teddy", image: "pet-08.jpg", minutesAgo: 18 },
+  { name: "Olivia", location: "Denver", pet: "Maple", image: "pet-09.jpg", minutesAgo: 21 },
+  { name: "Daniel", location: "Glasgow", pet: "Finn", image: "pet-10.jpg", minutesAgo: 24 },
+  { name: "Ava", location: "Melbourne", pet: "Ziggy", image: "pet-11.jpg", minutesAgo: 27 },
+  { name: "Noah", location: "Brighton", pet: "Pepper", image: "pet-12.jpg", minutesAgo: 31 },
+  { name: "Isla", location: "Vancouver", pet: "Willow", image: "pet-13.jpg", minutesAgo: 35 },
+  { name: "Ben", location: "Leeds", pet: "Scout", image: "pet-14.jpg", minutesAgo: 38 },
+  { name: "Freya", location: "Portland", pet: "Nala", image: "pet-15.jpg", minutesAgo: 42 },
+  { name: "Jack", location: "Cardiff", pet: "Archie", image: "pet-16.jpg", minutesAgo: 47 },
+  { name: "Maya", location: "Wellington", pet: "Luna", image: "pet-17.jpg", minutesAgo: 52 },
+  { name: "Chloe", location: "Bath", pet: "Ollie", image: "pet-18.jpg", minutesAgo: 58 },
+  { name: "Leo", location: "Oxford", pet: "Poppy", image: "pet-19.jpg", minutesAgo: 64 },
+  { name: "Zara", location: "Chicago", pet: "Rex", image: "pet-20.jpg", minutesAgo: 73 },
+  { name: "Mia", location: "Auckland", pet: "Clover", image: "pet-21.jpg", minutesAgo: 81 },
+  { name: "Alex", location: "Copenhagen", pet: "Mochi", image: "pet-22.jpg", minutesAgo: 89 },
+  { name: "Jasmine", location: "Cape Town", pet: "Sage", image: "pet-23.jpg", minutesAgo: 98 },
+  { name: "Oscar", location: "Amsterdam", pet: "Olive", image: "pet-24.jpg", minutesAgo: 112 },
+  { name: "Ruby", location: "Barcelona", pet: "Juniper", image: "pet-25.jpg", minutesAgo: 127 },
 ];
 
 const shuffle = <T,>(arr: T[]): T[] => {
@@ -131,10 +140,10 @@ export const LiveActivityToast = () => {
           transition: "opacity 500ms ease, transform 500ms ease",
         }}
       >
-        {/* Pet photo */}
+        {/* Pet photo — sourced from /public/live-activity/, distinct pool from reviews */}
         <div className="relative flex-shrink-0">
           <img
-            src={`/breeds/${item.breed}-1.jpg`}
+            src={`/live-activity/${item.image}`}
             alt=""
             className="w-10 h-10 rounded-full object-cover"
             style={{ border: "2px solid var(--cream, #FFFDF5)" }}

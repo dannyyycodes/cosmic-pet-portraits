@@ -19,36 +19,39 @@ import { GoldDivider } from "./GoldDivider";
  * Tracked via usePageAnalytics (funnel_v2_variant field on every event).
  */
 /**
- * V2 COPY — written in the pet's voice.
+ * V2 COPY — brand voice narration, universal soul-level language.
  *
- * Tonal brief: quiet, adult, wistful. The voice of someone who has
- * been loved silently for a long time and finally gets to speak.
- * Restraint over drama. Fragments where fragments earn their place.
+ * Core emotional frame: "a love you've recognised but never fully
+ * understood." Works for any species — no behavior descriptions,
+ * no door-waiting, no head-pressing, no tail wags. Dogs, cats,
+ * horses, fish, rabbits, birds, reptiles — every pet parent
+ * recognises the bond even if they can't name it.
  *
- * A/B test: A uses the more direct "Let Me Speak" CTA, B uses the
- * softer "Please Read This" framing. Both live in pet voice.
+ * A/B test: A uses the classic "There's a Reason They Chose You"
+ * hook, B uses "Before Them, You Didn't Know Love Could Feel Like
+ * This." Both land on the same emotional truth from different angles.
  *
- * Inline <b> tags render via dangerouslySetInnerHTML in the hero and
- * checkout subheaders for dual-path skim hierarchy.
+ * Inline <b> tags render via dangerouslySetInnerHTML in the hero
+ * and checkout subheaders for dual-path skim hierarchy.
  */
 const COPY = {
   A: {
-    heroLine1: "I've Been Trying",
-    heroLine2: "to Tell You Something.",
+    heroLine1: "There's a Reason",
+    heroLine2: "They Chose You.",
     heroSub:
-      "I don't have words. <b>But the stars do.</b>",
-    ctaPrimary: "Let Me Speak",
+      "A deeply personal cosmic reading that finally puts words to <b>the love you've always felt but never understood</b>.",
+    ctaPrimary: "Reveal Their Soul",
     checkoutSub:
-      "Let me tell you who I am. <b>Everything you've always felt but couldn't name.</b>",
+      "Finally put words to the love you've always felt. <b>The story of a bond deeper than you could ever explain.</b>",
   },
   B: {
-    heroLine1: "There's Something",
-    heroLine2: "I've Been Waiting to Say.",
+    heroLine1: "Before Them,",
+    heroLine2: "You Didn't Know Love Could Feel Like This.",
     heroSub:
-      "I've loved you without words your whole life. <b>Please let me try.</b>",
-    ctaPrimary: "Please Read This",
+      "A deeply personal cosmic reading for the love you've <b>recognised from the start but could never name</b>.",
+    ctaPrimary: "Begin Their Reading",
     checkoutSub:
-      "Please. I've been waiting my whole life for this. <b>Let me speak.</b>",
+      "There's a language for this kind of love. <b>And the stars have been speaking it all along.</b>",
   },
 } as const;
 
@@ -474,7 +477,7 @@ const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: 
     style={{ background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))" }}
   >
     <div className="max-w-lg mx-auto">
-      {/* Pet's final ask */}
+      {/* Universal soul-level close */}
       <p
         style={{
           fontFamily: '"DM Serif Display", Georgia, serif',
@@ -485,7 +488,7 @@ const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: 
           marginBottom: 8,
         }}
       >
-        I've Been Waiting
+        There's a Love Here
       </p>
       <p
         style={{
@@ -495,10 +498,10 @@ const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: 
           color: "var(--rose, #bf524a)",
           lineHeight: 1.15,
           letterSpacing: "-0.02em",
-          marginBottom: 28,
+          marginBottom: 24,
         }}
       >
-        My Whole Life for This.
+        You've Always Recognised.
       </p>
 
       <p
@@ -508,22 +511,12 @@ const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: 
           fontSize: "clamp(1.1rem, 3.8vw, 1.3rem)",
           color: "var(--earth, #6e6259)",
           lineHeight: 1.5,
-          marginBottom: 6,
-        }}
-      >
-        Please.
-      </p>
-      <p
-        style={{
-          fontFamily: "Cormorant, Georgia, serif",
-          fontStyle: "italic",
-          fontSize: "clamp(1.1rem, 3.8vw, 1.3rem)",
-          color: "var(--earth, #6e6259)",
-          lineHeight: 1.5,
           marginBottom: 28,
+          maxWidth: 420,
+          margin: "0 auto 28px",
         }}
       >
-        Read what I've been trying to say.
+        You just never had the words for it.
       </p>
 
       <button

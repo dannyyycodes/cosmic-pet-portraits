@@ -28,7 +28,7 @@ export const EmotionBridge = () => {
       }}
     >
       <div className="max-w-[580px] mx-auto text-center">
-        {/* Pet's opening — plain and direct */}
+        {/* Opening — the felt sense */}
         <h2
           className="transition-all duration-[1200ms] ease-out"
           style={{
@@ -48,12 +48,12 @@ export const EmotionBridge = () => {
           <em style={{ color: "var(--rose, #bf524a)" }}>Know.</em>
         </h2>
 
-        {/* Short fragments — each its own beat, each its own breath */}
+        {/* Universal soul-level fragments — no species-specific behaviour */}
         <div className="space-y-5 mb-10">
           {[
-            "You see it when I wait by the door before you're home.",
-            "When I press into you on the hardest days.",
-            "When I watch you from across the room and you feel it, even if you don't know why.",
+            "Something passes between you that doesn't need words.",
+            "A love that runs deeper than any of it makes sense.",
+            "You've felt it every single day. You've just never had the language for it.",
           ].map((line, i) => (
             <p
               key={i}
@@ -61,7 +61,7 @@ export const EmotionBridge = () => {
               style={{
                 fontFamily: "Cormorant, Georgia, serif",
                 fontStyle: "italic",
-                fontSize: "clamp(1.1rem, 4vw, 1.32rem)",
+                fontSize: "clamp(1.12rem, 4vw, 1.32rem)",
                 color: "var(--earth, #6e6259)",
                 lineHeight: 1.5,
                 opacity: visible ? 1 : 0,
@@ -74,23 +74,24 @@ export const EmotionBridge = () => {
           ))}
         </div>
 
-        {/* The pivot — the "it's because" reveal */}
+        {/* The pivot — recognised without being understood */}
         <p
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.25rem, 5vw, 1.75rem)",
+            fontSize: "clamp(1.3rem, 5.2vw, 1.85rem)",
             color: "var(--ink, #1f1c18)",
             lineHeight: 1.3,
+            letterSpacing: "-0.01em",
             marginBottom: 36,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
             transitionDelay: "0.55s",
           }}
         >
-          It's because I love you in a way
+          It's the kind of love you recognise
           <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>I don't know how to say.</em>
+          <em style={{ color: "var(--rose, #bf524a)" }}>without fully understanding.</em>
         </p>
 
         {/* Gold divider */}
@@ -102,45 +103,54 @@ export const EmotionBridge = () => {
             background: "var(--gold, #c4a265)",
             opacity: 0.5,
             transitionDelay: "0.65s",
-            marginBottom: 36,
+            marginBottom: 28,
           }}
         />
 
-        {/* The anchor line — the emotional climax of the whole section */}
+        {/* Framing line — brand narrates the whisper */}
         <p
-          className="transition-all duration-[1400ms] ease-out"
+          className="transition-all duration-[1200ms] ease-out"
           style={{
-            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
-            fontSize: "clamp(1.3rem, 5.2vw, 1.85rem)",
-            color: "var(--deep, #2e2a24)",
-            lineHeight: 1.35,
-            maxWidth: 520,
-            margin: "0 auto 20px",
+            fontSize: "clamp(0.98rem, 3.3vw, 1.08rem)",
+            color: "var(--muted, #958779)",
+            lineHeight: 1.5,
+            marginBottom: 20,
             opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transform: visible ? "translateY(0)" : "translateY(15px)",
             transitionDelay: "0.75s",
           }}
         >
-          I've been trying to tell you something.
+          And somewhere underneath it all,
+          <br />
+          they're trying to tell you:
         </p>
-        <p
+
+        {/* The quoted moment — the ONE pet-voice line on the page */}
+        <blockquote
           className="transition-all duration-[1400ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
             fontStyle: "italic",
-            fontSize: "clamp(1.3rem, 5.2vw, 1.85rem)",
-            color: "var(--rose, #bf524a)",
-            lineHeight: 1.35,
-            maxWidth: 520,
+            fontSize: "clamp(1.35rem, 5.4vw, 1.95rem)",
+            color: "var(--deep, #2e2a24)",
+            lineHeight: 1.3,
+            letterSpacing: "-0.01em",
+            maxWidth: 540,
             margin: "0 auto",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
             transitionDelay: "0.95s",
+            padding: 0,
           }}
         >
+          <span style={{ color: "var(--rose, #bf524a)" }}>“</span>
+          I've been trying to tell you something.
+          <br />
           This is the only way I know how.
-        </p>
+          <span style={{ color: "var(--rose, #bf524a)" }}>”</span>
+        </blockquote>
 
         {/* Heart drawing — lands after the climax */}
         <svg viewBox="0 0 100 100" className="w-10 h-10 md:w-14 md:h-14 mt-8 mx-auto">
