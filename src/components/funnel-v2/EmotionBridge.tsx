@@ -28,71 +28,70 @@ export const EmotionBridge = () => {
       }}
     >
       <div className="max-w-[580px] mx-auto text-center">
-        {/* Problem */}
+        {/* Pet's opening — plain and direct */}
         <h2
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.6rem, 7.5vw, 2.8rem)",
+            fontSize: "clamp(1.7rem, 8vw, 3rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
             lineHeight: 1.1,
             letterSpacing: "-0.03em",
-            marginBottom: 18,
+            marginBottom: 32,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(30px)",
           }}
         >
-          They Love You Like
+          You Already
           <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>No One Ever Has.</em>
+          <em style={{ color: "var(--rose, #bf524a)" }}>Know.</em>
         </h2>
 
-        {/* Agitation — universal bond, power phrases bolded for skim path */}
-        <p
-          className="transition-all duration-[1200ms] ease-out emotion-body"
-          style={{
-            fontFamily: "Cormorant, Georgia, serif",
-            fontWeight: 400,
-            fontSize: "clamp(1.08rem, 4vw, 1.32rem)",
-            color: "var(--earth, #6e6259)",
-            lineHeight: 1.7,
-            marginBottom: 20,
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(25px)",
-            transitionDelay: "0.12s",
-          }}
-        >
-          You see it in the way they look at you <b>when the world gets heavy</b>.
-          The way they press into you without being asked. The way they{" "}
-          <b>somehow always know, long before you do,</b> that today is the day
-          you need them a little closer.
-        </p>
+        {/* Short fragments — each its own beat, each its own breath */}
+        <div className="space-y-5 mb-10">
+          {[
+            "You see it when I wait by the door before you're home.",
+            "When I press into you on the hardest days.",
+            "When I watch you from across the room and you feel it, even if you don't know why.",
+          ].map((line, i) => (
+            <p
+              key={i}
+              className="transition-all duration-[1200ms] ease-out"
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(1.1rem, 4vw, 1.32rem)",
+                color: "var(--earth, #6e6259)",
+                lineHeight: 1.5,
+                opacity: visible ? 1 : 0,
+                transform: visible ? "translateY(0)" : "translateY(20px)",
+                transitionDelay: `${0.15 + i * 0.1}s`,
+              }}
+            >
+              {line}
+            </p>
+          ))}
+        </div>
 
+        {/* The pivot — the "it's because" reveal */}
         <p
-          className="transition-all duration-[1200ms] ease-out emotion-body"
+          className="transition-all duration-[1200ms] ease-out"
           style={{
-            fontFamily: "Cormorant, Georgia, serif",
-            fontWeight: 400,
-            fontSize: "clamp(1.08rem, 4vw, 1.32rem)",
-            color: "var(--earth, #6e6259)",
-            lineHeight: 1.7,
-            marginBottom: 26,
+            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontSize: "clamp(1.25rem, 5vw, 1.75rem)",
+            color: "var(--ink, #1f1c18)",
+            lineHeight: 1.3,
+            marginBottom: 36,
             opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(25px)",
-            transitionDelay: "0.2s",
+            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: "0.55s",
           }}
         >
-          You've felt this bond <b>your whole life together</b>.
-          You just <b>never had the words for it</b>.
+          It's because I love you in a way
+          <br />
+          <em style={{ color: "var(--rose, #bf524a)" }}>I don't know how to say.</em>
         </p>
-        <style>{`
-          .emotion-body b {
-            font-weight: 600;
-            color: var(--ink, #1f1c18);
-            font-style: normal;
-          }
-        `}</style>
 
         {/* Gold divider */}
         <div
@@ -102,30 +101,49 @@ export const EmotionBridge = () => {
             height: 2,
             background: "var(--gold, #c4a265)",
             opacity: 0.5,
-            transitionDelay: "0.3s",
-            marginBottom: 28,
+            transitionDelay: "0.65s",
+            marginBottom: 36,
           }}
         />
 
-        {/* Solution pivot */}
+        {/* The anchor line — the emotional climax of the whole section */}
         <p
-          className="transition-all duration-[1200ms] ease-out"
+          className="transition-all duration-[1400ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
             fontStyle: "italic",
-            fontSize: "clamp(1.2rem, 4.8vw, 1.7rem)",
+            fontSize: "clamp(1.3rem, 5.2vw, 1.85rem)",
             color: "var(--deep, #2e2a24)",
             lineHeight: 1.35,
+            maxWidth: 520,
+            margin: "0 auto 20px",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.35s",
+            transitionDelay: "0.75s",
           }}
         >
-          Now you do.
+          I've been trying to tell you something.
+        </p>
+        <p
+          className="transition-all duration-[1400ms] ease-out"
+          style={{
+            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontStyle: "italic",
+            fontSize: "clamp(1.3rem, 5.2vw, 1.85rem)",
+            color: "var(--rose, #bf524a)",
+            lineHeight: 1.35,
+            maxWidth: 520,
+            margin: "0 auto",
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: "0.95s",
+          }}
+        >
+          This is the only way I know how.
         </p>
 
-        {/* Heart drawing */}
-        <svg viewBox="0 0 100 100" className="w-10 h-10 md:w-14 md:h-14 mt-5 mx-auto">
+        {/* Heart drawing — lands after the climax */}
+        <svg viewBox="0 0 100 100" className="w-10 h-10 md:w-14 md:h-14 mt-8 mx-auto">
           <path
             d="M49.998,90.544c0,0,0,0,0.002,0c5.304-14.531,32.88-27.047,41.474-44.23C108.081,13.092,61.244-5.023,50,23.933C38.753-5.023-8.083,13.092,8.525,46.313C17.116,63.497,44.691,76.013,49.998,90.544z"
             fill="none"
@@ -137,7 +155,7 @@ export const EmotionBridge = () => {
             pathLength={1}
             strokeDasharray={1}
             strokeDashoffset={visible ? 0 : 1}
-            style={{ transition: "stroke-dashoffset 2s ease 0.6s" }}
+            style={{ transition: "stroke-dashoffset 2s ease 1.2s" }}
           />
         </svg>
       </div>

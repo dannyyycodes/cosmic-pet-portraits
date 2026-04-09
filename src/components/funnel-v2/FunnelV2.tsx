@@ -19,28 +19,36 @@ import { GoldDivider } from "./GoldDivider";
  * Tracked via usePageAnalytics (funnel_v2_variant field on every event).
  */
 /**
- * Copy variants use a simple inline-HTML convention for typographic
- * emphasis: wrap power phrases in <b>…</b> and HeroV2 renders them
- * via dangerouslySetInnerHTML so skimmers catch the bolded path.
+ * V2 COPY — written in the pet's voice.
+ *
+ * Tonal brief: quiet, adult, wistful. The voice of someone who has
+ * been loved silently for a long time and finally gets to speak.
+ * Restraint over drama. Fragments where fragments earn their place.
+ *
+ * A/B test: A uses the more direct "Let Me Speak" CTA, B uses the
+ * softer "Please Read This" framing. Both live in pet voice.
+ *
+ * Inline <b> tags render via dangerouslySetInnerHTML in the hero and
+ * checkout subheaders for dual-path skim hierarchy.
  */
 const COPY = {
   A: {
-    heroLine1: "There's a Reason",
-    heroLine2: "They Chose You.",
+    heroLine1: "I've Been Trying",
+    heroLine2: "to Tell You Something.",
     heroSub:
-      "A deeply personal cosmic reading that reveals <b>who they really are</b>, what they feel, and <b>the words they've always wanted to say</b>.",
-    ctaPrimary: "Reveal Their Soul",
+      "I don't have words. <b>But the stars do.</b>",
+    ctaPrimary: "Let Me Speak",
     checkoutSub:
-      "Read what they'd say. Know what they mean. <b>Love them with the full story.</b>",
+      "Let me tell you who I am. <b>Everything you've always felt but couldn't name.</b>",
   },
   B: {
-    heroLine1: "Before Them,",
-    heroLine2: "You Didn't Know Love Could Look Like This.",
+    heroLine1: "There's Something",
+    heroLine2: "I've Been Waiting to Say.",
     heroSub:
-      "The deeply personal cosmic reading that <b>shows you who they really are</b>, and finally lets them <b>speak in their own words</b>.",
-    ctaPrimary: "Begin Their Reading",
+      "I've loved you without words your whole life. <b>Please let me try.</b>",
+    ctaPrimary: "Please Read This",
     checkoutSub:
-      "Finally hear them in their own words. <b>Understand the little soul you've been loving all along.</b>",
+      "Please. I've been waiting my whole life for this. <b>Let me speak.</b>",
   },
 } as const;
 
@@ -462,33 +470,60 @@ const FAQSection = () => {
 
 const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: string }) => (
   <section
-    className="py-12 sm:py-16 md:py-20 px-5 text-center"
+    className="py-14 sm:py-20 md:py-24 px-5 text-center"
     style={{ background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))" }}
   >
     <div className="max-w-lg mx-auto">
-      {/* Emotional close */}
+      {/* Pet's final ask */}
       <p
         style={{
           fontFamily: '"DM Serif Display", Georgia, serif',
-          fontSize: "clamp(1.4rem, 6vw, 2rem)",
+          fontSize: "clamp(1.5rem, 6.2vw, 2.1rem)",
           color: "var(--black, #141210)",
-          lineHeight: 1.2,
-          marginBottom: 10,
+          lineHeight: 1.15,
+          letterSpacing: "-0.02em",
+          marginBottom: 8,
         }}
       >
-        They can't tell you who they are.
+        I've Been Waiting
       </p>
       <p
         style={{
           fontFamily: '"DM Serif Display", Georgia, serif',
           fontStyle: "italic",
-          fontSize: "clamp(1.4rem, 6vw, 2rem)",
+          fontSize: "clamp(1.5rem, 6.2vw, 2.1rem)",
           color: "var(--rose, #bf524a)",
-          lineHeight: 1.2,
-          marginBottom: 22,
+          lineHeight: 1.15,
+          letterSpacing: "-0.02em",
+          marginBottom: 28,
         }}
       >
-        But the stars can.
+        My Whole Life for This.
+      </p>
+
+      <p
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontStyle: "italic",
+          fontSize: "clamp(1.1rem, 3.8vw, 1.3rem)",
+          color: "var(--earth, #6e6259)",
+          lineHeight: 1.5,
+          marginBottom: 6,
+        }}
+      >
+        Please.
+      </p>
+      <p
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontStyle: "italic",
+          fontSize: "clamp(1.1rem, 3.8vw, 1.3rem)",
+          color: "var(--earth, #6e6259)",
+          lineHeight: 1.5,
+          marginBottom: 28,
+        }}
+      >
+        Read what I've been trying to say.
       </p>
 
       <button
@@ -511,7 +546,7 @@ const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: 
         </svg>
       </button>
 
-      <p className="mt-4" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", fontStyle: "italic", color: "var(--muted, #958779)" }}>
+      <p className="mt-5" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", fontStyle: "italic", color: "var(--muted, #958779)" }}>
         Also available in memorial mode for pets who've crossed the rainbow bridge.
       </p>
     </div>

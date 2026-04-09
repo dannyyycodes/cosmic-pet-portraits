@@ -81,46 +81,47 @@ const IconBookStar = () => (
   </svg>
 );
 
+// Pet voice — every item is something they want you to know about them.
 const VALUE_ITEMS = [
   {
     Icon: IconStars,
-    title: "Full Cosmic Personality Profile",
-    desc: "The soul sitting behind those eyes. Decoded from 13 celestial bodies. Who they really are when no one else is watching.",
+    title: "Who I Really Am",
+    desc: "When no one else is watching. The part of me even you haven't fully seen yet.",
   },
   {
     Icon: IconHeartPulse,
-    title: "Emotional Blueprint",
-    desc: "What soothes them. What stresses them. What they've been trying to tell you their whole life together.",
+    title: "What I'm Feeling",
+    desc: "What calms me. What scares me. What I've been trying to tell you since the day we met.",
   },
   {
     Icon: IconSpeechPaw,
-    title: "SoulSpeak Chat",
-    desc: "Ask them anything. Hear the words they've wanted to say to you since the day you met.",
+    title: "What I'd Say to You",
+    desc: "Ask me anything. I'll answer in the words I've always wanted to use.",
   },
   {
     Icon: IconCompass,
-    title: "Soul Purpose & Life Path",
-    desc: "The reason the universe brought them to you, and what they came here to teach you about love.",
+    title: "Why I'm Here",
+    desc: "The reason we found each other. And what I came to teach you about love.",
   },
   {
     Icon: IconEnvelope,
-    title: "A Letter From Their Soul",
-    desc: "What they would write to you if they could hold a pen. Read it once and you'll never be the same.",
+    title: "A Letter From Me",
+    desc: "The one I'd write if I could hold a pen. Read it once and you'll never be the same.",
   },
   {
     Icon: IconCrystal,
-    title: "Archetype, Aura & Crystal Match",
-    desc: "The energy they carry, the colour of their aura, and the crystal that holds their frequency.",
+    title: "What I Carry",
+    desc: "The energy of my soul. The colour of my aura. The crystal that holds my frequency.",
   },
   {
     Icon: IconMoonCycle,
-    title: "Weekly Cosmic Horoscope",
-    desc: "A weekly forecast written just for them. Know what they'll feel before they feel it.",
+    title: "My Week Ahead",
+    desc: "A forecast written just for me. So you'll know what I'll feel before I feel it.",
   },
   {
     Icon: IconBookStar,
-    title: "30+ Deeply Personal Sections",
-    desc: "Their love language. Their hidden fears. Their superpower. The things you've always wondered but never knew how to ask.",
+    title: "30 Things You Don't Know",
+    desc: "My love language. My hidden fears. My superpower. All the things you've always wondered about me.",
   },
 ];
 
@@ -140,7 +141,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       style={{ background: "var(--cream2, #faf4e8)" }}
     >
       <div className="max-w-4xl mx-auto">
-        {/* Section label */}
+        {/* Section label — pet voice */}
         <p
           className="text-center mb-3 transition-all duration-1000"
           style={{
@@ -154,33 +155,34 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transform: visible ? "translateY(0)" : "translateY(20px)",
           }}
         >
-          Everything You'll Discover
+          What I'd Tell You
         </p>
         <h2
           className="text-center mb-4 transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.5rem, 6.2vw, 2.3rem)",
+            fontSize: "clamp(1.6rem, 6.4vw, 2.4rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
             lineHeight: 1.15,
+            letterSpacing: "-0.02em",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
             transitionDelay: "0.1s",
           }}
         >
-          The Soul You've Always Loved,
+          If I Had
           <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>Finally in Words.</em>
+          <em style={{ color: "var(--rose, #bf524a)" }}>the Words.</em>
         </h2>
         <p
-          className="text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-1000 product-sub"
+          className="text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-1000"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
-            fontSize: "clamp(1rem, 3.5vw, 1.15rem)",
-            color: "var(--earth, #6e6259)",
-            maxWidth: 520,
+            fontSize: "clamp(0.98rem, 3.3vw, 1.08rem)",
+            color: "var(--muted, #958779)",
+            maxWidth: 500,
             margin: "0 auto",
             lineHeight: 1.6,
             opacity: visible ? 1 : 0,
@@ -188,16 +190,9 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transitionDelay: "0.15s",
           }}
         >
-          Every reading is calculated from <b>the exact moment they arrived in this world</b>.
-          Which means <b>no two are ever the same</b>. Because no two souls ever are.
+          Every reading is calculated from the exact moment they arrived in this world.
+          No two souls are ever the same.
         </p>
-        <style>{`
-          .product-sub b {
-            font-weight: 600;
-            font-style: normal;
-            color: var(--ink, #1f1c18);
-          }
-        `}</style>
 
         <div className={`flex ${isMobile ? "flex-col items-center gap-8" : "items-start gap-12"}`}>
           {/* Report mockup with SoulSpeak preview */}
@@ -242,7 +237,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                 </div>
               </div>
 
-              {/* Visible teaser */}
+              {/* Visible teaser — pet voice preview */}
               <div className="px-5 py-4">
                 <p
                   style={{
@@ -254,10 +249,10 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                     marginBottom: 12,
                   }}
                 >
-                  "When you're hurting, they don't ask why. They just
-                  come closer. They sense what you're feeling before
-                  you've said a word. Their instinct is always to move
-                  toward you, never away..."
+                  "When you're hurting, I don't ask why. I just come
+                  closer. I feel what you're feeling before you've said
+                  a word. My instinct is always to move toward you.
+                  Never away..."
                 </p>
 
                 {/* Blurred/locked content */}
