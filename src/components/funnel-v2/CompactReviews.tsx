@@ -105,11 +105,16 @@ export const CompactReviews = () => {
   const { ref, visible } = useScrollReveal(0.1);
   const isMobile = useIsMobile();
   const counter = useAnimatedCounter(12847, 2500, visible);
+  const [expanded, setExpanded] = useState(false);
+
+  // Mobile: show 4 by default to limit scroll fatigue; desktop shows all.
+  const visibleReviews =
+    isMobile && !expanded ? CURATED_REVIEWS.slice(0, 4) : CURATED_REVIEWS;
 
   return (
     <section
       ref={ref}
-      className="relative py-16 md:py-20 px-5 overflow-hidden"
+      className="relative py-12 sm:py-16 md:py-20 px-5 overflow-hidden"
       style={{
         background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))",
       }}
@@ -169,7 +174,7 @@ export const CompactReviews = () => {
 
         {/* Review grid */}
         <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-3`}>
-          {CURATED_REVIEWS.map((review, i) => (
+          {visibleReviews.map((review, i) => (
             <div
               key={i}
               className="rounded-xl p-4 transition-all duration-[1000ms] ease-out"
@@ -249,6 +254,29 @@ export const CompactReviews = () => {
             </div>
           ))}
         </div>
+
+        {/* Mobile expand button */}
+        {isMobile && !expanded && CURATED_REVIEWS.length > visibleReviews.length && (
+          <div className="text-center mt-5">
+            <button
+              onClick={() => setExpanded(true)}
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full transition-opacity hover:opacity-80"
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontSize: "0.88rem",
+                fontWeight: 600,
+                color: "var(--rose, #bf524a)",
+                background: "rgba(191,82,74,0.06)",
+                border: "1px solid rgba(191,82,74,0.18)",
+              }}
+            >
+              Read {CURATED_REVIEWS.length - visibleReviews.length} more reviews
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

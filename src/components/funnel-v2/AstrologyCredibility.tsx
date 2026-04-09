@@ -27,7 +27,7 @@ export const AstrologyCredibility = () => {
   return (
     <section
       ref={ref}
-      className="relative py-14 md:py-20 px-5 overflow-hidden"
+      className="relative py-10 sm:py-14 md:py-20 px-5 overflow-hidden"
       style={{ background: "var(--cream, #FFFDF5)" }}
     >
       <div className="max-w-2xl mx-auto">

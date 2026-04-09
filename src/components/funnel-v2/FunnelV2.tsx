@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
+import { useFunnelV2Variant } from "@/hooks/useFunnelV2Variant";
 import { HeroV2 } from "./HeroV2";
 import { EmotionBridge } from "./EmotionBridge";
 import { ProductReveal } from "./ProductReveal";
@@ -9,7 +10,35 @@ import { InlineCheckout } from "./InlineCheckout";
 import { AstrologyCredibility } from "./AstrologyCredibility";
 import { HowItWorks } from "./HowItWorks";
 
+/**
+ * V2 copy variants — A (control) / B (test).
+ * Tested: hero headline, hero subhead, primary CTA, checkout subheader.
+ * Tracked via usePageAnalytics (funnel_v2_variant field on every event).
+ */
+const COPY = {
+  A: {
+    heroLine1: "There's a Reason",
+    heroLine2: "They Chose You.",
+    heroSub:
+      "A deeply personal cosmic reading that reveals who they really are, what they feel, and what they'd say if they could speak.",
+    ctaPrimary: "Reveal Their Soul",
+    checkoutSub:
+      "Read what they'd say. Know what they mean. Love them with the full story.",
+  },
+  B: {
+    heroLine1: "Your Pet Is Telling You",
+    heroLine2: "Who They Are.",
+    heroSub:
+      "The deeply personal cosmic reading that shows you who they really are — and finally lets them speak in their own words.",
+    ctaPrimary: "Begin Their Reading",
+    checkoutSub:
+      "Finally hear them in their own words. Understand the little soul you've been loving all along.",
+  },
+} as const;
+
 export const FunnelV2 = () => {
+  const { variant } = useFunnelV2Variant();
+  const copy = COPY[variant];
   const checkoutRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const [showStickyCta, setShowStickyCta] = useState(false);
@@ -111,13 +140,23 @@ export const FunnelV2 = () => {
       </a>
 
       {/* Sections — padded for fixed banner */}
-      <div ref={heroRef} style={{ paddingTop: 36 }}>
-        <HeroV2 onCtaClick={scrollToCheckout} />
+      <div ref={heroRef} style={{ paddingTop: 34 }}>
+        <HeroV2
+          onCtaClick={scrollToCheckout}
+          headlineLine1={copy.heroLine1}
+          headlineLine2={copy.heroLine2}
+          subhead={copy.heroSub}
+          ctaLabel={copy.ctaPrimary}
+        />
       </div>
       <EmotionBridge />
-      <ProductReveal onCtaClick={scrollToCheckout} />
+      <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
       <CompactReviews />
-      <InlineCheckout ref={checkoutRef} />
+      <InlineCheckout
+        ref={checkoutRef}
+        ctaLabel={copy.ctaPrimary}
+        subheader={copy.checkoutSub}
+      />
 
       {/* Below checkout: objection-handlers for hesitators */}
       <AstrologyCredibility />
@@ -125,7 +164,7 @@ export const FunnelV2 = () => {
       <FAQSection />
 
       {/* Final emotional CTA */}
-      <FinalCTA onCtaClick={scrollToCheckout} />
+      <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
 
       {/* Footer */}
       <footer
@@ -190,7 +229,7 @@ export const FunnelV2 = () => {
               minHeight: 52,
             }}
           >
-            Reveal Their Soul · From $27
+            {copy.ctaPrimary} · From $27
           </button>
         </div>
       )}
@@ -353,13 +392,13 @@ const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-14 md:py-18 px-5" style={{ background: "var(--cream, #FFFDF5)" }}>
+    <section className="py-10 sm:py-14 md:py-18 px-5" style={{ background: "var(--cream, #FFFDF5)" }}>
       <div className="max-w-xl mx-auto">
         <h2
-          className="text-center mb-8"
+          className="text-center mb-7"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.3rem, 4.5vw, 1.8rem)",
+            fontSize: "clamp(1.35rem, 5vw, 1.8rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
           }}
@@ -403,11 +442,9 @@ const FAQSection = () => {
 
 /* ──────── Final CTA ──────── */
 
-/* ──────── Final CTA ──────── */
-
-const FinalCTA = ({ onCtaClick }: { onCtaClick: () => void }) => (
+const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: string }) => (
   <section
-    className="py-16 md:py-20 px-5 text-center"
+    className="py-12 sm:py-16 md:py-20 px-5 text-center"
     style={{ background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))" }}
   >
     <div className="max-w-lg mx-auto">
@@ -415,7 +452,7 @@ const FinalCTA = ({ onCtaClick }: { onCtaClick: () => void }) => (
       <p
         style={{
           fontFamily: '"DM Serif Display", Georgia, serif',
-          fontSize: "clamp(1.3rem, 5.5vw, 2rem)",
+          fontSize: "clamp(1.4rem, 6vw, 2rem)",
           color: "var(--black, #141210)",
           lineHeight: 1.2,
           marginBottom: 10,
@@ -427,10 +464,10 @@ const FinalCTA = ({ onCtaClick }: { onCtaClick: () => void }) => (
         style={{
           fontFamily: '"DM Serif Display", Georgia, serif',
           fontStyle: "italic",
-          fontSize: "clamp(1.3rem, 5.5vw, 2rem)",
+          fontSize: "clamp(1.4rem, 6vw, 2rem)",
           color: "var(--rose, #bf524a)",
           lineHeight: 1.2,
-          marginBottom: 20,
+          marginBottom: 22,
         }}
       >
         But the stars can.
@@ -438,7 +475,7 @@ const FinalCTA = ({ onCtaClick }: { onCtaClick: () => void }) => (
 
       <button
         onClick={onCtaClick}
-        className="group inline-flex items-center gap-2 px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
+        className="group inline-flex items-center gap-2 px-8 sm:px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
         style={{
           fontFamily: "Cormorant, Georgia, serif",
           fontSize: "1.05rem",
@@ -450,7 +487,7 @@ const FinalCTA = ({ onCtaClick }: { onCtaClick: () => void }) => (
           minHeight: 56,
         }}
       >
-        Reveal Their Soul
+        {ctaLabel}
         <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
         </svg>

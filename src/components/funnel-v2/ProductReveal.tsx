@@ -18,8 +18,8 @@ function useScrollReveal(threshold = 0.2) {
 }
 
 const VALUE_ITEMS = [
-  { icon: "✨", title: "Full Cosmic Personality Profile", desc: "12 planetary placements decoded. Who they are at their core.", included: true },
-  { icon: "💛", title: "Emotional Blueprint", desc: "What soothes them, what stresses them, what they need but can't tell you.", included: true },
+  { icon: "✨", title: "Full Cosmic Personality Profile", desc: "13 planetary placements decoded. Who they are beneath the fur.", included: true },
+  { icon: "💛", title: "Emotional Blueprint", desc: "What soothes them. What stresses them. What they've been trying to tell you.", included: true },
   { icon: "💬", title: "SoulSpeak Chat", desc: "Ask them anything. Hear what they'd actually say back to you.", included: true },
   { icon: "🔮", title: "Soul Purpose & Life Path", desc: "The deeper reason they came into your life.", included: true },
   { icon: "💌", title: "A Letter From Their Soul", desc: "What they would write to you if they could hold a pen.", included: true },
@@ -30,16 +30,17 @@ const VALUE_ITEMS = [
 
 interface ProductRevealProps {
   onCtaClick: () => void;
+  ctaLabel: string;
 }
 
-export const ProductReveal = ({ onCtaClick }: ProductRevealProps) => {
+export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
   const { ref, visible } = useScrollReveal(0.1);
   const isMobile = useIsMobile();
 
   return (
     <section
       ref={ref}
-      className="relative py-16 md:py-24 px-5 overflow-hidden"
+      className="relative py-12 sm:py-16 md:py-24 px-5 overflow-hidden"
       style={{ background: "var(--cream2, #faf4e8)" }}
     >
       <div className="max-w-4xl mx-auto">
@@ -75,7 +76,7 @@ export const ProductReveal = ({ onCtaClick }: ProductRevealProps) => {
           A Reading Unlike Anything Else
         </h2>
         <p
-          className="text-center mb-12 md:mb-16 transition-all duration-1000"
+          className="text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-1000"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
@@ -91,7 +92,7 @@ export const ProductReveal = ({ onCtaClick }: ProductRevealProps) => {
           Based on their exact birth chart. Calculated from real planetary positions. No two readings are the same.
         </p>
 
-        <div className={`flex ${isMobile ? "flex-col items-center gap-10" : "items-start gap-12"}`}>
+        <div className={`flex ${isMobile ? "flex-col items-center gap-8" : "items-start gap-12"}`}>
           {/* Report mockup with SoulSpeak preview */}
           <div
             className="relative flex-shrink-0 transition-all duration-[1400ms] ease-out"
@@ -266,11 +267,22 @@ export const ProductReveal = ({ onCtaClick }: ProductRevealProps) => {
                   minHeight: 52,
                 }}
               >
-                Unlock Their Reading
+                {ctaLabel}
                 <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </button>
+              <p
+                className="mt-3"
+                style={{
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontSize: "0.78rem",
+                  fontStyle: "italic",
+                  color: "var(--muted, #958779)",
+                }}
+              >
+                Full refund if the reading doesn't feel like them.
+              </p>
             </div>
           </div>
         </div>

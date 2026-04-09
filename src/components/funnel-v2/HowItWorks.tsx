@@ -55,12 +55,12 @@ export const HowItWorks = () => {
   return (
     <section
       ref={ref}
-      className="py-14 md:py-18 px-5"
+      className="py-10 sm:py-14 md:py-18 px-5"
       style={{ background: "var(--cream, #FFFDF5)" }}
     >
       <div className="max-w-2xl mx-auto">
         <h2
-          className="text-center mb-10 transition-all duration-[1200ms] ease-out"
+          className="text-center mb-8 sm:mb-10 transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
             fontSize: "clamp(1.3rem, 5vw, 1.8rem)",

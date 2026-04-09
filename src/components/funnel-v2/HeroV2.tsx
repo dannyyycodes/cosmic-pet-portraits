@@ -9,9 +9,13 @@ const petPhotos = [maxImg, lunaImg, cinnamonImg, peanutImg];
 
 interface HeroV2Props {
   onCtaClick: () => void;
+  headlineLine1: string;
+  headlineLine2: string;
+  subhead: string;
+  ctaLabel: string;
 }
 
-export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
+export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaLabel }: HeroV2Props) => {
   const [visible, setVisible] = useState(false);
   const isMobile = useIsMobile();
 
@@ -22,7 +26,7 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
 
   return (
     <section
-      className="relative min-h-[100svh] flex flex-col items-center justify-center px-5 py-16 overflow-hidden"
+      className="relative min-h-[calc(100svh-34px)] flex flex-col items-center justify-center px-5 pt-10 pb-12 sm:py-16 overflow-hidden"
       style={{
         background: "radial-gradient(ellipse 90% 70% at 50% 40%, var(--cream2, #faf4e8) 0%, var(--cream, #FFFDF5) 65%)",
       }}
@@ -43,7 +47,7 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
       <div className="relative z-10 max-w-2xl mx-auto text-center">
         {/* Social proof badge */}
         <div
-          className="inline-flex items-center gap-3 mb-8 transition-all duration-1000"
+          className="inline-flex items-center gap-3 mb-6 sm:mb-8 transition-all duration-1000"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
@@ -73,44 +77,43 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: isMobile ? "clamp(2rem, 10vw, 3.2rem)" : "clamp(2.8rem, 5.5vw, 4.2rem)",
+            fontSize: isMobile ? "clamp(2.05rem, 9.5vw, 3.2rem)" : "clamp(2.8rem, 5.5vw, 4.2rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
             lineHeight: 1.05,
-            letterSpacing: "-0.04em",
+            letterSpacing: "-0.035em",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(30px)",
             transitionDelay: "0.15s",
           }}
         >
-          There's a Reason
+          {headlineLine1}
           <br />
-          <em>They Chose You.</em>
+          <em>{headlineLine2}</em>
         </h1>
 
         {/* Subheadline */}
         <p
-          className="mt-5 mx-auto transition-all duration-[1200ms] ease-out"
+          className="mt-4 sm:mt-5 mx-auto transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
-            fontSize: "clamp(1.05rem, 3.5vw, 1.3rem)",
+            fontSize: "clamp(1.05rem, 3.8vw, 1.3rem)",
             fontWeight: 400,
             color: "var(--earth, #6e6259)",
-            lineHeight: 1.7,
+            lineHeight: 1.6,
             maxWidth: 440,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
             transitionDelay: "0.35s",
           }}
         >
-          A deeply personal cosmic reading that reveals who they really are,
-          what they feel, and what they'd say if they could speak.
+          {subhead}
         </p>
 
         {/* CTA Button */}
         <div
-          className="mt-10 transition-all duration-[1200ms] ease-out"
+          className="mt-7 sm:mt-10 transition-all duration-[1200ms] ease-out"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
@@ -119,10 +122,10 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
         >
           <button
             onClick={onCtaClick}
-            className="group relative inline-flex items-center gap-2 px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
+            className="group relative inline-flex items-center gap-2 px-8 sm:px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
             style={{
               fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "1.15rem",
+              fontSize: "1.1rem",
               fontWeight: 700,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
@@ -131,7 +134,7 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
               minHeight: 56,
             }}
           >
-            Reveal Their Soul
+            {ctaLabel}
             <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
@@ -142,7 +145,7 @@ export const HeroV2 = ({ onCtaClick }: HeroV2Props) => {
             {[
               "Ready in minutes",
               "No account needed",
-              "100% money back guarantee",
+              "Full refund if it's not a match",
             ].map((text, i) => (
               <span key={i} className="flex items-center gap-1" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--muted, #958779)" }}>
                 <svg className="w-3.5 h-3.5 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>

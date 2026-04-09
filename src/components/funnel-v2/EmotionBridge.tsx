@@ -22,7 +22,7 @@ export const EmotionBridge = () => {
   return (
     <section
       ref={ref}
-      className="relative py-16 md:py-24 px-5 overflow-hidden"
+      className="relative py-12 sm:py-16 md:py-24 px-5 overflow-hidden"
       style={{
         background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8), var(--cream, #FFFDF5))",
       }}
@@ -33,12 +33,12 @@ export const EmotionBridge = () => {
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.5rem, 8vw, 2.8rem)",
+            fontSize: "clamp(1.6rem, 7.5vw, 2.8rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
             lineHeight: 1.1,
             letterSpacing: "-0.03em",
-            marginBottom: 20,
+            marginBottom: 18,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(30px)",
           }}
@@ -54,16 +54,17 @@ export const EmotionBridge = () => {
             fontWeight: 400,
             fontSize: "clamp(1.05rem, 3.8vw, 1.3rem)",
             color: "var(--earth, #6e6259)",
-            lineHeight: 1.8,
-            marginBottom: 24,
+            lineHeight: 1.7,
+            marginBottom: 20,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
             transitionDelay: "0.12s",
           }}
         >
-          The way they greet you at the door. The look they give you
-          when no one else is around. The way they somehow always know
-          when you need them most.
+          The way they wait by the door ten minutes before you get home.
+          The look they give you when no one else is around. The way they
+          somehow always know — without being told — the exact moment
+          you need them most.
         </p>
 
         <p
@@ -73,14 +74,14 @@ export const EmotionBridge = () => {
             fontWeight: 400,
             fontSize: "clamp(1.05rem, 3.8vw, 1.3rem)",
             color: "var(--earth, #6e6259)",
-            lineHeight: 1.8,
-            marginBottom: 28,
+            lineHeight: 1.7,
+            marginBottom: 26,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
             transitionDelay: "0.2s",
           }}
         >
-          You feel it every day. But you've never been able to put it into words.
+          You feel it every single day. You've just never been able to put it into words.
         </p>
 
         {/* Gold divider */}

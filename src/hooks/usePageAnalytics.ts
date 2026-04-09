@@ -12,9 +12,18 @@ const getSessionId = () => {
   return sessionId;
 };
 
-// Get A/B test variant from localStorage
+// Get legacy A/B test variant from localStorage (Classic/Modern/Warm)
 const getABVariant = () => {
   return localStorage.getItem('ab_test_variant') || 'A';
+};
+
+// Get V2 funnel variant (separate 50/50 test — headline + CTA copy)
+const getFunnelV2Variant = () => {
+  try {
+    return localStorage.getItem('funnel_v2_variant') || null;
+  } catch {
+    return null;
+  }
 };
 
 interface TrackEventParams {
@@ -31,9 +40,11 @@ export const usePageAnalytics = (pagePath: string) => {
   const trackEvent = useCallback(async ({ eventType, eventData }: TrackEventParams) => {
     try {
       const abVariant = getABVariant();
+      const funnelV2Variant = getFunnelV2Variant();
       const enrichedEventData = {
         ...(eventData as Record<string, unknown> || {}),
         ab_variant: abVariant,
+        ...(funnelV2Variant ? { funnel_v2_variant: funnelV2Variant } : {}),
       };
       
       await supabase.from('page_analytics').insert([{
