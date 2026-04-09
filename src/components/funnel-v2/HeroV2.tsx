@@ -31,18 +31,63 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
         background: "radial-gradient(ellipse 90% 70% at 50% 40%, var(--cream2, #faf4e8) 0%, var(--cream, #FFFDF5) 65%)",
       }}
     >
-      {/* Subtle decorative paw prints */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.04]">
-        <svg className="absolute top-[12%] left-[8%] w-8 h-8 rotate-[-15deg]" viewBox="0 0 28 34" fill="currentColor">
-          <ellipse cx="14" cy="22" rx="7" ry="9" /><ellipse cx="7" cy="10" rx="4" ry="5" /><ellipse cx="14" cy="6" rx="4" ry="5" /><ellipse cx="21" cy="10" rx="4" ry="5" />
-        </svg>
-        <svg className="absolute top-[20%] right-[12%] w-6 h-6 rotate-[20deg]" viewBox="0 0 28 34" fill="currentColor">
-          <ellipse cx="14" cy="22" rx="7" ry="9" /><ellipse cx="7" cy="10" rx="4" ry="5" /><ellipse cx="14" cy="6" rx="4" ry="5" /><ellipse cx="21" cy="10" rx="4" ry="5" />
-        </svg>
-        <svg className="absolute bottom-[25%] left-[15%] w-7 h-7 rotate-[180deg]" viewBox="0 0 28 34" fill="currentColor">
-          <ellipse cx="14" cy="22" rx="7" ry="9" /><ellipse cx="7" cy="10" rx="4" ry="5" /><ellipse cx="14" cy="6" rx="4" ry="5" /><ellipse cx="21" cy="10" rx="4" ry="5" />
+      {/* Constellation background — slow-drifting stars */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 800 800"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          {/* Constellation 1 — top left */}
+          <g stroke="var(--gold, #c4a265)" strokeWidth="0.8" opacity="0.16" fill="none">
+            <line x1="120" y1="140" x2="180" y2="180" />
+            <line x1="180" y1="180" x2="230" y2="150" />
+            <line x1="230" y1="150" x2="280" y2="200" />
+            <line x1="180" y1="180" x2="210" y2="240" />
+          </g>
+          {/* Constellation 2 — top right */}
+          <g stroke="var(--rose, #bf524a)" strokeWidth="0.8" opacity="0.14" fill="none">
+            <line x1="550" y1="120" x2="620" y2="160" />
+            <line x1="620" y1="160" x2="680" y2="130" />
+            <line x1="620" y1="160" x2="640" y2="220" />
+            <line x1="640" y1="220" x2="700" y2="240" />
+          </g>
+          {/* Constellation 3 — bottom */}
+          <g stroke="var(--gold, #c4a265)" strokeWidth="0.8" opacity="0.12" fill="none">
+            <line x1="200" y1="600" x2="270" y2="640" />
+            <line x1="270" y1="640" x2="330" y2="610" />
+            <line x1="330" y1="610" x2="390" y2="650" />
+          </g>
+          {/* Star dots — scattered */}
+          {[
+            [120, 140, 1.8], [180, 180, 2.2], [230, 150, 1.5], [280, 200, 2], [210, 240, 1.5],
+            [550, 120, 1.8], [620, 160, 2.5], [680, 130, 1.5], [640, 220, 2], [700, 240, 1.8],
+            [200, 600, 2], [270, 640, 1.8], [330, 610, 2.2], [390, 650, 1.5],
+            [80, 380, 1.3], [420, 80, 1.4], [730, 420, 1.6], [60, 520, 1.2], [760, 560, 1.5],
+            [380, 320, 1.2], [500, 420, 1.3], [150, 720, 1.2], [620, 700, 1.4], [440, 180, 1.2],
+          ].map(([cx, cy, r], i) => (
+            <circle
+              key={i}
+              cx={cx}
+              cy={cy}
+              r={r}
+              fill="var(--gold, #c4a265)"
+              opacity={0.35}
+              style={{
+                animation: `twinkle ${3 + (i % 4)}s ease-in-out ${i * 0.15}s infinite`,
+              }}
+            />
+          ))}
         </svg>
       </div>
+
+      <style>{`
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 0.55; }
+        }
+      `}</style>
 
       <div className="relative z-10 max-w-2xl mx-auto text-center">
         {/* Social proof badge */}
@@ -152,6 +197,56 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
                 {text}
               </span>
             ))}
+          </div>
+        </div>
+
+        {/* Community / trending bar */}
+        <div
+          className="mt-9 sm:mt-11 flex flex-col items-center gap-2.5 transition-all duration-1000"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(15px)",
+            transitionDelay: "0.75s",
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            <span
+              className="h-px w-10"
+              style={{ background: "var(--gold, #c4a265)", opacity: 0.4 }}
+            />
+            <span
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontWeight: 600,
+                fontSize: "0.64rem",
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: "var(--muted, #958779)",
+              }}
+            >
+              Loved by Pet Parents at
+            </span>
+            <span
+              className="h-px w-10"
+              style={{ background: "var(--gold, #c4a265)", opacity: 0.4 }}
+            />
+          </div>
+          <div
+            className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "0.88rem",
+              color: "var(--earth, #6e6259)",
+              letterSpacing: "0.02em",
+            }}
+          >
+            <span>@howanimalslove</span>
+            <span style={{ color: "var(--faded, #bfb2a3)", fontSize: "0.6rem" }}>◆</span>
+            <span>@mypetssoul</span>
+            <span style={{ color: "var(--faded, #bfb2a3)", fontSize: "0.6rem" }}>◆</span>
+            <span>12,847 Pet Parents</span>
+            <span style={{ color: "var(--faded, #bfb2a3)", fontSize: "0.6rem" }}>◆</span>
+            <span>37 Countries</span>
           </div>
         </div>
       </div>

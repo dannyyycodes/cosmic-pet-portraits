@@ -5,10 +5,13 @@ import { useFunnelV2Variant } from "@/hooks/useFunnelV2Variant";
 import { HeroV2 } from "./HeroV2";
 import { EmotionBridge } from "./EmotionBridge";
 import { ProductReveal } from "./ProductReveal";
+import { TransformationStories } from "./TransformationStories";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
 import { AstrologyCredibility } from "./AstrologyCredibility";
 import { HowItWorks } from "./HowItWorks";
+import { LiveActivityToast } from "./LiveActivityToast";
+import { GoldDivider } from "./GoldDivider";
 
 /**
  * V2 copy variants — A (control) / B (test).
@@ -150,7 +153,11 @@ export const FunnelV2 = () => {
         />
       </div>
       <EmotionBridge />
+      <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
+        <GoldDivider />
+      </div>
       <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
+      <TransformationStories />
       <CompactReviews />
       <InlineCheckout
         ref={checkoutRef}
@@ -159,12 +166,18 @@ export const FunnelV2 = () => {
       />
 
       {/* Below checkout: objection-handlers for hesitators */}
+      <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
+        <GoldDivider />
+      </div>
       <AstrologyCredibility />
       <HowItWorks />
       <FAQSection />
 
       {/* Final emotional CTA */}
       <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
+
+      {/* Floating momentum signal */}
+      <LiveActivityToast />
 
       {/* Footer */}
       <footer

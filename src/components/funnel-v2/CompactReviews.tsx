@@ -122,7 +122,7 @@ export const CompactReviews = () => {
       <div className="max-w-3xl mx-auto">
         {/* Live counter */}
         <div
-          className="text-center mb-4 transition-all duration-1000"
+          className="text-center mb-6 transition-all duration-1000"
           style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(15px)" }}
         >
           <div
@@ -137,6 +137,72 @@ export const CompactReviews = () => {
               <strong style={{ color: "var(--ink, #1f1c18)" }}>{counter.toLocaleString()}</strong> readings created
             </span>
           </div>
+        </div>
+
+        {/* Editorial stats band — 4 big numerals separated by gold rules */}
+        <div
+          className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-0 mb-10 md:mb-12 transition-all duration-[1200ms] ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: "0.18s",
+          }}
+        >
+          {[
+            { value: "12,847", label: "Readings Revealed" },
+            { value: "4.9", label: "Average Rating", sup: "★" },
+            { value: "37", label: "Countries" },
+            { value: "98%", label: "Would Recommend" },
+          ].map((stat, i) => (
+            <div
+              key={stat.label}
+              className="text-center px-2 md:px-4"
+              style={{
+                borderRight:
+                  i < 3 && typeof window !== "undefined" && window.innerWidth >= 768
+                    ? "1px solid rgba(196,162,101,0.25)"
+                    : "none",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "clamp(1.9rem, 6.5vw, 2.8rem)",
+                  fontWeight: 400,
+                  color: "var(--black, #141210)",
+                  lineHeight: 1,
+                  letterSpacing: "-0.02em",
+                  marginBottom: 6,
+                }}
+              >
+                {stat.value}
+                {stat.sup && (
+                  <span
+                    style={{
+                      fontSize: "0.5em",
+                      color: "var(--gold, #c4a265)",
+                      marginLeft: 3,
+                      verticalAlign: "super",
+                    }}
+                  >
+                    {stat.sup}
+                  </span>
+                )}
+              </p>
+              <p
+                style={{
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--muted, #958779)",
+                }}
+              >
+                {stat.label}
+              </p>
+            </div>
+          ))}
         </div>
 
         {/* Header */}
