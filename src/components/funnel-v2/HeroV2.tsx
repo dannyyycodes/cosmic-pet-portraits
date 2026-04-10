@@ -112,7 +112,7 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
               ))}
             </div>
             <span className="text-sm text-[var(--muted,#958779)] font-medium" style={{ fontFamily: "Cormorant, Georgia, serif" }}>
-              Loved by <strong className="text-[var(--ink,#1f1c18)]">12,000+</strong> pet parents
+              Crafted with care for <strong className="text-[var(--ink,#1f1c18)]">every</strong> pet
             </span>
           </div>
         </div>
@@ -246,9 +246,9 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
               letterSpacing: "0.02em",
             }}
           >
-            <span>12,847 Pet Parents</span>
+            <span>Cosmic Pet Portraits</span>
             <span style={{ color: "var(--faded, #bfb2a3)", fontSize: "0.6rem" }}>◆</span>
-            <span>37 Countries</span>
+            <span>Handcrafted from their birth chart</span>
           </div>
         </div>
       </div>

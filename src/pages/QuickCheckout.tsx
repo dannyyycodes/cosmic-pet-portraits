@@ -259,7 +259,7 @@ export default function QuickCheckout() {
             </div>
           </div>
           <p className="font-cormorant text-[0.92rem] text-muted-foreground">
-            Loved by <strong className="text-foreground font-semibold">12,000+</strong> pet parents
+            Crafted with care for <strong className="text-foreground font-semibold">every</strong> pet
             <span className="mx-1.5 opacity-30">·</span>
             <a
               href="#reviews"
@@ -732,7 +732,7 @@ export default function QuickCheckout() {
           )}
         </Button>
         <p className="font-cormorant italic text-[0.92rem] text-muted-foreground mt-3">
-          Join 12,000+ pet parents who've taken the leap
+          Your pet's cosmic portrait is waiting
         </p>
       </div>
 

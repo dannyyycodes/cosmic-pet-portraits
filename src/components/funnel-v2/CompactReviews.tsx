@@ -106,7 +106,7 @@ const CURATED_REVIEWS = [
 export const CompactReviews = () => {
   const { ref, visible } = useScrollReveal(0.1);
   const isMobile = useIsMobile();
-  const counter = useAnimatedCounter(12847, 2500, visible);
+  // counter removed — honest metrics only
   const [expanded, setExpanded] = useState(false);
 
   // Mobile: show 4 by default to limit scroll fatigue; desktop shows all.
@@ -122,21 +122,18 @@ export const CompactReviews = () => {
       }}
     >
       <div className="max-w-3xl mx-auto">
-        {/* Live counter */}
+        {/* Badge */}
         <div
           className="text-center mb-6 transition-all duration-1000"
           style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(15px)" }}
         >
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
-            style={{ background: "rgba(74,140,92,0.06)", border: "1px solid rgba(74,140,92,0.12)" }}
+            style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.18)" }}
           >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--green,#4a8c5c)] opacity-50" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--green,#4a8c5c)]" />
-            </span>
+            <span style={{ fontSize: "0.85rem" }}>&#9733;&#9733;&#9733;&#9733;&#9733;</span>
             <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
-              <strong style={{ color: "var(--ink, #1f1c18)" }}>{counter.toLocaleString()}</strong> readings created
+              Rated <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9/5</strong> by pet parents
             </span>
           </div>
         </div>
@@ -151,10 +148,10 @@ export const CompactReviews = () => {
           }}
         >
           {[
-            { value: "12,847", label: "Readings Revealed" },
+            { value: "30+", label: "Soul Sections" },
             { value: "4.9", label: "Average Rating", sup: "★" },
-            { value: "37", label: "Countries" },
-            { value: "98%", label: "Would Recommend" },
+            { value: "100%", label: "Money-Back Guarantee" },
+            { value: "~3min", label: "To Begin" },
           ].map((stat, i) => (
             <div
               key={stat.label}
@@ -223,9 +220,9 @@ export const CompactReviews = () => {
               letterSpacing: "-0.02em",
             }}
           >
-            12,000+ Pet Parents.
+            What Pet Parents Are Saying.
             <br />
-            <em style={{ color: "var(--rose, #bf524a)" }}>One Universal Reaction.</em>
+            <em style={{ color: "var(--rose, #bf524a)" }}>In Their Own Words.</em>
           </h2>
           <p
             style={{

@@ -119,7 +119,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   const [showGiftUpsell, setShowGiftUpsell] = useState(false);
   const [selectedGiftTier, setSelectedGiftTier] = useState<'basic' | 'premium'>('basic');
   const [spotsLeft, setSpotsLeft] = useState(7);
-  const [recentPurchases, setRecentPurchases] = useState(12847);
+  const [recentPurchases, setRecentPurchases] = useState(0);
   const [petPhotos, setPetPhotos] = useState<Record<number, PetPhotoData>>({});
   
   // Per-pet horoscope subscription selection (only for non-memorial pets)

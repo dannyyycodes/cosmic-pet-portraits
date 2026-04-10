@@ -409,7 +409,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "What if it's not accurate?",
-    a: "Full refund, no questions asked. We've delivered 12,000+ readings and our refund rate is under 1%. But if yours doesn't resonate, you don't pay.",
+    a: "Full refund, no questions asked. If your reading doesn't resonate, you don't pay. We stand behind every single portrait.",
   },
   {
     q: "Can I get a reading for a pet who's passed away?",

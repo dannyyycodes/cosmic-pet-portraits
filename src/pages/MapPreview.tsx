@@ -309,7 +309,7 @@ const VariantCard = ({
         color: "var(--earth, #6e6259)",
       }}
     >
-      37 countries · 12,847 pet parents
+      Pet parents worldwide
     </p>
   </section>
 );

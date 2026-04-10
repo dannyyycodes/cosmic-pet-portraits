@@ -198,8 +198,8 @@ export function PremiumTestimonials() {
           </div>
           <div className="w-px h-8 bg-border/30 hidden sm:block" />
           <div className="text-center">
-            <p className="text-2xl font-semibold text-foreground">12,000+</p>
-            <p className="text-xs text-muted-foreground">5-Star Reviews</p>
+            <p className="text-2xl font-semibold text-foreground">4.9</p>
+            <p className="text-xs text-muted-foreground">Average Rating</p>
           </div>
         </motion.div>
       </div>

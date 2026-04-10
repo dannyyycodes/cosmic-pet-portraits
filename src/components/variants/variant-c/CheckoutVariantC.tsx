@@ -197,7 +197,7 @@ export function CheckoutVariantC({
           ))}
         </div>
         <p className="text-sm text-muted-foreground">
-          <span className="text-foreground font-medium">12,847</span> pets roasted this week
+          New readings crafted <span className="text-foreground font-medium">daily</span>
         </p>
       </div>
 

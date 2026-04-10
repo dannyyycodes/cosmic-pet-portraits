@@ -192,7 +192,7 @@ export function ReportTeaser({ petData }: ReportTeaserProps) {
           ))}
         </div>
         <p className="text-xs text-muted-foreground">
-          Join <strong className="text-foreground">12,847</strong> pet parents who've discovered their pet's cosmic truth
+          Discover your pet's cosmic truth
         </p>
         
         {/* Sample testimonial */}
