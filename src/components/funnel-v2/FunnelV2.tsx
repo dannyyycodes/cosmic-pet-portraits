@@ -6,7 +6,6 @@ import { HeroV2 } from "./HeroV2";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
-import { AstrologyCredibility } from "./AstrologyCredibility";
 import { HowItWorks } from "./HowItWorks";
 import { CharityPledge } from "./CharityPledge";
 import { LiveActivityToast } from "./LiveActivityToast";
@@ -175,7 +174,6 @@ export const FunnelV2 = () => {
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
         <GoldDivider />
       </div>
-      <AstrologyCredibility />
       <HowItWorks />
       <CharityPledge
         onChange={({ charityId: id, bonusAmount }) => {

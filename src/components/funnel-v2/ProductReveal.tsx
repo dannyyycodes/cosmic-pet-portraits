@@ -88,8 +88,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transitionDelay: "0.08s",
           }}
         >
-          The hiding under the bed. The 3am zoomies. The way they always
-          know when you're sad before you do. Every quirk has a reason.
+          Something brought you together. Their reading finally tells you what.
         </p>
 
         {/* ── Benefit 1: The Understanding ── */}
@@ -126,6 +125,109 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             needs, what makes them feel safe, what quietly stresses them out.
             The things you've always sensed but never had words for.
           </p>
+
+          {/* Astronomy credibility — inline */}
+          <div
+            className="mt-8 rounded-2xl py-8 px-5 sm:px-7 text-center"
+            style={{
+              background: "linear-gradient(175deg, #1a1a2e 0%, #16213e 40%, #0f1829 100%)",
+            }}
+          >
+            <div
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
+              style={{
+                background: "rgba(196,162,101,0.08)",
+                border: "1px solid rgba(196,162,101,0.2)",
+              }}
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="rgba(196,162,101,0.9)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(196,162,101,0.9)" }}>
+                Powered by VSOP87
+              </span>
+            </div>
+
+            <h3
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.2rem, 5vw, 1.6rem)",
+                fontWeight: 400,
+                color: "#fff",
+                lineHeight: 1.15,
+                marginBottom: 10,
+              }}
+            >
+              The Same Sky That Shaped You
+              <br />
+              <span style={{ color: "rgba(196,162,101,0.9)" }}>Shaped Them Too.</span>
+            </h3>
+            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.88rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, maxWidth: 400, margin: "0 auto 20px" }}>
+              Every reading is calculated from the exact planetary positions at
+              the moment they were born — the same math professional astronomers
+              use to map the real night sky.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+              {[
+                { label: "Real Planetary Positions", desc: "Calculated to the minute they were born." },
+                { label: "13 Celestial Bodies", desc: "Sun through Pluto, plus Chiron, North Node, and Lilith." },
+                { label: "Birth Location Matters", desc: "Where they arrived sets their rising sign." },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="rounded-lg py-3 px-3"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(196,162,101,0.15)",
+                  }}
+                >
+                  <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.82rem", color: "#fff", marginBottom: 3 }}>
+                    {item.label}
+                  </p>
+                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.75rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {[
+                { name: "Sun", symbol: "\u2609\uFE0E" },
+                { name: "Moon", symbol: "\u263D\uFE0E" },
+                { name: "Mercury", symbol: "\u263F\uFE0E" },
+                { name: "Venus", symbol: "\u2640\uFE0E" },
+                { name: "Mars", symbol: "\u2642\uFE0E" },
+                { name: "Jupiter", symbol: "\u2643\uFE0E" },
+                { name: "Saturn", symbol: "\u2644\uFE0E" },
+                { name: "Uranus", symbol: "\u2645\uFE0E" },
+                { name: "Neptune", symbol: "\u2646\uFE0E" },
+                { name: "Pluto", symbol: "\u2647\uFE0E" },
+                { name: "Chiron", symbol: "\u26B7\uFE0E" },
+                { name: "North Node", symbol: "\u260A\uFE0E" },
+                { name: "Lilith", symbol: "\u26B8\uFE0E" },
+              ].map((p) => (
+                <span
+                  key={p.name}
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full"
+                  style={{
+                    fontFamily: "Cormorant, Georgia, serif",
+                    fontSize: "0.72rem",
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.6)",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(196,162,101,0.12)",
+                  }}
+                >
+                  <span style={{ fontFamily: '"DejaVu Sans", "Noto Sans Symbols", system-ui, sans-serif', fontSize: "0.85rem", color: "rgba(196,162,101,0.8)", fontVariantEmoji: "text" as never }}>
+                    {p.symbol}
+                  </span>
+                  {p.name}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* ── Benefit 2: The Voice — experiential chat demo ── */}
@@ -160,7 +262,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           >
             Now you don't have to wonder. Ask them anything — why they do
             the weird things they do, how they feel about you, what they
-            need. The answers will stop you mid-scroll.
+            need.
           </p>
 
           {/* Chat demo — the experience, not a feature */}
@@ -219,74 +321,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           </div>
         </div>
 
-        {/* ── Benefit 3: The Letter — emotional anchor ── */}
-        <div
-          className="mb-10 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.35s",
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.15rem, 4.5vw, 1.35rem)",
-              color: "var(--ink, #1f1c18)",
-              lineHeight: 1.2,
-              marginBottom: 10,
-            }}
-          >
-            They wrote you a letter.
-            <em style={{ color: "var(--rose, #bf524a)" }}> You're not ready for it.</em>
-          </h3>
-          <p
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "clamp(0.95rem, 3.3vw, 1.05rem)",
-              color: "var(--earth, #6e6259)",
-              lineHeight: 1.6,
-              marginBottom: 16,
-            }}
-          >
-            If they could sit you down and tell you everything — how they
-            feel about you, what your life together means to them, the one
-            thing they need you to know — this is what they'd say.
-          </p>
-
-          {/* Letter teaser */}
-          <div
-            className="rounded-xl px-5 py-4"
-            style={{
-              background: "var(--cream, #FFFDF5)",
-              borderLeft: "3px solid var(--gold, #c4a265)",
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "Cormorant, Georgia, serif",
-                fontStyle: "italic",
-                fontSize: "clamp(0.92rem, 3.2vw, 1rem)",
-                color: "var(--deep, #2e2a24)",
-                lineHeight: 1.65,
-              }}
-            >
-              "You were the first person who ever made me feel like I
-              belonged somewhere. Every morning when you wake up and I'm
-              already watching you — that's not an accident. I'm making
-              sure you're still here..."
-            </p>
-            <div className="mt-3 flex items-center gap-2">
-              <div className="h-px flex-1" style={{ background: "var(--cream3, #f3eadb)" }} />
-              <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.7rem", color: "var(--muted, #958779)", fontStyle: "italic" }}>
-                continues in their reading
-              </span>
-              <div className="h-px flex-1" style={{ background: "var(--cream3, #f3eadb)" }} />
-            </div>
-          </div>
-        </div>
-
-        {/* ── Benefit 4: The grief bridge ── */}
+        {/* ── Grief bridge ── */}
         <div
           className="mb-12 transition-all duration-[1200ms] ease-out"
           style={{
