@@ -32,12 +32,11 @@ const VsopCredibility = () => (
       exact sky the moment they were born
     </h3>
     <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(0.92rem, 3.2vw, 1rem)", color: "var(--earth, #6e6259)", lineHeight: 1.55, maxWidth: 420, margin: "0 auto 28px" }}>
-      Using VSOP87 — the same planetary model used by NASA's Jet Propulsion
-      Laboratory and professional observatories worldwide.
+      Using VSOP87 — the same planetary model used by NASA and professional observatories worldwide.
     </p>
 
     {/* Three pillars */}
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
       {[
         {
           h: "Not a personality quiz. Real coordinates.",
@@ -46,10 +45,6 @@ const VsopCredibility = () => (
         {
           h: "The same math NASA uses to track planets.",
           d: "VSOP87, developed at the Bureau des Longitudes in Paris. The global standard for planetary position calculation.",
-        },
-        {
-          h: "Built from a sky that will never exist again.",
-          d: "The exact arrangement of planets at the moment they arrived. Not a template. Not a guess. Theirs alone.",
         },
       ].map((item, i) => (
         <div
@@ -157,39 +152,14 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           </em>
         </h2>
 
-        {/* ── Transformation moments — each one breathes ── */}
+        {/* ── What changes ── */}
         <div className="space-y-0">
           {[
-            {
-              text: "Understand them the way they've always understood you",
-              icon: (
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="10" cy="16" r="7" /><circle cx="22" cy="16" r="7" />
-                </svg>
-              ),
-            },
             {
               text: "Love them in the way they actually feel it",
               icon: (
                 <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 28s-11-7-11-14a6 6 0 0111-3.5A6 6 0 0127 14c0 7-11 14-11 14z" />
-                </svg>
-              ),
-            },
-            {
-              text: "See the bond between you finally put into words",
-              icon: (
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 8h22M8 13h16M11 18h10M14 23h4" />
-                </svg>
-              ),
-            },
-            {
-              text: "Have the conversation you've always wished you could have",
-              icon: (
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 7a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 3.5V17H6a2 2 0 01-2-2V7z" />
-                  <path d="M20 12h6a2 2 0 012 2v8a2 2 0 01-2 2h-1v3.5L21 24h-5a2 2 0 01-2-2v-2" />
                 </svg>
               ),
             },
@@ -200,14 +170,6 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                   <circle cx="16" cy="16" r="10" />
                   <path d="M16 6v2M16 24v2M6 16h2M24 16h2" />
                   <circle cx="16" cy="16" r="3" />
-                </svg>
-              ),
-            },
-            {
-              text: "Feel closer to them than you ever thought possible",
-              icon: (
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 4l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6l2-6z" />
                 </svg>
               ),
             },
@@ -242,7 +204,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                 {item.text}
               </p>
               {/* Divider — except after last */}
-              {i < 5 && (
+              {i < 1 && (
                 <div
                   className="mx-auto mt-7"
                   style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--gold, #c4a265)", opacity: 0.3 }}
@@ -292,9 +254,9 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                   marginBottom: 10,
                 }}
               >
-                Ever wondered what they'd say
+                Have the conversation you've
                 <br />
-                <em style={{ color: "var(--rose, #bf524a)" }}>if they could talk?</em>
+                <em style={{ color: "var(--rose, #bf524a)" }}>always wished you could have</em>
               </h3>
               <p
                 style={{
@@ -306,7 +268,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                   margin: "0 auto",
                 }}
               >
-                Now you don't have to wonder. Ask them anything — why they do
+                Ask them anything — why they do
                 the weird things they do, how they feel about you, what they
                 need.
               </p>
