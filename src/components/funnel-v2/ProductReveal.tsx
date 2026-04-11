@@ -135,90 +135,119 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       style={{ background: "var(--cream2, #faf4e8)" }}
     >
       <div className="max-w-[520px] mx-auto">
-        {/* ── Headline + Transformation Bullets ── */}
-        <div
-          className="text-center mb-10 transition-all duration-[1200ms] ease-out"
+        {/* ── Headline ── */}
+        <h2
+          className="text-center transition-all duration-[1200ms] ease-out"
           style={{
+            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontSize: "clamp(1.55rem, 7vw, 2.3rem)",
+            fontWeight: 400,
+            color: "var(--black, #141210)",
+            lineHeight: 1.15,
+            letterSpacing: "-0.02em",
+            marginBottom: 40,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
           }}
         >
-          {/* Gold ornament */}
-          <div className="mb-6 flex items-center justify-center gap-3">
-            <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.3 }} />
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold, #c4a265)" strokeOpacity={0.4} strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />
-              <circle cx="12" cy="12" r="2" />
-            </svg>
-            <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.3 }} />
-          </div>
+          Everything Changes When You
+          <br />
+          <em style={{ color: "var(--rose, #bf524a)" }}>
+            Truly Know Them
+          </em>
+        </h2>
 
-          <h2
-            style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.55rem, 7vw, 2.3rem)",
-              fontWeight: 400,
-              color: "var(--black, #141210)",
-              lineHeight: 1.15,
-              letterSpacing: "-0.02em",
-              marginBottom: 30,
-            }}
-          >
-            Everything Changes When You
-            <br />
-            <em style={{ color: "var(--rose, #bf524a)" }}>
-              Truly Know Them
-            </em>
-          </h2>
-        </div>
-
-        {/* Transformation bullets — elegant cards */}
-        <div className="space-y-3 mb-10">
+        {/* ── Transformation moments — each one breathes ── */}
+        <div className="space-y-0">
           {[
-            "Understand them the way they've always understood you",
-            "Love them in the way they actually feel it",
-            "See the bond between you finally put into words",
-            "Have the conversation you've always wished you could have",
-            "Know what they need — without guessing, without wondering",
-            "Feel closer to them than you ever thought possible",
-          ].map((benefit, i) => (
+            {
+              text: "Understand them the way they've always understood you",
+              icon: (
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="10" cy="16" r="7" /><circle cx="22" cy="16" r="7" />
+                </svg>
+              ),
+            },
+            {
+              text: "Love them in the way they actually feel it",
+              icon: (
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 28s-11-7-11-14a6 6 0 0111-3.5A6 6 0 0127 14c0 7-11 14-11 14z" />
+                </svg>
+              ),
+            },
+            {
+              text: "See the bond between you finally put into words",
+              icon: (
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 8h22M8 13h16M11 18h10M14 23h4" />
+                </svg>
+              ),
+            },
+            {
+              text: "Have the conversation you've always wished you could have",
+              icon: (
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 7a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 3.5V17H6a2 2 0 01-2-2V7z" />
+                  <path d="M20 12h6a2 2 0 012 2v8a2 2 0 01-2 2h-1v3.5L21 24h-5a2 2 0 01-2-2v-2" />
+                </svg>
+              ),
+            },
+            {
+              text: "Know what they need — without guessing, without wondering",
+              icon: (
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="16" cy="16" r="10" />
+                  <path d="M16 6v2M16 24v2M6 16h2M24 16h2" />
+                  <circle cx="16" cy="16" r="3" />
+                </svg>
+              ),
+            },
+            {
+              text: "Feel closer to them than you ever thought possible",
+              icon: (
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 4l2 6h6l-5 4 2 6-5-4-5 4 2-6-5-4h6l2-6z" />
+                </svg>
+              ),
+            },
+          ].map((item, i) => (
             <div
               key={i}
-              className="flex items-center gap-4 rounded-xl px-5 py-4 transition-all duration-700"
+              className="text-center py-7 transition-all duration-[1000ms] ease-out"
               style={{
-                background: "var(--cream, #FFFDF5)",
-                border: "1px solid rgba(196,162,101,0.15)",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.02)",
                 opacity: visible ? 1 : 0,
-                transform: visible ? "translateX(0)" : "translateX(-15px)",
-                transitionDelay: `${0.15 + i * 0.08}s`,
+                transform: visible ? "translateY(0)" : "translateY(15px)",
+                transitionDelay: `${0.12 + i * 0.1}s`,
               }}
             >
-              {/* Gold number */}
-              <span
-                className="flex-shrink-0 flex items-center justify-center rounded-full"
+              {/* Delicate icon */}
+              <div
+                className="mx-auto mb-3"
+                style={{ width: 28, height: 28, color: "var(--gold, #c4a265)", opacity: 0.5 }}
+              >
+                {item.icon}
+              </div>
+              {/* Benefit text */}
+              <p
                 style={{
-                  width: 32,
-                  height: 32,
                   fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "0.85rem",
-                  color: "var(--gold, #c4a265)",
-                  background: "rgba(196,162,101,0.08)",
-                  border: "1px solid rgba(196,162,101,0.15)",
-                }}
-              >
-                {i + 1}
-              </span>
-              <span
-                style={{
-                  fontFamily: "Cormorant, Georgia, serif",
-                  fontSize: "clamp(0.95rem, 3.3vw, 1.08rem)",
+                  fontSize: "clamp(1.05rem, 4.2vw, 1.25rem)",
                   color: "var(--ink, #1f1c18)",
-                  lineHeight: 1.4,
+                  lineHeight: 1.35,
+                  maxWidth: 380,
+                  margin: "0 auto",
                 }}
               >
-                {benefit}
-              </span>
+                {item.text}
+              </p>
+              {/* Divider — except after last */}
+              {i < 5 && (
+                <div
+                  className="mx-auto mt-7"
+                  style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--gold, #c4a265)", opacity: 0.3 }}
+                />
+              )}
             </div>
           ))}
         </div>
