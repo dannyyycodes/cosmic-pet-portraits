@@ -16,63 +16,89 @@ function useScrollReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
-// Reviews use <b>…</b> around the punchy power phrase so skimmers
-// reading only the bold bits still catch the emotional hit.
-const ROW_1 = [
-  {
-    name: "Ava P.",
-    pet: "Butterbean, Corgi",
-    breed: "corgi",
-    text: "SoulSpeak alone is worth the price. I asked Butterbean what she thinks about the cat and <b>the response was pure comedy gold</b>.",
-  },
-  {
-    name: "Tom H.",
-    pet: "Bear, German Shepherd",
-    breed: "german-shepherd",
-    text: "The compatibility chart between me and Bear <b>made my wife cry</b>. It knew things we never told it.",
-  },
-  {
-    name: "Brooke T.",
-    pet: "Theo, Golden Retriever",
-    breed: "golden-retriever",
-    text: "I asked Theo why he steals socks and the answer was <b>'because they smell like you and that makes me feel safe.'</b> DESTROYED.",
-  },
-  {
-    name: "Lisa K.",
-    pet: "Cooper, Border Collie",
-    breed: "border-collie",
-    text: "The cosmic profile was so specific to Cooper. <b>It mentioned his herding behaviour before I even said anything.</b>",
-  },
+type Review = { name: string; pet: string; breed: string; img: number; text: string };
+
+// ── Batch 1 (Grok set 1) ────────────────────────────────────
+const ROW_1: Review[] = [
+  { name: "Sarah M.", pet: "Bailey, Golden Retriever", breed: "golden-retriever", img: 1, text: "Ok so I was super skeptical but the soul reading nailed how Bailey gets all zoomie when the moon is full. The SoulSpeak thing is wild, I asked why he steals socks and he basically said he likes my smell on them." },
+  { name: "Mike T.", pet: "Louie, French Bulldog", breed: "french-bulldog", img: 1, text: "My husband thinks I've lost it but I swear the compatibility section explained why Louie hates my mom's yorkie so much. The cosmic portrait looks exactly like him too." },
+  { name: "Emily R.", pet: "Luna, Maine Coon", breed: "maine-coon", img: 1, text: "Not even into astrology but the part about her being anxious around loud noises was spot on. Asked her through SoulSpeak why she only drinks from the faucet and her answer made me laugh." },
+  { name: "David K.", pet: "Max, Labrador", breed: "labrador", img: 1, text: "Got this for my lab who passed last year. The soul letter made me cry but in a good way. Still not over him." },
+  { name: "Jessica P.", pet: "Princess, Persian", breed: "persian", img: 1, text: "So I bought this as a joke and now I can't stop using SoulSpeak. Asked Princess why she stares at me while I sleep and she said she's protecting my energy or something." },
+  { name: "Chris B.", pet: "Zeus, German Shepherd", breed: "german-shepherd", img: 1, text: "The reading said he's a protector soul and that tracks 100%. SoulSpeak is addictive, I ask him stuff all the time now." },
+  { name: "Anna L.", pet: "Mochi, Ragdoll", breed: "ragdoll", img: 1, text: "I'm not gonna lie I teared up reading the soul letter. Mochi's chart matches her personality perfectly, even the picky eating part." },
+  { name: "Ryan S.", pet: "Winston, Corgi", breed: "corgi", img: 1, text: "Ok this is weirdly accurate. The cosmic portrait is hanging in my living room now. My friends make fun of me but whatever." },
+  { name: "Lauren H.", pet: "Shadow, Siamese", breed: "siamese", img: 1, text: "Asked Shadow through SoulSpeak why he yells at 3am and he said the spirits are loud then. Not sure if I believe it but I laughed so hard." },
+  { name: "Tyler M.", pet: "Bruno, Bulldog", breed: "bulldog", img: 1, text: "Bought this right after Bruno passed. The reading helped me process it a little. Still miss him every day." },
+  { name: "Megan F.", pet: "Coco, Poodle", breed: "poodle", img: 1, text: "My poodle's soul reading said she's an old soul and honestly it explains why she's so chill compared to other dogs. SoulSpeak is my new favorite thing." },
+  { name: "Josh C.", pet: "Scout, Beagle", breed: "beagle", img: 1, text: "The compatibility with my other dog was scary accurate. They really do fight over toys exactly like the report said." },
+  { name: "Olivia W.", pet: "Ollie, Scottish Fold", breed: "scottish-fold", img: 1, text: "I was a total skeptic but the part about him hiding when strangers come over was dead on. Now I use SoulSpeak every night before bed." },
+  { name: "Nathan D.", pet: "Loki, Husky", breed: "husky", img: 1, text: "Loki's cosmic portrait looks just like him howling at the moon. The soul reading explained his dramatic personality so well." },
+  { name: "Sophia G.", pet: "Zara, Bengal", breed: "bengal", img: 1, text: "So my cat basically told me through SoulSpeak that she knocks stuff off tables because she's bored. Makes sense I guess." },
+  { name: "Ethan J.", pet: "Oscar, Dachshund", breed: "dachshund", img: 1, text: "Short and sweet, this thing is spot on for my sausage dog. The anxiety around thunderstorms part hit different." },
+  { name: "Isabella V.", pet: "Winston, British Shorthair", breed: "british-shorthair", img: 1, text: "Got the full package and the soul letter was so beautiful. My british shorthair is basically a little philosopher according to this." },
+  { name: "Caleb R.", pet: "Tank, Rottweiler", breed: "rottweiler", img: 1, text: "Everyone says rotties are tough but the reading showed Tank has a really gentle soul. SoulSpeak confirmed it when I asked him." },
+  { name: "Ava K.", pet: "Cleo, Abyssinian", breed: "abyssinian", img: 1, text: "My abyssinian is so active and the chart explained it with her fire energy or whatever. I don't get astrology but it's fun." },
+  { name: "Logan P.", pet: "Rocky, Boxer", breed: "boxer", img: 1, text: "Rocky passed two months ago and I got this on a whim. The soul reading brought me some peace I didn't know I needed." },
+  { name: "Mia T.", pet: "Bella, Shih Tzu", breed: "shih-tzu", img: 1, text: "The compatibility section with me was hilarious. Apparently we're both stubborn souls. Bella's portrait is adorable." },
+  { name: "Jacob L.", pet: "Taco, Chihuahua", breed: "chihuahua", img: 1, text: "Ok so my tiny terror's soul reading said he's actually a big soul in a small body and that explains everything." },
+  { name: "Harper N.", pet: "Misty, Birman", breed: "birman", img: 1, text: "Asked Misty why she only sits on my keyboard and SoulSpeak said she wants my attention. Smart girl." },
+  { name: "Aiden B.", pet: "Charlie, Cavalier King Charles", breed: "cavalier-kcs", img: 1, text: "My cavalier is the sweetest and the soul letter captured that perfectly. I read it to him every night now." },
+  { name: "Ella S.", pet: "Pixie, Yorkshire Terrier", breed: "yorkshire-terrier", img: 1, text: "Wasn't expecting much but the reading about her being sassy was 100% right. SoulSpeak is wild." },
+  { name: "Noah H.", pet: "Blue, Australian Shepherd", breed: "australian-shepherd", img: 1, text: "Blue's cosmic portrait is so good I made it my phone wallpaper. The herding instinct part in the reading was funny." },
+  { name: "Lily M.", pet: "Smokey, Russian Blue", breed: "russian-blue", img: 1, text: "My russian blue is kinda aloof and the soul reading explained it as him being a wise old soul. Kinda makes me feel better about it." },
+  { name: "Mason D.", pet: "Peanut, Pug", breed: "pug", img: 1, text: "Peanut's soul reading was so accurate about his snoring and lazy days. I showed it to my vet and we both laughed." },
+  { name: "Zoe C.", pet: "Thor, Maine Coon", breed: "maine-coon", img: 2, text: "Got this for my giant maine coon and the portrait makes him look majestic as hell. SoulSpeak answers are surprisingly on point." },
+  { name: "Lucas R.", pet: "Dash, Border Collie", breed: "border-collie", img: 1, text: "My border collie needs constant stimulation and the chart called it out immediately. Now I feel less guilty when I can't keep up." },
+  { name: "Amelia P.", pet: "Luna, Sphynx", breed: "sphynx", img: 1, text: "The hairless thing and her needing extra warmth was mentioned in the soul reading. Asked her through SoulSpeak if she's cold and she said yes lol." },
+  { name: "Gabriel F.", pet: "Duke, Great Dane", breed: "great-dane", img: 1, text: "For such a big dog the reading said he has a gentle giant soul. Duke passed recently and this helped." },
+  { name: "Charlotte B.", pet: "Snowy, Maltese", breed: "maltese", img: 1, text: "My little maltese is a diva and the soul reading confirmed it. The cosmic portrait is framed on my wall now." },
+  { name: "Elijah T.", pet: "Cloud, Samoyed", breed: "samoyed", img: 1, text: "Cloud's fluffy smile in the portrait is perfect. SoulSpeak told me he loves snow because it feels like home." },
 ];
 
-const ROW_2 = [
-  {
-    name: "Rachel S.",
-    pet: "Daisy, Cavalier King Charles",
-    breed: "cavalier-kcs",
-    text: "How did it know she sits by the door 20 minutes before I get home? <b>The emotional blueprint was scarily accurate.</b>",
-  },
-  {
-    name: "James Wilson",
-    pet: "Biscuit, Holland Lop",
-    breed: "holland-lop",
-    text: "It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and <b>he actually comes to us on his own now</b>.",
-  },
-  {
-    name: "Steve L.",
-    pet: "Hank, Bulldog",
-    breed: "bulldog",
-    text: "My wife bought this and I rolled my eyes. Then I read it. Then I tried SoulSpeak. <b>Then I ordered one for my mom's dog.</b>",
-  },
-  {
-    name: "Sam N.",
-    pet: "Nugget, Guinea Pig",
-    breed: "guinea-pig",
-    text: "A full soul reading for a guinea pig! And <b>the cosmic portrait was the cutest thing I've ever seen</b>.",
-  },
+// ── Batch 2 (Grok set 2 + exotics) ──────────────────────────
+const ROW_2: Review[] = [
+  { name: "Katie B.", pet: "Murphy, Golden Retriever", breed: "golden-retriever", img: 2, text: "So I downloaded this at 2am because I couldn't sleep and now I'm obsessed. Murphy's soul reading said he's here to teach unconditional love and I'm not crying you are." },
+  { name: "Derek S.", pet: "Frank, French Bulldog", breed: "french-bulldog", img: 2, text: "Was totally skeptical but the SoulSpeak chat actually explained why Frank farts and then looks at me like I did it. Laughed way too hard." },
+  { name: "Rachel T.", pet: "Bear, Maine Coon", breed: "maine-coon", img: 3, text: "My big maine coon's cosmic portrait is insane, he looks like a lion. The compatibility section with my boyfriend was lowkey accurate and now we joke about it." },
+  { name: "Jordan H.", pet: "River, Labrador", breed: "labrador", img: 2, text: "Got this after my lab passed away last month. The soul letter felt like River was talking directly to me. Still hurts but it helped a little." },
+  { name: "Samantha L.", pet: "Willow, Ragdoll", breed: "ragdoll", img: 2, text: "I asked Willow through SoulSpeak if she loves me and she said more than the sunbeam on the couch. I'm deceased." },
+  { name: "Brandon M.", pet: "Koda, Husky", breed: "husky", img: 2, text: "Koda's reading called him a free spirit who howls at the universe. That tracks so hard. The portrait is now my lock screen." },
+  { name: "Taylor C.", pet: "Gizmo, Persian", breed: "persian", img: 2, text: "Ok I bought this thinking it was silly but Gizmo's soul reading explained her dramatic sighs perfectly. My roommate keeps asking me what the cat said today." },
+  { name: "Alex R.", pet: "Biscuit, Corgi", breed: "corgi", img: 2, text: "The part about my corgi being a little chaos goblin with a big heart was too real. SoulSpeak is dangerous, I spent an hour asking dumb questions." },
+  { name: "Nicole P.", pet: "Sapphire, Siamese", breed: "siamese", img: 2, text: "My siamese is super vocal and the soul reading said she's an old soul with opinions. Asked her why she screams at birds and her answer was sassy." },
+  { name: "Kevin D.", pet: "Rex, German Shepherd", breed: "german-shepherd", img: 2, text: "Rex passed two years ago and I still miss him every day. The soul letter from Little Souls made me smile through the tears." },
+  { name: "Hannah W.", pet: "Jax, Bengal", breed: "bengal", img: 2, text: "Jax's cosmic portrait looks exactly like him mid-zoomies. I showed it to my mom and she immediately wanted one for her cat too." },
+  { name: "Dylan F.", pet: "Otis, Bulldog", breed: "bulldog", img: 2, text: "I'm not an astrology person at all but Otis's reading about being a loyal couch potato was spot on. Made me feel seen as his human too." },
+  { name: "Brooke A.", pet: "Finn, Scottish Fold", breed: "scottish-fold", img: 2, text: "Finn's SoulSpeak answers are so calm and wise it's creepy. Asked why he headbutts me at 5am and he said he's recharging my heart." },
+  { name: "Justin G.", pet: "Lulu, Poodle", breed: "poodle", img: 2, text: "My standard poodle's soul reading said she's elegant but playful. The portrait is gorgeous, I framed it." },
+  { name: "Megan K.", pet: "Bailey, Beagle", breed: "beagle", img: 2, text: "Bailey's compatibility with the neighbor's dog explained why they always bark at each other through the fence. Kinda funny." },
+  { name: "Connor L.", pet: "Dash, Abyssinian", breed: "abyssinian", img: 2, text: "Was laughing the whole time reading Dash's soul letter. Apparently he's an adventurer soul stuck in an apartment. Poor guy." },
+  { name: "Leah S.", pet: "Mila, Boxer", breed: "boxer", img: 2, text: "Mila passed away in January and getting her soul reading felt like getting one last hug. I keep the letter in my nightstand." },
+  { name: "Ryan V.", pet: "Frankfurter, Dachshund", breed: "dachshund", img: 2, text: "My wiener dog's reading called him a sausage with big feelings and I can't stop saying that now." },
+  { name: "Kayla M.", pet: "Oliver, British Shorthair", breed: "british-shorthair", img: 2, text: "Oliver's soul reading said he's a quiet guardian. Now when he sits on my chest I feel like he's actually protecting me or something." },
+  { name: "Tyler J.", pet: "Bruno, Rottweiler", breed: "rottweiler", img: 2, text: "Everyone thinks rotties are scary but Bruno's soul profile is the softest thing ever. SoulSpeak made me tear up." },
+  { name: "Sophia R.", pet: "Angel, Birman", breed: "birman", img: 2, text: "The cosmic portrait of my birman is angelic, fits her name perfectly. I use SoulSpeak when I'm stressed and it actually calms me down." },
+  { name: "Ethan P.", pet: "Teddy, Cavalier King Charles", breed: "cavalier-kcs", img: 2, text: "Teddy's reading described him as pure love in dog form. I already knew that but seeing it written out hit different." },
+  { name: "Ava N.", pet: "Pepper, Chihuahua", breed: "chihuahua", img: 2, text: "My tiny chihuahua has such a big attitude and the soul reading roasted her lovingly. Laughed the whole time." },
+  { name: "Liam H.", pet: "Coco, Yorkshire Terrier", breed: "yorkshire-terrier", img: 2, text: "Coco's SoulSpeak session was hilarious. Asked why she barks at nothing and she said she's talking to the fairies. Sure buddy." },
+  { name: "Isabella T.", pet: "Skye, Australian Shepherd", breed: "australian-shepherd", img: 2, text: "Skye needs so much mental stimulation and the chart explained it with her cosmic herder energy. Makes training feel less frustrating." },
+  { name: "Noah B.", pet: "Ghost, Russian Blue", breed: "russian-blue", img: 2, text: "My russian blue is super independent and the reading called it ancient wisdom vibes. I kinda love that." },
+  { name: "Charlotte D.", pet: "Mochi, Pug", breed: "pug", img: 2, text: "Mochi's cosmic portrait makes his wrinkles look majestic. The soul letter was so sweet I read it twice." },
+  { name: "Mason C.", pet: "Princess, Shih Tzu", breed: "shih-tzu", img: 2, text: "Bought this on a whim and now my whole family is hooked on what Princess says through SoulSpeak." },
+  { name: "Evelyn G.", pet: "Loki, Maine Coon", breed: "maine-coon", img: 1, text: "Loki's soul reading said he's a trickster with a golden heart. That explains the 3am parkour sessions." },
+  { name: "Gabriel F.", pet: "Nova, Border Collie", breed: "border-collie", img: 2, text: "Nova's reading was so detailed I felt like I understood her better after 5 years together. The portrait is beautiful." },
+  { name: "Scarlett M.", pet: "Cleopatra, Sphynx", breed: "sphynx", img: 2, text: "My sphynx gets cold easily and the soul reading mentioned her needing extra warmth and cuddles. She basically lives on my lap now." },
+  { name: "Owen L.", pet: "Titan, Great Dane", breed: "great-dane", img: 2, text: "For a giant dog Titan's soul is apparently very gentle. SoulSpeak confirmed he just wants belly rubs and snacks." },
+  { name: "Harper K.", pet: "Fluffy, Maltese", breed: "maltese", img: 2, text: "Fluffy's soul letter made me emotional even though she's still here. It feels like someone really sees her." },
+  { name: "Lucas P.", pet: "Arctic, Samoyed", breed: "samoyed", img: 2, text: "Arctic's fluffy cosmic portrait is everything. Asked him through SoulSpeak if he likes being brushed and he said it feels like flying." },
+  { name: "Grace L.", pet: "Pickles, Guinea Pig", breed: "guinea-pig", img: 1, text: "Got this for my guinea pig as a joke but the reading was weirdly sweet. Asked him why he wheeks so much through SoulSpeak." },
+  { name: "Owen K.", pet: "Sheldon, Tortoise", breed: "tortoise", img: 1, text: "My tortoise is slow and steady just like the soul reading said. The portrait is cute even if he's a reptile." },
+  { name: "Scarlett J.", pet: "Daisy, Cocker Spaniel", breed: "cocker-spaniel", img: 1, text: "Daisy's soul letter made me emotional. She passed last summer and this felt like one last message." },
+  { name: "Zoe R.", pet: "Popcorn, Guinea Pig", breed: "guinea-pig", img: 2, text: "My guinea pig's reading was surprisingly deep for such a little guy. He told me he loves when I sing to him." },
+  { name: "Elijah S.", pet: "Storm, Horse", breed: "horse", img: 1, text: "Got this for my horse and the soul reading about his free spirit energy was perfect. The portrait looks so majestic in the barn." },
+  { name: "Mia T.", pet: "Rosie, Cocker Spaniel", breed: "cocker-spaniel", img: 2, text: "Rosie's SoulSpeak answers always make me smile. Asked why she rolls in gross stuff and she said she's collecting stories. Weird but cute." },
 ];
-
-type Review = { name: string; pet: string; breed: string; text: string };
 
 const ReviewCard = ({ review }: { review: Review }) => (
   <div
@@ -86,7 +112,7 @@ const ReviewCard = ({ review }: { review: Review }) => (
   >
     <div className="flex items-center gap-2.5 mb-2.5">
       <img
-        src={`/breeds/${review.breed}-1.jpg`}
+        src={`/breeds/${review.breed}-${review.img}.jpg`}
         alt=""
         className="w-9 h-9 rounded-full object-cover flex-shrink-0"
         style={{ border: "2px solid var(--cream3, #f3eadb)" }}
@@ -131,7 +157,6 @@ const ReviewCard = ({ review }: { review: Review }) => (
       </div>
     </div>
     <p
-      className="review-marquee-body"
       style={{
         fontFamily: "Cormorant, Georgia, serif",
         fontStyle: "italic",
@@ -139,8 +164,9 @@ const ReviewCard = ({ review }: { review: Review }) => (
         color: "var(--earth, #6e6259)",
         lineHeight: 1.55,
       }}
-      dangerouslySetInnerHTML={{ __html: `&ldquo;${review.text}&rdquo;` }}
-    />
+    >
+      &ldquo;{review.text}&rdquo;
+    </p>
   </div>
 );
 
@@ -161,7 +187,6 @@ const MarqueeRow = ({
     }}
   >
     <div className="marquee-track flex gap-5" style={{ width: "max-content" }}>
-      {/* Two copies for seamless infinite scroll */}
       {reviews.map((r, i) => (
         <ReviewCard key={`a-${i}`} review={r} />
       ))}
@@ -178,150 +203,36 @@ export const CompactReviews = () => {
   return (
     <section
       ref={ref}
-      className="relative py-12 sm:py-16 md:py-20 px-0 overflow-hidden"
+      className="relative py-5 sm:py-6 overflow-hidden"
       style={{
-        background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))",
+        background: "var(--cream, #FFFDF5)",
       }}
     >
-      {/* Header */}
-      <div className="max-w-3xl mx-auto px-5">
-        {/* Badge */}
-        <div
-          className="text-center mb-6 transition-all duration-1000"
-          style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(15px)" }}
-        >
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
-            style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.18)" }}
-          >
-            <span style={{ fontSize: "0.85rem" }}>&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-            <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
-              Rated <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9/5</strong> by pet parents
-            </span>
-          </div>
-        </div>
-
-        {/* Stats band */}
-        <div
-          className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-0 mb-10 md:mb-12 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.18s",
-          }}
-        >
-          {[
-            { value: "30+", label: "Soul Sections" },
-            { value: "4.9", label: "Average Rating", sup: "\u2605" },
-            { value: "100%", label: "Money-Back Guarantee" },
-            { value: "~3min", label: "To Begin" },
-          ].map((stat, i) => (
-            <div
-              key={stat.label}
-              className="text-center px-2 md:px-4"
-              style={{
-                borderRight:
-                  i < 3 && typeof window !== "undefined" && window.innerWidth >= 768
-                    ? "1px solid rgba(196,162,101,0.25)"
-                    : "none",
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(1.9rem, 6.5vw, 2.8rem)",
-                  fontWeight: 400,
-                  color: "var(--black, #141210)",
-                  lineHeight: 1,
-                  letterSpacing: "-0.02em",
-                  marginBottom: 6,
-                }}
-              >
-                {stat.value}
-                {stat.sup && (
-                  <span
-                    style={{
-                      fontSize: "0.5em",
-                      color: "var(--gold, #c4a265)",
-                      marginLeft: 3,
-                      verticalAlign: "super",
-                    }}
-                  >
-                    {stat.sup}
-                  </span>
-                )}
-              </p>
-              <p
-                style={{
-                  fontFamily: "Cormorant, Georgia, serif",
-                  fontSize: "0.72rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--muted, #958779)",
-                }}
-              >
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Section title */}
-        <div
-          className="text-center mb-10 transition-all duration-1000"
-          style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)", transitionDelay: "0.1s" }}
-        >
-          <h2
-            style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.5rem, 5.5vw, 2.1rem)",
-              fontWeight: 400,
-              color: "var(--black, #141210)",
-              lineHeight: 1.15,
-              marginBottom: 10,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            What Pet Parents Are Saying.
-            <br />
-            <em style={{ color: "var(--rose, #bf524a)" }}>In Their Own Words.</em>
-          </h2>
-        </div>
-      </div>
-
-      {/* Double-layered marquee */}
       <div
-        className="marquee-container flex flex-col gap-5 transition-all duration-[1400ms]"
+        className="marquee-container flex flex-col gap-4 transition-all duration-[1400ms]"
         style={{
           opacity: visible ? 1 : 0,
-          transitionDelay: "0.3s",
+          transitionDelay: "0.1s",
         }}
       >
-        <MarqueeRow reviews={ROW_1} direction="left" speed={38} />
-        <MarqueeRow reviews={ROW_2} direction="right" speed={44} />
+        <MarqueeRow reviews={ROW_1} direction="left" speed={120} />
+        <MarqueeRow reviews={ROW_2} direction="right" speed={130} />
       </div>
 
       <style>{`
-        .review-marquee-body b {
-          font-weight: 600;
-          font-style: italic;
-          color: var(--ink, #1f1c18);
-        }
-
         .marquee-container {
           -webkit-mask-image: linear-gradient(
             to right,
             transparent 0%,
-            black 6%,
-            black 94%,
+            black 4%,
+            black 96%,
             transparent 100%
           );
           mask-image: linear-gradient(
             to right,
             transparent 0%,
-            black 6%,
-            black 94%,
+            black 4%,
+            black 96%,
             transparent 100%
           );
         }
@@ -349,21 +260,7 @@ export const CompactReviews = () => {
             width: 275px !important;
           }
           .marquee-container {
-            gap: 16px;
-            -webkit-mask-image: linear-gradient(
-              to right,
-              transparent 0%,
-              black 3%,
-              black 97%,
-              transparent 100%
-            );
-            mask-image: linear-gradient(
-              to right,
-              transparent 0%,
-              black 3%,
-              black 97%,
-              transparent 100%
-            );
+            gap: 12px;
           }
         }
 
