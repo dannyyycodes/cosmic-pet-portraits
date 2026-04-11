@@ -88,7 +88,6 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transitionDelay: "0.08s",
           }}
         >
-          Something brought you together. Their reading finally tells you what.
         </p>
 
         {/* ── Benefit 1: The Understanding ── */}
@@ -321,32 +320,6 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           </div>
         </div>
 
-        {/* ── Grief bridge ── */}
-        <div
-          className="mb-12 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.45s",
-          }}
-        >
-          <p
-            className="text-center"
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontStyle: "italic",
-              fontSize: "clamp(0.95rem, 3.3vw, 1.05rem)",
-              color: "var(--muted, #958779)",
-              lineHeight: 1.6,
-              maxWidth: 400,
-              margin: "0 auto",
-            }}
-          >
-            For the one who's no longer here — their story didn't end.
-            It's written in the stars. And it's waiting for you.
-          </p>
-        </div>
-
         {/* ── CTA ── */}
         <div
           className="text-center transition-all duration-1000"
@@ -375,17 +348,6 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </button>
-          <p
-            className="mt-3"
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "0.82rem",
-              fontStyle: "italic",
-              color: "var(--muted, #958779)",
-            }}
-          >
-            100% refund if it doesn't feel like them. No questions.
-          </p>
         </div>
       </div>
     </section>

@@ -96,11 +96,9 @@ export const HeroV2 = ({ onCtaClick, ctaLabel }: HeroV2Props) => {
             transitionDelay: "0.15s",
           }}
         >
-          They Give Us Everything.
+          They Give Us Everything
           <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>
-            It's Time We Understood Them in Return.
-          </em>
+          It's Time We Understood Them in Return
         </h1>
 
         {/* CTA Button */}
