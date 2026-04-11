@@ -122,12 +122,81 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
   return (
     <section ref={ref} className="relative overflow-hidden">
 
-      {/* ── Block 1: The Promise ── warm sand */}
+      {/* ── Block 1: The Promise ── warm sand with constellation atmosphere */}
       <div
-        className="px-5 py-20 sm:py-28 md:py-32"
-        style={{ background: "#f5ede0" }}
+        className="relative px-5 py-20 sm:py-28 md:py-32 overflow-hidden"
+        style={{ background: "radial-gradient(ellipse 85% 65% at 50% 38%, #efe3d0 0%, #f5ede0 60%)" }}
       >
-        <div className="max-w-[520px] mx-auto text-center">
+        {/* Constellation overlay */}
+        <div className="absolute inset-0 pointer-events-none">
+          <svg
+            className="absolute inset-0 w-full h-full"
+            viewBox="0 0 800 600"
+            preserveAspectRatio="xMidYMid slice"
+            aria-hidden="true"
+          >
+            {/* Constellation — top left */}
+            <g stroke="var(--gold, #c4a265)" strokeWidth="0.6" opacity="0.14" fill="none">
+              <line x1="80" y1="70" x2="140" y2="120" />
+              <line x1="140" y1="120" x2="115" y2="190" />
+              <line x1="140" y1="120" x2="200" y2="100" />
+            </g>
+            {/* Constellation — top right */}
+            <g stroke="var(--gold, #c4a265)" strokeWidth="0.6" opacity="0.12" fill="none">
+              <line x1="630" y1="90" x2="690" y2="130" />
+              <line x1="690" y1="130" x2="730" y2="100" />
+              <line x1="690" y1="130" x2="670" y2="200" />
+            </g>
+            {/* Constellation — bottom left */}
+            <g stroke="var(--rose, #bf524a)" strokeWidth="0.6" opacity="0.09" fill="none">
+              <line x1="90" y1="440" x2="160" y2="480" />
+              <line x1="160" y1="480" x2="210" y2="450" />
+            </g>
+            {/* Constellation — bottom right */}
+            <g stroke="var(--gold, #c4a265)" strokeWidth="0.6" opacity="0.1" fill="none">
+              <line x1="590" y1="470" x2="650" y2="500" />
+              <line x1="650" y1="500" x2="710" y2="475" />
+            </g>
+            {/* Star dots — twinkling */}
+            {[
+              [80,70,1.5],[140,120,2],[115,190,1.5],[200,100,1.8],
+              [630,90,1.5],[690,130,2.2],[730,100,1.5],[670,200,1.8],
+              [90,440,1.5],[160,480,2],[210,450,1.5],
+              [590,470,1.5],[650,500,2],[710,475,1.5],
+              [400,40,1.3],[50,280,1.2],[750,320,1.4],[350,540,1.2],
+              [500,55,1.1],[300,90,1.0],[600,380,1.1],[150,340,1.0],
+              [680,280,1.0],[460,560,1.1],[250,520,1.0],
+            ].map(([cx, cy, r], i) => (
+              <circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={r}
+                fill="var(--gold, #c4a265)"
+                opacity={0.3}
+                style={{ animation: `twinkle-reveal ${3 + (i % 5)}s ease-in-out ${i * 0.2}s infinite` }}
+              />
+            ))}
+          </svg>
+        </div>
+
+        {/* Celestial arcs behind headline */}
+        <div className="absolute left-1/2 top-[32%] -translate-x-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true">
+          <svg width="480" height="480" viewBox="0 0 480 480" fill="none" className="w-[min(480px,92vw)] h-auto opacity-100">
+            <circle cx="240" cy="240" r="190" stroke="var(--gold, #c4a265)" strokeWidth="0.5" opacity="0.1" />
+            <circle cx="240" cy="240" r="215" stroke="var(--gold, #c4a265)" strokeWidth="0.3" opacity="0.06" strokeDasharray="3 9" />
+          </svg>
+        </div>
+
+        <style>{`
+          @keyframes twinkle-reveal {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-[520px] mx-auto text-center">
           {/* Gold accent line */}
           <div
             className="mx-auto mb-10 transition-all duration-[1000ms] ease-out"
@@ -161,27 +230,36 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             </em>
           </h2>
 
-          {/* Benefit 1 */}
-          <p
-            className="transition-all duration-[1000ms] ease-out"
+          {/* Benefit 1 — frosted card */}
+          <div
+            className="rounded-2xl px-6 py-6 sm:px-8 sm:py-7 transition-all duration-[1000ms] ease-out"
             style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.25rem, 5.2vw, 1.55rem)",
-              color: "var(--ink, #1f1c18)",
-              lineHeight: 1.3,
-              maxWidth: 400,
+              background: "rgba(255,253,245,0.5)",
+              border: "1px solid rgba(196,162,101,0.15)",
+              boxShadow: "0 2px 24px rgba(0,0,0,0.03)",
+              maxWidth: 420,
               margin: "0 auto",
               opacity: visible ? 1 : 0,
               transform: visible ? "translateY(0)" : "translateY(15px)",
               transitionDelay: "0.18s",
             }}
           >
-            Love them in the way they actually feel it
-          </p>
+            <div className="mb-3" style={{ color: "var(--gold, #c4a265)", fontSize: "0.8rem", opacity: 0.6 }}>✦</div>
+            <p
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.2rem, 5vw, 1.45rem)",
+                color: "var(--ink, #1f1c18)",
+                lineHeight: 1.35,
+              }}
+            >
+              Love them in the way they actually feel it
+            </p>
+          </div>
 
           {/* Ornamental divider — line · diamond · line */}
           <div
-            className="flex items-center justify-center gap-3 my-10 sm:my-14 transition-all duration-[800ms] ease-out"
+            className="flex items-center justify-center gap-3 my-8 sm:my-10 transition-all duration-[800ms] ease-out"
             style={{
               opacity: visible ? 1 : 0,
               transitionDelay: "0.35s",
@@ -192,14 +270,13 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.4 }} />
           </div>
 
-          {/* Benefit 2 */}
-          <p
-            className="transition-all duration-[1000ms] ease-out"
+          {/* Benefit 2 — frosted card */}
+          <div
+            className="rounded-2xl px-6 py-6 sm:px-8 sm:py-7 transition-all duration-[1000ms] ease-out"
             style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.25rem, 5.2vw, 1.55rem)",
-              color: "var(--ink, #1f1c18)",
-              lineHeight: 1.3,
+              background: "rgba(255,253,245,0.5)",
+              border: "1px solid rgba(196,162,101,0.15)",
+              boxShadow: "0 2px 24px rgba(0,0,0,0.03)",
               maxWidth: 420,
               margin: "0 auto",
               opacity: visible ? 1 : 0,
@@ -207,8 +284,18 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
               transitionDelay: "0.45s",
             }}
           >
-            Know what they need — without guessing, without wondering
-          </p>
+            <div className="mb-3" style={{ color: "var(--gold, #c4a265)", fontSize: "0.8rem", opacity: 0.6 }}>✦</div>
+            <p
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.2rem, 5vw, 1.45rem)",
+                color: "var(--ink, #1f1c18)",
+                lineHeight: 1.35,
+              }}
+            >
+              Know what they need — without guessing, without wondering
+            </p>
+          </div>
         </div>
       </div>
 
