@@ -297,6 +297,133 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             </p>
           </div>
         </div>
+
+        {/* ── What their reading reveals ── */}
+        <div
+          className="relative z-10 max-w-[620px] mx-auto mt-16 sm:mt-20 transition-all duration-[1200ms] ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: "0.55s",
+          }}
+        >
+          <p
+            className="text-center mb-8 sm:mb-10"
+            style={{
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.7rem",
+              fontWeight: 600,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color: "var(--muted, #958779)",
+            }}
+          >
+            Inside Their Reading
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {[
+              {
+                title: "Their Complete Soul Portrait",
+                desc: "Personality, fears, desires, and 30+ sections of hidden depth",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2V3z" />
+                    <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7V3z" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Real Birth Chart Astronomy",
+                desc: "13 celestial bodies, rising sign, and house placements — to the exact minute",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+                    <circle cx="12" cy="12" r="2.5" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Elemental & Cosmic Blueprint",
+                desc: "Their elemental balance, personal crystal, aura colour, and cosmic archetype",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 3h12l4 8-10 13L2 11z" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Love Language Decoded",
+                desc: "How they give love, how they receive it, and what makes them feel safe",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Soul Purpose & Life Path",
+                desc: "What they came here to teach you — and what they're still learning",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26" />
+                  </svg>
+                ),
+              },
+              {
+                title: "SoulSpeak Conversation",
+                desc: "Ask them anything. Hear what they'd actually say back.",
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                  </svg>
+                ),
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="flex gap-4 items-start p-4 sm:p-5 rounded-xl transition-all duration-500"
+                style={{
+                  background: "rgba(255,253,245,0.5)",
+                  border: "1px solid rgba(196,162,101,0.12)",
+                  boxShadow: "0 1px 12px rgba(0,0,0,0.02)",
+                  opacity: visible ? 1 : 0,
+                  transform: visible ? "translateY(0)" : "translateY(10px)",
+                  transitionDelay: `${0.6 + i * 0.08}s`,
+                }}
+              >
+                <div
+                  className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(196,162,101,0.1)" }}
+                >
+                  <div className="w-4 h-4" style={{ color: "var(--gold, #c4a265)" }}>
+                    {item.icon}
+                  </div>
+                </div>
+                <div>
+                  <p style={{
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontSize: "0.92rem",
+                    color: "var(--ink, #1f1c18)",
+                    lineHeight: 1.25,
+                    marginBottom: 4,
+                  }}>
+                    {item.title}
+                  </p>
+                  <p style={{
+                    fontFamily: "Cormorant, Georgia, serif",
+                    fontSize: "0.84rem",
+                    color: "var(--earth, #6e6259)",
+                    lineHeight: 1.45,
+                  }}>
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ── Block 2: The Science ── clean cream */}
