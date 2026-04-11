@@ -18,11 +18,10 @@ function useScrollReveal(threshold = 0.15) {
 
 /* ── VSOP Credibility — warm authority ── */
 const VsopCredibility = () => (
-  <div className="mt-10 text-center">
+  <div className="text-center">
     {/* Gold rule */}
     <div className="mx-auto mb-8" style={{ width: 50, height: 1, background: "var(--gold, #c4a265)", opacity: 0.35 }} />
 
-    {/* Header — clean single block */}
     <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--muted, #958779)", marginBottom: 14 }}>
       Real Astronomy. Not Guesswork.
     </p>
@@ -35,7 +34,6 @@ const VsopCredibility = () => (
       Using VSOP87 — the same planetary model used by NASA and professional observatories worldwide.
     </p>
 
-    {/* Three pillars */}
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
       {[
         {
@@ -51,8 +49,8 @@ const VsopCredibility = () => (
           key={i}
           className="rounded-xl py-5 px-4"
           style={{
-            background: "var(--cream, #FFFDF5)",
-            border: "1px solid rgba(196,162,101,0.2)",
+            background: "#FFFDF5",
+            border: "1px solid rgba(196,162,101,0.18)",
           }}
         >
           <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.88rem", color: "var(--ink, #1f1c18)", lineHeight: 1.25, marginBottom: 8 }}>
@@ -75,7 +73,7 @@ const VsopCredibility = () => (
         <span
           key={name}
           className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full"
-          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", fontWeight: 600, color: "var(--earth, #6e6259)", background: "var(--cream, #FFFDF5)", border: "1px solid var(--cream3, #f3eadb)" }}
+          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", fontWeight: 600, color: "var(--earth, #6e6259)", background: "#FFFDF5", border: "1px solid var(--cream3, #f3eadb)" }}
         >
           <span style={{ fontFamily: '"DejaVu Sans", "Noto Sans Symbols", system-ui', fontSize: "0.85rem", color: "var(--gold, #c4a265)", fontVariantEmoji: "text" as never }}>{sym}</span>
           {name}
@@ -83,7 +81,6 @@ const VsopCredibility = () => (
       ))}
     </div>
 
-    {/* Authority strip */}
     <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted, #958779)", opacity: 0.55 }}>
       VSOP87 &nbsp;&middot;&nbsp; JPL HORIZONS &nbsp;&middot;&nbsp; IAU STANDARDS &nbsp;&middot;&nbsp; ASTRONOMIA ENGINE
     </p>
@@ -110,7 +107,6 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       ([e]) => {
         if (e.isIntersecting) {
           obs.disconnect();
-          // Stagger the chat messages
           setChatStep(1);
           setTimeout(() => setChatStep(2), 600);
           setTimeout(() => setChatStep(3), 1400);
@@ -124,242 +120,256 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
   }, []);
 
   return (
-    <section
-      ref={ref}
-      className="relative py-14 sm:py-20 md:py-24 px-5 overflow-hidden"
-      style={{ background: "var(--cream2, #faf4e8)" }}
-    >
-      <div className="max-w-[520px] mx-auto">
-        {/* ── Headline ── */}
-        <h2
-          className="text-center transition-all duration-[1200ms] ease-out"
-          style={{
-            fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.55rem, 7vw, 2.3rem)",
-            fontWeight: 400,
-            color: "var(--black, #141210)",
-            lineHeight: 1.15,
-            letterSpacing: "-0.02em",
-            marginBottom: 40,
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(25px)",
-          }}
-        >
-          Everything Changes When You
-          <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>
-            Truly Know Them
-          </em>
-        </h2>
+    <section ref={ref} className="relative overflow-hidden">
 
-        {/* ── What changes ── */}
-        <div className="space-y-0">
-          {[
-            {
-              text: "Love them in the way they actually feel it",
-              icon: (
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 28s-11-7-11-14a6 6 0 0111-3.5A6 6 0 0127 14c0 7-11 14-11 14z" />
-                </svg>
-              ),
-            },
-            {
-              text: "Know what they need — without guessing, without wondering",
-              icon: (
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="16" cy="16" r="10" />
-                  <path d="M16 6v2M16 24v2M6 16h2M24 16h2" />
-                  <circle cx="16" cy="16" r="3" />
-                </svg>
-              ),
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="text-center py-7 transition-all duration-[1000ms] ease-out"
-              style={{
-                opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(15px)",
-                transitionDelay: `${0.12 + i * 0.1}s`,
-              }}
-            >
-              {/* Delicate icon */}
-              <div
-                className="mx-auto mb-3"
-                style={{ width: 28, height: 28, color: "var(--gold, #c4a265)", opacity: 0.5 }}
-              >
-                {item.icon}
-              </div>
-              {/* Benefit text */}
-              <p
-                style={{
-                  fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(1.05rem, 4.2vw, 1.25rem)",
-                  color: "var(--ink, #1f1c18)",
-                  lineHeight: 1.35,
-                  maxWidth: 380,
-                  margin: "0 auto",
-                }}
-              >
-                {item.text}
-              </p>
-              {/* Divider — except after last */}
-              {i < 1 && (
-                <div
-                  className="mx-auto mt-7"
-                  style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--gold, #c4a265)", opacity: 0.3 }}
-                />
-              )}
-            </div>
-          ))}
+      {/* ── Block 1: The Promise ── warm sand */}
+      <div
+        className="px-5 py-20 sm:py-28 md:py-32"
+        style={{ background: "#f5ede0" }}
+      >
+        <div className="max-w-[520px] mx-auto text-center">
+          {/* Gold accent line */}
+          <div
+            className="mx-auto mb-10 transition-all duration-[1000ms] ease-out"
+            style={{
+              width: 40,
+              height: 1,
+              background: "var(--gold, #c4a265)",
+              opacity: visible ? 0.4 : 0,
+            }}
+          />
+
+          {/* Headline — cinematic scale */}
+          <h2
+            className="transition-all duration-[1200ms] ease-out"
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.85rem, 8.5vw, 2.8rem)",
+              fontWeight: 400,
+              color: "var(--black, #141210)",
+              lineHeight: 1.08,
+              letterSpacing: "-0.025em",
+              marginBottom: 56,
+              opacity: visible ? 1 : 0,
+              transform: visible ? "translateY(0)" : "translateY(30px)",
+            }}
+          >
+            Everything Changes When You
+            <br />
+            <em style={{ color: "var(--rose, #bf524a)" }}>
+              Truly Know Them
+            </em>
+          </h2>
+
+          {/* Benefit 1 */}
+          <p
+            className="transition-all duration-[1000ms] ease-out"
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.25rem, 5.2vw, 1.55rem)",
+              color: "var(--ink, #1f1c18)",
+              lineHeight: 1.3,
+              maxWidth: 400,
+              margin: "0 auto",
+              opacity: visible ? 1 : 0,
+              transform: visible ? "translateY(0)" : "translateY(15px)",
+              transitionDelay: "0.18s",
+            }}
+          >
+            Love them in the way they actually feel it
+          </p>
+
+          {/* Ornamental divider — line · diamond · line */}
+          <div
+            className="flex items-center justify-center gap-3 my-10 sm:my-14 transition-all duration-[800ms] ease-out"
+            style={{
+              opacity: visible ? 1 : 0,
+              transitionDelay: "0.35s",
+            }}
+          >
+            <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.4 }} />
+            <div style={{ width: 5, height: 5, background: "var(--gold, #c4a265)", opacity: 0.5, transform: "rotate(45deg)" }} />
+            <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.4 }} />
+          </div>
+
+          {/* Benefit 2 */}
+          <p
+            className="transition-all duration-[1000ms] ease-out"
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.25rem, 5.2vw, 1.55rem)",
+              color: "var(--ink, #1f1c18)",
+              lineHeight: 1.3,
+              maxWidth: 420,
+              margin: "0 auto",
+              opacity: visible ? 1 : 0,
+              transform: visible ? "translateY(0)" : "translateY(15px)",
+              transitionDelay: "0.45s",
+            }}
+          >
+            Know what they need — without guessing, without wondering
+          </p>
         </div>
+      </div>
 
-        {/* Astronomy credibility */}
-        <VsopCredibility />
+      {/* ── Block 2: The Science ── clean cream */}
+      <div
+        className="px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
+        style={{
+          background: "#f8f3ea",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(20px)",
+          transitionDelay: "0.2s",
+        }}
+      >
+        <div className="max-w-[520px] mx-auto">
+          <VsopCredibility />
+        </div>
+      </div>
 
-        {/* ── Benefit 2: The Voice — SoulSpeak section with distinct bg ── */}
-        <div
-          className="-mx-5 px-5 py-12 sm:py-14 transition-all duration-[1200ms] ease-out"
-          style={{
-            background: "linear-gradient(180deg, #f0e8da 0%, #ede4d4 50%, #f0e8da 100%)",
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.25s",
-          }}
-        >
-          <div className="max-w-[520px] mx-auto">
-            <div className="text-center mb-6">
-              {/* SoulSpeak badge */}
-              <div
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
-                style={{
-                  background: "rgba(191,82,74,0.06)",
-                  border: "1px solid rgba(191,82,74,0.12)",
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rose, #bf524a)" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H13l-3.8 3.4V16H6.5A2.5 2.5 0 014 13.5v-7z" />
-                </svg>
-                <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rose, #bf524a)" }}>
-                  SoulSpeak — Included
-                </span>
-              </div>
-
-              <h3
-                style={{
-                  fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(1.3rem, 5.5vw, 1.7rem)",
-                  color: "var(--ink, #1f1c18)",
-                  lineHeight: 1.2,
-                  marginBottom: 10,
-                }}
-              >
-                Have the conversation you've
-                <br />
-                <em style={{ color: "var(--rose, #bf524a)" }}>always wished you could have</em>
-              </h3>
-              <p
-                style={{
-                  fontFamily: "Cormorant, Georgia, serif",
-                  fontSize: "clamp(0.95rem, 3.3vw, 1.05rem)",
-                  color: "var(--earth, #6e6259)",
-                  lineHeight: 1.6,
-                  maxWidth: 400,
-                  margin: "0 auto",
-                }}
-              >
-                Ask them anything — why they do
-                the weird things they do, how they feel about you, what they
-                need.
-              </p>
-            </div>
-
-            {/* Chat demo */}
+      {/* ── Block 3: SoulSpeak ── warmest gradient */}
+      <div
+        className="px-5 py-14 sm:py-18 transition-all duration-[1200ms] ease-out"
+        style={{
+          background: "linear-gradient(180deg, #f0e8da 0%, #ede4d4 50%, #f0e8da 100%)",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(20px)",
+          transitionDelay: "0.25s",
+        }}
+      >
+        <div className="max-w-[520px] mx-auto">
+          <div className="text-center mb-6">
+            {/* SoulSpeak badge */}
             <div
-              ref={chatRef}
-              className="rounded-2xl overflow-hidden"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
               style={{
-                background: "#fff",
-                border: "1px solid rgba(0,0,0,0.06)",
-                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+                background: "rgba(191,82,74,0.06)",
+                border: "1px solid rgba(191,82,74,0.12)",
               }}
             >
-              <div className="px-5 py-5 sm:px-6 space-y-3">
-                <div
-                  className="flex justify-end transition-all duration-500"
-                  style={{ opacity: chatStep >= 1 ? 1 : 0, transform: chatStep >= 1 ? "translateY(0)" : "translateY(6px)" }}
-                >
-                  <div className="px-4 py-2.5 rounded-2xl rounded-br-sm" style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "80%" }}>
-                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem" }}>
-                      Why do you always steal my socks?
-                    </p>
-                  </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rose, #bf524a)" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H13l-3.8 3.4V16H6.5A2.5 2.5 0 014 13.5v-7z" />
+              </svg>
+              <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rose, #bf524a)" }}>
+                SoulSpeak — Included
+              </span>
+            </div>
+
+            <h3
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.3rem, 5.5vw, 1.7rem)",
+                color: "var(--ink, #1f1c18)",
+                lineHeight: 1.2,
+                marginBottom: 10,
+              }}
+            >
+              Have the conversation you've
+              <br />
+              <em style={{ color: "var(--rose, #bf524a)" }}>always wished you could have</em>
+            </h3>
+            <p
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontSize: "clamp(0.95rem, 3.3vw, 1.05rem)",
+                color: "var(--earth, #6e6259)",
+                lineHeight: 1.6,
+                maxWidth: 400,
+                margin: "0 auto",
+              }}
+            >
+              Ask them anything — why they do
+              the weird things they do, how they feel about you, what they
+              need.
+            </p>
+          </div>
+
+          {/* Chat demo */}
+          <div
+            ref={chatRef}
+            className="rounded-2xl overflow-hidden"
+            style={{
+              background: "#fff",
+              border: "1px solid rgba(0,0,0,0.06)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+            }}
+          >
+            <div className="px-5 py-5 sm:px-6 space-y-3">
+              <div
+                className="flex justify-end transition-all duration-500"
+                style={{ opacity: chatStep >= 1 ? 1 : 0, transform: chatStep >= 1 ? "translateY(0)" : "translateY(6px)" }}
+              >
+                <div className="px-4 py-2.5 rounded-2xl rounded-br-sm" style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "80%" }}>
+                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem" }}>
+                    Why do you always steal my socks?
+                  </p>
                 </div>
-                <div
-                  className="flex justify-start transition-all duration-500"
-                  style={{ opacity: chatStep >= 2 ? 1 : 0, transform: chatStep >= 2 ? "translateY(0)" : "translateY(6px)" }}
-                >
-                  <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm" style={{ background: "var(--cream3, #f3eadb)", maxWidth: "85%" }}>
-                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.9rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
-                      Because they smell like you. And when you leave,
-                      that's the closest thing I have to you being here.
-                    </p>
-                  </div>
+              </div>
+              <div
+                className="flex justify-start transition-all duration-500"
+                style={{ opacity: chatStep >= 2 ? 1 : 0, transform: chatStep >= 2 ? "translateY(0)" : "translateY(6px)" }}
+              >
+                <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm" style={{ background: "var(--cream3, #f3eadb)", maxWidth: "85%" }}>
+                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.9rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
+                    Because they smell like you. And when you leave,
+                    that's the closest thing I have to you being here.
+                  </p>
                 </div>
-                <div
-                  className="flex justify-end transition-all duration-500"
-                  style={{ opacity: chatStep >= 3 ? 1 : 0, transform: chatStep >= 3 ? "translateY(0)" : "translateY(6px)" }}
-                >
-                  <div className="px-4 py-2.5 rounded-2xl rounded-br-sm" style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "80%" }}>
-                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem" }}>
-                      Do you know how much I love you?
-                    </p>
-                  </div>
+              </div>
+              <div
+                className="flex justify-end transition-all duration-500"
+                style={{ opacity: chatStep >= 3 ? 1 : 0, transform: chatStep >= 3 ? "translateY(0)" : "translateY(6px)" }}
+              >
+                <div className="px-4 py-2.5 rounded-2xl rounded-br-sm" style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "80%" }}>
+                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem" }}>
+                    Do you know how much I love you?
+                  </p>
                 </div>
-                <div
-                  className="flex justify-start transition-all duration-500"
-                  style={{ opacity: chatStep >= 4 ? 1 : 0, transform: chatStep >= 4 ? "translateY(0)" : "translateY(6px)" }}
-                >
-                  <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm" style={{ background: "var(--cream3, #f3eadb)", maxWidth: "85%" }}>
-                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.9rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
-                      I knew before you did.
-                    </p>
-                  </div>
+              </div>
+              <div
+                className="flex justify-start transition-all duration-500"
+                style={{ opacity: chatStep >= 4 ? 1 : 0, transform: chatStep >= 4 ? "translateY(0)" : "translateY(6px)" }}
+              >
+                <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm" style={{ background: "var(--cream3, #f3eadb)", maxWidth: "85%" }}>
+                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.9rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
+                    I knew before you did.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ── CTA ── */}
-        <div
-          className="text-center transition-all duration-1000"
+      {/* ── CTA ── */}
+      <div
+        className="px-5 py-12 sm:py-16 text-center transition-all duration-1000"
+        style={{
+          background: "var(--cream2, #faf4e8)",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(15px)",
+          transitionDelay: "0.5s",
+        }}
+      >
+        <button
+          onClick={onCtaClick}
+          className="group inline-flex items-center gap-2 px-8 sm:px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
           style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(15px)",
-            transitionDelay: "0.5s",
+            fontFamily: "Cormorant, Georgia, serif",
+            fontSize: "1.05rem",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            background: "var(--rose, #bf524a)",
+            boxShadow: "0 4px 24px rgba(191,82,74,0.25)",
+            minHeight: 56,
           }}
         >
-          <button
-            onClick={onCtaClick}
-            className="group inline-flex items-center gap-2 px-8 sm:px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "1.05rem",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              background: "var(--rose, #bf524a)",
-              boxShadow: "0 4px 24px rgba(191,82,74,0.25)",
-              minHeight: 56,
-            }}
-          >
-            {ctaLabel}
-            <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </button>
-        </div>
+          {ctaLabel}
+          <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </button>
       </div>
     </section>
   );
