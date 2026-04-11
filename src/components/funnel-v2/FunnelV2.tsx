@@ -152,15 +152,13 @@ export const FunnelV2 = () => {
       </a>
 
       {/* Sections — padded for fixed banner */}
-      <div style={{ paddingTop: 34 }}>
-        <CompactReviews />
-      </div>
-      <div ref={heroRef}>
+      <div ref={heroRef} style={{ paddingTop: 34 }}>
         <HeroV2
           onCtaClick={scrollToCheckout}
           ctaLabel={copy.ctaPrimary}
         />
       </div>
+      <CompactReviews />
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
         <GoldDivider />
       </div>

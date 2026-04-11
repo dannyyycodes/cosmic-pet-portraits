@@ -215,8 +215,8 @@ export const CompactReviews = () => {
           transitionDelay: "0.1s",
         }}
       >
-        <MarqueeRow reviews={ROW_1} direction="left" speed={120} />
-        <MarqueeRow reviews={ROW_2} direction="right" speed={130} />
+        <MarqueeRow reviews={ROW_1} direction="left" speed={200} />
+        <MarqueeRow reviews={ROW_2} direction="right" speed={220} />
       </div>
 
       <style>{`
