@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import lunaImg from "@/assets/samples/luna-persian.jpg";
-import maxImg from "@/assets/samples/max-golden.jpg";
-import cinnamonImg from "@/assets/samples/cinnamon-rabbit.jpg";
-import peanutImg from "@/assets/samples/peanut-hamster.jpg";
-
-const petPhotos = [maxImg, lunaImg, cinnamonImg, peanutImg];
 
 interface HeroV2Props {
   onCtaClick: () => void;
@@ -90,33 +84,6 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
       `}</style>
 
       <div className="relative z-10 max-w-2xl mx-auto text-center">
-        {/* Social proof badge */}
-        <div
-          className="inline-flex items-center gap-3 mb-6 sm:mb-8 transition-all duration-1000"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-          }}
-        >
-          <div className="flex -space-x-2">
-            {petPhotos.map((photo, i) => (
-              <img key={i} src={photo} alt="" className="w-8 h-8 rounded-full object-cover border-2 border-[var(--cream,#FFFDF5)] shadow-sm" />
-            ))}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <svg key={i} className="w-3.5 h-3.5 text-[var(--gold,#c4a265)]" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-            </div>
-            <span className="text-sm text-[var(--muted,#958779)] font-medium" style={{ fontFamily: "Cormorant, Georgia, serif" }}>
-              Crafted with care for <strong className="text-[var(--ink,#1f1c18)]">every</strong> pet
-            </span>
-          </div>
-        </div>
-
         {/* Main headline — curiosity gap */}
         <h1
           className="transition-all duration-[1200ms] ease-out"
@@ -191,65 +158,6 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
             </svg>
           </button>
 
-          {/* Trust signals */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mt-4">
-            {[
-              "Ready in minutes",
-              "No account needed",
-              "Full refund if it's not a match",
-            ].map((text, i) => (
-              <span key={i} className="flex items-center gap-1" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--muted, #958779)" }}>
-                <svg className="w-3.5 h-3.5 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                {text}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Community / trending bar */}
-        <div
-          className="mt-9 sm:mt-11 flex flex-col items-center gap-2.5 transition-all duration-1000"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(15px)",
-            transitionDelay: "0.75s",
-          }}
-        >
-          <div className="flex items-center gap-2.5">
-            <span
-              className="h-px w-10"
-              style={{ background: "var(--gold, #c4a265)", opacity: 0.4 }}
-            />
-            <span
-              style={{
-                fontFamily: "Cormorant, Georgia, serif",
-                fontWeight: 600,
-                fontSize: "0.64rem",
-                letterSpacing: "0.28em",
-                textTransform: "uppercase",
-                color: "var(--muted, #958779)",
-              }}
-            >
-              Loved by Pet Parents at
-            </span>
-            <span
-              className="h-px w-10"
-              style={{ background: "var(--gold, #c4a265)", opacity: 0.4 }}
-            />
-          </div>
-          <div
-            className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
-            style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "0.92rem",
-              color: "var(--earth, #6e6259)",
-              letterSpacing: "0.02em",
-            }}
-          >
-            <span>Cosmic Pet Portraits</span>
-            <span style={{ color: "var(--faded, #bfb2a3)", fontSize: "0.6rem" }}>◆</span>
-            <span>Handcrafted from their birth chart</span>
-          </div>
         </div>
       </div>
 

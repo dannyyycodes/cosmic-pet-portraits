@@ -5,7 +5,6 @@ import { useFunnelV2Variant } from "@/hooks/useFunnelV2Variant";
 import { HeroV2 } from "./HeroV2";
 import { EmotionBridge } from "./EmotionBridge";
 import { ProductReveal } from "./ProductReveal";
-import { TransformationStories } from "./TransformationStories";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
 import { AstrologyCredibility } from "./AstrologyCredibility";
@@ -176,7 +175,6 @@ export const FunnelV2 = () => {
         <GoldDivider />
       </div>
       <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
-      <TransformationStories />
       <CompactReviews />
       <InlineCheckout
         ref={checkoutRef}
