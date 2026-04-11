@@ -152,7 +152,10 @@ export const FunnelV2 = () => {
       </a>
 
       {/* Sections — padded for fixed banner */}
-      <div ref={heroRef} style={{ paddingTop: 34 }}>
+      <div style={{ paddingTop: 34 }}>
+        <CompactReviews />
+      </div>
+      <div ref={heroRef}>
         <HeroV2
           onCtaClick={scrollToCheckout}
           ctaLabel={copy.ctaPrimary}
@@ -162,7 +165,6 @@ export const FunnelV2 = () => {
         <GoldDivider />
       </div>
       <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
-      <CompactReviews />
       <InlineCheckout
         ref={checkoutRef}
         ctaLabel={copy.ctaPrimary}
