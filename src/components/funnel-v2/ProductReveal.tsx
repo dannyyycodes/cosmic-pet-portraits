@@ -16,6 +16,161 @@ function useScrollReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
+/* ── Shared data for all 3 VSOP variants ── */
+
+const CARDS = [
+  {
+    headline: "Not a personality quiz. Real coordinates.",
+    desc: "Every chart is calculated from the exact position of 13 celestial bodies at the moment they were born. To the minute.",
+  },
+  {
+    headline: "The same math NASA uses to track planets.",
+    desc: "VSOP87 — developed at the Bureau des Longitudes, Paris. Validated against NASA JPL Horizons data.",
+  },
+  {
+    headline: "No two birth charts are the same. Ever.",
+    desc: "Their sky existed once. Their reading is calculated from it — not a template, not a quiz, not a guess.",
+  },
+];
+
+const AUTHORITY_LINE = "VSOP87  ·  JPL HORIZONS  ·  IAU STANDARDS  ·  13 CELESTIAL BODIES";
+
+const PLANETS = [
+  { name: "Sun", symbol: "\u2609\uFE0E" }, { name: "Moon", symbol: "\u263D\uFE0E" },
+  { name: "Mercury", symbol: "\u263F\uFE0E" }, { name: "Venus", symbol: "\u2640\uFE0E" },
+  { name: "Mars", symbol: "\u2642\uFE0E" }, { name: "Jupiter", symbol: "\u2643\uFE0E" },
+  { name: "Saturn", symbol: "\u2644\uFE0E" }, { name: "Uranus", symbol: "\u2645\uFE0E" },
+  { name: "Neptune", symbol: "\u2646\uFE0E" }, { name: "Pluto", symbol: "\u2647\uFE0E" },
+  { name: "Chiron", symbol: "\u26B7\uFE0E" }, { name: "North Node", symbol: "\u260A\uFE0E" },
+  { name: "Lilith", symbol: "\u26B8\uFE0E" },
+];
+
+/* ── Option A: Clinical Institution ── */
+const VsopA = () => (
+  <div className="mt-8 py-8 px-5 sm:px-7 rounded-2xl" style={{ background: "#FAFAFA", border: "1px solid #E5E5E5" }}>
+    <p className="text-center mb-6" style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.3em", textTransform: "uppercase", color: "#999" }}>
+      {AUTHORITY_LINE}
+    </p>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      {CARDS.map((c, i) => (
+        <div key={i} className="py-4 px-4" style={{ borderTop: "2px solid #222" }}>
+          <p style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontSize: "0.85rem", fontWeight: 700, color: "#111", lineHeight: 1.25, marginBottom: 6 }}>
+            {c.headline}
+          </p>
+          <p style={{ fontFamily: "system-ui, -apple-system, sans-serif", fontSize: "0.78rem", color: "#777", lineHeight: 1.5 }}>
+            {c.desc}
+          </p>
+        </div>
+      ))}
+    </div>
+    <div className="flex flex-wrap justify-center gap-3">
+      {PLANETS.map((p) => (
+        <span key={p.name} className="flex items-center gap-1" style={{ fontFamily: "system-ui, sans-serif", fontSize: "0.68rem", color: "#999" }}>
+          <span style={{ fontFamily: '"DejaVu Sans", "Noto Sans Symbols", system-ui', fontSize: "0.82rem", color: "#555", fontVariantEmoji: "text" as never }}>{p.symbol}</span>
+          {p.name}
+        </span>
+      ))}
+    </div>
+  </div>
+);
+
+/* ── Option B: Warm Observatory ── */
+const VsopB = () => (
+  <div className="mt-8">
+    {/* Gold rule */}
+    <div className="mx-auto mb-7" style={{ width: 60, height: 1, background: "var(--gold, #c4a265)", opacity: 0.4 }} />
+    <p className="text-center mb-5" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--gold, #c4a265)", opacity: 0.7 }}>
+      {AUTHORITY_LINE}
+    </p>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      {CARDS.map((c, i) => (
+        <div
+          key={i}
+          className="rounded-xl py-4 px-4"
+          style={{
+            background: "var(--cream, #FFFDF5)",
+            border: "1px solid rgba(196,162,101,0.25)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)",
+          }}
+        >
+          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.88rem", color: "var(--ink, #1f1c18)", lineHeight: 1.25, marginBottom: 6 }}>
+            {c.headline}
+          </p>
+          <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
+            {c.desc}
+          </p>
+        </div>
+      ))}
+    </div>
+    <div className="flex flex-wrap justify-center gap-1.5 mb-6">
+      {PLANETS.map((p) => (
+        <span
+          key={p.name}
+          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full"
+          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", fontWeight: 600, color: "var(--earth, #6e6259)", background: "var(--cream, #FFFDF5)", border: "1px solid var(--cream3, #f3eadb)" }}
+        >
+          <span style={{ fontFamily: '"DejaVu Sans", "Noto Sans Symbols", system-ui', fontSize: "0.85rem", color: "var(--gold, #c4a265)", fontVariantEmoji: "text" as never }}>{p.symbol}</span>
+          {p.name}
+        </span>
+      ))}
+    </div>
+    <p className="text-center" style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.82rem", color: "var(--muted, #958779)" }}>
+      Calculated using VSOP87 — Bureau des Longitudes, Paris
+    </p>
+    <div className="mx-auto mt-7" style={{ width: 60, height: 1, background: "var(--gold, #c4a265)", opacity: 0.4 }} />
+  </div>
+);
+
+/* ── Option C: Slate Contrast ── */
+const VsopC = () => (
+  <div
+    className="mt-8 rounded-2xl py-8 px-5 sm:px-7"
+    style={{ background: "#2A2A2A" }}
+  >
+    <p className="text-center mb-6" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+      {AUTHORITY_LINE}
+    </p>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      {CARDS.map((c, i) => (
+        <div
+          key={i}
+          className="rounded-lg py-4 px-4"
+          style={{ background: "#333" }}
+        >
+          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.88rem", color: "#fff", lineHeight: 1.25, marginBottom: 6 }}>
+            {c.headline}
+          </p>
+          <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "#B0A89E", lineHeight: 1.5 }}>
+            {c.desc}
+          </p>
+        </div>
+      ))}
+    </div>
+    <div className="flex flex-wrap justify-center gap-1.5">
+      {PLANETS.map((p) => (
+        <span
+          key={p.name}
+          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full"
+          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", fontWeight: 600, color: "rgba(255,255,255,0.45)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <span style={{ fontFamily: '"DejaVu Sans", "Noto Sans Symbols", system-ui', fontSize: "0.85rem", color: "#B0A89E", fontVariantEmoji: "text" as never }}>{p.symbol}</span>
+          {p.name}
+        </span>
+      ))}
+    </div>
+  </div>
+);
+
+/* ── Variant switcher — ?vsop=a|b|c (defaults to B) ── */
+const VsopCredibility = () => {
+  const variant = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("vsop") || "b"
+    : "b";
+  if (variant === "a") return <VsopA />;
+  if (variant === "c") return <VsopC />;
+  return <VsopB />;
+};
+
 interface ProductRevealProps {
   onCtaClick: () => void;
   ctaLabel: string;
@@ -125,108 +280,8 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             The things you've always sensed but never had words for.
           </p>
 
-          {/* Astronomy credibility — inline */}
-          <div
-            className="mt-8 rounded-2xl py-8 px-5 sm:px-7 text-center"
-            style={{
-              background: "linear-gradient(175deg, #1a1a2e 0%, #16213e 40%, #0f1829 100%)",
-            }}
-          >
-            <div
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
-              style={{
-                background: "rgba(196,162,101,0.08)",
-                border: "1px solid rgba(196,162,101,0.2)",
-              }}
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="rgba(196,162,101,0.9)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(196,162,101,0.9)" }}>
-                Powered by VSOP87
-              </span>
-            </div>
-
-            <h3
-              style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.2rem, 5vw, 1.6rem)",
-                fontWeight: 400,
-                color: "#fff",
-                lineHeight: 1.15,
-                marginBottom: 10,
-              }}
-            >
-              The Same Sky That Shaped You
-              <br />
-              <span style={{ color: "rgba(196,162,101,0.9)" }}>Shaped Them Too.</span>
-            </h3>
-            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.88rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, maxWidth: 400, margin: "0 auto 20px" }}>
-              Every reading is calculated from the exact planetary positions at
-              the moment they were born — the same math professional astronomers
-              use to map the real night sky.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-              {[
-                { label: "Real Planetary Positions", desc: "Calculated to the minute they were born." },
-                { label: "13 Celestial Bodies", desc: "Sun through Pluto, plus Chiron, North Node, and Lilith." },
-                { label: "Birth Location Matters", desc: "Where they arrived sets their rising sign." },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="rounded-lg py-3 px-3"
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(196,162,101,0.15)",
-                  }}
-                >
-                  <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.82rem", color: "#fff", marginBottom: 3 }}>
-                    {item.label}
-                  </p>
-                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.75rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
-                    {item.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {[
-                { name: "Sun", symbol: "\u2609\uFE0E" },
-                { name: "Moon", symbol: "\u263D\uFE0E" },
-                { name: "Mercury", symbol: "\u263F\uFE0E" },
-                { name: "Venus", symbol: "\u2640\uFE0E" },
-                { name: "Mars", symbol: "\u2642\uFE0E" },
-                { name: "Jupiter", symbol: "\u2643\uFE0E" },
-                { name: "Saturn", symbol: "\u2644\uFE0E" },
-                { name: "Uranus", symbol: "\u2645\uFE0E" },
-                { name: "Neptune", symbol: "\u2646\uFE0E" },
-                { name: "Pluto", symbol: "\u2647\uFE0E" },
-                { name: "Chiron", symbol: "\u26B7\uFE0E" },
-                { name: "North Node", symbol: "\u260A\uFE0E" },
-                { name: "Lilith", symbol: "\u26B8\uFE0E" },
-              ].map((p) => (
-                <span
-                  key={p.name}
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full"
-                  style={{
-                    fontFamily: "Cormorant, Georgia, serif",
-                    fontSize: "0.72rem",
-                    fontWeight: 600,
-                    color: "rgba(255,255,255,0.6)",
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(196,162,101,0.12)",
-                  }}
-                >
-                  <span style={{ fontFamily: '"DejaVu Sans", "Noto Sans Symbols", system-ui, sans-serif', fontSize: "0.85rem", color: "rgba(196,162,101,0.8)", fontVariantEmoji: "text" as never }}>
-                    {p.symbol}
-                  </span>
-                  {p.name}
-                </span>
-              ))}
-            </div>
-          </div>
+          {/* Astronomy credibility — ?vsop=a|b|c to preview variants */}
+          <VsopCredibility />
         </div>
 
         {/* ── Benefit 2: The Voice — experiential chat demo ── */}
