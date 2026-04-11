@@ -117,6 +117,97 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                   <span>Sign In</span>
                 </Link>
               )}
+
+              {/* Hamburger menu */}
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <button className="p-1 text-[#958779] hover:text-[#141210] dark:text-[#958779] dark:hover:text-[#e8ddd0] transition-colors" aria-label="Open menu">
+                    <Menu className="w-4 h-4" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px] border-l p-0 bg-[#FFFDF5] dark:bg-[#1a1714] backdrop-blur-xl border-[#e8ddd0] dark:border-[#2e2a24]">
+                  <SheetHeader className="p-5 border-b border-[#e8ddd0] dark:border-[#2e2a24]">
+                    <SheetTitle className="font-serif text-base font-semibold text-[#141210] dark:text-[#e8ddd0]">
+                      Menu
+                    </SheetTitle>
+                  </SheetHeader>
+
+                  <div className="flex flex-col h-[calc(100%-64px)]">
+                    <div className="flex-1 py-4">
+                      <div className="space-y-1 px-3">
+                        {navLinks.map((link) => (
+                          <SheetClose asChild key={link.href}>
+                            <a
+                              href={link.href}
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] dark:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors"
+                            >
+                              <link.icon className="w-4 h-4 text-[#958779]" />
+                              <span className="text-sm font-medium">{link.label}</span>
+                            </a>
+                          </SheetClose>
+                        ))}
+
+                        <div className="h-px bg-[#e8ddd0] dark:bg-[#2e2a24] my-3" />
+
+                        <SheetClose asChild>
+                          <Link
+                            to="/gift"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] dark:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors"
+                          >
+                            <Gift className="w-4 h-4 text-[#bf524a]" />
+                            <span className="text-sm font-medium">Send as Gift</span>
+                          </Link>
+                        </SheetClose>
+                      </div>
+
+                      {user && (
+                        <div className="mt-4 px-3">
+                          <div className="h-px bg-[#e8ddd0] dark:bg-[#2e2a24] mb-3" />
+                          <SheetClose asChild>
+                            <Link
+                              to="/my-reports"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] dark:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors"
+                            >
+                              <Sparkles className="w-4 h-4 text-[#c4a265]" />
+                              <span className="text-sm font-medium">My Reports</span>
+                            </Link>
+                          </SheetClose>
+                          <button
+                            onClick={handleSignOut}
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] dark:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors w-full text-left"
+                          >
+                            <LogOut className="w-4 h-4 text-[#958779]" />
+                            <span className="text-sm font-medium">Sign Out</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom: dark mode toggle + CTA */}
+                    <div className="p-4 border-t border-[#e8ddd0] dark:border-[#2e2a24] space-y-3">
+                      <div className="flex items-center justify-between px-2">
+                        <span className="text-sm text-[#6e6259] dark:text-[#a09080]">Dark mode</span>
+                        <button
+                          onClick={() => setIsDark(!isDark)}
+                          className="p-2 rounded-lg text-[#958779] hover:text-[#141210] dark:hover:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors"
+                        >
+                          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <SheetClose asChild>
+                        <a
+                          href="/checkout.html"
+                          className="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-semibold uppercase tracking-wider"
+                          style={{ background: "var(--rose, #bf524a)", letterSpacing: "0.08em" }}
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          {t('nav.getReading')}
+                        </a>
+                      </SheetClose>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
