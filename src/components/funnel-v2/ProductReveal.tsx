@@ -136,73 +136,91 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
     >
       <div className="max-w-[520px] mx-auto">
         {/* ── Headline + Transformation Bullets ── */}
-        <h2
-          className="text-center transition-all duration-[1200ms] ease-out"
+        <div
+          className="text-center mb-10 transition-all duration-[1200ms] ease-out"
           style={{
-            fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.55rem, 7vw, 2.3rem)",
-            fontWeight: 400,
-            color: "var(--black, #141210)",
-            lineHeight: 1.12,
-            letterSpacing: "-0.02em",
-            marginBottom: 28,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
           }}
         >
-          Everything Changes When You
-          <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>
-            Truly Know Them
-          </em>
-        </h2>
+          {/* Gold ornament */}
+          <div className="mb-6 flex items-center justify-center gap-3">
+            <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.3 }} />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold, #c4a265)" strokeOpacity={0.4} strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />
+              <circle cx="12" cy="12" r="2" />
+            </svg>
+            <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.3 }} />
+          </div>
 
-        {/* Transformation bullets — state changes, not deliverables */}
-        <div
-          className="mb-10 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.12s",
-          }}
-        >
-          <ul className="space-y-4">
-            {[
-              "Understand them the way they've always understood you",
-              "Love them in the way they actually feel it",
-              "See the bond between you finally put into words",
-              "Have the conversation you've always wished you could have",
-              "Know what they need — without guessing, without wondering",
-              "Feel closer to them than you ever thought possible",
-            ].map((benefit, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-3 transition-all duration-700"
+          <h2
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.55rem, 7vw, 2.3rem)",
+              fontWeight: 400,
+              color: "var(--black, #141210)",
+              lineHeight: 1.15,
+              letterSpacing: "-0.02em",
+              marginBottom: 30,
+            }}
+          >
+            Everything Changes When You
+            <br />
+            <em style={{ color: "var(--rose, #bf524a)" }}>
+              Truly Know Them
+            </em>
+          </h2>
+        </div>
+
+        {/* Transformation bullets — elegant cards */}
+        <div className="space-y-3 mb-10">
+          {[
+            "Understand them the way they've always understood you",
+            "Love them in the way they actually feel it",
+            "See the bond between you finally put into words",
+            "Have the conversation you've always wished you could have",
+            "Know what they need — without guessing, without wondering",
+            "Feel closer to them than you ever thought possible",
+          ].map((benefit, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-4 rounded-xl px-5 py-4 transition-all duration-700"
+              style={{
+                background: "var(--cream, #FFFDF5)",
+                border: "1px solid rgba(196,162,101,0.15)",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.02)",
+                opacity: visible ? 1 : 0,
+                transform: visible ? "translateX(0)" : "translateX(-15px)",
+                transitionDelay: `${0.15 + i * 0.08}s`,
+              }}
+            >
+              {/* Gold number */}
+              <span
+                className="flex-shrink-0 flex items-center justify-center rounded-full"
                 style={{
-                  opacity: visible ? 1 : 0,
-                  transform: visible ? "translateY(0)" : "translateY(10px)",
-                  transitionDelay: `${0.15 + i * 0.06}s`,
+                  width: 32,
+                  height: 32,
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "0.85rem",
+                  color: "var(--gold, #c4a265)",
+                  background: "rgba(196,162,101,0.08)",
+                  border: "1px solid rgba(196,162,101,0.15)",
                 }}
               >
-                <span
-                  className="flex-shrink-0 mt-1"
-                  style={{ color: "var(--gold, #c4a265)", fontSize: "0.7rem" }}
-                >
-                  &#10022;
-                </span>
-                <span
-                  style={{
-                    fontFamily: "Cormorant, Georgia, serif",
-                    fontSize: "clamp(1rem, 3.5vw, 1.1rem)",
-                    color: "var(--ink, #1f1c18)",
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {benefit}
-                </span>
-              </li>
-            ))}
-          </ul>
+                {i + 1}
+              </span>
+              <span
+                style={{
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontSize: "clamp(0.95rem, 3.3vw, 1.08rem)",
+                  color: "var(--ink, #1f1c18)",
+                  lineHeight: 1.4,
+                }}
+              >
+                {benefit}
+              </span>
+            </div>
+          ))}
         </div>
 
         {/* Astronomy credibility */}
