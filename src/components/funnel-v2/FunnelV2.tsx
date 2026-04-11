@@ -3,7 +3,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useFunnelV2Variant } from "@/hooks/useFunnelV2Variant";
 import { HeroV2 } from "./HeroV2";
-import { EmotionBridge } from "./EmotionBridge";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
@@ -36,19 +35,11 @@ import { GoldDivider } from "./GoldDivider";
  */
 const COPY = {
   A: {
-    heroLine1: "There's a Reason",
-    heroLine2: "They Chose You.",
-    heroSub:
-      "A deeply personal cosmic reading that finally puts words to <b>the love you've always felt but never understood</b>.",
-    ctaPrimary: "Reveal Their Soul",
+    ctaPrimary: "Begin Their Reading",
     checkoutSub:
       "Finally put words to the love you've always felt. <b>The story of a bond deeper than you could ever explain.</b>",
   },
   B: {
-    heroLine1: "Before Them,",
-    heroLine2: "You Didn't Know Love Could Feel Like This.",
-    heroSub:
-      "A deeply personal cosmic reading for the love you've <b>recognised from the start but could never name</b>.",
     ctaPrimary: "Begin Their Reading",
     checkoutSub:
       "There's a language for this kind of love. <b>And the stars have been speaking it all along.</b>",
@@ -164,13 +155,9 @@ export const FunnelV2 = () => {
       <div ref={heroRef} style={{ paddingTop: 34 }}>
         <HeroV2
           onCtaClick={scrollToCheckout}
-          headlineLine1={copy.heroLine1}
-          headlineLine2={copy.heroLine2}
-          subhead={copy.heroSub}
           ctaLabel={copy.ctaPrimary}
         />
       </div>
-      <EmotionBridge />
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
         <GoldDivider />
       </div>

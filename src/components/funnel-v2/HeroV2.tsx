@@ -3,13 +3,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HeroV2Props {
   onCtaClick: () => void;
-  headlineLine1: string;
-  headlineLine2: string;
-  subhead: string;
   ctaLabel: string;
 }
 
-export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaLabel }: HeroV2Props) => {
+export const HeroV2 = ({ onCtaClick, ctaLabel }: HeroV2Props) => {
   const [visible, setVisible] = useState(false);
   const isMobile = useIsMobile();
 
@@ -84,7 +81,7 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
       `}</style>
 
       <div className="relative z-10 max-w-2xl mx-auto text-center">
-        {/* Main headline — curiosity gap */}
+        {/* Main headline */}
         <h1
           className="transition-all duration-[1200ms] ease-out"
           style={{
@@ -92,42 +89,19 @@ export const HeroV2 = ({ onCtaClick, headlineLine1, headlineLine2, subhead, ctaL
             fontSize: isMobile ? "clamp(2.05rem, 9.5vw, 3.2rem)" : "clamp(2.8rem, 5.5vw, 4.2rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
-            lineHeight: 1.05,
+            lineHeight: 1.1,
             letterSpacing: "-0.035em",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(30px)",
             transitionDelay: "0.15s",
           }}
         >
-          {headlineLine1}
+          They Give Us Everything.
           <br />
-          <em>{headlineLine2}</em>
+          <em style={{ color: "var(--rose, #bf524a)" }}>
+            It's Time We Understood Them in Return.
+          </em>
         </h1>
-
-        {/* Subheadline with bolded power phrases */}
-        <p
-          className="mt-4 sm:mt-5 mx-auto transition-all duration-[1200ms] ease-out hero-subhead"
-          style={{
-            fontFamily: "Cormorant, Georgia, serif",
-            fontStyle: "italic",
-            fontSize: "clamp(1.05rem, 3.8vw, 1.3rem)",
-            fontWeight: 400,
-            color: "var(--earth, #6e6259)",
-            lineHeight: 1.6,
-            maxWidth: 460,
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(25px)",
-            transitionDelay: "0.35s",
-          }}
-          dangerouslySetInnerHTML={{ __html: subhead }}
-        />
-        <style>{`
-          .hero-subhead b {
-            font-style: normal;
-            font-weight: 600;
-            color: var(--ink, #1f1c18);
-          }
-        `}</style>
 
         {/* CTA Button */}
         <div
