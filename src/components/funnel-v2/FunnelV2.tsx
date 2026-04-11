@@ -127,31 +127,8 @@ export const FunnelV2 = () => {
         }}
       />
 
-      {/* Gift banner — fixed at top */}
-      <a
-        href="/gift"
-        className="fixed top-0 left-0 right-0 flex items-center justify-center gap-2 py-2 px-4 text-white transition-colors duration-300 hover:opacity-90"
-        style={{
-          zIndex: 1000,
-          background: "var(--rose, #bf524a)",
-          fontFamily: "Cormorant, Georgia, serif",
-          fontSize: "0.82rem",
-          fontWeight: 600,
-          letterSpacing: "0.02em",
-          textDecoration: "none",
-        }}
-      >
-        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-        </svg>
-        <span style={{ textDecoration: "underline", textUnderlineOffset: "2px" }}>
-          Know a pet parent who'd love this? Send as a gift
-        </span>
-        <span className="transition-transform duration-300">→</span>
-      </a>
-
-      {/* Sections — padded for fixed banner */}
-      <div ref={heroRef} style={{ paddingTop: 34 }}>
+      {/* Sections — padded for fixed navbar (gift banner + nav bar) */}
+      <div ref={heroRef} style={{ paddingTop: 72 }}>
         <HeroV2
           onCtaClick={scrollToCheckout}
           ctaLabel={copy.ctaPrimary}
