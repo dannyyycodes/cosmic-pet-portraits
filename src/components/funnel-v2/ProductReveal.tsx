@@ -135,7 +135,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       style={{ background: "var(--cream2, #faf4e8)" }}
     >
       <div className="max-w-[520px] mx-auto">
-        {/* ── Headline + Benefits ── */}
+        {/* ── Headline + Transformation Bullets ── */}
         <h2
           className="text-center transition-all duration-[1200ms] ease-out"
           style={{
@@ -150,14 +150,14 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transform: visible ? "translateY(0)" : "translateY(25px)",
           }}
         >
-          After Their Reading,
+          Everything Changes When You
           <br />
           <em style={{ color: "var(--rose, #bf524a)" }}>
-            You'll Finally Know
+            Truly Know Them
           </em>
         </h2>
 
-        {/* Benefits list — scannable, curiosity-driven */}
+        {/* Transformation bullets — state changes, not deliverables */}
         <div
           className="mb-10 transition-all duration-[1200ms] ease-out"
           style={{
@@ -168,13 +168,12 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         >
           <ul className="space-y-4">
             {[
-              "Why they do that one thing that makes no sense to anyone else",
-              "What actually stresses them out — and what you can do about it",
-              "How they show love, and what they need from you in return",
-              "What they'd say to you if they could talk",
-              "The reason you found each other — and what they came to teach you",
-              "What comforts them on their worst days",
-              "A letter from their soul, written in their voice, about your life together",
+              "Understand them the way they've always understood you",
+              "Love them in the way they actually feel it",
+              "See the bond between you finally put into words",
+              "Have the conversation you've always wished you could have",
+              "Know what they need — without guessing, without wondering",
+              "Feel closer to them than you ever thought possible",
             ].map((benefit, i) => (
               <li
                 key={i}
