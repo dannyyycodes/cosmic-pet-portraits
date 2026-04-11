@@ -230,200 +230,98 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             </em>
           </h2>
 
-          {/* Benefit 1 — frosted card */}
-          <div
-            className="rounded-2xl px-6 py-6 sm:px-8 sm:py-7 transition-all duration-[1000ms] ease-out"
-            style={{
-              background: "rgba(255,253,245,0.5)",
-              border: "1px solid rgba(196,162,101,0.15)",
-              boxShadow: "0 2px 24px rgba(0,0,0,0.03)",
-              maxWidth: 420,
-              margin: "0 auto",
-              opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(15px)",
-              transitionDelay: "0.18s",
-            }}
-          >
-            <div className="mb-3" style={{ color: "var(--gold, #c4a265)", fontSize: "0.8rem", opacity: 0.6 }}>✦</div>
-            <p
-              style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.2rem, 5vw, 1.45rem)",
-                color: "var(--ink, #1f1c18)",
-                lineHeight: 1.35,
-              }}
-            >
-              Love them in the way they actually feel it
-            </p>
-          </div>
-
-          {/* Ornamental divider — line · diamond · line */}
-          <div
-            className="flex items-center justify-center gap-3 my-8 sm:my-10 transition-all duration-[800ms] ease-out"
-            style={{
-              opacity: visible ? 1 : 0,
-              transitionDelay: "0.35s",
-            }}
-          >
-            <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.4 }} />
-            <div style={{ width: 5, height: 5, background: "var(--gold, #c4a265)", opacity: 0.5, transform: "rotate(45deg)" }} />
-            <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.4 }} />
-          </div>
-
-          {/* Benefit 2 — frosted card */}
-          <div
-            className="rounded-2xl px-6 py-6 sm:px-8 sm:py-7 transition-all duration-[1000ms] ease-out"
-            style={{
-              background: "rgba(255,253,245,0.5)",
-              border: "1px solid rgba(196,162,101,0.15)",
-              boxShadow: "0 2px 24px rgba(0,0,0,0.03)",
-              maxWidth: 420,
-              margin: "0 auto",
-              opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(15px)",
-              transitionDelay: "0.45s",
-            }}
-          >
-            <div className="mb-3" style={{ color: "var(--gold, #c4a265)", fontSize: "0.8rem", opacity: 0.6 }}>✦</div>
-            <p
-              style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.2rem, 5vw, 1.45rem)",
-                color: "var(--ink, #1f1c18)",
-                lineHeight: 1.35,
-              }}
-            >
-              Know what they need — without guessing, without wondering
-            </p>
-          </div>
-        </div>
-
-        {/* ── What their reading reveals ── */}
-        <div
-          className="relative z-10 max-w-[620px] mx-auto mt-16 sm:mt-20 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.55s",
-          }}
-        >
-          <p
-            className="text-center mb-8 sm:mb-10"
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              color: "var(--muted, #958779)",
-            }}
-          >
-            Inside Their Reading
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {[
-              {
-                title: "Their Complete Soul Portrait",
-                desc: "Personality, fears, desires, and 30+ sections of hidden depth",
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2V3z" />
-                    <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7V3z" />
-                  </svg>
-                ),
-              },
-              {
-                title: "Real Birth Chart Astronomy",
-                desc: "13 celestial bodies, rising sign, and house placements — to the exact minute",
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="9" />
-                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
-                    <circle cx="12" cy="12" r="2.5" />
-                  </svg>
-                ),
-              },
-              {
-                title: "Elemental & Cosmic Blueprint",
-                desc: "Their elemental balance, personal crystal, aura colour, and cosmic archetype",
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 3h12l4 8-10 13L2 11z" />
-                  </svg>
-                ),
-              },
-              {
-                title: "Love Language Decoded",
-                desc: "How they give love, how they receive it, and what makes them feel safe",
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-                  </svg>
-                ),
-              },
-              {
-                title: "Soul Purpose & Life Path",
-                desc: "What they came here to teach you — and what they're still learning",
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26" />
-                  </svg>
-                ),
-              },
-              {
-                title: "SoulSpeak Conversation",
-                desc: "Ask them anything. Hear what they'd actually say back.",
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                  </svg>
-                ),
-              },
-            ].map((item, i) => (
+          {/* ── Transformation benefits ── */}
+          {[
+            {
+              text: "Love them in the way they actually feel it",
+              icon: (
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 28s-11-7-11-14a6 6 0 0111-3.5A6 6 0 0127 14c0 7-11 14-11 14z" />
+                </svg>
+              ),
+              delay: "0.18s",
+            },
+            {
+              text: "Know what they need — without guessing, without wondering",
+              icon: (
+                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="16" cy="16" r="10" />
+                  <path d="M16 6v3M16 23v3M6 16h3M23 16h3" />
+                  <circle cx="16" cy="16" r="3" />
+                </svg>
+              ),
+              delay: "0.4s",
+            },
+          ].map((item, i) => (
+            <div key={i}>
               <div
-                key={i}
-                className="flex gap-4 items-start p-4 sm:p-5 rounded-xl transition-all duration-500"
+                className="relative rounded-2xl overflow-hidden transition-all duration-[1000ms] ease-out"
                 style={{
-                  background: "rgba(255,253,245,0.5)",
-                  border: "1px solid rgba(196,162,101,0.12)",
-                  boxShadow: "0 1px 12px rgba(0,0,0,0.02)",
+                  maxWidth: 440,
+                  margin: "0 auto",
                   opacity: visible ? 1 : 0,
-                  transform: visible ? "translateY(0)" : "translateY(10px)",
-                  transitionDelay: `${0.6 + i * 0.08}s`,
+                  transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.97)",
+                  transitionDelay: item.delay,
                 }}
               >
+                {/* Glow ring behind card */}
                 <div
-                  className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(196,162,101,0.1)" }}
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    background: "radial-gradient(ellipse at center, rgba(196,162,101,0.08) 0%, transparent 70%)",
+                  }}
+                />
+                <div
+                  className="relative px-7 py-8 sm:px-9 sm:py-10 text-center"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,253,245,0.65) 0%, rgba(245,237,224,0.4) 100%)",
+                    border: "1px solid rgba(196,162,101,0.18)",
+                    borderRadius: 16,
+                    backdropFilter: "blur(8px)",
+                    boxShadow: "0 4px 32px rgba(196,162,101,0.08), inset 0 1px 0 rgba(255,255,255,0.5)",
+                  }}
                 >
-                  <div className="w-4 h-4" style={{ color: "var(--gold, #c4a265)" }}>
-                    {item.icon}
+                  {/* Icon */}
+                  <div
+                    className="mx-auto mb-5 w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(196,162,101,0.05) 100%)",
+                      border: "1px solid rgba(196,162,101,0.15)",
+                    }}
+                  >
+                    <div className="w-5 h-5" style={{ color: "var(--gold, #c4a265)" }}>
+                      {item.icon}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <p style={{
-                    fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontSize: "0.92rem",
-                    color: "var(--ink, #1f1c18)",
-                    lineHeight: 1.25,
-                    marginBottom: 4,
-                  }}>
-                    {item.title}
-                  </p>
-                  <p style={{
-                    fontFamily: "Cormorant, Georgia, serif",
-                    fontSize: "0.84rem",
-                    color: "var(--earth, #6e6259)",
-                    lineHeight: 1.45,
-                  }}>
-                    {item.desc}
+                  {/* Text */}
+                  <p
+                    style={{
+                      fontFamily: '"DM Serif Display", Georgia, serif',
+                      fontSize: "clamp(1.15rem, 4.8vw, 1.4rem)",
+                      color: "var(--ink, #1f1c18)",
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {item.text}
                   </p>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Ornamental divider between cards */}
+              {i === 0 && (
+                <div
+                  className="flex items-center justify-center gap-3 my-6 sm:my-8 transition-all duration-[800ms] ease-out"
+                  style={{ opacity: visible ? 1 : 0, transitionDelay: "0.3s" }}
+                >
+                  <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.3 }} />
+                  <div style={{ width: 5, height: 5, background: "var(--gold, #c4a265)", opacity: 0.4, transform: "rotate(45deg)" }} />
+                  <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.3 }} />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
+
       </div>
 
       {/* ── Block 2: The Science ── clean cream */}
