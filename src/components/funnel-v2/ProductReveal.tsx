@@ -211,91 +211,114 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           <VsopCredibility />
         </div>
 
-        {/* ── Benefit 2: The Voice — experiential chat demo ── */}
+        {/* ── Benefit 2: The Voice — SoulSpeak section with distinct bg ── */}
         <div
-          className="mb-10 transition-all duration-[1200ms] ease-out"
+          className="-mx-5 px-5 py-12 sm:py-14 transition-all duration-[1200ms] ease-out"
           style={{
+            background: "linear-gradient(180deg, #f0e8da 0%, #ede4d4 50%, #f0e8da 100%)",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
             transitionDelay: "0.25s",
           }}
         >
-          <h3
-            style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.15rem, 4.5vw, 1.35rem)",
-              color: "var(--ink, #1f1c18)",
-              lineHeight: 1.2,
-              marginBottom: 10,
-            }}
-          >
-            Ever wondered what they'd say
-            <em style={{ color: "var(--rose, #bf524a)" }}> if they could talk?</em>
-          </h3>
-          <p
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "clamp(0.95rem, 3.3vw, 1.05rem)",
-              color: "var(--earth, #6e6259)",
-              lineHeight: 1.6,
-              marginBottom: 16,
-            }}
-          >
-            Now you don't have to wonder. Ask them anything — why they do
-            the weird things they do, how they feel about you, what they
-            need.
-          </p>
+          <div className="max-w-[520px] mx-auto">
+            <div className="text-center mb-6">
+              {/* SoulSpeak badge */}
+              <div
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-5"
+                style={{
+                  background: "rgba(191,82,74,0.06)",
+                  border: "1px solid rgba(191,82,74,0.12)",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rose, #bf524a)" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 6.5A2.5 2.5 0 016.5 4h11A2.5 2.5 0 0120 6.5v7A2.5 2.5 0 0117.5 16H13l-3.8 3.4V16H6.5A2.5 2.5 0 014 13.5v-7z" />
+                </svg>
+                <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--rose, #bf524a)" }}>
+                  SoulSpeak — Included
+                </span>
+              </div>
 
-          {/* Chat demo — the experience, not a feature */}
-          <div
-            ref={chatRef}
-            className="rounded-2xl overflow-hidden"
-            style={{
-              background: "#fff",
-              border: "1px solid rgba(0,0,0,0.06)",
-              boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
-            }}
-          >
-            <div className="px-5 py-4 sm:px-6 space-y-2.5">
-              <div
-                className="flex justify-end transition-all duration-500"
-                style={{ opacity: chatStep >= 1 ? 1 : 0, transform: chatStep >= 1 ? "translateY(0)" : "translateY(6px)" }}
+              <h3
+                style={{
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "clamp(1.3rem, 5.5vw, 1.7rem)",
+                  color: "var(--ink, #1f1c18)",
+                  lineHeight: 1.2,
+                  marginBottom: 10,
+                }}
               >
-                <div className="px-4 py-2 rounded-2xl rounded-br-sm" style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "80%" }}>
-                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.88rem" }}>
-                    Why do you always steal my socks?
-                  </p>
+                Ever wondered what they'd say
+                <br />
+                <em style={{ color: "var(--rose, #bf524a)" }}>if they could talk?</em>
+              </h3>
+              <p
+                style={{
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontSize: "clamp(0.95rem, 3.3vw, 1.05rem)",
+                  color: "var(--earth, #6e6259)",
+                  lineHeight: 1.6,
+                  maxWidth: 400,
+                  margin: "0 auto",
+                }}
+              >
+                Now you don't have to wonder. Ask them anything — why they do
+                the weird things they do, how they feel about you, what they
+                need.
+              </p>
+            </div>
+
+            {/* Chat demo */}
+            <div
+              ref={chatRef}
+              className="rounded-2xl overflow-hidden"
+              style={{
+                background: "#fff",
+                border: "1px solid rgba(0,0,0,0.06)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+              }}
+            >
+              <div className="px-5 py-5 sm:px-6 space-y-3">
+                <div
+                  className="flex justify-end transition-all duration-500"
+                  style={{ opacity: chatStep >= 1 ? 1 : 0, transform: chatStep >= 1 ? "translateY(0)" : "translateY(6px)" }}
+                >
+                  <div className="px-4 py-2.5 rounded-2xl rounded-br-sm" style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "80%" }}>
+                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem" }}>
+                      Why do you always steal my socks?
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div
-                className="flex justify-start transition-all duration-500"
-                style={{ opacity: chatStep >= 2 ? 1 : 0, transform: chatStep >= 2 ? "translateY(0)" : "translateY(6px)" }}
-              >
-                <div className="px-4 py-2 rounded-2xl rounded-bl-sm" style={{ background: "var(--cream3, #f3eadb)", maxWidth: "85%" }}>
-                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.88rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
-                    Because they smell like you. And when you leave,
-                    that's the closest thing I have to you being here.
-                  </p>
+                <div
+                  className="flex justify-start transition-all duration-500"
+                  style={{ opacity: chatStep >= 2 ? 1 : 0, transform: chatStep >= 2 ? "translateY(0)" : "translateY(6px)" }}
+                >
+                  <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm" style={{ background: "var(--cream3, #f3eadb)", maxWidth: "85%" }}>
+                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.9rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
+                      Because they smell like you. And when you leave,
+                      that's the closest thing I have to you being here.
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div
-                className="flex justify-end transition-all duration-500"
-                style={{ opacity: chatStep >= 3 ? 1 : 0, transform: chatStep >= 3 ? "translateY(0)" : "translateY(6px)" }}
-              >
-                <div className="px-4 py-2 rounded-2xl rounded-br-sm" style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "80%" }}>
-                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.88rem" }}>
-                    Do you know how much I love you?
-                  </p>
+                <div
+                  className="flex justify-end transition-all duration-500"
+                  style={{ opacity: chatStep >= 3 ? 1 : 0, transform: chatStep >= 3 ? "translateY(0)" : "translateY(6px)" }}
+                >
+                  <div className="px-4 py-2.5 rounded-2xl rounded-br-sm" style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "80%" }}>
+                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem" }}>
+                      Do you know how much I love you?
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div
-                className="flex justify-start transition-all duration-500"
-                style={{ opacity: chatStep >= 4 ? 1 : 0, transform: chatStep >= 4 ? "translateY(0)" : "translateY(6px)" }}
-              >
-                <div className="px-4 py-2 rounded-2xl rounded-bl-sm" style={{ background: "var(--cream3, #f3eadb)", maxWidth: "85%" }}>
-                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.88rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
-                    I knew before you did.
-                  </p>
+                <div
+                  className="flex justify-start transition-all duration-500"
+                  style={{ opacity: chatStep >= 4 ? 1 : 0, transform: chatStep >= 4 ? "translateY(0)" : "translateY(6px)" }}
+                >
+                  <div className="px-4 py-2.5 rounded-2xl rounded-bl-sm" style={{ background: "var(--cream3, #f3eadb)", maxWidth: "85%" }}>
+                    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontStyle: "italic", fontSize: "0.9rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
+                      I knew before you did.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
