@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, ArrowRight, X, Sun, Moon } from "lucide-react";
+import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, ArrowRight, X } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,18 +46,11 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
     { href: "#faq", label: t('nav.faq'), icon: HelpCircle },
   ];
 
-  const [isDark, setIsDark] = useState(() => {
-    return localStorage.getItem('ls-dark-mode') === 'true';
-  });
-
+  // Clear any stale dark mode from previous sessions
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('ls-dark-mode', String(isDark));
-  }, [isDark]);
+    document.documentElement.classList.remove('dark');
+    localStorage.removeItem('ls-dark-mode');
+  }, []);
 
   const hoverClass = isVariantC ? "hover:text-primary" : "hover:text-gold";
 
@@ -81,24 +74,17 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
           )}
 
           {/* Ticker / Nav bar */}
-          <div className="flex items-center justify-end px-4 py-2 bg-[#FFFDF5]/92 dark:bg-[#1a1714]/92 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06]" style={{ minHeight: 36 }}>
+          <div className="flex items-center justify-end px-4 py-2 bg-[#FFFDF5]/92 backdrop-blur-md border-b border-black/[0.06]" style={{ minHeight: 36 }}>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setIsDark(!isDark)}
-                className="p-1 text-[#958779] hover:text-[#141210] dark:text-[#958779] dark:hover:text-[#e8ddd0] transition-colors"
-                aria-label="Toggle dark mode"
-              >
-                {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-              </button>
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-1.5 text-[0.76rem] font-medium text-[#6e6259] dark:text-[#a09080] hover:text-[#141210] dark:hover:text-[#e8ddd0] transition-colors">
+                    <button className="flex items-center gap-1.5 text-[0.76rem] font-medium text-[#6e6259] hover:text-[#141210] transition-colors">
                       <User className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">My Account</span>
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44 bg-white dark:bg-[#1e1a16] border border-[#e8ddd0] dark:border-[#2e2a24]">
+                  <DropdownMenuContent align="end" className="w-44 bg-white border border-[#e8ddd0]">
                     <DropdownMenuItem asChild>
                       <Link to="/my-reports" className="flex items-center gap-2 cursor-pointer text-[0.82rem]">
                         <Sparkles className="w-3.5 h-3.5 text-[#c4a265]" />
@@ -112,7 +98,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link to="/auth" className="flex items-center gap-1.5 text-sm font-medium text-[#6e6259] dark:text-[#a09080] hover:text-[#141210] dark:hover:text-[#e8ddd0] transition-colors">
+                <Link to="/auth" className="flex items-center gap-1.5 text-sm font-medium text-[#6e6259] hover:text-[#141210] transition-colors">
                   <User className="w-3.5 h-3.5" />
                   <span>Sign In</span>
                 </Link>
@@ -121,13 +107,13 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
               {/* Hamburger menu */}
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <button className="p-1 text-[#958779] hover:text-[#141210] dark:text-[#958779] dark:hover:text-[#e8ddd0] transition-colors" aria-label="Open menu">
+                  <button className="p-1 text-[#958779] hover:text-[#141210] transition-colors" aria-label="Open menu">
                     <Menu className="w-4 h-4" />
                   </button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[280px] border-l p-0 bg-[#FFFDF5] dark:bg-[#1a1714] backdrop-blur-xl border-[#e8ddd0] dark:border-[#2e2a24]">
-                  <SheetHeader className="p-5 border-b border-[#e8ddd0] dark:border-[#2e2a24]">
-                    <SheetTitle className="font-serif text-base font-semibold text-[#141210] dark:text-[#e8ddd0]">
+                <SheetContent side="right" className="w-[280px] border-l p-0 bg-[#FFFDF5] backdrop-blur-xl border-[#e8ddd0]">
+                  <SheetHeader className="p-5 border-b border-[#e8ddd0]">
+                    <SheetTitle className="font-serif text-base font-semibold text-[#141210]">
                       Menu
                     </SheetTitle>
                   </SheetHeader>
@@ -139,7 +125,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                           <SheetClose asChild key={link.href}>
                             <a
                               href={link.href}
-                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] dark:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors"
                             >
                               <link.icon className="w-4 h-4 text-[#958779]" />
                               <span className="text-sm font-medium">{link.label}</span>
@@ -147,12 +133,12 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                           </SheetClose>
                         ))}
 
-                        <div className="h-px bg-[#e8ddd0] dark:bg-[#2e2a24] my-3" />
+                        <div className="h-px bg-[#e8ddd0] my-3" />
 
                         <SheetClose asChild>
                           <Link
                             to="/gift"
-                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] dark:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors"
                           >
                             <Gift className="w-4 h-4 text-[#bf524a]" />
                             <span className="text-sm font-medium">Send as Gift</span>
@@ -162,11 +148,11 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
 
                       {user && (
                         <div className="mt-4 px-3">
-                          <div className="h-px bg-[#e8ddd0] dark:bg-[#2e2a24] mb-3" />
+                          <div className="h-px bg-[#e8ddd0] mb-3" />
                           <SheetClose asChild>
                             <Link
                               to="/my-reports"
-                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] dark:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors"
                             >
                               <Sparkles className="w-4 h-4 text-[#c4a265]" />
                               <span className="text-sm font-medium">My Reports</span>
@@ -174,7 +160,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                           </SheetClose>
                           <button
                             onClick={handleSignOut}
-                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] dark:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors w-full text-left"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors w-full text-left"
                           >
                             <LogOut className="w-4 h-4 text-[#958779]" />
                             <span className="text-sm font-medium">Sign Out</span>
@@ -183,17 +169,8 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                       )}
                     </div>
 
-                    {/* Bottom: dark mode toggle + CTA */}
-                    <div className="p-4 border-t border-[#e8ddd0] dark:border-[#2e2a24] space-y-3">
-                      <div className="flex items-center justify-between px-2">
-                        <span className="text-sm text-[#6e6259] dark:text-[#a09080]">Dark mode</span>
-                        <button
-                          onClick={() => setIsDark(!isDark)}
-                          className="p-2 rounded-lg text-[#958779] hover:text-[#141210] dark:hover:text-[#e8ddd0] hover:bg-[#f3eadb] dark:hover:bg-[#2e2a24] transition-colors"
-                        >
-                          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                        </button>
-                      </div>
+                    {/* Bottom CTA */}
+                    <div className="p-4 border-t border-[#e8ddd0] space-y-3">
                       <SheetClose asChild>
                         <a
                           href="/checkout.html"
