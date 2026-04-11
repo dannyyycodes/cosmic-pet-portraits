@@ -10,6 +10,7 @@ import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
 import { AstrologyCredibility } from "./AstrologyCredibility";
 import { HowItWorks } from "./HowItWorks";
+import { CharityPledge } from "./CharityPledge";
 import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 
@@ -67,6 +68,8 @@ export const FunnelV2 = () => {
   const [exitSubmitted, setExitSubmitted] = useState(false);
   const [showScrollNudge, setShowScrollNudge] = useState(false);
   const [scrollNudgeDismissed, setScrollNudgeDismissed] = useState(false);
+  const [charityId, setCharityId] = useState("dogs-trust");
+  const [charityBonus, setCharityBonus] = useState(0);
   const isMobile = useIsMobile();
 
   const scrollToCheckout = useCallback(() => {
@@ -179,6 +182,8 @@ export const FunnelV2 = () => {
         ref={checkoutRef}
         ctaLabel={copy.ctaPrimary}
         subheader={copy.checkoutSub}
+        charityId={charityId}
+        charityBonus={charityBonus}
       />
 
       {/* Below checkout: objection-handlers for hesitators */}
@@ -187,6 +192,12 @@ export const FunnelV2 = () => {
       </div>
       <AstrologyCredibility />
       <HowItWorks />
+      <CharityPledge
+        onChange={({ charityId: id, bonusAmount }) => {
+          setCharityId(id);
+          setCharityBonus(bonusAmount);
+        }}
+      />
       <FAQSection />
 
       {/* Final emotional CTA */}
@@ -258,7 +269,7 @@ export const FunnelV2 = () => {
               minHeight: 52,
             }}
           >
-            {copy.ctaPrimary} · From $27
+            {copy.ctaPrimary} · From ${27 + charityBonus}
           </button>
         </div>
       )}

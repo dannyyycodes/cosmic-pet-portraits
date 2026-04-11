@@ -74,6 +74,8 @@ const checkoutSchema = z.object({
   petHoroscopes: z.record(z.string(), z.boolean()).optional(),
   quickCheckout: z.boolean().optional().default(false),
   abVariant: z.string().max(5).optional(),
+  charityId: z.string().max(30).optional(),
+  charityBonus: z.number().int().min(0).max(500).optional().default(0),
   occasionMode: z.string().max(20).optional(),
   giftUpsellCheckout: z.boolean().optional().default(false),
   purchaserEmail: z.string().email().max(255).optional().or(z.literal('')),
@@ -242,7 +244,12 @@ serve(async (req) => {
       }
 
       const primaryReportId = reportIds[0];
-      console.log("[CREATE-CHECKOUT] Quick checkout — reports:", reportIds, "tier:", tierKey, "total:", totalAmount, "book:", includesBook);
+
+      // Charity bonus donation (optional, customer-added)
+      const charityBonus = input.charityBonus || 0;
+      const charityBonusCents = charityBonus * 100;
+
+      console.log("[CREATE-CHECKOUT] Quick checkout — reports:", reportIds, "tier:", tierKey, "total:", totalAmount, "book:", includesBook, "charityBonus:", charityBonus);
 
       // If total is $0 (shouldn't normally happen for quick checkout, but handle it)
       if (totalAmount <= 0) {
@@ -311,6 +318,27 @@ serve(async (req) => {
         });
       }
 
+      // Charity bonus donation — separate line item so it's visible on the receipt
+      if (charityBonusCents > 0) {
+        const CHARITY_NAMES: Record<string, string> = {
+          "dogs-trust": "Dogs Trust",
+          "ecologi": "Ecologi",
+          "wwf": "WWF",
+        };
+        const charityName = CHARITY_NAMES[input.charityId || ""] || "Animal Welfare";
+        lineItems.push({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Charity Donation — ${charityName}`,
+              description: `Your extra contribution to ${charityName}`,
+            },
+            unit_amount: charityBonusCents,
+          },
+          quantity: 1,
+        });
+      }
+
       const session = await stripe.checkout.sessions.create({
         ...(input.quickCheckoutEmail ? { customer_email: input.quickCheckoutEmail } : {}),
         line_items: lineItems,
@@ -336,6 +364,8 @@ serve(async (req) => {
           occasion_mode: occasionMode,
           include_horoscope: input.includeHoroscope ? "true" : "false",
           horoscope_pet_count: input.includeHoroscope ? petCount.toString() : "0",
+          charity_id: input.charityId || "",
+          charity_bonus: charityBonus.toString(),
         },
       });
 

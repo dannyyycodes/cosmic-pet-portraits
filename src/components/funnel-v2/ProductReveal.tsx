@@ -81,47 +81,47 @@ const IconBookStar = () => (
   </svg>
 );
 
-// Brand voice, universal — works for any species, soul-level language.
+// Benefits-first — what the reader gains, not what the product contains.
 const VALUE_ITEMS = [
   {
     Icon: IconStars,
-    title: "Who They Are at Their Soul",
-    desc: "The truest version of them. The part of them you've always sensed but never fully seen.",
+    title: "Finally Understand Why They Do What They Do",
+    desc: "The quirks that used to puzzle you will suddenly make perfect sense.",
   },
   {
     Icon: IconHeartPulse,
-    title: "Their Emotional Language",
-    desc: "What soothes them. What stirs them. The way they feel love, and the way they give it back.",
+    title: "Know Exactly How to Comfort Them",
+    desc: "What soothes them on their worst days, and the signals you've been missing.",
   },
   {
     Icon: IconSpeechPaw,
-    title: "SoulSpeak Chat",
-    desc: "Ask them anything. Hear what they've been trying to say to you all along.",
+    title: "Hear What They've Been Trying to Tell You",
+    desc: "Ask them anything through SoulSpeak. Their answers will stop you in your tracks.",
   },
   {
     Icon: IconCompass,
-    title: "Their Soul Purpose",
-    desc: "The reason the two of you found each other. And what they came here to teach you.",
+    title: "Discover Why You Found Each Other",
+    desc: "The reason your paths crossed — and what they came here to teach you.",
   },
   {
     Icon: IconEnvelope,
-    title: "A Letter From Their Soul",
-    desc: "What they would write to you if they had the words. Read it once and you'll feel it in your chest.",
+    title: "Read the Words They'd Write to You",
+    desc: "A letter from their soul. You'll read it once and carry it with you forever.",
   },
   {
     Icon: IconCrystal,
-    title: "Their Cosmic Signature",
-    desc: "Their soul archetype, the colour of their aura, and the crystal that holds their frequency.",
+    title: "See Their Soul Like No One Else Has",
+    desc: "Their archetype, their aura colour, the crystal that holds their frequency.",
   },
   {
     Icon: IconMoonCycle,
-    title: "Weekly Cosmic Horoscope",
-    desc: "A weekly forecast written from their chart. First month free.",
+    title: "Know What's Coming for Them Each Week",
+    desc: "A personal forecast from their chart, delivered weekly. First month free.",
   },
   {
     Icon: IconBookStar,
-    title: "30+ Deeply Personal Sections",
-    desc: "Their love language. Their hidden depths. Everything you've wondered about but never knew how to ask.",
+    title: "Answer Every Question You've Ever Had",
+    desc: "30+ deeply personal sections. Their love language, hidden depths, and everything in between.",
   },
 ];
 
@@ -155,7 +155,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transform: visible ? "translateY(0)" : "translateY(20px)",
           }}
         >
-          Everything You'll Discover
+          What You'll Finally Understand
         </p>
         <h2
           className="text-center mb-4 transition-all duration-[1200ms] ease-out"
@@ -171,9 +171,9 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             transitionDelay: "0.1s",
           }}
         >
-          The Soul You've Always Loved,
+          What Changes When You
           <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>Finally in Words.</em>
+          <em style={{ color: "var(--rose, #bf524a)" }}>Truly Know Them.</em>
         </h2>
         <p
           className="text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-1000"

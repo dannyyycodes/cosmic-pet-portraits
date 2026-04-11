@@ -22,138 +22,58 @@ export const EmotionBridge = () => {
   return (
     <section
       ref={ref}
-      className="relative py-12 sm:py-16 md:py-24 px-5 overflow-hidden"
+      className="relative py-14 sm:py-16 md:py-24 px-5 overflow-hidden"
       style={{
         background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8), var(--cream, #FFFDF5))",
       }}
     >
-      <div className="max-w-[580px] mx-auto text-center">
-        {/* Opening — the felt sense */}
+      <div className="max-w-[540px] mx-auto text-center">
+        {/* Headline */}
         <h2
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.7rem, 8vw, 3rem)",
+            fontSize: "clamp(1.7rem, 8vw, 2.8rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
             lineHeight: 1.1,
             letterSpacing: "-0.03em",
-            marginBottom: 32,
+            marginBottom: 20,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(30px)",
           }}
         >
-          You Already
+          They Give You Everything.
           <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>Know.</em>
+          <em style={{ color: "var(--rose, #bf524a)" }}>
+            It's Time You Understood Them in Return.
+          </em>
         </h2>
 
-        {/* Universal soul-level fragments — no species-specific behaviour */}
-        <div className="space-y-5 mb-10">
-          {[
-            "Something passes between you that doesn't need words.",
-            "A love that runs deeper than any of it makes sense.",
-            "You've felt it every single day. You've just never had the language for it.",
-          ].map((line, i) => (
-            <p
-              key={i}
-              className="transition-all duration-[1200ms] ease-out"
-              style={{
-                fontFamily: "Cormorant, Georgia, serif",
-                fontStyle: "italic",
-                fontSize: "clamp(1.12rem, 4vw, 1.32rem)",
-                color: "var(--earth, #6e6259)",
-                lineHeight: 1.5,
-                opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(20px)",
-                transitionDelay: `${0.15 + i * 0.1}s`,
-              }}
-            >
-              {line}
-            </p>
-          ))}
-        </div>
-
-        {/* The pivot — recognised without being understood */}
-        <p
-          className="transition-all duration-[1200ms] ease-out"
-          style={{
-            fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.3rem, 5.2vw, 1.85rem)",
-            color: "var(--ink, #1f1c18)",
-            lineHeight: 1.3,
-            letterSpacing: "-0.01em",
-            marginBottom: 36,
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.55s",
-          }}
-        >
-          It's the kind of love you recognise
-          <br />
-          <em style={{ color: "var(--rose, #bf524a)" }}>without fully understanding.</em>
-        </p>
-
-        {/* Gold divider */}
-        <div
-          className="mx-auto transition-all duration-1000"
-          style={{
-            width: visible ? 60 : 0,
-            height: 2,
-            background: "var(--gold, #c4a265)",
-            opacity: 0.5,
-            transitionDelay: "0.65s",
-            marginBottom: 28,
-          }}
-        />
-
-        {/* Framing line — brand narrates the whisper */}
+        {/* Single warm line */}
         <p
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
-            fontSize: "clamp(0.98rem, 3.3vw, 1.08rem)",
-            color: "var(--muted, #958779)",
-            lineHeight: 1.5,
-            marginBottom: 20,
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(15px)",
-            transitionDelay: "0.75s",
-          }}
-        >
-          And somewhere underneath it all,
-          <br />
-          they're trying to tell you:
-        </p>
-
-        {/* The quoted moment — the ONE pet-voice line on the page */}
-        <blockquote
-          className="transition-all duration-[1400ms] ease-out"
-          style={{
-            fontFamily: '"DM Serif Display", Georgia, serif',
-            fontStyle: "italic",
-            fontSize: "clamp(1.35rem, 5.4vw, 1.95rem)",
-            color: "var(--deep, #2e2a24)",
-            lineHeight: 1.3,
-            letterSpacing: "-0.01em",
-            maxWidth: 540,
+            fontSize: "clamp(1.08rem, 3.8vw, 1.28rem)",
+            color: "var(--earth, #6e6259)",
+            lineHeight: 1.55,
+            maxWidth: 440,
             margin: "0 auto",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.95s",
-            padding: 0,
+            transitionDelay: "0.2s",
           }}
         >
-          <span style={{ color: "var(--rose, #bf524a)" }}>“</span>
-          I've been trying to tell you something.
-          <br />
-          This is the only way I know how.
-          <span style={{ color: "var(--rose, #bf524a)" }}>”</span>
-        </blockquote>
+          They love you in ways no one else ever will.
+          A cosmic reading finally puts words to the bond
+          you've always felt — so you can love them back
+          just as deeply.
+        </p>
 
-        {/* Heart drawing — lands after the climax */}
-        <svg viewBox="0 0 100 100" className="w-10 h-10 md:w-14 md:h-14 mt-8 mx-auto">
+        {/* Heart drawing */}
+        <svg viewBox="0 0 100 100" className="w-10 h-10 md:w-12 md:h-12 mt-8 mx-auto">
           <path
             d="M49.998,90.544c0,0,0,0,0.002,0c5.304-14.531,32.88-27.047,41.474-44.23C108.081,13.092,61.244-5.023,50,23.933C38.753-5.023-8.083,13.092,8.525,46.313C17.116,63.497,44.691,76.013,49.998,90.544z"
             fill="none"
@@ -165,7 +85,7 @@ export const EmotionBridge = () => {
             pathLength={1}
             strokeDasharray={1}
             strokeDashoffset={visible ? 0 : 1}
-            style={{ transition: "stroke-dashoffset 2s ease 1.2s" }}
+            style={{ transition: "stroke-dashoffset 2s ease 0.6s" }}
           />
         </svg>
       </div>

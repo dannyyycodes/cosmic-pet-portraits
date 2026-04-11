@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -17,111 +16,175 @@ function useScrollReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
-function useAnimatedCounter(target: number, duration = 2000, start = false) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let startTime: number;
-    const animate = (time: number) => {
-      if (!startTime) startTime = time;
-      const progress = Math.min((time - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * target));
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [target, duration, start]);
-  return count;
-}
-
-// Best reviews from the live site — curated for variety and emotional impact
 // Reviews use <b>…</b> around the punchy power phrase so skimmers
 // reading only the bold bits still catch the emotional hit.
-const CURATED_REVIEWS = [
+const ROW_1 = [
   {
     name: "Ava P.",
-    pet: "Butterbean, Corgi, 2",
+    pet: "Butterbean, Corgi",
     breed: "corgi",
     text: "SoulSpeak alone is worth the price. I asked Butterbean what she thinks about the cat and <b>the response was pure comedy gold</b>.",
-    tag: "verified",
-    time: "3 days ago",
   },
   {
     name: "Tom H.",
-    pet: "Bear, German Shepherd, 5",
+    pet: "Bear, German Shepherd",
     breed: "german-shepherd",
     text: "The compatibility chart between me and Bear <b>made my wife cry</b>. It knew things we never told it.",
-    tag: "verified",
-    time: "3 days ago",
   },
   {
     name: "Brooke T.",
-    pet: "Theo, Golden Retriever, 3",
+    pet: "Theo, Golden Retriever",
     breed: "golden-retriever",
     text: "I asked Theo why he steals socks and the answer was <b>'because they smell like you and that makes me feel safe.'</b> DESTROYED.",
-    tag: "verified",
-    time: "4 days ago",
   },
   {
     name: "Lisa K.",
-    pet: "Cooper, Border Collie, 2",
+    pet: "Cooper, Border Collie",
     breed: "border-collie",
     text: "The cosmic profile was so specific to Cooper. <b>It mentioned his herding behaviour before I even said anything.</b>",
-    tag: "verified",
-    time: "4 days ago",
-  },
-  {
-    name: "Rachel S.",
-    pet: "Daisy, Cavalier King Charles, 3",
-    breed: "cavalier-kcs",
-    text: "How did it know she sits by the door 20 minutes before I get home? <b>The emotional blueprint was scarily accurate.</b>",
-    tag: "verified",
-    time: "5 days ago",
-  },
-  {
-    name: "James Wilson",
-    pet: "Biscuit the Holland Lop",
-    breed: "holland-lop",
-    text: "It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and <b>he actually comes to us on his own now</b>.",
-    tag: "verified",
-    time: "2 weeks ago",
-  },
-  {
-    name: "Steve L.",
-    pet: "Hank, Bulldog, 5",
-    breed: "bulldog",
-    text: "My wife bought this and I rolled my eyes. Then I read it. Then I tried SoulSpeak. <b>Then I ordered one for my mom's dog.</b>",
-    time: "2 weeks ago",
-  },
-  {
-    name: "Sam N.",
-    pet: "Nugget, Guinea Pig, 2",
-    breed: "guinea-pig",
-    text: "A full soul reading for a guinea pig! And <b>the cosmic portrait was the cutest thing I've ever seen</b>.",
-    tag: "verified",
-    time: "1 week ago",
   },
 ];
 
+const ROW_2 = [
+  {
+    name: "Rachel S.",
+    pet: "Daisy, Cavalier King Charles",
+    breed: "cavalier-kcs",
+    text: "How did it know she sits by the door 20 minutes before I get home? <b>The emotional blueprint was scarily accurate.</b>",
+  },
+  {
+    name: "James Wilson",
+    pet: "Biscuit, Holland Lop",
+    breed: "holland-lop",
+    text: "It said he's a grounded earth soul which is why he hates being held. We stopped forcing cuddles and <b>he actually comes to us on his own now</b>.",
+  },
+  {
+    name: "Steve L.",
+    pet: "Hank, Bulldog",
+    breed: "bulldog",
+    text: "My wife bought this and I rolled my eyes. Then I read it. Then I tried SoulSpeak. <b>Then I ordered one for my mom's dog.</b>",
+  },
+  {
+    name: "Sam N.",
+    pet: "Nugget, Guinea Pig",
+    breed: "guinea-pig",
+    text: "A full soul reading for a guinea pig! And <b>the cosmic portrait was the cutest thing I've ever seen</b>.",
+  },
+];
+
+type Review = { name: string; pet: string; breed: string; text: string };
+
+const ReviewCard = ({ review }: { review: Review }) => (
+  <div
+    className="review-marquee-card flex-shrink-0 rounded-xl p-4"
+    style={{
+      width: 320,
+      background: "#fff",
+      border: "1px solid rgba(0,0,0,0.05)",
+      boxShadow: "0 1px 8px rgba(0,0,0,0.03)",
+    }}
+  >
+    <div className="flex items-center gap-2.5 mb-2.5">
+      <img
+        src={`/breeds/${review.breed}-1.jpg`}
+        alt=""
+        className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+        style={{ border: "2px solid var(--cream3, #f3eadb)" }}
+        onError={(e) => {
+          const el = e.currentTarget;
+          el.style.display = "none";
+          const fallback = el.nextElementSibling as HTMLElement;
+          if (fallback) fallback.style.display = "flex";
+        }}
+      />
+      <div
+        className="w-9 h-9 rounded-full items-center justify-center flex-shrink-0 hidden"
+        style={{
+          background: "linear-gradient(135deg, var(--cream3, #f3eadb), var(--sand, #d6c8b6))",
+          fontFamily: "Caveat, cursive",
+          fontSize: "0.9rem",
+          color: "var(--earth, #6e6259)",
+        }}
+      >
+        {review.name.charAt(0)}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--ink, #1f1c18)" }}>
+            {review.name}
+          </span>
+          <span
+            className="px-1.5 py-0.5 rounded text-white"
+            style={{ fontSize: "0.55rem", fontWeight: 700, background: "var(--green, #4a8c5c)" }}
+          >
+            VERIFIED
+          </span>
+        </div>
+        <p style={{ fontSize: "0.72rem", color: "var(--muted, #958779)" }}>{review.pet}</p>
+      </div>
+      <div className="flex gap-0.5 flex-shrink-0">
+        {[1, 2, 3, 4, 5].map((s) => (
+          <svg key={s} className="w-3 h-3 text-[var(--gold,#c4a265)]" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+      </div>
+    </div>
+    <p
+      className="review-marquee-body"
+      style={{
+        fontFamily: "Cormorant, Georgia, serif",
+        fontStyle: "italic",
+        fontSize: "0.92rem",
+        color: "var(--earth, #6e6259)",
+        lineHeight: 1.55,
+      }}
+      dangerouslySetInnerHTML={{ __html: `&ldquo;${review.text}&rdquo;` }}
+    />
+  </div>
+);
+
+const MarqueeRow = ({
+  reviews,
+  direction = "left",
+  speed = 40,
+}: {
+  reviews: Review[];
+  direction?: "left" | "right";
+  speed?: number;
+}) => (
+  <div
+    className="marquee-row flex overflow-hidden w-full"
+    style={{
+      ["--marquee-duration" as string]: `${speed}s`,
+      ["--marquee-direction" as string]: direction === "left" ? "normal" : "reverse",
+    }}
+  >
+    <div className="marquee-track flex gap-5" style={{ width: "max-content" }}>
+      {/* Two copies for seamless infinite scroll */}
+      {reviews.map((r, i) => (
+        <ReviewCard key={`a-${i}`} review={r} />
+      ))}
+      {reviews.map((r, i) => (
+        <ReviewCard key={`b-${i}`} review={r} />
+      ))}
+    </div>
+  </div>
+);
+
 export const CompactReviews = () => {
   const { ref, visible } = useScrollReveal(0.1);
-  const isMobile = useIsMobile();
-  // counter removed — honest metrics only
-  const [expanded, setExpanded] = useState(false);
-
-  // Mobile: show 4 by default to limit scroll fatigue; desktop shows all.
-  const visibleReviews =
-    isMobile && !expanded ? CURATED_REVIEWS.slice(0, 4) : CURATED_REVIEWS;
 
   return (
     <section
       ref={ref}
-      className="relative py-12 sm:py-16 md:py-20 px-5 overflow-hidden"
+      className="relative py-12 sm:py-16 md:py-20 px-0 overflow-hidden"
       style={{
         background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))",
       }}
     >
-      <div className="max-w-3xl mx-auto">
+      {/* Header */}
+      <div className="max-w-3xl mx-auto px-5">
         {/* Badge */}
         <div
           className="text-center mb-6 transition-all duration-1000"
@@ -138,7 +201,7 @@ export const CompactReviews = () => {
           </div>
         </div>
 
-        {/* Editorial stats band — 4 big numerals separated by gold rules */}
+        {/* Stats band */}
         <div
           className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-0 mb-10 md:mb-12 transition-all duration-[1200ms] ease-out"
           style={{
@@ -149,7 +212,7 @@ export const CompactReviews = () => {
         >
           {[
             { value: "30+", label: "Soul Sections" },
-            { value: "4.9", label: "Average Rating", sup: "★" },
+            { value: "4.9", label: "Average Rating", sup: "\u2605" },
             { value: "100%", label: "Money-Back Guarantee" },
             { value: "~3min", label: "To Begin" },
           ].map((stat, i) => (
@@ -204,7 +267,7 @@ export const CompactReviews = () => {
           ))}
         </div>
 
-        {/* Header */}
+        {/* Section title */}
         <div
           className="text-center mb-10 transition-all duration-1000"
           style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)", transitionDelay: "0.1s" }}
@@ -224,147 +287,92 @@ export const CompactReviews = () => {
             <br />
             <em style={{ color: "var(--rose, #bf524a)" }}>In Their Own Words.</em>
           </h2>
-          <p
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontStyle: "italic",
-              fontSize: "clamp(0.98rem, 3.3vw, 1.12rem)",
-              color: "var(--earth, #6e6259)",
-              maxWidth: 460,
-              margin: "0 auto 14px",
-              lineHeight: 1.55,
-            }}
-          >
-            "That's exactly them. How did the stars know?"
-          </p>
-          <div className="flex items-center justify-center gap-2">
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <svg key={i} className="w-4 h-4 text-[var(--gold,#c4a265)]" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-            </div>
-            <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem", color: "var(--muted, #958779)" }}>
-              <strong style={{ color: "var(--ink, #1f1c18)" }}>4.9</strong> average across all readings
-            </span>
-          </div>
         </div>
-
-        {/* Review grid */}
-        <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-2"} gap-3`}>
-          {visibleReviews.map((review, i) => (
-            <div
-              key={i}
-              className="rounded-xl p-4 transition-all duration-[1000ms] ease-out"
-              style={{
-                background: "#fff",
-                border: "1px solid rgba(0,0,0,0.05)",
-                boxShadow: "0 1px 8px rgba(0,0,0,0.03)",
-                opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(15px)",
-                transitionDelay: `${0.15 + i * 0.06}s`,
-              }}
-            >
-              {/* Header: breed photo + name + badge */}
-              <div className="flex items-center gap-2.5 mb-2.5">
-                <img
-                  src={`/breeds/${review.breed}-1.jpg`}
-                  alt=""
-                  className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-                  style={{ border: "2px solid var(--cream3, #f3eadb)" }}
-                  onError={(e) => {
-                    const el = e.currentTarget;
-                    el.style.display = "none";
-                    const fallback = el.nextElementSibling as HTMLElement;
-                    if (fallback) fallback.style.display = "flex";
-                  }}
-                />
-                <div
-                  className="w-9 h-9 rounded-full items-center justify-center flex-shrink-0 hidden"
-                  style={{
-                    background: "linear-gradient(135deg, var(--cream3, #f3eadb), var(--sand, #d6c8b6))",
-                    fontFamily: "Caveat, cursive",
-                    fontSize: "0.9rem",
-                    color: "var(--earth, #6e6259)",
-                  }}
-                >
-                  {review.name.charAt(0)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--ink, #1f1c18)" }}>
-                      {review.name}
-                    </span>
-                    {review.tag && (
-                      <span
-                        className="px-1.5 py-0.5 rounded text-white"
-                        style={{ fontSize: "0.55rem", fontWeight: 700, background: "var(--green, #4a8c5c)" }}
-                      >
-                        {review.tag.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <p style={{ fontSize: "0.72rem", color: "var(--muted, #958779)" }}>{review.pet}</p>
-                </div>
-                <div className="flex gap-0.5 flex-shrink-0">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <svg key={s} className="w-3 h-3 text-[var(--gold,#c4a265)]" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-
-              {/* Review text with bolded punch phrase for skim path */}
-              <p
-                className="review-body"
-                style={{
-                  fontFamily: "Cormorant, Georgia, serif",
-                  fontStyle: "italic",
-                  fontSize: "0.92rem",
-                  color: "var(--earth, #6e6259)",
-                  lineHeight: 1.55,
-                  marginBottom: 4,
-                }}
-                dangerouslySetInnerHTML={{ __html: `&ldquo;${review.text}&rdquo;` }}
-              />
-              <p style={{ fontSize: "0.68rem", color: "var(--faded, #bfb2a3)" }}>{review.time}</p>
-            </div>
-          ))}
-        </div>
-
-        <style>{`
-          .review-body b {
-            font-weight: 600;
-            font-style: italic;
-            color: var(--ink, #1f1c18);
-          }
-        `}</style>
-
-        {/* Mobile expand button */}
-        {isMobile && !expanded && CURATED_REVIEWS.length > visibleReviews.length && (
-          <div className="text-center mt-5">
-            <button
-              onClick={() => setExpanded(true)}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full transition-opacity hover:opacity-80"
-              style={{
-                fontFamily: "Cormorant, Georgia, serif",
-                fontSize: "0.88rem",
-                fontWeight: 600,
-                color: "var(--rose, #bf524a)",
-                background: "rgba(191,82,74,0.06)",
-                border: "1px solid rgba(191,82,74,0.18)",
-              }}
-            >
-              Read {CURATED_REVIEWS.length - visibleReviews.length} more reviews
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
-        )}
       </div>
+
+      {/* Double-layered marquee */}
+      <div
+        className="marquee-container flex flex-col gap-5 transition-all duration-[1400ms]"
+        style={{
+          opacity: visible ? 1 : 0,
+          transitionDelay: "0.3s",
+        }}
+      >
+        <MarqueeRow reviews={ROW_1} direction="left" speed={38} />
+        <MarqueeRow reviews={ROW_2} direction="right" speed={44} />
+      </div>
+
+      <style>{`
+        .review-marquee-body b {
+          font-weight: 600;
+          font-style: italic;
+          color: var(--ink, #1f1c18);
+        }
+
+        .marquee-container {
+          -webkit-mask-image: linear-gradient(
+            to right,
+            transparent 0%,
+            black 6%,
+            black 94%,
+            transparent 100%
+          );
+          mask-image: linear-gradient(
+            to right,
+            transparent 0%,
+            black 6%,
+            black 94%,
+            transparent 100%
+          );
+        }
+
+        .marquee-track {
+          will-change: transform;
+          animation-name: marqueeScroll;
+          animation-duration: var(--marquee-duration, 40s);
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+          animation-direction: var(--marquee-direction, normal);
+        }
+
+        .marquee-row:hover .marquee-track {
+          animation-play-state: paused;
+        }
+
+        @keyframes marqueeScroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 768px) {
+          .review-marquee-card {
+            width: 275px !important;
+          }
+          .marquee-container {
+            gap: 16px;
+            -webkit-mask-image: linear-gradient(
+              to right,
+              transparent 0%,
+              black 3%,
+              black 97%,
+              transparent 100%
+            );
+            mask-image: linear-gradient(
+              to right,
+              transparent 0%,
+              black 3%,
+              black 97%,
+              transparent 100%
+            );
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .marquee-track {
+            animation-play-state: paused;
+          }
+        }
+      `}</style>
     </section>
   );
 };

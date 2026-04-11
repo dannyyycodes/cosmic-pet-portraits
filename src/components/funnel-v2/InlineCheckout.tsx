@@ -58,9 +58,11 @@ const TIERS = [
 interface InlineCheckoutProps {
   ctaLabel: string;
   subheader: string;
+  charityId?: string;
+  charityBonus?: number;
 }
 
-export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, subheader }, forwardedRef) => {
+export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, subheader, charityId, charityBonus = 0 }, forwardedRef) => {
   const [selectedTier, setSelectedTier] = useState<"basic" | "premium">("basic");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -102,7 +104,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     }
     setError("");
     setIsLoading(true);
-    trackFunnelEvent("v2_checkout_clicked", { tier: selectedTier, price: selectedPrice, isInApp });
+    trackFunnelEvent("v2_checkout_clicked", { tier: selectedTier, price: selectedPrice, isInApp, charityId, charityBonus });
 
     try {
       const refCode = getReferralCode();
@@ -113,8 +115,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           abVariant: "V2",
           includesPortrait: selectedTier === "premium",
           petCount: 1,
-          email: email.trim(),
+          quickCheckoutEmail: email.trim(),
           referralCode: refCode || undefined,
+          charityId: charityId || undefined,
+          charityBonus: charityBonus || 0,
         },
       });
 
@@ -327,9 +331,24 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               Taking you to secure checkout…
             </span>
           ) : (
-            `${ctaLabel} · $${selectedPrice}`
+            `${ctaLabel} · $${selectedPrice + charityBonus}`
           )}
         </button>
+
+        {/* Charity donation line */}
+        {charityBonus > 0 && (
+          <p
+            className="text-center mt-2.5"
+            style={{
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.82rem",
+              color: "var(--green, #4a8c5c)",
+              fontWeight: 600,
+            }}
+          >
+            Includes ${charityBonus} charity donation
+          </p>
+        )}
 
         {/* Risk reversal — trust-level anchor, sized up for skim hierarchy */}
         <p
