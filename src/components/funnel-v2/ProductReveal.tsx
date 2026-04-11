@@ -135,7 +135,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       style={{ background: "var(--cream2, #faf4e8)" }}
     >
       <div className="max-w-[520px] mx-auto">
-        {/* ── Headline — names the ache ── */}
+        {/* ── Headline + Benefits ── */}
         <h2
           className="text-center transition-all duration-[1200ms] ease-out"
           style={{
@@ -145,71 +145,69 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             color: "var(--black, #141210)",
             lineHeight: 1.12,
             letterSpacing: "-0.02em",
-            marginBottom: 14,
+            marginBottom: 28,
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(25px)",
           }}
         >
-          You Love Them.
+          After Their Reading,
           <br />
           <em style={{ color: "var(--rose, #bf524a)" }}>
-            But Do You Really Know Them?
+            You'll Finally Know
           </em>
         </h2>
-        <p
-          className="text-center transition-all duration-1000"
-          style={{
-            fontFamily: "Cormorant, Georgia, serif",
-            fontSize: "clamp(1rem, 3.5vw, 1.12rem)",
-            color: "var(--earth, #6e6259)",
-            lineHeight: 1.55,
-            maxWidth: 420,
-            margin: "0 auto 44px",
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(15px)",
-            transitionDelay: "0.08s",
-          }}
-        >
-        </p>
 
-        {/* ── Benefit 1: The Understanding ── */}
+        {/* Benefits list — scannable, curiosity-driven */}
         <div
           className="mb-10 transition-all duration-[1200ms] ease-out"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.15s",
+            transitionDelay: "0.12s",
           }}
         >
-          <h3
-            style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.15rem, 4.5vw, 1.35rem)",
-              color: "var(--ink, #1f1c18)",
-              lineHeight: 1.2,
-              marginBottom: 10,
-            }}
-          >
-            You'll read it and say
-            <em style={{ color: "var(--rose, #bf524a)" }}> "that is so them."</em>
-          </h3>
-          <p
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "clamp(0.95rem, 3.3vw, 1.05rem)",
-              color: "var(--earth, #6e6259)",
-              lineHeight: 1.6,
-            }}
-          >
-            Not a generic horoscope. A reading built from the exact moment
-            they arrived in this world — their personality, their emotional
-            needs, what makes them feel safe, what quietly stresses them out.
-            The things you've always sensed but never had words for.
-          </p>
-
-          {/* Astronomy credibility — ?vsop=a|b|c to preview variants */}
-          <VsopCredibility />
+          <ul className="space-y-4">
+            {[
+              "Why they do that one thing that makes no sense to anyone else",
+              "What actually stresses them out — and what you can do about it",
+              "How they show love, and what they need from you in return",
+              "What they'd say to you if they could talk",
+              "The reason you found each other — and what they came to teach you",
+              "What comforts them on their worst days",
+              "A letter from their soul, written in their voice, about your life together",
+            ].map((benefit, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-3 transition-all duration-700"
+                style={{
+                  opacity: visible ? 1 : 0,
+                  transform: visible ? "translateY(0)" : "translateY(10px)",
+                  transitionDelay: `${0.15 + i * 0.06}s`,
+                }}
+              >
+                <span
+                  className="flex-shrink-0 mt-1"
+                  style={{ color: "var(--gold, #c4a265)", fontSize: "0.7rem" }}
+                >
+                  &#10022;
+                </span>
+                <span
+                  style={{
+                    fontFamily: "Cormorant, Georgia, serif",
+                    fontSize: "clamp(1rem, 3.5vw, 1.1rem)",
+                    color: "var(--ink, #1f1c18)",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {benefit}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
+
+        {/* Astronomy credibility */}
+        <VsopCredibility />
 
         {/* ── Benefit 2: The Voice — SoulSpeak section with distinct bg ── */}
         <div
