@@ -529,10 +529,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           ))}
         </div>
 
-        {/* Charity brand row — 10% of the order goes here. Inline with the payment badges. */}
-        <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
+        {/* Real payment brand logos — legit trust row */}
+        <PaymentBrandLogos />
         <p
-          className="text-center mt-2 mb-4"
+          className="text-center mt-2 mb-6"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontSize: "0.72rem",
@@ -540,11 +540,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             letterSpacing: "0.02em",
           }}
         >
-          10% of your order supports your chosen charity.
+          Secure checkout powered by Stripe
         </p>
 
-        {/* Real payment brand logos — legit trust row */}
-        <PaymentBrandLogos />
+        {/* Charity brand row — sits beneath the Stripe trust line */}
+        <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
         <p
           className="text-center mt-2"
           style={{
@@ -554,7 +554,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             letterSpacing: "0.02em",
           }}
         >
-          Secure checkout powered by Stripe
+          10% of your order supports your chosen charity.
         </p>
 
         {/* Multi-pet note */}

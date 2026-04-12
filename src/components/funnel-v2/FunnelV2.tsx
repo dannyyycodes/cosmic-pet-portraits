@@ -126,13 +126,19 @@ export const FunnelV2 = () => {
       />
 
       {/* Sections — padded for fixed navbar (gift banner + nav bar) */}
-      <div ref={heroRef} style={{ paddingTop: 72 }}>
+      {/* Moving reviews row 1 sits above the hero */}
+      <div style={{ paddingTop: 72 }}>
+        <CompactReviews row={1} />
+      </div>
+      {/* Hero already contains the "They Give Us Everything / It's Time We Understood Them in Return" headline + CTA */}
+      <div ref={heroRef}>
         <HeroV2
           onCtaClick={scrollToCheckout}
           ctaLabel={copy.ctaPrimary}
         />
       </div>
-      <CompactReviews />
+      {/* Moving reviews row 2 sits below the hero's CTA */}
+      <CompactReviews row={2} />
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
         <GoldDivider />
       </div>

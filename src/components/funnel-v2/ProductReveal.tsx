@@ -137,206 +137,95 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── warm sand with constellation atmosphere */}
+      {/* ── Block 2: The Benefits ── quiet typography, no cards, no constellation */}
       <div
-        className="relative px-5 py-20 sm:py-28 md:py-32 overflow-hidden"
-        style={{ background: "radial-gradient(ellipse 85% 65% at 50% 38%, #efe3d0 0%, #f5ede0 60%)" }}
+        className="px-5 py-16 sm:py-20 md:py-24"
+        style={{ background: "var(--cream, #FFFDF5)" }}
       >
-        {/* Constellation overlay */}
-        <div className="absolute inset-0 pointer-events-none">
-          <svg
-            className="absolute inset-0 w-full h-full"
-            viewBox="0 0 800 600"
-            preserveAspectRatio="xMidYMid slice"
-            aria-hidden="true"
-          >
-            {/* Constellation — top left */}
-            <g stroke="var(--gold, #c4a265)" strokeWidth="0.6" opacity="0.14" fill="none">
-              <line x1="80" y1="70" x2="140" y2="120" />
-              <line x1="140" y1="120" x2="115" y2="190" />
-              <line x1="140" y1="120" x2="200" y2="100" />
-            </g>
-            {/* Constellation — top right */}
-            <g stroke="var(--gold, #c4a265)" strokeWidth="0.6" opacity="0.12" fill="none">
-              <line x1="630" y1="90" x2="690" y2="130" />
-              <line x1="690" y1="130" x2="730" y2="100" />
-              <line x1="690" y1="130" x2="670" y2="200" />
-            </g>
-            {/* Constellation — bottom left */}
-            <g stroke="var(--rose, #bf524a)" strokeWidth="0.6" opacity="0.09" fill="none">
-              <line x1="90" y1="440" x2="160" y2="480" />
-              <line x1="160" y1="480" x2="210" y2="450" />
-            </g>
-            {/* Constellation — bottom right */}
-            <g stroke="var(--gold, #c4a265)" strokeWidth="0.6" opacity="0.1" fill="none">
-              <line x1="590" y1="470" x2="650" y2="500" />
-              <line x1="650" y1="500" x2="710" y2="475" />
-            </g>
-            {/* Star dots — twinkling */}
-            {[
-              [80,70,1.5],[140,120,2],[115,190,1.5],[200,100,1.8],
-              [630,90,1.5],[690,130,2.2],[730,100,1.5],[670,200,1.8],
-              [90,440,1.5],[160,480,2],[210,450,1.5],
-              [590,470,1.5],[650,500,2],[710,475,1.5],
-              [400,40,1.3],[50,280,1.2],[750,320,1.4],[350,540,1.2],
-              [500,55,1.1],[300,90,1.0],[600,380,1.1],[150,340,1.0],
-              [680,280,1.0],[460,560,1.1],[250,520,1.0],
-            ].map(([cx, cy, r], i) => (
-              <circle
-                key={i}
-                cx={cx}
-                cy={cy}
-                r={r}
-                fill="var(--gold, #c4a265)"
-                opacity={0.3}
-                style={{ animation: `twinkle-reveal ${3 + (i % 5)}s ease-in-out ${i * 0.2}s infinite` }}
-              />
-            ))}
-          </svg>
-        </div>
-
-        {/* Celestial arcs behind headline */}
-        <div className="absolute left-1/2 top-[32%] -translate-x-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true">
-          <svg width="480" height="480" viewBox="0 0 480 480" fill="none" className="w-[min(480px,92vw)] h-auto opacity-100">
-            <circle cx="240" cy="240" r="190" stroke="var(--gold, #c4a265)" strokeWidth="0.5" opacity="0.1" />
-            <circle cx="240" cy="240" r="215" stroke="var(--gold, #c4a265)" strokeWidth="0.3" opacity="0.06" strokeDasharray="3 9" />
-          </svg>
-        </div>
-
-        <style>{`
-          @keyframes twinkle-reveal {
-            0%, 100% { opacity: 0.15; }
-            50% { opacity: 0.5; }
-          }
-        `}</style>
-
-        {/* Content */}
-        <div className="relative z-10 max-w-[520px] mx-auto text-center">
+        <div className="max-w-[520px] mx-auto text-center">
           {/* Gold accent line */}
           <div
-            className="mx-auto mb-10 transition-all duration-[1000ms] ease-out"
+            className="mx-auto mb-8 transition-all duration-[1000ms] ease-out"
             style={{
-              width: 40,
+              width: visible ? 40 : 0,
               height: 1,
               background: "var(--gold, #c4a265)",
-              opacity: visible ? 0.4 : 0,
+              opacity: 0.5,
             }}
           />
 
-          {/* Headline — cinematic scale */}
+          {/* Headline */}
           <h2
             className="transition-all duration-[1200ms] ease-out"
             style={{
               fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.85rem, 8.5vw, 2.8rem)",
+              fontSize: "clamp(1.85rem, 7.5vw, 2.6rem)",
               fontWeight: 400,
               color: "var(--black, #141210)",
-              lineHeight: 1.08,
+              lineHeight: 1.12,
               letterSpacing: "-0.025em",
-              marginBottom: 56,
+              marginBottom: 40,
               opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(30px)",
+              transform: visible ? "translateY(0)" : "translateY(20px)",
             }}
           >
             Everything Changes When You
             <br />
-            <em style={{ color: "var(--rose, #bf524a)" }}>
-              Truly Know Them
-            </em>
+            <em style={{ color: "var(--rose, #bf524a)" }}>Truly Know Them</em>
           </h2>
 
-          {/* ── Transformation benefits ── */}
-          {[
-            {
-              text: "Love them in the way they actually feel it",
-              icon: (
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 28s-11-7-11-14a6 6 0 0111-3.5A6 6 0 0127 14c0 7-11 14-11 14z" />
-                </svg>
-              ),
-              delay: "0.18s",
-            },
-            {
-              text: "Know what they need — without guessing, without wondering",
-              icon: (
-                <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="16" cy="16" r="10" />
-                  <path d="M16 6v3M16 23v3M6 16h3M23 16h3" />
-                  <circle cx="16" cy="16" r="3" />
-                </svg>
-              ),
-              delay: "0.4s",
-            },
-          ].map((item, i) => (
-            <div key={i}>
-              <div
-                className="relative rounded-2xl overflow-hidden transition-all duration-[1000ms] ease-out"
+          {/* Bullets — simple, lovely typography */}
+          <ul
+            className="flex flex-col gap-5 sm:gap-6"
+            style={{
+              listStyle: "none",
+              padding: 0,
+              margin: "0 auto",
+              maxWidth: 440,
+              textAlign: "left",
+            }}
+          >
+            {[
+              { text: "Love them in the way they actually feel it", delay: "0.2s" },
+              { text: "Know what they need — without guessing, without wondering", delay: "0.35s" },
+            ].map((item, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-4 transition-all duration-[900ms] ease-out"
                 style={{
-                  maxWidth: 440,
-                  margin: "0 auto",
                   opacity: visible ? 1 : 0,
-                  transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.97)",
+                  transform: visible ? "translateY(0)" : "translateY(12px)",
                   transitionDelay: item.delay,
                 }}
               >
-                {/* Glow ring behind card */}
-                <div
-                  className="absolute inset-0 rounded-2xl"
+                {/* Ornamental diamond bullet */}
+                <span
+                  aria-hidden="true"
+                  className="flex-shrink-0"
                   style={{
-                    background: "radial-gradient(ellipse at center, rgba(196,162,101,0.08) 0%, transparent 70%)",
+                    width: 8,
+                    height: 8,
+                    marginTop: 10,
+                    background: "var(--gold, #c4a265)",
+                    transform: "rotate(45deg)",
+                    opacity: 0.7,
                   }}
                 />
-                <div
-                  className="relative px-7 py-8 sm:px-9 sm:py-10 text-center"
+                <p
                   style={{
-                    background: "linear-gradient(135deg, rgba(255,253,245,0.65) 0%, rgba(245,237,224,0.4) 100%)",
-                    border: "1px solid rgba(196,162,101,0.18)",
-                    borderRadius: 16,
-                    backdropFilter: "blur(8px)",
-                    boxShadow: "0 4px 32px rgba(196,162,101,0.08), inset 0 1px 0 rgba(255,255,255,0.5)",
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontSize: "clamp(1.1rem, 4.2vw, 1.35rem)",
+                    color: "var(--ink, #1f1c18)",
+                    lineHeight: 1.4,
+                    fontWeight: 400,
                   }}
                 >
-                  {/* Icon */}
-                  <div
-                    className="mx-auto mb-5 w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{
-                      background: "linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(196,162,101,0.05) 100%)",
-                      border: "1px solid rgba(196,162,101,0.15)",
-                    }}
-                  >
-                    <div className="w-5 h-5" style={{ color: "var(--gold, #c4a265)" }}>
-                      {item.icon}
-                    </div>
-                  </div>
-                  {/* Text */}
-                  <p
-                    style={{
-                      fontFamily: '"DM Serif Display", Georgia, serif',
-                      fontSize: "clamp(1.15rem, 4.8vw, 1.4rem)",
-                      color: "var(--ink, #1f1c18)",
-                      lineHeight: 1.35,
-                    }}
-                  >
-                    {item.text}
-                  </p>
-                </div>
-              </div>
-
-              {/* Ornamental divider between cards */}
-              {i === 0 && (
-                <div
-                  className="flex items-center justify-center gap-3 my-6 sm:my-8 transition-all duration-[800ms] ease-out"
-                  style={{ opacity: visible ? 1 : 0, transitionDelay: "0.3s" }}
-                >
-                  <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.3 }} />
-                  <div style={{ width: 5, height: 5, background: "var(--gold, #c4a265)", opacity: 0.4, transform: "rotate(45deg)" }} />
-                  <div style={{ width: 28, height: 1, background: "var(--gold, #c4a265)", opacity: 0.3 }} />
-                </div>
-              )}
-            </div>
-          ))}
+                  {item.text}
+                </p>
+              </li>
+            ))}
+          </ul>
         </div>
-
       </div>
 
       {/* ── SoulSpeak section removed — moved into pricing card tap-to-expand preview ── */}
