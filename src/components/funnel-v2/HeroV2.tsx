@@ -101,36 +101,7 @@ export const HeroV2 = ({ onCtaClick, ctaLabel }: HeroV2Props) => {
           It's Time We Understood Them in Return
         </h1>
 
-        {/* CTA Button */}
-        <div
-          className="mt-7 sm:mt-10 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.55s",
-          }}
-        >
-          <button
-            onClick={onCtaClick}
-            className="group relative inline-flex items-center gap-2 px-8 sm:px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "1.1rem",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              background: "var(--rose, #bf524a)",
-              boxShadow: "0 4px 24px rgba(191,82,74,0.25)",
-              minHeight: 56,
-            }}
-          >
-            {ctaLabel}
-            <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </button>
-
-        </div>
+        {/* Hero CTA removed — the main checkout CTA lives in InlineCheckout below. */}
       </div>
 
       {/* Scroll indicator */}
