@@ -265,135 +265,126 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── two editorial statements, no headline ── */}
+      {/* ── Block 2: The Benefits ── four-pillar editorial grid ── */}
       <div
-        className="relative overflow-hidden px-5 py-20 sm:py-24 md:py-28"
+        className="relative overflow-hidden px-5 py-16 sm:py-20 md:py-24"
         style={{
           background: "linear-gradient(180deg, var(--cream, #FFFDF5) 0%, #faf4e8 100%)",
         }}
       >
-        <div className="relative max-w-[620px] mx-auto">
-          {(() => {
-            const items = [
-              { lead: "Love them", rest: "in the way they actually feel it." },
-              { lead: "Know what they need", rest: " — without guessing, without wondering." },
-            ] as const;
-            return (
-              <>
-                {items.map((item, i) => (
-                  <div
-                    key={i}
-                    className={`benefit-card ${visible ? "is-in" : ""}`}
-                    style={{
-                      animationDelay: `${0.12 + i * 0.28}s`,
-                      marginBottom: i < items.length - 1 ? "clamp(28px, 6vw, 48px)" : 0,
-                    }}
-                  >
-                    {/* Floating ornamental flourish */}
-                    <div className="flex justify-center" aria-hidden="true">
-                      <svg
-                        width="44"
-                        height="12"
-                        viewBox="0 0 44 12"
-                        className="benefit-flourish"
-                        style={{ animationDelay: `${0.18 + i * 0.28}s` }}
-                      >
-                        <line x1="0" y1="6" x2="16" y2="6" stroke="var(--gold, #c4a265)" strokeWidth="0.8" opacity="0.5" />
-                        <path d="M22 1.5l1.3 3.2L26.5 6l-3.2 1.3L22 10.5l-1.3-3.2L17.5 6l3.2-1.3z" fill="var(--gold, #c4a265)" opacity="0.85" />
-                        <line x1="28" y1="6" x2="44" y2="6" stroke="var(--gold, #c4a265)" strokeWidth="0.8" opacity="0.5" />
-                      </svg>
-                    </div>
+        <div className="relative max-w-[720px] mx-auto">
+          {/* Eyebrow */}
+          <p
+            className={`text-center benefit-eyebrow ${visible ? "is-in" : ""}`}
+            style={{
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.7rem",
+              fontWeight: 700,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "var(--gold, #c4a265)",
+              marginBottom: 36,
+            }}
+          >
+            When you truly know them
+          </p>
 
-                    {/* Statement */}
-                    <p
-                      className="text-center"
-                      style={{
-                        marginTop: 18,
-                        marginBottom: 0,
-                        fontFamily: '"DM Serif Display", Georgia, serif',
-                        fontSize: "clamp(1.3rem, 5.2vw, 1.85rem)",
-                        color: "var(--ink, #1f1c18)",
-                        lineHeight: 1.3,
-                        letterSpacing: "-0.015em",
-                      }}
-                    >
-                      <span
-                        className="benefit-lead"
-                        style={{
-                          fontStyle: "italic",
-                          color: "var(--rose, #bf524a)",
-                          fontWeight: 400,
-                          marginRight: 2,
-                        }}
-                      >
-                        {item.lead}
-                      </span>
-                      <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 400 }}>
-                        {item.rest}
-                      </span>
-                    </p>
-                  </div>
-                ))}
-              </>
-            );
-          })()}
+          {/* Four-pillar grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+            {[
+              { roman: "I", text: "Love them in the way they actually feel it." },
+              { roman: "II", text: "Know what they need — without guessing, without wondering." },
+              { roman: "III", text: "Finally put words to the bond you've always felt." },
+              { roman: "IV", text: "Know them the way they've always known you." },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className={`benefit-pillar ${visible ? "is-in" : ""}`}
+                style={{
+                  animationDelay: `${0.2 + i * 0.14}s`,
+                  position: "relative",
+                  padding: "22px 22px 24px",
+                  borderRadius: 14,
+                  background: "linear-gradient(180deg, rgba(255,253,245,0.85) 0%, rgba(250,244,232,0.6) 100%)",
+                  border: "1px solid rgba(196,162,101,0.22)",
+                  boxShadow: "0 2px 18px rgba(196,162,101,0.08), inset 0 1px 0 rgba(255,255,255,0.5)",
+                }}
+              >
+                {/* Roman numeral drop-cap */}
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    top: 14,
+                    right: 18,
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontStyle: "italic",
+                    fontSize: "1.3rem",
+                    background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    color: "transparent",
+                    opacity: 0.8,
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {item.roman}
+                </span>
+
+                {/* Small gold hairline */}
+                <div
+                  aria-hidden="true"
+                  style={{
+                    width: 26,
+                    height: 1,
+                    background: "var(--gold, #c4a265)",
+                    opacity: 0.7,
+                    marginBottom: 14,
+                  }}
+                />
+
+                {/* Statement */}
+                <p
+                  style={{
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontSize: "clamp(1.08rem, 3.6vw, 1.22rem)",
+                    color: "var(--ink, #1f1c18)",
+                    lineHeight: 1.35,
+                    letterSpacing: "-0.01em",
+                    margin: 0,
+                  }}
+                >
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Pure-CSS animations. Transform + opacity only, GPU-friendly. */}
+        {/* Pure-CSS animations. Transform + opacity only. */}
         <style>{`
-          .benefit-card {
+          .benefit-eyebrow, .benefit-pillar {
             opacity: 0;
-            transform: translateY(18px);
+            transform: translateY(14px);
             will-change: opacity, transform;
           }
-          .benefit-card.is-in {
-            animation: benefitCardIn 1100ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          .benefit-eyebrow.is-in {
+            animation: benefitReveal 900ms cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
+          }
+          .benefit-pillar.is-in {
+            animation: benefitReveal 1000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
-          .benefit-flourish {
-            opacity: 0;
-            transform: scaleX(0.6);
-            transform-origin: center;
-          }
-          .benefit-card.is-in .benefit-flourish {
-            animation: benefitFlourishIn 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-          }
-
-          .benefit-lead {
-            position: relative;
-            display: inline-block;
-            background-image: linear-gradient(120deg,
-              rgba(191,82,74,0.22) 0%,
-              rgba(196,162,101,0.22) 50%,
-              rgba(191,82,74,0.22) 100%);
-            background-repeat: no-repeat;
-            background-position: 0 88%;
-            background-size: 0% 22%;
-            transition: none;
-          }
-          .benefit-card.is-in .benefit-lead {
-            animation: benefitLeadUnderline 1200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            animation-delay: inherit;
-          }
-
-          @keyframes benefitCardIn {
+          @keyframes benefitReveal {
             to { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes benefitFlourishIn {
-            to { opacity: 1; transform: scaleX(1); }
-          }
-          @keyframes benefitLeadUnderline {
-            0% { background-size: 0% 22%; }
-            100% { background-size: 100% 22%; }
           }
 
           @media (prefers-reduced-motion: reduce) {
-            .benefit-card, .benefit-flourish, .benefit-lead {
+            .benefit-eyebrow, .benefit-pillar {
               animation: none !important;
               opacity: 1 !important;
               transform: none !important;
             }
-            .benefit-lead { background-size: 100% 22% !important; }
           }
         `}</style>
       </div>
