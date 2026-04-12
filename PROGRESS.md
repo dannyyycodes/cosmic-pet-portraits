@@ -4,6 +4,47 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 
 ---
 
+## 2026-04-12 (overnight) — SoulSpeak WhatsApp-style redesign
+
+**Status:** DEPLOYED. Commit `7f26c9c` on `main`. Frontend auto-deploys via Vercel.
+
+### What to test when you wake up
+1. Open `https://littlesouls.app/soul-chat.html?id=2e47a0a6-06a4-49cc-a0da-58cdb53357d6` (needs email in sessionStorage — go via normal report view flow first)
+2. Look at the messages area — wallpaper should be visible in the background
+3. Tap the **palette icon** in the header (left of menu) — opens a bottom-sheet popover
+4. Try all 3 wallpapers (animals / constellations / hearts) — instant switch
+5. Toggle **Light / Dark** — everything should recolour, mobile browser chrome changes too
+6. Close + reopen — selected wallpaper + mode persists via localStorage
+7. Trigger the paywall (deplete credits or tap "Maybe later" then force it) — new cream + gold cards, no brown clash
+8. Open the sidebar (hamburger icon) → Credits tab — 3 pricing cards also redesigned
+
+### What changed (single file: `public/soul-chat.html`)
+- **3 wallpapers** as inline SVG data URLs on a fixed `.chat-wallpaper` layer
+  - Animals: scattered gold paw prints + hearts (your funnel review wallpaper vibe)
+  - Constellations: connected star patterns in gold
+  - Hearts: rose hearts scattered (matches CTA colour)
+- **Dark mode** full coverage via `[data-theme="dark"]` CSS var overrides
+- **Theme picker** — palette icon in header → bottom-sheet popover with 3 wallpaper thumbnails + Light/Dark toggle. Saved to `localStorage.soulspeak_wallpaper` + `localStorage.soulspeak_mode`. Applied before first paint (no flash).
+- **User bubbles** — brown gradient → rose gradient (matches brand)
+- **Send button** — brown → rose
+- **Paywall cards** (overlay + sidebar both): removed dark brown/black gradients. Cream + gold + rose palette throughout.
+  - BEST VALUE card: gold-washed background + soft glow
+  - Soul Bond membership: gold halo line on top + rose CTA badge
+- **Meta theme-color** switches with mode so mobile browser chrome matches
+
+### Untouched
+- All pricing numbers (400 starter / 50 per msg / Top Up 750 / Deep Talk 2,500 / Soul Bond 1,000 per week)
+- Edge functions (Sonnet + validator + RLS + server credit gate — all from previous commit)
+- Report generation pipeline
+- Stripe webhook logic
+
+### Deferred (nothing blocking)
+- Cross-session conversation memory (still in backlog from yesterday's commit)
+- Owner name in intake
+- Phrase-variance tracker
+
+---
+
 ## 2026-04-12 — SoulSpeak pricing + security overhaul
 
 **Status:** Code changes applied locally. Pending deploy: `supabase functions deploy soul-chat create-chat-purchase stripe-webhook` + migration `20260412120000_soul_chat_secure.sql`.
