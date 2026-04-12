@@ -124,9 +124,8 @@ export const FunnelV2 = () => {
         }}
       />
 
-      {/* Sections — padded for fixed navbar (gift banner + nav bar) */}
-      {/* Reviews — both rows stacked, quote now sits inside ProductReveal */}
-      <div ref={heroRef} style={{ paddingTop: 72 }}>
+      {/* Sections — padded for fixed navbar (gift banner + nav bar) + a breathing gap before reviews */}
+      <div ref={heroRef} style={{ paddingTop: 104 }}>
         <CompactReviews row={1} />
       </div>
       <CompactReviews row={2} />

@@ -285,119 +285,115 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── stacked editorial pull-quotes ── */}
+      {/* ── Block 2: The Benefits ── tight editorial list, mobile-first ── */}
       <div
-        className="relative overflow-hidden px-5 py-20 sm:py-24 md:py-28"
+        className="relative px-5 py-12 sm:py-16 md:py-20"
         style={{
-          background: "linear-gradient(180deg, var(--cream, #FFFDF5) 0%, #faf4e8 60%, var(--cream, #FFFDF5) 100%)",
+          background: "linear-gradient(180deg, var(--cream, #FFFDF5) 0%, #faf4e8 100%)",
         }}
       >
-        <div className="relative max-w-[600px] mx-auto">
-          {/* Eyebrow */}
-          <p
-            className={`text-center benefit-eyebrow ${visible ? "is-in" : ""}`}
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "0.7rem",
-              fontWeight: 700,
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: "var(--gold, #c4a265)",
-              marginBottom: 10,
-            }}
-          >
-            When you truly know them
-          </p>
-
-          {/* Ornamental diamond under eyebrow */}
-          <div className={`flex justify-center mb-16 benefit-eyebrow ${visible ? "is-in" : ""}`} aria-hidden="true">
-            <svg width="10" height="10" viewBox="0 0 10 10">
-              <path d="M5 0l2 5-2 5-2-5z" fill="var(--gold, #c4a265)" opacity="0.8" />
-            </svg>
+        <div className="relative max-w-[560px] mx-auto">
+          {/* Eyebrow (centered) */}
+          <div className={`text-center mb-8 sm:mb-10 benefit-eyebrow ${visible ? "is-in" : ""}`}>
+            <p
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontSize: "0.7rem",
+                fontWeight: 700,
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
+                color: "var(--gold, #c4a265)",
+                marginBottom: 6,
+              }}
+            >
+              When you truly know them
+            </p>
+            <div className="flex justify-center" aria-hidden="true">
+              <svg width="8" height="8" viewBox="0 0 10 10">
+                <path d="M5 0l2 5-2 5-2-5z" fill="var(--gold, #c4a265)" opacity="0.75" />
+              </svg>
+            </div>
           </div>
 
-          {/* Four stacked editorial statements — one per visual breath */}
-          <div className="flex flex-col">
+          {/* Four benefit rows — left-aligned list, gold hairlines between */}
+          <ol
+            className="flex flex-col"
+            style={{
+              listStyle: "none",
+              padding: 0,
+              margin: 0,
+              borderTop: "1px solid rgba(196,162,101,0.25)",
+            }}
+          >
             {[
               { roman: "I", text: "Love them in the way they actually feel it." },
               { roman: "II", text: "Know what they need — without guessing, without wondering." },
               { roman: "III", text: "Finally put words to the bond you've always felt." },
               { roman: "IV", text: "Know them the way they've always known you." },
             ].map((item, i) => (
-              <div
+              <li
                 key={i}
-                className={`benefit-stanza ${visible ? "is-in" : ""}`}
+                className={`benefit-row ${visible ? "is-in" : ""}`}
                 style={{
-                  animationDelay: `${0.2 + i * 0.16}s`,
-                  textAlign: "center",
-                  marginBottom: i < 3 ? "clamp(36px, 7vw, 56px)" : 0,
+                  animationDelay: `${0.15 + i * 0.1}s`,
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: "14px",
+                  padding: "18px 0",
+                  borderBottom: "1px solid rgba(196,162,101,0.25)",
                 }}
               >
-                {/* Roman numeral flanked by hairlines */}
-                <div className="flex items-center justify-center gap-3 mb-5" aria-hidden="true">
-                  <div
-                    style={{
-                      width: 40,
-                      height: 1,
-                      background: "linear-gradient(90deg, transparent, var(--gold, #c4a265))",
-                      opacity: 0.7,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: '"DM Serif Display", Georgia, serif',
-                      fontStyle: "italic",
-                      fontSize: "0.95rem",
-                      letterSpacing: "0.18em",
-                      background: "linear-gradient(135deg, #d4b26b, #c4a265)",
-                      WebkitBackgroundClip: "text",
-                      backgroundClip: "text",
-                      color: "transparent",
-                    }}
-                  >
-                    {item.roman}
-                  </span>
-                  <div
-                    style={{
-                      width: 40,
-                      height: 1,
-                      background: "linear-gradient(270deg, transparent, var(--gold, #c4a265))",
-                      opacity: 0.7,
-                    }}
-                  />
-                </div>
+                {/* Roman numeral — gold italic, fixed width for alignment */}
+                <span
+                  aria-hidden="true"
+                  style={{
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontStyle: "italic",
+                    fontSize: "clamp(0.95rem, 3vw, 1.1rem)",
+                    letterSpacing: "0.08em",
+                    width: 28,
+                    flexShrink: 0,
+                    background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    color: "transparent",
+                    textAlign: "left",
+                  }}
+                >
+                  {item.roman}.
+                </span>
 
-                {/* The statement — big, serif, generous */}
+                {/* Statement */}
                 <p
                   style={{
                     fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontSize: "clamp(1.25rem, 5.2vw, 1.75rem)",
+                    fontSize: "clamp(1.02rem, 3.8vw, 1.2rem)",
                     color: "var(--ink, #1f1c18)",
-                    lineHeight: 1.3,
-                    letterSpacing: "-0.015em",
-                    maxWidth: 480,
-                    margin: "0 auto",
+                    lineHeight: 1.35,
+                    letterSpacing: "-0.01em",
+                    margin: 0,
+                    flex: 1,
                   }}
                 >
                   {item.text}
                 </p>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
 
-        {/* CSS-only reveals — transform/opacity, GPU-cheap */}
+        {/* CSS-only reveals */}
         <style>{`
-          .benefit-eyebrow, .benefit-stanza {
+          .benefit-eyebrow, .benefit-row {
             opacity: 0;
-            transform: translateY(18px);
+            transform: translateY(10px);
             will-change: opacity, transform;
           }
           .benefit-eyebrow.is-in {
-            animation: benefitReveal 900ms cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
+            animation: benefitReveal 800ms cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
           }
-          .benefit-stanza.is-in {
-            animation: benefitReveal 1000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          .benefit-row.is-in {
+            animation: benefitReveal 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
           @keyframes benefitReveal {
@@ -405,7 +401,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           }
 
           @media (prefers-reduced-motion: reduce) {
-            .benefit-eyebrow, .benefit-stanza {
+            .benefit-eyebrow, .benefit-row {
               animation: none !important;
               opacity: 1 !important;
               transform: none !important;
