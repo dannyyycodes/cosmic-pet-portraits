@@ -63,13 +63,13 @@ const CONSTELLATION_STARS: StarDef[] = [
   { x: 86, y: 86, kind: "small",  delay: 2.5  },
 ];
 
-// Connecting constellation lines — from-index → to-index in CONSTELLATION_STARS
+// Connecting constellation lines — from-index → to-index in CONSTELLATION_STARS (0-23, 24 total)
 const CONNECTIONS: Array<[number, number]> = [
   [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],   // top arc
   [3, 8], [8, 14],                                    // vertical drop through centre
   [12, 13], [13, 14], [14, 15], [15, 16], [16, 17],  // middle band
   [17, 22],                                           // bottom drop
-  [14, 20], [20, 21], [21, 22], [22, 23], [23, 24],  // bottom arc
+  [14, 20], [20, 21], [21, 22], [22, 23],             // bottom arc
 ];
 
 const STAR_SIZES: Record<StarKind, number> = {
@@ -109,6 +109,7 @@ const ConstellationBackdrop = () => (
         {CONNECTIONS.map(([a, b], i) => {
           const from = CONSTELLATION_STARS[a];
           const to = CONSTELLATION_STARS[b];
+          if (!from || !to) return null;
           return (
             <line
               key={i}
