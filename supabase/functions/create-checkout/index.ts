@@ -74,7 +74,8 @@ const checkoutSchema = z.object({
   petHoroscopes: z.record(z.string(), z.boolean()).optional(),
   quickCheckout: z.boolean().optional().default(false),
   abVariant: z.string().max(5).optional(),
-  charityId: z.string().max(30).optional(),
+  // Whitelist — any charity_id flowing into Stripe metadata + charity_donations ledger must match one of these.
+  charityId: z.enum(["ifaw", "world-land-trust", "eden-reforestation"]).optional(),
   charityBonus: z.number().int().min(0).max(500).optional().default(0),
   occasionMode: z.string().max(20).optional(),
   giftUpsellCheckout: z.boolean().optional().default(false),
@@ -321,9 +322,9 @@ serve(async (req) => {
       // Charity bonus donation — separate line item so it's visible on the receipt
       if (charityBonusCents > 0) {
         const CHARITY_NAMES: Record<string, string> = {
-          "dogs-trust": "Dogs Trust",
-          "ecologi": "Ecologi",
-          "wwf": "WWF",
+          "ifaw": "IFAW",
+          "world-land-trust": "World Land Trust",
+          "eden-reforestation": "Eden Reforestation",
         };
         const charityName = CHARITY_NAMES[input.charityId || ""] || "Animal Welfare";
         lineItems.push({

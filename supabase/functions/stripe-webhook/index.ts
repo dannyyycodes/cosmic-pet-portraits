@@ -91,7 +91,7 @@ async function sendHoroscopeWelcomeEmail(email: string, petName: string, sunSign
 
   try {
     const result = await resend.emails.send({
-      from: "Little Souls <hello@littlesouls.app>",
+      from: "Little Souls <noreply@littlesouls.app>",
       to: [email],
       subject: `${petName}'s weekly cosmic updates start this Sunday ✨`,
       html,
@@ -391,7 +391,63 @@ serve(async (req) => {
           } else {
             console.log("[STRIPE-WEBHOOK] Reports marked as paid:", reportIds);
           }
-          
+
+          // ────────────────────────────────────────────────────────────
+          // Charity donation ledger — 10% of net-paid + any bonus add-on.
+          // One row per session (UNIQUE stripe_session_id enforces idempotency).
+          // ────────────────────────────────────────────────────────────
+          try {
+            const charityIdMeta = session.metadata?.charity_id;
+            if (charityIdMeta) {
+              const CHARITY_NAMES: Record<string, string> = {
+                "ifaw": "International Fund for Animal Welfare",
+                "world-land-trust": "World Land Trust",
+                "eden-reforestation": "Eden Reforestation Projects",
+              };
+              const charityName = CHARITY_NAMES[charityIdMeta] || charityIdMeta;
+
+              const amountTotalCents = session.amount_total ?? 0;
+              const charityBonusDollars = parseInt(session.metadata?.charity_bonus || "0", 10) || 0;
+              const donationBonusCents = Math.max(0, charityBonusDollars * 100);
+              const orderAmountCents = Math.max(0, amountTotalCents - donationBonusCents);
+              const donationBaseCents = Math.round(orderAmountCents * 0.10);
+
+              const { error: donationError } = await supabaseClient
+                .from("charity_donations")
+                .insert({
+                  stripe_session_id: session.id,
+                  stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
+                  charity_id: charityIdMeta,
+                  charity_name: charityName,
+                  order_amount_cents: orderAmountCents,
+                  donation_base_cents: donationBaseCents,
+                  donation_bonus_cents: donationBonusCents,
+                  currency: session.currency || "usd",
+                  customer_email: session.customer_details?.email || session.customer_email || null,
+                  status: "pending",
+                });
+
+              if (donationError) {
+                // Unique violation = already recorded (idempotent replay). Anything else = log.
+                if (donationError.code === "23505") {
+                  console.log("[STRIPE-WEBHOOK] Donation already recorded for session:", session.id);
+                } else {
+                  console.error("[STRIPE-WEBHOOK] Donation insert failed:", donationError);
+                }
+              } else {
+                console.log("[STRIPE-WEBHOOK] Donation recorded:", {
+                  session: session.id,
+                  charity: charityIdMeta,
+                  base_cents: donationBaseCents,
+                  bonus_cents: donationBonusCents,
+                });
+              }
+            }
+          } catch (donationErr) {
+            console.error("[STRIPE-WEBHOOK] Donation recording threw:", donationErr);
+            // Never fail the webhook over donation bookkeeping — the order is real.
+          }
+
           // Handle coupon usage - manual increment
           const couponId = session.metadata?.coupon_id;
           if (couponId) {

@@ -34,6 +34,7 @@ const MyReports = lazy(() => import("./pages/MyReports"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminReports = lazy(() => import("./pages/AdminReports"));
+const AdminDonations = lazy(() => import("./pages/AdminDonations"));
 const AdminSubscriptions = lazy(() => import("./pages/AdminSubscriptions"));
 const AdminAffiliates = lazy(() => import("./pages/AdminAffiliates"));
 const AdminGifts = lazy(() => import("./pages/AdminGifts"));
@@ -155,6 +156,7 @@ const App = () => (
                   <Route path="/admin/login" element={<AdminLogin />} />
                   <Route path="/admin" element={<AdminDashboard />} />
                   <Route path="/admin/reports" element={<AdminReports />} />
+                  <Route path="/admin/donations" element={<AdminDonations />} />
                   <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
                   <Route path="/admin/affiliates" element={<AdminAffiliates />} />
                   <Route path="/admin/gifts" element={<AdminGifts />} />

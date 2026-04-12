@@ -11,7 +11,8 @@ import {
   Ticket,
   BarChart3,
   Newspaper,
-  FlaskConical
+  FlaskConical,
+  Heart
 } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { title: 'Page Analytics', path: '/admin/analytics', icon: BarChart3 },
   { title: 'Blog Stats', path: '/admin/blog', icon: Newspaper },
   { title: 'Pet Reports', path: '/admin/reports', icon: FileText },
+  { title: 'Charity Donations', path: '/admin/donations', icon: Heart },
   { title: 'Subscriptions', path: '/admin/subscriptions', icon: Mail },
   { title: 'Affiliates', path: '/admin/affiliates', icon: Users },
   { title: 'Gift Certificates', path: '/admin/gifts', icon: Gift },

@@ -27,30 +27,43 @@ function useIsInAppBrowser() {
   return isInApp;
 }
 
-const TIERS = [
+type FeatureKind = "plain" | "soulspeak" | "horoscope";
+
+interface Feature {
+  label: string;
+  kind?: FeatureKind;
+}
+
+const TIERS: Array<{
+  id: "basic" | "premium";
+  name: string;
+  price: number;
+  badge?: string;
+  features: Feature[];
+}> = [
   {
-    id: "basic" as const,
+    id: "basic",
     name: "Soul Reading",
     price: 27,
     features: [
-      "Full cosmic personality profile",
-      "Emotional blueprint & soul purpose",
-      "SoulSpeak chat included",
-      "Upload your pet's photo",
-      "Weekly horoscope (1st month free)",
+      { label: "Full cosmic personality profile" },
+      { label: "Emotional blueprint & soul purpose" },
+      { label: "SoulSpeak chat included", kind: "soulspeak" },
+      { label: "Upload your pet's photo" },
+      { label: "Weekly horoscope (1st month free)", kind: "horoscope" },
     ],
   },
   {
-    id: "premium" as const,
+    id: "premium",
     name: "Soul Bond",
     price: 35,
     badge: "Most Chosen",
     features: [
-      "Everything in Soul Reading, plus:",
-      "Pet & owner compatibility analysis",
-      "Your cosmic connection decoded",
-      "Custom cosmic portrait",
-      "Priority generation",
+      { label: "Everything in Soul Reading, plus:" },
+      { label: "Pet & owner compatibility analysis" },
+      { label: "Your cosmic connection decoded" },
+      { label: "Custom cosmic portrait" },
+      { label: "Priority generation" },
     ],
   },
 ];
@@ -67,8 +80,15 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  // Expanded feature preview — keyed as `${tierId}:${kind}` so only one can be open at a time.
+  const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
   const { ref: revealRef, visible } = useScrollReveal(0.05);
   const isInApp = useIsInAppBrowser();
+
+  const toggleFeature = (tierId: string, kind: FeatureKind) => {
+    const key = `${tierId}:${kind}`;
+    setExpandedFeature((curr) => (curr === key ? null : key));
+  };
 
   const selectedPrice = TIERS.find((t) => t.id === selectedTier)!.price;
 
@@ -241,20 +261,91 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 </div>
 
                 {/* Features */}
-                <ul className="space-y-1.5">
-                  {tier.features.map((f, fi) => (
-                    <li key={fi} className="flex items-start gap-1.5" style={{ fontSize: "0.78rem", color: "var(--earth, #6e6259)", lineHeight: 1.35 }}>
-                      <svg className="w-3 h-3 mt-0.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>{f}</span>
-                    </li>
-                  ))}
+                <ul className="space-y-1.5" onClick={(e) => e.stopPropagation()}>
+                  {tier.features.map((feature, fi) => {
+                    const expandable = feature.kind === "soulspeak" || feature.kind === "horoscope";
+                    const key = expandable ? `${tier.id}:${feature.kind}` : null;
+                    const isExpanded = key !== null && expandedFeature === key;
+                    return (
+                      <li key={fi} className="text-left" style={{ fontSize: "0.78rem", color: "var(--earth, #6e6259)", lineHeight: 1.35 }}>
+                        <div className="flex items-start gap-1.5">
+                          <svg className="w-3 h-3 mt-0.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                          {expandable ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                toggleFeature(tier.id, feature.kind as FeatureKind);
+                              }}
+                              aria-expanded={isExpanded}
+                              className="flex-1 flex items-center justify-between gap-1 text-left transition-opacity hover:opacity-80 focus:outline-none focus-visible:underline"
+                              style={{ minHeight: 22 }}
+                            >
+                              <span className="flex items-center gap-1.5 flex-wrap">
+                                <span>{feature.label}</span>
+                                {feature.kind === "soulspeak" && (
+                                  <span
+                                    style={{
+                                      fontFamily: "Cormorant, Georgia, serif",
+                                      fontSize: "0.58rem",
+                                      fontWeight: 700,
+                                      letterSpacing: "0.1em",
+                                      padding: "1px 6px",
+                                      borderRadius: 4,
+                                      background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                                      color: "#fff",
+                                      textTransform: "uppercase",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    New
+                                  </span>
+                                )}
+                              </span>
+                              <svg
+                                className="w-3 h-3 flex-shrink-0 transition-transform duration-200"
+                                style={{ color: "var(--muted, #958779)", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                                aria-hidden="true"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          ) : (
+                            <span className="flex-1">{feature.label}</span>
+                          )}
+                        </div>
+
+                        {expandable && isExpanded && (
+                          <div
+                            className="mt-2 ml-4 rounded-lg p-3"
+                            style={{
+                              background: "rgba(255, 253, 245, 0.7)",
+                              border: "1px solid var(--cream3, #f3eadb)",
+                              animation: "featurePreviewIn 0.25s ease",
+                            }}
+                          >
+                            {feature.kind === "soulspeak" && <SoulSpeakPreview />}
+                            {feature.kind === "horoscope" && <HoroscopePreview />}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </button>
             );
           })}
         </div>
+        <style>{`
+          @keyframes featurePreviewIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
 
         {/* In-app browser hint */}
         {isInApp && (
@@ -580,5 +671,105 @@ const PaymentBrandLogos = () => (
     <KlarnaLogo />
     <VisaLogo />
     <MastercardLogo />
+  </div>
+);
+
+/* ──────── Feature preview subcomponents ──────── */
+
+const SoulSpeakPreview = () => (
+  <div className="space-y-2">
+    <p
+      style={{
+        fontFamily: "Cormorant, Georgia, serif",
+        fontSize: "0.78rem",
+        fontWeight: 600,
+        color: "var(--ink, #1f1c18)",
+      }}
+    >
+      Have the conversation you've always wished you could have.
+    </p>
+    <div className="flex justify-end">
+      <div
+        className="px-3 py-1.5 rounded-xl rounded-br-sm"
+        style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "85%" }}
+      >
+        <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.74rem", lineHeight: 1.4 }}>
+          Why do you always steal my socks?
+        </p>
+      </div>
+    </div>
+    <div className="flex justify-start">
+      <div
+        className="px-3 py-1.5 rounded-xl rounded-bl-sm"
+        style={{ background: "var(--cream3, #f3eadb)", maxWidth: "90%" }}
+      >
+        <p
+          style={{
+            fontFamily: "Cormorant, Georgia, serif",
+            fontStyle: "italic",
+            fontSize: "0.74rem",
+            color: "var(--earth, #6e6259)",
+            lineHeight: 1.4,
+          }}
+        >
+          Because they smell like you. And when you leave, that's the closest thing I have to you being here.
+        </p>
+      </div>
+    </div>
+    <p
+      style={{
+        fontFamily: "Cormorant, Georgia, serif",
+        fontStyle: "italic",
+        fontSize: "0.7rem",
+        color: "var(--muted, #958779)",
+        textAlign: "center",
+      }}
+    >
+      Ask them anything. Hear what they'd say.
+    </p>
+  </div>
+);
+
+const HoroscopePreview = () => (
+  <div className="space-y-1.5">
+    <p
+      style={{
+        fontFamily: "Cormorant, Georgia, serif",
+        fontSize: "0.78rem",
+        fontWeight: 600,
+        color: "var(--ink, #1f1c18)",
+      }}
+    >
+      One month of weekly horoscopes — free.
+    </p>
+    <ul className="space-y-1" style={{ fontSize: "0.72rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
+      <li className="flex items-start gap-1.5">
+        <span style={{ color: "var(--gold, #c4a265)" }}>✦</span>
+        <span>Their cosmic mood for each day of the week</span>
+      </li>
+      <li className="flex items-start gap-1.5">
+        <span style={{ color: "var(--gold, #c4a265)" }}>✦</span>
+        <span>Lucky day, power move, and energy peaks</span>
+      </li>
+      <li className="flex items-start gap-1.5">
+        <span style={{ color: "var(--gold, #c4a265)" }}>✦</span>
+        <span>A pet-parent cosmic sync reading</span>
+      </li>
+      <li className="flex items-start gap-1.5">
+        <span style={{ color: "var(--gold, #c4a265)" }}>✦</span>
+        <span>Weekly affirmation written for your bond</span>
+      </li>
+    </ul>
+    <p
+      style={{
+        fontFamily: "Cormorant, Georgia, serif",
+        fontStyle: "italic",
+        fontSize: "0.68rem",
+        color: "var(--muted, #958779)",
+        textAlign: "center",
+      }}
+    >
+      Cancel anytime — first month is on us.
+    </p>
   </div>
 );

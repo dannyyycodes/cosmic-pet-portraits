@@ -18,77 +18,80 @@ function useScrollReveal(threshold = 0.15) {
 
 /* ──────── Charity data ──────── */
 
-type CharityId = "dogs-trust" | "ecologi" | "wwf";
+export type CharityId = "ifaw" | "world-land-trust" | "eden-reforestation";
 
 interface Charity {
   id: CharityId;
   name: string;
+  shortName: string;
   mission: string;
   tagline: string;
-  color: string;
+  website: string;
 }
 
 const CHARITIES: Charity[] = [
   {
-    id: "dogs-trust",
-    name: "Dogs Trust",
-    mission: "UK's largest dog welfare charity — rescue, rehoming, and a promise to never put a healthy dog down.",
-    tagline: "because every soul deserves love",
-    color: "#FFD700",
+    id: "ifaw",
+    name: "International Fund for Animal Welfare",
+    shortName: "IFAW",
+    mission: "Rescuing and rehabilitating animals in crisis across 40 countries — from disaster zones to wildlife rehab.",
+    tagline: "because every rescue is a second chance",
+    website: "https://www.ifaw.org",
   },
   {
-    id: "ecologi",
-    name: "Ecologi",
-    mission: "Funding verified tree planting and climate projects worldwide. Over 80 million trees planted.",
+    id: "world-land-trust",
+    name: "World Land Trust",
+    shortName: "World Land Trust",
+    mission: "Buying and protecting real habitat in Latin America, Africa, and Asia. Attenborough is their patron.",
+    tagline: "because wild souls need wild places",
+    website: "https://www.worldlandtrust.org",
+  },
+  {
+    id: "eden-reforestation",
+    name: "Eden Reforestation Projects",
+    shortName: "Eden Reforestation",
+    mission: "Planting trees and employing locals in ten countries. One of the most efficient reforestation charities on earth.",
     tagline: "because their world is our world too",
-    color: "#2ECC71",
-  },
-  {
-    id: "wwf",
-    name: "WWF",
-    mission: "Protecting wildlife and wild places across 100+ countries for over 60 years.",
-    tagline: "because wild souls need protecting",
-    color: "#000",
+    website: "https://www.edenprojects.org",
   },
 ];
 
-const BONUS_AMOUNTS = [1, 3, 5];
+const DEFAULT_CHARITY: CharityId = "ifaw";
 
-/* ──────── Charity icons (hand-drawn style) ──────── */
+/* ──────── Charity icons (hand-drawn, fallback if no logo asset) ──────── */
 
-const DogsTrustIcon = () => (
+const IFAWIcon = () => (
   <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 35c-4-3-14-9-14-18a7 7 0 0114-1 7 7 0 0114 1c0 9-10 15-14 18z" />
-    <circle cx="14" cy="16" r="1.2" fill="currentColor" />
-    <circle cx="26" cy="16" r="1.2" fill="currentColor" />
-    <path d="M17 22c1.5 1.5 4.5 1.5 6 0" />
+    <ellipse cx="12" cy="14" rx="2.4" ry="3" />
+    <ellipse cx="28" cy="14" rx="2.4" ry="3" />
+    <ellipse cx="8" cy="22" rx="2" ry="2.6" />
+    <ellipse cx="32" cy="22" rx="2" ry="2.6" />
+    <path d="M13 30c0-3.5 3-6.5 7-6.5s7 3 7 6.5c0 3-2.5 5-7 5s-7-2-7-5z" />
   </svg>
 );
 
-const EcologiIcon = () => (
+const WorldLandTrustIcon = () => (
   <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 36V18" />
-    <path d="M20 24c-6-2-10-8-8-16 6 0 12 4 12 12" />
-    <path d="M20 28c4-1.5 7-5 6-11-4.5 0-8.5 3-8 9" />
-    <path d="M15 36h10" />
+    <circle cx="20" cy="20" r="13" />
+    <path d="M7 20h26" />
+    <path d="M20 7c3 4 5 8 5 13s-2 9-5 13" />
+    <path d="M20 7c-3 4-5 8-5 13s2 9 5 13" />
   </svg>
 );
 
-const WWFIcon = () => (
+const EdenIcon = () => (
   <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="20" cy="18" r="12" />
-    <path d="M14 14a2.5 2.5 0 015 0M21 14a2.5 2.5 0 015 0" />
-    <circle cx="15" cy="19" r="1.5" fill="currentColor" />
-    <circle cx="25" cy="19" r="1.5" fill="currentColor" />
-    <ellipse cx="20" cy="23" rx="3" ry="2" />
-    <path d="M11 30c2 3 5.5 5 9 5s7-2 9-5" />
+    <path d="M20 36V16" />
+    <path d="M20 22c-6-2-10-8-8-16 6 0 12 4 12 12" />
+    <path d="M20 26c4-1.5 7-5 6-11-4.5 0-8.5 3-8 9" />
+    <path d="M14 36h12" />
   </svg>
 );
 
 const CHARITY_ICONS: Record<CharityId, () => JSX.Element> = {
-  "dogs-trust": DogsTrustIcon,
-  "ecologi": EcologiIcon,
-  "wwf": WWFIcon,
+  "ifaw": IFAWIcon,
+  "world-land-trust": WorldLandTrustIcon,
+  "eden-reforestation": EdenIcon,
 };
 
 /* ──────── Component ──────── */
@@ -96,27 +99,26 @@ const CHARITY_ICONS: Record<CharityId, () => JSX.Element> = {
 interface CharityPledgeProps {
   /** The base price of the selected tier (27 or 35) */
   selectedPrice?: number;
-  /** Callback when charity or bonus changes — parent can store for checkout */
+  /** Callback when charity selection changes — parent stores it for checkout */
   onChange?: (data: { charityId: CharityId; bonusAmount: number }) => void;
 }
 
 export const CharityPledge = ({ selectedPrice = 27, onChange }: CharityPledgeProps) => {
   const { ref, visible } = useScrollReveal(0.1);
-  const [selected, setSelected] = useState<CharityId>("dogs-trust");
-  const [bonus, setBonus] = useState(0);
+  const [selected, setSelected] = useState<CharityId>(DEFAULT_CHARITY);
 
-  const donationBase = +(selectedPrice * 0.1).toFixed(2);
-  const donationTotal = +(donationBase + bonus).toFixed(2);
+  const estimatedDonation = +(selectedPrice * 0.1).toFixed(2);
   const selectedCharity = CHARITIES.find((c) => c.id === selected)!;
 
   useEffect(() => {
-    onChange?.({ charityId: selected, bonusAmount: bonus });
-  }, [selected, bonus, onChange]);
+    onChange?.({ charityId: selected, bonusAmount: 0 });
+  }, [selected, onChange]);
 
   return (
     <section
       ref={ref}
-      className="relative py-14 sm:py-16 md:py-24 px-5 overflow-hidden"
+      aria-labelledby="charity-pledge-heading"
+      className="relative py-10 sm:py-14 md:py-20 px-5 overflow-hidden"
       style={{
         background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))",
       }}
@@ -124,137 +126,151 @@ export const CharityPledge = ({ selectedPrice = 27, onChange }: CharityPledgePro
       <div className="max-w-2xl mx-auto">
         {/* Gold divider top */}
         <div
-          className="mx-auto mb-10 transition-all duration-1000"
+          className="mx-auto mb-8"
           style={{
             width: visible ? 80 : 0,
             height: 1,
             background: "var(--gold, #c4a265)",
             opacity: 0.5,
+            transition: "width 1s ease",
           }}
         />
 
-        {/* Header */}
+        {/* Header — concise, global */}
         <div
-          className="text-center mb-8 transition-all duration-1000"
+          className="text-center mb-6 sm:mb-8"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
+            transition: "opacity 1s ease, transform 1s ease",
           }}
         >
-          {/* Decorative paw */}
-          <div className="mb-4" style={{ color: "var(--gold, #c4a265)", opacity: 0.5 }}>
-            <svg className="w-6 h-6 mx-auto" viewBox="0 0 24 24" fill="currentColor">
-              <ellipse cx="7" cy="7" rx="2.2" ry="2.8" />
-              <ellipse cx="17" cy="7" rx="2.2" ry="2.8" />
-              <ellipse cx="4" cy="13" rx="2" ry="2.5" />
-              <ellipse cx="20" cy="13" rx="2" ry="2.5" />
-              <path d="M7 17c0-2.5 2-5 5-5s5 2.5 5 5c0 2.5-2 4.5-5 4.5S7 19.5 7 17z" />
-            </svg>
-          </div>
-
-          <h2
+          <p
             style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.5rem, 5.5vw, 2.1rem)",
-              fontWeight: 400,
-              color: "var(--black, #141210)",
-              lineHeight: 1.15,
-              letterSpacing: "-0.02em",
-              marginBottom: 12,
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "var(--gold, #c4a265)",
+              marginBottom: 10,
             }}
           >
-            Every Portrait,
-            <br />
-            <em style={{ color: "var(--rose, #bf524a)" }}>a Little Kindness.</em>
+            10% of every order
+          </p>
+
+          <h2
+            id="charity-pledge-heading"
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.4rem, 5.2vw, 1.9rem)",
+              fontWeight: 400,
+              color: "var(--black, #141210)",
+              lineHeight: 1.2,
+              letterSpacing: "-0.02em",
+              marginBottom: 10,
+            }}
+          >
+            Choose where it goes.
           </h2>
           <p
             style={{
               fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "clamp(1rem, 3.5vw, 1.12rem)",
+              fontSize: "clamp(0.95rem, 3.3vw, 1.05rem)",
               color: "var(--earth, #6e6259)",
               lineHeight: 1.55,
-              maxWidth: 480,
+              maxWidth: 440,
               margin: "0 auto",
             }}
           >
-            10% of every order goes directly to protecting animals, planting trees,
-            and conserving wildlife — and you choose where.
+            Three globally trusted charities. One tap to pick — we handle the donation every month.
           </p>
         </div>
 
-        {/* Charity cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
+        {/* Charity cards — mobile: stacked 1-col, desktop: 3-col */}
+        <div
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6"
+          role="radiogroup"
+          aria-label="Choose a charity"
+        >
           {CHARITIES.map((charity, i) => {
             const isSelected = selected === charity.id;
             const Icon = CHARITY_ICONS[charity.id];
             return (
               <button
                 key={charity.id}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
                 onClick={() => setSelected(charity.id)}
-                aria-pressed={isSelected}
-                className="relative text-left rounded-xl p-4 sm:p-5 transition-all duration-300 active:scale-[0.98]"
+                className="relative text-left rounded-xl p-4 sm:p-5 transition-all duration-300 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 style={{
                   background: isSelected ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.7)",
                   border: isSelected
                     ? "2px solid var(--gold, #c4a265)"
                     : "1px solid var(--sand, #e8ddd0)",
                   boxShadow: isSelected
-                    ? "0 4px 20px rgba(196,162,101,0.15)"
+                    ? "0 4px 20px rgba(196,162,101,0.18)"
                     : "0 1px 8px rgba(0,0,0,0.03)",
-                  transform: isSelected ? "scale(1.02)" : "scale(1)",
+                  transform: isSelected ? "scale(1.015)" : "scale(1)",
                   opacity: visible ? 1 : 0,
-                  transitionDelay: `${0.15 + i * 0.08}s`,
+                  transitionDelay: `${0.12 + i * 0.07}s`,
+                  minHeight: 52,
                 }}
               >
-                {/* Selected indicator */}
+                {/* Selected checkmark */}
                 {isSelected && (
                   <div
                     className="absolute top-3 right-3"
                     style={{ color: "var(--gold, #c4a265)" }}
+                    aria-hidden="true"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l2.4 7.2H22l-6 4.4 2.4 7.4L12 17l-6.4 4 2.4-7.4-6-4.4h7.6z" />
+                      <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                     </svg>
                   </div>
                 )}
 
-                {/* Icon */}
-                <div
-                  className="w-12 h-12 mb-3 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: isSelected
-                      ? "rgba(196,162,101,0.12)"
-                      : "rgba(196,162,101,0.06)",
-                    color: isSelected
-                      ? "var(--rose, #bf524a)"
-                      : "var(--earth, #6e6259)",
-                    transition: "all 0.3s ease",
-                  }}
-                >
-                  <div style={{ width: 28, height: 28 }}>
-                    <Icon />
+                {/* Icon + name row on mobile, stacked on desktop */}
+                <div className="flex items-center gap-3 sm:block">
+                  <div
+                    className="w-11 h-11 sm:w-12 sm:h-12 sm:mb-3 rounded-xl flex items-center justify-center shrink-0"
+                    style={{
+                      background: isSelected
+                        ? "rgba(196,162,101,0.14)"
+                        : "rgba(196,162,101,0.06)",
+                      color: isSelected
+                        ? "var(--rose, #bf524a)"
+                        : "var(--earth, #6e6259)",
+                      transition: "all 0.3s ease",
+                    }}
+                  >
+                    <div style={{ width: 26, height: 26 }}>
+                      <Icon />
+                    </div>
                   </div>
+
+                  <h3
+                    style={{
+                      fontFamily: '"DM Serif Display", Georgia, serif',
+                      fontSize: "1rem",
+                      color: "var(--ink, #1f1c18)",
+                      marginBottom: 0,
+                      paddingRight: isSelected ? 22 : 0,
+                    }}
+                    className="sm:pr-0"
+                  >
+                    {charity.shortName}
+                  </h3>
                 </div>
 
-                {/* Name */}
-                <h3
-                  style={{
-                    fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontSize: "1rem",
-                    color: "var(--ink, #1f1c18)",
-                    marginBottom: 4,
-                  }}
-                >
-                  {charity.name}
-                </h3>
-
-                {/* Mission */}
                 <p
+                  className="mt-2 sm:mt-0"
                   style={{
                     fontFamily: "Cormorant, Georgia, serif",
-                    fontSize: "0.82rem",
+                    fontSize: "0.85rem",
                     color: "var(--muted, #958779)",
-                    lineHeight: 1.45,
+                    lineHeight: 1.5,
                   }}
                 >
                   {charity.mission}
@@ -266,123 +282,59 @@ export const CharityPledge = ({ selectedPrice = 27, onChange }: CharityPledgePro
 
         {/* Donation confirmation line */}
         <div
-          className="text-center mb-6 transition-all duration-700"
+          className="text-center"
           style={{
             opacity: visible ? 1 : 0,
-            transitionDelay: "0.4s",
+            transform: visible ? "translateY(0)" : "translateY(10px)",
+            transition: "opacity 0.7s ease 0.35s, transform 0.7s ease 0.35s",
           }}
         >
           <p
             style={{
               fontFamily: "Cormorant, Georgia, serif",
-              fontSize: "clamp(0.98rem, 3.3vw, 1.08rem)",
+              fontSize: "clamp(0.92rem, 3.1vw, 1.02rem)",
               color: "var(--earth, #6e6259)",
-              lineHeight: 1.55,
+              lineHeight: 1.6,
             }}
           >
+            Your order sends about{" "}
             <span style={{ color: "var(--rose, #bf524a)", fontWeight: 600 }}>
-              ${donationTotal.toFixed(2)}
+              ${estimatedDonation.toFixed(2)}
             </span>
-            {" from your order goes to "}
+            {" to "}
             <span style={{ color: "var(--rose, #bf524a)", fontWeight: 600 }}>
-              {selectedCharity.name}
+              {selectedCharity.shortName}
             </span>
             {" — "}
             <em style={{ color: "var(--muted, #958779)" }}>
               {selectedCharity.tagline}
             </em>
           </p>
-        </div>
-
-        {/* Bonus donation */}
-        <div
-          className="text-center transition-all duration-700"
-          style={{
-            opacity: visible ? 1 : 0,
-            transitionDelay: "0.5s",
-          }}
-        >
           <p
-            className="mb-3"
+            className="mt-1.5"
             style={{
               fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.78rem",
               fontStyle: "italic",
-              fontSize: "0.92rem",
-              color: "var(--muted, #958779)",
+              color: "var(--faded, #bfb2a3)",
             }}
           >
-            Want to add a little extra?
+            Exact amount = 10% of what you actually pay (after any discounts).
           </p>
-          <div className="flex items-center justify-center gap-3">
-            {BONUS_AMOUNTS.map((amount) => {
-              const isActive = bonus === amount;
-              return (
-                <button
-                  key={amount}
-                  onClick={() => setBonus(isActive ? 0 : amount)}
-                  className="transition-all duration-200 active:scale-[0.95]"
-                  style={{
-                    fontFamily: "Cormorant, Georgia, serif",
-                    fontSize: "0.92rem",
-                    fontWeight: 600,
-                    padding: "8px 22px",
-                    borderRadius: 100,
-                    border: isActive
-                      ? "1.5px solid var(--rose, #bf524a)"
-                      : "1.5px solid var(--sand, #e8ddd0)",
-                    background: isActive
-                      ? "var(--rose, #bf524a)"
-                      : "transparent",
-                    color: isActive
-                      ? "#fff"
-                      : "var(--earth, #6e6259)",
-                    cursor: "pointer",
-                  }}
-                >
-                  +${amount}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Running total when bonus selected */}
-          {bonus > 0 && (
-            <p
-              className="mt-3"
-              style={{
-                fontFamily: "Cormorant, Georgia, serif",
-                fontSize: "0.82rem",
-                color: "var(--muted, #958779)",
-                animation: "charityFadeIn 0.3s ease",
-              }}
-            >
-              Total going to {selectedCharity.name}:{" "}
-              <strong style={{ color: "var(--ink, #1f1c18)" }}>
-                ${donationTotal.toFixed(2)}
-              </strong>
-            </p>
-          )}
         </div>
 
         {/* Gold divider bottom */}
         <div
-          className="mx-auto mt-10 transition-all duration-1000"
+          className="mx-auto mt-8"
           style={{
             width: visible ? 80 : 0,
             height: 1,
             background: "var(--gold, #c4a265)",
             opacity: 0.5,
-            transitionDelay: "0.6s",
+            transition: "width 1s ease 0.5s",
           }}
         />
       </div>
-
-      <style>{`
-        @keyframes charityFadeIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </section>
   );
 };

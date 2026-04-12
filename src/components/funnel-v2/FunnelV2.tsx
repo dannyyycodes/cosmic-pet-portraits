@@ -6,7 +6,6 @@ import { HeroV2 } from "./HeroV2";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
-import { HowItWorks } from "./HowItWorks";
 import { CharityPledge } from "./CharityPledge";
 import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
@@ -57,7 +56,7 @@ export const FunnelV2 = () => {
   const [exitSubmitted, setExitSubmitted] = useState(false);
   const [showScrollNudge, setShowScrollNudge] = useState(false);
   const [scrollNudgeDismissed, setScrollNudgeDismissed] = useState(false);
-  const [charityId, setCharityId] = useState("dogs-trust");
+  const [charityId, setCharityId] = useState("ifaw");
   const [charityBonus, setCharityBonus] = useState(0);
   const isMobile = useIsMobile();
 
@@ -147,17 +146,16 @@ export const FunnelV2 = () => {
         charityBonus={charityBonus}
       />
 
-      {/* Below checkout: objection-handlers for hesitators */}
-      <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
-        <GoldDivider />
-      </div>
-      <HowItWorks />
+      {/* Charity selector — directly under the Begin Their Reading CTA */}
       <CharityPledge
         onChange={({ charityId: id, bonusAmount }) => {
           setCharityId(id);
           setCharityBonus(bonusAmount);
         }}
       />
+      <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
+        <GoldDivider />
+      </div>
       <FAQSection />
 
       {/* Final emotional CTA */}
@@ -448,48 +446,6 @@ const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: 
     style={{ background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))" }}
   >
     <div className="max-w-lg mx-auto">
-      {/* Universal soul-level close */}
-      <p
-        style={{
-          fontFamily: '"DM Serif Display", Georgia, serif',
-          fontSize: "clamp(1.5rem, 6.2vw, 2.1rem)",
-          color: "var(--black, #141210)",
-          lineHeight: 1.15,
-          letterSpacing: "-0.02em",
-          marginBottom: 8,
-        }}
-      >
-        There's a Love Here
-      </p>
-      <p
-        style={{
-          fontFamily: '"DM Serif Display", Georgia, serif',
-          fontStyle: "italic",
-          fontSize: "clamp(1.5rem, 6.2vw, 2.1rem)",
-          color: "var(--rose, #bf524a)",
-          lineHeight: 1.15,
-          letterSpacing: "-0.02em",
-          marginBottom: 24,
-        }}
-      >
-        You've Always Recognised.
-      </p>
-
-      <p
-        style={{
-          fontFamily: "Cormorant, Georgia, serif",
-          fontStyle: "italic",
-          fontSize: "clamp(1.1rem, 3.8vw, 1.3rem)",
-          color: "var(--earth, #6e6259)",
-          lineHeight: 1.5,
-          marginBottom: 28,
-          maxWidth: 420,
-          margin: "0 auto 28px",
-        }}
-      >
-        You just never had the words for it.
-      </p>
-
       <button
         onClick={onCtaClick}
         className="group inline-flex items-center gap-2 px-8 sm:px-10 py-4 rounded-full text-white font-semibold transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
@@ -509,10 +465,6 @@ const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: 
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
         </svg>
       </button>
-
-      <p className="mt-5" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", fontStyle: "italic", color: "var(--muted, #958779)" }}>
-        Also available in memorial mode for pets who've crossed the rainbow bridge.
-      </p>
     </div>
   </section>
 );
