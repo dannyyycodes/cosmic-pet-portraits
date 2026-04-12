@@ -234,14 +234,26 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 key={tier.id}
                 onClick={() => handleTierChange(tier.id)}
                 aria-pressed={isSelected}
-                aria-label={`Select ${tier.name} — $${tier.price}`}
+                aria-label={`Select ${tier.name}`}
                 className="relative text-left rounded-xl p-3.5 sm:p-4 transition-all duration-300 active:scale-[0.99]"
                 style={{
-                  background: "#fff",
-                  border: isSelected ? "2px solid var(--rose, #bf524a)" : "1px solid rgba(0,0,0,0.08)",
-                  boxShadow: isSelected ? "0 0 0 3px rgba(191,82,74,0.1), 0 4px 20px rgba(0,0,0,0.06)" : "0 1px 8px rgba(0,0,0,0.03)",
+                  // Tier-tinted fill behind a gold-gradient frame.
+                  // Basic = pure cream. Premium = subtle gold-tinted cream.
+                  background: (() => {
+                    const fill = tier.id === "premium"
+                      ? "linear-gradient(180deg, #fbf4e4 0%, #FFFDF5 100%)"
+                      : "#FFFDF5";
+                    const frame = isSelected
+                      ? "linear-gradient(135deg, #d4b26b 0%, #bf524a 50%, #d4b26b 100%)"
+                      : "linear-gradient(135deg, rgba(196,162,101,0.35) 0%, rgba(212,178,107,0.2) 100%)";
+                    return `${fill} padding-box, ${frame} border-box`;
+                  })(),
+                  border: isSelected ? "2px solid transparent" : "1.5px solid transparent",
+                  boxShadow: isSelected
+                    ? "0 0 0 3px rgba(196,162,101,0.14), 0 6px 22px rgba(0,0,0,0.07)"
+                    : "0 1px 10px rgba(0,0,0,0.04)",
                   opacity: visible ? 1 : 0,
-                  transform: visible ? "translateY(0)" : "translateY(15px)",
+                  transform: visible ? (isSelected ? "translateY(-2px)" : "translateY(0)") : "translateY(15px)",
                   transitionDelay: `${0.1 + i * 0.08}s`,
                   minHeight: 180,
                 }}
@@ -278,14 +290,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   </span>
                 </div>
 
-                {/* Features */}
-                <ul className="space-y-1.5" onClick={(e) => e.stopPropagation()}>
+                {/* Features — alternating zebra rows for easier scanning */}
+                <ul className="rounded-lg overflow-hidden" onClick={(e) => e.stopPropagation()} style={{ border: "1px solid rgba(196,162,101,0.12)" }}>
                   {tier.features.map((feature, fi) => {
                     const expandable = feature.kind === "soulspeak" || feature.kind === "horoscope";
                     const key = expandable ? `${tier.id}:${feature.kind}` : null;
                     const isExpanded = key !== null && expandedFeature === key;
                     return (
-                      <li key={fi} className="text-left" style={{ fontSize: "0.78rem", color: "var(--earth, #6e6259)", lineHeight: 1.35 }}>
+                      <li
+                        key={fi}
+                        className="text-left px-2 py-1.5"
+                        style={{
+                          fontSize: "0.78rem",
+                          color: "var(--earth, #6e6259)",
+                          lineHeight: 1.35,
+                          background: fi % 2 === 0 ? "rgba(255,255,255,0.55)" : "rgba(246,241,230,0.55)",
+                        }}
+                      >
                         <div className="flex items-start gap-1.5">
                           <svg className="w-3 h-3 mt-0.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

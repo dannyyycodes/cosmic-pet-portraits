@@ -328,20 +328,24 @@ export const FunnelV2 = () => {
 
 const FAQ_ITEMS = [
   {
-    q: "What exactly do I receive?",
-    a: "A deeply personal cosmic reading with 30+ sections covering personality, emotional blueprint, soul purpose, love language, hidden fears, and more. Plus SoulSpeak chat where you can ask your pet anything and hear what they'd say. Revealed through a cinematic experience the moment it's ready.",
+    q: "What's inside the reading?",
+    a: "Honestly — more than you'd expect. A full cosmic portrait with 30+ sections: their personality, emotional blueprint, soul purpose, love language, hidden fears, the things they wish you knew. Plus SoulSpeak, where you can ask them literally anything and hear what they'd say back. And tucked inside each reading are a handful of little surprises we don't advertise — small, strange, oddly specific things we've made just for them. Some will make you laugh. Some will make you tear up.",
   },
   {
-    q: "Do I need my pet's exact birthday?",
-    a: "No. A birthday is ideal, but an estimated date or adoption date works well too. Birth time is optional. Even approximate dates produce readings our customers call 'scarily accurate.'",
+    q: "How does it arrive?",
+    a: "Not in your inbox — that would be too ordinary. Your reading unfolds through a private cinematic reveal, a slow and emotional unveiling made to be felt, not skimmed. You'll verify your email first (so only you can open it), and if you create a free account you can come back anytime, from any device. It's yours forever.",
   },
   {
-    q: "What's the difference between Soul Reading and Soul Bond?",
-    a: "Soul Reading ($27) gives you the full cosmic portrait plus SoulSpeak chat. Soul Bond ($35) adds a deep compatibility analysis between you and your pet, plus a custom cosmic portrait.",
+    q: "Do I need their exact birthday?",
+    a: "At the very least, we need their day of birth. If you don't know it exactly, an estimated date or adoption date works too — we'll still give you a beautiful reading, it just won't be quite as precise. Birth time is optional and just makes it sharper. The more accurate the date, the more accurate the stars.",
   },
   {
-    q: "What if it's not accurate?",
-    a: "Full refund, no questions asked. If your reading doesn't resonate, you don't pay. We stand behind every single portrait.",
+    q: "Soul Reading or Soul Bond?",
+    a: "Both are gorgeous. Soul Reading gives you the full cosmic portrait plus SoulSpeak. Soul Bond layers on top: a deep compatibility analysis between you two, your cosmic connection decoded, and priority generation. Go Soul Bond if you want to understand the why of you and them, together.",
+  },
+  {
+    q: "What if it doesn't feel accurate?",
+    a: "We'd want to know. If the reading doesn't resonate with you, reach out — reply to any email from us or use the contact form — and we'll make it right. Every reading has our name on it, and we treat them that way.",
   },
   {
     q: "Can I get a reading for a pet who's passed away?",
