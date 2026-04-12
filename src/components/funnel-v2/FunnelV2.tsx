@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
-import { useFunnelV2Variant } from "@/hooks/useFunnelV2Variant";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
@@ -9,42 +8,18 @@ import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 
 /**
- * V2 copy variants — A (control) / B (test).
- * Tested: hero headline, hero subhead, primary CTA, checkout subheader.
- * Tracked via usePageAnalytics (funnel_v2_variant field on every event).
- */
-/**
- * V2 COPY — brand voice narration, universal soul-level language.
- *
- * Core emotional frame: "a love you've recognised but never fully
- * understood." Works for any species — no behavior descriptions,
- * no door-waiting, no head-pressing, no tail wags. Dogs, cats,
- * horses, fish, rabbits, birds, reptiles — every pet parent
- * recognises the bond even if they can't name it.
- *
- * A/B test: A uses the classic "There's a Reason They Chose You"
- * hook, B uses "Before Them, You Didn't Know Love Could Feel Like
- * This." Both land on the same emotional truth from different angles.
- *
- * Inline <b> tags render via dangerouslySetInnerHTML in the hero
- * and checkout subheaders for dual-path skim hierarchy.
+ * V2 COPY — single, universal set. A/B test retired; 100% of traffic
+ * sees this copy. Inline <b> tags render via dangerouslySetInnerHTML
+ * in the checkout subheader for dual-path skim hierarchy.
  */
 const COPY = {
-  A: {
-    ctaPrimary: "Begin Their Reading",
-    checkoutSub:
-      "Finally put words to the love you've always felt. <b>The story of a bond deeper than you could ever explain.</b>",
-  },
-  B: {
-    ctaPrimary: "Begin Their Reading",
-    checkoutSub:
-      "Finally put words to the love you've always felt. <b>The story of a bond deeper than you could ever explain.</b>",
-  },
+  ctaPrimary: "Begin Their Reading",
+  checkoutSub:
+    "Finally put words to the love you've always felt. <b>The story of a bond deeper than you could ever explain.</b>",
 } as const;
 
 export const FunnelV2 = () => {
-  const { variant } = useFunnelV2Variant();
-  const copy = COPY[variant];
+  const copy = COPY;
   const checkoutRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const [showStickyCta, setShowStickyCta] = useState(false);
