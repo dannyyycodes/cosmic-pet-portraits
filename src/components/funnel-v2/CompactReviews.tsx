@@ -209,14 +209,41 @@ export const CompactReviews = () => {
       }}
     >
       <div
-        className="marquee-container flex flex-col gap-4 transition-all duration-[1400ms]"
+        className="flex flex-col transition-all duration-[1400ms]"
         style={{
           opacity: visible ? 1 : 0,
           transitionDelay: "0.1s",
         }}
       >
-        <MarqueeRow reviews={ROW_1} direction="left" speed={200} />
-        <MarqueeRow reviews={ROW_2} direction="right" speed={220} />
+        <div className="marquee-container">
+          <MarqueeRow reviews={ROW_1} direction="left" speed={200} />
+        </div>
+
+        {/* Centerpiece quote between rows */}
+        <div className="px-5 py-8 sm:py-10 text-center">
+          <p
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.3rem, 5vw, 1.9rem)",
+              fontWeight: 400,
+              color: "var(--black, #141210)",
+              lineHeight: 1.2,
+              letterSpacing: "-0.02em",
+              maxWidth: 560,
+              margin: "0 auto",
+            }}
+          >
+            They Give Us Everything.
+            <br />
+            <em style={{ color: "var(--rose, #bf524a)" }}>
+              It's Time We Understood Them in Return.
+            </em>
+          </p>
+        </div>
+
+        <div className="marquee-container">
+          <MarqueeRow reviews={ROW_2} direction="right" speed={220} />
+        </div>
       </div>
 
       <style>{`

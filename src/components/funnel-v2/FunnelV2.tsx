@@ -6,7 +6,6 @@ import { HeroV2 } from "./HeroV2";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
-import { CharityPledge } from "./CharityPledge";
 import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 
@@ -146,13 +145,6 @@ export const FunnelV2 = () => {
         charityBonus={charityBonus}
       />
 
-      {/* Charity selector — directly under the Begin Their Reading CTA */}
-      <CharityPledge
-        onChange={({ charityId: id, bonusAmount }) => {
-          setCharityId(id);
-          setCharityBonus(bonusAmount);
-        }}
-      />
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
         <GoldDivider />
       </div>

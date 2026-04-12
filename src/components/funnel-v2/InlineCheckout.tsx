@@ -75,13 +75,17 @@ interface InlineCheckoutProps {
   charityBonus?: number;
 }
 
-export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, subheader, charityId, charityBonus = 0 }, forwardedRef) => {
+export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, subheader, charityId: charityIdProp, charityBonus = 0 }, forwardedRef) => {
   const [selectedTier, setSelectedTier] = useState<"basic" | "premium">("basic");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   // Expanded feature preview — keyed as `${tierId}:${kind}` so only one can be open at a time.
   const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
+  // Charity selection lives in the checkout card itself (compact brand row near payment badges).
+  const [selectedCharity, setSelectedCharity] = useState<"ifaw" | "world-land-trust" | "eden-reforestation">(
+    (charityIdProp as "ifaw" | "world-land-trust" | "eden-reforestation") || "ifaw"
+  );
   const { ref: revealRef, visible } = useScrollReveal(0.05);
   const isInApp = useIsInAppBrowser();
 
@@ -124,7 +128,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     }
     setError("");
     setIsLoading(true);
-    trackFunnelEvent("v2_checkout_clicked", { tier: selectedTier, price: selectedPrice, isInApp, charityId, charityBonus });
+    trackFunnelEvent("v2_checkout_clicked", { tier: selectedTier, price: selectedPrice, isInApp, charityId: selectedCharity, charityBonus });
 
     try {
       const refCode = getReferralCode();
@@ -137,7 +141,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           petCount: 1,
           quickCheckoutEmail: email.trim(),
           referralCode: refCode || undefined,
-          charityId: charityId || undefined,
+          charityId: selectedCharity,
           charityBonus: charityBonus || 0,
         },
       });
@@ -525,6 +529,20 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           ))}
         </div>
 
+        {/* Charity brand row — 10% of the order goes here. Inline with the payment badges. */}
+        <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
+        <p
+          className="text-center mt-2 mb-4"
+          style={{
+            fontFamily: "Cormorant, Georgia, serif",
+            fontSize: "0.72rem",
+            color: "var(--muted, #958779)",
+            letterSpacing: "0.02em",
+          }}
+        >
+          10% of your order supports your chosen charity.
+        </p>
+
         {/* Real payment brand logos — legit trust row */}
         <PaymentBrandLogos />
         <p
@@ -672,6 +690,188 @@ const PaymentBrandLogos = () => (
     <VisaLogo />
     <MastercardLogo />
   </div>
+);
+
+/* ──────── Charity brand row ──────── */
+// Stylised wordmark badges for the 3 charities. Uses the same BadgeWrap
+// visual language as the payment-method badges so they sit cleanly in the
+// same trust row. Swap the inner <svg>s for the real brand-supplied logo
+// assets when Danny has them in /public/charities/.
+
+type CharitySlug = "ifaw" | "world-land-trust" | "eden-reforestation";
+
+const CHARITY_BRAND_META: Record<CharitySlug, { label: string; tagline: string }> = {
+  "ifaw": { label: "IFAW", tagline: "animal rescue, worldwide" },
+  "world-land-trust": { label: "World Land Trust", tagline: "protecting wild habitat" },
+  "eden-reforestation": { label: "Eden Reforestation", tagline: "trees, plus local jobs" },
+};
+
+const CharityBrandRow = ({
+  selected,
+  onSelect,
+}: {
+  selected: CharitySlug;
+  onSelect: (id: CharitySlug) => void;
+}) => {
+  const meta = CHARITY_BRAND_META[selected];
+  return (
+    <div>
+      <p
+        className="text-center mb-2"
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontSize: "0.72rem",
+          fontWeight: 600,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: "var(--gold, #c4a265)",
+        }}
+      >
+        Your donation goes to
+      </p>
+      <div className="flex flex-wrap justify-center items-center gap-2" role="radiogroup" aria-label="Choose a charity">
+        <CharityBadgeButton id="ifaw" selected={selected === "ifaw"} onSelect={onSelect}>
+          <IFAWMark />
+        </CharityBadgeButton>
+        <CharityBadgeButton id="world-land-trust" selected={selected === "world-land-trust"} onSelect={onSelect}>
+          <WorldLandTrustMark />
+        </CharityBadgeButton>
+        <CharityBadgeButton id="eden-reforestation" selected={selected === "eden-reforestation"} onSelect={onSelect}>
+          <EdenReforestationMark />
+        </CharityBadgeButton>
+      </div>
+      <p
+        className="text-center mt-2"
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontSize: "0.72rem",
+          fontStyle: "italic",
+          color: "var(--muted, #958779)",
+        }}
+      >
+        {meta.label} — {meta.tagline}
+      </p>
+    </div>
+  );
+};
+
+const CharityBadgeButton = ({
+  id,
+  selected,
+  onSelect,
+  children,
+}: {
+  id: CharitySlug;
+  selected: boolean;
+  onSelect: (id: CharitySlug) => void;
+  children: ReactNode;
+}) => (
+  <button
+    type="button"
+    role="radio"
+    aria-checked={selected}
+    aria-label={CHARITY_BRAND_META[id].label}
+    onClick={() => onSelect(id)}
+    className="flex items-center justify-center transition-all duration-200 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
+    style={{
+      height: 36,
+      minWidth: 96,
+      padding: "0 10px",
+      background: "#fff",
+      borderRadius: 6,
+      border: selected ? "2px solid var(--gold, #c4a265)" : "1px solid var(--cream3, #f3eadb)",
+      boxShadow: selected ? "0 2px 10px rgba(196,162,101,0.2)" : "none",
+    }}
+  >
+    {children}
+  </button>
+);
+
+/* Placeholder wordmarks — replace with brand-supplied SVG assets when available.
+ * Kept as inline SVG <text> so they share the payment-badge visual weight
+ * and don't require a separate asset request per page load. */
+
+const IFAWMark = () => (
+  <svg width="64" height="18" viewBox="0 0 64 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <text
+      x="32"
+      y="13"
+      textAnchor="middle"
+      fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      fontSize="12"
+      fontWeight="800"
+      letterSpacing="1.4"
+      fill="#C4302B"
+    >
+      IFAW
+    </text>
+  </svg>
+);
+
+const WorldLandTrustMark = () => (
+  <svg width="104" height="20" viewBox="0 0 104 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g fill="none" stroke="#2f7a3a" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="10" cy="10" r="6" />
+      <path d="M4 10h12" />
+      <path d="M10 4c2 2 3 4 3 6s-1 4-3 6" />
+      <path d="M10 4c-2 2-3 4-3 6s1 4 3 6" />
+    </g>
+    <text
+      x="22"
+      y="9"
+      fontFamily="Georgia, serif"
+      fontSize="7"
+      fontWeight="700"
+      letterSpacing="0.4"
+      fill="#2f3a2a"
+    >
+      WORLD LAND
+    </text>
+    <text
+      x="22"
+      y="17"
+      fontFamily="Georgia, serif"
+      fontSize="7"
+      fontWeight="700"
+      letterSpacing="0.4"
+      fill="#2f3a2a"
+    >
+      TRUST
+    </text>
+  </svg>
+);
+
+const EdenReforestationMark = () => (
+  <svg width="96" height="20" viewBox="0 0 96 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <g fill="none" stroke="#2f7a3a" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 17V9" />
+      <path d="M10 12c-3-1-5-4-4-8 3 0 6 2 6 6" />
+      <path d="M10 14c2-1 4-3 3-6-2 0-4 2-4 5" />
+      <path d="M6 17h8" />
+    </g>
+    <text
+      x="20"
+      y="9"
+      fontFamily="Georgia, serif"
+      fontSize="7"
+      fontWeight="700"
+      letterSpacing="0.4"
+      fill="#2f3a2a"
+    >
+      EDEN
+    </text>
+    <text
+      x="20"
+      y="17"
+      fontFamily="Georgia, serif"
+      fontSize="6.5"
+      fontWeight="600"
+      letterSpacing="0.3"
+      fill="#6e6259"
+    >
+      REFORESTATION
+    </text>
+  </svg>
 );
 
 /* ──────── Feature preview subcomponents ──────── */

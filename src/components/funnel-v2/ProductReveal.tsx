@@ -122,7 +122,22 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
   return (
     <section ref={ref} className="relative overflow-hidden">
 
-      {/* ── Block 1: The Promise ── warm sand with constellation atmosphere */}
+      {/* ── Block 1: The Science ── clean cream (Real Astronomy first, per spec) */}
+      <div
+        className="px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
+        style={{
+          background: "#f8f3ea",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(20px)",
+          transitionDelay: "0.1s",
+        }}
+      >
+        <div className="max-w-[520px] mx-auto">
+          <VsopCredibility />
+        </div>
+      </div>
+
+      {/* ── Block 2: The Benefits ── warm sand with constellation atmosphere */}
       <div
         className="relative px-5 py-20 sm:py-28 md:py-32 overflow-hidden"
         style={{ background: "radial-gradient(ellipse 85% 65% at 50% 38%, #efe3d0 0%, #f5ede0 60%)" }}
@@ -324,22 +339,8 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
 
       </div>
 
-      {/* ── Block 2: The Science ── clean cream */}
-      <div
-        className="px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
-        style={{
-          background: "#f8f3ea",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(20px)",
-          transitionDelay: "0.2s",
-        }}
-      >
-        <div className="max-w-[520px] mx-auto">
-          <VsopCredibility />
-        </div>
-      </div>
-
-      {/* ── Block 3: SoulSpeak ── warmest gradient */}
+      {/* ── SoulSpeak section removed — moved into pricing card tap-to-expand preview ── */}
+      {false && (
       <div
         className="px-5 py-14 sm:py-18 transition-all duration-[1200ms] ease-out"
         style={{
@@ -452,6 +453,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           </div>
         </div>
       </div>
+      )}
 
       {/* ── CTA ── */}
       <div
