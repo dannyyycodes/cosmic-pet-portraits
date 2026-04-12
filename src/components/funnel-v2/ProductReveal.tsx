@@ -261,24 +261,36 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         }}
       >
         <div className="max-w-[560px] mx-auto">
-          {/* Opening quote (moved out of hero) — Cormorant italic, full black, bold, unique voice */}
-          <h2
-            className="text-center"
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontStyle: "italic",
-              fontSize: "clamp(1.35rem, 5.4vw, 1.85rem)",
-              fontWeight: 700,
-              color: "var(--black, #141210)",
-              lineHeight: 1.25,
-              letterSpacing: "-0.005em",
-              marginBottom: 40,
-            }}
-          >
-            They Give Us Everything.
-            <br />
-            It&apos;s Time We Understood Them in Return.
-          </h2>
+          {/* Opening quote — editorial pull-quote treatment */}
+          <div className="mb-10" style={{ marginBottom: 44 }}>
+            {/* Small gold flourish above */}
+            <div className="flex items-center justify-center gap-2 mb-5" aria-hidden="true">
+              <div style={{ width: 40, height: 1, background: "linear-gradient(90deg, transparent, var(--gold, #c4a265))", opacity: 0.7 }} />
+              <svg width="8" height="8" viewBox="0 0 10 10">
+                <path d="M5 0l2 5-2 5-2-5z" fill="var(--gold, #c4a265)" opacity="0.8" />
+              </svg>
+              <div style={{ width: 40, height: 1, background: "linear-gradient(270deg, transparent, var(--gold, #c4a265))", opacity: 0.7 }} />
+            </div>
+
+            <h2
+              className="text-center"
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.55rem, 6.2vw, 2.2rem)",
+                fontWeight: 400,
+                color: "var(--black, #141210)",
+                lineHeight: 1.18,
+                letterSpacing: "-0.02em",
+                margin: 0,
+              }}
+            >
+              They Give Us Everything.
+              <br />
+              <em style={{ fontWeight: 400 }}>
+                It&apos;s Time We Understood Them in Return.
+              </em>
+            </h2>
+          </div>
 
           <VsopCredibility />
         </div>
@@ -292,26 +304,28 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         }}
       >
         <div className="relative max-w-[560px] mx-auto">
-          {/* Title only — no eyebrow, no subline */}
-          <div className={`text-center mb-8 sm:mb-10 benefit-eyebrow ${visible ? "is-in" : ""}`}>
+          {/* Title only — no eyebrow, no subline, flanked gold flourish above */}
+          <div className={`text-center mb-10 sm:mb-12 benefit-eyebrow ${visible ? "is-in" : ""}`}>
+            <div className="flex items-center justify-center gap-2 mb-5" aria-hidden="true">
+              <div style={{ width: 36, height: 1, background: "linear-gradient(90deg, transparent, var(--gold, #c4a265))", opacity: 0.7 }} />
+              <svg width="8" height="8" viewBox="0 0 10 10">
+                <path d="M5 0l2 5-2 5-2-5z" fill="var(--gold, #c4a265)" opacity="0.8" />
+              </svg>
+              <div style={{ width: 36, height: 1, background: "linear-gradient(270deg, transparent, var(--gold, #c4a265))", opacity: 0.7 }} />
+            </div>
             <h2
               style={{
                 fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.35rem, 5vw, 1.75rem)",
+                fontSize: "clamp(1.6rem, 5.6vw, 2rem)",
                 fontWeight: 400,
                 color: "var(--black, #141210)",
-                lineHeight: 1.2,
+                lineHeight: 1.18,
                 letterSpacing: "-0.02em",
-                marginBottom: 10,
+                margin: 0,
               }}
             >
-              After Their Reading
+              After <em style={{ color: "var(--rose, #bf524a)", fontWeight: 400 }}>Their</em> Reading
             </h2>
-            <div className="flex justify-center" aria-hidden="true">
-              <svg width="8" height="8" viewBox="0 0 10 10">
-                <path d="M5 0l2 5-2 5-2-5z" fill="var(--gold, #c4a265)" opacity="0.75" />
-              </svg>
-            </div>
           </div>
 
           {/* Four benefit rows — left-aligned list, gold hairlines between */}
