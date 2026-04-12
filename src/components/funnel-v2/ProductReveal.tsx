@@ -604,17 +604,16 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           {/* Four benefit cards — glass + gold inner glow, hand-laid tilt */}
           <div className="flex flex-col gap-4 sm:gap-5">
             {[
-              { roman: "I",   text: "You'll understand why they chose you.",              tilt: -0.5, offset: 0  },
-              { roman: "II",  text: "Speak their love language — fluently.",               tilt:  0.6, offset: 8  },
-              { roman: "III", text: "Finally put into words the bond you've always felt.", tilt: -0.6, offset: -6 },
-              { roman: "IV",  text: "Read their needs before they show them.",             tilt:  0.5, offset: 4  },
+              { roman: "I",   text: "You'll understand why they chose you." },
+              { roman: "II",  text: "Speak their love language — fluently." },
+              { roman: "III", text: "Finally put into words the bond you've always felt." },
+              { roman: "IV",  text: "Read their needs before they show them." },
             ].map((item, i) => (
               <div
                 key={i}
                 className={`benefit-row ${visible ? "is-in" : ""}`}
                 style={{
                   animationDelay: `${0.15 + i * 0.1}s`,
-                  transform: `translateX(${item.offset}px) rotate(${item.tilt}deg)`,
                   position: "relative",
                   display: "flex",
                   alignItems: "center",
