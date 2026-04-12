@@ -309,7 +309,15 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   </div>
                 </div>
 
-                {/* Features — zebra rows for easier scanning */}
+                {/* Features — zebra rows. Mobile: collapses closed when unselected
+                    (accordion). Desktop: always visible regardless of selection. */}
+                <div
+                  className={
+                    isSelected
+                      ? "overflow-hidden opacity-100 max-h-[900px] mt-0 transition-[max-height,opacity,margin] duration-500 ease-out"
+                      : "overflow-hidden opacity-0 max-h-0 -mt-2 sm:opacity-100 sm:max-h-[900px] sm:mt-0 transition-[max-height,opacity,margin] duration-500 ease-out"
+                  }
+                >
                 <ul
                   className="rounded-lg overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
@@ -390,6 +398,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                     );
                   })}
                 </ul>
+                </div>
               </button>
             );
           })}
