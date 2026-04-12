@@ -242,9 +242,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           </h2>
         </div>
 
-        {/* Tier cards — stacked on mobile, expanding accordion on desktop
-            (selected card grows to ~2x the unselected). */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 items-stretch">
+        {/* Tier cards — always side-by-side, selected expands, unselected
+            compresses to header only. Same behaviour mobile + desktop. */}
+        <div className="flex flex-row gap-2 sm:gap-4 mb-6 items-stretch">
           {TIERS.map((tier, i) => {
             const isSelected = selectedTier === tier.id;
             return (
@@ -253,8 +253,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 onClick={() => handleTierChange(tier.id)}
                 aria-pressed={isSelected}
                 aria-label={`Select ${tier.name}`}
-                className={`relative w-full text-left rounded-2xl p-5 sm:p-6 active:scale-[0.995] ${
-                  isSelected ? "sm:flex-[2] sm:min-w-0" : "sm:flex-[1] sm:min-w-0"
+                className={`relative text-left rounded-2xl p-3 sm:p-6 active:scale-[0.995] min-w-0 ${
+                  isSelected ? "flex-[2]" : "flex-[1]"
                 }`}
                 style={{
                   background: (() => {
@@ -286,26 +286,50 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   </div>
                 )}
 
-                {/* Header row — radio + tier name (left) / price (right) */}
-                <div className="flex items-start justify-between mb-4 gap-3">
-                  <div className="flex items-center gap-2.5">
+                {/* Header — stacks vertically when card is compressed (unselected),
+                    horizontal row when selected or on desktop. */}
+                <div
+                  className={`mb-3 sm:mb-4 ${
+                    isSelected
+                      ? "flex items-start justify-between gap-2 sm:gap-3"
+                      : "flex flex-col items-start gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
                     <div
-                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
+                      className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
                       style={{ borderColor: isSelected ? "var(--rose, #bf524a)" : "var(--sand, #d6c8b6)" }}
                     >
-                      {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
+                      {isSelected && <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
                     </div>
-                    <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.1rem, 4vw, 1.3rem)", color: "var(--ink, #1f1c18)" }}>
+                    <span
+                      className="truncate"
+                      style={{
+                        fontFamily: '"DM Serif Display", Georgia, serif',
+                        fontSize: isSelected ? "clamp(1rem, 4vw, 1.3rem)" : "clamp(0.88rem, 3.2vw, 1.1rem)",
+                        color: "var(--ink, #1f1c18)",
+                        lineHeight: 1.15,
+                      }}
+                    >
                       {tier.name}
                     </span>
                   </div>
-                  <div className="flex items-baseline gap-1">
-                    <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.8rem, 6vw, 2.1rem)", color: "var(--ink, #1f1c18)", lineHeight: 1 }}>
+                  <div className="flex items-baseline gap-1 flex-shrink-0">
+                    <span
+                      style={{
+                        fontFamily: '"DM Serif Display", Georgia, serif',
+                        fontSize: isSelected ? "clamp(1.6rem, 6vw, 2.1rem)" : "clamp(1.2rem, 4.6vw, 1.7rem)",
+                        color: "var(--ink, #1f1c18)",
+                        lineHeight: 1,
+                      }}
+                    >
                       ${tier.price}
                     </span>
-                    <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", color: "var(--muted, #958779)", fontWeight: 500 }}>
-                      one-time
-                    </span>
+                    {isSelected && (
+                      <span className="hidden sm:inline" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", color: "var(--muted, #958779)", fontWeight: 500 }}>
+                        one-time
+                      </span>
+                    )}
                   </div>
                 </div>
 
