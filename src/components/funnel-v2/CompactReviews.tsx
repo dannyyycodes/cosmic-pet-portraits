@@ -203,7 +203,7 @@ export const CompactReviews = ({ row = 1 }: { row?: 1 | 2 }) => {
   return (
     <section
       ref={ref}
-      className="relative py-5 sm:py-6 overflow-hidden"
+      className="relative py-2 sm:py-3 overflow-hidden"
       style={{
         background: "var(--cream, #FFFDF5)",
       }}

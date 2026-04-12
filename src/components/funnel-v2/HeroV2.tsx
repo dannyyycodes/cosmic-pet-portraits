@@ -17,7 +17,7 @@ export const HeroV2 = ({ onCtaClick, ctaLabel }: HeroV2Props) => {
 
   return (
     <section
-      className="relative min-h-[calc(100svh-34px)] flex flex-col items-center justify-center px-5 pt-10 pb-12 sm:py-16 overflow-hidden"
+      className="relative flex flex-col items-center justify-center px-5 pt-8 pb-10 sm:pt-10 sm:pb-12 overflow-hidden"
       style={{
         background: "radial-gradient(ellipse 90% 70% at 50% 40%, var(--cream2, #faf4e8) 0%, var(--cream, #FFFDF5) 65%)",
       }}
