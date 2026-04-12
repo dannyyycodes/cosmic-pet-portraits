@@ -531,7 +531,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                   textAlign: "center",
                 }}
               >
-                After <em style={{ color: "var(--black, #141210)", fontWeight: 400 }}>Their</em> Reading
+                Once You <em style={{ color: "var(--black, #141210)", fontWeight: 400 }}>Understand</em> Them
               </h2>
             </div>
           </div>
@@ -542,7 +542,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
               { roman: "I",   text: "You'll understand why they chose you." },
               { roman: "II",  text: "Speak their love language — fluently." },
               { roman: "III", text: "Finally put into words the bond you've always felt." },
-              { roman: "IV",  text: "Read their needs before they show them." },
+              { roman: "IV",  text: "Hear what they can't say." },
             ].map((item, i) => (
               <div
                 key={i}
