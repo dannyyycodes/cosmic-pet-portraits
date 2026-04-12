@@ -242,8 +242,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           </h2>
         </div>
 
-        {/* Tier cards — full-width stacked, generous padding per tier */}
-        <div className="flex flex-col gap-4 mb-6">
+        {/* Tier cards — stacked on mobile, expanding accordion on desktop
+            (selected card grows to ~2x the unselected). */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 items-stretch">
           {TIERS.map((tier, i) => {
             const isSelected = selectedTier === tier.id;
             return (
@@ -252,7 +253,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 onClick={() => handleTierChange(tier.id)}
                 aria-pressed={isSelected}
                 aria-label={`Select ${tier.name}`}
-                className="relative w-full text-left rounded-2xl p-5 sm:p-6 transition-all duration-300 active:scale-[0.995]"
+                className={`relative w-full text-left rounded-2xl p-5 sm:p-6 active:scale-[0.995] ${
+                  isSelected ? "sm:flex-[2] sm:min-w-0" : "sm:flex-[1] sm:min-w-0"
+                }`}
                 style={{
                   background: (() => {
                     const fill = tier.id === "premium"
@@ -269,6 +272,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                     : "0 2px 14px rgba(0,0,0,0.04)",
                   opacity: visible ? 1 : 0,
                   transform: visible ? (isSelected ? "translateY(-2px)" : "translateY(0)") : "translateY(15px)",
+                  // Smooth accordion shuffle: flex-grow and box-shadow morph together.
+                  transition: "flex-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease",
                   transitionDelay: `${0.1 + i * 0.08}s`,
                 }}
               >
