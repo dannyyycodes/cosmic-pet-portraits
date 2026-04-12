@@ -137,95 +137,251 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── quiet typography, no cards, no constellation */}
+      {/* ── Block 2: The Benefits ── editorial typography, animated gold hairlines ── */}
       <div
-        className="px-5 py-16 sm:py-20 md:py-24"
-        style={{ background: "var(--cream, #FFFDF5)" }}
+        className="relative overflow-hidden px-5 py-20 sm:py-24 md:py-28"
+        style={{
+          background: "linear-gradient(180deg, var(--cream, #FFFDF5) 0%, #faf4e8 100%)",
+        }}
       >
-        <div className="max-w-[520px] mx-auto text-center">
-          {/* Gold accent line */}
-          <div
-            className="mx-auto mb-8 transition-all duration-[1000ms] ease-out"
-            style={{
-              width: visible ? 40 : 0,
-              height: 1,
-              background: "var(--gold, #c4a265)",
-              opacity: 0.5,
-            }}
+        {/* Subtle ornamental star — drawn once, low opacity, no JS animation */}
+        <svg
+          className="absolute top-8 left-1/2 -translate-x-1/2 pointer-events-none benefits-star"
+          width="18" height="18" viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 2l1.8 7.2L21 11l-7.2 1.8L12 20l-1.8-7.2L3 11l7.2-1.8z"
+            fill="var(--gold, #c4a265)"
+            opacity="0.35"
           />
+        </svg>
 
-          {/* Headline */}
-          <h2
-            className="transition-all duration-[1200ms] ease-out"
+        <div className="relative max-w-[560px] mx-auto">
+          {/* Eyebrow */}
+          <p
+            className={`text-center benefits-fade ${visible ? "is-in" : ""}`}
             style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.85rem, 7.5vw, 2.6rem)",
-              fontWeight: 400,
-              color: "var(--black, #141210)",
-              lineHeight: 1.12,
-              letterSpacing: "-0.025em",
-              marginBottom: 40,
-              opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(20px)",
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "var(--gold, #c4a265)",
+              marginBottom: 20,
+              animationDelay: "0.05s",
             }}
           >
-            Everything Changes When You
-            <br />
-            <em style={{ color: "var(--rose, #bf524a)" }}>Truly Know Them</em>
+            &mdash; &nbsp;The Promise&nbsp; &mdash;
+          </p>
+
+          {/* Headline — typographic hierarchy in three tiers */}
+          <h2
+            className="text-center"
+            style={{
+              marginBottom: 48,
+              lineHeight: 1.02,
+            }}
+          >
+            <span
+              className={`benefits-line benefits-line-1 ${visible ? "is-in" : ""}`}
+              style={{
+                display: "block",
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.6rem, 6.5vw, 2.3rem)",
+                fontWeight: 400,
+                color: "var(--ink, #1f1c18)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Everything Changes
+            </span>
+            <span
+              className={`benefits-line benefits-line-2 ${visible ? "is-in" : ""}`}
+              style={{
+                display: "block",
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(1rem, 3.8vw, 1.25rem)",
+                fontWeight: 400,
+                color: "var(--muted, #958779)",
+                letterSpacing: "0.02em",
+                margin: "6px 0 10px",
+              }}
+            >
+              when you
+            </span>
+            <span
+              className={`benefits-line benefits-line-3 ${visible ? "is-in" : ""}`}
+              style={{
+                display: "block",
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontStyle: "italic",
+                fontSize: "clamp(2.2rem, 9vw, 3.4rem)",
+                fontWeight: 400,
+                color: "var(--rose, #bf524a)",
+                letterSpacing: "-0.03em",
+                lineHeight: 1.04,
+              }}
+            >
+              Truly Know Them.
+            </span>
           </h2>
 
-          {/* Bullets — simple, lovely typography */}
-          <ul
-            className="flex flex-col gap-5 sm:gap-6"
-            style={{
-              listStyle: "none",
-              padding: 0,
-              margin: "0 auto",
-              maxWidth: 440,
-              textAlign: "left",
-            }}
+          {/* Animated gold hairline — draws in from center */}
+          <div className="flex justify-center mb-12" aria-hidden="true">
+            <div
+              className={`benefits-hairline ${visible ? "is-in" : ""}`}
+              style={{
+                height: 1,
+                background: "var(--gold, #c4a265)",
+                opacity: 0.5,
+              }}
+            />
+          </div>
+
+          {/* Bullets — Roman numeral markers, animated gold connector, typographic reveal */}
+          <ol
+            className="flex flex-col gap-10 sm:gap-12"
+            style={{ listStyle: "none", padding: 0, margin: "0 auto", maxWidth: 500 }}
           >
             {[
-              { text: "Love them in the way they actually feel it", delay: "0.2s" },
-              { text: "Know what they need — without guessing, without wondering", delay: "0.35s" },
+              { roman: "I", text: "Love them in the way they actually feel it." },
+              { roman: "II", text: "Know what they need — without guessing, without wondering." },
             ].map((item, i) => (
               <li
                 key={i}
-                className="flex items-start gap-4 transition-all duration-[900ms] ease-out"
+                className={`benefits-bullet ${visible ? "is-in" : ""}`}
                 style={{
-                  opacity: visible ? 1 : 0,
-                  transform: visible ? "translateY(0)" : "translateY(12px)",
-                  transitionDelay: item.delay,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 18,
+                  animationDelay: `${0.5 + i * 0.25}s`,
                 }}
               >
-                {/* Ornamental diamond bullet */}
+                {/* Roman numeral — faded gold, editorial feel */}
                 <span
                   aria-hidden="true"
-                  className="flex-shrink-0"
                   style={{
-                    width: 8,
-                    height: 8,
-                    marginTop: 10,
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontSize: "clamp(1rem, 3vw, 1.15rem)",
+                    fontStyle: "italic",
+                    color: "var(--gold, #c4a265)",
+                    opacity: 0.75,
+                    minWidth: 24,
+                    paddingTop: 6,
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  {item.roman}
+                </span>
+
+                {/* Gold connector hairline — grows in from numeral to text */}
+                <span
+                  aria-hidden="true"
+                  className={`benefits-connector ${visible ? "is-in" : ""}`}
+                  style={{
+                    alignSelf: "center",
+                    marginTop: 2,
+                    height: 1,
                     background: "var(--gold, #c4a265)",
-                    transform: "rotate(45deg)",
-                    opacity: 0.7,
+                    opacity: 0.4,
+                    animationDelay: `${0.6 + i * 0.25}s`,
                   }}
                 />
+
+                {/* Bullet text */}
                 <p
                   style={{
                     fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontSize: "clamp(1.1rem, 4.2vw, 1.35rem)",
+                    fontSize: "clamp(1.1rem, 4.2vw, 1.4rem)",
                     color: "var(--ink, #1f1c18)",
-                    lineHeight: 1.4,
+                    lineHeight: 1.35,
                     fontWeight: 400,
+                    flex: 1,
                   }}
                 >
                   {item.text}
                 </p>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
+
+        {/* All animations are pure CSS — no JS raf, no dependencies, GPU-friendly */}
+        <style>{`
+          .benefits-fade {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          .benefits-fade.is-in {
+            animation: benefitsFadeUp 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+
+          .benefits-line {
+            opacity: 0;
+            transform: translateY(14px);
+          }
+          .benefits-line.is-in {
+            animation: benefitsFadeUp 950ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+          .benefits-line-1.is-in { animation-delay: 0.12s; }
+          .benefits-line-2.is-in { animation-delay: 0.24s; }
+          .benefits-line-3.is-in { animation-delay: 0.34s; }
+
+          .benefits-hairline {
+            width: 0;
+          }
+          .benefits-hairline.is-in {
+            animation: benefitsLineGrow 900ms cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
+          }
+
+          .benefits-bullet {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          .benefits-bullet.is-in {
+            animation: benefitsFadeUp 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+
+          .benefits-connector {
+            width: 0;
+            display: inline-block;
+          }
+          .benefits-connector.is-in {
+            animation: benefitsConnectorGrow 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+
+          @keyframes benefitsFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes benefitsLineGrow {
+            to { width: 64px; }
+          }
+          @keyframes benefitsConnectorGrow {
+            to { width: 18px; }
+          }
+
+          @keyframes benefitsStarBreathe {
+            0%, 100% { opacity: 0.35; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.55; transform: translateX(-50%) scale(1.08); }
+          }
+          .benefits-star {
+            animation: benefitsStarBreathe 5s ease-in-out infinite;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .benefits-fade, .benefits-line, .benefits-hairline,
+            .benefits-bullet, .benefits-connector, .benefits-star {
+              animation: none !important;
+              opacity: 1 !important;
+              transform: none !important;
+              width: auto !important;
+            }
+            .benefits-hairline { width: 64px !important; }
+            .benefits-connector { width: 18px !important; }
+          }
+        `}</style>
       </div>
 
       {/* ── SoulSpeak section removed — moved into pricing card tap-to-expand preview ── */}
