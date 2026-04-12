@@ -710,10 +710,21 @@ const PaymentBrandLogos = () => (
 type CharitySlug = "ifaw" | "world-land-trust" | "eden-reforestation";
 
 const CHARITY_BRAND_META: Record<CharitySlug, { label: string; tagline: string }> = {
-  "ifaw": { label: "IFAW", tagline: "animal rescue, worldwide" },
-  "world-land-trust": { label: "World Land Trust", tagline: "protecting wild habitat" },
-  "eden-reforestation": { label: "Eden Reforestation", tagline: "trees, plus local jobs" },
+  "ifaw": {
+    label: "IFAW",
+    tagline: "rescue and rehab for animals in crisis, worldwide.",
+  },
+  "world-land-trust": {
+    label: "World Land Trust",
+    tagline: "protecting wild habitat across the globe.",
+  },
+  "eden-reforestation": {
+    label: "Eden Reforestation",
+    tagline: "planting trees and restoring forests worldwide.",
+  },
 };
+
+const CHARITY_ORDER: CharitySlug[] = ["ifaw", "world-land-trust", "eden-reforestation"];
 
 const CharityBrandRow = ({
   selected,
@@ -722,7 +733,6 @@ const CharityBrandRow = ({
   selected: CharitySlug;
   onSelect: (id: CharitySlug) => void;
 }) => {
-  const meta = CHARITY_BRAND_META[selected];
   return (
     <div>
       <p
@@ -736,7 +746,7 @@ const CharityBrandRow = ({
           color: "var(--gold, #c4a265)",
         }}
       >
-        10% of all sales go to
+        10% of every reading goes to
       </p>
       <div className="flex flex-wrap justify-center items-center gap-2" role="radiogroup" aria-label="Choose a charity">
         <CharityBadgeButton id="ifaw" selected={selected === "ifaw"} onSelect={onSelect}>
@@ -749,17 +759,37 @@ const CharityBrandRow = ({
           <EdenReforestationMark />
         </CharityBadgeButton>
       </div>
-      <p
-        className="text-center mt-2"
+      <ul
+        className="mt-3 space-y-0.5 text-center"
         style={{
+          listStyle: "none",
+          padding: 0,
+          margin: "12px 0 0",
           fontFamily: "Cormorant, Georgia, serif",
-          fontSize: "0.72rem",
           fontStyle: "italic",
+          fontSize: "0.72rem",
           color: "var(--muted, #958779)",
+          lineHeight: 1.5,
         }}
       >
-        {meta.label} — {meta.tagline}
-      </p>
+        {CHARITY_ORDER.map((id) => {
+          const meta = CHARITY_BRAND_META[id];
+          const isSelected = selected === id;
+          return (
+            <li
+              key={id}
+              style={{
+                color: isSelected ? "var(--earth, #6e6259)" : "var(--muted, #958779)",
+                fontWeight: isSelected ? 600 : 400,
+              }}
+            >
+              <span style={{ fontStyle: "normal", fontWeight: 600 }}>{meta.label}</span>
+              {" — "}
+              {meta.tagline}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 };
