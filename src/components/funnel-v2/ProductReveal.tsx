@@ -33,63 +33,87 @@ type StarDef = {
   delay?: number;
 };
 
-// Subtle scattered stars across the whole section. All small, all faint,
-// all behind the text. A handful of short faint lines link triplets so it
-// reads as a night sky with mini-constellations rather than random dots.
+// Stars scattered across the whole section with small constellation clusters.
+// Text lives in opaque cards layered above — backdrop can be properly visible
+// without risking letterform legibility.
 const CONSTELLATION_STARS: StarDef[] = [
-  { x: 6,  y: 8,  kind: "dust",  delay: 0.1 },
-  { x: 18, y: 14, kind: "small", delay: 0.6 },
-  { x: 28, y: 6,  kind: "dust",  delay: 1.1 },
-  { x: 42, y: 12, kind: "small", delay: 1.6 },
-  { x: 55, y: 7,  kind: "dust",  delay: 2.1 },
-  { x: 68, y: 14, kind: "small", delay: 2.6 },
-  { x: 82, y: 6,  kind: "dust",  delay: 3.1 },
-  { x: 94, y: 12, kind: "small", delay: 3.6 },
+  // Top band — Cassiopeia W centre-top
+  { x: 6,  y: 7,  kind: "dust",   delay: 0.1 },
+  { x: 18, y: 4,  kind: "small",  delay: 0.6 },
+  { x: 30, y: 10, kind: "mid",    delay: 1.1 },   // W-1
+  { x: 38, y: 4,  kind: "mid",    delay: 1.5 },   // W-2
+  { x: 46, y: 10, kind: "bright", delay: 1.9 },   // W-3
+  { x: 54, y: 4,  kind: "mid",    delay: 2.3 },   // W-4
+  { x: 62, y: 10, kind: "mid",    delay: 2.7 },   // W-5
+  { x: 76, y: 6,  kind: "small",  delay: 3.1 },
+  { x: 88, y: 10, kind: "dust",   delay: 3.5 },
+  { x: 96, y: 4,  kind: "small",  delay: 3.9 },
 
-  { x: 4,  y: 34, kind: "small", delay: 0.3 },
-  { x: 26, y: 38, kind: "dust",  delay: 0.8 },
-  { x: 52, y: 34, kind: "dust",  delay: 1.3 },
-  { x: 78, y: 38, kind: "small", delay: 1.8 },
-  { x: 96, y: 32, kind: "dust",  delay: 2.3 },
+  // Upper-mid — paw print upper-left + dust
+  { x: 6,  y: 28, kind: "small",  delay: 0.3 },   // toe
+  { x: 12, y: 24, kind: "mid",    delay: 0.8 },   // toe
+  { x: 18, y: 26, kind: "mid",    delay: 1.3 },   // toe
+  { x: 13, y: 34, kind: "bright", delay: 1.8 },   // pad
+  { x: 36, y: 30, kind: "dust",   delay: 0.6 },
+  { x: 58, y: 34, kind: "dust",   delay: 1.1 },
+  { x: 82, y: 28, kind: "small",  delay: 1.6 },
+  { x: 96, y: 32, kind: "dust",   delay: 2.1 },
 
-  { x: 8,  y: 58, kind: "dust",  delay: 0.5 },
-  { x: 36, y: 62, kind: "small", delay: 1.0 },
-  { x: 62, y: 58, kind: "dust",  delay: 1.5 },
-  { x: 88, y: 62, kind: "small", delay: 2.0 },
+  // Middle band — dust only
+  { x: 4,  y: 50, kind: "dust",   delay: 0.4 },
+  { x: 28, y: 52, kind: "dust",   delay: 0.9 },
+  { x: 54, y: 50, kind: "small",  delay: 1.4 },
+  { x: 76, y: 54, kind: "dust",   delay: 1.9 },
+  { x: 96, y: 52, kind: "small",  delay: 2.4 },
 
-  { x: 5,  y: 82, kind: "small", delay: 0.7 },
-  { x: 20, y: 88, kind: "dust",  delay: 1.2 },
-  { x: 36, y: 84, kind: "dust",  delay: 1.7 },
-  { x: 50, y: 90, kind: "small", delay: 2.2 },
-  { x: 66, y: 86, kind: "dust",  delay: 2.7 },
-  { x: 80, y: 92, kind: "dust",  delay: 3.2 },
-  { x: 94, y: 86, kind: "small", delay: 3.7 },
+  // Lower-mid — triangle right + dust
+  { x: 84, y: 66, kind: "mid",    delay: 0.5 },
+  { x: 94, y: 70, kind: "small",  delay: 1.0 },
+  { x: 86, y: 74, kind: "bright", delay: 1.5 },
+  { x: 10, y: 68, kind: "dust",   delay: 0.7 },
+  { x: 36, y: 72, kind: "small",  delay: 1.2 },
+  { x: 60, y: 68, kind: "dust",   delay: 1.7 },
+
+  // Bottom band — Big Dipper bottom-centre
+  { x: 4,  y: 90, kind: "dust",   delay: 0.3 },
+  { x: 20, y: 88, kind: "mid",    delay: 0.9 },   // bowl
+  { x: 28, y: 82, kind: "mid",    delay: 1.4 },   // bowl
+  { x: 36, y: 82, kind: "bright", delay: 1.9 },   // bowl
+  { x: 44, y: 90, kind: "mid",    delay: 2.4 },   // bowl
+  { x: 52, y: 86, kind: "mid",    delay: 2.9 },   // handle
+  { x: 60, y: 82, kind: "small",  delay: 3.4 },   // handle
+  { x: 68, y: 86, kind: "bright", delay: 3.9 },   // handle tip
+  { x: 84, y: 92, kind: "small",  delay: 0.5 },
+  { x: 94, y: 88, kind: "dust",   delay: 1.1 },
 ];
 
-// A handful of short faint lines linking nearby triplets — just enough to
-// read as "connected sky", never as a strong graphic.
+// Within-cluster connections only.
 const CONNECTIONS: Array<[number, number]> = [
-  [0, 1], [1, 2],       // top-left triplet
-  [4, 5], [5, 6],       // top-mid-right triplet
-  [13, 14], [14, 15],   // lower-mid triplet
-  [17, 18], [18, 19],   // bottom-left triplet
-  [20, 21], [21, 22],   // bottom-right triplet
+  // Cassiopeia W
+  [2, 3], [3, 4], [4, 5], [5, 6],
+  // Paw print — pad → each toe
+  [13, 10], [13, 11], [13, 12],
+  // Right triangle
+  [23, 24], [24, 25], [25, 23],
+  // Big Dipper — bowl + handle
+  [30, 31], [31, 32], [32, 33], [33, 30],   // bowl
+  [33, 34], [34, 35], [35, 36],              // handle
 ];
 
-// Only "small" and "dust" are used now — kept the full map for type safety.
+// Visible sizes — text lives in opaque cards, so stars no longer risk
+// landing behind letterforms. Free to be properly legible.
 const STAR_SIZES: Record<StarKind, number> = {
-  bright: 12,
-  mid: 9,
-  small: 7,
-  dust: 4,
+  bright: 18,
+  mid: 12,
+  small: 9,
+  dust: 5,
 };
 
-// Very low — stars should feel like atmosphere, not ornament.
 const STAR_OPACITIES: Record<StarKind, number> = {
-  bright: 0.22,
-  mid: 0.2,
-  small: 0.2,
-  dust: 0.14,
+  bright: 0.55,
+  mid: 0.4,
+  small: 0.32,
+  dust: 0.2,
 };
 
 const ConstellationBackdrop = () => (
@@ -106,12 +130,12 @@ const ConstellationBackdrop = () => (
     >
       <defs>
         <linearGradient id="constLine" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#c4a265" stopOpacity="0.04" />
-          <stop offset="50%" stopColor="#c4a265" stopOpacity="0.16" />
-          <stop offset="100%" stopColor="#c4a265" stopOpacity="0.04" />
+          <stop offset="0%" stopColor="#c4a265" stopOpacity="0.1" />
+          <stop offset="50%" stopColor="#c4a265" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#c4a265" stopOpacity="0.1" />
         </linearGradient>
       </defs>
-      <g stroke="url(#constLine)" strokeWidth="0.05" fill="none" vectorEffect="non-scaling-stroke">
+      <g stroke="url(#constLine)" strokeWidth="0.09" fill="none" vectorEffect="non-scaling-stroke">
         {CONNECTIONS.map(([a, b], i) => {
           const from = CONSTELLATION_STARS[a];
           const to = CONSTELLATION_STARS[b];
@@ -397,9 +421,9 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       >
         <ConstellationBackdrop />
 
-        {/* Quote half */}
+        {/* Quote half — text sits in an opaque card so the starfield can't cross it */}
         <div
-          className="relative px-5 py-16 sm:py-20 transition-all duration-[1200ms] ease-out"
+          className="relative px-5 py-14 sm:py-16 transition-all duration-[1200ms] ease-out"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
@@ -407,7 +431,18 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             zIndex: 1,
           }}
         >
-          <div className="max-w-[620px] mx-auto">
+          <div
+            className="max-w-[620px] mx-auto"
+            style={{
+              background: "rgba(255, 253, 245, 0.92)",
+              backdropFilter: "blur(2px)",
+              WebkitBackdropFilter: "blur(2px)",
+              border: "1px solid rgba(196, 162, 101, 0.14)",
+              borderRadius: 18,
+              padding: "clamp(22px, 5vw, 40px) clamp(22px, 5vw, 40px)",
+              boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
+            }}
+          >
             <h2
               className="text-center"
               style={{
@@ -429,9 +464,9 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           </div>
         </div>
 
-        {/* Authority half */}
+        {/* Authority half — VSOP credibility content in its own opaque card */}
         <div
-          className="relative px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
+          className="relative px-5 pb-14 sm:pb-16 transition-all duration-[1200ms] ease-out"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
@@ -439,7 +474,18 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             zIndex: 1,
           }}
         >
-          <div className="max-w-[560px] mx-auto">
+          <div
+            className="max-w-[560px] mx-auto"
+            style={{
+              background: "rgba(255, 253, 245, 0.92)",
+              backdropFilter: "blur(2px)",
+              WebkitBackdropFilter: "blur(2px)",
+              border: "1px solid rgba(196, 162, 101, 0.14)",
+              borderRadius: 18,
+              padding: "clamp(28px, 6vw, 48px) clamp(22px, 5vw, 40px)",
+              boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
+            }}
+          >
             <VsopCredibility />
           </div>
         </div>
