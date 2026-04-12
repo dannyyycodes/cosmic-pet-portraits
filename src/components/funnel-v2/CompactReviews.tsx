@@ -10,36 +10,72 @@ type PetItem = {
   Icon: typeof Cat;
 };
 
-// Row 1 composition
+// Row 1 — full coverage across the whole section (y 0-100, x 0-100)
 const WALLPAPER_PETS_ROW1: PetItem[] = [
-  { x: 3,  y: 10, size: 34, rot: -12, op: 0.18, Icon: Cat },
-  { x: 14, y: 55, size: 28, rot: 8,   op: 0.16, Icon: PawPrint },
-  { x: 23, y: 20, size: 40, rot: 6,   op: 0.20, Icon: Dog },
-  { x: 32, y: 65, size: 26, rot: -16, op: 0.15, Icon: Rabbit },
-  { x: 41, y: 18, size: 36, rot: 12,  op: 0.19, Icon: Fish },
-  { x: 50, y: 58, size: 22, rot: 20,  op: 0.14, Icon: Bone },
-  { x: 58, y: 22, size: 32, rot: -8,  op: 0.18, Icon: Bird },
-  { x: 66, y: 62, size: 28, rot: 14,  op: 0.17, Icon: Feather },
-  { x: 74, y: 18, size: 38, rot: -6,  op: 0.20, Icon: Turtle },
-  { x: 82, y: 58, size: 26, rot: 10,  op: 0.16, Icon: Squirrel },
-  { x: 90, y: 22, size: 30, rot: -14, op: 0.18, Icon: Rat },
-  { x: 97, y: 60, size: 22, rot: 8,   op: 0.14, Icon: Worm },
+  // top edge
+  { x: 4,  y: 8,  size: 30, rot: -12, op: 0.18, Icon: Cat },
+  { x: 18, y: 5,  size: 22, rot: 10,  op: 0.15, Icon: PawPrint },
+  { x: 32, y: 10, size: 28, rot: 6,   op: 0.17, Icon: Rabbit },
+  { x: 46, y: 4,  size: 26, rot: -8,  op: 0.16, Icon: Bird },
+  { x: 60, y: 9,  size: 32, rot: 14,  op: 0.19, Icon: Dog },
+  { x: 74, y: 5,  size: 24, rot: -14, op: 0.15, Icon: Feather },
+  { x: 88, y: 10, size: 28, rot: 8,   op: 0.17, Icon: Rat },
+  // upper-mid
+  { x: 10, y: 30, size: 34, rot: 6,   op: 0.19, Icon: Fish },
+  { x: 26, y: 36, size: 22, rot: -10, op: 0.15, Icon: Bone },
+  { x: 42, y: 28, size: 30, rot: 16,  op: 0.18, Icon: Turtle },
+  { x: 58, y: 34, size: 26, rot: -6,  op: 0.16, Icon: Cat },
+  { x: 74, y: 30, size: 28, rot: 12,  op: 0.17, Icon: Bird },
+  { x: 92, y: 36, size: 24, rot: -16, op: 0.15, Icon: Squirrel },
+  // lower-mid
+  { x: 6,  y: 58, size: 26, rot: -10, op: 0.16, Icon: Snail },
+  { x: 22, y: 62, size: 32, rot: 14,  op: 0.19, Icon: PawPrint },
+  { x: 38, y: 56, size: 24, rot: -8,  op: 0.15, Icon: Worm },
+  { x: 54, y: 62, size: 30, rot: 10,  op: 0.18, Icon: Dog },
+  { x: 70, y: 58, size: 28, rot: -14, op: 0.17, Icon: Fish },
+  { x: 86, y: 62, size: 26, rot: 6,   op: 0.16, Icon: Rabbit },
+  // bottom edge
+  { x: 4,  y: 88, size: 22, rot: 12,  op: 0.15, Icon: Bone },
+  { x: 18, y: 92, size: 28, rot: -8,  op: 0.17, Icon: PawPrint },
+  { x: 32, y: 88, size: 24, rot: 14,  op: 0.15, Icon: Cat },
+  { x: 48, y: 94, size: 30, rot: -12, op: 0.18, Icon: Turtle },
+  { x: 64, y: 88, size: 26, rot: 8,   op: 0.16, Icon: Feather },
+  { x: 78, y: 92, size: 28, rot: -6,  op: 0.17, Icon: Bird },
+  { x: 94, y: 88, size: 22, rot: 10,  op: 0.14, Icon: Rat },
 ];
 
-// Row 2 — different icons at different positions so the two rows don't mirror
+// Row 2 — staggered so the two rows don't mirror
 const WALLPAPER_PETS_ROW2: PetItem[] = [
-  { x: 6,  y: 20, size: 30, rot: 14,  op: 0.18, Icon: Rabbit },
-  { x: 12, y: 62, size: 36, rot: -10, op: 0.20, Icon: Dog },
-  { x: 22, y: 16, size: 26, rot: 18,  op: 0.16, Icon: PawPrint },
-  { x: 30, y: 58, size: 42, rot: 4,   op: 0.21, Icon: Cat },
-  { x: 40, y: 22, size: 24, rot: -18, op: 0.15, Icon: Egg },
-  { x: 48, y: 60, size: 34, rot: 12,  op: 0.19, Icon: Fish },
-  { x: 56, y: 14, size: 28, rot: -6,  op: 0.17, Icon: Snail },
-  { x: 63, y: 64, size: 38, rot: 8,   op: 0.20, Icon: Bird },
-  { x: 72, y: 20, size: 30, rot: 16,  op: 0.18, Icon: PawPrint },
-  { x: 80, y: 58, size: 32, rot: -12, op: 0.18, Icon: Rat },
-  { x: 87, y: 18, size: 36, rot: 6,   op: 0.19, Icon: Turtle },
-  { x: 94, y: 62, size: 26, rot: -8,  op: 0.16, Icon: Feather },
+  // top edge
+  { x: 8,  y: 6,  size: 28, rot: 10,  op: 0.17, Icon: Rabbit },
+  { x: 22, y: 10, size: 22, rot: -12, op: 0.15, Icon: PawPrint },
+  { x: 38, y: 6,  size: 30, rot: 6,   op: 0.18, Icon: Cat },
+  { x: 54, y: 10, size: 26, rot: -8,  op: 0.16, Icon: Egg },
+  { x: 68, y: 5,  size: 32, rot: 14,  op: 0.19, Icon: Dog },
+  { x: 82, y: 10, size: 24, rot: -6,  op: 0.15, Icon: Snail },
+  { x: 96, y: 5,  size: 26, rot: 12,  op: 0.16, Icon: Feather },
+  // upper-mid
+  { x: 4,  y: 34, size: 30, rot: -14, op: 0.18, Icon: Fish },
+  { x: 18, y: 30, size: 24, rot: 10,  op: 0.15, Icon: Bird },
+  { x: 34, y: 36, size: 32, rot: -4,  op: 0.19, Icon: Turtle },
+  { x: 50, y: 30, size: 26, rot: 16,  op: 0.16, Icon: PawPrint },
+  { x: 66, y: 36, size: 28, rot: -10, op: 0.17, Icon: Rat },
+  { x: 82, y: 30, size: 24, rot: 8,   op: 0.15, Icon: Rabbit },
+  // lower-mid
+  { x: 12, y: 60, size: 30, rot: 12,  op: 0.18, Icon: Dog },
+  { x: 28, y: 56, size: 24, rot: -16, op: 0.15, Icon: Squirrel },
+  { x: 44, y: 62, size: 32, rot: 6,   op: 0.19, Icon: Cat },
+  { x: 60, y: 56, size: 26, rot: -10, op: 0.16, Icon: Bone },
+  { x: 76, y: 62, size: 28, rot: 14,  op: 0.17, Icon: Fish },
+  { x: 92, y: 58, size: 24, rot: -6,  op: 0.15, Icon: Bird },
+  // bottom edge
+  { x: 6,  y: 92, size: 26, rot: -10, op: 0.16, Icon: PawPrint },
+  { x: 20, y: 88, size: 22, rot: 12,  op: 0.14, Icon: Worm },
+  { x: 36, y: 94, size: 30, rot: 6,   op: 0.18, Icon: Turtle },
+  { x: 52, y: 88, size: 24, rot: -8,  op: 0.15, Icon: Egg },
+  { x: 68, y: 92, size: 28, rot: 14,  op: 0.17, Icon: Rabbit },
+  { x: 84, y: 88, size: 26, rot: -14, op: 0.16, Icon: Cat },
+  { x: 96, y: 92, size: 22, rot: 8,   op: 0.14, Icon: Snail },
 ];
 
 const PetWallpaper = ({ row }: { row: 1 | 2 }) => {

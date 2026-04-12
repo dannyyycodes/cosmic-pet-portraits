@@ -33,71 +33,77 @@ type StarDef = {
   delay?: number;
 };
 
-// Stars scattered across the whole section with small constellation clusters.
-// Text lives in opaque cards layered above — backdrop can be properly visible
-// without risking letterform legibility.
+// Stars scattered across the full combined section with small constellation
+// clusters woven in. Text lives in opaque cards layered above, so stars are
+// free to occupy the entire surface without risking letterform legibility.
 const CONSTELLATION_STARS: StarDef[] = [
-  // Top band — Cassiopeia W centre-top
-  { x: 6,  y: 7,  kind: "dust",   delay: 0.1 },
-  { x: 18, y: 4,  kind: "small",  delay: 0.6 },
-  { x: 30, y: 10, kind: "mid",    delay: 1.1 },   // W-1
-  { x: 38, y: 4,  kind: "mid",    delay: 1.5 },   // W-2
-  { x: 46, y: 10, kind: "bright", delay: 1.9 },   // W-3
-  { x: 54, y: 4,  kind: "mid",    delay: 2.3 },   // W-4
-  { x: 62, y: 10, kind: "mid",    delay: 2.7 },   // W-5
-  { x: 76, y: 6,  kind: "small",  delay: 3.1 },
-  { x: 88, y: 10, kind: "dust",   delay: 3.5 },
-  { x: 96, y: 4,  kind: "small",  delay: 3.9 },
+  // Top edge — Cassiopeia W across the top
+  { x: 4,  y: 3,  kind: "dust",   delay: 0.0 },
+  { x: 14, y: 6,  kind: "small",  delay: 0.4 },
+  { x: 28, y: 8,  kind: "mid",    delay: 0.8 },   // W-1
+  { x: 36, y: 3,  kind: "mid",    delay: 1.2 },   // W-2
+  { x: 44, y: 8,  kind: "bright", delay: 1.6 },   // W-3
+  { x: 52, y: 3,  kind: "mid",    delay: 2.0 },   // W-4
+  { x: 60, y: 8,  kind: "mid",    delay: 2.4 },   // W-5
+  { x: 72, y: 5,  kind: "small",  delay: 2.8 },
+  { x: 84, y: 9,  kind: "dust",   delay: 3.2 },
+  { x: 94, y: 4,  kind: "small",  delay: 3.6 },
 
-  // Upper-mid — paw print upper-left + dust
-  { x: 6,  y: 28, kind: "small",  delay: 0.3 },   // toe
-  { x: 12, y: 24, kind: "mid",    delay: 0.8 },   // toe
-  { x: 18, y: 26, kind: "mid",    delay: 1.3 },   // toe
-  { x: 13, y: 34, kind: "bright", delay: 1.8 },   // pad
-  { x: 36, y: 30, kind: "dust",   delay: 0.6 },
-  { x: 58, y: 34, kind: "dust",   delay: 1.1 },
-  { x: 82, y: 28, kind: "small",  delay: 1.6 },
-  { x: 96, y: 32, kind: "dust",   delay: 2.1 },
+  // Upper-mid — paw print upper-left + dust scatter
+  { x: 6,  y: 22, kind: "small",  delay: 0.3 },   // toe
+  { x: 12, y: 18, kind: "mid",    delay: 0.7 },   // toe
+  { x: 18, y: 20, kind: "mid",    delay: 1.1 },   // toe
+  { x: 13, y: 28, kind: "bright", delay: 1.5 },   // pad
+  { x: 34, y: 24, kind: "dust",   delay: 0.5 },
+  { x: 48, y: 20, kind: "small",  delay: 0.9 },
+  { x: 62, y: 26, kind: "dust",   delay: 1.3 },
+  { x: 78, y: 22, kind: "small",  delay: 1.7 },
+  { x: 94, y: 26, kind: "dust",   delay: 2.1 },
 
-  // Middle band — dust only
-  { x: 4,  y: 50, kind: "dust",   delay: 0.4 },
-  { x: 28, y: 52, kind: "dust",   delay: 0.9 },
-  { x: 54, y: 50, kind: "small",  delay: 1.4 },
-  { x: 76, y: 54, kind: "dust",   delay: 1.9 },
-  { x: 96, y: 52, kind: "small",  delay: 2.4 },
+  // Middle band — a gentle scatter
+  { x: 4,  y: 44, kind: "small",  delay: 0.4 },
+  { x: 18, y: 48, kind: "dust",   delay: 0.8 },
+  { x: 34, y: 42, kind: "dust",   delay: 1.2 },
+  { x: 50, y: 46, kind: "small",  delay: 1.6 },
+  { x: 66, y: 42, kind: "dust",   delay: 2.0 },
+  { x: 82, y: 48, kind: "small",  delay: 2.4 },
+  { x: 96, y: 44, kind: "dust",   delay: 2.8 },
 
-  // Lower-mid — triangle right + dust
-  { x: 84, y: 66, kind: "mid",    delay: 0.5 },
-  { x: 94, y: 70, kind: "small",  delay: 1.0 },
-  { x: 86, y: 74, kind: "bright", delay: 1.5 },
-  { x: 10, y: 68, kind: "dust",   delay: 0.7 },
-  { x: 36, y: 72, kind: "small",  delay: 1.2 },
-  { x: 60, y: 68, kind: "dust",   delay: 1.7 },
+  // Lower-mid — triangle right + scatter
+  { x: 84, y: 62, kind: "mid",    delay: 0.3 },
+  { x: 94, y: 66, kind: "small",  delay: 0.7 },
+  { x: 86, y: 70, kind: "bright", delay: 1.1 },
+  { x: 6,  y: 64, kind: "dust",   delay: 0.5 },
+  { x: 22, y: 68, kind: "small",  delay: 0.9 },
+  { x: 40, y: 64, kind: "dust",   delay: 1.3 },
+  { x: 58, y: 70, kind: "small",  delay: 1.7 },
+  { x: 72, y: 66, kind: "dust",   delay: 2.1 },
 
-  // Bottom band — Big Dipper bottom-centre
-  { x: 4,  y: 90, kind: "dust",   delay: 0.3 },
-  { x: 20, y: 88, kind: "mid",    delay: 0.9 },   // bowl
-  { x: 28, y: 82, kind: "mid",    delay: 1.4 },   // bowl
-  { x: 36, y: 82, kind: "bright", delay: 1.9 },   // bowl
-  { x: 44, y: 90, kind: "mid",    delay: 2.4 },   // bowl
-  { x: 52, y: 86, kind: "mid",    delay: 2.9 },   // handle
-  { x: 60, y: 82, kind: "small",  delay: 3.4 },   // handle
-  { x: 68, y: 86, kind: "bright", delay: 3.9 },   // handle tip
-  { x: 84, y: 92, kind: "small",  delay: 0.5 },
-  { x: 94, y: 88, kind: "dust",   delay: 1.1 },
+  // Bottom edge — Big Dipper along the bottom
+  { x: 4,  y: 94, kind: "dust",   delay: 0.2 },
+  { x: 14, y: 90, kind: "mid",    delay: 0.6 },   // bowl
+  { x: 22, y: 96, kind: "mid",    delay: 1.0 },   // bowl
+  { x: 30, y: 91, kind: "bright", delay: 1.4 },   // bowl
+  { x: 38, y: 96, kind: "mid",    delay: 1.8 },   // bowl
+  { x: 48, y: 92, kind: "mid",    delay: 2.2 },   // handle
+  { x: 58, y: 96, kind: "small",  delay: 2.6 },   // handle
+  { x: 68, y: 91, kind: "bright", delay: 3.0 },   // handle tip
+  { x: 80, y: 96, kind: "dust",   delay: 0.4 },
+  { x: 92, y: 92, kind: "small",  delay: 0.8 },
 ];
 
-// Within-cluster connections only.
+// Within-cluster connections only — indexes verified against the expanded star array.
 const CONNECTIONS: Array<[number, number]> = [
-  // Cassiopeia W
+  // Cassiopeia W (indices 2-6)
   [2, 3], [3, 4], [4, 5], [5, 6],
-  // Paw print — pad → each toe
+  // Paw print — pad (13) → each toe (10, 11, 12)
   [13, 10], [13, 11], [13, 12],
-  // Right triangle
-  [23, 24], [24, 25], [25, 23],
-  // Big Dipper — bowl + handle
-  [30, 31], [31, 32], [32, 33], [33, 30],   // bowl
-  [33, 34], [34, 35], [35, 36],              // handle
+  // Right triangle (indices 26, 27, 28)
+  [26, 27], [27, 28], [28, 26],
+  // Big Dipper bowl (35, 36, 37, 38)
+  [35, 36], [36, 37], [37, 38], [38, 35],
+  // Big Dipper handle (38 → 39 → 40 → 41)
+  [38, 39], [39, 40], [40, 41],
 ];
 
 // Visible sizes — text lives in opaque cards, so stars no longer risk
@@ -202,24 +208,44 @@ type HeartItem = {
   x: number; y: number; size: number; rot: number; op: number; fill?: boolean;
 };
 const BENEFIT_HEARTS: HeartItem[] = [
-  { x: 6,  y: 8,  size: 28, rot: -14, op: 0.16, fill: false },
-  { x: 22, y: 16, size: 18, rot: 10,  op: 0.12, fill: true  },
-  { x: 42, y: 6,  size: 34, rot: 6,   op: 0.14, fill: false },
-  { x: 64, y: 14, size: 22, rot: -18, op: 0.13, fill: true  },
-  { x: 86, y: 8,  size: 26, rot: 12,  op: 0.15, fill: false },
+  // Top edge
+  { x: 4,  y: 4,  size: 22, rot: -12, op: 0.14, fill: true  },
+  { x: 18, y: 8,  size: 28, rot: 10,  op: 0.16, fill: false },
+  { x: 32, y: 5,  size: 20, rot: 14,  op: 0.12, fill: true  },
+  { x: 46, y: 9,  size: 32, rot: -6,  op: 0.15, fill: false },
+  { x: 62, y: 4,  size: 22, rot: 12,  op: 0.13, fill: true  },
+  { x: 76, y: 8,  size: 26, rot: -14, op: 0.15, fill: false },
+  { x: 92, y: 5,  size: 20, rot: 6,   op: 0.13, fill: true  },
 
-  { x: 12, y: 38, size: 20, rot: 16,  op: 0.12, fill: true  },
-  { x: 52, y: 36, size: 30, rot: -4,  op: 0.14, fill: false },
-  { x: 82, y: 42, size: 18, rot: 18,  op: 0.12, fill: true  },
+  // Upper-mid
+  { x: 8,  y: 24, size: 26, rot: 14,  op: 0.14, fill: false },
+  { x: 28, y: 28, size: 20, rot: -10, op: 0.12, fill: true  },
+  { x: 52, y: 26, size: 30, rot: 4,   op: 0.15, fill: false },
+  { x: 76, y: 30, size: 22, rot: -16, op: 0.13, fill: true  },
+  { x: 94, y: 24, size: 24, rot: 8,   op: 0.14, fill: false },
 
-  { x: 4,  y: 62, size: 24, rot: -12, op: 0.13, fill: false },
-  { x: 30, y: 68, size: 20, rot: 14,  op: 0.12, fill: true  },
-  { x: 68, y: 64, size: 32, rot: -8,  op: 0.15, fill: false },
-  { x: 94, y: 68, size: 22, rot: 10,  op: 0.13, fill: true  },
+  // Middle
+  { x: 4,  y: 48, size: 22, rot: -8,  op: 0.12, fill: true  },
+  { x: 22, y: 52, size: 28, rot: 16,  op: 0.14, fill: false },
+  { x: 44, y: 48, size: 20, rot: -12, op: 0.12, fill: true  },
+  { x: 64, y: 52, size: 30, rot: 6,   op: 0.15, fill: false },
+  { x: 86, y: 50, size: 22, rot: -14, op: 0.13, fill: true  },
 
-  { x: 18, y: 90, size: 26, rot: 8,   op: 0.14, fill: false },
-  { x: 48, y: 94, size: 20, rot: -16, op: 0.12, fill: true  },
-  { x: 78, y: 92, size: 28, rot: 6,   op: 0.14, fill: false },
+  // Lower-mid
+  { x: 10, y: 72, size: 26, rot: 12,  op: 0.14, fill: false },
+  { x: 32, y: 76, size: 20, rot: -10, op: 0.12, fill: true  },
+  { x: 54, y: 72, size: 28, rot: 14,  op: 0.15, fill: false },
+  { x: 74, y: 78, size: 22, rot: -6,  op: 0.13, fill: true  },
+  { x: 94, y: 72, size: 30, rot: 8,   op: 0.15, fill: false },
+
+  // Bottom edge
+  { x: 4,  y: 94, size: 20, rot: -12, op: 0.12, fill: true  },
+  { x: 20, y: 92, size: 26, rot: 8,   op: 0.14, fill: false },
+  { x: 36, y: 96, size: 22, rot: 14,  op: 0.13, fill: true  },
+  { x: 52, y: 92, size: 30, rot: -8,  op: 0.15, fill: false },
+  { x: 68, y: 96, size: 20, rot: 10,  op: 0.12, fill: true  },
+  { x: 82, y: 92, size: 26, rot: -14, op: 0.14, fill: false },
+  { x: 96, y: 96, size: 22, rot: 6,   op: 0.13, fill: true  },
 ];
 
 const HeartsBackdrop = () => (
