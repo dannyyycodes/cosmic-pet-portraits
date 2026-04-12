@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Cat, Dog, Fish, Rabbit, Bird, Turtle, PawPrint, Bone, Squirrel, Snail } from "lucide-react";
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -16,78 +17,59 @@ function useScrollReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
-/* ── Pet wallpaper — repeating silhouettes behind the hero quote ──
- * Simple original SVG silhouettes (dog, cat, rabbit, bird, fish, horse,
- * hamster, turtle, paw prints) tiled as a low-opacity pattern. Inline
- * SVG so it's a single paint, no extra network request, GPU-friendly. */
-const PetWallpaper = () => (
-  <div
-    aria-hidden="true"
-    className="absolute inset-0 pointer-events-none"
-    style={{
-      backgroundImage: `url("data:image/svg+xml;utf8,${encodeURIComponent(PET_PATTERN_SVG)}")`,
-      backgroundRepeat: "repeat",
-      backgroundSize: "260px 260px",
-      opacity: 0.32,
-    }}
-  />
-);
+/* ── Pet wallpaper — scattered Lucide icons (MIT, already in bundle) ──
+ * Uses real professionally-drawn pet silhouettes (Cat, Dog, Rabbit,
+ * Fish, Bird, Turtle, Squirrel, Snail + paw prints + bones) scattered
+ * across the section with varied size, rotation, and opacity so it
+ * reads as a hand-arranged pattern rather than a rigid grid. */
 
-// IMPORTANT: colour literals use '#' (not '%23') — encodeURIComponent in
-// PetWallpaper handles the URL-encoding once. Using '%23' here would
-// double-encode and render the strokes colourless / invisible.
-const PET_PATTERN_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'>
-<g fill='none' stroke='#c4a265' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'>
-<g transform='translate(28 36)'>
-<ellipse cx='6' cy='6' rx='3' ry='3.8'/><ellipse cx='16' cy='4' rx='3' ry='3.8'/><ellipse cx='3' cy='14' rx='2.6' ry='3.2'/><ellipse cx='19' cy='14' rx='2.6' ry='3.2'/><ellipse cx='11' cy='22' rx='6' ry='5'/>
-</g>
-<g transform='translate(104 28)'>
-<path d='M0 14c0-7 5-12 12-12s12 5 12 12c0 4-3 6-6 6H6c-3 0-6-2-6-6z'/>
-<path d='M4 2l3 6M20 2l-3 6'/>
-<circle cx='9' cy='13' r='0.9' fill='#c4a265'/><circle cx='15' cy='13' r='0.9' fill='#c4a265'/>
-<path d='M10 17l2 2 2-2'/>
-</g>
-<g transform='translate(196 46)'>
-<ellipse cx='12' cy='18' rx='8' ry='6'/>
-<path d='M7 13V4c0-1 .8-1.6 1.6-1.2l1.6.7c.6.3 1.4.3 2 0l1.6-.7c.8-.4 1.6.2 1.6 1.2v9'/>
-<circle cx='10' cy='17' r='0.8' fill='#c4a265'/><circle cx='14' cy='17' r='0.8' fill='#c4a265'/>
-<path d='M12 20v2'/>
-</g>
-<g transform='translate(46 126)'>
-<path d='M0 8c0-4 4-7 9-7s9 3 9 7-4 7-9 7c-2 0-4-.5-5.5-1.3L0 16z'/>
-<circle cx='7' cy='8' r='0.8' fill='#c4a265'/><circle cx='12' cy='8' r='0.8' fill='#c4a265'/>
-<path d='M13 2l4-1'/>
-</g>
-<g transform='translate(150 116)'>
-<path d='M0 10c4-8 14-8 18 0-4 8-14 8-18 0z'/>
-<path d='M18 10l6-3v6z' fill='#c4a265' stroke='none'/>
-<circle cx='5' cy='9' r='0.9' fill='#c4a265'/>
-<path d='M4 13c1 1 3 1 4 0'/>
-</g>
-<g transform='translate(218 134)'>
-<path d='M2 20c-1-2-2-5-2-9 0-6 4-11 10-11s10 5 10 11c0 4-1 7-2 9'/>
-<path d='M14 4c-2-3-2-4 0-4s2 1 0 4'/>
-<path d='M10 4c-2-3-2-4 0-4s2 1 0 4'/>
-<circle cx='7' cy='12' r='0.8' fill='#c4a265'/><circle cx='13' cy='12' r='0.8' fill='#c4a265'/>
-</g>
-<g transform='translate(28 196)'>
-<ellipse cx='5' cy='5' rx='2.5' ry='3.2'/><ellipse cx='13' cy='3' rx='2.5' ry='3.2'/><ellipse cx='2' cy='11' rx='2.2' ry='2.8'/><ellipse cx='16' cy='11' rx='2.2' ry='2.8'/><ellipse cx='9' cy='17' rx='5' ry='4'/>
-</g>
-<g transform='translate(116 192)'>
-<ellipse cx='10' cy='12' rx='10' ry='5.5'/>
-<circle cx='10' cy='10' r='4'/>
-<path d='M10 6c0-2 2-3 4-3'/>
-<circle cx='8' cy='10' r='0.7' fill='#c4a265'/>
-<path d='M0 12h-3M20 12h3'/>
-</g>
-<g transform='translate(204 212)'>
-<path d='M2 6c6-5 14-5 18 0-2 4-6 6-9 6s-7-2-9-6z'/>
-<path d='M3 7c-3 0-3 4 0 4'/>
-<path d='M6 4c1-3 4-4 6-4'/>
-<circle cx='15' cy='7' r='0.8' fill='#c4a265'/>
-</g>
-</g>
-</svg>`;
+type PetItem = {
+  x: number; y: number; size: number; rot: number; op: number;
+  Icon: typeof Cat;
+};
+
+const WALLPAPER_PETS: PetItem[] = [
+  { x: 5,  y: 8,  size: 40, rot: -14, op: 0.22, Icon: Cat },
+  { x: 22, y: 18, size: 26, rot: 10,  op: 0.18, Icon: PawPrint },
+  { x: 42, y: 6,  size: 46, rot: 6,   op: 0.24, Icon: Dog },
+  { x: 62, y: 14, size: 30, rot: -18, op: 0.20, Icon: Rabbit },
+  { x: 82, y: 8,  size: 42, rot: 8,   op: 0.24, Icon: Fish },
+  { x: 92, y: 22, size: 22, rot: 20,  op: 0.16, Icon: Bone },
+  { x: 12, y: 34, size: 36, rot: 14,  op: 0.22, Icon: Bird },
+  { x: 30, y: 42, size: 24, rot: -8,  op: 0.18, Icon: PawPrint },
+  { x: 50, y: 34, size: 44, rot: -6,  op: 0.23, Icon: Turtle },
+  { x: 72, y: 40, size: 32, rot: 16,  op: 0.20, Icon: Squirrel },
+  { x: 88, y: 48, size: 38, rot: -10, op: 0.22, Icon: Cat },
+  { x: 6,  y: 56, size: 28, rot: 12,  op: 0.18, Icon: Snail },
+  { x: 24, y: 64, size: 42, rot: -16, op: 0.24, Icon: Dog },
+  { x: 46, y: 60, size: 24, rot: 18,  op: 0.16, Icon: PawPrint },
+  { x: 64, y: 66, size: 38, rot: -4,  op: 0.22, Icon: Fish },
+  { x: 84, y: 72, size: 30, rot: 10,  op: 0.20, Icon: Rabbit },
+  { x: 14, y: 80, size: 34, rot: 6,   op: 0.20, Icon: Bird },
+  { x: 36, y: 86, size: 26, rot: -12, op: 0.18, Icon: Bone },
+  { x: 56, y: 84, size: 40, rot: 14,  op: 0.23, Icon: Cat },
+  { x: 76, y: 90, size: 32, rot: -8,  op: 0.20, Icon: Turtle },
+];
+
+const PetWallpaper = () => (
+  <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
+    {WALLPAPER_PETS.map((p, i) => (
+      <p.Icon
+        key={i}
+        size={p.size}
+        strokeWidth={1.4}
+        style={{
+          position: "absolute",
+          left: `${p.x}%`,
+          top: `${p.y}%`,
+          transform: `rotate(${p.rot}deg)`,
+          color: "#c4a265",
+          opacity: p.op,
+        }}
+      />
+    ))}
+  </div>
+);
 
 /* ── VSOP Credibility — warm authority ── */
 const VsopCredibility = () => (
@@ -310,7 +292,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       <div
         className="relative overflow-hidden px-5 py-16 sm:py-20 transition-all duration-[1200ms] ease-out"
         style={{
-          background: "#f6f1e6",
+          background: "#faf6ec",
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(20px)",
           transitionDelay: "0.1s",
@@ -358,7 +340,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       <div
         className="relative px-5 py-12 sm:py-16 md:py-20"
         style={{
-          background: "#f6f1e6",
+          background: "#faf6ec",
         }}
       >
         <div className="relative max-w-[560px] mx-auto">
