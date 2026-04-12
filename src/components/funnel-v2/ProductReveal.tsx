@@ -93,11 +93,6 @@ const VsopCredibility = () => (
               boxShadow: "0 2px 16px rgba(196,162,101,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
             }}
           >
-            {/* Gold corner flourish */}
-            <svg className="absolute top-2 right-2" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-              <path d="M1 1h5M1 1v5M13 13h-5M13 13v-5" stroke="#c4a265" strokeWidth="1" fill="none" opacity="0.7" />
-            </svg>
-
             <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.95rem", color: "var(--ink, #1f1c18)", lineHeight: 1.3, marginBottom: 8 }}>
               {item.h}
             </p>
