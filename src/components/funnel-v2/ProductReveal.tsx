@@ -52,28 +52,19 @@ const VsopCredibility = () => (
         <div style={{ width: 36, height: 1, background: "linear-gradient(270deg, transparent, #c4a265)", opacity: 0.7 }} />
       </div>
 
-      {/* Gold-gradient eyebrow */}
+      {/* Section title — bold black */}
       <p
         style={{
-          fontFamily: "Cormorant, Georgia, serif",
-          fontSize: "0.7rem",
-          fontWeight: 700,
-          letterSpacing: "0.24em",
-          textTransform: "uppercase",
-          marginBottom: 14,
-          background: "linear-gradient(90deg, #c4a265 0%, #d4b26b 50%, #c4a265 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          color: "transparent",
+          fontFamily: '"DM Serif Display", Georgia, serif',
+          fontSize: "clamp(1.25rem, 5vw, 1.6rem)",
+          fontWeight: 400,
+          color: "var(--black, #141210)",
+          letterSpacing: "-0.01em",
+          marginBottom: 16,
         }}
       >
         Real Astronomy. Not Guesswork.
       </p>
-      <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.3rem, 5.2vw, 1.75rem)", fontWeight: 400, color: "var(--ink, #1f1c18)", lineHeight: 1.25, marginBottom: 12 }}>
-        Every reading is calculated from the
-        <br />
-        <em style={{ color: "var(--rose, #bf524a)" }}>exact sky the moment they were born</em>
-      </h3>
       <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(0.92rem, 3.2vw, 1rem)", color: "var(--earth, #6e6259)", lineHeight: 1.55, maxWidth: 440, margin: "0 auto 28px" }}>
         Using{" "}
         <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
@@ -87,14 +78,10 @@ const VsopCredibility = () => (
           {
             h: "Not a personality quiz. Real coordinates.",
             d: "13 celestial bodies, rising sign, elemental balance, and house placements — all calculated to the exact minute.",
-            badge: "13",
-            badgeLabel: "bodies",
           },
           {
             h: "The same math NASA uses to track planets.",
             d: "VSOP87, developed at the Bureau des Longitudes in Paris. The global standard for planetary position calculation.",
-            badge: "1982",
-            badgeLabel: "since",
           },
         ].map((item, i) => (
           <div
@@ -111,28 +98,7 @@ const VsopCredibility = () => (
               <path d="M1 1h5M1 1v5M13 13h-5M13 13v-5" stroke="#c4a265" strokeWidth="1" fill="none" opacity="0.7" />
             </svg>
 
-            {/* Gold badge */}
-            <div className="inline-flex items-baseline gap-1 mb-3">
-              <span
-                style={{
-                  fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "1.4rem",
-                  fontWeight: 400,
-                  background: "linear-gradient(135deg, #d4b26b, #c4a265)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                  lineHeight: 1,
-                }}
-              >
-                {item.badge}
-              </span>
-              <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted, #958779)" }}>
-                {item.badgeLabel}
-              </span>
-            </div>
-
-            <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.92rem", color: "var(--ink, #1f1c18)", lineHeight: 1.3, marginBottom: 6 }}>
+            <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.95rem", color: "var(--ink, #1f1c18)", lineHeight: 1.3, marginBottom: 8 }}>
               {item.h}
             </p>
             <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--earth, #6e6259)", lineHeight: 1.55 }}>
