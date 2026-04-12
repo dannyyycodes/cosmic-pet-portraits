@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, forwardRef, type ReactNode, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getReferralCode } from "@/lib/referralTracking";
+import { HeartsBackdrop } from "./HeartsBackdrop";
 
 function useScrollReveal(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
@@ -173,12 +174,25 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     <section
       ref={sectionRef}
       id="checkout"
-      className="relative py-12 sm:py-16 md:py-20 px-5"
+      className="relative overflow-hidden py-12 sm:py-16 md:py-20 px-5"
       style={{
         background: "var(--cream, #FFFDF5)",
       }}
     >
-      <div className="max-w-xl mx-auto">
+      <HeartsBackdrop />
+      <div
+        className="relative max-w-xl mx-auto"
+        style={{
+          zIndex: 1,
+          padding: "clamp(28px, 5vw, 44px) clamp(22px, 4.5vw, 40px)",
+          background: "rgba(255, 253, 245, 0.92)",
+          border: "1px solid rgba(196, 162, 101, 0.16)",
+          borderRadius: 18,
+          boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
+          backdropFilter: "blur(2px)",
+          WebkitBackdropFilter: "blur(2px)",
+        }}
+      >
         {/* Header */}
         <div
           className="text-center mb-7 sm:mb-8 transition-all duration-1000"

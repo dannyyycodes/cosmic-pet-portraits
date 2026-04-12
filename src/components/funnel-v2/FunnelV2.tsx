@@ -38,7 +38,7 @@ const COPY = {
   B: {
     ctaPrimary: "Begin Their Reading",
     checkoutSub:
-      "There's a language for this kind of love. <b>And the stars have been speaking it all along.</b>",
+      "Finally put words to the love you've always felt. <b>The story of a bond deeper than you could ever explain.</b>",
   },
 } as const;
 
