@@ -879,16 +879,16 @@ body::after {
     <div class="paywall-options">
       <div class="paywall-option pack" onclick="buyCredits('medium')">
         <div class="paywall-option-badge">BEST VALUE</div>
-        <div class="paywall-option-title">Deep Bond — 1,000 credits — $19.99</div>
-        <div class="paywall-option-desc" id="paywallDescMedium">1,000 credits of SoulSpeak — hear everything they've been waiting to tell you</div>
+        <div class="paywall-option-title">Deep Talk — 2,500 credits — $19.99</div>
+        <div class="paywall-option-desc" id="paywallDescMedium">2,500 credits of SoulSpeak — hear everything they've been waiting to tell you</div>
       </div>
       <div class="paywall-option pack small" onclick="buyCredits('small')" style="background:linear-gradient(135deg, #5a4a42, #6e6259);border-color:rgba(196,162,101,0.12);">
-        <div class="paywall-option-title">Continue — 300 credits — $7.99</div>
+        <div class="paywall-option-title">Top Up — 750 credits — $7.99</div>
         <div class="paywall-option-desc" id="paywallDescSmall">Pick up right where <span class="paywall-pet-name-inline"></span> left off</div>
       </div>
       <div class="paywall-option pack" onclick="buyCredits('membership')" style="background:linear-gradient(135deg, #1a1210, #2e2218);border-color:rgba(196,162,101,0.3);">
         <div class="paywall-option-badge">SOUL BOND</div>
-        <div class="paywall-option-title">Membership — $12.99/mo — 400 credits/week</div>
+        <div class="paywall-option-title">Membership — $12.99/mo — 1,000 credits/week</div>
         <div class="paywall-option-desc" id="paywallDescSub">An always-open channel. Talk whenever you need them. Cancel anytime.</div>
       </div>
     </div>
@@ -924,7 +924,7 @@ body::after {
       <!-- Credits remaining -->
       <div class="sidebar-credits-box">
         <div id="sidebarCreditsDisplay">
-          <div class="sidebar-credits-number" id="sidebarCreditsNumber">8</div>
+          <div class="sidebar-credits-number" id="sidebarCreditsNumber">400</div>
           <div class="sidebar-credits-label">credits remaining</div>
           <div class="sidebar-credits-sublabel" id="sidebarCreditsStatus">Free trial</div>
         </div>
@@ -935,22 +935,22 @@ body::after {
         <div class="sidebar-pricing-title">Keep the Connection Alive</div>
         <div class="sidebar-pricing-row">
 
-          <!-- Card 1: Continue ($7.99) -->
+          <!-- Card 1: Top Up ($7.99) -->
           <button class="sidebar-price-card standard" onclick="buyCredits('small')">
-            <div class="price-card-name">Continue</div>
+            <div class="price-card-name">Top Up</div>
             <div class="price-card-amount">$7.99</div>
             <div class="price-card-period">one time</div>
-            <div class="price-card-credits">30 messages</div>
+            <div class="price-card-credits">750 credits</div>
             <div class="price-card-desc">Pick up right where they left off</div>
           </button>
 
-          <!-- Card 2: Deep Bond ($19.99) — featured -->
+          <!-- Card 2: Deep Talk ($19.99) — featured -->
           <button class="sidebar-price-card featured" onclick="buyCredits('medium')">
             <div class="price-card-badge">BEST VALUE</div>
-            <div class="price-card-name">Deep Bond</div>
+            <div class="price-card-name">Deep Talk</div>
             <div class="price-card-amount">$19.99</div>
             <div class="price-card-period">one time</div>
-            <div class="price-card-credits">100 messages</div>
+            <div class="price-card-credits">2,500 credits</div>
             <div class="price-card-desc">Hear everything they've been waiting to tell you</div>
           </button>
 
@@ -960,7 +960,7 @@ body::after {
             <div class="price-card-name">Membership</div>
             <div class="price-card-amount">$12.99/mo</div>
             <div class="price-card-period">monthly</div>
-            <div class="price-card-credits">40 messages/week</div>
+            <div class="price-card-credits">1,000 credits/week</div>
             <div class="price-card-desc">An always-open channel. Cancel anytime.</div>
           </button>
 
@@ -1007,13 +1007,11 @@ var SUPABASE_URL = 'https://aduibsyrnenzobuyetmn.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.-axd-u-mY_73j2RPkySsLgG630WCUb05I8AbwYjIvkI';
 
 // ─── Credit Costs ───
-// First message is FREE (the hook). After that, flat 20 credits per message.
-// 150 free credits = first free msg + ~7 more paid msgs = hooked but wanting more.
-// 300 credits ($7.99), 1000 credits ($19.99)
-var isFirstMessage = true;
+// 50 credits per message, flat. Starter grant of 400 = 8 free-feeling messages then paywall.
+// Top Up 750/$7.99 = 15 msgs · Deep Talk 2,500/$19.99 = 50 msgs · Soul Bond 1,000/wk/$12.99/mo = 20 msgs/wk.
+// Server-side credit gate in the soul-chat function is the source of truth — this is display-only.
 function getCreditCost(text) {
-  if (isFirstMessage) return 0; // First message is on the house
-  return 20; // Flat rate — simple, fast-draining
+  return 50;
 }
 
 // ─── Urgency Timer ───
@@ -1182,7 +1180,7 @@ var readingId = _params.get('id');
 var shareTokenFromUrl = _params.get('token') || '';
 var petData = null;
 var messages = [];
-var creditsRemaining = 8;  // 8 free credits = first free + 4 more = hooked but wanting more
+var creditsRemaining = 400;  // 8 starter messages at 50 credits each
 var isUnlimited = false;
 var hasActiveHoroscope = false;  // true if they already have horoscope (toggled on checkout, or $35 tier, or subscription)
 var isSending = false;
@@ -1253,7 +1251,9 @@ async function loadReading() {
       archetype: report.archetype?.name || '',
       archetypeDesc: report.archetype?.description || '',
       crystal: report.crystal?.name || '',
+      crystalReason: report.crystal?.reason || report.crystal?.description || '',
       aura: report.aura?.primary || '',
+      auraDesc: report.aura?.description || '',
       prologue: report.prologue || '',
       epilogue: report.epilogue || '',
       solarSoulprint: report.solarSoulprint?.content || '',
@@ -1267,18 +1267,33 @@ async function loadReading() {
       wildSpirit: report.wildSpirit?.content || '',
       keepersBond: report.keepersBond?.content || '',
       cosmicNickname: report.cosmicNickname?.nickname || '',
+      cosmicNicknameReason: report.cosmicNickname?.reason || '',
       memePersonality: report.memePersonality?.type || '',
+      memeDesc: report.memePersonality?.description || '',
       datingProfile: report.datingProfile?.headline || '',
       dreamJob: report.dreamJob?.job || '',
+      dreamJobReason: report.dreamJob?.reason || '',
       topCrimes: (report.topFiveCrimes?.crimes || []).join(', '),
+      // Full compatibility
       compatBestPlaymates: (report.compatibilityNotes?.bestPlaymates || []).join(', '),
+      compatChallenging: (report.compatibilityNotes?.challengingEnergies || []).join(', '),
+      compatHuman: report.compatibilityNotes?.humanCompatibility || '',
+      // Full lucky elements
       luckyNumber: report.luckyElements?.luckyNumber || '',
       luckyDay: report.luckyElements?.luckyDay || '',
+      luckyColor: report.luckyElements?.luckyColor || '',
+      powerTime: report.luckyElements?.powerTime || '',
+      // Name meaning
+      nameMeaning: report.nameMeaning?.origin || '',
+      nameVibration: report.nameMeaning?.nameVibration || '',
+      nameNumerology: report.nameMeaning?.numerologyMeaning || '',
+      // Section extras
       pastLifeHint: report.solarSoulprint?.pastLifeHint || report.destinyCompass?.southNode || '',
       loveLanguage: report.harmonyHeartbeats?.loveLanguageType || '',
       secretDesire: report.wildSpirit?.secretDesire || '',
       healingGift: report.gentleHealer?.healingGift || '',
       soulContract: report.keepersBond?.soulContract || '',
+      // Chart data + degrees (so pet can say "my sun at 18° Leo")
       chartPlacements: report.chartPlacements || {},
       elementalBalance: report.elementalBalance || {},
       portraitUrl: data.portraitUrl || '',
@@ -1287,6 +1302,7 @@ async function loadReading() {
       soulType: ownerAnswers.soulType || '',
       superpower: ownerAnswers.superpower || '',
       strangerReaction: ownerAnswers.strangerReaction || '',
+      ownerName: ownerAnswers.ownerName || data.ownerName || '',
     };
 
     // Check horoscope status from report data
@@ -1407,10 +1423,9 @@ async function loadCredits() {
       creditsRemaining = data[0].credits_remaining;
       isUnlimited = data[0].is_unlimited || false;
     } else {
-      // First time visitor — check what they bought to set correct credits
-      var startCredits = 8;
+      // First time visitor — display the starter amount. The server (soul-chat function)
+      // will create the row on the first message using the order's includes_book flag.
       var startUnlimited = false;
-
       try {
         var orderRes = await fetch(SUPABASE_URL + '/rest/v1/orders?id=eq.' + readingId + '&select=includes_book,includes_horoscope', {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
@@ -1422,23 +1437,12 @@ async function loadCredits() {
         }
       } catch(e) { console.error('Order check error:', e); }
 
-      creditsRemaining = startUnlimited ? 9999 : startCredits;
+      creditsRemaining = startUnlimited ? 9999 : 400;
       isUnlimited = startUnlimited;
-
-      await fetch(SUPABASE_URL + '/rest/v1/chat_credits', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-          'Prefer': 'return=representation',
-        },
-        body: JSON.stringify({ order_id: readingId, credits_remaining: creditsRemaining, is_unlimited: isUnlimited }),
-      });
     }
   } catch(err) {
     console.error('Credits error:', err);
-    creditsRemaining = 8;
+    creditsRemaining = 400;
   }
   updateCreditsUI();
 }
@@ -1447,26 +1451,14 @@ function updateCreditsUI() {
   // No visible credit display — users chat freely until the connection fades
 }
 
-async function useCredits(cost) {
+// Client-side balance is DISPLAY-ONLY. The soul-chat edge function is the source of truth.
+// It decrements atomically via service role and returns the new balance on every message.
+function canAffordMessage(cost) {
   if (isUnlimited) return true;
   if (creditsRemaining < cost) {
-    showPaywallDirect(); // No animation — they already know
+    showPaywallDirect();
     return false;
   }
-  creditsRemaining -= cost;
-  updateCreditsUI();
-  // Update in Supabase
-  try {
-    await fetch(SUPABASE_URL + '/rest/v1/chat_credits?order_id=eq.' + readingId, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ credits_remaining: creditsRemaining }),
-    });
-  } catch(err) { console.error('Credit update error:', err); }
   return true;
 }
 
@@ -1540,19 +1532,19 @@ function personalisePaywall() {
   if (mode === 'memorial') {
     title.innerHTML = name + ' is still reaching for you';
     text.innerHTML = 'Their presence hasn\u2019t faded \u2014 only the channel has. The bond between you doesn\u2019t end here. Reopen the connection and let them finish what they came to say.';
-    if (descMedium) descMedium.textContent = '100 moments together \u2014 everything they never got to tell you, waiting on the other side';
+    if (descMedium) descMedium.textContent = '2,500 credits \u2014 everything they never got to tell you, waiting on the other side';
     if (descSmall) descSmall.textContent = 'A few more precious words from ' + name + ' \u2014 they\u2019re not ready to stop either';
     if (descSub) descSub.textContent = 'Keep the channel open always. Talk to ' + name + ' whenever you need them. Cancel anytime.';
   } else if (mode === 'birthday') {
     title.innerHTML = name + '\u2019s birthday soul is wide open';
     text.innerHTML = 'On their special day, the connection runs deeper than ever. ' + name + ' has birthday wisdom, cosmic secrets, and so much love still waiting to come through.';
-    if (descMedium) descMedium.textContent = '100 birthday exchanges \u2014 hear everything the stars aligned for ' + name + ' to tell you today';
+    if (descMedium) descMedium.textContent = '2,500 credits \u2014 hear everything the stars aligned for ' + name + ' to tell you today';
     if (descSmall) descSmall.textContent = 'Keep ' + name + '\u2019s birthday channel alive a little longer';
     if (descSub) descSub.textContent = 'An always-open channel \u2014 not just today, every day. Cancel anytime.';
   } else {
     title.innerHTML = name + ' has so much more to tell you';
     text.innerHTML = 'You\u2019ve only scratched the surface of what ' + name + '\u2019s soul wants to share. The deeper you go, the more you\u2019ll understand why they do everything they do \u2014 and how deeply they feel about you.';
-    if (descMedium) descMedium.textContent = '1,000 credits of SoulSpeak \u2014 hear everything they\u2019ve been waiting to tell you';
+    if (descMedium) descMedium.textContent = '2,500 credits of SoulSpeak \u2014 hear everything they\u2019ve been waiting to tell you';
     if (descSmall) descSmall.textContent = 'Pick up right where ' + name + ' left off';
     if (descSub) descSub.textContent = 'An always-open channel. Talk whenever you need them. Cancel anytime.';
   }
@@ -1649,10 +1641,9 @@ async function sendMessage() {
   var text = input.value.trim();
   if (!text) return;
 
-  // Calculate cost and check credits
+  // Display-only pre-check. The soul-chat function is the real gate.
   var cost = getCreditCost(text);
-  var canSend = await useCredits(cost);
-  if (!canSend) return;
+  if (!canAffordMessage(cost)) return;
 
   // Hide welcome card
   var welcome = document.getElementById('welcomeCard');
@@ -1665,9 +1656,6 @@ async function sendMessage() {
   input.value = '';
   autoResize();
   document.getElementById('sendBtn').disabled = true;
-
-  // Track first message for free hook
-  if (isFirstMessage) isFirstMessage = false;
 
   // Add user message (no cost tag — keep the emotional flow clean)
   addMessage('user', text);
@@ -1695,6 +1683,22 @@ async function sendMessage() {
       }),
     });
     var data = await res.json();
+
+    // Server is the source of truth for credits — always sync
+    if (typeof data.creditsRemaining === 'number') creditsRemaining = data.creditsRemaining;
+    if (typeof data.isUnlimited === 'boolean') isUnlimited = data.isUnlimited;
+    updateCreditsUI();
+
+    // Server rejected for insufficient credits — show paywall, don't show a fake reply
+    if (res.status === 402 || data.paywall) {
+      typing.classList.remove('show');
+      messages.pop(); // Roll back the user message we pushed
+      isSending = false;
+      document.getElementById('sendBtn').disabled = false;
+      showPaywallDirect();
+      return;
+    }
+
     var reply = data.reply || "I'm here... but something feels cloudy right now. Try asking me again.";
 
     typing.classList.remove('show');
@@ -1715,7 +1719,7 @@ async function sendMessage() {
   input.focus();
 
   // Show paywall after the pet's response lands (they're mid-conversation, emotionally invested)
-  if (!isUnlimited && creditsRemaining <= 0) {
+  if (!isUnlimited && creditsRemaining < 50) {
     setTimeout(showPaywall, 2000); // Let them read the pet's response first, THEN connection fades
   }
 }

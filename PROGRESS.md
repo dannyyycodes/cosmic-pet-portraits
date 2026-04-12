@@ -4,6 +4,44 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 
 ---
 
+## 2026-04-12 — SoulSpeak pricing + security overhaul
+
+**Status:** Code changes applied locally. Pending deploy: `supabase functions deploy soul-chat create-chat-purchase stripe-webhook` + migration `20260412120000_soul_chat_secure.sql`.
+
+### Final pricing (locked)
+- Cost per message: **50 credits** flat (no first-message-free hack)
+- Starter grant: **400 credits = 8 messages**
+- Top Up: 750 credits / $7.99 (15 msgs)
+- Deep Talk: 2,500 credits / $19.99 (50 msgs) — renamed from "Deep Bond"
+- Soul Bond membership: 1,000 credits/week / $12.99/mo (20 msgs/week)
+
+### Bugs fixed
+1. **RLS exposure** — anon could PATCH `credits_remaining: 999999`. New migration drops anon INSERT/UPDATE; credits now mutate only via service role in edge function.
+2. **Client-side first-message-free bypass** — removed `isFirstMessage` flag; first-message detection now derived server-side from message count.
+3. **Membership credit math** — was granting 400 credits/wk while advertising "40 messages". Now grants 1,000 credits/wk = 20 messages, copy reframed honestly.
+
+### Files touched
+- `public/soul-chat.html` — pricing UI, removed client PATCH, server balance sync on reply
+- `supabase/functions/soul-chat/index.ts` — server-side credit gate + atomic decrement + memorial temperature tweak
+- `supabase/functions/create-chat-purchase/index.ts` — new tiers + metadata
+- `supabase/functions/stripe-webhook/index.ts` — `weekly_credits` fallbacks 400 → 1000
+- `supabase/migrations/20260412120000_soul_chat_secure.sql` — RLS lockdown + `decrement_chat_credits` RPC
+
+### Additional intelligence upgrades (same session)
+- **Wider petData** — chart placement degrees, full elementalBalance, compatibility (bestPlaymates + challengingEnergies + humanCompatibility), full luckyElements (number/day/colour/powerTime), nameMeaning (origin + vibration + numerology), crystal reason, aura description, cosmic nickname reason, meme description, dream job reason, owner's first name
+- **Model swap** — Haiku 4.5 → Sonnet 4.5 (main generation). Haiku 4.5 kept for validator.
+- **Prompt caching** — system prompt marked `cache_control: ephemeral` via OpenRouter content-array format. Drops subsequent-message input cost ~90% within 5-min window.
+- **Validator pass** — after Sonnet reply, Haiku fact-checks for invented specifics (events, dates, named humans, contradicting traits). One regenerate max on fail. JSON-mode response.
+- **Memorial temperature** — 0.6 (was 0.8) for more consistent gentle tone.
+
+### Deferred (next session)
+- Cross-session conversation memory (summarise past sessions into a `chat_memory` column, inject at prompt top)
+- Add `owner_name` field to intake schema + worker (currently pulled from `ownerAnswers.ownerName` if present)
+- Dead code at stripe-webhook:656-663 writes to non-existent columns `report_id/email/plan` on chat_credits — investigate whether horoscope-subscriber grant is actually working
+- Phrase-variance tracker to stop Sonnet repeating "zoomies"/"my favourite human" on long chats
+
+---
+
 ## Completed: Report Accuracy Overhaul (Ephemeris + AI Guardrails)
 
 **Status:** DONE — deployed and verified with 2 test reports (17-point audit, 100% pass)

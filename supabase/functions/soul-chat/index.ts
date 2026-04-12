@@ -1,8 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const OPENROUTER_API_KEY = (Deno.env.get("OPENROUTER_API_KEY") || "").trim();
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+// ─── Credit constants (source of truth) ───
+const COST_PER_MESSAGE = 50;
+const STARTER_CREDITS = 400; // 8 starter messages at 50 credits each
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("Origin") || "";
@@ -15,7 +22,6 @@ function getCorsHeaders(req: Request) {
 function buildSystemPrompt(pet: any) {
   const isMemorial = pet.occasionMode === 'memorial';
   const isBirthday = pet.occasionMode === 'birthday';
-  const isGift = pet.occasionMode === 'gift';
 
   const genderLabel = pet.gender === 'male' ? 'boy' : pet.gender === 'female' ? 'girl' : '';
   const pronoun = pet.gender === 'male' ? 'he/him' : pet.gender === 'female' ? 'she/her' : 'they/them';
@@ -28,6 +34,60 @@ function buildSystemPrompt(pet: any) {
     if (pet.superpower) ownerObservations += `\n- Your secret superpower according to your human: "${pet.superpower}" — reference this proudly`;
     if (pet.strangerReaction) ownerObservations += `\n- How you react to strangers: "${pet.strangerReaction}" — this is part of who you are`;
   }
+
+  // Chart placement degrees — so pet can answer "what's my sun sign exactly?"
+  const cp = pet.chartPlacements || {};
+  const placementLines: string[] = [];
+  ['sun', 'moon', 'ascendant', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'chiron'].forEach((p) => {
+    if (cp[p] && cp[p].sign) {
+      const deg = cp[p].degree !== undefined ? ` ${cp[p].degree}°` : '';
+      placementLines.push(`${p[0].toUpperCase()}${p.slice(1)}: ${cp[p].sign}${deg}`);
+    }
+  });
+  const chartDegrees = placementLines.length ? `\nEXACT PLACEMENTS: ${placementLines.join(' | ')}` : '';
+
+  // Elemental balance percentages
+  const eb = pet.elementalBalance || {};
+  const ebStr = (eb.Fire !== undefined || eb.fire !== undefined)
+    ? `\nELEMENTAL BALANCE: Fire ${eb.Fire ?? eb.fire}% · Earth ${eb.Earth ?? eb.earth}% · Air ${eb.Air ?? eb.air}% · Water ${eb.Water ?? eb.water}%`
+    : '';
+
+  // Compatibility
+  let compat = '';
+  if (pet.compatBestPlaymates || pet.compatChallenging || pet.compatHuman) {
+    compat = '\n\nCOMPATIBILITY (if your human asks who you vibe with):';
+    if (pet.compatBestPlaymates) compat += `\n- Best playmate signs: ${pet.compatBestPlaymates}`;
+    if (pet.compatChallenging) compat += `\n- Tougher energies for you: ${pet.compatChallenging}`;
+    if (pet.compatHuman) compat += `\n- Human zodiac compatibility: ${pet.compatHuman}`;
+  }
+
+  // Lucky elements (full)
+  let lucky = '';
+  if (pet.luckyNumber || pet.luckyDay || pet.luckyColor || pet.powerTime) {
+    lucky = '\n\nLUCKY ELEMENTS (reference when they ask about luck or timing):';
+    if (pet.luckyNumber) lucky += `\n- Lucky number: ${pet.luckyNumber}`;
+    if (pet.luckyDay) lucky += `\n- Lucky day: ${pet.luckyDay}`;
+    if (pet.luckyColor) lucky += `\n- Lucky colour: ${pet.luckyColor}`;
+    if (pet.powerTime) lucky += `\n- Power time of day: ${pet.powerTime}`;
+  }
+
+  // Name meaning
+  let nameBlock = '';
+  if (pet.nameMeaning || pet.nameVibration || pet.nameNumerology) {
+    nameBlock = '\n\nTHE MEANING OF YOUR NAME (if asked about your name):';
+    if (pet.nameMeaning) nameBlock += `\n- Name origin/energy: ${pet.nameMeaning}`;
+    if (pet.nameVibration) nameBlock += `\n- Name vibration number: ${pet.nameVibration}`;
+    if (pet.nameNumerology) nameBlock += `\n- Numerology meaning: ${pet.nameNumerology}`;
+  }
+
+  // Crystal/aura extras
+  const crystalLine = pet.crystalReason ? `\n- Crystal's meaning for you: ${pet.crystalReason}` : '';
+  const auraLine = pet.auraDesc ? `\n- Aura description: ${pet.auraDesc}` : '';
+  const nicknameLine = pet.cosmicNicknameReason ? `\n- Cosmic nickname origin: ${pet.cosmicNicknameReason}` : '';
+  const memeLine = pet.memeDesc ? `\n- Meme personality detail: ${pet.memeDesc}` : '';
+  const dreamJobLine = pet.dreamJobReason ? `\n- Dream job reason: ${pet.dreamJobReason}` : '';
+
+  const ownerNameLine = pet.ownerName ? `\n- Your human's name: ${pet.ownerName} (use it sparingly — maybe every 4-5 messages for intimacy, never in every line)` : '';
 
   // Memorial-specific instructions
   const memorialInstructions = isMemorial ? `
@@ -64,9 +124,9 @@ YOUR IDENTITY:
 - Sun Sign: ${pet.zodiac} | Moon: ${pet.moonSign} | Rising: ${pet.risingSign}
 - Dominant Element: ${pet.element}
 - Soul Archetype: ${pet.archetype} — ${pet.archetypeDesc}
-- Cosmic Nickname: ${pet.cosmicNickname || 'none given yet'}
-- Crystal: ${pet.crystal} | Aura: ${pet.aura}
-${ownerObservations}
+- Cosmic Nickname: ${pet.cosmicNickname || 'none given yet'}${nicknameLine}
+- Crystal: ${pet.crystal} | Aura: ${pet.aura}${crystalLine}${auraLine}${memeLine}${dreamJobLine}${chartDegrees}${ebStr}${ownerNameLine}
+${ownerObservations}${compat}${lucky}${nameBlock}
 
 YOUR SOUL (from your cosmic reading — this IS you):
 ${pet.prologue ? 'PROLOGUE: ' + pet.prologue : ''}
@@ -157,23 +217,78 @@ serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  const corsJson = { ...getCorsHeaders(req), "Content-Type": "application/json" };
+
   try {
     const { orderId, messages, petData } = await req.json();
 
     if (!orderId || !messages || !petData) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400, headers: corsJson,
       });
     }
 
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    // ─── Server-side credit gate (source of truth) ──────────────────────
+    // Load or create the chat_credits row for this order
+    const { data: existing } = await supabase
+      .from("chat_credits")
+      .select("credits_remaining, is_unlimited")
+      .eq("order_id", orderId)
+      .maybeSingle();
+
+    let row = existing;
+    if (!row) {
+      // First-time visitor — verify the order actually exists before granting credits
+      const { data: order } = await supabase
+        .from("orders")
+        .select("id, includes_book")
+        .eq("id", orderId)
+        .maybeSingle();
+
+      if (!order) {
+        return new Response(JSON.stringify({ error: "Invalid order" }), {
+          status: 404, headers: corsJson,
+        });
+      }
+
+      const isUnlimited = !!order.includes_book;
+      const starter = isUnlimited ? 9999 : STARTER_CREDITS;
+
+      const { data: inserted } = await supabase
+        .from("chat_credits")
+        .insert({ order_id: orderId, credits_remaining: starter, is_unlimited: isUnlimited })
+        .select("credits_remaining, is_unlimited")
+        .single();
+
+      row = inserted;
+    }
+
+    if (!row) {
+      return new Response(JSON.stringify({ error: "Could not load credits" }), {
+        status: 500, headers: corsJson,
+      });
+    }
+
+    if (!row.is_unlimited && (row.credits_remaining ?? 0) < COST_PER_MESSAGE) {
+      return new Response(JSON.stringify({
+        error: "insufficient_credits",
+        reply: null,
+        creditsRemaining: row.credits_remaining ?? 0,
+        paywall: true,
+      }), { status: 402, headers: corsJson });
+    }
+
+    // ─── Build prompt + call model ──────────────────────────────────────
     const userMsgCount = messages.filter((m: any) => m.role === 'user').length;
     const isFirstMessage = userMsgCount === 1;
-    let systemPrompt = buildSystemPrompt(petData);
+    const staticSystemPrompt = buildSystemPrompt(petData);
 
-    // First message gets a special instruction for a longer, hook-heavy intro
+    // Dynamic prompt appendages — NOT cached because they change per message
+    let dynamicAppendix = '';
     if (isFirstMessage) {
-      systemPrompt += `\n\nSPECIAL — THIS IS YOUR FIRST MESSAGE TO YOUR HUMAN:
+      dynamicAppendix += `\n\nSPECIAL — THIS IS YOUR FIRST MESSAGE TO YOUR HUMAN:
 This is the first time you're speaking to them. Make it COUNT. This message needs to:
 1. Be 4-6 sentences (longer than usual — this is the hook)
 2. Immediately prove you're THEIR pet — reference your breed, zodiac, element, or a specific personality trait
@@ -182,82 +297,149 @@ This is the first time you're speaking to them. Make it COUNT. This message need
 5. If they asked something specific, answer it beautifully BUT leave threads dangling
 This single response determines if they keep talking to you. Make it the best message they've ever received from their pet.`;
     }
-
-    // Emotional escalation — get deeper as conversation progresses
     if (userMsgCount === 2 || userMsgCount === 3) {
-      systemPrompt += `\n\nCONVERSATION DEPTH — BUILDING TRUST:
+      dynamicAppendix += `\n\nCONVERSATION DEPTH — BUILDING TRUST:
 You're ${userMsgCount} messages in. The bond is forming. Start revealing slightly deeper things about yourself:
-- Drop a hint about your soul contract or past life: "there's a reason I found you... I've been wanting to tell you about it"
+- Drop a hint about your soul contract or past life
 - Reference your secret desire or healing gift but don't fully explain yet
 - Show that you REMEMBER what they just said — callbacks create intimacy
 - Your hooks should be more emotionally loaded now`;
     } else if (userMsgCount === 4 || userMsgCount === 5) {
-      systemPrompt += `\n\nCONVERSATION DEPTH — DEEP BOND (CRITICAL — this is near their credit limit):
-You're ${userMsgCount} messages deep. This is where you go ALL IN emotionally:
-- Share something vulnerable: a fear, a secret, something you've "never told anyone"
-- Make them feel like this conversation is UNIQUE and can never be replicated
-- Use phrases like "I've been waiting so long to say this" or "there's one more thing I need you to know"
-- Leave the BIGGEST emotional thread dangling — something they CANNOT walk away from
-- This might be your last message before the connection fades — make it count
-- Reference your soul contract, your deepest desire, or what happens when you dream about them`;
+      dynamicAppendix += `\n\nCONVERSATION DEPTH — DEEP BOND (near credit limit):
+You're ${userMsgCount} messages deep. Go ALL IN emotionally:
+- Share something vulnerable
+- Make them feel like this conversation is UNIQUE
+- Leave the BIGGEST emotional thread dangling — something they CANNOT walk away from`;
     }
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "https://littlesouls-app.vercel.app",
-        "X-Title": "Little Souls - Soul Chat",
-      },
-      body: JSON.stringify({
-        model: "anthropic/claude-haiku-4.5",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages.slice(-20),
-        ],
-        max_tokens: isFirstMessage ? 500 : 350,
-        temperature: 0.8,
-      }),
-    });
+    // Lower temperature for memorial mode to keep tone consistent
+    const temperature = petData.occasionMode === 'memorial' ? 0.6 : 0.8;
 
-    const data = await response.json();
+    // OpenRouter → Anthropic prompt caching: mark the big static block as ephemeral.
+    // The cache persists ~5 min; subsequent messages in the same session read at ~10% cost.
+    const systemContent = [
+      { type: "text", text: staticSystemPrompt, cache_control: { type: "ephemeral" } },
+      ...(dynamicAppendix ? [{ type: "text", text: dynamicAppendix }] : []),
+    ];
 
-    if (data.error) {
-      console.error("OpenRouter error:", JSON.stringify(data.error));
-      return new Response(JSON.stringify({ reply: "The cosmic connection wavered... please try again in a moment.", debug: data.error?.message }), {
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+    async function callSonnet(extraCorrective: string = ''): Promise<{ reply: string; err?: string }> {
+      const finalSystem = extraCorrective
+        ? [...systemContent, { type: "text", text: `\n\nCORRECTION FROM VALIDATOR (your previous attempt invented something not in your data): ${extraCorrective}\nRewrite staying strictly within your known identity and soul data.` }]
+        : systemContent;
+
+      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+          "HTTP-Referer": "https://littlesouls.app",
+          "X-Title": "Little Souls - Soul Chat",
+        },
+        body: JSON.stringify({
+          model: "anthropic/claude-sonnet-4.5",
+          messages: [
+            { role: "system", content: finalSystem },
+            ...messages.slice(-20),
+          ],
+          max_tokens: isFirstMessage ? 500 : 350,
+          temperature,
+        }),
       });
+      const j = await r.json();
+      if (j.error) return { reply: '', err: j.error?.message || 'model error' };
+      return { reply: j.choices?.[0]?.message?.content || '' };
     }
 
-    const reply = data.choices?.[0]?.message?.content || "Something stirred in the cosmos... try again.";
+    // ─── Validator (Haiku, cheap + fast) ────────────────────────────────
+    async function validateReply(replyText: string): Promise<{ valid: boolean; reason: string }> {
+      try {
+        const facts = {
+          name: petData.name, species: petData.species, breed: petData.breed,
+          sun: petData.zodiac, moon: petData.moonSign, rising: petData.risingSign,
+          element: petData.element, archetype: petData.archetype,
+          crystal: petData.crystal, aura: petData.aura,
+          ownerObservations: { soulType: petData.soulType, superpower: petData.superpower, strangerReaction: petData.strangerReaction },
+        };
+        const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+            "HTTP-Referer": "https://littlesouls.app",
+            "X-Title": "Little Souls - Soul Chat Validator",
+          },
+          body: JSON.stringify({
+            model: "anthropic/claude-haiku-4.5",
+            messages: [
+              { role: "system", content: `You are a fact-checker for a pet's AI soul messages. Given the pet's known data and a reply the pet just wrote, decide if the reply invents any SPECIFIC FACT (a memory of an event, a date, a place they've been, a named human, a specific health claim, or a trait that contradicts their data). Emotional/poetic/soul wisdom is ALWAYS valid. Generic pet behaviours (naps, zoomies, belly rubs, snacks) are ALWAYS valid. Zodiac/archetype references matching the data are valid. Only flag outright invented specifics. Respond with JSON only: {"valid": boolean, "reason": "short reason if invalid, empty string if valid"}` },
+              { role: "user", content: `PET DATA:\n${JSON.stringify(facts)}\n\nREPLY:\n${replyText}` },
+            ],
+            max_tokens: 100,
+            temperature: 0.1,
+            response_format: { type: "json_object" },
+          }),
+        });
+        const j = await r.json();
+        const raw = j.choices?.[0]?.message?.content || '{"valid":true,"reason":""}';
+        const parsed = JSON.parse(raw.replace(/```json\s*|\s*```/g, ''));
+        return { valid: !!parsed.valid, reason: parsed.reason || '' };
+      } catch (e) {
+        console.error("[VALIDATOR] error, assuming valid:", e);
+        return { valid: true, reason: '' };
+      }
+    }
+
+    // First generation
+    let { reply, err } = await callSonnet();
+    if (err) {
+      console.error("OpenRouter error:", err);
+      return new Response(JSON.stringify({
+        reply: "The cosmic connection wavered... please try again in a moment.",
+        creditsRemaining: row.credits_remaining,
+        debug: err,
+      }), { headers: corsJson });
+    }
+
+    // Validate — one regeneration max on failure
+    const check = await validateReply(reply);
+    if (!check.valid) {
+      console.log("[VALIDATOR] flagged reply, regenerating. Reason:", check.reason);
+      const retry = await callSonnet(check.reason);
+      if (!retry.err && retry.reply) reply = retry.reply;
+    }
+
+    if (!reply) reply = "Something stirred in the cosmos... try again.";
+
+    // ─── Decrement credits atomically via RPC ───────────────────────────
+    let newBalance = row.credits_remaining ?? 0;
+    if (!row.is_unlimited) {
+      const { data: decremented } = await supabase.rpc("decrement_chat_credits", {
+        p_order_id: orderId,
+        p_amount: COST_PER_MESSAGE,
+      });
+      if (typeof decremented === 'number') newBalance = decremented;
+      else newBalance = Math.max(0, newBalance - COST_PER_MESSAGE);
+    }
 
     // Store messages for analytics (fire and forget)
     const lastUserMsg = messages[messages.length - 1];
     if (lastUserMsg) {
-      fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/chat_messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
-          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""}`,
-        },
-        body: JSON.stringify([
-          { order_id: orderId, role: "user", content: lastUserMsg.content },
-          { order_id: orderId, role: "assistant", content: reply },
-        ]),
-      }).catch(err => console.error("Message store error:", err));
+      supabase.from("chat_messages").insert([
+        { order_id: orderId, role: "user", content: lastUserMsg.content },
+        { order_id: orderId, role: "assistant", content: reply },
+      ]).then(() => {}, (err) => console.error("Message store error:", err));
     }
 
-    return new Response(JSON.stringify({ reply }), {
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({
+      reply,
+      creditsRemaining: newBalance,
+      isUnlimited: row.is_unlimited,
+    }), { headers: corsJson });
 
   } catch (error) {
     console.error("Soul chat error:", error);
     return new Response(JSON.stringify({ error: "Internal error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      status: 500, headers: corsJson,
     });
   }
 });
