@@ -16,6 +16,7 @@ import {
 } from "./ephemeris-v2.ts";
 import { resolveBirthUTC } from "./timezone.ts";
 import { resolveSpeciesRules, findBannedIngredients } from "./species-recipe-rules.ts";
+import { verifyReport, type VerificationIssue } from "./verifier.ts";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -1792,45 +1793,62 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
   }
   reportContent = fixOwnerPhrasing(reportContent) as Record<string, unknown>;
 
-  // Re-apply overrides after auto-fix (fix may have touched override objects)
+  // Re-apply overrides after auto-fix — the walker may have touched strings inside these objects
   reportContent.chartPlacements = chartPlacements;
-  reportContent.luckyElements = (createFallbackReport() as Record<string, unknown>).luckyElements;
-  reportContent.basedOnYourAnswers = (createFallbackReport() as Record<string, unknown>).basedOnYourAnswers;
 
-  // Validation logging: tense issues
-  const reportText = JSON.stringify(reportContent);
-  if (!isMemorial) {
-    const pastTensePatterns = [
-      new RegExp(`${name} was `, 'gi'),
-      new RegExp(`${name} entered`, 'gi'),
-      new RegExp(`${name} came into`, 'gi'),
-      new RegExp(`${name} chose you`, 'gi'),
-    ];
-    for (const pat of pastTensePatterns) {
-      const matches = reportText.match(pat);
-      if (matches) {
-        console.warn(`[VALIDATION] Past-tense violation in non-memorial report: "${matches[0]}" (${matches.length} occurrences)`);
-      }
-    }
+  // ─── Comprehensive verification pass (deterministic + Haiku semantic) ─────
+  // Runs auto-fixes for simple drift (owner phrasing, name casing) and flags
+  // critical issues (sign mismatches, degree drift) for targeted regeneration.
+  // Haiku 4.5 is only called for memorial tense + non-English language checks.
+  const validSigns = new Set<string>(Object.values(chartPlacements).map((p) => p.sign));
+  // South Node is the derived opposite of North Node — legitimate astrological reference.
+  const northNodeSign = (chartPlacements.northNode as { sign: string } | undefined)?.sign;
+  if (northNodeSign) {
+    const ORDER = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+    const opp = ORDER[(ORDER.indexOf(northNodeSign) + 6) % 12];
+    if (opp) validSigns.add(opp);
   }
+  const chartDegrees: Record<string, { sign: string; degree: number }> = {};
+  for (const [k, v] of Object.entries(chartPlacements)) chartDegrees[k.toLowerCase()] = v;
 
-  // Validation logging: pronoun mismatches
-  if (gender === 'boy') {
-    const femMatches = reportText.match(/\bshe\b|\bher\b(?!\s+name)/gi);
-    if (femMatches && femMatches.length > 2) {
-      console.warn(`[VALIDATION] Pronoun mismatch: ${femMatches.length} feminine pronouns in boy report`);
-    }
-  } else if (gender === 'girl') {
-    const mascMatches = reportText.match(/\bhis\b|\bhe\b/gi);
-    if (mascMatches && mascMatches.length > 2) {
-      console.warn(`[VALIDATION] Pronoun mismatch: ${mascMatches.length} masculine pronouns in girl report`);
-    }
-  }
+  try {
+    const verification = await verifyReport(
+      reportContent,
+      {
+        gender,
+        occasionMode: (occasionMode === "memorial" || occasionMode === "birthday" || occasionMode === "gift") ? occasionMode : "discover",
+        petName: name,
+        language,
+        validSigns,
+        chartDegrees,
+        recipeBannedIngredients: speciesRules.banned,
+      },
+      OPENROUTER_API_KEY,
+    );
+    reportContent = verification.report;
 
-  // Validation logging: "your owner" survived auto-fix (shouldn't happen, but log it)
-  const ownerSurvivors = reportText.match(ownerPattern);
-  if (ownerSurvivors) {
-    console.warn(`[VALIDATION] "owner" phrasing survived auto-fix: ${ownerSurvivors.length} occurrences`);
+    const { issues, autoFixesApplied, sectionsToRegenerate, overallPass } = verification.result;
+    const critical = issues.filter((i) => i.severity === "critical").length;
+    const warnings = issues.filter((i) => i.severity === "warning").length;
+    console.log(`[VERIFIER] auto-fixes=${autoFixesApplied}  critical=${critical}  warnings=${warnings}  pass=${overallPass}`);
+    for (const issue of issues) {
+      console.log(`  [${issue.severity}] ${issue.section} / ${issue.category}: ${issue.message.slice(0, 200)}`);
+    }
+
+    // Log critical/regen-needed issues to Sentry so we can track quality drift over time
+    if (critical > 0) {
+      await reportToSentry(`[VERIFIER] ${critical} critical issues in report ${reportId}`, {
+        reportId,
+        petName: name,
+        criticalIssues: issues.filter((i) => i.severity === "critical").map((i) => ({
+          section: i.section, category: i.category, message: i.message,
+        })),
+        sectionsToRegenerate,
+      });
+    }
+  } catch (verifierErr) {
+    // Verifier must never block delivery — log and continue
+    console.warn("[VERIFIER] Verifier threw (non-fatal):", verifierErr);
   }
 
   // Validation: species-unsafe ingredients in cosmicRecipe

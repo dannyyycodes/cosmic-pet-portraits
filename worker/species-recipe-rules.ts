@@ -225,10 +225,25 @@ export function findBannedIngredients(text: string, rules: SpeciesRecipeRules): 
   const lower = text.toLowerCase();
   const hits: string[] = [];
   for (const banned of rules.banned) {
-    // Match as substring — safer than word-boundary for multiword items like "cooked bones"
-    if (lower.includes(banned.toLowerCase())) {
-      hits.push(banned);
+    const term = banned.toLowerCase();
+    if (!lower.includes(term)) continue;
+    // Guard against common SAFE compounds — e.g. "xylitol-free peanut butter" is safe.
+    // Scan each occurrence; if every occurrence is part of an allowed compound, skip.
+    const re = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
+    let unsafeCount = 0;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(lower)) !== null) {
+      const start = m.index;
+      const end = start + term.length;
+      const afterCtx = lower.slice(end, end + 8);
+      const beforeCtx = lower.slice(Math.max(0, start - 8), start);
+      // Negation patterns that make this occurrence safe
+      const negated = /^\s*[- ]?\s*(free|less|less[\s-]|less )/i.test(afterCtx)
+                   || /\b(no|without|zero|free\s+of)\s*$/i.test(beforeCtx)
+                   || afterCtx.startsWith("-free");
+      if (!negated) unsafeCount++;
     }
+    if (unsafeCount > 0) hits.push(banned);
   }
   return hits;
 }
