@@ -1,4 +1,69 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  Cat, Dog, Fish, Rabbit, Bird, Turtle, PawPrint, Bone,
+  Squirrel, Snail, Rat, Worm, Feather, Egg,
+} from "lucide-react";
+
+/* ── Pet wallpaper — scattered Lucide icons behind the review rows ── */
+type PetItem = {
+  x: number; y: number; size: number; rot: number; op: number;
+  Icon: typeof Cat;
+};
+
+// Row 1 composition
+const WALLPAPER_PETS_ROW1: PetItem[] = [
+  { x: 3,  y: 10, size: 34, rot: -12, op: 0.18, Icon: Cat },
+  { x: 14, y: 55, size: 28, rot: 8,   op: 0.16, Icon: PawPrint },
+  { x: 23, y: 20, size: 40, rot: 6,   op: 0.20, Icon: Dog },
+  { x: 32, y: 65, size: 26, rot: -16, op: 0.15, Icon: Rabbit },
+  { x: 41, y: 18, size: 36, rot: 12,  op: 0.19, Icon: Fish },
+  { x: 50, y: 58, size: 22, rot: 20,  op: 0.14, Icon: Bone },
+  { x: 58, y: 22, size: 32, rot: -8,  op: 0.18, Icon: Bird },
+  { x: 66, y: 62, size: 28, rot: 14,  op: 0.17, Icon: Feather },
+  { x: 74, y: 18, size: 38, rot: -6,  op: 0.20, Icon: Turtle },
+  { x: 82, y: 58, size: 26, rot: 10,  op: 0.16, Icon: Squirrel },
+  { x: 90, y: 22, size: 30, rot: -14, op: 0.18, Icon: Rat },
+  { x: 97, y: 60, size: 22, rot: 8,   op: 0.14, Icon: Worm },
+];
+
+// Row 2 — different icons at different positions so the two rows don't mirror
+const WALLPAPER_PETS_ROW2: PetItem[] = [
+  { x: 6,  y: 20, size: 30, rot: 14,  op: 0.18, Icon: Rabbit },
+  { x: 12, y: 62, size: 36, rot: -10, op: 0.20, Icon: Dog },
+  { x: 22, y: 16, size: 26, rot: 18,  op: 0.16, Icon: PawPrint },
+  { x: 30, y: 58, size: 42, rot: 4,   op: 0.21, Icon: Cat },
+  { x: 40, y: 22, size: 24, rot: -18, op: 0.15, Icon: Egg },
+  { x: 48, y: 60, size: 34, rot: 12,  op: 0.19, Icon: Fish },
+  { x: 56, y: 14, size: 28, rot: -6,  op: 0.17, Icon: Snail },
+  { x: 63, y: 64, size: 38, rot: 8,   op: 0.20, Icon: Bird },
+  { x: 72, y: 20, size: 30, rot: 16,  op: 0.18, Icon: PawPrint },
+  { x: 80, y: 58, size: 32, rot: -12, op: 0.18, Icon: Rat },
+  { x: 87, y: 18, size: 36, rot: 6,   op: 0.19, Icon: Turtle },
+  { x: 94, y: 62, size: 26, rot: -8,  op: 0.16, Icon: Feather },
+];
+
+const PetWallpaper = ({ row }: { row: 1 | 2 }) => {
+  const pets = row === 1 ? WALLPAPER_PETS_ROW1 : WALLPAPER_PETS_ROW2;
+  return (
+    <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+      {pets.map((p, i) => (
+        <p.Icon
+          key={i}
+          size={p.size}
+          strokeWidth={1.4}
+          style={{
+            position: "absolute",
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            transform: `translate(-50%, -50%) rotate(${p.rot}deg)`,
+            color: "#c4a265",
+            opacity: p.op,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -220,11 +285,14 @@ export const CompactReviews = ({ row = 1 }: { row?: 1 | 2 }) => {
         background: "var(--cream, #FFFDF5)",
       }}
     >
+      <PetWallpaper row={row} />
       <div
         className="marquee-container transition-all duration-[1400ms]"
         style={{
           opacity: visible ? 1 : 0,
           transitionDelay: "0.1s",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {row === 1 ? (

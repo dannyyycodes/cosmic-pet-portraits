@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Cat, Dog, Fish, Rabbit, Bird, Turtle, PawPrint, Bone, Squirrel, Snail } from "lucide-react";
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -16,60 +15,6 @@ function useScrollReveal(threshold = 0.15) {
   }, [threshold]);
   return { ref, visible };
 }
-
-/* ── Pet wallpaper — scattered Lucide icons (MIT, already in bundle) ──
- * Uses real professionally-drawn pet silhouettes (Cat, Dog, Rabbit,
- * Fish, Bird, Turtle, Squirrel, Snail + paw prints + bones) scattered
- * across the section with varied size, rotation, and opacity so it
- * reads as a hand-arranged pattern rather than a rigid grid. */
-
-type PetItem = {
-  x: number; y: number; size: number; rot: number; op: number;
-  Icon: typeof Cat;
-};
-
-const WALLPAPER_PETS: PetItem[] = [
-  { x: 5,  y: 8,  size: 40, rot: -14, op: 0.22, Icon: Cat },
-  { x: 22, y: 18, size: 26, rot: 10,  op: 0.18, Icon: PawPrint },
-  { x: 42, y: 6,  size: 46, rot: 6,   op: 0.24, Icon: Dog },
-  { x: 62, y: 14, size: 30, rot: -18, op: 0.20, Icon: Rabbit },
-  { x: 82, y: 8,  size: 42, rot: 8,   op: 0.24, Icon: Fish },
-  { x: 92, y: 22, size: 22, rot: 20,  op: 0.16, Icon: Bone },
-  { x: 12, y: 34, size: 36, rot: 14,  op: 0.22, Icon: Bird },
-  { x: 30, y: 42, size: 24, rot: -8,  op: 0.18, Icon: PawPrint },
-  { x: 50, y: 34, size: 44, rot: -6,  op: 0.23, Icon: Turtle },
-  { x: 72, y: 40, size: 32, rot: 16,  op: 0.20, Icon: Squirrel },
-  { x: 88, y: 48, size: 38, rot: -10, op: 0.22, Icon: Cat },
-  { x: 6,  y: 56, size: 28, rot: 12,  op: 0.18, Icon: Snail },
-  { x: 24, y: 64, size: 42, rot: -16, op: 0.24, Icon: Dog },
-  { x: 46, y: 60, size: 24, rot: 18,  op: 0.16, Icon: PawPrint },
-  { x: 64, y: 66, size: 38, rot: -4,  op: 0.22, Icon: Fish },
-  { x: 84, y: 72, size: 30, rot: 10,  op: 0.20, Icon: Rabbit },
-  { x: 14, y: 80, size: 34, rot: 6,   op: 0.20, Icon: Bird },
-  { x: 36, y: 86, size: 26, rot: -12, op: 0.18, Icon: Bone },
-  { x: 56, y: 84, size: 40, rot: 14,  op: 0.23, Icon: Cat },
-  { x: 76, y: 90, size: 32, rot: -8,  op: 0.20, Icon: Turtle },
-];
-
-const PetWallpaper = () => (
-  <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
-    {WALLPAPER_PETS.map((p, i) => (
-      <p.Icon
-        key={i}
-        size={p.size}
-        strokeWidth={1.4}
-        style={{
-          position: "absolute",
-          left: `${p.x}%`,
-          top: `${p.y}%`,
-          transform: `rotate(${p.rot}deg)`,
-          color: "#c4a265",
-          opacity: p.op,
-        }}
-      />
-    ))}
-  </div>
-);
 
 /* ── VSOP Credibility — warm authority ── */
 const VsopCredibility = () => (
@@ -298,7 +243,6 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           transitionDelay: "0.1s",
         }}
       >
-        <PetWallpaper />
         <div className="relative max-w-[620px] mx-auto">
           <h2
             className="text-center"
