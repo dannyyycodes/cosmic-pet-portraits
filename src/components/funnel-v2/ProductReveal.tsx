@@ -33,49 +33,84 @@ type StarDef = {
   delay?: number;
 };
 
-// Two discrete constellation clusters pinned to opposite corners.
-// Centre zone (x ~22-75, y ~20-80) is empty so text reads clean.
-//
-// Cluster A (0-4): paw-print — thematic for a pet site.
-//   4 "toe" stars in an arc + 1 "pad" star below, lines from pad to each toe.
-//
-// Cluster B (5-11): The Plough / Big Dipper — seven-star ladle shape, the
-//   most universally recognised asterism in the Northern sky.
-//
-// Stars 12+ = scattered atmospheric dust, no connections.
+// Night-sky starfield: ~40 stars spread across the whole section, plus 5
+// small constellation clusters sprinkled through with connecting lines.
+// A graduated radial mask softens the centre so text always reads on top.
 const CONSTELLATION_STARS: StarDef[] = [
-  // ── Cluster A: paw print (top-left corner) ───────────────────────────
-  { x: 4,  y: 12, kind: "small",  delay: 0.0 },   // 0 — outer toe
-  { x: 9,  y: 8,  kind: "mid",    delay: 0.6 },   // 1
-  { x: 15, y: 9,  kind: "mid",    delay: 1.2 },   // 2
-  { x: 20, y: 13, kind: "small",  delay: 1.8 },   // 3 — outer toe
-  { x: 12, y: 22, kind: "bright", delay: 2.4 },   // 4 — pad
+  // ── Cluster 1: Paw print (upper-left region) ─────────────────────────
+  { x: 8,  y: 14, kind: "small",  delay: 0.0 },   // 0 toe
+  { x: 13, y: 10, kind: "mid",    delay: 0.5 },   // 1 toe
+  { x: 19, y: 11, kind: "mid",    delay: 1.0 },   // 2 toe
+  { x: 24, y: 15, kind: "small",  delay: 1.5 },   // 3 toe
+  { x: 16, y: 24, kind: "bright", delay: 2.0 },   // 4 pad
 
-  // ── Cluster B: The Plough / Big Dipper (bottom-right corner) ─────────
-  { x: 74, y: 84, kind: "mid",    delay: 0.3 },   // 5 — bowl corner
-  { x: 77, y: 76, kind: "mid",    delay: 0.9 },   // 6
-  { x: 83, y: 75, kind: "bright", delay: 1.5 },   // 7 — bowl top
-  { x: 84, y: 85, kind: "mid",    delay: 2.1 },   // 8 — bowl corner
-  { x: 87, y: 81, kind: "mid",    delay: 2.7 },   // 9 — handle start
-  { x: 92, y: 76, kind: "bright", delay: 3.3 },   // 10 — handle middle
-  { x: 96, y: 71, kind: "small",  delay: 3.9 },   // 11 — handle tip
+  // ── Cluster 2: Orion's Belt (upper middle) — 3 stars in a diagonal ──
+  { x: 42, y: 12, kind: "mid",    delay: 0.3 },   // 5
+  { x: 48, y: 17, kind: "bright", delay: 0.9 },   // 6
+  { x: 54, y: 22, kind: "mid",    delay: 1.5 },   // 7
 
-  // ── Atmospheric dust — no connections, no cluster, just sky ──────────
-  { x: 28, y: 6,  kind: "dust", delay: 0.5 },
-  { x: 68, y: 8,  kind: "dust", delay: 1.1 },
-  { x: 6,  y: 46, kind: "dust", delay: 1.7 },
-  { x: 94, y: 44, kind: "dust", delay: 2.3 },
-  { x: 32, y: 94, kind: "dust", delay: 2.9 },
-  { x: 58, y: 92, kind: "dust", delay: 3.5 },
+  // ── Cluster 3: Cassiopeia (upper-right, the "W") ─────────────────────
+  { x: 72, y: 12, kind: "mid",    delay: 0.4 },   // 8
+  { x: 77, y: 19, kind: "small",  delay: 0.9 },   // 9
+  { x: 82, y: 13, kind: "bright", delay: 1.4 },   // 10
+  { x: 87, y: 20, kind: "small",  delay: 1.9 },   // 11
+  { x: 92, y: 14, kind: "mid",    delay: 2.4 },   // 12
+
+  // ── Cluster 4: Small triangle (lower-left) ──────────────────────────
+  { x: 12, y: 78, kind: "mid",    delay: 0.6 },   // 13
+  { x: 20, y: 72, kind: "bright", delay: 1.2 },   // 14
+  { x: 22, y: 86, kind: "small",  delay: 1.8 },   // 15
+
+  // ── Cluster 5: Big Dipper / The Plough (lower-right) ────────────────
+  { x: 65, y: 82, kind: "mid",    delay: 0.2 },   // 16 bowl
+  { x: 68, y: 74, kind: "mid",    delay: 0.8 },   // 17 bowl
+  { x: 74, y: 73, kind: "bright", delay: 1.4 },   // 18 bowl
+  { x: 75, y: 83, kind: "mid",    delay: 2.0 },   // 19 bowl
+  { x: 82, y: 79, kind: "small",  delay: 2.6 },   // 20 handle
+  { x: 89, y: 74, kind: "bright", delay: 3.2 },   // 21 handle
+  { x: 95, y: 70, kind: "small",  delay: 3.8 },   // 22 handle tip
+
+  // ── Scattered dust stars — no connections, just atmosphere ──────────
+  // Top band
+  { x: 3,  y: 5,  kind: "dust", delay: 0.1 },
+  { x: 32, y: 7,  kind: "dust", delay: 0.7 },
+  { x: 60, y: 6,  kind: "dust", delay: 1.3 },
+  { x: 98, y: 8,  kind: "dust", delay: 1.9 },
+  // Upper-mid band (through text area — subtle, mask will tone these down)
+  { x: 5,  y: 32, kind: "dust", delay: 0.4 },
+  { x: 34, y: 34, kind: "dust", delay: 1.0 },
+  { x: 58, y: 32, kind: "dust", delay: 1.6 },
+  { x: 88, y: 30, kind: "dust", delay: 2.2 },
+  // Centre band
+  { x: 14, y: 50, kind: "dust", delay: 0.5 },
+  { x: 42, y: 48, kind: "dust", delay: 1.1 },
+  { x: 68, y: 52, kind: "dust", delay: 1.7 },
+  { x: 96, y: 48, kind: "dust", delay: 2.3 },
+  // Lower-mid band
+  { x: 4,  y: 64, kind: "dust", delay: 0.6 },
+  { x: 40, y: 66, kind: "dust", delay: 1.2 },
+  { x: 54, y: 62, kind: "dust", delay: 1.8 },
+  { x: 86, y: 64, kind: "dust", delay: 2.4 },
+  // Bottom band
+  { x: 30, y: 94, kind: "dust", delay: 0.3 },
+  { x: 48, y: 96, kind: "dust", delay: 0.9 },
+  { x: 58, y: 92, kind: "dust", delay: 1.5 },
+  { x: 80, y: 95, kind: "dust", delay: 2.1 },
 ];
 
-// Within-cluster lines only. No line crosses the centre.
+// Within-cluster connection lines only.
 const CONNECTIONS: Array<[number, number]> = [
-  // Paw: pad → each toe
+  // Paw print: pad → each toe
   [4, 0], [4, 1], [4, 2], [4, 3],
-  // Plough: bowl quadrilateral + handle chain
-  [5, 6], [6, 7], [7, 8], [8, 5],   // bowl
-  [8, 9], [9, 10], [10, 11],         // handle
+  // Orion's Belt: straight diagonal line
+  [5, 6], [6, 7],
+  // Cassiopeia: zigzag W
+  [8, 9], [9, 10], [10, 11], [11, 12],
+  // Triangle
+  [13, 14], [14, 15], [15, 13],
+  // Big Dipper: bowl quadrilateral + handle chain
+  [16, 17], [17, 18], [18, 19], [19, 16], // bowl
+  [19, 20], [20, 21], [21, 22],           // handle
 ];
 
 const STAR_SIZES: Record<StarKind, number> = {
@@ -101,10 +136,11 @@ const ConstellationBackdrop = () => (
       zIndex: 0,
       // Radial mask — constellation visible at the edges, faded to transparent
       // where the text reads. Pure CSS, no perf cost.
-      // Strong ellipse mask: centre 0-45% fully transparent (zero interference
-      // with text), outer 80%+ fully visible (corner clusters clearly shown).
-      WebkitMaskImage: "radial-gradient(ellipse 65% 55% at 50% 50%, transparent 0%, transparent 45%, black 80%)",
-      maskImage: "radial-gradient(ellipse 65% 55% at 50% 50%, transparent 0%, transparent 45%, black 80%)",
+      // Graduated mask — dims the centre to ~35% visibility so stars stay
+      // behind text without disappearing, full-visible at edges. True
+      // night-sky feel: a faint scatter across the whole space.
+      WebkitMaskImage: "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.6) 40%, black 85%)",
+      maskImage: "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.6) 40%, black 85%)",
     }}
   >
     {/* Lines first, behind the stars */}
