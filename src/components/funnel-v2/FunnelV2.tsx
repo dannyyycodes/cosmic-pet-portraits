@@ -2,7 +2,6 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { useFunnelV2Variant } from "@/hooks/useFunnelV2Variant";
-import { HeroV2 } from "./HeroV2";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
@@ -126,16 +125,9 @@ export const FunnelV2 = () => {
       />
 
       {/* Sections — padded for fixed navbar (gift banner + nav bar) */}
-      {/* Moving reviews row 1 sits tight above the hero quote */}
-      <div style={{ paddingTop: 72 }}>
+      {/* Reviews — both rows stacked, quote now sits inside ProductReveal */}
+      <div ref={heroRef} style={{ paddingTop: 72 }}>
         <CompactReviews row={1} />
-      </div>
-      {/* Hero carries the "They Give Us Everything / It's Time We Understood Them in Return" quote + CTA; row 2 sits tight below */}
-      <div ref={heroRef}>
-        <HeroV2
-          onCtaClick={scrollToCheckout}
-          ctaLabel={copy.ctaPrimary}
-        />
       </div>
       <CompactReviews row={2} />
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>

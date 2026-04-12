@@ -250,7 +250,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
   return (
     <section ref={ref} className="relative overflow-hidden">
 
-      {/* ── Block 1: The Science ── clean cream (Real Astronomy first, per spec) */}
+      {/* ── Block 1: The Science ── opens with the hero quote, then VSOP87 credibility ── */}
       <div
         className="px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
         style={{
@@ -260,19 +260,39 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           transitionDelay: "0.1s",
         }}
       >
-        <div className="max-w-[520px] mx-auto">
+        <div className="max-w-[560px] mx-auto">
+          {/* Opening quote (moved out of hero) */}
+          <h2
+            className="text-center"
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.25rem, 5vw, 1.6rem)",
+              fontWeight: 400,
+              color: "var(--black, #141210)",
+              lineHeight: 1.25,
+              letterSpacing: "-0.01em",
+              marginBottom: 40,
+            }}
+          >
+            They Give Us Everything.
+            <br />
+            <em style={{ color: "var(--rose, #bf524a)" }}>
+              It&apos;s Time We Understood Them in Return.
+            </em>
+          </h2>
+
           <VsopCredibility />
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── four-pillar editorial grid ── */}
+      {/* ── Block 2: The Benefits ── stacked editorial pull-quotes ── */}
       <div
-        className="relative overflow-hidden px-5 py-16 sm:py-20 md:py-24"
+        className="relative overflow-hidden px-5 py-20 sm:py-24 md:py-28"
         style={{
-          background: "linear-gradient(180deg, var(--cream, #FFFDF5) 0%, #faf4e8 100%)",
+          background: "linear-gradient(180deg, var(--cream, #FFFDF5) 0%, #faf4e8 60%, var(--cream, #FFFDF5) 100%)",
         }}
       >
-        <div className="relative max-w-[720px] mx-auto">
+        <div className="relative max-w-[600px] mx-auto">
           {/* Eyebrow */}
           <p
             className={`text-center benefit-eyebrow ${visible ? "is-in" : ""}`}
@@ -280,17 +300,24 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
               fontFamily: "Cormorant, Georgia, serif",
               fontSize: "0.7rem",
               fontWeight: 700,
-              letterSpacing: "0.28em",
+              letterSpacing: "0.3em",
               textTransform: "uppercase",
               color: "var(--gold, #c4a265)",
-              marginBottom: 36,
+              marginBottom: 10,
             }}
           >
             When you truly know them
           </p>
 
-          {/* Four-pillar grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+          {/* Ornamental diamond under eyebrow */}
+          <div className={`flex justify-center mb-16 benefit-eyebrow ${visible ? "is-in" : ""}`} aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10">
+              <path d="M5 0l2 5-2 5-2-5z" fill="var(--gold, #c4a265)" opacity="0.8" />
+            </svg>
+          </div>
+
+          {/* Four stacked editorial statements — one per visual breath */}
+          <div className="flex flex-col">
             {[
               { roman: "I", text: "Love them in the way they actually feel it." },
               { roman: "II", text: "Know what they need — without guessing, without wondering." },
@@ -299,59 +326,57 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             ].map((item, i) => (
               <div
                 key={i}
-                className={`benefit-pillar ${visible ? "is-in" : ""}`}
+                className={`benefit-stanza ${visible ? "is-in" : ""}`}
                 style={{
-                  animationDelay: `${0.2 + i * 0.14}s`,
-                  position: "relative",
-                  padding: "22px 22px 24px",
-                  borderRadius: 14,
-                  background: "linear-gradient(180deg, rgba(255,253,245,0.85) 0%, rgba(250,244,232,0.6) 100%)",
-                  border: "1px solid rgba(196,162,101,0.22)",
-                  boxShadow: "0 2px 18px rgba(196,162,101,0.08), inset 0 1px 0 rgba(255,255,255,0.5)",
+                  animationDelay: `${0.2 + i * 0.16}s`,
+                  textAlign: "center",
+                  marginBottom: i < 3 ? "clamp(36px, 7vw, 56px)" : 0,
                 }}
               >
-                {/* Roman numeral drop-cap */}
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    top: 14,
-                    right: 18,
-                    fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontStyle: "italic",
-                    fontSize: "1.3rem",
-                    background: "linear-gradient(135deg, #d4b26b, #c4a265)",
-                    WebkitBackgroundClip: "text",
-                    backgroundClip: "text",
-                    color: "transparent",
-                    opacity: 0.8,
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  {item.roman}
-                </span>
+                {/* Roman numeral flanked by hairlines */}
+                <div className="flex items-center justify-center gap-3 mb-5" aria-hidden="true">
+                  <div
+                    style={{
+                      width: 40,
+                      height: 1,
+                      background: "linear-gradient(90deg, transparent, var(--gold, #c4a265))",
+                      opacity: 0.7,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: '"DM Serif Display", Georgia, serif',
+                      fontStyle: "italic",
+                      fontSize: "0.95rem",
+                      letterSpacing: "0.18em",
+                      background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: "transparent",
+                    }}
+                  >
+                    {item.roman}
+                  </span>
+                  <div
+                    style={{
+                      width: 40,
+                      height: 1,
+                      background: "linear-gradient(270deg, transparent, var(--gold, #c4a265))",
+                      opacity: 0.7,
+                    }}
+                  />
+                </div>
 
-                {/* Small gold hairline */}
-                <div
-                  aria-hidden="true"
-                  style={{
-                    width: 26,
-                    height: 1,
-                    background: "var(--gold, #c4a265)",
-                    opacity: 0.7,
-                    marginBottom: 14,
-                  }}
-                />
-
-                {/* Statement */}
+                {/* The statement — big, serif, generous */}
                 <p
                   style={{
                     fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontSize: "clamp(1.08rem, 3.6vw, 1.22rem)",
+                    fontSize: "clamp(1.25rem, 5.2vw, 1.75rem)",
                     color: "var(--ink, #1f1c18)",
-                    lineHeight: 1.35,
-                    letterSpacing: "-0.01em",
-                    margin: 0,
+                    lineHeight: 1.3,
+                    letterSpacing: "-0.015em",
+                    maxWidth: 480,
+                    margin: "0 auto",
                   }}
                 >
                   {item.text}
@@ -361,17 +386,17 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           </div>
         </div>
 
-        {/* Pure-CSS animations. Transform + opacity only. */}
+        {/* CSS-only reveals — transform/opacity, GPU-cheap */}
         <style>{`
-          .benefit-eyebrow, .benefit-pillar {
+          .benefit-eyebrow, .benefit-stanza {
             opacity: 0;
-            transform: translateY(14px);
+            transform: translateY(18px);
             will-change: opacity, transform;
           }
           .benefit-eyebrow.is-in {
             animation: benefitReveal 900ms cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
           }
-          .benefit-pillar.is-in {
+          .benefit-stanza.is-in {
             animation: benefitReveal 1000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
           }
 
@@ -380,7 +405,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           }
 
           @media (prefers-reduced-motion: reduce) {
-            .benefit-eyebrow, .benefit-pillar {
+            .benefit-eyebrow, .benefit-stanza {
               animation: none !important;
               opacity: 1 !important;
               transform: none !important;
