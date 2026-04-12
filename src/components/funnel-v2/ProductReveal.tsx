@@ -16,6 +16,71 @@ function useScrollReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
+/* ── Pet wallpaper — repeating silhouettes behind the hero quote ──
+ * Simple original SVG silhouettes (dog, cat, rabbit, bird, fish, horse,
+ * hamster, turtle, paw prints) tiled as a low-opacity pattern. Inline
+ * SVG so it's a single paint, no extra network request, GPU-friendly. */
+const PetWallpaper = () => (
+  <div
+    aria-hidden="true"
+    className="absolute inset-0 pointer-events-none"
+    style={{
+      backgroundImage: `url("data:image/svg+xml;utf8,${encodeURIComponent(PET_PATTERN_SVG)}")`,
+      backgroundRepeat: "repeat",
+      backgroundSize: "280px 280px",
+      opacity: 0.14,
+    }}
+  />
+);
+
+const PET_PATTERN_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'>
+<g fill='none' stroke='%23c4a265' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'>
+<g transform='translate(30 40)'>
+<circle cx='6' cy='6' r='4'/><circle cx='16' cy='4' r='3.2'/><circle cx='4' cy='14' r='3'/><circle cx='18' cy='14' r='3'/><ellipse cx='11' cy='22' rx='6' ry='5'/>
+</g>
+<g transform='translate(110 30)'>
+<path d='M0 14c0-7 5-12 12-12s12 5 12 12c0 4-3 6-6 6H6c-3 0-6-2-6-6z'/>
+<path d='M4 2l3 6M20 2l-3 6'/>
+<circle cx='9' cy='13' r='0.8' fill='%23c4a265'/><circle cx='15' cy='13' r='0.8' fill='%23c4a265'/>
+<path d='M10 17l2 2 2-2'/>
+</g>
+<g transform='translate(200 50)'>
+<ellipse cx='12' cy='18' rx='8' ry='6'/>
+<path d='M8 13V4c0-1 .8-1.6 1.6-1.2l1.4.7c.6.3 1.4.3 2 0l1.4-.7c.8-.4 1.6.2 1.6 1.2v9'/>
+<circle cx='10' cy='17' r='0.7' fill='%23c4a265'/><circle cx='14' cy='17' r='0.7' fill='%23c4a265'/>
+</g>
+<g transform='translate(50 130)'>
+<path d='M0 8c0-4 4-7 9-7s9 3 9 7-4 7-9 7c-2 0-4-.5-5.5-1.3L0 16z'/>
+<circle cx='7' cy='8' r='0.8' fill='%23c4a265'/><circle cx='12' cy='8' r='0.8' fill='%23c4a265'/>
+<path d='M13 2l4-1'/>
+</g>
+<g transform='translate(160 120)'>
+<path d='M0 10c4-8 14-8 18 0-4 8-14 8-18 0z'/>
+<path d='M18 10l6-3v6z' fill='%23c4a265' stroke='none' opacity='0.9'/>
+<circle cx='5' cy='9' r='0.8' fill='%23c4a265'/>
+</g>
+<g transform='translate(230 140)'>
+<path d='M8 20c-4-1-6-5-6-9 0-6 4-11 10-11s10 5 10 11'/>
+<path d='M14 4c-2-3-2-4 0-4s2 1 0 4'/>
+<path d='M6 14h12'/>
+</g>
+<g transform='translate(30 210)'>
+<ellipse cx='5' cy='5' rx='2.5' ry='3.2'/><ellipse cx='13' cy='3' rx='2.5' ry='3.2'/><ellipse cx='2' cy='11' rx='2.2' ry='2.8'/><ellipse cx='16' cy='11' rx='2.2' ry='2.8'/><ellipse cx='9' cy='17' rx='5' ry='4'/>
+</g>
+<g transform='translate(120 200)'>
+<ellipse cx='10' cy='12' rx='10' ry='6'/>
+<circle cx='10' cy='10' r='4'/>
+<path d='M10 6c0-2 2-3 4-3'/>
+<circle cx='8' cy='10' r='0.6' fill='%23c4a265'/>
+</g>
+<g transform='translate(210 220)'>
+<path d='M2 6c6-5 14-5 18 0-2 4-6 6-9 6s-7-2-9-6z'/>
+<path d='M3 7c-3 0-3 4 0 4'/>
+<circle cx='15' cy='7' r='0.7' fill='%23c4a265'/>
+</g>
+</g>
+</svg>`;
+
 /* ── VSOP Credibility — warm authority ── */
 const VsopCredibility = () => (
   <div className="relative text-center overflow-hidden vsop-section">
@@ -43,15 +108,6 @@ const VsopCredibility = () => (
     </svg>
 
     <div className="relative">
-      {/* Ornamental rule with centered diamond */}
-      <div className="flex items-center justify-center gap-2 mb-6" aria-hidden="true">
-        <div style={{ width: 36, height: 1, background: "linear-gradient(90deg, transparent, #c4a265)", opacity: 0.7 }} />
-        <svg width="10" height="10" viewBox="0 0 10 10" className="vsop-diamond">
-          <path d="M5 0l2 5-2 5-2-5z" fill="#c4a265" opacity="0.85" />
-        </svg>
-        <div style={{ width: 36, height: 1, background: "linear-gradient(270deg, transparent, #c4a265)", opacity: 0.7 }} />
-      </div>
-
       {/* Section title — bold black */}
       <p
         style={{
@@ -184,14 +240,6 @@ const VsopCredibility = () => (
         ))}
       </div>
 
-      {/* Ornamental rule with centered diamond */}
-      <div className="flex items-center justify-center gap-2 mt-8" aria-hidden="true">
-        <div style={{ width: 36, height: 1, background: "linear-gradient(90deg, transparent, #c4a265)", opacity: 0.7 }} />
-        <svg width="10" height="10" viewBox="0 0 10 10" className="vsop-diamond">
-          <path d="M5 0l2 5-2 5-2-5z" fill="#c4a265" opacity="0.85" />
-        </svg>
-        <div style={{ width: 36, height: 1, background: "linear-gradient(270deg, transparent, #c4a265)", opacity: 0.7 }} />
-      </div>
     </div>
 
     <style>{`
@@ -250,69 +298,64 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
   return (
     <section ref={ref} className="relative overflow-hidden">
 
-      {/* ── Block 1: The Science ── opens with the hero quote, then VSOP87 credibility ── */}
+      {/* ── Quote band — grey with pet-silhouette wallpaper ── */}
       <div
-        className="px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
+        className="relative overflow-hidden px-5 py-16 sm:py-20 transition-all duration-[1200ms] ease-out"
         style={{
-          background: "#f8f3ea",
+          background: "#f0ece3",
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(20px)",
           transitionDelay: "0.1s",
         }}
       >
+        <PetWallpaper />
+        <div className="relative max-w-[620px] mx-auto">
+          <h2
+            className="text-center"
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.55rem, 6.2vw, 2.2rem)",
+              fontWeight: 400,
+              color: "var(--black, #141210)",
+              lineHeight: 1.18,
+              letterSpacing: "-0.02em",
+              margin: 0,
+            }}
+          >
+            They Give Us Everything.
+            <br />
+            <em style={{ fontWeight: 400 }}>
+              It&apos;s Time We Understood Them in Return.
+            </em>
+          </h2>
+        </div>
+      </div>
+
+      {/* ── Authority band — cream, matches review section ── */}
+      <div
+        className="px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
+        style={{
+          background: "var(--cream, #FFFDF5)",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(20px)",
+          transitionDelay: "0.15s",
+        }}
+      >
         <div className="max-w-[560px] mx-auto">
-          {/* Opening quote — editorial pull-quote treatment */}
-          <div className="mb-10" style={{ marginBottom: 44 }}>
-            {/* Small gold flourish above */}
-            <div className="flex items-center justify-center gap-2 mb-5" aria-hidden="true">
-              <div style={{ width: 40, height: 1, background: "linear-gradient(90deg, transparent, var(--gold, #c4a265))", opacity: 0.7 }} />
-              <svg width="8" height="8" viewBox="0 0 10 10">
-                <path d="M5 0l2 5-2 5-2-5z" fill="var(--gold, #c4a265)" opacity="0.8" />
-              </svg>
-              <div style={{ width: 40, height: 1, background: "linear-gradient(270deg, transparent, var(--gold, #c4a265))", opacity: 0.7 }} />
-            </div>
-
-            <h2
-              className="text-center"
-              style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.55rem, 6.2vw, 2.2rem)",
-                fontWeight: 400,
-                color: "var(--black, #141210)",
-                lineHeight: 1.18,
-                letterSpacing: "-0.02em",
-                margin: 0,
-              }}
-            >
-              They Give Us Everything.
-              <br />
-              <em style={{ fontWeight: 400 }}>
-                It&apos;s Time We Understood Them in Return.
-              </em>
-            </h2>
-          </div>
-
           <VsopCredibility />
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── tight editorial list, mobile-first ── */}
+      {/* ── Block 2: The Benefits ── grey band, alternates with cream neighbours ── */}
       <div
         className="relative px-5 py-12 sm:py-16 md:py-20"
         style={{
-          background: "linear-gradient(180deg, var(--cream, #FFFDF5) 0%, #faf4e8 100%)",
+          background: "#f0ece3",
         }}
       >
         <div className="relative max-w-[560px] mx-auto">
-          {/* Title only — no eyebrow, no subline, flanked gold flourish above */}
+          {/* Title only — no eyebrow, no subline, no flourish */}
           <div className={`text-center mb-10 sm:mb-12 benefit-eyebrow ${visible ? "is-in" : ""}`}>
-            <div className="flex items-center justify-center gap-2 mb-5" aria-hidden="true">
-              <div style={{ width: 36, height: 1, background: "linear-gradient(90deg, transparent, var(--gold, #c4a265))", opacity: 0.7 }} />
-              <svg width="8" height="8" viewBox="0 0 10 10">
-                <path d="M5 0l2 5-2 5-2-5z" fill="var(--gold, #c4a265)" opacity="0.8" />
-              </svg>
-              <div style={{ width: 36, height: 1, background: "linear-gradient(270deg, transparent, var(--gold, #c4a265))", opacity: 0.7 }} />
-            </div>
             <h2
               style={{
                 fontFamily: '"DM Serif Display", Georgia, serif',
