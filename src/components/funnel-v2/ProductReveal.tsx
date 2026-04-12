@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Star, Sparkle, Sparkles } from "lucide-react";
+import { Star, Sparkle, Sparkles, Heart } from "lucide-react";
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -194,6 +194,52 @@ const ConstellationBackdrop = () => (
         .constellation-star { animation: none !important; }
       }
     `}</style>
+  </div>
+);
+
+/* ── Hearts backdrop — subtle love-hearts pattern for the benefits band ── */
+type HeartItem = {
+  x: number; y: number; size: number; rot: number; op: number; fill?: boolean;
+};
+const BENEFIT_HEARTS: HeartItem[] = [
+  { x: 6,  y: 8,  size: 28, rot: -14, op: 0.16, fill: false },
+  { x: 22, y: 16, size: 18, rot: 10,  op: 0.12, fill: true  },
+  { x: 42, y: 6,  size: 34, rot: 6,   op: 0.14, fill: false },
+  { x: 64, y: 14, size: 22, rot: -18, op: 0.13, fill: true  },
+  { x: 86, y: 8,  size: 26, rot: 12,  op: 0.15, fill: false },
+
+  { x: 12, y: 38, size: 20, rot: 16,  op: 0.12, fill: true  },
+  { x: 52, y: 36, size: 30, rot: -4,  op: 0.14, fill: false },
+  { x: 82, y: 42, size: 18, rot: 18,  op: 0.12, fill: true  },
+
+  { x: 4,  y: 62, size: 24, rot: -12, op: 0.13, fill: false },
+  { x: 30, y: 68, size: 20, rot: 14,  op: 0.12, fill: true  },
+  { x: 68, y: 64, size: 32, rot: -8,  op: 0.15, fill: false },
+  { x: 94, y: 68, size: 22, rot: 10,  op: 0.13, fill: true  },
+
+  { x: 18, y: 90, size: 26, rot: 8,   op: 0.14, fill: false },
+  { x: 48, y: 94, size: 20, rot: -16, op: 0.12, fill: true  },
+  { x: 78, y: 92, size: 28, rot: 6,   op: 0.14, fill: false },
+];
+
+const HeartsBackdrop = () => (
+  <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+    {BENEFIT_HEARTS.map((h, i) => (
+      <Heart
+        key={i}
+        size={h.size}
+        strokeWidth={1.3}
+        fill={h.fill ? "#bf524a" : "none"}
+        color="#bf524a"
+        style={{
+          position: "absolute",
+          left: `${h.x}%`,
+          top: `${h.y}%`,
+          transform: `translate(-50%, -50%) rotate(${h.rot}deg)`,
+          opacity: h.op,
+        }}
+      />
+    ))}
   </div>
 );
 
@@ -491,15 +537,15 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── grey band, alternates with cream neighbours ── */}
+      {/* ── Block 2: The Benefits ── grey band + hearts backdrop + individual cards ── */}
       <div
-        className="relative px-5 py-12 sm:py-16 md:py-20"
-        style={{
-          background: "#faf6ec",
-        }}
+        className="relative overflow-hidden px-5 py-12 sm:py-16 md:py-20"
+        style={{ background: "#faf6ec" }}
       >
-        <div className="relative max-w-[560px] mx-auto">
-          {/* Title only — no eyebrow, no subline, no flourish */}
+        <HeartsBackdrop />
+
+        <div className="relative max-w-[560px] mx-auto" style={{ zIndex: 1 }}>
+          {/* Title */}
           <div className={`text-center mb-10 sm:mb-12 benefit-eyebrow ${visible ? "is-in" : ""}`}>
             <h2
               style={{
@@ -512,39 +558,35 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                 margin: 0,
               }}
             >
-              After <em style={{ color: "var(--rose, #bf524a)", fontWeight: 400 }}>Their</em> Reading
+              After <em style={{ color: "var(--black, #141210)", fontWeight: 400 }}>Their</em> Reading
             </h2>
           </div>
 
-          {/* Four benefit rows — left-aligned list, gold hairlines between */}
-          <ol
-            className="flex flex-col"
-            style={{
-              listStyle: "none",
-              padding: 0,
-              margin: 0,
-              borderTop: "1px solid rgba(196,162,101,0.25)",
-            }}
-          >
+          {/* Four benefit cards — each in its own subtle cream card */}
+          <div className="flex flex-col gap-3 sm:gap-4">
             {[
               { roman: "I", text: "You'll understand why they chose you." },
               { roman: "II", text: "Speak their love language — fluently." },
               { roman: "III", text: "Finally put into words the bond you've always felt." },
               { roman: "IV", text: "Read their needs before they show them." },
             ].map((item, i) => (
-              <li
+              <div
                 key={i}
                 className={`benefit-row ${visible ? "is-in" : ""}`}
                 style={{
                   animationDelay: `${0.15 + i * 0.1}s`,
                   display: "flex",
-                  alignItems: "baseline",
+                  alignItems: "center",
                   gap: "14px",
-                  padding: "18px 0",
-                  borderBottom: "1px solid rgba(196,162,101,0.25)",
+                  padding: "18px 22px",
+                  background: "rgba(255, 253, 245, 0.92)",
+                  border: "1px solid rgba(196, 162, 101, 0.16)",
+                  borderRadius: 14,
+                  boxShadow: "0 2px 18px rgba(0, 0, 0, 0.03)",
+                  backdropFilter: "blur(2px)",
+                  WebkitBackdropFilter: "blur(2px)",
                 }}
               >
-                {/* Roman numeral — gold italic, fixed width for alignment */}
                 <span
                   aria-hidden="true"
                   style={{
@@ -564,7 +606,6 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                   {item.roman}.
                 </span>
 
-                {/* Statement */}
                 <p
                   style={{
                     fontFamily: '"DM Serif Display", Georgia, serif',
@@ -578,9 +619,9 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
                 >
                   {item.text}
                 </p>
-              </li>
+              </div>
             ))}
-          </ol>
+          </div>
         </div>
 
         {/* CSS-only reveals */}
