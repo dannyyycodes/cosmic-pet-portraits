@@ -33,44 +33,49 @@ type StarDef = {
   delay?: number;
 };
 
-// Stars placed around the EDGES only — left/right columns + top/bottom rows.
-// Centre zone (x 28-72, y 22-78) is kept empty so the text never competes
-// with the pattern. Reads as a framing constellation rather than a backdrop
-// behind the words.
+// Two discrete constellation clusters pinned to opposite corners.
+// Centre zone (x ~22-75, y ~20-80) is empty so text reads clean.
+//
+// Cluster A (0-4): paw-print — thematic for a pet site.
+//   4 "toe" stars in an arc + 1 "pad" star below, lines from pad to each toe.
+//
+// Cluster B (5-11): The Plough / Big Dipper — seven-star ladle shape, the
+//   most universally recognised asterism in the Northern sky.
+//
+// Stars 12+ = scattered atmospheric dust, no connections.
 const CONSTELLATION_STARS: StarDef[] = [
-  // Top edge
-  { x: 6,  y: 6,  kind: "bright", delay: 0    },
-  { x: 20, y: 11, kind: "small",  delay: 0.6  },
-  { x: 40, y: 5,  kind: "mid",    delay: 1.2  },
-  { x: 60, y: 9,  kind: "dust",   delay: 1.8  },
-  { x: 78, y: 4,  kind: "mid",    delay: 2.4  },
-  { x: 94, y: 10, kind: "bright", delay: 3.0, rot: 18 },
+  // ── Cluster A: paw print (top-left corner) ───────────────────────────
+  { x: 4,  y: 12, kind: "small",  delay: 0.0 },   // 0 — outer toe
+  { x: 9,  y: 8,  kind: "mid",    delay: 0.6 },   // 1
+  { x: 15, y: 9,  kind: "mid",    delay: 1.2 },   // 2
+  { x: 20, y: 13, kind: "small",  delay: 1.8 },   // 3 — outer toe
+  { x: 12, y: 22, kind: "bright", delay: 2.4 },   // 4 — pad
 
-  // Left column (mid height)
-  { x: 4,  y: 30, kind: "mid",    delay: 0.4  },
-  { x: 10, y: 52, kind: "dust",   delay: 1.0  },
-  { x: 6,  y: 72, kind: "bright", delay: 1.6, rot: -8 },
+  // ── Cluster B: The Plough / Big Dipper (bottom-right corner) ─────────
+  { x: 74, y: 84, kind: "mid",    delay: 0.3 },   // 5 — bowl corner
+  { x: 77, y: 76, kind: "mid",    delay: 0.9 },   // 6
+  { x: 83, y: 75, kind: "bright", delay: 1.5 },   // 7 — bowl top
+  { x: 84, y: 85, kind: "mid",    delay: 2.1 },   // 8 — bowl corner
+  { x: 87, y: 81, kind: "mid",    delay: 2.7 },   // 9 — handle start
+  { x: 92, y: 76, kind: "bright", delay: 3.3 },   // 10 — handle middle
+  { x: 96, y: 71, kind: "small",  delay: 3.9 },   // 11 — handle tip
 
-  // Right column (mid height)
-  { x: 96, y: 32, kind: "mid",    delay: 0.8  },
-  { x: 92, y: 54, kind: "small",  delay: 1.4  },
-  { x: 94, y: 74, kind: "bright", delay: 2.0, rot: 12 },
-
-  // Bottom edge
-  { x: 8,  y: 92, kind: "mid",    delay: 0.5  },
-  { x: 24, y: 95, kind: "dust",   delay: 1.1  },
-  { x: 44, y: 93, kind: "bright", delay: 1.7, rot: -14 },
-  { x: 62, y: 96, kind: "dust",   delay: 2.3  },
-  { x: 78, y: 92, kind: "small",  delay: 2.9  },
-  { x: 92, y: 95, kind: "mid",    delay: 3.5  },
+  // ── Atmospheric dust — no connections, no cluster, just sky ──────────
+  { x: 28, y: 6,  kind: "dust", delay: 0.5 },
+  { x: 68, y: 8,  kind: "dust", delay: 1.1 },
+  { x: 6,  y: 46, kind: "dust", delay: 1.7 },
+  { x: 94, y: 44, kind: "dust", delay: 2.3 },
+  { x: 32, y: 94, kind: "dust", delay: 2.9 },
+  { x: 58, y: 92, kind: "dust", delay: 3.5 },
 ];
 
-// Short, edge-hugging connection lines — none cross the centre text zone.
+// Within-cluster lines only. No line crosses the centre.
 const CONNECTIONS: Array<[number, number]> = [
-  [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],   // top edge chain
-  [0, 6], [6, 7], [7, 8],                   // left column drop
-  [5, 9], [9, 10], [10, 11],                // right column drop
-  [8, 12], [12, 13], [13, 14], [14, 15], [15, 16], [16, 17], [17, 11], // bottom edge chain
+  // Paw: pad → each toe
+  [4, 0], [4, 1], [4, 2], [4, 3],
+  // Plough: bowl quadrilateral + handle chain
+  [5, 6], [6, 7], [7, 8], [8, 5],   // bowl
+  [8, 9], [9, 10], [10, 11],         // handle
 ];
 
 const STAR_SIZES: Record<StarKind, number> = {
@@ -80,12 +85,12 @@ const STAR_SIZES: Record<StarKind, number> = {
   dust: 5,
 };
 
-// Softer opacities overall — background, not foreground.
+// Opacities tuned so corner clusters read clearly, dust stays whisper-faint.
 const STAR_OPACITIES: Record<StarKind, number> = {
-  bright: 0.5,
-  mid: 0.35,
-  small: 0.28,
-  dust: 0.2,
+  bright: 0.6,
+  mid: 0.45,
+  small: 0.35,
+  dust: 0.22,
 };
 
 const ConstellationBackdrop = () => (
@@ -96,8 +101,10 @@ const ConstellationBackdrop = () => (
       zIndex: 0,
       // Radial mask — constellation visible at the edges, faded to transparent
       // where the text reads. Pure CSS, no perf cost.
-      WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, black 85%)",
-      maskImage: "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, black 85%)",
+      // Strong ellipse mask: centre 0-45% fully transparent (zero interference
+      // with text), outer 80%+ fully visible (corner clusters clearly shown).
+      WebkitMaskImage: "radial-gradient(ellipse 65% 55% at 50% 50%, transparent 0%, transparent 45%, black 80%)",
+      maskImage: "radial-gradient(ellipse 65% 55% at 50% 50%, transparent 0%, transparent 45%, black 80%)",
     }}
   >
     {/* Lines first, behind the stars */}
