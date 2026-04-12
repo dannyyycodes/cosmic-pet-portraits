@@ -601,34 +601,58 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             </div>
           </div>
 
-          {/* Four benefit cards — each in its own subtle cream card */}
-          <div className="flex flex-col gap-3 sm:gap-4">
+          {/* Four benefit cards — glass + gold inner glow, hand-laid tilt */}
+          <div className="flex flex-col gap-4 sm:gap-5">
             {[
-              { roman: "I", text: "You'll understand why they chose you." },
-              { roman: "II", text: "Speak their love language — fluently." },
-              { roman: "III", text: "Finally put into words the bond you've always felt." },
-              { roman: "IV", text: "Read their needs before they show them." },
+              { roman: "I",   text: "You'll understand why they chose you.",              tilt: -0.5, offset: 0  },
+              { roman: "II",  text: "Speak their love language — fluently.",               tilt:  0.6, offset: 8  },
+              { roman: "III", text: "Finally put into words the bond you've always felt.", tilt: -0.6, offset: -6 },
+              { roman: "IV",  text: "Read their needs before they show them.",             tilt:  0.5, offset: 4  },
             ].map((item, i) => (
               <div
                 key={i}
                 className={`benefit-row ${visible ? "is-in" : ""}`}
                 style={{
                   animationDelay: `${0.15 + i * 0.1}s`,
+                  transform: `translateX(${item.offset}px) rotate(${item.tilt}deg)`,
+                  position: "relative",
                   display: "flex",
                   alignItems: "center",
-                  gap: "14px",
-                  padding: "18px 22px",
-                  background: "rgba(255, 253, 245, 0.92)",
-                  border: "1px solid rgba(196, 162, 101, 0.16)",
+                  gap: "16px",
+                  padding: "20px 24px",
+                  // Glass fill — translucent cream with strong blur
+                  background: "rgba(255, 253, 245, 0.78)",
+                  backdropFilter: "blur(8px)",
+                  WebkitBackdropFilter: "blur(8px)",
+                  border: "1px solid rgba(196, 162, 101, 0.22)",
                   borderRadius: 14,
-                  boxShadow: "0 2px 18px rgba(0, 0, 0, 0.03)",
-                  backdropFilter: "blur(2px)",
-                  WebkitBackdropFilter: "blur(2px)",
+                  // Layered shadow — soft drop + tiny inner highlight at top
+                  boxShadow: [
+                    "0 4px 24px rgba(0, 0, 0, 0.04)",
+                    "0 1px 2px rgba(196, 162, 101, 0.08)",
+                    "inset 0 1px 0 rgba(255, 255, 255, 0.6)",
+                  ].join(", "),
+                  overflow: "hidden",
                 }}
               >
+                {/* Gold inner-glow sheen at the top edge */}
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "40%",
+                    background: "linear-gradient(180deg, rgba(212, 178, 107, 0.14) 0%, transparent 100%)",
+                    pointerEvents: "none",
+                  }}
+                />
+
                 <span
                   aria-hidden="true"
                   style={{
+                    position: "relative",
                     fontFamily: '"DM Serif Display", Georgia, serif',
                     fontStyle: "italic",
                     fontSize: "clamp(0.95rem, 3vw, 1.1rem)",
@@ -647,6 +671,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
 
                 <p
                   style={{
+                    position: "relative",
                     fontFamily: '"DM Serif Display", Georgia, serif',
                     fontSize: "clamp(1.02rem, 3.8vw, 1.2rem)",
                     color: "var(--ink, #1f1c18)",
@@ -663,29 +688,36 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           </div>
         </div>
 
-        {/* CSS-only reveals */}
+        {/* CSS-only reveals — opacity only on benefit-row so the inline tilt transform isn't overwritten */}
         <style>{`
-          .benefit-eyebrow, .benefit-row {
+          .benefit-eyebrow {
             opacity: 0;
             transform: translateY(10px);
             will-change: opacity, transform;
           }
           .benefit-eyebrow.is-in {
-            animation: benefitReveal 800ms cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
-          }
-          .benefit-row.is-in {
-            animation: benefitReveal 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: benefitEyebrowReveal 800ms cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
           }
 
-          @keyframes benefitReveal {
+          .benefit-row {
+            opacity: 0;
+            will-change: opacity;
+          }
+          .benefit-row.is-in {
+            animation: benefitRowReveal 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          }
+
+          @keyframes benefitEyebrowReveal {
             to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes benefitRowReveal {
+            to { opacity: 1; }
           }
 
           @media (prefers-reduced-motion: reduce) {
             .benefit-eyebrow, .benefit-row {
               animation: none !important;
               opacity: 1 !important;
-              transform: none !important;
             }
           }
         `}</style>
