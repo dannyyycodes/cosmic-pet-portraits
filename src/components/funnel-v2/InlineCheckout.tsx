@@ -28,7 +28,7 @@ function useIsInAppBrowser() {
   return isInApp;
 }
 
-type FeatureKind = "plain" | "soulspeak" | "horoscope";
+type FeatureKind = "plain" | "soulspeak" | "divider";
 
 interface Feature {
   label: string;
@@ -47,11 +47,13 @@ const TIERS: Array<{
     name: "Soul Reading",
     price: 27,
     features: [
-      { label: "Full cosmic personality profile" },
-      { label: "Emotional blueprint & soul purpose" },
-      { label: "SoulSpeak chat included", kind: "soulspeak" },
-      { label: "Upload your pet's photo" },
-      { label: "Weekly horoscope (1st month free)", kind: "horoscope" },
+      { label: "Full astrological breakdown — 30+ sections" },
+      { label: "How they love, how they learn, how they heal, what they hope for and what they fear" },
+      { label: "Their photo becomes part of the reveal" },
+      { label: "SoulSpeak", kind: "soulspeak" },
+      { label: "Plus bonus sections" },
+      { label: "Yours forever — revisit anytime, from any device" },
+      { label: "1 month of weekly horoscopes — included free" },
     ],
   },
   {
@@ -60,11 +62,10 @@ const TIERS: Array<{
     price: 35,
     badge: "Most Chosen",
     features: [
-      { label: "Everything in Soul Reading, plus:" },
-      { label: "Pet & owner compatibility analysis" },
-      { label: "Your cosmic connection decoded" },
-      { label: "Custom cosmic portrait" },
-      { label: "Priority generation" },
+      { label: "Everything in Soul Reading, plus:", kind: "divider" },
+      { label: "Your chart + theirs, read side by side" },
+      { label: "Where your energies meet, mirror, and balance" },
+      { label: "The soul-reasons you found each other" },
     ],
   },
 ];
@@ -80,8 +81,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  // Expanded feature preview — keyed as `${tierId}:${kind}` so only one can be open at a time.
-  const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
+  // SoulSpeak full-screen preview modal. Opens from any tier's SoulSpeak row.
+  const [soulSpeakOpen, setSoulSpeakOpen] = useState(false);
   // Charity selection lives in the checkout card itself (compact brand row near payment badges).
   const [selectedCharity, setSelectedCharity] = useState<"ifaw" | "world-land-trust" | "eden-reforestation">(
     (charityIdProp as "ifaw" | "world-land-trust" | "eden-reforestation") || "ifaw"
@@ -89,10 +90,22 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   const { ref: revealRef, visible } = useScrollReveal(0.05);
   const isInApp = useIsInAppBrowser();
 
-  const toggleFeature = (tierId: string, kind: FeatureKind) => {
-    const key = `${tierId}:${kind}`;
-    setExpandedFeature((curr) => (curr === key ? null : key));
-  };
+  // SoulSpeak row click → open full-screen modal
+  const openSoulSpeak = () => setSoulSpeakOpen(true);
+  const closeSoulSpeak = () => setSoulSpeakOpen(false);
+
+  // Lock body scroll while modal open
+  useEffect(() => {
+    if (!soulSpeakOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeSoulSpeak(); };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [soulSpeakOpen]);
 
   const selectedPrice = TIERS.find((t) => t.id === selectedTier)!.price;
 
@@ -229,8 +242,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           </h2>
         </div>
 
-        {/* Tier cards */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-6">
+        {/* Tier cards — full-width stacked, generous padding per tier */}
+        <div className="flex flex-col gap-4 mb-6">
           {TIERS.map((tier, i) => {
             const isSelected = selectedTier === tier.id;
             return (
@@ -239,10 +252,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 onClick={() => handleTierChange(tier.id)}
                 aria-pressed={isSelected}
                 aria-label={`Select ${tier.name}`}
-                className="relative text-left rounded-xl p-3.5 sm:p-4 transition-all duration-300 active:scale-[0.99]"
+                className="relative w-full text-left rounded-2xl p-5 sm:p-6 transition-all duration-300 active:scale-[0.995]"
                 style={{
-                  // Tier-tinted fill behind a gold-gradient frame.
-                  // Basic = pure cream. Premium = subtle gold-tinted cream.
                   background: (() => {
                     const fill = tier.id === "premium"
                       ? "linear-gradient(180deg, #fbf4e4 0%, #FFFDF5 100%)"
@@ -254,127 +265,122 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   })(),
                   border: isSelected ? "2px solid transparent" : "1.5px solid transparent",
                   boxShadow: isSelected
-                    ? "0 0 0 3px rgba(196,162,101,0.14), 0 6px 22px rgba(0,0,0,0.07)"
-                    : "0 1px 10px rgba(0,0,0,0.04)",
+                    ? "0 0 0 3px rgba(196,162,101,0.14), 0 8px 28px rgba(0,0,0,0.08)"
+                    : "0 2px 14px rgba(0,0,0,0.04)",
                   opacity: visible ? 1 : 0,
                   transform: visible ? (isSelected ? "translateY(-2px)" : "translateY(0)") : "translateY(15px)",
                   transitionDelay: `${0.1 + i * 0.08}s`,
-                  minHeight: 180,
                 }}
               >
                 {tier.badge && (
                   <div
-                    className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-white whitespace-nowrap"
+                    className="absolute -top-2.5 left-5 px-2.5 py-0.5 rounded-full text-white whitespace-nowrap"
                     style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.04em", background: "var(--rose, #bf524a)" }}
                   >
                     {tier.badge}
                   </div>
                 )}
 
-                {/* Radio */}
-                <div className="flex items-center gap-2 mb-2.5">
-                  <div
-                    className="w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
-                    style={{ borderColor: isSelected ? "var(--rose, #bf524a)" : "var(--sand, #d6c8b6)" }}
-                  >
-                    {isSelected && <div className="w-2 h-2 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
+                {/* Header row — radio + tier name (left) / price (right) */}
+                <div className="flex items-start justify-between mb-4 gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
+                      style={{ borderColor: isSelected ? "var(--rose, #bf524a)" : "var(--sand, #d6c8b6)" }}
+                    >
+                      {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
+                    </div>
+                    <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.1rem, 4vw, 1.3rem)", color: "var(--ink, #1f1c18)" }}>
+                      {tier.name}
+                    </span>
                   </div>
-                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.92rem", color: "var(--ink, #1f1c18)" }}>
-                    {tier.name}
-                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.8rem, 6vw, 2.1rem)", color: "var(--ink, #1f1c18)", lineHeight: 1 }}>
+                      ${tier.price}
+                    </span>
+                    <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", color: "var(--muted, #958779)", fontWeight: 500 }}>
+                      one-time
+                    </span>
+                  </div>
                 </div>
 
-                {/* Price — larger anchor */}
-                <div className="mb-3 flex items-baseline gap-1">
-                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.85rem", color: "var(--ink, #1f1c18)", lineHeight: 1 }}>
-                    ${tier.price}
-                  </span>
-                  <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.68rem", color: "var(--muted, #958779)", fontWeight: 500 }}>
-                    one-time
-                  </span>
-                </div>
-
-                {/* Features — alternating zebra rows for easier scanning */}
-                <ul className="rounded-lg overflow-hidden" onClick={(e) => e.stopPropagation()} style={{ border: "1px solid rgba(196,162,101,0.12)" }}>
+                {/* Features — zebra rows for easier scanning */}
+                <ul
+                  className="rounded-lg overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ border: "1px solid rgba(196,162,101,0.14)" }}
+                >
                   {tier.features.map((feature, fi) => {
-                    const expandable = feature.kind === "soulspeak" || feature.kind === "horoscope";
-                    const key = expandable ? `${tier.id}:${feature.kind}` : null;
-                    const isExpanded = key !== null && expandedFeature === key;
+                    const isDivider = feature.kind === "divider";
+                    const isSoulSpeak = feature.kind === "soulspeak";
                     return (
                       <li
                         key={fi}
-                        className="text-left px-2 py-1.5"
+                        className="text-left px-3 py-2.5"
                         style={{
-                          fontSize: "0.78rem",
-                          color: "var(--earth, #6e6259)",
-                          lineHeight: 1.35,
-                          background: fi % 2 === 0 ? "rgba(255,255,255,0.55)" : "rgba(246,241,230,0.55)",
+                          fontSize: "0.86rem",
+                          color: isDivider ? "var(--gold, #c4a265)" : "var(--earth, #6e6259)",
+                          fontWeight: isDivider ? 600 : 400,
+                          fontStyle: isDivider ? "italic" : "normal",
+                          lineHeight: 1.4,
+                          background: isDivider
+                            ? "rgba(196,162,101,0.08)"
+                            : fi % 2 === 0 ? "rgba(255,255,255,0.6)" : "rgba(246,241,230,0.55)",
                         }}
                       >
-                        <div className="flex items-start gap-1.5">
-                          <svg className="w-3 h-3 mt-0.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                          {expandable ? (
+                        <div className="flex items-start gap-2">
+                          {!isDivider && (
+                            <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {isSoulSpeak ? (
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 e.preventDefault();
-                                toggleFeature(tier.id, feature.kind as FeatureKind);
+                                openSoulSpeak();
                               }}
-                              aria-expanded={isExpanded}
-                              className="flex-1 flex items-center justify-between gap-1 text-left transition-opacity hover:opacity-80 focus:outline-none focus-visible:underline"
-                              style={{ minHeight: 22 }}
+                              className="flex-1 flex items-center justify-between gap-2 text-left transition-opacity hover:opacity-80 focus:outline-none focus-visible:underline"
+                              style={{ minHeight: 24 }}
                             >
-                              <span className="flex items-center gap-1.5 flex-wrap">
-                                <span>{feature.label}</span>
-                                {feature.kind === "soulspeak" && (
-                                  <span
-                                    style={{
-                                      fontFamily: "Cormorant, Georgia, serif",
-                                      fontSize: "0.58rem",
-                                      fontWeight: 700,
-                                      letterSpacing: "0.1em",
-                                      padding: "1px 6px",
-                                      borderRadius: 4,
-                                      background: "linear-gradient(135deg, #d4b26b, #c4a265)",
-                                      color: "#fff",
-                                      textTransform: "uppercase",
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
-                                    New
-                                  </span>
-                                )}
+                              <span className="flex items-center gap-2 flex-wrap">
+                                <span style={{ fontWeight: 600, color: "var(--ink, #1f1c18)" }}>{feature.label}</span>
+                                <span
+                                  style={{
+                                    fontFamily: "Cormorant, Georgia, serif",
+                                    fontSize: "0.6rem",
+                                    fontWeight: 700,
+                                    letterSpacing: "0.12em",
+                                    padding: "2px 7px",
+                                    borderRadius: 4,
+                                    background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                                    color: "#fff",
+                                    textTransform: "uppercase",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  New
+                                </span>
                               </span>
-                              <svg
-                                className="w-3 h-3 flex-shrink-0 transition-transform duration-200"
-                                style={{ color: "var(--muted, #958779)", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
-                                aria-hidden="true"
+                              <span
+                                className="text-[10px] whitespace-nowrap"
+                                style={{
+                                  fontFamily: "Cormorant, Georgia, serif",
+                                  color: "var(--gold, #c4a265)",
+                                  fontWeight: 600,
+                                  letterSpacing: "0.08em",
+                                  textTransform: "uppercase",
+                                }}
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                              </svg>
+                                Tap to preview →
+                              </span>
                             </button>
                           ) : (
                             <span className="flex-1">{feature.label}</span>
                           )}
                         </div>
-
-                        {expandable && isExpanded && (
-                          <div
-                            className="mt-2 ml-4 rounded-lg p-3"
-                            style={{
-                              background: "rgba(255, 253, 245, 0.7)",
-                              border: "1px solid var(--cream3, #f3eadb)",
-                              animation: "featurePreviewIn 0.25s ease",
-                            }}
-                          >
-                            {feature.kind === "soulspeak" && <SoulSpeakPreview />}
-                            {feature.kind === "horoscope" && <HoroscopePreview />}
-                          </div>
-                        )}
                       </li>
                     );
                   })}
@@ -383,12 +389,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             );
           })}
         </div>
-        <style>{`
-          @keyframes featurePreviewIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
 
         {/* In-app browser hint */}
         {isInApp && (
@@ -575,6 +575,112 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         </p>
 
       </div>
+
+      {/* ── Full-screen SoulSpeak modal — opens from the SoulSpeak row ── */}
+      {soulSpeakOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="soulspeak-modal-title"
+          onClick={(e) => { if (e.target === e.currentTarget) closeSoulSpeak(); }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+            background: "rgba(20, 18, 16, 0.55)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "5vw",
+            animation: "soulSpeakBackdropIn 0.25s ease",
+          }}
+        >
+          <div
+            className="relative"
+            style={{
+              width: "min(560px, 96vw)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              background: "var(--cream, #FFFDF5)",
+              borderRadius: 20,
+              padding: "clamp(24px, 5vw, 40px) clamp(22px, 5vw, 38px)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+              animation: "soulSpeakPanelIn 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+          >
+            <button
+              type="button"
+              onClick={closeSoulSpeak}
+              aria-label="Close"
+              className="absolute top-3 right-3 flex items-center justify-center rounded-full transition-opacity hover:opacity-70"
+              style={{ width: 34, height: 34, background: "rgba(196,162,101,0.14)", color: "var(--ink, #1f1c18)" }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-5">
+              <span
+                style={{
+                  display: "inline-block",
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontSize: "0.62rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  padding: "3px 10px",
+                  borderRadius: 4,
+                  background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                  color: "#fff",
+                  marginBottom: 12,
+                }}
+              >
+                SoulSpeak · New
+              </span>
+              <h3
+                id="soulspeak-modal-title"
+                style={{
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "clamp(1.4rem, 5.5vw, 1.9rem)",
+                  color: "var(--black, #141210)",
+                  lineHeight: 1.2,
+                  letterSpacing: "-0.015em",
+                  margin: 0,
+                }}
+              >
+                Ever wondered what they'd
+                <br />
+                <em style={{ color: "var(--rose, #bf524a)" }}>say if they could?</em>
+              </h3>
+            </div>
+
+            <SoulSpeakPreview />
+
+            <p
+              className="text-center mt-5"
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "0.82rem",
+                color: "var(--muted, #958779)",
+              }}
+            >
+              SoulSpeak is included with every reading.
+            </p>
+          </div>
+
+          <style>{`
+            @keyframes soulSpeakBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes soulSpeakPanelIn {
+              from { opacity: 0; transform: translateY(18px) scale(0.97); }
+              to   { opacity: 1; transform: translateY(0)    scale(1); }
+            }
+          `}</style>
+        </div>
+      )}
     </section>
   );
 });
