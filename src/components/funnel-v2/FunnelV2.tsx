@@ -8,14 +8,11 @@ import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 
 /**
- * V2 COPY — single, universal set. A/B test retired; 100% of traffic
- * sees this copy. Inline <b> tags render via dangerouslySetInnerHTML
- * in the checkout subheader for dual-path skim hierarchy.
+ * V2 COPY — single universal set. A/B test retired, 100% of traffic
+ * sees this copy.
  */
 const COPY = {
   ctaPrimary: "Begin Their Reading",
-  checkoutSub:
-    "Finally put words to the love you've always felt. <b>The story of a bond deeper than you could ever explain.</b>",
 } as const;
 
 export const FunnelV2 = () => {
@@ -111,7 +108,6 @@ export const FunnelV2 = () => {
       <InlineCheckout
         ref={checkoutRef}
         ctaLabel={copy.ctaPrimary}
-        subheader={copy.checkoutSub}
         charityId={charityId}
         charityBonus={charityBonus}
       />

@@ -71,12 +71,11 @@ const TIERS: Array<{
 
 interface InlineCheckoutProps {
   ctaLabel: string;
-  subheader: string;
   charityId?: string;
   charityBonus?: number;
 }
 
-export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, subheader, charityId: charityIdProp, charityBonus = 0 }, forwardedRef) => {
+export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0 }, forwardedRef) => {
   const [selectedTier, setSelectedTier] = useState<"basic" | "premium">("basic");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -185,14 +184,32 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         style={{
           zIndex: 1,
           padding: "clamp(28px, 5vw, 44px) clamp(22px, 4.5vw, 40px)",
-          background: "rgba(255, 253, 245, 0.92)",
-          border: "1px solid rgba(196, 162, 101, 0.16)",
+          background: "rgba(255, 253, 245, 0.78)",
+          border: "1px solid rgba(196, 162, 101, 0.22)",
           borderRadius: 18,
-          boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
-          backdropFilter: "blur(2px)",
-          WebkitBackdropFilter: "blur(2px)",
+          boxShadow: [
+            "0 4px 24px rgba(0, 0, 0, 0.04)",
+            "0 1px 2px rgba(196, 162, 101, 0.08)",
+            "inset 0 1px 0 rgba(255, 255, 255, 0.6)",
+          ].join(", "),
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          overflow: "hidden",
         }}
       >
+        {/* Gold inner-glow sheen at top edge — matches the benefit cards */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "40%",
+            background: "linear-gradient(180deg, rgba(212, 178, 107, 0.14) 0%, transparent 100%)",
+            pointerEvents: "none",
+          }}
+        />
         {/* Header */}
         <div
           className="text-center mb-7 sm:mb-8 transition-all duration-1000"
@@ -210,19 +227,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           >
             Begin Their Reading
           </h2>
-          <p
-            style={{
-              fontFamily: "Cormorant, Georgia, serif",
-              fontStyle: "italic",
-              fontSize: "clamp(0.95rem, 3.2vw, 1.02rem)",
-              color: "var(--earth, #6e6259)",
-              lineHeight: 1.5,
-              maxWidth: 420,
-              margin: "0 auto",
-            }}
-          >
-            {subheader}
-          </p>
         </div>
 
         {/* Tier cards */}
@@ -499,14 +503,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           </strong>
         </p>
 
-        {/* Post CTA clarity */}
-        <p
-          className="text-center mt-3"
-          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.8rem", color: "var(--muted, #958779)" }}
-        >
-          No account needed. Tell us about your pet right after checkout (60 seconds).
-        </p>
-
         {/* Trust row — elegant hand-drawn line icons */}
         <div className="flex items-center justify-center gap-5 sm:gap-7 mt-5">
           {[
@@ -565,32 +561,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         </div>
 
         {/* Real payment brand logos — legit trust row */}
-        <PaymentBrandLogos />
-        <p
-          className="text-center mt-2 mb-6"
-          style={{
-            fontFamily: "Cormorant, Georgia, serif",
-            fontSize: "0.72rem",
-            color: "var(--muted, #958779)",
-            letterSpacing: "0.02em",
-          }}
-        >
-          Secure checkout powered by Stripe
-        </p>
+        <div className="mb-6"><PaymentBrandLogos /></div>
 
-        {/* Charity brand row — sits beneath the Stripe trust line */}
+        {/* Charity brand row */}
         <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
-        <p
-          className="text-center mt-2"
-          style={{
-            fontFamily: "Cormorant, Georgia, serif",
-            fontSize: "0.72rem",
-            color: "var(--muted, #958779)",
-            letterSpacing: "0.02em",
-          }}
-        >
-          10% of your order supports your chosen charity.
-        </p>
 
         {/* Multi-pet note */}
         <p
@@ -762,7 +736,7 @@ const CharityBrandRow = ({
           color: "var(--gold, #c4a265)",
         }}
       >
-        Your donation goes to
+        10% of all sales go to
       </p>
       <div className="flex flex-wrap justify-center items-center gap-2" role="radiogroup" aria-label="Choose a charity">
         <CharityBadgeButton id="ifaw" selected={selected === "ifaw"} onSelect={onSelect}>
