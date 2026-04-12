@@ -800,88 +800,24 @@ const CharityBadgeButton = ({
  * Kept as inline SVG <text> so they share the payment-badge visual weight
  * and don't require a separate asset request per page load. */
 
-const IFAWMark = () => (
-  <svg width="64" height="18" viewBox="0 0 64 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <text
-      x="32"
-      y="13"
-      textAnchor="middle"
-      fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-      fontSize="12"
-      fontWeight="800"
-      letterSpacing="1.4"
-      fill="#C4302B"
-    >
-      IFAW
-    </text>
-  </svg>
+const CharityLogoImg = ({ src, alt }: { src: string; alt: string }) => (
+  <img
+    src={src}
+    alt={alt}
+    loading="lazy"
+    decoding="async"
+    style={{
+      maxHeight: 22,
+      maxWidth: 100,
+      objectFit: "contain",
+      display: "block",
+    }}
+  />
 );
 
-const WorldLandTrustMark = () => (
-  <svg width="104" height="20" viewBox="0 0 104 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <g fill="none" stroke="#2f7a3a" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="10" cy="10" r="6" />
-      <path d="M4 10h12" />
-      <path d="M10 4c2 2 3 4 3 6s-1 4-3 6" />
-      <path d="M10 4c-2 2-3 4-3 6s1 4 3 6" />
-    </g>
-    <text
-      x="22"
-      y="9"
-      fontFamily="Georgia, serif"
-      fontSize="7"
-      fontWeight="700"
-      letterSpacing="0.4"
-      fill="#2f3a2a"
-    >
-      WORLD LAND
-    </text>
-    <text
-      x="22"
-      y="17"
-      fontFamily="Georgia, serif"
-      fontSize="7"
-      fontWeight="700"
-      letterSpacing="0.4"
-      fill="#2f3a2a"
-    >
-      TRUST
-    </text>
-  </svg>
-);
-
-const EdenReforestationMark = () => (
-  <svg width="96" height="20" viewBox="0 0 96 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <g fill="none" stroke="#2f7a3a" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 17V9" />
-      <path d="M10 12c-3-1-5-4-4-8 3 0 6 2 6 6" />
-      <path d="M10 14c2-1 4-3 3-6-2 0-4 2-4 5" />
-      <path d="M6 17h8" />
-    </g>
-    <text
-      x="20"
-      y="9"
-      fontFamily="Georgia, serif"
-      fontSize="7"
-      fontWeight="700"
-      letterSpacing="0.4"
-      fill="#2f3a2a"
-    >
-      EDEN
-    </text>
-    <text
-      x="20"
-      y="17"
-      fontFamily="Georgia, serif"
-      fontSize="6.5"
-      fontWeight="600"
-      letterSpacing="0.3"
-      fill="#6e6259"
-    >
-      REFORESTATION
-    </text>
-  </svg>
-);
+const IFAWMark = () => <CharityLogoImg src="/charities/ifaw.png" alt="IFAW" />;
+const WorldLandTrustMark = () => <CharityLogoImg src="/charities/worldlandtrust.jpg" alt="World Land Trust" />;
+const EdenReforestationMark = () => <CharityLogoImg src="/charities/eden.png" alt="Eden Reforestation" />;
 
 /* ──────── Feature preview subcomponents ──────── */
 
