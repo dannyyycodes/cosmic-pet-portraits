@@ -33,82 +33,63 @@ type StarDef = {
   delay?: number;
 };
 
-// Stars live ONLY in the four edge strips — top (y 1-10%), bottom (y 90-99%),
-// left (x 1-14%, y 12-88%), right (x 86-99%, y 12-88%). Centre content box
-// (x 14-86%, y 10-90%) is guaranteed star-free so text is never crossed.
+// Subtle scattered stars across the whole section. All small, all faint,
+// all behind the text. A handful of short faint lines link triplets so it
+// reads as a night sky with mini-constellations rather than random dots.
 const CONSTELLATION_STARS: StarDef[] = [
-  // ── TOP strip: Cassiopeia-W zigzag + dust ─────────────────────────────
-  { x: 4,  y: 5,  kind: "dust",   delay: 0.0 },   // 0
-  { x: 12, y: 3,  kind: "small",  delay: 0.4 },   // 1
-  { x: 24, y: 7,  kind: "mid",    delay: 0.8 },   // 2 — W
-  { x: 32, y: 3,  kind: "mid",    delay: 1.2 },   // 3 — W
-  { x: 40, y: 8,  kind: "bright", delay: 1.6 },   // 4 — W
-  { x: 48, y: 3,  kind: "mid",    delay: 2.0 },   // 5 — W
-  { x: 56, y: 7,  kind: "mid",    delay: 2.4 },   // 6 — W
-  { x: 68, y: 4,  kind: "dust",   delay: 2.8 },   // 7
-  { x: 76, y: 8,  kind: "small",  delay: 3.2 },   // 8
-  { x: 88, y: 3,  kind: "dust",   delay: 3.6 },   // 9
-  { x: 96, y: 6,  kind: "small",  delay: 4.0 },   // 10
+  { x: 6,  y: 8,  kind: "dust",  delay: 0.1 },
+  { x: 18, y: 14, kind: "small", delay: 0.6 },
+  { x: 28, y: 6,  kind: "dust",  delay: 1.1 },
+  { x: 42, y: 12, kind: "small", delay: 1.6 },
+  { x: 55, y: 7,  kind: "dust",  delay: 2.1 },
+  { x: 68, y: 14, kind: "small", delay: 2.6 },
+  { x: 82, y: 6,  kind: "dust",  delay: 3.1 },
+  { x: 94, y: 12, kind: "small", delay: 3.6 },
 
-  // ── LEFT strip: paw print + dust ──────────────────────────────────────
-  { x: 5,  y: 22, kind: "small",  delay: 0.5 },   // 11 — toe
-  { x: 10, y: 18, kind: "mid",    delay: 1.0 },   // 12 — toe
-  { x: 14, y: 22, kind: "mid",    delay: 1.5 },   // 13 — toe
-  { x: 9,  y: 28, kind: "bright", delay: 2.0 },   // 14 — pad
-  { x: 5,  y: 46, kind: "dust",   delay: 0.7 },   // 15
-  { x: 10, y: 58, kind: "small",  delay: 1.3 },   // 16
-  { x: 4,  y: 72, kind: "dust",   delay: 1.9 },   // 17
-  { x: 11, y: 82, kind: "small",  delay: 2.5 },   // 18
+  { x: 4,  y: 34, kind: "small", delay: 0.3 },
+  { x: 26, y: 38, kind: "dust",  delay: 0.8 },
+  { x: 52, y: 34, kind: "dust",  delay: 1.3 },
+  { x: 78, y: 38, kind: "small", delay: 1.8 },
+  { x: 96, y: 32, kind: "dust",  delay: 2.3 },
 
-  // ── RIGHT strip: small triangle + dust ────────────────────────────────
-  { x: 91, y: 22, kind: "mid",    delay: 0.6 },   // 19 — triangle
-  { x: 96, y: 28, kind: "small",  delay: 1.2 },   // 20 — triangle
-  { x: 88, y: 32, kind: "bright", delay: 1.8 },   // 21 — triangle
-  { x: 95, y: 46, kind: "dust",   delay: 0.8 },   // 22
-  { x: 90, y: 58, kind: "small",  delay: 1.4 },   // 23
-  { x: 96, y: 70, kind: "dust",   delay: 2.0 },   // 24
-  { x: 89, y: 82, kind: "small",  delay: 2.6 },   // 25
+  { x: 8,  y: 58, kind: "dust",  delay: 0.5 },
+  { x: 36, y: 62, kind: "small", delay: 1.0 },
+  { x: 62, y: 58, kind: "dust",  delay: 1.5 },
+  { x: 88, y: 62, kind: "small", delay: 2.0 },
 
-  // ── BOTTOM strip: Big Dipper across bottom + dust ─────────────────────
-  { x: 4,  y: 94, kind: "dust",   delay: 0.3 },   // 26
-  { x: 14, y: 92, kind: "mid",    delay: 0.9 },   // 27 — bowl
-  { x: 22, y: 96, kind: "mid",    delay: 1.5 },   // 28 — bowl
-  { x: 30, y: 93, kind: "bright", delay: 2.1 },   // 29 — bowl
-  { x: 38, y: 96, kind: "mid",    delay: 2.7 },   // 30 — bowl
-  { x: 46, y: 93, kind: "mid",    delay: 3.3 },   // 31 — handle
-  { x: 54, y: 95, kind: "small",  delay: 3.9 },   // 32 — handle
-  { x: 62, y: 92, kind: "bright", delay: 4.5 },   // 33 — handle tip
-  { x: 74, y: 96, kind: "dust",   delay: 0.6 },   // 34
-  { x: 82, y: 93, kind: "small",  delay: 1.2 },   // 35
-  { x: 92, y: 96, kind: "dust",   delay: 1.8 },   // 36
+  { x: 5,  y: 82, kind: "small", delay: 0.7 },
+  { x: 20, y: 88, kind: "dust",  delay: 1.2 },
+  { x: 36, y: 84, kind: "dust",  delay: 1.7 },
+  { x: 50, y: 90, kind: "small", delay: 2.2 },
+  { x: 66, y: 86, kind: "dust",  delay: 2.7 },
+  { x: 80, y: 92, kind: "dust",  delay: 3.2 },
+  { x: 94, y: 86, kind: "small", delay: 3.7 },
 ];
 
-// Within-cluster connection lines only. All lines stay inside the edge strips.
+// A handful of short faint lines linking nearby triplets — just enough to
+// read as "connected sky", never as a strong graphic.
 const CONNECTIONS: Array<[number, number]> = [
-  // Top: Cassiopeia zigzag W
-  [2, 3], [3, 4], [4, 5], [5, 6],
-  // Left: paw print — pad → each toe
-  [14, 11], [14, 12], [14, 13],
-  // Right: triangle
-  [19, 20], [20, 21], [21, 19],
-  // Bottom: Big Dipper — bowl quadrilateral + handle chain
-  [27, 28], [28, 29], [29, 30], [30, 27],   // bowl
-  [30, 31], [31, 32], [32, 33],              // handle
+  [0, 1], [1, 2],       // top-left triplet
+  [4, 5], [5, 6],       // top-mid-right triplet
+  [13, 14], [14, 15],   // lower-mid triplet
+  [17, 18], [18, 19],   // bottom-left triplet
+  [20, 21], [21, 22],   // bottom-right triplet
 ];
 
+// Only "small" and "dust" are used now — kept the full map for type safety.
 const STAR_SIZES: Record<StarKind, number> = {
-  bright: 20,
-  mid: 12,
-  small: 8,
-  dust: 5,
+  bright: 12,
+  mid: 9,
+  small: 7,
+  dust: 4,
 };
 
-// Opacities tuned so corner clusters read clearly, dust stays whisper-faint.
+// Very low — stars should feel like atmosphere, not ornament.
 const STAR_OPACITIES: Record<StarKind, number> = {
-  bright: 0.6,
-  mid: 0.45,
-  small: 0.35,
-  dust: 0.22,
+  bright: 0.22,
+  mid: 0.2,
+  small: 0.2,
+  dust: 0.14,
 };
 
 const ConstellationBackdrop = () => (
@@ -125,12 +106,12 @@ const ConstellationBackdrop = () => (
     >
       <defs>
         <linearGradient id="constLine" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#c4a265" stopOpacity="0.08" />
-          <stop offset="50%" stopColor="#c4a265" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#c4a265" stopOpacity="0.08" />
+          <stop offset="0%" stopColor="#c4a265" stopOpacity="0.04" />
+          <stop offset="50%" stopColor="#c4a265" stopOpacity="0.16" />
+          <stop offset="100%" stopColor="#c4a265" stopOpacity="0.04" />
         </linearGradient>
       </defs>
-      <g stroke="url(#constLine)" strokeWidth="0.08" fill="none" vectorEffect="non-scaling-stroke">
+      <g stroke="url(#constLine)" strokeWidth="0.05" fill="none" vectorEffect="non-scaling-stroke">
         {CONNECTIONS.map(([a, b], i) => {
           const from = CONSTELLATION_STARS[a];
           const to = CONSTELLATION_STARS[b];
@@ -166,25 +147,10 @@ const ConstellationBackdrop = () => (
             animationDelay: `${s.delay ?? 0}s`,
           }}
         >
-          {s.kind === "bright" && (
-            <div
-              className="absolute inset-0"
-              style={{
-                left: "50%",
-                top: "50%",
-                width: size * 3,
-                height: size * 3,
-                transform: "translate(-50%, -50%)",
-                background: "radial-gradient(circle, rgba(196,162,101,0.25) 0%, transparent 60%)",
-                borderRadius: "50%",
-                pointerEvents: "none",
-              }}
-            />
-          )}
           <Icon
             size={size}
-            strokeWidth={s.kind === "dust" ? 1.2 : 1.5}
-            fill={s.kind === "bright" || s.kind === "dust" ? "#c4a265" : "none"}
+            strokeWidth={1.3}
+            fill={s.kind === "dust" ? "#c4a265" : "none"}
             color="#c4a265"
           />
         </div>
