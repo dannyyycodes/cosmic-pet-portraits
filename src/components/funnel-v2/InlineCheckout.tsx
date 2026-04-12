@@ -175,7 +175,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       id="checkout"
       className="relative py-12 sm:py-16 md:py-20 px-5"
       style={{
-        background: "linear-gradient(to bottom, var(--cream2, #faf4e8), var(--cream, #FFFDF5))",
+        background: "var(--cream, #FFFDF5)",
       }}
     >
       <div className="max-w-xl mx-auto">

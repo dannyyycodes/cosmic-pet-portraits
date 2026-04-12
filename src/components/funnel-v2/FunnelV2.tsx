@@ -431,7 +431,7 @@ const FAQSection = () => {
 const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: string }) => (
   <section
     className="py-14 sm:py-20 md:py-24 px-5 text-center"
-    style={{ background: "linear-gradient(to bottom, var(--cream, #FFFDF5), var(--cream2, #faf4e8))" }}
+    style={{ background: "var(--cream, #FFFDF5)" }}
   >
     <div className="max-w-lg mx-auto">
       <button
