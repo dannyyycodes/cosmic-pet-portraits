@@ -14,6 +14,8 @@ import {
   getRulingPlanet,
   type PlanetaryPositions,
 } from "./ephemeris-v2.ts";
+import { resolveBirthUTC } from "./timezone.ts";
+import { resolveSpeciesRules, findBannedIngredients } from "./species-recipe-rules.ts";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -245,6 +247,95 @@ async function geocodeLocation(location: string): Promise<{ lat: number; lon: nu
   }
 }
 
+// ─── Module-level state (accessible in catch block) ──────────────────────────
+let _customerEmail = "";
+let _customerPetName = "your pet";
+
+// ─── OpenRouter fetch — 4 attempts, exponential backoff, no downgrade ────────
+// Policy (per product owner): on failure, retry SAME model. Never silently
+// substitute a cheaper model. If all attempts fail, the worker fails loudly
+// and triggers notifyFailure() — we never ship a template report.
+async function fetchOpenRouter(systemPrompt: string, userPrompt: string): Promise<Response> {
+  const body = JSON.stringify({
+    model: "anthropic/claude-sonnet-4.5",
+    max_tokens: 24000,
+    stream: false,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    response_format: { type: "json_object" },
+  });
+  const headers = {
+    Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+    "Content-Type": "application/json",
+    "HTTP-Referer": "https://littlesouls.app",
+    "X-Title": "Little Souls Reading",
+  };
+  const MAX_ATTEMPTS = 4;
+  const backoffs = [5_000, 15_000, 45_000];   // 5s, 15s, 45s between retries
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      console.log(`[WORKER] Calling OpenRouter (attempt ${attempt}/${MAX_ATTEMPTS})...`);
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", { method: "POST", headers, body });
+      if (res.ok) return res;
+      const errText = await res.clone().text().catch(() => "<no body>");
+      console.warn(`[WORKER] OpenRouter HTTP ${res.status} on attempt ${attempt}: ${errText.slice(0, 300)}`);
+      lastErr = new Error(`OpenRouter HTTP ${res.status}: ${errText.slice(0, 300)}`);
+    } catch (err) {
+      console.warn(`[WORKER] OpenRouter network error on attempt ${attempt}:`, err);
+      lastErr = err;
+    }
+    if (attempt < MAX_ATTEMPTS) {
+      const wait = backoffs[attempt - 1] ?? 45_000;
+      console.warn(`[WORKER] Waiting ${wait}ms before retry...`);
+      await new Promise(r => setTimeout(r, wait));
+    }
+  }
+  throw new Error(`OpenRouter failed after ${MAX_ATTEMPTS} attempts: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`);
+}
+
+// ─── Telegram admin alert for report failures ────────────────────────────────
+// Requires TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID env vars in /opt/littlesouls/.env.
+// Never throws — alerting failures must not mask the original error.
+// The customer-facing apology email is sent separately via send-failure-email.
+async function sendTelegramAlert(
+  opts: { reportId: string; petName: string; email: string; species?: string; reason: string; stage?: string },
+): Promise<void> {
+  const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
+  const telegramChatId = Deno.env.get("TELEGRAM_CHAT_ID") || "";
+  if (!telegramToken || !telegramChatId) {
+    console.warn("[NOTIFY] TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID unset — skipping alert");
+    return;
+  }
+  try {
+    const msg =
+      `🚨 *Little Souls — Report Generation Failed*\n\n` +
+      `*Pet:* ${opts.petName}${opts.species ? ` (${opts.species})` : ""}\n` +
+      `*Email:* ${opts.email || "(unknown)"}\n` +
+      `*Report ID:* \`${opts.reportId}\`\n` +
+      `*Stage:* ${opts.stage ?? "unknown"}\n\n` +
+      `*Reason:*\n${opts.reason.slice(0, 500)}\n\n` +
+      `Customer has been emailed an apology. Rerun the worker with:\n` +
+      `\`deno run --allow-net --allow-env /opt/littlesouls/server.ts ${opts.reportId}\``;
+    const r = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: telegramChatId,
+        text: msg,
+        parse_mode: "Markdown",
+        disable_web_page_preview: true,
+      }),
+    });
+    if (!r.ok) console.warn("[NOTIFY] Telegram responded non-OK:", r.status);
+    else console.log("[NOTIFY] Telegram alert sent.");
+  } catch (e) {
+    console.warn("[NOTIFY] Telegram send failed (non-fatal):", e);
+  }
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 try {
@@ -263,7 +354,13 @@ try {
 
   // Sanitize / defaults
   const name: string = (petData.pet_name ?? petData.name ?? "Pet").trim().slice(0, 50).replace(/[^a-zA-Z\s\-']/g, '') || "Pet";
+  // Store for failure email in catch block
+  _customerEmail = (reportRow.email ?? "").trim();
+  _customerPetName = name;
   const species: string = (petData.species ?? "companion animal").trim().slice(0, 30) || "companion animal";
+
+  // Resolve species-specific recipe safety rules (allowlist + banlist + section fallback for fish/snake)
+  const speciesRules = resolveSpeciesRules(species);
   const breed: string = (petData.breed ?? "").trim().slice(0, 100);
   const gender: "boy" | "girl" = (petData.gender === "girl" || petData.gender === "female") ? "girl" : "boy";
   const dateOfBirth: string = petData.birth_date ?? petData.dateOfBirth ?? petData.date_of_birth ?? new Date().toISOString();
@@ -327,27 +424,7 @@ try {
     }
   }
 
-  // Parse date and calculate all astrological positions
-  const dob = new Date(dateOfBirth);
-
-  let birthHour = 12;
-  let birthMinute = 0;
-  let birthTimeNote = "Birth time unknown - using noon for calculations. Moon sign may vary by ±1 sign.";
-
-  if (birthTime && birthTime.includes(':')) {
-    const [hours, minutes] = birthTime.split(':').map(Number);
-    if (!isNaN(hours) && hours >= 0 && hours < 24) {
-      birthHour = hours;
-      birthMinute = minutes || 0;
-      birthTimeNote = `Birth time: ${birthTime} - Moon and Ascendant calculations are more accurate!`;
-    }
-  }
-
-  dob.setHours(birthHour, birthMinute, 0, 0);
-
-  console.log("[WORKER]", birthTimeNote);
-
-  // Geocode the birth location
+  // ─── Geocode birth location FIRST (needed for timezone lookup) ─────────────
   let birthCoords: { lat: number; lon: number; displayName: string } | null = null;
   let locationNote = "Birth location unknown - Ascendant defaults to Sun sign.";
 
@@ -361,6 +438,24 @@ try {
   }
 
   console.log("[WORKER]", locationNote);
+
+  // ─── Resolve birth time to TRUE UTC using birth location's timezone ────────
+  // Previously: setHours() used server-local time → Tokyo pets were 9h off,
+  // shifting Ascendant by up to 180° (wrong sign). Now uses IANA tz from coords.
+  const tzResolved = resolveBirthUTC(
+    dateOfBirth,
+    birthTime,
+    birthCoords?.lat,
+    birthCoords?.lon,
+  );
+  const dob = tzResolved.utcDate;
+  const birthTimeNote = tzResolved.noteForPrompt;
+
+  console.log("[WORKER]", birthTimeNote);
+  if (tzResolved.ianaTz) {
+    console.log(`[WORKER] Timezone: ${tzResolved.ianaTz} (UTC${tzResolved.offsetHours >= 0 ? "+" : ""}${tzResolved.offsetHours})`);
+    console.log(`[WORKER] Local birth time resolved to UTC: ${dob.toISOString()}`);
+  }
 
   // Calculate true planetary positions
   const positions = birthCoords
@@ -440,21 +535,22 @@ try {
 
   if (includesSoulBond && ownerBirthDate) {
     try {
-      const ownerDob = new Date(ownerBirthDate);
-      let ownerBirthHour = 12;
-      let ownerBirthMinute = 0;
-      if (ownerBirthTime && ownerBirthTime.includes(':')) {
-        const [h, m] = ownerBirthTime.split(':').map(Number);
-        if (!isNaN(h) && h >= 0 && h < 24) {
-          ownerBirthHour = h;
-          ownerBirthMinute = m || 0;
-        }
-      }
-      ownerDob.setHours(ownerBirthHour, ownerBirthMinute, 0, 0);
-
+      // Geocode owner location first (needed for timezone)
       let ownerCoords: { lat: number; lon: number; displayName: string } | null = null;
       if (ownerBirthLocation) {
         ownerCoords = await geocodeLocation(ownerBirthLocation);
+      }
+
+      // Resolve owner birth time to TRUE UTC (handles DST + world timezones)
+      const ownerTzResolved = resolveBirthUTC(
+        ownerBirthDate,
+        ownerBirthTime,
+        ownerCoords?.lat,
+        ownerCoords?.lon,
+      );
+      const ownerDob = ownerTzResolved.utcDate;
+      if (ownerTzResolved.ianaTz) {
+        console.log(`[WORKER] Owner timezone: ${ownerTzResolved.ianaTz} (UTC${ownerTzResolved.offsetHours >= 0 ? "+" : ""}${ownerTzResolved.offsetHours})`);
       }
 
       ownerPositions = ownerCoords
@@ -1267,17 +1363,24 @@ ${hasSoulBondData ? `
     "powerTime": "Time of day when they're most energetic"
   },
 
-  "cosmicRecipe": {
-    "name": "A fun, creative recipe name inspired by ${name}'s personality — this is a PET-SAFE treat recipe",
+  "cosmicRecipe": ${speciesRules.appropriate ? `{
+    "name": "A fun, creative recipe name inspired by ${name}'s personality — this is a ${species.toUpperCase()}-SAFE treat recipe",
     "emoji": "A food emoji that matches",
     "description": "1-2 sentences about why this recipe captures ${name}'s cosmic energy",
     "element": "${element}",
-    "servings": "Makes 10-12 treats",
+    "servings": "A realistic yield (e.g. 'makes 10-12 treats')",
     "prepTime": "A realistic prep time",
-    "ingredients": ["6-8 PET-SAFE ingredients ONLY. For ${species}: use ingredients like pumpkin, peanut butter (xylitol-free), oats, banana, sweet potato, blueberries, carrots, plain yogurt, coconut oil, eggs, rice flour. NEVER use: chocolate, xylitol, grapes/raisins, onion, garlic, macadamia nuts, avocado, caffeine, alcohol, or artificial sweeteners."],
-    "steps": ["4-6 clear steps to make the treats"],
+    "ingredients": ["6-8 ${species.toUpperCase()}-SAFE ingredients ONLY, chosen EXCLUSIVELY from this allowlist: ${speciesRules.safe.join(', ')}. ABSOLUTELY NEVER include any of: ${speciesRules.banned.join(', ')}. ${speciesRules.note}"],
+    "steps": ["4-6 clear steps appropriate for a ${species}"],
     "cosmicNote": "A whimsical note about how ${name} would react to this treat"
-  },
+  }` : `{
+    "title": "${speciesRules.fallbackTitle}",
+    "description": "${speciesRules.fallbackFraming} Write this as a 3-4 sentence cosmic passage about ${name}'s feeding/prey rhythm. Do NOT provide any baked-treat recipe. Do NOT list ingredients that are not appropriate for a ${species}.",
+    "element": "${element}",
+    "cosmicRitual": "A 2-3 sentence description of the ritual — when, how, and the mindful moment to share with ${name}.",
+    "speciesAppropriateFoods": ["3-4 appropriate items for a ${species} ONLY (no homemade baked treats)"],
+    "cosmicNote": "A whimsical one-liner about ${name}'s feeding rhythm"
+  }`},
 
   "textMessages": {
     "morning": {
@@ -1319,29 +1422,9 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
 
 10. NARRATIVE THREAD — The ENTIRE report should feel like one cohesive story. The prologue introduces a theme. Each chapter builds on it. The epilogue brings it home. If ${name} is described as a "gentle old soul" in the prologue, that thread should weave through every section.`;
 
-  // ─── Call OpenRouter (non-streaming) ───────────────────────────────────────
+  // ─── Call OpenRouter (with automatic retry) ────────────────────────────────
 
-  console.log("[WORKER] Calling OpenRouter (non-streaming)...");
-
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://littlesouls.app",
-      "X-Title": "Little Souls Reading",
-    },
-    body: JSON.stringify({
-      model: "anthropic/claude-sonnet-4.5",
-      max_tokens: 24000,
-      stream: false,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      response_format: { type: "json_object" },
-    }),
-  });
+  const response = await fetchOpenRouter(systemPrompt, userPrompt);
 
   // ─── Fallback report builder (identical to edge function) ──────────────────
 
@@ -1590,83 +1673,83 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
     }
   });
 
-  // ─── Parse response ────────────────────────────────────────────────────────
+  // ─── Parse response — fail loudly on any problem, never ship a template ────
 
   let reportContent: Record<string, unknown>;
 
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error("[WORKER] AI gateway error:", response.status, errorText);
-    console.log("[WORKER] Using fallback report due to AI error");
-    reportContent = createFallbackReport();
-  } else {
-    try {
-      const json = await response.json();
-      let rawContent = json.choices?.[0]?.message?.content;
+    const errorText = await response.text().catch(() => "<no body>");
+    throw new Error(`OpenRouter returned HTTP ${response.status}: ${errorText.slice(0, 500)}`);
+  }
 
-      if (!rawContent) {
-        console.error("[WORKER] Empty response from AI, using fallback");
-        reportContent = createFallbackReport();
-      } else {
-        console.log("[WORKER] Received", rawContent.length, "chars from AI");
-        rawContent = rawContent.replace(/^```json\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
-        reportContent = JSON.parse(rawContent);
-        const fallback = createFallbackReport();
-        reportContent = { ...fallback, ...reportContent };
-        // Override calculated fields — AI must not change these
-        reportContent.chartPlacements = chartPlacements;
-        reportContent.elementalBalance = elementalBalance;
-        reportContent.dominantElement = element;
-        reportContent.crystal = crystal;
-        reportContent.aura = aura;
-        reportContent.archetype = archetype;
-        reportContent.luckyElements = fallback.luckyElements;
-        reportContent.basedOnYourAnswers = fallback.basedOnYourAnswers;
-        // Lock nameVibration inside nameMeaning
-        if (reportContent.nameMeaning && typeof reportContent.nameMeaning === 'object') {
-          (reportContent.nameMeaning as Record<string, unknown>).nameVibration = nameVibration;
-        }
-      }
-    } catch (parseError) {
-      console.error("[WORKER] Parse error:", parseError);
-      // Attempt to repair truncated JSON before falling back
-      try {
-        let repaired = rawContent!;
-        // Close any open strings, arrays, objects
-        let openBraces = 0, openBrackets = 0, inString = false, escaped = false;
-        for (const ch of repaired) {
-          if (escaped) { escaped = false; continue; }
-          if (ch === '\\') { escaped = true; continue; }
-          if (ch === '"') { inString = !inString; continue; }
-          if (inString) continue;
-          if (ch === '{') openBraces++;
-          if (ch === '}') openBraces--;
-          if (ch === '[') openBrackets++;
-          if (ch === ']') openBrackets--;
-        }
-        if (inString) repaired += '"';
-        while (openBrackets > 0) { repaired += ']'; openBrackets--; }
-        while (openBraces > 0) { repaired += '}'; openBraces--; }
-        reportContent = JSON.parse(repaired);
-        const fallback = createFallbackReport();
-        reportContent = { ...fallback, ...reportContent };
-        reportContent.chartPlacements = chartPlacements;
-        reportContent.elementalBalance = elementalBalance;
-        reportContent.dominantElement = element;
-        reportContent.crystal = crystal;
-        reportContent.aura = aura;
-        reportContent.archetype = archetype;
-        reportContent.luckyElements = fallback.luckyElements;
-        reportContent.basedOnYourAnswers = fallback.basedOnYourAnswers;
-        if (reportContent.nameMeaning && typeof reportContent.nameMeaning === 'object') {
-          (reportContent.nameMeaning as Record<string, unknown>).nameVibration = nameVibration;
-        }
-        console.log("[WORKER] Repaired truncated JSON successfully");
-      } catch (repairError) {
-        console.error("[WORKER] JSON repair also failed:", repairError);
-        reportContent = createFallbackReport();
-      }
+  const json = await response.json();
+  let rawContent: string | undefined = json.choices?.[0]?.message?.content;
+  if (!rawContent) {
+    throw new Error(`OpenRouter returned empty content. Full response: ${JSON.stringify(json).slice(0, 500)}`);
+  }
+  console.log("[WORKER] Received", rawContent.length, "chars from AI");
+  rawContent = rawContent.replace(/^```json\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+
+  try {
+    reportContent = JSON.parse(rawContent);
+  } catch (parseError) {
+    console.warn("[WORKER] Primary JSON parse failed, attempting bracket repair:", parseError);
+    // Attempt to repair truncated JSON — close any open strings, arrays, objects
+    let repaired = rawContent;
+    let openBraces = 0, openBrackets = 0, inString = false, escaped = false;
+    for (const ch of repaired) {
+      if (escaped) { escaped = false; continue; }
+      if (ch === "\\") { escaped = true; continue; }
+      if (ch === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (ch === "{") openBraces++;
+      if (ch === "}") openBraces--;
+      if (ch === "[") openBrackets++;
+      if (ch === "]") openBrackets--;
     }
+    if (inString) repaired += '"';
+    while (openBrackets > 0) { repaired += "]"; openBrackets--; }
+    while (openBraces > 0) { repaired += "}"; openBraces--; }
+    try {
+      reportContent = JSON.parse(repaired);
+      console.log("[WORKER] Repaired truncated JSON successfully");
+    } catch (repairError) {
+      throw new Error(`JSON parse + repair both failed. Parse: ${parseError}. Repair: ${repairError}. Head of content: ${rawContent.slice(0, 300)}`);
+    }
+  }
+
+  // Overlay calculated/authoritative fields — AI must not change these
+  reportContent.chartPlacements = chartPlacements;
+  reportContent.elementalBalance = elementalBalance;
+  reportContent.dominantElement = element;
+  reportContent.crystal = crystal;
+  reportContent.aura = aura;
+  reportContent.archetype = archetype;
+  reportContent.luckyElements = {
+    luckyNumber: String(nameVibration),
+    luckyDay: rulingPlanet === "Sun" ? "Sunday" : rulingPlanet === "Moon" ? "Monday" : rulingPlanet === "Mars" ? "Tuesday" : rulingPlanet === "Mercury" ? "Wednesday" : rulingPlanet === "Jupiter" ? "Thursday" : rulingPlanet === "Venus" ? "Friday" : "Saturday",
+    luckyColor: aura.primary,
+    powerTime: element === "Fire" ? "Morning (6-9 AM)" : element === "Earth" ? "Afternoon (12-3 PM)" : element === "Air" ? "Late afternoon (3-6 PM)" : "Evening (6-9 PM)",
+  };
+  reportContent.basedOnYourAnswers = {
+    title: "📋 Based on Your Answers",
+    intro: `Here's how everything you told us shaped ${name}'s cosmic portrait:`,
+    mappings: [
+      { question: "Name", yourAnswer: name, usedFor: `Name numerology (vibration ${nameVibration}), cosmic nickname generation, and personalised language throughout the report` },
+      { question: "Species & Breed", yourAnswer: breed || species, usedFor: "Species-specific personality insights, breed trait integration, and tailored care recommendations" },
+      { question: "Gender", yourAnswer: gender === "boy" ? "Male" : "Female", usedFor: `Pronoun usage throughout the report and archetype selection (${archetype.name})` },
+      { question: "Date of Birth", yourAnswer: dob.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }), usedFor: `All planetary calculations — Sun (${sunSign}), Moon (${moonSign}), and all placements` },
+      { question: "Birth Time", yourAnswer: birthTime || "Not provided (using noon estimate)", usedFor: birthTime ? "Precise Moon + Ascendant calculation" : "Moon sign has ±1 sign variance, Rising defaults to Sun" },
+      { question: "Birth Location", yourAnswer: location || "Not provided", usedFor: location ? "True Ascendant calculation from geographic coordinates + timezone" : "Rising sign defaults to Sun sign" },
+      { question: "Soul Type", yourAnswer: soulType || "Not selected", usedFor: "Archetype refinement, personality descriptions" },
+      { question: "Superpower", yourAnswer: superpower || "Not selected", usedFor: "Hidden gift section, healing abilities" },
+      { question: "Stranger Reaction", yourAnswer: strangerReaction || "Not selected", usedFor: `Rising sign / First Impressions section` },
+    ],
+    accuracyNote: "💡 The more details you provide (especially birth time and location), the more accurate the Moon and Rising sign calculations become!",
+  };
+  // Lock nameVibration inside nameMeaning
+  if (reportContent.nameMeaning && typeof reportContent.nameMeaning === "object") {
+    (reportContent.nameMeaning as Record<string, unknown>).nameVibration = nameVibration;
   }
 
   // ─── Post-generation auto-fix & validation ─────────────────────────────────
@@ -1750,6 +1833,39 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
     console.warn(`[VALIDATION] "owner" phrasing survived auto-fix: ${ownerSurvivors.length} occurrences`);
   }
 
+  // Validation: species-unsafe ingredients in cosmicRecipe
+  if (speciesRules.appropriate && reportContent && typeof reportContent === "object") {
+    const recipe = (reportContent as Record<string, unknown>).cosmicRecipe;
+    if (recipe && typeof recipe === "object") {
+      const recipeText = JSON.stringify(recipe);
+      const hits = findBannedIngredients(recipeText, speciesRules);
+      if (hits.length > 0) {
+        console.error(`[VALIDATION] UNSAFE INGREDIENTS in ${species} recipe: ${hits.join(", ")} — blanking recipe section for safety.`);
+        await reportToSentry("Recipe banned ingredient slipped through", {
+          reportId, species, banned: hits,
+        });
+        // Safety-first fallback: replace with a generic but safe placeholder rather than ship unsafe content
+        (reportContent as Record<string, unknown>).cosmicRecipe = {
+          name: `${name}'s Cosmic Treat`,
+          emoji: "✨",
+          description: `A simple, safe treat your ${species} can enjoy.`,
+          element,
+          servings: "A small portion",
+          prepTime: "10 minutes",
+          ingredients: speciesRules.safe.slice(0, 4),
+          steps: [
+            `Prepare a small portion of the safe ingredients listed.`,
+            `Let ${name} enjoy mindfully, honouring their cosmic rhythm.`,
+          ],
+          cosmicNote: `We kept this one simple — ${name}'s safety always comes first.`,
+          _note: "Replaced at save-time due to detected unsafe ingredients. Admin alerted.",
+        };
+      } else {
+        console.log(`[VALIDATION] Recipe safe for species: ${species}`);
+      }
+    }
+  }
+
   console.log("[WORKER] Post-generation validation complete");
 
   // 9. Save report_content via bridge
@@ -1783,7 +1899,44 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
   }
 
 } catch (error) {
-  console.error("[WORKER] Fatal error:", error);
+  const reasonStr = error instanceof Error ? (error.stack ?? error.message) : String(error);
+  console.error("[WORKER] Fatal error:", reasonStr);
   await saveError(String(error));
+  await reportToSentry(`Fatal error for report ${reportId}: ${String(error)}`, { reportId });
+
+  // 1. Apology email to customer so they're never left in silence
+  if (_customerEmail) {
+    try {
+      console.log("[WORKER] Sending apology email to:", _customerEmail);
+      await fetch(
+        `${BRIDGE_URL.replace('/n8n-bridge', '/send-failure-email')}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + N8N_BRIDGE_SECRET,
+          },
+          body: JSON.stringify({
+            email: _customerEmail,
+            petName: _customerPetName,
+            reportId,
+          }),
+        }
+      );
+      console.log("[WORKER] Apology email sent");
+    } catch (emailErr) {
+      console.error("[WORKER] Failed to send apology email:", emailErr);
+    }
+  }
+
+  // 2. Telegram admin alert so failures don't go unnoticed
+  await sendTelegramAlert({
+    reportId,
+    petName: _customerPetName || "(unknown)",
+    email: _customerEmail || "(unknown)",
+    reason: reasonStr,
+    stage: "report generation",
+  });
+
   Deno.exit(1);
 }

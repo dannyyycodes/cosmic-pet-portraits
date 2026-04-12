@@ -55,6 +55,9 @@ export default function PaymentSuccess() {
   const [giftInfo, setGiftInfo] = useState<GiftInfo>({ includeGift: false, giftCode: null });
   const [giftedInfo, setGiftedInfo] = useState<GiftedInfo>({ isGifted: false, giftedTier: null });
   const [horoscopeInfo, setHoroscopeInfo] = useState<HoroscopeInfo>({ enabled: false, petNames: [] });
+  // Lightweight metadata for the pet currently generating — lets us show the
+  // uploaded photo + name on the loading screen before the full report exists.
+  const [generatingMeta, setGeneratingMeta] = useState<{ petName?: string; petPhotoUrl?: string; gender?: string }>({});
 
   const sessionId = searchParams.get('session_id');
   const reportId = searchParams.get('report_id');
@@ -131,7 +134,18 @@ export default function PaymentSuccess() {
           if (petReport?.payment_status === 'paid') {
             const reportContent = petReport.report_content;
             const isGen = !reportContent || reportContent?.status === 'generating' || reportContent?.status === 'retrying';
-            if (isGen) { stillGenerating = true; continue; }
+            if (isGen) {
+              stillGenerating = true;
+              // Capture the pet's photo + name so the loading screen can show it.
+              if (petReport.pet_name && !generatingMeta.petName) {
+                setGeneratingMeta({
+                  petName: petReport.pet_name,
+                  petPhotoUrl: petReport.pet_photo_url,
+                  gender: petReport.gender,
+                });
+              }
+              continue;
+            }
             if (reportContent?.status === 'failed' || reportContent?.error) {
               if (reportContent?.timeout || reportContent?.status === 'retrying') { stillGenerating = true; continue; }
             }
@@ -169,14 +183,55 @@ export default function PaymentSuccess() {
     const result = await tryVerify();
     if (result === true) return;
 
+    // ─── Supabase realtime subscription — fires the instant the worker writes
+    // report_content to the row. Replaces the previous poll-only mechanism
+    // that could miss completions on brief network blips.
+    let realtimeDone = false;
+    const rtIds = (reportIdsParam ? reportIdsParam.split(',') : [reportId]).filter(Boolean);
+    const channel = supabase.channel(`report-${rtIds.join('-')}`);
+    for (const rid of rtIds) {
+      channel.on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'pet_reports', filter: `id=eq.${rid}` },
+        async (payload) => {
+          const newRow: any = payload.new;
+          const rc = newRow?.report_content;
+          const done = rc && rc.status !== 'generating' && rc.status !== 'retrying' && !rc.error;
+          if (!done || realtimeDone) return;
+          realtimeDone = true;
+          console.log('[PaymentSuccess] Realtime completion detected for', rid);
+          const ok = await tryVerify();
+          if (ok === true) {
+            try { supabase.removeChannel(channel); } catch {}
+          }
+        },
+      );
+    }
+    channel.subscribe((status) => {
+      console.log('[PaymentSuccess] Realtime subscription status:', status);
+    });
+
+    // Fallback polling — same semantics but extended window (15 min, not 6-7 min).
+    // If the realtime subscription somehow misses the update, poll still closes it out.
     const poll = async () => {
+      if (realtimeDone) return;
       attempts++;
-      if (attempts >= 80) { setError(t('paymentSuccess.errorTimeout')); setStage('error'); return; }
+      // 15-min cap at 10s cadence = 90 attempts
+      if (attempts >= 90) {
+        console.warn('[PaymentSuccess] Poll timeout — showing calm reassurance (no error screen).');
+        try { supabase.removeChannel(channel); } catch {}
+        // Intentionally NOT setting stage='error'. The ReportGenerating screen
+        // already shows a calm "we'll email you" fallback after 4 minutes.
+        return;
+      }
       const result = await tryVerify();
-      if (result === true) return;
-      setTimeout(poll, Math.min(3000 + attempts * 300, 6000));
+      if (result === true) {
+        try { supabase.removeChannel(channel); } catch {}
+        return;
+      }
+      setTimeout(poll, 10000);   // Fixed 10s cadence — realtime is primary
     };
-    setTimeout(poll, result === 'generating' ? 2000 : 3000);
+    setTimeout(poll, result === 'generating' ? 3000 : 5000);
   };
 
   const handleRevealComplete = () => {
@@ -216,9 +271,21 @@ export default function PaymentSuccess() {
     );
   }
 
-  // Generating
+  // Generating — show the uploaded pet photo from generatingMeta while the
+  // worker is still composing the report.
   if (stage === 'verifying' || stage === 'generating') {
-    return <ReportGenerating petName={currentReport?.petName || 'Your pet'} gender={currentReport?.gender} sunSign={currentReport?.report?.sunSign} reportId={reportId || undefined} />;
+    const loaderPetName = currentReport?.petName || generatingMeta.petName || 'Your pet';
+    const loaderGender = currentReport?.gender || generatingMeta.gender;
+    const loaderPhoto = currentReport?.petPhotoUrl || generatingMeta.petPhotoUrl;
+    return (
+      <ReportGenerating
+        petName={loaderPetName}
+        gender={loaderGender}
+        sunSign={currentReport?.report?.sunSign}
+        reportId={reportId || undefined}
+        petPhotoUrl={loaderPhoto}
+      />
+    );
   }
 
   // Ready next

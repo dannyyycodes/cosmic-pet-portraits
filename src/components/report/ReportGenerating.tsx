@@ -6,6 +6,8 @@ interface ReportGeneratingProps {
   gender?: string;
   sunSign?: string;
   reportId?: string;
+  /** Public URL of the customer's uploaded pet photo — displayed while the report is being woven. */
+  petPhotoUrl?: string;
 }
 
 function getPronouns(gender?: string) {
@@ -37,7 +39,7 @@ const STEPS = [
   { label: 'Adding personal touches', threshold: 75 },
 ];
 
-export function ReportGenerating({ petName, gender, sunSign, reportId }: ReportGeneratingProps) {
+export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoUrl }: ReportGeneratingProps) {
   const p = getPronouns(gender);
   const [progress, setProgress] = useState(0);
   const [factIndex, setFactIndex] = useState(0);
@@ -59,9 +61,12 @@ export function ReportGenerating({ petName, gender, sunSign, reportId }: ReportG
     return () => clearInterval(interval);
   }, []);
 
-  // Show fallback "View Report" link after 2.5 minutes
+  // Show the calm "taking extra care" reassurance state after 4 minutes —
+  // keeps the same animated screen (no scary "timeout" error). The Supabase
+  // realtime subscription in PaymentSuccess.tsx navigates immediately on
+  // completion; this is purely a fallback affordance.
   useEffect(() => {
-    const timer = setTimeout(() => setShowFallback(true), 150000);
+    const timer = setTimeout(() => setShowFallback(true), 240000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -98,18 +103,65 @@ export function ReportGenerating({ petName, gender, sunSign, reportId }: ReportG
           {petName}
         </motion.p>
 
-        {/* Breathing orb */}
-        <motion.div
-          className="w-[100px] h-[100px] rounded-full flex items-center justify-center mb-6"
-          style={{
-            background: 'radial-gradient(circle, #f0d5d2 0%, transparent 70%)',
-            boxShadow: '0 0 40px rgba(240,213,210,0.3)',
-          }}
-          animate={{ scale: [1, 1.15, 1] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <span className="text-[1.5rem]">🐾</span>
-        </motion.div>
+        {/* Pet photo (or breathing orb fallback) surrounded by orbiting cosmic marks */}
+        <div className="relative w-[140px] h-[140px] mb-6 flex items-center justify-center">
+          {/* Orbiting glow ring */}
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: 'radial-gradient(circle, #f0d5d2 0%, transparent 72%)',
+              boxShadow: '0 0 60px rgba(240,213,210,0.35)',
+            }}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          {/* Orbiting sparkles */}
+          {['✨', '⭐', '🌙'].map((sym, i) => (
+            <motion.span
+              key={sym}
+              className="absolute select-none pointer-events-none text-[0.85rem]"
+              style={{ transformOrigin: '50% 60px' }}
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 14 + i * 2, repeat: Infinity, ease: 'linear', delay: i * 0.8 }}
+            >
+              <span
+                style={{ display: 'inline-block', transform: `translateY(-${60 + i * 6}px)`, opacity: 0.65 }}
+              >
+                {sym}
+              </span>
+            </motion.span>
+          ))}
+
+          {/* Pet photo in the centre */}
+          {petPhotoUrl ? (
+            <motion.img
+              src={petPhotoUrl}
+              alt={petName}
+              loading="eager"
+              className="relative z-10 w-[100px] h-[100px] rounded-full object-cover"
+              style={{
+                border: '3px solid rgba(191,82,74,0.25)',
+                boxShadow: '0 4px 18px rgba(191,82,74,0.2)',
+              }}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: [1, 1.03, 1] }}
+              transition={{ opacity: { duration: 0.6 }, scale: { duration: 4.2, repeat: Infinity, ease: 'easeInOut' } }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+            />
+          ) : (
+            <motion.div
+              className="relative z-10 w-[90px] h-[90px] rounded-full flex items-center justify-center"
+              style={{
+                background: 'radial-gradient(circle, #f6e6e3 0%, #fffdf5 75%)',
+                boxShadow: '0 4px 18px rgba(191,82,74,0.12)',
+              }}
+              animate={{ scale: [1, 1.07, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <span className="text-[1.6rem]">🐾</span>
+            </motion.div>
+          )}
+        </div>
 
         {/* Status text */}
         <h2 className="text-[1.15rem] text-[#2D2926] mb-6" style={{ fontFamily: 'DM Serif Display, serif' }}>
@@ -181,20 +233,23 @@ export function ReportGenerating({ petName, gender, sunSign, reportId }: ReportG
           A link to your report has been sent to your email
         </p>
 
-        {/* Fallback link if polling fails */}
-        {showFallback && reportId && (
+        {/* Calm reassurance after 4 minutes — never a "timeout" error */}
+        {showFallback && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-6 text-center">
-            <p className="text-[0.78rem] text-[#6B5E54] mb-2">
-              Taking longer than expected?
+            className="mt-6 text-center max-w-xs">
+            <p className="text-[0.78rem] text-[#6B5E54] mb-2 leading-relaxed">
+              We're taking a little extra care with {petName}'s reading. You can keep this tab
+              open, or we'll email you the moment it's ready.
             </p>
-            <a
-              href={`/report?id=${reportId}`}
-              className="inline-block px-5 py-2.5 rounded-xl text-white text-[0.85rem] font-semibold no-underline transition-opacity hover:opacity-90"
-              style={{ background: '#bf524a' }}
-            >
-              View Your Report
-            </a>
+            {reportId && (
+              <a
+                href={`/report?id=${reportId}`}
+                className="inline-block mt-2 px-5 py-2.5 rounded-xl text-white text-[0.85rem] font-semibold no-underline transition-opacity hover:opacity-90"
+                style={{ background: '#bf524a' }}
+              >
+                Check on your reading
+              </a>
+            )}
           </motion.div>
         )}
       </div>
