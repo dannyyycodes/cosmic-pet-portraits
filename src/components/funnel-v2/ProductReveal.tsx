@@ -16,6 +16,80 @@ function useScrollReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
+/* ── Constellation backdrop — faint stars + lines behind the hero quote ──
+ * Inline SVG: 9 dots joined by thin gold lines, very low opacity so
+ * the quote always reads first. Slow twinkle animation on each dot.
+ * No extra network request, GPU-friendly (opacity only). */
+const ConstellationBackdrop = () => (
+  <div
+    aria-hidden="true"
+    className="absolute inset-0 pointer-events-none"
+    style={{ zIndex: 0 }}
+  >
+    <svg
+      className="absolute inset-0 w-full h-full"
+      viewBox="0 0 800 400"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      {/* Connecting lines — hair-thin gold, very faint */}
+      <g stroke="#c4a265" strokeWidth="0.6" fill="none" opacity="0.35">
+        <line x1="90"  y1="80"  x2="200" y2="140" />
+        <line x1="200" y1="140" x2="310" y2="90"  />
+        <line x1="310" y1="90"  x2="420" y2="160" />
+        <line x1="420" y1="160" x2="540" y2="110" />
+        <line x1="540" y1="110" x2="660" y2="180" />
+        <line x1="660" y1="180" x2="720" y2="300" />
+        <line x1="420" y1="160" x2="380" y2="280" />
+        <line x1="380" y1="280" x2="260" y2="320" />
+        <line x1="380" y1="280" x2="510" y2="330" />
+      </g>
+
+      {/* Stars — dots with individual twinkle delays */}
+      {[
+        [90, 80, 2.4, 0],
+        [200, 140, 1.8, 0.4],
+        [310, 90, 2.6, 0.8],
+        [420, 160, 2.2, 1.2],
+        [540, 110, 2.0, 1.6],
+        [660, 180, 2.4, 2.0],
+        [720, 300, 1.6, 2.4],
+        [380, 280, 2.2, 2.8],
+        [260, 320, 1.8, 3.2],
+        [510, 330, 2.0, 3.6],
+        // scattered filler stars (no lines) for atmosphere
+        [120, 250, 1.2, 0.6],
+        [640, 60,  1.4, 1.0],
+        [80,  340, 1.2, 1.8],
+        [760, 240, 1.4, 2.6],
+      ].map(([cx, cy, r, delay], i) => (
+        <circle
+          key={i}
+          cx={cx}
+          cy={cy}
+          r={r}
+          fill="#c4a265"
+          className="constellation-star"
+          style={{ animationDelay: `${delay}s` }}
+        />
+      ))}
+    </svg>
+
+    <style>{`
+      .constellation-star {
+        opacity: 0.55;
+        animation: constellationTwinkle 4.5s ease-in-out infinite;
+      }
+      @keyframes constellationTwinkle {
+        0%, 100% { opacity: 0.35; }
+        50%      { opacity: 0.75; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .constellation-star { animation: none !important; opacity: 0.5 !important; }
+      }
+    `}</style>
+  </div>
+);
+
 /* ── VSOP Credibility — warm authority ── */
 const VsopCredibility = () => (
   <div className="relative text-center overflow-hidden vsop-section">
@@ -233,16 +307,17 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
   return (
     <section ref={ref} className="relative overflow-hidden">
 
-      {/* ── Quote band — grey with pet-silhouette wallpaper ── */}
+      {/* ── Quote band — cream, with faint constellation backdrop ── */}
       <div
         className="relative overflow-hidden px-5 py-16 sm:py-20 transition-all duration-[1200ms] ease-out"
         style={{
-          background: "#faf6ec",
+          background: "var(--cream, #FFFDF5)",
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(20px)",
           transitionDelay: "0.1s",
         }}
       >
+        <ConstellationBackdrop />
         <div className="relative max-w-[620px] mx-auto">
           <h2
             className="text-center"
