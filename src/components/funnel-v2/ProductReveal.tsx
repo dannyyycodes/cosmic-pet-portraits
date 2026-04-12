@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Star, Sparkle, Sparkles } from "lucide-react";
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -16,75 +17,165 @@ function useScrollReveal(threshold = 0.15) {
   return { ref, visible };
 }
 
-/* ── Constellation backdrop — faint stars + lines behind the hero quote ──
- * Inline SVG: 9 dots joined by thin gold lines, very low opacity so
- * the quote always reads first. Slow twinkle animation on each dot.
- * No extra network request, GPU-friendly (opacity only). */
+/* ── Constellation backdrop — Lucide star icons + SVG connectors ──
+ * Professionally-drawn Lucide star shapes (Star, Sparkle, Sparkles)
+ * placed as a constellation across the band. Thin gold connectors
+ * drawn in an absolutely-positioned SVG behind the icons. Radial
+ * gold glow behind the brightest stars for depth. Slow, staggered
+ * twinkle — CSS only, GPU-friendly. */
+
+type StarKind = "bright" | "mid" | "small" | "dust";
+type StarDef = {
+  // percentage coords so the constellation scales with any band height
+  x: number; y: number;
+  kind: StarKind;
+  rot?: number;
+  delay?: number;
+};
+
+const CONSTELLATION_STARS: StarDef[] = [
+  { x: 8,  y: 8,  kind: "bright", delay: 0    },
+  { x: 22, y: 16, kind: "mid",    delay: 0.4  },
+  { x: 36, y: 6,  kind: "small",  delay: 0.8  },
+  { x: 50, y: 14, kind: "bright", delay: 1.2  },
+  { x: 64, y: 8,  kind: "mid",    delay: 1.6  },
+  { x: 78, y: 18, kind: "small",  delay: 2.0  },
+  { x: 92, y: 10, kind: "bright", delay: 2.4, rot: 18 },
+
+  { x: 12, y: 38, kind: "dust",   delay: 0.5  },
+  { x: 30, y: 44, kind: "mid",    delay: 1.0  },
+  { x: 46, y: 36, kind: "dust",   delay: 1.5  },
+  { x: 62, y: 46, kind: "small",  delay: 2.0  },
+  { x: 82, y: 40, kind: "mid",    delay: 2.5  },
+
+  { x: 6,  y: 66, kind: "mid",    delay: 0.3  },
+  { x: 20, y: 58, kind: "small",  delay: 0.7  },
+  { x: 34, y: 68, kind: "bright", delay: 1.1, rot: -10 },
+  { x: 48, y: 60, kind: "mid",    delay: 1.5  },
+  { x: 64, y: 70, kind: "small",  delay: 1.9  },
+  { x: 80, y: 62, kind: "bright", delay: 2.3  },
+  { x: 94, y: 70, kind: "dust",   delay: 2.7  },
+
+  { x: 14, y: 86, kind: "small",  delay: 0.9  },
+  { x: 30, y: 92, kind: "mid",    delay: 1.3  },
+  { x: 50, y: 88, kind: "bright", delay: 1.7, rot: 12 },
+  { x: 68, y: 92, kind: "mid",    delay: 2.1  },
+  { x: 86, y: 86, kind: "small",  delay: 2.5  },
+];
+
+// Connecting constellation lines — from-index → to-index in CONSTELLATION_STARS
+const CONNECTIONS: Array<[number, number]> = [
+  [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],   // top arc
+  [3, 8], [8, 14],                                    // vertical drop through centre
+  [12, 13], [13, 14], [14, 15], [15, 16], [16, 17],  // middle band
+  [17, 22],                                           // bottom drop
+  [14, 20], [20, 21], [21, 22], [22, 23], [23, 24],  // bottom arc
+];
+
+const STAR_SIZES: Record<StarKind, number> = {
+  bright: 22,
+  mid: 14,
+  small: 10,
+  dust: 6,
+};
+
+const STAR_OPACITIES: Record<StarKind, number> = {
+  bright: 0.75,
+  mid: 0.55,
+  small: 0.45,
+  dust: 0.3,
+};
+
 const ConstellationBackdrop = () => (
   <div
     aria-hidden="true"
     className="absolute inset-0 pointer-events-none"
     style={{ zIndex: 0 }}
   >
+    {/* Lines first, behind the stars */}
     <svg
       className="absolute inset-0 w-full h-full"
-      viewBox="0 0 800 400"
-      preserveAspectRatio="xMidYMid slice"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
     >
-      {/* Connecting lines — hair-thin gold, very faint */}
-      <g stroke="#c4a265" strokeWidth="0.6" fill="none" opacity="0.35">
-        <line x1="90"  y1="80"  x2="200" y2="140" />
-        <line x1="200" y1="140" x2="310" y2="90"  />
-        <line x1="310" y1="90"  x2="420" y2="160" />
-        <line x1="420" y1="160" x2="540" y2="110" />
-        <line x1="540" y1="110" x2="660" y2="180" />
-        <line x1="660" y1="180" x2="720" y2="300" />
-        <line x1="420" y1="160" x2="380" y2="280" />
-        <line x1="380" y1="280" x2="260" y2="320" />
-        <line x1="380" y1="280" x2="510" y2="330" />
+      <defs>
+        <linearGradient id="constLine" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#c4a265" stopOpacity="0.1" />
+          <stop offset="50%" stopColor="#c4a265" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#c4a265" stopOpacity="0.1" />
+        </linearGradient>
+      </defs>
+      <g stroke="url(#constLine)" strokeWidth="0.12" fill="none" vectorEffect="non-scaling-stroke">
+        {CONNECTIONS.map(([a, b], i) => {
+          const from = CONSTELLATION_STARS[a];
+          const to = CONSTELLATION_STARS[b];
+          return (
+            <line
+              key={i}
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+            />
+          );
+        })}
       </g>
-
-      {/* Stars — dots with individual twinkle delays */}
-      {[
-        [90, 80, 2.4, 0],
-        [200, 140, 1.8, 0.4],
-        [310, 90, 2.6, 0.8],
-        [420, 160, 2.2, 1.2],
-        [540, 110, 2.0, 1.6],
-        [660, 180, 2.4, 2.0],
-        [720, 300, 1.6, 2.4],
-        [380, 280, 2.2, 2.8],
-        [260, 320, 1.8, 3.2],
-        [510, 330, 2.0, 3.6],
-        // scattered filler stars (no lines) for atmosphere
-        [120, 250, 1.2, 0.6],
-        [640, 60,  1.4, 1.0],
-        [80,  340, 1.2, 1.8],
-        [760, 240, 1.4, 2.6],
-      ].map(([cx, cy, r, delay], i) => (
-        <circle
-          key={i}
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="#c4a265"
-          className="constellation-star"
-          style={{ animationDelay: `${delay}s` }}
-        />
-      ))}
     </svg>
+
+    {/* Stars on top */}
+    {CONSTELLATION_STARS.map((s, i) => {
+      const size = STAR_SIZES[s.kind];
+      const baseOp = STAR_OPACITIES[s.kind];
+      const Icon = s.kind === "bright" ? Sparkles : s.kind === "mid" ? Star : s.kind === "small" ? Sparkle : Star;
+      return (
+        <div
+          key={i}
+          className="constellation-star"
+          style={{
+            position: "absolute",
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            transform: `translate(-50%, -50%) rotate(${s.rot ?? 0}deg)`,
+            opacity: baseOp,
+            animationDelay: `${s.delay ?? 0}s`,
+          }}
+        >
+          {s.kind === "bright" && (
+            <div
+              className="absolute inset-0"
+              style={{
+                left: "50%",
+                top: "50%",
+                width: size * 3,
+                height: size * 3,
+                transform: "translate(-50%, -50%)",
+                background: "radial-gradient(circle, rgba(196,162,101,0.25) 0%, transparent 60%)",
+                borderRadius: "50%",
+                pointerEvents: "none",
+              }}
+            />
+          )}
+          <Icon
+            size={size}
+            strokeWidth={s.kind === "dust" ? 1.2 : 1.5}
+            fill={s.kind === "bright" || s.kind === "dust" ? "#c4a265" : "none"}
+            color="#c4a265"
+          />
+        </div>
+      );
+    })}
 
     <style>{`
       .constellation-star {
-        opacity: 0.55;
-        animation: constellationTwinkle 4.5s ease-in-out infinite;
+        animation: constellationTwinkle 5s ease-in-out infinite;
+        will-change: opacity;
       }
       @keyframes constellationTwinkle {
-        0%, 100% { opacity: 0.35; }
-        50%      { opacity: 0.75; }
+        0%, 100% { filter: brightness(1); }
+        50%      { filter: brightness(1.35); }
       }
       @media (prefers-reduced-motion: reduce) {
-        .constellation-star { animation: none !important; opacity: 0.5 !important; }
+        .constellation-star { animation: none !important; }
       }
     `}</style>
   </div>
@@ -307,51 +398,58 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
   return (
     <section ref={ref} className="relative overflow-hidden">
 
-      {/* ── Quote band — cream, with faint constellation backdrop ── */}
+      {/* ── Cosmic band: quote + authority share the constellation backdrop ── */}
       <div
-        className="relative overflow-hidden px-5 py-16 sm:py-20 transition-all duration-[1200ms] ease-out"
-        style={{
-          background: "var(--cream, #FFFDF5)",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(20px)",
-          transitionDelay: "0.1s",
-        }}
+        className="relative overflow-hidden"
+        style={{ background: "var(--cream, #FFFDF5)" }}
       >
         <ConstellationBackdrop />
-        <div className="relative max-w-[620px] mx-auto">
-          <h2
-            className="text-center"
-            style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.55rem, 6.2vw, 2.2rem)",
-              fontWeight: 400,
-              color: "var(--black, #141210)",
-              lineHeight: 1.18,
-              letterSpacing: "-0.02em",
-              margin: 0,
-            }}
-          >
-            They Give Us Everything.
-            <br />
-            <em style={{ fontWeight: 400 }}>
-              It&apos;s Time We Understood Them in Return.
-            </em>
-          </h2>
-        </div>
-      </div>
 
-      {/* ── Authority band — cream, matches review section ── */}
-      <div
-        className="px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
-        style={{
-          background: "var(--cream, #FFFDF5)",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(20px)",
-          transitionDelay: "0.15s",
-        }}
-      >
-        <div className="max-w-[560px] mx-auto">
-          <VsopCredibility />
+        {/* Quote half */}
+        <div
+          className="relative px-5 py-16 sm:py-20 transition-all duration-[1200ms] ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: "0.1s",
+            zIndex: 1,
+          }}
+        >
+          <div className="max-w-[620px] mx-auto">
+            <h2
+              className="text-center"
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.55rem, 6.2vw, 2.2rem)",
+                fontWeight: 400,
+                color: "var(--black, #141210)",
+                lineHeight: 1.18,
+                letterSpacing: "-0.02em",
+                margin: 0,
+              }}
+            >
+              They Give Us Everything.
+              <br />
+              <em style={{ fontWeight: 400 }}>
+                It&apos;s Time We Understood Them in Return.
+              </em>
+            </h2>
+          </div>
+        </div>
+
+        {/* Authority half */}
+        <div
+          className="relative px-5 py-14 sm:py-20 transition-all duration-[1200ms] ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: "0.15s",
+            zIndex: 1,
+          }}
+        >
+          <div className="max-w-[560px] mx-auto">
+            <VsopCredibility />
+          </div>
         </div>
       </div>
 
