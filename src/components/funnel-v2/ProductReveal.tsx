@@ -80,8 +80,8 @@ const VsopCredibility = () => (
             d: "13 celestial bodies, rising sign, elemental balance, and house placements — all calculated to the exact minute.",
           },
           {
-            h: "The same math NASA uses to track planets.",
-            d: "VSOP87, developed at the Bureau des Longitudes in Paris. The global standard for planetary position calculation.",
+            h: "Not a one-size-fits-all horoscope.",
+            d: "Their chart is built from their exact birth moment — accurate to fractions of a degree. No sun-sign clichés, no recycled predictions, no guesswork.",
           },
         ].map((item, i) => (
           <div
@@ -261,24 +261,23 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         }}
       >
         <div className="max-w-[560px] mx-auto">
-          {/* Opening quote (moved out of hero) */}
+          {/* Opening quote (moved out of hero) — Cormorant italic, full black, unique voice */}
           <h2
             className="text-center"
             style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.25rem, 5vw, 1.6rem)",
-              fontWeight: 400,
+              fontFamily: "Cormorant, Georgia, serif",
+              fontStyle: "italic",
+              fontSize: "clamp(1.35rem, 5.4vw, 1.85rem)",
+              fontWeight: 500,
               color: "var(--black, #141210)",
               lineHeight: 1.25,
-              letterSpacing: "-0.01em",
+              letterSpacing: "-0.005em",
               marginBottom: 40,
             }}
           >
             They Give Us Everything.
             <br />
-            <em style={{ color: "var(--rose, #bf524a)" }}>
-              It&apos;s Time We Understood Them in Return.
-            </em>
+            It&apos;s Time We Understood Them in Return.
           </h2>
 
           <VsopCredibility />
@@ -293,20 +292,44 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         }}
       >
         <div className="relative max-w-[560px] mx-auto">
-          {/* Eyebrow (centered) */}
+          {/* Title + subline — bigger than benefit rows, power-word frame */}
           <div className={`text-center mb-8 sm:mb-10 benefit-eyebrow ${visible ? "is-in" : ""}`}>
             <p
               style={{
                 fontFamily: "Cormorant, Georgia, serif",
-                fontSize: "0.7rem",
+                fontSize: "0.68rem",
                 fontWeight: 700,
                 letterSpacing: "0.3em",
                 textTransform: "uppercase",
                 color: "var(--gold, #c4a265)",
+                marginBottom: 8,
+              }}
+            >
+              The Real Transformation
+            </p>
+            <h2
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.35rem, 5vw, 1.75rem)",
+                fontWeight: 400,
+                color: "var(--black, #141210)",
+                lineHeight: 1.2,
+                letterSpacing: "-0.02em",
                 marginBottom: 6,
               }}
             >
-              When you truly know them
+              After Your Reading
+            </h2>
+            <p
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(0.9rem, 3.2vw, 1rem)",
+                color: "var(--earth, #6e6259)",
+                marginBottom: 10,
+              }}
+            >
+              Four shifts you&apos;ll feel the same day.
             </p>
             <div className="flex justify-center" aria-hidden="true">
               <svg width="8" height="8" viewBox="0 0 10 10">
@@ -326,10 +349,10 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             }}
           >
             {[
-              { roman: "I", text: "Love them in the way they actually feel it." },
-              { roman: "II", text: "Know what they need — without guessing, without wondering." },
-              { roman: "III", text: "Finally put words to the bond you've always felt." },
-              { roman: "IV", text: "Know them the way they've always known you." },
+              { roman: "I", text: "You'll speak their love language — fluently." },
+              { roman: "II", text: "You'll read their needs before they show them." },
+              { roman: "III", text: "You'll finally name the bond you've always felt." },
+              { roman: "IV", text: "You'll know they've always known you too." },
             ].map((item, i) => (
               <li
                 key={i}
