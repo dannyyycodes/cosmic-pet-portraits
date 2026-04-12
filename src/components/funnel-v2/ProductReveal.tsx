@@ -18,75 +18,242 @@ function useScrollReveal(threshold = 0.15) {
 
 /* ── VSOP Credibility — warm authority ── */
 const VsopCredibility = () => (
-  <div className="text-center">
-    {/* Gold rule */}
-    <div className="mx-auto mb-8" style={{ width: 50, height: 1, background: "var(--gold, #c4a265)", opacity: 0.35 }} />
+  <div className="relative text-center overflow-hidden vsop-section">
+    {/* Decorative orbit backdrop — pure SVG, very low opacity, gently rotating */}
+    <svg
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none vsop-orbit"
+      width="640" height="640" viewBox="0 0 640 640"
+      aria-hidden="true"
+      style={{ maxWidth: "110%", height: "auto", opacity: 0.35 }}
+    >
+      <defs>
+        <radialGradient id="vsop-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#c4a265" stopOpacity="0.12" />
+          <stop offset="70%" stopColor="#c4a265" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="320" cy="320" r="280" fill="url(#vsop-glow)" />
+      <circle cx="320" cy="320" r="140" stroke="#c4a265" strokeWidth="0.6" strokeDasharray="2 6" fill="none" opacity="0.5" />
+      <circle cx="320" cy="320" r="200" stroke="#c4a265" strokeWidth="0.6" strokeDasharray="3 9" fill="none" opacity="0.4" />
+      <circle cx="320" cy="320" r="260" stroke="#c4a265" strokeWidth="0.5" strokeDasharray="2 12" fill="none" opacity="0.3" />
+      {/* Traveling planet dots */}
+      <circle cx="460" cy="320" r="3" fill="#c4a265" opacity="0.8" />
+      <circle cx="320" cy="120" r="2.5" fill="#bf524a" opacity="0.7" />
+      <circle cx="180" cy="420" r="2.5" fill="#c4a265" opacity="0.6" />
+    </svg>
 
-    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--muted, #958779)", marginBottom: 14 }}>
-      Real Astronomy. Not Guesswork.
-    </p>
-    <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.25rem, 5vw, 1.65rem)", fontWeight: 400, color: "var(--ink, #1f1c18)", lineHeight: 1.25, marginBottom: 10 }}>
-      Every reading is calculated from the
-      <br />
-      exact sky the moment they were born
-    </h3>
-    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(0.92rem, 3.2vw, 1rem)", color: "var(--earth, #6e6259)", lineHeight: 1.55, maxWidth: 420, margin: "0 auto 28px" }}>
-      Using VSOP87 — the same planetary model used by NASA and professional observatories worldwide.
-    </p>
+    <div className="relative">
+      {/* Ornamental rule with centered diamond */}
+      <div className="flex items-center justify-center gap-2 mb-6" aria-hidden="true">
+        <div style={{ width: 36, height: 1, background: "linear-gradient(90deg, transparent, #c4a265)", opacity: 0.7 }} />
+        <svg width="10" height="10" viewBox="0 0 10 10" className="vsop-diamond">
+          <path d="M5 0l2 5-2 5-2-5z" fill="#c4a265" opacity="0.85" />
+        </svg>
+        <div style={{ width: 36, height: 1, background: "linear-gradient(270deg, transparent, #c4a265)", opacity: 0.7 }} />
+      </div>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-      {[
-        {
-          h: "Not a personality quiz. Real coordinates.",
-          d: "13 celestial bodies, rising sign, elemental balance, and house placements — all calculated to the exact minute.",
-        },
-        {
-          h: "The same math NASA uses to track planets.",
-          d: "VSOP87, developed at the Bureau des Longitudes in Paris. The global standard for planetary position calculation.",
-        },
-      ].map((item, i) => (
-        <div
-          key={i}
-          className="rounded-xl py-5 px-4"
-          style={{
-            background: "#FFFDF5",
-            border: "1px solid rgba(196,162,101,0.18)",
-          }}
-        >
-          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.88rem", color: "var(--ink, #1f1c18)", lineHeight: 1.25, marginBottom: 8 }}>
-            {item.h}
-          </p>
-          <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
-            {item.d}
-          </p>
-        </div>
-      ))}
+      {/* Gold-gradient eyebrow */}
+      <p
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontSize: "0.7rem",
+          fontWeight: 700,
+          letterSpacing: "0.24em",
+          textTransform: "uppercase",
+          marginBottom: 14,
+          background: "linear-gradient(90deg, #c4a265 0%, #d4b26b 50%, #c4a265 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          color: "transparent",
+        }}
+      >
+        Real Astronomy. Not Guesswork.
+      </p>
+      <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.3rem, 5.2vw, 1.75rem)", fontWeight: 400, color: "var(--ink, #1f1c18)", lineHeight: 1.25, marginBottom: 12 }}>
+        Every reading is calculated from the
+        <br />
+        <em style={{ color: "var(--rose, #bf524a)" }}>exact sky the moment they were born</em>
+      </h3>
+      <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(0.92rem, 3.2vw, 1rem)", color: "var(--earth, #6e6259)", lineHeight: 1.55, maxWidth: 440, margin: "0 auto 28px" }}>
+        Using{" "}
+        <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
+        {" — the same planetary model used by "}
+        <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
+        {" and professional observatories worldwide."}
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
+        {[
+          {
+            h: "Not a personality quiz. Real coordinates.",
+            d: "13 celestial bodies, rising sign, elemental balance, and house placements — all calculated to the exact minute.",
+            badge: "13",
+            badgeLabel: "bodies",
+          },
+          {
+            h: "The same math NASA uses to track planets.",
+            d: "VSOP87, developed at the Bureau des Longitudes in Paris. The global standard for planetary position calculation.",
+            badge: "1982",
+            badgeLabel: "since",
+          },
+        ].map((item, i) => (
+          <div
+            key={i}
+            className="relative rounded-xl py-5 px-5 text-left"
+            style={{
+              background: "linear-gradient(180deg, #FFFDF5 0%, #faf4e8 100%)",
+              border: "1px solid rgba(196,162,101,0.28)",
+              boxShadow: "0 2px 16px rgba(196,162,101,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
+            }}
+          >
+            {/* Gold corner flourish */}
+            <svg className="absolute top-2 right-2" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+              <path d="M1 1h5M1 1v5M13 13h-5M13 13v-5" stroke="#c4a265" strokeWidth="1" fill="none" opacity="0.7" />
+            </svg>
+
+            {/* Gold badge */}
+            <div className="inline-flex items-baseline gap-1 mb-3">
+              <span
+                style={{
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "1.4rem",
+                  fontWeight: 400,
+                  background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  color: "transparent",
+                  lineHeight: 1,
+                }}
+              >
+                {item.badge}
+              </span>
+              <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted, #958779)" }}>
+                {item.badgeLabel}
+              </span>
+            </div>
+
+            <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.92rem", color: "var(--ink, #1f1c18)", lineHeight: 1.3, marginBottom: 6 }}>
+              {item.h}
+            </p>
+            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--earth, #6e6259)", lineHeight: 1.55 }}>
+              {item.d}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Eyebrow above glyph row */}
+      <p
+        className="mb-3"
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontSize: "0.62rem",
+          fontWeight: 700,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: "var(--gold, #c4a265)",
+          opacity: 0.85,
+        }}
+      >
+        The thirteen bodies we read
+      </p>
+
+      {/* Planet row — gold gradient glyphs on rich pills */}
+      <div className="flex flex-wrap justify-center gap-1.5 mb-8">
+        {[
+          ["Sun","\u2609\uFE0E"],["Moon","\u263D\uFE0E"],["Mercury","\u263F\uFE0E"],["Venus","\u2640\uFE0E"],
+          ["Mars","\u2642\uFE0E"],["Jupiter","\u2643\uFE0E"],["Saturn","\u2644\uFE0E"],["Uranus","\u2645\uFE0E"],
+          ["Neptune","\u2646\uFE0E"],["Pluto","\u2647\uFE0E"],["Chiron","\u26B7\uFE0E"],["Node","\u260A\uFE0E"],["Lilith","\u26B8\uFE0E"],
+        ].map(([name, sym], i) => (
+          <span
+            key={name}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full vsop-glyph-pill"
+            style={{
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.72rem",
+              fontWeight: 600,
+              color: "var(--ink, #1f1c18)",
+              background: "linear-gradient(180deg, #FFFDF5 0%, #faf4e8 100%)",
+              border: "1px solid rgba(196,162,101,0.32)",
+              boxShadow: "0 1px 4px rgba(196,162,101,0.1)",
+              animationDelay: `${i * 120}ms`,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: '"DejaVu Sans", "Noto Sans Symbols", system-ui',
+                fontSize: "0.95rem",
+                fontVariantEmoji: "text" as never,
+                background: "linear-gradient(135deg, #d4b26b, #c4a265 50%, #bf524a)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                color: "transparent",
+                lineHeight: 1,
+              }}
+            >
+              {sym}
+            </span>
+            {name}
+          </span>
+        ))}
+      </div>
+
+      {/* Standards row with gold diamond separators */}
+      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+        {["VSOP87", "JPL HORIZONS", "IAU STANDARDS", "ASTRONOMIA ENGINE"].map((label, i) => (
+          <span key={label} className="inline-flex items-center gap-2">
+            {i > 0 && (
+              <svg width="4" height="4" viewBox="0 0 4 4" aria-hidden="true">
+                <path d="M2 0l1 2-1 2-1-2z" fill="#c4a265" opacity="0.65" />
+              </svg>
+            )}
+            <span
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontSize: "0.64rem",
+                fontWeight: 700,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "var(--earth, #6e6259)",
+              }}
+            >
+              {label}
+            </span>
+          </span>
+        ))}
+      </div>
+
+      {/* Ornamental rule with centered diamond */}
+      <div className="flex items-center justify-center gap-2 mt-8" aria-hidden="true">
+        <div style={{ width: 36, height: 1, background: "linear-gradient(90deg, transparent, #c4a265)", opacity: 0.7 }} />
+        <svg width="10" height="10" viewBox="0 0 10 10" className="vsop-diamond">
+          <path d="M5 0l2 5-2 5-2-5z" fill="#c4a265" opacity="0.85" />
+        </svg>
+        <div style={{ width: 36, height: 1, background: "linear-gradient(270deg, transparent, #c4a265)", opacity: 0.7 }} />
+      </div>
     </div>
 
-    {/* Planet row */}
-    <div className="flex flex-wrap justify-center gap-1.5 mb-6">
-      {[
-        ["Sun","\u2609\uFE0E"],["Moon","\u263D\uFE0E"],["Mercury","\u263F\uFE0E"],["Venus","\u2640\uFE0E"],
-        ["Mars","\u2642\uFE0E"],["Jupiter","\u2643\uFE0E"],["Saturn","\u2644\uFE0E"],["Uranus","\u2645\uFE0E"],
-        ["Neptune","\u2646\uFE0E"],["Pluto","\u2647\uFE0E"],["Chiron","\u26B7\uFE0E"],["Node","\u260A\uFE0E"],["Lilith","\u26B8\uFE0E"],
-      ].map(([name, sym]) => (
-        <span
-          key={name}
-          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full"
-          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", fontWeight: 600, color: "var(--earth, #6e6259)", background: "#FFFDF5", border: "1px solid var(--cream3, #f3eadb)" }}
-        >
-          <span style={{ fontFamily: '"DejaVu Sans", "Noto Sans Symbols", system-ui', fontSize: "0.85rem", color: "var(--gold, #c4a265)", fontVariantEmoji: "text" as never }}>{sym}</span>
-          {name}
-        </span>
-      ))}
-    </div>
-
-    <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.62rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--muted, #958779)", opacity: 0.55 }}>
-      VSOP87 &nbsp;&middot;&nbsp; JPL HORIZONS &nbsp;&middot;&nbsp; IAU STANDARDS &nbsp;&middot;&nbsp; ASTRONOMIA ENGINE
-    </p>
-
-    {/* Gold rule */}
-    <div className="mx-auto mt-8" style={{ width: 50, height: 1, background: "var(--gold, #c4a265)", opacity: 0.35 }} />
+    <style>{`
+      @keyframes vsopOrbitSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+      @keyframes vsopDiamondPulse {
+        0%, 100% { opacity: 0.85; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.12); }
+      }
+      @keyframes vsopGlyphTwinkle {
+        0%, 92%, 100% { transform: translateY(0); }
+        95% { transform: translateY(-1.5px); }
+      }
+      .vsop-orbit { animation: vsopOrbitSpin 180s linear infinite; will-change: transform; }
+      .vsop-diamond { animation: vsopDiamondPulse 3.5s ease-in-out infinite; transform-origin: center; }
+      .vsop-glyph-pill {
+        animation: vsopGlyphTwinkle 4.5s ease-in-out infinite;
+        animation-delay: inherit;
+        will-change: transform;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .vsop-orbit, .vsop-diamond, .vsop-glyph-pill { animation: none !important; }
+      }
+    `}</style>
   </div>
 );
 
