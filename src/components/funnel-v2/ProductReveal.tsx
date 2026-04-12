@@ -33,64 +33,72 @@ type StarDef = {
   delay?: number;
 };
 
+// Stars placed around the EDGES only — left/right columns + top/bottom rows.
+// Centre zone (x 28-72, y 22-78) is kept empty so the text never competes
+// with the pattern. Reads as a framing constellation rather than a backdrop
+// behind the words.
 const CONSTELLATION_STARS: StarDef[] = [
-  { x: 8,  y: 8,  kind: "bright", delay: 0    },
-  { x: 22, y: 16, kind: "mid",    delay: 0.4  },
-  { x: 36, y: 6,  kind: "small",  delay: 0.8  },
-  { x: 50, y: 14, kind: "bright", delay: 1.2  },
-  { x: 64, y: 8,  kind: "mid",    delay: 1.6  },
-  { x: 78, y: 18, kind: "small",  delay: 2.0  },
-  { x: 92, y: 10, kind: "bright", delay: 2.4, rot: 18 },
+  // Top edge
+  { x: 6,  y: 6,  kind: "bright", delay: 0    },
+  { x: 20, y: 11, kind: "small",  delay: 0.6  },
+  { x: 40, y: 5,  kind: "mid",    delay: 1.2  },
+  { x: 60, y: 9,  kind: "dust",   delay: 1.8  },
+  { x: 78, y: 4,  kind: "mid",    delay: 2.4  },
+  { x: 94, y: 10, kind: "bright", delay: 3.0, rot: 18 },
 
-  { x: 12, y: 38, kind: "dust",   delay: 0.5  },
-  { x: 30, y: 44, kind: "mid",    delay: 1.0  },
-  { x: 46, y: 36, kind: "dust",   delay: 1.5  },
-  { x: 62, y: 46, kind: "small",  delay: 2.0  },
-  { x: 82, y: 40, kind: "mid",    delay: 2.5  },
+  // Left column (mid height)
+  { x: 4,  y: 30, kind: "mid",    delay: 0.4  },
+  { x: 10, y: 52, kind: "dust",   delay: 1.0  },
+  { x: 6,  y: 72, kind: "bright", delay: 1.6, rot: -8 },
 
-  { x: 6,  y: 66, kind: "mid",    delay: 0.3  },
-  { x: 20, y: 58, kind: "small",  delay: 0.7  },
-  { x: 34, y: 68, kind: "bright", delay: 1.1, rot: -10 },
-  { x: 48, y: 60, kind: "mid",    delay: 1.5  },
-  { x: 64, y: 70, kind: "small",  delay: 1.9  },
-  { x: 80, y: 62, kind: "bright", delay: 2.3  },
-  { x: 94, y: 70, kind: "dust",   delay: 2.7  },
+  // Right column (mid height)
+  { x: 96, y: 32, kind: "mid",    delay: 0.8  },
+  { x: 92, y: 54, kind: "small",  delay: 1.4  },
+  { x: 94, y: 74, kind: "bright", delay: 2.0, rot: 12 },
 
-  { x: 14, y: 86, kind: "small",  delay: 0.9  },
-  { x: 30, y: 92, kind: "mid",    delay: 1.3  },
-  { x: 50, y: 88, kind: "bright", delay: 1.7, rot: 12 },
-  { x: 68, y: 92, kind: "mid",    delay: 2.1  },
-  { x: 86, y: 86, kind: "small",  delay: 2.5  },
+  // Bottom edge
+  { x: 8,  y: 92, kind: "mid",    delay: 0.5  },
+  { x: 24, y: 95, kind: "dust",   delay: 1.1  },
+  { x: 44, y: 93, kind: "bright", delay: 1.7, rot: -14 },
+  { x: 62, y: 96, kind: "dust",   delay: 2.3  },
+  { x: 78, y: 92, kind: "small",  delay: 2.9  },
+  { x: 92, y: 95, kind: "mid",    delay: 3.5  },
 ];
 
-// Connecting constellation lines — from-index → to-index in CONSTELLATION_STARS (0-23, 24 total)
+// Short, edge-hugging connection lines — none cross the centre text zone.
 const CONNECTIONS: Array<[number, number]> = [
-  [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],   // top arc
-  [3, 8], [8, 14],                                    // vertical drop through centre
-  [12, 13], [13, 14], [14, 15], [15, 16], [16, 17],  // middle band
-  [17, 22],                                           // bottom drop
-  [14, 20], [20, 21], [21, 22], [22, 23],             // bottom arc
+  [0, 1], [1, 2], [2, 3], [3, 4], [4, 5],   // top edge chain
+  [0, 6], [6, 7], [7, 8],                   // left column drop
+  [5, 9], [9, 10], [10, 11],                // right column drop
+  [8, 12], [12, 13], [13, 14], [14, 15], [15, 16], [16, 17], [17, 11], // bottom edge chain
 ];
 
 const STAR_SIZES: Record<StarKind, number> = {
-  bright: 22,
-  mid: 14,
-  small: 10,
-  dust: 6,
+  bright: 20,
+  mid: 12,
+  small: 8,
+  dust: 5,
 };
 
+// Softer opacities overall — background, not foreground.
 const STAR_OPACITIES: Record<StarKind, number> = {
-  bright: 0.75,
-  mid: 0.55,
-  small: 0.45,
-  dust: 0.3,
+  bright: 0.5,
+  mid: 0.35,
+  small: 0.28,
+  dust: 0.2,
 };
 
 const ConstellationBackdrop = () => (
   <div
     aria-hidden="true"
     className="absolute inset-0 pointer-events-none"
-    style={{ zIndex: 0 }}
+    style={{
+      zIndex: 0,
+      // Radial mask — constellation visible at the edges, faded to transparent
+      // where the text reads. Pure CSS, no perf cost.
+      WebkitMaskImage: "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, black 85%)",
+      maskImage: "radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, black 85%)",
+    }}
   >
     {/* Lines first, behind the stars */}
     <svg
@@ -100,12 +108,12 @@ const ConstellationBackdrop = () => (
     >
       <defs>
         <linearGradient id="constLine" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#c4a265" stopOpacity="0.1" />
-          <stop offset="50%" stopColor="#c4a265" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#c4a265" stopOpacity="0.1" />
+          <stop offset="0%" stopColor="#c4a265" stopOpacity="0.08" />
+          <stop offset="50%" stopColor="#c4a265" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#c4a265" stopOpacity="0.08" />
         </linearGradient>
       </defs>
-      <g stroke="url(#constLine)" strokeWidth="0.12" fill="none" vectorEffect="non-scaling-stroke">
+      <g stroke="url(#constLine)" strokeWidth="0.08" fill="none" vectorEffect="non-scaling-stroke">
         {CONNECTIONS.map(([a, b], i) => {
           const from = CONSTELLATION_STARS[a];
           const to = CONSTELLATION_STARS[b];
