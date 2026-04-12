@@ -27,56 +27,64 @@ const PetWallpaper = () => (
     style={{
       backgroundImage: `url("data:image/svg+xml;utf8,${encodeURIComponent(PET_PATTERN_SVG)}")`,
       backgroundRepeat: "repeat",
-      backgroundSize: "280px 280px",
-      opacity: 0.14,
+      backgroundSize: "260px 260px",
+      opacity: 0.32,
     }}
   />
 );
 
-const PET_PATTERN_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'>
-<g fill='none' stroke='%23c4a265' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'>
-<g transform='translate(30 40)'>
-<circle cx='6' cy='6' r='4'/><circle cx='16' cy='4' r='3.2'/><circle cx='4' cy='14' r='3'/><circle cx='18' cy='14' r='3'/><ellipse cx='11' cy='22' rx='6' ry='5'/>
+// IMPORTANT: colour literals use '#' (not '%23') — encodeURIComponent in
+// PetWallpaper handles the URL-encoding once. Using '%23' here would
+// double-encode and render the strokes colourless / invisible.
+const PET_PATTERN_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'>
+<g fill='none' stroke='#c4a265' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'>
+<g transform='translate(28 36)'>
+<ellipse cx='6' cy='6' rx='3' ry='3.8'/><ellipse cx='16' cy='4' rx='3' ry='3.8'/><ellipse cx='3' cy='14' rx='2.6' ry='3.2'/><ellipse cx='19' cy='14' rx='2.6' ry='3.2'/><ellipse cx='11' cy='22' rx='6' ry='5'/>
 </g>
-<g transform='translate(110 30)'>
+<g transform='translate(104 28)'>
 <path d='M0 14c0-7 5-12 12-12s12 5 12 12c0 4-3 6-6 6H6c-3 0-6-2-6-6z'/>
 <path d='M4 2l3 6M20 2l-3 6'/>
-<circle cx='9' cy='13' r='0.8' fill='%23c4a265'/><circle cx='15' cy='13' r='0.8' fill='%23c4a265'/>
+<circle cx='9' cy='13' r='0.9' fill='#c4a265'/><circle cx='15' cy='13' r='0.9' fill='#c4a265'/>
 <path d='M10 17l2 2 2-2'/>
 </g>
-<g transform='translate(200 50)'>
+<g transform='translate(196 46)'>
 <ellipse cx='12' cy='18' rx='8' ry='6'/>
-<path d='M8 13V4c0-1 .8-1.6 1.6-1.2l1.4.7c.6.3 1.4.3 2 0l1.4-.7c.8-.4 1.6.2 1.6 1.2v9'/>
-<circle cx='10' cy='17' r='0.7' fill='%23c4a265'/><circle cx='14' cy='17' r='0.7' fill='%23c4a265'/>
+<path d='M7 13V4c0-1 .8-1.6 1.6-1.2l1.6.7c.6.3 1.4.3 2 0l1.6-.7c.8-.4 1.6.2 1.6 1.2v9'/>
+<circle cx='10' cy='17' r='0.8' fill='#c4a265'/><circle cx='14' cy='17' r='0.8' fill='#c4a265'/>
+<path d='M12 20v2'/>
 </g>
-<g transform='translate(50 130)'>
+<g transform='translate(46 126)'>
 <path d='M0 8c0-4 4-7 9-7s9 3 9 7-4 7-9 7c-2 0-4-.5-5.5-1.3L0 16z'/>
-<circle cx='7' cy='8' r='0.8' fill='%23c4a265'/><circle cx='12' cy='8' r='0.8' fill='%23c4a265'/>
+<circle cx='7' cy='8' r='0.8' fill='#c4a265'/><circle cx='12' cy='8' r='0.8' fill='#c4a265'/>
 <path d='M13 2l4-1'/>
 </g>
-<g transform='translate(160 120)'>
+<g transform='translate(150 116)'>
 <path d='M0 10c4-8 14-8 18 0-4 8-14 8-18 0z'/>
-<path d='M18 10l6-3v6z' fill='%23c4a265' stroke='none' opacity='0.9'/>
-<circle cx='5' cy='9' r='0.8' fill='%23c4a265'/>
+<path d='M18 10l6-3v6z' fill='#c4a265' stroke='none'/>
+<circle cx='5' cy='9' r='0.9' fill='#c4a265'/>
+<path d='M4 13c1 1 3 1 4 0'/>
 </g>
-<g transform='translate(230 140)'>
-<path d='M8 20c-4-1-6-5-6-9 0-6 4-11 10-11s10 5 10 11'/>
+<g transform='translate(218 134)'>
+<path d='M2 20c-1-2-2-5-2-9 0-6 4-11 10-11s10 5 10 11c0 4-1 7-2 9'/>
 <path d='M14 4c-2-3-2-4 0-4s2 1 0 4'/>
-<path d='M6 14h12'/>
+<path d='M10 4c-2-3-2-4 0-4s2 1 0 4'/>
+<circle cx='7' cy='12' r='0.8' fill='#c4a265'/><circle cx='13' cy='12' r='0.8' fill='#c4a265'/>
 </g>
-<g transform='translate(30 210)'>
+<g transform='translate(28 196)'>
 <ellipse cx='5' cy='5' rx='2.5' ry='3.2'/><ellipse cx='13' cy='3' rx='2.5' ry='3.2'/><ellipse cx='2' cy='11' rx='2.2' ry='2.8'/><ellipse cx='16' cy='11' rx='2.2' ry='2.8'/><ellipse cx='9' cy='17' rx='5' ry='4'/>
 </g>
-<g transform='translate(120 200)'>
-<ellipse cx='10' cy='12' rx='10' ry='6'/>
+<g transform='translate(116 192)'>
+<ellipse cx='10' cy='12' rx='10' ry='5.5'/>
 <circle cx='10' cy='10' r='4'/>
 <path d='M10 6c0-2 2-3 4-3'/>
-<circle cx='8' cy='10' r='0.6' fill='%23c4a265'/>
+<circle cx='8' cy='10' r='0.7' fill='#c4a265'/>
+<path d='M0 12h-3M20 12h3'/>
 </g>
-<g transform='translate(210 220)'>
+<g transform='translate(204 212)'>
 <path d='M2 6c6-5 14-5 18 0-2 4-6 6-9 6s-7-2-9-6z'/>
 <path d='M3 7c-3 0-3 4 0 4'/>
-<circle cx='15' cy='7' r='0.7' fill='%23c4a265'/>
+<path d='M6 4c1-3 4-4 6-4'/>
+<circle cx='15' cy='7' r='0.8' fill='#c4a265'/>
 </g>
 </g>
 </svg>`;
@@ -302,7 +310,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       <div
         className="relative overflow-hidden px-5 py-16 sm:py-20 transition-all duration-[1200ms] ease-out"
         style={{
-          background: "#f0ece3",
+          background: "#f6f1e6",
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(20px)",
           transitionDelay: "0.1s",
@@ -350,7 +358,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       <div
         className="relative px-5 py-12 sm:py-16 md:py-20"
         style={{
-          background: "#f0ece3",
+          background: "#f6f1e6",
         }}
       >
         <div className="relative max-w-[560px] mx-auto">
