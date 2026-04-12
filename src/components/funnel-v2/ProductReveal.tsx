@@ -563,29 +563,42 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── grey band + hearts backdrop + individual cards ── */}
+      {/* ── Block 2: The Benefits ── cream band + hearts backdrop + cards ── */}
       <div
         className="relative overflow-hidden px-5 py-12 sm:py-16 md:py-20"
-        style={{ background: "#faf6ec" }}
+        style={{ background: "var(--cream, #FFFDF5)" }}
       >
         <HeartsBackdrop />
 
         <div className="relative max-w-[560px] mx-auto" style={{ zIndex: 1 }}>
-          {/* Title */}
-          <div className={`text-center mb-10 sm:mb-12 benefit-eyebrow ${visible ? "is-in" : ""}`}>
-            <h2
+          {/* Title — wrapped in its own cream card so the hearts don't cross it */}
+          <div className={`flex justify-center mb-6 sm:mb-8 benefit-eyebrow ${visible ? "is-in" : ""}`}>
+            <div
               style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.6rem, 5.6vw, 2rem)",
-                fontWeight: 400,
-                color: "var(--black, #141210)",
-                lineHeight: 1.18,
-                letterSpacing: "-0.02em",
-                margin: 0,
+                padding: "14px 28px",
+                background: "rgba(255, 253, 245, 0.92)",
+                border: "1px solid rgba(196, 162, 101, 0.16)",
+                borderRadius: 14,
+                boxShadow: "0 2px 18px rgba(0, 0, 0, 0.03)",
+                backdropFilter: "blur(2px)",
+                WebkitBackdropFilter: "blur(2px)",
               }}
             >
-              After <em style={{ color: "var(--black, #141210)", fontWeight: 400 }}>Their</em> Reading
-            </h2>
+              <h2
+                style={{
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "clamp(1.6rem, 5.6vw, 2rem)",
+                  fontWeight: 400,
+                  color: "var(--black, #141210)",
+                  lineHeight: 1.18,
+                  letterSpacing: "-0.02em",
+                  margin: 0,
+                  textAlign: "center",
+                }}
+              >
+                After <em style={{ color: "var(--black, #141210)", fontWeight: 400 }}>Their</em> Reading
+              </h2>
+            </div>
           </div>
 
           {/* Four benefit cards — each in its own subtle cream card */}
