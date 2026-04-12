@@ -86,11 +86,11 @@ export const HeroV2 = ({ onCtaClick, ctaLabel }: HeroV2Props) => {
           className="transition-all duration-[1200ms] ease-out"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: isMobile ? "clamp(2.05rem, 9.5vw, 3.2rem)" : "clamp(2.8rem, 5.5vw, 4.2rem)",
+            fontSize: "clamp(1.25rem, 5vw, 1.6rem)",
             fontWeight: 400,
             color: "var(--black, #141210)",
-            lineHeight: 1.1,
-            letterSpacing: "-0.035em",
+            lineHeight: 1.25,
+            letterSpacing: "-0.01em",
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(30px)",
             transitionDelay: "0.15s",
