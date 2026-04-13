@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing Card Mockups — Little Souls</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFFDF5;
+    --cream2: #faf4e8;
+    --cream3: #f3eadb;
+    --ink: #1f1c18;
+    --deep: #2e2a24;
+    --warm: #4d443b;
+    --earth: #6e6259;
+    --muted: #958779;
+    --sand: #d6c8b6;
+    --rose: #bf524a;
+    --gold: #c4a265;
+    --green: #4a8c5c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Cormorant, Georgia, serif;
+    background: var(--cream);
+    color: var(--ink);
+    padding: 40px 20px 120px;
+  }
+  .page-head {
+    max-width: 780px;
+    margin: 0 auto 40px;
+    text-align: center;
+  }
+  .page-head h1 {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .page-head p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  section.mockup {
+    max-width: 780px;
+    margin: 0 auto 80px;
+  }
+  section.mockup > h2 {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-weight: 400;
+    font-size: 1.3rem;
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+    color: var(--ink);
+  }
+  section.mockup > .label {
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 22px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 620px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+  .check {
+    width: 14px; height: 14px; color: var(--green); flex: 0 0 auto;
+  }
+  .check svg { width: 100%; height: 100%; display: block; }
+
+  /* ═════════════ MOCKUP A — Editorial Split ═════════════ */
+  .A {
+    padding: 28px 26px;
+    border-radius: 18px;
+    background: #FFFDF5;
+    border: 1px solid rgba(196,162,101,0.25);
+    position: relative;
+  }
+  .A.selected { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(196,162,101,0.14), 0 10px 30px rgba(0,0,0,0.06); }
+  .A .badge-A {
+    position: absolute; top: -10px; left: 26px;
+    background: var(--rose); color: #fff;
+    font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700;
+    padding: 3px 10px; border-radius: 999px;
+  }
+  .A .A-row1 { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .A .A-name {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 1.4rem; line-height: 1.1; color: var(--ink); margin: 0;
+  }
+  .A .A-price-stack { text-align: right; flex-shrink: 0; }
+  .A .A-was {
+    font-family: "DM Serif Display", Georgia, serif;
+    color: var(--muted);
+    font-size: 0.95rem;
+    text-decoration: line-through;
+    text-decoration-color: rgba(191,82,74,0.55);
+    text-decoration-thickness: 1.5px;
+    margin: 0;
+  }
+  .A .A-price {
+    font-family: "DM Serif Display", Georgia, serif;
+    color: var(--rose);
+    font-size: 2rem; line-height: 1;
+    margin: 2px 0 0;
+  }
+  .A hr {
+    border: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--sand), transparent);
+    margin: 18px 0 14px;
+  }
+  .A .A-tag {
+    font-family: Cormorant, Georgia, serif;
+    font-style: italic;
+    color: var(--earth);
+    font-size: 0.95rem;
+    margin: 0 0 14px;
+    line-height: 1.5;
+  }
+  .A ul { list-style: none; padding: 0; margin: 0; }
+  .A li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 9px 0;
+    font-size: 0.88rem;
+    color: var(--warm);
+    line-height: 1.4;
+    border-bottom: 1px solid rgba(196,162,101,0.1);
+  }
+  .A li:last-child { border-bottom: 0; }
+  .A li.divider { color: var(--gold); font-style: italic; font-weight: 600; }
+
+  /* ═════════════ MOCKUP B — Parchment Keepsake ═════════════ */
+  .B {
+    padding: 30px 28px 28px;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(255,255,255,0.7), transparent 55%),
+      linear-gradient(160deg, #faf4e8 0%, #f3eadb 60%, #faf4e8 100%);
+    border: 1px solid rgba(196,162,101,0.35);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.6) inset,
+      0 12px 30px rgba(31,28,24,0.05);
+    position: relative;
+  }
+  .B.selected { border-color: var(--rose); box-shadow: 0 1px 0 rgba(255,255,255,0.6) inset, 0 0 0 3px rgba(196,162,101,0.18), 0 14px 36px rgba(31,28,24,0.08); }
+  .B .seal {
+    position: absolute; top: -14px; right: 24px;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #d96c64, var(--rose) 60%, #8b332d);
+    box-shadow: 0 4px 10px rgba(139,51,45,0.3), inset 0 2px 4px rgba(255,255,255,0.2);
+    color: #fff;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    line-height: 1.05; padding: 0 6px;
+  }
+  .B .savings-pill {
+    display: inline-block;
+    background: rgba(74,140,92,0.12);
+    color: var(--green);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .B h3 {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-weight: 400; font-size: 1.55rem;
+    margin: 0 0 4px; color: var(--deep); letter-spacing: -0.01em;
+  }
+  .B .B-tag {
+    font-family: Cormorant, Georgia, serif;
+    font-style: italic;
+    color: var(--earth);
+    font-size: 0.95rem;
+    margin: 0 0 20px;
+    line-height: 1.5;
+  }
+  .B .B-prices { display: flex; align-items: baseline; gap: 10px; margin-bottom: 22px; }
+  .B .B-price {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 2.6rem; line-height: 1; color: var(--rose);
+  }
+  .B .B-was {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 1.1rem; color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(191,82,74,0.55);
+    text-decoration-thickness: 1.5px;
+  }
+  .B .B-once { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-left: 4px; }
+  .B ul { list-style: none; padding: 0; margin: 0; }
+  .B li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    color: var(--warm);
+    line-height: 1.45;
+  }
+  .B li.divider { color: var(--gold); font-style: italic; font-weight: 600; border-top: 1px solid rgba(196,162,101,0.22); padding-top: 12px; margin-top: 4px; }
+  .B .paw {
+    width: 14px; height: 14px; flex-shrink: 0; margin-top: 3px;
+    color: var(--gold);
+  }
+
+  /* ═════════════ MOCKUP C — Centered Manuscript ═════════════ */
+  .C {
+    padding: 34px 28px 28px;
+    border-radius: 16px;
+    background: rgba(255,253,245,0.96);
+    border: 1.5px solid var(--cream3);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .C.selected {
+    border-color: transparent;
+    background:
+      linear-gradient(rgba(255,253,245,0.96), rgba(255,253,245,0.96)) padding-box,
+      linear-gradient(135deg, #d4b26b, var(--rose), #d4b26b) border-box;
+    border: 1.5px solid transparent;
+    box-shadow: 0 10px 30px rgba(191,82,74,0.12);
+  }
+  .C .ribbon {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    background: var(--rose); color: #fff;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 400;
+    padding: 4px 18px;
+  }
+  .C .ribbon::before, .C .ribbon::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 8px;
+    background: var(--rose);
+  }
+  .C .ribbon::before { left: -6px; clip-path: polygon(100% 0, 0 50%, 100% 100%); }
+  .C .ribbon::after  { right: -6px; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .C .numeral {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 0.75rem; letter-spacing: 0.3em;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .C h3 {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-weight: 400; font-size: 1.8rem;
+    margin: 0 0 6px; color: var(--ink); letter-spacing: -0.01em;
+  }
+  .C .C-tag {
+    font-family: Cormorant, Georgia, serif;
+    font-style: italic;
+    color: var(--earth);
+    font-size: 0.9rem;
+    margin: 0 0 18px;
+    line-height: 1.45;
+    max-width: 280px; margin-left: auto; margin-right: auto;
+  }
+  .C .price-block { margin-bottom: 20px; position: relative; padding: 14px 0; }
+  .C .price-block::before, .C .price-block::after {
+    content: '❋'; position: absolute; color: var(--gold); font-size: 0.7rem; opacity: 0.6;
+    top: 50%; transform: translateY(-50%);
+  }
+  .C .price-block::before { left: 20%; }
+  .C .price-block::after { right: 20%; }
+  .C .C-was {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 1.05rem; color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(191,82,74,0.55);
+    text-decoration-thickness: 1.5px;
+    margin: 0 0 2px;
+  }
+  .C .C-price {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 3rem; line-height: 1; color: var(--rose);
+    margin: 0;
+  }
+  .C ul { list-style: none; padding: 0; margin: 0; text-align: left; }
+  .C li {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0;
+    font-size: 0.88rem; color: var(--warm); line-height: 1.45;
+  }
+  .C li.divider { color: var(--gold); font-style: italic; font-weight: 600; justify-content: center; }
+
+  /* Shared sticky-like bottom note */
+  .note {
+    max-width: 780px; margin: 0 auto; text-align: center; color: var(--muted);
+    font-size: 0.85rem; font-style: italic; padding-top: 6px;
+  }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>Pricing Card — Design Options</h1>
+    <p>Same wording, three different takes. The left card in each pair is shown selected.</p>
+  </div>
+
+  <!-- ============ MOCKUP A ============ -->
+  <section class="mockup">
+    <p class="label">Option A · Editorial Split</p>
+    <h2>Clean, minimal, newspaper-column feel</h2>
+    <div class="cards" aria-hidden="true" style="margin-top:18px">
+
+      <div class="A selected">
+        <div class="A-row1">
+          <h3 class="A-name">Soul Reading</h3>
+          <div class="A-price-stack">
+            <p class="A-was">$45</p>
+            <p class="A-price">$27</p>
+          </div>
+        </div>
+        <hr>
+        <p class="A-tag">The reading you'll read aloud to them — and probably cry doing it.</p>
+        <ul>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Full astrological breakdown — 30+ sections (works for any pet)</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>How they love, learn, heal, hope — and what makes them feel most themselves</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Their photo becomes part of the reveal</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>SoulSpeak · NEW</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Plus bonus sections — little surprises written just for them</li>
+        </ul>
+      </div>
+
+      <div class="A">
+        <span class="badge-A">Most Chosen</span>
+        <div class="A-row1">
+          <h3 class="A-name">Soul Bond</h3>
+          <div class="A-price-stack">
+            <p class="A-was">$60</p>
+            <p class="A-price">$35</p>
+          </div>
+        </div>
+        <hr>
+        <p class="A-tag">For the bond worth understanding — you and them, read side by side.</p>
+        <ul>
+          <li class="divider">Everything in Soul Reading, plus:</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Your chart against theirs — where you align, where you challenge each other</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Where your energies meet, mirror, and balance</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>The soul-reasons you found each other</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ MOCKUP B ============ -->
+  <section class="mockup">
+    <p class="label">Option B · Parchment Keepsake</p>
+    <h2>Warm, letter-like, wax-seal badge, green "save" pill</h2>
+    <div class="cards" aria-hidden="true" style="margin-top:18px">
+
+      <div class="B selected">
+        <span class="savings-pill">Save $18</span>
+        <h3>Soul Reading</h3>
+        <p class="B-tag">The reading you'll read aloud to them — and probably cry doing it.</p>
+        <div class="B-prices">
+          <span class="B-was">$45</span>
+          <span class="B-price">$27</span>
+          <span class="B-once">one-time</span>
+        </div>
+        <ul>
+          <li><svg class="paw" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="17" rx="5" ry="6"/><ellipse cx="6" cy="9" rx="3" ry="4"/><ellipse cx="12" cy="6" rx="3" ry="4"/><ellipse cx="18" cy="9" rx="3" ry="4"/></svg>Full astrological breakdown — 30+ sections (works for any pet)</li>
+          <li><svg class="paw" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="17" rx="5" ry="6"/><ellipse cx="6" cy="9" rx="3" ry="4"/><ellipse cx="12" cy="6" rx="3" ry="4"/><ellipse cx="18" cy="9" rx="3" ry="4"/></svg>How they love, learn, heal — and what makes them feel most themselves</li>
+          <li><svg class="paw" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="17" rx="5" ry="6"/><ellipse cx="6" cy="9" rx="3" ry="4"/><ellipse cx="12" cy="6" rx="3" ry="4"/><ellipse cx="18" cy="9" rx="3" ry="4"/></svg>Their photo becomes part of the reveal</li>
+          <li><svg class="paw" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="17" rx="5" ry="6"/><ellipse cx="6" cy="9" rx="3" ry="4"/><ellipse cx="12" cy="6" rx="3" ry="4"/><ellipse cx="18" cy="9" rx="3" ry="4"/></svg>SoulSpeak — ask them anything (NEW)</li>
+          <li><svg class="paw" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="17" rx="5" ry="6"/><ellipse cx="6" cy="9" rx="3" ry="4"/><ellipse cx="12" cy="6" rx="3" ry="4"/><ellipse cx="18" cy="9" rx="3" ry="4"/></svg>Plus bonus sections — little surprises written just for them</li>
+        </ul>
+      </div>
+
+      <div class="B">
+        <span class="seal">Most Chosen</span>
+        <span class="savings-pill">Save $25</span>
+        <h3>Soul Bond</h3>
+        <p class="B-tag">For the bond worth understanding — you and them, read side by side.</p>
+        <div class="B-prices">
+          <span class="B-was">$60</span>
+          <span class="B-price">$35</span>
+          <span class="B-once">one-time</span>
+        </div>
+        <ul>
+          <li class="divider">Everything in Soul Reading, plus:</li>
+          <li><svg class="paw" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="17" rx="5" ry="6"/><ellipse cx="6" cy="9" rx="3" ry="4"/><ellipse cx="12" cy="6" rx="3" ry="4"/><ellipse cx="18" cy="9" rx="3" ry="4"/></svg>Your chart against theirs — where you align, where you challenge each other</li>
+          <li><svg class="paw" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="17" rx="5" ry="6"/><ellipse cx="6" cy="9" rx="3" ry="4"/><ellipse cx="12" cy="6" rx="3" ry="4"/><ellipse cx="18" cy="9" rx="3" ry="4"/></svg>Where your energies meet, mirror, and balance</li>
+          <li><svg class="paw" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="17" rx="5" ry="6"/><ellipse cx="6" cy="9" rx="3" ry="4"/><ellipse cx="12" cy="6" rx="3" ry="4"/><ellipse cx="18" cy="9" rx="3" ry="4"/></svg>The soul-reasons you found each other</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ MOCKUP C ============ -->
+  <section class="mockup">
+    <p class="label">Option C · Centered Manuscript</p>
+    <h2>Symmetrical, title-page feel, flourish dividers</h2>
+    <div class="cards" aria-hidden="true" style="margin-top:18px">
+
+      <div class="C selected">
+        <span class="numeral">I · Soul</span>
+        <h3>Soul Reading</h3>
+        <p class="C-tag">The reading you'll read aloud to them — and probably cry doing it.</p>
+        <div class="price-block">
+          <p class="C-was">$45</p>
+          <p class="C-price">$27</p>
+        </div>
+        <ul>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Full astrological breakdown — 30+ sections (works for any pet)</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>How they love, learn, heal — and what makes them feel most themselves</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Their photo becomes part of the reveal</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>SoulSpeak · NEW</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Plus bonus sections — little surprises written just for them</li>
+        </ul>
+      </div>
+
+      <div class="C">
+        <div class="ribbon">Most Chosen</div>
+        <span class="numeral" style="margin-top:22px;display:inline-block">II · Bond</span>
+        <h3>Soul Bond</h3>
+        <p class="C-tag">For the bond worth understanding — you and them, read side by side.</p>
+        <div class="price-block">
+          <p class="C-was">$60</p>
+          <p class="C-price">$35</p>
+        </div>
+        <ul>
+          <li class="divider">Everything in Soul Reading, plus:</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Your chart against theirs — where you align, where you challenge each other</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>Where your energies meet, mirror, and balance</li>
+          <li><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></span>The soul-reasons you found each other</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <p class="note">Pick an option (A / B / C) and I'll wire it into the live pricing section.</p>
+</body>
+</html>

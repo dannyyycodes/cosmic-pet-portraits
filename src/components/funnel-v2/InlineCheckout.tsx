@@ -39,6 +39,7 @@ const TIERS: Array<{
   id: "basic" | "premium";
   name: string;
   price: number;
+  wasPrice?: number;
   badge?: string;
   features: Feature[];
 }> = [
@@ -46,8 +47,9 @@ const TIERS: Array<{
     id: "basic",
     name: "Soul Reading",
     price: 27,
+    wasPrice: 45,
     features: [
-      { label: "Full astrological breakdown — 30+ sections" },
+      { label: "Full astrological breakdown — 30+ sections (works for any pet)" },
       { label: "How they love, how they learn, how they heal, what they hope for, what they fear — and what makes them feel most themselves" },
       { label: "Their photo becomes part of the reveal" },
       { label: "SoulSpeak", kind: "soulspeak" },
@@ -60,6 +62,7 @@ const TIERS: Array<{
     id: "premium",
     name: "Soul Bond",
     price: 35,
+    wasPrice: 60,
     badge: "Most Chosen",
     features: [
       { label: "Everything in Soul Reading, plus:", kind: "divider" },
@@ -304,12 +307,27 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                       {tier.name}
                     </span>
                   </div>
-                  <div className="flex items-baseline gap-1 flex-shrink-0">
+                  <div className="flex items-baseline gap-2 flex-shrink-0">
+                    {tier.wasPrice && (
+                      <span
+                        style={{
+                          fontFamily: '"DM Serif Display", Georgia, serif',
+                          fontSize: "clamp(0.95rem, 3vw, 1.15rem)",
+                          color: "var(--muted, #958779)",
+                          lineHeight: 1,
+                          textDecoration: "line-through",
+                          textDecorationColor: "rgba(191,82,74,0.55)",
+                          textDecorationThickness: "1.5px",
+                        }}
+                      >
+                        ${tier.wasPrice}
+                      </span>
+                    )}
                     <span
                       style={{
                         fontFamily: '"DM Serif Display", Georgia, serif',
                         fontSize: "clamp(1.5rem, 5vw, 2rem)",
-                        color: "var(--ink, #1f1c18)",
+                        color: "var(--rose, #bf524a)",
                         lineHeight: 1,
                       }}
                     >

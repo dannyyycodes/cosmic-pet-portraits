@@ -29,12 +29,13 @@ const C = {
 const TIERS = {
   essential: {
     cents: 2700,
+    wasCents: 4500,
     label: 'Soul Reading',
     tagline: 'The reading they\'ll read aloud to their pet — and probably cry doing it.',
     badge: null as string | null,
     badgeColor: C.rose,
     features: [
-      'Full astrological breakdown — 30+ sections',
+      'Full astrological breakdown — 30+ sections (works for any pet)',
       'How their pet loves, learns, heals, what they hope for, what they fear — and what makes them feel most themselves',
       'Their pet\'s photo becomes part of the reveal',
       'SoulSpeak — they can ask their pet anything',
@@ -45,6 +46,7 @@ const TIERS = {
   },
   portrait: {
     cents: 3500,
+    wasCents: 6000,
     label: 'Soul Bond',
     tagline: 'For the bond worth understanding — them and their pet, read side by side.',
     badge: 'MOST CHOSEN' as string | null,
@@ -225,10 +227,23 @@ function TierCard({
           </p>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          {tier.wasCents && (
+            <p style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: '1rem', lineHeight: 1,
+              color: C.muted,
+              textDecoration: 'line-through',
+              textDecorationColor: 'rgba(191,82,74,0.55)',
+              textDecorationThickness: '1.5px',
+              marginBottom: 3,
+            }}>
+              ${tier.wasCents / 100}
+            </p>
+          )}
           <p style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
             fontSize: '2rem', lineHeight: 1,
-            color: selected ? accent : C.ink,
+            color: accent,
             transition: 'color 0.2s',
           }}>
             ${tier.cents / 100}
