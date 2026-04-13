@@ -220,7 +220,7 @@ serve(async (req) => {
   const corsJson = { ...getCorsHeaders(req), "Content-Type": "application/json" };
 
   try {
-    const { orderId, messages, petData } = await req.json();
+    const { orderId, messages, petData, email, shareToken } = await req.json();
 
     if (!orderId || !messages || !petData) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -229,6 +229,42 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    // ─── Ownership check ────────────────────────────────────────────────
+    // The orderId here is the pet_reports.id. Without proof that the caller
+    // owns this report, anyone who guesses or scrapes a UUID could chat as
+    // someone else's pet and burn that customer's credits. We accept either
+    // the customer's email (matched against pet_reports.email) or the
+    // shareable token from the report URL — same pattern get-report uses.
+    const SHARE_TOKEN_PATTERN = /^[a-f0-9]{16,64}$/i;
+    const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    const { data: ownerReport, error: ownerLookupError } = await supabase
+      .from("pet_reports")
+      .select("email, share_token")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (ownerLookupError || !ownerReport) {
+      return new Response(JSON.stringify({ error: "Invalid order" }), {
+        status: 404, headers: corsJson,
+      });
+    }
+
+    const tokenMatches = typeof shareToken === "string"
+      && SHARE_TOKEN_PATTERN.test(shareToken)
+      && ownerReport.share_token === shareToken;
+
+    const emailMatches = typeof email === "string"
+      && EMAIL_PATTERN.test(email)
+      && typeof ownerReport.email === "string"
+      && email.trim().toLowerCase() === ownerReport.email.trim().toLowerCase();
+
+    if (!tokenMatches && !emailMatches) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 403, headers: corsJson,
+      });
+    }
 
     // ─── Server-side credit gate (source of truth) ──────────────────────
     // Load or create the chat_credits row for this order
