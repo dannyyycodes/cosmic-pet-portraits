@@ -28,20 +28,167 @@
     <meta name="twitter:description" content="Get a personalized astrological reading for your pet. Understand their cosmic personality." />
     <meta name="twitter:image" content="https://littlesouls.app/og-image.jpg" />
 
-    <!-- Structured Data -->
+    <!-- Structured data — gives AI search engines (ChatGPT, Claude,
+         Perplexity, Google AI Overviews, Apple Intelligence) a machine-
+         readable profile of what Little Souls is, what it sells, and
+         which questions it answers. Each @graph node is a separate
+         schema.org entity so engines can extract just what they need. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Little Souls",
-      "description": "Every pet is a little soul with a big story. Personalized pet astrology readings.",
-      "url": "https://littlesouls.app",
-      "applicationCategory": "EntertainmentApplication",
-      "offers": {
-        "@type": "Offer",
-        "price": "27",
-        "priceCurrency": "USD"
-      }
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://littlesouls.app/#organization",
+          "name": "Little Souls",
+          "alternateName": "Little Souls Pet Astrology",
+          "url": "https://littlesouls.app",
+          "logo": "https://littlesouls.app/og-image.jpg",
+          "description": "Little Souls creates personalised cosmic readings for pets of every species — dogs, cats, rabbits, horses, birds, reptiles, fish, and more — based on their birth chart, name, photo, and personality.",
+          "sameAs": [
+            "https://twitter.com/LittleSoulsCo"
+          ],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "hello@littlesouls.app",
+            "contactType": "customer support",
+            "areaServed": "Worldwide",
+            "availableLanguage": ["English", "Spanish", "Portuguese", "French", "Arabic"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://littlesouls.app/#website",
+          "url": "https://littlesouls.app",
+          "name": "Little Souls",
+          "publisher": { "@id": "https://littlesouls.app/#organization" },
+          "inLanguage": "en"
+        },
+        {
+          "@type": "Service",
+          "@id": "https://littlesouls.app/#service-reading",
+          "name": "Little Souls Reading",
+          "serviceType": "Pet astrology reading",
+          "provider": { "@id": "https://littlesouls.app/#organization" },
+          "description": "A 30+ section personalised cosmic reading for any pet, based on their birth date, name, photo, and personality observations. Covers chart placements, elemental balance, archetype, compatibility, lucky elements, name meaning, and more. Delivered within 5 to 10 minutes as an interactive web experience.",
+          "areaServed": "Worldwide",
+          "audience": {
+            "@type": "Audience",
+            "audienceType": "Pet owners"
+          },
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Little Souls Reading",
+              "price": "27",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock",
+              "url": "https://littlesouls.app/checkout"
+            },
+            {
+              "@type": "Offer",
+              "name": "Soul Bond Edition (Reading + Artistic Portrait)",
+              "price": "35",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock",
+              "url": "https://littlesouls.app/checkout"
+            }
+          ]
+        },
+        {
+          "@type": "Service",
+          "@id": "https://littlesouls.app/#service-soulspeak",
+          "name": "SoulSpeak",
+          "serviceType": "Pet communication chat",
+          "provider": { "@id": "https://littlesouls.app/#organization" },
+          "description": "After receiving a Little Souls reading, owners can chat directly with their pet's cosmic soul. The conversation uses the pet's astrological chart placements and the owner's personality observations so replies feel authentic to that individual pet.",
+          "isRelatedTo": { "@id": "https://littlesouls.app/#service-reading" }
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://littlesouls.app/#webapp",
+          "name": "Little Souls",
+          "url": "https://littlesouls.app",
+          "applicationCategory": "LifestyleApplication",
+          "operatingSystem": "Web",
+          "publisher": { "@id": "https://littlesouls.app/#organization" },
+          "offers": {
+            "@type": "Offer",
+            "price": "27",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://littlesouls.app/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Little Souls?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Little Souls is a pet astrology service that creates a personalised cosmic reading for any pet. Owners provide their pet's birth date, name, a photo, and a few personality observations. Within 5 to 10 minutes they receive a 30+ section interactive web experience covering the pet's chart, archetype, compatibility, and more."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does Little Souls work for pets other than dogs and cats?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Little Souls readings are generated for any pet species — including rabbits, horses, birds, reptiles, fish, hamsters, turtles, snakes, parrots, and guinea pigs. The reading adapts to the species."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How much does a Little Souls reading cost?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The standard Little Souls Reading is $27. The Soul Bond Edition — which adds an AI-generated artistic portrait of the pet — is $35. Gift certificates are available at checkout."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How is a Little Souls reading delivered?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Readings are delivered as an interactive web experience, not a PDF. Customers receive an email link within 5 to 10 minutes of checkout. The link is permanent and can be revisited or shared at any time."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is SoulSpeak?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SoulSpeak is a chat feature included with every Little Souls reading. It lets owners talk directly to the cosmic soul of their pet. The conversation uses the pet's chart placements and the owner's observations, so the replies feel authentic to that individual pet. Memorial readings include SoulSpeak so owners can continue their bond after a pet has crossed the rainbow bridge."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can Little Souls create a reading for a pet who has passed away?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Memorial readings are specifically written with grief awareness. They honour the pet's soul, speak from a place of enduring love, and are never bouncy or tone-deaf about loss."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What if I don't know my pet's exact birth date?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "An approximate date is fine. Many rescue and adopted pets don't have a recorded birthday. The reading adapts to work with the closest date available and still produces a personalised result."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Does Little Souls offer a refund policy?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Digital readings are refundable within 7 days of purchase. If anything doesn't feel right, customers can reach out at hello@littlesouls.app."
+              }
+            }
+          ]
+        }
+      ]
     }
     </script>
 

@@ -10,11 +10,69 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# AI search & answer engines — explicitly welcomed so our content can be
+# cited in ChatGPT, Claude, Perplexity, Google AI Overviews, Apple
+# Intelligence, etc. Without these entries most AI crawlers default to
+# cautious behaviour or skip the site entirely.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
 User-agent: *
 Allow: /
 
 Sitemap: https://littlesouls.app/sitemap.xml
 
-# Block admin pages from crawling
+# Block admin, checkout internals, and transient per-customer URLs.
 Disallow: /admin
 Disallow: /admin/
+Disallow: /payment-success
+Disallow: /report?
+Disallow: /soul-chat?
