@@ -147,10 +147,15 @@ serve(async (req) => {
           quantity: 1,
         }],
         mode: "payment",
-        // Frictionless: let Stripe auto-surface every wallet/BNPL/local method
-        // the buyer's country + currency + amount qualifies for (Card, Link,
-        // Apple Pay, Google Pay, Klarna, Afterpay, Cash App, local bank wallets…).
-        automatic_payment_methods: { enabled: true },
+        // Frictionless: card auto-surfaces Apple Pay + Google Pay on supported
+        // browsers. Other wallets/BNPL need to be listed explicitly on Checkout
+        // Sessions (Stripe only honours automatic_payment_methods for Payment
+        // Intents, not Checkout). Stripe still filters by country/currency/amount
+        // so UK buyers won't see Klarna in USD etc.
+        payment_method_types: [
+          "card", "link", "klarna", "afterpay_clearpay",
+          "amazon_pay", "revolut_pay",
+        ],
         success_url: `${origin}/gift-success?code=${giftCode}&delivery=link`,
         cancel_url: `${origin}/`,
         metadata: { type: "gift_certificate", gift_code: giftCode, gift_upsell: "true" },
@@ -349,10 +354,15 @@ serve(async (req) => {
         ...(input.quickCheckoutEmail ? { customer_email: input.quickCheckoutEmail } : {}),
         line_items: lineItems,
         mode: "payment",
-        // Frictionless: let Stripe auto-surface every wallet/BNPL/local method
-        // the buyer's country + currency + amount qualifies for (Card, Link,
-        // Apple Pay, Google Pay, Klarna, Afterpay, Cash App, local bank wallets…).
-        automatic_payment_methods: { enabled: true },
+        // Frictionless: card auto-surfaces Apple Pay + Google Pay on supported
+        // browsers. Other wallets/BNPL need to be listed explicitly on Checkout
+        // Sessions (Stripe only honours automatic_payment_methods for Payment
+        // Intents, not Checkout). Stripe still filters by country/currency/amount
+        // so UK buyers won't see Klarna in USD etc.
+        payment_method_types: [
+          "card", "link", "klarna", "afterpay_clearpay",
+          "amazon_pay", "revolut_pay",
+        ],
         allow_promotion_codes: false,
         ...(includesBook ? {
           shipping_address_collection: {
