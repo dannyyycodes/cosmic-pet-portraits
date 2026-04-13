@@ -60,9 +60,6 @@ verify_jwt = false
 [functions.admin-data]
 verify_jwt = false
 
-[functions.translate]
-verify_jwt = false
-
 [functions.redeem-gift]
 verify_jwt = false
 
@@ -115,9 +112,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.influencer-prospects]
-verify_jwt = false
-
-[functions.generate-blog-post]
 verify_jwt = false
 
 [functions.create-intake-report]
