@@ -48,10 +48,10 @@ const TIERS: Array<{
     price: 27,
     features: [
       { label: "Full astrological breakdown — 30+ sections" },
-      { label: "How they love, how they learn, how they heal, what they hope for and what they fear" },
+      { label: "How they love, how they learn, how they heal, what they hope for, what they fear — and what makes them feel most themselves" },
       { label: "Their photo becomes part of the reveal" },
       { label: "SoulSpeak", kind: "soulspeak" },
-      { label: "Plus bonus sections" },
+      { label: "Plus bonus sections — little surprises written just for them" },
       { label: "Yours forever — revisit anytime, from any device" },
       { label: "1 month of weekly horoscopes — included free" },
     ],
@@ -63,7 +63,7 @@ const TIERS: Array<{
     badge: "Most Chosen",
     features: [
       { label: "Everything in Soul Reading, plus:", kind: "divider" },
-      { label: "Your chart + theirs, read side by side" },
+      { label: "Your chart against theirs — where you align, where you challenge each other, and why the universe paired you" },
       { label: "Where your energies meet, mirror, and balance" },
       { label: "The soul-reasons you found each other" },
     ],
@@ -253,7 +253,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 onClick={() => handleTierChange(tier.id)}
                 aria-pressed={isSelected}
                 aria-label={`Select ${tier.name}`}
-                className="relative text-left rounded-2xl p-5 sm:p-6 active:scale-[0.995] min-w-0 h-full"
+                className="relative text-left rounded-2xl p-5 sm:p-6 active:scale-[0.995] min-w-0 h-full flex flex-col"
                 style={{
                   background: (() => {
                     const fill = tier.id === "premium"
@@ -318,50 +318,53 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   </div>
                 </div>
 
-                {/* Features */}
-                <div>
-
+                {/* Features — flex-1 + items-center so shorter lists (Soul Bond)
+                    center vertically inside the equal-height card */}
+                <div className="flex-1 flex items-center">
                 <ul
-                  className="rounded-lg overflow-hidden"
+                  className="rounded-lg overflow-hidden w-full"
                   onClick={(e) => e.stopPropagation()}
                   style={{ border: "1px solid rgba(196,162,101,0.14)" }}
                 >
                   {tier.features.map((feature, fi) => {
                     const isDivider = feature.kind === "divider";
                     const isSoulSpeak = feature.kind === "soulspeak";
+                    const handleSoulSpeakActivate = (e: React.SyntheticEvent) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      openSoulSpeak();
+                    };
                     return (
                       <li
                         key={fi}
                         className="text-left px-3 py-2.5"
+                        onClick={isSoulSpeak ? handleSoulSpeakActivate : undefined}
+                        onKeyDown={isSoulSpeak ? (e) => { if (e.key === "Enter" || e.key === " ") handleSoulSpeakActivate(e); } : undefined}
+                        role={isSoulSpeak ? "button" : undefined}
+                        tabIndex={isSoulSpeak ? 0 : undefined}
+                        aria-label={isSoulSpeak ? "Preview SoulSpeak" : undefined}
                         style={{
                           fontSize: "0.86rem",
                           color: isDivider ? "var(--gold, #c4a265)" : "var(--earth, #6e6259)",
                           fontWeight: isDivider ? 600 : 400,
                           fontStyle: isDivider ? "italic" : "normal",
                           lineHeight: 1.4,
+                          cursor: isSoulSpeak ? "pointer" : "default",
                           background: isDivider
                             ? "rgba(196,162,101,0.08)"
                             : fi % 2 === 0 ? "rgba(255,255,255,0.6)" : "rgba(246,241,230,0.55)",
+                          transition: isSoulSpeak ? "background 0.2s ease" : undefined,
                         }}
                       >
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-center gap-2">
                           {!isDivider && (
-                            <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg className="w-3.5 h-3.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                           )}
                           {isSoulSpeak ? (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                openSoulSpeak();
-                              }}
-                              className="flex-1 flex items-center justify-between gap-2 text-left transition-opacity hover:opacity-80 focus:outline-none focus-visible:underline"
-                              style={{ minHeight: 24 }}
-                            >
-                              <span className="flex items-center gap-2 flex-wrap">
+                            <>
+                              <span className="flex-1 flex items-center gap-2 flex-wrap">
                                 <span style={{ fontWeight: 600, color: "var(--ink, #1f1c18)" }}>{feature.label}</span>
                                 <span
                                   style={{
@@ -380,19 +383,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                                   New
                                 </span>
                               </span>
-                              <span
-                                className="text-[10px] whitespace-nowrap"
-                                style={{
-                                  fontFamily: "Cormorant, Georgia, serif",
-                                  color: "var(--gold, #c4a265)",
-                                  fontWeight: 600,
-                                  letterSpacing: "0.08em",
-                                  textTransform: "uppercase",
-                                }}
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="var(--gold, #c4a265)"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="flex-shrink-0"
+                                aria-hidden="true"
                               >
-                                Tap to preview →
-                              </span>
-                            </button>
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="16" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12.01" y2="8" />
+                              </svg>
+                            </>
                           ) : (
                             <span className="flex-1">{feature.label}</span>
                           )}
