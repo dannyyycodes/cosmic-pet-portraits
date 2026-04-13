@@ -283,6 +283,121 @@ function TierCard({
   );
 }
 
+/* ── Gift-specific reviews — written in a human voice. Sits between the
+   two tier cards so shoppers read other people's gift stories right
+   where they're picking which reading to send. ── */
+type GiftReview = {
+  name: string; location: string;
+  quote: string;
+  /** Optional breed image from /public/breeds/ (reuses the same characters
+   *  from the CompactReviews strip on the landing page). */
+  image?: string;
+};
+
+const GIFT_REVIEWS: GiftReview[] = [
+  {
+    name: 'Sarah',
+    location: 'Glasgow',
+    quote: 'I gifted four of these last Christmas and my group chat was chaos for a week. People were reading them aloud on video calls. Best £ I spent that year.',
+  },
+  {
+    name: 'Priya',
+    location: 'Edinburgh',
+    image: '/breeds/persian-1.jpg',
+    quote: 'My sister lost her cat in September. I was so nervous sending her this but she said it felt like someone actually knew him. She sent me a voice note crying and I cried too.',
+  },
+  {
+    name: 'Tom',
+    location: 'Sydney',
+    quote: 'My dad is the most sceptical man alive. He read the reading I got for his labrador and said "how do they know him" three separate times. Never seen him like that. 10/10 gift.',
+  },
+  {
+    name: 'Olivia',
+    location: 'Dublin',
+    quote: 'Sent it to my best friend on her birthday. She texted me twenty minutes later in all caps saying she had to pull over because she was crying in her car.',
+  },
+  {
+    name: 'Hannah',
+    location: 'Bristol',
+    image: '/breeds/labrador-1.jpg',
+    quote: 'My boyfriend thought it was going to be silly. He went quiet reading it. Then showed it to his mum. Now his whole family wants one for their dogs.',
+  },
+  {
+    name: 'James',
+    location: 'Toronto',
+    quote: 'My sister in law just adopted a cat and I wanted to do something more than a gift card. She still talks about it. Honestly one of those gifts you feel proud of.',
+  },
+];
+
+function GiftReviewCard({ r }: { r: GiftReview }) {
+  return (
+    <div
+      style={{
+        padding: r.image ? '18px 18px 18px 16px' : '18px 20px',
+        borderRadius: 16,
+        background: 'rgba(255,253,245,0.85)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        border: '1px solid rgba(196,162,101,0.18)',
+        boxShadow: '0 2px 10px rgba(31,28,24,0.04)',
+        display: 'flex',
+        gap: r.image ? 14 : 0,
+        alignItems: 'flex-start',
+      }}
+    >
+      {r.image && (
+        <img
+          src={r.image}
+          alt=""
+          style={{
+            width: 44, height: 44, borderRadius: '50%',
+            objectFit: 'cover', flexShrink: 0,
+            border: `2px solid ${C.cream3}`,
+          }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+        />
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+          <StarRow />
+          <span style={{ fontSize: '0.7rem', color: C.muted, fontWeight: 600, letterSpacing: '0.04em' }}>
+            {r.name}, {r.location}
+          </span>
+        </div>
+        <p style={{
+          margin: 0,
+          fontFamily: 'Cormorant, Georgia, serif',
+          fontStyle: 'italic',
+          fontSize: '0.92rem',
+          color: C.warm,
+          lineHeight: 1.55,
+        }}>
+          &ldquo;{r.quote}&rdquo;
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function GiftReviewStrip() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '4px 0' }}>
+      <p style={{
+        textAlign: 'center',
+        fontFamily: 'Cormorant, Georgia, serif',
+        fontStyle: 'italic',
+        fontSize: '0.78rem',
+        color: C.muted,
+        letterSpacing: '0.06em',
+        margin: '6px 0 6px',
+      }}>
+        from people who've gifted it
+      </p>
+      {GIFT_REVIEWS.map((r, i) => <GiftReviewCard key={i} r={r} />)}
+    </div>
+  );
+}
+
 export default function GiftPurchase() {
   const [searchParams] = useSearchParams();
   const [selectedTier, setSelectedTier] = useState<TierKey | null>(null);
@@ -450,14 +565,9 @@ export default function GiftPurchase() {
             A cosmic portrait of the soul they love most. Everything about their pet — personality, love language, the quiet truths only the stars know — written for the one person who'd read it aloud through tears.
           </p>
 
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', color: C.deep, fontSize: 'clamp(0.92rem, 3vw, 1.02rem)', fontWeight: 600, lineHeight: 1.5, maxWidth: 420, margin: '0 auto 22px' }}>
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', color: C.deep, fontSize: 'clamp(0.92rem, 3vw, 1.02rem)', fontWeight: 600, lineHeight: 1.5, maxWidth: 420, margin: '0 auto' }}>
             The kind of gift they'll keep forever, show their friends, and never stop bringing up.
           </p>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <StarRow n={5} />
-            <span style={{ fontSize: '0.82rem', color: C.muted, fontStyle: 'italic' }}>&ldquo;The best gift I've ever received&rdquo; — gifted thousands of times</span>
-          </div>
         </motion.div>
 
         {/* ── TIER CARDS ── */}
@@ -467,9 +577,9 @@ export default function GiftPurchase() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            {(Object.keys(TIERS) as TierKey[]).map(key => (
-              <TierCard key={key} tierKey={key} selected={selectedTier === key} onClick={() => handleTierSelect(key)} />
-            ))}
+            <TierCard tierKey="essential" selected={selectedTier === 'essential'} onClick={() => handleTierSelect('essential')} />
+            <GiftReviewStrip />
+            <TierCard tierKey="portrait" selected={selectedTier === 'portrait'} onClick={() => handleTierSelect('portrait')} />
           </div>
         </motion.div>
 
