@@ -39,8 +39,10 @@ function escapeHtml(unsafe: string): string {
     .replace(/'/g, '&#039;');
 }
 
-// Email validation pattern
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Tighter than the usual /^\S+@\S+\.\S+$/ — also rejects commas, semicolons,
+// and whitespace anywhere in the string so the value cannot smuggle extra
+// recipients through Resend's reply_to header.
+const EMAIL_PATTERN = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,24}$/;
 
 const getConfirmationEmailTemplate = (safeName: string, safeSubjectLabel: string, safeMessage: string) => `
 <!DOCTYPE html>
@@ -49,70 +51,56 @@ const getConfirmationEmailTemplate = (safeName: string, safeSubjectLabel: string
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #030014; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  
-  <!-- Outer container with gradient border -->
-  <div style="max-width: 600px; margin: 0 auto; padding: 2px; background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%); border-radius: 20px;">
-    
-    <div style="background: linear-gradient(180deg, #0a0a1a 0%, #111827 100%); border-radius: 18px; padding: 48px 32px;">
-      
-      <!-- Header -->
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(52, 211, 153, 0.2) 100%); border-radius: 50px; border: 1px solid rgba(16, 185, 129, 0.3);">
-          <span style="font-size: 24px;">✉️✨</span>
-        </div>
-      </div>
+<body style="margin:0;padding:0;background:#FFFDF5;font-family:Georgia,'Times New Roman',serif;">
+  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
 
-      <!-- Status Badge -->
-      <div style="text-align: center; margin-bottom: 24px;">
-        <span style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">
-          ● Message Received
-        </span>
-      </div>
-
-      <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0 0 16px 0; text-align: center;">
-        Thank you, ${safeName}! 🐾
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:36px;margin-bottom:12px;">&#128062;&#10024;</div>
+      <h1 style="color:#141210;font-size:24px;margin:0 0 8px;font-weight:600;">
+        Thank you, ${safeName}!
       </h1>
-      
-      <p style="color: #9ca3af; font-size: 16px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
-        We've received your message about <span style="color: #34d399; font-weight: 600;">${safeSubjectLabel.toLowerCase()}</span> and our cosmic support team will get back to you within 24 hours.
+      <div style="display:inline-block;background:#faf4e8;padding:6px 16px;border-radius:50px;border:1px solid #e8ddd0;margin-top:8px;">
+        <span style="color:#c4a265;font-size:12px;font-weight:600;letter-spacing:0.5px;font-family:-apple-system,sans-serif;">&#9679; MESSAGE RECEIVED</span>
+      </div>
+    </div>
+
+    <!-- Main Card -->
+    <div style="background:#ffffff;border-radius:16px;padding:28px;border:1px solid #e8ddd0;margin-bottom:24px;">
+      <p style="color:#5a4a42;font-size:15px;line-height:1.7;margin:0 0 20px;text-align:center;">
+        We've received your message about <strong style="color:#c4a265;">${safeSubjectLabel.toLowerCase()}</strong> and our cosmic support team will get back to you within 24 hours.
       </p>
 
-      <!-- Message Preview Card -->
-      <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 24px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 28px;">
-        <p style="color: #9ca3af; font-size: 12px; font-weight: 600; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+      <!-- Message Preview -->
+      <div style="background:#faf4e8;border-radius:12px;padding:20px;border-left:3px solid #c4a265;">
+        <p style="color:#958779;font-size:11px;font-weight:600;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.5px;font-family:-apple-system,sans-serif;">
           Your message:
         </p>
-        <p style="color: #d1d5db; font-size: 14px; line-height: 1.7; margin: 0;">
+        <p style="color:#5a4a42;font-size:14px;line-height:1.7;margin:0;">
           ${safeMessage}
         </p>
       </div>
-
-      <p style="color: #9ca3af; font-size: 15px; line-height: 1.7; margin: 0 0 32px 0; text-align: center;">
-        In the meantime, check out our <a href="https://littlesouls.app/#faq" style="color: #34d399; text-decoration: none; font-weight: 600;">FAQ section</a> for quick answers.
-      </p>
-
-      <!-- Divider -->
-      <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.3) 50%, transparent 100%); margin: 32px 0;"></div>
-
-      <!-- Footer -->
-      <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center; line-height: 1.6;">
-        With cosmic love,<br>
-        <span style="color: #9ca3af;">The Little Souls Team ✨</span>
-      </p>
-
-      <!-- Brand Footer -->
-      <div style="text-align: center; margin-top: 24px;">
-        <p style="color: #4b5563; font-size: 11px; margin: 0; letter-spacing: 1px; text-transform: uppercase;">
-          Little Souls
-        </p>
-      </div>
-
     </div>
+
+    <!-- FAQ Link -->
+    <div style="text-align:center;margin-bottom:24px;">
+      <p style="color:#5a4a42;font-size:14px;line-height:1.7;margin:0 0 16px;">
+        In the meantime, check out our <a href="https://littlesouls.app/#faq" style="color:#bf524a;text-decoration:none;font-weight:600;">FAQ section</a> for quick answers.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center;padding-top:20px;border-top:1px solid #e8ddd0;">
+      <p style="color:#958779;font-size:13px;margin:0 0 4px;line-height:1.6;">
+        With cosmic love,<br>
+        <span style="color:#5a4a42;">The Little Souls family &#128156;</span>
+      </p>
+      <p style="color:#958779;font-size:11px;margin:8px 0 0;">
+        Little Souls &middot; littlesouls.app
+      </p>
+    </div>
+
   </div>
-  
-  <div style="height: 20px;"></div>
-  
 </body>
 </html>
 `;
