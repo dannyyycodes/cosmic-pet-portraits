@@ -28,6 +28,9 @@ export const FunnelV2 = () => {
   const [scrollNudgeDismissed, setScrollNudgeDismissed] = useState(false);
   const [charityId, setCharityId] = useState("ifaw");
   const [charityBonus, setCharityBonus] = useState(0);
+  // Mirrors the tier price chosen inside <InlineCheckout/> so the sticky
+  // bottom CTA and the FinalCTA display the right number.
+  const [selectedPrice, setSelectedPrice] = useState(27);
   const isMobile = useIsMobile();
 
   const scrollToCheckout = useCallback(() => {
@@ -110,6 +113,7 @@ export const FunnelV2 = () => {
         ctaLabel={copy.ctaPrimary}
         charityId={charityId}
         charityBonus={charityBonus}
+        onSelectedPriceChange={setSelectedPrice}
       />
 
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
@@ -118,7 +122,7 @@ export const FunnelV2 = () => {
       <FAQSection />
 
       {/* Final emotional CTA */}
-      <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
+      <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} price={selectedPrice + charityBonus} />
 
       {/* Floating momentum signal */}
       <LiveActivityToast />
@@ -186,7 +190,7 @@ export const FunnelV2 = () => {
               minHeight: 52,
             }}
           >
-            {copy.ctaPrimary} · From ${27 + charityBonus}
+            {copy.ctaPrimary} · ${selectedPrice + charityBonus}
           </button>
         </div>
       )}
@@ -403,7 +407,7 @@ const FAQSection = () => {
 
 /* ──────── Final CTA ──────── */
 
-const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: string }) => (
+const FinalCTA = ({ onCtaClick, ctaLabel, price }: { onCtaClick: () => void; ctaLabel: string; price: number }) => (
   <section
     className="py-14 sm:py-20 md:py-24 px-5 text-center"
     style={{ background: "var(--cream, #FFFDF5)" }}
@@ -423,7 +427,7 @@ const FinalCTA = ({ onCtaClick, ctaLabel }: { onCtaClick: () => void; ctaLabel: 
           minHeight: 56,
         }}
       >
-        {ctaLabel}
+        {ctaLabel} · ${price}
         <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
         </svg>

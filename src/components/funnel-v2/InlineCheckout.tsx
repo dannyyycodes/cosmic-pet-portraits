@@ -69,6 +69,7 @@ const TIERS: Array<{
       { label: "Your chart against theirs — where you align, where you challenge each other, and why the universe paired you" },
       { label: "Where your energies meet, mirror, and balance" },
       { label: "The soul-reasons you found each other" },
+      { label: "1 month of weekly horoscopes — included free" },
     ],
   },
 ];
@@ -77,9 +78,12 @@ interface InlineCheckoutProps {
   ctaLabel: string;
   charityId?: string;
   charityBonus?: number;
+  /** Fired whenever the user changes tier so the parent (FunnelV2) can keep
+   *  sticky + final CTAs in sync with the currently-chosen price. */
+  onSelectedPriceChange?: (price: number) => void;
 }
 
-export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0 }, forwardedRef) => {
+export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange }, forwardedRef) => {
   const [selectedTier, setSelectedTier] = useState<"basic" | "premium">("basic");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -133,8 +137,16 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
   const handleTierChange = (tier: "basic" | "premium") => {
     setSelectedTier(tier);
-    trackFunnelEvent("v2_tier_selected", { tier, price: TIERS.find((t) => t.id === tier)?.price });
+    const price = TIERS.find((t) => t.id === tier)!.price;
+    onSelectedPriceChange?.(price);
+    trackFunnelEvent("v2_tier_selected", { tier, price });
   };
+
+  // Emit the initial tier price once on mount so parent CTAs start in sync.
+  useEffect(() => {
+    onSelectedPriceChange?.(TIERS.find((t) => t.id === selectedTier)!.price);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleCheckout = async () => {
     if (!email.trim() || !email.includes("@")) {

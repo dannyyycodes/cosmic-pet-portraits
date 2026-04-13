@@ -353,7 +353,7 @@ serve(async (req) => {
           phone_number_collection: { enabled: true },
         } : {}),
         success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}&quick=true`,
-        cancel_url: `${origin}/checkout`,
+        cancel_url: `${origin}/`,
         metadata: {
           report_ids: reportIds.join(","),
           pet_count: petCount.toString(),
@@ -727,7 +727,7 @@ serve(async (req) => {
       ...(horoscopePetCount > 0 ? { payment_intent_data: { setup_future_usage: "off_session" } } : {}),
       allow_promotion_codes: false,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
-      cancel_url: `${origin}/checkout`,
+      cancel_url: `${origin}/`,
       metadata: {
         report_ids: allReportIds.join(","),
         pet_count: actualPetCount.toString(),
