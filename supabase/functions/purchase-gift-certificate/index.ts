@@ -312,8 +312,10 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: [
-        "card", "link", "klarna", "afterpay_clearpay",
+        "card", "link",
+        "klarna", "afterpay_clearpay",
         "amazon_pay", "revolut_pay",
+        "bancontact", "eps",
       ],
       customer_email: input.purchaserEmail,
       line_items: lineItems,

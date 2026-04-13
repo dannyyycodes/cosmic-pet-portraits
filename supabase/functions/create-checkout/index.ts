@@ -153,8 +153,10 @@ serve(async (req) => {
         // Intents, not Checkout). Stripe still filters by country/currency/amount
         // so UK buyers won't see Klarna in USD etc.
         payment_method_types: [
-          "card", "link", "klarna", "afterpay_clearpay",
+          "card", "link",
+          "klarna", "afterpay_clearpay",
           "amazon_pay", "revolut_pay",
+          "bancontact", "eps",
         ],
         success_url: `${origin}/gift-success?code=${giftCode}&delivery=link`,
         cancel_url: `${origin}/`,
@@ -360,8 +362,10 @@ serve(async (req) => {
         // Intents, not Checkout). Stripe still filters by country/currency/amount
         // so UK buyers won't see Klarna in USD etc.
         payment_method_types: [
-          "card", "link", "klarna", "afterpay_clearpay",
+          "card", "link",
+          "klarna", "afterpay_clearpay",
           "amazon_pay", "revolut_pay",
+          "bancontact", "eps",
         ],
         allow_promotion_codes: false,
         ...(includesBook ? {
