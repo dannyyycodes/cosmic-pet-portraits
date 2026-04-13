@@ -431,24 +431,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           })}
         </div>
 
-        {/* In-app browser hint */}
-        {isInApp && (
-          <div
-            className="mb-4 flex items-start gap-2 rounded-lg px-3 py-2.5"
-            style={{
-              background: "rgba(196,162,101,0.08)",
-              border: "1px solid rgba(196,162,101,0.2)",
-            }}
-          >
-            <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--gold,#c4a265)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", color: "var(--earth, #6e6259)", lineHeight: 1.4 }}>
-              We'll open secure Stripe checkout in your browser for payment.
-            </p>
-          </div>
-        )}
-
         {/* Email input */}
         <div
           className="mb-4 transition-all duration-1000"

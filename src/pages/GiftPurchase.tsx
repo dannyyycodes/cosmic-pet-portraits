@@ -419,26 +419,44 @@ export default function GiftPurchase() {
           <ArrowLeft style={{ width: 16, height: 16 }} /> Back
         </Link>
 
-        {/* ── HERO ── */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', marginBottom: 40 }}>
+        {/* ── HERO — wrapped in a soft cream panel so the wallpaper
+            doesn't interfere with the text ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            textAlign: 'center', marginBottom: 40,
+            padding: '32px 24px 34px',
+            borderRadius: 24,
+            background: 'rgba(255,253,245,0.88)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(196,162,101,0.18)',
+            boxShadow: '0 10px 36px rgba(31,28,24,0.06), inset 0 1px 0 rgba(255,255,255,0.6)',
+          }}
+        >
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 16px', borderRadius: 50, background: C.roseGlow, border: `1px solid rgba(191,82,74,0.15)`, marginBottom: 18 }}>
             <Gift style={{ width: 13, height: 13, color: C.rose }} />
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: C.rose, letterSpacing: '0.1em' }}>GIVE THE GIFT OF SOUL</span>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: C.rose, letterSpacing: '0.1em' }}>THE GIFT EVERY PET PARENT SECRETLY WANTS</span>
           </div>
 
-          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(1.9rem, 7.5vw, 2.8rem)', color: C.ink, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 16 }}>
-            Give Someone the Gift<br />
-            of Truly Seeing<br />
-            <em style={{ color: C.rose }}>Their Little Soul.</em>
+          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2rem, 8vw, 3rem)', color: C.ink, lineHeight: 1.02, letterSpacing: '-0.025em', marginBottom: 18 }}>
+            The Best Gift<br />
+            You'll Ever Give<br />
+            <em style={{ color: C.rose }}>a Pet Parent.</em>
           </h1>
 
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.6vw, 1.2rem)', lineHeight: 1.55, maxWidth: 420, margin: '0 auto 18px' }}>
-            A cosmic portrait of the soul they love most. Their pet's personality, their love language, the quiet truths only the stars know — written for the one person who'd cry reading it.
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.6vw, 1.2rem)', lineHeight: 1.55, maxWidth: 440, margin: '0 auto 14px' }}>
+            A cosmic portrait of the soul they love most. Everything about their pet — personality, love language, the quiet truths only the stars know — written for the one person who'd read it aloud through tears.
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', color: C.deep, fontSize: 'clamp(0.92rem, 3vw, 1.02rem)', fontWeight: 600, lineHeight: 1.5, maxWidth: 420, margin: '0 auto 22px' }}>
+            The kind of gift they'll keep forever, show their friends, and never stop bringing up.
+          </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
             <StarRow n={5} />
-            <span style={{ fontSize: '0.82rem', color: C.muted, fontStyle: 'italic' }}>Already gifted by thousands of pet parents</span>
+            <span style={{ fontSize: '0.82rem', color: C.muted, fontStyle: 'italic' }}>&ldquo;The best gift I've ever received&rdquo; — gifted thousands of times</span>
           </div>
         </motion.div>
 
