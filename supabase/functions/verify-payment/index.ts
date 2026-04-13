@@ -81,6 +81,19 @@ serve(async (req) => {
         });
       }
 
+      // The redeem branch must only return reports that were actually created
+      // through the redeem flow (those rows have redeem_code set). Without
+      // this check, anyone who guessed a paid Stripe-purchased reportId could
+      // pull the full report (including PII and share token) by sending a
+      // crafted "redeem_*" sessionId.
+      if (!redeemReport.redeem_code) {
+        console.warn("[VERIFY-PAYMENT] Redeem branch hit for non-redeem report:", reportId);
+        return new Response(JSON.stringify({ error: "Report not found" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+
       // Generate share token if missing
       if (!redeemReport.share_token) {
         const bytes = new Uint8Array(12);
@@ -127,12 +140,43 @@ serve(async (req) => {
       const giftCode = sessionId.replace('gift_', '');
       const { data: giftCert } = await supabaseClient
         .from("gift_certificates")
-        .select("gift_tier, gift_pets_json")
+        .select("gift_tier, gift_pets_json, redeemed_by_report_id")
         .eq("code", giftCode)
         .single();
-      
-      const giftPetsJson = giftCert?.gift_pets_json as { id: string; tier: string }[] | null;
-      const globalTier = giftCert?.gift_tier || 'premium';
+
+      // Refuse if the gift code is unknown — without this the loop below
+      // would happily process arbitrary reportIds passed in body.report_ids.
+      if (!giftCert) {
+        console.warn("[VERIFY-PAYMENT] Gift branch hit with unknown code:", giftCode);
+        return new Response(JSON.stringify({ error: "Report not found" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+
+      const giftPetsJson = giftCert.gift_pets_json as { id: string; tier: string }[] | null;
+      const globalTier = giftCert.gift_tier || 'premium';
+
+      // Verify every reportId in the request actually belongs to this gift.
+      // Without this an attacker could send sessionId=gift_<known-code> with
+      // arbitrary report_ids and pull other customers' reports.
+      const allowedReportIds = new Set<string>();
+      if (Array.isArray(giftPetsJson)) {
+        for (const p of giftPetsJson) {
+          if (p && typeof p.id === "string") allowedReportIds.add(p.id);
+        }
+      }
+      if (giftCert.redeemed_by_report_id) allowedReportIds.add(giftCert.redeemed_by_report_id);
+
+      for (const requested of allReportIds) {
+        if (!allowedReportIds.has(requested)) {
+          console.warn("[VERIFY-PAYMENT] Gift branch rejected reportId not on cert:", giftCode, requested);
+          return new Response(JSON.stringify({ error: "Report not found" }), {
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+            status: 404,
+          });
+        }
+      }
       
       // Generate share token helper
       const generateShareToken = () => {
