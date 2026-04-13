@@ -1,3 +1,23 @@
+<!--
+  SECURITY ADVISORY — Moved out of public/ on 2026-04-12 during overnight audit.
+
+  This file previously hardcoded the Supabase SERVICE_ROLE JWT and was served
+  publicly at https://www.littlesouls.app/breed-review.html for ~3 weeks
+  (since commit 49190e1, 2026-03-23).
+
+  ⚠️ The service_role key MUST be rotated before restoring this tool:
+     1. Supabase dashboard → Settings → API → "Reset service role key"
+     2. Update SUPABASE_SERVICE_ROLE_KEY in:
+        - droplet 159.65.169.204 /opt/littlesouls/.env  (worker)
+        - Vercel project env vars
+        - Any n8n credentials that reference it
+     3. Rebuild this page with proper admin-token gating (admin_sessions table)
+        before putting it back in public/, OR keep it behind an authenticated
+        admin route via an edge function.
+
+  Do NOT just move this file back to public/ with the old key.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
