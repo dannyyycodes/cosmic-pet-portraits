@@ -147,7 +147,10 @@ serve(async (req) => {
           quantity: 1,
         }],
         mode: "payment",
-        payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
+        // Frictionless: let Stripe auto-surface every wallet/BNPL/local method
+        // the buyer's country + currency + amount qualifies for (Card, Link,
+        // Apple Pay, Google Pay, Klarna, Afterpay, Cash App, local bank wallets…).
+        automatic_payment_methods: { enabled: true },
         success_url: `${origin}/gift-success?code=${giftCode}&delivery=link`,
         cancel_url: `${origin}/`,
         metadata: { type: "gift_certificate", gift_code: giftCode, gift_upsell: "true" },
@@ -346,7 +349,10 @@ serve(async (req) => {
         ...(input.quickCheckoutEmail ? { customer_email: input.quickCheckoutEmail } : {}),
         line_items: lineItems,
         mode: "payment",
-        payment_method_types: ["card", "link", "klarna", "afterpay_clearpay"],
+        // Frictionless: let Stripe auto-surface every wallet/BNPL/local method
+        // the buyer's country + currency + amount qualifies for (Card, Link,
+        // Apple Pay, Google Pay, Klarna, Afterpay, Cash App, local bank wallets…).
+        automatic_payment_methods: { enabled: true },
         allow_promotion_codes: false,
         ...(includesBook ? {
           shipping_address_collection: {

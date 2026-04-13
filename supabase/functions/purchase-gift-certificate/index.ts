@@ -311,6 +311,8 @@ serve(async (req) => {
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      // Frictionless: Stripe auto-surfaces every wallet/BNPL that qualifies.
+      automatic_payment_methods: { enabled: true },
       customer_email: input.purchaserEmail,
       line_items: lineItems,
       // Collect shipping address for physical hardcover orders
