@@ -21,10 +21,11 @@ serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
-  // SECURITY: Require proper Bearer token authorization
+  // SECURITY: Require service role Bearer token only. The anon key is public
+  // (embedded in the frontend bundle) and must never be accepted as auth for
+  // a function that moves money.
   const authHeader = req.headers.get("Authorization") || "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
   if (!serviceRoleKey) {
     logStep("Missing service role key configuration");
@@ -34,10 +35,7 @@ serve(async (req) => {
     });
   }
 
-  // Strict Bearer token comparison (not substring match)
-  const isValidAuth = authHeader === `Bearer ${serviceRoleKey}` || authHeader === `Bearer ${anonKey}`;
-
-  if (!isValidAuth) {
+  if (authHeader !== `Bearer ${serviceRoleKey}`) {
     logStep("Unauthorized request - invalid authorization");
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
