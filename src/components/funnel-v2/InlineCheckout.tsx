@@ -242,9 +242,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           </h2>
         </div>
 
-        {/* Tier cards — always side-by-side, selected expands, unselected
-            compresses to header only. Same behaviour mobile + desktop. */}
-        <div className="flex flex-row gap-2 sm:gap-4 mb-6 items-stretch">
+        {/* Tier cards — equal width, both fully visible. Stacks on mobile,
+            side-by-side on desktop. Click to select. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 items-stretch">
           {TIERS.map((tier, i) => {
             const isSelected = selectedTier === tier.id;
             return (
@@ -253,9 +253,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 onClick={() => handleTierChange(tier.id)}
                 aria-pressed={isSelected}
                 aria-label={`Select ${tier.name}`}
-                className={`relative text-left rounded-2xl p-3 sm:p-6 active:scale-[0.995] min-w-0 ${
-                  isSelected ? "flex-[2]" : "flex-[1]"
-                }`}
+                className="relative text-left rounded-2xl p-5 sm:p-6 active:scale-[0.995] min-w-0 h-full"
                 style={{
                   background: (() => {
                     const fill = tier.id === "premium"
@@ -272,8 +270,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                     : "0 2px 14px rgba(0,0,0,0.04)",
                   opacity: visible ? 1 : 0,
                   transform: visible ? (isSelected ? "translateY(-2px)" : "translateY(0)") : "translateY(15px)",
-                  // Smooth accordion shuffle: flex-grow and box-shadow morph together.
-                  transition: "flex-grow 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease",
+                  transition: "transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.3s ease, opacity 0.6s ease",
                   transitionDelay: `${0.1 + i * 0.08}s`,
                 }}
               >
@@ -286,27 +283,20 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   </div>
                 )}
 
-                {/* Header — stacks vertically when card is compressed (unselected),
-                    horizontal row when selected or on desktop. */}
-                <div
-                  className={`mb-3 sm:mb-4 ${
-                    isSelected
-                      ? "flex items-start justify-between gap-2 sm:gap-3"
-                      : "flex flex-col items-start gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
-                  }`}
-                >
+                {/* Header */}
+                <div className="mb-4 flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <div
-                      className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
+                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
                       style={{ borderColor: isSelected ? "var(--rose, #bf524a)" : "var(--sand, #d6c8b6)" }}
                     >
-                      {isSelected && <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
+                      {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
                     </div>
                     <span
                       className="truncate"
                       style={{
                         fontFamily: '"DM Serif Display", Georgia, serif',
-                        fontSize: isSelected ? "clamp(1rem, 4vw, 1.3rem)" : "clamp(0.88rem, 3.2vw, 1.1rem)",
+                        fontSize: "clamp(1rem, 3.6vw, 1.25rem)",
                         color: "var(--ink, #1f1c18)",
                         lineHeight: 1.15,
                       }}
@@ -318,30 +308,19 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                     <span
                       style={{
                         fontFamily: '"DM Serif Display", Georgia, serif',
-                        fontSize: isSelected ? "clamp(1.6rem, 6vw, 2.1rem)" : "clamp(1.2rem, 4.6vw, 1.7rem)",
+                        fontSize: "clamp(1.5rem, 5vw, 2rem)",
                         color: "var(--ink, #1f1c18)",
                         lineHeight: 1,
                       }}
                     >
                       ${tier.price}
                     </span>
-                    {isSelected && (
-                      <span className="hidden sm:inline" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.72rem", color: "var(--muted, #958779)", fontWeight: 500 }}>
-                        one-time
-                      </span>
-                    )}
                   </div>
                 </div>
 
-                {/* Features — zebra rows. Mobile: collapses closed when unselected
-                    (accordion). Desktop: always visible regardless of selection. */}
-                <div
-                  className={
-                    isSelected
-                      ? "overflow-hidden opacity-100 max-h-[900px] mt-0 transition-[max-height,opacity,margin] duration-500 ease-out"
-                      : "overflow-hidden opacity-0 max-h-0 -mt-2 sm:opacity-100 sm:max-h-[900px] sm:mt-0 transition-[max-height,opacity,margin] duration-500 ease-out"
-                  }
-                >
+                {/* Features */}
+                <div>
+
                 <ul
                   className="rounded-lg overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
@@ -887,10 +866,11 @@ const CharityBrandRow = ({
           fontWeight: 600,
           letterSpacing: "0.14em",
           textTransform: "uppercase",
+          fontVariantNumeric: "lining-nums",
           color: "var(--gold, #c4a265)",
         }}
       >
-        10% of every reading goes to
+        10% of your reading goes to
       </p>
       <div className="flex flex-wrap justify-center items-center gap-2" role="radiogroup" aria-label="Choose a charity">
         <CharityBadgeButton id="ifaw" selected={selected === "ifaw"} onSelect={onSelect}>
