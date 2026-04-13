@@ -1,7 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkRateLimit, getClientIp } from "../_shared/rate-limit.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+// Generation is expensive (~$0.05 in Sonnet tokens per call). Cap how often
+// any single IP can trigger it. Legitimate retry traffic is well under this.
+const RATE_LIMIT_COUNT = 10;
+const RATE_LIMIT_WINDOW_SECONDS = 600;
+const PAID_STATUSES = new Set(["paid", "completed"]);
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("Origin") || "";
@@ -34,8 +41,19 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
+
     const supabaseClient = createClient(supabaseUrl, serviceRoleKey);
+
+    // Per-IP rate limit so an attacker who guesses or scrapes reportIds
+    // cannot spam this endpoint and burn our generation budget.
+    const ip = getClientIp(req);
+    const rl = await checkRateLimit(supabaseClient, "generate-report-background", ip, RATE_LIMIT_COUNT, RATE_LIMIT_WINDOW_SECONDS);
+    if (!rl.ok) {
+      return new Response(JSON.stringify({ error: "Too many requests" }), {
+        status: 429,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "Retry-After": String(rl.retryAfterSeconds) },
+      });
+    }
 
     // Fetch the report data
     const { data: report, error: fetchError } = await supabaseClient
@@ -49,6 +67,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Report not found" }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 404,
+      });
+    }
+
+    // Refuse to generate against unpaid reports. Without this gate an attacker
+    // who knows any reportId can trigger Sonnet generation for free.
+    if (!PAID_STATUSES.has(report.payment_status)) {
+      console.warn("[BACKGROUND-GEN] Refusing to generate for unpaid report:", reportId, report.payment_status);
+      return new Response(JSON.stringify({ error: "Report is not paid" }), {
+        status: 402,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       });
     }
 

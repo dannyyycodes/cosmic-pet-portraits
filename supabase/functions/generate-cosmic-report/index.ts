@@ -199,6 +199,17 @@ serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  // Internal-only: invoked by generate-report-background, stripe-webhook, and
+  // verify-payment, all of which pass the service role key. Reject anything
+  // else — this is the most expensive function we run (Sonnet generation).
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!serviceRoleKey || req.headers.get("Authorization") !== `Bearer ${serviceRoleKey}`) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const rawInput = await req.json();
     const input = reportSchema.parse(rawInput);

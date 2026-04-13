@@ -26,6 +26,18 @@ serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  // Internal-only: this function is invoked exclusively by other edge
+  // functions (verify-payment) that pass the service role key. Reject
+  // anything else so the public anon key cannot trigger image generation
+  // and burn our Lovable AI budget.
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (!serviceRoleKey || req.headers.get("Authorization") !== `Bearer ${serviceRoleKey}`) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+    });
+  }
+
   try {
     const { petName, species, breed, sunSign, element, archetype, style, petImageUrl, reportId } = await req.json();
     

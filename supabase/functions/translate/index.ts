@@ -1,7 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, getClientIp } from "../_shared/rate-limit.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+// Limits that stop flood abuse without breaking legitimate report translation,
+// which asks for at most a few dozen short strings at a time.
+const MAX_TEXTS = 300;
+const MAX_TOTAL_CHARS = 30000;
+const RATE_LIMIT_COUNT = 30;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("Origin") || "";
@@ -13,10 +21,12 @@ function getCorsHeaders(req: Request) {
 
 const LANGUAGE_NAMES: Record<string, string> = {
   es: 'Spanish',
-  pt: 'Portuguese', 
+  pt: 'Portuguese',
   fr: 'French',
   ar: 'Arabic',
 };
+
+const ALLOWED_LANGUAGES = new Set(['en', 'es', 'pt', 'fr', 'ar', 'de']);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -24,11 +34,47 @@ serve(async (req) => {
   }
 
   try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    const ip = getClientIp(req);
+    const rl = await checkRateLimit(supabase, "translate", ip, RATE_LIMIT_COUNT, RATE_LIMIT_WINDOW_SECONDS);
+    if (!rl.ok) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests, please slow down." }),
+        { status: 429, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'Retry-After': String(rl.retryAfterSeconds) } },
+      );
+    }
+
     const { texts, targetLanguage } = await req.json();
-    
+
     if (!texts || !Array.isArray(texts) || !targetLanguage) {
       return new Response(
         JSON.stringify({ error: 'Missing texts array or targetLanguage' }),
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!ALLOWED_LANGUAGES.has(targetLanguage)) {
+      return new Response(
+        JSON.stringify({ error: 'Unsupported targetLanguage' }),
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (texts.length > MAX_TEXTS) {
+      return new Response(
+        JSON.stringify({ error: `Too many texts in one request (max ${MAX_TEXTS})` }),
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const totalChars = texts.reduce((sum: number, t: unknown) => sum + (typeof t === 'string' ? t.length : 0), 0);
+    if (totalChars > MAX_TOTAL_CHARS) {
+      return new Response(
+        JSON.stringify({ error: `Total text size exceeds ${MAX_TOTAL_CHARS} characters` }),
         { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       );
     }
@@ -41,11 +87,6 @@ serve(async (req) => {
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
       });
     }
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
 
     // Check cache first
     const { data: cached } = await supabase
