@@ -323,7 +323,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 <div className="flex-1 flex items-center">
                 <ul
                   className="rounded-lg overflow-hidden w-full"
-                  onClick={(e) => e.stopPropagation()}
                   style={{ border: "1px solid rgba(196,162,101,0.14)" }}
                 >
                   {tier.features.map((feature, fi) => {

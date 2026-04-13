@@ -2,14 +2,15 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2,
-  ChevronRight, Users, User, Sparkles, Star, Quote, Shield, Clock, Package, BookOpen,
+  ChevronRight, Users, User, Sparkles, Star, Quote, Shield, Clock,
+  Cat, Dog, Fish, Rabbit, Bird, Turtle, PawPrint, Bone, Feather,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 type DeliveryMethod = 'email' | 'link';
-type GiftTier = 'essential' | 'portrait' | 'hardcover';
+type GiftTier = 'essential' | 'portrait';
 
 interface GiftRecipient {
   id: string;
@@ -28,52 +29,33 @@ const C = {
 const TIERS = {
   essential: {
     cents: 2700,
-    label: 'The Soul Reading',
-    tagline: 'The reading that makes grown adults cry (happy tears)',
-    icon: '⭐',
+    label: 'Soul Reading',
+    tagline: 'The reading they\'ll read aloud to their pet — and probably cry doing it.',
     badge: null as string | null,
     badgeColor: C.rose,
     features: [
-      'Full astrology reading — 14-planet birth chart, aura & soul archetype',
-      'The message they\'ve been trying to tell you — the part that makes everyone cry',
-      'Every quirk finally explained — the staring, the zoomies, that thing they do',
-      'Their love language — how they say "I love you" without words',
-      '💬 SoulSpeak — ask them anything. 150 free credits included.',
+      'Full astrological breakdown — 30+ sections',
+      'How their pet loves, learns, heals, what they hope for, what they fear — and what makes them feel most themselves',
+      'Their pet\'s photo becomes part of the reveal',
+      'SoulSpeak — they can ask their pet anything',
+      'Plus bonus sections — little surprises written just for them',
+      'Theirs forever — they can revisit anytime, from any device',
+      '1 month of weekly horoscopes — included free',
     ],
-    isPhysical: false,
-    waitNote: null as string | null,
   },
   portrait: {
     cents: 3500,
-    label: 'The Soul Bond Edition',
-    tagline: 'Discover why you were always meant to find each other',
-    icon: '💫',
-    badge: 'MOST POPULAR' as string | null,
+    label: 'Soul Bond',
+    tagline: 'For the bond worth understanding — them and their pet, read side by side.',
+    badge: 'MOST CHOSEN' as string | null,
     badgeColor: C.rose,
     popular: true,
     features: [
-      'Everything in The Soul Reading',
-      'Pet–Parent cosmic compatibility — the science of why you belong together',
-      'Deep bond & emotional connection map — what you truly mean to each other',
-      'Shareable cosmic card — the screenshot everyone will want',
+      'Everything in Soul Reading, plus:',
+      'Their chart against their pet\'s — where they align, where they challenge each other, and why the universe paired them',
+      'Where their energies meet, mirror, and balance',
+      'The soul-reasons they found each other',
     ],
-    isPhysical: false,
-    waitNote: null as string | null,
-  },
-  hardcover: {
-    cents: 9900,
-    label: 'The Hardcover Portrait Book',
-    tagline: 'Their soul, in print — a keepsake you\'ll keep forever',
-    icon: '📖',
-    badge: 'PREMIUM GIFT' as string | null,
-    badgeColor: C.gold,
-    features: [
-      'Printed hardcover book — every word about your pet, beautifully bound',
-      'Gift-ready packaging — arrives wrapped with your personal message inside',
-      'Handcrafted to order · worldwide shipping',
-    ],
-    isPhysical: true,
-    waitNote: 'We\'ll email you within 24 hours to confirm your delivery address',
   },
 } as const;
 
@@ -128,13 +110,75 @@ function RotatingTestimonial() {
   );
 }
 
+/* ── Wallpaper — scattered Lucide pet icons matching the landing page ── */
+type PetItem = { x: number; y: number; size: number; rot: number; op: number; Icon: typeof Cat };
+const WALLPAPER_PETS: PetItem[] = [
+  { x: 4,  y: 6,  size: 30, rot: -12, op: 0.16, Icon: Cat },
+  { x: 18, y: 4,  size: 22, rot: 10,  op: 0.13, Icon: PawPrint },
+  { x: 32, y: 9,  size: 28, rot: 6,   op: 0.15, Icon: Rabbit },
+  { x: 46, y: 3,  size: 26, rot: -8,  op: 0.14, Icon: Bird },
+  { x: 60, y: 8,  size: 32, rot: 14,  op: 0.17, Icon: Dog },
+  { x: 74, y: 4,  size: 24, rot: -14, op: 0.13, Icon: Feather },
+  { x: 88, y: 9,  size: 28, rot: 8,   op: 0.15, Icon: Fish },
+  { x: 10, y: 22, size: 34, rot: 6,   op: 0.17, Icon: Turtle },
+  { x: 26, y: 28, size: 22, rot: -10, op: 0.13, Icon: Bone },
+  { x: 42, y: 22, size: 30, rot: 16,  op: 0.16, Icon: Cat },
+  { x: 58, y: 26, size: 26, rot: -6,  op: 0.14, Icon: Bird },
+  { x: 74, y: 22, size: 28, rot: 12,  op: 0.15, Icon: PawPrint },
+  { x: 92, y: 28, size: 24, rot: -16, op: 0.13, Icon: Rabbit },
+  { x: 6,  y: 44, size: 26, rot: -10, op: 0.14, Icon: Dog },
+  { x: 22, y: 48, size: 32, rot: 14,  op: 0.17, Icon: PawPrint },
+  { x: 38, y: 42, size: 24, rot: -8,  op: 0.13, Icon: Fish },
+  { x: 54, y: 48, size: 30, rot: 10,  op: 0.16, Icon: Cat },
+  { x: 70, y: 44, size: 28, rot: -14, op: 0.15, Icon: Feather },
+  { x: 86, y: 48, size: 26, rot: 6,   op: 0.14, Icon: Rabbit },
+  { x: 4,  y: 64, size: 22, rot: 12,  op: 0.13, Icon: Bone },
+  { x: 18, y: 68, size: 28, rot: -8,  op: 0.15, Icon: Bird },
+  { x: 32, y: 64, size: 24, rot: 14,  op: 0.13, Icon: Turtle },
+  { x: 48, y: 70, size: 30, rot: -12, op: 0.16, Icon: Dog },
+  { x: 64, y: 64, size: 26, rot: 8,   op: 0.14, Icon: PawPrint },
+  { x: 78, y: 68, size: 28, rot: -6,  op: 0.15, Icon: Cat },
+  { x: 94, y: 64, size: 22, rot: 10,  op: 0.12, Icon: Fish },
+  { x: 8,  y: 86, size: 28, rot: 10,  op: 0.15, Icon: Rabbit },
+  { x: 24, y: 90, size: 22, rot: -12, op: 0.13, Icon: PawPrint },
+  { x: 42, y: 86, size: 30, rot: 6,   op: 0.16, Icon: Bird },
+  { x: 60, y: 92, size: 26, rot: -8,  op: 0.14, Icon: Dog },
+  { x: 78, y: 88, size: 32, rot: 14,  op: 0.17, Icon: Cat },
+  { x: 92, y: 92, size: 24, rot: -6,  op: 0.13, Icon: Bone },
+];
+
+function WallpaperBackdrop() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0,
+        background: `radial-gradient(ellipse 90% 80% at 50% 0%, ${C.cream2} 0%, ${C.cream} 60%)`,
+      }}
+    >
+      {WALLPAPER_PETS.map((p, i) => (
+        <p.Icon
+          key={i}
+          style={{
+            position: 'absolute',
+            left: `${p.x}%`, top: `${p.y}%`,
+            width: p.size, height: p.size,
+            color: C.muted,
+            opacity: p.op,
+            transform: `rotate(${p.rot}deg)`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function TierCard({
   tierKey, selected, onClick,
 }: { tierKey: TierKey; selected: boolean; onClick: () => void }) {
   const tier = TIERS[tierKey];
-  const isHC = tierKey === 'hardcover';
-  const accent = isHC ? C.gold : C.rose;
-  const accentGlow = isHC ? C.goldSoft : C.roseGlow;
+  const accent = C.rose;
+  const accentGlow = C.roseGlow;
 
   return (
     <motion.button
@@ -144,9 +188,11 @@ function TierCard({
       style={{
         width: '100%', textAlign: 'left', padding: '24px 22px', borderRadius: 20, cursor: 'pointer',
         border: `2px solid ${selected ? accent : C.cream3}`,
-        background: selected ? (isHC ? 'rgba(196,162,101,0.07)' : 'rgba(191,82,74,0.05)') : 'white',
-        boxShadow: selected ? `0 6px 24px ${accentGlow}` : '0 2px 8px rgba(0,0,0,0.03)',
-        transition: 'border-color 0.2s, background 0.2s',
+        background: selected ? 'rgba(255,253,245,0.96)' : 'rgba(255,253,245,0.92)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
+        boxShadow: selected ? `0 6px 24px ${accentGlow}` : '0 2px 12px rgba(0,0,0,0.04)',
+        transition: 'border-color 0.2s, background 0.2s, box-shadow 0.2s',
         position: 'relative',
       }}
     >
@@ -162,14 +208,23 @@ function TierCard({
         </span>
       )}
 
-      {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-        <div style={{ flex: 1 }}>
-          <span style={{ fontSize: '2rem', display: 'block', marginBottom: 6, lineHeight: 1 }}>{tier.icon}</span>
-          <p style={{ fontWeight: 700, fontSize: '1.05rem', color: C.ink, marginBottom: 2 }}>{tier.label}</p>
-          <p style={{ fontSize: '0.8rem', color: C.muted, lineHeight: 1.35 }}>{tier.tagline}</p>
+      {/* Header row — landing-page style: name + price baseline-aligned */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, marginBottom: 14 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{
+            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontWeight: 400, fontSize: '1.3rem', color: C.ink, marginBottom: 4, lineHeight: 1.15,
+          }}>
+            {tier.label}
+          </p>
+          <p style={{
+            fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic',
+            fontSize: '0.86rem', color: C.earth, lineHeight: 1.4,
+          }}>
+            {tier.tagline}
+          </p>
         </div>
-        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 16 }}>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <p style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
             fontSize: '2rem', lineHeight: 1,
@@ -183,25 +238,29 @@ function TierCard({
       </div>
 
       {/* Features */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {tier.features.map((f, idx) => (
-          <p key={idx} style={{ fontSize: '0.82rem', color: C.warm, display: 'flex', alignItems: 'flex-start', gap: 8, lineHeight: 1.3 }}>
-            <CheckCircle style={{ width: 13, height: 13, color: isHC ? C.gold : C.green, flexShrink: 0, marginTop: 1 }} />
-            {f}
-          </p>
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+        {tier.features.map((f, idx) => {
+          const isDivider = f.endsWith(':');
+          return (
+            <p key={idx} style={{
+              fontSize: '0.85rem',
+              color: isDivider ? C.gold : C.warm,
+              fontStyle: isDivider ? 'italic' : 'normal',
+              fontWeight: isDivider ? 600 : 400,
+              display: 'flex', alignItems: 'flex-start', gap: 8, lineHeight: 1.4,
+            }}>
+              {!isDivider && (
+                <CheckCircle style={{ width: 13, height: 13, color: C.green, flexShrink: 0, marginTop: 2 }} />
+              )}
+              <span style={{ flex: 1 }}>{f}</span>
+            </p>
+          );
+        })}
       </div>
-
-      {/* Wait note for hardcover */}
-      {tier.waitNote && (
-        <div style={{ marginTop: 14, padding: '8px 12px', borderRadius: 10, background: 'rgba(196,162,101,0.1)', border: '1px solid rgba(196,162,101,0.2)' }}>
-          <p style={{ fontSize: '0.74rem', color: C.gold, fontWeight: 600 }}>⏳ {tier.waitNote}</p>
-        </div>
-      )}
 
       {/* Selected indicator */}
       {selected && (
-        <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${isHC ? 'rgba(196,162,101,0.2)' : C.cream3}`, textAlign: 'center' }}>
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.cream3}`, textAlign: 'center' }}>
           <p style={{ fontSize: '0.8rem', fontWeight: 700, color: accent }}>✓ Selected — continue below ↓</p>
         </div>
       )}
@@ -224,7 +283,6 @@ export default function GiftPurchase() {
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({ id: crypto.randomUUID(), name: '', email: '' });
   const [recipients, setRecipients] = useState<GiftRecipient[]>([{ id: crypto.randomUUID(), name: '', email: '' }]);
-  const [hardcoverRecipientName, setHardcoverRecipientName] = useState('');
 
   // Auto-apply promo from URL
   useEffect(() => {
@@ -253,21 +311,19 @@ export default function GiftPurchase() {
     }, 100);
   };
 
-  const isHardcover = selectedTier === 'hardcover';
-
   const activeRecipients = giftType === 'single' ? [singleRecipient] : recipients;
-  const giftCount = isHardcover ? 1 : activeRecipients.length;
-  const discount = isHardcover ? 0 : getVolumeDiscount(giftCount);
+  const giftCount = activeRecipients.length;
+  const discount = getVolumeDiscount(giftCount);
 
   const pricing = useMemo(() => {
     if (!selectedTier) return { baseTotal: 0, discountAmount: 0, promoAmount: 0, finalTotal: 0 };
     const tierCents = TIERS[selectedTier].cents;
-    const baseTotal = isHardcover ? tierCents : activeRecipients.reduce((sum) => sum + tierCents, 0);
+    const baseTotal = activeRecipients.reduce((sum) => sum + tierCents, 0);
     const discountAmount = Math.round(baseTotal * discount);
     const afterVolume = baseTotal - discountAmount;
-    const promoAmount = (appliedCoupon && !isHardcover) ? Math.round(afterVolume * (appliedCoupon.discount_value / 100)) : 0;
+    const promoAmount = appliedCoupon ? Math.round(afterVolume * (appliedCoupon.discount_value / 100)) : 0;
     return { baseTotal, discountAmount, promoAmount, finalTotal: afterVolume - promoAmount };
-  }, [selectedTier, activeRecipients, discount, appliedCoupon, isHardcover]);
+  }, [selectedTier, activeRecipients, discount, appliedCoupon]);
 
   const applyPromo = async () => {
     if (!promoCode.trim()) return;
@@ -292,7 +348,6 @@ export default function GiftPurchase() {
   };
 
   const canProceedStep2 = () => {
-    if (isHardcover) return purchaserEmail.includes('@');
     if (deliveryMethod === 'link') return true;
     if (giftType === 'single') return singleRecipient.email.includes('@');
     return recipients.every(r => r.email.includes('@'));
@@ -303,15 +358,7 @@ export default function GiftPurchase() {
     if (!selectedTier) return;
     setIsLoading(true);
     try {
-      const body = isHardcover ? {
-        purchaserEmail,
-        recipientName: hardcoverRecipientName || '',
-        giftMessage: giftMessage || '',
-        giftPets: [{ id: crypto.randomUUID(), tier: 'hardcover', recipientName: hardcoverRecipientName || '', horoscopeAddon: 'none' }],
-        deliveryMethod: 'link',
-        multiRecipient: false,
-        couponId: null,
-      } : {
+      const body = {
         purchaserEmail,
         recipientEmail: giftType === 'single' && deliveryMethod === 'email' ? singleRecipient.email : '',
         recipientName: giftType === 'single' ? (singleRecipient.name || '') : '',
@@ -344,11 +391,13 @@ export default function GiftPurchase() {
     boxSizing: 'border-box',
   };
 
-  const stepCount = isHardcover ? 2 : 3;
+  const stepCount = 3;
 
   return (
-    <div style={{ minHeight: '100vh', background: C.cream, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 16px 80px', fontFamily: 'Cormorant, Georgia, serif' }}>
-      <div style={{ width: '100%', maxWidth: 520 }}>
+    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 16px 80px', fontFamily: 'Cormorant, Georgia, serif', background: C.cream }}>
+      <WallpaperBackdrop />
+
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 540 }}>
 
         {/* Back */}
         <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: C.muted, textDecoration: 'none', fontSize: '0.85rem', marginBottom: 28 }}>
@@ -356,34 +405,35 @@ export default function GiftPurchase() {
         </Link>
 
         {/* ── HERO ── */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 16px', borderRadius: 50, background: C.roseGlow, border: `1px solid rgba(191,82,74,0.15)`, marginBottom: 16 }}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 16px', borderRadius: 50, background: C.roseGlow, border: `1px solid rgba(191,82,74,0.15)`, marginBottom: 18 }}>
             <Gift style={{ width: 13, height: 13, color: C.rose }} />
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: C.rose, letterSpacing: '0.08em' }}>GIFT A COSMIC READING</span>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: C.rose, letterSpacing: '0.1em' }}>GIVE THE GIFT OF SOUL</span>
           </div>
 
-          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 'clamp(1.9rem, 7vw, 2.5rem)', color: C.ink, lineHeight: 1.1, marginBottom: 12 }}>
-            The Gift Every Pet Lover<br />
-            <em style={{ color: C.rose }}>Secretly Wants</em>
+          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(1.9rem, 7.5vw, 2.8rem)', color: C.ink, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 16 }}>
+            Give Someone the Gift<br />
+            of Truly Seeing<br />
+            <em style={{ color: C.rose }}>Their Little Soul.</em>
           </h1>
 
-          <p style={{ color: C.earth, fontSize: '1.02rem', lineHeight: 1.65, maxWidth: 400, margin: '0 auto 18px' }}>
-            A personalised cosmic portrait of their beloved companion — so accurate it gives them chills. Choose your gift below.
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.6vw, 1.2rem)', lineHeight: 1.55, maxWidth: 420, margin: '0 auto 18px' }}>
+            A cosmic portrait of the soul they love most. Their pet's personality, their love language, the quiet truths only the stars know — written for the one person who'd cry reading it.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <StarRow n={5} />
-            <span style={{ fontSize: '0.82rem', color: C.muted }}>Loved by thousands of pet parents</span>
+            <span style={{ fontSize: '0.82rem', color: C.muted, fontStyle: 'italic' }}>Already gifted by thousands of pet parents</span>
           </div>
         </motion.div>
 
-        {/* ── 3 TIER CARDS ── */}
+        {/* ── TIER CARDS ── */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, color: C.muted, textAlign: 'center', letterSpacing: '0.1em', marginBottom: 18 }}>
-            CHOOSE YOUR GIFT
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 22 }}>
+            Choose Their Reading
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {(Object.keys(TIERS) as TierKey[]).map(key => (
               <TierCard key={key} tierKey={key} selected={selectedTier === key} onClick={() => handleTierSelect(key)} />
             ))}
@@ -402,9 +452,8 @@ export default function GiftPurchase() {
               >
                 {/* Selected tier reminder */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 24 }}>
-                  <span style={{ fontSize: '1.2rem' }}>{TIERS[selectedTier].icon}</span>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: C.ink }}>{TIERS[selectedTier].label}</span>
-                  <span style={{ fontSize: '0.9rem', color: isHardcover ? C.gold : C.rose, fontWeight: 700 }}>${TIERS[selectedTier].cents / 100}</span>
+                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{TIERS[selectedTier].label}</span>
+                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.rose }}>${TIERS[selectedTier].cents / 100}</span>
                   <button
                     onClick={() => { setSelectedTier(null); setStep(1); }}
                     style={{ marginLeft: 4, fontSize: '0.72rem', color: C.muted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
@@ -423,14 +472,14 @@ export default function GiftPurchase() {
                           width: 30, height: 30, borderRadius: '50%',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '0.78rem', fontWeight: 700,
-                          background: step >= s ? (isHardcover ? C.gold : C.rose) : C.cream3,
+                          background: step >= s ? C.rose : C.cream3,
                           color: step >= s ? '#fff' : C.muted,
                           transition: 'all 0.3s',
                         }}>
                           {step > s ? <CheckCircle style={{ width: 14, height: 14 }} /> : s}
                         </div>
                         {s < stepCount && (
-                          <div style={{ width: 28, height: 2, background: step > s ? (isHardcover ? C.gold : C.rose) : C.cream3, borderRadius: 2, transition: 'background 0.3s' }} />
+                          <div style={{ width: 28, height: 2, background: step > s ? C.rose : C.cream3, borderRadius: 2, transition: 'background 0.3s' }} />
                         )}
                       </div>
                     );
@@ -439,17 +488,17 @@ export default function GiftPurchase() {
 
                 <AnimatePresence mode="wait">
 
-                  {/* ── DIGITAL STEP 1: Who? ── */}
-                  {!isHardcover && step === 1 && (
+                  {/* ── STEP 1: Who? ── */}
+                  {step === 1 && (
                     <motion.div key="ds1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                       style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-                      <p style={{ textAlign: 'center', fontWeight: 600, fontSize: '1.1rem', color: C.ink }}>Who are you gifting?</p>
+                      <p style={{ textAlign: 'center', fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: '1.3rem', color: C.ink }}>Who's it for?</p>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                         {[
-                          { key: 'single' as const, icon: User, title: 'One Lucky Person', sub: 'For their pet(s)' },
-                          { key: 'multiple' as const, icon: Users, title: 'Multiple People', sub: 'Birthdays, holidays!' },
+                          { key: 'single' as const, icon: User, title: 'One Soul', sub: 'For one cherished pet parent' },
+                          { key: 'multiple' as const, icon: Users, title: 'A Few Souls', sub: 'For several gifts at once' },
                         ].map(opt => (
                           <button key={opt.key} onClick={() => setGiftType(opt.key)} style={{
                             padding: '22px 16px', borderRadius: 18,
@@ -494,8 +543,8 @@ export default function GiftPurchase() {
                     </motion.div>
                   )}
 
-                  {/* ── DIGITAL STEP 2: Delivery + recipient details ── */}
-                  {!isHardcover && step === 2 && (
+                  {/* ── STEP 2: Delivery + recipient details ── */}
+                  {step === 2 && (
                     <motion.div key="ds2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
@@ -606,8 +655,8 @@ export default function GiftPurchase() {
                     </motion.div>
                   )}
 
-                  {/* ── DIGITAL STEP 3: Checkout ── */}
-                  {!isHardcover && step === 3 && (
+                  {/* ── STEP 3: Checkout ── */}
+                  {step === 3 && (
                     <motion.div key="ds3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
                       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
@@ -653,7 +702,7 @@ export default function GiftPurchase() {
                         {activeRecipients.map((r, idx) => (
                           <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: idx < activeRecipients.length - 1 ? `1px solid ${C.cream3}` : 'none' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ fontSize: '1rem' }}>{TIERS[selectedTier!].icon}</span>
+                              <PawPrint style={{ width: 14, height: 14, color: C.gold, flexShrink: 0 }} />
                               <div>
                                 <p style={{ fontWeight: 600, fontSize: '0.85rem', color: C.ink }}>{TIERS[selectedTier!].label}</p>
                                 {r.name && <p style={{ fontSize: '0.72rem', color: C.rose }}>for {r.name}</p>}
@@ -752,143 +801,6 @@ export default function GiftPurchase() {
                     </motion.div>
                   )}
 
-                  {/* ── HARDCOVER STEP 1: Gift details ── */}
-                  {isHardcover && step === 1 && (
-                    <motion.div key="hs1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                      style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                      <p style={{ textAlign: 'center', fontWeight: 600, fontSize: '1.1rem', color: C.ink }}>Gift Details</p>
-
-                      {/* Wait time banner */}
-                      <div style={{ padding: '14px 18px', borderRadius: 14, background: 'rgba(196,162,101,0.08)', border: '1px solid rgba(196,162,101,0.2)', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                        <Package style={{ width: 20, height: 20, color: C.gold, flexShrink: 0, marginTop: 2 }} />
-                        <div>
-                          <p style={{ fontWeight: 700, fontSize: '0.85rem', color: C.gold, marginBottom: 3 }}>Premium physical gift</p>
-                          <p style={{ fontSize: '0.8rem', color: C.warm, lineHeight: 1.5 }}>
-                            Every book is hand-fulfilled with care. After payment we'll email you to confirm the shipping address. <strong>Please allow 4–6 weeks for delivery.</strong>
-                          </p>
-                        </div>
-                      </div>
-
-                      <div style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}` }}>
-                        <p style={{ fontWeight: 600, color: C.ink, fontSize: '0.92rem', marginBottom: 12 }}>Who is this gift for?</p>
-                        <input
-                          type="text"
-                          value={hardcoverRecipientName}
-                          onChange={e => setHardcoverRecipientName(e.target.value)}
-                          placeholder="Recipient's name (optional)"
-                          style={inputStyle}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ fontSize: '0.85rem', fontWeight: 600, color: C.ink, display: 'block', marginBottom: 6 }}>
-                          Your email <span style={{ fontWeight: 400, color: C.muted }}>(for order confirmation)</span>
-                        </label>
-                        <input type="email" value={purchaserEmail} onChange={e => setPurchaserEmail(e.target.value)} placeholder="your@email.com" style={inputStyle} />
-                      </div>
-
-                      <div>
-                        <label style={{ fontSize: '0.85rem', fontWeight: 600, color: C.ink, display: 'block', marginBottom: 4 }}>
-                          Add a personal message
-                        </label>
-                        <p style={{ fontSize: '0.78rem', color: C.muted, marginBottom: 8 }}>We'll include it inside the book.</p>
-                        <textarea
-                          value={giftMessage}
-                          onChange={e => setGiftMessage(e.target.value)}
-                          placeholder="Write something from the heart..."
-                          rows={3}
-                          maxLength={500}
-                          style={{ ...inputStyle, resize: 'none' as const }}
-                        />
-                      </div>
-
-                      <button
-                        onClick={() => setStep(2)}
-                        disabled={!purchaserEmail.includes('@')}
-                        style={{
-                          width: '100%', padding: '16px 0', borderRadius: 50,
-                          background: purchaserEmail.includes('@') ? C.gold : C.cream3,
-                          color: purchaserEmail.includes('@') ? '#fff' : C.muted,
-                          fontFamily: 'Cormorant, Georgia, serif', fontWeight: 700, fontSize: '1rem',
-                          border: 'none', cursor: purchaserEmail.includes('@') ? 'pointer' : 'default',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                          boxShadow: purchaserEmail.includes('@') ? '0 4px 16px rgba(196,162,101,0.25)' : 'none',
-                        }}
-                      >
-                        Review Order <ChevronRight style={{ width: 18, height: 18 }} />
-                      </button>
-                    </motion.div>
-                  )}
-
-                  {/* ── HARDCOVER STEP 2: Review + Pay ── */}
-                  {isHardcover && step === 2 && (
-                    <motion.div key="hs2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                      style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.85rem' }}>
-                          <ArrowLeft style={{ width: 14, height: 14 }} /> Back
-                        </button>
-                        <p style={{ fontWeight: 700, fontSize: '1rem', color: C.ink }}>Order Summary</p>
-                        <div style={{ width: 48 }} />
-                      </div>
-
-                      <div style={{ padding: 20, background: 'white', borderRadius: 18, border: `1px solid ${C.cream3}` }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 14, paddingBottom: 16, borderBottom: `1px solid ${C.cream3}` }}>
-                          <span style={{ fontSize: '2.2rem', lineHeight: 1 }}>📖</span>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ fontWeight: 700, color: C.ink, fontSize: '1rem' }}>The Hardcover Book</p>
-                            {hardcoverRecipientName && <p style={{ fontSize: '0.82rem', color: C.gold, marginTop: 1 }}>for {hardcoverRecipientName}</p>}
-                            <p style={{ fontSize: '0.75rem', color: C.muted, marginTop: 3 }}>Premium keepsake · Ships in 4–6 weeks</p>
-                          </div>
-                          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1.6rem', color: C.gold }}>${TIERS.hardcover.cents / 100}</p>
-                        </div>
-                        <div style={{ marginTop: 14, display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 700 }}>
-                          <span style={{ color: C.ink }}>Total</span>
-                          <span style={{ color: C.gold, fontFamily: '"DM Serif Display", Georgia, serif' }}>$99.00</span>
-                        </div>
-                      </div>
-
-                      <div style={{ padding: '12px 16px', borderRadius: 12, background: 'rgba(196,162,101,0.07)', border: '1px solid rgba(196,162,101,0.18)', fontSize: '0.8rem', color: C.warm, lineHeight: 1.6 }}>
-                        🚚 After payment, we'll email <strong>{purchaserEmail}</strong> to collect the delivery address before we print and ship.
-                      </div>
-
-                      {/* Guarantee */}
-                      <div style={{ padding: 16, borderRadius: 16, background: 'rgba(74,140,92,0.06)', border: '1px solid rgba(74,140,92,0.15)', display: 'flex', alignItems: 'start', gap: 12 }}>
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(74,140,92,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Shield style={{ width: 18, height: 18, color: C.green }} />
-                        </div>
-                        <div>
-                          <p style={{ fontWeight: 700, fontSize: '0.85rem', color: C.green, marginBottom: 2 }}>100% happiness guarantee</p>
-                          <p style={{ fontSize: '0.78rem', color: C.warm, lineHeight: 1.4 }}>If they don't absolutely love it, we'll make it right — no questions asked.</p>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={handlePurchase}
-                        disabled={isLoading}
-                        style={{
-                          width: '100%', padding: '18px 0', borderRadius: 50,
-                          background: isLoading ? C.cream3 : C.gold,
-                          color: isLoading ? C.muted : '#fff',
-                          fontFamily: 'Cormorant, Georgia, serif', fontWeight: 700, fontSize: '1.1rem', border: 'none',
-                          cursor: isLoading ? 'default' : 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                          boxShadow: isLoading ? 'none' : '0 6px 20px rgba(196,162,101,0.3)',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        {isLoading
-                          ? <><SpinnerInline />Processing...</>
-                          : <><BookOpen style={{ width: 20, height: 20 }} />Order Their Hardcover — $99</>
-                        }
-                      </button>
-
-                      <TrustRow items={['Secure checkout', 'Hand-fulfilled', '4–6 week delivery']} icons={[Shield, Package, Clock]} />
-                    </motion.div>
-                  )}
-
                 </AnimatePresence>
               </motion.div>
             )}
@@ -905,10 +817,10 @@ export default function GiftPurchase() {
               </summary>
               <div style={{ marginTop: 14, padding: 18, background: 'white', borderRadius: 16, border: `1px solid ${C.cream3}` }}>
                 {[
-                  { n: '1', t: 'Choose your gift above', d: 'Pick a package, complete checkout' },
-                  { n: '2', t: 'Share the magic', d: 'Email, text, or slip it in a card' },
-                  { n: '3', t: 'They fill in pet details', d: 'Name, birthday & a photo' },
-                  { n: '4', t: 'Their reading appears', d: 'Personalised, instant, magical' },
+                  { n: '1', t: 'Choose their reading', d: 'Pick the gift, finish checkout' },
+                  { n: '2', t: 'Share the link, your way', d: 'Email it, text it, slip it in a card' },
+                  { n: '3', t: 'They tell us about their pet', d: 'A name, a birthday, a photo' },
+                  { n: '4', t: 'A private cinematic reveal awaits them', d: 'Yours forever, theirs to revisit' },
                 ].map((s, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < 3 ? `1px solid ${C.cream3}` : 'none' }}>
                     <div style={{ width: 26, height: 26, borderRadius: '50%', background: C.roseGlow, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 700, color: C.rose, flexShrink: 0 }}>{s.n}</div>
