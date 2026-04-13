@@ -304,14 +304,16 @@ serve(async (req) => {
           quantity: 1,
         });
       } else {
-        // DIGITAL ONLY: Reading ± portrait
+        // DIGITAL ONLY: Soul Reading or Soul Bond
+        const tierName = includesPortrait ? 'Soul Bond' : 'Soul Reading';
         lineItems.push({
           price_data: {
             currency: "usd",
             product_data: {
-              name: petCount > 1
-                ? `${petCount}× Little Souls Reading${includesPortrait ? ' + Portrait' : ''}`
-                : `Little Souls Reading${includesPortrait ? ' + Portrait' : ''}`,
+              name: petCount > 1 ? `${petCount}× Little Souls — ${tierName}` : `Little Souls — ${tierName}`,
+              description: input.includeHoroscope
+                ? 'Includes 1 month of weekly horoscopes — free (then $4.99/month, cancel anytime)'
+                : undefined,
             },
             unit_amount: totalAmount,
           },

@@ -171,6 +171,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           referralCode: refCode || undefined,
           charityId: selectedCharity,
           charityBonus: charityBonus || 0,
+          // Both tiers advertise "1 month of weekly horoscopes — included free",
+          // so always flag it. Webhook uses this to create the trialing Stripe
+          // subscription (price_1Sfi1v…) with trial_period_days: 30.
+          includeHoroscope: true,
         },
       });
 
