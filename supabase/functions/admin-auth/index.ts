@@ -1,8 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkRateLimit, getClientIp } from "../_shared/rate-limit.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
+
+// Per-IP login throttle. The previous 1-second sleep on a wrong password
+// was not enough to stop a slow brute-force from a single attacker IP.
+const LOGIN_RATE_LIMIT_COUNT = 10;
+const LOGIN_RATE_LIMIT_WINDOW_SECONDS = 600;
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("Origin") || "";
@@ -121,6 +127,19 @@ serve(async (req) => {
     const body = await req.json();
     // Support action from query string or body
     const action = url.searchParams.get("action") || body.action;
+
+    // Per-IP throttle on the credential-checking actions. Validate/logout are
+    // cheap and not brute-force targets, so they bypass the limit.
+    if (action !== "validate" && action !== "logout") {
+      const ip = getClientIp(req);
+      const rl = await checkRateLimit(supabaseClient, "admin-auth", ip, LOGIN_RATE_LIMIT_COUNT, LOGIN_RATE_LIMIT_WINDOW_SECONDS);
+      if (!rl.ok) {
+        return new Response(JSON.stringify({ error: "Too many attempts, please wait" }), {
+          status: 429,
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json", "Retry-After": String(rl.retryAfterSeconds) },
+        });
+      }
+    }
 
     // Validate session token
     if (action === "validate") {
