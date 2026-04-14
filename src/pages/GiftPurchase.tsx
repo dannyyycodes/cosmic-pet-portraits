@@ -263,36 +263,46 @@ type GiftReview = {
 
 const GIFT_REVIEWS: GiftReview[] = [
   {
-    name: 'Sarah',
-    location: 'Glasgow',
-    quote: 'I gifted four of these last Christmas — one for my sister and her beagle, one for each of my in-laws. Group chat was chaos for a week. Best £ I spent that year.',
+    name: 'Dave',
+    location: 'Manchester',
+    quote: 'Got this for the wife\'s cat. It nailed the keyboard walking at 3am. She just nodded and carried on.',
   },
   {
-    name: 'Priya',
-    location: 'Edinburgh',
-    quote: 'My sister lost her cat in September. I was so nervous sending her this but she said it felt like someone actually knew him. She sent me a voice note crying and I cried too.',
-  },
-  {
-    name: 'Tom',
-    location: 'Sydney',
-    quote: 'My dad is the most sceptical man alive. He read the reading I got for his labrador and said "how do they know him" three separate times. Never seen him like that. 10/10 gift.',
-  },
-  {
-    name: 'Olivia',
-    location: 'Dublin',
-    avatar: { pet: 'cat' },
-    quote: 'Sent it to my best friend for her cat\'s 7th birthday. She read it that night and kept screenshotting bits back to me for days. Still quoting it at me weeks later.',
-  },
-  {
-    name: 'Hannah',
-    location: 'Bristol',
-    quote: 'My boyfriend thought it was going to be silly. He went quiet reading his golden retriever\'s. Then showed it to his mum. Now his whole family wants one for their dogs.',
-  },
-  {
-    name: 'James',
+    name: 'Emily',
     location: 'Toronto',
-    avatar: { pet: 'cat' },
-    quote: 'My sister in law just adopted a cat and I wanted to do something more than a gift card. She still talks about it. Honestly one of those gifts you feel proud of.',
+    avatar: { pet: 'dog', breed: 'retriever/golden' },
+    quote: 'Gave it to my sister for her old golden retriever. The reading described how he bonds by pressing against your leg during walks. She mentioned it the next morning over coffee.',
+  },
+  {
+    name: 'Liam',
+    location: 'Cork',
+    quote: 'Wasn\'t expecting much when I got it for my da\'s sheepdog. He read the personality section and said how do they know that. First time he\'s been impressed by a gift.',
+  },
+  {
+    name: 'Sophie',
+    location: 'Brisbane',
+    quote: 'Bought a few for the family do — one each for mum\'s poodle, dad\'s kelpie and my brother\'s staffy. Now the group chat\'s full of them quoting bits about their pets.',
+  },
+  {
+    name: 'Anna',
+    location: 'Portland',
+    avatar: { pet: 'dog', breed: 'collie/border' },
+    quote: 'I got the reading after our collie passed. It caught how he always did a final check of the room before bed. It\'s been a gentle reminder.',
+  },
+  {
+    name: 'Finn',
+    location: 'Glasgow',
+    quote: 'Got one for my parrot who copies the doorbell. The love language bit said something about attention seeking and he started ringing right then. Had us in stitches.',
+  },
+  {
+    name: 'Ryan',
+    location: 'Austin',
+    quote: 'I bought this for my wife and her siamese cat. The part about their bond through quiet evening sits has her showing me the phone every time the cat curls up.',
+  },
+  {
+    name: 'Claire',
+    location: 'Dublin',
+    quote: 'Went with this instead of flowers or a gift card for my best mate and her new puppy. She loved how it got the zoomies after dinner thing. Reckon it\'s a winner.',
   },
 ];
 
