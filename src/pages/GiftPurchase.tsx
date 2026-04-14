@@ -325,56 +325,58 @@ function GiftReviewCard({ r, image }: { r: GiftReview; image?: string }) {
   return (
     <div
       style={{
-        padding: '18px 18px 18px 16px',
-        borderRadius: 16,
-        background: 'rgba(255,253,245,0.85)',
+        padding: '14px 14px 16px',
+        borderRadius: 14,
+        background: 'rgba(255,253,245,0.88)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         border: '1px solid rgba(196,162,101,0.18)',
         boxShadow: '0 2px 10px rgba(31,28,24,0.04)',
-        display: 'flex',
-        gap: 14,
-        alignItems: 'flex-start',
         height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      <div style={{
-        width: 48, height: 48, borderRadius: '50%',
-        flexShrink: 0,
-        background: C.cream2,
-        border: `2px solid ${C.cream3}`,
-        overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        {image ? (
-          <img
-            src={image}
-            alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-          />
-        ) : (
-          <PawPrint style={{ width: 18, height: 18, color: C.muted, opacity: 0.55 }} />
-        )}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-          <StarRow />
-          <span style={{ fontSize: '0.7rem', color: C.muted, fontWeight: 600, letterSpacing: '0.04em' }}>
-            {r.name}, {r.location}
-          </span>
-        </div>
-        <p style={{
-          margin: 0,
-          fontFamily: 'Cormorant, Georgia, serif',
-          fontStyle: 'italic',
-          fontSize: '0.92rem',
-          color: C.warm,
-          lineHeight: 1.55,
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%',
+          flexShrink: 0,
+          background: C.cream2,
+          border: `2px solid ${C.cream3}`,
+          overflow: 'hidden',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          &ldquo;{r.quote}&rdquo;
-        </p>
+          {image ? (
+            <img
+              src={image}
+              alt=""
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+            />
+          ) : (
+            <PawPrint style={{ width: 16, height: 16, color: C.muted, opacity: 0.55 }} />
+          )}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <StarRow />
+          <p style={{
+            fontSize: '0.68rem', color: C.muted, fontWeight: 600,
+            letterSpacing: '0.04em', margin: '3px 0 0',
+          }}>
+            {r.name}, {r.location}
+          </p>
+        </div>
       </div>
+      <p style={{
+        margin: 0,
+        fontFamily: 'Cormorant, Georgia, serif',
+        fontStyle: 'italic',
+        fontSize: '0.88rem',
+        color: C.warm,
+        lineHeight: 1.5,
+      }}>
+        &ldquo;{r.quote}&rdquo;
+      </p>
     </div>
   );
 }
@@ -407,45 +409,25 @@ function GiftReviewStrip() {
         from people who've gifted it
       </p>
 
-      <div
-        className="gift-review-scroller"
-        style={{
-          display: 'flex',
-          gap: 12,
-          overflowX: 'auto',
-          scrollSnapType: 'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: 10,
-          margin: '0 -16px',
-          paddingLeft: 16,
-          paddingRight: 16,
-          scrollbarWidth: 'none',
-        }}
-      >
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: 10,
+        alignItems: 'start',
+      }}>
         {GIFT_REVIEWS.map((r, i) => (
           <div
             key={i}
             style={{
-              flex: '0 0 auto',
-              width: 'min(78vw, 320px)',
-              scrollSnapAlign: 'start',
+              // Slight vertical stagger on every other card so it
+              // reads as a mosaic rather than a rigid table.
+              marginTop: i % 2 === 1 ? 14 : 0,
             }}
           >
             <GiftReviewCard r={r} image={images[i]} />
           </div>
         ))}
       </div>
-
-      <p style={{
-        textAlign: 'center',
-        fontSize: '0.7rem',
-        color: C.muted,
-        letterSpacing: '0.08em',
-        margin: '4px 0 0',
-        opacity: 0.7,
-      }}>
-        ← swipe →
-      </p>
     </div>
   );
 }
@@ -1049,10 +1031,7 @@ export default function GiftPurchase() {
 
       </div>
 
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .gift-review-scroller::-webkit-scrollbar { display: none; }
-      `}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
