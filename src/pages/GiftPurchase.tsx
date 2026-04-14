@@ -265,13 +265,13 @@ const GIFT_REVIEWS: GiftReview[] = [
   {
     name: 'Dave',
     location: 'Manchester',
-    quote: 'Got this for the wife\'s cat. It nailed the keyboard walking at 3am. She just nodded and carried on.',
+    quote: 'Got this for the wife\'s birthday — her cat does the 3am keyboard walk and the reading called it out. She just nodded and carried on reading.',
   },
   {
     name: 'Emily',
     location: 'Toronto',
     avatar: { pet: 'dog', breed: 'retriever/golden' },
-    quote: 'Gave it to my sister for her old golden retriever. The reading described how he bonds by pressing against your leg during walks. She mentioned it the next morning over coffee.',
+    quote: 'Gave it to my sister for her golden retriever puppy. The reading described how he bonds by pressing against your leg on walks. She mentioned it the next morning over coffee.',
   },
   {
     name: 'Liam',
@@ -287,12 +287,12 @@ const GIFT_REVIEWS: GiftReview[] = [
     name: 'Anna',
     location: 'Portland',
     avatar: { pet: 'dog', breed: 'collie/border' },
-    quote: 'I got the reading after our collie passed. It caught how he always did a final check of the room before bed. It\'s been a gentle reminder.',
+    quote: 'Sent this to my sister after her collie passed. It caught how he always did a final check of the room before bed. She said it felt like someone remembered him too.',
   },
   {
     name: 'Finn',
     location: 'Glasgow',
-    quote: 'Got one for my parrot who copies the doorbell. The love language bit said something about attention seeking and he started ringing right then. Had us in stitches.',
+    quote: 'Got one for my mate\'s parrot — the one that copies the doorbell. The love-language bit said something about attention seeking and the bird started ringing right then. Had us in stitches.',
   },
   {
     name: 'Ryan',
