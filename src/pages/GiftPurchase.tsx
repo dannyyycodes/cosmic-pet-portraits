@@ -8,6 +8,7 @@ import {
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 
 type DeliveryMethod = 'email' | 'link';
 type GiftTier = 'essential' | 'portrait';
@@ -62,62 +63,6 @@ const TIERS = {
 } as const;
 
 type TierKey = keyof typeof TIERS;
-
-/* ── Currency localisation ──
-   Maps the user's browser locale country code to a display currency, then
-   pulls a live USD→X rate from open.er-api.com (no API key, free tier).
-   Checkout still charges in USD; this only affects what's shown on the
-   page. Falls back to USD on any failure. ── */
-const LOCALE_COUNTRY_TO_CURRENCY: Record<string, string> = {
-  GB: 'GBP', AU: 'AUD', CA: 'CAD', NZ: 'NZD',
-  IE: 'EUR', FR: 'EUR', DE: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR',
-  AT: 'EUR', BE: 'EUR', PT: 'EUR', FI: 'EUR', GR: 'EUR', LU: 'EUR',
-  CY: 'EUR', MT: 'EUR', SK: 'EUR', SI: 'EUR', EE: 'EUR', LV: 'EUR',
-  LT: 'EUR', HR: 'EUR',
-  JP: 'JPY', IN: 'INR', MX: 'MXN', BR: 'BRL', ZA: 'ZAR',
-  CH: 'CHF', SE: 'SEK', NO: 'NOK', DK: 'DKK', PL: 'PLN',
-  SG: 'SGD', HK: 'HKD', AE: 'AED', IL: 'ILS',
-};
-
-function useLocalizedPrice() {
-  const [state, setState] = useState<{ code: string; rate: number }>({ code: 'USD', rate: 1 });
-
-  useEffect(() => {
-    try {
-      const lang = (typeof navigator !== 'undefined' ? navigator.language : 'en-US') || 'en-US';
-      const country = lang.split('-')[1]?.toUpperCase();
-      const code = country ? LOCALE_COUNTRY_TO_CURRENCY[country] : undefined;
-      if (!code || code === 'USD') return;
-
-      fetch('https://open.er-api.com/v6/latest/USD')
-        .then(r => r.json())
-        .then(j => {
-          const rate = j?.rates?.[code];
-          if (typeof rate === 'number' && rate > 0) {
-            setState({ code, rate });
-          }
-        })
-        .catch(() => { /* stay on USD */ });
-    } catch { /* stay on USD */ }
-  }, []);
-
-  const fmt = (cents: number) => {
-    const amount = (cents / 100) * state.rate;
-    try {
-      const locale = (typeof navigator !== 'undefined' ? navigator.language : 'en-US') || 'en-US';
-      return new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency: state.code,
-        maximumFractionDigits: state.code === 'JPY' ? 0 : 2,
-        minimumFractionDigits: state.code === 'JPY' ? 0 : 0,
-      }).format(amount);
-    } catch {
-      return `$${amount.toFixed(2)}`;
-    }
-  };
-
-  return { code: state.code, rate: state.rate, fmt, isLocalized: state.code !== 'USD' };
-}
 
 const getVolumeDiscount = (count: number): number => {
   if (count >= 5) return 0.30;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, forwardRef, type ReactNode, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getReferralCode } from "@/lib/referralTracking";
+import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { HeartsBackdrop } from "./HeartsBackdrop";
 
 function useScrollReveal(threshold = 0.1) {
@@ -27,6 +28,7 @@ function useIsInAppBrowser() {
   }, []);
   return isInApp;
 }
+
 
 type FeatureKind = "plain" | "soulspeak" | "divider";
 
@@ -96,6 +98,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   );
   const { ref: revealRef, visible } = useScrollReveal(0.05);
   const isInApp = useIsInAppBrowser();
+  const { fmtUsd, code: currencyCode, isLocalized } = useLocalizedPrice();
 
   // SoulSpeak row click → open full-screen modal
   const openSoulSpeak = () => setSoulSpeakOpen(true);
@@ -212,10 +215,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     >
       <HeartsBackdrop />
       <div
-        className="relative max-w-xl mx-auto"
+        className="relative max-w-xl sm:max-w-2xl mx-auto"
         style={{
           zIndex: 1,
-          padding: "clamp(28px, 5vw, 44px) clamp(22px, 4.5vw, 40px)",
+          padding: "clamp(24px, 4.5vw, 40px) clamp(18px, 4vw, 36px)",
           background: "rgba(255, 253, 245, 0.78)",
           border: "1px solid rgba(196, 162, 101, 0.22)",
           borderRadius: 18,
@@ -272,7 +275,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 onClick={() => handleTierChange(tier.id)}
                 aria-pressed={isSelected}
                 aria-label={`Select ${tier.name}`}
-                className="relative text-left rounded-2xl p-5 sm:p-6 active:scale-[0.995] min-w-0 h-full flex flex-col"
+                className="relative text-left rounded-2xl p-4 sm:p-5 active:scale-[0.995] min-w-0 h-full flex flex-col"
                 style={{
                   background: (() => {
                     const fill = tier.id === "premium"
@@ -302,9 +305,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   </div>
                 )}
 
-                {/* Header */}
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
+                {/* Header — stacked so long names + prices never crowd each other */}
+                <div className="mb-3.5">
+                  <div className="flex items-center gap-2 min-w-0 mb-1.5">
                     <div
                       className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
                       style={{ borderColor: isSelected ? "var(--rose, #bf524a)" : "var(--sand, #d6c8b6)" }}
@@ -312,23 +315,33 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                       {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
                     </div>
                     <span
-                      className="truncate"
                       style={{
                         fontFamily: '"DM Serif Display", Georgia, serif',
-                        fontSize: "clamp(1rem, 3.6vw, 1.25rem)",
+                        fontSize: "clamp(1.05rem, 3vw, 1.3rem)",
                         color: "var(--ink, #1f1c18)",
                         lineHeight: 1.15,
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {tier.name}
                     </span>
                   </div>
-                  <div className="flex items-baseline gap-2 flex-shrink-0">
+                  <div className="flex items-baseline gap-2">
+                    <span
+                      style={{
+                        fontFamily: '"DM Serif Display", Georgia, serif',
+                        fontSize: "clamp(1.6rem, 4.5vw, 2rem)",
+                        color: "var(--black, #141210)",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {fmtUsd(tier.price)}
+                    </span>
                     {tier.wasPrice && (
                       <span
                         style={{
                           fontFamily: '"DM Serif Display", Georgia, serif',
-                          fontSize: "clamp(0.95rem, 3vw, 1.15rem)",
+                          fontSize: "clamp(0.9rem, 2.4vw, 1.05rem)",
                           color: "var(--muted, #958779)",
                           lineHeight: 1,
                           textDecoration: "line-through",
@@ -336,25 +349,15 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                           textDecorationThickness: "1.5px",
                         }}
                       >
-                        ${tier.wasPrice}
+                        {fmtUsd(tier.wasPrice)}
                       </span>
                     )}
-                    <span
-                      style={{
-                        fontFamily: '"DM Serif Display", Georgia, serif',
-                        fontSize: "clamp(1.5rem, 5vw, 2rem)",
-                        color: "var(--rose, #bf524a)",
-                        lineHeight: 1,
-                      }}
-                    >
-                      ${tier.price}
-                    </span>
                   </div>
                 </div>
 
-                {/* Features — flex-1 + items-center so shorter lists (Soul Bond)
-                    center vertically inside the equal-height card */}
-                <div className="flex-1 flex items-center">
+                {/* Features — top-aligned so both cards' feature lists start at
+                    the same vertical point on desktop side-by-side view */}
+                <div className="flex-1 flex items-start">
                 <ul
                   className="rounded-lg overflow-hidden w-full"
                   style={{ border: "1px solid rgba(196,162,101,0.14)" }}
@@ -370,14 +373,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                     return (
                       <li
                         key={fi}
-                        className="text-left px-3 py-2.5"
+                        className="text-left px-2.5 sm:px-3 py-2"
                         onClick={isSoulSpeak ? handleSoulSpeakActivate : undefined}
                         onKeyDown={isSoulSpeak ? (e) => { if (e.key === "Enter" || e.key === " ") handleSoulSpeakActivate(e); } : undefined}
                         role={isSoulSpeak ? "button" : undefined}
                         tabIndex={isSoulSpeak ? 0 : undefined}
                         aria-label={isSoulSpeak ? "Preview SoulSpeak" : undefined}
                         style={{
-                          fontSize: "0.86rem",
+                          fontSize: "0.8rem",
                           color: isDivider ? "var(--gold, #c4a265)" : "var(--earth, #6e6259)",
                           fontWeight: isDivider ? 600 : 400,
                           fontStyle: isDivider ? "italic" : "normal",
@@ -504,9 +507,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               Taking you to secure checkout…
             </span>
           ) : (
-            `${ctaLabel} · $${selectedPrice + charityBonus}`
+            `${ctaLabel} · ${fmtUsd(selectedPrice + charityBonus)}`
           )}
         </button>
+
+        {/* Currency note — only shown when display currency is not USD */}
+        {isLocalized && (
+          <p
+            className="text-center mt-2"
+            style={{
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.75rem",
+              color: "var(--muted, #958779)",
+            }}
+          >
+            Shown in {currencyCode} · billed in USD at today's rate
+          </p>
+        )}
 
         {/* Charity donation line */}
         {charityBonus > 0 && (
@@ -519,7 +536,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               fontWeight: 600,
             }}
           >
-            Includes ${charityBonus} charity donation
+            Includes {fmtUsd(charityBonus)} charity donation
           </p>
         )}
 

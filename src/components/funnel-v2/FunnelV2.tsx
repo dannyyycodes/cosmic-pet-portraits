@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
@@ -32,6 +33,7 @@ export const FunnelV2 = () => {
   // bottom CTA and the FinalCTA display the right number.
   const [selectedPrice, setSelectedPrice] = useState(27);
   const isMobile = useIsMobile();
+  const { fmtUsd } = useLocalizedPrice();
 
   const scrollToCheckout = useCallback(() => {
     checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -122,7 +124,7 @@ export const FunnelV2 = () => {
       <FAQSection />
 
       {/* Final emotional CTA */}
-      <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} price={selectedPrice + charityBonus} />
+      <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} priceLabel={fmtUsd(selectedPrice + charityBonus)} />
 
       {/* Floating momentum signal */}
       <LiveActivityToast />
@@ -190,7 +192,7 @@ export const FunnelV2 = () => {
               minHeight: 52,
             }}
           >
-            {copy.ctaPrimary} · ${selectedPrice + charityBonus}
+            {copy.ctaPrimary} · {fmtUsd(selectedPrice + charityBonus)}
           </button>
         </div>
       )}
@@ -407,7 +409,7 @@ const FAQSection = () => {
 
 /* ──────── Final CTA ──────── */
 
-const FinalCTA = ({ onCtaClick, ctaLabel, price }: { onCtaClick: () => void; ctaLabel: string; price: number }) => (
+const FinalCTA = ({ onCtaClick, ctaLabel, priceLabel }: { onCtaClick: () => void; ctaLabel: string; priceLabel: string }) => (
   <section
     className="py-14 sm:py-20 md:py-24 px-5 text-center"
     style={{ background: "var(--cream, #FFFDF5)" }}
@@ -427,7 +429,7 @@ const FinalCTA = ({ onCtaClick, ctaLabel, price }: { onCtaClick: () => void; cta
           minHeight: 56,
         }}
       >
-        {ctaLabel} · ${price}
+        {ctaLabel} · {priceLabel}
         <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
         </svg>
