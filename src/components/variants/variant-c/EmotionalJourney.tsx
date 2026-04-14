@@ -3,31 +3,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MassiveReviews } from "./MassiveReviews";
 import { LiveActivityNotification } from "@/components/LiveActivityNotification";
 
-const LIGHT_COLORS = {
+const COLORS = {
   black: "#141210", ink: "#1f1c18", deep: "#2e2a24", warm: "#4d443b",
   earth: "#6e6259", muted: "#958779", faded: "#bfb2a3", sand: "#d6c8b6",
   cream: "#FFFDF5", cream2: "#faf4e8", cream3: "#f3eadb",
   rose: "#bf524a", roseLight: "#d4857e", gold: "#c4a265",
 };
-const DARK_COLORS = {
-  black: "#e8ddd0", ink: "#ddd0c2", deep: "#c8baa8", warm: "#a09080",
-  earth: "#8a7d6e", muted: "#6e6259", faded: "#4d443b", sand: "#2e2a24",
-  cream: "#1a1714", cream2: "#1e1a16", cream3: "#252019",
-  rose: "#cf6b63", roseLight: "#d4857e", gold: "#c4a265",
-};
-
-function useColors() {
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
-  useEffect(() => {
-    const obs = new MutationObserver(() => setIsDark(document.documentElement.classList.contains('dark')));
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => obs.disconnect();
-  }, []);
-  return isDark ? DARK_COLORS : LIGHT_COLORS;
-}
-
-// Keep static COLORS for components that don't need reactivity (SVGs, etc)
-const COLORS = LIGHT_COLORS;
 
 function useScrollReveal(options?: { threshold?: number; rootMargin?: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -172,7 +153,7 @@ function useIsInAppBrowser() {
 
 const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, location: string) => void }) => {
   const timeLeft = useEodCountdown();
-  const c = useColors();
+  const c = COLORS;
   const isInApp = useIsInAppBrowser();
 
   // In-app browser (TikTok / Instagram): link opens checkout in the real browser via target="_blank"
@@ -185,7 +166,7 @@ const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, locat
   return (
     <div style={{
       position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50,
-      background: document.documentElement.classList.contains('dark') ? "rgba(26,23,20,0.97)" : "rgba(255,253,245,0.97)",
+      background: "rgba(255,253,245,0.97)",
       backdropFilter: "blur(10px)",
       borderTop: `1px solid ${c.cream3}`, padding: "10px 16px",
       paddingBottom: "calc(10px + env(safe-area-inset-bottom, 0px))",
@@ -217,7 +198,7 @@ const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, locat
 interface EmotionalJourneyProps { trackCTAClick: (cta: string, location: string) => void; }
 
 export const EmotionalJourney = ({ trackCTAClick }: EmotionalJourneyProps) => {
-  const C = useColors();
+  const C = COLORS;
   return (
     <div className="bg-background" style={{ position: "relative" }}>
       <GrainOverlay />

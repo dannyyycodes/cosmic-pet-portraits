@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      /* Dark mode was removed — clear any cached preference from prior visits
+         so returning users don't land on a broken dark state. Safe to remove
+         after a few weeks. */
+      try {
+        document.documentElement.classList.remove('dark');
+        localStorage.removeItem('ls-theme');
+      } catch (e) {}
+    </script>
     <title>Little Souls - Every Pet is a Little Soul with a Big Story</title>
     <meta name="description" content="Every pet is a little soul with a big story. Get a personalized astrological reading based on your pet's birth chart. Understand their soul, decode their emotions, and transform your bond forever." />
     <meta name="author" content="Little Souls" />
