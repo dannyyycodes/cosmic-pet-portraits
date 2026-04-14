@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Star, Sparkle, Sparkles } from "lucide-react";
 import { HeartsBackdrop } from "./HeartsBackdrop";
+import { HeroCardRotator } from "./HeroCardRotator";
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -450,24 +451,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
               boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
             }}
           >
-            <h2
-              className="text-center"
-              style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.55rem, 6.2vw, 2.2rem)",
-                fontWeight: 400,
-                color: "var(--black, #141210)",
-                lineHeight: 1.18,
-                letterSpacing: "-0.02em",
-                margin: 0,
-              }}
-            >
-              They Give Us Everything.
-              <br />
-              <em style={{ fontWeight: 400 }}>
-                It&apos;s Time We Understood Them in Return.
-              </em>
-            </h2>
+            <HeroCardRotator />
           </div>
         </div>
 
