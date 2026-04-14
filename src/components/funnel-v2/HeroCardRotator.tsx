@@ -368,23 +368,7 @@ const CardFace = ({
       </div>
     )}
 
-    <div
-      aria-hidden="true"
-      className="absolute"
-      style={{
-        top: 14,
-        right: 18,
-        fontFamily: '"Lato", system-ui, sans-serif',
-        fontSize: "0.72rem",
-        fontWeight: 600,
-        letterSpacing: "0.24em",
-        textTransform: "uppercase",
-        color: card.accent,
-        opacity: depth === 0 ? 0.85 : 0,
-      }}
-    >
-      {chapterLabel}
-    </div>
+    {/* Chapter label removed — the 7-dot progress rail below the deck serves the same purpose */}
 
     <div
       className="relative h-full flex flex-col items-center justify-center text-center"
