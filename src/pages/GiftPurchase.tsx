@@ -256,6 +256,8 @@ function TierCard({
 type GiftReview = {
   name: string; location: string;
   pet: 'dog' | 'cat';
+  /** Optional dog.ceo breed slug (e.g. "labrador", "beagle") to pin the avatar. */
+  breed?: string;
   quote: string;
 };
 
@@ -264,7 +266,8 @@ const GIFT_REVIEWS: GiftReview[] = [
     name: 'Sarah',
     location: 'Glasgow',
     pet: 'dog',
-    quote: 'I gifted four of these last Christmas and my group chat was chaos for a week. People were reading them aloud on video calls. Best £ I spent that year.',
+    breed: 'beagle',
+    quote: 'I gifted four of these last Christmas — one for my sister and her beagle, one for each of my in-laws. Group chat was chaos for a week. Best £ I spent that year.',
   },
   {
     name: 'Priya',
@@ -276,19 +279,21 @@ const GIFT_REVIEWS: GiftReview[] = [
     name: 'Tom',
     location: 'Sydney',
     pet: 'dog',
+    breed: 'labrador',
     quote: 'My dad is the most sceptical man alive. He read the reading I got for his labrador and said "how do they know him" three separate times. Never seen him like that. 10/10 gift.',
   },
   {
     name: 'Olivia',
     location: 'Dublin',
     pet: 'cat',
-    quote: 'Sent it to my best friend on her birthday. She read it that night and kept screenshotting bits back to me for days. Still quoting it back at me weeks later.',
+    quote: 'Sent it to my best friend for her cat\'s 7th birthday. She read it that night and kept screenshotting bits back to me for days. Still quoting it at me weeks later.',
   },
   {
     name: 'Hannah',
     location: 'Bristol',
     pet: 'dog',
-    quote: 'My boyfriend thought it was going to be silly. He went quiet reading it. Then showed it to his mum. Now his whole family wants one for their dogs.',
+    breed: 'retriever',
+    quote: 'My boyfriend thought it was going to be silly. He went quiet reading his golden retriever\'s. Then showed it to his mum. Now his whole family wants one for their dogs.',
   },
   {
     name: 'James',
@@ -298,10 +303,13 @@ const GIFT_REVIEWS: GiftReview[] = [
   },
 ];
 
-async function fetchPetImage(pet: 'dog' | 'cat'): Promise<string | null> {
+async function fetchPetImage(pet: 'dog' | 'cat', breed?: string): Promise<string | null> {
   try {
     if (pet === 'dog') {
-      const r = await fetch('https://dog.ceo/api/breeds/image/random');
+      const url = breed
+        ? `https://dog.ceo/api/breed/${breed}/images/random`
+        : 'https://dog.ceo/api/breeds/image/random';
+      const r = await fetch(url);
       const j = await r.json();
       return j?.message ?? null;
     }
@@ -377,7 +385,7 @@ function GiftReviewStrip() {
   useEffect(() => {
     let cancelled = false;
     GIFT_REVIEWS.forEach(async (r, i) => {
-      const url = await fetchPetImage(r.pet);
+      const url = await fetchPetImage(r.pet, r.breed);
       if (!cancelled && url) {
         setImages(prev => ({ ...prev, [i]: url }));
       }
@@ -387,22 +395,17 @@ function GiftReviewStrip() {
 
   return (
     <div style={{ margin: '4px 0' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 14,
+      <p style={{
+        textAlign: 'center',
+        fontFamily: 'Cormorant, Georgia, serif',
+        fontStyle: 'italic',
+        fontSize: '0.82rem',
+        color: C.earth,
+        letterSpacing: '0.04em',
+        margin: '0 0 14px',
       }}>
-        <StarRow />
-        <p style={{
-          fontFamily: 'Cormorant, Georgia, serif',
-          fontStyle: 'italic',
-          fontSize: '0.82rem',
-          color: C.earth,
-          letterSpacing: '0.04em',
-          margin: 0,
-        }}>
-          from people who've gifted it
-        </p>
-        <StarRow />
-      </div>
+        from people who've gifted it
+      </p>
 
       <div
         className="gift-review-scroller"
