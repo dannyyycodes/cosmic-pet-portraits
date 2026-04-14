@@ -1,4 +1,13 @@
 import { useRef, useState } from "react";
+import {
+  MoonStars,
+  PawPrint,
+  Infinity as InfinityIcon,
+  Flame,
+  Scroll as ScrollIcon,
+  Gift,
+  Eye,
+} from "@phosphor-icons/react";
 
 type Glyph = "moon" | "paw" | "bond" | "candle" | "scroll" | "gift" | "mirror";
 type HeroCard = { eyebrow: string; headline: string; sub: string; accent: string; glyph: Glyph };
@@ -53,62 +62,25 @@ const HERO_CARDS: HeroCard[] = [
   },
 ];
 
-const GlyphMark = ({ type, color, opacity = 0.09 }: { type: Glyph; color: string; opacity?: number }) => {
-  const common = { fill: "none", stroke: color, strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  const paths: Record<Glyph, JSX.Element> = {
-    moon: (
-      <path d="M 40 8 A 26 26 0 1 0 40 60 A 20 20 0 1 1 40 8 Z" fill={color} stroke="none" />
-    ),
-    paw: (
-      <g fill={color} stroke="none">
-        <ellipse cx="20" cy="22" rx="5" ry="7" />
-        <ellipse cx="32" cy="16" rx="5" ry="7" />
-        <ellipse cx="44" cy="22" rx="5" ry="7" />
-        <ellipse cx="52" cy="36" rx="4.5" ry="6" />
-        <path d="M 32 30 C 22 30 16 40 18 48 C 20 56 28 58 32 56 C 36 58 44 56 46 48 C 48 40 42 30 32 30 Z" />
-      </g>
-    ),
-    bond: (
-      <g {...common}>
-        <circle cx="24" cy="34" r="14" />
-        <circle cx="40" cy="34" r="14" />
-      </g>
-    ),
-    candle: (
-      <g {...common}>
-        <path d="M 32 8 Q 38 16 34 22 Q 32 26 32 22 Q 26 16 32 8 Z" fill={color} stroke="none" />
-        <rect x="26" y="26" width="12" height="32" rx="1.5" />
-        <line x1="26" y1="36" x2="38" y2="36" />
-      </g>
-    ),
-    scroll: (
-      <g {...common}>
-        <path d="M 10 22 Q 22 12 32 22 T 54 22" />
-        <path d="M 10 34 Q 22 24 32 34 T 54 34" />
-        <path d="M 10 46 Q 22 36 32 46 T 54 46" />
-      </g>
-    ),
-    gift: (
-      <g {...common}>
-        <rect x="12" y="26" width="40" height="28" rx="2" />
-        <rect x="10" y="20" width="44" height="10" rx="1.5" />
-        <line x1="32" y1="20" x2="32" y2="54" />
-        <path d="M 32 20 C 24 10 16 14 20 18 C 24 22 32 20 32 20 C 32 20 40 22 44 18 C 48 14 40 10 32 20 Z" />
-      </g>
-    ),
-    mirror: (
-      <g {...common}>
-        <circle cx="32" cy="32" r="20" />
-        <path d="M 20 32 L 44 32" />
-        <path d="M 24 28 L 20 32 L 24 36" />
-        <path d="M 40 28 L 44 32 L 40 36" />
-      </g>
-    ),
-  };
+// Phosphor thin-weight icons — designed as a coherent pack, not hand-hacked.
+// Rendered in the card's accent colour and dropped to a low opacity so they
+// sit behind the text as a themed watermark.
+const GLYPH_ICON: Record<Glyph, typeof MoonStars> = {
+  moon: MoonStars,
+  paw: PawPrint,
+  bond: InfinityIcon,
+  candle: Flame,
+  scroll: ScrollIcon,
+  gift: Gift,
+  mirror: Eye,
+};
+
+const GlyphMark = ({ type, color, opacity = 0.12 }: { type: Glyph; color: string; opacity?: number }) => {
+  const Icon = GLYPH_ICON[type];
   return (
-    <svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true" style={{ opacity }}>
-      {paths[type]}
-    </svg>
+    <div style={{ width: "100%", height: "100%", opacity, color }} aria-hidden="true">
+      <Icon size="100%" weight="thin" />
+    </div>
   );
 };
 
