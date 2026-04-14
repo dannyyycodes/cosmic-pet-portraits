@@ -250,57 +250,74 @@ function TierCard({
   );
 }
 
-/* ── Gift-specific reviews — written in a human voice. Sits between the
-   two tier cards so shoppers read other people's gift stories right
-   where they're picking which reading to send. ── */
+/* ── Gift-specific reviews — written in a human voice. Avatar images
+   are fetched live from dog.ceo + thecatapi.com on mount so every
+   visitor sees a fresh pet. ── */
 type GiftReview = {
   name: string; location: string;
+  pet: 'dog' | 'cat';
   quote: string;
-  /** Optional breed image from /public/breeds/ (reuses the same characters
-   *  from the CompactReviews strip on the landing page). */
-  image?: string;
 };
 
 const GIFT_REVIEWS: GiftReview[] = [
   {
     name: 'Sarah',
     location: 'Glasgow',
+    pet: 'dog',
     quote: 'I gifted four of these last Christmas and my group chat was chaos for a week. People were reading them aloud on video calls. Best £ I spent that year.',
   },
   {
     name: 'Priya',
     location: 'Edinburgh',
-    image: '/breeds/persian-1.jpg',
+    pet: 'cat',
     quote: 'My sister lost her cat in September. I was so nervous sending her this but she said it felt like someone actually knew him. She sent me a voice note crying and I cried too.',
   },
   {
     name: 'Tom',
     location: 'Sydney',
+    pet: 'dog',
     quote: 'My dad is the most sceptical man alive. He read the reading I got for his labrador and said "how do they know him" three separate times. Never seen him like that. 10/10 gift.',
   },
   {
     name: 'Olivia',
     location: 'Dublin',
-    quote: 'Sent it to my best friend on her birthday. She texted me twenty minutes later in all caps saying she had to pull over because she was crying in her car.',
+    pet: 'cat',
+    quote: 'Sent it to my best friend on her birthday. She read it that night and kept screenshotting bits back to me for days. Still quoting it back at me weeks later.',
   },
   {
     name: 'Hannah',
     location: 'Bristol',
-    image: '/breeds/labrador-1.jpg',
+    pet: 'dog',
     quote: 'My boyfriend thought it was going to be silly. He went quiet reading it. Then showed it to his mum. Now his whole family wants one for their dogs.',
   },
   {
     name: 'James',
     location: 'Toronto',
+    pet: 'cat',
     quote: 'My sister in law just adopted a cat and I wanted to do something more than a gift card. She still talks about it. Honestly one of those gifts you feel proud of.',
   },
 ];
 
-function GiftReviewCard({ r }: { r: GiftReview }) {
+async function fetchPetImage(pet: 'dog' | 'cat'): Promise<string | null> {
+  try {
+    if (pet === 'dog') {
+      const r = await fetch('https://dog.ceo/api/breeds/image/random');
+      const j = await r.json();
+      return j?.message ?? null;
+    }
+    const r = await fetch('https://api.thecatapi.com/v1/images/search');
+    const j = await r.json();
+    return Array.isArray(j) ? (j[0]?.url ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
+function GiftReviewCard({ r, image }: { r: GiftReview; image?: string }) {
   return (
     <div
       style={{
-        padding: r.image ? '18px 18px 18px 16px' : '18px 20px',
+        padding: '18px 18px 18px 16px',
         borderRadius: 16,
         background: 'rgba(255,253,245,0.85)',
         backdropFilter: 'blur(6px)',
@@ -308,22 +325,30 @@ function GiftReviewCard({ r }: { r: GiftReview }) {
         border: '1px solid rgba(196,162,101,0.18)',
         boxShadow: '0 2px 10px rgba(31,28,24,0.04)',
         display: 'flex',
-        gap: r.image ? 14 : 0,
+        gap: 14,
         alignItems: 'flex-start',
+        height: '100%',
       }}
     >
-      {r.image && (
-        <img
-          src={r.image}
-          alt=""
-          style={{
-            width: 44, height: 44, borderRadius: '50%',
-            objectFit: 'cover', flexShrink: 0,
-            border: `2px solid ${C.cream3}`,
-          }}
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-        />
-      )}
+      <div style={{
+        width: 48, height: 48, borderRadius: '50%',
+        flexShrink: 0,
+        background: C.cream2,
+        border: `2px solid ${C.cream3}`,
+        overflow: 'hidden',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {image ? (
+          <img
+            src={image}
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+        ) : (
+          <PawPrint style={{ width: 18, height: 18, color: C.muted, opacity: 0.55 }} />
+        )}
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
           <StarRow />
@@ -347,6 +372,19 @@ function GiftReviewCard({ r }: { r: GiftReview }) {
 }
 
 function GiftReviewStrip() {
+  const [images, setImages] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    GIFT_REVIEWS.forEach(async (r, i) => {
+      const url = await fetchPetImage(r.pet);
+      if (!cancelled && url) {
+        setImages(prev => ({ ...prev, [i]: url }));
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <div style={{ margin: '4px 0' }}>
       <div style={{
@@ -390,7 +428,7 @@ function GiftReviewStrip() {
               scrollSnapAlign: 'start',
             }}
           >
-            <GiftReviewCard r={r} />
+            <GiftReviewCard r={r} image={images[i]} />
           </div>
         ))}
       </div>
