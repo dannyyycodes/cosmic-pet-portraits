@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2,
-  ChevronRight, Users, User, Sparkles, Star, Quote, Shield, Clock,
+  ChevronRight, Users, User, Sparkles, Star, Shield, Clock,
   Cat, Dog, Fish, Rabbit, Bird, Turtle, PawPrint, Bone, Feather,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -63,13 +63,6 @@ const TIERS = {
 
 type TierKey = keyof typeof TIERS;
 
-const TESTIMONIALS = [
-  { quote: "My sister literally cried reading her cat's report. Best gift I've ever given anyone.", author: 'Sarah M.' },
-  { quote: "Got this for my mom's birthday — she reads it to her dog every single night now.", author: 'David K.' },
-  { quote: "Gifted to 4 friends last Christmas. They still talk about it!", author: 'Jessica L.' },
-  { quote: "My dad was so skeptical but ended up LOVING his cat's reading. He got emotional.", author: 'Michael R.' },
-];
-
 const getVolumeDiscount = (count: number): number => {
   if (count >= 5) return 0.30;
   if (count >= 4) return 0.25;
@@ -83,32 +76,6 @@ function StarRow({ n = 5 }: { n?: number }) {
     <div style={{ display: 'flex', gap: 2 }}>
       {[...Array(n)].map((_, i) => <Star key={i} style={{ width: 13, height: 13, fill: C.gold, color: C.gold }} />)}
     </div>
-  );
-}
-
-function RotatingTestimonial() {
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setI(n => (n + 1) % TESTIMONIALS.length), 5000);
-    return () => clearInterval(t);
-  }, []);
-  const t = TESTIMONIALS[i];
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div key={i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        style={{ padding: '16px 20px', background: 'white', borderRadius: 16, border: `1px solid ${C.cream3}` }}>
-        <div style={{ display: 'flex', alignItems: 'start', gap: 10 }}>
-          <Quote style={{ width: 16, height: 16, color: C.gold, flexShrink: 0, marginTop: 2, opacity: 0.5 }} />
-          <div>
-            <p style={{ fontSize: '0.9rem', color: C.warm, fontStyle: 'italic', lineHeight: 1.5, marginBottom: 6 }}>"{t.quote}"</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <StarRow />
-              <span style={{ fontSize: '0.72rem', color: C.muted }}>— {t.author}</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </AnimatePresence>
   );
 }
 
@@ -381,19 +348,63 @@ function GiftReviewCard({ r }: { r: GiftReview }) {
 
 function GiftReviewStrip() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '4px 0' }}>
+    <div style={{ margin: '4px 0' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 14,
+      }}>
+        <StarRow />
+        <p style={{
+          fontFamily: 'Cormorant, Georgia, serif',
+          fontStyle: 'italic',
+          fontSize: '0.82rem',
+          color: C.earth,
+          letterSpacing: '0.04em',
+          margin: 0,
+        }}>
+          from people who've gifted it
+        </p>
+        <StarRow />
+      </div>
+
+      <div
+        className="gift-review-scroller"
+        style={{
+          display: 'flex',
+          gap: 12,
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: 10,
+          margin: '0 -16px',
+          paddingLeft: 16,
+          paddingRight: 16,
+          scrollbarWidth: 'none',
+        }}
+      >
+        {GIFT_REVIEWS.map((r, i) => (
+          <div
+            key={i}
+            style={{
+              flex: '0 0 auto',
+              width: 'min(78vw, 320px)',
+              scrollSnapAlign: 'start',
+            }}
+          >
+            <GiftReviewCard r={r} />
+          </div>
+        ))}
+      </div>
+
       <p style={{
         textAlign: 'center',
-        fontFamily: 'Cormorant, Georgia, serif',
-        fontStyle: 'italic',
-        fontSize: '0.78rem',
+        fontSize: '0.7rem',
         color: C.muted,
-        letterSpacing: '0.06em',
-        margin: '6px 0 6px',
+        letterSpacing: '0.08em',
+        margin: '4px 0 0',
+        opacity: 0.7,
       }}>
-        from people who've gifted it
+        ← swipe →
       </p>
-      {GIFT_REVIEWS.map((r, i) => <GiftReviewCard key={i} r={r} />)}
     </div>
   );
 }
@@ -570,6 +581,16 @@ export default function GiftPurchase() {
           </p>
         </motion.div>
 
+        {/* ── REVIEWS (social proof before tier selection) ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          style={{ marginBottom: 36 }}
+        >
+          <GiftReviewStrip />
+        </motion.div>
+
         {/* ── TIER CARDS ── */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 22 }}>
@@ -579,7 +600,6 @@ export default function GiftPurchase() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <TierCard tierKey="essential" selected={selectedTier === 'essential'} onClick={() => handleTierSelect('essential')} />
             <TierCard tierKey="portrait" selected={selectedTier === 'portrait'} onClick={() => handleTierSelect('portrait')} />
-            <GiftReviewStrip />
           </div>
         </motion.div>
 
@@ -976,8 +996,6 @@ export default function GiftPurchase() {
               </div>
             </details>
 
-            <RotatingTestimonial />
-
             <div style={{ display: 'flex', justifyContent: 'center', gap: 20, fontSize: '0.75rem', color: C.muted }}>
               {[{ i: Shield, t: 'Secure checkout' }, { i: Clock, t: 'Instant (digital)' }, { i: Gift, t: 'Valid 1 year' }].map((b, i) => (
                 <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -990,7 +1008,10 @@ export default function GiftPurchase() {
 
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .gift-review-scroller::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 }
