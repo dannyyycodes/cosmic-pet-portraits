@@ -2,85 +2,195 @@ import { useRef, useState } from "react";
 
 type HeroCard = { eyebrow: string; headline: string; sub: string };
 
+// Final 7-card deck — every card serves a distinct emotional arrival state
+// and ties to a real product feature (quirk decoder, compatibility, memorial
+// mode, cosmic portrait, etc.). Ordered as a journey:
+// recognition → explanation → validation → mortality → unknown-past →
+// identity-upgrade → reciprocity reveal.
 const HERO_CARDS: HeroCard[] = [
   {
-    eyebrow: "After every walk, every stare, every quiet sigh",
-    headline: "You know their habits. Do you know their soul?",
-    sub: "You've memorised every look. There's a whole story behind the eyes you thought you'd read.",
+    eyebrow: "For the one who's been beside you every day",
+    headline: "They have a look they save only for you. You still don't know what it means.",
+    sub: "You've studied them longer than almost anyone in your life. You've never been able to put it into words. This finally does.",
   },
   {
-    eyebrow: "The habits no one else understands",
-    headline: "Every strange thing they do has a reason.",
-    sub: "The 3am zoomies. The one person they won't leave. The toy they guard. It isn't random. It's written.",
+    eyebrow: "For the pet with that weird thing",
+    headline: "You've known what they do. Now know why.",
+    sub: "The ritual. The obsession. The specific moment they always appear. You've been narrating their weirdness to friends for years. This tells you what you were actually watching.",
   },
   {
-    eyebrow: "You watch them more than you watch TV",
-    headline: "You've been studying them for years. Here's the cheat sheet.",
-    sub: "Every tilt of the head, every ritual, every quirk — decoded the way only their own sky can.",
+    eyebrow: "For the bond nobody else gets",
+    headline: "Everyone thinks you're projecting. You're not.",
+    sub: "The pull. The rightness. The way it felt like they were yours before they were yours. Every feeling you've had about your bond is in their chart. Written, not imagined.",
   },
   {
-    eyebrow: "You've always felt it",
-    headline: "Something told you this one was different. Something was right.",
-    sub: "The bond you can't explain to anyone else — this is the part that explains it.",
+    eyebrow: "For the pet getting older — or already gone",
+    headline: "Love doesn't stop at goodbye. Neither does this.",
+    sub: "For the ones still here: don't leave them half-understood while there's still time. For the ones you've lost: a memorial reading reads them in past tense — their full chart, their bond with you, a letter in their voice. Not closure. Continuation.",
   },
   {
-    eyebrow: "For the ones with a past you'll never know",
-    headline: "They came to you with a story. Read it.",
-    sub: "Rescue, stray, surrender — their chart remembers what their history can't tell you.",
+    eyebrow: "For the ones with a history you weren't there for",
+    headline: "What they can't tell you, their chart remembers.",
+    sub: "Rescued, rehomed, shelter, stray — their past is older than your bond, and every piece of it shaped who they are for you. This reads the part they can't say.",
   },
   {
-    eyebrow: "For the one who flinches, hides, or clings",
-    headline: "Their fear has a shape. And a map out.",
-    sub: "Understand what shaped them, what soothes them, and how their soul learned to love anyway.",
+    eyebrow: "For the ones who'd give them the world",
+    headline: "Every gift you've bought has said \u201CI love you.\u201D This one says \u201CI see you.\u201D",
+    sub: "The full chart. The cosmic portrait for your wall. The archetype, the aura, the letter. A gift that doesn't get chewed, outgrown, or lost — because it is them, not something for them.",
   },
   {
-    eyebrow: "Same house, different worlds",
-    headline: "Why one is clingy and the other disappears for days.",
-    sub: "Two pets, two charts, two entirely different souls sharing your sofa. See each of them, clearly.",
-  },
-  {
-    eyebrow: "Week one, or week five hundred",
-    headline: "Skip the years of guessing. Meet who they actually are.",
-    sub: "The personality. The triggers. The love language. All of it — from day one.",
-  },
-  {
-    eyebrow: "For the soul who won't be here forever",
-    headline: "Capture who they are, before time does.",
-    sub: "A record of the soul you've shared your life with. Theirs to be understood. Yours to keep.",
-  },
-  {
-    eyebrow: "Honour the one who got you through",
-    headline: "They held you up. It's your turn.",
-    sub: "A portrait of the soul that's been carrying yours. Not what they do for you — who they are.",
-  },
-  {
-    eyebrow: "They give us everything",
-    headline: "It's time we understood them in return.",
-    sub: "The one relationship in your life that's asked nothing back. This is how you give something back.",
-  },
-  {
-    eyebrow: "Not your usual horoscope",
-    headline: "Not a guess. Their exact sky, on their exact day.",
-    sub: "Built from real astronomical data for their birth moment, translated into who they are today.",
+    eyebrow: "For the ones loved this fiercely",
+    headline: "They've been reading you for years. Now read them back.",
+    sub: "The hours they've spent watching you. The way they knew you were sad before you did. They've been learning your language without one of their own. This finally gives you theirs.",
   },
 ];
 
 const FLIP_MS = 560;
 
+export type TypographyVariant =
+  | "editorial-italic"   // current: DM Serif italic headline, Cormorant italic eyebrow
+  | "classical-upright"  // DM Serif upright + Lato caps eyebrow
+  | "bold-modern"        // Playfair bold + Cormorant italic eyebrow
+  | "handwritten-intimate"; // DM Serif italic + Caveat handwritten eyebrow
+
 interface HeroCardRotatorProps {
   onFinishClick?: () => void;
+  typography?: TypographyVariant;
 }
 
 const pad2 = (n: number) => n.toString().padStart(2, "0");
+
+type TypoStyles = {
+  eyebrow: React.CSSProperties;
+  headline: React.CSSProperties;
+  sub: React.CSSProperties;
+  /** Optional star glyph around the eyebrow — hidden for some variants */
+  showStars: boolean;
+};
+
+const TYPO: Record<TypographyVariant, TypoStyles> = {
+  "editorial-italic": {
+    showStars: true,
+    eyebrow: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontStyle: "italic",
+      fontSize: "clamp(0.94rem, 2.3vw, 1.08rem)",
+      letterSpacing: "0.04em",
+      color: "var(--gold, #c4a265)",
+      opacity: 0.95,
+    },
+    headline: {
+      fontFamily: '"DM Serif Display", Georgia, serif',
+      fontSize: "clamp(1.65rem, 6.2vw, 2.35rem)",
+      fontWeight: 400,
+      fontStyle: "italic",
+      color: "var(--black, #141210)",
+      lineHeight: 1.12,
+      letterSpacing: "-0.015em",
+    },
+    sub: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontSize: "clamp(1.05rem, 2.6vw, 1.22rem)",
+      fontWeight: 400,
+      color: "var(--warm, #5a4a42)",
+      lineHeight: 1.55,
+    },
+  },
+  "classical-upright": {
+    showStars: false,
+    eyebrow: {
+      fontFamily: '"Lato", system-ui, sans-serif',
+      fontWeight: 600,
+      textTransform: "uppercase",
+      fontSize: "clamp(0.7rem, 1.7vw, 0.82rem)",
+      letterSpacing: "0.24em",
+      color: "var(--gold, #c4a265)",
+    },
+    headline: {
+      fontFamily: '"DM Serif Display", Georgia, serif',
+      fontSize: "clamp(1.75rem, 6.4vw, 2.5rem)",
+      fontWeight: 400,
+      fontStyle: "normal",
+      color: "var(--black, #141210)",
+      lineHeight: 1.14,
+      letterSpacing: "-0.02em",
+    },
+    sub: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontSize: "clamp(1.05rem, 2.6vw, 1.2rem)",
+      fontStyle: "italic",
+      fontWeight: 400,
+      color: "var(--warm, #5a4a42)",
+      lineHeight: 1.55,
+    },
+  },
+  "bold-modern": {
+    showStars: false,
+    eyebrow: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontStyle: "italic",
+      fontWeight: 500,
+      fontSize: "clamp(0.95rem, 2.3vw, 1.1rem)",
+      letterSpacing: "0.02em",
+      color: "var(--rose, #bf524a)",
+    },
+    headline: {
+      fontFamily: '"Playfair Display", Georgia, serif',
+      fontSize: "clamp(1.7rem, 6.4vw, 2.4rem)",
+      fontWeight: 700,
+      fontStyle: "normal",
+      color: "var(--black, #141210)",
+      lineHeight: 1.1,
+      letterSpacing: "-0.025em",
+    },
+    sub: {
+      fontFamily: '"Lato", system-ui, sans-serif',
+      fontSize: "clamp(0.98rem, 2.3vw, 1.08rem)",
+      fontWeight: 400,
+      color: "var(--warm, #5a4a42)",
+      lineHeight: 1.6,
+    },
+  },
+  "handwritten-intimate": {
+    showStars: false,
+    eyebrow: {
+      fontFamily: '"Caveat", cursive',
+      fontWeight: 500,
+      fontSize: "clamp(1.15rem, 2.7vw, 1.4rem)",
+      letterSpacing: "0.01em",
+      color: "var(--gold, #c4a265)",
+      opacity: 0.95,
+    },
+    headline: {
+      fontFamily: '"DM Serif Display", Georgia, serif',
+      fontSize: "clamp(1.65rem, 6.2vw, 2.35rem)",
+      fontWeight: 400,
+      fontStyle: "italic",
+      color: "var(--black, #141210)",
+      lineHeight: 1.12,
+      letterSpacing: "-0.015em",
+    },
+    sub: {
+      fontFamily: '"Lato", system-ui, sans-serif',
+      fontSize: "clamp(0.98rem, 2.3vw, 1.08rem)",
+      fontWeight: 300,
+      fontStyle: "italic",
+      color: "var(--warm, #5a4a42)",
+      lineHeight: 1.6,
+    },
+  },
+};
 
 const CardFace = ({
   card,
   chapterLabel,
   animateStars,
+  typo,
 }: {
   card: HeroCard;
   chapterLabel: string;
   animateStars: boolean;
+  typo: TypoStyles;
 }) => (
   <div
     className="relative w-full h-full overflow-hidden"
@@ -140,57 +250,28 @@ const CardFace = ({
 
     <div
       className="relative h-full flex flex-col items-center justify-center gap-3 text-center"
-      style={{ minHeight: "clamp(240px, 36vw, 280px)" }}
+      style={{ minHeight: "clamp(260px, 38vw, 300px)" }}
     >
       <div
         style={{
           display: "inline-flex",
           alignItems: "center",
           gap: 12,
-          fontFamily: '"Cormorant", Georgia, serif',
-          fontStyle: "italic",
-          fontSize: "clamp(0.94rem, 2.3vw, 1.08rem)",
-          letterSpacing: "0.04em",
-          color: "var(--gold, #c4a265)",
-          opacity: 0.95,
-          maxWidth: "32rem",
+          maxWidth: "34rem",
           lineHeight: 1.3,
+          ...typo.eyebrow,
         }}
       >
-        <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>
+        {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
         <span>{card.eyebrow}</span>
-        <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>
+        {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
       </div>
 
-      <h2
-        style={{
-          fontFamily: '"DM Serif Display", Georgia, serif',
-          fontSize: "clamp(1.65rem, 6.2vw, 2.35rem)",
-          fontWeight: 400,
-          fontStyle: "italic",
-          color: "var(--black, #141210)",
-          lineHeight: 1.12,
-          letterSpacing: "-0.015em",
-          margin: 0,
-          maxWidth: "32rem",
-        }}
-      >
+      <h2 style={{ margin: 0, maxWidth: "32rem", ...typo.headline }}>
         {card.headline}
       </h2>
 
-      <p
-        style={{
-          fontFamily: '"Cormorant", Georgia, serif',
-          fontSize: "clamp(1.05rem, 2.6vw, 1.22rem)",
-          fontWeight: 400,
-          color: "var(--warm, #5a4a42)",
-          lineHeight: 1.55,
-          margin: 0,
-          maxWidth: "30rem",
-        }}
-      >
-        {card.sub}
-      </p>
+      <p style={{ margin: 0, maxWidth: "32rem", ...typo.sub }}>{card.sub}</p>
     </div>
   </div>
 );
@@ -240,11 +321,6 @@ const ArrowButton = ({
   </button>
 );
 
-// Compute transform for each card relative to the current top index.
-// offset < 0  → already-dealt cards sitting off-screen to the right
-// offset 0    → the top card (fully interactive)
-// offset 1..3 → the visible stack, progressively smaller + nudged up
-// offset > 3  → hidden in the deck (invisible, sits behind the stack)
 const stackStyleFor = (offset: number): React.CSSProperties => {
   if (offset < 0) {
     const depth = Math.min(-offset, 3);
@@ -294,10 +370,14 @@ const stackStyleFor = (offset: number): React.CSSProperties => {
   };
 };
 
-export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
+export const HeroCardRotator = ({
+  typography = "editorial-italic",
+}: HeroCardRotatorProps) => {
   const [index, setIndex] = useState(0);
   const lockRef = useRef(false);
   const touchStartX = useRef<number | null>(null);
+
+  const typo = TYPO[typography];
 
   const go = (dir: 1 | -1) => {
     if (lockRef.current) return;
@@ -332,7 +412,7 @@ export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
   return (
     <div
       role="region"
-      aria-label="Your pet's story — twelve angles"
+      aria-label="Your pet's story"
       aria-roledescription="carousel"
       tabIndex={0}
       onKeyDown={onKeyDown}
@@ -345,14 +425,12 @@ export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         style={{
-          minHeight: "clamp(360px, 52vw, 420px)",
+          minHeight: "clamp(380px, 54vw, 440px)",
           perspective: "1600px",
         }}
       >
         {HERO_CARDS.map((card, i) => {
           const offset = i - index;
-          // Only keep neighbouring cards mounted so the rest don't
-          // hammer the GPU with offscreen twinkles.
           if (offset < -2 || offset > 4) return null;
           const style = stackStyleFor(offset);
           const isTop = offset === 0;
@@ -371,6 +449,7 @@ export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
                 card={card}
                 chapterLabel={`${pad2(i + 1)} / ${pad2(total)}`}
                 animateStars={isTop}
+                typo={typo}
               />
             </div>
           );

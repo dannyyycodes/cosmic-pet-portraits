@@ -60,6 +60,7 @@ const AdminRedeemCodes = lazy(() => import("./pages/AdminRedeemCodes"));
 const AdminQATest = lazy(() => import("./pages/AdminQATest"));
 const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 const FindReport = lazy(() => import("./pages/FindReport"));
+const HeroTypographyPreview = lazy(() => import("./pages/HeroTypographyPreview"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the static HTML checkout page (Supabase credentials now fixed)
@@ -172,6 +173,7 @@ const App = () => (
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
                   <Route path="/find-report" element={<FindReport />} />
+                  <Route path="/hero-typography" element={<HeroTypographyPreview />} />
                   <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
