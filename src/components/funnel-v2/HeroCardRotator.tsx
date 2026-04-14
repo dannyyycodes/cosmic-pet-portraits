@@ -65,7 +65,7 @@ const HERO_CARDS: HeroCard[] = [
   },
 ];
 
-const FLIP_MS = 640;
+const FLIP_MS = 560;
 
 interface HeroCardRotatorProps {
   onFinishClick?: () => void;
@@ -73,7 +73,15 @@ interface HeroCardRotatorProps {
 
 const pad2 = (n: number) => n.toString().padStart(2, "0");
 
-const CardFace = ({ card, chapterLabel }: { card: HeroCard; chapterLabel: string }) => (
+const CardFace = ({
+  card,
+  chapterLabel,
+  animateStars,
+}: {
+  card: HeroCard;
+  chapterLabel: string;
+  animateStars: boolean;
+}) => (
   <div
     className="relative w-full h-full overflow-hidden"
     style={{
@@ -81,12 +89,10 @@ const CardFace = ({ card, chapterLabel }: { card: HeroCard; chapterLabel: string
       border: "1px solid rgba(196, 162, 101, 0.28)",
       borderRadius: 24,
       padding: "clamp(30px, 5.5vw, 46px) clamp(22px, 5vw, 44px)",
-      boxShadow: "0 14px 46px rgba(31, 28, 24, 0.09), inset 0 1px 0 rgba(255,255,255,0.75)",
-      backfaceVisibility: "hidden",
-      WebkitBackfaceVisibility: "hidden",
+      boxShadow:
+        "0 14px 46px rgba(31, 28, 24, 0.09), inset 0 1px 0 rgba(255,255,255,0.75)",
     }}
   >
-    {/* Inner starfield */}
     <svg
       aria-hidden="true"
       className="absolute inset-0 w-full h-full pointer-events-none"
@@ -106,12 +112,15 @@ const CardFace = ({ card, chapterLabel }: { card: HeroCard; chapterLabel: string
           r={r}
           fill="var(--gold, #c4a265)"
           opacity={0.35}
-          style={{ animation: `heroStarPulse ${3.5 + (i % 3) * 0.7}s ease-in-out ${i * 0.3}s infinite` }}
+          style={
+            animateStars
+              ? { animation: `heroStarPulse ${3.5 + (i % 3) * 0.7}s ease-in-out ${i * 0.3}s infinite` }
+              : undefined
+          }
         />
       ))}
     </svg>
 
-    {/* Chapter marker top right */}
     <div
       aria-hidden="true"
       className="absolute"
@@ -129,10 +138,9 @@ const CardFace = ({ card, chapterLabel }: { card: HeroCard; chapterLabel: string
       {chapterLabel}
     </div>
 
-    {/* Content */}
     <div
       className="relative h-full flex flex-col items-center justify-center gap-3 text-center"
-      style={{ minHeight: "clamp(230px, 34vw, 270px)" }}
+      style={{ minHeight: "clamp(240px, 36vw, 280px)" }}
     >
       <div
         style={{
@@ -200,14 +208,14 @@ const ArrowButton = ({
     type="button"
     onClick={onClick}
     disabled={disabled}
-    aria-label={direction === "left" ? "Previous chapter" : "Next chapter"}
-    className="flex items-center justify-center shrink-0"
+    aria-label={direction === "left" ? "Previous card" : "Next card"}
+    className="flex items-center justify-center shrink-0 relative z-20"
     style={{
       width: "clamp(40px, 6vw, 52px)",
       height: "clamp(40px, 6vw, 52px)",
       borderRadius: 9999,
       border: "1px solid rgba(196, 162, 101, 0.35)",
-      background: "rgba(255, 253, 245, 0.75)",
+      background: "rgba(255, 253, 245, 0.85)",
       color: "var(--earth, #6e6259)",
       cursor: disabled ? "default" : "pointer",
       opacity: disabled ? 0.3 : 1,
@@ -221,7 +229,7 @@ const ArrowButton = ({
       e.currentTarget.style.boxShadow = "0 8px 22px rgba(31,28,24,0.12)";
     }}
     onMouseLeave={(e) => {
-      e.currentTarget.style.background = "rgba(255,253,245,0.75)";
+      e.currentTarget.style.background = "rgba(255,253,245,0.85)";
       e.currentTarget.style.transform = "translateY(0)";
       e.currentTarget.style.boxShadow = disabled ? "none" : "0 4px 14px rgba(31,28,24,0.06)";
     }}
@@ -232,10 +240,62 @@ const ArrowButton = ({
   </button>
 );
 
+// Compute transform for each card relative to the current top index.
+// offset < 0  → already-dealt cards sitting off-screen to the right
+// offset 0    → the top card (fully interactive)
+// offset 1..3 → the visible stack, progressively smaller + nudged up
+// offset > 3  → hidden in the deck (invisible, sits behind the stack)
+const stackStyleFor = (offset: number): React.CSSProperties => {
+  if (offset < 0) {
+    const depth = Math.min(-offset, 3);
+    return {
+      transform: `translateX(${130 + depth * 6}%) translateY(${-8 * depth}px) rotate(${6 + depth * 2}deg) scale(${0.9 - depth * 0.02})`,
+      opacity: 0,
+      zIndex: 5 - depth,
+      pointerEvents: "none",
+    };
+  }
+  if (offset === 0) {
+    return {
+      transform: "translateX(0) translateY(0) rotate(0deg) scale(1)",
+      opacity: 1,
+      zIndex: 30,
+    };
+  }
+  if (offset === 1) {
+    return {
+      transform: "translateX(0) translateY(-10px) rotate(-0.8deg) scale(0.965)",
+      opacity: 0.82,
+      zIndex: 29,
+      pointerEvents: "none",
+    };
+  }
+  if (offset === 2) {
+    return {
+      transform: "translateX(0) translateY(-20px) rotate(0.8deg) scale(0.93)",
+      opacity: 0.55,
+      zIndex: 28,
+      pointerEvents: "none",
+    };
+  }
+  if (offset === 3) {
+    return {
+      transform: "translateX(0) translateY(-30px) rotate(-0.6deg) scale(0.895)",
+      opacity: 0.28,
+      zIndex: 27,
+      pointerEvents: "none",
+    };
+  }
+  return {
+    transform: "translateX(0) translateY(-36px) rotate(0deg) scale(0.88)",
+    opacity: 0,
+    zIndex: 10,
+    pointerEvents: "none",
+  };
+};
+
 export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
   const [index, setIndex] = useState(0);
-  const [prevIndex, setPrevIndex] = useState<number | null>(null);
-  const [direction, setDirection] = useState<1 | -1>(1);
   const lockRef = useRef(false);
   const touchStartX = useRef<number | null>(null);
 
@@ -244,11 +304,8 @@ export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
     const next = index + dir;
     if (next < 0 || next >= HERO_CARDS.length) return;
     lockRef.current = true;
-    setDirection(dir);
-    setPrevIndex(index);
     setIndex(next);
     window.setTimeout(() => {
-      setPrevIndex(null);
       lockRef.current = false;
     }, FLIP_MS);
   };
@@ -269,16 +326,8 @@ export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
   };
 
   const total = HERO_CARDS.length;
-  const current = HERO_CARDS[index];
-  const prev = prevIndex !== null ? HERO_CARDS[prevIndex] : null;
   const isFirst = index === 0;
   const isLast = index === total - 1;
-
-  // flip in = incoming card animation, flip out = outgoing card animation
-  // Next (dir=1): outgoing rotates 0→-180, incoming rotates 180→0
-  // Prev (dir=-1): outgoing rotates 0→180, incoming rotates -180→0
-  const outAnim = direction === 1 ? "heroFlipOutNext" : "heroFlipOutPrev";
-  const inAnim = direction === 1 ? "heroFlipInNext" : "heroFlipInPrev";
 
   return (
     <div
@@ -296,44 +345,36 @@ export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         style={{
+          minHeight: "clamp(360px, 52vw, 420px)",
           perspective: "1600px",
-          transformStyle: "preserve-3d",
-          minHeight: "clamp(340px, 50vw, 400px)",
         }}
       >
-        {/* Outgoing card */}
-        {prev !== null && (
-          <div
-            key={`prev-${prevIndex}`}
-            className="absolute inset-0"
-            style={{
-              transformStyle: "preserve-3d",
-              transformOrigin: "center center",
-              animation: `${outAnim} ${FLIP_MS}ms cubic-bezier(0.45, 0, 0.55, 1) forwards`,
-              willChange: "transform",
-            }}
-            aria-hidden="true"
-          >
-            <CardFace card={prev} chapterLabel={`${pad2((prevIndex ?? 0) + 1)} / ${pad2(total)}`} />
-          </div>
-        )}
-
-        {/* Incoming card */}
-        <div
-          key={`curr-${index}`}
-          aria-live="polite"
-          className="absolute inset-0"
-          style={{
-            transformStyle: "preserve-3d",
-            transformOrigin: "center center",
-            animation: prev !== null
-              ? `${inAnim} ${FLIP_MS}ms cubic-bezier(0.45, 0, 0.55, 1) forwards`
-              : undefined,
-            willChange: "transform",
-          }}
-        >
-          <CardFace card={current} chapterLabel={`${pad2(index + 1)} / ${pad2(total)}`} />
-        </div>
+        {HERO_CARDS.map((card, i) => {
+          const offset = i - index;
+          // Only keep neighbouring cards mounted so the rest don't
+          // hammer the GPU with offscreen twinkles.
+          if (offset < -2 || offset > 4) return null;
+          const style = stackStyleFor(offset);
+          const isTop = offset === 0;
+          return (
+            <div
+              key={i}
+              aria-hidden={!isTop}
+              className="deck-card absolute inset-0"
+              style={{
+                ...style,
+                transition: "transform 560ms cubic-bezier(0.22,1,0.36,1), opacity 460ms ease",
+                willChange: "transform, opacity",
+              }}
+            >
+              <CardFace
+                card={card}
+                chapterLabel={`${pad2(i + 1)} / ${pad2(total)}`}
+                animateStars={isTop}
+              />
+            </div>
+          );
+        })}
       </div>
 
       <ArrowButton direction="right" disabled={isLast} onClick={() => go(1)} />
@@ -343,26 +384,8 @@ export const HeroCardRotator = (_props: HeroCardRotatorProps) => {
           0%, 100% { opacity: 0.22; }
           50%      { opacity: 0.62; }
         }
-        /* Next direction: outgoing flips away to the left (rotateY -180), incoming comes from right (180 → 0) */
-        @keyframes heroFlipOutNext {
-          0%   { transform: rotateY(0deg); }
-          100% { transform: rotateY(-180deg); }
-        }
-        @keyframes heroFlipInNext {
-          0%   { transform: rotateY(180deg); }
-          100% { transform: rotateY(0deg); }
-        }
-        /* Prev direction: outgoing flips away to the right (rotateY 180), incoming comes from left (-180 → 0) */
-        @keyframes heroFlipOutPrev {
-          0%   { transform: rotateY(0deg); }
-          100% { transform: rotateY(180deg); }
-        }
-        @keyframes heroFlipInPrev {
-          0%   { transform: rotateY(-180deg); }
-          100% { transform: rotateY(0deg); }
-        }
         @media (prefers-reduced-motion: reduce) {
-          .hero-journey * { animation: none !important; }
+          .deck-card { transition: opacity 250ms ease !important; }
         }
       `}</style>
     </div>
