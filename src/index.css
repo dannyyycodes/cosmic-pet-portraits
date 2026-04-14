@@ -508,7 +508,7 @@
    (0,1,0) without needing `!important` on most rules.
    ========================================================================== */
 
-/* --- Cream/paper surfaces → warm near-black --- */
+/* ---------- LIGHT SURFACES → WARM NEAR-BLACK ---------- */
 html.dark .bg-\[\#FFFDF5\],
 html.dark .bg-\[\#faf6ef\],
 html.dark .bg-\[\#faf4e8\],
@@ -516,18 +516,36 @@ html.dark .bg-\[\#f5efe6\],
 html.dark .bg-\[\#fdf9f5\],
 html.dark .bg-\[\#fdf5f5\],
 html.dark .bg-\[\#f0e8de\],
-html.dark .bg-\[\#ede5d8\],
-html.dark .bg-\[\#ffffff\],
-html.dark .bg-\[\#E8DFD6\] { background-color: #1e1814; }
+html.dark .bg-\[\#ede5d8\] { background-color: #1e1814; }
+
+html.dark .bg-\[\#E8DFD6\],
+html.dark .bg-\[\#e8ddd0\],
+html.dark .bg-\[\#d4cbc3\] { background-color: #3a2f28; }
 
 html.dark .bg-\[\#f3eadb\] { background-color: #2a221b; }
-html.dark .bg-\[\#e8ddd0\] { background-color: #3a2f28; }
 
-/* --- Near-black text → warm cream --- */
+/* Cool-tinted surfaces (Google/Apple/TrustPilot mock cards) */
+html.dark .bg-\[\#dce8f8\] { background-color: #1a2230; }
+html.dark .bg-\[\#eef1f6\] { background-color: #1c2028; }
+html.dark .bg-\[\#e9e9eb\] { background-color: #242424; }
+html.dark .bg-\[\#f0fdf4\] { background-color: #0f1e13; }
+
+/* Dark-on-light decorative cards — in dark mode lift a touch for contrast */
+html.dark .bg-\[\#2a1f1a\] { background-color: #3a2d26; }
+html.dark .bg-\[\#3d2f2a\] { background-color: #4a3a32; }
+
+/* ---------- WHITE / BLACK UTILITIES (site-wide, not just variant-c) ---------- */
+html.dark .bg-white { background-color: #1e1814; }
+html.dark .bg-black { background-color: #f3eadb; }
+html.dark .text-black { color: #f3eadb; }
+/* text-white usually sits on dark/brand backgrounds (CTA buttons) — keep it */
+
+/* ---------- NEAR-BLACK TEXT → WARM CREAM ---------- */
 html.dark .text-\[\#141210\],
 html.dark .text-\[\#1a1a1a\],
 html.dark .text-\[\#1a1210\],
 html.dark .text-\[\#0d1117\],
+html.dark .text-\[\#202124\],
 html.dark .text-\[\#1f1c18\] { color: #f3eadb; }
 
 html.dark .text-\[\#2D2926\],
@@ -535,84 +553,164 @@ html.dark .text-\[\#2e2a24\],
 html.dark .text-\[\#2a1f1a\],
 html.dark .text-\[\#3d2f2a\] { color: #e8ddd0; }
 
-/* --- Warm grey text (body) → warm light grey --- */
+/* ---------- BODY / WARM-GREY TEXT → WARM LIGHT ---------- */
+html.dark .text-\[\#4a4a4a\],
 html.dark .text-\[\#5a4a42\],
+html.dark .text-\[\#5a6a8a\],
 html.dark .text-\[\#6B5E54\],
 html.dark .text-\[\#6b4c3b\],
+html.dark .text-\[\#6b5a45\],
+html.dark .text-\[\#6b5b4f\],
 html.dark .text-\[\#4d443b\] { color: #c4b7a7; }
 
 html.dark .text-\[\#6e6259\] { color: #b2a89a; }
 
-/* --- Muted/faded text --- */
+/* ---------- MUTED / FADED TEXT ---------- */
+html.dark .text-\[\#70757a\],
+html.dark .text-\[\#8e8e93\],
+html.dark .text-\[\#8b9dc3\],
 html.dark .text-\[\#958779\],
 html.dark .text-\[\#9a8578\],
 html.dark .text-\[\#9B8E84\],
 html.dark .text-\[\#9a8e84\],
+html.dark .text-\[\#b8a99e\],
 html.dark .text-\[\#bfb2a3\] { color: #a99a8b; }
 
-/* --- Borders --- */
+/* ---------- BORDERS ---------- */
 html.dark .border-\[\#e8ddd0\],
-html.dark .border-\[\#E8DFD6\] { border-color: #3a2f28; }
+html.dark .border-\[\#E8DFD6\],
+html.dark .border-\[\#f0f0f0\] { border-color: #3a2f28; }
+html.dark .border-\[\#d4c5b0\],
+html.dark .border-\[\#d9c9a8\],
 html.dark .border-\[\#d6c8b6\] { border-color: #4a3d30; }
 html.dark .border-\[\#bfb2a3\] { border-color: #5d5045; }
 html.dark .border-\[\#f3eadb\] { border-color: #2a221b; }
 
-/* --- Rose (brand CTA) — brighten slightly for dark bg contrast --- */
+/* ---------- ROSE (brand CTA) ---------- */
 html.dark .text-\[\#bf524a\] { color: #e07a72; }
 html.dark .bg-\[\#bf524a\] { background-color: #c9665f; }
 html.dark .border-\[\#bf524a\] { border-color: #c9665f; }
-html.dark .ring-\[\#bf524a\] { --tw-ring-color: #c9665f; }
-html.dark .bg-\[\#c9665f\] { background-color: #d67770; }
-html.dark .border-\[\#c9665f\] { border-color: #d67770; }
+html.dark .from-\[\#bf524a\] { --tw-gradient-from: #c9665f var(--tw-gradient-from-position); --tw-gradient-to: rgb(201 102 95 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html.dark .bg-\[\#c9665f\] { background-color: #d6756f; }
+html.dark .border-\[\#c9665f\] { border-color: #d6756f; }
 html.dark .text-\[\#c9665f\] { color: #e58880; }
 html.dark .text-\[\#c47a7a\] { color: #d99090; }
 
-/* --- Gold (accent) — brighten for readability --- */
+/* ---------- GOLD (accent) ---------- */
 html.dark .text-\[\#c4a265\] { color: #e6bf75; }
 html.dark .bg-\[\#c4a265\] { background-color: #d4b26b; }
 html.dark .border-\[\#c4a265\] { border-color: #d4b26b; }
 html.dark .ring-\[\#c4a265\] { --tw-ring-color: #d4b26b; }
+html.dark .fill-\[\#c4a265\] { fill: #e6bf75; }
 html.dark .from-\[\#c4a265\] { --tw-gradient-from: #d4b26b var(--tw-gradient-from-position); --tw-gradient-to: rgb(212 178 107 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html.dark .to-\[\#c4a265\] { --tw-gradient-to: #d4b26b var(--tw-gradient-to-position); }
+html.dark .from-\[\#FFF4D2\] { --tw-gradient-from: #3d321b var(--tw-gradient-from-position); --tw-gradient-to: rgb(61 50 27 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html.dark .via-\[\#FFF4D2\] { --tw-gradient-via-position: ; --tw-gradient-to: rgb(61 50 27 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), #3d321b var(--tw-gradient-via-position), var(--tw-gradient-to); }
 html.dark .text-\[\#b8973e\] { color: #d9b463; }
 html.dark .text-\[\#d4b26b\] { color: #e6c47f; }
-html.dark .text-\[\#8b6f3a\] { color: #b39048; }
+html.dark .text-\[\#8b6f3a\],
+html.dark .text-\[\#8b6914\] { color: #b39048; }
 html.dark .to-\[\#8b6f3a\] { --tw-gradient-to: #b39048 var(--tw-gradient-to-position); }
 
-/* --- Green (trust signals) --- */
+/* ---------- GREEN (trust signals, TrustPilot, verified) ---------- */
 html.dark .text-\[\#4a8c5c\] { color: #7dbf8c; }
 html.dark .bg-\[\#4a8c5c\] { background-color: #5a9f6a; }
 html.dark .border-\[\#4a8c5c\] { border-color: #5a9f6a; }
-html.dark .text-\[\#6b8f5e\] { color: #9dc090; }
+html.dark .from-\[\#4a8c5c\] { --tw-gradient-from: #5a9f6a var(--tw-gradient-from-position); --tw-gradient-to: rgb(90 159 106 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html.dark .to-\[\#4a8c5c\] { --tw-gradient-to: #5a9f6a var(--tw-gradient-to-position); }
+html.dark .to-\[\#e8ddd0\] { --tw-gradient-to: #3a2f28 var(--tw-gradient-to-position); }
+html.dark .text-\[\#6b8f5e\],
+html.dark .bg-\[\#6b8f5e\] { color: #9dc090; }
+html.dark .bg-\[\#6b8f5e\] { background-color: #7da182; }
+/* brand greens — keep as-is (Spotify, Trustpilot) */
 
-/* --- Misc cool accents --- */
+/* ---------- COOL ACCENTS ---------- */
 html.dark .bg-\[\#6b7d93\] { background-color: #8fa2b8; }
 html.dark .text-\[\#6b7d93\] { color: #8fa2b8; }
 
-/* --- Dark-mode specific body/section fallback so sections using inline
-       `background: #FFFDF5` but via CSS var pick up the token. The var-based
-       rewrites in .variant-c handle most of this; this is a belt-and-braces
-       rule for sections that set a literal cream background. --- */
-html.dark body.variant-c section[style*="FFFDF5"],
-html.dark body.variant-c section[style*="faf6ef"],
-html.dark body.variant-c section[style*="faf4e8"],
-html.dark body.variant-c div[style*="background: var(--cream"],
-html.dark body.variant-c div[style*="background:var(--cream"] {
+/* ---------- INLINE-STYLE HEX FALLBACKS ---------- */
+/* Catch-all for sections/divs that hardcode cream backgrounds inline
+   without going through a CSS variable. */
+html.dark [style*="background: #FFFDF5"],
+html.dark [style*="background:#FFFDF5"],
+html.dark [style*="background-color: #FFFDF5"],
+html.dark [style*="background-color:#FFFDF5"],
+html.dark [style*="background: #faf6ef"],
+html.dark [style*="background:#faf6ef"],
+html.dark [style*="background: #faf4e8"],
+html.dark [style*="background:#faf4e8"],
+html.dark [style*="background: var(--cream"],
+html.dark [style*="background:var(--cream"] {
+  background-color: #1e1814 !important;
+}
+html.dark [style*="background: #f3eadb"],
+html.dark [style*="background:#f3eadb"] {
+  background-color: #2a221b !important;
+}
+html.dark [style*="background: #FFFFFF"],
+html.dark [style*="background:#FFFFFF"],
+html.dark [style*="background: #ffffff"],
+html.dark [style*="background:#ffffff"],
+html.dark [style*="background: white"],
+html.dark [style*="background:white"] {
   background-color: #1e1814 !important;
 }
 
-/* --- Inputs / form fields: ensure readable contrast in dark --- */
-html.dark body.variant-c input,
-html.dark body.variant-c textarea,
-html.dark body.variant-c select {
+/* Inline color hex overrides — match `color: #xxx` and `color:#xxx` */
+html.dark [style*="color: #141210"],
+html.dark [style*="color:#141210"],
+html.dark [style*="color: #1a1a1a"],
+html.dark [style*="color:#1a1a1a"],
+html.dark [style*="color: #1f1c18"],
+html.dark [style*="color:#1f1c18"] {
+  color: #f3eadb !important;
+}
+html.dark [style*="color: #5a4a42"],
+html.dark [style*="color:#5a4a42"],
+html.dark [style*="color: #6e6259"],
+html.dark [style*="color:#6e6259"] {
+  color: #c4b7a7 !important;
+}
+html.dark [style*="color: #958779"],
+html.dark [style*="color:#958779"] {
+  color: #a99a8b !important;
+}
+
+/* ---------- FORM FIELDS ---------- */
+html.dark input,
+html.dark textarea,
+html.dark select {
   background-color: #2a221b;
   color: #f3eadb;
   border-color: #3a2f28;
 }
-html.dark body.variant-c input::placeholder,
-html.dark body.variant-c textarea::placeholder {
+html.dark input::placeholder,
+html.dark textarea::placeholder {
   color: #8a7e72;
 }
+/* Checkboxes / radios — keep accent contrast */
+html.dark input[type="checkbox"],
+html.dark input[type="radio"] {
+  accent-color: #d4b26b;
+}
 
-/* --- Hero imagery / cards that use white bg via bg-white --- */
-html.dark body.variant-c .bg-white { background-color: #1e1814; }
-html.dark body.variant-c .text-black { color: #f3eadb; }
+/* ---------- SHADCN CARDS / POPOVERS ---------- */
+/* These use semantic tokens which are already set in .dark block. But
+   some components hardcode `bg-white`-style surfaces via cn() — override
+   anything with role=dialog to use our dark surface. */
+html.dark [role="dialog"],
+html.dark [role="menu"],
+html.dark [role="listbox"] {
+  background-color: #1e1814;
+  color: #f3eadb;
+}
+
+/* ---------- GRAIN / SUBTLE OVERLAYS ---------- */
+html.dark .grain-overlay { opacity: 0.015 !important; }
+
+/* ---------- BODY / ROOT BG SAFETY ---------- */
+html.dark,
+html.dark body {
+  background-color: #17130e;
+  color: #f3eadb;
+}
