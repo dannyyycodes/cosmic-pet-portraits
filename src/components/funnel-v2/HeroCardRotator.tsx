@@ -75,23 +75,23 @@ const TYPO: Record<TypographyVariant, TypoStyles> = {
     eyebrow: {
       fontFamily: '"Caveat", cursive',
       fontWeight: 500,
-      fontSize: "clamp(1.25rem, 3vw, 1.55rem)",
+      fontSize: "clamp(1.3rem, 3.1vw, 1.6rem)",
       letterSpacing: "0.005em",
       color: "var(--gold, #c4a265)",
     },
     headline: {
       fontFamily: '"DM Serif Display", Georgia, serif',
-      fontSize: "clamp(1.95rem, 7.2vw, 2.9rem)",
+      fontSize: "clamp(1.55rem, 5.3vw, 2.05rem)",
       fontWeight: 400,
       fontStyle: "italic",
       color: "var(--black, #141210)",
-      lineHeight: 1.12,
-      letterSpacing: "-0.015em",
+      lineHeight: 1.2,
+      letterSpacing: "-0.01em",
     },
     sub: {
-      fontFamily: '"Lato", system-ui, sans-serif',
-      fontSize: "clamp(1.05rem, 2.5vw, 1.18rem)",
-      fontWeight: 300,
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontSize: "clamp(1.08rem, 2.6vw, 1.22rem)",
+      fontWeight: 400,
       fontStyle: "italic",
       color: "var(--warm, #5a4a42)",
       lineHeight: 1.6,
@@ -220,7 +220,7 @@ const CardFace = ({
   <div
     className="relative w-full h-full overflow-hidden"
     style={{
-      background: "linear-gradient(180deg, rgba(255,253,245,0.97) 0%, rgba(250,244,232,0.95) 100%)",
+      background: "linear-gradient(180deg, #FFFDF5 0%, #faf4e8 100%)",
       border: "1px solid rgba(196, 162, 101, 0.28)",
       borderRadius: 24,
       padding: "clamp(38px, 6.5vw, 60px) clamp(26px, 5.5vw, 52px)",
@@ -280,19 +280,38 @@ const CardFace = ({
         gap: "clamp(14px, 2vw, 22px)",
       }}
     >
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 12,
-          maxWidth: "34rem",
-          lineHeight: 1.3,
-          ...typo.eyebrow,
-        }}
-      >
-        {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
-        <span>{card.eyebrow}</span>
-        {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
+      <div className="flex flex-col items-center" style={{ gap: 4 }}>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 12,
+            maxWidth: "34rem",
+            lineHeight: 1.3,
+            ...typo.eyebrow,
+          }}
+        >
+          {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
+          <span>{card.eyebrow}</span>
+          {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
+        </div>
+        {/* Hand-drawn squiggle underline — turns the eyebrow into a titled header */}
+        <svg
+          aria-hidden="true"
+          width="84"
+          height="8"
+          viewBox="0 0 84 8"
+          fill="none"
+          style={{ opacity: 0.75, marginTop: 2 }}
+        >
+          <path
+            d="M 2 5 Q 10 0.5 18 4.5 T 34 4.5 T 50 4.5 T 66 4.5 T 82 4.5"
+            stroke="var(--gold, #c4a265)"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            fill="none"
+          />
+        </svg>
       </div>
 
       <h2 style={{ margin: 0, maxWidth: "32rem", ...typo.headline }}>
@@ -368,24 +387,24 @@ const stackStyleFor = (offset: number): React.CSSProperties => {
   }
   if (offset === 1) {
     return {
-      transform: "translateX(0) translateY(-10px) rotate(-0.8deg) scale(0.965)",
-      opacity: 0.82,
+      transform: "translateX(0) translateY(-22px) rotate(-1.2deg) scale(0.955)",
+      opacity: 1,
       zIndex: 29,
       pointerEvents: "none",
     };
   }
   if (offset === 2) {
     return {
-      transform: "translateX(0) translateY(-20px) rotate(0.8deg) scale(0.93)",
-      opacity: 0.55,
+      transform: "translateX(0) translateY(-42px) rotate(1.4deg) scale(0.91)",
+      opacity: 1,
       zIndex: 28,
       pointerEvents: "none",
     };
   }
   if (offset === 3) {
     return {
-      transform: "translateX(0) translateY(-30px) rotate(-0.6deg) scale(0.895)",
-      opacity: 0.28,
+      transform: "translateX(0) translateY(-60px) rotate(-1deg) scale(0.87)",
+      opacity: 0.7,
       zIndex: 27,
       pointerEvents: "none",
     };
@@ -453,8 +472,9 @@ export const HeroCardRotator = ({
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         style={{
-          minHeight: "clamp(440px, 62vw, 520px)",
+          minHeight: "clamp(480px, 66vw, 560px)",
           perspective: "1600px",
+          paddingTop: 40,
         }}
       >
         {HERO_CARDS.map((card, i) => {
