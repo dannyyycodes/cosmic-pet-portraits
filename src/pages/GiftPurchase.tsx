@@ -255,9 +255,9 @@ function TierCard({
    visitor sees a fresh pet. ── */
 type GiftReview = {
   name: string; location: string;
-  pet: 'dog' | 'cat';
-  /** Optional dog.ceo breed slug (e.g. "labrador", "beagle") to pin the avatar. */
-  breed?: string;
+  /** If set, pull a live avatar from dog.ceo / thecatapi.com. Omit for a
+   *  text-only card. */
+  avatar?: { pet: 'dog' | 'cat'; breed?: string };
   quote: string;
 };
 
@@ -265,40 +265,33 @@ const GIFT_REVIEWS: GiftReview[] = [
   {
     name: 'Sarah',
     location: 'Glasgow',
-    pet: 'dog',
-    breed: 'beagle',
     quote: 'I gifted four of these last Christmas — one for my sister and her beagle, one for each of my in-laws. Group chat was chaos for a week. Best £ I spent that year.',
   },
   {
     name: 'Priya',
     location: 'Edinburgh',
-    pet: 'cat',
     quote: 'My sister lost her cat in September. I was so nervous sending her this but she said it felt like someone actually knew him. She sent me a voice note crying and I cried too.',
   },
   {
     name: 'Tom',
     location: 'Sydney',
-    pet: 'dog',
-    breed: 'labrador',
     quote: 'My dad is the most sceptical man alive. He read the reading I got for his labrador and said "how do they know him" three separate times. Never seen him like that. 10/10 gift.',
   },
   {
     name: 'Olivia',
     location: 'Dublin',
-    pet: 'cat',
+    avatar: { pet: 'cat' },
     quote: 'Sent it to my best friend for her cat\'s 7th birthday. She read it that night and kept screenshotting bits back to me for days. Still quoting it at me weeks later.',
   },
   {
     name: 'Hannah',
     location: 'Bristol',
-    pet: 'dog',
-    breed: 'retriever',
     quote: 'My boyfriend thought it was going to be silly. He went quiet reading his golden retriever\'s. Then showed it to his mum. Now his whole family wants one for their dogs.',
   },
   {
     name: 'James',
     location: 'Toronto',
-    pet: 'cat',
+    avatar: { pet: 'cat' },
     quote: 'My sister in law just adopted a cat and I wanted to do something more than a gift card. She still talks about it. Honestly one of those gifts you feel proud of.',
   },
 ];
@@ -322,10 +315,11 @@ async function fetchPetImage(pet: 'dog' | 'cat', breed?: string): Promise<string
 }
 
 function GiftReviewCard({ r, image }: { r: GiftReview; image?: string }) {
+  const showAvatar = Boolean(r.avatar);
   return (
     <div
       style={{
-        padding: '14px 14px 16px',
+        padding: '14px 16px 16px',
         borderRadius: 14,
         background: 'rgba(255,253,245,0.88)',
         backdropFilter: 'blur(6px)',
@@ -338,25 +332,25 @@ function GiftReviewCard({ r, image }: { r: GiftReview; image?: string }) {
       }}
     >
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: '50%',
-          flexShrink: 0,
-          background: C.cream2,
-          border: `2px solid ${C.cream3}`,
-          overflow: 'hidden',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {image ? (
-            <img
-              src={image}
-              alt=""
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-            />
-          ) : (
-            <PawPrint style={{ width: 16, height: 16, color: C.muted, opacity: 0.55 }} />
-          )}
-        </div>
+        {showAvatar && (
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%',
+            flexShrink: 0,
+            background: C.cream2,
+            border: `2px solid ${C.cream3}`,
+            overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {image && (
+              <img
+                src={image}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+              />
+            )}
+          </div>
+        )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <StarRow />
           <p style={{
@@ -387,13 +381,17 @@ function GiftReviewStrip() {
   useEffect(() => {
     let cancelled = false;
     GIFT_REVIEWS.forEach(async (r, i) => {
-      const url = await fetchPetImage(r.pet, r.breed);
+      if (!r.avatar) return;
+      const url = await fetchPetImage(r.avatar.pet, r.avatar.breed);
       if (!cancelled && url) {
         setImages(prev => ({ ...prev, [i]: url }));
       }
     });
     return () => { cancelled = true; };
   }, []);
+
+  // Duplicate the list so the translateX(-50%) loop is seamless.
+  const loop = [...GIFT_REVIEWS, ...GIFT_REVIEWS];
 
   return (
     <div style={{ margin: '4px 0' }}>
@@ -409,24 +407,35 @@ function GiftReviewStrip() {
         from people who've gifted it
       </p>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: 10,
-        alignItems: 'start',
-      }}>
-        {GIFT_REVIEWS.map((r, i) => (
-          <div
-            key={i}
-            style={{
-              // Slight vertical stagger on every other card so it
-              // reads as a mosaic rather than a rigid table.
-              marginTop: i % 2 === 1 ? 14 : 0,
-            }}
-          >
-            <GiftReviewCard r={r} image={images[i]} />
-          </div>
-        ))}
+      <div
+        className="gift-review-marquee-viewport"
+        style={{
+          overflow: 'hidden',
+          margin: '0 -16px',
+          maskImage: 'linear-gradient(to right, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%)',
+        }}
+      >
+        <div
+          className="gift-review-marquee-track"
+          style={{
+            display: 'flex',
+            gap: 12,
+            width: 'max-content',
+            animation: 'gift-review-scroll 55s linear infinite',
+            paddingLeft: 16,
+          }}
+        >
+          {loop.map((r, i) => (
+            <div
+              key={i}
+              style={{ flex: '0 0 auto', width: 300 }}
+              aria-hidden={i >= GIFT_REVIEWS.length}
+            >
+              <GiftReviewCard r={r} image={images[i % GIFT_REVIEWS.length]} />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1031,7 +1040,17 @@ export default function GiftPurchase() {
 
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes gift-review-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        .gift-review-marquee-viewport:hover .gift-review-marquee-track { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) {
+          .gift-review-marquee-track { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
