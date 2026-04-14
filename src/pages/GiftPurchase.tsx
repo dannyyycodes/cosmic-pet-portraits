@@ -578,8 +578,8 @@ export default function GiftPurchase() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             <TierCard tierKey="essential" selected={selectedTier === 'essential'} onClick={() => handleTierSelect('essential')} />
-            <GiftReviewStrip />
             <TierCard tierKey="portrait" selected={selectedTier === 'portrait'} onClick={() => handleTierSelect('portrait')} />
+            <GiftReviewStrip />
           </div>
         </motion.div>
 
