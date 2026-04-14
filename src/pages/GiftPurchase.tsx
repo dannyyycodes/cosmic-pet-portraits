@@ -63,6 +63,62 @@ const TIERS = {
 
 type TierKey = keyof typeof TIERS;
 
+/* ── Currency localisation ──
+   Maps the user's browser locale country code to a display currency, then
+   pulls a live USD→X rate from open.er-api.com (no API key, free tier).
+   Checkout still charges in USD; this only affects what's shown on the
+   page. Falls back to USD on any failure. ── */
+const LOCALE_COUNTRY_TO_CURRENCY: Record<string, string> = {
+  GB: 'GBP', AU: 'AUD', CA: 'CAD', NZ: 'NZD',
+  IE: 'EUR', FR: 'EUR', DE: 'EUR', ES: 'EUR', IT: 'EUR', NL: 'EUR',
+  AT: 'EUR', BE: 'EUR', PT: 'EUR', FI: 'EUR', GR: 'EUR', LU: 'EUR',
+  CY: 'EUR', MT: 'EUR', SK: 'EUR', SI: 'EUR', EE: 'EUR', LV: 'EUR',
+  LT: 'EUR', HR: 'EUR',
+  JP: 'JPY', IN: 'INR', MX: 'MXN', BR: 'BRL', ZA: 'ZAR',
+  CH: 'CHF', SE: 'SEK', NO: 'NOK', DK: 'DKK', PL: 'PLN',
+  SG: 'SGD', HK: 'HKD', AE: 'AED', IL: 'ILS',
+};
+
+function useLocalizedPrice() {
+  const [state, setState] = useState<{ code: string; rate: number }>({ code: 'USD', rate: 1 });
+
+  useEffect(() => {
+    try {
+      const lang = (typeof navigator !== 'undefined' ? navigator.language : 'en-US') || 'en-US';
+      const country = lang.split('-')[1]?.toUpperCase();
+      const code = country ? LOCALE_COUNTRY_TO_CURRENCY[country] : undefined;
+      if (!code || code === 'USD') return;
+
+      fetch('https://open.er-api.com/v6/latest/USD')
+        .then(r => r.json())
+        .then(j => {
+          const rate = j?.rates?.[code];
+          if (typeof rate === 'number' && rate > 0) {
+            setState({ code, rate });
+          }
+        })
+        .catch(() => { /* stay on USD */ });
+    } catch { /* stay on USD */ }
+  }, []);
+
+  const fmt = (cents: number) => {
+    const amount = (cents / 100) * state.rate;
+    try {
+      const locale = (typeof navigator !== 'undefined' ? navigator.language : 'en-US') || 'en-US';
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: state.code,
+        maximumFractionDigits: state.code === 'JPY' ? 0 : 2,
+        minimumFractionDigits: state.code === 'JPY' ? 0 : 0,
+      }).format(amount);
+    } catch {
+      return `$${amount.toFixed(2)}`;
+    }
+  };
+
+  return { code: state.code, rate: state.rate, fmt, isLocalized: state.code !== 'USD' };
+}
+
 const getVolumeDiscount = (count: number): number => {
   if (count >= 5) return 0.30;
   if (count >= 4) return 0.25;
@@ -143,8 +199,11 @@ function WallpaperBackdrop() {
 }
 
 function TierCard({
-  tierKey, selected, onClick,
-}: { tierKey: TierKey; selected: boolean; onClick: () => void }) {
+  tierKey, selected, onClick, fmt,
+}: {
+  tierKey: TierKey; selected: boolean; onClick: () => void;
+  fmt: (cents: number) => string;
+}) {
   const tier = TIERS[tierKey];
   const accent = C.rose;
   const accentGlow = C.roseGlow;
@@ -204,16 +263,16 @@ function TierCard({
               textDecorationThickness: '1.5px',
               marginBottom: 3,
             }}>
-              ${tier.wasCents / 100}
+              {fmt(tier.wasCents)}
             </p>
           )}
           <p style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
             fontSize: '2rem', lineHeight: 1,
-            color: accent,
+            color: C.ink,
             transition: 'color 0.2s',
           }}>
-            ${tier.cents / 100}
+            {fmt(tier.cents)}
           </p>
           <p style={{ fontSize: '0.65rem', color: C.muted, marginTop: 2 }}>one-time</p>
         </div>
@@ -428,9 +487,19 @@ function GiftReviewStrip() {
         className="gift-review-marquee-viewport"
         style={{
           overflow: 'hidden',
-          margin: '0 -16px',
-          maskImage: 'linear-gradient(to right, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent 0, #000 32px, #000 calc(100% - 32px), transparent 100%)',
+          // Break out of the narrow 540px parent column on desktop so the
+          // marquee spans the full viewport width — looks generous and
+          // shows several cards at once. On mobile this reduces to the
+          // viewport width too, which is what we want.
+          position: 'relative',
+          left: '50%',
+          right: '50%',
+          marginLeft: '-50vw',
+          marginRight: '-50vw',
+          width: '100vw',
+          maxWidth: '100vw',
+          maskImage: 'linear-gradient(to right, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0, #000 48px, #000 calc(100% - 48px), transparent 100%)',
         }}
       >
         <div
@@ -460,6 +529,7 @@ function GiftReviewStrip() {
 
 export default function GiftPurchase() {
   const [searchParams] = useSearchParams();
+  const { fmt, code: currencyCode, isLocalized } = useLocalizedPrice();
   const [selectedTier, setSelectedTier] = useState<TierKey | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('link');
@@ -647,8 +717,8 @@ export default function GiftPurchase() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <TierCard tierKey="essential" selected={selectedTier === 'essential'} onClick={() => handleTierSelect('essential')} />
-            <TierCard tierKey="portrait" selected={selectedTier === 'portrait'} onClick={() => handleTierSelect('portrait')} />
+            <TierCard tierKey="essential" selected={selectedTier === 'essential'} onClick={() => handleTierSelect('essential')} fmt={fmt} />
+            <TierCard tierKey="portrait" selected={selectedTier === 'portrait'} onClick={() => handleTierSelect('portrait')} fmt={fmt} />
           </div>
         </motion.div>
 
@@ -665,7 +735,7 @@ export default function GiftPurchase() {
                 {/* Selected tier reminder */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 24 }}>
                   <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{TIERS[selectedTier].label}</span>
-                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.rose }}>${TIERS[selectedTier].cents / 100}</span>
+                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{fmt(TIERS[selectedTier].cents)}</span>
                   <button
                     onClick={() => { setSelectedTier(null); setStep(1); }}
                     style={{ marginLeft: 4, fontSize: '0.72rem', color: C.muted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
@@ -920,7 +990,7 @@ export default function GiftPurchase() {
                                 {r.name && <p style={{ fontSize: '0.72rem', color: C.rose }}>for {r.name}</p>}
                               </div>
                             </div>
-                            <span style={{ fontSize: '0.88rem', color: C.muted }}>${(TIERS[selectedTier!].cents / 100).toFixed(2)}</span>
+                            <span style={{ fontSize: '0.88rem', color: C.muted }}>{fmt(TIERS[selectedTier!].cents)}</span>
                           </div>
                         ))}
                         <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.cream3}` }}>
@@ -929,7 +999,7 @@ export default function GiftPurchase() {
                               <span style={{ color: C.green, display: 'flex', alignItems: 'center', gap: 4 }}>
                                 <Sparkles style={{ width: 12, height: 12 }} />{Math.round(discount * 100)}% volume discount
                               </span>
-                              <span style={{ color: C.green }}>−${(pricing.discountAmount / 100).toFixed(2)}</span>
+                              <span style={{ color: C.green }}>−{fmt(pricing.discountAmount)}</span>
                             </div>
                           )}
                           {pricing.promoAmount > 0 && appliedCoupon && (
@@ -937,15 +1007,20 @@ export default function GiftPurchase() {
                               <span style={{ color: C.green, display: 'flex', alignItems: 'center', gap: 4 }}>
                                 <Sparkles style={{ width: 12, height: 12 }} />{appliedCoupon.code} ({appliedCoupon.discount_value}% off)
                               </span>
-                              <span style={{ color: C.green }}>−${(pricing.promoAmount / 100).toFixed(2)}</span>
+                              <span style={{ color: C.green }}>−{fmt(pricing.promoAmount)}</span>
                             </div>
                           )}
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 700 }}>
                             <span style={{ color: C.ink }}>Total</span>
-                            <span style={{ color: C.rose, fontFamily: '"DM Serif Display", Georgia, serif' }}>
-                              ${(pricing.finalTotal / 100).toFixed(2)}
+                            <span style={{ color: C.ink, fontFamily: '"DM Serif Display", Georgia, serif' }}>
+                              {fmt(pricing.finalTotal)}
                             </span>
                           </div>
+                          {isLocalized && (
+                            <p style={{ fontSize: '0.7rem', color: C.muted, marginTop: 6, textAlign: 'right' }}>
+                              Shown in {currencyCode} — billed in USD at checkout.
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -1005,7 +1080,7 @@ export default function GiftPurchase() {
                       >
                         {isLoading
                           ? <><SpinnerInline />Processing...</>
-                          : <><Gift style={{ width: 20, height: 20 }} />Send This Gift — ${(pricing.finalTotal / 100).toFixed(2)}</>
+                          : <><Gift style={{ width: 20, height: 20 }} />Send This Gift — {fmt(pricing.finalTotal)}</>
                         }
                       </button>
 
