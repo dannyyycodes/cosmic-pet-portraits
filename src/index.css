@@ -91,43 +91,62 @@
     --shadow-card: 0 4px 20px hsl(30 20% 4% / 0.4);
   }
 
-  /* Variant C Dark: warm dark cream */
-  .variant-c.dark {
+  /* Variant C Dark: warm dark cream
+     NOTE: `.dark` is set on <html>, `.variant-c` is on <body> — so we must
+     use a descendant combinator. The old `.variant-c.dark` compound
+     selector never matched and left dark mode looking broken site-wide. */
+  html.dark body.variant-c {
     --background: 30 15% 8%;
-    --foreground: 38 30% 88%;
+    --foreground: 38 30% 90%;
     --card: 30 12% 12%;
-    --card-foreground: 38 30% 88%;
+    --card-foreground: 38 30% 90%;
     --popover: 30 12% 12%;
-    --popover-foreground: 38 30% 88%;
-    --primary: 4 46% 55%;
+    --popover-foreground: 38 30% 90%;
+    --primary: 4 55% 62%;
     --primary-foreground: 38 30% 95%;
     --secondary: 30 10% 16%;
-    --secondary-foreground: 38 30% 88%;
+    --secondary-foreground: 38 30% 90%;
     --muted: 30 8% 18%;
-    --muted-foreground: 30 15% 52%;
-    --accent: 39 40% 50%;
+    --muted-foreground: 30 15% 62%;
+    --accent: 39 50% 60%;
     --accent-foreground: 30 15% 8%;
-    --border: 30 10% 18%;
-    --input: 30 10% 18%;
-    --ring: 4 46% 55%;
+    --border: 30 10% 22%;
+    --input: 30 10% 22%;
+    --ring: 4 55% 62%;
     --warm-cream: 30 15% 8%;
     --warm-cream-dark: 30 12% 12%;
-    --shadow-card: 0 4px 20px hsl(30 20% 4% / 0.4);
+    --shadow-card: 0 4px 20px hsl(30 20% 4% / 0.5);
+
+    /* Brand hex tokens remapped for dark mode — these power every
+       `var(--cream, #FFFDF5)` / `var(--rose, #bf524a)` inline-style
+       fallback across the site. */
+    --cream: #17130e;
+    --cream2: #1e1814;
+    --cream3: #2a221b;
+    --sand: #3a2f28;
+    --sand-dark: #4a3d30;
+    --faded: #5d5045;
+    --black: #f3eadb;
+    --ink: #ede3d0;
+    --deep: #e2d6c3;
+    --warm: #c4b7a7;
+    --earth: #b2a89a;
+    --muted: #a99a8b;
+    --rose: #d96a62;
+    --gold: #e6bf75;
+    --green: #7dbf8c;
   }
 
-  .variant-c.dark .glass-card,
-  .variant-c.dark .cosmic-card,
-  .variant-c.dark .testimonial-card {
+  html.dark body.variant-c .glass-card,
+  html.dark body.variant-c .cosmic-card,
+  html.dark body.variant-c .testimonial-card {
     background: hsl(30 12% 12%);
-    border: 1px solid hsl(30 10% 18%);
-    box-shadow: 0 4px 20px hsl(30 20% 4% / 0.3);
+    border: 1px solid hsl(30 10% 22%);
+    box-shadow: 0 4px 20px hsl(30 20% 4% / 0.4);
   }
 
-  /* Dark mode overrides for EmotionalJourney inline styles */
-  .dark section[class*="relative"] {
-    background-color: hsl(30 15% 8%) !important;
-  }
-  .dark .grain-overlay { opacity: 0.02 !important; }
+  html.dark body { background-color: hsl(30 15% 8%); }
+  html.dark .grain-overlay { opacity: 0.02 !important; }
 
   /* Variant C: Warm Cream & Rose Theme */
   .variant-c {
@@ -169,6 +188,26 @@
     --shadow-card: 0 4px 20px hsl(35 40% 30% / 0.08);
     --shadow-glow-orange: none;
     --shadow-glow-gold: none;
+
+    /* Brand hex tokens — referenced across the site as
+       `var(--cream, #FFFDF5)`, `var(--rose, #bf524a)`, etc.
+       Defining them here lets `html.dark body.variant-c` flip the
+       whole palette without touching component markup. */
+    --cream: #FFFDF5;
+    --cream2: #faf4e8;
+    --cream3: #f3eadb;
+    --sand: #e8ddd0;
+    --sand-dark: #d6c8b6;
+    --faded: #bfb2a3;
+    --black: #141210;
+    --ink: #1f1c18;
+    --deep: #2e2a24;
+    --warm: #5a4a42;
+    --earth: #6e6259;
+    --muted: #958779;
+    --rose: #bf524a;
+    --gold: #c4a265;
+    --green: #4a8c5c;
   }
 
   .variant-c .glass-card,
@@ -458,3 +497,122 @@
   border-radius: 50%;
   animation: twinkle 4s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   DARK-MODE BRAND HEX REMAP
+   --------------------------------------------------------------------------
+   The site has hundreds of hardcoded Tailwind arbitrary classes like
+   `bg-[#FFFDF5]`, `text-[#141210]`, `border-[#e8ddd0]`. Rather than rewriting
+   every component, we override the generated classes when `html.dark` is
+   active. Specificity `html.dark .foo` (0,2,0) beats the Tailwind class
+   (0,1,0) without needing `!important` on most rules.
+   ========================================================================== */
+
+/* --- Cream/paper surfaces → warm near-black --- */
+html.dark .bg-\[\#FFFDF5\],
+html.dark .bg-\[\#faf6ef\],
+html.dark .bg-\[\#faf4e8\],
+html.dark .bg-\[\#f5efe6\],
+html.dark .bg-\[\#fdf9f5\],
+html.dark .bg-\[\#fdf5f5\],
+html.dark .bg-\[\#f0e8de\],
+html.dark .bg-\[\#ede5d8\],
+html.dark .bg-\[\#ffffff\],
+html.dark .bg-\[\#E8DFD6\] { background-color: #1e1814; }
+
+html.dark .bg-\[\#f3eadb\] { background-color: #2a221b; }
+html.dark .bg-\[\#e8ddd0\] { background-color: #3a2f28; }
+
+/* --- Near-black text → warm cream --- */
+html.dark .text-\[\#141210\],
+html.dark .text-\[\#1a1a1a\],
+html.dark .text-\[\#1a1210\],
+html.dark .text-\[\#0d1117\],
+html.dark .text-\[\#1f1c18\] { color: #f3eadb; }
+
+html.dark .text-\[\#2D2926\],
+html.dark .text-\[\#2e2a24\],
+html.dark .text-\[\#2a1f1a\],
+html.dark .text-\[\#3d2f2a\] { color: #e8ddd0; }
+
+/* --- Warm grey text (body) → warm light grey --- */
+html.dark .text-\[\#5a4a42\],
+html.dark .text-\[\#6B5E54\],
+html.dark .text-\[\#6b4c3b\],
+html.dark .text-\[\#4d443b\] { color: #c4b7a7; }
+
+html.dark .text-\[\#6e6259\] { color: #b2a89a; }
+
+/* --- Muted/faded text --- */
+html.dark .text-\[\#958779\],
+html.dark .text-\[\#9a8578\],
+html.dark .text-\[\#9B8E84\],
+html.dark .text-\[\#9a8e84\],
+html.dark .text-\[\#bfb2a3\] { color: #a99a8b; }
+
+/* --- Borders --- */
+html.dark .border-\[\#e8ddd0\],
+html.dark .border-\[\#E8DFD6\] { border-color: #3a2f28; }
+html.dark .border-\[\#d6c8b6\] { border-color: #4a3d30; }
+html.dark .border-\[\#bfb2a3\] { border-color: #5d5045; }
+html.dark .border-\[\#f3eadb\] { border-color: #2a221b; }
+
+/* --- Rose (brand CTA) — brighten slightly for dark bg contrast --- */
+html.dark .text-\[\#bf524a\] { color: #e07a72; }
+html.dark .bg-\[\#bf524a\] { background-color: #c9665f; }
+html.dark .border-\[\#bf524a\] { border-color: #c9665f; }
+html.dark .ring-\[\#bf524a\] { --tw-ring-color: #c9665f; }
+html.dark .bg-\[\#c9665f\] { background-color: #d67770; }
+html.dark .border-\[\#c9665f\] { border-color: #d67770; }
+html.dark .text-\[\#c9665f\] { color: #e58880; }
+html.dark .text-\[\#c47a7a\] { color: #d99090; }
+
+/* --- Gold (accent) — brighten for readability --- */
+html.dark .text-\[\#c4a265\] { color: #e6bf75; }
+html.dark .bg-\[\#c4a265\] { background-color: #d4b26b; }
+html.dark .border-\[\#c4a265\] { border-color: #d4b26b; }
+html.dark .ring-\[\#c4a265\] { --tw-ring-color: #d4b26b; }
+html.dark .from-\[\#c4a265\] { --tw-gradient-from: #d4b26b var(--tw-gradient-from-position); --tw-gradient-to: rgb(212 178 107 / 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+html.dark .text-\[\#b8973e\] { color: #d9b463; }
+html.dark .text-\[\#d4b26b\] { color: #e6c47f; }
+html.dark .text-\[\#8b6f3a\] { color: #b39048; }
+html.dark .to-\[\#8b6f3a\] { --tw-gradient-to: #b39048 var(--tw-gradient-to-position); }
+
+/* --- Green (trust signals) --- */
+html.dark .text-\[\#4a8c5c\] { color: #7dbf8c; }
+html.dark .bg-\[\#4a8c5c\] { background-color: #5a9f6a; }
+html.dark .border-\[\#4a8c5c\] { border-color: #5a9f6a; }
+html.dark .text-\[\#6b8f5e\] { color: #9dc090; }
+
+/* --- Misc cool accents --- */
+html.dark .bg-\[\#6b7d93\] { background-color: #8fa2b8; }
+html.dark .text-\[\#6b7d93\] { color: #8fa2b8; }
+
+/* --- Dark-mode specific body/section fallback so sections using inline
+       `background: #FFFDF5` but via CSS var pick up the token. The var-based
+       rewrites in .variant-c handle most of this; this is a belt-and-braces
+       rule for sections that set a literal cream background. --- */
+html.dark body.variant-c section[style*="FFFDF5"],
+html.dark body.variant-c section[style*="faf6ef"],
+html.dark body.variant-c section[style*="faf4e8"],
+html.dark body.variant-c div[style*="background: var(--cream"],
+html.dark body.variant-c div[style*="background:var(--cream"] {
+  background-color: #1e1814 !important;
+}
+
+/* --- Inputs / form fields: ensure readable contrast in dark --- */
+html.dark body.variant-c input,
+html.dark body.variant-c textarea,
+html.dark body.variant-c select {
+  background-color: #2a221b;
+  color: #f3eadb;
+  border-color: #3a2f28;
+}
+html.dark body.variant-c input::placeholder,
+html.dark body.variant-c textarea::placeholder {
+  color: #8a7e72;
+}
+
+/* --- Hero imagery / cards that use white bg via bg-white --- */
+html.dark body.variant-c .bg-white { background-color: #1e1814; }
+html.dark body.variant-c .text-black { color: #f3eadb; }
