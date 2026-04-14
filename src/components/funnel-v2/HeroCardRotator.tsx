@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 
-type HeroCard = { eyebrow: string; headline: string; sub: string };
+type Glyph = "moon" | "paw" | "bond" | "candle" | "scroll" | "gift" | "mirror";
+type HeroCard = { eyebrow: string; headline: string; sub: string; accent: string; glyph: Glyph };
 
 // Final 7-card deck — every card serves a distinct emotional arrival state
 // and ties to a real product feature (quirk decoder, compatibility, memorial
@@ -9,40 +10,118 @@ type HeroCard = { eyebrow: string; headline: string; sub: string };
 // identity-upgrade → reciprocity reveal.
 const HERO_CARDS: HeroCard[] = [
   {
+    accent: "#c4a265", glyph: "moon",
     eyebrow: "For the one who's been beside you every day",
     headline: "They have a look they save only for you. You still don't know what it means.",
     sub: "You've studied them longer than almost anyone in your life. You've never been able to put it into words. This finally does.",
   },
   {
+    accent: "#bf524a", glyph: "paw",
     eyebrow: "For the pet with that weird thing",
     headline: "You've known what they do. Now know why.",
     sub: "The ritual. The obsession. The specific moment they always appear. You've been narrating their weirdness to friends for years. This tells you what you were actually watching.",
   },
   {
+    accent: "#8a6f8c", glyph: "bond",
     eyebrow: "For the bond nobody else gets",
     headline: "Everyone thinks you're projecting. You're not.",
     sub: "The pull. The rightness. The way it felt like they were yours before they were yours. Every feeling you've had about your bond is in their chart. Written, not imagined.",
   },
   {
+    accent: "#5a4a42", glyph: "candle",
     eyebrow: "For the pet getting older — or already gone",
     headline: "Love doesn't stop at goodbye. Neither does this.",
     sub: "For the ones still here: don't leave them half-understood while there's still time. For the ones you've lost: a memorial reading reads them in past tense — their full chart, their bond with you, a letter in their voice. Not closure. Continuation.",
   },
   {
+    accent: "#7a8670", glyph: "scroll",
     eyebrow: "For the ones with a history you weren't there for",
     headline: "What they can't tell you, their chart remembers.",
     sub: "Rescued, rehomed, shelter, stray — their past is older than your bond, and every piece of it shaped who they are for you. This reads the part they can't say.",
   },
   {
+    accent: "#b0773f", glyph: "gift",
     eyebrow: "For the ones who'd give them the world",
     headline: "Every gift you've bought has said \u201CI love you.\u201D This one says \u201CI see you.\u201D",
     sub: "The full chart. The cosmic portrait for your wall. The archetype, the aura, the letter. A gift that doesn't get chewed, outgrown, or lost — because it is them, not something for them.",
   },
   {
+    accent: "#9d4038", glyph: "mirror",
     eyebrow: "For the ones loved this fiercely",
     headline: "They've been reading you for years. Now read them back.",
     sub: "The hours they've spent watching you. The way they knew you were sad before you did. They've been learning your language without one of their own. This finally gives you theirs.",
   },
+];
+
+const GlyphMark = ({ type, color, opacity = 0.09 }: { type: Glyph; color: string; opacity?: number }) => {
+  const common = { fill: "none", stroke: color, strokeWidth: 1.6, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const paths: Record<Glyph, JSX.Element> = {
+    moon: (
+      <path d="M 40 8 A 26 26 0 1 0 40 60 A 20 20 0 1 1 40 8 Z" fill={color} stroke="none" />
+    ),
+    paw: (
+      <g fill={color} stroke="none">
+        <ellipse cx="20" cy="22" rx="5" ry="7" />
+        <ellipse cx="32" cy="16" rx="5" ry="7" />
+        <ellipse cx="44" cy="22" rx="5" ry="7" />
+        <ellipse cx="52" cy="36" rx="4.5" ry="6" />
+        <path d="M 32 30 C 22 30 16 40 18 48 C 20 56 28 58 32 56 C 36 58 44 56 46 48 C 48 40 42 30 32 30 Z" />
+      </g>
+    ),
+    bond: (
+      <g {...common}>
+        <circle cx="24" cy="34" r="14" />
+        <circle cx="40" cy="34" r="14" />
+      </g>
+    ),
+    candle: (
+      <g {...common}>
+        <path d="M 32 8 Q 38 16 34 22 Q 32 26 32 22 Q 26 16 32 8 Z" fill={color} stroke="none" />
+        <rect x="26" y="26" width="12" height="32" rx="1.5" />
+        <line x1="26" y1="36" x2="38" y2="36" />
+      </g>
+    ),
+    scroll: (
+      <g {...common}>
+        <path d="M 10 22 Q 22 12 32 22 T 54 22" />
+        <path d="M 10 34 Q 22 24 32 34 T 54 34" />
+        <path d="M 10 46 Q 22 36 32 46 T 54 46" />
+      </g>
+    ),
+    gift: (
+      <g {...common}>
+        <rect x="12" y="26" width="40" height="28" rx="2" />
+        <rect x="10" y="20" width="44" height="10" rx="1.5" />
+        <line x1="32" y1="20" x2="32" y2="54" />
+        <path d="M 32 20 C 24 10 16 14 20 18 C 24 22 32 20 32 20 C 32 20 40 22 44 18 C 48 14 40 10 32 20 Z" />
+      </g>
+    ),
+    mirror: (
+      <g {...common}>
+        <circle cx="32" cy="32" r="20" />
+        <path d="M 20 32 L 44 32" />
+        <path d="M 24 28 L 20 32 L 24 36" />
+        <path d="M 40 28 L 44 32 L 40 36" />
+      </g>
+    ),
+  };
+  return (
+    <svg viewBox="0 0 64 64" width="100%" height="100%" aria-hidden="true" style={{ opacity }}>
+      {paths[type]}
+    </svg>
+  );
+};
+
+// Per-card constellation — 3 connected stars whose pattern differs by seed.
+// Keeps the starfield themed rather than wallpapery.
+const CONSTELLATIONS: Array<Array<[number, number]>> = [
+  [[70, 80], [140, 60], [210, 110]],
+  [[80, 320], [160, 280], [230, 330]],
+  [[290, 70], [340, 130], [280, 180]],
+  [[60, 180], [120, 220], [180, 190]],
+  [[310, 270], [350, 320], [270, 330]],
+  [[200, 50], [250, 90], [210, 140]],
+  [[90, 250], [150, 290], [210, 240]],
 ];
 
 const FLIP_MS = 560;
@@ -211,50 +290,111 @@ const CardFace = ({
   chapterLabel,
   animateStars,
   typo,
+  depth = 0,
+  constellationIndex = 0,
 }: {
   card: HeroCard;
   chapterLabel: string;
   animateStars: boolean;
   typo: TypoStyles;
-}) => (
+  depth?: number;
+  constellationIndex?: number;
+}) => {
+  // Back-deck tinting — each layer behind reads as its own page, not a ghost.
+  const bgTop = depth === 0 ? "#FFFDF5" : depth === 1 ? "#f8f0df" : "#f0e6d0";
+  const bgBot = depth === 0 ? "#faf4e8" : depth === 1 ? "#f0e6d0" : "#e6d8bd";
+  const borderCol = depth === 0
+    ? `${card.accent}47` // ~28% alpha of accent
+    : "rgba(180, 150, 95, 0.30)";
+  const stars = [
+    [50, 70, 1.2], [120, 40, 0.9], [280, 60, 1.1], [350, 100, 1],
+    [30, 200, 1], [370, 220, 1.2], [180, 340, 0.9], [320, 360, 1.1],
+    [90, 320, 1], [250, 120, 0.8], [70, 380, 0.9], [220, 50, 1],
+    [150, 180, 0.8], [300, 250, 0.9], [200, 280, 0.7],
+  ];
+  const constellation = CONSTELLATIONS[constellationIndex % CONSTELLATIONS.length];
+  const constellationPath =
+    "M " + constellation.map(([x, y]) => `${x} ${y}`).join(" L ");
+
+  return (
   <div
     className="relative w-full h-full overflow-hidden"
     style={{
-      background: "linear-gradient(180deg, #FFFDF5 0%, #faf4e8 100%)",
-      border: "1px solid rgba(196, 162, 101, 0.28)",
+      background: `linear-gradient(180deg, ${bgTop} 0%, ${bgBot} 100%)`,
+      border: `1px solid ${borderCol}`,
       borderRadius: 24,
       padding: "clamp(38px, 6.5vw, 60px) clamp(26px, 5.5vw, 52px)",
       boxShadow:
         "0 14px 46px rgba(31, 28, 24, 0.09), inset 0 1px 0 rgba(255,255,255,0.75)",
     }}
   >
+    {/* Soft radial glow in the accent colour — subtle lift behind the text */}
+    {depth === 0 && (
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at 50% 42%, ${card.accent}1a 0%, transparent 58%)`,
+        }}
+      />
+    )}
+
     <svg
       aria-hidden="true"
       className="absolute inset-0 w-full h-full pointer-events-none"
       viewBox="0 0 400 400"
       preserveAspectRatio="xMidYMid slice"
     >
-      {[
-        [50, 70, 1.2], [120, 40, 0.9], [280, 60, 1.1], [350, 100, 1],
-        [30, 200, 1], [370, 220, 1.2], [180, 340, 0.9], [320, 360, 1.1],
-        [90, 320, 1], [250, 120, 0.8], [70, 380, 0.9], [220, 50, 1],
-        [150, 180, 0.8], [300, 250, 0.9], [200, 280, 0.7],
-      ].map(([cx, cy, r], i) => (
-        <circle
-          key={i}
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="var(--gold, #c4a265)"
-          opacity={0.35}
-          style={
-            animateStars
-              ? { animation: `heroStarPulse ${3.5 + (i % 3) * 0.7}s ease-in-out ${i * 0.3}s infinite` }
-              : undefined
-          }
+      {/* Per-card constellation line — drawn only on the active card */}
+      {depth === 0 && (
+        <path
+          d={constellationPath}
+          stroke={card.accent}
+          strokeWidth="0.8"
+          strokeLinecap="round"
+          strokeOpacity="0.45"
+          fill="none"
         />
-      ))}
+      )}
+      {stars.map(([cx, cy, r], i) => {
+        // Stars nearest the constellation burn brighter
+        const onConstellation = depth === 0 && constellation.some(
+          ([x, y]) => Math.abs(cx - x) < 20 && Math.abs(cy - y) < 20
+        );
+        return (
+          <circle
+            key={i}
+            cx={cx}
+            cy={cy}
+            r={onConstellation ? r * 1.6 : r}
+            fill={onConstellation ? card.accent : "var(--gold, #c4a265)"}
+            opacity={onConstellation ? 0.75 : 0.28}
+            style={
+              animateStars
+                ? { animation: `heroStarPulse ${3.5 + (i % 3) * 0.7}s ease-in-out ${i * 0.3}s infinite` }
+                : undefined
+            }
+          />
+        );
+      })}
     </svg>
+
+    {/* Themed glyph watermark — sits behind the headline, gives each card its own mark */}
+    {depth === 0 && (
+      <div
+        aria-hidden="true"
+        className="absolute pointer-events-none"
+        style={{
+          top: "clamp(44px, 8vw, 74px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "clamp(120px, 22vw, 180px)",
+          height: "clamp(120px, 22vw, 180px)",
+        }}
+      >
+        <GlyphMark type={card.glyph} color={card.accent} opacity={0.11} />
+      </div>
+    )}
 
     <div
       aria-hidden="true"
@@ -263,11 +403,12 @@ const CardFace = ({
         top: 14,
         right: 18,
         fontFamily: '"Lato", system-ui, sans-serif',
-        fontSize: "0.68rem",
-        letterSpacing: "0.22em",
+        fontSize: "0.72rem",
+        fontWeight: 600,
+        letterSpacing: "0.24em",
         textTransform: "uppercase",
-        color: "var(--muted, #958779)",
-        opacity: 0.7,
+        color: card.accent,
+        opacity: depth === 0 ? 0.85 : 0,
       }}
     >
       {chapterLabel}
@@ -289,24 +430,25 @@ const CardFace = ({
             maxWidth: "34rem",
             lineHeight: 1.3,
             ...typo.eyebrow,
+            color: card.accent,
           }}
         >
           {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
           <span>{card.eyebrow}</span>
           {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
         </div>
-        {/* Hand-drawn squiggle underline — turns the eyebrow into a titled header */}
+        {/* Hand-drawn squiggle underline — picks up the card's accent colour */}
         <svg
           aria-hidden="true"
           width="84"
           height="8"
           viewBox="0 0 84 8"
           fill="none"
-          style={{ opacity: 0.75, marginTop: 2 }}
+          style={{ opacity: 0.8, marginTop: 2 }}
         >
           <path
             d="M 2 5 Q 10 0.5 18 4.5 T 34 4.5 T 50 4.5 T 66 4.5 T 82 4.5"
-            stroke="var(--gold, #c4a265)"
+            stroke={card.accent}
             strokeWidth="1.4"
             strokeLinecap="round"
             fill="none"
@@ -321,7 +463,8 @@ const CardFace = ({
       <p style={{ margin: 0, maxWidth: "32rem", ...typo.sub }}>{card.sub}</p>
     </div>
   </div>
-);
+  );
+};
 
 const ArrowButton = ({
   direction,
@@ -455,6 +598,17 @@ export const HeroCardRotator = ({
   const total = HERO_CARDS.length;
   const isFirst = index === 0;
   const isLast = index === total - 1;
+  const activeAccent = HERO_CARDS[index].accent;
+
+  const goTo = (target: number) => {
+    if (lockRef.current || target === index) return;
+    if (target < 0 || target >= HERO_CARDS.length) return;
+    lockRef.current = true;
+    setIndex(target);
+    window.setTimeout(() => {
+      lockRef.current = false;
+    }, FLIP_MS);
+  };
 
   return (
     <div
@@ -463,8 +617,9 @@ export const HeroCardRotator = ({
       aria-roledescription="carousel"
       tabIndex={0}
       onKeyDown={onKeyDown}
-      className="hero-journey outline-none select-none flex items-center gap-2 sm:gap-4"
+      className="hero-journey outline-none select-none flex flex-col gap-3 sm:gap-4"
     >
+    <div className="flex items-center gap-2 sm:gap-4">
       <ArrowButton direction="left" disabled={isFirst} onClick={() => go(-1)} />
 
       <div
@@ -495,9 +650,11 @@ export const HeroCardRotator = ({
             >
               <CardFace
                 card={card}
-                chapterLabel={`${pad2(i + 1)} / ${pad2(total)}`}
+                chapterLabel={`Chapter ${pad2(i + 1)} / ${pad2(total)}`}
                 animateStars={isTop}
                 typo={typo}
+                depth={Math.max(0, offset)}
+                constellationIndex={i}
               />
             </div>
           );
@@ -505,14 +662,53 @@ export const HeroCardRotator = ({
       </div>
 
       <ArrowButton direction="right" disabled={isLast} onClick={() => go(1)} />
+    </div>
 
-      <style>{`
+    {/* Progress rail — 7 dots, the active one expands + picks up the card's accent */}
+    <div
+      className="flex items-center justify-center gap-2"
+      role="tablist"
+      aria-label="Card progress"
+      style={{ paddingTop: 4 }}
+    >
+      {HERO_CARDS.map((c, i) => {
+        const active = i === index;
+        return (
+          <button
+            key={i}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            aria-label={`Go to card ${i + 1} of ${total}`}
+            onClick={() => goTo(i)}
+            className="progress-dot"
+            style={{
+              width: active ? 28 : 8,
+              height: 8,
+              borderRadius: 9999,
+              padding: 0,
+              border: "none",
+              cursor: "pointer",
+              background: active ? activeAccent : "rgba(149, 135, 121, 0.28)",
+              transition: "width 320ms ease, background 320ms ease, transform 180ms ease",
+            }}
+          />
+        );
+      })}
+    </div>
+
+    <style>{`
         @keyframes heroStarPulse {
           0%, 100% { opacity: 0.22; }
           50%      { opacity: 0.62; }
         }
         @media (prefers-reduced-motion: reduce) {
           .deck-card { transition: opacity 250ms ease !important; }
+        }
+        .progress-dot:hover { transform: translateY(-1px); }
+        .progress-dot:focus-visible {
+          outline: 2px solid var(--gold, #c4a265);
+          outline-offset: 3px;
         }
       `}</style>
     </div>
