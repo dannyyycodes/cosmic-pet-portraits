@@ -255,9 +255,10 @@ function TierCard({
    visitor sees a fresh pet. ── */
 type GiftReview = {
   name: string; location: string;
-  /** If set, pull a live avatar from dog.ceo / thecatapi.com. Omit for a
-   *  text-only card. */
-  avatar?: { pet: 'dog' | 'cat'; breed?: string };
+  /** Avatar source. If `src` is set we skip the API and use that image
+   *  directly (stable across reloads). Otherwise we pull a random photo
+   *  from dog.ceo / thecatapi.com. Omit avatar for a text-only card. */
+  avatar?: { src?: string; pet?: 'dog' | 'cat'; breed?: string };
   quote: string;
 };
 
@@ -270,7 +271,7 @@ const GIFT_REVIEWS: GiftReview[] = [
   {
     name: 'Emily',
     location: 'Toronto',
-    avatar: { pet: 'dog', breed: 'retriever/golden' },
+    avatar: { src: '/breeds/golden-retriever-1.jpg' },
     quote: 'Gave it to my sister for her golden retriever puppy. The reading described how he bonds by pressing against your leg on walks. She mentioned it the next morning over coffee.',
   },
   {
@@ -390,8 +391,14 @@ function GiftReviewStrip() {
 
   useEffect(() => {
     let cancelled = false;
+    const initial: Record<number, string> = {};
+    GIFT_REVIEWS.forEach((r, i) => {
+      if (r.avatar?.src) initial[i] = r.avatar.src;
+    });
+    if (Object.keys(initial).length) setImages(initial);
+
     GIFT_REVIEWS.forEach(async (r, i) => {
-      if (!r.avatar) return;
+      if (!r.avatar || r.avatar.src || !r.avatar.pet) return;
       const url = await fetchPetImage(r.avatar.pet, r.avatar.breed);
       if (!cancelled && url) {
         setImages(prev => ({ ...prev, [i]: url }));
