@@ -287,7 +287,7 @@ const GIFT_REVIEWS: GiftReview[] = [
   {
     name: 'Anna',
     location: 'Portland',
-    avatar: { pet: 'dog', breed: 'collie/border' },
+    avatar: { src: '/breeds/border-collie-1.jpg' },
     quote: 'Sent this to my sister after her collie passed. It caught how he always did a final check of the room before bed. She said it felt like someone remembered him too.',
   },
   {
