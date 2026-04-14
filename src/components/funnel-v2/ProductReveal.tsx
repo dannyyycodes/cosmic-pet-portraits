@@ -439,19 +439,8 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
             zIndex: 1,
           }}
         >
-          <div
-            className="max-w-[620px] mx-auto"
-            style={{
-              background: "rgba(255, 253, 245, 0.92)",
-              backdropFilter: "blur(2px)",
-              WebkitBackdropFilter: "blur(2px)",
-              border: "1px solid rgba(196, 162, 101, 0.14)",
-              borderRadius: 18,
-              padding: "clamp(22px, 5vw, 40px) clamp(22px, 5vw, 40px)",
-              boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
-            }}
-          >
-            <HeroCardRotator />
+          <div className="max-w-[720px] mx-auto">
+            <HeroCardRotator onFinishClick={onCtaClick} />
           </div>
         </div>
 
