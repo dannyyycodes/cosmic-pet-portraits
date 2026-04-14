@@ -48,10 +48,11 @@ const HERO_CARDS: HeroCard[] = [
 const FLIP_MS = 560;
 
 export type TypographyVariant =
-  | "editorial-italic"   // current: DM Serif italic headline, Cormorant italic eyebrow
-  | "classical-upright"  // DM Serif upright + Lato caps eyebrow
-  | "bold-modern"        // Playfair bold + Cormorant italic eyebrow
-  | "handwritten-intimate"; // DM Serif italic + Caveat handwritten eyebrow
+  | "hw-soft-diary"      // Caveat eyebrow, DM Serif italic headline (bigger), Lato light italic body
+  | "hw-love-letter"     // Caveat eyebrow (large), Playfair italic headline (huge), Cormorant body
+  | "hw-big-quote"       // Small Caveat eyebrow, DM Serif italic headline (massive)
+  | "hw-full-cursive"    // Caveat eyebrow, Caveat bold cursive headline (XL), Cormorant body
+  | "hw-whisper";        // Caveat eyebrow rose, Cormorant italic headline, Cormorant light italic body
 
 interface HeroCardRotatorProps {
   onFinishClick?: () => void;
@@ -69,101 +70,18 @@ type TypoStyles = {
 };
 
 const TYPO: Record<TypographyVariant, TypoStyles> = {
-  "editorial-italic": {
-    showStars: true,
-    eyebrow: {
-      fontFamily: '"Cormorant", Georgia, serif',
-      fontStyle: "italic",
-      fontSize: "clamp(0.94rem, 2.3vw, 1.08rem)",
-      letterSpacing: "0.04em",
-      color: "var(--gold, #c4a265)",
-      opacity: 0.95,
-    },
-    headline: {
-      fontFamily: '"DM Serif Display", Georgia, serif',
-      fontSize: "clamp(1.65rem, 6.2vw, 2.35rem)",
-      fontWeight: 400,
-      fontStyle: "italic",
-      color: "var(--black, #141210)",
-      lineHeight: 1.12,
-      letterSpacing: "-0.015em",
-    },
-    sub: {
-      fontFamily: '"Cormorant", Georgia, serif',
-      fontSize: "clamp(1.05rem, 2.6vw, 1.22rem)",
-      fontWeight: 400,
-      color: "var(--warm, #5a4a42)",
-      lineHeight: 1.55,
-    },
-  },
-  "classical-upright": {
-    showStars: false,
-    eyebrow: {
-      fontFamily: '"Lato", system-ui, sans-serif',
-      fontWeight: 600,
-      textTransform: "uppercase",
-      fontSize: "clamp(0.7rem, 1.7vw, 0.82rem)",
-      letterSpacing: "0.24em",
-      color: "var(--gold, #c4a265)",
-    },
-    headline: {
-      fontFamily: '"DM Serif Display", Georgia, serif',
-      fontSize: "clamp(1.75rem, 6.4vw, 2.5rem)",
-      fontWeight: 400,
-      fontStyle: "normal",
-      color: "var(--black, #141210)",
-      lineHeight: 1.14,
-      letterSpacing: "-0.02em",
-    },
-    sub: {
-      fontFamily: '"Cormorant", Georgia, serif',
-      fontSize: "clamp(1.05rem, 2.6vw, 1.2rem)",
-      fontStyle: "italic",
-      fontWeight: 400,
-      color: "var(--warm, #5a4a42)",
-      lineHeight: 1.55,
-    },
-  },
-  "bold-modern": {
-    showStars: false,
-    eyebrow: {
-      fontFamily: '"Cormorant", Georgia, serif',
-      fontStyle: "italic",
-      fontWeight: 500,
-      fontSize: "clamp(0.95rem, 2.3vw, 1.1rem)",
-      letterSpacing: "0.02em",
-      color: "var(--rose, #bf524a)",
-    },
-    headline: {
-      fontFamily: '"Playfair Display", Georgia, serif',
-      fontSize: "clamp(1.7rem, 6.4vw, 2.4rem)",
-      fontWeight: 700,
-      fontStyle: "normal",
-      color: "var(--black, #141210)",
-      lineHeight: 1.1,
-      letterSpacing: "-0.025em",
-    },
-    sub: {
-      fontFamily: '"Lato", system-ui, sans-serif',
-      fontSize: "clamp(0.98rem, 2.3vw, 1.08rem)",
-      fontWeight: 400,
-      color: "var(--warm, #5a4a42)",
-      lineHeight: 1.6,
-    },
-  },
-  "handwritten-intimate": {
+  "hw-soft-diary": {
     showStars: false,
     eyebrow: {
       fontFamily: '"Caveat", cursive',
       fontWeight: 500,
-      fontSize: "clamp(1.15rem, 2.7vw, 1.4rem)",
-      letterSpacing: "0.01em",
+      fontSize: "clamp(1.25rem, 3vw, 1.55rem)",
+      letterSpacing: "0.005em",
       color: "var(--gold, #c4a265)",
-      opacity: 0.95,
     },
     headline: {
       fontFamily: '"DM Serif Display", Georgia, serif',
-      fontSize: "clamp(1.65rem, 6.2vw, 2.35rem)",
+      fontSize: "clamp(1.95rem, 7.2vw, 2.9rem)",
       fontWeight: 400,
       fontStyle: "italic",
       color: "var(--black, #141210)",
@@ -172,7 +90,114 @@ const TYPO: Record<TypographyVariant, TypoStyles> = {
     },
     sub: {
       fontFamily: '"Lato", system-ui, sans-serif',
-      fontSize: "clamp(0.98rem, 2.3vw, 1.08rem)",
+      fontSize: "clamp(1.05rem, 2.5vw, 1.18rem)",
+      fontWeight: 300,
+      fontStyle: "italic",
+      color: "var(--warm, #5a4a42)",
+      lineHeight: 1.6,
+    },
+  },
+  "hw-love-letter": {
+    showStars: false,
+    eyebrow: {
+      fontFamily: '"Caveat", cursive',
+      fontWeight: 500,
+      fontSize: "clamp(1.35rem, 3.2vw, 1.7rem)",
+      letterSpacing: "0.005em",
+      color: "var(--gold, #c4a265)",
+    },
+    headline: {
+      fontFamily: '"Playfair Display", Georgia, serif',
+      fontSize: "clamp(2.05rem, 7.6vw, 3rem)",
+      fontWeight: 500,
+      fontStyle: "italic",
+      color: "var(--black, #141210)",
+      lineHeight: 1.1,
+      letterSpacing: "-0.02em",
+    },
+    sub: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontSize: "clamp(1.12rem, 2.7vw, 1.28rem)",
+      fontWeight: 400,
+      color: "var(--warm, #5a4a42)",
+      lineHeight: 1.55,
+    },
+  },
+  "hw-big-quote": {
+    showStars: false,
+    eyebrow: {
+      fontFamily: '"Caveat", cursive',
+      fontWeight: 400,
+      fontSize: "clamp(1.05rem, 2.4vw, 1.25rem)",
+      letterSpacing: "0.005em",
+      color: "var(--muted, #958779)",
+      opacity: 0.9,
+    },
+    headline: {
+      fontFamily: '"DM Serif Display", Georgia, serif',
+      fontSize: "clamp(2.15rem, 8vw, 3.2rem)",
+      fontWeight: 400,
+      fontStyle: "italic",
+      color: "var(--black, #141210)",
+      lineHeight: 1.08,
+      letterSpacing: "-0.02em",
+    },
+    sub: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontSize: "clamp(1.1rem, 2.6vw, 1.24rem)",
+      fontWeight: 400,
+      fontStyle: "italic",
+      color: "var(--warm, #5a4a42)",
+      lineHeight: 1.55,
+    },
+  },
+  "hw-full-cursive": {
+    showStars: false,
+    eyebrow: {
+      fontFamily: '"Caveat", cursive',
+      fontWeight: 400,
+      fontSize: "clamp(1.05rem, 2.4vw, 1.22rem)",
+      letterSpacing: "0.005em",
+      color: "var(--gold, #c4a265)",
+    },
+    headline: {
+      fontFamily: '"Caveat", cursive',
+      fontSize: "clamp(2.65rem, 10vw, 4rem)",
+      fontWeight: 700,
+      color: "var(--black, #141210)",
+      lineHeight: 1.02,
+      letterSpacing: "-0.005em",
+    },
+    sub: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontSize: "clamp(1.1rem, 2.6vw, 1.24rem)",
+      fontWeight: 400,
+      color: "var(--warm, #5a4a42)",
+      lineHeight: 1.55,
+    },
+  },
+  "hw-whisper": {
+    showStars: false,
+    eyebrow: {
+      fontFamily: '"Caveat", cursive',
+      fontWeight: 500,
+      fontSize: "clamp(1.25rem, 3vw, 1.5rem)",
+      letterSpacing: "0.005em",
+      color: "var(--rose, #bf524a)",
+      opacity: 0.95,
+    },
+    headline: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontSize: "clamp(2rem, 7.4vw, 2.95rem)",
+      fontWeight: 500,
+      fontStyle: "italic",
+      color: "var(--black, #141210)",
+      lineHeight: 1.14,
+      letterSpacing: "-0.015em",
+    },
+    sub: {
+      fontFamily: '"Cormorant", Georgia, serif',
+      fontSize: "clamp(1.1rem, 2.6vw, 1.24rem)",
       fontWeight: 300,
       fontStyle: "italic",
       color: "var(--warm, #5a4a42)",
@@ -198,7 +223,7 @@ const CardFace = ({
       background: "linear-gradient(180deg, rgba(255,253,245,0.97) 0%, rgba(250,244,232,0.95) 100%)",
       border: "1px solid rgba(196, 162, 101, 0.28)",
       borderRadius: 24,
-      padding: "clamp(30px, 5.5vw, 46px) clamp(22px, 5vw, 44px)",
+      padding: "clamp(38px, 6.5vw, 60px) clamp(26px, 5.5vw, 52px)",
       boxShadow:
         "0 14px 46px rgba(31, 28, 24, 0.09), inset 0 1px 0 rgba(255,255,255,0.75)",
     }}
@@ -249,8 +274,11 @@ const CardFace = ({
     </div>
 
     <div
-      className="relative h-full flex flex-col items-center justify-center gap-3 text-center"
-      style={{ minHeight: "clamp(260px, 38vw, 300px)" }}
+      className="relative h-full flex flex-col items-center justify-center text-center"
+      style={{
+        minHeight: "clamp(300px, 42vw, 360px)",
+        gap: "clamp(14px, 2vw, 22px)",
+      }}
     >
       <div
         style={{
@@ -371,7 +399,7 @@ const stackStyleFor = (offset: number): React.CSSProperties => {
 };
 
 export const HeroCardRotator = ({
-  typography = "editorial-italic",
+  typography = "hw-soft-diary",
 }: HeroCardRotatorProps) => {
   const [index, setIndex] = useState(0);
   const lockRef = useRef(false);
@@ -425,7 +453,7 @@ export const HeroCardRotator = ({
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         style={{
-          minHeight: "clamp(380px, 54vw, 440px)",
+          minHeight: "clamp(440px, 62vw, 520px)",
           perspective: "1600px",
         }}
       >

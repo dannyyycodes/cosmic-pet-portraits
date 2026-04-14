@@ -2,28 +2,34 @@ import { HeroCardRotator, type TypographyVariant } from "@/components/funnel-v2/
 
 const VARIANTS: { key: TypographyVariant; name: string; blurb: string }[] = [
   {
-    key: "editorial-italic",
-    name: "A · Editorial Italic",
+    key: "hw-soft-diary",
+    name: "A · Soft Diary",
     blurb:
-      "DM Serif Display italic headline · Cormorant italic eyebrow in gold · Cormorant upright body. The current look — literary, intimate, slightly Vogue-column.",
+      "Caveat handwritten eyebrow in gold · DM Serif Display italic headline (bigger) · Lato light-italic body. Warm, private, journal-style. The current default.",
   },
   {
-    key: "classical-upright",
-    name: "B · Classical Upright",
+    key: "hw-love-letter",
+    name: "B · Love Letter",
     blurb:
-      "DM Serif Display upright headline (no italic) · Lato caps-tracked eyebrow · Cormorant italic body. More formal, magazine-masthead, less romantic.",
+      "Caveat eyebrow (larger, bolder) · Playfair Display italic headline (extra large, 500 weight) · Cormorant body. More ornate, more emotional, reads like a handwritten letter.",
   },
   {
-    key: "bold-modern",
-    name: "C · Bold Modern",
+    key: "hw-big-quote",
+    name: "C · Big Quote",
     blurb:
-      "Playfair Display 700 bold headline · Cormorant italic eyebrow in rose · Lato body. Higher contrast, more editorial-impact, reads like a print ad.",
+      "Small Caveat eyebrow in muted grey (subtle, feels like a margin note) · Massive DM Serif Display italic headline · Cormorant italic body. Headline-dominant; eyebrow steps back.",
   },
   {
-    key: "handwritten-intimate",
-    name: "D · Handwritten Intimate",
+    key: "hw-full-cursive",
+    name: "D · Full Cursive",
     blurb:
-      "DM Serif Display italic headline · Caveat handwritten eyebrow in gold · Lato light-italic body. Softer, diaristic, feels like a private note.",
+      "Caveat eyebrow · Caveat 700 cursive headline at giant scale · Cormorant body. Most intimate, most handwritten — the whole thing feels like a note scrawled for them.",
+  },
+  {
+    key: "hw-whisper",
+    name: "E · Whisper",
+    blurb:
+      "Caveat eyebrow in rose · Cormorant italic headline (elegant, thinner feel than DM Serif) · Cormorant light-italic body. Softer, quieter, more breath around every line.",
   },
 ];
 
@@ -33,10 +39,10 @@ const HeroTypographyPreview = () => {
       style={{
         background: "var(--cream, #FFFDF5)",
         minHeight: "100vh",
-        padding: "clamp(32px, 5vw, 72px) clamp(16px, 4vw, 48px) 120px",
+        padding: "clamp(32px, 5vw, 72px) clamp(16px, 4vw, 48px) 160px",
       }}
     >
-      <div className="max-w-[820px] mx-auto text-center" style={{ marginBottom: 48 }}>
+      <div className="max-w-[820px] mx-auto text-center" style={{ marginBottom: 56 }}>
         <div
           style={{
             fontFamily: '"Lato", system-ui, sans-serif',
@@ -48,40 +54,42 @@ const HeroTypographyPreview = () => {
             marginBottom: 10,
           }}
         >
-          Hero Deck · Typography Preview
+          Hero Deck · Handwritten Variants
         </div>
         <h1
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.8rem, 5vw, 2.4rem)",
+            fontSize: "clamp(1.9rem, 5.2vw, 2.5rem)",
             fontWeight: 400,
+            fontStyle: "italic",
             color: "var(--black, #141210)",
             margin: 0,
           }}
         >
-          Four typographic takes on the same deck.
+          Five handwritten takes on the same deck.
         </h1>
         <p
           style={{
             fontFamily: '"Cormorant", Georgia, serif',
-            fontSize: "clamp(1rem, 2.2vw, 1.12rem)",
+            fontSize: "clamp(1rem, 2.2vw, 1.14rem)",
             color: "var(--warm, #5a4a42)",
             maxWidth: 640,
             margin: "16px auto 0",
+            lineHeight: 1.55,
           }}
         >
-          Flick through each deck, compare the feel, tell me which variant to lock in on the live site.
+          Same 7 cards, five different type hierarchies. Flick through each deck, compare the feel, tell me which letter (A–E) to lock in.
         </p>
       </div>
 
-      <div className="flex flex-col" style={{ gap: 72 }}>
+      <div className="flex flex-col" style={{ gap: 96 }}>
         {VARIANTS.map((v) => (
           <section key={v.key} className="max-w-[820px] mx-auto w-full">
             <div
               style={{
                 borderTop: "1px solid rgba(196, 162, 101, 0.3)",
-                paddingTop: 20,
-                marginBottom: 18,
+                paddingTop: 22,
+                marginBottom: 22,
               }}
             >
               <div
@@ -90,7 +98,7 @@ const HeroTypographyPreview = () => {
                   fontWeight: 700,
                   letterSpacing: "0.08em",
                   color: "var(--black, #141210)",
-                  fontSize: "1rem",
+                  fontSize: "1.02rem",
                 }}
               >
                 {v.name}
@@ -98,11 +106,11 @@ const HeroTypographyPreview = () => {
               <div
                 style={{
                   fontFamily: '"Cormorant", Georgia, serif',
-                  fontSize: "0.98rem",
+                  fontSize: "1rem",
                   color: "var(--muted, #958779)",
                   fontStyle: "italic",
                   marginTop: 4,
-                  lineHeight: 1.5,
+                  lineHeight: 1.55,
                 }}
               >
                 {v.blurb}
