@@ -271,7 +271,7 @@ const GIFT_REVIEWS: GiftReview[] = [
   {
     name: 'Emily',
     location: 'Toronto',
-    avatar: { src: '/breeds/golden-retriever-1.jpg' },
+    avatar: { src: 'https://images.pexels.com/photos/35130989/pexels-photo-35130989.jpeg?auto=compress&cs=tinysrgb&w=160&h=160&fit=crop' },
     quote: 'Gave it to my sister for her golden retriever puppy. The reading described how he bonds by pressing against your leg on walks. She mentioned it the next morning over coffee.',
   },
   {
@@ -287,7 +287,7 @@ const GIFT_REVIEWS: GiftReview[] = [
   {
     name: 'Anna',
     location: 'Portland',
-    avatar: { src: '/breeds/border-collie-1.jpg' },
+    avatar: { src: 'https://images.pexels.com/photos/7176277/pexels-photo-7176277.jpeg?auto=compress&cs=tinysrgb&w=160&h=160&fit=crop' },
     quote: 'Sent this to my sister after her collie passed. It caught how he always did a final check of the room before bed. She said it felt like someone remembered him too.',
   },
   {
