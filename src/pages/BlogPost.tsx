@@ -451,9 +451,7 @@ const BlogPost = () => {
                   h3: ({ children }) => (
                     <h3 className="text-xl font-semibold mt-8 mb-3" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: "#3d2f2a" }}>{children}</h3>
                   ),
-                  p: ({ children }) => (
-                    <p className="leading-relaxed mb-5 text-lg" style={{ color: "#5a4a42" }}>{children}</p>
-                  ),
+                  // p is overridden further down with image-detection smarts
                   ul: ({ children }) => (
                     <ul className="list-disc list-inside space-y-2 mb-6 text-lg pl-4" style={{ color: "#5a4a42" }}>{children}</ul>
                   ),
@@ -506,6 +504,29 @@ const BlogPost = () => {
                   code: ({ children }) => (
                     <code className="px-2 py-1 rounded text-sm font-mono" style={{ background: "#faf6ef", color: "#c4a265" }}>{children}</code>
                   ),
+                  img: ({ src, alt }) => (
+                    <figure className="my-10 -mx-4 md:mx-0">
+                      <img
+                        src={src}
+                        alt={alt}
+                        loading="lazy"
+                        className="w-full aspect-[16/9] object-cover md:rounded-2xl"
+                        style={{ background: "#f5efe6" }}
+                      />
+                      {alt && alt.length > 3 && (
+                        <figcaption className="text-center text-xs mt-3 px-4 italic" style={{ color: "#9a8578" }}>
+                          {alt}
+                        </figcaption>
+                      )}
+                    </figure>
+                  ),
+                  p: ({ children }) => {
+                    // If paragraph wraps a single image, render the image directly (no <p>) so the figure sits clean
+                    const arr = Array.isArray(children) ? children : [children];
+                    const onlyImg = arr.length === 1 && typeof arr[0] === "object" && (arr[0] as { type?: unknown })?.type === "img";
+                    if (onlyImg) return <>{children}</>;
+                    return <p className="leading-relaxed mb-5 text-lg" style={{ color: "#5a4a42" }}>{children}</p>;
+                  },
                 }}
               >
                 {post.content}

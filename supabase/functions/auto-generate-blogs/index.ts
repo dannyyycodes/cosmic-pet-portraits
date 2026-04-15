@@ -190,8 +190,27 @@ Return JSON with this exact shape:
   "heroImage": {
     "pexelsQuery": "2–4 word Pexels search query picking an image that literally and emotionally matches the post (examples: 'golden retriever sunset', 'black cat windowsill', 'senior dog sleeping', 'puppy muddy paws'). Prefer concrete subject matter over abstract concepts. No cosmic/galaxy/constellation — those return generic stock.",
     "alt": "20–140 char descriptive alt text including the target keyword naturally. Describe what's IN the image, not what it represents."
-  }
-}`;
+  },
+  "inlineImages": [
+    {
+      "afterHeading": "EXACT H2 text to place this image after (match the ## heading text verbatim, no ## prefix). Pick a middle section, not the first or the Sources section.",
+      "pexelsQuery": "2–4 word Pexels query for THIS section's actual subject matter. If the section is about a specific breed/behaviour/age, query that — not the whole post topic. Examples: 'puppy sleeping', 'dog park running', 'cat stretching morning', 'senior labrador grey muzzle'. No cosmic/galaxy/constellation.",
+      "alt": "20–140 char alt describing what's in the image."
+    },
+    {
+      "afterHeading": "Different H2 than the first. Space the images across the body.",
+      "pexelsQuery": "Different subject than image #1 — reflect this section specifically.",
+      "alt": "..."
+    }
+  ]
+}
+
+Inline image rules:
+- Exactly 2 inline images (plus 1 hero) — don't over-illustrate.
+- afterHeading MUST match one of your H2 lines exactly (text only, no "##").
+- Never pick the first H2 (image would fight the TL;DR) or the "Sources" or "Ready to..." H2.
+- Space them: if you have 5 H2s named [Intro, Foo, Bar, Baz, Sources], place image 1 after "Foo" and image 2 after "Baz" (or similar).
+- Each query should reflect that section's specific content, not the overall topic.`;
 
         const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
@@ -302,9 +321,64 @@ Return JSON with this exact shape:
           console.warn("PEXELS_API_KEY not set — skipping hero image");
         }
 
+        // --- Inline section images (2 per post) ---
+        async function fetchPexels(query: string): Promise<{ url: string; alt: string } | null> {
+          try {
+            const r = await fetch(
+              `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&orientation=landscape&per_page=5&size=large`,
+              { headers: { Authorization: pexelsKey } },
+            );
+            if (!r.ok) return null;
+            const j = await r.json();
+            const photo = (j.photos ?? [])[0];
+            if (!photo) return null;
+            const url = photo.src?.large2x || photo.src?.large;
+            if (!url) return null;
+            return { url, alt: photo.alt && photo.alt.length > 20 ? photo.alt : query };
+          } catch {
+            return null;
+          }
+        }
+
+        let bodyWithImages: string = blogData.content;
+        if (pexelsKey && Array.isArray(blogData.inlineImages)) {
+          // Avoid duplicating the hero photo inside the body
+          const usedUrls = new Set<string>([heroImageUrl ?? ""]);
+          for (const img of (blogData.inlineImages as Array<{ afterHeading?: string; pexelsQuery?: string; alt?: string }>).slice(0, 2)) {
+            if (!img?.pexelsQuery || !img?.afterHeading) continue;
+            // Skip forbidden sections
+            if (/^(sources|ready to|ready to read|faq|frequently)/i.test(img.afterHeading.trim())) continue;
+            // Find the heading line in body
+            const escaped = img.afterHeading.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const headingRe = new RegExp(`(^##\\s+${escaped}\\s*$)`, "m");
+            const match = headingRe.exec(bodyWithImages);
+            if (!match) {
+              console.warn(`Inline image heading not found: "${img.afterHeading}" — skipping`);
+              continue;
+            }
+            // Fetch: use Claude's query, fall back to that query + species
+            const queries = [img.pexelsQuery, `${species} ${img.pexelsQuery}`, img.pexelsQuery.split(" ")[0]];
+            let pick: { url: string; alt: string } | null = null;
+            for (const q of queries) {
+              const tried = await fetchPexels(q);
+              if (tried && !usedUrls.has(tried.url)) { pick = tried; break; }
+            }
+            if (!pick) {
+              console.warn(`Inline image: no Pexels result for "${img.pexelsQuery}"`);
+              continue;
+            }
+            usedUrls.add(pick.url);
+            const alt = (img.alt && img.alt.length > 10) ? img.alt : pick.alt;
+            const insertion = `\n\n![${alt.replace(/[\[\]]/g, "")}](${pick.url})\n`;
+            const idx = match.index + match[0].length;
+            bodyWithImages = bodyWithImages.slice(0, idx) + insertion + bodyWithImages.slice(idx);
+            console.log(`Inline image inserted after "${img.afterHeading}" -> ${pick.url}`);
+          }
+        }
+
         // Insert middle + end CTA at end of body (middle gets inlined after 2nd H2)
         const ctaEnd = `\n\n## Ready to read ${species === "cat" ? "their feline soul" : "your dog's soul"}?\n\n*Written by ${author.short_name}.* [Read your pet's cosmic chart →](${cta.end})\n`;
-        let finalContent: string = blogData.content;
+        let finalContent: string = bodyWithImages;
         if (!finalContent.includes("](" + cta.end) && !finalContent.includes("](" + cta.middle)) {
           // Inject middle CTA after the 2nd H2 (approx 40% scroll)
           const h2Positions: number[] = [];
