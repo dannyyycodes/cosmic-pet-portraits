@@ -142,7 +142,7 @@ const BlogPost = () => {
     });
   };
 
-  const trackCTAClick = async (url: string) => {
+  const trackCTAClick = async (url: string, position: "middle" | "end" | "inline" = "inline") => {
     if (!post) return;
     const sessionId = sessionStorage.getItem("session_id") || crypto.randomUUID();
     await supabase.from("blog_analytics").insert({
@@ -152,7 +152,10 @@ const BlogPost = () => {
       referrer: document.referrer,
       user_agent: navigator.userAgent,
     });
-    navigate(url);
+    // Append UTM params so the landing page can see the source post in GA4 + Stripe metadata
+    const sep = url.includes("?") ? "&" : "?";
+    const utm = `utm_source=blog&utm_medium=cta&utm_campaign=${encodeURIComponent(post.slug)}&utm_content=${position}`;
+    navigate(url + sep + utm);
   };
 
   const handleShare = async () => {
@@ -474,7 +477,7 @@ const BlogPost = () => {
                       const isMemorial = h.includes("intent=memorial") || h === "/soul-chat";
                       return (
                         <button
-                          onClick={() => trackCTAClick(h)}
+                          onClick={() => trackCTAClick(h, h === ctaMiddle ? "middle" : h === ctaEnd ? "end" : "inline")}
                           className="inline-flex items-center gap-2 my-4 px-6 py-3 font-medium transition-opacity hover:opacity-90"
                           style={{
                             background: isMemorial ? "#3d2f2a" : "linear-gradient(135deg,#c4a265,#b8973e)",
@@ -578,7 +581,7 @@ const BlogPost = () => {
                   : "£27. Cinematic reveal. The stars read aloud for the one you love most."}
               </p>
               <button
-                onClick={() => trackCTAClick(ctaEnd)}
+                onClick={() => trackCTAClick(ctaEnd, "end")}
                 className="inline-flex items-center gap-2 px-8 py-4 font-medium text-lg transition-opacity hover:opacity-90"
                 style={{ background: "#c4a265", color: "#3d2f2a", border: "none", borderRadius: "10px" }}
               >

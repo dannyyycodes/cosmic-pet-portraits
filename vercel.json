@@ -47,6 +47,17 @@
     { "source": "/apple-touch-icon.png", "destination": "/og-image.jpg" },
     { "source": "/apple-touch-icon-precomposed.png", "destination": "/og-image.jpg" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    {
+      "source": "/blog/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawl|spider|slurp|yandex|baiduspider|anthropic|claudebot|claude-web|gptbot|chatgpt-user|oai-searchbot|perplexity|applebot|amazonbot|meta-external|google-extended|ccbot|duckassistbot|twitterbot|facebookexternalhit|linkedinbot|whatsapp|telegrambot|mj12bot|ahrefsbot|semrushbot|bytespider).*"
+        }
+      ],
+      "destination": "/api/blog-ssr?slug=:slug"
+    },
     { "source": "/soul-chat", "destination": "/soul-chat.html" },
     { "source": "/gift-v2", "destination": "/gift-v2.html" },
     { "source": "/report-full-v2", "destination": "/report-full-v2.html" },
