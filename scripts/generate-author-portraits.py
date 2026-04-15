@@ -11,8 +11,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 KIE_KEY = os.environ.get("KIE_API_KEY", "b6950bc9ee85f941ecb523ce34efb4a0")
-SUPABASE_PAT = os.environ.get("SUPABASE_PAT", "sbp_c42487f85976568fe45b151e012df814d5df3f49")
 PROJECT_REF = "aduibsyrnenzobuyetmn"
+SUPABASE_URL = f"https://{PROJECT_REF}.supabase.co"
+# Service role JWT (PostgREST PATCH — more reliable than Management API for row updates)
+SERVICE_ROLE_JWT = os.environ.get(
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkzMDAzOCwiZXhwIjoyMDg4NTA2MDM4fQ.6Icy7RKDkfCYI5EoUMn1u8kYK1FNVbB9pC46JENbXdo",
+)
 
 PROMPTS = {
     "elena-whitaker": "Little Souls author portrait series — Dr. Elena Whitaker, consistent character. Realistic editorial photograph, warm natural window light from camera-left, shallow depth of field. A 45-year-old white woman with ash-brown shoulder-length hair loosely tucked behind one ear, subtle grey at the temples, minimal makeup, calm hazel eyes, a faint smile with a slight asymmetry on the right. Small silver hoop earrings, no other jewelry. Wearing a soft oatmeal-colored linen shirt under an unbuttoned faded navy exam coat. Background: a softly blurred veterinary exam room with warm wood shelves, a potted pothos, and a cream-colored wall — cream and sage palette, not clinical white. Mood: grounded, competent, kind. Photographic style: muted film look, Kodak Portra 400 aesthetic, grain subtle, no HDR. Square crop, framed from mid-chest up.",
@@ -88,23 +93,19 @@ def poll_task(slug, task_id, timeout_s=420, interval_s=6):
 
 
 def update_author(slug, image_url):
-    sql = f"UPDATE authors SET image_url = $$'${image_url}'$$  WHERE slug = '{slug}';"
-    # Simpler — interpolate directly since URL is a known-safe string
-    sql = "UPDATE authors SET image_url = %s WHERE slug = %s;" % (
-        "'" + image_url.replace("'", "''") + "'",
-        "'" + slug + "'",
-    )
     args = [
-        "curl", "-sS", "-X", "POST",
-        f"https://api.supabase.com/v1/projects/{PROJECT_REF}/database/query",
-        "-H", f"Authorization: Bearer {SUPABASE_PAT}",
+        "curl", "-sS", "-X", "PATCH",
+        f"{SUPABASE_URL}/rest/v1/authors?slug=eq.{slug}",
+        "-H", f"apikey: {SERVICE_ROLE_JWT}",
+        "-H", f"Authorization: Bearer {SERVICE_ROLE_JWT}",
         "-H", "Content-Type: application/json",
+        "-H", "Prefer: return=minimal",
         "-w", "\n%{http_code}",
-        "--data", json.dumps({"query": sql}),
+        "--data", json.dumps({"image_url": image_url}),
     ]
     out = subprocess.run(args, capture_output=True, text=True, timeout=30)
     http = out.stdout.strip().split("\n")[-1]
-    return http == "201"
+    return http in ("204", "200")
 
 
 def main():
