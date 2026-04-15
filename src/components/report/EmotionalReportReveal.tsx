@@ -6,6 +6,9 @@ interface EmotionalReportRevealProps {
   report: any;
   onComplete: () => void;
   occasionMode?: string;
+  /** 0-based index of this reveal in a multi-pet purchase. Shows "Reading X of N". */
+  readingIndex?: number;
+  totalReadings?: number;
 }
 
 function getPronouns(gender?: string) {
@@ -25,8 +28,10 @@ const grainStyle: React.CSSProperties = {
   backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
 };
 
-export function EmotionalReportReveal({ petName, report, onComplete, occasionMode }: EmotionalReportRevealProps) {
+export function EmotionalReportReveal({ petName, report, onComplete, occasionMode, readingIndex, totalReadings }: EmotionalReportRevealProps) {
   const [visible, setVisible] = useState(false);
+  const isMultiReading = typeof totalReadings === 'number' && totalReadings > 1;
+  const readingNumber = (readingIndex ?? 0) + 1;
 
   const sunSign = report?.chartPlacements?.sun?.sign || report?.sunSign || 'Aries';
   const moonSign = report?.chartPlacements?.moon?.sign || report?.moonSign || '';
@@ -102,6 +107,39 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
       ))}
 
       <div className="relative z-10 flex flex-col items-center text-center max-w-[520px] w-full">
+        {/* Reading X of N badge — only in multi-pet purchases */}
+        {isMultiReading && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={visible ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-8"
+            style={{
+              background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(191,82,74,0.1))',
+              border: '1px solid rgba(196,162,101,0.4)',
+            }}
+          >
+            <span
+              className="text-[0.68rem] font-bold uppercase tracking-[0.18em]"
+              style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}
+            >
+              Reading {readingNumber} of {totalReadings}
+            </span>
+            <div className="flex gap-1">
+              {Array.from({ length: totalReadings! }, (_, i) => (
+                <div
+                  key={i}
+                  className="h-1 rounded-full transition-all"
+                  style={{
+                    width: i < readingNumber ? 14 : 6,
+                    background: i < readingNumber ? '#bf524a' : 'rgba(196,162,101,0.35)',
+                  }}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Gift pre-text */}
         {isGift && (
           <motion.p

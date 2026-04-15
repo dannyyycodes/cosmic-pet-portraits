@@ -7,6 +7,7 @@ import { EmotionalReportReveal } from '@/components/report/EmotionalReportReveal
 import { GiftConfirmation } from '@/components/report/GiftConfirmation';
 import { AllReportsComplete } from '@/components/report/AllReportsComplete';
 import { PostPurchaseIntake } from '@/components/intake/PostPurchaseIntake';
+import { MultiPetIntakeFlow } from '@/components/intake/MultiPetIntakeFlow';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -58,6 +59,9 @@ export default function PaymentSuccess() {
   // Lightweight metadata for the pet currently generating — lets us show the
   // uploaded photo + name on the loading screen before the full report exists.
   const [generatingMeta, setGeneratingMeta] = useState<{ petName?: string; petPhotoUrl?: string; gender?: string }>({});
+  // Pets that still need intake (pet_name === 'Pending') — populated when user
+  // closes the checkout tab before completing the per-pet questions.
+  const [pendingIntakePets, setPendingIntakePets] = useState<Array<{ reportId: string; petName?: string; petPhotoUrl?: string }>>([]);
 
   const sessionId = searchParams.get('session_id');
   const reportId = searchParams.get('report_id');
@@ -161,9 +165,20 @@ export default function PaymentSuccess() {
 
         if (stillGenerating && processedReports.length < reports.length) return 'generating';
 
-        // Check if any report still has placeholder pet name (user closed tab before intake)
-        const allPending = reports.every((r: any) => r.pet_name === 'Pending' || !r.pet_name);
-        if (allPending && reportId) {
+        // Check which reports still have placeholder pet name (user closed tab
+        // before completing intake). In a multi-pet order, this can be *some*
+        // of the reports — we must route every one of them through intake
+        // before we ever reach the reveal, or the worker will never generate
+        // the missing ones.
+        const pending = reports
+          .filter((r: any) => r.pet_name === 'Pending' || !r.pet_name)
+          .map((r: any) => ({
+            reportId: r.id,
+            petName: r.pet_name && r.pet_name !== 'Pending' ? r.pet_name : undefined,
+            petPhotoUrl: r.pet_photo_url,
+          }));
+        if (pending.length > 0) {
+          setPendingIntakePets(pending);
           setStage('post-purchase-intake');
           return true;
         }
@@ -244,9 +259,23 @@ export default function PaymentSuccess() {
   const handleAllComplete = () => setStage('celebration');
   const handleNextPetFromViewer = () => { if (currentReportIndex < allReports.length - 1) setCurrentReportIndex(prev => prev + 1); };
 
-  // Post-purchase intake
-  if (stage === 'post-purchase-intake' && reportId) {
-    return <PostPurchaseIntake reportId={reportId} onComplete={() => verifyAndFetchReport()} />;
+  // Post-purchase intake — orchestrates N pets when checkout collected multiple
+  // reports, or shows the single-pet flow for quick checkout and legacy orders.
+  if (stage === 'post-purchase-intake') {
+    if (pendingIntakePets.length > 0) {
+      return (
+        <MultiPetIntakeFlow
+          pets={pendingIntakePets}
+          onAllComplete={() => {
+            setPendingIntakePets([]);
+            verifyAndFetchReport();
+          }}
+        />
+      );
+    }
+    if (reportId) {
+      return <PostPurchaseIntake reportId={reportId} onComplete={() => verifyAndFetchReport()} />;
+    }
   }
 
   // Error
@@ -288,24 +317,111 @@ export default function PaymentSuccess() {
     );
   }
 
-  // Ready next
+  // Ready next — celebratory bridge between one pet's reveal and the next.
   if (stage === 'ready-next' && currentReport) {
-    const nextPetName = allReports[currentReportIndex + 1]?.petName || 'your next pet';
+    const nextPetName = allReports[currentReportIndex + 1]?.petName || 'your next soul';
+    const progress = currentReportIndex + 1;
+    const total = allReports.length;
     return (
-      <div className="min-h-screen flex items-center justify-center px-6" style={{ backgroundColor: '#FFFDF5' }}>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[rgba(191,82,74,0.1)] flex items-center justify-center">
-            <Sparkles className="w-10 h-10 text-[#bf524a]" />
-          </div>
-          <h1 className="text-3xl font-bold text-[#2D2926] mb-4" style={{ fontFamily: 'DM Serif Display, serif' }}>
-            {currentReport.petName}'s Report Complete! 🌟
-          </h1>
-          <p className="text-[#6B5E54] mb-8 text-lg">Ready to discover {nextPetName}'s cosmic secrets?</p>
-          <Button onClick={handleNextPet} className="w-full bg-[#bf524a] hover:bg-[#c9665f] text-white py-3">
-            View {nextPetName}'s Report <ChevronRight className="w-5 h-5 ml-2" />
-          </Button>
-          <button onClick={handleViewAllReports} className="text-[#9B8E84] hover:text-[#2D2926] text-sm underline-offset-4 hover:underline mt-4 block w-full">
-            Skip to all reports
+      <div
+        className="min-h-screen flex items-center justify-center px-6 py-12 relative overflow-hidden"
+        style={{ backgroundColor: '#FFFDF5' }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+          className="max-w-[440px] w-full text-center"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', damping: 12, delay: 0.1 }}
+            className="relative w-24 h-24 mx-auto mb-8"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, rgba(196,162,101,0.35), rgba(191,82,74,0.3))',
+                filter: 'blur(16px)',
+              }}
+            />
+            <div
+              className="relative w-full h-full rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #c4a265, #bf524a)',
+                boxShadow: '0 12px 40px -8px rgba(191,82,74,0.45)',
+              }}
+            >
+              <Sparkles className="w-10 h-10 text-white" />
+            </div>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            className="text-[0.7rem] uppercase tracking-[0.2em] mb-3"
+            style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif', fontVariant: 'small-caps' }}
+          >
+            Reading {progress} of {total} revealed ✦
+          </motion.p>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.5 }}
+            className="text-[#2D2926] mb-3"
+            style={{ fontFamily: 'DM Serif Display, serif', fontSize: 'clamp(1.8rem, 6vw, 2.4rem)' }}
+          >
+            {currentReport.petName}'s stars are yours.
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
+            className="text-[1.05rem] text-[#6B5E54] italic mb-8"
+            style={{ fontFamily: 'Cormorant, serif' }}
+          >
+            Ready to meet {nextPetName}?
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
+            className="flex items-center gap-1.5 justify-center mb-8"
+          >
+            {allReports.map((r, i) => (
+              <div
+                key={r.reportId}
+                className="h-1.5 rounded-full transition-all"
+                style={{
+                  width: i < progress ? 28 : 14,
+                  background: i < progress ? '#bf524a' : '#E8DFD6',
+                }}
+              />
+            ))}
+          </motion.div>
+
+          <motion.button
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85 }}
+            onClick={handleNextPet}
+            className="w-full py-4 rounded-xl text-white text-[1.02rem] relative overflow-hidden"
+            style={{ fontFamily: 'DM Serif Display, serif', backgroundColor: '#bf524a' }}
+          >
+            <motion.div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)' }}
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <span className="relative z-10 inline-flex items-center justify-center gap-1">
+              Reveal {nextPetName}'s chart <ChevronRight className="w-5 h-5" />
+            </span>
+          </motion.button>
+
+          <button
+            onClick={handleViewAllReports}
+            className="text-[#9B8E84] hover:text-[#2D2926] text-[0.82rem] underline-offset-4 hover:underline mt-4 block w-full"
+            style={{ fontFamily: 'Cormorant, serif' }}
+          >
+            Or skip to all readings
           </button>
         </motion.div>
       </div>
@@ -320,6 +436,8 @@ export default function PaymentSuccess() {
         report={currentReport.report}
         onComplete={handleRevealComplete}
         occasionMode={currentReport.occasionMode}
+        readingIndex={hasMultipleReports ? currentReportIndex : undefined}
+        totalReadings={hasMultipleReports ? allReports.length : undefined}
       />
     );
   }

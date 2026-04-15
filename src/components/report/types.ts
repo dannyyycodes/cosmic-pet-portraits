@@ -260,4 +260,10 @@ export interface ReportData {
   petName: string;
   report: ReportContent;
   reportId: string;
+  /** Buyer email — present when the viewer sourced this from PaymentSuccess. */
+  email?: string;
+  /** Optional user-uploaded pet photo; used by the multi-pet selector + compatibility offer. */
+  petPhotoUrl?: string;
+  /** Optional generated portrait image; premium tier. */
+  portraitUrl?: string;
 }

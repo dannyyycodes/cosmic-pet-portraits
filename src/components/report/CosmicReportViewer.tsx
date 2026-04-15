@@ -36,6 +36,7 @@ import { SoulSpeakTeaser } from './SoulSpeakTeaser';
 import { YelpReviews } from './YelpReviews';
 import { CosmicAwards } from './CosmicAwards';
 import { StaticPassage } from './StaticPassage';
+import { CompatibilityOffer } from './CompatibilityOffer';
 
 // Re-export types for backward compatibility
 export type { ReportContent, ReportData, ChartPlacement, SectionContent };
@@ -1163,6 +1164,19 @@ export function CosmicReportViewer({
                 `}</style>
               </motion.div>
             </div>
+          )}
+
+          {/* ═══ CROSS-PET COMPATIBILITY OFFER ═══ */}
+          {hasMultipleReports && allReports && (
+            <CompatibilityOffer
+              pets={allReports.map(r => ({
+                reportId: r.reportId,
+                petName: r.petName,
+                petPhotoUrl: r.petPhotoUrl || r.portraitUrl,
+              }))}
+              currentReportId={allReports[currentIndex]?.reportId}
+              buyerEmail={allReports[0]?.email || ''}
+            />
           )}
 
           {/* ═══ MULTI-PET NAVIGATION ═══ */}

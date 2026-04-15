@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
+import { MultiPetSection } from "./MultiPetSection";
 import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 
@@ -110,6 +111,10 @@ export const FunnelV2 = () => {
         <GoldDivider />
       </div>
       <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
+
+      {/* Multi-pet story — cross-pet readings + Cosmic Household digest */}
+      <MultiPetSection onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
+
       <InlineCheckout
         ref={checkoutRef}
         ctaLabel={copy.ctaPrimary}

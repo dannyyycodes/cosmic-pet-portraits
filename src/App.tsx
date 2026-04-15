@@ -62,6 +62,7 @@ const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 const FindReport = lazy(() => import("./pages/FindReport"));
 const HeroTypographyPreview = lazy(() => import("./pages/HeroTypographyPreview"));
 const CardsPreview = lazy(() => import("./pages/CardsPreview"));
+const CompatibilityViewer = lazy(() => import("./pages/CompatibilityViewer"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the homepage InlineCheckout section.
@@ -178,6 +179,7 @@ const App = () => (
                   <Route path="/find-report" element={<FindReport />} />
                   <Route path="/hero-typography" element={<HeroTypographyPreview />} />
                   <Route path="/cards-preview" element={<CardsPreview />} />
+                  <Route path="/compatibility" element={<CompatibilityViewer />} />
                   <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

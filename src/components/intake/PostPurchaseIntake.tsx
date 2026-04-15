@@ -6,9 +6,28 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import imageCompression from 'browser-image-compression';
 
+interface SharedOwnerData {
+  ownerName?: string;
+  ownerBirthDate?: string;
+  ownerBirthTime?: string;
+  ownerBirthLocation?: string;
+}
+
+export interface PetIntakeSnapshot {
+  email: string;
+  owner?: SharedOwnerData;
+}
+
 interface PostPurchaseIntakeProps {
   reportId: string;
-  onComplete: () => void;
+  onComplete: (snapshot?: PetIntakeSnapshot) => void;
+  /** When rendered inside MultiPetIntakeFlow, these give context for progress + re-use. */
+  petIndex?: number; // 0-based
+  totalPets?: number;
+  sharedEmail?: string;
+  sharedOwner?: SharedOwnerData;
+  /** Label to show on the final submit button. Defaults to "Create {petName}'s Soul Reading →" */
+  submitLabel?: (petName: string) => string;
 }
 
 function getPronouns(gender: string) {
@@ -86,7 +105,20 @@ const grainStyle: React.CSSProperties = {
   backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
 };
 
-export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeProps) {
+export function PostPurchaseIntake({
+  reportId,
+  onComplete,
+  petIndex,
+  totalPets,
+  sharedEmail,
+  sharedOwner,
+  submitLabel,
+}: PostPurchaseIntakeProps) {
+  const isMultiPet = typeof totalPets === 'number' && totalPets > 1;
+  const currentPetNumber = (petIndex ?? 0) + 1;
+  const hasSharedEmail = !!sharedEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sharedEmail);
+  const hasSharedOwner = !!(sharedOwner && sharedOwner.ownerBirthDate);
+
   const [screen, setScreen] = useState(0);
   const [occasionMode, setOccasionMode] = useState("discover");
   const [petName, setPetName] = useState("");
@@ -104,20 +136,20 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const [superpowers, setSuperpowers] = useState<string[]>([]);
   const [strangerReaction, setStrangerReaction] = useState("");
   const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(sharedEmail ?? "");
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Soul Bond (premium) — owner details
   const [includesSoulBond, setIncludesSoulBond] = useState(false);
-  const [ownerName, setOwnerName] = useState("");
+  const [ownerName, setOwnerName] = useState(sharedOwner?.ownerName ?? "");
   const [ownerBirthMonth, setOwnerBirthMonth] = useState("");
   const [ownerBirthYear, setOwnerBirthYear] = useState("");
   const [ownerBirthDay, setOwnerBirthDay] = useState("");
-  const [ownerBirthDate, setOwnerBirthDate] = useState("");
-  const [ownerBirthTime, setOwnerBirthTime] = useState("");
-  const [ownerBirthLocation, setOwnerBirthLocation] = useState("");
+  const [ownerBirthDate, setOwnerBirthDate] = useState(sharedOwner?.ownerBirthDate ?? "");
+  const [ownerBirthTime, setOwnerBirthTime] = useState(sharedOwner?.ownerBirthTime ?? "");
+  const [ownerBirthLocation, setOwnerBirthLocation] = useState(sharedOwner?.ownerBirthLocation ?? "");
   const [ownerLocationResults, setOwnerLocationResults] = useState<Array<{ display_name: string; address?: { city?: string; town?: string; village?: string; country?: string; state?: string }; name?: string }>>([]);
   const [showOwnerLocationResults, setShowOwnerLocationResults] = useState(false);
   const [isSearchingOwnerLocation, setIsSearchingOwnerLocation] = useState(false);
@@ -347,13 +379,29 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
         throw new Error(data.error);
       }
 
-      // Show loading screen immediately — don't wait for background generation
-      onComplete();
+      // Capture shared fields for re-use across subsequent pets in a multi-pet flow.
+      const snapshot: PetIntakeSnapshot = {
+        email: email.trim(),
+        ...(includesSoulBond && ownerBirthDate
+          ? {
+              owner: {
+                ownerName: ownerName.trim() || undefined,
+                ownerBirthDate: ownerBirthDate || undefined,
+                ownerBirthTime: ownerBirthTime || undefined,
+                ownerBirthLocation: ownerBirthLocation || undefined,
+              },
+            }
+          : {}),
+      };
 
       // Fire and forget — report generates in the background
       supabase.functions.invoke("generate-report-background", {
         body: { reportId, includesPortrait: includesSoulBond },
       }).catch(err => console.warn("[PostPurchaseIntake] Generation trigger:", err));
+
+      // Hand control back — wrapper decides whether to advance to next pet or
+      // move to the reveal sequence.
+      onComplete(snapshot);
     } catch (err: any) {
       console.error("[PostPurchaseIntake] Submission failed");
       const errorMsg = err?.message || "Something went wrong";
@@ -367,25 +415,59 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
   const labelClass = "text-[0.7rem] text-[#9B8E84] uppercase tracking-widest font-[Cormorant,serif] font-semibold mb-1 block";
   const roseBtn = "w-full py-[0.9rem] rounded-xl text-white font-[Cormorant,serif] font-semibold text-[1rem] transition-all";
 
-  const totalScreens = includesSoulBond ? 7 : 6;
+  // When owner data is already captured from a previous pet in a multi-pet flow,
+  // skip the Soul Bond screen entirely — we already have what we need.
+  const skipSoulBondScreen = includesSoulBond && hasSharedOwner;
+  const showSoulBondScreen = includesSoulBond && !hasSharedOwner;
+  const totalScreens = showSoulBondScreen ? 7 : 6;
   // For premium: 0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=soul bond, 6=confirm
   // For basic:   0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=confirm
-  const confirmScreen = includesSoulBond ? 6 : 5;
-  const soulBondScreen = 5; // only used when includesSoulBond
+  const confirmScreen = showSoulBondScreen ? 6 : 5;
+  const soulBondScreen = 5; // only used when showSoulBondScreen
 
   const ProgressDots = () => (
-    <div className="flex items-center gap-2 justify-center mb-8">
-      {Array.from({ length: totalScreens }, (_, i) => (
+    <div className="flex flex-col items-center gap-2 mb-6">
+      {isMultiPet && (
         <motion.div
-          key={i}
-          animate={i === screen ? { scale: [1, 1.3, 1] } : {}}
+          key={`pet-badge-${petIndex}`}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className={cn(
-            "w-2 h-2 rounded-full transition-colors",
-            i === screen ? "bg-[#bf524a]" : "border border-[#E8DFD6] bg-transparent"
-          )}
-        />
-      ))}
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full"
+          style={{
+            background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(191,82,74,0.12))',
+            border: '1px solid rgba(196,162,101,0.35)',
+          }}
+        >
+          <span className="text-[0.68rem] font-bold uppercase tracking-[0.15em]" style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}>
+            Pet {currentPetNumber} of {totalPets}
+          </span>
+          <div className="flex gap-1">
+            {Array.from({ length: totalPets! }, (_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "h-1 rounded-full transition-all",
+                  i < currentPetNumber ? "bg-[#bf524a] w-4" : "bg-[#E8DFD6] w-2"
+                )}
+              />
+            ))}
+          </div>
+        </motion.div>
+      )}
+      <div className="flex items-center gap-2 justify-center">
+        {Array.from({ length: totalScreens }, (_, i) => (
+          <motion.div
+            key={i}
+            animate={i === screen ? { scale: [1, 1.3, 1] } : {}}
+            transition={{ duration: 0.3 }}
+            className={cn(
+              "w-2 h-2 rounded-full transition-colors",
+              i === screen ? "bg-[#bf524a]" : "border border-[#E8DFD6] bg-transparent"
+            )}
+          />
+        ))}
+      </div>
     </div>
   );
 
@@ -814,17 +896,17 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 </div>
               </div>
 
-              <button onClick={() => setScreen(includesSoulBond ? soulBondScreen : confirmScreen)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(showSoulBondScreen ? soulBondScreen : confirmScreen)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
                 Continue →
               </button>
-              <button onClick={() => setScreen(includesSoulBond ? soulBondScreen : confirmScreen)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+              <button onClick={() => setScreen(showSoulBondScreen ? soulBondScreen : confirmScreen)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
                 Skip — let the stars do the talking
               </button>
             </motion.div>
           )}
 
-          {/* SCREEN 5: Soul Bond (premium only) */}
-          {includesSoulBond && screen === soulBondScreen && (
+          {/* SCREEN 5: Soul Bond (premium only, skipped when owner data already shared) */}
+          {showSoulBondScreen && screen === soulBondScreen && (
             <motion.div key="s-sb" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <div className="text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4"
@@ -966,7 +1048,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                   📸 Upload {petName}'s photo
                 </p>
                 <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-3">
-                  We'll weave {pronouns.possessive} photo through the report, emails, and SoulSpeak. It brings everything to life.
+                  We'll weave {pronouns.possessive} photo through the reveal and SoulSpeak — it brings everything to life.
                 </p>
                 <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" className="hidden"
                   onChange={e => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); }} />
@@ -1009,22 +1091,39 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 )}
               </div>
 
-              {/* Email */}
-              <div>
-                <label className={labelClass}>Where should we send your report?</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className={inputClass}
-                  aria-label="Email address"
-                  style={{ fontSize: '16px' }}
-                />
-                <p className={hintClass}>
-                  We'll email you a link when {petName}'s reading is ready.
-                </p>
-              </div>
+              {/* Email — either fresh entry or confirmed from previous pet in flow */}
+              {hasSharedEmail ? (
+                <div>
+                  <label className={labelClass}>Your email</label>
+                  <div className="flex items-center justify-between rounded-xl px-4 py-3 bg-[rgba(196,162,101,0.08)] border border-[rgba(196,162,101,0.35)]">
+                    <span className="text-[0.95rem] text-[#2D2926]" style={{ fontFamily: 'Cormorant, serif' }}>
+                      {email}
+                    </span>
+                    <span className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}>
+                      ✓ Saved
+                    </span>
+                  </div>
+                  <p className={hintClass}>
+                    We'll keep all of {isMultiPet ? 'your pets\'' : petName + '\'s'} readings under this email so you can find them again.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className={labelClass}>Your email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className={inputClass}
+                    aria-label="Email address"
+                    style={{ fontSize: '16px' }}
+                  />
+                  <p className={hintClass}>
+                    So you can revisit {petName}'s reading anytime. The stars reveal themselves here — no email waiting required.
+                  </p>
+                </div>
+              )}
 
               {/* CTA */}
               <button
@@ -1038,7 +1137,7 @@ export function PostPurchaseIntake({ reportId, onComplete }: PostPurchaseIntakeP
                 )}
                 style={{ fontFamily: 'DM Serif Display, serif' }}
               >
-                {isSubmitting ? "Creating..." : `Create ${petName}'s Soul Reading →`}
+                {isSubmitting ? "Creating..." : (submitLabel ? submitLabel(petName) : `Create ${petName}'s Soul Reading →`)}
               </button>
               <p className="text-center text-[0.72rem] text-[#9B8E84] font-[Cormorant,serif]">
                 🔒 Your data is encrypted and never shared.{' '}

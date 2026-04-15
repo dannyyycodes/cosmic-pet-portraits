@@ -88,6 +88,11 @@ const checkoutSchema = z.object({
   giftRecipientEmail: z.string().email().max(255).optional().or(z.literal('')),
   giftRecipientName: z.string().max(100).optional(),
   quickCheckoutEmail: z.string().email().max(255).optional().or(z.literal('')),
+  // Cross-pet compatibility upsell — buyer pays a small fee to generate a
+  // reading that compares two of their existing pet charts.
+  compatibilityUpsellCheckout: z.boolean().optional().default(false),
+  compatPetReportAId: z.string().uuid().optional(),
+  compatPetReportBId: z.string().uuid().optional(),
 });
 
 serve(async (req) => {
@@ -180,6 +185,77 @@ serve(async (req) => {
       });
       console.log("[CREATE-CHECKOUT] Gift upsell session:", giftSession.id, giftCode);
       return new Response(JSON.stringify({ url: giftSession.url }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // ========== CROSS-PET COMPATIBILITY UPSELL ==========
+    // A small paid add-on available to buyers who own 2+ pet reports.
+    if (input.compatibilityUpsellCheckout) {
+      const COMPAT_PRICE_CENTS = 1200; // $12 — lightweight add-on, never a fresh reading
+      const { compatPetReportAId, compatPetReportBId, purchaserEmail } = input;
+      if (!compatPetReportAId || !compatPetReportBId || compatPetReportAId === compatPetReportBId) {
+        return new Response(JSON.stringify({ error: "Two distinct pet report ids required" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+      if (!purchaserEmail) {
+        return new Response(JSON.stringify({ error: "Purchaser email required" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+
+      // Server-side ownership check — both reports must share the buyer's email.
+      const { data: sourceReports, error: srcErr } = await supabaseClient
+        .from("pet_reports")
+        .select("id, email, pet_name, payment_status")
+        .in("id", [compatPetReportAId, compatPetReportBId]);
+      if (srcErr || !sourceReports || sourceReports.length !== 2) {
+        return new Response(JSON.stringify({ error: "Source reports not found" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+      const buyerEmail = purchaserEmail.toLowerCase().trim();
+      if (sourceReports.some(r => (r.email || "").toLowerCase().trim() !== buyerEmail || r.payment_status !== "paid")) {
+        return new Response(JSON.stringify({ error: "Not your reports" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 403,
+        });
+      }
+
+      const nameA = sourceReports.find(r => r.id === compatPetReportAId)?.pet_name || "your first pet";
+      const nameB = sourceReports.find(r => r.id === compatPetReportBId)?.pet_name || "your second pet";
+
+      const compatSession = await stripe.checkout.sessions.create({
+        customer_email: purchaserEmail,
+        line_items: [{
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `${nameA} × ${nameB} — Together`,
+              description: `A cross-pet reading that reveals how ${nameA} and ${nameB} move through the world side by side.`,
+            },
+            unit_amount: COMPAT_PRICE_CENTS,
+          },
+          quantity: 1,
+        }],
+        mode: "payment",
+        payment_method_types: ["card", "link", "klarna", "afterpay_clearpay", "amazon_pay", "revolut_pay", "bancontact", "eps"],
+        success_url: `${origin}/compatibility?session_id={CHECKOUT_SESSION_ID}&a=${compatPetReportAId}&b=${compatPetReportBId}`,
+        cancel_url: `${origin}/?compat_cancelled=1`,
+        metadata: {
+          type: "pet_compatibility",
+          pet_report_a_id: compatPetReportAId,
+          pet_report_b_id: compatPetReportBId,
+          purchaser_email: buyerEmail,
+        },
+      });
+      console.log("[CREATE-CHECKOUT] Compatibility upsell session:", compatSession.id);
+      return new Response(JSON.stringify({ url: compatSession.url, sessionId: compatSession.id }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 200,
       });

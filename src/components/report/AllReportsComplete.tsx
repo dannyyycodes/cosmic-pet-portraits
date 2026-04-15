@@ -321,7 +321,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             </motion.div>
           )}
 
-          {/* Weekly Horoscope Confirmation - Show if horoscope was added */}
+          {/* Weekly Horoscope Confirmation — household-aware copy when the buyer has 2+ pets */}
           {horoscopeInfo?.enabled && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -331,28 +331,35 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             >
               <div className="flex items-center gap-2 mb-3">
                 <Star className="w-5 h-5 text-primary fill-primary shrink-0" />
-                <h3 className="font-semibold text-foreground text-sm md:text-base">Weekly Horoscopes Activated! 🌟</h3>
+                <h3 className="font-semibold text-foreground text-sm md:text-base">
+                  {horoscopeInfo.petNames.length > 1 ? 'Cosmic Household activated 🌟' : 'Weekly horoscopes activated 🌟'}
+                </h3>
               </div>
-              
+
               <p className="text-xs md:text-sm text-muted-foreground mb-3">
-                {horoscopeInfo.petNames.length === 1 
-                  ? `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames[0]} every Sunday!`
-                  : `You'll receive personalized weekly cosmic guidance for ${horoscopeInfo.petNames.join(' and ')} every Sunday!`
+                {horoscopeInfo.petNames.length === 1
+                  ? `You'll receive weekly cosmic guidance for ${horoscopeInfo.petNames[0]} every Sunday.`
+                  : `Every Sunday, one beautiful digest — with a section for each of ${horoscopeInfo.petNames.join(' and ')}. No inbox clutter.`
                 }
               </p>
-              
+
               <div className="bg-background/50 rounded-lg p-3 border border-border/50">
-                <p className="text-xs md:text-sm font-medium text-foreground mb-2">What to expect:</p>
+                <p className="text-xs md:text-sm font-medium text-foreground mb-2">
+                  {horoscopeInfo.petNames.length > 1 ? 'What your household gets:' : 'What to expect:'}
+                </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>✦ Weekly cosmic forecast tailored to your pet's chart</li>
+                  {horoscopeInfo.petNames.length > 1 && (
+                    <li>✦ One consolidated email — all your pets in one place</li>
+                  )}
+                  <li>✦ Weekly cosmic forecast tailored to each chart</li>
                   <li>✦ Energy predictions for each day</li>
                   <li>✦ Best times for activities, vet visits, and bonding</li>
                   <li>✦ Special cosmic event alerts (eclipses, retrogrades)</li>
                 </ul>
               </div>
-              
+
               <p className="text-xs text-muted-foreground mt-3">
-                Your first horoscope will arrive within the next few days!
+                Your first {horoscopeInfo.petNames.length > 1 ? 'household digest' : 'horoscope'} arrives within the next few days.
               </p>
             </motion.div>
           )}
@@ -598,7 +605,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
             transition={{ delay: 0.8 }}
             className="text-sm text-muted-foreground/60 mt-10"
           >
-            Your reports have been emailed to you for safekeeping 💫
+            Your readings live here — return anytime to read them again 💫
           </motion.p>
         </motion.div>
       </div>

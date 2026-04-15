@@ -230,7 +230,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
           Creating something special just for them
         </p>
         <p className="text-[0.72rem] text-[#9B8E84] mt-2">
-          A link to your report has been sent to your email
+          Keep this tab open — {petName}'s reading will reveal itself right here
         </p>
 
         {/* Calm reassurance after 4 minutes — never a "timeout" error */}
@@ -238,8 +238,8 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             className="mt-6 text-center max-w-xs">
             <p className="text-[0.78rem] text-[#6B5E54] mb-2 leading-relaxed">
-              We're taking a little extra care with {petName}'s reading. You can keep this tab
-              open, or we'll email you the moment it's ready.
+              We're taking a little extra care with {petName}'s reading. Keep this tab open —
+              or open this link anytime to come back to it.
             </p>
             {reportId && (
               <a

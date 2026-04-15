@@ -260,6 +260,30 @@ serve(async (req) => {
           console.log("[STRIPE-WEBHOOK] Initial credits added:", weeklyCredits);
         }
       }
+      // Cross-pet compatibility upsell — buyer paid for a compatibility
+      // reading comparing two of their existing pet reports.
+      else if (session.metadata?.type === "pet_compatibility") {
+        const aId = session.metadata?.pet_report_a_id;
+        const bId = session.metadata?.pet_report_b_id;
+        const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!aId || !bId || !UUID_PATTERN.test(aId) || !UUID_PATTERN.test(bId) || aId === bId) {
+          console.error("[STRIPE-WEBHOOK] Invalid compatibility ids in metadata");
+          return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
+        }
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        try {
+          const triggerResp = await fetch(`${supabaseUrl}/functions/v1/generate-pet-compatibility`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${serviceRoleKey}` },
+            body: JSON.stringify({ petReportAId: aId, petReportBId: bId, stripeSessionId: session.id }),
+          });
+          console.log("[STRIPE-WEBHOOK] Compatibility generation triggered:", triggerResp.status);
+        } catch (err) {
+          console.error("[STRIPE-WEBHOOK] Compatibility trigger failed:", err);
+        }
+        return new Response(JSON.stringify({ received: true }), { status: 200 });
+      }
       // Check if this is a gift certificate purchase
       else if (session.metadata?.type === "gift_certificate") {
         const giftCode = session.metadata.primary_gift_code || session.metadata.gift_code;
