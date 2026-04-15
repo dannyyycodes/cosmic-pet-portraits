@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   MoonStars,
   PawPrint,
@@ -10,7 +10,12 @@ import {
 } from "@phosphor-icons/react";
 
 type Glyph = "moon" | "paw" | "bond" | "candle" | "scroll" | "gift" | "mirror";
-type HeroCard = { eyebrow: string; headline: string; sub: string; accent: string; glyph: Glyph };
+type Species = "cat" | "dog";
+type Review = { quote: string; name: string; pet: string; rating: number };
+type HeroCard = {
+  eyebrow: string; headline: string; sub: string; accent: string; glyph: Glyph;
+  species: Species; review: Review;
+};
 
 // Final 7-card deck — every card serves a distinct emotional arrival state
 // and ties to a real product feature (quirk decoder, compatibility, memorial
@@ -19,46 +24,74 @@ type HeroCard = { eyebrow: string; headline: string; sub: string; accent: string
 // identity-upgrade → reciprocity reveal.
 const HERO_CARDS: HeroCard[] = [
   {
-    accent: "#c4a265", glyph: "moon",
+    accent: "#c4a265", glyph: "moon", species: "cat",
     eyebrow: "For the one who's been beside you every day",
     headline: "They have a look they save only for you. You still don't know what it means.",
     sub: "You've studied them longer than almost anyone in your life. You've never been able to put it into words. This finally does.",
+    review: {
+      quote: "She does this thing where she goes soft around the eyes when I walk in. Only me. Never my partner, never my mom when she visits. I've noticed it for six years and never had a word for it. The reading called it her trust gaze. I sat with that for a long time.",
+      name: "Sarah K.", pet: "Miso, 6", rating: 5,
+    },
   },
   {
-    accent: "#bf524a", glyph: "paw",
+    accent: "#bf524a", glyph: "paw", species: "cat",
     eyebrow: "For the pet with that weird thing",
     headline: "You've known what they do. Now know why.",
     sub: "The ritual. The obsession. The specific moment they always appear. You've been narrating their weirdness to friends for years. This tells you what you were actually watching.",
+    review: {
+      quote: "11 p.m. on the dot, Walter goes to the window. Every night. Waits about twenty minutes, then comes to bed. I used to tell people he was keeping watch, half joking. Turns out I was closer than I thought. The reading called it his threshold ritual. I still say goodnight to the window now.",
+      name: "James D.", pet: "Walter · tabby, extremely serious", rating: 5,
+    },
   },
   {
-    accent: "#8a6f8c", glyph: "bond",
+    accent: "#8a6f8c", glyph: "bond", species: "dog",
     eyebrow: "For the bond nobody else gets",
     headline: "Everyone thinks you're projecting. You're not.",
     sub: "The pull. The rightness. The way it felt like they were yours before they were yours. Every feeling you've had about your bond is in their chart. Written, not imagined.",
+    review: {
+      quote: "I've had Pepper since she was eight weeks old and I swear I knew her before she was mine. My husband thinks it's cute how attached I am. My mother thinks it's a problem. The reading mapped three things we share, not vaguely but specifically, and I printed the page about our bond and left it on the kitchen counter. Nobody's saying it's a problem anymore.",
+      name: "Elena M.", pet: "Pepper · rescue hound, my soul dog", rating: 5,
+    },
   },
   {
-    accent: "#5a4a42", glyph: "candle",
+    accent: "#5a4a42", glyph: "candle", species: "dog",
     eyebrow: "For the pet getting older — or already gone",
     headline: "Love doesn't stop at goodbye. Neither does this.",
     sub: "For the ones still here: don't leave them half-understood while there's still time. For the ones you've lost: a memorial reading reads them in past tense — their full chart, their bond with you, a letter in their voice. Not closure. Continuation.",
+    review: {
+      quote: "We lost Biscuit in February. I ordered the reading in March because I wasn't ready, and then I was. It came in past tense. There was a letter at the end in her voice and I couldn't finish it the first night. I go back to it. I keep it in the drawer next to the bed.",
+      name: "Claire R.", pet: "for Biscuit, always", rating: 5,
+    },
   },
   {
-    accent: "#7a8670", glyph: "scroll",
+    accent: "#7a8670", glyph: "scroll", species: "dog",
     eyebrow: "For the ones with a history you weren't there for",
     headline: "What they can't tell you, their chart remembers.",
     sub: "Rescued, rehomed, shelter, stray — their past is older than your bond, and every piece of it shaped who they are for you. This reads the part they can't say.",
+    review: {
+      quote: "Otis came to us at four. He flinched at brooms, slept in the bathroom for a month, wouldn't eat unless I left the room. I spent three years piecing together stories about his life before us. The reading pointed at early isolation in his chart. It matched every instinct I'd had. I stopped guessing.",
+      name: "Marcus P.", pet: "Otis · adopted 2023", rating: 5,
+    },
   },
   {
-    accent: "#b0773f", glyph: "gift",
+    accent: "#b0773f", glyph: "gift", species: "cat",
     eyebrow: "For the ones who'd give them the world",
     headline: "Every gift you've bought has said \u201CI love you.\u201D This one says \u201CI see you.\u201D",
     sub: "The full chart. The cosmic portrait for your wall. The archetype, the aura, the letter. A gift that doesn't get chewed, outgrown, or lost — because it is them, not something for them.",
+    review: {
+      quote: "Gave this to my mom for her birthday. She's had Maple since my dad died in 2021 — that cat is basically her person now. I sent the link not expecting much. She called me on FaceTime and read me the whole thing, stopping every other paragraph to say 'that's her, Dani, that's EXACTLY her.' She's not a crier. She cried.",
+      name: "Dani L.", pet: "gifted for Mom & Maple", rating: 5,
+    },
   },
   {
-    accent: "#9d4038", glyph: "mirror",
+    accent: "#9d4038", glyph: "mirror", species: "dog",
     eyebrow: "For the ones loved this fiercely",
     headline: "They've been reading you for years. Now read them back.",
     sub: "The hours they've spent watching you. The way they knew you were sad before you did. They've been learning your language without one of their own. This finally gives you theirs.",
+    review: {
+      quote: "Here's the thing I didn't expect. The reading didn't just tell me about Nova. It told me how she reads me. The way she tracks my mood, the specific things she picks up on, what she does when I'm overwhelmed vs when I'm just tired. Different responses. I thought I was observing her. She's been observing me the whole time.",
+      name: "Ana T.", pet: "Nova · bulldog, apparently my therapist", rating: 5,
+    },
   },
 ];
 
@@ -257,168 +290,142 @@ const TYPO: Record<TypographyVariant, TypoStyles> = {
   },
 };
 
+const StarRow = ({ rating, color }: { rating: number; color: string }) => (
+  <div aria-label={`${rating} out of 5 stars`} style={{ display: "inline-flex", gap: 3 }}>
+    {Array.from({ length: 5 }).map((_, i) => (
+      <svg key={i} width="13" height="13" viewBox="0 0 24 24" fill={i < rating ? color : "none"} stroke={color} strokeWidth="1.2">
+        <path d="M12 2l2.9 6.9 7.5.7-5.7 5 1.7 7.4L12 18.3 5.6 22l1.7-7.4-5.7-5 7.5-.7L12 2z" />
+      </svg>
+    ))}
+  </div>
+);
+
+const Avatar = ({ src, accent, species }: { src: string | null | undefined; accent: string; species: Species }) => (
+  <div
+    style={{
+      width: 52, height: 52, borderRadius: "50%",
+      border: `2px solid ${accent}`, padding: 2, background: `${accent}1a`,
+      flexShrink: 0, boxShadow: `0 4px 12px rgba(20,15,8,0.12)`,
+    }}
+  >
+    <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: `${accent}22`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {src ? (
+        <img src={src} alt={`${species} photo`} style={{ width: "100%", height: "100%", objectFit: "cover" }} loading="lazy" />
+      ) : (
+        <span style={{ fontSize: 20 }}>{species === "cat" ? "🐱" : "🐶"}</span>
+      )}
+    </div>
+  </div>
+);
+
+const ReviewBlock = ({ card, image }: { card: HeroCard; image: string | null | undefined }) => (
+  <figure
+    style={{
+      position: "relative",
+      marginTop: "clamp(18px, 3vw, 26px)",
+      padding: "clamp(20px, 3vw, 26px) clamp(22px, 3.5vw, 30px)",
+      borderRadius: 14,
+      background: `linear-gradient(180deg, ${card.accent}0e 0%, ${card.accent}18 100%)`,
+      border: `1px solid ${card.accent}33`,
+      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.6)`,
+      maxWidth: "34rem", width: "100%", textAlign: "left",
+    }}
+  >
+    <span aria-hidden="true" style={{ position: "absolute", top: -10, left: 18, fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 52, lineHeight: 1, color: card.accent, opacity: 0.55 }}>
+      “
+    </span>
+    <div style={{ marginBottom: 10 }}>
+      <StarRow rating={card.review.rating} color={card.accent} />
+    </div>
+    <blockquote style={{ margin: 0, fontFamily: '"Cormorant", Georgia, serif', fontSize: "clamp(1rem, 2.3vw, 1.1rem)", fontStyle: "italic", color: "#2d241c", lineHeight: 1.6 }}>
+      {card.review.quote}
+    </blockquote>
+    <figcaption style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 12, fontFamily: "Lato, system-ui, sans-serif" }}>
+      <Avatar src={image} accent={card.accent} species={card.species} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <span style={{ fontSize: 13.5, fontWeight: 600, color: "#2d241c", letterSpacing: "0.02em" }}>{card.review.name}</span>
+        <span style={{ fontFamily: '"Caveat", cursive', fontSize: 17, color: card.accent, fontWeight: 500, lineHeight: 1 }}>{card.review.pet}</span>
+      </div>
+    </figcaption>
+  </figure>
+);
+
 const CardFace = ({
   card,
   chapterLabel,
-  animateStars,
   typo,
   depth = 0,
-  constellationIndex = 0,
+  cardNumber,
+  totalCards,
+  image,
 }: {
   card: HeroCard;
   chapterLabel: string;
-  animateStars: boolean;
+  animateStars?: boolean;
   typo: TypoStyles;
   depth?: number;
   constellationIndex?: number;
+  cardNumber: number;
+  totalCards: number;
+  image: string | null | undefined;
 }) => {
-  // Back-deck tinting — each layer behind reads as its own page, not a ghost.
   const bgTop = depth === 0 ? "#FFFDF5" : depth === 1 ? "#f8f0df" : "#f0e6d0";
   const bgBot = depth === 0 ? "#faf4e8" : depth === 1 ? "#f0e6d0" : "#e6d8bd";
-  const borderCol = depth === 0
-    ? `${card.accent}47` // ~28% alpha of accent
-    : "rgba(180, 150, 95, 0.30)";
-  const stars = [
-    [50, 70, 1.2], [120, 40, 0.9], [280, 60, 1.1], [350, 100, 1],
-    [30, 200, 1], [370, 220, 1.2], [180, 340, 0.9], [320, 360, 1.1],
-    [90, 320, 1], [250, 120, 0.8], [70, 380, 0.9], [220, 50, 1],
-    [150, 180, 0.8], [300, 250, 0.9], [200, 280, 0.7],
-  ];
-  const constellation = CONSTELLATIONS[constellationIndex % CONSTELLATIONS.length];
-  const constellationPath =
-    "M " + constellation.map(([x, y]) => `${x} ${y}`).join(" L ");
+  const borderCol = depth === 0 ? `${card.accent}47` : "rgba(180, 150, 95, 0.30)";
 
   return (
-  <div
-    className="relative w-full h-full overflow-hidden"
-    style={{
-      background: `linear-gradient(180deg, ${bgTop} 0%, ${bgBot} 100%)`,
-      border: `1px solid ${borderCol}`,
-      borderRadius: 24,
-      padding: "clamp(38px, 6.5vw, 60px) clamp(26px, 5.5vw, 52px)",
-      boxShadow:
-        "0 14px 46px rgba(31, 28, 24, 0.09), inset 0 1px 0 rgba(255,255,255,0.75)",
-    }}
-  >
-    {/* Soft radial glow in the accent colour — subtle lift behind the text */}
-    {depth === 0 && (
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse at 50% 42%, ${card.accent}1a 0%, transparent 58%)`,
-        }}
-      />
-    )}
-
-    <svg
-      aria-hidden="true"
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      viewBox="0 0 400 400"
-      preserveAspectRatio="xMidYMid slice"
-    >
-      {/* Per-card constellation line — drawn only on the active card */}
-      {depth === 0 && (
-        <path
-          d={constellationPath}
-          stroke={card.accent}
-          strokeWidth="0.8"
-          strokeLinecap="round"
-          strokeOpacity="0.45"
-          fill="none"
-        />
-      )}
-      {stars.map(([cx, cy, r], i) => {
-        // Stars nearest the constellation burn brighter
-        const onConstellation = depth === 0 && constellation.some(
-          ([x, y]) => Math.abs(cx - x) < 20 && Math.abs(cy - y) < 20
-        );
-        return (
-          <circle
-            key={i}
-            cx={cx}
-            cy={cy}
-            r={onConstellation ? r * 1.6 : r}
-            fill={onConstellation ? card.accent : "var(--gold, #c4a265)"}
-            opacity={onConstellation ? 0.75 : 0.28}
-            style={
-              animateStars
-                ? { animation: `heroStarPulse ${3.5 + (i % 3) * 0.7}s ease-in-out ${i * 0.3}s infinite` }
-                : undefined
-            }
-          />
-        );
-      })}
-    </svg>
-
-    {/* Themed glyph watermark — sits behind the headline, gives each card its own mark */}
-    {depth === 0 && (
-      <div
-        aria-hidden="true"
-        className="absolute pointer-events-none"
-        style={{
-          top: "clamp(44px, 8vw, 74px)",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "clamp(120px, 22vw, 180px)",
-          height: "clamp(120px, 22vw, 180px)",
-        }}
-      >
-        <GlyphMark type={card.glyph} color={card.accent} opacity={0.11} />
-      </div>
-    )}
-
-    {/* Chapter label removed — the 7-dot progress rail below the deck serves the same purpose */}
-
     <div
-      className="relative h-full flex flex-col items-center justify-center text-center"
+      className="relative w-full h-full overflow-hidden"
       style={{
-        minHeight: "clamp(300px, 42vw, 360px)",
-        gap: "clamp(14px, 2vw, 22px)",
+        background: `linear-gradient(180deg, ${bgTop} 0%, ${bgBot} 100%)`,
+        border: `1px solid ${borderCol}`,
+        borderRadius: 24,
+        padding: "clamp(38px, 6.5vw, 60px) clamp(26px, 5.5vw, 52px)",
+        boxShadow: "0 14px 46px rgba(31, 28, 24, 0.09), inset 0 1px 0 rgba(255,255,255,0.75)",
       }}
     >
-      <div className="flex flex-col items-center" style={{ gap: 4 }}>
+      {depth === 0 && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: `radial-gradient(ellipse at 50% 40%, ${card.accent}14 0%, transparent 60%)` }}
+        />
+      )}
+
+      <div
+        className="relative h-full flex flex-col items-center text-center"
+        style={{ gap: "clamp(14px, 2vw, 20px)" }}
+      >
         <div
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 12,
-            maxWidth: "34rem",
-            lineHeight: 1.3,
-            ...typo.eyebrow,
-            color: card.accent,
+            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontSize: 11, fontStyle: "italic",
+            letterSpacing: "0.32em", textTransform: "uppercase",
+            color: card.accent, opacity: 0.75,
           }}
         >
-          {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
-          <span>{card.eyebrow}</span>
-          {typo.showStars && <span style={{ opacity: 0.8, fontSize: "0.85em" }}>✦</span>}
+          № {cardNumber.toString().padStart(2, "0")}  /  {totalCards.toString().padStart(2, "0")}
         </div>
-        {/* Hand-drawn squiggle underline — picks up the card's accent colour */}
-        <svg
-          aria-hidden="true"
-          width="84"
-          height="8"
-          viewBox="0 0 84 8"
-          fill="none"
-          style={{ opacity: 0.8, marginTop: 2 }}
+
+        <div
+          style={{
+            maxWidth: "34rem", lineHeight: 1.3,
+            ...typo.eyebrow, color: card.accent,
+          }}
         >
-          <path
-            d="M 2 5 Q 10 0.5 18 4.5 T 34 4.5 T 50 4.5 T 66 4.5 T 82 4.5"
-            stroke={card.accent}
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            fill="none"
-          />
+          {card.eyebrow}
+        </div>
+
+        <svg aria-hidden="true" width="84" height="8" viewBox="0 0 84 8" fill="none" style={{ opacity: 0.85 }}>
+          <path d="M 2 5 Q 10 0.5 18 4.5 T 34 4.5 T 50 4.5 T 66 4.5 T 82 4.5" stroke={card.accent} strokeWidth="1.4" strokeLinecap="round" fill="none" />
         </svg>
+
+        <h2 style={{ margin: 0, maxWidth: "32rem", ...typo.headline }}>{card.headline}</h2>
+        <p style={{ margin: 0, maxWidth: "32rem", ...typo.sub }}>{card.sub}</p>
+
+        {depth === 0 && <ReviewBlock card={card} image={image} />}
       </div>
-
-      <h2 style={{ margin: 0, maxWidth: "32rem", ...typo.headline }}>
-        {card.headline}
-      </h2>
-
-      <p style={{ margin: 0, maxWidth: "32rem", ...typo.sub }}>{card.sub}</p>
     </div>
-  </div>
   );
 };
 
@@ -516,14 +523,42 @@ const stackStyleFor = (offset: number): React.CSSProperties => {
   };
 };
 
+async function fetchPetImage(species: Species): Promise<string | null> {
+  try {
+    if (species === "cat") {
+      const r = await fetch("https://api.thecatapi.com/v1/images/search");
+      const data = await r.json();
+      return data?.[0]?.url ?? null;
+    } else {
+      const r = await fetch("https://dog.ceo/api/breeds/image/random");
+      const data = await r.json();
+      return data?.status === "success" ? data.message : null;
+    }
+  } catch {
+    return null;
+  }
+}
+
 export const HeroCardRotator = ({
   typography = "hw-soft-diary",
 }: HeroCardRotatorProps) => {
   const [index, setIndex] = useState(0);
+  const [images, setImages] = useState<Record<number, string | null>>({});
   const lockRef = useRef(false);
   const touchStartX = useRef<number | null>(null);
 
   const typo = TYPO[typography];
+
+  useEffect(() => {
+    let cancelled = false;
+    HERO_CARDS.forEach((c, i) => {
+      fetchPetImage(c.species).then((url) => {
+        if (cancelled) return;
+        setImages((prev) => ({ ...prev, [i]: url }));
+      });
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const go = (dir: 1 | -1) => {
     if (lockRef.current) return;
@@ -583,7 +618,7 @@ export const HeroCardRotator = ({
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         style={{
-          minHeight: "clamp(480px, 66vw, 560px)",
+          minHeight: "clamp(780px, 110vw, 920px)",
           perspective: "1600px",
           paddingTop: 40,
         }}
@@ -607,10 +642,11 @@ export const HeroCardRotator = ({
               <CardFace
                 card={card}
                 chapterLabel={`Chapter ${pad2(i + 1)} / ${pad2(total)}`}
-                animateStars={isTop}
                 typo={typo}
                 depth={Math.max(0, offset)}
-                constellationIndex={i}
+                cardNumber={i + 1}
+                totalCards={total}
+                image={images[i]}
               />
             </div>
           );
