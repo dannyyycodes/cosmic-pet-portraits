@@ -394,97 +394,73 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                           transition: isSoulSpeak ? "background 0.2s ease" : undefined,
                         }}
                       >
-                        <div className="flex items-center gap-2">
-                          {!isDivider && (
-                            <svg className="w-3.5 h-3.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                          {isSoulSpeak ? (
-                            <>
-                              <span className="flex-1 flex items-center gap-2 flex-wrap">
-                                <span style={{ fontWeight: 600, color: "var(--ink, #1f1c18)" }}>{feature.label}</span>
-                                <span
-                                  style={{
-                                    fontFamily: "Cormorant, Georgia, serif",
-                                    fontSize: "0.6rem",
-                                    fontWeight: 700,
-                                    letterSpacing: "0.12em",
-                                    padding: "2px 7px",
-                                    borderRadius: 4,
-                                    background: "linear-gradient(135deg, #d4b26b, #c4a265)",
-                                    color: "#fff",
-                                    textTransform: "uppercase",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  New
-                                </span>
-                              </span>
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="var(--gold, #c4a265)"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="flex-shrink-0"
-                                aria-hidden="true"
-                              >
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="16" x2="12" y2="12" />
-                                <line x1="12" y1="8" x2="12.01" y2="8" />
-                              </svg>
-                            </>
+                        {(() => {
+                          const badgeBaseStyle: CSSProperties = {
+                            fontFamily: "Cormorant, Georgia, serif",
+                            fontSize: "0.6rem",
+                            fontWeight: 700,
+                            letterSpacing: "0.12em",
+                            padding: "2px 7px",
+                            borderRadius: 4,
+                            color: "#fff",
+                            textTransform: "uppercase",
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                          };
+                          const goldBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #d4b26b, #c4a265)" };
+                          const greenBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #5aa870, #4a8c5c)" };
+                          const badge = isSoulSpeak
+                            ? <span style={goldBadge}>New</span>
+                            : isBonus
+                            ? <span style={goldBadge}>Bonus</span>
+                            : isHoroscope
+                            ? <span style={greenBadge}>Free</span>
+                            : null;
+                          const labelNode = isSoulSpeak ? (
+                            <span style={{ fontWeight: 600, color: "var(--ink, #1f1c18)" }}>{feature.label}</span>
                           ) : isBonus ? (
-                            <span className="flex-1 flex items-center gap-2 flex-wrap">
-                              <span>
-                                <strong style={{ fontWeight: 700, color: "var(--ink, #1f1c18)" }}>Bonus sections</strong>
-                                {" — little surprises written just for them"}
-                              </span>
-                              <span
-                                style={{
-                                  fontFamily: "Cormorant, Georgia, serif",
-                                  fontSize: "0.6rem",
-                                  fontWeight: 700,
-                                  letterSpacing: "0.12em",
-                                  padding: "2px 7px",
-                                  borderRadius: 4,
-                                  background: "linear-gradient(135deg, #d4b26b, #c4a265)",
-                                  color: "#fff",
-                                  textTransform: "uppercase",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                Bonus
-                              </span>
+                            <span>
+                              <strong style={{ fontWeight: 700, color: "var(--ink, #1f1c18)" }}>Bonus sections</strong>
+                              {" — little surprises written just for them"}
                             </span>
                           ) : isHoroscope ? (
-                            <span className="flex-1 flex items-center gap-2 flex-wrap">
-                              <span>{feature.label}</span>
-                              <span
-                                style={{
-                                  fontFamily: "Cormorant, Georgia, serif",
-                                  fontSize: "0.6rem",
-                                  fontWeight: 700,
-                                  letterSpacing: "0.12em",
-                                  padding: "2px 7px",
-                                  borderRadius: 4,
-                                  background: "linear-gradient(135deg, #5aa870, #4a8c5c)",
-                                  color: "#fff",
-                                  textTransform: "uppercase",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                Free
-                              </span>
+                            <span>
+                              <strong style={{ fontWeight: 700, color: "var(--ink, #1f1c18)" }}>Weekly horoscopes</strong>
+                              {" — 1 month included"}
                             </span>
                           ) : (
-                            <span className="flex-1">{feature.label}</span>
-                          )}
-                        </div>
+                            <span>{feature.label}</span>
+                          );
+                          return (
+                            <div className="flex items-center gap-2">
+                              {!isDivider && (
+                                <svg className="w-3.5 h-3.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                              <span className="flex-1 min-w-0">{labelNode}</span>
+                              {badge}
+                              {isSoulSpeak && (
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="var(--gold, #c4a265)"
+                                  strokeWidth={2}
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="flex-shrink-0"
+                                  aria-hidden="true"
+                                >
+                                  <circle cx="12" cy="12" r="10" />
+                                  <line x1="12" y1="16" x2="12" y2="12" />
+                                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                                </svg>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </li>
                     );
                   })}
