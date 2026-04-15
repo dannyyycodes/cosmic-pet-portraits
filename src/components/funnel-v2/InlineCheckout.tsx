@@ -405,20 +405,22 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                             color: "#fff",
                             textTransform: "uppercase",
                             whiteSpace: "nowrap",
-                            flexShrink: 0,
-                            minWidth: 58,
-                            textAlign: "center",
                             display: "inline-block",
                           };
                           const goldBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #d4b26b, #c4a265)" };
                           const greenBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #5aa870, #4a8c5c)" };
-                          const badge = isSoulSpeak
+                          const badgeInner = isSoulSpeak
                             ? <span style={goldBadge}>New</span>
                             : isBonus
                             ? <span style={goldBadge}>Bonus</span>
                             : isHoroscope
                             ? <span style={greenBadge}>Free</span>
                             : null;
+                          const badge = badgeInner ? (
+                            <span style={{ width: 72, flexShrink: 0, display: "inline-flex", justifyContent: "flex-start" }}>
+                              {badgeInner}
+                            </span>
+                          ) : null;
                           const labelNode = isSoulSpeak ? (
                             <span style={{ fontWeight: 600, color: "var(--ink, #1f1c18)" }}>{feature.label}</span>
                           ) : isBonus ? (
