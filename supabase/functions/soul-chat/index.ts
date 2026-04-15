@@ -267,16 +267,47 @@ serve(async (req) => {
     }
 
     // ─── Server-side credit gate (source of truth) ──────────────────────
-    // Load or create the chat_credits row for this order
-    const { data: existing } = await supabase
-      .from("chat_credits")
-      .select("credits_remaining, is_unlimited")
-      .eq("order_id", orderId)
-      .maybeSingle();
+    // Credits pool at the household (email) level so a buyer with N pets gets
+    // STARTER_CREDITS × N shared across all of them — they can spend them on
+    // whichever pet they want to talk to. Per-report rows are kept as a
+    // fallback so token-only (share-link) visitors and legacy rows still work.
+    const buyerEmail = typeof ownerReport.email === "string"
+      ? ownerReport.email.trim().toLowerCase()
+      : "";
 
-    let row = existing;
+    // Prefer the household-pooled row (email set, order_id null).
+    let row: { credits_remaining: number; is_unlimited: boolean; id?: string } | null = null;
+    let rowScope: "household" | "order" = "order";
+    if (buyerEmail) {
+      const { data: householdRow } = await supabase
+        .from("chat_credits")
+        .select("id, credits_remaining, is_unlimited")
+        .eq("email", buyerEmail)
+        .is("order_id", null)
+        .maybeSingle();
+      if (householdRow) {
+        row = householdRow;
+        rowScope = "household";
+      }
+    }
+
     if (!row) {
-      // First-time visitor — verify the order actually exists before granting credits
+      // Legacy per-order row — existed before household pooling.
+      const { data: perOrderRow } = await supabase
+        .from("chat_credits")
+        .select("id, credits_remaining, is_unlimited")
+        .eq("order_id", orderId)
+        .maybeSingle();
+      if (perOrderRow) {
+        row = perOrderRow;
+        rowScope = "order";
+      }
+    }
+
+    if (!row) {
+      // First-time visitor for this household — verify the order exists,
+      // then mint a pooled starter allowance sized to their pet count so
+      // multi-pet buyers aren't short-changed.
       const { data: order } = await supabase
         .from("orders")
         .select("id, includes_book")
@@ -290,15 +321,30 @@ serve(async (req) => {
       }
 
       const isUnlimited = !!order.includes_book;
-      const starter = isUnlimited ? 9999 : STARTER_CREDITS;
+      let petCount = 1;
+      if (buyerEmail) {
+        const { count } = await supabase
+          .from("pet_reports")
+          .select("id", { count: "exact", head: true })
+          .eq("email", buyerEmail)
+          .eq("payment_status", "paid");
+        if (count && count > petCount) petCount = count;
+      }
+      const starter = isUnlimited ? 9999 : STARTER_CREDITS * petCount;
 
+      // Household-pooled row if we have a trustworthy email; fall back to
+      // per-order scoping for token-only visitors.
+      const insertPayload = buyerEmail
+        ? { email: buyerEmail, order_id: null, credits_remaining: starter, is_unlimited: isUnlimited }
+        : { order_id: orderId, credits_remaining: starter, is_unlimited: isUnlimited };
       const { data: inserted } = await supabase
         .from("chat_credits")
-        .insert({ order_id: orderId, credits_remaining: starter, is_unlimited: isUnlimited })
-        .select("credits_remaining, is_unlimited")
+        .insert(insertPayload)
+        .select("id, credits_remaining, is_unlimited")
         .single();
 
       row = inserted;
+      rowScope = buyerEmail ? "household" : "order";
     }
 
     if (!row) {
@@ -446,15 +492,30 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
 
     if (!reply) reply = "Something stirred in the cosmos... try again.";
 
-    // ─── Decrement credits atomically via RPC ───────────────────────────
+    // ─── Decrement credits ──────────────────────────────────────────────
+    // Legacy per-order rows use the atomic RPC. Household-pooled rows debit
+    // via a direct conditional update (the RPC is keyed on order_id which
+    // is null for household rows).
     let newBalance = row.credits_remaining ?? 0;
     if (!row.is_unlimited) {
-      const { data: decremented } = await supabase.rpc("decrement_chat_credits", {
-        p_order_id: orderId,
-        p_amount: COST_PER_MESSAGE,
-      });
-      if (typeof decremented === 'number') newBalance = decremented;
-      else newBalance = Math.max(0, newBalance - COST_PER_MESSAGE);
+      if (rowScope === "household" && row.id) {
+        const nextBalance = Math.max(0, newBalance - COST_PER_MESSAGE);
+        const { data: updated } = await supabase
+          .from("chat_credits")
+          .update({ credits_remaining: nextBalance })
+          .eq("id", row.id)
+          .gte("credits_remaining", COST_PER_MESSAGE)  // optimistic concurrency
+          .select("credits_remaining")
+          .maybeSingle();
+        newBalance = updated?.credits_remaining ?? nextBalance;
+      } else {
+        const { data: decremented } = await supabase.rpc("decrement_chat_credits", {
+          p_order_id: orderId,
+          p_amount: COST_PER_MESSAGE,
+        });
+        if (typeof decremented === 'number') newBalance = decremented;
+        else newBalance = Math.max(0, newBalance - COST_PER_MESSAGE);
+      }
     }
 
     // Store messages for analytics (fire and forget)

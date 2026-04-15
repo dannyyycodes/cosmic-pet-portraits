@@ -63,6 +63,7 @@ const FindReport = lazy(() => import("./pages/FindReport"));
 const HeroTypographyPreview = lazy(() => import("./pages/HeroTypographyPreview"));
 const CardsPreview = lazy(() => import("./pages/CardsPreview"));
 const CompatibilityViewer = lazy(() => import("./pages/CompatibilityViewer"));
+const SoulSpeakHub = lazy(() => import("./pages/SoulSpeakHub"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the homepage InlineCheckout section.
@@ -79,11 +80,19 @@ function CheckoutRedirect() {
 
 // GiftPurchase is now a React component (gift-v2.html had stale Supabase credentials)
 
-// Redirect /chat to the static HTML soul chat page
+// Smart /chat handler — if an id is passed via query, preserve the legacy
+// direct-redirect behaviour (existing email links still work). Otherwise
+// show the SoulSpeak Household Hub (login-gated) so multi-pet buyers can
+// pick which pet to talk to.
 function SoulChatRedirect() {
   const params = new URLSearchParams(window.location.search);
-  window.location.href = '/soul-chat.html?id=' + (params.get('id') || '');
-  return null;
+  const id = params.get('id');
+  if (id) {
+    const token = params.get('token');
+    window.location.href = `/soul-chat.html?id=${id}${token ? `&token=${token}` : ''}`;
+    return null;
+  }
+  return <SoulSpeakHub />;
 }
 
 // Capture ?ref= on any page load (not just Index)

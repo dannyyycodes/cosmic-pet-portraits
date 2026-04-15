@@ -17,7 +17,10 @@ import {
   TrendingUp,
   Calendar,
   Star,
-  XCircle
+  XCircle,
+  MessageCircle,
+  Heart,
+  Sparkles,
 } from "lucide-react";
 
 interface CustomerData {
@@ -67,6 +70,31 @@ interface CustomerData {
   } | null;
 }
 
+interface CompatibilityRow {
+  id: string;
+  status: "pending" | "generating" | "ready" | "failed";
+  share_token: string;
+  created_at: string;
+  pet_a: { id: string; pet_name: string; pet_photo_url: string | null };
+  pet_b: { id: string; pet_name: string; pet_photo_url: string | null };
+  reading_content: { headline?: string } | null;
+}
+
+function PetAvatarMini({ url, fallback }: { url?: string | null; fallback?: string }) {
+  return (
+    <div
+      className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
+      style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.25), rgba(191,82,74,0.15))', border: '2px solid #FFFDF5' }}
+    >
+      {url ? (
+        <img src={url} alt="" className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-sm font-semibold" style={{ color: '#a07c3a' }}>{fallback || '🐾'}</span>
+      )}
+    </div>
+  );
+}
+
 const Account = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
@@ -76,6 +104,8 @@ const Account = () => {
   const [emailSubscribed, setEmailSubscribed] = useState(true);
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [cancellingSubId, setCancellingSubId] = useState<string | null>(null);
+  const [compatibilities, setCompatibilities] = useState<CompatibilityRow[]>([]);
+  const [householdCredits, setHouseholdCredits] = useState<number | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -98,6 +128,33 @@ const Account = () => {
       setCustomerData(data);
       if (data.emailPreferences) {
         setEmailSubscribed(data.emailPreferences.isSubscribed);
+      }
+
+      // Cross-pet compatibility readings — RLS policy on pet_compatibilities
+      // lets an authenticated user read rows where email matches their JWT.
+      const email = (user?.email || "").toLowerCase();
+      if (email) {
+        const { data: compatRows } = await supabase
+          .from("pet_compatibilities")
+          .select(`
+            id, status, share_token, created_at, reading_content,
+            pet_a:pet_reports!pet_report_a_id(id, pet_name, pet_photo_url),
+            pet_b:pet_reports!pet_report_b_id(id, pet_name, pet_photo_url)
+          `)
+          .eq("email", email)
+          .order("created_at", { ascending: false });
+        setCompatibilities((compatRows ?? []) as unknown as CompatibilityRow[]);
+
+        // Pooled household chat credits (set by soul-chat on first chat).
+        const { data: creditRow } = await supabase
+          .from("chat_credits")
+          .select("credits_remaining, is_unlimited")
+          .eq("email", email)
+          .is("order_id", null)
+          .maybeSingle();
+        if (creditRow) {
+          setHouseholdCredits(creditRow.is_unlimited ? -1 : creditRow.credits_remaining ?? 0);
+        }
       }
     } catch (err) {
       console.error("Error fetching customer data:", err);
@@ -219,10 +276,14 @@ const Account = () => {
         </div>
 
         <Tabs defaultValue="reports" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5" style={{ background: '#faf6ef', border: '1px solid #e8ddd0', borderRadius: '10px' }}>
+          <TabsList className="grid w-full grid-cols-6" style={{ background: '#faf6ef', border: '1px solid #e8ddd0', borderRadius: '10px' }}>
             <TabsTrigger value="reports" className="flex items-center gap-2">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Reports</span>
+            </TabsTrigger>
+            <TabsTrigger value="bonds" className="flex items-center gap-2">
+              <Heart className="w-4 h-4" />
+              <span className="hidden sm:inline">Bonds</span>
             </TabsTrigger>
             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Star className="w-4 h-4" />
@@ -264,29 +325,154 @@ const Account = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
+                    {/* Pooled SoulSpeak balance — only shown once we have a household credit row */}
+                    {householdCredits !== null && (
+                      <div className="flex items-center justify-between p-3 rounded-xl"
+                        style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.12), rgba(191,82,74,0.08))', border: '1.5px solid rgba(196,162,101,0.35)' }}>
+                        <div className="flex items-center gap-2">
+                          <MessageCircle className="w-4 h-4" style={{ color: '#a07c3a' }} />
+                          <span className="text-sm" style={{ color: '#5a4a42', fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                            SoulSpeak pool · {householdCredits === -1
+                              ? "Unlimited"
+                              : `${Math.floor(householdCredits / 50)} messages left across your pets`}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                     {customerData?.reports.map((report) => (
                       <div
                         key={report.id}
-                        className="flex items-center justify-between p-4 rounded-xl"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl"
                         style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
                       >
-                        <div>
-                          <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{report.pet_name}</h3>
-                          <p className="text-sm" style={{ color: '#9a8578' }}>
-                            {report.species} {report.breed && `• ${report.breed}`}
-                          </p>
-                          <p className="text-xs" style={{ color: '#9a8578' }}>
-                            {new Date(report.created_at).toLocaleDateString()}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          {report.portrait_url && (
+                            <img src={report.portrait_url} alt={report.pet_name}
+                              className="w-12 h-12 rounded-full object-cover"
+                              style={{ border: '2px solid #c4a265' }} />
+                          )}
+                          <div>
+                            <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{report.pet_name}</h3>
+                            <p className="text-sm" style={{ color: '#9a8578' }}>
+                              {report.species} {report.breed && `• ${report.breed}`}
+                            </p>
+                            <p className="text-xs" style={{ color: '#9a8578' }}>
+                              {new Date(report.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => navigate(`/report?id=${report.id}`)}
-                          className="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-                          style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          View
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`/soul-chat.html?id=${report.id}${report.share_token ? '&token=' + report.share_token : ''}`}
+                            className="flex items-center gap-1 px-3 py-2 text-sm font-medium transition-all hover:opacity-90 no-underline"
+                            style={{ background: 'white', border: '1.5px solid #c4a265', color: '#a07c3a', borderRadius: '10px' }}
+                            title={`Talk with ${report.pet_name}'s soul`}
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            <span className="hidden sm:inline">SoulSpeak</span>
+                          </a>
+                          <button
+                            onClick={() => navigate(`/report?id=${report.id}`)}
+                            className="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+                            style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            View
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Bonds Tab — cross-pet compatibility readings */}
+          <TabsContent value="bonds" className="space-y-4">
+            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+              <div className="p-6 pb-2">
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>
+                  Your Cosmic Bonds
+                </h2>
+                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>
+                  Cross-pet readings — how two of your souls move through the world together.
+                </p>
+              </div>
+              <div className="p-6 pt-4">
+                {compatibilities.length === 0 ? (
+                  <div className="text-center py-10 rounded-xl"
+                    style={{ background: 'linear-gradient(135deg, rgba(196,162,101,0.08), rgba(191,82,74,0.05))', border: '1.5px dashed rgba(196,162,101,0.35)' }}>
+                    <Heart className="w-10 h-10 mx-auto mb-3" style={{ color: '#c4a265' }} />
+                    <p className="mb-2" style={{ color: '#3d2f2a', fontFamily: "'DM Serif Display', Georgia, serif", fontSize: '1.05rem' }}>
+                      No bond readings yet
+                    </p>
+                    <p className="text-sm max-w-sm mx-auto mb-5" style={{ color: '#9a8578' }}>
+                      {(customerData?.reports.length ?? 0) < 2
+                        ? "Unlock a second pet's reading first, then pair any two of them."
+                        : "Pair any two of your pets to reveal how they move through the world together."}
+                    </p>
+                    {(customerData?.reports.length ?? 0) >= 2 && customerData?.reports[0] && (
+                      <button
+                        onClick={() => navigate(`/report?id=${customerData.reports[0].id}`)}
+                        className="px-5 py-2.5 text-sm font-medium transition-opacity hover:opacity-90 inline-flex items-center gap-1.5"
+                        style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)', color: 'white', border: 'none', borderRadius: '10px' }}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Unlock a bond reading
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {compatibilities.map(compat => (
+                      <div
+                        key={compat.id}
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl"
+                        style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex -space-x-2">
+                            <PetAvatarMini url={compat.pet_a?.pet_photo_url} fallback={compat.pet_a?.pet_name?.[0]} />
+                            <PetAvatarMini url={compat.pet_b?.pet_photo_url} fallback={compat.pet_b?.pet_name?.[0]} />
+                          </div>
+                          <div>
+                            <h3 className="font-medium" style={{ color: '#3d2f2a' }}>
+                              {compat.pet_a?.pet_name} × {compat.pet_b?.pet_name}
+                            </h3>
+                            {compat.reading_content?.headline && (
+                              <p className="text-xs italic" style={{ color: '#5a4a42', fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                                {compat.reading_content.headline}
+                              </p>
+                            )}
+                            <p className="text-xs" style={{ color: '#9a8578' }}>
+                              {new Date(compat.created_at).toLocaleDateString()} ·{' '}
+                              <span style={{
+                                color: compat.status === 'ready' ? '#4a8c6a'
+                                  : compat.status === 'failed' ? '#bf524a'
+                                  : '#a07c3a'
+                              }}>
+                                {compat.status === 'ready' ? 'Ready' : compat.status === 'failed' ? 'Refunded or failed' : 'Composing…'}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                        {compat.status === 'ready' ? (
+                          <button
+                            onClick={() => navigate(`/compatibility?id=${compat.id}`)}
+                            className="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+                            style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            Open
+                          </button>
+                        ) : compat.status === 'failed' ? (
+                          <span className="text-xs" style={{ color: '#9a8578' }}>—</span>
+                        ) : (
+                          <span className="text-xs italic" style={{ color: '#a07c3a' }}>
+                            Weaving the reading...
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>

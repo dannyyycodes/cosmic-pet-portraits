@@ -671,9 +671,15 @@ serve(async (req) => {
                    // Portrait AI temporarily disabled — we use the uploaded photo directly on the card now.
                    // (pet_photo_url is stored on the report and used in the frontend.)
                   
-                  // Create horoscope subscription only when explicitly opted in — hardcover does NOT get free horoscopes
+                  // Create horoscope subscription only when explicitly opted in — hardcover does NOT get free horoscopes.
+                  // Memorial pets are excluded — weekly "what's ahead" emails for a pet who has
+                  // crossed the rainbow bridge would be a serious care failure.
                   const includeHoroscope = session.metadata?.include_horoscope === "true";
-                  const thisPetGetsHoroscope = includeHoroscope;
+                  const isMemorial = report.occasion_mode === "memorial";
+                  const thisPetGetsHoroscope = includeHoroscope && !isMemorial;
+                  if (isMemorial && includeHoroscope) {
+                    console.log("[STRIPE-WEBHOOK] Skipping horoscope subscription for memorial pet:", reportId, report.pet_name);
+                  }
 
                   if (thisPetGetsHoroscope && report.email) {
                     console.log("[STRIPE-WEBHOOK] Creating horoscope subscription for:", reportId, { includeHoroscope });
@@ -880,6 +886,105 @@ serve(async (req) => {
       }
     }
     
+    // ─── REFUND HANDLING ──────────────────────────────────────────────────
+    // Runs on `charge.refunded` (full/partial) and on `charge.dispute.created`
+    // so a chargeback reaches the same code path. Flips payment_status on all
+    // pet_reports tied to this Stripe session, cancels any horoscope subs
+    // linked to them (both locally + in Stripe), and marks any generated
+    // compatibility readings as cancelled so the buyer sees them grey out.
+    if (event.type === "charge.refunded" || event.type === "charge.dispute.created") {
+      const chargeObj = event.data.object as Stripe.Charge | Stripe.Dispute;
+      const chargeId = "charge" in chargeObj
+        ? (chargeObj as Stripe.Dispute).charge as string
+        : (chargeObj as Stripe.Charge).id;
+      console.log("[STRIPE-WEBHOOK] Refund/dispute received for charge:", chargeId);
+
+      try {
+        // Walk charge → payment_intent → checkout_session so we can find
+        // which reports were paid for.
+        const charge = "charge" in chargeObj
+          ? await stripe.charges.retrieve(chargeId)
+          : (chargeObj as Stripe.Charge);
+        const piId = typeof charge.payment_intent === "string"
+          ? charge.payment_intent
+          : charge.payment_intent?.id;
+
+        let refundedReportIds: string[] = [];
+        let refundedSessionMetadata: Record<string, string> | null = null;
+
+        if (piId) {
+          const sessions = await stripe.checkout.sessions.list({ payment_intent: piId, limit: 5 });
+          for (const s of sessions.data) {
+            const ids = (s.metadata?.report_ids || "").split(",").filter(Boolean);
+            refundedReportIds.push(...ids);
+            if (s.metadata) refundedSessionMetadata = s.metadata as Record<string, string>;
+          }
+          // Payment-intent-style orders also store report_ids on the PI metadata.
+          if (refundedReportIds.length === 0) {
+            const pi = await stripe.paymentIntents.retrieve(piId);
+            const ids = (pi.metadata?.report_ids || "").split(",").filter(Boolean);
+            refundedReportIds.push(...ids);
+            if (pi.metadata) refundedSessionMetadata = pi.metadata as Record<string, string>;
+          }
+        }
+
+        // Compatibility upsell refund — metadata carries pair ids.
+        if (refundedSessionMetadata?.type === "pet_compatibility") {
+          const compatAId = refundedSessionMetadata.pet_report_a_id;
+          const compatBId = refundedSessionMetadata.pet_report_b_id;
+          if (compatAId && compatBId) {
+            const [aId, bId] = compatAId < compatBId ? [compatAId, compatBId] : [compatBId, compatAId];
+            await supabaseClient
+              .from("pet_compatibilities")
+              .update({ status: "failed", error_message: "Refunded" })
+              .eq("pet_report_a_id", aId)
+              .eq("pet_report_b_id", bId);
+            console.log("[STRIPE-WEBHOOK] Compatibility marked refunded:", aId, bId);
+          }
+        }
+
+        if (refundedReportIds.length > 0) {
+          // Flip payment_status. Keep the row so the customer retains history
+          // (and to honour RLS lookups) but block any future generation calls.
+          await supabaseClient
+            .from("pet_reports")
+            .update({ payment_status: "refunded" })
+            .in("id", refundedReportIds);
+          console.log("[STRIPE-WEBHOOK] Reports marked refunded:", refundedReportIds);
+
+          // Cancel any horoscope subscriptions tied to these reports — both in
+          // our DB and in Stripe (distinct subscription, not the one refunded).
+          const { data: horoscopeSubs } = await supabaseClient
+            .from("horoscope_subscriptions")
+            .select("id, stripe_subscription_id")
+            .in("pet_report_id", refundedReportIds)
+            .eq("status", "active");
+          for (const sub of horoscopeSubs ?? []) {
+            if (sub.stripe_subscription_id) {
+              try { await stripe.subscriptions.cancel(sub.stripe_subscription_id); } catch (e) {
+                console.warn("[STRIPE-WEBHOOK] Stripe sub cancel failed (non-fatal):", e);
+              }
+            }
+            await supabaseClient
+              .from("horoscope_subscriptions")
+              .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+              .eq("id", sub.id);
+          }
+
+          // Mark compatibility readings that used either refunded report as failed.
+          await supabaseClient
+            .from("pet_compatibilities")
+            .update({ status: "failed", error_message: "Source report refunded" })
+            .or(refundedReportIds.map(id => `pet_report_a_id.eq.${id},pet_report_b_id.eq.${id}`).join(","));
+        }
+
+        return new Response(JSON.stringify({ received: true, refunded: refundedReportIds }), { status: 200 });
+      } catch (err) {
+        console.error("[STRIPE-WEBHOOK] Refund handler error:", err);
+        return new Response(JSON.stringify({ error: "refund handler failed" }), { status: 500 });
+      }
+    }
+
     // Handle Express Checkout PaymentIntent (safety-net — frontend verify-payment handles primary flow)
     if (event.type === "payment_intent.succeeded") {
       const pi = event.data.object as Stripe.PaymentIntent;

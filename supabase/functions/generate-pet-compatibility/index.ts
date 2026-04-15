@@ -61,7 +61,7 @@ serve(async (req) => {
 
     const { data: reports, error: fetchError } = await supabase
       .from("pet_reports")
-      .select("id, email, pet_name, payment_status, report_content, species, birth_date, birth_time, birth_location, gender, pet_photo_url")
+      .select("id, email, pet_name, payment_status, report_content, species, birth_date, birth_time, birth_location, gender, pet_photo_url, occasion_mode")
       .in("id", [aId, bId]);
 
     if (fetchError || !reports || reports.length !== 2) {
@@ -76,6 +76,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Both reports must be paid" }), {
         headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
         status: 402,
+      });
+    }
+
+    // Refuse compatibility pairings that include a memorial pet — the reading
+    // is framed as a living relationship ("how they move through the world
+    // together") and would land as a care failure on a grieving owner.
+    if (reports.some(r => r.occasion_mode === "memorial")) {
+      return new Response(JSON.stringify({ error: "Compatibility readings are only available for living pets" }), {
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        status: 400,
       });
     }
 

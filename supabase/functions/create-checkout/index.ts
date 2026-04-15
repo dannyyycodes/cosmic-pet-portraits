@@ -93,6 +93,8 @@ const checkoutSchema = z.object({
   compatibilityUpsellCheckout: z.boolean().optional().default(false),
   compatPetReportAId: z.string().uuid().optional(),
   compatPetReportBId: z.string().uuid().optional(),
+  /** Client-reported — server recomputes from DB. Telemetry only. */
+  existingPairsCount: z.number().int().min(0).max(50).optional(),
 });
 
 serve(async (req) => {
@@ -192,8 +194,10 @@ serve(async (req) => {
 
     // ========== CROSS-PET COMPATIBILITY UPSELL ==========
     // A small paid add-on available to buyers who own 2+ pet reports.
+    // Tiered pricing matches the base-tier multi-pet volume discount:
+    //   1st pairing: $12 · 2nd: $10 · 3rd+: $8.
+    // Pair count is read fresh from the DB so clients can't tamper.
     if (input.compatibilityUpsellCheckout) {
-      const COMPAT_PRICE_CENTS = 1200; // $12 — lightweight add-on, never a fresh reading
       const { compatPetReportAId, compatPetReportBId, purchaserEmail } = input;
       if (!compatPetReportAId || !compatPetReportBId || compatPetReportAId === compatPetReportBId) {
         return new Response(JSON.stringify({ error: "Two distinct pet report ids required" }), {
@@ -211,7 +215,7 @@ serve(async (req) => {
       // Server-side ownership check — both reports must share the buyer's email.
       const { data: sourceReports, error: srcErr } = await supabaseClient
         .from("pet_reports")
-        .select("id, email, pet_name, payment_status")
+        .select("id, email, pet_name, payment_status, occasion_mode")
         .in("id", [compatPetReportAId, compatPetReportBId]);
       if (srcErr || !sourceReports || sourceReports.length !== 2) {
         return new Response(JSON.stringify({ error: "Source reports not found" }), {
@@ -226,6 +230,26 @@ serve(async (req) => {
           status: 403,
         });
       }
+
+      // Refuse pairings that include a memorial pet — defence in depth with
+      // generate-pet-compatibility, which also blocks this path.
+      const memorialReport = sourceReports.find(r => (r as { occasion_mode?: string }).occasion_mode === "memorial");
+      if (memorialReport) {
+        return new Response(JSON.stringify({ error: "Compatibility readings are only available for living pets" }), {
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+
+      // Server-authoritative pair count → tiered price. Clients can send their
+      // own count for telemetry; we recompute from the DB to avoid tampering.
+      const { count: existingPairsCount } = await supabaseClient
+        .from("pet_compatibilities")
+        .select("id", { count: "exact", head: true })
+        .eq("email", buyerEmail)
+        .eq("status", "ready");
+      const pairIndex = existingPairsCount ?? 0;
+      const COMPAT_PRICE_CENTS = pairIndex >= 2 ? 800 : pairIndex >= 1 ? 1000 : 1200;
 
       const nameA = sourceReports.find(r => r.id === compatPetReportAId)?.pet_name || "your first pet";
       const nameB = sourceReports.find(r => r.id === compatPetReportBId)?.pet_name || "your second pet";

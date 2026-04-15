@@ -163,16 +163,19 @@ serve(async (req) => {
     const results: Array<{ email: string; pets: number; ok: boolean; error?: string }> = [];
 
     for (const hh of households as HouseholdRow[]) {
-      // Pull active per-pet subscriptions linked to this household.
+      // Pull active per-pet subscriptions linked to this household — join through
+      // pet_reports so we can filter out memorial pets (weekly horoscopes for a
+      // pet who has crossed the rainbow bridge would be a serious care failure).
       const { data: subs } = await supabase
         .from("horoscope_subscriptions")
-        .select("id, pet_name, pet_report_id, household_id")
+        .select("id, pet_name, pet_report_id, household_id, pet_reports!inner(occasion_mode)")
         .eq("household_id", hh.id)
         .eq("status", "active");
 
-      const subList = (subs ?? []) as SubRow[];
+      const subList = ((subs ?? []) as Array<SubRow & { pet_reports?: { occasion_mode?: string } }>)
+        .filter((s) => s.pet_reports?.occasion_mode !== "memorial");
       if (subList.length === 0) {
-        results.push({ email: hh.email, pets: 0, ok: false, error: "No pets" });
+        results.push({ email: hh.email, pets: 0, ok: false, error: "No pets (after memorial filter)" });
         continue;
       }
 

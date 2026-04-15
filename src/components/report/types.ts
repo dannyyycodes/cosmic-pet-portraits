@@ -266,4 +266,6 @@ export interface ReportData {
   petPhotoUrl?: string;
   /** Optional generated portrait image; premium tier. */
   portraitUrl?: string;
+  /** discover / birthday / memorial / gift — used to filter memorial pets out of compatibility picker etc. */
+  occasionMode?: string;
 }

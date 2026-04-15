@@ -1173,6 +1173,7 @@ export function CosmicReportViewer({
                 reportId: r.reportId,
                 petName: r.petName,
                 petPhotoUrl: r.petPhotoUrl || r.portraitUrl,
+                occasionMode: r.occasionMode,
               }))}
               currentReportId={allReports[currentIndex]?.reportId}
               buyerEmail={allReports[0]?.email || ''}

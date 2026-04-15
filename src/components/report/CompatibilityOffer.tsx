@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Heart, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 
 interface PetSummary {
   reportId: string;
   petName: string;
   petPhotoUrl?: string;
+  /** Memorial pets are filtered out of the picker — compatibility readings are
+   *  framed as a living relationship and would land as a care failure otherwise. */
+  occasionMode?: string;
 }
 
 interface CompatibilityOfferProps {
@@ -15,8 +19,16 @@ interface CompatibilityOfferProps {
   /** Current pet being viewed — auto-selects as "Pet A" so the picker asks "and which one with them?". */
   currentReportId?: string;
   buyerEmail: string;
-  /** Price to show, in whole dollars. Defaults to 12. */
-  priceDollars?: number;
+}
+
+/**
+ * Tiered pricing — first pair at full price, subsequent pairs discounted to
+ * match the multi-pet base-tier volume discount philosophy. Returns USD dollars.
+ */
+function priceForPair(existingPairsCount: number): number {
+  if (existingPairsCount >= 2) return 8;   // 3rd+ pair
+  if (existingPairsCount >= 1) return 10;  // 2nd pair
+  return 12;                               // 1st pair
 }
 
 /**
@@ -24,15 +36,40 @@ interface CompatibilityOfferProps {
  * buyer with 2+ pets pair any two of their pets and pay to generate a
  * cross-pet compatibility reading.
  */
-export function CompatibilityOffer({ pets, currentReportId, buyerEmail, priceDollars = 12 }: CompatibilityOfferProps) {
+export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: CompatibilityOfferProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [petAId, setPetAId] = useState<string>(currentReportId ?? pets[0]?.reportId ?? '');
-  const [petBId, setPetBId] = useState<string>(
-    (pets.find(p => p.reportId !== (currentReportId ?? pets[0]?.reportId))?.reportId) ?? '',
-  );
+  const { fmtUsd } = useLocalizedPrice();
 
-  const petA = pets.find(p => p.reportId === petAId);
-  const petB = pets.find(p => p.reportId === petBId);
+  // Only living pets are eligible for compatibility pairings.
+  const livingPets = pets.filter(p => p.occasionMode !== 'memorial');
+
+  const defaultA = livingPets.find(p => p.reportId === currentReportId)?.reportId ?? livingPets[0]?.reportId ?? '';
+  const defaultB = livingPets.find(p => p.reportId !== defaultA)?.reportId ?? '';
+
+  const [petAId, setPetAId] = useState<string>(defaultA);
+  const [petBId, setPetBId] = useState<string>(defaultB);
+  // Look up how many compatibility pairings this household has already
+  // unlocked so we can surface the volume discount in the CTA copy.
+  const [existingPairs, setExistingPairs] = useState<number>(0);
+  useEffect(() => {
+    let cancelled = false;
+    if (!buyerEmail) return;
+    (async () => {
+      const { count } = await supabase
+        .from('pet_compatibilities')
+        .select('id', { count: 'exact', head: true })
+        .eq('email', buyerEmail.toLowerCase().trim())
+        .eq('status', 'ready');
+      if (!cancelled) setExistingPairs(count ?? 0);
+    })();
+    return () => { cancelled = true; };
+  }, [buyerEmail]);
+
+  const priceDollars = priceForPair(existingPairs);
+  const nextDiscountDollars = existingPairs === 0 ? priceForPair(1) : existingPairs === 1 ? priceForPair(2) : null;
+
+  const petA = livingPets.find(p => p.reportId === petAId);
+  const petB = livingPets.find(p => p.reportId === petBId);
   const canProceed = !!petA && !!petB && petA.reportId !== petB.reportId && !!buyerEmail && !isLoading;
 
   const handleStart = async () => {
@@ -45,6 +82,10 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail, priceDol
           compatPetReportAId: petA!.reportId,
           compatPetReportBId: petB!.reportId,
           purchaserEmail: buyerEmail,
+          // Server-side pricing authority — the server recomputes from DB to
+          // prevent tampering, but sending the client's count lets the
+          // server log any mismatches in telemetry.
+          existingPairsCount: existingPairs,
         },
       });
       if (error || !data?.url) throw error || new Error('No checkout URL');
@@ -56,7 +97,8 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail, priceDol
     }
   };
 
-  if (pets.length < 2) return null;
+  // Need at least two living pets for a compatibility pairing to make sense.
+  if (livingPets.length < 2) return null;
 
   return (
     <motion.div
@@ -98,7 +140,7 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail, priceDol
         </p>
 
         {/* Pet pair picker */}
-        {pets.length > 2 && (
+        {livingPets.length > 2 && (
           <div className="grid grid-cols-2 gap-3 mb-5">
             <div>
               <label className="text-[0.6rem] uppercase tracking-widest text-[#9B8E84] font-semibold mb-1 block"
@@ -110,7 +152,7 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail, priceDol
                   className="w-full appearance-none pr-8 pl-3.5 py-2.5 rounded-xl border-[1.5px] text-[0.92rem] text-[#2D2926] bg-white focus:outline-none focus:border-[#bf524a]"
                   style={{ borderColor: '#E8DFD6', fontFamily: 'Cormorant, serif', fontSize: '16px' }}
                 >
-                  {pets.map(p => (
+                  {livingPets.map(p => (
                     <option key={p.reportId} value={p.reportId} disabled={p.reportId === petBId}>
                       🐾 {p.petName}
                     </option>
@@ -129,7 +171,7 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail, priceDol
                   className="w-full appearance-none pr-8 pl-3.5 py-2.5 rounded-xl border-[1.5px] text-[0.92rem] text-[#2D2926] bg-white focus:outline-none focus:border-[#bf524a]"
                   style={{ borderColor: '#E8DFD6', fontFamily: 'Cormorant, serif', fontSize: '16px' }}
                 >
-                  {pets.map(p => (
+                  {livingPets.map(p => (
                     <option key={p.reportId} value={p.reportId} disabled={p.reportId === petAId}>
                       🐾 {p.petName}
                     </option>
@@ -178,7 +220,7 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail, priceDol
               <>Loading…</>
             ) : (
               <>
-                Reveal their bond · ${priceDollars}
+                Reveal their bond · {fmtUsd(priceDollars)}
                 <Sparkles className="w-4 h-4" />
               </>
             )}
@@ -189,6 +231,12 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail, priceDol
           style={{ fontFamily: 'Cormorant, serif' }}>
           One-time · Lives in your account · Shareable with the other pet's family
         </p>
+
+        {nextDiscountDollars !== null && (
+          <p className="text-center text-[0.72rem] mt-1" style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}>
+            ✨ Next pairing drops to {fmtUsd(nextDiscountDollars)}{existingPairs === 0 ? ' · 3rd pairing ' + fmtUsd(8) : ''}
+          </p>
+        )}
       </div>
     </motion.div>
   );
