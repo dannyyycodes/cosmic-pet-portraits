@@ -856,118 +856,232 @@ body::after {
   flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
 }
-.sidebar-tab-panel { display:none; padding:24px; }
+.sidebar-tab-panel { display:none; padding:18px 16px 16px; }
 .sidebar-tab-panel.active { display:block; }
 
 /* ── Credits Tab ── */
 .sidebar-credits-box {
   background:linear-gradient(135deg, var(--cream2) 0%, var(--cream3) 100%);
-  border-radius:16px; padding:22px 20px; text-align:center;
+  border-radius:14px; padding:14px 16px; text-align:center;
   border:1px solid rgba(196,162,101,0.12);
-  margin-bottom:28px;
+  margin-bottom:16px;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
 }
 .sidebar-credits-number {
-  font-family:'DM Serif Display',Georgia,serif; font-size:2.8rem;
+  font-family:'DM Serif Display',Georgia,serif; font-size:2rem;
   color:var(--ink); line-height:1;
 }
 .sidebar-credits-label {
-  font-size:0.88rem; color:var(--muted); line-height:1.3; margin-top:6px;
-  font-weight:500; letter-spacing:0.2px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.72rem; color:var(--muted); line-height:1.2;
+  font-weight:500; letter-spacing:0.3px;
 }
 .sidebar-credits-sublabel {
-  font-size:0.72rem; color:var(--gold); font-weight:600;
-  letter-spacing:1px; margin-top:10px; text-transform:uppercase;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.58rem; color:var(--gold); font-weight:700;
+  letter-spacing:1.4px; margin-top:4px; text-transform:uppercase;
 }
 .sidebar-credits-unlimited {
-  font-family:'DM Serif Display',Georgia,serif; font-size:1rem;
+  font-family:'DM Serif Display',Georgia,serif; font-size:0.95rem;
   color:var(--gold); display:flex; align-items:center; justify-content:center; gap:6px;
 }
 
-/* Pricing cards row */
+/* Pricing cards header */
 .sidebar-pricing-title {
   font-family:'DM Serif Display',Georgia,serif;
-  font-size:1.05rem; font-weight:400; letter-spacing:0.2px;
-  color:var(--ink); margin-bottom:18px;
+  font-size:1rem; font-weight:400; letter-spacing:0.2px;
+  color:var(--ink); margin-bottom:3px;
   text-align:center;
 }
+.sidebar-pricing-sub {
+  font-family:'Cormorant',Georgia,serif;
+  font-style:italic; font-size:0.8rem; color:var(--warm);
+  text-align:center; margin-bottom:14px; line-height:1.3;
+}
+/* 3-col grid of pack cards — app-store style */
 .sidebar-pricing-row {
-  display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
+  align-items:stretch;
 }
 
 .sidebar-price-card {
-  display:flex; flex-direction:column; border-radius:18px; cursor:pointer;
-  text-align:center; transition:border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-  position:relative; background:var(--cream2); color:var(--ink);
-  border:1.5px solid var(--cream3);
-  font-family:inherit; font-size:inherit; padding:22px 12px 18px;
-  -webkit-tap-highlight-color:transparent;
+  position:relative; display:flex; flex-direction:column;
+  background:linear-gradient(180deg, rgba(196,162,101,0.06) 0%, transparent 50%), var(--card-bg);
+  color:var(--ink);
+  border:1px solid var(--card-border); border-radius:16px;
+  overflow:hidden; padding:0;
+  font-family:inherit; font-size:inherit;
+  cursor:pointer; -webkit-tap-highlight-color:transparent;
+  transition:transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  text-align:center;
 }
 .sidebar-price-card:hover {
-  transform:translateY(-2px);
-  border-color:rgba(196,162,101,0.35);
+  transform:translateY(-4px);
+  border-color:rgba(196,162,101,0.45);
+  box-shadow:0 14px 32px rgba(20,18,16,0.09);
 }
 
-/* Featured — Deep Talk — single clean gold accent */
+/* Featured — gold tint via theme-aware overlay */
 .sidebar-price-card.featured {
-  border:1.5px solid var(--gold);
-  box-shadow:0 6px 22px rgba(196,162,101,0.18);
+  background:linear-gradient(180deg, var(--gold-soft) 0%, transparent 55%), var(--card-bg);
+  border-color:rgba(196,162,101,0.55);
+  box-shadow:0 8px 20px rgba(196,162,101,0.14);
 }
 .sidebar-price-card.featured:hover {
-  box-shadow:0 8px 28px rgba(196,162,101,0.26);
+  box-shadow:0 16px 38px rgba(196,162,101,0.28);
 }
 
-/* Membership — Soul Bond — single clean rose accent */
+/* Membership — rose tint via theme-aware overlay */
 .sidebar-price-card.membership {
-  border:1.5px solid rgba(191,82,74,0.45);
+  background:linear-gradient(180deg, var(--rose-glow) 0%, transparent 55%), var(--card-bg);
+  border-color:rgba(191,82,74,0.32);
 }
 .sidebar-price-card.membership:hover {
   border-color:var(--rose);
-  box-shadow:0 6px 22px rgba(191,82,74,0.15);
+  box-shadow:0 14px 32px rgba(191,82,74,0.18);
 }
 
-.price-card-badge {
-  position:absolute; top:-10px; left:50%; transform:translateX(-50%);
-  font-size:0.62rem; font-weight:700; letter-spacing:1.2px;
-  text-transform:uppercase; padding:4px 10px; border-radius:999px;
-  white-space:nowrap; background:var(--gold); color:#1a1210;
-  box-shadow:0 2px 6px rgba(196,162,101,0.3);
+/* Ribbon at top — guaranteed visible, aligns all card heights */
+.pc-ribbon {
+  width:100%; padding:6px 4px; line-height:1.1;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.55rem; font-weight:800; letter-spacing:1.6px;
+  text-transform:uppercase; text-align:center;
+  background:transparent; color:transparent;
+  user-select:none;
 }
-.sidebar-price-card.membership .price-card-badge {
-  background:var(--rose); color:#fff;
-  box-shadow:0 2px 6px rgba(191,82,74,0.3);
+.pc-ribbon--empty { visibility:hidden; }
+.pc-ribbon--standard {
+  background:linear-gradient(90deg, var(--cream3) 0%, var(--cream2) 50%, var(--cream3) 100%);
+  color:var(--muted);
+  box-shadow:inset 0 -1px 0 var(--cream3);
+}
+.sidebar-price-card.featured .pc-ribbon {
+  background:linear-gradient(90deg,#c4a265 0%,#e0c488 50%,#c4a265 100%);
+  color:#3a2a16;
+  box-shadow:inset 0 -1px 0 rgba(196,162,101,0.4);
+}
+.sidebar-price-card.membership .pc-ribbon {
+  background:linear-gradient(90deg,#bf524a 0%,#d46a61 50%,#bf524a 100%);
+  color:#fff;
+  box-shadow:inset 0 -1px 0 rgba(191,82,74,0.4);
 }
 
-.price-card-name {
+/* Body */
+.pc-body {
+  display:flex; flex-direction:column; align-items:center;
+  padding:12px 6px 12px; flex:1; width:100%;
+}
+
+.pc-icon {
+  width:28px; height:28px; margin-bottom:6px;
+  color:var(--gold); opacity:1;
+  filter:drop-shadow(0 1px 3px rgba(196,162,101,0.3));
+}
+.pc-icon svg { width:100%; height:100%; display:block; }
+.sidebar-price-card.membership .pc-icon {
+  color:var(--rose);
+  filter:drop-shadow(0 1px 3px rgba(191,82,74,0.32));
+}
+
+/* Hero — credits */
+.pc-credits {
   font-family:'DM Serif Display',Georgia,serif;
-  font-weight:400; font-size:1rem; margin-bottom:10px;
-  letter-spacing:0.2px; color:var(--ink);
+  font-size:2rem; line-height:1; letter-spacing:-0.5px;
+  color:var(--ink); position:relative;
+  text-shadow:0 0 18px rgba(196,162,101,0.18);
+}
+.sidebar-price-card.featured .pc-credits {
+  color:var(--gold);
+  text-shadow:0 0 24px rgba(196,162,101,0.35);
+}
+.sidebar-price-card.membership .pc-credits {
+  color:var(--rose);
+  text-shadow:0 0 24px rgba(191,82,74,0.3);
 }
 
-.price-card-amount {
+.pc-credits-label {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.56rem; font-weight:700;
+  letter-spacing:1.8px; text-transform:uppercase;
+  color:var(--muted); margin-top:5px;
+}
+
+/* Savings chip (appears on featured + membership) */
+.pc-savings {
+  display:inline-block; margin-top:8px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.56rem; font-weight:800; letter-spacing:1px;
+  text-transform:uppercase;
+  padding:3px 8px; border-radius:999px;
+  background:var(--gold-soft); color:var(--gold);
+  border:1px solid rgba(196,162,101,0.4);
+}
+.sidebar-price-card.membership .pc-savings {
+  background:var(--rose-glow); color:var(--rose);
+  border-color:rgba(191,82,74,0.35);
+}
+/* Neutral chip — for Top Up (no savings, just a label) */
+.pc-savings.pc-savings--neutral {
+  background:var(--cream3); color:var(--muted);
+  border-color:var(--cream3);
+}
+
+.pc-name {
   font-family:'DM Serif Display',Georgia,serif;
-  font-size:1.95rem; line-height:1; margin-bottom:2px;
-  color:var(--ink);
+  font-size:0.95rem; line-height:1.15; color:var(--ink);
+  margin-top:12px; margin-bottom:2px;
 }
 
-.price-card-period {
-  font-size:0.72rem; color:var(--muted); margin-bottom:12px;
-  letter-spacing:0.3px;
+.pc-tagline {
+  font-family:'Caveat',cursive;
+  font-weight:500; font-size:0.92rem; line-height:1.2;
+  color:var(--warm);
+  padding:0 2px; margin-bottom:12px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.sidebar-price-card.featured .pc-tagline { color:var(--gold); opacity:0.85; }
+.sidebar-price-card.membership .pc-tagline { color:var(--rose); opacity:0.85; }
+
+/* Buy button — the CTA */
+.pc-buy {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1px; padding:8px 14px; border-radius:999px;
+  background:var(--card-bg); border:1px solid var(--card-border);
+  color:var(--ink); margin-top:auto; min-width:72px;
+  transition:background .2s, border-color .2s, color .2s, box-shadow .2s;
+}
+.sidebar-price-card:hover .pc-buy {
+  border-color:rgba(196,162,101,0.5);
+}
+.sidebar-price-card.featured .pc-buy {
+  background:var(--gold);
+  border-color:var(--gold);
+  color:#1a1210;
+  box-shadow:0 3px 10px rgba(196,162,101,0.28);
+}
+.sidebar-price-card.featured:hover .pc-buy {
+  box-shadow:0 5px 16px rgba(196,162,101,0.44);
+}
+.sidebar-price-card.membership .pc-buy {
+  background:var(--rose);
+  border-color:var(--rose);
+  color:#fff;
+  box-shadow:0 3px 10px rgba(191,82,74,0.28);
+}
+.sidebar-price-card.membership:hover .pc-buy {
+  box-shadow:0 5px 16px rgba(191,82,74,0.44);
 }
 
-.price-card-credits {
-  font-size:0.9rem; font-weight:600; margin-bottom:4px;
-  color:var(--gold); letter-spacing:0.1px;
+.pc-amount {
+  font-family:'DM Serif Display',Georgia,serif;
+  font-size:1rem; line-height:1;
 }
-.sidebar-price-card.membership .price-card-credits { color:var(--rose); }
-
-.price-card-permessage {
-  font-size:0.72rem; color:var(--muted); margin-bottom:10px;
-  font-weight:500;
-}
-
-.price-card-desc {
-  font-size:0.82rem; color:var(--warm); line-height:1.45;
-  font-family:'Cormorant',Georgia,serif;
+.pc-period {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.52rem; font-weight:700; letter-spacing:1.1px;
+  text-transform:uppercase; opacity:0.72; margin-top:3px;
 }
 
 /* ── Soul Profile Tab ── */
@@ -1079,9 +1193,9 @@ body::after {
 
 /* ── Connection badge in Credits tab ── */
 .connection-badge {
-  display:flex; align-items:center; gap:12px;
-  padding:12px 14px; margin-bottom:18px;
-  border-radius:14px; background:var(--cream2);
+  display:flex; align-items:center; gap:10px;
+  padding:9px 12px; margin-bottom:10px;
+  border-radius:12px; background:var(--cream2);
   border:1px solid rgba(196,162,101,0.18);
 }
 .connection-flame {
@@ -1252,14 +1366,17 @@ body::after {
   .sidebar-tabs { padding:14px 16px 0; }
   .sidebar-tab-panel { padding:18px 16px; }
   .sidebar-pet-photo { width:44px; height:44px; }
-  .sidebar-pricing-row { gap:10px; }
-  .sidebar-price-card { padding:18px 10px 14px; }
-  .price-card-name { font-size:0.88rem; margin-bottom:8px; }
-  .price-card-amount { font-size:1.55rem; }
-  .price-card-period { font-size:0.68rem; margin-bottom:10px; }
-  .price-card-credits { font-size:0.82rem; }
-  .price-card-permessage { font-size:0.68rem; margin-bottom:8px; }
-  .price-card-desc { font-size:0.76rem; }
+  .sidebar-pricing-row { gap:7px; }
+  .pc-body { padding:14px 6px 12px; }
+  .pc-icon { width:24px; height:24px; margin-bottom:5px; }
+  .pc-credits { font-size:1.75rem; }
+  .pc-credits-label { font-size:0.52rem; letter-spacing:1.5px; }
+  .pc-name { font-size:0.88rem; margin-top:10px; }
+  .pc-tagline { font-size:0.86rem; margin-bottom:10px; }
+  .pc-buy { padding:7px 10px; min-width:64px; }
+  .pc-amount { font-size:0.92rem; }
+  .pc-period { font-size:0.5rem; }
+  .pc-ribbon { font-size:0.52rem; letter-spacing:1.4px; padding:5px 2px; }
   .sidebar-footer { padding:12px 16px; }
 }
 
@@ -1273,18 +1390,18 @@ body::after {
   .welcome-card { max-width:100%; }
   .paywall-option-title { font-size:0.85rem; }
   .paywall-option-desc { font-size:0.7rem; }
-  .sidebar-pricing-row { grid-template-columns:1fr; gap:10px; }
-  .sidebar-price-card {
-    padding:16px 18px; flex-direction:row; align-items:center;
-    gap:14px; text-align:left;
-  }
-  .sidebar-price-card > .price-card-name { flex:0 0 auto; margin-bottom:0; }
-  .sidebar-price-card > .price-card-amount { flex:1 1 auto; font-size:1.3rem; margin-bottom:0; text-align:right; }
-  .sidebar-price-card > .price-card-period { display:none; }
-  .sidebar-price-card > .price-card-credits { flex:0 0 auto; margin-bottom:0; font-size:0.82rem; }
-  .sidebar-price-card > .price-card-permessage { display:none; }
-  .price-card-badge { top:-9px; left:16px; right:auto; transform:none; }
-  .price-card-desc { display:none; }
+  /* Small phones — keep 3-col, compress further */
+  .sidebar-pricing-row { gap:6px; }
+  .pc-body { padding:12px 4px 10px; }
+  .pc-icon { width:22px; height:22px; margin-bottom:4px; }
+  .pc-credits { font-size:1.55rem; }
+  .pc-credits-label { font-size:0.5rem; letter-spacing:1.2px; margin-top:3px; }
+  .pc-name { font-size:0.8rem; margin-top:8px; }
+  .pc-tagline { font-size:0.78rem; margin-bottom:8px; padding:0 2px; }
+  .pc-buy { padding:6px 8px; min-width:56px; }
+  .pc-amount { font-size:0.84rem; }
+  .pc-period { font-size:0.48rem; }
+  .pc-ribbon { font-size:0.48rem; letter-spacing:1.1px; padding:4px 2px; }
 }
 
 /* Landscape on phones */
@@ -1512,38 +1629,64 @@ body::after {
       <!-- Pricing cards -->
       <div id="sidebarBuySection">
         <div class="sidebar-pricing-title">Keep the Connection Alive</div>
+        <div class="sidebar-pricing-sub">More credits, deeper bond — save up to 70%</div>
         <div class="sidebar-pricing-row">
 
           <!-- Card 1: Top Up ($7.99) -->
           <button class="sidebar-price-card standard" onclick="buyCredits('small')">
-            <div class="price-card-name">Top Up</div>
-            <div class="price-card-amount">$7.99</div>
-            <div class="price-card-period">one time</div>
-            <div class="price-card-credits">750 credits</div>
-            <div class="price-card-permessage">~15 messages</div>
-            <div class="price-card-desc">Pick up right where you left off</div>
+            <div class="pc-ribbon pc-ribbon--standard">Pay as you go</div>
+            <div class="pc-body">
+              <div class="pc-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5l2.3 7.2 7.2 2.3-7.2 2.3-2.3 7.2-2.3-7.2L2.5 11l7.2-2.3z"/></svg>
+              </div>
+              <div class="pc-credits">750</div>
+              <div class="pc-credits-label">credits</div>
+              <div class="pc-savings pc-savings--neutral">Starter</div>
+              <div class="pc-name">Top Up</div>
+              <div class="pc-tagline">keep the chat going</div>
+              <div class="pc-buy">
+                <span class="pc-amount">$7.99</span>
+                <span class="pc-period">one-time</span>
+              </div>
+            </div>
           </button>
 
           <!-- Card 2: Deep Talk ($19.99) — featured -->
           <button class="sidebar-price-card featured" onclick="buyCredits('medium')">
-            <div class="price-card-badge">Best value</div>
-            <div class="price-card-name">Deep Talk</div>
-            <div class="price-card-amount">$19.99</div>
-            <div class="price-card-period">one time</div>
-            <div class="price-card-credits">2,500 credits</div>
-            <div class="price-card-permessage">~50 messages</div>
-            <div class="price-card-desc">Hear everything they've been waiting to tell you</div>
+            <div class="pc-ribbon">Most popular</div>
+            <div class="pc-body">
+              <div class="pc-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.8 7.1.2-5.6 4.3 2.1 6.8L12 16.2l-6 3.9 2.1-6.8L2.5 9.3l7.1-.3z"/></svg>
+              </div>
+              <div class="pc-credits">2,500</div>
+              <div class="pc-credits-label">credits</div>
+              <div class="pc-savings">Save 25%</div>
+              <div class="pc-name">Deep Talk</div>
+              <div class="pc-tagline">the full conversation</div>
+              <div class="pc-buy">
+                <span class="pc-amount">$19.99</span>
+                <span class="pc-period">one-time</span>
+              </div>
+            </div>
           </button>
 
           <!-- Card 3: Soul Bond ($12.99/mo) -->
           <button class="sidebar-price-card membership" onclick="buyCredits('membership')">
-            <div class="price-card-badge">Soul bond</div>
-            <div class="price-card-name">Membership</div>
-            <div class="price-card-amount">$12.99</div>
-            <div class="price-card-period">per month</div>
-            <div class="price-card-credits">1,000 credits / week</div>
-            <div class="price-card-permessage">~20 messages / week</div>
-            <div class="price-card-desc">An always-open channel. Cancel anytime.</div>
+            <div class="pc-ribbon">Best value</div>
+            <div class="pc-body">
+              <div class="pc-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+              <div class="pc-credits">1,000</div>
+              <div class="pc-credits-label">/ week</div>
+              <div class="pc-savings">Save 72%</div>
+              <div class="pc-name">Soul Bond</div>
+              <div class="pc-tagline">an always-open channel</div>
+              <div class="pc-buy">
+                <span class="pc-amount">$12.99</span>
+                <span class="pc-period">/ month</span>
+              </div>
+            </div>
           </button>
 
         </div>
