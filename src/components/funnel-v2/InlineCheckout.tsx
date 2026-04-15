@@ -384,7 +384,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                         style={{
                           fontSize: "0.8rem",
                           color: isDivider ? "var(--gold, #c4a265)" : "var(--earth, #6e6259)",
-                          fontWeight: isDivider ? 600 : 400,
+                          fontWeight: isDivider ? 600 : 700,
                           fontStyle: isDivider ? "italic" : "normal",
                           lineHeight: 1.4,
                           cursor: isSoulSpeak ? "pointer" : "default",
