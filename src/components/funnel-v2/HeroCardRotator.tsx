@@ -13,7 +13,7 @@ type Glyph = "moon" | "paw" | "bond" | "candle" | "scroll" | "gift" | "mirror";
 type Species = "cat" | "dog";
 type Review = { quote: string; name: string; pet: string; rating: number };
 type HeroCard = {
-  eyebrow: string; headline: string; sub: string; accent: string; glyph: Glyph;
+  eyebrow: string; headline: string; accent: string; glyph: Glyph;
   species: Species; review: Review; imageUrl: string;
 };
 
@@ -27,8 +27,7 @@ const HERO_CARDS: HeroCard[] = [
     accent: "#c4a265", glyph: "moon", species: "cat",
     imageUrl: "https://cdn2.thecatapi.com/images/uk0SrrBbQ.jpg",
     eyebrow: "For the one who's been beside you every day",
-    headline: "They have a look they save only for you. You still don't know what it means.",
-    sub: "You've watched them for years without a word for it. This finally gives you one.",
+    headline: "They have a look they save only for you. This finally tells you what it means.",
     review: {
       quote: "She does this thing where she goes soft around the eyes when I walk in. Only me. Never my partner, never my mom when she visits. I've noticed it for six years and never had a word for it. The reading called it her trust gaze. I sat with that for a long time.",
       name: "Sarah K.", pet: "Miso, 6", rating: 5,
@@ -38,8 +37,7 @@ const HERO_CARDS: HeroCard[] = [
     accent: "#5a4a42", glyph: "candle", species: "dog",
     imageUrl: "https://images.dog.ceo/breeds/retriever-golden/n02099601_6105.jpg",
     eyebrow: "For the pet getting older — or already gone",
-    headline: "Love doesn't stop at goodbye. Neither does this.",
-    sub: "A memorial reading in past tense. Their chart, your bond, a letter in their voice.",
+    headline: "Love doesn't stop at goodbye. A memorial reading in past tense: their chart, your bond, a letter in their voice.",
     review: {
       quote: "We lost Biscuit in February. I ordered the reading in March because I wasn't ready, and then I was. It came in past tense. There was a letter at the end in her voice and I couldn't finish it the first night. I go back to it. I keep it in the drawer next to the bed.",
       name: "Claire R.", pet: "for Biscuit, always", rating: 5,
@@ -49,8 +47,7 @@ const HERO_CARDS: HeroCard[] = [
     accent: "#8a6f8c", glyph: "bond", species: "dog",
     imageUrl: "https://images.dog.ceo/breeds/hound-blood/n02088466_8575.jpg",
     eyebrow: "For the bond nobody else gets",
-    headline: "Everyone thinks you're projecting. You're not.",
-    sub: "Every feeling you've had about your bond is in their chart. Written, not imagined.",
+    headline: "Everyone thinks you're projecting. You're not. It's written in their chart.",
     review: {
       quote: "I've had Pepper since she was eight weeks old and I swear I knew her before she was mine. My husband thinks it's cute how attached I am. My mother thinks it's a problem. The reading mapped three things we share, not vaguely but specifically, and I printed the page about our bond and left it on the kitchen counter. Nobody's saying it's a problem anymore.",
       name: "Elena M.", pet: "Pepper · rescue hound, my soul dog", rating: 5,
@@ -60,8 +57,7 @@ const HERO_CARDS: HeroCard[] = [
     accent: "#bf524a", glyph: "paw", species: "cat",
     imageUrl: "https://cdn2.thecatapi.com/images/MVQu5GSK1.jpg",
     eyebrow: "For the pet with that weird thing",
-    headline: "You've known what they do. Now know why.",
-    sub: "The ritual, the obsession, the specific moment. Finally, you know what you were watching.",
+    headline: "You've known what they do. Now know what you were actually watching.",
     review: {
       quote: "11 p.m. on the dot, Walter goes to the window. Every night. Waits about twenty minutes, then comes to bed. I used to tell people he was keeping watch, half joking. Turns out I was closer than I thought. The reading called it his threshold ritual. I still say goodnight to the window now.",
       name: "James D.", pet: "Walter · tabby, extremely serious", rating: 5,
@@ -71,8 +67,7 @@ const HERO_CARDS: HeroCard[] = [
     accent: "#7a8670", glyph: "scroll", species: "dog",
     imageUrl: "https://images.dog.ceo/breeds/pitbull/louie.jpg",
     eyebrow: "For the ones with a history you weren't there for",
-    headline: "What they can't tell you, their chart remembers.",
-    sub: "Their past is older than your bond. This reads the part they can't say.",
+    headline: "What they can't tell you, their chart remembers. This reads the part they can't say.",
     review: {
       quote: "Otis came to us at four. He flinched at brooms, slept in the bathroom for a month, wouldn't eat unless I left the room. I spent three years piecing together stories about his life before us. The reading pointed at early isolation in his chart. It matched every instinct I'd had. I stopped guessing.",
       name: "Marcus P.", pet: "Otis · adopted 2023", rating: 5,
@@ -83,7 +78,6 @@ const HERO_CARDS: HeroCard[] = [
     imageUrl: "https://cdn2.thecatapi.com/images/FZpeiLi4n.jpg",
     eyebrow: "For the ones who'd give them the world",
     headline: "Every gift you've bought has said \u201CI love you.\u201D This one says \u201CI see you.\u201D",
-    sub: "The chart, the portrait, the letter. A gift that is them, not something for them.",
     review: {
       quote: "Gave this to my mom for her birthday. She's had Maple since my dad died in 2021 — that cat is basically her person now. I sent the link not expecting much. She called me on FaceTime and read me the whole thing, stopping every other paragraph to say 'that's her, Dani, that's EXACTLY her.' She's not a crier. She cried.",
       name: "Dani L.", pet: "gifted for Mom & Maple", rating: 5,
@@ -93,8 +87,7 @@ const HERO_CARDS: HeroCard[] = [
     accent: "#9d4038", glyph: "mirror", species: "dog",
     imageUrl: "https://images.dog.ceo/breeds/bulldog-english/murphy.jpg",
     eyebrow: "For the ones loved this fiercely",
-    headline: "They've been reading you for years. Now read them back.",
-    sub: "They've learned your language without one of their own. This gives you theirs.",
+    headline: "They've been reading you for years. Now read them back in their own language.",
     review: {
       quote: "Here's the thing I didn't expect. The reading didn't just tell me about Nova. It told me how she reads me. The way she tracks my mood, the specific things she picks up on, what she does when I'm overwhelmed vs when I'm just tired. Different responses. I thought I was observing her. She's been observing me the whole time.",
       name: "Ana T.", pet: "Nova · bulldog, apparently my therapist", rating: 5,
@@ -428,7 +421,6 @@ const CardFace = ({
         </svg>
 
         <h2 style={{ margin: 0, maxWidth: "32rem", ...typo.headline }}>{card.headline}</h2>
-        <p style={{ margin: 0, maxWidth: "32rem", ...typo.sub }}>{card.sub}</p>
 
         {depth === 0 && <ReviewBlock card={card} image={image} />}
       </div>
