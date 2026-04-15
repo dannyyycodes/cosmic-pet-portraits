@@ -422,7 +422,24 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                             </span>
                           ) : null;
                           const labelNode = isSoulSpeak ? (
-                            <span style={{ fontWeight: 600, color: "var(--ink, #1f1c18)" }}>{feature.label}</span>
+                            <span style={{ fontWeight: 600, color: "var(--ink, #1f1c18)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                              {feature.label}
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="var(--gold, #c4a265)"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                              >
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="16" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12.01" y2="8" />
+                              </svg>
+                            </span>
                           ) : isBonus ? (
                             <span>
                               <strong style={{ fontWeight: 700, color: "var(--ink, #1f1c18)" }}>Bonus sections</strong>
@@ -445,24 +462,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                               )}
                               <span className="flex-1 min-w-0">{labelNode}</span>
                               {badge}
-                              {isSoulSpeak && (
-                                <svg
-                                  width="16"
-                                  height="16"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="var(--gold, #c4a265)"
-                                  strokeWidth={2}
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="flex-shrink-0"
-                                  aria-hidden="true"
-                                >
-                                  <circle cx="12" cy="12" r="10" />
-                                  <line x1="12" y1="16" x2="12" y2="12" />
-                                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                                </svg>
-                              )}
                             </div>
                           );
                         })()}
