@@ -334,17 +334,39 @@ serve(async (req) => {
 
       // Household-pooled row if we have a trustworthy email; fall back to
       // per-order scoping for token-only visitors.
-      const insertPayload = buyerEmail
-        ? { email: buyerEmail, order_id: null, credits_remaining: starter, is_unlimited: isUnlimited }
-        : { order_id: orderId, credits_remaining: starter, is_unlimited: isUnlimited };
-      const { data: inserted } = await supabase
-        .from("chat_credits")
-        .insert(insertPayload)
-        .select("id, credits_remaining, is_unlimited")
-        .single();
+      if (buyerEmail) {
+        // Use insert with an on-conflict catch so two racing first-chat
+        // requests for the same household don't both mint a row. A partial
+        // unique index on (lower(email)) where order_id is null enforces
+        // this at the DB level.
+        const { data: inserted, error: insertErr } = await supabase
+          .from("chat_credits")
+          .insert({ email: buyerEmail, order_id: null, credits_remaining: starter, is_unlimited: isUnlimited })
+          .select("id, credits_remaining, is_unlimited")
+          .maybeSingle();
 
-      row = inserted;
-      rowScope = buyerEmail ? "household" : "order";
+        if (insertErr || !inserted) {
+          // Losing racer — re-read the winner's row and use it.
+          const { data: raced } = await supabase
+            .from("chat_credits")
+            .select("id, credits_remaining, is_unlimited")
+            .eq("email", buyerEmail)
+            .is("order_id", null)
+            .maybeSingle();
+          row = raced;
+        } else {
+          row = inserted;
+        }
+        rowScope = "household";
+      } else {
+        const { data: inserted } = await supabase
+          .from("chat_credits")
+          .insert({ order_id: orderId, credits_remaining: starter, is_unlimited: isUnlimited })
+          .select("id, credits_remaining, is_unlimited")
+          .single();
+        row = inserted;
+        rowScope = "order";
+      }
     }
 
     if (!row) {

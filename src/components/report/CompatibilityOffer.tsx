@@ -75,6 +75,19 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
   const handleStart = async () => {
     if (!canProceed) return;
     setIsLoading(true);
+    // Fire-and-forget analytics — don't block the Stripe redirect on it.
+    try {
+      await supabase.from('page_analytics').insert([{
+        session_id: (() => {
+          try { return sessionStorage.getItem('analytics_session_id') || `${Date.now()}`; }
+          catch { return `${Date.now()}`; }
+        })(),
+        event_type: 'compat_upsell_started',
+        page_path: '/report',
+        event_data: { pairIndex: existingPairs, priceUsd: priceDollars, petAId: petA!.reportId, petBId: petB!.reportId } as never,
+        user_agent: navigator.userAgent,
+      }]);
+    } catch { /* non-fatal */ }
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {

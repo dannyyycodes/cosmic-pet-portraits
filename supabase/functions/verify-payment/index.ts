@@ -64,59 +64,66 @@ serve(async (req) => {
       });
     }
 
-        // Handle redeem code sessions (already paid via free code)
+        // Handle redeem code sessions (already paid via free code). Supports
+        // both single-pet redeems (legacy) and multi-pet redeems where the
+        // caller passes `report_ids` as a comma list matching the cart size.
     if (sessionId.startsWith('redeem_')) {
       console.log("[VERIFY-PAYMENT] Redeem code session - skipping Stripe verification");
 
-      const { data: redeemReport } = await supabaseClient
+      const redeemReportIds = (body.report_ids
+        ? String(body.report_ids).split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [reportId]) as string[];
+
+      const { data: redeemReports } = await supabaseClient
         .from("pet_reports")
         .select("*")
-        .eq("id", reportId)
-        .single();
+        .in("id", redeemReportIds);
 
-      if (!redeemReport || redeemReport.payment_status !== 'paid') {
+      if (!redeemReports || redeemReports.length === 0) {
         return new Response(JSON.stringify({ error: "Report not found" }), {
           headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 404,
         });
       }
 
-      // The redeem branch must only return reports that were actually created
-      // through the redeem flow (those rows have redeem_code set). Without
-      // this check, anyone who guessed a paid Stripe-purchased reportId could
-      // pull the full report (including PII and share token) by sending a
-      // crafted "redeem_*" sessionId.
-      if (!redeemReport.redeem_code) {
-        console.warn("[VERIFY-PAYMENT] Redeem branch hit for non-redeem report:", reportId);
+      // Every report in the list must be paid AND carry a redeem_code stamp —
+      // stops a crafted "redeem_*" session from pulling Stripe-purchased reports.
+      const tainted = redeemReports.find(
+        (r) => r.payment_status !== 'paid' || !r.redeem_code,
+      );
+      if (tainted) {
+        console.warn("[VERIFY-PAYMENT] Redeem branch hit for tainted id:", tainted.id);
         return new Response(JSON.stringify({ error: "Report not found" }), {
           headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
           status: 404,
         });
       }
 
-      // Generate share token if missing
-      if (!redeemReport.share_token) {
-        const bytes = new Uint8Array(12);
-        crypto.getRandomValues(bytes);
-        const shareToken = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-        await supabaseClient
-          .from("pet_reports")
-          .update({ share_token: shareToken, updated_at: new Date().toISOString() })
-          .eq("id", reportId);
-        redeemReport.share_token = shareToken;
+      // Mint share tokens + trigger generation for any still-pending reports.
+      for (const rr of redeemReports) {
+        if (!rr.share_token) {
+          const bytes = new Uint8Array(12);
+          crypto.getRandomValues(bytes);
+          const shareToken = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+          await supabaseClient
+            .from("pet_reports")
+            .update({ share_token: shareToken, updated_at: new Date().toISOString() })
+            .eq("id", rr.id);
+          rr.share_token = shareToken;
+        }
+
+        const rrIncludesPortrait = rr.includes_portrait === true;
+        if (!rr.report_content) {
+          triggerBackgroundGeneration(rr.id, rrIncludesPortrait);
+        }
       }
 
-      // Trigger generation if not already done
-      const redeemIncludesPortrait = redeemReport.includes_portrait === true;
-      if (!redeemReport.report_content) {
-        triggerBackgroundGeneration(reportId, redeemIncludesPortrait);
-      }
-
+      const primary = redeemReports.find((r) => r.id === reportId) ?? redeemReports[0];
       return new Response(JSON.stringify({
         success: true,
-        report: redeemReport,
-        allReports: [redeemReport],
-        reportIds: [reportId],
+        report: primary,
+        allReports: redeemReports,
+        reportIds: redeemReports.map((r) => r.id),
         includeGift: false,
         giftCode: null,
         horoscopeEnabled: false,

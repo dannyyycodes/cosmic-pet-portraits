@@ -185,13 +185,33 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         trackFunnelEvent("v2_code_applied", { code, type: "coupon" });
         return;
       }
-      // 2. Try as free redeem code (e.g. QATEST)
+      // 2. Try as free redeem code (e.g. QATEST) — pass the buyer's cart
+      // mix so the redeem flow creates the matching N reports and routes
+      // through the real multi-pet intake instead of a single-pet shortcut.
       const { data: redeemData, error: redeemErr } = await supabase.functions.invoke("redeem-free-code", {
-        body: { code },
+        body: {
+          code,
+          basicCount: basicQty,
+          premiumCount: premiumQty,
+          email: email.trim() || undefined,
+        },
       });
       if (!redeemErr && redeemData?.success && redeemData?.reportId) {
-        trackFunnelEvent("v2_code_applied", { code, type: "redeem" });
-        window.location.href = `/payment-success?session_id=redeem_${redeemData.reportId}&report_id=${redeemData.reportId}&quick=true`;
+        trackFunnelEvent("v2_code_applied", { code, type: "redeem", petCount: redeemData?.petCount ?? 1 });
+        const ids: string[] = Array.isArray(redeemData?.reportIds) && redeemData.reportIds.length > 0
+          ? redeemData.reportIds
+          : [redeemData.reportId];
+        const primary = ids[0];
+        // When the redeem created multiple reports, pass the full list so
+        // PaymentSuccess can see the whole cart and route them through
+        // MultiPetIntakeFlow in order.
+        const qs = new URLSearchParams({
+          session_id: `redeem_${primary}`,
+          report_id: primary,
+          quick: "true",
+        });
+        if (ids.length > 1) qs.set("report_ids", ids.join(","));
+        window.location.href = `/payment-success?${qs.toString()}`;
         return;
       }
       setCodeError("Invalid code. Please check and try again.");

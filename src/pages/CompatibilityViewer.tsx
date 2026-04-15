@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Heart, Share2, Copy, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { NoIndex } from '@/components/NoIndex';
 
 interface CompatPet {
   id: string;
@@ -167,6 +168,7 @@ export default function CompatibilityViewer() {
   const reading = data.reading || {};
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #FFFDF5 0%, #f5efe6 60%, #ede5d8 100%)', ...grainStyle }}>
+      <NoIndex />
       <div className="max-w-[640px] mx-auto px-4 py-10 md:py-16">
         {/* Hero */}
         <motion.div

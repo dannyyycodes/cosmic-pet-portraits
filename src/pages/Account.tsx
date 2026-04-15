@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { NoIndex } from "@/components/NoIndex";
 import { useToast } from "@/hooks/use-toast";
 import {
   FileText,
@@ -257,7 +258,7 @@ const Account = () => {
 
   return (
     <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="relative overflow-hidden">
-
+      <NoIndex />
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

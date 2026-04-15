@@ -25,6 +25,23 @@ serve(async (req) => {
     const { code, petName, species, occasionMode } = body;
     const email = body.email?.trim().toLowerCase() || "";
 
+    // Multi-pet testing support — if the buyer has N pets in their cart,
+    // create N free reports matching the selected tier mix. Lets QATEST
+    // exercise the real 4-pet intake + reveal flow end-to-end.
+    const rawBasicCount = Number(body.basicCount);
+    const rawPremiumCount = Number(body.premiumCount);
+    const basicCount = Number.isFinite(rawBasicCount) && rawBasicCount > 0 ? Math.floor(rawBasicCount) : 0;
+    const premiumCount = Number.isFinite(rawPremiumCount) && rawPremiumCount > 0 ? Math.floor(rawPremiumCount) : 0;
+    const totalPetCount = basicCount + premiumCount;
+    const isMultiPet = totalPetCount > 1;
+    // Hard cap — same as MAX_PETS in the frontend, never trust the client.
+    if (totalPetCount > 10) {
+      return new Response(JSON.stringify({ error: "Max 10 pets per redemption" }), {
+        status: 400,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      });
+    }
+
     if (!code || !code.trim()) {
       return new Response(JSON.stringify({ error: "Please enter a redeem code" }), {
         status: 400,
@@ -100,60 +117,99 @@ serve(async (req) => {
       });
     }
 
-    const tier = redeemCode.tier || "premium";
-    const includesPortrait = tier === "premium" || tier === "hardcover";
-    const includesBook = tier === "hardcover";
+    const codeTier = redeemCode.tier || "premium";
+    const codeIncludesBook = codeTier === "hardcover";
 
-    // Create the report with payment_status = 'paid'
-    const { data: report, error: insertError } = await supabase
-      .from("pet_reports")
-      .insert({
-        email: email || "pending@redeem.littlesouls.app",
-        pet_name: petName || "Pending",
-        species: species || "pending",
-        payment_status: "paid",
-        occasion_mode: occasionMode || "discover",
-        includes_book: includesBook,
-        includes_portrait: includesPortrait,
-        redeem_code: normalizedCode,
-      })
-      .select("id")
-      .single();
+    // Build the per-pet tier list. In single-pet mode this is just one row
+    // at the redeem-code's tier. In multi-pet mode we honour the buyer's
+    // cart mix: N basic + M premium. If the code itself is hardcover it
+    // overrides the mix because that's a special product.
+    type PetTier = "basic" | "premium" | "hardcover";
+    const petTiers: PetTier[] = isMultiPet
+      ? (codeIncludesBook
+          ? Array.from({ length: totalPetCount }, () => "hardcover" as const)
+          : [
+              ...Array.from({ length: basicCount }, () => "basic" as const),
+              ...Array.from({ length: premiumCount }, () => "premium" as const),
+            ])
+      : [codeTier as PetTier];
 
-    if (insertError || !report) {
-      console.error("[REDEEM] Failed to create report:", insertError);
-      throw new Error("Failed to create report");
+    // Refuse to burn a usage if we can't service the whole cart.
+    const remainingUses = (redeemCode.max_uses ?? Infinity) - (redeemCode.current_uses ?? 0);
+    if (remainingUses < petTiers.length) {
+      return new Response(JSON.stringify({ error: "Not enough uses left on this code for your cart" }), {
+        status: 400,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      });
     }
 
-    console.log("[REDEEM] Report created:", report.id, "tier:", tier);
+    const rowsToInsert = petTiers.map((t) => ({
+      email: email || "pending@redeem.littlesouls.app",
+      pet_name: petName || "Pending",
+      species: species || "pending",
+      payment_status: "paid",
+      occasion_mode: occasionMode || "discover",
+      includes_book: t === "hardcover",
+      includes_portrait: t === "premium" || t === "hardcover",
+      redeem_code: normalizedCode,
+    }));
 
-    // Set SoulSpeak credits
-    const creditAmount = includesBook ? 500 : 150;
-    await supabase
-      .from("chat_credits")
-      .insert({
-        report_id: report.id,
-        email: email || "pending@redeem.littlesouls.app",
-        credits_remaining: creditAmount,
-        plan: "redeemed",
-        order_id: report.id,
-      });
+    const { data: inserted, error: insertError } = await supabase
+      .from("pet_reports")
+      .insert(rowsToInsert)
+      .select("id, includes_portrait, includes_book");
 
-    // Increment usage count
+    if (insertError || !inserted || inserted.length !== rowsToInsert.length) {
+      console.error("[REDEEM] Failed to create reports:", insertError);
+      throw new Error("Failed to create reports");
+    }
+
+    const reportIds = inserted.map((r) => r.id);
+    console.log("[REDEEM] Reports created:", reportIds.length, "ids:", reportIds.join(","));
+
+    // Seed pooled SoulSpeak credits at the household (email) level. This
+    // matches the paid-checkout behaviour in soul-chat.ts — one shared pool
+    // scaled by pet count rather than N per-pet rows.
+    if (email) {
+      const creditAmount = codeIncludesBook ? 500 * reportIds.length : 150 * reportIds.length;
+      const { data: existingPool } = await supabase
+        .from("chat_credits")
+        .select("id, credits_remaining")
+        .eq("email", email)
+        .is("order_id", null)
+        .maybeSingle();
+      if (existingPool) {
+        await supabase
+          .from("chat_credits")
+          .update({ credits_remaining: (existingPool.credits_remaining ?? 0) + creditAmount })
+          .eq("id", existingPool.id);
+      } else {
+        await supabase.from("chat_credits").insert({
+          email,
+          order_id: null,
+          credits_remaining: creditAmount,
+          plan: "redeemed",
+        });
+      }
+    }
+
+    // Increment usage count by the number of reports created.
     await supabase
       .from("redeem_codes")
-      .update({ current_uses: redeemCode.current_uses + 1 })
+      .update({ current_uses: (redeemCode.current_uses ?? 0) + reportIds.length })
       .eq("id", redeemCode.id);
 
-    console.log("[REDEEM] Code redeemed successfully:", normalizedCode);
+    console.log("[REDEEM] Code redeemed successfully:", normalizedCode, "pets:", reportIds.length);
 
     return new Response(JSON.stringify({
       success: true,
-      reportId: report.id,
-      tier,
-      includesPortrait,
-      includesBook,
-      creditAmount,
+      // `reportId` kept for backward-compat with the old single-pet caller.
+      reportId: reportIds[0],
+      reportIds,
+      petCount: reportIds.length,
+      tier: codeTier,
+      includesPortrait: petTiers.some((t) => t === "premium" || t === "hardcover"),
+      includesBook: codeIncludesBook,
     }), {
       status: 200,
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },

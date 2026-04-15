@@ -201,9 +201,31 @@ export default function PaymentSuccess() {
     // ─── Supabase realtime subscription — fires the instant the worker writes
     // report_content to the row. Replaces the previous poll-only mechanism
     // that could miss completions on brief network blips.
-    let realtimeDone = false;
+    //
+    // Multi-pet correctness: use an "all-done" latch, not a "first-done" flag.
+    // The previous implementation latched after the first report completed so
+    // completions 2-4 (and the polling fallback) were silently ignored, which
+    // would freeze the UI until the 15-minute timeout when reports finished
+    // out of order. We now run tryVerify on every completion and only tear
+    // the channel down once tryVerify actually returns the full set.
+    let allDone = false;
+    let verifyInFlight = false;
     const rtIds = (reportIdsParam ? reportIdsParam.split(',') : [reportId]).filter(Boolean);
     const channel = supabase.channel(`report-${rtIds.join('-')}`);
+    const runVerifyOnce = async (source: 'realtime' | 'poll') => {
+      if (allDone || verifyInFlight) return;
+      verifyInFlight = true;
+      try {
+        const result = await tryVerify();
+        if (result === true) {
+          allDone = true;
+          try { supabase.removeChannel(channel); } catch { /* channel already gone */ }
+        }
+        console.log(`[PaymentSuccess] ${source} verify result:`, result === true ? 'done' : result);
+      } finally {
+        verifyInFlight = false;
+      }
+    };
     for (const rid of rtIds) {
       channel.on(
         'postgres_changes',
@@ -212,13 +234,9 @@ export default function PaymentSuccess() {
           const newRow: any = payload.new;
           const rc = newRow?.report_content;
           const done = rc && rc.status !== 'generating' && rc.status !== 'retrying' && !rc.error;
-          if (!done || realtimeDone) return;
-          realtimeDone = true;
+          if (!done) return;
           console.log('[PaymentSuccess] Realtime completion detected for', rid);
-          const ok = await tryVerify();
-          if (ok === true) {
-            try { supabase.removeChannel(channel); } catch {}
-          }
+          await runVerifyOnce('realtime');
         },
       );
     }
@@ -229,7 +247,7 @@ export default function PaymentSuccess() {
     // Fallback polling — same semantics but extended window (15 min, not 6-7 min).
     // If the realtime subscription somehow misses the update, poll still closes it out.
     const poll = async () => {
-      if (realtimeDone) return;
+      if (allDone) return;
       attempts++;
       // 15-min cap at 10s cadence = 90 attempts
       if (attempts >= 90) {
@@ -239,11 +257,8 @@ export default function PaymentSuccess() {
         // already shows a calm "we'll email you" fallback after 4 minutes.
         return;
       }
-      const result = await tryVerify();
-      if (result === true) {
-        try { supabase.removeChannel(channel); } catch {}
-        return;
-      }
+      await runVerifyOnce('poll');
+      if (allDone) return;
       setTimeout(poll, 10000);   // Fixed 10s cadence — realtime is primary
     };
     setTimeout(poll, result === 'generating' ? 3000 : 5000);

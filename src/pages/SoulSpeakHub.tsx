@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { MessageCircle, Sparkles, ArrowRight } from "lucide-react";
+import { NoIndex } from "@/components/NoIndex";
 
 interface PetRow {
   id: string;
@@ -77,6 +78,7 @@ export default function SoulSpeakHub() {
 
   return (
     <div className="min-h-screen" style={{ background: "#FFFDF5", ...grainStyle }}>
+      <NoIndex />
       <div className="max-w-[720px] mx-auto px-5 py-10 md:py-14">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
