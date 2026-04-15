@@ -55,9 +55,9 @@ const TIERS: Array<{
       { label: "Full astrological breakdown — 30+ sections (works for any pet)" },
       { label: "How they love, how they learn, how they heal, what they hope for, what they fear — and what makes them feel most themselves" },
       { label: "Their photo becomes part of the reveal" },
-      { label: "SoulSpeak", kind: "soulspeak" },
-      { label: "Plus bonus sections — little surprises written just for them", kind: "bonus" },
       { label: "Yours forever — revisit anytime, from any device" },
+      { label: "Bonus sections — little surprises written just for them", kind: "bonus" },
+      { label: "SoulSpeak", kind: "soulspeak" },
       { label: "1 month of weekly horoscopes", kind: "horoscope" },
     ],
   },
@@ -72,7 +72,6 @@ const TIERS: Array<{
       { label: "Your chart against theirs — where you align, where you challenge each other, and why the universe paired you" },
       { label: "Where your energies meet, mirror, and balance" },
       { label: "The soul-reasons you found each other" },
-      { label: "1 month of weekly horoscopes", kind: "horoscope" },
     ],
   },
 ];
@@ -441,7 +440,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                             </>
                           ) : isBonus ? (
                             <span className="flex-1 flex items-center gap-2 flex-wrap">
-                              <span>{feature.label}</span>
+                              <span>
+                                <strong style={{ fontWeight: 700, color: "var(--ink, #1f1c18)" }}>Bonus sections</strong>
+                                {" — little surprises written just for them"}
+                              </span>
                               <span
                                 style={{
                                   fontFamily: "Cormorant, Georgia, serif",
