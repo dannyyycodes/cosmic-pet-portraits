@@ -217,7 +217,7 @@ serve(async (req) => {
 
         console.log("[STRIPE-WEBHOOK] Chat credits purchased:", { orderId, credits });
 
-        // Add credits via RPC
+        // Add credits via RPC (upsert — will create row if missing)
         const { error: rpcError } = await supabaseClient.rpc("increment_chat_credits", {
           p_order_id: orderId,
           p_amount: credits,
@@ -225,8 +225,32 @@ serve(async (req) => {
 
         if (rpcError) {
           console.error("[STRIPE-WEBHOOK] Failed to increment chat credits:", rpcError);
+          await supabaseClient.from("webhook_failures").insert({
+            source: "stripe-webhook",
+            event_type: "chat_credits_topup",
+            stripe_session_id: session.id,
+            order_id: orderId,
+            details: { credits, error: rpcError, amount_paid: session.amount_total },
+          });
         } else {
-          console.log("[STRIPE-WEBHOOK] Chat credits added:", credits, "for order:", orderId);
+          // Defensive check: confirm credits actually landed
+          const { data: confirmRow } = await supabaseClient
+            .from("chat_credits")
+            .select("credits_total_purchased")
+            .eq("order_id", orderId)
+            .maybeSingle();
+          if (!confirmRow) {
+            console.error("[STRIPE-WEBHOOK] Credits RPC succeeded but row missing:", orderId);
+            await supabaseClient.from("webhook_failures").insert({
+              source: "stripe-webhook",
+              event_type: "chat_credits_topup_no_row",
+              stripe_session_id: session.id,
+              order_id: orderId,
+              details: { credits, amount_paid: session.amount_total },
+            });
+          } else {
+            console.log("[STRIPE-WEBHOOK] Chat credits added:", credits, "for order:", orderId);
+          }
         }
       }
       // Check if this is a chat subscription (Soul Bond membership)
@@ -250,14 +274,32 @@ serve(async (req) => {
 
         if (subError) {
           console.error("[STRIPE-WEBHOOK] Failed to set chat membership:", subError);
+          await supabaseClient.from("webhook_failures").insert({
+            source: "stripe-webhook",
+            event_type: "chat_subscription_upsert",
+            stripe_session_id: session.id,
+            order_id: orderId,
+            details: { weeklyCredits, subscription: session.subscription, error: subError },
+          });
         } else {
           console.log("[STRIPE-WEBHOOK] Chat membership created for order:", orderId);
           // Add first week's credits
-          await supabaseClient.rpc("increment_chat_credits", {
+          const { error: initError } = await supabaseClient.rpc("increment_chat_credits", {
             p_order_id: orderId,
             p_amount: weeklyCredits,
           });
-          console.log("[STRIPE-WEBHOOK] Initial credits added:", weeklyCredits);
+          if (initError) {
+            console.error("[STRIPE-WEBHOOK] Membership initial credits failed:", initError);
+            await supabaseClient.from("webhook_failures").insert({
+              source: "stripe-webhook",
+              event_type: "chat_subscription_initial_credits",
+              stripe_session_id: session.id,
+              order_id: orderId,
+              details: { weeklyCredits, error: initError },
+            });
+          } else {
+            console.log("[STRIPE-WEBHOOK] Initial credits added:", weeklyCredits);
+          }
         }
       }
       // Cross-pet compatibility upsell — buyer paid for a compatibility
@@ -942,16 +984,36 @@ serve(async (req) => {
 
         if (chatCredit) {
           // Add first week's credits for the new billing period
-          await supabaseClient.rpc("increment_chat_credits", {
+          const { error: renewError } = await supabaseClient.rpc("increment_chat_credits", {
             p_order_id: chatCredit.order_id,
             p_amount: chatCredit.weekly_credits || 1000,
           });
-          // Reset next refresh date
-          await supabaseClient
-            .from("chat_credits")
-            .update({ next_credit_refresh: getNextWeekDate(), updated_at: new Date().toISOString() })
-            .eq("order_id", chatCredit.order_id);
-          console.log("[STRIPE-WEBHOOK] Monthly credits renewed for:", chatCredit.order_id);
+          if (renewError) {
+            console.error("[STRIPE-WEBHOOK] Monthly renewal credits failed:", renewError);
+            await supabaseClient.from("webhook_failures").insert({
+              source: "stripe-webhook",
+              event_type: "chat_subscription_renewal",
+              stripe_session_id: invoice.id,
+              order_id: chatCredit.order_id,
+              details: { subscription: subscriptionId, weekly_credits: chatCredit.weekly_credits, error: renewError },
+            });
+          } else {
+            // Reset next refresh date
+            await supabaseClient
+              .from("chat_credits")
+              .update({ next_credit_refresh: getNextWeekDate(), updated_at: new Date().toISOString() })
+              .eq("order_id", chatCredit.order_id);
+            console.log("[STRIPE-WEBHOOK] Monthly credits renewed for:", chatCredit.order_id);
+          }
+        } else {
+          // Invoice paid but no matching chat_credits row — race or orphan
+          console.error("[STRIPE-WEBHOOK] Renewal invoice with no chat_credits row:", subscriptionId);
+          await supabaseClient.from("webhook_failures").insert({
+            source: "stripe-webhook",
+            event_type: "chat_subscription_renewal_orphan",
+            stripe_session_id: invoice.id,
+            details: { subscription: subscriptionId, amount_paid: invoice.amount_paid },
+          });
         }
       }
     }
