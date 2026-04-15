@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   MoonStars,
   PawPrint,
@@ -14,7 +14,7 @@ type Species = "cat" | "dog";
 type Review = { quote: string; name: string; pet: string; rating: number };
 type HeroCard = {
   eyebrow: string; headline: string; sub: string; accent: string; glyph: Glyph;
-  species: Species; review: Review;
+  species: Species; review: Review; imageUrl: string;
 };
 
 // Final 7-card deck — every card serves a distinct emotional arrival state
@@ -25,6 +25,7 @@ type HeroCard = {
 const HERO_CARDS: HeroCard[] = [
   {
     accent: "#c4a265", glyph: "moon", species: "cat",
+    imageUrl: "https://cdn2.thecatapi.com/images/bpv.jpg",
     eyebrow: "For the one who's been beside you every day",
     headline: "They have a look they save only for you. You still don't know what it means.",
     sub: "You've studied them longer than almost anyone in your life. You've never been able to put it into words. This finally does.",
@@ -35,6 +36,7 @@ const HERO_CARDS: HeroCard[] = [
   },
   {
     accent: "#bf524a", glyph: "paw", species: "cat",
+    imageUrl: "https://cdn2.thecatapi.com/images/MVQu5GSK1.jpg",
     eyebrow: "For the pet with that weird thing",
     headline: "You've known what they do. Now know why.",
     sub: "The ritual. The obsession. The specific moment they always appear. You've been narrating their weirdness to friends for years. This tells you what you were actually watching.",
@@ -45,6 +47,7 @@ const HERO_CARDS: HeroCard[] = [
   },
   {
     accent: "#8a6f8c", glyph: "bond", species: "dog",
+    imageUrl: "https://images.dog.ceo/breeds/hound-english/n02089973_529.jpg",
     eyebrow: "For the bond nobody else gets",
     headline: "Everyone thinks you're projecting. You're not.",
     sub: "The pull. The rightness. The way it felt like they were yours before they were yours. Every feeling you've had about your bond is in their chart. Written, not imagined.",
@@ -55,6 +58,7 @@ const HERO_CARDS: HeroCard[] = [
   },
   {
     accent: "#5a4a42", glyph: "candle", species: "dog",
+    imageUrl: "https://images.dog.ceo/breeds/retriever-golden/n02099601_6105.jpg",
     eyebrow: "For the pet getting older — or already gone",
     headline: "Love doesn't stop at goodbye. Neither does this.",
     sub: "For the ones still here: don't leave them half-understood while there's still time. For the ones you've lost: a memorial reading reads them in past tense — their full chart, their bond with you, a letter in their voice. Not closure. Continuation.",
@@ -65,6 +69,7 @@ const HERO_CARDS: HeroCard[] = [
   },
   {
     accent: "#7a8670", glyph: "scroll", species: "dog",
+    imageUrl: "https://images.dog.ceo/breeds/pitbull/louie.jpg",
     eyebrow: "For the ones with a history you weren't there for",
     headline: "What they can't tell you, their chart remembers.",
     sub: "Rescued, rehomed, shelter, stray — their past is older than your bond, and every piece of it shaped who they are for you. This reads the part they can't say.",
@@ -75,6 +80,7 @@ const HERO_CARDS: HeroCard[] = [
   },
   {
     accent: "#b0773f", glyph: "gift", species: "cat",
+    imageUrl: "https://cdn2.thecatapi.com/images/FZpeiLi4n.jpg",
     eyebrow: "For the ones who'd give them the world",
     headline: "Every gift you've bought has said \u201CI love you.\u201D This one says \u201CI see you.\u201D",
     sub: "The full chart. The cosmic portrait for your wall. The archetype, the aura, the letter. A gift that doesn't get chewed, outgrown, or lost — because it is them, not something for them.",
@@ -85,6 +91,7 @@ const HERO_CARDS: HeroCard[] = [
   },
   {
     accent: "#9d4038", glyph: "mirror", species: "dog",
+    imageUrl: "https://images.dog.ceo/breeds/bulldog-english/murphy.jpg",
     eyebrow: "For the ones loved this fiercely",
     headline: "They've been reading you for years. Now read them back.",
     sub: "The hours they've spent watching you. The way they knew you were sad before you did. They've been learning your language without one of their own. This finally gives you theirs.",
@@ -322,8 +329,8 @@ const ReviewBlock = ({ card, image }: { card: HeroCard; image: string | null | u
   <figure
     style={{
       position: "relative",
-      marginTop: "clamp(18px, 3vw, 26px)",
-      padding: "clamp(20px, 3vw, 26px) clamp(22px, 3.5vw, 30px)",
+      marginTop: "clamp(14px, 3vw, 26px)",
+      padding: "clamp(16px, 3vw, 26px) clamp(16px, 3.5vw, 30px)",
       borderRadius: 14,
       background: `linear-gradient(180deg, ${card.accent}0e 0%, ${card.accent}18 100%)`,
       border: `1px solid ${card.accent}33`,
@@ -331,13 +338,13 @@ const ReviewBlock = ({ card, image }: { card: HeroCard; image: string | null | u
       maxWidth: "34rem", width: "100%", textAlign: "left",
     }}
   >
-    <span aria-hidden="true" style={{ position: "absolute", top: -10, left: 18, fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 52, lineHeight: 1, color: card.accent, opacity: 0.55 }}>
+    <span aria-hidden="true" style={{ position: "absolute", top: -10, left: 14, fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(40px, 8vw, 52px)", lineHeight: 1, color: card.accent, opacity: 0.55 }}>
       “
     </span>
     <div style={{ marginBottom: 10 }}>
       <StarRow rating={card.review.rating} color={card.accent} />
     </div>
-    <blockquote style={{ margin: 0, fontFamily: '"Cormorant", Georgia, serif', fontSize: "clamp(1rem, 2.3vw, 1.1rem)", fontStyle: "italic", color: "#2d241c", lineHeight: 1.6 }}>
+    <blockquote style={{ margin: 0, fontFamily: '"Cormorant", Georgia, serif', fontSize: "clamp(0.95rem, 3.4vw, 1.1rem)", fontStyle: "italic", color: "#2d241c", lineHeight: 1.55 }}>
       {card.review.quote}
     </blockquote>
     <figcaption style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 12, fontFamily: "Lato, system-ui, sans-serif" }}>
@@ -380,7 +387,7 @@ const CardFace = ({
         background: `linear-gradient(180deg, ${bgTop} 0%, ${bgBot} 100%)`,
         border: `1px solid ${borderCol}`,
         borderRadius: 24,
-        padding: "clamp(38px, 6.5vw, 60px) clamp(26px, 5.5vw, 52px)",
+        padding: "clamp(28px, 6vw, 60px) clamp(18px, 4.5vw, 52px)",
         boxShadow: "0 14px 46px rgba(31, 28, 24, 0.09), inset 0 1px 0 rgba(255,255,255,0.75)",
       }}
     >
@@ -445,8 +452,8 @@ const ArrowButton = ({
     aria-label={direction === "left" ? "Previous card" : "Next card"}
     className="flex items-center justify-center shrink-0 relative z-20"
     style={{
-      width: "clamp(40px, 6vw, 52px)",
-      height: "clamp(40px, 6vw, 52px)",
+      width: "clamp(34px, 6vw, 52px)",
+      height: "clamp(34px, 6vw, 52px)",
       borderRadius: 9999,
       border: "1px solid rgba(196, 162, 101, 0.35)",
       background: "rgba(255, 253, 245, 0.85)",
@@ -523,42 +530,14 @@ const stackStyleFor = (offset: number): React.CSSProperties => {
   };
 };
 
-async function fetchPetImage(species: Species): Promise<string | null> {
-  try {
-    if (species === "cat") {
-      const r = await fetch("https://api.thecatapi.com/v1/images/search");
-      const data = await r.json();
-      return data?.[0]?.url ?? null;
-    } else {
-      const r = await fetch("https://dog.ceo/api/breeds/image/random");
-      const data = await r.json();
-      return data?.status === "success" ? data.message : null;
-    }
-  } catch {
-    return null;
-  }
-}
-
 export const HeroCardRotator = ({
   typography = "hw-soft-diary",
 }: HeroCardRotatorProps) => {
   const [index, setIndex] = useState(0);
-  const [images, setImages] = useState<Record<number, string | null>>({});
   const lockRef = useRef(false);
   const touchStartX = useRef<number | null>(null);
 
   const typo = TYPO[typography];
-
-  useEffect(() => {
-    let cancelled = false;
-    HERO_CARDS.forEach((c, i) => {
-      fetchPetImage(c.species).then((url) => {
-        if (cancelled) return;
-        setImages((prev) => ({ ...prev, [i]: url }));
-      });
-    });
-    return () => { cancelled = true; };
-  }, []);
 
   const go = (dir: 1 | -1) => {
     if (lockRef.current) return;
@@ -618,7 +597,7 @@ export const HeroCardRotator = ({
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         style={{
-          minHeight: "clamp(780px, 110vw, 920px)",
+          minHeight: "clamp(720px, 165vw, 920px)",
           perspective: "1600px",
           paddingTop: 40,
         }}
@@ -646,7 +625,7 @@ export const HeroCardRotator = ({
                 depth={Math.max(0, offset)}
                 cardNumber={i + 1}
                 totalCards={total}
-                image={images[i]}
+                image={card.imageUrl}
               />
             </div>
           );
