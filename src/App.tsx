@@ -55,12 +55,14 @@ const Account = lazy(() => import("./pages/Account"));
 const AffiliateMediaKit = lazy(() => import("./pages/AffiliateMediaKit"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
+const AuthorPage = lazy(() => import("./pages/AuthorPage"));
 const AdminABTest = lazy(() => import("./pages/AdminABTest"));
 const AdminRedeemCodes = lazy(() => import("./pages/AdminRedeemCodes"));
 const AdminQATest = lazy(() => import("./pages/AdminQATest"));
 const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 const FindReport = lazy(() => import("./pages/FindReport"));
 const HeroTypographyPreview = lazy(() => import("./pages/HeroTypographyPreview"));
+const CardsPreview = lazy(() => import("./pages/CardsPreview"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the static HTML checkout page (Supabase credentials now fixed)
@@ -172,8 +174,10 @@ const App = () => (
                   <Route path="/redeem-code" element={<RedeemCode />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />
+                  <Route path="/author/:slug" element={<AuthorPage />} />
                   <Route path="/find-report" element={<FindReport />} />
                   <Route path="/hero-typography" element={<HeroTypographyPreview />} />
+                  <Route path="/cards-preview" element={<CardsPreview />} />
                   <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
