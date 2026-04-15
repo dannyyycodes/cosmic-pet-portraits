@@ -263,6 +263,20 @@ html.dark .redeem-panel input:focus { border-color:var(--rose) !important; }
   letter-spacing:0.03em; margin-left:6px;
   animation:badgePop 0.3s ease;
 }
+/* ---- Per-tier quantity stepper on tier cards ---- */
+.tier-qty-row {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; padding:10px 12px; margin:10px 0 12px;
+  background:var(--cream2); border:1px solid var(--cream3); border-radius:10px;
+}
+.tier-qty-label { font-size:0.82rem; color:var(--earth); font-weight:500; }
+.product-card.qty-zero { opacity:0.55; border:2px solid var(--cream3) !important; }
+.product-card.qty-zero .product-price { color:var(--muted); }
+.multi-pet-hint {
+  text-align:center; font-size:0.78rem; color:var(--rose); font-weight:600;
+  margin:-4px 0 16px; letter-spacing:0.01em;
+}
+.multi-pet-hint strong { color:var(--rose); }
 @keyframes badgePop { 0%{transform:scale(0.8);opacity:0} 100%{transform:scale(1);opacity:1} }
 
 /* ---- Bonus Stack ---- */
@@ -627,7 +641,7 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
   <p class="tier-select-label a d1">Choose Your Reading</p>
 
   <!-- ══ CARD 1: Soul Reading $27 ══ -->
-  <div class="product-card selectable selected a d2" id="tierEssential" onclick="selectTier('essential')" style="margin-bottom:12px;border:2px solid var(--rose);">
+  <div class="product-card selectable selected a d2" id="tierEssential" onclick="handleCardClick(event,'essential')" style="margin-bottom:12px;border:2px solid var(--rose);">
 
     <!-- header -->
     <div class="product-header">
@@ -646,6 +660,15 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
         <p style="font-size:0.65rem;font-weight:600;color:var(--green);margin:2px 0 0;">Save 55%</p>
       </div>
     </div>
+    <!-- ── Quantity stepper ── -->
+    <div class="tier-qty-row" onclick="event.stopPropagation();">
+      <span class="tier-qty-label">How many of this reading?</span>
+      <div class="pet-counter-row">
+        <button type="button" class="pet-counter-btn" id="essentialMinus" onclick="changeTierQty('essential',-1)" aria-label="Remove one">&minus;</button>
+        <div class="pet-counter-num" id="essentialQtyDisplay">1</div>
+        <button type="button" class="pet-counter-btn" id="essentialPlus" onclick="changeTierQty('essential',1)" aria-label="Add one">+</button>
+      </div>
+    </div>
     <p style="font-size:0.72rem;color:var(--muted);text-align:center;margin:0 0 12px;font-weight:400;">A 30+ page soul-deep portrait of who they truly are — delivered in minutes.</p>
     <div class="product-features-list">
       <div class="pf-row pf-odd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><div><strong>Full birth chart across 14 planets</strong> — their Core Self, Emotional Blueprint, and Love Language revealed</div></div>
@@ -658,7 +681,7 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
   </div>
 
   <!-- ══ CARD 2: Soul Bond Edition $35 — MOST POPULAR ══ -->
-  <div class="product-card selectable a d3" id="tierPortrait" onclick="selectTier('portrait')" style="margin-bottom:12px;border:2px solid rgba(191,82,74,0.25);">
+  <div class="product-card selectable a d3" id="tierPortrait" onclick="handleCardClick(event,'portrait')" style="margin-bottom:12px;border:2px solid rgba(191,82,74,0.25);">
     <div class="card-badge" style="background:var(--rose);">✦ MOST POPULAR</div>
     <!-- header -->
     <div class="product-header">
@@ -675,6 +698,15 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
         <div class="product-price-old">$78</div>
         <div class="product-price" id="portraitPriceDisplay">$35</div>
         <p style="font-size:0.65rem;font-weight:600;color:var(--green);margin:2px 0 0;">Save 55%</p>
+      </div>
+    </div>
+    <!-- ── Quantity stepper ── -->
+    <div class="tier-qty-row" onclick="event.stopPropagation();">
+      <span class="tier-qty-label">How many of this reading?</span>
+      <div class="pet-counter-row">
+        <button type="button" class="pet-counter-btn" id="portraitMinus" onclick="changeTierQty('portrait',-1)" aria-label="Remove one">&minus;</button>
+        <div class="pet-counter-num" id="portraitQtyDisplay">0</div>
+        <button type="button" class="pet-counter-btn" id="portraitPlus" onclick="changeTierQty('portrait',1)" aria-label="Add one">+</button>
       </div>
     </div>
     <p style="font-size:0.72rem;color:var(--muted);text-align:center;margin:0 0 12px;font-weight:400;">Everything in The Soul Reading, plus the cosmic truth about your connection.</p>
@@ -736,39 +768,8 @@ html.dark .product-card.selected-gold { background:rgba(196,162,101,0.07) !impor
       </div>
     </div>
 
-    <!-- More than one pet -->
-    <div style="background:#fff;border-radius:14px;border:1px solid var(--cream3);padding:14px 18px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleMultiPet()">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:1rem;">🐾</span>
-          <div>
-            <span style="font-weight:600;font-size:0.88rem;color:var(--ink);">More than one pet?</span>
-            <span style="font-size:0.75rem;color:var(--rose);font-weight:600;margin-left:6px;">Save up to 30%</span>
-          </div>
-        </div>
-        <div id="multiPetArrow" style="color:var(--muted);transition:transform 0.3s;font-size:0.9rem;">&#9660;</div>
-      </div>
-      <div id="multiPetPanel" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
-        <div style="padding-top:14px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <span style="font-size:0.88rem;color:var(--earth);font-weight:500;">How many souls are we reading?</span>
-            <div class="pet-counter-row">
-              <button class="pet-counter-btn" id="petMinus" onclick="changePetCount(-1)" disabled>&minus;</button>
-              <div class="pet-counter-num" id="petCountDisplay">1</div>
-              <button class="pet-counter-btn" id="petPlus" onclick="changePetCount(1)">+</button>
-              <span class="discount-badge" id="discountBadge" style="display:none;"></span>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
-            <div class="discount-tier" data-tier="2" style="padding:8px 10px;border-radius:8px;border:1px solid var(--cream3);background:var(--cream2);text-align:center;cursor:pointer;transition:all 0.2s;" onclick="setTier(2)"><div style="font-family:'DM Serif Display',Georgia,serif;font-size:1rem;color:var(--ink);">2 pets</div><div style="font-size:0.72rem;font-weight:600;color:var(--rose);">15% off</div></div>
-            <div class="discount-tier" data-tier="3" style="padding:8px 10px;border-radius:8px;border:1px solid var(--cream3);background:var(--cream2);text-align:center;cursor:pointer;transition:all 0.2s;" onclick="setTier(3)"><div style="font-family:'DM Serif Display',Georgia,serif;font-size:1rem;color:var(--ink);">3 pets</div><div style="font-size:0.72rem;font-weight:600;color:var(--rose);">20% off</div></div>
-            <div class="discount-tier" data-tier="4" style="padding:8px 10px;border-radius:8px;border:1px solid var(--cream3);background:var(--cream2);text-align:center;cursor:pointer;transition:all 0.2s;" onclick="setTier(4)"><div style="font-family:'DM Serif Display',Georgia,serif;font-size:1rem;color:var(--ink);">4 pets</div><div style="font-size:0.72rem;font-weight:600;color:var(--rose);">25% off</div></div>
-            <div class="discount-tier" data-tier="5" style="padding:8px 10px;border-radius:8px;border:1px solid var(--cream3);background:var(--cream2);text-align:center;cursor:pointer;transition:all 0.2s;" onclick="setTier(5)"><div style="font-family:'DM Serif Display',Georgia,serif;font-size:1rem;color:var(--ink);">5+ pets</div><div style="font-size:0.72rem;font-weight:600;color:var(--rose);">30% off</div></div>
-          </div>
-          <p style="font-size:0.75rem;color:var(--muted);font-style:italic;text-align:center;">Each pet gets their own personalised reading</p>
-        </div>
-      </div>
-    </div>
+    <!-- Multi-pet discount hint (auto-applies based on tier quantities) -->
+    <p class="multi-pet-hint" id="multiPetHint">🐾 Got more pets? Use the + buttons above — <strong>save up to 30%</strong> on 2 or more</p>
 
     <!-- Urgency timer -->
     <div class="urgency-bar">
@@ -1076,42 +1077,34 @@ function updateDarkIcons(isDark) {
 })();
 
 // ─── Tier Selection ───
-var currentTier = 'portrait'; // 'essential' | 'portrait' | 'hardcover'
+// currentTier is 'hardcover' when hardcover card is selected,
+// otherwise 'digital' — digital lets users mix essential + portrait via qty steppers.
+var currentTier = 'digital';
+
+// ─── State ───
+var essentialQty = 1;   // Soul Reading quantity (default 1)
+var portraitQty = 0;    // Soul Bond quantity (default 0)
+var horoscopeOn = true; // Pre-toggled ON (first month free)
+var essentialPrice = 27;
+var portraitPrice = 35;
+var occasionMode = (new URLSearchParams(window.location.search).get('mode')) || 'discover';
+var MAX_PETS = 10;
+
+// Derived helpers
+function getPetCount() { return essentialQty + portraitQty; }
+function hasAnyDigital() { return essentialQty > 0 || portraitQty > 0; }
 
 function selectTier(tier) {
   currentTier = tier;
-  portraitOn = (tier === 'portrait');
 
-  // Remove all selected states and reset borders
   var ess = document.getElementById('tierEssential');
   var por = document.getElementById('tierPortrait');
   var hc  = document.getElementById('tierHardcover');
-  if (ess) { ess.classList.remove('selected'); ess.style.border = '2px solid rgba(191,82,74,0.25)'; }
-  if (por) { por.classList.remove('selected'); por.style.border = '2px solid rgba(191,82,74,0.25)'; }
-  if (hc)  { hc.classList.remove('selected'); hc.classList.remove('selected-gold'); }
 
-  // Apply selected state
+  if (hc) hc.classList.remove('selected-gold');
+
   if (tier === 'hardcover') {
     if (hc) hc.classList.add('selected-gold');
-  } else {
-    var active = tier === 'essential' ? ess : por;
-    if (active) { active.classList.add('selected'); active.style.border = '2px solid var(--rose)'; }
-  }
-
-  // Update Card 2 CTA label based on selection state
-  var porLabel = document.getElementById('portraitCtaLabel');
-  if (porLabel) {
-    if (tier === 'portrait') {
-      porLabel.textContent = 'Reveal Our Soul Bond';
-      porLabel.style.color = 'var(--rose)';
-      porLabel.style.fontWeight = '600';
-      porLabel.style.fontStyle = 'normal';
-    } else {
-      porLabel.textContent = 'Choose The Soul Bond Edition';
-      porLabel.style.color = 'var(--muted)';
-      porLabel.style.fontWeight = '400';
-      porLabel.style.fontStyle = 'italic';
-    }
   }
 
   // Show/hide digital vs hardcover checkout sections
@@ -1120,17 +1113,31 @@ function selectTier(tier) {
   if (digitalSection) digitalSection.style.display = tier === 'hardcover' ? 'none' : 'block';
   if (hardcoverSection) hardcoverSection.style.display = tier === 'hardcover' ? 'block' : 'none';
 
-  if (tier !== 'hardcover') updateUI();
+  updateUI();
 }
 
-// ─── State ───
-var portraitOn = true; // driven by selectTier()
-var horoscopeOn = true; // Pre-toggled ON (first month free)
-var petCount = 1;
-var basePrice = 27;
-var portraitPrice = 8;
-var multiPetOpen = false;
-var occasionMode = (new URLSearchParams(window.location.search).get('mode')) || 'discover';
+// Clicking a non-hardcover card: if qty is 0, bump it to 1; otherwise no-op
+// (users change qty via the +/- stepper which has stopPropagation).
+function handleCardClick(e, tier) {
+  if (tier === 'hardcover') { selectTier('hardcover'); return; }
+  if (currentTier === 'hardcover') selectTier('digital');
+  if (tier === 'essential' && essentialQty === 0) { essentialQty = 1; updateUI(); return; }
+  if (tier === 'portrait'  && portraitQty === 0)  { portraitQty  = 1; updateUI(); return; }
+}
+
+// Per-tier quantity change from +/- buttons
+function changeTierQty(tier, delta) {
+  if (currentTier === 'hardcover') selectTier('digital');
+  var newEss = essentialQty;
+  var newPor = portraitQty;
+  if (tier === 'essential') newEss = Math.max(0, essentialQty + delta);
+  if (tier === 'portrait')  newPor = Math.max(0, portraitQty  + delta);
+  if (newEss + newPor > MAX_PETS) return;
+  if (newEss + newPor === 0) return; // must keep at least one pet selected
+  essentialQty = newEss;
+  portraitQty = newPor;
+  updateUI();
+}
 
 // ─── Volume Discounts ───
 function getDiscount(n) {
@@ -1214,9 +1221,10 @@ function removeCode() {
 
 // ─── Calculate Total ───
 function getTotal() {
-  var readingSub = basePrice * petCount;
-  var portraitSub = portraitOn ? portraitPrice * petCount : 0;
+  var readingSub = essentialPrice * essentialQty;
+  var portraitSub = portraitPrice * portraitQty;
   var subtotal = readingSub + portraitSub;
+  var petCount = essentialQty + portraitQty;
   var rate = getDiscount(petCount);
   var discountAmt = Math.round(subtotal * rate * 100) / 100;
   var afterVolume = subtotal - discountAmt;
@@ -1228,43 +1236,81 @@ function getTotal() {
       promoAmt = appliedCoupon.discount_value / 100;
     }
   }
-  var total = afterVolume - promoAmt;
+  var total = Math.max(0, afterVolume - promoAmt);
   return { readingSub:readingSub, portraitSub:portraitSub, subtotal:subtotal, rate:rate, discountAmt:discountAmt, promoAmt:promoAmt, total:total };
 }
 
 // ─── Update All UI ───
 function updateUI() {
   var calc = getTotal();
+  var petCount = getPetCount();
 
-  // Pet counter display
-  document.getElementById('petCountDisplay').textContent = petCount;
-  document.getElementById('petMinus').disabled = petCount <= 1;
-  document.getElementById('petPlus').disabled = petCount >= 10;
+  // Per-tier stepper displays + disabled states
+  var essDisp = document.getElementById('essentialQtyDisplay');
+  var porDisp = document.getElementById('portraitQtyDisplay');
+  if (essDisp) essDisp.textContent = essentialQty;
+  if (porDisp) porDisp.textContent = portraitQty;
 
-  // Discount badge
-  var badge = document.getElementById('discountBadge');
-  if (calc.rate > 0) {
-    badge.style.display = 'inline-flex';
-    badge.textContent = '\uD83C\uDF89 ' + Math.round(calc.rate * 100) + '% off!';
-  } else {
-    badge.style.display = 'none';
+  var totalAtMax = petCount >= MAX_PETS;
+  var essMinus = document.getElementById('essentialMinus');
+  var essPlus  = document.getElementById('essentialPlus');
+  var porMinus = document.getElementById('portraitMinus');
+  var porPlus  = document.getElementById('portraitPlus');
+  // Minus disabled if qty is 0 or if removing would leave 0 pets total
+  if (essMinus) essMinus.disabled = (essentialQty === 0) || (petCount === 1 && essentialQty === 1);
+  if (porMinus) porMinus.disabled = (portraitQty === 0)  || (petCount === 1 && portraitQty === 1);
+  if (essPlus)  essPlus.disabled  = totalAtMax;
+  if (porPlus)  porPlus.disabled  = totalAtMax;
+
+  // Card selected/unselected visual state
+  var essCard = document.getElementById('tierEssential');
+  var porCard = document.getElementById('tierPortrait');
+  if (essCard) {
+    essCard.classList.toggle('qty-zero', essentialQty === 0);
+    essCard.style.border = essentialQty > 0 ? '2px solid var(--rose)' : '2px solid var(--cream3)';
+  }
+  if (porCard) {
+    porCard.classList.toggle('qty-zero', portraitQty === 0);
+    porCard.style.border = portraitQty > 0 ? '2px solid var(--rose)' : '2px solid rgba(191,82,74,0.25)';
   }
 
-  // Price display in header (element may not exist)
-  var priceEl = document.querySelector('.product-price');
-  if (priceEl) {
-    priceEl.textContent = petCount > 1 ? '$' + basePrice + ' each' : '$' + basePrice;
+  // Soul Bond CTA label
+  var porLabel = document.getElementById('portraitCtaLabel');
+  if (porLabel) {
+    if (portraitQty > 0) {
+      porLabel.textContent = 'Reveal Our Soul Bond';
+      porLabel.style.color = 'var(--rose)';
+      porLabel.style.fontWeight = '600';
+      porLabel.style.fontStyle = 'normal';
+    } else {
+      porLabel.textContent = 'Add The Soul Bond Edition';
+      porLabel.style.color = 'var(--muted)';
+      porLabel.style.fontWeight = '400';
+      porLabel.style.fontStyle = 'italic';
+    }
+  }
+
+  // Multi-pet hint — switches to live discount when ≥2 pets
+  var hint = document.getElementById('multiPetHint');
+  if (hint) {
+    if (petCount >= 2) {
+      hint.innerHTML = '\uD83C\uDF89 <strong>' + Math.round(calc.rate * 100) + '% multi-pet discount applied</strong> — ' + petCount + ' readings';
+    } else {
+      hint.innerHTML = '\uD83D\uDC3E Got more pets? Use the + buttons above — <strong>save up to 30%</strong> on 2 or more';
+    }
   }
 
   // Order summary
   var summary = document.getElementById('orderSummary');
   var rows = document.getElementById('summaryRows');
-  if (petCount > 1 || portraitOn || horoscopeOn || appliedCoupon) {
+  if (petCount >= 1) {
     summary.style.display = 'block';
     var html = '';
-    html += '<div class="order-summary-row"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Little Souls Reading</span><span>$' + calc.readingSub.toFixed(2) + '</span></div>';
-    if (portraitOn) {
-      html += '<div class="order-summary-row"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Pet-Parent Soul Bond</span><span>$' + calc.portraitSub.toFixed(2) + '</span></div>';
+    if (essentialQty > 0) {
+      html += '<div class="order-summary-row"><span>' + (essentialQty > 1 ? essentialQty + '\u00d7 ' : '') + 'Soul Reading</span><span>$' + (essentialPrice * essentialQty).toFixed(2) + '</span></div>';
+    }
+    if (portraitQty > 0) {
+      html += '<div class="order-summary-row"><span>' + (portraitQty > 1 ? portraitQty + '\u00d7 ' : '') + 'Soul Bond Edition</span><span>$' + (portraitPrice * portraitQty).toFixed(2) + '</span></div>';
     }
     if (horoscopeOn) {
       html += '<div class="order-summary-row" style="color:var(--green);"><span>' + (petCount > 1 ? petCount + '\u00d7 ' : '') + 'Weekly Horoscope (1st month free)</span><span>$0.00</span></div>';
@@ -1283,7 +1329,8 @@ function updateUI() {
 
   // CTA buttons
   var priceStr = calc.total % 1 === 0 ? calc.total : calc.total.toFixed(2);
-  var ctaVerb = currentTier === 'portrait' ? 'Reveal Their Bond' : 'Reveal Their Soul';
+  var ctaVerb = portraitQty > 0 ? 'Reveal Their Bond' : 'Reveal Their Soul';
+  if (petCount > 1) ctaVerb = 'Reveal Their Souls';
   var ctaText = ctaVerb + ' \u2014 $' + priceStr;
   var ctaEl = document.getElementById('ctaBtn');
   var ctaEl2 = document.getElementById('ctaBtn2');
@@ -1295,55 +1342,9 @@ function updateUI() {
   if (floatingPrice) floatingPrice.textContent = '$' + priceStr;
   var floatingOld = document.querySelector('#floatingCta .floating-old-price');
   if (floatingOld) {
-    var originalPerPet = 60; // original price per pet
+    var originalPerPet = 60;
     floatingOld.textContent = '$' + (originalPerPet * petCount);
   }
-
-  // Highlight active tier
-  document.querySelectorAll('.discount-tier').forEach(function(el) {
-    var tier = parseInt(el.getAttribute('data-tier'));
-    var isActive = (tier === petCount) || (tier === 5 && petCount >= 5);
-    el.style.borderColor = isActive ? 'var(--rose)' : 'var(--cream3)';
-    el.style.background = isActive ? 'var(--rose-glow)' : 'var(--cream2)';
-    el.style.boxShadow = isActive ? '0 0 0 2px rgba(191,82,74,0.12)' : 'none';
-  });
-
-  // Update panel height if open
-  if (multiPetOpen) {
-    var panel = document.getElementById('multiPetPanel');
-    panel.style.maxHeight = panel.scrollHeight + 'px';
-  }
-}
-
-// ─── Toggle Multi-Pet Panel ───
-function toggleMultiPet() {
-  multiPetOpen = !multiPetOpen;
-  var panel = document.getElementById('multiPetPanel');
-  var arrow = document.getElementById('multiPetArrow');
-  if (multiPetOpen) {
-    panel.style.maxHeight = panel.scrollHeight + 'px';
-    arrow.style.transform = 'rotate(180deg)';
-  } else {
-    panel.style.maxHeight = '0';
-    arrow.style.transform = 'rotate(0deg)';
-  }
-}
-
-// ─── Quick Tier Select ───
-function setTier(n) {
-  petCount = n;
-  updateUI();
-  // Auto-open panel if closed
-  if (!multiPetOpen) toggleMultiPet();
-}
-
-
-// ─── Pet Counter ───
-function changePetCount(delta) {
-  var newCount = petCount + delta;
-  if (newCount < 1 || newCount > 10) return;
-  petCount = newCount;
-  updateUI();
 }
 
 // ─── Horoscope Toggle ───
@@ -1482,6 +1483,10 @@ async function handleDigitalCheckout(e) {
 
   var refCode = getReferralCode();
 
+  // Hardcover path always treats pet count from legacy single-tier field; digital path uses per-tier quantities
+  var petCount = isHardcover ? 1 : (essentialQty + portraitQty);
+  var primaryTier = isHardcover ? 'premium' : (portraitQty > 0 && essentialQty === 0 ? 'premium' : 'basic');
+
   try {
     var res = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
       method: 'POST',
@@ -1492,9 +1497,12 @@ async function handleDigitalCheckout(e) {
       },
       body: JSON.stringify({
         quickCheckout: true,
-        selectedTier: isHardcover ? 'premium' : (portraitOn ? 'premium' : 'basic'),
+        selectedTier: primaryTier,
+        // New per-tier breakdown — backend sums and prices these independently
+        basicCount: isHardcover ? 0 : essentialQty,
+        premiumCount: isHardcover ? 0 : portraitQty,
         abVariant: 'C',
-        includesPortrait: isHardcover ? true : portraitOn,
+        includesPortrait: isHardcover ? true : (portraitQty > 0),
         includesBook: isHardcover,
         includeHoroscope: isHardcover ? false : horoscopeOn,
         occasionMode: occasionMode,
@@ -1575,7 +1583,7 @@ setInterval(updateUrgencyTimer, 1000);
 
 
 // ─── Init ───
-selectTier('essential'); // default to Soul Reading $27
+selectTier('digital'); // default: 1× Soul Reading, 0× Soul Bond
 
 // ─── Reviews ───
 var ALL_REVIEWS = [

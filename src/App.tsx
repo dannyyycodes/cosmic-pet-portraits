@@ -58,7 +58,6 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const AuthorPage = lazy(() => import("./pages/AuthorPage"));
 const AdminABTest = lazy(() => import("./pages/AdminABTest"));
 const AdminRedeemCodes = lazy(() => import("./pages/AdminRedeemCodes"));
-const AdminQATest = lazy(() => import("./pages/AdminQATest"));
 const RedeemCode = lazy(() => import("./pages/RedeemCode"));
 const FindReport = lazy(() => import("./pages/FindReport"));
 const HeroTypographyPreview = lazy(() => import("./pages/HeroTypographyPreview"));
@@ -170,7 +169,6 @@ const App = () => (
                   <Route path="/admin/blog" element={<AdminBlogStats />} />
                   <Route path="/admin/ab-test" element={<AdminABTest />} />
                   <Route path="/admin/redeem-codes" element={<AdminRedeemCodes />} />
-                  <Route path="/admin/qa-test" element={<AdminQATest />} />
                   <Route path="/redeem-code" element={<RedeemCode />} />
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/blog/:slug" element={<BlogPost />} />

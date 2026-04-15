@@ -49,6 +49,11 @@ const checkoutSchema = z.object({
   reportIds: z.array(z.string().uuid()).optional(),
   reportId: z.string().uuid().optional(),
   petCount: z.number().int().min(1).max(10).optional().default(1),
+  // Per-tier quantity breakdown for quickCheckout (mix Soul Reading + Soul Bond in one order).
+  // basicCount = Soul Reading quantity, premiumCount = Soul Bond quantity.
+  // If either is provided and petCount is omitted, petCount = basicCount + premiumCount.
+  basicCount: z.number().int().min(0).max(10).optional(),
+  premiumCount: z.number().int().min(0).max(10).optional(),
   selectedTier: z.enum(['basic', 'premium']).optional().default('premium'),
   selectedProducts: z.array(z.string()).optional(),
   couponId: z.string().uuid().nullable().optional(),
@@ -183,10 +188,33 @@ serve(async (req) => {
     // ========== QUICK CHECKOUT MODE (Variant C) ==========
     if (input.quickCheckout) {
       const tierKey = input.selectedTier || 'premium';
-      const petCount = input.petCount || 1;
-      let includesPortrait = input.includesPortrait || tierKey === 'premium';
       const includesBook = input.includesBook || false;
       const occasionMode = input.occasionMode || 'discover';
+
+      // Per-tier breakdown from the new checkout UI (steppers on Soul Reading + Soul Bond cards).
+      // Fall back to legacy single-tier behaviour when caller doesn't send basicCount/premiumCount.
+      const hasPerTierCounts = (typeof input.basicCount === 'number' || typeof input.premiumCount === 'number') && !includesBook;
+      const basicCount = hasPerTierCounts ? (input.basicCount || 0) : 0;
+      const premiumCount = hasPerTierCounts ? (input.premiumCount || 0) : 0;
+
+      let petCount: number;
+      if (includesBook) {
+        petCount = input.petCount || 1;
+      } else if (hasPerTierCounts) {
+        petCount = basicCount + premiumCount;
+        if (petCount < 1 || petCount > 10) {
+          return new Response(JSON.stringify({ error: "Select between 1 and 10 pets" }), {
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+            status: 400,
+          });
+        }
+      } else {
+        petCount = input.petCount || 1;
+      }
+
+      let includesPortrait = hasPerTierCounts
+        ? premiumCount > 0
+        : (input.includesPortrait || tierKey === 'premium');
 
       // Hardcover always includes portrait
       if (includesBook) {
@@ -197,6 +225,12 @@ serve(async (req) => {
       if (includesBook) {
         // Hardcover: $99 per pet — includes reading + portrait + book
         var totalAmount = HARDCOVER_PRICE_CENTS * petCount;
+      } else if (hasPerTierCounts) {
+        // Mixed-tier digital: price each tier independently, then apply volume discount on the total.
+        const readingTotal = (basicCount * VARIANT_C_PRICES.basic) + (premiumCount * VARIANT_C_PRICES.premium);
+        const discountRate = getVolumeDiscount(petCount);
+        const discountAmount = Math.round(readingTotal * discountRate);
+        var totalAmount = readingTotal - discountAmount;
       } else {
         const basePriceCents = VARIANT_C_PRICES[tierKey] || VARIANT_C_PRICES.basic;
         const perPetPrice = tierKey === 'basic' && includesPortrait
@@ -231,9 +265,13 @@ serve(async (req) => {
         }
       }
 
-      // Create placeholder report(s)
+      // Create placeholder report(s). With mixed tiers, first basicCount placeholders
+      // are basic (no portrait), remaining premiumCount get includes_portrait=true.
       const reportIds: string[] = [];
       for (let i = 0; i < petCount; i++) {
+        const perPetIncludesPortrait = hasPerTierCounts
+          ? (i >= basicCount) // basic first, premium after
+          : includesPortrait;
         const { data: placeholderReport, error: insertError } = await supabaseClient
           .from("pet_reports")
           .insert({
@@ -243,6 +281,7 @@ serve(async (req) => {
             payment_status: "pending",
             occasion_mode: occasionMode,
             includes_book: includesBook,
+            includes_portrait: perPetIncludesPortrait || includesBook,
           })
           .select("id")
           .single();
@@ -314,16 +353,28 @@ serve(async (req) => {
           quantity: 1,
         });
       } else {
-        // DIGITAL ONLY: Soul Reading or Soul Bond
-        const tierName = includesPortrait ? 'Soul Bond' : 'Soul Reading';
+        // DIGITAL: Soul Reading and/or Soul Bond. For mixed-tier orders, name reflects the mix.
+        let productName: string;
+        let productDescription: string | undefined;
+        if (hasPerTierCounts && basicCount > 0 && premiumCount > 0) {
+          productName = `Little Souls — ${petCount} readings`;
+          const parts = [];
+          if (basicCount > 0) parts.push(`${basicCount}× Soul Reading`);
+          if (premiumCount > 0) parts.push(`${premiumCount}× Soul Bond`);
+          productDescription = parts.join(' + ');
+        } else {
+          const tierName = includesPortrait ? 'Soul Bond' : 'Soul Reading';
+          productName = petCount > 1 ? `${petCount}× Little Souls — ${tierName}` : `Little Souls — ${tierName}`;
+          productDescription = input.includeHoroscope
+            ? 'Includes 1 month of weekly horoscopes — free (then $4.99/month, cancel anytime)'
+            : undefined;
+        }
         lineItems.push({
           price_data: {
             currency: "usd",
             product_data: {
-              name: petCount > 1 ? `${petCount}× Little Souls — ${tierName}` : `Little Souls — ${tierName}`,
-              description: input.includeHoroscope
-                ? 'Includes 1 month of weekly horoscopes — free (then $4.99/month, cancel anytime)'
-                : undefined,
+              name: productName,
+              description: productDescription,
             },
             unit_amount: totalAmount,
           },
@@ -380,6 +431,8 @@ serve(async (req) => {
           report_ids: reportIds.join(","),
           pet_count: petCount.toString(),
           selected_tier: tierKey,
+          basic_count: hasPerTierCounts ? basicCount.toString() : "",
+          premium_count: hasPerTierCounts ? premiumCount.toString() : "",
           quick_checkout: "true",
           ab_variant: input.abVariant || "C",
           includes_portrait: includesPortrait ? "true" : "false",
