@@ -226,13 +226,26 @@ Return JSON with this exact shape:
 
         const aiJson = await aiResponse.json();
         const contentText: string = aiJson.choices?.[0]?.message?.content ?? "";
-        let blogData: any;
-        try {
-          const match = contentText.match(/```(?:json)?\s*([\s\S]*?)```/);
-          blogData = JSON.parse((match ? match[1] : contentText).trim());
-        } catch (err) {
-          console.error(`Parse fail for "${topic.topic}":`, contentText.slice(0, 300));
-          results.push({ topic: topic.topic, success: false, error: "JSON parse failed" });
+        let blogData: any = null;
+        // 1) Try the raw content as JSON.
+        // 2) Try extracting from a fenced code block.
+        // 3) Try finding the outermost { ... } substring.
+        const candidates: string[] = [contentText.trim()];
+        const fence = contentText.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (fence) candidates.push(fence[1].trim());
+        const first = contentText.indexOf("{");
+        const last = contentText.lastIndexOf("}");
+        if (first >= 0 && last > first) candidates.push(contentText.slice(first, last + 1).trim());
+        for (const c of candidates) {
+          try {
+            blogData = JSON.parse(c);
+            break;
+          } catch (_e) { /* try next */ }
+        }
+        if (!blogData) {
+          console.error(`Parse fail for "${topic.topic}". First 400 chars of response:`, contentText.slice(0, 400));
+          results.push({ topic: topic.topic, success: false, error: "JSON parse failed (retryable)" });
+          // Don't mark topic used — infra-style failure
           continue;
         }
 
