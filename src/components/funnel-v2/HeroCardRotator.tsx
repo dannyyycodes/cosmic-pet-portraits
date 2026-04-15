@@ -25,35 +25,13 @@ type HeroCard = {
 const HERO_CARDS: HeroCard[] = [
   {
     accent: "#c4a265", glyph: "moon", species: "cat",
-    imageUrl: "https://cdn2.thecatapi.com/images/bpv.jpg",
+    imageUrl: "https://cdn2.thecatapi.com/images/uk0SrrBbQ.jpg",
     eyebrow: "For the one who's been beside you every day",
     headline: "They have a look they save only for you. You still don't know what it means.",
     sub: "You've studied them longer than almost anyone in your life. You've never been able to put it into words. This finally does.",
     review: {
       quote: "She does this thing where she goes soft around the eyes when I walk in. Only me. Never my partner, never my mom when she visits. I've noticed it for six years and never had a word for it. The reading called it her trust gaze. I sat with that for a long time.",
       name: "Sarah K.", pet: "Miso, 6", rating: 5,
-    },
-  },
-  {
-    accent: "#bf524a", glyph: "paw", species: "cat",
-    imageUrl: "https://cdn2.thecatapi.com/images/MVQu5GSK1.jpg",
-    eyebrow: "For the pet with that weird thing",
-    headline: "You've known what they do. Now know why.",
-    sub: "The ritual. The obsession. The specific moment they always appear. You've been narrating their weirdness to friends for years. This tells you what you were actually watching.",
-    review: {
-      quote: "11 p.m. on the dot, Walter goes to the window. Every night. Waits about twenty minutes, then comes to bed. I used to tell people he was keeping watch, half joking. Turns out I was closer than I thought. The reading called it his threshold ritual. I still say goodnight to the window now.",
-      name: "James D.", pet: "Walter · tabby, extremely serious", rating: 5,
-    },
-  },
-  {
-    accent: "#8a6f8c", glyph: "bond", species: "dog",
-    imageUrl: "https://images.dog.ceo/breeds/hound-english/n02089973_529.jpg",
-    eyebrow: "For the bond nobody else gets",
-    headline: "Everyone thinks you're projecting. You're not.",
-    sub: "The pull. The rightness. The way it felt like they were yours before they were yours. Every feeling you've had about your bond is in their chart. Written, not imagined.",
-    review: {
-      quote: "I've had Pepper since she was eight weeks old and I swear I knew her before she was mine. My husband thinks it's cute how attached I am. My mother thinks it's a problem. The reading mapped three things we share, not vaguely but specifically, and I printed the page about our bond and left it on the kitchen counter. Nobody's saying it's a problem anymore.",
-      name: "Elena M.", pet: "Pepper · rescue hound, my soul dog", rating: 5,
     },
   },
   {
@@ -65,6 +43,28 @@ const HERO_CARDS: HeroCard[] = [
     review: {
       quote: "We lost Biscuit in February. I ordered the reading in March because I wasn't ready, and then I was. It came in past tense. There was a letter at the end in her voice and I couldn't finish it the first night. I go back to it. I keep it in the drawer next to the bed.",
       name: "Claire R.", pet: "for Biscuit, always", rating: 5,
+    },
+  },
+  {
+    accent: "#8a6f8c", glyph: "bond", species: "dog",
+    imageUrl: "https://images.dog.ceo/breeds/hound-blood/n02088466_8575.jpg",
+    eyebrow: "For the bond nobody else gets",
+    headline: "Everyone thinks you're projecting. You're not.",
+    sub: "The pull. The rightness. The way it felt like they were yours before they were yours. Every feeling you've had about your bond is in their chart. Written, not imagined.",
+    review: {
+      quote: "I've had Pepper since she was eight weeks old and I swear I knew her before she was mine. My husband thinks it's cute how attached I am. My mother thinks it's a problem. The reading mapped three things we share, not vaguely but specifically, and I printed the page about our bond and left it on the kitchen counter. Nobody's saying it's a problem anymore.",
+      name: "Elena M.", pet: "Pepper · rescue hound, my soul dog", rating: 5,
+    },
+  },
+  {
+    accent: "#bf524a", glyph: "paw", species: "cat",
+    imageUrl: "https://cdn2.thecatapi.com/images/MVQu5GSK1.jpg",
+    eyebrow: "For the pet with that weird thing",
+    headline: "You've known what they do. Now know why.",
+    sub: "The ritual. The obsession. The specific moment they always appear. You've been narrating their weirdness to friends for years. This tells you what you were actually watching.",
+    review: {
+      quote: "11 p.m. on the dot, Walter goes to the window. Every night. Waits about twenty minutes, then comes to bed. I used to tell people he was keeping watch, half joking. Turns out I was closer than I thought. The reading called it his threshold ritual. I still say goodnight to the window now.",
+      name: "James D.", pet: "Walter · tabby, extremely serious", rating: 5,
     },
   },
   {
