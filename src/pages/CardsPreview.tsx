@@ -116,7 +116,7 @@ const CARDS: Card[] = [
     review: {
       quote: "Here's the thing I didn't expect. The reading didn't just tell me about Nova. It told me how she reads me. The way she tracks my mood, the specific things she picks up on, what she does when I'm overwhelmed vs when I'm just tired. Different responses. I thought I was observing her. She's been observing me the whole time.",
       name: "Ana T.",
-      pet: "Nova · shepherd mix, apparently my therapist",
+      pet: "Nova · bulldog, apparently my therapist",
       rating: 5,
     },
   },
