@@ -6,6 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { ArrowRight, Clock, Search, Dog, Cat, Sparkles } from "lucide-react";
 
+interface BlogAuthor {
+  slug: string;
+  name: string;
+  short_name: string;
+  image_url: string | null;
+}
+
 interface BlogPost {
   id: string;
   slug: string;
@@ -17,6 +24,9 @@ interface BlogPost {
   reading_time_minutes: number;
   published_at: string;
   views: number;
+  featured_image_url: string | null;
+  hero_alt: string | null;
+  author: BlogAuthor | null;
 }
 
 const Blog = () => {
@@ -34,7 +44,7 @@ const Blog = () => {
     setLoading(true);
     let query = supabase
       .from("blog_posts")
-      .select("id, slug, title, excerpt, meta_description, species, category, reading_time_minutes, published_at, views")
+      .select("id, slug, title, excerpt, meta_description, species, category, reading_time_minutes, published_at, views, featured_image_url, hero_alt, author:authors!blog_posts_author_slug_fkey(slug, name, short_name, image_url)")
       .eq("is_published", true)
       .order("published_at", { ascending: false });
 
@@ -186,7 +196,7 @@ const Blog = () => {
               <div className="text-center py-12">
                 <p className="mb-4" style={{ color: '#9a8578' }}>No articles found yet.</p>
                 <button
-                  onClick={() => navigate("/checkout")}
+                  onClick={() => navigate("/")}
                   className="inline-flex items-center gap-2 px-6 py-3 font-medium transition-opacity hover:opacity-90"
                   style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
                 >
@@ -205,36 +215,63 @@ const Blog = () => {
                   >
                     <Link
                       to={`/blog/${post.slug}`}
-                      className="block p-6 h-full transition-all hover:shadow-lg hover:-translate-y-1"
+                      className="block h-full transition-all hover:shadow-lg hover:-translate-y-1 overflow-hidden"
                       style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
                     >
-                      <div className="flex items-center gap-2 mb-3">
-                        <span
-                          className="inline-flex items-center text-xs capitalize px-2 py-1 rounded-full"
-                          style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#c4a265' }}
-                        >
-                          {post.species === "dog" ? <Dog className="w-3 h-3 mr-1" /> : <Cat className="w-3 h-3 mr-1" />}
-                          {post.species}
-                        </span>
-                        <span
-                          className="inline-flex items-center text-xs capitalize px-2 py-1 rounded-full"
-                          style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#c4a265' }}
-                        >
-                          {post.category}
-                        </span>
-                      </div>
-                      <h2 className="text-lg font-semibold mb-2 line-clamp-2" style={{ color: '#3d2f2a' }}>
-                        {post.title}
-                      </h2>
-                      <p className="text-sm mb-4 line-clamp-3" style={{ color: '#9a8578' }}>
-                        {post.excerpt || post.meta_description}
-                      </p>
-                      <div className="flex items-center justify-between text-xs" style={{ color: '#9a8578' }}>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {post.reading_time_minutes} min read
-                        </span>
-                        <span>{formatDate(post.published_at)}</span>
+                      {post.featured_image_url && (
+                        <div className="relative w-full aspect-[16/9] overflow-hidden" style={{ background: '#faf6ef' }}>
+                          <img
+                            src={post.featured_image_url}
+                            alt={post.hero_alt || post.title}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span
+                            className="inline-flex items-center text-xs capitalize px-2 py-1 rounded-full"
+                            style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#c4a265' }}
+                          >
+                            {post.species === "dog" ? <Dog className="w-3 h-3 mr-1" /> : <Cat className="w-3 h-3 mr-1" />}
+                            {post.species}
+                          </span>
+                          <span
+                            className="inline-flex items-center text-xs capitalize px-2 py-1 rounded-full"
+                            style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#c4a265' }}
+                          >
+                            {post.category}
+                          </span>
+                        </div>
+                        <h2 className="text-lg font-semibold mb-2 line-clamp-2" style={{ color: '#3d2f2a', fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                          {post.title}
+                        </h2>
+                        <p className="text-sm mb-4 line-clamp-3" style={{ color: '#9a8578' }}>
+                          {post.excerpt || post.meta_description}
+                        </p>
+                        {/* Byline */}
+                        {post.author && (
+                          <div className="flex items-center gap-2 mb-3 pb-3" style={{ borderBottom: '1px solid #f0e7d8' }}>
+                            {post.author.image_url ? (
+                              <img src={post.author.image_url} alt={post.author.name} className="w-7 h-7 rounded-full object-cover" style={{ boxShadow: '0 0 0 1.5px rgba(196,162,101,0.4)' }} />
+                            ) : (
+                              <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs" style={{ background: 'linear-gradient(135deg,#fdf7e8,#faf0d8)', boxShadow: '0 0 0 1.5px rgba(196,162,101,0.4)', color: '#8a6a2e', fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                                {post.author.short_name?.[0] ?? 'L'}
+                              </div>
+                            )}
+                            <span className="text-xs font-medium" style={{ color: '#5a4a42' }}>
+                              By {post.author.name}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between text-xs" style={{ color: '#9a8578' }}>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {post.reading_time_minutes} min read
+                          </span>
+                          <span>{formatDate(post.published_at)}</span>
+                        </div>
                       </div>
                     </Link>
                   </motion.article>
