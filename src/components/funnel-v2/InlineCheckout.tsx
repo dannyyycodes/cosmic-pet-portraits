@@ -422,7 +422,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                             </span>
                           ) : null;
                           const labelNode = isSoulSpeak ? (
-                            <span style={{ fontWeight: 600, color: "var(--ink, #1f1c18)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                               {feature.label}
                               <svg
                                 width="14"
@@ -441,15 +441,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                               </svg>
                             </span>
                           ) : isBonus ? (
-                            <span>
-                              <strong style={{ fontWeight: 700, color: "var(--ink, #1f1c18)" }}>Bonus sections</strong>
-                              {" — little surprises written just for them"}
-                            </span>
+                            <span>Bonus sections — little surprises written just for them</span>
                           ) : isHoroscope ? (
-                            <span>
-                              <strong style={{ fontWeight: 700, color: "var(--ink, #1f1c18)" }}>Weekly horoscopes</strong>
-                              {" — 1 month included"}
-                            </span>
+                            <span>Weekly horoscopes — 1 month included</span>
                           ) : (
                             <span>{feature.label}</span>
                           );
