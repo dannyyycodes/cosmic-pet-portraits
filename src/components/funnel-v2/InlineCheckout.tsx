@@ -30,7 +30,7 @@ function useIsInAppBrowser() {
 }
 
 
-type FeatureKind = "plain" | "soulspeak" | "divider";
+type FeatureKind = "plain" | "soulspeak" | "divider" | "bonus";
 
 interface Feature {
   label: string;
@@ -55,7 +55,7 @@ const TIERS: Array<{
       { label: "How they love, how they learn, how they heal, what they hope for, what they fear — and what makes them feel most themselves" },
       { label: "Their photo becomes part of the reveal" },
       { label: "SoulSpeak", kind: "soulspeak" },
-      { label: "Plus bonus sections — little surprises written just for them" },
+      { label: "Plus bonus sections — little surprises written just for them", kind: "bonus" },
       { label: "Yours forever — revisit anytime, from any device" },
       { label: "1 month of weekly horoscopes — included free" },
     ],
@@ -365,6 +365,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   {tier.features.map((feature, fi) => {
                     const isDivider = feature.kind === "divider";
                     const isSoulSpeak = feature.kind === "soulspeak";
+                    const isBonus = feature.kind === "bonus";
                     const handleSoulSpeakActivate = (e: React.SyntheticEvent) => {
                       e.stopPropagation();
                       e.preventDefault();
@@ -436,6 +437,26 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                                 <line x1="12" y1="8" x2="12.01" y2="8" />
                               </svg>
                             </>
+                          ) : isBonus ? (
+                            <span className="flex-1 flex items-center gap-2 flex-wrap">
+                              <span>{feature.label}</span>
+                              <span
+                                style={{
+                                  fontFamily: "Cormorant, Georgia, serif",
+                                  fontSize: "0.6rem",
+                                  fontWeight: 700,
+                                  letterSpacing: "0.12em",
+                                  padding: "2px 7px",
+                                  borderRadius: 4,
+                                  background: "linear-gradient(135deg, #d4b26b, #c4a265)",
+                                  color: "#fff",
+                                  textTransform: "uppercase",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                Bonus
+                              </span>
+                            </span>
                           ) : (
                             <span className="flex-1">{feature.label}</span>
                           )}
