@@ -406,6 +406,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                             textTransform: "uppercase",
                             whiteSpace: "nowrap",
                             flexShrink: 0,
+                            minWidth: 58,
+                            textAlign: "center",
+                            display: "inline-block",
                           };
                           const goldBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #d4b26b, #c4a265)" };
                           const greenBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #5aa870, #4a8c5c)" };
