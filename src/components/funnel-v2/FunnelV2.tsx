@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
-import { MultiPetSection } from "./MultiPetSection";
 import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 
@@ -111,9 +110,6 @@ export const FunnelV2 = () => {
         <GoldDivider />
       </div>
       <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
-
-      {/* Multi-pet story — cross-pet readings + Cosmic Household digest */}
-      <MultiPetSection onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
 
       <InlineCheckout
         ref={checkoutRef}
@@ -357,6 +353,10 @@ const FAQ_ITEMS = [
   {
     q: "Can I get a reading for a pet who's passed away?",
     a: "Yes. Every reading includes a memorial mode for pets who've crossed the rainbow bridge. The reading is written to honour their memory, and SoulSpeak lets you hear their voice one more time.",
+  },
+  {
+    q: "I have more than one pet — how does that work?",
+    a: "Beautifully. Add as many as you like at checkout and the price eases as you go — 15% off for two, 20% for three, 25% for four, 30% for five or more. Each pet gets their own careful reading, but the experience ties together: one gentle intake flow, one Cosmic Household weekly digest (one Sunday email covering everyone), shared SoulSpeak credits your pets can all draw from, and — once you've unlocked two readings — you can pair any two of them for a cross-pet bond reading that shows how they move through the world together.",
   },
 ];
 
