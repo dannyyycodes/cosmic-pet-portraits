@@ -4,6 +4,77 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 
 ---
 
+## 2026-04-15 — Blog engine Phase 3 shipped + homepage AEO upgrade
+
+**Status:** DEPLOYED + verified end-to-end. Deep-dive context lives at `~/.claude/projects/C--Users-danie/memory/project_littlesouls_seo_aeo_plan.md`. Strategic docs at `cosmic-pet-portraits/docs/phase*.md`.
+
+### What went live (commits `9a2f22c` → `eb39877`)
+
+**The blog engine**
+- DB schema extended: `authors` table + 5 characters + `blog_posts`/`blog_topics` enriched (cluster, author_slug, tags, tldr, faq, anchor_variants, sources, featured_image_url, etc.)
+- Editorial calendar seeded: Months 1-3 (36 scheduled topics through Jul 10) + 100 backfill = 136 topics / ~10 months runway
+- Edge function `auto-generate-blogs` rewritten — OpenRouter Claude Sonnet 4.5, character-voiced, TL;DR + 4-6 H2 + 3-5 FAQ + inline citation + middle/end CTA + auto-linking
+- Vercel Cron Mon/Wed/Fri 10:00 UTC
+- 3 posts shipped: `dog-birthday-personality-astrology-guide`, `dog-zodiac-signs`, `cat-zodiac-signs-meanings`
+
+**Images**
+- 5 author portraits generated via Kie.ai nano-banana-2, uploaded to **Supabase Storage** bucket `author-portraits` (permanent; earlier tempfile URLs expired within hours)
+- Hero + 2 inline section images per post via **Pexels** (Claude picks 2-4 word search query per section, `afterHeading` targeting). Dedupe vs hero URL. 3-stage fallback query.
+- Backfill scripts at `scripts/backfill-inline-images.py` + `scripts/dedupe-inline-images.py`
+
+**Frontend**
+- `src/pages/BlogPost.tsx` — breadcrumb, byline, visible hero image, TL;DR, FAQ block, cluster-aware CTAs, author bio card, inline `<figure>` images with captions
+- `src/pages/AuthorPage.tsx` NEW — /author/:slug with Person+CollectionPage schema
+- `src/pages/Blog.tsx` — listing cards with hero thumbnail + author byline
+- UTM attribution on every CTA click (`utm_source=blog&utm_medium=cta&utm_campaign=<slug>&utm_content=(middle|end|inline)`)
+- All blog CTAs now point to `/` (new funnel); `/checkout` links purged
+
+**Discovery & AI search**
+- `/api/blog-ssr` — bot-only SSR endpoint. vercel.json `has` user-agent rewrite routes 20+ crawlers (GPTBot, ClaudeBot, PerplexityBot, Googlebot, bingbot, Applebot, Amazonbot, meta-external, anthropic-ai, etc.) to pre-rendered HTML. Humans continue on SPA.
+- `/api/sitemap` dynamic — static routes + posts + authors (16 URLs current)
+- `/api/cron/indexnow-ping` — fires 30min after each blog cron, broadcasts to Bing/Yandex/Seznam/Naver (reaches Perplexity + ChatGPT search via Bing)
+- IndexNow key file `public/cafaa0c1a857d082b02b0015353028fc.txt`
+- `robots.txt` confirmed allows 22 UAs including all AI crawlers
+- `llms.txt` enriched (80+ lines) with 4.9/5 header, 10 reviewer quotes, author bios, differentiators, "is it legit" block
+- Google Search Console verified via DNS TXT + sitemap submitted
+
+**Homepage schema (Apr 15)**
+- Added `AggregateRating 4.9/5, 71 reviews` to Organization + Service
+- Added 10 structured `Review` nodes (real reviewer names/text from `MassiveReviews.tsx`)
+- Swapped stale `/checkout` Offer URLs → `/`
+
+### Dependencies that can break the autopilot
+1. **OpenRouter credit** — powers blog + horoscopes + reports. Only recurring maintenance.
+2. Topic queue (10-month runway, alert when <30 remain)
+3. Working Supabase PAT — primary `sbp_c42487...` died mid-session; fallback `sbp_aa46d3c653a36fe9f8cad763f989778a5fbdfbea` verified active w/ admin scope
+
+### Cost per post (verified)
+~$0.05-0.06 per post (Claude Sonnet 4.5 via OpenRouter). Annual autopilot: **~$9-14**. Pexels + Supabase + Vercel all free-tier.
+
+### Next-session queue (biggest levers first)
+1. **Phase 3 social repurposing** — wire existing n8n content workflows to auto-post each new blog as IG carousel + TikTok + Pinterest + Twitter thread. Biggest compounding effect.
+2. **Stripe UTM→metadata bridge** — attribute checkout purchases to source blog posts via the UTM params already being appended.
+3. **AdminBlogStats enhancements** — 30-day trend chart, top-referrer breakdown.
+4. **Guest post ghostwrites** — draft 3 pieces as Elena/Callum for Daily Paws / Dogster / PetMD pitches.
+5. **Data-study post** — analysis of real report data ("happiest zodiac signs") → journalist bait for earned backlinks.
+6. **Months 4-12 calendar seed** — run when topic queue <30.
+7. **SSG migration** — full pre-render via vite-react-ssg (currently only bots get SSR). 2-4 hrs.
+
+### Requires Danny manually
+- Trustpilot profile + invite customers (biggest external review signal)
+- Reddit organic mentions in r/dogs/r/cats/r/astrology
+- Bing Webmaster Tools import (optional — IndexNow already covers indexing)
+- HARO/Qwoted signup as Elena/Callum for press quotes
+
+### Verification quickies (next session warm-up)
+```
+curl -sSL "https://littlesouls.app/blog/<slug>" -A "GPTBot/1.0" | grep -c "ls-tldr-label"  # expect 2
+curl -sSL "https://www.littlesouls.app/" -A "Googlebot" | grep -c "aggregateRating"        # expect 2
+curl -sSL "https://littlesouls.app/sitemap.xml?v=$(date +%s)" | grep -c "<loc>"             # expect >= 16
+```
+
+---
+
 ## 2026-04-12 (overnight) — SoulSpeak WhatsApp-style redesign
 
 **Status:** DEPLOYED. Commit `7f26c9c` on `main`. Frontend auto-deploys via Vercel.
