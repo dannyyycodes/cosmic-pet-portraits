@@ -23,13 +23,15 @@ const CLUSTER_LABEL: Record<string, string> = {
   G: "SoulSpeak",
 };
 
+// CTA destinations — "/" is the new funnel homepage (emotional journey → pricing cards).
+// Never link to /checkout (that's the legacy checkout.html, being retired).
 const CTA_BY_CLUSTER: Record<string, { middle: string; end: string }> = {
-  A: { middle: "/checkout", end: "/checkout" },
-  B: { middle: "/checkout", end: "/checkout" },
-  C: { middle: "/checkout", end: "/checkout" },
-  D: { middle: "/soul-chat", end: "/checkout?intent=memorial" },
+  A: { middle: "/", end: "/" },
+  B: { middle: "/", end: "/" },
+  C: { middle: "/", end: "/" },
+  D: { middle: "/soul-chat", end: "/?intent=memorial" },
   E: { middle: "/gift-v2", end: "/gift-v2" },
-  F: { middle: "/checkout", end: "/checkout" },
+  F: { middle: "/", end: "/" },
   G: { middle: "/soul-chat", end: "/soul-chat" },
 };
 
@@ -57,6 +59,9 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
+    // Pexels API key — public-ish, rate-limited per-account. Fallback hardcoded so we
+    // don't lose hero images if the secret isn't set. Env override still works.
+    const pexelsKey = Deno.env.get("PEXELS_API_KEY") || "okUyRy6l876v4eV0vh42MAay9MRNrb3iPNBIoR7Qqii5MGaJv4oVNeWA";
     if (!openrouterKey) throw new Error("OPENROUTER_API_KEY not set");
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -147,6 +152,7 @@ Writing rules for EVERY post:
 7. Memorial cluster (D): no exclamation points, no emojis, reverent register.
 8. Use your personal anecdotes and vocabulary — write as yourself, not generic.
 9. End each post with a ## Sources section listing your citation(s).
+10. NEVER link to /checkout or /checkout.html anywhere — the conversion funnel lives at /. If you want to send the reader to the reading, link to / (the homepage).
 
 Output STRICT JSON matching the schema below. No markdown code fences. No commentary. Just the JSON object.`;
 
@@ -180,7 +186,11 @@ Return JSON with this exact shape:
     {"title": "Source title", "url": "https://real-authority.org/page", "publisher": "Source publisher"}
   ],
   "readingTimeMinutes": 6,
-  "wordCount": ${targetWordCount}
+  "wordCount": ${targetWordCount},
+  "heroImage": {
+    "pexelsQuery": "2–4 word Pexels search query picking an image that literally and emotionally matches the post (examples: 'golden retriever sunset', 'black cat windowsill', 'senior dog sleeping', 'puppy muddy paws'). Prefer concrete subject matter over abstract concepts. No cosmic/galaxy/constellation — those return generic stock.",
+    "alt": "20–140 char descriptive alt text including the target keyword naturally. Describe what's IN the image, not what it represents."
+  }
 }`;
 
         const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -245,6 +255,40 @@ Return JSON with this exact shape:
         const failures = Object.entries(gates).filter(([, v]) => !v).map(([k]) => k);
         if (failures.length) console.warn(`Gates failed for "${topic.topic}":`, failures);
 
+        // Fetch a Pexels hero image using the query Claude picked.
+        // Fall back: species-only query, then empty (blog still ships).
+        let heroImageUrl: string | null = null;
+        let heroImageAlt: string = blogData.heroImage?.alt || blogData.heroAlt || blogData.title;
+        if (pexelsKey) {
+          const queries = [
+            blogData.heroImage?.pexelsQuery,
+            `${species} ${targetKeyword.split(" ").slice(-2).join(" ")}`,
+            species,
+          ].filter(Boolean) as string[];
+          for (const q of queries) {
+            try {
+              const pexRes = await fetch(
+                `https://api.pexels.com/v1/search?query=${encodeURIComponent(q)}&orientation=landscape&per_page=5&size=large`,
+                { headers: { Authorization: pexelsKey } },
+              );
+              if (!pexRes.ok) continue;
+              const pexJson = await pexRes.json();
+              const photo = (pexJson.photos ?? [])[0];
+              if (photo?.src?.large2x || photo?.src?.large) {
+                heroImageUrl = photo.src.large2x || photo.src.large;
+                if (photo.alt && photo.alt.length > 20) heroImageAlt = photo.alt;
+                console.log(`Pexels hit for "${topic.topic}": query="${q}" -> ${heroImageUrl}`);
+                break;
+              }
+            } catch (err) {
+              console.warn(`Pexels error for query "${q}":`, err);
+            }
+          }
+          if (!heroImageUrl) console.warn(`Pexels: no image for "${topic.topic}" across all queries`);
+        } else {
+          console.warn("PEXELS_API_KEY not set — skipping hero image");
+        }
+
         // Insert middle + end CTA at end of body (middle gets inlined after 2nd H2)
         const ctaEnd = `\n\n## Ready to read ${species === "cat" ? "their feline soul" : "your dog's soul"}?\n\n*Written by ${author.short_name}.* [Read your pet's cosmic chart →](${cta.end})\n`;
         let finalContent: string = blogData.content;
@@ -284,7 +328,8 @@ Return JSON with this exact shape:
           anchor_variants: blogData.anchorVariants ?? [],
           tldr: blogData.tldr,
           faq: blogData.faq ?? [],
-          hero_alt: blogData.heroAlt || blogData.title,
+          hero_alt: heroImageAlt,
+          featured_image_url: heroImageUrl,
           target_query: targetKeyword,
           cta_middle_url: cta.middle,
           cta_end_url: cta.end,

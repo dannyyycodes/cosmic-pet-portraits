@@ -362,6 +362,27 @@ const BlogPost = () => {
               {post.title}
             </motion.h1>
 
+            {/* Hero image */}
+            {post.featured_image_url && (
+              <motion.figure
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+                className="mb-8 -mx-4 md:mx-0"
+              >
+                <img
+                  src={post.featured_image_url}
+                  alt={heroAlt}
+                  loading="eager"
+                  fetchPriority="high"
+                  width={1200}
+                  height={630}
+                  className="w-full aspect-[1200/630] object-cover md:rounded-2xl"
+                  style={{ background: "#f5efe6" }}
+                />
+              </motion.figure>
+            )}
+
             {/* Byline */}
             <div className="flex items-center justify-between py-4 mb-8 border-y flex-wrap gap-3" style={{ borderColor: "#e8ddd0" }}>
               <div className="flex items-center gap-3">
