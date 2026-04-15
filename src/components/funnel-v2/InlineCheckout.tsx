@@ -85,13 +85,34 @@ interface InlineCheckoutProps {
   onSelectedPriceChange?: (price: number) => void;
 }
 
+// Volume discount mirrors create-checkout server-side rates for per-pet bundles.
+function getVolumeDiscount(petCount: number): number {
+  if (petCount >= 5) return 0.30;
+  if (petCount >= 4) return 0.25;
+  if (petCount >= 3) return 0.20;
+  if (petCount >= 2) return 0.15;
+  return 0;
+}
+
+const MAX_PETS = 10;
+
 export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange }, forwardedRef) => {
-  const [selectedTier, setSelectedTier] = useState<"basic" | "premium">("basic");
+  // Per-tier quantities — users can mix Soul Reading + Soul Bond in one order.
+  // Default: 1× Soul Reading, 0× Soul Bond (matches the previous single-tier default).
+  const [basicQty, setBasicQty] = useState<number>(1);
+  const [premiumQty, setPremiumQty] = useState<number>(0);
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   // SoulSpeak full-screen preview modal. Opens from any tier's SoulSpeak row.
   const [soulSpeakOpen, setSoulSpeakOpen] = useState(false);
+  // Promo / gift / redeem code state — single input that handles all three
+  // (mirrors the old static checkout.html flow: try coupons table, then redeem-free-code).
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeError, setCodeError] = useState("");
+  const [codeStatus, setCodeStatus] = useState<"idle" | "checking" | "applied">("idle");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; discount_type: string; discount_value: number } | null>(null);
   // Charity selection lives in the checkout card itself (compact brand row near payment badges).
   const [selectedCharity, setSelectedCharity] = useState<"ifaw" | "world-land-trust" | "eden-reforestation">(
     (charityIdProp as "ifaw" | "world-land-trust" | "eden-reforestation") || "ifaw"
@@ -117,7 +138,92 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     };
   }, [soulSpeakOpen]);
 
-  const selectedPrice = TIERS.find((t) => t.id === selectedTier)!.price;
+  // Derived totals — recomputed on every render from per-tier qty state.
+  const basicPrice = TIERS.find((t) => t.id === "basic")!.price;
+  const premiumPrice = TIERS.find((t) => t.id === "premium")!.price;
+  const petCount = basicQty + premiumQty;
+  const subtotal = basicQty * basicPrice + premiumQty * premiumPrice;
+  const discountRate = getVolumeDiscount(petCount);
+  const volumeDiscountAmount = Math.round(subtotal * discountRate * 100) / 100;
+  const selectedPrice = Math.max(0, subtotal - volumeDiscountAmount);
+
+  // Apply coupon discount on top of the volume discount before display.
+  const couponDiscountAmount = appliedCoupon
+    ? appliedCoupon.discount_type === "percentage" || appliedCoupon.discount_type === "percent"
+      ? Math.round(selectedPrice * (appliedCoupon.discount_value / 100) * 100) / 100
+      : appliedCoupon.discount_value / 100
+    : 0;
+  const finalPrice = Math.max(0, selectedPrice - couponDiscountAmount);
+
+  const handleApplyCode = async () => {
+    const code = codeInput.trim().toUpperCase();
+    if (!code) return;
+    setCodeError("");
+    setCodeStatus("checking");
+    try {
+      // 1. Try as discount coupon first
+      const { data: coupons } = await supabase
+        .from("coupons")
+        .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses")
+        .eq("code", code)
+        .eq("is_active", true)
+        .limit(1);
+      if (coupons && coupons.length > 0) {
+        const coupon = coupons[0];
+        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+          setCodeError("This code has expired");
+          setCodeStatus("idle");
+          return;
+        }
+        if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) {
+          setCodeError("This code has reached its limit");
+          setCodeStatus("idle");
+          return;
+        }
+        setAppliedCoupon(coupon);
+        setCodeStatus("applied");
+        trackFunnelEvent("v2_code_applied", { code, type: "coupon" });
+        return;
+      }
+      // 2. Try as free redeem code (e.g. QATEST)
+      const { data: redeemData, error: redeemErr } = await supabase.functions.invoke("redeem-free-code", {
+        body: { code },
+      });
+      if (!redeemErr && redeemData?.success && redeemData?.reportId) {
+        trackFunnelEvent("v2_code_applied", { code, type: "redeem" });
+        window.location.href = `/payment-success?session_id=redeem_${redeemData.reportId}&report_id=${redeemData.reportId}&quick=true`;
+        return;
+      }
+      setCodeError("Invalid code. Please check and try again.");
+      setCodeStatus("idle");
+    } catch (e) {
+      console.error("[V2 promo code]", e);
+      setCodeError("Something went wrong. Please try again.");
+      setCodeStatus("idle");
+    }
+  };
+
+  const removeAppliedCoupon = () => {
+    setAppliedCoupon(null);
+    setCodeInput("");
+    setCodeStatus("idle");
+  };
+
+  const tierQty = (id: "basic" | "premium") => (id === "basic" ? basicQty : premiumQty);
+  const setTierQty = (id: "basic" | "premium", n: number) => {
+    if (id === "basic") setBasicQty(n); else setPremiumQty(n);
+  };
+
+  const changeTierQty = (id: "basic" | "premium", delta: number) => {
+    const current = tierQty(id);
+    const other = id === "basic" ? premiumQty : basicQty;
+    const next = Math.max(0, current + delta);
+    if (next + other > MAX_PETS) return;
+    if (next + other === 0) return; // keep at least 1 pet selected
+    setTierQty(id, next);
+    onSelectedPriceChange?.(Math.max(0, ((id === "basic" ? next * basicPrice : basicQty * basicPrice) + (id === "premium" ? next * premiumPrice : premiumQty * premiumPrice)) * (1 - getVolumeDiscount(next + other))));
+    trackFunnelEvent("v2_tier_qty_changed", { tier: id, qty: next, petCount: next + other });
+  };
 
   const trackFunnelEvent = async (eventType: string, eventData: Record<string, unknown>) => {
     try {
@@ -138,18 +244,26 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     }
   };
 
-  const handleTierChange = (tier: "basic" | "premium") => {
-    setSelectedTier(tier);
-    const price = TIERS.find((t) => t.id === tier)!.price;
-    onSelectedPriceChange?.(price);
-    trackFunnelEvent("v2_tier_selected", { tier, price });
+  // Card click — if tier qty is 0, bump to 1 (acts like the old "select" UX).
+  // The +/- stepper buttons inside the card stop propagation so they don't fire this.
+  const handleCardActivate = (tier: "basic" | "premium") => {
+    if (tierQty(tier) === 0) {
+      changeTierQty(tier, 1);
+    }
+    trackFunnelEvent("v2_tier_selected", { tier, qty: tierQty(tier) });
   };
 
-  // Emit the initial tier price once on mount so parent CTAs start in sync.
+  // Emit the initial price once on mount so parent CTAs start in sync.
   useEffect(() => {
-    onSelectedPriceChange?.(TIERS.find((t) => t.id === selectedTier)!.price);
+    onSelectedPriceChange?.(selectedPrice);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep parent CTAs in sync as quantities change.
+  useEffect(() => {
+    onSelectedPriceChange?.(selectedPrice);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPrice]);
 
   const handleCheckout = async () => {
     if (!email.trim() || !email.includes("@")) {
@@ -157,19 +271,37 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       trackFunnelEvent("v2_checkout_error", { reason: "invalid_email" });
       return;
     }
+    if (petCount === 0) {
+      setError("Please add at least one reading.");
+      return;
+    }
     setError("");
     setIsLoading(true);
-    trackFunnelEvent("v2_checkout_clicked", { tier: selectedTier, price: selectedPrice, isInApp, charityId: selectedCharity, charityBonus });
+    // Primary tier reflects what dominates the order — used for analytics + back-compat metadata only.
+    const primaryTier: "basic" | "premium" = premiumQty > 0 && basicQty === 0 ? "premium" : "basic";
+    trackFunnelEvent("v2_checkout_clicked", {
+      tier: primaryTier,
+      basicQty,
+      premiumQty,
+      petCount,
+      price: selectedPrice,
+      isInApp,
+      charityId: selectedCharity,
+      charityBonus,
+    });
 
     try {
       const refCode = getReferralCode();
       const { data, error: invokeError } = await supabase.functions.invoke("create-checkout", {
         body: {
           quickCheckout: true,
-          selectedTier,
+          selectedTier: primaryTier,
+          // Per-tier breakdown — backend prices each tier independently, then applies volume discount on the total.
+          basicCount: basicQty,
+          premiumCount: premiumQty,
           abVariant: "V2",
-          includesPortrait: selectedTier === "premium",
-          petCount: 1,
+          includesPortrait: premiumQty > 0,
+          petCount,
           quickCheckoutEmail: email.trim(),
           referralCode: refCode || undefined,
           charityId: selectedCharity,
@@ -178,6 +310,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           // so always flag it. Webhook uses this to create the trialing Stripe
           // subscription (price_1Sfi1v…) with trial_period_days: 30.
           includeHoroscope: true,
+          couponId: appliedCoupon?.id || undefined,
         },
       });
 
@@ -266,16 +399,22 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
         {/* Tier cards — equal width, both fully visible. Stacks on mobile,
             side-by-side on desktop. Click to select. */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 items-stretch">
           {TIERS.map((tier, i) => {
-            const isSelected = selectedTier === tier.id;
+            const qty = tierQty(tier.id);
+            const isSelected = qty > 0;
+            const atMax = petCount >= MAX_PETS;
+            const minusDisabled = qty === 0 || (petCount === 1 && qty === 1);
             return (
-              <button
+              <div
                 key={tier.id}
-                onClick={() => handleTierChange(tier.id)}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleCardActivate(tier.id)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleCardActivate(tier.id); } }}
                 aria-pressed={isSelected}
-                aria-label={`Select ${tier.name}`}
-                className="relative text-left rounded-2xl p-4 sm:p-5 active:scale-[0.995] min-w-0 h-full flex flex-col"
+                aria-label={`${tier.name} — ${qty} selected`}
+                className="relative text-left rounded-2xl p-4 sm:p-5 active:scale-[0.995] min-w-0 h-full flex flex-col cursor-pointer"
                 style={{
                   background: (() => {
                     const fill = tier.id === "premium"
@@ -352,6 +491,50 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                         {fmtUsd(tier.wasPrice)}
                       </span>
                     )}
+                  </div>
+                </div>
+
+                {/* ── Quantity stepper — add multiples of this tier ── */}
+                <div
+                  className="flex items-center justify-between mb-3 rounded-lg px-2.5 py-2"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.18)" }}
+                >
+                  <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
+                    How many?
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); changeTierQty(tier.id, -1); }}
+                      disabled={minusDisabled}
+                      aria-label={`Remove one ${tier.name}`}
+                      className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{
+                        width: 30, height: 30,
+                        border: "1.5px solid var(--sand, #d6c8b6)", background: "#fff",
+                        color: "var(--earth, #6e6259)", fontFamily: "Cormorant, Georgia, serif",
+                        fontSize: "1.05rem", lineHeight: 1, cursor: minusDisabled ? "not-allowed" : "pointer",
+                      }}
+                    >−</button>
+                    <span
+                      aria-live="polite"
+                      style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.1rem", color: "var(--ink, #1f1c18)", minWidth: 18, textAlign: "center" }}
+                    >{qty}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); changeTierQty(tier.id, 1); }}
+                      disabled={atMax}
+                      aria-label={`Add one ${tier.name}`}
+                      className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{
+                        width: 30, height: 30,
+                        border: "1.5px solid var(--sand, #d6c8b6)", background: "#fff",
+                        color: "var(--earth, #6e6259)", fontFamily: "Cormorant, Georgia, serif",
+                        fontSize: "1.05rem", lineHeight: 1, cursor: atMax ? "not-allowed" : "pointer",
+                      }}
+                    >+</button>
                   </div>
                 </div>
 
@@ -464,9 +647,65 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   })}
                 </ul>
                 </div>
-              </button>
+              </div>
             );
           })}
+        </div>
+
+        {/* Live multi-pet discount hint — replaces the old static footer line */}
+        <p
+          className="text-center mb-5"
+          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: petCount >= 2 ? "var(--rose, #bf524a)" : "var(--muted, #958779)" }}
+        >
+          {petCount >= 2 ? (
+            <>🎉 {Math.round(discountRate * 100)}% multi-pet discount applied — {petCount} readings · {fmtUsd(selectedPrice)}</>
+          ) : (
+            <>🐾 Got more pets? Use the + buttons above — save up to 30% on 2 or more</>
+          )}
+        </p>
+
+        {/* Promo / gift / QATEST code input — single field that handles all three */}
+        <div className="mb-3 text-center">
+          {!codeOpen && !appliedCoupon && (
+            <button
+              type="button"
+              onClick={() => setCodeOpen(true)}
+              style={{ background: "none", border: "none", color: "var(--gold, #c4a265)", fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, cursor: "pointer", textDecoration: "none" }}
+            >
+              Have a promo or gift code?
+            </button>
+          )}
+          {codeOpen && !appliedCoupon && (
+            <div className="flex gap-2 items-stretch">
+              <input
+                type="text"
+                value={codeInput}
+                onChange={(e) => { setCodeInput(e.target.value); setCodeError(""); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleApplyCode(); } }}
+                placeholder="Enter code"
+                aria-label="Promo or gift code"
+                className="flex-1 px-3 py-2.5 rounded-lg outline-none uppercase"
+                style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--ink, #1f1c18)", background: "#fff", border: codeError ? "1.5px solid var(--rose, #bf524a)" : "1.5px solid var(--cream3, #f3eadb)", minHeight: 42 }}
+              />
+              <button
+                type="button"
+                onClick={handleApplyCode}
+                disabled={codeStatus === "checking" || !codeInput.trim()}
+                style={{ padding: "0 16px", background: "var(--rose, #bf524a)", color: "#fff", border: "none", borderRadius: 10, fontFamily: "Cormorant, Georgia, serif", fontWeight: 700, fontSize: "0.9rem", cursor: codeStatus === "checking" ? "wait" : "pointer", whiteSpace: "nowrap", minHeight: 42 }}
+              >
+                {codeStatus === "checking" ? "Checking…" : "Apply"}
+              </button>
+            </div>
+          )}
+          {appliedCoupon && (
+            <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(74,140,92,0.1)", border: "1px solid rgba(74,140,92,0.3)" }}>
+              <span style={{ fontSize: "0.85rem", color: "var(--green, #4a8c5c)", fontWeight: 600 }}>
+                ✓ {appliedCoupon.code} — {appliedCoupon.discount_value}% off applied
+              </span>
+              <button type="button" onClick={removeAppliedCoupon} aria-label="Remove code" style={{ background: "none", border: "none", color: "var(--green, #4a8c5c)", cursor: "pointer", fontSize: "1rem" }}>×</button>
+            </div>
+          )}
+          {codeError && <p className="mt-1.5" style={{ fontSize: "0.78rem", color: "var(--rose, #bf524a)" }}>{codeError}</p>}
         </div>
 
         {/* Email input */}
@@ -526,7 +765,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               Taking you to secure checkout…
             </span>
           ) : (
-            `${ctaLabel} · ${fmtUsd(selectedPrice + charityBonus)}`
+            `${ctaLabel} · ${fmtUsd(finalPrice + charityBonus)}`
           )}
         </button>
 
@@ -640,14 +879,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
         {/* Charity brand row */}
         <CharityBrandRow selected={selectedCharity} onSelect={setSelectedCharity} />
-
-        {/* Multi-pet note */}
-        <p
-          className="text-center mt-5 mb-2"
-          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--muted, #958779)" }}
-        >
-          Multiple fur babies? Save up to 30% with multi-pet pricing at checkout.
-        </p>
 
       </div>
 

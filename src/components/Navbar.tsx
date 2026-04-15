@@ -167,7 +167,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                     <div className="p-4 border-t border-[#e8ddd0] space-y-3">
                       <SheetClose asChild>
                         <a
-                          href="/checkout.html"
+                          href="/#checkout"
                           className="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-semibold uppercase tracking-wider"
                           style={{ background: "var(--rose, #bf524a)", letterSpacing: "0.08em" }}
                         >
@@ -242,7 +242,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                   <Link to="/auth">Sign In</Link>
                 </Button>
                 <Button variant="cosmic" size="sm" asChild>
-                  <a href="/checkout.html">
+                  <a href="/#checkout">
                     {t('nav.getReading')}
                   </a>
                 </Button>
@@ -334,7 +334,7 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                       </SheetClose>
                     )}
                     <Button variant="cosmic" className="w-full justify-center gap-2" asChild>
-                      <a href="/checkout.html">
+                      <a href="/#checkout">
                         <Sparkles className="w-4 h-4" />
                         {t('nav.getReading')}
                       </a>

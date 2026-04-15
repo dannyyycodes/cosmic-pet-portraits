@@ -64,12 +64,14 @@ const HeroTypographyPreview = lazy(() => import("./pages/HeroTypographyPreview")
 const CardsPreview = lazy(() => import("./pages/CardsPreview"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
-// Redirect /checkout to the static HTML checkout page (Supabase credentials now fixed)
+// Redirect /checkout to the homepage InlineCheckout section.
+// The static checkout.html was deleted on 2026-04-15 — the live checkout now
+// lives inside FunnelV2 on the homepage at #checkout.
 function CheckoutRedirect() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const qs = params.toString();
-    window.location.href = '/checkout.html' + (qs ? '?' + qs : '');
+    window.location.replace('/' + (qs ? '?' + qs : '') + '#checkout');
   }, []);
   return null;
 }

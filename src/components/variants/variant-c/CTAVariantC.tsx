@@ -49,7 +49,7 @@ export const CTAVariantC = ({ variant, trackCTAClick }: CTAVariantCProps) => {
           </p>
 
           <a
-            href="/checkout.html?tier=premium"
+            href="/#checkout"
             onClick={() => trackCTAClick?.('get_reading', `cta_${variant}`)}
             className="block"
           >

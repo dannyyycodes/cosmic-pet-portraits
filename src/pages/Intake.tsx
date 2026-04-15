@@ -14,7 +14,7 @@ const Intake = () => {
 
   // Everyone else should go to checkout (direct navigation, no React Router redirect)
   if (!isGiftFlow && !isCheckoutReturn) {
-    window.location.replace('/checkout.html');
+    window.location.replace('/#checkout');
     return null;
   }
 

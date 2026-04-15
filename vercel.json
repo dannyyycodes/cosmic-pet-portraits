@@ -43,8 +43,6 @@
     { "source": "/apple-touch-icon.png", "destination": "/og-image.jpg" },
     { "source": "/apple-touch-icon-precomposed.png", "destination": "/og-image.jpg" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
-    { "source": "/checkout", "destination": "/checkout.html" },
-    { "source": "/checkout-v3", "destination": "/checkout.html" },
     { "source": "/soul-chat", "destination": "/soul-chat.html" },
     { "source": "/gift-v2", "destination": "/gift-v2.html" },
     { "source": "/report-full-v2", "destination": "/report-full-v2.html" },
