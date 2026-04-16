@@ -106,6 +106,8 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   const [error, setError] = useState("");
   // SoulSpeak full-screen preview modal. Opens from any tier's SoulSpeak row.
   const [soulSpeakOpen, setSoulSpeakOpen] = useState(false);
+  // Horoscope preview modal. Opens from any tier's horoscope row.
+  const [horoscopeOpen, setHoroscopeOpen] = useState(false);
   // Promo / gift / redeem code state — single input that handles all three
   // (mirrors the old static checkout.html flow: try coupons table, then redeem-free-code).
   const [codeOpen, setCodeOpen] = useState(false);
@@ -124,19 +126,27 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   // SoulSpeak row click → open full-screen modal
   const openSoulSpeak = () => setSoulSpeakOpen(true);
   const closeSoulSpeak = () => setSoulSpeakOpen(false);
+  const openHoroscope = () => setHoroscopeOpen(true);
+  const closeHoroscope = () => setHoroscopeOpen(false);
 
-  // Lock body scroll while modal open
+  // Lock body scroll while any preview modal is open
   useEffect(() => {
-    if (!soulSpeakOpen) return;
+    const anyOpen = soulSpeakOpen || horoscopeOpen;
+    if (!anyOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeSoulSpeak(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeSoulSpeak();
+        closeHoroscope();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [soulSpeakOpen]);
+  }, [soulSpeakOpen, horoscopeOpen]);
 
   // Derived totals — recomputed on every render from per-tier qty state.
   const basicPrice = TIERS.find((t) => t.id === "basic")!.price;
@@ -570,31 +580,33 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                     const isSoulSpeak = feature.kind === "soulspeak";
                     const isBonus = feature.kind === "bonus";
                     const isHoroscope = feature.kind === "horoscope";
-                    const handleSoulSpeakActivate = (e: React.SyntheticEvent) => {
+                    const isPreviewable = isSoulSpeak || isHoroscope;
+                    const handlePreviewActivate = (e: React.SyntheticEvent) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      openSoulSpeak();
+                      if (isSoulSpeak) openSoulSpeak();
+                      else if (isHoroscope) openHoroscope();
                     };
                     return (
                       <li
                         key={fi}
                         className="text-left px-2.5 sm:px-3 py-2"
-                        onClick={isSoulSpeak ? handleSoulSpeakActivate : undefined}
-                        onKeyDown={isSoulSpeak ? (e) => { if (e.key === "Enter" || e.key === " ") handleSoulSpeakActivate(e); } : undefined}
-                        role={isSoulSpeak ? "button" : undefined}
-                        tabIndex={isSoulSpeak ? 0 : undefined}
-                        aria-label={isSoulSpeak ? "Preview SoulSpeak" : undefined}
+                        onClick={isPreviewable ? handlePreviewActivate : undefined}
+                        onKeyDown={isPreviewable ? (e) => { if (e.key === "Enter" || e.key === " ") handlePreviewActivate(e); } : undefined}
+                        role={isPreviewable ? "button" : undefined}
+                        tabIndex={isPreviewable ? 0 : undefined}
+                        aria-label={isSoulSpeak ? "Preview SoulSpeak" : isHoroscope ? "Preview weekly horoscopes" : undefined}
                         style={{
                           fontSize: "0.8rem",
                           color: isDivider ? "var(--gold, #c4a265)" : "var(--earth, #6e6259)",
                           fontWeight: isDivider ? 600 : 700,
                           fontStyle: isDivider ? "italic" : "normal",
                           lineHeight: 1.4,
-                          cursor: isSoulSpeak ? "pointer" : "default",
+                          cursor: isPreviewable ? "pointer" : "default",
                           background: isDivider
                             ? "rgba(196,162,101,0.08)"
                             : fi % 2 === 0 ? "rgba(255,255,255,0.6)" : "rgba(246,241,230,0.55)",
-                          transition: isSoulSpeak ? "background 0.2s ease" : undefined,
+                          transition: isPreviewable ? "background 0.2s ease" : undefined,
                         }}
                       >
                         {(() => {
@@ -624,29 +636,43 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                               {badgeInner}
                             </span>
                           ) : null;
+                          const infoIcon = (
+                            <span
+                              aria-hidden="true"
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: 16,
+                                height: 16,
+                                borderRadius: "50%",
+                                background: "var(--gold, #c4a265)",
+                                color: "#fff",
+                                fontFamily: "Georgia, serif",
+                                fontStyle: "italic",
+                                fontWeight: 700,
+                                fontSize: "0.68rem",
+                                lineHeight: 1,
+                                flexShrink: 0,
+                                boxShadow: "0 1px 2px rgba(196,162,101,0.35)",
+                              }}
+                              title="Tap to preview"
+                            >
+                              i
+                            </span>
+                          );
                           const labelNode = isSoulSpeak ? (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                               {feature.label}
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="var(--gold, #c4a265)"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                              >
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="16" x2="12" y2="12" />
-                                <line x1="12" y1="8" x2="12.01" y2="8" />
-                              </svg>
+                              {infoIcon}
                             </span>
                           ) : isBonus ? (
                             <span>Bonus sections — little surprises written just for them</span>
                           ) : isHoroscope ? (
-                            <span>Weekly horoscopes — 1 month included</span>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                              Weekly horoscopes — 1 month included
+                              {infoIcon}
+                            </span>
                           ) : (
                             <span>{feature.label}</span>
                           );
@@ -1007,6 +1033,104 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           `}</style>
         </div>
       )}
+
+      {/* ── Horoscope preview modal — opens from the horoscope row ── */}
+      {horoscopeOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="horoscope-modal-title"
+          onClick={(e) => { if (e.target === e.currentTarget) closeHoroscope(); }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+            background: "rgba(20, 18, 16, 0.55)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "5vw",
+            animation: "soulSpeakBackdropIn 0.25s ease",
+          }}
+        >
+          <div
+            className="relative"
+            style={{
+              width: "min(560px, 96vw)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              background: "var(--cream, #FFFDF5)",
+              borderRadius: 20,
+              padding: "clamp(24px, 5vw, 40px) clamp(22px, 5vw, 38px)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+              animation: "soulSpeakPanelIn 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+          >
+            <button
+              type="button"
+              onClick={closeHoroscope}
+              aria-label="Close"
+              className="absolute top-3 right-3 flex items-center justify-center rounded-full transition-opacity hover:opacity-70"
+              style={{ width: 34, height: 34, background: "rgba(196,162,101,0.14)", color: "var(--ink, #1f1c18)" }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-5">
+              <span
+                style={{
+                  display: "inline-block",
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontSize: "0.62rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  padding: "3px 10px",
+                  borderRadius: 4,
+                  background: "linear-gradient(135deg, #5aa870, #4a8c5c)",
+                  color: "#fff",
+                  marginBottom: 12,
+                }}
+              >
+                Weekly Horoscopes · Free
+              </span>
+              <h3
+                id="horoscope-modal-title"
+                style={{
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "clamp(1.4rem, 5.5vw, 1.9rem)",
+                  color: "var(--black, #141210)",
+                  lineHeight: 1.2,
+                  letterSpacing: "-0.015em",
+                  margin: 0,
+                }}
+              >
+                What's the universe
+                <br />
+                <em style={{ color: "var(--rose, #bf524a)" }}>planning for them?</em>
+              </h3>
+            </div>
+
+            <HoroscopePreview />
+
+            <p
+              className="text-center mt-5"
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "0.82rem",
+                color: "var(--muted, #958779)",
+              }}
+            >
+              One month included — then cancel anytime.
+            </p>
+          </div>
+        </div>
+      )}
     </section>
   );
 });
@@ -1339,45 +1463,59 @@ const SoulSpeakPreview = () => (
 );
 
 const HoroscopePreview = () => (
-  <div className="space-y-1.5">
+  <div className="space-y-3">
     <p
       style={{
         fontFamily: "Cormorant, Georgia, serif",
-        fontSize: "0.78rem",
+        fontSize: "0.92rem",
         fontWeight: 600,
         color: "var(--ink, #1f1c18)",
+        lineHeight: 1.5,
+        textAlign: "center",
       }}
     >
-      One month of weekly horoscopes — free.
+      Every Sunday, a little love letter from the stars — written just for them.
     </p>
-    <ul className="space-y-1" style={{ fontSize: "0.72rem", color: "var(--earth, #6e6259)", lineHeight: 1.5 }}>
-      <li className="flex items-start gap-1.5">
-        <span style={{ color: "var(--gold, #c4a265)" }}>✦</span>
-        <span>Their cosmic mood for each day of the week</span>
+    <ul
+      className="space-y-2"
+      style={{
+        fontSize: "0.82rem",
+        color: "var(--earth, #6e6259)",
+        lineHeight: 1.5,
+        fontFamily: "Cormorant, Georgia, serif",
+        background: "rgba(196,162,101,0.06)",
+        borderRadius: 12,
+        padding: "14px 16px",
+      }}
+    >
+      <li className="flex items-start gap-2">
+        <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
+        <span><strong style={{ color: "var(--ink, #1f1c18)" }}>Their cosmic mood</strong> for every day of the week — so you know when to cuddle, when to play, when to give them space.</span>
       </li>
-      <li className="flex items-start gap-1.5">
-        <span style={{ color: "var(--gold, #c4a265)" }}>✦</span>
-        <span>Lucky day, power move, and energy peaks</span>
+      <li className="flex items-start gap-2">
+        <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
+        <span><strong style={{ color: "var(--ink, #1f1c18)" }}>A lucky day + power move</strong> — the best day to try something new, train, travel, or introduce them to someone.</span>
       </li>
-      <li className="flex items-start gap-1.5">
-        <span style={{ color: "var(--gold, #c4a265)" }}>✦</span>
-        <span>A pet-parent cosmic sync reading</span>
+      <li className="flex items-start gap-2">
+        <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
+        <span><strong style={{ color: "var(--ink, #1f1c18)" }}>Your cosmic sync with them</strong> — the days your energies align and the days you'll need extra patience.</span>
       </li>
-      <li className="flex items-start gap-1.5">
-        <span style={{ color: "var(--gold, #c4a265)" }}>✦</span>
-        <span>Weekly affirmation written for your bond</span>
+      <li className="flex items-start gap-2">
+        <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
+        <span><strong style={{ color: "var(--ink, #1f1c18)" }}>A weekly affirmation</strong> written for your bond — something small to carry with you.</span>
       </li>
     </ul>
     <p
       style={{
         fontFamily: "Cormorant, Georgia, serif",
         fontStyle: "italic",
-        fontSize: "0.68rem",
+        fontSize: "0.8rem",
         color: "var(--muted, #958779)",
         textAlign: "center",
+        lineHeight: 1.5,
       }}
     >
-      Cancel anytime — first month is on us.
+      Feels like having a tiny astrologer in your pocket — one who knows them by name.
     </p>
   </div>
 );

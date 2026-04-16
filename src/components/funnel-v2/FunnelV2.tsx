@@ -364,7 +364,7 @@ const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-10 sm:py-14 md:py-18 px-5" style={{ background: "var(--cream, #FFFDF5)" }}>
+    <section id="faq" className="py-10 sm:py-14 md:py-18 px-5 scroll-mt-24" style={{ background: "var(--cream, #FFFDF5)" }}>
       <div className="max-w-xl mx-auto">
         <h2
           className="text-center mb-7"

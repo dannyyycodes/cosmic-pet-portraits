@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, Star, Info, ArrowRight, X } from "lucide-react";
+import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, ArrowRight, X, MessageCircle, LayoutDashboard, LifeBuoy } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,8 +41,6 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
   };
 
   const navLinks = [
-    { href: "#how-it-works", label: t('nav.howItWorks'), icon: Info },
-    { href: "#testimonials", label: t('nav.testimonials'), icon: Star },
     { href: "#faq", label: t('nav.faq'), icon: HelpCircle },
   ];
 
@@ -78,11 +76,29 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                       <span className="hidden sm:inline">My Account</span>
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44 bg-white border border-[#e8ddd0]">
+                  <DropdownMenuContent align="end" className="w-48 bg-white border border-[#e8ddd0]">
                     <DropdownMenuItem asChild>
                       <Link to="/my-reports" className="flex items-center gap-2 cursor-pointer text-[0.82rem]">
                         <Sparkles className="w-3.5 h-3.5 text-[#c4a265]" />
                         My Reports
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/chat" className="flex items-center gap-2 cursor-pointer text-[0.82rem]">
+                        <MessageCircle className="w-3.5 h-3.5 text-[#bf524a]" />
+                        SoulSpeak
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/account" className="flex items-center gap-2 cursor-pointer text-[0.82rem]">
+                        <LayoutDashboard className="w-3.5 h-3.5 text-[#958779]" />
+                        Account
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/contact" className="flex items-center gap-2 cursor-pointer text-[0.82rem]">
+                        <LifeBuoy className="w-3.5 h-3.5 text-[#a07c3a]" />
+                        Support
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer text-[0.82rem]">
@@ -152,6 +168,33 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                               <span className="text-sm font-medium">My Reports</span>
                             </Link>
                           </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              to="/chat"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors"
+                            >
+                              <MessageCircle className="w-4 h-4 text-[#bf524a]" />
+                              <span className="text-sm font-medium">SoulSpeak</span>
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              to="/account"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors"
+                            >
+                              <LayoutDashboard className="w-4 h-4 text-[#958779]" />
+                              <span className="text-sm font-medium">Account</span>
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              to="/contact"
+                              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors"
+                            >
+                              <LifeBuoy className="w-4 h-4 text-[#a07c3a]" />
+                              <span className="text-sm font-medium">Support</span>
+                            </Link>
+                          </SheetClose>
                           <button
                             onClick={handleSignOut}
                             className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors w-full text-left"
@@ -200,12 +243,6 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
             <Link to="/blog" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
               Blog
             </Link>
-            <a href="#how-it-works" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
-              {t('nav.howItWorks')}
-            </a>
-            <a href="#testimonials" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
-              {t('nav.testimonials')}
-            </a>
             <a href="#faq" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
               {t('nav.faq')}
             </a>
@@ -223,11 +260,29 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                     My Account
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuItem asChild>
                     <Link to="/my-reports" className="flex items-center gap-2 cursor-pointer">
                       <Sparkles className="w-4 h-4" />
                       My Reports
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/chat" className="flex items-center gap-2 cursor-pointer">
+                      <MessageCircle className="w-4 h-4" />
+                      SoulSpeak
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/account" className="flex items-center gap-2 cursor-pointer">
+                      <LayoutDashboard className="w-4 h-4" />
+                      Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/contact" className="flex items-center gap-2 cursor-pointer">
+                      <LifeBuoy className="w-4 h-4" />
+                      Support
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
@@ -308,6 +363,33 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                           >
                             <Sparkles className="w-5 h-5 text-accent" />
                             <span className="font-medium">My Reports</span>
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link
+                            to="/chat"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
+                          >
+                            <MessageCircle className="w-5 h-5 text-primary" />
+                            <span className="font-medium">SoulSpeak</span>
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link
+                            to="/account"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
+                          >
+                            <LayoutDashboard className="w-5 h-5 text-muted-foreground" />
+                            <span className="font-medium">Account</span>
+                          </Link>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Link
+                            to="/contact"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
+                          >
+                            <LifeBuoy className="w-5 h-5 text-primary" />
+                            <span className="font-medium">Support</span>
                           </Link>
                         </SheetClose>
                         <button
