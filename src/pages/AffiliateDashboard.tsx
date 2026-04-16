@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
@@ -49,6 +50,7 @@ type AuthStep = 'email' | 'code' | 'dashboard';
 
 export default function AffiliateDashboard() {
   const { t } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -56,35 +58,65 @@ export default function AffiliateDashboard() {
   const [affiliate, setAffiliate] = useState<AffiliateData | null>(null);
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [referrals, setReferrals] = useState<Referral[]>([]);
+  const [autoSent, setAutoSent] = useState(false);
 
-  // Check for existing session on mount
+  // Check for existing session on mount, and auto-bridge a signed-in Supabase
+  // user into the affiliate email+code flow so they only get asked for the
+  // one-time code (prefilled email + code auto-sent on mount).
   useEffect(() => {
     const sessionToken = localStorage.getItem('affiliate_session_token');
     if (sessionToken) {
       fetchDashboard(sessionToken);
+      return;
     }
-  }, []);
 
-  const handleSendCode = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (authLoading) return;
+
+    const cachedEmail = localStorage.getItem('affiliate_email');
+    const sessionEmail = user?.email?.toLowerCase() || '';
+
+    if (sessionEmail) {
+      setEmail(sessionEmail);
+      // Auto-send the verification code ONCE on first mount so the user
+      // skips typing their email — Supabase already proved it's them.
+      if (!autoSent) {
+        setAutoSent(true);
+        sendVerificationCode(sessionEmail, { silent: true });
+      }
+    } else if (cachedEmail) {
+      setEmail(cachedEmail);
+    }
+  }, [user?.email, authLoading]);
+
+  const sendVerificationCode = async (targetEmail: string, opts?: { silent?: boolean }) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('affiliate-dashboard', {
-        body: { action: 'login', email },
+        body: { action: 'login', email: targetEmail },
       });
 
-      if (error) {
-        toast.error('Something went wrong. Please try again.');
-        return;
+      if (error || data?.error) {
+        // Don't blow up the UI for the silent auto-send — user might not
+        // be an affiliate yet; just fall through to the manual form.
+        if (!opts?.silent) toast.error(data?.error || 'Something went wrong. Please try again.');
+        setAuthStep('email');
+        return false;
       }
 
-      toast.success('Check your email for a verification code.');
+      if (!opts?.silent) toast.success('Check your email for a verification code.');
       setAuthStep('code');
+      return true;
     } catch (err) {
-      toast.error('Something went wrong. Please try again.');
+      if (!opts?.silent) toast.error('Something went wrong. Please try again.');
+      return false;
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendVerificationCode(email);
   };
 
   const handleVerifyCode = async (e: React.FormEvent) => {

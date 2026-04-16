@@ -2141,6 +2141,13 @@ async function loadReading() {
     setTimeout(loadCredits, 1000);
   }
 
+  // Open the paywall directly when arriving from SoulSpeakHub's "Top up" link.
+  // We wait until after loadCredits has resolved so the balance + pricing are
+  // populated before the sheet appears.
+  if (params.get('topup')) {
+    setTimeout(function() { try { showPaywallDirect(); } catch(_) {} }, 1200);
+  }
+
   try {
     // Get email from sessionStorage (set by ViewReport.tsx)
     var storedEmail = '';
