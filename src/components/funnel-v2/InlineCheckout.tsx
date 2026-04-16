@@ -637,29 +637,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                             </span>
                           ) : null;
                           const infoIcon = (
-                            <span
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#958779"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                               aria-hidden="true"
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: 16,
-                                height: 16,
-                                borderRadius: "50%",
-                                background: "var(--gold, #c4a265)",
-                                color: "#fff",
-                                fontFamily: "Georgia, serif",
-                                fontStyle: "italic",
-                                fontWeight: 700,
-                                fontSize: "0.68rem",
-                                lineHeight: 1,
-                                flexShrink: 0,
-                                boxShadow: "0 1px 2px rgba(196,162,101,0.35)",
-                              }}
-                              title="Tap to preview"
+                              style={{ flexShrink: 0 }}
                             >
-                              i
-                            </span>
+                              <title>Tap to preview</title>
+                              <circle cx="12" cy="12" r="10" />
+                              <line x1="12" y1="16" x2="12" y2="12" />
+                              <line x1="12" y1="8" x2="12.01" y2="8" />
+                            </svg>
                           );
                           const labelNode = isSoulSpeak ? (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -1467,55 +1461,55 @@ const HoroscopePreview = () => (
     <p
       style={{
         fontFamily: "Cormorant, Georgia, serif",
-        fontSize: "0.92rem",
+        fontSize: "0.95rem",
         fontWeight: 600,
         color: "var(--ink, #1f1c18)",
         lineHeight: 1.5,
         textAlign: "center",
       }}
     >
-      Every Sunday, a little love letter from the stars — written just for them.
+      A quiet Sunday ritual that keeps you close to them — even through the ordinary weeks.
     </p>
     <ul
-      className="space-y-2"
+      className="space-y-2.5"
       style={{
-        fontSize: "0.82rem",
+        fontSize: "0.85rem",
         color: "var(--earth, #6e6259)",
-        lineHeight: 1.5,
+        lineHeight: 1.55,
         fontFamily: "Cormorant, Georgia, serif",
         background: "rgba(196,162,101,0.06)",
         borderRadius: 12,
-        padding: "14px 16px",
+        padding: "16px 18px",
       }}
     >
       <li className="flex items-start gap-2">
         <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
-        <span><strong style={{ color: "var(--ink, #1f1c18)" }}>Their cosmic mood</strong> for every day of the week — so you know when to cuddle, when to play, when to give them space.</span>
+        <span>Feel like you <em style={{ color: "var(--ink, #1f1c18)" }}>finally understand them</em> — why they're clingy some days, distant others, and glowing the next.</span>
       </li>
       <li className="flex items-start gap-2">
         <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
-        <span><strong style={{ color: "var(--ink, #1f1c18)" }}>A lucky day + power move</strong> — the best day to try something new, train, travel, or introduce them to someone.</span>
+        <span>Stop second-guessing the small stuff. Know when they need <em style={{ color: "var(--ink, #1f1c18)" }}>more affection</em>, when to <em style={{ color: "var(--ink, #1f1c18)" }}>give them space</em>, when the week will ask a little more of both of you.</span>
       </li>
       <li className="flex items-start gap-2">
         <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
-        <span><strong style={{ color: "var(--ink, #1f1c18)" }}>Your cosmic sync with them</strong> — the days your energies align and the days you'll need extra patience.</span>
+        <span>A private little window into their world — something <em style={{ color: "var(--ink, #1f1c18)" }}>just for the two of you</em>, nobody else.</span>
       </li>
       <li className="flex items-start gap-2">
         <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
-        <span><strong style={{ color: "var(--ink, #1f1c18)" }}>A weekly affirmation</strong> written for your bond — something small to carry with you.</span>
+        <span>A weekly reminder that <em style={{ color: "var(--ink, #1f1c18)" }}>the universe picked you two on purpose</em> — and a soft affirmation to carry through the week.</span>
       </li>
     </ul>
     <p
       style={{
         fontFamily: "Cormorant, Georgia, serif",
         fontStyle: "italic",
-        fontSize: "0.8rem",
+        fontSize: "0.82rem",
         color: "var(--muted, #958779)",
         textAlign: "center",
-        lineHeight: 1.5,
+        lineHeight: 1.55,
       }}
     >
-      Feels like having a tiny astrologer in your pocket — one who knows them by name.
+      It's not a forecast. It's a way to keep feeling them — even on the quiet days.
     </p>
   </div>
 );
