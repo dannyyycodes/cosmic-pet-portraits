@@ -1096,31 +1096,29 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 id="horoscope-modal-title"
                 style={{
                   fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(1.4rem, 5.5vw, 1.9rem)",
+                  fontSize: "clamp(1.5rem, 6vw, 2rem)",
                   color: "var(--black, #141210)",
-                  lineHeight: 1.2,
+                  lineHeight: 1.15,
                   letterSpacing: "-0.015em",
                   margin: 0,
                 }}
               >
-                What's the universe
-                <br />
-                <em style={{ color: "var(--rose, #bf524a)" }}>planning for them?</em>
+                Sundays <em style={{ color: "var(--rose, #bf524a)" }}>with them.</em>
               </h3>
             </div>
 
             <HoroscopePreview />
 
             <p
-              className="text-center mt-5"
+              className="text-center mt-6"
               style={{
                 fontFamily: "Cormorant, Georgia, serif",
                 fontStyle: "italic",
-                fontSize: "0.82rem",
+                fontSize: "0.8rem",
                 color: "var(--muted, #958779)",
               }}
             >
-              One month included — then cancel anytime.
+              First month on us. Cancel anytime.
             </p>
           </div>
         </div>
@@ -1457,59 +1455,52 @@ const SoulSpeakPreview = () => (
 );
 
 const HoroscopePreview = () => (
-  <div className="space-y-3">
+  <div className="space-y-5">
     <p
       style={{
         fontFamily: "Cormorant, Georgia, serif",
-        fontSize: "0.95rem",
+        fontSize: "1.05rem",
         fontWeight: 600,
         color: "var(--ink, #1f1c18)",
         lineHeight: 1.5,
         textAlign: "center",
       }}
     >
-      A quiet Sunday ritual that keeps you close to them — even through the ordinary weeks.
+      A little letter from the stars, every Sunday morning.
     </p>
-    <ul
-      className="space-y-2.5"
-      style={{
-        fontSize: "0.85rem",
-        color: "var(--earth, #6e6259)",
-        lineHeight: 1.55,
-        fontFamily: "Cormorant, Georgia, serif",
-        background: "rgba(196,162,101,0.06)",
-        borderRadius: 12,
-        padding: "16px 18px",
-      }}
-    >
-      <li className="flex items-start gap-2">
-        <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
-        <span>Feel like you <em style={{ color: "var(--ink, #1f1c18)" }}>finally understand them</em> — why they're clingy some days, distant others, and glowing the next.</span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
-        <span>Stop second-guessing the small stuff. Know when they need <em style={{ color: "var(--ink, #1f1c18)" }}>more affection</em>, when to <em style={{ color: "var(--ink, #1f1c18)" }}>give them space</em>, when the week will ask a little more of both of you.</span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
-        <span>A private little window into their world — something <em style={{ color: "var(--ink, #1f1c18)" }}>just for the two of you</em>, nobody else.</span>
-      </li>
-      <li className="flex items-start gap-2">
-        <span style={{ color: "var(--gold, #c4a265)", marginTop: 1 }}>✦</span>
-        <span>A weekly reminder that <em style={{ color: "var(--ink, #1f1c18)" }}>the universe picked you two on purpose</em> — and a soft affirmation to carry through the week.</span>
-      </li>
-    </ul>
+
     <p
       style={{
         fontFamily: "Cormorant, Georgia, serif",
-        fontStyle: "italic",
-        fontSize: "0.82rem",
-        color: "var(--muted, #958779)",
+        fontSize: "0.95rem",
+        color: "var(--earth, #6e6259)",
+        lineHeight: 1.7,
         textAlign: "center",
-        lineHeight: 1.55,
+        padding: "0 4px",
       }}
     >
-      It's not a forecast. It's a way to keep feeling them — even on the quiet days.
+      The days they'll be clingy. The days they'll want their space. When your energies lock in — and when to just let them be.
     </p>
+
+    <div
+      style={{
+        textAlign: "center",
+        padding: "16px 20px",
+        borderRadius: 14,
+        background: "rgba(196,162,101,0.08)",
+      }}
+    >
+      <p
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontStyle: "italic",
+          fontSize: "0.92rem",
+          color: "var(--ink, #1f1c18)",
+          lineHeight: 1.55,
+        }}
+      >
+        A quiet moment with them — <br className="hidden sm:block" />without you ever having to ask for it.
+      </p>
+    </div>
   </div>
 );
