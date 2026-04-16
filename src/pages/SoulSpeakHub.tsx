@@ -131,9 +131,9 @@ export default function SoulSpeakHub() {
                 </div>
               </div>
             </div>
-            {!isUnlimited && (
+            {!isUnlimited && pets.length > 0 && (
               <a
-                href="/soul-chat.html"
+                href={`/soul-chat.html?id=${pets[0].id}${pets[0].share_token ? `&token=${pets[0].share_token}` : ""}&topup=1`}
                 className="text-[0.82rem] underline-offset-4 hover:underline"
                 style={{ color: "#bf524a", fontFamily: "Cormorant, serif" }}
               >

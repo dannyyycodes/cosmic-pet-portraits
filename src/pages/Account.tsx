@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +22,9 @@ import {
   MessageCircle,
   Heart,
   Sparkles,
+  CreditCard,
+  KeyRound,
+  AlertTriangle,
 } from "lucide-react";
 
 interface CustomerData {
@@ -55,6 +58,19 @@ interface CustomerData {
     created_at: string;
     gift_tier: string | null;
     gift_message: string | null;
+  }>;
+  giftsReceived?: Array<{
+    id: string;
+    code: string;
+    amount_cents: number;
+    recipient_name: string | null;
+    recipient_email: string | null;
+    is_redeemed: boolean;
+    created_at: string;
+    gift_tier: string | null;
+    gift_message: string | null;
+    purchaser_email?: string | null;
+    purchaser_name?: string | null;
   }>;
   subscriptions: Array<{
     id: string;
@@ -96,9 +112,13 @@ function PetAvatarMini({ url, fallback }: { url?: string | null; fallback?: stri
   );
 }
 
+const VALID_TABS = ['reports', 'bonds', 'subscriptions', 'gifts', 'affiliate', 'settings'] as const;
+type AccountTab = typeof VALID_TABS[number];
+
 const Account = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [customerData, setCustomerData] = useState<CustomerData | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
@@ -108,9 +128,20 @@ const Account = () => {
   const [compatibilities, setCompatibilities] = useState<CompatibilityRow[]>([]);
   const [householdCredits, setHouseholdCredits] = useState<number | null>(null);
 
+  // Tab state is URL-synced so /account?tab=affiliate deep-links work and
+  // shared/email links open on the right panel.
+  const tabParam = searchParams.get('tab');
+  const activeTab: AccountTab = (VALID_TABS.includes(tabParam as AccountTab) ? tabParam : 'reports') as AccountTab;
+  const handleTabChange = (next: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (next === 'reports') params.delete('tab');
+    else params.set('tab', next);
+    setSearchParams(params, { replace: true });
+  };
+
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth");
+      navigate("/auth?redirect=/account");
     }
   }, [user, loading, navigate]);
 
@@ -241,6 +272,77 @@ const Account = () => {
     navigate("/");
   };
 
+  const [openingPortal, setOpeningPortal] = useState(false);
+  const handleOpenBillingPortal = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-billing-portal");
+      if (error || !data?.url) {
+        if (data?.error === "no_customer") {
+          toast({
+            title: "No billing profile yet",
+            description: "We couldn't find any purchases under this email. Email hello@littlesouls.app if that looks wrong.",
+          });
+        } else {
+          toast({ title: "Couldn't open billing", description: "Please try again in a moment.", variant: "destructive" });
+        }
+        return;
+      }
+      window.location.href = data.url as string;
+    } catch (err) {
+      console.error("[Account] Billing portal error:", err);
+      toast({ title: "Couldn't open billing", description: "Please try again in a moment.", variant: "destructive" });
+    } finally {
+      setOpeningPortal(false);
+    }
+  };
+
+  const [sendingReset, setSendingReset] = useState(false);
+  const handlePasswordReset = async () => {
+    if (!user?.email) return;
+    setSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({
+        title: "Check your inbox",
+        description: `We sent a password reset link to ${user.email}.`,
+      });
+    } catch (err: any) {
+      console.error("[Account] Password reset error:", err);
+      toast({ title: "Couldn't send reset email", description: err?.message || "Try again later.", variant: "destructive" });
+    } finally {
+      setSendingReset(false);
+    }
+  };
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const handleDeleteAccount = async () => {
+    if (!user?.email) return;
+    setDeleting(true);
+    try {
+      // Uses the existing unsubscribe function plus signout — we don't hard-delete
+      // the auth user (that requires an admin-level function); we disable the email
+      // list and log the user out. A real DSR follows by support email.
+      await supabase.functions.invoke("unsubscribe", { body: { email: user.email } });
+      toast({
+        title: "Account closure started",
+        description: "You've been unsubscribed and signed out. Email hello@littlesouls.app to fully delete your data.",
+      });
+      await signOut();
+      navigate("/");
+    } catch (err: any) {
+      console.error("[Account] Delete flow error:", err);
+      toast({ title: "Couldn't complete that", description: "Email hello@littlesouls.app and we'll handle it.", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   const getTierLabel = (tier: string | null, amount: number) => {
     if (tier === 'portrait') return 'Portrait Package';
     if (tier === 'essential') return 'Essential Reading';
@@ -261,22 +363,32 @@ const Account = () => {
       <NoIndex />
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 gap-3 flex-wrap">
           <div>
             <h1 className="text-3xl font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>My Account</h1>
             <p style={{ color: '#9a8578' }}>{user?.email}</p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 px-4 py-2 font-medium transition-opacity hover:opacity-80"
-            style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/contact')}
+              className="flex items-center gap-2 px-4 py-2 font-medium transition-opacity hover:opacity-80"
+              style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+            >
+              <Mail className="w-4 h-4" />
+              Support
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 px-4 py-2 font-medium transition-opacity hover:opacity-80"
+              style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
         </div>
 
-        <Tabs defaultValue="reports" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           {/* Mobile (<640px): 3-col × 2-row grid so labels stay visible and
               every tab keeps a proper tap target. Desktop collapses back to
               a single row of 6. */}
@@ -318,14 +430,14 @@ const Account = () => {
                 {customerData?.reports.length === 0 ? (
                   <div className="text-center py-8">
                     <FileText className="w-12 h-12 mx-auto mb-4" style={{ color: '#9a8578' }} />
-                    <p className="mb-4" style={{ color: '#9a8578' }}>No reports yet</p>
-                    <button
-                      onClick={() => navigate("/checkout")}
-                      className="px-6 py-3 font-medium transition-opacity hover:opacity-90"
+                    <p className="mb-4" style={{ color: '#9a8578' }}>No reports yet — unlock your first pet's cosmic reading.</p>
+                    <a
+                      href="/#checkout"
+                      className="inline-block px-6 py-3 font-medium transition-opacity hover:opacity-90 no-underline"
                       style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
                     >
                       Get Your First Reading
-                    </button>
+                    </a>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -568,9 +680,72 @@ const Account = () => {
 
           {/* Gifts Tab */}
           <TabsContent value="gifts" className="space-y-4">
+            {/* Received gifts — a separate card at the top, only if any exist */}
+            {customerData?.giftsReceived && customerData.giftsReceived.length > 0 && (
+              <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+                <div className="p-6 pb-2">
+                  <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Gifts for You</h2>
+                  <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Someone gifted you these — redeem any unused codes below</p>
+                </div>
+                <div className="p-6 pt-4 space-y-3">
+                  {customerData.giftsReceived.map((gift) => (
+                    <div
+                      key={gift.id}
+                      className="flex items-center justify-between p-4 rounded-xl"
+                      style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium" style={{ color: '#3d2f2a' }}>
+                            ${(gift.amount_cents / 100).toFixed(2)}
+                          </span>
+                          <span
+                            className="text-xs px-2 py-0.5 rounded"
+                            style={gift.is_redeemed
+                              ? { background: '#e8f5e9', color: '#2e7d32' }
+                              : { background: '#fff8e1', color: '#f9a825' }
+                            }
+                          >
+                            {gift.is_redeemed ? 'Redeemed' : 'Ready to redeem'}
+                          </span>
+                        </div>
+                        <p className="text-sm" style={{ color: '#9a8578' }}>
+                          {gift.purchaser_name || gift.purchaser_email
+                            ? `From: ${gift.purchaser_name || gift.purchaser_email}`
+                            : 'From a cosmic friend'}
+                        </p>
+                        <p className="text-xs" style={{ color: '#9a8578' }}>
+                          {new Date(gift.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      {!gift.is_redeemed ? (
+                        <a
+                          href={`/redeem?code=${gift.code}`}
+                          className="flex items-center gap-1 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90 no-underline"
+                          style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          Redeem
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => copyToClipboard(gift.code, 'Gift code')}
+                          className="flex items-center gap-1 text-sm hover:opacity-80 transition-opacity"
+                          style={{ color: '#c4a265' }}
+                        >
+                          <Copy className="w-4 h-4" />
+                          {gift.code}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
-                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Gift Certificates</h2>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Gifts You've Sent</h2>
                 <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Gifts you've purchased for others</p>
               </div>
               <div className="p-6 pt-4">
@@ -707,6 +882,26 @@ const Account = () => {
                     <p className="text-sm text-center" style={{ color: '#9a8578' }}>
                       Commission rate: {(customerData.affiliate.commission_rate * 100).toFixed(0)}%
                     </p>
+
+                    {/* Full dashboard + media kit links */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      <a
+                        href="/affiliate/dashboard"
+                        className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-opacity hover:opacity-90 no-underline"
+                        style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                      >
+                        <TrendingUp className="w-4 h-4" />
+                        Full Dashboard
+                      </a>
+                      <a
+                        href="/affiliate/media-kit"
+                        className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-opacity hover:opacity-80 no-underline"
+                        style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'white' }}
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Media Kit
+                      </a>
+                    </div>
                   </div>
                 )}
               </div>
@@ -715,12 +910,13 @@ const Account = () => {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4">
+            {/* Email preferences */}
             <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
               <div className="p-6 pb-2">
                 <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Email Preferences</h2>
                 <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Manage your communication settings</p>
               </div>
-              <div className="p-6 pt-4 space-y-6">
+              <div className="p-6 pt-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <label htmlFor="marketing-emails" className="font-medium" style={{ color: '#3d2f2a' }}>
@@ -737,15 +933,114 @@ const Account = () => {
                     disabled={updatingEmail}
                   />
                 </div>
+              </div>
+            </div>
 
-                <div className="pt-4" style={{ borderTop: '1px solid #e8ddd0' }}>
-                  <h4 className="font-medium mb-2" style={{ color: '#3d2f2a' }}>Need help?</h4>
-                  <p className="text-sm mb-3" style={{ color: '#9a8578' }}>
-                    For refunds, order issues, or questions, email us at:
-                  </p>
+            {/* Billing & Payments */}
+            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+              <div className="p-6 pb-2">
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Billing & Payments</h2>
+                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Update your card, view invoices, and download receipts.</p>
+              </div>
+              <div className="p-6 pt-4">
+                <button
+                  onClick={handleOpenBillingPortal}
+                  disabled={openingPortal}
+                  className="flex items-center gap-2 px-5 py-3 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
+                  style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                >
+                  <CreditCard className="w-4 h-4" />
+                  {openingPortal ? 'Opening…' : 'Manage Billing'}
+                </button>
+                <p className="text-xs mt-3" style={{ color: '#9a8578' }}>
+                  Opens your secure Stripe billing portal in a new page.
+                </p>
+              </div>
+            </div>
+
+            {/* Security */}
+            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+              <div className="p-6 pb-2">
+                <h2 className="text-xl font-semibold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>Account Security</h2>
+                <p className="text-sm mt-1" style={{ color: '#9a8578' }}>Reset your password or close your account.</p>
+              </div>
+              <div className="p-6 pt-4 space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="font-medium" style={{ color: '#3d2f2a' }}>Reset password</p>
+                    <p className="text-sm break-all" style={{ color: '#9a8578' }}>
+                      We'll email a reset link to {user?.email}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handlePasswordReset}
+                    disabled={sendingReset}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-60"
+                    style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'white' }}
+                  >
+                    <KeyRound className="w-4 h-4" />
+                    {sendingReset ? 'Sending…' : 'Send reset link'}
+                  </button>
+                </div>
+
+                <div className="pt-4 flex items-center justify-between gap-3 flex-wrap" style={{ borderTop: '1px solid #e8ddd0' }}>
+                  <div className="min-w-0">
+                    <p className="font-medium" style={{ color: '#3d2f2a' }}>Close account</p>
+                    <p className="text-sm" style={{ color: '#9a8578' }}>
+                      Unsubscribes you and signs you out. Email us to fully erase data.
+                    </p>
+                  </div>
+                  {!showDeleteConfirm ? (
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-80"
+                      style={{ border: '1px solid #e8c6c2', color: '#bf524a', borderRadius: '10px', background: 'white' }}
+                    >
+                      <AlertTriangle className="w-4 h-4" />
+                      Close account
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleDeleteAccount}
+                        disabled={deleting}
+                        className="px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-60"
+                        style={{ background: '#bf524a', color: 'white', border: 'none', borderRadius: '10px' }}
+                      >
+                        {deleting ? 'Closing…' : 'Confirm close'}
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteConfirm(false)}
+                        className="px-3 py-2 text-sm"
+                        style={{ color: '#9a8578', background: 'transparent', border: 'none' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Support */}
+            <div style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }} className="overflow-hidden">
+              <div className="p-6">
+                <h4 className="font-medium mb-2" style={{ color: '#3d2f2a' }}>Need help?</h4>
+                <p className="text-sm mb-3" style={{ color: '#9a8578' }}>
+                  For refunds, order issues, or questions — our support team responds within 24 hours.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => navigate('/contact')}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+                    style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Contact support
+                  </button>
                   <a
                     href="mailto:hello@littlesouls.app"
-                    className="hover:underline"
+                    className="text-sm hover:underline"
                     style={{ color: '#c4a265' }}
                   >
                     hello@littlesouls.app

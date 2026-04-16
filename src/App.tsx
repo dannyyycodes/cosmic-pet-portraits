@@ -124,6 +124,13 @@ const ErrorFallback = ({ error, resetErrorBoundary }: { error: Error; resetError
         >
           Try Again
         </button>
+        <p className="text-xs text-muted-foreground mt-6">
+          If this keeps happening, email{' '}
+          <a href="mailto:hello@littlesouls.app" className="underline hover:text-foreground">
+            hello@littlesouls.app
+          </a>{' '}
+          — we'll sort it.
+        </p>
       </div>
     </div>
   );

@@ -417,7 +417,7 @@ export default function AffiliateMediaKit() {
               <a href="/become-affiliate">Become an Affiliate</a>
             </Button>
             <Button asChild className="hover:opacity-90" style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white' }}>
-              <a href="/affiliate-dashboard">Affiliate Dashboard</a>
+              <a href="/affiliate/dashboard">Affiliate Dashboard</a>
             </Button>
           </div>
         </motion.div>

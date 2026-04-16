@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Mail, Lock, ArrowLeft, Sparkles, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,15 +25,22 @@ export default function Auth() {
   const { signIn, signUp, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Only allow same-origin relative paths — prevents open-redirect abuse.
+  const redirectParam = searchParams.get('redirect');
+  const safeRedirect = (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//'))
+    ? redirectParam
+    : '/my-reports';
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
       // Link any existing reports to this user
       linkUserReports();
-      navigate('/my-reports');
+      navigate(safeRedirect);
     }
-  }, [user, navigate]);
+  }, [user, navigate, safeRedirect]);
 
   const linkUserReports = async () => {
     try {
@@ -95,7 +102,7 @@ export default function Auth() {
           }
         } else {
           toast.success('Welcome back!');
-          navigate('/my-reports');
+          navigate(safeRedirect);
         }
       } else {
         const { error } = await signUp(email, password);
@@ -107,7 +114,7 @@ export default function Auth() {
           }
         } else {
           toast.success('Account created! Welcome to Little Souls.');
-          navigate('/my-reports');
+          navigate(safeRedirect);
         }
       }
     } finally {

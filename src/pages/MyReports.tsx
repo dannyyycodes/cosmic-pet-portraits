@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Sparkles, Share2, Eye, LogOut, Home, ArrowRight, User } from 'lucide-react';
+import { Star, Sparkles, Share2, Eye, LogOut, Home, ArrowRight, User, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -16,11 +16,14 @@ interface PetReport {
   birth_date: string | null;
   created_at: string;
   payment_status: string | null;
+  share_token: string | null;
 }
 
 export default function MyReports() {
   const [reports, setReports] = useState<PetReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [householdCredits, setHouseholdCredits] = useState<number | null>(null);
+  const [isUnlimited, setIsUnlimited] = useState(false);
 
   const { user, signOut, loading: authLoading } = useAuth();
   const { t } = useLanguage();
@@ -29,7 +32,7 @@ export default function MyReports() {
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth');
+      navigate('/auth?redirect=/my-reports');
     }
   }, [user, authLoading, navigate]);
 
@@ -49,6 +52,21 @@ export default function MyReports() {
         const next = (data?.reports || []) as PetReport[];
         const paidReports = next.filter(r => r.payment_status === 'paid' || r.payment_status === 'completed');
         setReports(paidReports);
+
+        // Pooled SoulSpeak balance — same shape as SoulSpeakHub / Account tab.
+        const email = (user.email || '').toLowerCase();
+        if (email) {
+          const { data: pooled } = await supabase
+            .from('chat_credits')
+            .select('credits_remaining, is_unlimited')
+            .eq('email', email)
+            .is('order_id', null)
+            .maybeSingle();
+          if (pooled) {
+            setIsUnlimited(!!pooled.is_unlimited);
+            setHouseholdCredits(pooled.credits_remaining ?? 0);
+          }
+        }
       } catch (err) {
         console.error('Error fetching reports:', err);
         toast.error('Failed to load your reports');
@@ -216,57 +234,108 @@ export default function MyReports() {
               </div>
             </motion.div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
-              {reports.map((report, index) => (
+            <>
+              {/* Pooled SoulSpeak balance — matches Account tab + Hub copy */}
+              {householdCredits !== null && (
                 <motion.div
-                  key={report.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="rounded-2xl p-5 transition-all hover:shadow-md"
-                  style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
+                  className="mb-6 rounded-[14px] p-4 flex items-center justify-between"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(196,162,101,0.14), rgba(191,82,74,0.08))',
+                    border: '1.5px solid rgba(196,162,101,0.4)',
+                  }}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-center gap-3">
                     <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
-                      style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                      className="w-9 h-9 rounded-full flex items-center justify-center"
+                      style={{ background: 'linear-gradient(135deg, #c4a265, #bf524a)' }}
                     >
-                      {getSpeciesEmoji(report.species)}
+                      <MessageCircle className="w-4 h-4 text-white" />
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold truncate" style={{ color: '#3d2f2a' }}>
-                        {report.pet_name}
-                      </h3>
-                      <p className="text-sm capitalize" style={{ color: '#9a8578' }}>
-                        {report.breed || report.species}
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: '#9a8578' }}>
-                        Created {format(new Date(report.created_at), 'MMM d, yyyy')}
-                      </p>
+                    <div>
+                      <div className="text-[0.62rem] uppercase tracking-wider font-semibold" style={{ color: '#a07c3a' }}>
+                        SoulSpeak · shared across your pets
+                      </div>
+                      <div className="text-[1.02rem]" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#2D2926' }}>
+                        {isUnlimited
+                          ? 'Unlimited messages'
+                          : `${Math.floor((householdCredits ?? 0) / 50)} messages left`}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex gap-2 mt-4">
-                    <button
-                      className="flex-1 flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium transition-opacity hover:opacity-90"
-                      style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
-                      onClick={() => handleViewReport(report.id)}
-                    >
-                      <Eye className="w-4 h-4" />
-                      View Report
-                    </button>
-                    <button
-                      onClick={() => handleShare(report)}
-                      className="p-2 transition-opacity hover:opacity-80"
-                      style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => navigate('/chat')}
+                    className="text-sm font-medium transition-opacity hover:opacity-80"
+                    style={{ color: '#bf524a', background: 'transparent', border: 'none' }}
+                  >
+                    Open SoulSpeak →
+                  </button>
                 </motion.div>
-              ))}
-            </div>
+              )}
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {reports.map((report, index) => (
+                  <motion.div
+                    key={report.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="rounded-2xl p-5 transition-all hover:shadow-md"
+                    style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
+                        style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                      >
+                        {getSpeciesEmoji(report.species)}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold truncate" style={{ color: '#3d2f2a' }}>
+                          {report.pet_name}
+                        </h3>
+                        <p className="text-sm capitalize" style={{ color: '#9a8578' }}>
+                          {report.breed || report.species}
+                        </p>
+                        <p className="text-xs mt-1" style={{ color: '#9a8578' }}>
+                          Created {format(new Date(report.created_at), 'MMM d, yyyy')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        className="flex-1 flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium transition-opacity hover:opacity-90"
+                        style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
+                        onClick={() => handleViewReport(report.id)}
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </button>
+                      <a
+                        href={`/soul-chat.html?id=${report.id}${report.share_token ? '&token=' + report.share_token : ''}`}
+                        className="flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium transition-all hover:opacity-90 no-underline"
+                        style={{ background: 'white', border: '1.5px solid #c4a265', color: '#a07c3a', borderRadius: '10px' }}
+                        title={`Talk with ${report.pet_name}'s soul`}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        SoulSpeak
+                      </a>
+                      <button
+                        onClick={() => handleShare(report)}
+                        className="p-2 transition-opacity hover:opacity-80"
+                        style={{ border: '1px solid #e8ddd0', color: '#5a4a42', borderRadius: '10px', background: 'transparent' }}
+                        aria-label="Share"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </>
           )}
 
           {/* CTA to add more */}

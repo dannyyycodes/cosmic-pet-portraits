@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import * as Sentry from '@sentry/react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
@@ -26,15 +27,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Link any existing reports to this user on sign in/up
+        // Link any existing reports to this user on sign in/up.
+        // Failures here silently leave guest purchases unattached to the
+        // account — so we capture properly to Sentry instead of swallowing.
         if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
           // Defer the supabase call to avoid deadlock
           setTimeout(() => {
             supabase.functions.invoke('link-user-reports').then(({ data, error }) => {
-              if (data?.linked > 0) {
-                // Reports linked to account
+              if (error || data?.error) {
+                const reason = error?.message || data?.error || 'unknown';
+                console.error('[AuthContext] link-user-reports failed:', reason, { userId: session.user.id });
+                Sentry.captureMessage('link-user-reports failed', {
+                  level: 'error',
+                  extra: { reason, userId: session.user.id, email: session.user.email },
+                });
               }
-            }).catch(console.error);
+            }).catch((err) => {
+              console.error('[AuthContext] link-user-reports threw:', err);
+              Sentry.captureException(err, { tags: { fn: 'link-user-reports' } });
+            });
           }, 0);
         }
       }
