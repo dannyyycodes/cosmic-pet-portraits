@@ -128,7 +128,7 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
-            className="text-[1.05rem] text-[#6B5E54] italic mb-2"
+            className="text-[1.05rem] text-[#6B5E54] italic mb-2 break-words px-2"
             style={{ fontFamily: 'Cormorant, serif' }}
           >
             {nextPet.petName

@@ -191,12 +191,17 @@ export function PostPurchaseIntake({
   const years = useMemo(() => Array.from({ length: 30 }, (_, i) => currentYear - i), [currentYear]);
   const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-  // Sync month/year/day selects → birthDate string
+  // Sync month/year/day selects → birthDate string. Refuses future dates —
+  // a pet born tomorrow is the kind of quiet bug that makes the reveal feel
+  // broken (future chart = future transits = nonsense).
   useEffect(() => {
     if (birthMonth && birthYear && birthDay) {
       const m = (parseInt(birthMonth) + 1).toString().padStart(2, '0');
       const d = birthDay.padStart(2, '0');
-      setBirthDate(`${birthYear}-${m}-${d}`);
+      const candidate = `${birthYear}-${m}-${d}`;
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      setBirthDate(candidate <= today ? candidate : "");
     }
   }, [birthMonth, birthYear, birthDay]);
 

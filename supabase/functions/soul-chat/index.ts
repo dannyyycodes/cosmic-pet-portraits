@@ -271,9 +271,21 @@ serve(async (req) => {
     // STARTER_CREDITS × N shared across all of them — they can spend them on
     // whichever pet they want to talk to. Per-report rows are kept as a
     // fallback so token-only (share-link) visitors and legacy rows still work.
-    const buyerEmail = typeof ownerReport.email === "string"
+    //
+    // SECURITY: Placeholder emails (pending@redeem.littlesouls.app,
+    // pending@checkout.temp, etc.) must NEVER open a shared pool. Otherwise
+    // anyone who guesses a report UUID + hardcoded placeholder email can
+    // drain a shared credit pool that multiple buyers' reports share. We
+    // treat these reports as per-order scoped until a real email is set via
+    // update-pet-data / verify-payment.
+    const rawEmail = typeof ownerReport.email === "string"
       ? ownerReport.email.trim().toLowerCase()
       : "";
+    const isPlaceholderEmail = !rawEmail
+      || rawEmail.startsWith("pending@")
+      || rawEmail.endsWith(".temp")
+      || rawEmail.endsWith(".littlesouls.app") && rawEmail.startsWith("pending@");
+    const buyerEmail = isPlaceholderEmail ? "" : rawEmail;
 
     // Prefer the household-pooled row (email set, order_id null).
     let row: { credits_remaining: number; is_unlimited: boolean; id?: string } | null = null;

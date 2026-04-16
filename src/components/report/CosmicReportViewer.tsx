@@ -349,13 +349,14 @@ export function CosmicReportViewer({
                 <button
                   key={r.reportId}
                   onClick={() => onSwitchReport(idx)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                  className={`inline-flex items-center gap-1 px-3.5 py-2.5 min-h-[40px] rounded-full text-sm font-medium transition-all max-w-[160px] ${
                     idx === currentIndex
                       ? 'bg-[#3d2f2a] text-white'
                       : 'bg-white text-[#5a4a42] border border-[#e8ddd0] hover:border-[#c4a265]'
                   }`}
                 >
-                  🐾 {r.petName}
+                  <span aria-hidden="true">🐾</span>
+                  <span className="truncate">{r.petName}</span>
                 </button>
               ))}
             </div>

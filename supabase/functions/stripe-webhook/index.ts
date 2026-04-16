@@ -944,13 +944,15 @@ serve(async (req) => {
         }
 
         if (refundedReportIds.length > 0) {
-          // Flip payment_status. Keep the row so the customer retains history
-          // (and to honour RLS lookups) but block any future generation calls.
+          // Flip payment_status AND wipe report_content so a refunded buyer
+          // can't keep the reading after getting their money back. get-report
+          // also blocks access on payment_status != "paid" but we want the
+          // data gone in case any code path fails to check status.
           await supabaseClient
             .from("pet_reports")
-            .update({ payment_status: "refunded" })
+            .update({ payment_status: "refunded", report_content: null })
             .in("id", refundedReportIds);
-          console.log("[STRIPE-WEBHOOK] Reports marked refunded:", refundedReportIds);
+          console.log("[STRIPE-WEBHOOK] Reports marked refunded + content wiped:", refundedReportIds);
 
           // Cancel any horoscope subscriptions tied to these reports — both in
           // our DB and in Stripe (distinct subscription, not the one refunded).

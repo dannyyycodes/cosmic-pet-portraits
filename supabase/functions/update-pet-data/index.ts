@@ -52,15 +52,28 @@ serve(async (req) => {
       });
     }
 
+    // Cap user-submitted text lengths so a malicious payload can't blow up
+    // the worker or stuff the report JSON with megabytes of junk.
+    const safePetName = String(petName).slice(0, 60);
+    const safeSpecies = String(species).slice(0, 40);
+
     // Update pet data
     const updateData: Record<string, unknown> = {
-      pet_name: petName,
-      species,
+      pet_name: safePetName,
+      species: safeSpecies,
       updated_at: new Date().toISOString(),
     };
-    if (breed) updateData.breed = breed;
+    if (breed) updateData.breed = breed.slice(0, 100);
     if (gender) updateData.gender = gender;
-    if (birthDate) updateData.birth_date = birthDate;
+    // Reject future / nonsense birth dates before they reach the worker.
+    if (birthDate) {
+      const iso = String(birthDate).match(/^\d{4}-\d{2}-\d{2}$/) ? String(birthDate) : null;
+      if (iso) {
+        const today = new Date().toISOString().slice(0, 10);
+        const earliest = "1950-01-01"; // no pet alive today was born before this
+        if (iso <= today && iso >= earliest) updateData.birth_date = iso;
+      }
+    }
     if (birthTime) updateData.birth_time = birthTime;
     if (location) updateData.birth_location = location;
     if (soulType) updateData.soul_type = soulType;

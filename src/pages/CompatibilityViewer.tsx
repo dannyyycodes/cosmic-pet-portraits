@@ -194,7 +194,7 @@ export default function CompatibilityViewer() {
             <PetHero pet={data.petB} />
           </div>
 
-          <h1 className="text-[1.75rem] md:text-[2.3rem] text-[#2D2926] leading-tight mb-3"
+          <h1 className="text-[1.5rem] sm:text-[1.75rem] md:text-[2.3rem] text-[#2D2926] leading-tight mb-3 break-words px-2"
             style={{ fontFamily: 'DM Serif Display, serif' }}>
             {reading.headline || `${data.petA?.petName || 'They'} & ${data.petB?.petName || 'they'}`}
           </h1>
