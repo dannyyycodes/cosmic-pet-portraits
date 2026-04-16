@@ -5,10 +5,10 @@
 // share_token. Direct REST reads against chat_messages are now locked down
 // by RLS so the frontend must go through this function.
 //
-// Request body:  { orderId, email?, shareToken?, limit? }
-// Response 200:  { messages: [{ role, content, created_at }, ...] }
-//          403:  { error: "Unauthorized" }
-//          404:  { error: "Invalid order" }
+// Request body:  { orderId, email?, shareToken?, limit?, before? }
+//   before: ISO timestamp — if provided, returns messages strictly OLDER than this
+//           (for "load earlier" pagination).
+// Response 200:  { messages: [...], totalCount, firstMessageAt, hasMore }
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
@@ -38,7 +38,7 @@ serve(async (req) => {
   const corsJson = { ...getCorsHeaders(req), "Content-Type": "application/json" };
 
   try {
-    const { orderId, email, shareToken, limit } = await req.json();
+    const { orderId, email, shareToken, limit, before } = await req.json();
 
     if (!orderId || !UUID_PATTERN.test(String(orderId))) {
       return new Response(JSON.stringify({ error: "Missing or invalid orderId" }), {
@@ -77,12 +77,18 @@ serve(async (req) => {
 
     const capped = Math.max(1, Math.min(100, typeof limit === "number" ? limit : 40));
 
-    const { data: rows, error: msgErr } = await supabase
+    let q = supabase
       .from("chat_messages")
       .select("role, content, created_at")
       .eq("order_id", orderId)
       .order("created_at", { ascending: false })
       .limit(capped);
+
+    if (typeof before === "string" && before) {
+      q = q.lt("created_at", before);
+    }
+
+    const { data: rows, error: msgErr } = await q;
 
     if (msgErr) {
       console.error("[GET-CHAT-HISTORY] Fetch error:", msgErr);
@@ -94,7 +100,36 @@ serve(async (req) => {
     // Return in chronological order (oldest first) for rendering
     const messages = (rows || []).slice().reverse();
 
-    return new Response(JSON.stringify({ messages }), { headers: corsJson });
+    // Lightweight stats for the sidebar: total count + first-ever timestamp.
+    // Only computed on the initial load (no `before` cursor) to avoid doing
+    // an extra count query on every pagination request.
+    let totalCount: number | null = null;
+    let firstMessageAt: string | null = null;
+    if (!before) {
+      const { count } = await supabase
+        .from("chat_messages")
+        .select("*", { count: "exact", head: true })
+        .eq("order_id", orderId);
+      if (typeof count === "number") totalCount = count;
+
+      const { data: firstRow } = await supabase
+        .from("chat_messages")
+        .select("created_at")
+        .eq("order_id", orderId)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      firstMessageAt = firstRow?.created_at ?? null;
+    }
+
+    const hasMore = (rows?.length || 0) === capped;
+
+    return new Response(JSON.stringify({
+      messages,
+      totalCount,
+      firstMessageAt,
+      hasMore,
+    }), { headers: corsJson });
 
   } catch (e) {
     console.error("[GET-CHAT-HISTORY] Error:", e);

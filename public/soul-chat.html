@@ -680,18 +680,67 @@ body::after {
 }
 /* Banner shown at the top of a restored chat thread */
 .history-banner {
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  padding:10px 14px; margin:8px auto 14px; max-width:min(82%, 340px);
-  border-radius:999px;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:10px 14px; margin:8px auto 14px; max-width:min(86%, 380px);
+  border-radius:14px;
   background:linear-gradient(135deg, rgba(196,162,101,0.12), rgba(191,82,74,0.08));
   border:1px solid rgba(196,162,101,0.25);
   font-family:'Cormorant',Georgia,serif; font-style:italic;
-  font-size:0.8rem; color:var(--warm); text-align:center;
+  font-size:0.82rem; color:var(--warm); text-align:center;
 }
+.history-banner-row { display:flex; align-items:center; gap:8px; }
 .history-banner-dot {
   width:6px; height:6px; border-radius:50%;
   background:var(--gold); flex-shrink:0;
   box-shadow:0 0 0 3px rgba(196,162,101,0.2);
+}
+.history-banner-preview {
+  font-size:0.82rem; color:var(--muted); line-height:1.35;
+  padding-top:4px; border-top:1px dashed rgba(196,162,101,0.25);
+  margin-top:4px; width:100%; max-width:340px;
+}
+
+/* "Load earlier" button at the top of a long thread */
+.history-load-more {
+  display:block; margin:4px auto 12px; padding:7px 18px;
+  border-radius:999px; background:var(--cream2); color:var(--muted);
+  border:1px solid var(--cream3); cursor:pointer;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.68rem; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.history-load-more:hover {
+  background:#fffdf5; border-color:rgba(196,162,101,0.45); color:var(--ink);
+}
+.history-load-more:disabled { opacity:0.5; cursor:default; }
+
+/* Day/time dividers between session chunks */
+.day-divider {
+  display:flex; align-items:center; justify-content:center;
+  margin:14px 0 8px; position:relative; opacity:0.75;
+}
+.day-divider::before, .day-divider::after {
+  content:''; flex:1; height:1px; background:var(--cream3); max-width:80px;
+}
+.day-divider > span {
+  margin:0 12px; padding:3px 10px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.58rem; font-weight:700; letter-spacing:1.3px;
+  text-transform:uppercase; color:var(--muted);
+  background:var(--cream2); border-radius:999px;
+  border:1px solid var(--cream3);
+}
+
+/* Flash highlight when jumping to a searched message */
+.msg.msg-flash > .msg-bubble,
+.msg.msg-flash > .msg-content > .msg-bubble {
+  animation:msgFlash 1.6s ease-out;
+}
+@keyframes msgFlash {
+  0% { box-shadow:0 0 0 0 rgba(196,162,101,0.6); background:rgba(196,162,101,0.2); }
+  60% { box-shadow:0 0 0 12px rgba(196,162,101,0); background:inherit; }
+  100% { box-shadow:0 0 0 0 rgba(196,162,101,0); }
 }
 
 /* Resume suggestion — offered to returning users with durable memory */
@@ -1261,6 +1310,64 @@ body::after {
   font-family:'Cormorant',Georgia,serif; font-size:0.92rem;
   color:var(--warm); line-height:1.35;
 }
+/* Stats row beneath the big "N things they remember" header */
+.memories-stats {
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+  gap:6px; margin-top:8px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.62rem; font-weight:600; letter-spacing:0.3px;
+  color:var(--muted); text-transform:none;
+}
+.memories-stats strong { color:var(--ink); font-weight:700; }
+.memories-stats .dot-sep { color:var(--faded); font-weight:400; }
+
+/* Search bar in the Memories tab — filters loaded messages */
+.memories-search-wrap { margin-bottom:12px; }
+.memories-search {
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid var(--cream3); background:var(--cream2);
+  color:var(--ink);
+  font-family:'Cormorant',Georgia,serif; font-size:0.92rem;
+  transition:border-color 0.2s, background 0.2s;
+  -webkit-appearance:none; appearance:none;
+}
+.memories-search:focus {
+  outline:none; border-color:rgba(196,162,101,0.55);
+  background:#fffdf5;
+}
+.memories-search::placeholder { color:var(--faded); }
+.memories-search-results {
+  display:flex; flex-direction:column; gap:6px; margin-bottom:16px;
+}
+.memories-search-result {
+  display:flex; flex-direction:column; gap:3px;
+  text-align:left; padding:10px 12px; border-radius:10px;
+  background:var(--cream2); border:1px solid var(--cream3);
+  font-family:inherit; cursor:pointer; transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.memories-search-result:hover {
+  background:#fffdf5; border-color:rgba(196,162,101,0.4);
+}
+.msr-role {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.54rem; font-weight:700; letter-spacing:1.4px;
+  text-transform:uppercase; color:var(--gold);
+}
+.msr-preview {
+  font-family:'Cormorant',Georgia,serif; font-size:0.86rem;
+  line-height:1.35; color:var(--warm);
+}
+.msr-preview mark {
+  background:rgba(196,162,101,0.28); color:var(--ink);
+  padding:0 2px; border-radius:3px;
+}
+.memories-search-empty {
+  padding:14px; text-align:center;
+  font-family:'Cormorant',Georgia,serif; font-style:italic;
+  font-size:0.85rem; color:var(--muted);
+}
+
 .memories-summary {
   margin-bottom:14px; padding:14px 16px; border-radius:12px;
   background:linear-gradient(135deg, rgba(196,162,101,0.06), rgba(191,82,74,0.04));
@@ -1856,7 +1963,13 @@ body::after {
           <span id="memoriesCount">0</span>
           <span class="memories-count-label" id="memoriesCountLabel">things they remember about you</span>
         </div>
+        <div class="memories-stats" id="memoriesStats" style="display:none;"></div>
       </div>
+      <div class="memories-search-wrap">
+        <input type="search" id="memoriesSearch" class="memories-search"
+          placeholder="Search past messages…" autocomplete="off" />
+      </div>
+      <div class="memories-search-results" id="memoriesSearchResults" style="display:none;"></div>
       <div class="memories-summary" id="memoriesSummary" style="display:none;">
         <!-- Populated by renderMemories() when a server-side pet_memory.summary exists -->
       </div>
@@ -2266,11 +2379,99 @@ async function loadReading() {
   }
 }
 
+// Pagination state for history loading
+var HISTORY_PAGE_SIZE = 40;
+var historyOldestSeen = null; // ISO string — cursor for "load earlier"
+var historyHasMore = false;
+var historyTotalCount = null;
+var historyFirstAt = null;
+
 // Hydrate past messages from the server so a refresh or "Maybe later" never
 // loses the conversation. Reads via the ownership-verified get-chat-history
 // edge function (direct REST access is blocked by RLS for privacy).
 async function loadChatHistory() {
   if (!readingId) return;
+  try {
+    var body = await fetchHistoryPage(null);
+    if (!body) return;
+    var rows = Array.isArray(body.messages) ? body.messages : [];
+    historyTotalCount = typeof body.totalCount === 'number' ? body.totalCount : null;
+    historyFirstAt = body.firstMessageAt || null;
+    historyHasMore = !!body.hasMore;
+
+    updateSidebarStats();
+    if (!rows.length) return; // brand new chat — welcome card stays
+
+    // Hide the welcome card — this isn't a fresh session
+    var welcome = document.getElementById('welcomeCard');
+    if (welcome) welcome.style.display = 'none';
+
+    // Gap-aware banner: different copy depending on how long since last message.
+    // Respects memorial mode (always gentle, never impatient/pressuring).
+    var container = document.getElementById('chatMessages');
+    var lastRow = rows[rows.length - 1];
+    var lastMsgAt = new Date(lastRow.created_at);
+    var hoursAgo = (Date.now() - lastMsgAt.getTime()) / 3600000;
+    var petName = (petData && petData.name) || 'they';
+    var memorial = petData && petData.occasionMode === 'memorial';
+    var bannerText = null;
+    if (hoursAgo < 1) bannerText = null;
+    else if (hoursAgo < 12) bannerText = 'picking up where you left off';
+    else if (hoursAgo < 48) bannerText = memorial ? petName + '\u2019s soul never drifted far' : petName + ' has been waiting';
+    else if (hoursAgo < 24 * 7) {
+      var days = Math.max(1, Math.round(hoursAgo / 24));
+      bannerText = memorial ? 'still here, still with you' : 'welcome back \u00b7 ' + days + ' day' + (days === 1 ? '' : 's') + ' apart';
+    } else {
+      bannerText = memorial ? petName + ' has been watching over you' : 'welcome back \u00b7 ' + petName + '\u2019s been keeping watch';
+    }
+
+    var typing = document.getElementById('typingIndicator');
+
+    // "Load earlier" button — only if more pages exist on the server
+    if (historyHasMore) {
+      var loadMoreBtn = document.createElement('button');
+      loadMoreBtn.className = 'history-load-more';
+      loadMoreBtn.id = 'historyLoadMore';
+      loadMoreBtn.type = 'button';
+      loadMoreBtn.textContent = 'Load earlier messages';
+      loadMoreBtn.addEventListener('click', loadEarlierHistory);
+      container.insertBefore(loadMoreBtn, typing);
+    }
+
+    if (bannerText) {
+      // Include a soft preview of what the pet said last — helps re-entry
+      var previewText = '';
+      if (hoursAgo >= 12 && lastRow.role === 'assistant') {
+        var snippet = String(lastRow.content || '').replace(/\s+/g, ' ').trim();
+        if (snippet.length > 100) snippet = snippet.slice(0, 97) + '\u2026';
+        previewText = snippet;
+      }
+      var banner = document.createElement('div');
+      banner.className = 'history-banner' + (previewText ? ' history-banner--with-preview' : '');
+      banner.innerHTML =
+        '<div class="history-banner-row"><div class="history-banner-dot"></div>' +
+        '<div>' + escapeHtml(bannerText) + '</div></div>' +
+        (previewText ? '<div class="history-banner-preview">\u201C' + escapeHtml(previewText) + '\u201D</div>' : '');
+      container.insertBefore(banner, typing);
+    }
+
+    // Render messages with date/time dividers (session breaks at >4h gaps)
+    renderHistoryRows(rows, false);
+    historyOldestSeen = rows[0].created_at;
+
+    scrollToBottom();
+
+    // For returning users after >12h with durable memory, offer a gentle
+    // memory-anchored starter chip so they can resume with one tap.
+    if (hoursAgo >= 12 && serverPetMemory && Array.isArray(serverPetMemory.facts) && serverPetMemory.facts.length) {
+      showResumeSuggestion();
+    }
+  } catch (e) {
+    console.warn('loadChatHistory failed:', e);
+  }
+}
+
+async function fetchHistoryPage(beforeCursor) {
   try {
     var soulChatEmail = '';
     try { soulChatEmail = sessionStorage.getItem('cosmic_report_email') || ''; } catch(_) {}
@@ -2285,72 +2486,164 @@ async function loadChatHistory() {
         orderId: readingId,
         email: soulChatEmail,
         shareToken: shareTokenFromUrl,
-        limit: 40,
+        limit: HISTORY_PAGE_SIZE,
+        before: beforeCursor || undefined,
       }),
     });
-    if (!res.ok) return;
-    var body = await res.json();
-    var rows = Array.isArray(body && body.messages) ? body.messages : [];
-    if (!rows.length) return; // brand new chat — welcome card stays
-
-    // Hide the welcome card — this isn't a fresh session
-    var welcome = document.getElementById('welcomeCard');
-    if (welcome) welcome.style.display = 'none';
-
-    // Gap-aware banner: different copy depending on how long since last message.
-    // Respects memorial mode (always gentle, never impatient/pressuring).
-    var container = document.getElementById('chatMessages');
-    var lastMsgAt = new Date(rows[rows.length - 1].created_at);
-    var hoursAgo = (Date.now() - lastMsgAt.getTime()) / 3600000;
-    var petName = (petData && petData.name) || 'they';
-    var memorial = petData && petData.occasionMode === 'memorial';
-    var bannerText = null;
-    if (hoursAgo < 1) {
-      bannerText = null; // seamless resume, no banner
-    } else if (hoursAgo < 12) {
-      bannerText = 'picking up where you left off';
-    } else if (hoursAgo < 48) {
-      bannerText = memorial
-        ? petName + '\u2019s soul never drifted far'
-        : petName + ' has been waiting';
-    } else if (hoursAgo < 24 * 7) {
-      var days = Math.max(1, Math.round(hoursAgo / 24));
-      bannerText = memorial
-        ? 'still here, still with you'
-        : 'welcome back \u00b7 ' + days + ' day' + (days === 1 ? '' : 's') + ' apart';
-    } else {
-      bannerText = memorial
-        ? petName + ' has been watching over you'
-        : 'welcome back \u00b7 ' + petName + '\u2019s been keeping watch';
-    }
-
-    var typing = document.getElementById('typingIndicator');
-    if (bannerText) {
-      var banner = document.createElement('div');
-      banner.className = 'history-banner';
-      banner.innerHTML =
-        '<div class="history-banner-dot"></div>' +
-        '<div>' + escapeHtml(bannerText) + '</div>';
-      container.insertBefore(banner, typing);
-    }
-
-    // Render each message with real timestamps
-    rows.forEach(function(m) {
-      if (!m || !m.content) return;
-      var type = m.role === 'user' ? 'user' : 'pet';
-      addMessage(type, m.content, m.created_at);
-      messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content });
-    });
-    scrollToBottom();
-
-    // For returning users after >12h with durable memory, offer a gentle
-    // memory-anchored starter chip so they can resume with one tap.
-    if (hoursAgo >= 12 && serverPetMemory && Array.isArray(serverPetMemory.facts) && serverPetMemory.facts.length) {
-      showResumeSuggestion();
-    }
+    if (!res.ok) return null;
+    return await res.json();
   } catch (e) {
-    console.warn('loadChatHistory failed:', e);
+    console.warn('fetchHistoryPage failed:', e);
+    return null;
   }
+}
+
+// Prepend older messages when the user clicks "Load earlier"
+async function loadEarlierHistory() {
+  if (!historyOldestSeen) return;
+  var btn = document.getElementById('historyLoadMore');
+  if (btn) { btn.disabled = true; btn.textContent = 'loading\u2026'; }
+  var body = await fetchHistoryPage(historyOldestSeen);
+  if (!body) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Load earlier messages'; }
+    return;
+  }
+  var rows = Array.isArray(body.messages) ? body.messages : [];
+  if (!rows.length) {
+    if (btn) btn.remove();
+    historyHasMore = false;
+    return;
+  }
+  var container = document.getElementById('chatMessages');
+  var prevHeight = container.scrollHeight;
+  var prevTop = container.scrollTop;
+
+  renderHistoryRows(rows, true);
+  historyOldestSeen = rows[0].created_at;
+  historyHasMore = !!body.hasMore;
+  if (!historyHasMore && btn) btn.remove();
+  else if (btn) { btn.disabled = false; btn.textContent = 'Load earlier messages'; }
+
+  var prepended = rows.map(function(m){
+    return { role: m.role === 'user' ? 'user' : 'assistant', content: m.content };
+  });
+  messages = prepended.concat(messages);
+
+  container.scrollTop = prevTop + (container.scrollHeight - prevHeight);
+}
+
+// Render a batch of chronological rows, inserting date/time dividers whenever
+// a session break is detected (gap >= 4h) or a new day starts.
+function renderHistoryRows(rows, prepend) {
+  var container = document.getElementById('chatMessages');
+  var typing = document.getElementById('typingIndicator');
+  var insertTarget = prepend
+    ? (container.querySelector('.history-load-more') || container.querySelector('.history-banner') || container.firstElementChild || typing)
+    : typing;
+
+  var frag = document.createDocumentFragment();
+  var lastShown = null;
+  rows.forEach(function(m) {
+    if (!m || !m.content) return;
+    var when = new Date(m.created_at);
+    var divider = buildDividerIfNeeded(lastShown, when);
+    if (divider) frag.appendChild(divider);
+    var type = m.role === 'user' ? 'user' : 'pet';
+    frag.appendChild(buildMessageNode(type, m.content, m.created_at));
+    if (!prepend) {
+      messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content });
+    }
+    lastShown = when;
+  });
+  container.insertBefore(frag, insertTarget);
+}
+
+// Standalone node builder (mirrors addMessage but returns a DOM node).
+function buildMessageNode(type, text, createdAt) {
+  var when = createdAt ? new Date(createdAt) : new Date();
+  if (isNaN(when.getTime())) when = new Date();
+  var time = when.getHours().toString().padStart(2,'0') + ':' + when.getMinutes().toString().padStart(2,'0');
+  var div = document.createElement('div');
+  div.className = 'msg ' + type;
+  if (type === 'pet') {
+    var photoUrl = petData ? (petData.portraitUrl || petData.petPhotoUrl) : '';
+    var avatarHtml = photoUrl
+      ? '<div class="msg-avatar-mini"><img src="' + photoUrl + '" alt=""></div>'
+      : '<div class="msg-avatar-mini">' + (petData ? (animalEmojis[(petData.species || '').toLowerCase()] || '&#129782;') : '&#129782;') + '</div>';
+    div.innerHTML = avatarHtml +
+      '<div class="msg-content">' +
+        '<div class="msg-bubble" data-share-text="' + escapeHtml(text) + '">' + escapeHtml(text) + '</div>' +
+        '<div class="msg-time">' + time + '</div>' +
+      '</div>' +
+      '<button class="msg-share-hint" aria-label="Share this message" title="Share this moment">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>' +
+      '</button>';
+    try { attachShareTriggers(div, text); } catch(_) {}
+  } else {
+    div.innerHTML =
+      '<div class="msg-bubble">' + escapeHtml(text) + '</div>' +
+      '<div class="msg-time">' + time + '</div>';
+  }
+  return div;
+}
+
+function buildDividerIfNeeded(prevDate, nextDate) {
+  if (!nextDate) return null;
+  var gap = prevDate ? (nextDate - prevDate) / 3600000 : Infinity;
+  var newDay = !prevDate || nextDate.toDateString() !== prevDate.toDateString();
+  if (gap < 4 && !newDay) return null;
+  var div = document.createElement('div');
+  div.className = 'day-divider';
+  div.innerHTML = '<span>' + escapeHtml(formatDividerLabel(nextDate, prevDate, gap)) + '</span>';
+  return div;
+}
+
+function formatDividerLabel(date, prevDate, gapHours) {
+  var today = new Date();
+  var yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  var timeStr = date.getHours().toString().padStart(2,'0') + ':' + date.getMinutes().toString().padStart(2,'0');
+  var sameDayAsPrev = prevDate && date.toDateString() === prevDate.toDateString();
+  if (sameDayAsPrev && gapHours >= 4) {
+    var h = date.getHours();
+    if (h < 5) return 'later that night \u00b7 ' + timeStr;
+    if (h >= 20) return 'later that evening \u00b7 ' + timeStr;
+    return 'later that day \u00b7 ' + timeStr;
+  }
+  if (date.toDateString() === today.toDateString()) return 'Today \u00b7 ' + timeStr;
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday \u00b7 ' + timeStr;
+  var thisYear = date.getFullYear() === today.getFullYear();
+  return date.toLocaleDateString(undefined, {
+    weekday: 'long', day: 'numeric', month: 'short',
+    year: thisYear ? undefined : 'numeric',
+  }) + ' \u00b7 ' + timeStr;
+}
+
+// Write session/memory stats into the Memories tab (lightweight, client-side)
+function updateSidebarStats() {
+  var el = document.getElementById('memoriesStats');
+  if (!el) return;
+  if (!historyTotalCount) {
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  var firstLabel = '';
+  if (historyFirstAt) {
+    var d = new Date(historyFirstAt);
+    firstLabel = d.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
+  }
+  var parts = ['<span><strong>' + historyTotalCount + '</strong> message' + (historyTotalCount === 1 ? '' : 's') + '</span>'];
+  if (firstLabel) parts.push('<span>since ' + escapeHtml(firstLabel) + '</span>');
+  if (serverPetMemory && serverPetMemory.updated_at) {
+    var m = new Date(serverPetMemory.updated_at);
+    if (!isNaN(m.getTime())) {
+      var h = (Date.now() - m.getTime()) / 3600000;
+      var fresh = h < 1 ? 'just now' : h < 24 ? Math.round(h) + 'h ago' : Math.round(h / 24) + 'd ago';
+      parts.push('<span>memory updated ' + fresh + '</span>');
+    }
+  }
+  el.innerHTML = parts.join('<span class="dot-sep">\u00b7</span>');
+  el.style.display = 'flex';
 }
 
 // Gentle one-tap suggestion shown for returning users, pulled from the pet's
@@ -3271,6 +3564,89 @@ function forgetMemory(index) {
   renderMemories();
 }
 
+// ─── Client-side message search ───
+// Filters through the loaded chat history (in-memory) and shows matching
+// messages as clickable jump-to-message chips. No LLM calls, no DB hits.
+function setupMemorySearch() {
+  var input = document.getElementById('memoriesSearch');
+  var results = document.getElementById('memoriesSearchResults');
+  if (!input || !results) return;
+  var debounce = null;
+  input.addEventListener('input', function() {
+    clearTimeout(debounce);
+    debounce = setTimeout(function() {
+      renderMessageSearch(input.value.trim());
+    }, 120);
+  });
+}
+function renderMessageSearch(q) {
+  var results = document.getElementById('memoriesSearchResults');
+  var list = document.getElementById('memoriesList');
+  var summary = document.getElementById('memoriesSummary');
+  if (!results) return;
+  if (!q) {
+    results.style.display = 'none';
+    results.innerHTML = '';
+    if (list) list.style.display = '';
+    if (summary && summary.innerHTML) summary.style.display = 'block';
+    return;
+  }
+  var needle = q.toLowerCase();
+  // Search through the in-memory messages array (all loaded history)
+  var matches = [];
+  for (var i = 0; i < messages.length; i++) {
+    var m = messages[i];
+    if (!m || !m.content) continue;
+    var content = String(m.content);
+    if (content.toLowerCase().indexOf(needle) === -1) continue;
+    matches.push({ role: m.role, content: content, index: i });
+    if (matches.length >= 30) break;
+  }
+  if (!matches.length) {
+    results.innerHTML = '<div class="memories-search-empty">no matches found</div>';
+  } else {
+    results.innerHTML = matches.map(function(m) {
+      var preview = m.content.length > 140 ? m.content.slice(0, 137) + '\u2026' : m.content;
+      // Highlight needle
+      var esc = escapeHtml(preview);
+      var escNeedle = escapeHtml(needle);
+      var re = new RegExp('(' + escNeedle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+      var highlighted = esc.replace(re, '<mark>$1</mark>');
+      var roleLabel = m.role === 'user' ? 'you' : (petData && petData.name ? petData.name : 'they');
+      return '<button class="memories-search-result" data-idx="' + m.index + '">' +
+               '<span class="msr-role">' + escapeHtml(roleLabel) + '</span>' +
+               '<span class="msr-preview">' + highlighted + '</span>' +
+             '</button>';
+    }).join('');
+    // Bind click → scroll to that message in main chat, close sidebar
+    Array.prototype.forEach.call(results.querySelectorAll('.memories-search-result'), function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-idx'), 10);
+        jumpToMessage(idx);
+      });
+    });
+  }
+  results.style.display = 'block';
+  if (list) list.style.display = 'none';
+  if (summary) summary.style.display = 'none';
+}
+
+// Scroll to the Nth message in the main thread. Messages are rendered in the
+// same order as the in-memory `messages` array, so we can index .msg elements.
+function jumpToMessage(i) {
+  var container = document.getElementById('chatMessages');
+  if (!container) return;
+  var nodes = container.querySelectorAll('.msg');
+  var target = nodes[i];
+  if (!target) return;
+  try { toggleSidebar(); } catch(_) {}
+  setTimeout(function() {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('msg-flash');
+    setTimeout(function() { target.classList.remove('msg-flash'); }, 1600);
+  }, 260);
+}
+
 // ─── Voice input (browser-native SpeechRecognition) ───
 // Chrome/Safari only; button is hidden on unsupported browsers.
 var _voiceRecog = null;
@@ -3321,6 +3697,7 @@ function toggleVoiceInput() {
 // Run setup on load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', setupVoiceInput);
+  document.addEventListener('DOMContentLoaded', setupMemorySearch);
 } else {
   setupVoiceInput();
 }
