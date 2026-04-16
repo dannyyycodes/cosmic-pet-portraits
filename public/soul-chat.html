@@ -2150,12 +2150,45 @@ function updateHeaderUI() {
       '<div class="welcome-prompt" onclick="sendPrompt(this)">What do you want me to know right now?</div>' +
       '<div class="welcome-prompt" onclick="sendPrompt(this)">What was your favourite moment with me?</div>';
   } else {
+    // Personalised starter chips — pulled from this pet's actual report data
+    // with emotional fallbacks when a field is missing. Shows as many
+    // pet-specific questions as we have data for, then fills the rest.
+    var chips = [];
+    if (petData.dreamJob) {
+      chips.push('Tell me about your dream of being a ' + escapeAttr(petData.dreamJob));
+    }
+    if (petData.topCrimes) {
+      chips.push('What\u2019s the story behind: ' + escapeAttr(petData.topCrimes) + '?');
+    }
+    if (petData.pastLifeHint) {
+      chips.push('What was your past life like? I need to know.');
+    }
+    if (petData.secretDesire) {
+      chips.push('What\u2019s your secret desire?');
+    }
+    if (petData.superpower) {
+      chips.push('You said your superpower is "' + escapeAttr(petData.superpower) + '" \u2014 show me.');
+    }
+    // Emotional fallbacks — always appended if we need to pad to 4
+    var fallbacks = [
+      'What were you feeling the very first time you saw me?',
+      'Do you know when I\u2019m having a bad day?',
+      'What do you love most about our life together?',
+      'What\u2019s the one thing you wish I\u2019d do more of?',
+    ];
+    while (chips.length < 4 && fallbacks.length) {
+      chips.push(fallbacks.shift());
+    }
+    chips = chips.slice(0, 4);
     document.getElementById('welcomePrompts').innerHTML =
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">What were you feeling the very first time you saw me?</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">What do you love most about our life together?</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">Do you know when I\u2019m having a bad day?</div>' +
-      '<div class="welcome-prompt" onclick="sendPrompt(this)">What\u2019s the one thing you wish I\u2019d do more of?</div>';
+      chips.map(function(q){ return '<div class="welcome-prompt" onclick="sendPrompt(this)">' + q + '</div>'; }).join('');
   }
+}
+
+function escapeAttr(s) {
+  return String(s || '').replace(/[<>"']/g, function(c){
+    return { '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
 }
 
 function getQuirk(species) {
@@ -2460,6 +2493,7 @@ async function sendMessage() {
         petData: petData,
         email: soulChatEmail,
         shareToken: shareTokenFromUrl,
+        timezone: (function(){ try { return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(_) { return ''; } })(),
       }),
     });
     var data = await res.json();

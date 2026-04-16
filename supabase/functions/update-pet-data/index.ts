@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { reportId, petName, species, breed, gender, birthDate, birthTime, location, soulType, superpower, strangerReaction, petPhotoUrl, occasionMode, email, ownerName, ownerBirthDate, ownerBirthTime, ownerBirthLocation } = await req.json();
+    const { reportId, petName, species, breed, gender, birthDate, birthTime, location, soulType, superpower, strangerReaction, petPhotoUrl, occasionMode, email, ownerName, ownerBirthDate, ownerBirthTime, ownerBirthLocation, ownerMemory } = await req.json();
 
     if (!reportId || !petName || !species) {
       return new Response(JSON.stringify({ error: "Missing required fields: reportId, petName, species" }), {
@@ -86,6 +86,10 @@ serve(async (req) => {
     if (ownerBirthDate) updateData.owner_birth_date = ownerBirthDate;
     if (ownerBirthTime) updateData.owner_birth_time = ownerBirthTime;
     if (ownerBirthLocation) updateData.owner_birth_location = ownerBirthLocation.trim().slice(0, 100);
+    if (typeof ownerMemory === "string") {
+      const trimmed = ownerMemory.trim().slice(0, 600);
+      if (trimmed) updateData.owner_memory = trimmed;
+    }
 
     const { error: updateError } = await supabaseClient
       .from("pet_reports")

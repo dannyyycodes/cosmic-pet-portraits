@@ -135,6 +135,7 @@ export function PostPurchaseIntake({
   const [soulTypes, setSoulTypes] = useState<string[]>([]);
   const [superpowers, setSuperpowers] = useState<string[]>([]);
   const [strangerReaction, setStrangerReaction] = useState("");
+  const [ownerMemory, setOwnerMemory] = useState("");
   const [petPhotoUrl, setPetPhotoUrl] = useState<string | null>(null);
   const [email, setEmail] = useState(sharedEmail ?? "");
   const [isUploading, setIsUploading] = useState(false);
@@ -378,6 +379,7 @@ export function PostPurchaseIntake({
           breed: breed || undefined, location: location || undefined,
           soulType: soulTypes.join(', ') || undefined, superpower: superpowers.join(', ') || undefined,
           strangerReaction: strangerReaction || undefined, petPhotoUrl: petPhotoUrl || undefined,
+          ownerMemory: ownerMemory.trim() || undefined,
           email: email.trim() || undefined,
           ...(includesSoulBond && ownerBirthDate ? {
             ownerName: ownerName.trim() || undefined,
@@ -922,6 +924,22 @@ export function PostPurchaseIntake({
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* One memory — optional, powers SoulSpeak personalisation */}
+              <div>
+                <label className={labelClass}>
+                  One memory that's SO them <span className="text-[#9B8E84] font-normal">(optional)</span>
+                </label>
+                <textarea
+                  value={ownerMemory}
+                  onChange={(e) => setOwnerMemory(e.target.value.slice(0, 500))}
+                  placeholder={`The one story that makes ${petName || 'them'} ${petName || 'them'}. ${petName || 'They'} will reference it in SoulSpeak someday and you'll gasp.`}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-[10px] border-[1.5px] border-[#E8DFD6] bg-white text-[0.88rem] font-[Cormorant,serif] text-[#2D2926] placeholder:text-[#C2B8AE] focus:border-[#bf524a] focus:outline-none resize-none"
+                  maxLength={500}
+                />
+                <div className="text-right text-[0.7rem] text-[#9B8E84] font-[Cormorant,serif] mt-1">{ownerMemory.length}/500</div>
               </div>
 
               <button onClick={() => setScreen(showSoulBondScreen ? soulBondScreen : confirmScreen)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
