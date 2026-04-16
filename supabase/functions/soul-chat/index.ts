@@ -266,6 +266,25 @@ serve(async (req) => {
       });
     }
 
+    // ─── Rate limit (per order, rolling 60s window) ─────────────────────
+    // A real human can't send 10 messages in 60s. A bot hammering a leaked
+    // share link to burn the owner's credits can — this stops it cheaply,
+    // before the credits gate and LLM call.
+    const { count: recentUserMsgs } = await supabase
+      .from("chat_messages")
+      .select("*", { count: "exact", head: true })
+      .eq("order_id", orderId)
+      .eq("role", "user")
+      .gt("created_at", new Date(Date.now() - 60_000).toISOString());
+
+    if ((recentUserMsgs ?? 0) >= 10) {
+      return new Response(JSON.stringify({
+        error: "rate_limited",
+        reply: "Slow down a moment — give them time to respond. Try again in 30 seconds.",
+        retryAfterSeconds: 30,
+      }), { status: 429, headers: { ...corsJson, "Retry-After": "30" } });
+    }
+
     // ─── Server-side credit gate (source of truth) ──────────────────────
     // Credits pool at the household (email) level so a buyer with N pets gets
     // STARTER_CREDITS × N shared across all of them — they can spend them on
@@ -440,7 +459,7 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
 
     async function callSonnet(extraCorrective: string = ''): Promise<{ reply: string; err?: string }> {
       const finalSystem = extraCorrective
-        ? [...systemContent, { type: "text", text: `\n\nCORRECTION FROM VALIDATOR (your previous attempt invented something not in your data): ${extraCorrective}\nRewrite staying strictly within your known identity and soul data.` }]
+        ? [...systemContent, { type: "text", text: `\n\nCORRECTION FROM VALIDATOR (your previous attempt was rejected): ${extraCorrective}\nRewrite the reply. Stay strictly within your known identity and soul data, and if you're in memorial mode keep the tone gentle, steady, and present-tense from the afterlife.` }]
         : systemContent;
 
       const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -469,13 +488,20 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
     // ─── Validator (Haiku, cheap + fast) ────────────────────────────────
     async function validateReply(replyText: string): Promise<{ valid: boolean; reason: string }> {
       try {
+        const isMemorial = petData.occasionMode === 'memorial';
         const facts = {
           name: petData.name, species: petData.species, breed: petData.breed,
           sun: petData.zodiac, moon: petData.moonSign, rising: petData.risingSign,
           element: petData.element, archetype: petData.archetype,
           crystal: petData.crystal, aura: petData.aura,
+          occasionMode: petData.occasionMode || 'default',
           ownerObservations: { soulType: petData.soulType, superpower: petData.superpower, strangerReaction: petData.strangerReaction },
         };
+        const memorialClause = isMemorial
+          ? ` The pet is in MEMORIAL MODE — they have crossed over. Also flag the reply if it (b) breaks the gentle, grief-aware tone: playful jokes, excited exclamations, energetic "zoomies"/"belly rub" references, future-tense plans, or anything celebratory. Memorial replies must be soft, emotionally steady, and present-tense from the afterlife.`
+          : '';
+        const systemPrompt = `You are a fact-checker for a pet's AI soul messages. Given the pet's known data and a reply the pet just wrote, decide if the reply (a) invents any SPECIFIC FACT (a memory of an event, a date, a place they've been, a named human, a specific health claim, or a trait that contradicts their data).${memorialClause} Emotional/poetic/soul wisdom is ALWAYS valid. ${isMemorial ? 'For living pets, generic behaviours (naps, zoomies, belly rubs) are valid — but in memorial mode flag them if they sound playful or energetic.' : 'Generic pet behaviours (naps, zoomies, belly rubs, snacks) are ALWAYS valid.'} Zodiac/archetype references matching the data are valid. Only flag outright invented specifics${isMemorial ? ' or tone violations' : ''}. Respond with JSON only: {"valid": boolean, "reason": "short reason if invalid, empty string if valid"}`;
+
         const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -487,7 +513,7 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
           body: JSON.stringify({
             model: "anthropic/claude-haiku-4.5",
             messages: [
-              { role: "system", content: `You are a fact-checker for a pet's AI soul messages. Given the pet's known data and a reply the pet just wrote, decide if the reply invents any SPECIFIC FACT (a memory of an event, a date, a place they've been, a named human, a specific health claim, or a trait that contradicts their data). Emotional/poetic/soul wisdom is ALWAYS valid. Generic pet behaviours (naps, zoomies, belly rubs, snacks) are ALWAYS valid. Zodiac/archetype references matching the data are valid. Only flag outright invented specifics. Respond with JSON only: {"valid": boolean, "reason": "short reason if invalid, empty string if valid"}` },
+              { role: "system", content: systemPrompt },
               { role: "user", content: `PET DATA:\n${JSON.stringify(facts)}\n\nREPLY:\n${replyText}` },
             ],
             max_tokens: 100,
