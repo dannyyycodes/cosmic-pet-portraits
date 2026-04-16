@@ -17,6 +17,8 @@ interface PetReport {
   created_at: string;
   payment_status: string | null;
   share_token: string | null;
+  portrait_url?: string | null;
+  pet_photo_url?: string | null;
 }
 
 export default function MyReports() {
@@ -285,12 +287,24 @@ export default function MyReports() {
                     style={{ background: 'white', border: '1px solid #e8ddd0', borderRadius: '16px' }}
                   >
                     <div className="flex items-start gap-4">
-                      <div
-                        className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
-                        style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
-                      >
-                        {getSpeciesEmoji(report.species)}
-                      </div>
+                      {/* Prefer the AI portrait (Portrait tier) → fall back to the uploaded
+                          pet photo → species emoji as last resort. */}
+                      {report.portrait_url || report.pet_photo_url ? (
+                        <img
+                          src={report.portrait_url || report.pet_photo_url || ''}
+                          alt={report.pet_name}
+                          loading="lazy"
+                          className="w-14 h-14 rounded-xl object-cover shrink-0"
+                          style={{ border: '2px solid #c4a265', background: '#faf6ef' }}
+                        />
+                      ) : (
+                        <div
+                          className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
+                          style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                        >
+                          {getSpeciesEmoji(report.species)}
+                        </div>
+                      )}
 
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-semibold truncate" style={{ color: '#3d2f2a' }}>

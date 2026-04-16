@@ -56,7 +56,7 @@ serve(async (req) => {
       // Pet reports for this user
       supabaseAdmin
         .from("pet_reports")
-        .select("id, pet_name, species, breed, birth_date, payment_status, created_at, share_token, portrait_url")
+        .select("id, pet_name, species, breed, birth_date, payment_status, created_at, share_token, portrait_url, pet_photo_url")
         .or(`email.eq.${email},user_id.eq.${userId}`)
         .eq("payment_status", "paid")
         .order("created_at", { ascending: false }),

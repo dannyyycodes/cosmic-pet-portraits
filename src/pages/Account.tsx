@@ -38,6 +38,7 @@ interface CustomerData {
     created_at: string;
     share_token: string | null;
     portrait_url: string | null;
+    pet_photo_url: string | null;
   }>;
   affiliate: {
     id: string;
@@ -462,10 +463,21 @@ const Account = () => {
                         style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
                       >
                         <div className="flex items-center gap-3">
-                          {report.portrait_url && (
-                            <img src={report.portrait_url} alt={report.pet_name}
-                              className="w-12 h-12 rounded-full object-cover"
-                              style={{ border: '2px solid #c4a265' }} />
+                          {(report.portrait_url || report.pet_photo_url) ? (
+                            <img
+                              src={report.portrait_url || report.pet_photo_url || ''}
+                              alt={report.pet_name}
+                              loading="lazy"
+                              className="w-12 h-12 rounded-full object-cover shrink-0"
+                              style={{ border: '2px solid #c4a265', background: '#faf6ef' }}
+                            />
+                          ) : (
+                            <div
+                              className="w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0"
+                              style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
+                            >
+                              🐾
+                            </div>
                           )}
                           <div>
                             <h3 className="font-medium" style={{ color: '#3d2f2a' }}>{report.pet_name}</h3>
