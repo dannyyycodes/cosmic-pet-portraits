@@ -1482,6 +1482,19 @@ const HoroscopePreview = () => (
       Like a weather forecast — but made of starlight. Each Sunday, you'll see what the week ahead holds for their little soul: the tender days, the stirring ones, the quiet ones. A gentle map of the cosmos moving through their world — so nothing arrives without meaning.
     </p>
 
+    <p
+      style={{
+        fontFamily: "Cormorant, Georgia, serif",
+        fontSize: "0.92rem",
+        color: "var(--earth, #6e6259)",
+        lineHeight: 1.7,
+        textAlign: "center",
+        padding: "0 4px",
+      }}
+    >
+      Without it, the weeks just <em style={{ color: "var(--ink, #1f1c18)" }}>pass</em>. The small shifts, the soft turns, the days that wanted to be noticed — gone by before you saw them. And they only get so many weeks <em style={{ color: "var(--rose, #bf524a)" }}>with you</em>.
+    </p>
+
     <div
       style={{
         textAlign: "center",
