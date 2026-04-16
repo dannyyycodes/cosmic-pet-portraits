@@ -7,9 +7,14 @@ interface GiftConfirmationProps {
   recipientName: string;
   recipientEmail: string;
   sunSign: string;
+  /** When present, render a "continue to next pet" CTA — used inside the
+   *  multi-pet reveal sequence so a mixed cart (gift + discover + memorial)
+   *  flows through each pet's own screen without dumping the buyer home. */
+  onContinue?: () => void;
+  continueLabel?: string;
 }
 
-export function GiftConfirmation({ petName, recipientName, recipientEmail, sunSign }: GiftConfirmationProps) {
+export function GiftConfirmation({ petName, recipientName, recipientEmail, sunSign, onContinue, continueLabel }: GiftConfirmationProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-6">
       {/* Background celebration particles */}
@@ -127,20 +132,28 @@ export function GiftConfirmation({ petName, recipientName, recipientEmail, sunSi
           </ul>
         </motion.div>
 
-        {/* Back to home */}
+        {/* Continue — either advance to the next pet in a multi-pet cart or
+            bounce home if this was the last/only pet. */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
-          className="mt-8"
+          className="mt-8 flex flex-col items-center gap-3"
         >
-          <Button
-            onClick={() => window.location.href = '/'}
-            variant="outline"
-            className="gap-2"
-          >
-            Get a reading for your pet too
-          </Button>
+          {onContinue ? (
+            <Button onClick={onContinue} variant="cosmic" size="xl" className="gap-2">
+              <Sparkles className="w-5 h-5" />
+              {continueLabel || "Continue to the next reading"}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => window.location.href = '/'}
+              variant="outline"
+              className="gap-2"
+            >
+              Get a reading for your pet too
+            </Button>
+          )}
         </motion.div>
       </div>
     </div>

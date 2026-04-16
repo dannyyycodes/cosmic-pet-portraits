@@ -188,7 +188,9 @@ export default function PaymentSuccess() {
           if (data.includeGift && data.giftCode) setGiftInfo({ includeGift: true, giftCode: data.giftCode });
           if (data.horoscopeEnabled) setHoroscopeInfo({ enabled: true, petNames: processedReports.map(r => r.petName) });
           setAllReports(processedReports);
-          setStage(processedReports[0].isGift ? 'gift-sent' : 'reveal');
+          // Per-pet routing — first pet's occasion decides the first screen.
+          // Later pets pick their own stage via handleNextPet/handleRevealComplete.
+          setStage(stageForReport(processedReports[0]));
           return true;
         }
         return 'generating';
@@ -264,12 +266,22 @@ export default function PaymentSuccess() {
     setTimeout(poll, result === 'generating' ? 3000 : 5000);
   };
 
+  // Every pet in a multi-pet order can have its own occasion_mode. The
+  // sequence walks through them one by one — whichever pet is active picks
+  // the correct stage (gift → GiftConfirmation, everything else → reveal).
+  const stageForReport = (r?: ReportData): Stage => (r?.isGift ? 'gift-sent' : 'reveal');
+
   const handleRevealComplete = () => {
     if (hasMultipleReports && !isLastReport) setStage('ready-next');
     else setStage('complete');
   };
 
-  const handleNextPet = () => { setCurrentReportIndex(prev => prev + 1); setStage('reveal'); };
+  const handleNextPet = () => {
+    const nextIndex = currentReportIndex + 1;
+    const nextReport = allReports[nextIndex];
+    setCurrentReportIndex(nextIndex);
+    setStage(stageForReport(nextReport));
+  };
   const handleViewAllReports = () => setStage('complete');
   const handleAllComplete = () => setStage('celebration');
   const handleNextPetFromViewer = () => { if (currentReportIndex < allReports.length - 1) setCurrentReportIndex(prev => prev + 1); };
@@ -457,14 +469,22 @@ export default function PaymentSuccess() {
     );
   }
 
-  // Gift confirmation
+  // Gift confirmation — in a multi-pet cart the buyer continues to the next
+  // pet's screen (reveal or another gift-sent) rather than bouncing home.
   if (stage === 'gift-sent' && currentReport) {
+    const isLastInSequence = !hasMultipleReports || isLastReport;
+    const nextPet = hasMultipleReports && !isLastReport ? allReports[currentReportIndex + 1] : undefined;
+    const continueLabel = isLastInSequence
+      ? undefined
+      : `Continue to ${nextPet?.petName || 'the next reading'} →`;
     return (
       <GiftConfirmation
         petName={currentReport.petName}
         recipientName={currentReport.recipientName || 'your friend'}
         recipientEmail={currentReport.recipientEmail || 'them'}
         sunSign={currentReport.report?.sunSign || 'cosmic'}
+        onContinue={isLastInSequence ? undefined : handleNextPet}
+        continueLabel={continueLabel}
       />
     );
   }
@@ -485,6 +505,7 @@ export default function PaymentSuccess() {
           onNextPet={handleNextPetFromViewer}
           onAllComplete={handleAllComplete}
           hasActiveHoroscope={horoscopeInfo.enabled}
+          occasionMode={currentReport?.occasionMode}
         />
         {activeReportId && (
           <div className="flex justify-center my-8">

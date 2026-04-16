@@ -87,6 +87,41 @@ serve(async (req) => {
       });
     }
 
+    // Cancel any horoscope subscription for this pet if the buyer flipped the
+    // occasion to memorial during intake. The subscription was created at
+    // stripe-webhook time (when all pets were 'discover' by default), so the
+    // memorial-guard at that layer couldn't catch it yet. Weekly "your week
+    // ahead" emails for a pet who has crossed the rainbow bridge is the kind
+    // of bug that would hurt grieving owners badly — so we also cancel the
+    // Stripe sub so the buyer stops getting billed.
+    if (occasionMode === "memorial") {
+      const { data: activeSubs } = await supabaseClient
+        .from("horoscope_subscriptions")
+        .select("id, stripe_subscription_id")
+        .eq("pet_report_id", reportId)
+        .eq("status", "active");
+
+      if (activeSubs && activeSubs.length > 0) {
+        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+        if (stripeKey) {
+          const { default: Stripe } = await import("https://esm.sh/stripe@17.7.0?target=deno");
+          const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+          for (const sub of activeSubs) {
+            if (sub.stripe_subscription_id) {
+              try { await stripe.subscriptions.cancel(sub.stripe_subscription_id); }
+              catch (e) { console.warn("[UPDATE-PET-DATA] Stripe horoscope cancel failed (non-fatal):", e); }
+            }
+          }
+        }
+        await supabaseClient
+          .from("horoscope_subscriptions")
+          .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+          .eq("pet_report_id", reportId)
+          .eq("status", "active");
+        console.log("[UPDATE-PET-DATA] Cancelled horoscope sub(s) for memorial pet:", reportId, activeSubs.length);
+      }
+    }
+
     // Sync email to chat_credits if email was updated (e.g. redeem flow where email starts as placeholder)
     if (email) {
       const normalizedEmail = email.toLowerCase().trim();
