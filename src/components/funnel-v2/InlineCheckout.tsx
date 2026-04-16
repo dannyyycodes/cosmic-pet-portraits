@@ -1466,7 +1466,7 @@ const HoroscopePreview = () => (
         textAlign: "center",
       }}
     >
-      A little letter from the stars, every Sunday morning.
+      Every Sunday, a whisper from the stars — just for them.
     </p>
 
     <p
@@ -1474,18 +1474,18 @@ const HoroscopePreview = () => (
         fontFamily: "Cormorant, Georgia, serif",
         fontSize: "0.95rem",
         color: "var(--earth, #6e6259)",
-        lineHeight: 1.7,
+        lineHeight: 1.75,
         textAlign: "center",
         padding: "0 4px",
       }}
     >
-      The days they'll be clingy. The days they'll want their space. When your energies lock in — and when to just let them be.
+      The moon's slow passage through their week. The planets' quiet gifts. The cosmic light falling softly on their little soul — written gently, for only you to read.
     </p>
 
     <div
       style={{
         textAlign: "center",
-        padding: "16px 20px",
+        padding: "18px 22px",
         borderRadius: 14,
         background: "rgba(196,162,101,0.08)",
       }}
@@ -1494,12 +1494,12 @@ const HoroscopePreview = () => (
         style={{
           fontFamily: "Cormorant, Georgia, serif",
           fontStyle: "italic",
-          fontSize: "0.92rem",
+          fontSize: "0.95rem",
           color: "var(--ink, #1f1c18)",
-          lineHeight: 1.55,
+          lineHeight: 1.6,
         }}
       >
-        A quiet moment with them — <br className="hidden sm:block" />without you ever having to ask for it.
+        A sacred little ritual — <br className="hidden sm:block" />a thread of wonder, always for the two of you.
       </p>
     </div>
   </div>
