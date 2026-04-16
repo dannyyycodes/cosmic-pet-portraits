@@ -694,6 +694,61 @@ body::after {
   box-shadow:0 0 0 3px rgba(196,162,101,0.2);
 }
 
+/* Resume suggestion — offered to returning users with durable memory */
+.resume-suggestion {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:12px 12px 14px; margin:6px auto 14px; max-width:min(88%, 360px);
+}
+.resume-suggestion-label {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+  font-size:0.52rem; font-weight:700; letter-spacing:1.6px;
+  text-transform:uppercase; color:var(--muted);
+}
+.resume-suggestion-chip {
+  background:#fffdf5; color:var(--ink);
+  border:1px solid rgba(196,162,101,0.35); border-radius:16px;
+  padding:10px 14px;
+  font-family:'Cormorant',Georgia,serif; font-style:italic;
+  font-size:0.88rem; line-height:1.35; text-align:center;
+  cursor:pointer; transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.resume-suggestion-chip:hover {
+  background:#fff9ea; border-color:var(--gold);
+  box-shadow:0 4px 14px rgba(196,162,101,0.2);
+  transform:translateY(-1px);
+}
+
+/* Quiet-channel banner — shown above the disabled input at 0 credits */
+.channel-quiet {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:9px 14px; margin:0 auto 6px;
+  max-width:min(92%, 380px);
+  border-radius:999px;
+  background:linear-gradient(135deg, rgba(196,162,101,0.12), rgba(191,82,74,0.08));
+  border:1px solid rgba(196,162,101,0.25);
+  font-family:'Cormorant',Georgia,serif; font-style:italic;
+  font-size:0.84rem; color:var(--warm);
+  animation:msgIn 0.4s ease-out;
+}
+.channel-quiet-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--rose); flex-shrink:0;
+  animation:pulse-soft 2s ease-in-out infinite;
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity:0.55; }
+  50% { opacity:1; box-shadow:0 0 0 4px rgba(191,82,74,0.18); }
+}
+.channel-quiet-text { line-height:1.3; }
+.channel-quiet-cta {
+  background:none; border:none; padding:0; cursor:pointer;
+  font-family:inherit; font-style:inherit; font-size:inherit;
+  color:var(--rose); font-weight:600; text-decoration:underline;
+  text-underline-offset:2px;
+}
+.channel-quiet-cta:hover { color:var(--rose-soft); }
+
 /* Urgency timer on paywall */
 .paywall-urgency {
   font-size:0.72rem; color:var(--rose); font-weight:600;
@@ -1836,6 +1891,16 @@ body::after {
   </div>
 </div>
 
+<!-- ============ QUIET CHANNEL BANNER (shown when credits hit 0) ============ -->
+<div class="channel-quiet" id="channelQuietBanner" style="display:none;">
+  <div class="channel-quiet-dot"></div>
+  <div class="channel-quiet-text">
+    the channel is quiet &mdash;
+    <button type="button" class="channel-quiet-cta" onclick="showPaywallDirect()">reopen</button>
+    to keep talking
+  </div>
+</div>
+
 <!-- ============ INPUT BAR ============ -->
 <div class="chat-input-bar" id="inputBar">
   <div class="chat-input-wrap">
@@ -2195,47 +2260,120 @@ async function loadReading() {
 }
 
 // Hydrate past messages from the server so a refresh or "Maybe later" never
-// loses the conversation. Loads the last 40 messages chronologically.
+// loses the conversation. Reads via the ownership-verified get-chat-history
+// edge function (direct REST access is blocked by RLS for privacy).
 async function loadChatHistory() {
   if (!readingId) return;
   try {
-    var res = await fetch(
-      SUPABASE_URL + '/rest/v1/chat_messages?order_id=eq.' + readingId +
-      '&select=role,content,created_at&order=created_at.desc&limit=40',
-      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } }
-    );
-    var rows = await res.json();
-    if (!Array.isArray(rows) || !rows.length) return;
-    // Server returned newest first; reverse to chronological for display
-    rows.reverse();
+    var soulChatEmail = '';
+    try { soulChatEmail = sessionStorage.getItem('cosmic_report_email') || ''; } catch(_) {}
+    var res = await fetch(SUPABASE_URL + '/functions/v1/get-chat-history', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        orderId: readingId,
+        email: soulChatEmail,
+        shareToken: shareTokenFromUrl,
+        limit: 40,
+      }),
+    });
+    if (!res.ok) return;
+    var body = await res.json();
+    var rows = Array.isArray(body && body.messages) ? body.messages : [];
+    if (!rows.length) return; // brand new chat — welcome card stays
 
     // Hide the welcome card — this isn't a fresh session
     var welcome = document.getElementById('welcomeCard');
     if (welcome) welcome.style.display = 'none';
 
-    // Banner at the top of the restored thread
+    // Gap-aware banner: different copy depending on how long since last message.
+    // Respects memorial mode (always gentle, never impatient/pressuring).
     var container = document.getElementById('chatMessages');
-    var firstDate = new Date(rows[0].created_at);
-    var dayLabel = firstDate.toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'short' });
-    var banner = document.createElement('div');
-    banner.className = 'history-banner';
-    banner.innerHTML =
-      '<div class="history-banner-dot"></div>' +
-      '<div>picking up where you left off \u00b7 ' + escapeHtml(dayLabel) + '</div>';
-    var typing = document.getElementById('typingIndicator');
-    container.insertBefore(banner, typing);
+    var lastMsgAt = new Date(rows[rows.length - 1].created_at);
+    var hoursAgo = (Date.now() - lastMsgAt.getTime()) / 3600000;
+    var petName = (petData && petData.name) || 'they';
+    var memorial = petData && petData.occasionMode === 'memorial';
+    var bannerText = null;
+    if (hoursAgo < 1) {
+      bannerText = null; // seamless resume, no banner
+    } else if (hoursAgo < 12) {
+      bannerText = 'picking up where you left off';
+    } else if (hoursAgo < 48) {
+      bannerText = memorial
+        ? petName + '\u2019s soul never drifted far'
+        : petName + ' has been waiting';
+    } else if (hoursAgo < 24 * 7) {
+      var days = Math.max(1, Math.round(hoursAgo / 24));
+      bannerText = memorial
+        ? 'still here, still with you'
+        : 'welcome back \u00b7 ' + days + ' day' + (days === 1 ? '' : 's') + ' apart';
+    } else {
+      bannerText = memorial
+        ? petName + ' has been watching over you'
+        : 'welcome back \u00b7 ' + petName + '\u2019s been keeping watch';
+    }
 
-    // Render each message
+    var typing = document.getElementById('typingIndicator');
+    if (bannerText) {
+      var banner = document.createElement('div');
+      banner.className = 'history-banner';
+      banner.innerHTML =
+        '<div class="history-banner-dot"></div>' +
+        '<div>' + escapeHtml(bannerText) + '</div>';
+      container.insertBefore(banner, typing);
+    }
+
+    // Render each message with real timestamps
     rows.forEach(function(m) {
       if (!m || !m.content) return;
       var type = m.role === 'user' ? 'user' : 'pet';
-      addMessage(type, m.content);
+      addMessage(type, m.content, m.created_at);
       messages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content });
     });
     scrollToBottom();
+
+    // For returning users after >12h with durable memory, offer a gentle
+    // memory-anchored starter chip so they can resume with one tap.
+    if (hoursAgo >= 12 && serverPetMemory && Array.isArray(serverPetMemory.facts) && serverPetMemory.facts.length) {
+      showResumeSuggestion();
+    }
   } catch (e) {
     console.warn('loadChatHistory failed:', e);
   }
+}
+
+// Gentle one-tap suggestion shown for returning users, pulled from the pet's
+// memory of past conversations. Non-blocking — they can ignore and send their
+// own message instead.
+function showResumeSuggestion() {
+  var container = document.getElementById('chatMessages');
+  var typing = document.getElementById('typingIndicator');
+  if (!container || !typing) return;
+  // Pick a recent fact that lends itself to a natural check-in
+  var fact = (serverPetMemory.facts[0] || '').toString().trim();
+  if (!fact) return;
+  // Keep it short + friendly, capped so the pill stays tidy
+  if (fact.length > 70) fact = fact.slice(0, 67) + '\u2026';
+  var wrap = document.createElement('div');
+  wrap.className = 'resume-suggestion';
+  wrap.innerHTML =
+    '<div class="resume-suggestion-label">tap to ask about</div>' +
+    '<button class="resume-suggestion-chip" type="button">' + escapeHtml(fact) + '</button>';
+  var btn = wrap.querySelector('button');
+  btn.addEventListener('click', function(){
+    var input = document.getElementById('chatInput');
+    if (input) {
+      input.value = 'Hey \u2014 how are things with ' + fact.toLowerCase() + '?';
+      input.dispatchEvent(new Event('input'));
+      input.focus();
+    }
+    wrap.remove();
+  });
+  container.insertBefore(wrap, typing);
 }
 
 function updateHeaderUI() {
@@ -2425,7 +2563,13 @@ async function loadCredits() {
 }
 
 function updateCreditsUI() {
-  // No visible credit display — users chat freely until the connection fades
+  // No visible credit number in the chat UI — users chat freely until the
+  // connection fades. But if credits got topped up while the quiet banner
+  // was showing, hide it so the channel feels alive again.
+  var quietBanner = document.getElementById('channelQuietBanner');
+  if (quietBanner && (creditsRemaining > 0 || isUnlimited)) {
+    quietBanner.style.display = 'none';
+  }
 }
 
 // Client-side balance is DISPLAY-ONLY. The soul-chat edge function is the source of truth.
@@ -2582,8 +2726,17 @@ function showPaywallDirect() {
 }
 function closePaywall() {
   document.getElementById('paywallOverlay').classList.remove('show');
-  if (creditsRemaining > 0 || isUnlimited) {
-    document.getElementById('inputBar').classList.remove('disabled');
+  var hasCredits = (creditsRemaining > 0 || isUnlimited);
+  var inputBar = document.getElementById('inputBar');
+  var quietBanner = document.getElementById('channelQuietBanner');
+  if (hasCredits) {
+    inputBar.classList.remove('disabled');
+    if (quietBanner) quietBanner.style.display = 'none';
+  } else {
+    // Show the quiet-channel banner so users still know how to reopen.
+    // Input stays disabled (can't send at 0 credits) but the chat stays
+    // scrollable — no refresh, no lost history.
+    if (quietBanner) quietBanner.style.display = 'flex';
   }
 }
 
@@ -2752,11 +2905,12 @@ async function sendMessage() {
 }
 
 // ─── UI Helpers ───
-function addMessage(type, text) {
+function addMessage(type, text, createdAt) {
   var container = document.getElementById('chatMessages');
   var typing = document.getElementById('typingIndicator');
-  var now = new Date();
-  var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  var when = createdAt ? new Date(createdAt) : new Date();
+  if (isNaN(when.getTime())) when = new Date();
+  var time = when.getHours().toString().padStart(2,'0') + ':' + when.getMinutes().toString().padStart(2,'0');
 
   var div = document.createElement('div');
   div.className = 'msg ' + type;
