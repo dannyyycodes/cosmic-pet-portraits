@@ -179,6 +179,18 @@ export function PostPurchaseIntake({
     };
   }, []);
 
+  // Scroll to top on every screen transition — on mobile the page can sit
+  // mid-scroll from the previous screen, hiding the new screen's heading
+  // under the iOS keyboard or nav bar. Respect prefers-reduced-motion.
+  useEffect(() => {
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: reduced ? 'auto' : 'smooth' });
+    } catch {
+      window.scrollTo(0, 0);
+    }
+  }, [screen]);
+
   // Improved date picker state
   const [useEstimateAge, setUseEstimateAge] = useState(false);
   const [estimateYears, setEstimateYears] = useState("");
@@ -438,6 +450,9 @@ export function PostPurchaseIntake({
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
+          role="status"
+          aria-live="polite"
+          aria-label={`Pet ${currentPetNumber} of ${totalPets}`}
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full"
           style={{
             background: 'linear-gradient(135deg, rgba(196,162,101,0.15), rgba(191,82,74,0.12))',
@@ -447,7 +462,7 @@ export function PostPurchaseIntake({
           <span className="text-[0.68rem] font-bold uppercase tracking-[0.15em]" style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}>
             Pet {currentPetNumber} of {totalPets}
           </span>
-          <div className="flex gap-1">
+          <div className="flex gap-1" aria-hidden="true">
             {Array.from({ length: totalPets! }, (_, i) => (
               <div
                 key={i}
@@ -491,7 +506,15 @@ export function PostPurchaseIntake({
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8" style={{ backgroundColor: '#FFFDF5', ...grainStyle }}>
+    <div
+      className="min-h-screen flex items-start sm:items-center justify-center px-4 py-8"
+      style={{
+        backgroundColor: '#FFFDF5',
+        paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))',
+        paddingTop: 'calc(2rem + env(safe-area-inset-top, 0px))',
+        ...grainStyle,
+      }}
+    >
       <div className="w-full max-w-[480px]">
         <ProgressDots />
         <AnimatePresence mode="wait">

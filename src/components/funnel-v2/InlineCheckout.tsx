@@ -532,10 +532,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                       aria-label={`Remove one ${tier.name}`}
                       className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{
-                        width: 30, height: 30,
+                        width: 44, height: 44, minWidth: 44, minHeight: 44,
                         border: "1.5px solid var(--sand, #d6c8b6)", background: "#fff",
                         color: "var(--earth, #6e6259)", fontFamily: "Cormorant, Georgia, serif",
-                        fontSize: "1.05rem", lineHeight: 1, cursor: minusDisabled ? "not-allowed" : "pointer",
+                        fontSize: "1.25rem", lineHeight: 1, cursor: minusDisabled ? "not-allowed" : "pointer",
                       }}
                     >−</button>
                     <span
@@ -549,10 +549,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                       aria-label={`Add one ${tier.name}`}
                       className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{
-                        width: 30, height: 30,
+                        width: 44, height: 44, minWidth: 44, minHeight: 44,
                         border: "1.5px solid var(--sand, #d6c8b6)", background: "#fff",
                         color: "var(--earth, #6e6259)", fontFamily: "Cormorant, Georgia, serif",
-                        fontSize: "1.05rem", lineHeight: 1, cursor: atMax ? "not-allowed" : "pointer",
+                        fontSize: "1.25rem", lineHeight: 1, cursor: atMax ? "not-allowed" : "pointer",
                       }}
                     >+</button>
                   </div>
@@ -705,13 +705,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 placeholder="Enter code"
                 aria-label="Promo or gift code"
                 className="flex-1 px-3 py-2.5 rounded-lg outline-none uppercase"
-                style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--ink, #1f1c18)", background: "#fff", border: codeError ? "1.5px solid var(--rose, #bf524a)" : "1.5px solid var(--cream3, #f3eadb)", minHeight: 42 }}
+                style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: 16, color: "var(--ink, #1f1c18)", background: "#fff", border: codeError ? "1.5px solid var(--rose, #bf524a)" : "1.5px solid var(--cream3, #f3eadb)", minHeight: 44 }}
               />
               <button
                 type="button"
                 onClick={handleApplyCode}
                 disabled={codeStatus === "checking" || !codeInput.trim()}
-                style={{ padding: "0 16px", background: "var(--rose, #bf524a)", color: "#fff", border: "none", borderRadius: 10, fontFamily: "Cormorant, Georgia, serif", fontWeight: 700, fontSize: "0.9rem", cursor: codeStatus === "checking" ? "wait" : "pointer", whiteSpace: "nowrap", minHeight: 42 }}
+                style={{ padding: "0 18px", background: "var(--rose, #bf524a)", color: "#fff", border: "none", borderRadius: 10, fontFamily: "Cormorant, Georgia, serif", fontWeight: 700, fontSize: "0.92rem", cursor: codeStatus === "checking" ? "wait" : "pointer", whiteSpace: "nowrap", minHeight: 44 }}
               >
                 {codeStatus === "checking" ? "Checking…" : "Apply"}
               </button>
@@ -738,7 +738,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             className="block mb-1.5"
             style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}
           >
-            Your email (we'll send the link here)
+            Your email (so you can return to their reading anytime)
           </label>
           <input
             id="v2-email"

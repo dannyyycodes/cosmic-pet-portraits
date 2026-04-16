@@ -77,7 +77,15 @@ export default function SoulSpeakHub() {
       : null;
 
   return (
-    <div className="min-h-screen" style={{ background: "#FFFDF5", ...grainStyle }}>
+    <div
+      className="min-h-screen"
+      style={{
+        background: "#FFFDF5",
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        ...grainStyle,
+      }}
+    >
       <NoIndex />
       <div className="max-w-[720px] mx-auto px-5 py-10 md:py-14">
         <motion.div

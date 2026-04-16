@@ -32,6 +32,10 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
   const [visible, setVisible] = useState(false);
   const isMultiReading = typeof totalReadings === 'number' && totalReadings > 1;
   const readingNumber = (readingIndex ?? 0) + 1;
+  // Respect users who asked the system to tone animations down — both
+  // accessibility sufferers and anyone on a low-powered Android device.
+  const reducedMotion = typeof window !== 'undefined'
+    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   const sunSign = report?.chartPlacements?.sun?.sign || report?.sunSign || 'Aries';
   const moonSign = report?.chartPlacements?.moon?.sign || report?.moonSign || '';
@@ -90,8 +94,8 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden"
       style={{ backgroundColor: '#FFFDF5', ...grainStyle }}>
 
-      {/* Background dots */}
-      {dots.map((dot, i) => (
+      {/* Background dots — suppressed when user prefers reduced motion. */}
+      {!reducedMotion && dots.map((dot, i) => (
         <motion.div
           key={i}
           className="absolute rounded-full"

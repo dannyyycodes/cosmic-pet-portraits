@@ -67,7 +67,12 @@ export function MultiPetIntakeFlow({ pets, onAllComplete }: MultiPetIntakeFlowPr
     return (
       <div
         className="min-h-screen flex items-center justify-center px-6 py-12 relative overflow-hidden"
-        style={{ backgroundColor: '#FFFDF5', ...grainStyle }}
+        style={{
+          backgroundColor: '#FFFDF5',
+          paddingBottom: 'calc(3rem + env(safe-area-inset-bottom, 0px))',
+          paddingTop: 'calc(3rem + env(safe-area-inset-top, 0px))',
+          ...grainStyle,
+        }}
       >
         <motion.div
           key={`transition-${currentIndex}`}

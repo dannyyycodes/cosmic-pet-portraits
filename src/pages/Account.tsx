@@ -277,30 +277,33 @@ const Account = () => {
         </div>
 
         <Tabs defaultValue="reports" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6" style={{ background: '#faf6ef', border: '1px solid #e8ddd0', borderRadius: '10px' }}>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Reports</span>
+          {/* Mobile (<640px): 3-col × 2-row grid so labels stay visible and
+              every tab keeps a proper tap target. Desktop collapses back to
+              a single row of 6. */}
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto gap-1 p-1" style={{ background: '#faf6ef', border: '1px solid #e8ddd0', borderRadius: '10px' }}>
+            <TabsTrigger value="reports" className="flex items-center justify-center gap-1.5 min-h-[44px] py-2 text-[0.78rem] sm:text-sm">
+              <FileText className="w-4 h-4 shrink-0" />
+              <span>Reports</span>
             </TabsTrigger>
-            <TabsTrigger value="bonds" className="flex items-center gap-2">
-              <Heart className="w-4 h-4" />
-              <span className="hidden sm:inline">Bonds</span>
+            <TabsTrigger value="bonds" className="flex items-center justify-center gap-1.5 min-h-[44px] py-2 text-[0.78rem] sm:text-sm">
+              <Heart className="w-4 h-4 shrink-0" />
+              <span>Bonds</span>
             </TabsTrigger>
-            <TabsTrigger value="subscriptions" className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              <span className="hidden sm:inline">Horoscopes</span>
+            <TabsTrigger value="subscriptions" className="flex items-center justify-center gap-1.5 min-h-[44px] py-2 text-[0.78rem] sm:text-sm">
+              <Star className="w-4 h-4 shrink-0" />
+              <span className="truncate">Horoscopes</span>
             </TabsTrigger>
-            <TabsTrigger value="gifts" className="flex items-center gap-2">
-              <Gift className="w-4 h-4" />
-              <span className="hidden sm:inline">Gifts</span>
+            <TabsTrigger value="gifts" className="flex items-center justify-center gap-1.5 min-h-[44px] py-2 text-[0.78rem] sm:text-sm">
+              <Gift className="w-4 h-4 shrink-0" />
+              <span>Gifts</span>
             </TabsTrigger>
-            <TabsTrigger value="affiliate" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Affiliate</span>
+            <TabsTrigger value="affiliate" className="flex items-center justify-center gap-1.5 min-h-[44px] py-2 text-[0.78rem] sm:text-sm">
+              <Users className="w-4 h-4 shrink-0" />
+              <span>Affiliate</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
+            <TabsTrigger value="settings" className="flex items-center justify-center gap-1.5 min-h-[44px] py-2 text-[0.78rem] sm:text-sm">
+              <Mail className="w-4 h-4 shrink-0" />
+              <span>Settings</span>
             </TabsTrigger>
           </TabsList>
 
