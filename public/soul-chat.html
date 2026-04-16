@@ -2183,20 +2183,38 @@ function updateHeaderUI() {
     // with emotional fallbacks when a field is missing. Shows as many
     // pet-specific questions as we have data for, then fills the rest.
     var chips = [];
+    // Universal chip length cap — anything longer than this is guaranteed
+    // to look like a text-dump, so we skip rather than wall-of-text a chip.
+    var CHIP_MAX = 110;
+    function pushChip(text) {
+      if (text && text.length <= CHIP_MAX) chips.push(text);
+    }
+
     if (petData.dreamJob) {
-      chips.push('Tell me about your dream of being a ' + escapeAttr(petData.dreamJob));
+      // dreamJob.job is usually a short phrase. Truncate defensively.
+      var dreamJob = String(petData.dreamJob).slice(0, 60).trim();
+      pushChip('Tell me about your dream of being a ' + escapeAttr(dreamJob));
     }
     if (petData.topCrimes) {
-      chips.push('What\u2019s the story behind: ' + escapeAttr(petData.topCrimes) + '?');
+      // topCrimes is all 5 crimes joined with commas — extract just the first
+      // crime's short title (before the em-dash description) so the chip fits.
+      var firstCrime = String(petData.topCrimes).split(/,\s*Crime\s*#/i)[0];
+      var crimeTitle = firstCrime.split(' \u2014 ')[0].trim();
+      // Strip any "Crime #1:" prefix
+      crimeTitle = crimeTitle.replace(/^Crime\s*#?\d+:\s*/i, '').trim();
+      if (crimeTitle && crimeTitle.length > 2 && crimeTitle.length < 70) {
+        pushChip('What\u2019s the story behind "' + escapeAttr(crimeTitle) + '"?');
+      }
     }
     if (petData.pastLifeHint) {
-      chips.push('What was your past life like? I need to know.');
+      pushChip('What was your past life like? I need to know.');
     }
     if (petData.secretDesire) {
-      chips.push('What\u2019s your secret desire?');
+      pushChip('What\u2019s your secret desire?');
     }
     if (petData.superpower) {
-      chips.push('You said your superpower is "' + escapeAttr(petData.superpower) + '" \u2014 show me.');
+      var sp = String(petData.superpower).slice(0, 40).trim();
+      pushChip('You said your superpower is "' + escapeAttr(sp) + '" \u2014 show me.');
     }
     // Emotional fallbacks — always appended if we need to pad to 4
     var fallbacks = [
@@ -2206,7 +2224,7 @@ function updateHeaderUI() {
       'What\u2019s the one thing you wish I\u2019d do more of?',
     ];
     while (chips.length < 4 && fallbacks.length) {
-      chips.push(fallbacks.shift());
+      pushChip(fallbacks.shift());
     }
     chips = chips.slice(0, 4);
     document.getElementById('welcomePrompts').innerHTML =
