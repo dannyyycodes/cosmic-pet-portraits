@@ -1466,7 +1466,7 @@ const HoroscopePreview = () => (
         textAlign: "center",
       }}
     >
-      Every Sunday, a whisper from the stars — just for them.
+      A cosmic forecast — written every Sunday, just for them.
     </p>
 
     <p
@@ -1479,7 +1479,7 @@ const HoroscopePreview = () => (
         padding: "0 4px",
       }}
     >
-      The moon's slow passage through their week. The planets' quiet gifts. The cosmic light falling softly on their little soul — written gently, for only you to read.
+      Like a weather forecast — but made of starlight. Each Sunday, you'll see what the week ahead holds for their little soul: the tender days, the stirring ones, the quiet ones. A gentle map of the cosmos moving through their world — so nothing arrives without meaning.
     </p>
 
     <div
@@ -1499,7 +1499,7 @@ const HoroscopePreview = () => (
           lineHeight: 1.6,
         }}
       >
-        A sacred little ritual — <br className="hidden sm:block" />a thread of wonder, always for the two of you.
+        Knowing their week <br className="hidden sm:block" />is a way of knowing them deeper.
       </p>
     </div>
   </div>
