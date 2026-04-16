@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
 import { ReportLoadingSkeleton } from '@/components/report/ReportSkeletons';
@@ -15,6 +16,7 @@ const EMAIL_STORAGE_KEY = 'cosmic_report_email';
 export default function ViewReport() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [reportData, setReportData] = useState<{ petName: string; report: any; reportId?: string; shareToken?: string; petPhotoUrl?: string; portraitUrl?: string; occasionMode?: string; hasActiveHoroscope?: boolean; species?: string; email?: string; hasError?: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,27 +40,43 @@ export default function ViewReport() {
   };
 
   useEffect(() => {
+    // Wait for the auth context to settle before we decide whether the user is
+    // signed in — otherwise we flash the email prompt and then re-render.
+    if (authLoading) return;
+
     if (!reportId && !code && !shareToken) {
       setError('Invalid link');
       setIsLoading(false);
       return;
     }
 
-    // If accessing via gift code or share token, no email needed
+    // Public share / gift code paths — no email gate.
     if (code || shareToken) {
       fetchReport();
-    } else {
-      // Check if we have saved email
-      const savedEmail = getSavedEmail();
-      if (savedEmail) {
-        setEmail(savedEmail);
-        fetchReport(savedEmail);
-      } else {
-        setNeedsEmailVerification(true);
-        setIsLoading(false);
-      }
+      return;
     }
-  }, [reportId, code, shareToken]);
+
+    // Signed-in user: use their Supabase session email. The get-report fn
+    // verifies this matches the report owner, so no manual prompt needed.
+    if (user?.email) {
+      const sessionEmail = user.email.toLowerCase();
+      setEmail(sessionEmail);
+      try { sessionStorage.setItem(EMAIL_STORAGE_KEY, sessionEmail); } catch {}
+      fetchReport(sessionEmail);
+      return;
+    }
+
+    // Anonymous fallback — re-use a cached email from a prior visit, otherwise
+    // prompt. Same behaviour as before, just now only for logged-out visitors.
+    const savedEmail = getSavedEmail();
+    if (savedEmail) {
+      setEmail(savedEmail);
+      fetchReport(savedEmail);
+    } else {
+      setNeedsEmailVerification(true);
+      setIsLoading(false);
+    }
+  }, [reportId, code, shareToken, user?.email, authLoading]);
 
   const fetchReport = async (verifyEmail?: string) => {
     setIsLoading(true);
