@@ -110,7 +110,7 @@ serve(async (req) => {
     // Fetch the report - include email for verification, share_token, portrait data, and occasion_mode
     const { data: report, error: fetchError } = await supabase
       .from("pet_reports")
-      .select("id, pet_name, report_content, payment_status, species, breed, gender, email, share_token, pet_photo_url, portrait_url, occasion_mode, soul_type, superpower, stranger_reaction")
+      .select("id, pet_name, report_content, payment_status, species, breed, gender, email, share_token, pet_photo_url, portrait_url, occasion_mode, soul_type, superpower, stranger_reaction, pet_memory")
       .eq("id", targetReportId)
       .single();
 
@@ -189,6 +189,7 @@ serve(async (req) => {
         superpower: report.superpower,
         strangerReaction: report.stranger_reaction,
       },
+      petMemory: report.pet_memory || null,
       email: !isPublicAccess ? report.email : undefined,
     }), {
       headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },

@@ -1154,8 +1154,29 @@ body::after {
   font-family:'Cormorant',Georgia,serif; font-size:0.92rem;
   color:var(--warm); line-height:1.35;
 }
+.memories-summary {
+  margin-bottom:14px; padding:14px 16px; border-radius:12px;
+  background:linear-gradient(135deg, rgba(196,162,101,0.06), rgba(191,82,74,0.04));
+  border:1px solid rgba(196,162,101,0.22);
+}
+.memory-summary-text {
+  font-family:'Cormorant',Georgia,serif; font-style:italic;
+  font-size:0.95rem; color:var(--ink); line-height:1.5;
+}
+.memory-summary-text::before {
+  content:'\201C'; color:var(--gold); font-size:1.4rem;
+  font-family:Georgia,serif; line-height:0; margin-right:3px; vertical-align:-0.22em;
+}
+.memory-summary-text::after {
+  content:'\201D'; color:var(--gold); font-size:1.4rem;
+  font-family:Georgia,serif; line-height:0; margin-left:2px; vertical-align:-0.22em;
+}
 .memories-list {
   display:flex; flex-direction:column; gap:8px; margin-bottom:18px;
+}
+.memory-pill--server { cursor:default; }
+.memory-pill--server:hover {
+  border-color:var(--cream3); background:var(--cream2);
 }
 .memory-pill {
   padding:11px 14px; border-radius:12px;
@@ -1701,12 +1722,15 @@ body::after {
           <span class="memories-count-label" id="memoriesCountLabel">things they remember about you</span>
         </div>
       </div>
+      <div class="memories-summary" id="memoriesSummary" style="display:none;">
+        <!-- Populated by renderMemories() when a server-side pet_memory.summary exists -->
+      </div>
       <div class="memories-list" id="memoriesList">
         <!-- Populated by renderMemories() -->
       </div>
       <div class="memories-hint">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        <span>Facts you share in conversation land here automatically. Tap any memory to remove it.</span>
+        <span>Every 10 messages your pet re-reads the conversation and remembers what matters. Facts update automatically.</span>
       </div>
     </div>
 
@@ -2072,6 +2096,11 @@ async function loadReading() {
 
     // Check horoscope status from report data
     hasActiveHoroscope = data.hasActiveHoroscope || false;
+
+    // Hydrate durable "what your pet remembers about you" memory from server
+    if (data.petMemory && typeof data.petMemory === 'object') {
+      serverPetMemory = data.petMemory;
+    }
 
     await loadCredits();
     updateHeaderUI();
@@ -2501,6 +2530,11 @@ async function sendMessage() {
     // Server is the source of truth for credits — always sync
     if (typeof data.creditsRemaining === 'number') creditsRemaining = data.creditsRemaining;
     if (typeof data.isUnlimited === 'boolean') isUnlimited = data.isUnlimited;
+    // Server-derived pet memory — updates every ~10 messages
+    if (data.petMemory && typeof data.petMemory === 'object') {
+      serverPetMemory = data.petMemory;
+      try { renderMemories(); } catch(_) {}
+    }
     updateCreditsUI();
 
     // Server rejected for insufficient credits — show paywall, don't show a fake reply
@@ -2510,6 +2544,41 @@ async function sendMessage() {
       isSending = false;
       document.getElementById('sendBtn').disabled = false;
       showPaywallDirect();
+      return;
+    }
+
+    // Rate limited — soul-chat backend enforces 10 user messages / 60s. Show the
+    // server's retry window so the user knows it's temporary, not a failure.
+    if (res.status === 429 || data.error === 'rate_limited') {
+      typing.classList.remove('show');
+      messages.pop();
+      var waitSec = (data && typeof data.retryAfterSeconds === 'number') ? data.retryAfterSeconds : 30;
+      addMessage('pet', (data && data.reply) || ('Slow down a moment — give them time to respond. Try again in ' + waitSec + ' seconds.'));
+      var sendBtn = document.getElementById('sendBtn');
+      sendBtn.disabled = true;
+      var remaining = waitSec;
+      var origText = sendBtn.textContent;
+      var countdown = setInterval(function() {
+        remaining--;
+        sendBtn.textContent = remaining > 0 ? ('Wait ' + remaining + 's…') : origText;
+        if (remaining <= 0) {
+          clearInterval(countdown);
+          sendBtn.disabled = false;
+          sendBtn.textContent = origText;
+          isSending = false;
+        }
+      }, 1000);
+      // Also guard the path below so we don't reset isSending early.
+      return;
+    }
+
+    // 5xx / other error with an explicit error field — surface it gently.
+    if (res.status >= 500 || (data && data.error && !data.reply)) {
+      typing.classList.remove('show');
+      messages.pop();
+      addMessage('pet', "Something stirred in the cosmos and I lost my connection for a moment. Try again in a few seconds?");
+      isSending = false;
+      document.getElementById('sendBtn').disabled = false;
       return;
     }
 
@@ -2783,13 +2852,23 @@ function updateConnectionBadge() {
 // When Supabase pgvector lands, migrate this same shape to server-side storage.
 var MEMORY_KEY_PREFIX = 'soulspeak_memories_';
 
+// Server-side durable memory — updated every 10 user messages by Haiku in the
+// soul-chat edge fn. Frontend cache keeps the panel snappy; server is truth.
+var serverPetMemory = null; // { summary, facts[], messages_summarized, updated_at }
+
 function getMemories() {
+  // Prefer server memory if we have it
+  if (serverPetMemory && Array.isArray(serverPetMemory.facts)) {
+    return serverPetMemory.facts.slice();
+  }
   if (!readingId) return [];
   try {
     return JSON.parse(localStorage.getItem(MEMORY_KEY_PREFIX + readingId) || '[]');
   } catch(_) { return []; }
 }
 function setMemories(arr) {
+  // Local cache only — real memory is summarised server-side. This just
+  // keeps the UI responsive between server updates (every 10 messages).
   if (!readingId) return;
   try { localStorage.setItem(MEMORY_KEY_PREFIX + readingId, JSON.stringify(arr)); } catch(_) {}
 }
@@ -2828,6 +2907,7 @@ function rememberFromMessage(text) {
 function renderMemories() {
   var list = document.getElementById('memoriesList');
   var countEl = document.getElementById('memoriesCount');
+  var summaryEl = document.getElementById('memoriesSummary');
   if (!list || !countEl) return;
   var mems = getMemories();
   countEl.textContent = mems.length;
@@ -2837,16 +2917,38 @@ function renderMemories() {
       ? 'thing ' + petData.name + ' remembers about you'
       : 'things ' + petData.name + ' remembers about you';
   }
+
+  // Render the prose summary if the server has built one
+  if (summaryEl) {
+    var summary = serverPetMemory && typeof serverPetMemory.summary === 'string'
+      ? serverPetMemory.summary.trim() : '';
+    if (summary) {
+      summaryEl.innerHTML = '<div class="memory-summary-text">' + escapeHtml(summary) + '</div>';
+      summaryEl.style.display = 'block';
+    } else {
+      summaryEl.innerHTML = '';
+      summaryEl.style.display = 'none';
+    }
+  }
+
   if (!mems.length) {
     list.innerHTML =
       '<div class="memory-empty">' +
         '<span class="memory-empty-icon">\u2726</span>' +
-        'As you and ' + (petData ? petData.name : 'your pet') + ' talk, the things you share with them will settle here — the places you\u2019ve been, the people you love, the small details of your life together.' +
+        'After a few messages, the specific things you share with ' + (petData ? petData.name : 'your pet') + ' will settle here — names, places, the small details they\u2019ll quietly reference back to you later.' +
       '</div>';
     return;
   }
-  // Reverse so newest memories are at the top
+  // Reverse so newest memories are at the top.
+  // Server-backed memories can't be deleted from the client (they're re-derived
+  // from chat history by Haiku); localStorage-only ones still allow forget.
+  var fromServer = !!(serverPetMemory && Array.isArray(serverPetMemory.facts) && serverPetMemory.facts.length);
   list.innerHTML = mems.slice().reverse().map(function(fact, i) {
+    if (fromServer) {
+      return '<div class="memory-pill memory-pill--server" title="' + escapeHtml(petData ? petData.name : 'Pet') + ' remembers this">' +
+        escapeHtml(fact) +
+      '</div>';
+    }
     return '<div class="memory-pill" onclick="forgetMemory(' + (mems.length - 1 - i) + ')" title="Tap to forget">' +
       escapeHtml(fact) +
     '</div>';
@@ -2854,6 +2956,9 @@ function renderMemories() {
 }
 
 function forgetMemory(index) {
+  // Only applies to legacy localStorage memories. Server-side facts are
+  // derived from actual chat history and can't be cherry-picked away.
+  if (serverPetMemory && Array.isArray(serverPetMemory.facts) && serverPetMemory.facts.length) return;
   var mems = getMemories();
   if (index < 0 || index >= mems.length) return;
   mems.splice(index, 1);

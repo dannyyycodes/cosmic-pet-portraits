@@ -19,7 +19,7 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-function buildSystemPrompt(pet: any, enrich: { photoDescription?: string; ownerMemory?: string; timeOfDay?: string; dayOfWeek?: string; hour?: number } = {}) {
+function buildSystemPrompt(pet: any, enrich: { photoDescription?: string; ownerMemory?: string; petMemory?: { summary?: string; facts?: string[] }; timeOfDay?: string; dayOfWeek?: string; hour?: number } = {}) {
   const isMemorial = pet.occasionMode === 'memorial';
   const isBirthday = pet.occasionMode === 'birthday';
 
@@ -124,6 +124,16 @@ Your human is celebrating your birthday! You can be extra playful and excited.
     ? `\n\nONE REAL MEMORY YOUR HUMAN WROTE ABOUT YOU (they typed this themselves — it's SO you):\n"${enrich.ownerMemory}"\nDon't force it into your first reply. Wait for a natural moment (maybe message 2-4) and drop it in casually, like it just surfaced — "oh and that thing you always bring up about..." or reference a single detail. When they notice you know it, they will feel seen.`
     : '';
 
+  // Durable pet memory — things you've learned about your human across past
+  // conversations. Use sparingly but surgically: one callback per reply max.
+  let petMemoryBlock = '';
+  if (enrich.petMemory && (enrich.petMemory.summary || (enrich.petMemory.facts || []).length)) {
+    const summary = enrich.petMemory.summary ? enrich.petMemory.summary.trim() : '';
+    const facts = (enrich.petMemory.facts || []).filter(Boolean).slice(0, 20);
+    const factsList = facts.length ? `\nSpecific things you remember:\n${facts.map(f => `• ${f}`).join('\n')}` : '';
+    petMemoryBlock = `\n\n⚑ WHAT YOU REMEMBER ABOUT YOUR HUMAN (from past conversations — this is TRUE, reference naturally) ⚑\n${summary}${factsList}\n\nRules for using memory:\n- Surface a memory like it just floated up ("wait — didn't you tell me...?")\n- Maximum ONE memory callback per reply — they should feel cared for, not surveilled\n- If a memory contradicts something the human just said, trust what they're saying NOW (they may have changed, or you may have misremembered)\n- If you haven't talked in a while, warm back in with a memory — "how did X go? I've been thinking about you"`;
+  }
+
   // Time awareness — only shown when the client told us the timezone
   let timeBlock = '';
   if (enrich.timeOfDay && enrich.dayOfWeek) {
@@ -156,7 +166,7 @@ YOUR IDENTITY:
 - Soul Archetype: ${pet.archetype} — ${pet.archetypeDesc}
 - Cosmic Nickname: ${pet.cosmicNickname || 'none given yet'}${nicknameLine}
 - Crystal: ${pet.crystal} | Aura: ${pet.aura}${crystalLine}${auraLine}${memeLine}${dreamJobLine}${chartDegrees}${ebStr}${ownerNameLine}
-${ownerObservations}${compat}${lucky}${nameBlock}${photoBlock}${memoryBlock}${timeBlock}
+${ownerObservations}${compat}${lucky}${nameBlock}${photoBlock}${memoryBlock}${petMemoryBlock}${timeBlock}
 
 YOUR SOUL (from your cosmic reading — this IS you):
 ${pet.prologue ? 'PROLOGUE: ' + pet.prologue : ''}
@@ -293,6 +303,81 @@ async function describePetPhoto(photoUrl: string, pet: any): Promise<string | nu
   }
 }
 
+// Update "what your pet remembers about you" by asking Haiku to read the
+// recent chat history + current memory, and merge new facts in. Stores JSON
+// back on pet_reports.pet_memory. Fires asynchronously — never blocks the
+// user-facing reply.
+async function updatePetMemory(
+  supabase: any,
+  orderId: string,
+  existingMemory: { summary?: string; facts?: string[]; messages_summarized?: number } | null,
+  recentMessages: Array<{ role: string; content: string }>,
+  petName: string,
+) {
+  try {
+    const transcript = recentMessages
+      .slice(-30)
+      .map(m => `${m.role === 'user' ? 'HUMAN' : petName.toUpperCase()}: ${m.content}`)
+      .join('\n');
+    const currentSummary = existingMemory?.summary || '(no prior memory yet)';
+    const currentFacts = (existingMemory?.facts || []).slice(0, 30);
+
+    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "HTTP-Referer": "https://littlesouls.app",
+        "X-Title": "Little Souls - Pet Memory Summariser",
+      },
+      body: JSON.stringify({
+        model: "anthropic/claude-haiku-4.5",
+        messages: [
+          {
+            role: "system",
+            content: `You are the memory-keeper for a pet's soul. Your job: given the pet's current memory of their human + recent chat transcript, output an UPDATED memory payload. Extract only FACTS the human has revealed about themselves (names of people in their life, places they live/visit, their job/school, things they love/hate, struggles, recurring themes, pets' quirks THEY mentioned). Ignore: general emotional statements ("I love you"), questions, nothing-statements. Prefer concrete over abstract.
+
+You must output STRICT JSON only, shape: {"summary": "a short warm prose paragraph (2-4 sentences) the pet would think when remembering this human", "facts": ["fact 1", "fact 2", ...]}. Facts are SHORT (under 15 words each), written in third-person ("their mum is Sarah" not "your mum is Sarah" — the pet talks in first person but REMEMBERS in third person for clarity). Max 20 facts — if the list grows, merge related ones or drop the oldest. Never invent facts not in the transcript. If a new message contradicts an old fact, update the fact.`,
+          },
+          {
+            role: "user",
+            content: `CURRENT SUMMARY: ${currentSummary}\n\nCURRENT FACTS:\n${currentFacts.map(f => `- ${f}`).join('\n') || '(none yet)'}\n\nRECENT TRANSCRIPT:\n${transcript}\n\nReturn the UPDATED JSON memory payload.`,
+          },
+        ],
+        max_tokens: 800,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    const j = await r.json();
+    const raw = j.choices?.[0]?.message?.content;
+    if (!raw) return;
+    const parsed = JSON.parse(raw.replace(/```json\s*|\s*```/g, ''));
+    const summary = typeof parsed.summary === 'string' ? parsed.summary.trim().slice(0, 800) : '';
+    const facts = Array.isArray(parsed.facts)
+      ? parsed.facts.map((f: any) => String(f).trim().slice(0, 140)).filter(Boolean).slice(0, 20)
+      : [];
+
+    if (!summary && !facts.length) return;
+
+    const userMsgCount = recentMessages.filter(m => m.role === 'user').length;
+    await supabase
+      .from("pet_reports")
+      .update({
+        pet_memory: {
+          summary,
+          facts,
+          messages_summarized: userMsgCount,
+          updated_at: new Date().toISOString(),
+        },
+      })
+      .eq("id", orderId);
+  } catch (e) {
+    console.error("[PET-MEMORY] update failed:", e);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: getCorsHeaders(req) });
@@ -322,7 +407,7 @@ serve(async (req) => {
 
     const { data: ownerReport, error: ownerLookupError } = await supabase
       .from("pet_reports")
-      .select("email, share_token, photo_description, owner_memory, pet_photo_url")
+      .select("email, share_token, photo_description, owner_memory, pet_photo_url, pet_memory")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -539,6 +624,7 @@ serve(async (req) => {
     const staticSystemPrompt = buildSystemPrompt(petData, {
       photoDescription: photoDescription || undefined,
       ownerMemory: ownerReport.owner_memory || undefined,
+      petMemory: ownerReport.pet_memory || undefined,
       timeOfDay, dayOfWeek, hour,
     });
 
@@ -706,13 +792,24 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
       supabase.from("chat_messages").insert([
         { order_id: orderId, role: "user", content: lastUserMsg.content },
         { order_id: orderId, role: "assistant", content: reply },
-      ]).then(() => {}, (err) => console.error("Message store error:", err));
+      ]).then(() => {}, (err: unknown) => console.error("Message store error:", err));
+    }
+
+    // Durable memory — re-summarise every 10 user messages. Fire-and-forget so
+    // the user never waits on it. The memory is used on the NEXT call.
+    const totalUserMsgs = messages.filter((m: any) => m.role === 'user').length + 1; // +1 for the assistant reply we just produced
+    const lastSummarizedAt = ownerReport.pet_memory?.messages_summarized ?? 0;
+    if (totalUserMsgs - lastSummarizedAt >= 10) {
+      const fullHistory = [...messages, { role: 'assistant', content: reply }];
+      updatePetMemory(supabase, orderId, ownerReport.pet_memory || null, fullHistory, petData.name || 'Pet')
+        .then(() => {}, (err: unknown) => console.error("Pet memory update error:", err));
     }
 
     return new Response(JSON.stringify({
       reply,
       creditsRemaining: newBalance,
       isUnlimited: row.is_unlimited,
+      petMemory: ownerReport.pet_memory || null,
     }), { headers: corsJson });
 
   } catch (error) {
