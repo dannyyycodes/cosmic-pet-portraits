@@ -76,6 +76,24 @@ const TIERS: Array<{
   },
 ];
 
+// Memorial variant of the Soul Bond card. Same price, same slot in the grid —
+// just a different feature list + name + eyebrow when the Memorial toggle is ON.
+// Horoscope is intentionally omitted: memorial readings are backward-looking.
+const MEMORIAL_PREMIUM_FEATURES: Feature[] = [
+  { label: "For pets no longer with you — written in past tense", kind: "divider" },
+  { label: "Their full soul portrait, written in past tense" },
+  { label: "A letter in their voice — from beyond" },
+  { label: "The gifts they brought, and who they truly were" },
+  { label: "Their chart against yours — the cosmic pairing that brought you together" },
+  { label: "Grief compass + rituals for remembering" },
+  { label: "Three permission slips for your own healing" },
+  { label: "Their photo becomes part of the keepsake" },
+  { label: "SoulSpeak — speak with them whenever you need", kind: "soulspeak" },
+  { label: "Yours forever, to return to when you need them" },
+];
+const MEMORIAL_PREMIUM_NAME = "Memorial Reading";
+const MEMORIAL_BADGE = "For the ones you miss";
+
 interface InlineCheckoutProps {
   ctaLabel: string;
   charityId?: string;
@@ -101,6 +119,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   // Default: 1× Soul Reading, 0× Soul Bond (matches the previous single-tier default).
   const [basicQty, setBasicQty] = useState<number>(1);
   const [premiumQty, setPremiumQty] = useState<number>(0);
+  // Memorial toggle lives on the Soul Bond card. When ON the card flips to
+  // a memorial variant (same price, different copy + features, no horoscope)
+  // and checkout passes occasionMode='memorial' so PostPurchaseIntake can
+  // default the occasion picker to Memorial.
+  const [memorialMode, setMemorialMode] = useState<boolean>(false);
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -283,6 +306,20 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     trackFunnelEvent("v2_tier_selected", { tier, qty: tierQty(tier) });
   };
 
+  // Memorial toggle on the Soul Bond card. Flipping ON auto-bumps Soul Bond
+  // quantity to 1 if it was 0, since a memorial card with 0× in the stepper
+  // would be confusing. Flipping OFF leaves whatever quantity the user had.
+  const toggleMemorialMode = () => {
+    setMemorialMode((prev) => {
+      const next = !prev;
+      if (next && premiumQty === 0 && basicQty < MAX_PETS) {
+        setPremiumQty(1);
+      }
+      trackFunnelEvent("v2_memorial_toggle", { memorial: next, premiumQty, basicQty });
+      return next;
+    });
+  };
+
   // Emit the initial price once on mount so parent CTAs start in sync.
   useEffect(() => {
     onSelectedPriceChange?.(selectedPrice);
@@ -309,6 +346,18 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     setIsLoading(true);
     // Primary tier reflects what dominates the order — used for analytics + back-compat metadata only.
     const primaryTier: "basic" | "premium" = premiumQty > 0 && basicQty === 0 ? "premium" : "basic";
+    // Memorial intent gets forwarded to the server as `occasionMode`. The
+    // server today applies a single occasion_mode to every placeholder report
+    // in the order. That's correct for pure Soul Bond carts (basicQty === 0),
+    // which is the common memorial path. For mixed carts (Soul Reading +
+    // Memorial Soul Bond) we suppress the flag and let PostPurchaseIntake's
+    // per-pet occasion picker handle it — otherwise we'd stamp memorial on
+    // both placeholders.
+    // TODO: wire per-line-item occasion_mode through checkout session metadata
+    // so mixed Memorial + Soul Reading carts can signal Memorial on just the
+    // Soul Bond placeholder.
+    const shouldForwardMemorial = memorialMode && premiumQty > 0 && basicQty === 0;
+    const occasionMode = shouldForwardMemorial ? "memorial" : undefined;
     trackFunnelEvent("v2_checkout_clicked", {
       tier: primaryTier,
       basicQty,
@@ -318,7 +367,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       isInApp,
       charityId: selectedCharity,
       charityBonus,
+      memorialMode,
+      occasionMode: occasionMode || "discover",
     });
+    if (memorialMode && !shouldForwardMemorial) {
+      // Visible in prod console so support can trace Memorial intent even when
+      // we can't forward it at the cart level yet.
+      console.log("[V2 Checkout] memorial toggle on but cart is mixed — intake will default per-pet", { basicQty, premiumQty });
+    }
 
     try {
       const refCode = getReferralCode();
@@ -341,6 +397,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           // subscription (price_1Sfi1v…) with trial_period_days: 30.
           includeHoroscope: true,
           couponId: appliedCoupon?.id || undefined,
+          // Forward memorial intent so placeholder pet_reports.occasion_mode
+          // is pre-set to 'memorial' and PostPurchaseIntake defaults the
+          // occasion picker accordingly. Only set when cart is pure Soul Bond.
+          occasionMode,
         },
       });
 
@@ -376,6 +436,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         background: "var(--cream, #FFFDF5)",
       }}
     >
+      {/* Respect prefers-reduced-motion on the memorial switch thumb + track */}
+      <style>{`
+        @media (prefers-reduced-motion: reduce) {
+          [data-ls-memorial-switch] { transition: none !important; }
+          [data-ls-memorial-switch-thumb] { transition: none !important; }
+        }
+      `}</style>
       <HeartsBackdrop />
       <div
         className="relative max-w-xl sm:max-w-2xl mx-auto"
@@ -435,6 +502,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             const isSelected = qty > 0;
             const atMax = petCount >= MAX_PETS;
             const minusDisabled = qty === 0 || (petCount === 1 && qty === 1);
+            // Memorial variant only applies to the Soul Bond card, and only
+            // when the memorial toggle is ON. The card keeps its slot in the
+            // grid and its price — just swaps name/badge/features.
+            const isPremium = tier.id === "premium";
+            const isMemorialVariant = isPremium && memorialMode;
+            const displayName = isMemorialVariant ? MEMORIAL_PREMIUM_NAME : tier.name;
+            const displayBadge = isMemorialVariant ? MEMORIAL_BADGE : tier.badge;
+            const displayFeatures = isMemorialVariant ? MEMORIAL_PREMIUM_FEATURES : tier.features;
             return (
               <div
                 key={tier.id}
@@ -443,11 +518,16 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 onClick={() => handleCardActivate(tier.id)}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleCardActivate(tier.id); } }}
                 aria-pressed={isSelected}
-                aria-label={`${tier.name} — ${qty} selected`}
+                aria-label={`${displayName} — ${qty} selected`}
                 className="relative text-left rounded-2xl p-4 sm:p-5 active:scale-[0.995] min-w-0 h-full flex flex-col cursor-pointer"
                 style={{
                   background: (() => {
-                    const fill = tier.id === "premium"
+                    // Memorial variant gets a subtly softer, cooler warm-grey
+                    // wash so the card visually signals a different mode
+                    // without a full colour swap.
+                    const fill = isMemorialVariant
+                      ? "linear-gradient(180deg, #f6f1ea 0%, #FFFDF5 100%)"
+                      : tier.id === "premium"
                       ? "linear-gradient(180deg, #fbf4e4 0%, #FFFDF5 100%)"
                       : "#FFFDF5";
                     const frame = isSelected
@@ -465,12 +545,100 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   transitionDelay: `${0.1 + i * 0.08}s`,
                 }}
               >
-                {tier.badge && (
+                {displayBadge && (
                   <div
                     className="absolute -top-2.5 left-5 px-2.5 py-0.5 rounded-full text-white whitespace-nowrap"
                     style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.04em", background: "var(--rose, #bf524a)" }}
                   >
-                    {tier.badge}
+                    {displayBadge}
+                  </div>
+                )}
+
+                {/* Memorial toggle — lives on the Soul Bond card only, at the top
+                    of the header so it reads before the tier name. Click/Space/Enter
+                    all flip the toggle; stopPropagation keeps card-activate quiet. */}
+                {isPremium && (
+                  <div
+                    className="mb-3"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <label
+                          htmlFor="v2-memorial-toggle"
+                          style={{
+                            fontFamily: "Cormorant, Georgia, serif",
+                            fontSize: "0.88rem",
+                            fontWeight: 700,
+                            color: "var(--ink, #1f1c18)",
+                            cursor: "pointer",
+                            display: "inline-block",
+                          }}
+                        >
+                          Memorial mode
+                        </label>
+                        <div
+                          style={{
+                            fontFamily: "Cormorant, Georgia, serif",
+                            fontSize: "0.74rem",
+                            fontStyle: "italic",
+                            color: "var(--muted, #958779)",
+                            lineHeight: 1.3,
+                            marginTop: 1,
+                          }}
+                        >
+                          For pets no longer with you
+                        </div>
+                      </div>
+                      <button
+                        id="v2-memorial-toggle"
+                        type="button"
+                        role="switch"
+                        aria-checked={memorialMode}
+                        aria-label="Memorial mode"
+                        data-ls-memorial-switch=""
+                        onClick={(e) => { e.stopPropagation(); toggleMemorialMode(); }}
+                        onKeyDown={(e) => {
+                          if (e.key === " " || e.key === "Enter") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleMemorialMode();
+                          }
+                        }}
+                        className="flex-shrink-0 rounded-full"
+                        style={{
+                          width: 44,
+                          height: 26,
+                          minWidth: 44,
+                          minHeight: 26,
+                          padding: 0,
+                          border: "none",
+                          cursor: "pointer",
+                          background: memorialMode ? "var(--rose, #bf524a)" : "rgba(120, 108, 98, 0.28)",
+                          position: "relative",
+                          transition: "background 0.22s ease",
+                          boxShadow: memorialMode ? "0 0 0 3px rgba(191,82,74,0.14)" : "none",
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          data-ls-memorial-switch-thumb=""
+                          style={{
+                            display: "block",
+                            position: "absolute",
+                            top: 3,
+                            left: memorialMode ? 21 : 3,
+                            width: 20,
+                            height: 20,
+                            borderRadius: "50%",
+                            background: "#fff",
+                            boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
+                            transition: "left 0.22s ease",
+                          }}
+                        />
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -492,7 +660,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {tier.name}
+                      {displayName}
                     </span>
                   </div>
                   <div className="flex items-baseline gap-2">
@@ -539,7 +707,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                       type="button"
                       onClick={(e) => { e.stopPropagation(); changeTierQty(tier.id, -1); }}
                       disabled={minusDisabled}
-                      aria-label={`Remove one ${tier.name}`}
+                      aria-label={`Remove one ${displayName}`}
                       className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{
                         width: 44, height: 44, minWidth: 44, minHeight: 44,
@@ -556,7 +724,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                       type="button"
                       onClick={(e) => { e.stopPropagation(); changeTierQty(tier.id, 1); }}
                       disabled={atMax}
-                      aria-label={`Add one ${tier.name}`}
+                      aria-label={`Add one ${displayName}`}
                       className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{
                         width: 44, height: 44, minWidth: 44, minHeight: 44,
@@ -575,7 +743,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   className="rounded-lg overflow-hidden w-full"
                   style={{ border: "1px solid rgba(196,162,101,0.14)" }}
                 >
-                  {tier.features.map((feature, fi) => {
+                  {displayFeatures.map((feature, fi) => {
                     const isDivider = feature.kind === "divider";
                     const isSoulSpeak = feature.kind === "soulspeak";
                     const isBonus = feature.kind === "bonus";
