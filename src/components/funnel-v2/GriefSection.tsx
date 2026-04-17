@@ -108,126 +108,118 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
       className={`grief-section relative overflow-hidden ${visible ? "is-in" : ""}`}
       style={{
         background: "var(--cream, #FFFDF5)",
-        padding: "clamp(48px, 8vw, 72px) 20px",
+        padding: "clamp(56px, 9vw, 88px) 20px clamp(52px, 8vw, 76px)",
       }}
     >
+      {/* Transition: handwritten prelude above the title. A single line in
+          Caveat sits quietly between the preceding benefits section and the
+          memorial tone — more of a whisper than a divider. */}
       <DoveWallpaper />
 
       <div
         className="relative max-w-[500px] mx-auto text-center"
         style={{ zIndex: 1 }}
       >
-        {/* Title — cream-glass card so the soul backdrop doesn't cross
-            behind the letterforms. */}
-        <div className="grief-title flex justify-center" style={{ marginBottom: 16 }}>
+        {/* Handwritten prelude — bridges the jump from generic benefits
+            into the memorial register. Quiet, earth-toned, slight rotation
+            so it reads like a note scribbled in the margin. */}
+        <div
+          className="grief-prelude"
+          aria-hidden="true"
+          style={{
+            fontFamily: '"Caveat", "Bradley Hand", cursive',
+            fontSize: "clamp(1.1rem, 3.6vw, 1.35rem)",
+            color: "var(--muted, #958779)",
+            lineHeight: 1,
+            marginBottom: 18,
+            transform: "rotate(-1.5deg)",
+            display: "inline-block",
+          }}
+        >
+          for the ones you miss
+        </div>
+
+        {/* Primary card — title and sub merged into a single glass panel so
+            the cadence reads as one quiet statement rather than two stacked
+            blocks. Tiny gold hairline separates the two lines. */}
+        <div className="grief-card flex justify-center">
           <div
             style={{
-              padding: "14px 26px",
+              padding: "clamp(22px, 4vw, 30px) clamp(24px, 5vw, 36px)",
               background: "rgba(255, 253, 245, 0.94)",
-              border: "1px solid rgba(196, 162, 101, 0.18)",
-              borderRadius: 14,
-              boxShadow: "0 2px 20px rgba(20,15,8,0.04)",
-              backdropFilter: "blur(4px)",
-              WebkitBackdropFilter: "blur(4px)",
+              border: "1px solid rgba(196, 162, 101, 0.2)",
+              borderRadius: 16,
+              boxShadow: "0 4px 28px rgba(20,15,8,0.05)",
+              backdropFilter: "blur(5px)",
+              WebkitBackdropFilter: "blur(5px)",
+              maxWidth: 460,
             }}
           >
             <h2
               style={{
                 fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.5rem, 4.8vw, 1.95rem)",
+                fontSize: "clamp(1.65rem, 5.4vw, 2.1rem)",
                 fontWeight: 400,
                 fontStyle: "italic",
                 color: "var(--black, #141210)",
-                lineHeight: 1.18,
+                lineHeight: 1.15,
                 letterSpacing: "-0.02em",
                 margin: 0,
                 textAlign: "center",
               }}
             >
-              If you've already had to say goodbye.
+              If they aren&rsquo;t here anymore.
             </h2>
-          </div>
-        </div>
 
-        {/* Sub — single tight line; same glass card as title but smaller. */}
-        <div
-          className="grief-sub flex justify-center"
-          style={{ marginBottom: "clamp(22px, 3.5vw, 30px)" }}
-        >
-          <div
-            style={{
-              padding: "10px 20px",
-              background: "rgba(255, 253, 245, 0.9)",
-              border: "1px solid rgba(196, 162, 101, 0.14)",
-              borderRadius: 12,
-              boxShadow: "0 1px 14px rgba(20,15,8,0.03)",
-              backdropFilter: "blur(3px)",
-              WebkitBackdropFilter: "blur(3px)",
-              maxWidth: 420,
-            }}
-          >
+            {/* Hairline gold divider — the single ornament. */}
+            <div
+              aria-hidden="true"
+              style={{
+                width: 36,
+                height: 1,
+                background: "var(--gold, #c4a265)",
+                opacity: 0.6,
+                margin: "14px auto",
+              }}
+            />
+
             <p
               style={{
                 fontFamily: '"Cormorant", Georgia, serif',
-                fontSize: "clamp(1rem, 3vw, 1.1rem)",
+                fontSize: "clamp(1.02rem, 3vw, 1.12rem)",
                 fontStyle: "italic",
                 color: "var(--earth, #6e6259)",
-                lineHeight: 1.5,
+                lineHeight: 1.55,
                 margin: 0,
                 textAlign: "center",
               }}
             >
-              A reading to keep close — for every time you need them.
+              A reading to keep close &mdash; so you can still hear
+              who they always were.
             </p>
           </div>
-        </div>
-
-        {/* Reassurance pill */}
-        <div
-          className="grief-badge"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            padding: "8px 18px",
-            borderRadius: 9999,
-            background: "rgba(255, 253, 245, 0.88)",
-            border: "1px solid rgba(191,82,74,0.22)",
-            fontFamily: '"Cormorant", Georgia, serif',
-            fontSize: "0.74rem",
-            fontWeight: 600,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "var(--rose, #bf524a)",
-          }}
-        >
-          Held gently in their memory
         </div>
       </div>
 
       <style>{`
-        .grief-title,
-        .grief-sub,
-        .grief-badge {
+        .grief-prelude,
+        .grief-card {
           opacity: 0;
           transform: translateY(10px);
           will-change: opacity, transform;
         }
-        .grief-section.is-in .grief-title {
+        .grief-section.is-in .grief-prelude {
           animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) forwards;
         }
-        .grief-section.is-in .grief-sub {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 140ms forwards;
-        }
-        .grief-section.is-in .grief-badge {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 280ms forwards;
+        .grief-section.is-in .grief-card {
+          animation: griefReveal 820ms cubic-bezier(0.22,1,0.36,1) 180ms forwards;
         }
         @keyframes griefReveal {
           to { opacity: 1; transform: translateY(0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .grief-title,
-          .grief-sub,
-          .grief-badge {
+          .grief-prelude,
+          .grief-card {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
