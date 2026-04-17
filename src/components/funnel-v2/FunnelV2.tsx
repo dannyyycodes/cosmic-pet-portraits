@@ -21,7 +21,6 @@ const CTA_LABEL: Record<FunnelPath, string> = {
   new: "Begin Their Reading",
   discover: "Begin Their Reading",
   memorial: "Begin Their Memorial",
-  gift: "Begin Their Reading",
 };
 
 export const FunnelV2 = () => {
@@ -36,9 +35,7 @@ export const FunnelV2 = () => {
   const [searchParams] = useSearchParams();
   const rawPath = searchParams.get("path");
   const path: FunnelPath =
-    rawPath === "new" || rawPath === "memorial" || rawPath === "gift"
-      ? rawPath
-      : "discover";
+    rawPath === "new" || rawPath === "memorial" ? rawPath : "discover";
 
   const ctaPrimary = CTA_LABEL[path];
 

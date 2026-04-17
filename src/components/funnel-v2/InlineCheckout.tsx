@@ -161,7 +161,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   const [memorialQty, setMemorialQty] = useState<number>(memorialIntent ? 1 : 0);
   // Memorial pill expansion — collapsed by default, expands into a full
   // tier card identical in format to Soul Reading / Soul Bond when clicked.
-  const [memorialExpanded, setMemorialExpanded] = useState<boolean>(memorialIntent);
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -357,17 +356,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       changeTierQty(tier, 1);
     }
     trackFunnelEvent("v2_tier_selected", { tier, qty: tierQty(tier) });
-  };
-
-  // Memorial pill click — expand into the full tier card. If nothing is
-  // selected yet, don't auto-bump the qty; let the user interact with the
-  // stepper inside the expanded card. Re-clicking the card header collapses.
-  const toggleMemorialExpanded = () => {
-    setMemorialExpanded((prev) => {
-      const next = !prev;
-      trackFunnelEvent("v2_memorial_pill_toggled", { expanded: next, memorialQty });
-      return next;
-    });
   };
 
   // Emit the initial price once on mount so parent CTAs start in sync.
@@ -870,105 +858,16 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             {renderTierCard(TIERS.find((t) => t.id === "memorial")!, 0)}
           </div>
         ) : (
-          <>
-            {/* Tier cards — Soul Reading + Soul Bond. Stacks on mobile,
-                side-by-side on desktop. Click to select. */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 items-stretch">
-              {TIERS.filter((t) => t.id === "basic" || t.id === "premium").map((tier, i) =>
-                renderTierCard(tier, i)
-              )}
-            </div>
-
-            {/* Memorial Reading — collapsed pill by default, expands into a full
-                tier card identical in format to Soul Reading / Soul Bond. */}
-            {!memorialExpanded ? (
-              <div
-                role="button"
-                tabIndex={0}
-                aria-expanded={false}
-                aria-label="Expand Memorial Reading details"
-                onClick={toggleMemorialExpanded}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    toggleMemorialExpanded();
-                  }
-                }}
-                className="mb-3 flex items-center justify-center gap-2.5 w-full rounded-full cursor-pointer transition-colors duration-200"
-                style={{
-                  padding: "10px 18px",
-                  background: "rgba(255, 253, 245, 0.72)",
-                  border: "1px solid rgba(196, 162, 101, 0.28)",
-                  backdropFilter: "blur(6px)",
-                  WebkitBackdropFilter: "blur(6px)",
-                  boxShadow: "0 1px 2px rgba(196, 162, 101, 0.06)",
-                  color: "var(--rose, #bf524a)",
-                }}
-              >
-                {/* Minimal dove silhouette — stylised flight path */}
-                <svg
-                  width="18"
-                  height="14"
-                  viewBox="0 0 20 16"
-                  fill="none"
-                  aria-hidden="true"
-                  style={{ opacity: 0.75, color: "currentColor", flexShrink: 0 }}
-                >
-                  <path
-                    d="M1.5 10.5 C 5 6, 10 7.5, 13 9 L 17 4.5 L 15.5 10 C 12 13.5, 6 13, 1.5 10.5 Z"
-                    fill="currentColor"
-                    fillOpacity="0.18"
-                    stroke="currentColor"
-                    strokeWidth="1.1"
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M6 10.5 Q 8 11.5, 10.5 10.5"
-                    stroke="currentColor"
-                    strokeWidth="0.9"
-                    strokeLinecap="round"
-                    fill="none"
-                    opacity="0.55"
-                  />
-                </svg>
-                <span
-                  style={{
-                    fontFamily: '"DM Serif Display", Georgia, serif',
-                    fontSize: "0.92rem",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    lineHeight: 1,
-                    color: "currentColor",
-                  }}
-                >
-                  Memorial Reading
-                </span>
-                <svg
-                  width="11"
-                  height="11"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  aria-hidden="true"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ opacity: 0.6, flexShrink: 0 }}
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
-            ) : (
-              <div data-ls-memorial-expanded="" className="mb-3">
-                {renderTierCard(
-                  TIERS.find((t) => t.id === "memorial")!,
-                  2,
-                  { showCloseButton: true, onClose: toggleMemorialExpanded }
-                )}
-              </div>
+          /* Non-memorial routes (new / discover): Soul Reading + Soul
+             Bond only. The Memorial tier is intentionally absent —
+             grieving visitors reach it via the "I've lost my pet"
+             intent pill above, never as a pricing option bolted onto
+             the discovery funnel. */
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 items-stretch">
+            {TIERS.filter((t) => t.id === "basic" || t.id === "premium").map((tier, i) =>
+              renderTierCard(tier, i)
             )}
-          </>
+          </div>
         )}
 
         {/* Live multi-pet discount hint. Suppressed on memorial — a

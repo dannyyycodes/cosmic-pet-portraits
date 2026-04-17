@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 
-export type FunnelPath = "new" | "discover" | "memorial" | "gift";
+export type FunnelPath = "new" | "discover" | "memorial";
 
 interface PathPickerProps {
   /** Current path — controlled by FunnelV2 via useSearchParams. */
@@ -14,11 +14,12 @@ interface PathPickerProps {
 
 type IntentDef = { value: FunnelPath; label: string };
 
+// Gift has its own dedicated banner/menu entry, so it is intentionally
+// NOT an on-funnel intent here. Three paths only.
 const INTENTS: IntentDef[] = [
   { value: "new",      label: "I have a new pet" },
   { value: "discover", label: "I want to discover my pet" },
   { value: "memorial", label: "I\u2019ve lost my pet" },
-  { value: "gift",     label: "I\u2019m gifting to a loved one" },
 ];
 
 /**
