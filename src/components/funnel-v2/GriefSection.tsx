@@ -120,105 +120,99 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
         className="relative max-w-[500px] mx-auto text-center"
         style={{ zIndex: 1 }}
       >
-        {/* Handwritten prelude — bridges the jump from generic benefits
-            into the memorial register. Quiet, earth-toned, slight rotation
-            so it reads like a note scribbled in the margin. */}
-        <div
-          className="grief-prelude"
-          aria-hidden="true"
-          style={{
-            fontFamily: '"Caveat", "Bradley Hand", cursive',
-            fontSize: "clamp(1.1rem, 3.6vw, 1.35rem)",
-            color: "var(--muted, #958779)",
-            lineHeight: 1,
-            marginBottom: 18,
-            transform: "rotate(-1.5deg)",
-            display: "inline-block",
-          }}
-        >
-          for the ones you miss
-        </div>
-
-        {/* Primary card — title and sub merged into a single glass panel so
-            the cadence reads as one quiet statement rather than two stacked
-            blocks. Tiny gold hairline separates the two lines. */}
+        {/* Primary card — three-line cadence: acknowledgment, validation,
+            offer. Gold hairline between validation and offer marks the
+            shift from feeling seen to the quiet resolution. */}
         <div className="grief-card flex justify-center">
           <div
             style={{
-              padding: "clamp(22px, 4vw, 30px) clamp(24px, 5vw, 36px)",
+              padding: "clamp(24px, 4.2vw, 34px) clamp(24px, 5vw, 36px)",
               background: "rgba(255, 253, 245, 0.94)",
               border: "1px solid rgba(196, 162, 101, 0.2)",
               borderRadius: 16,
               boxShadow: "0 4px 28px rgba(20,15,8,0.05)",
               backdropFilter: "blur(5px)",
               WebkitBackdropFilter: "blur(5px)",
-              maxWidth: 460,
+              maxWidth: 480,
             }}
           >
+            {/* Line 1 — acknowledgment */}
             <h2
               style={{
                 fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.65rem, 5.4vw, 2.1rem)",
+                fontSize: "clamp(1.55rem, 5vw, 1.95rem)",
                 fontWeight: 400,
                 fontStyle: "italic",
                 color: "var(--black, #141210)",
-                lineHeight: 1.15,
+                lineHeight: 1.18,
                 letterSpacing: "-0.02em",
                 margin: 0,
                 textAlign: "center",
               }}
             >
-              If they aren&rsquo;t here anymore.
+              For the ones you still carry in your heart.
             </h2>
 
-            {/* Hairline gold divider — the single ornament. */}
+            {/* Line 2 — validation */}
+            <p
+              style={{
+                fontFamily: '"Cormorant", Georgia, serif',
+                fontSize: "clamp(1.02rem, 3.1vw, 1.15rem)",
+                fontStyle: "italic",
+                color: "var(--earth, #6e6259)",
+                lineHeight: 1.45,
+                margin: "10px 0 0",
+                textAlign: "center",
+              }}
+            >
+              Even if they&rsquo;re no longer by your side.
+            </p>
+
+            {/* Hairline gold divider — single ornament, marks the turn
+                from emotion to offer. */}
             <div
               aria-hidden="true"
               style={{
-                width: 36,
+                width: 42,
                 height: 1,
                 background: "var(--gold, #c4a265)",
                 opacity: 0.6,
-                margin: "14px auto",
+                margin: "18px auto",
               }}
             />
 
+            {/* Line 3 — offer (the solution) */}
             <p
               style={{
                 fontFamily: '"Cormorant", Georgia, serif',
                 fontSize: "clamp(1.02rem, 3vw, 1.12rem)",
                 fontStyle: "italic",
-                color: "var(--earth, #6e6259)",
+                color: "var(--ink, #1f1c18)",
                 lineHeight: 1.55,
                 margin: 0,
                 textAlign: "center",
               }}
             >
-              A reading to keep close &mdash; so you can still hear
-              who they always were.
+              A reading for the space they left &mdash; so you can still
+              feel them near.
             </p>
           </div>
         </div>
       </div>
 
       <style>{`
-        .grief-prelude,
         .grief-card {
           opacity: 0;
           transform: translateY(10px);
           will-change: opacity, transform;
         }
-        .grief-section.is-in .grief-prelude {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) forwards;
-        }
         .grief-section.is-in .grief-card {
-          animation: griefReveal 820ms cubic-bezier(0.22,1,0.36,1) 180ms forwards;
+          animation: griefReveal 820ms cubic-bezier(0.22,1,0.36,1) forwards;
         }
         @keyframes griefReveal {
           to { opacity: 1; transform: translateY(0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .grief-prelude,
           .grief-card {
             animation: none !important;
             opacity: 1 !important;

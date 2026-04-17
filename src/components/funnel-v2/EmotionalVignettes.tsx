@@ -7,7 +7,7 @@ const BEATS: string[] = [
 ];
 
 const BRIDGE_TEXT = "Every little soul is mapped in the stars.";
-const TYPE_INTERVAL_MS = 40;
+const TYPE_INTERVAL_MS = 72;
 const TYPE_LEAD_IN_MS = 900; // after 640ms pill reveal + a small breath
 
 export const EmotionalVignettes = () => {
@@ -139,11 +139,11 @@ export const EmotionalVignettes = () => {
           aria-label={BRIDGE_TEXT}
           style={{
             fontFamily: '"Cormorant", Georgia, serif',
-            fontSize: "clamp(1.1rem, 3.5vw, 1.3rem)",
+            fontSize: "clamp(1.4rem, 4.6vw, 1.7rem)",
             fontStyle: "italic",
             fontWeight: 500,
             color: "var(--ink, #1f1c18)",
-            lineHeight: 1.5,
+            lineHeight: 1.45,
             letterSpacing: "0.005em",
             margin: 0,
             position: "relative",
