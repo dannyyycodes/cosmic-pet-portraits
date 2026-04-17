@@ -80,50 +80,6 @@ export const EmotionalVignettes = () => {
           marginTop: "clamp(28px, 5vw, 42px)",
         }}
       >
-        {/* Three-star mini constellation with connecting hairline */}
-        <div
-          aria-hidden="true"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            marginBottom: 14,
-          }}
-        >
-          <span
-            style={{
-              display: "inline-block",
-              width: 36,
-              height: 1,
-              background:
-                "linear-gradient(90deg, transparent 0%, rgba(196,162,101,0.55) 100%)",
-            }}
-          />
-          {[0, 1, 2].map((i) => (
-            <svg
-              key={i}
-              className="bridge-star"
-              width="11"
-              height="11"
-              viewBox="0 0 24 24"
-              fill="var(--gold, #c4a265)"
-              style={{ animationDelay: `${i * 280}ms` }}
-            >
-              <path d="M12 2l2.9 6.9 7.5.7-5.7 5 1.7 7.4L12 18.3 5.6 22l1.7-7.4-5.7-5 7.5-.7L12 2z" />
-            </svg>
-          ))}
-          <span
-            style={{
-              display: "inline-block",
-              width: 36,
-              height: 1,
-              background:
-                "linear-gradient(90deg, rgba(196,162,101,0.55) 0%, transparent 100%)",
-            }}
-          />
-        </div>
-
         <p
           style={{
             fontFamily: '"Cormorant", Georgia, serif',
@@ -157,16 +113,7 @@ export const EmotionalVignettes = () => {
         @keyframes triadPillIn {
           to { opacity: 1; transform: translateY(0); }
         }
-        .bridge-star {
-          animation: bridgeTwinkle 3.2s ease-in-out infinite;
-          transform-origin: center;
-          will-change: opacity, transform;
-        }
-        @keyframes bridgeTwinkle {
-          0%, 100% { opacity: 0.6; transform: scale(1); }
-          50%      { opacity: 1;   transform: scale(1.18); }
-        }
-        @media (hover: hover) {
+@media (hover: hover) {
           .triad-pill:hover {
             transform: translateY(-2px);
             box-shadow:
@@ -177,8 +124,7 @@ export const EmotionalVignettes = () => {
         }
         @media (prefers-reduced-motion: reduce) {
           .triad-pill,
-          .triad-bridge,
-          .bridge-star {
+          .triad-bridge {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;

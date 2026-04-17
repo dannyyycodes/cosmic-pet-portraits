@@ -1,4 +1,20 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
+
+/* Memorial reading = Soul Bond tier at $35 (was $60) — a dedicated product
+ * with its own viewer + prompt. This section pre-sells it directly rather
+ * than scattering emotional beats across multiple small cards. */
+const MEMORIAL_PRICE = 35;
+const MEMORIAL_WAS_PRICE = 60;
+
+const MEMORIAL_FEATURES = [
+  "Their full soul portrait, written in past tense",
+  "A letter in their voice — from beyond",
+  "Who they were, and the gifts they brought",
+  "Grief compass + rituals for remembering",
+  "Three permission slips for your own healing",
+  "Yours forever — something to return to, every time you need them",
+];
 
 /* Memorial backdrop — scattered soul silhouettes (two hand-picked SVGs
  * served from /memorial/). Density, sizes and opacity mirror the hearts
@@ -81,10 +97,10 @@ interface GriefSectionProps {
   onCtaClick?: () => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => {
+export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const { fmtUsd } = useLocalizedPrice();
 
   useEffect(() => {
     const el = ref.current;
@@ -102,10 +118,7 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
     return () => obs.disconnect();
   }, []);
 
-  const BEATS = [
-    "For when you need to feel them close again.",
-    "Always there, for when you need them.",
-  ];
+  const savePct = Math.round((1 - MEMORIAL_PRICE / MEMORIAL_WAS_PRICE) * 100);
 
   return (
     <div
@@ -119,203 +132,272 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
       <DoveWallpaper />
 
       <div
-        className="relative max-w-[540px] mx-auto text-center"
-        style={{ zIndex: 1 }}
+        className="relative mx-auto"
+        style={{ zIndex: 1, maxWidth: 560 }}
       >
-        {/* Title — wrapped in a cream-glass card so the memorial backdrop
-            doesn't cross behind the letterforms (matches the pattern
-            used by "Once You Understand Them" above). */}
-        <div className="grief-title flex justify-center" style={{ marginBottom: 18 }}>
-          <div
-            style={{
-              padding: "16px 30px",
-              background: "rgba(255, 253, 245, 0.94)",
-              border: "1px solid rgba(196, 162, 101, 0.18)",
-              borderRadius: 14,
-              boxShadow: "0 2px 20px rgba(20,15,8,0.04)",
-              backdropFilter: "blur(4px)",
-              WebkitBackdropFilter: "blur(4px)",
-            }}
-          >
-            <h2
-              style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.55rem, 5.2vw, 2.1rem)",
-                fontWeight: 400,
-                fontStyle: "italic",
-                color: "var(--black, #141210)",
-                lineHeight: 1.18,
-                letterSpacing: "-0.02em",
-                margin: 0,
-                textAlign: "center",
-              }}
-            >
-              If you've already had to say goodbye.
-            </h2>
-          </div>
-        </div>
-
-        {/* Sub — wrapped in its own small cream-glass card so the dove
-            wallpaper doesn't cross behind the letterforms. */}
+        {/* Single polished memorial sale card — replaces the previous
+            sequence of title / sub / two beats / badge. Dedicated product
+            tile pre-selling the memorial reading. */}
         <div
-          className="grief-sub flex justify-center"
-          style={{ marginBottom: "clamp(32px, 5.5vw, 44px)" }}
-        >
-          <div
-            style={{
-              padding: "12px 22px",
-              background: "rgba(255, 253, 245, 0.9)",
-              border: "1px solid rgba(196, 162, 101, 0.14)",
-              borderRadius: 12,
-              boxShadow: "0 1px 14px rgba(20,15,8,0.03)",
-              backdropFilter: "blur(3px)",
-              WebkitBackdropFilter: "blur(3px)",
-              maxWidth: 440,
-            }}
-          >
-            <p
-              style={{
-                fontFamily: '"Cormorant", Georgia, serif',
-                fontSize: "clamp(1rem, 3.2vw, 1.15rem)",
-                fontStyle: "italic",
-                color: "var(--earth, #6e6259)",
-                lineHeight: 1.55,
-                margin: 0,
-                textAlign: "center",
-              }}
-            >
-              Their reading becomes something to keep close. Something to
-              return to, every time you need them.
-            </p>
-          </div>
-        </div>
-
-        {/* Compact benefit cards — roomier than the sub card but tighter
-            than the previous hero-sized version. Fleuron pendant removed. */}
-        <div
-          className="grief-beats"
+          className="grief-card"
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "clamp(12px, 2.2vw, 18px)",
-            marginBottom: "clamp(32px, 5vw, 44px)",
+            position: "relative",
+            padding: "clamp(28px, 4.5vw, 40px) clamp(22px, 4vw, 36px) clamp(24px, 4vw, 34px)",
+            background:
+              "linear-gradient(180deg, rgba(255,253,245,0.96) 0%, rgba(250,244,232,0.94) 100%)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            border: "1px solid rgba(196, 162, 101, 0.42)",
+            borderRadius: 22,
+            boxShadow: [
+              "0 18px 48px rgba(20,15,8,0.08)",
+              "0 2px 10px rgba(196,162,101,0.10)",
+              "inset 0 1px 0 rgba(255,255,255,0.8)",
+            ].join(", "),
+            textAlign: "center",
           }}
         >
-          {BEATS.map((line, i) => (
-            <div
-              key={i}
-              className="grief-beat"
-              style={{
-                position: "relative",
-                padding: "clamp(18px, 3vw, 24px) clamp(18px, 3.5vw, 26px)",
-                background:
-                  "linear-gradient(180deg, rgba(255,253,245,0.92) 0%, rgba(250,244,232,0.9) 100%)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                border: "1px solid rgba(196, 162, 101, 0.32)",
-                borderRadius: 14,
-                boxShadow: [
-                  "0 6px 22px rgba(20,15,8,0.05)",
-                  "0 1px 4px rgba(196,162,101,0.06)",
-                  "inset 0 1px 0 rgba(255,255,255,0.7)",
-                ].join(", "),
-              }}
-            >
-              <p
-                style={{
-                  fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(1.02rem, 3.2vw, 1.2rem)",
-                  fontStyle: "italic",
-                  color: "var(--ink, #1f1c18)",
-                  lineHeight: 1.35,
-                  letterSpacing: "-0.01em",
-                  margin: 0,
-                  textAlign: "center",
-                }}
-              >
-                {line}
-              </p>
-
-              {/* Soft gold hairline below text */}
-              <svg
-                aria-hidden="true"
-                width="42"
-                height="5"
-                viewBox="0 0 54 6"
-                style={{ display: "block", margin: "12px auto 0", opacity: 0.5 }}
-              >
-                <path
-                  d="M 1 3 Q 9 0.5 17 2.5 T 35 2.5 T 53 2.5"
-                  stroke="var(--gold, #c4a265)"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-              </svg>
-            </div>
-          ))}
-        </div>
-
-        {/* Memorial reassurance — tender label, no icon */}
-        <div
-          className="grief-badge"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 20px",
-            borderRadius: 9999,
-            background: "rgba(255, 253, 245, 0.88)",
-            border: "1px solid rgba(191,82,74,0.22)",
-          }}
-        >
-          <span
+          {/* Rose eyebrow — product label */}
+          <div
             style={{
               fontFamily: '"Cormorant", Georgia, serif',
-              fontSize: "0.78rem",
-              fontWeight: 600,
-              letterSpacing: "0.14em",
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              letterSpacing: "0.18em",
               textTransform: "uppercase",
               color: "var(--rose, #bf524a)",
+              marginBottom: 10,
             }}
           >
-            Held gently in their memory
-          </span>
+            Memorial Reading
+          </div>
+
+          {/* Title */}
+          <h2
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.6rem, 5.2vw, 2.1rem)",
+              fontWeight: 400,
+              fontStyle: "italic",
+              color: "var(--black, #141210)",
+              lineHeight: 1.18,
+              letterSpacing: "-0.02em",
+              margin: "0 0 10px",
+            }}
+          >
+            If you've already had to say goodbye.
+          </h2>
+
+          {/* Sub */}
+          <p
+            style={{
+              fontFamily: '"Cormorant", Georgia, serif',
+              fontSize: "clamp(1rem, 3.2vw, 1.15rem)",
+              fontStyle: "italic",
+              color: "var(--earth, #6e6259)",
+              lineHeight: 1.55,
+              margin: "0 auto",
+              maxWidth: 420,
+            }}
+          >
+            A reading written for the ones you miss — something to keep close.
+          </p>
+
+          {/* Gold hairline divider */}
+          <svg
+            aria-hidden="true"
+            width="64"
+            height="6"
+            viewBox="0 0 54 6"
+            style={{ display: "block", margin: "clamp(20px, 3vw, 28px) auto", opacity: 0.6 }}
+          >
+            <path
+              d="M 1 3 Q 9 0.5 17 2.5 T 35 2.5 T 53 2.5"
+              stroke="var(--gold, #c4a265)"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              fill="none"
+            />
+          </svg>
+
+          {/* Price row */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "center",
+              gap: 12,
+              flexWrap: "wrap",
+              marginBottom: "clamp(18px, 3vw, 24px)",
+            }}
+          >
+            <span
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(2.1rem, 6.2vw, 2.75rem)",
+                color: "var(--black, #141210)",
+                lineHeight: 1,
+              }}
+            >
+              {fmtUsd(MEMORIAL_PRICE)}
+            </span>
+            <span
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1rem, 2.8vw, 1.2rem)",
+                color: "var(--muted, #958779)",
+                textDecoration: "line-through",
+                textDecorationColor: "rgba(191,82,74,0.55)",
+                textDecorationThickness: "1.6px",
+                lineHeight: 1,
+              }}
+            >
+              {fmtUsd(MEMORIAL_WAS_PRICE)}
+            </span>
+            <span
+              style={{
+                fontFamily: '"Cormorant", Georgia, serif',
+                fontSize: "0.72rem",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#fff",
+                background: "var(--rose, #bf524a)",
+                padding: "4px 10px",
+                borderRadius: 9999,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Save {savePct}%
+            </span>
+          </div>
+
+          {/* Features list */}
+          <ul
+            style={{
+              listStyle: "none",
+              margin: "0 0 clamp(22px, 3.5vw, 30px)",
+              padding: 0,
+              textAlign: "left",
+              display: "grid",
+              gap: 10,
+            }}
+          >
+            {MEMORIAL_FEATURES.map((feature, i) => (
+              <li
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
+                  fontFamily: '"Cormorant", Georgia, serif',
+                  fontSize: "clamp(0.98rem, 3vw, 1.08rem)",
+                  color: "var(--ink, #1f1c18)",
+                  lineHeight: 1.45,
+                }}
+              >
+                <svg
+                  aria-hidden="true"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 20 20"
+                  style={{ flexShrink: 0, marginTop: 4 }}
+                >
+                  <path
+                    d="M 4 10.5 L 8.5 15 L 16.5 6"
+                    stroke="var(--gold, #c4a265)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* CTA */}
+          <button
+            type="button"
+            onClick={onCtaClick}
+            className="grief-cta"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              maxWidth: 420,
+              padding: "16px 28px",
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.05rem, 3.4vw, 1.2rem)",
+              fontWeight: 400,
+              color: "#fff",
+              background: "var(--rose, #bf524a)",
+              border: "none",
+              borderRadius: 14,
+              cursor: "pointer",
+              boxShadow: [
+                "0 10px 24px rgba(191,82,74,0.28)",
+                "inset 0 1px 0 rgba(255,255,255,0.25)",
+              ].join(", "),
+              letterSpacing: "-0.005em",
+              transition: "transform 280ms cubic-bezier(0.22,1,0.36,1), box-shadow 280ms ease",
+            }}
+          >
+            Begin their memorial · {fmtUsd(MEMORIAL_PRICE)}
+          </button>
+
+          {/* Reassurance pill */}
+          <div style={{ marginTop: "clamp(16px, 2.5vw, 22px)" }}>
+            <span
+              className="grief-badge"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "8px 18px",
+                borderRadius: 9999,
+                background: "rgba(255, 253, 245, 0.88)",
+                border: "1px solid rgba(191,82,74,0.22)",
+                fontFamily: '"Cormorant", Georgia, serif',
+                fontSize: "0.74rem",
+                fontWeight: 600,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "var(--rose, #bf524a)",
+              }}
+            >
+              Held gently in their memory
+            </span>
+          </div>
         </div>
       </div>
 
       <style>{`
-        .grief-title,
-        .grief-sub,
-        .grief-beat,
-        .grief-badge {
+        .grief-card {
           opacity: 0;
-          transform: translateY(10px);
+          transform: translateY(12px);
           will-change: opacity, transform;
         }
-        .grief-section.is-in .grief-title {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) forwards;
-        }
-        .grief-section.is-in .grief-sub {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 120ms forwards;
-        }
-        .grief-section.is-in .grief-beat:nth-child(1) {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 240ms forwards;
-        }
-        .grief-section.is-in .grief-beat:nth-child(2) {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 380ms forwards;
-        }
-        .grief-section.is-in .grief-badge {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 540ms forwards;
+        .grief-section.is-in .grief-card {
+          animation: griefReveal 820ms cubic-bezier(0.22,1,0.36,1) forwards;
         }
         @keyframes griefReveal {
           to { opacity: 1; transform: translateY(0); }
         }
+        @media (hover: hover) {
+          .grief-cta:hover {
+            transform: translateY(-2px);
+            box-shadow:
+              0 14px 32px rgba(191,82,74,0.36),
+              inset 0 1px 0 rgba(255,255,255,0.3);
+          }
+          .grief-cta:active {
+            transform: translateY(0);
+          }
+        }
         @media (prefers-reduced-motion: reduce) {
-          .grief-title,
-          .grief-sub,
-          .grief-beat,
-          .grief-badge {
+          .grief-card {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
