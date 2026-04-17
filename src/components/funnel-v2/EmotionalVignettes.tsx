@@ -136,7 +136,7 @@ export const EmotionalVignettes = () => {
             margin: 0,
           }}
         >
-          The stars made this bond. Come read it.
+          Every little soul is mapped in the stars.
         </p>
       </div>
 

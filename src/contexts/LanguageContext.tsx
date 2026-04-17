@@ -110,7 +110,7 @@ const translations: Record<Language, Record<string, string>> = {
     'intake.occasion.birthday': 'Birthday Celebration',
     'intake.occasion.birthdayDesc': 'Honor another orbit around the sun',
     'intake.occasion.memorial': 'Memorial Tribute',
-    'intake.occasion.memorialDesc': 'Honor a beloved soul who crossed the rainbow bridge',
+    'intake.occasion.memorialDesc': 'For a beloved soul no longer at your side',
     'intake.occasion.footer': 'Each journey is crafted with care to match your unique situation ✨',
     'intake.occasion.startFresh': 'Start Fresh',
     

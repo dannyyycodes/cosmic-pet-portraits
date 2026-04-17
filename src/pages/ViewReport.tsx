@@ -295,10 +295,16 @@ export default function ViewReport() {
     const element = reportData.report?.dominantElement || 'Fire';
 
     // Memorial reports use an entirely different viewer (no cinematic reveal,
-    // different palette, grief-appropriate pacing). Detect via occasionMode.
+    // different palette, grief-appropriate pacing). Detect via occasionMode,
+    // but ALSO confirm the payload actually carries the memorial schema —
+    // legacy memorial reports generated before the dedicated-memorial launch
+    // are cosmic-shaped and need the cosmic viewer to render at all.
     const isMemorial = reportData.occasionMode === 'memorial';
+    const hasMemorialShape = Boolean(
+      (reportData.report as unknown as { whoTheyWere?: unknown })?.whoTheyWere
+    );
 
-    if (isMemorial) {
+    if (isMemorial && hasMemorialShape) {
       return (
         <MemorialReportViewer
           petName={reportData.petName}
@@ -310,6 +316,8 @@ export default function ViewReport() {
         />
       );
     }
+    // Legacy memorial reports fall through to the cosmic viewer below,
+    // which still honours past-tense via occasionMode.
 
     return (
       <>

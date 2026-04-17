@@ -207,9 +207,9 @@ export const GiftSection = () => {
               lineHeight: 1.5,
             }}
           >
-            Also available in memorial mode for pets who've crossed the rainbow bridge.
+            Also available as a memorial reading, for a beloved soul no longer at your side.
             <br />
-            <span style={{ fontSize: "0.8rem" }}>A way to honour a soul that will never be forgotten.</span>
+            <span style={{ fontSize: "0.8rem" }}>A way to honour a bond that hasn&rsquo;t ended — only changed shape.</span>
           </p>
         </div>
       </div>

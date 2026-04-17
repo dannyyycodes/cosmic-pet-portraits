@@ -87,7 +87,7 @@ const occasionThemes: Record<OccasionMode, {
     attackDamage: '∞',
     weaknessType: 'None',
     resistanceType: 'All',
-    flavorText: 'Forever in our hearts, watching over us from the stars above.',
+    flavorText: 'Their light, kept. The bond, carried. Still.',
     holoType: 'silver',
     badge: '👼 ETERNAL SPIRIT 👼',
   },

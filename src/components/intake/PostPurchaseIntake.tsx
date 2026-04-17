@@ -82,7 +82,7 @@ const SUPERPOWERS = [
 const OCCASION_OPTIONS = [
   { value: "discover", emoji: "🔮", label: "Discover", desc: "Explore who they truly are" },
   { value: "birthday", emoji: "🎂", label: "Birthday", desc: "Celebrate another year of magic" },
-  { value: "memorial", emoji: "🕊️", label: "Memorial", desc: "Honor a soul that's crossed the rainbow bridge" },
+  { value: "memorial", emoji: "🕊️", label: "Memorial", desc: "For a beloved soul no longer at your side" },
   { value: "gift", emoji: "🎁", label: "Gift", desc: "A cosmic gift for someone special" },
 ];
 

@@ -1,62 +1,78 @@
 import { useEffect, useRef, useState } from "react";
 
-/* Subtle dove wallpaper — scattered realistic peace-dove silhouettes.
- * Positions chosen by hand so the pattern feels drifted, not tiled. Low
- * opacity so it reads as atmosphere rather than decoration. */
-type Dove = { x: number; y: number; size: number; rot: number; opacity: number; delay: number };
+/* Memorial backdrop — scattered soul silhouettes (two hand-picked SVGs
+ * served from /memorial/). Density, sizes and opacity mirror the hearts
+ * backdrop used elsewhere in the funnel so the memorial section lives
+ * in the same visual family. Very low opacity — reads as atmosphere. */
+type Soul = { x: number; y: number; size: number; rot: number; op: number; src: string };
 
-const DOVES: Dove[] = [
-  { x: 6,  y: 8,  size: 44, rot: -6, opacity: 0.22, delay: 0.0 },
-  { x: 22, y: 14, size: 34, rot: 3,  opacity: 0.18, delay: 0.6 },
-  { x: 42, y: 6,  size: 48, rot: -2, opacity: 0.24, delay: 1.2 },
-  { x: 62, y: 12, size: 36, rot: 5,  opacity: 0.18, delay: 1.8 },
-  { x: 82, y: 8,  size: 42, rot: -4, opacity: 0.22, delay: 2.4 },
-  { x: 14, y: 32, size: 40, rot: 2,  opacity: 0.20, delay: 0.3 },
-  { x: 36, y: 38, size: 50, rot: -5, opacity: 0.26, delay: 0.9 },
-  { x: 58, y: 34, size: 34, rot: 4,  opacity: 0.18, delay: 1.5 },
-  { x: 78, y: 40, size: 42, rot: -3, opacity: 0.22, delay: 2.1 },
-  { x: 4,  y: 58, size: 36, rot: 3,  opacity: 0.20, delay: 0.4 },
-  { x: 28, y: 62, size: 44, rot: -6, opacity: 0.22, delay: 1.0 },
-  { x: 50, y: 58, size: 32, rot: 2,  opacity: 0.18, delay: 1.6 },
-  { x: 72, y: 64, size: 46, rot: -2, opacity: 0.24, delay: 2.2 },
-  { x: 90, y: 60, size: 30, rot: 5,  opacity: 0.16, delay: 2.8 },
-  { x: 12, y: 82, size: 42, rot: -4, opacity: 0.22, delay: 0.5 },
-  { x: 34, y: 88, size: 34, rot: 3,  opacity: 0.18, delay: 1.1 },
-  { x: 56, y: 84, size: 44, rot: -5, opacity: 0.22, delay: 1.7 },
-  { x: 78, y: 90, size: 36, rot: 2,  opacity: 0.20, delay: 2.3 },
-  { x: 92, y: 82, size: 30, rot: -3, opacity: 0.16, delay: 2.9 },
+const S1 = "/memorial/soul-1.svg";
+const S2 = "/memorial/soul-2.svg";
+
+const SOULS: Soul[] = [
+  // Top edge
+  { x: 4,  y: 4,  size: 26, rot: -12, op: 0.10, src: S1 },
+  { x: 18, y: 8,  size: 30, rot: 10,  op: 0.11, src: S2 },
+  { x: 32, y: 5,  size: 24, rot: 14,  op: 0.09, src: S1 },
+  { x: 46, y: 9,  size: 34, rot: -6,  op: 0.11, src: S2 },
+  { x: 62, y: 4,  size: 26, rot: 12,  op: 0.10, src: S1 },
+  { x: 76, y: 8,  size: 28, rot: -14, op: 0.11, src: S2 },
+  { x: 92, y: 5,  size: 22, rot: 6,   op: 0.09, src: S1 },
+
+  // Upper-mid
+  { x: 8,  y: 24, size: 28, rot: 14,  op: 0.10, src: S2 },
+  { x: 28, y: 28, size: 24, rot: -10, op: 0.09, src: S1 },
+  { x: 52, y: 26, size: 32, rot: 4,   op: 0.11, src: S2 },
+  { x: 76, y: 30, size: 26, rot: -16, op: 0.10, src: S1 },
+  { x: 94, y: 24, size: 26, rot: 8,   op: 0.10, src: S2 },
+
+  // Middle
+  { x: 4,  y: 48, size: 24, rot: -8,  op: 0.09, src: S1 },
+  { x: 22, y: 52, size: 30, rot: 16,  op: 0.11, src: S2 },
+  { x: 44, y: 48, size: 22, rot: -12, op: 0.09, src: S1 },
+  { x: 64, y: 52, size: 32, rot: 6,   op: 0.11, src: S2 },
+  { x: 86, y: 50, size: 24, rot: -14, op: 0.10, src: S1 },
+
+  // Lower-mid
+  { x: 10, y: 72, size: 28, rot: 12,  op: 0.10, src: S2 },
+  { x: 32, y: 76, size: 22, rot: -10, op: 0.09, src: S1 },
+  { x: 54, y: 72, size: 30, rot: 14,  op: 0.11, src: S2 },
+  { x: 74, y: 78, size: 24, rot: -6,  op: 0.09, src: S1 },
+  { x: 94, y: 72, size: 32, rot: 8,   op: 0.11, src: S2 },
+
+  // Bottom edge
+  { x: 4,  y: 94, size: 22, rot: -12, op: 0.09, src: S1 },
+  { x: 20, y: 92, size: 28, rot: 8,   op: 0.10, src: S2 },
+  { x: 36, y: 96, size: 24, rot: 14,  op: 0.09, src: S1 },
+  { x: 52, y: 92, size: 32, rot: -8,  op: 0.11, src: S2 },
+  { x: 68, y: 96, size: 22, rot: 10,  op: 0.09, src: S1 },
+  { x: 82, y: 92, size: 28, rot: -14, op: 0.10, src: S2 },
+  { x: 96, y: 96, size: 24, rot: 6,   op: 0.09, src: S1 },
 ];
-
-/* Realistic flying dove silhouette — classic peace-dove shape viewed from
- * above, wings spread wide, small head & body, forked tail. Filled so it
- * reads as a recognizable dove at small sizes (not just an abstract arc). */
-const DOVE_PATH =
-  "M32 2 C30 2 28 4 27 6 C26 8 24 10 22 10 L8 6 C5 5 3 8 5 11 L20 16 L5 21 C3 24 5 27 8 26 L22 22 C24 22 26 24 27 26 C28 28 30 30 32 30 C34 30 36 28 37 26 C38 24 40 22 42 22 L56 26 C59 27 61 24 59 21 L44 16 L59 11 C61 8 59 5 56 6 L42 10 C40 10 38 8 37 6 C36 4 34 2 32 2 Z";
 
 const DoveWallpaper = () => (
   <div
     aria-hidden="true"
-    className="absolute inset-0 pointer-events-none"
+    className="absolute inset-0 pointer-events-none overflow-hidden"
     style={{ zIndex: 0 }}
   >
-    {DOVES.map((d, i) => (
-      <svg
+    {SOULS.map((s, i) => (
+      <img
         key={i}
-        className="grief-dove"
-        viewBox="0 0 64 32"
+        src={s.src}
+        alt=""
         style={{
           position: "absolute",
-          left: `${d.x}%`,
-          top: `${d.y}%`,
-          width: d.size,
-          height: d.size * 0.5,
-          transform: `translate(-50%, -50%) rotate(${d.rot}deg)`,
-          opacity: d.opacity,
-          animationDelay: `${d.delay}s`,
+          left: `${s.x}%`,
+          top: `${s.y}%`,
+          width: s.size,
+          height: "auto",
+          transform: `translate(-50%, -50%) rotate(${s.rot}deg)`,
+          opacity: s.op,
+          userSelect: "none",
         }}
-      >
-        <path d={DOVE_PATH} fill="#8a847d" />
-      </svg>
+        draggable={false}
+      />
     ))}
   </div>
 );
@@ -106,7 +122,7 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
         className="relative max-w-[540px] mx-auto text-center"
         style={{ zIndex: 1 }}
       >
-        {/* Title — wrapped in a cream-glass card so the dove wallpaper
+        {/* Title — wrapped in a cream-glass card so the memorial backdrop
             doesn't cross behind the letterforms (matches the pattern
             used by "Once You Understand Them" above). */}
         <div className="grief-title flex justify-center" style={{ marginBottom: 18 }}>
@@ -295,14 +311,6 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
         @keyframes griefReveal {
           to { opacity: 1; transform: translateY(0); }
         }
-        .grief-dove {
-          animation: doveDrift 6s ease-in-out infinite;
-          will-change: opacity, transform;
-        }
-        @keyframes doveDrift {
-          0%, 100% { filter: brightness(1); }
-          50%      { filter: brightness(1.25); }
-        }
         @media (prefers-reduced-motion: reduce) {
           .grief-title,
           .grief-sub,
@@ -312,7 +320,6 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
             opacity: 1 !important;
             transform: none !important;
           }
-          .grief-dove { animation: none !important; }
         }
       `}</style>
     </div>

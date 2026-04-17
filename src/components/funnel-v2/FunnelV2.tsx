@@ -355,7 +355,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Can I get a reading for a pet who's passed away?",
-    a: "Yes. Every reading includes a memorial mode for pets who've crossed the rainbow bridge. The reading is written to honour their memory, and SoulSpeak lets you hear their voice one more time.",
+    a: "Yes. Little Souls has a dedicated memorial reading — a separate, grief-aware product for pets who are no longer at your side. It's written reverently, never playfully, and SoulSpeak lets you hear their voice once more.",
   },
   {
     q: "I have more than one pet — how does that work?",
