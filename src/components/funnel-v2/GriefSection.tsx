@@ -1,11 +1,93 @@
 import { useEffect, useRef, useState } from "react";
 import { Flame } from "@phosphor-icons/react";
 
+/* Subtle dove wallpaper — scattered flying-bird silhouettes drawn as a
+ * minimal "M" arc, the iconic shorthand for a dove in flight. Positions
+ * chosen by hand so the pattern feels drifted, not tiled. Very low
+ * opacity so it reads as atmosphere rather than decoration. */
+type Dove = { x: number; y: number; size: number; rot: number; opacity: number; delay: number };
+
+const DOVES: Dove[] = [
+  { x: 6,  y: 8,  size: 28, rot: -6, opacity: 0.10, delay: 0.0 },
+  { x: 22, y: 14, size: 22, rot: 3,  opacity: 0.08, delay: 0.6 },
+  { x: 42, y: 6,  size: 32, rot: -2, opacity: 0.09, delay: 1.2 },
+  { x: 62, y: 12, size: 24, rot: 5,  opacity: 0.07, delay: 1.8 },
+  { x: 82, y: 8,  size: 30, rot: -4, opacity: 0.09, delay: 2.4 },
+  { x: 14, y: 32, size: 26, rot: 2,  opacity: 0.08, delay: 0.3 },
+  { x: 36, y: 38, size: 34, rot: -5, opacity: 0.10, delay: 0.9 },
+  { x: 58, y: 34, size: 22, rot: 4,  opacity: 0.07, delay: 1.5 },
+  { x: 78, y: 40, size: 28, rot: -3, opacity: 0.09, delay: 2.1 },
+  { x: 4,  y: 58, size: 24, rot: 3,  opacity: 0.08, delay: 0.4 },
+  { x: 28, y: 62, size: 30, rot: -6, opacity: 0.09, delay: 1.0 },
+  { x: 50, y: 58, size: 22, rot: 2,  opacity: 0.07, delay: 1.6 },
+  { x: 72, y: 64, size: 32, rot: -2, opacity: 0.10, delay: 2.2 },
+  { x: 90, y: 60, size: 20, rot: 5,  opacity: 0.06, delay: 2.8 },
+  { x: 12, y: 82, size: 28, rot: -4, opacity: 0.09, delay: 0.5 },
+  { x: 34, y: 88, size: 22, rot: 3,  opacity: 0.07, delay: 1.1 },
+  { x: 56, y: 84, size: 30, rot: -5, opacity: 0.09, delay: 1.7 },
+  { x: 78, y: 90, size: 24, rot: 2,  opacity: 0.08, delay: 2.3 },
+  { x: 92, y: 82, size: 20, rot: -3, opacity: 0.06, delay: 2.9 },
+];
+
+const DoveWallpaper = () => (
+  <div
+    aria-hidden="true"
+    className="absolute inset-0 pointer-events-none"
+    style={{ zIndex: 0 }}
+  >
+    {DOVES.map((d, i) => (
+      <svg
+        key={i}
+        className="grief-dove"
+        viewBox="0 0 40 20"
+        style={{
+          position: "absolute",
+          left: `${d.x}%`,
+          top: `${d.y}%`,
+          width: d.size,
+          height: d.size * 0.5,
+          transform: `translate(-50%, -50%) rotate(${d.rot}deg)`,
+          opacity: d.opacity,
+          animationDelay: `${d.delay}s`,
+        }}
+      >
+        <path
+          d="M 2 16 Q 10 4, 20 16 Q 30 4, 38 16"
+          stroke="var(--gold, #c4a265)"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </svg>
+    ))}
+  </div>
+);
+
+/* Small gold ornamental 4-point star — used as a pendant at the top of
+ * each elevated benefit card to signal reverence. */
+const Fleuron = ({ size = 14 }: { size?: number }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 20 20"
+    width={size}
+    height={size}
+    style={{ display: "block", margin: "0 auto" }}
+  >
+    <path
+      d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z"
+      fill="var(--gold, #c4a265)"
+      opacity="0.72"
+    />
+  </svg>
+);
+
 interface GriefSectionProps {
-  onCtaClick: () => void;
+  onCtaClick?: () => void;
 }
 
-export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -35,47 +117,22 @@ export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
       ref={ref}
       className={`grief-section relative overflow-hidden ${visible ? "is-in" : ""}`}
       style={{
-        background:
-          "linear-gradient(180deg, #f4ebd9 0%, #ede4d4 55%, #f4ebd9 100%)",
-        padding: "clamp(52px, 10vw, 90px) 20px",
+        background: "var(--cream, #FFFDF5)",
+        padding: "clamp(56px, 10vw, 96px) 20px",
       }}
     >
-      {/* Soft radial candle glow behind the content */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: "12%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 360,
-          height: 360,
-          background:
-            "radial-gradient(circle, rgba(191,82,74,0.09) 0%, rgba(196,162,101,0.04) 40%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
+      <DoveWallpaper />
 
       <div
-        className="relative max-w-[520px] mx-auto text-center"
+        className="relative max-w-[540px] mx-auto text-center"
         style={{ zIndex: 1 }}
       >
-        {/* Flickering candle glyph */}
-        <div className="grief-candle" style={{ marginBottom: 18 }}>
-          <Flame
-            size={38}
-            weight="thin"
-            color="var(--rose, #bf524a)"
-            style={{ opacity: 0.85, margin: "0 auto", display: "block" }}
-          />
-        </div>
-
         {/* Title */}
         <h2
           className="grief-title"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.65rem, 5.4vw, 2.15rem)",
+            fontSize: "clamp(1.65rem, 5.4vw, 2.2rem)",
             fontWeight: 400,
             fontStyle: "italic",
             color: "var(--black, #141210)",
@@ -84,7 +141,7 @@ export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
             marginBottom: 16,
           }}
         >
-          Grieving a love this big?
+          If you've already had to say goodbye.
         </h2>
 
         {/* Sub */}
@@ -96,7 +153,7 @@ export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
             fontStyle: "italic",
             color: "var(--earth, #6e6259)",
             lineHeight: 1.55,
-            marginBottom: "clamp(28px, 5vw, 38px)",
+            marginBottom: "clamp(32px, 5.5vw, 44px)",
             maxWidth: 440,
             marginLeft: "auto",
             marginRight: "auto",
@@ -106,14 +163,14 @@ export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
           to, every time you need them.
         </p>
 
-        {/* Two poetic benefit beats */}
+        {/* Elevated benefit cards — gold fleuron pendant, double-border, roomy */}
         <div
           className="grief-beats"
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "clamp(16px, 2.6vw, 22px)",
-            marginBottom: "clamp(30px, 5vw, 40px)",
+            gap: "clamp(18px, 3vw, 26px)",
+            marginBottom: "clamp(32px, 5vw, 44px)",
           }}
         >
           {BEATS.map((line, i) => (
@@ -121,30 +178,67 @@ export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
               key={i}
               className="grief-beat"
               style={{
-                padding: "clamp(18px, 3.2vw, 24px) clamp(20px, 4vw, 28px)",
-                background: "rgba(255, 253, 245, 0.7)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-                border: "1px solid rgba(191,82,74,0.18)",
-                borderRadius: 14,
-                boxShadow:
-                  "0 4px 18px rgba(20,15,8,0.04), inset 0 1px 0 rgba(255,255,255,0.6)",
                 position: "relative",
+                padding: "clamp(32px, 5vw, 44px) clamp(24px, 4.5vw, 36px) clamp(28px, 4.5vw, 38px)",
+                background:
+                  "linear-gradient(180deg, rgba(255,253,245,0.92) 0%, rgba(250,244,232,0.9) 100%)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                border: "1px solid rgba(196, 162, 101, 0.38)",
+                borderRadius: 18,
+                boxShadow: [
+                  "0 10px 38px rgba(20,15,8,0.06)",
+                  "0 2px 8px rgba(196,162,101,0.08)",
+                  "inset 0 1px 0 rgba(255,255,255,0.75)",
+                  "inset 0 0 0 1px rgba(255,253,245,0.65)",
+                ].join(", "),
               }}
             >
+              {/* Gold pendant fleuron at top-center */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: -8,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  padding: "4px 8px",
+                  background: "var(--cream, #FFFDF5)",
+                  borderRadius: 9999,
+                }}
+              >
+                <Fleuron size={14} />
+              </div>
+
               <p
                 style={{
                   fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(1.1rem, 3.6vw, 1.3rem)",
+                  fontSize: "clamp(1.15rem, 3.8vw, 1.4rem)",
                   fontStyle: "italic",
                   color: "var(--ink, #1f1c18)",
-                  lineHeight: 1.35,
+                  lineHeight: 1.38,
                   letterSpacing: "-0.01em",
                   margin: 0,
                 }}
               >
                 {line}
               </p>
+
+              {/* Soft gold hairline below text */}
+              <svg
+                aria-hidden="true"
+                width="54"
+                height="6"
+                viewBox="0 0 54 6"
+                style={{ display: "block", margin: "18px auto 0", opacity: 0.55 }}
+              >
+                <path
+                  d="M 1 3 Q 9 0.5 17 2.5 T 35 2.5 T 53 2.5"
+                  stroke="var(--gold, #c4a265)"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </svg>
             </div>
           ))}
         </div>
@@ -160,7 +254,6 @@ export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
             borderRadius: 9999,
             background: "rgba(255, 253, 245, 0.85)",
             border: "1px solid rgba(191,82,74,0.22)",
-            marginBottom: 22,
           }}
         >
           <Flame
@@ -182,104 +275,53 @@ export const GriefSection = ({ onCtaClick }: GriefSectionProps) => {
             Memorial mode — in every reading
           </span>
         </div>
-
-        {/* Soft text-link CTA — tender, not aggressive */}
-        <div>
-          <button
-            onClick={onCtaClick}
-            className="grief-cta group inline-flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
-            style={{
-              fontFamily: '"Cormorant", Georgia, serif',
-              fontSize: "clamp(0.92rem, 3vw, 1.02rem)",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: "var(--rose, #bf524a)",
-              background: "transparent",
-              border: "none",
-              padding: "10px 4px",
-              cursor: "pointer",
-              borderBottom: "1px solid rgba(191,82,74,0.4)",
-            }}
-          >
-            Write their reading
-            <svg
-              className="transition-transform duration-300 group-hover:translate-x-1"
-              width="16"
-              height="16"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.6}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13 7l5 5m0 0l-5 5m5-5H6"
-              />
-            </svg>
-          </button>
-        </div>
       </div>
 
       <style>{`
-        .grief-candle,
         .grief-title,
         .grief-sub,
         .grief-beat,
-        .grief-badge,
-        .grief-cta {
+        .grief-badge {
           opacity: 0;
           transform: translateY(10px);
           will-change: opacity, transform;
         }
-        .grief-section.is-in .grief-candle {
+        .grief-section.is-in .grief-title {
           animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) forwards;
         }
-        .grief-section.is-in .grief-title {
+        .grief-section.is-in .grief-sub {
           animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 120ms forwards;
         }
-        .grief-section.is-in .grief-sub {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 230ms forwards;
-        }
         .grief-section.is-in .grief-beat:nth-child(1) {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 340ms forwards;
+          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 240ms forwards;
         }
         .grief-section.is-in .grief-beat:nth-child(2) {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 480ms forwards;
+          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 380ms forwards;
         }
         .grief-section.is-in .grief-badge {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 640ms forwards;
-        }
-        .grief-section.is-in .grief-cta {
-          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 760ms forwards;
+          animation: griefReveal 720ms cubic-bezier(0.22,1,0.36,1) 540ms forwards;
         }
         @keyframes griefReveal {
           to { opacity: 1; transform: translateY(0); }
         }
-        .grief-section .grief-candle svg {
-          animation: griefFlicker 3s ease-in-out infinite;
-          transform-origin: center;
+        .grief-dove {
+          animation: doveDrift 6s ease-in-out infinite;
+          will-change: opacity, transform;
         }
-        @keyframes griefFlicker {
-          0%, 100% { opacity: 0.7; transform: scale(1); }
-          35%      { opacity: 0.92; transform: scale(1.05); }
-          60%      { opacity: 0.82; transform: scale(0.98); }
+        @keyframes doveDrift {
+          0%, 100% { filter: brightness(1); }
+          50%      { filter: brightness(1.25); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .grief-candle,
           .grief-title,
           .grief-sub,
           .grief-beat,
-          .grief-badge,
-          .grief-cta {
+          .grief-badge {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
           }
-          .grief-section .grief-candle svg {
-            animation: none !important;
-          }
+          .grief-dove { animation: none !important; }
         }
       `}</style>
     </div>
