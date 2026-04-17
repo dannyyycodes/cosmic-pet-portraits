@@ -25,48 +25,42 @@ const VIGNETTES: Vignette[] = [
     accent: "#5a4a42",
     eyebrow: "For those grieving",
     headline: "You still reach for the leash some mornings.",
-    body:
-      "Every reading includes a memorial mode — written in past tense, closing with a letter in their voice. The goodbye you never got to finish.",
+    body: "A letter in their voice. The goodbye you never got.",
   },
   {
     icon: Sparkle,
     accent: "#c4a265",
     eyebrow: "For new beginnings",
     headline: "Before this year blurs into memory.",
-    body:
-      "Meet who they actually came here to be — their temperament, their love language, the rhythm you'll build together — while the bond is still forming.",
+    body: "Meet who they came here to be.",
   },
   {
     icon: InfinityIcon,
     accent: "#8a6f8c",
     eyebrow: "For the bond you can't explain",
-    headline: "You've caught them looking. You've felt them read you.",
-    body:
-      "You've always known it was more than instinct. This puts into words what your heart has known the whole time.",
+    headline: "You've felt them read you.",
+    body: "Words for what you've always known.",
   },
   {
     icon: HouseLine,
     accent: "#7a8670",
     eyebrow: "For the ones you rescued",
     headline: "Whoever they were before you is still in there.",
-    body:
-      "What they can't tell you, their chart remembers. The early chapters they carry — finally seen, finally understood, finally soft.",
+    body: "What they can't tell you, their chart remembers.",
   },
   {
     icon: Gift,
     accent: "#b0773f",
     eyebrow: "For someone you love",
     headline: "The only gift they can't unwrap.",
-    body:
-      "For the person whose pet is their person. Something they'll hold longer than flowers, and cry reading more than once.",
+    body: "For the person whose pet is their person.",
   },
   {
     icon: Eye,
     accent: "#bf524a",
     eyebrow: "For the ones who do that thing",
-    headline: "You've known what they do. Finally know what you were watching.",
-    body:
-      "The 11pm window vigil. The shoulder perch. The long stare. Every oddity has a chart reason — and the reasons are more tender than you'd guess.",
+    headline: "Every oddity has a reason.",
+    body: "The 11pm vigil. The long stare. Decoded.",
   },
 ];
 
@@ -250,8 +244,7 @@ export const EmotionalVignettes = () => {
             margin: "0 auto",
           }}
         >
-          Whatever brought you — grief, a new beginning, a bond you can't
-          explain — this reading was made to meet it.
+          This reading meets you where you are.
         </p>
       </div>
 
