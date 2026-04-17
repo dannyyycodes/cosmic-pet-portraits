@@ -37,8 +37,10 @@ interface Feature {
   kind?: FeatureKind;
 }
 
+type TierId = "basic" | "premium" | "memorial";
+
 const TIERS: Array<{
-  id: "basic" | "premium";
+  id: TierId;
   name: string;
   price: number;
   wasPrice?: number;
@@ -74,25 +76,29 @@ const TIERS: Array<{
       { label: "The soul-reasons you found each other" },
     ],
   },
+  {
+    // Memorial Reading — rendered as a collapsed pill under the two-tier grid.
+    // Shares Stripe price with Soul Bond ($49) so memorialQty bundles into
+    // premiumCount at checkout. Horoscope intentionally omitted — memorial
+    // readings are backward-looking.
+    id: "memorial",
+    name: "Memorial Reading",
+    price: 49,
+    wasPrice: 79,
+    features: [
+      { label: "For pets no longer with you — written in past tense", kind: "divider" },
+      { label: "Their full soul portrait, written in past tense" },
+      { label: "A letter in their voice — from beyond" },
+      { label: "The gifts they brought, and who they truly were" },
+      { label: "Their chart against yours — the cosmic pairing that brought you together" },
+      { label: "Grief compass + rituals for remembering" },
+      { label: "Three permission slips for your own healing" },
+      { label: "Their photo becomes part of the keepsake" },
+      { label: "SoulSpeak — speak with them whenever you need", kind: "soulspeak" },
+      { label: "Yours forever, to return to when you need them" },
+    ],
+  },
 ];
-
-// Memorial variant of the Soul Bond card. Same price, same slot in the grid —
-// just a different feature list + name + eyebrow when the Memorial toggle is ON.
-// Horoscope is intentionally omitted: memorial readings are backward-looking.
-const MEMORIAL_PREMIUM_FEATURES: Feature[] = [
-  { label: "For pets no longer with you — written in past tense", kind: "divider" },
-  { label: "Their full soul portrait, written in past tense" },
-  { label: "A letter in their voice — from beyond" },
-  { label: "The gifts they brought, and who they truly were" },
-  { label: "Their chart against yours — the cosmic pairing that brought you together" },
-  { label: "Grief compass + rituals for remembering" },
-  { label: "Three permission slips for your own healing" },
-  { label: "Their photo becomes part of the keepsake" },
-  { label: "SoulSpeak — speak with them whenever you need", kind: "soulspeak" },
-  { label: "Yours forever, to return to when you need them" },
-];
-const MEMORIAL_PREMIUM_NAME = "Memorial Reading";
-const MEMORIAL_BADGE = "For the ones you miss";
 
 interface InlineCheckoutProps {
   ctaLabel: string;
@@ -115,15 +121,17 @@ function getVolumeDiscount(petCount: number): number {
 const MAX_PETS = 10;
 
 export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange }, forwardedRef) => {
-  // Per-tier quantities — users can mix Soul Reading + Soul Bond in one order.
-  // Default: 1× Soul Reading, 0× Soul Bond (matches the previous single-tier default).
+  // Per-tier quantities — users can mix Soul Reading + Soul Bond + Memorial in one order.
+  // Default: 1× Soul Reading, 0× Soul Bond, 0× Memorial (matches the previous single-tier default).
   const [basicQty, setBasicQty] = useState<number>(1);
   const [premiumQty, setPremiumQty] = useState<number>(0);
-  // Memorial toggle lives on the Soul Bond card. When ON the card flips to
-  // a memorial variant (same price, different copy + features, no horoscope)
-  // and checkout passes occasionMode='memorial' so PostPurchaseIntake can
-  // default the occasion picker to Memorial.
-  const [memorialMode, setMemorialMode] = useState<boolean>(false);
+  // Memorial Reading quantity — shares Stripe price with Soul Bond ($49).
+  // Bundled into premiumCount when sent to create-checkout; occasionMode
+  // ='memorial' is forwarded only when the cart is purely memorial.
+  const [memorialQty, setMemorialQty] = useState<number>(0);
+  // Memorial pill expansion — collapsed by default, expands into a full
+  // tier card identical in format to Soul Reading / Soul Bond when clicked.
+  const [memorialExpanded, setMemorialExpanded] = useState<boolean>(false);
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -174,8 +182,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   // Derived totals — recomputed on every render from per-tier qty state.
   const basicPrice = TIERS.find((t) => t.id === "basic")!.price;
   const premiumPrice = TIERS.find((t) => t.id === "premium")!.price;
-  const petCount = basicQty + premiumQty;
-  const subtotal = basicQty * basicPrice + premiumQty * premiumPrice;
+  const memorialPrice = TIERS.find((t) => t.id === "memorial")!.price;
+  const petCount = basicQty + premiumQty + memorialQty;
+  const subtotal = basicQty * basicPrice + premiumQty * premiumPrice + memorialQty * memorialPrice;
   const discountRate = getVolumeDiscount(petCount);
   const volumeDiscountAmount = Math.round(subtotal * discountRate * 100) / 100;
   const selectedPrice = Math.max(0, subtotal - volumeDiscountAmount);
@@ -262,20 +271,34 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     setCodeStatus("idle");
   };
 
-  const tierQty = (id: "basic" | "premium") => (id === "basic" ? basicQty : premiumQty);
-  const setTierQty = (id: "basic" | "premium", n: number) => {
-    if (id === "basic") setBasicQty(n); else setPremiumQty(n);
+  const tierQty = (id: TierId) =>
+    id === "basic" ? basicQty : id === "premium" ? premiumQty : memorialQty;
+  const setTierQty = (id: TierId, n: number) => {
+    if (id === "basic") setBasicQty(n);
+    else if (id === "premium") setPremiumQty(n);
+    else setMemorialQty(n);
   };
 
-  const changeTierQty = (id: "basic" | "premium", delta: number) => {
+  const changeTierQty = (id: TierId, delta: number) => {
     const current = tierQty(id);
-    const other = id === "basic" ? premiumQty : basicQty;
+    // Sum of the other two tiers' quantities.
+    const others =
+      (id === "basic" ? 0 : basicQty) +
+      (id === "premium" ? 0 : premiumQty) +
+      (id === "memorial" ? 0 : memorialQty);
     const next = Math.max(0, current + delta);
-    if (next + other > MAX_PETS) return;
-    if (next + other === 0) return; // keep at least 1 pet selected
+    const totalAfter = next + others;
+    if (totalAfter > MAX_PETS) return;
+    if (totalAfter === 0) return; // keep at least 1 pet selected
     setTierQty(id, next);
-    onSelectedPriceChange?.(Math.max(0, ((id === "basic" ? next * basicPrice : basicQty * basicPrice) + (id === "premium" ? next * premiumPrice : premiumQty * premiumPrice)) * (1 - getVolumeDiscount(next + other))));
-    trackFunnelEvent("v2_tier_qty_changed", { tier: id, qty: next, petCount: next + other });
+    const nextBasic = id === "basic" ? next : basicQty;
+    const nextPremium = id === "premium" ? next : premiumQty;
+    const nextMemorial = id === "memorial" ? next : memorialQty;
+    const nextSubtotal =
+      nextBasic * basicPrice + nextPremium * premiumPrice + nextMemorial * memorialPrice;
+    const nextDiscount = getVolumeDiscount(totalAfter);
+    onSelectedPriceChange?.(Math.max(0, nextSubtotal * (1 - nextDiscount)));
+    trackFunnelEvent("v2_tier_qty_changed", { tier: id, qty: next, petCount: totalAfter });
   };
 
   const trackFunnelEvent = async (eventType: string, eventData: Record<string, unknown>) => {
@@ -299,23 +322,20 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
   // Card click — if tier qty is 0, bump to 1 (acts like the old "select" UX).
   // The +/- stepper buttons inside the card stop propagation so they don't fire this.
-  const handleCardActivate = (tier: "basic" | "premium") => {
+  const handleCardActivate = (tier: TierId) => {
     if (tierQty(tier) === 0) {
       changeTierQty(tier, 1);
     }
     trackFunnelEvent("v2_tier_selected", { tier, qty: tierQty(tier) });
   };
 
-  // Memorial toggle on the Soul Bond card. Flipping ON auto-bumps Soul Bond
-  // quantity to 1 if it was 0, since a memorial card with 0× in the stepper
-  // would be confusing. Flipping OFF leaves whatever quantity the user had.
-  const toggleMemorialMode = () => {
-    setMemorialMode((prev) => {
+  // Memorial pill click — expand into the full tier card. If nothing is
+  // selected yet, don't auto-bump the qty; let the user interact with the
+  // stepper inside the expanded card. Re-clicking the card header collapses.
+  const toggleMemorialExpanded = () => {
+    setMemorialExpanded((prev) => {
       const next = !prev;
-      if (next && premiumQty === 0 && basicQty < MAX_PETS) {
-        setPremiumQty(1);
-      }
-      trackFunnelEvent("v2_memorial_toggle", { memorial: next, premiumQty, basicQty });
+      trackFunnelEvent("v2_memorial_pill_toggled", { expanded: next, memorialQty });
       return next;
     });
   };
@@ -344,36 +364,41 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     }
     setError("");
     setIsLoading(true);
+    // Memorial Reading shares the Soul Bond Stripe price ($49), so we bundle
+    // memorialQty into premiumCount when posting to create-checkout. The
+    // server has no distinct Memorial SKU — it just reads basicCount +
+    // premiumCount. The user-facing distinction lives in post-purchase intake.
+    const combinedPremiumCount = premiumQty + memorialQty;
     // Primary tier reflects what dominates the order — used for analytics + back-compat metadata only.
-    const primaryTier: "basic" | "premium" = premiumQty > 0 && basicQty === 0 ? "premium" : "basic";
+    const primaryTier: "basic" | "premium" = combinedPremiumCount > 0 && basicQty === 0 ? "premium" : "basic";
     // Memorial intent gets forwarded to the server as `occasionMode`. The
     // server today applies a single occasion_mode to every placeholder report
-    // in the order. That's correct for pure Soul Bond carts (basicQty === 0),
-    // which is the common memorial path. For mixed carts (Soul Reading +
-    // Memorial Soul Bond) we suppress the flag and let PostPurchaseIntake's
-    // per-pet occasion picker handle it — otherwise we'd stamp memorial on
-    // both placeholders.
+    // in the order. That's correct for pure Memorial carts (basicQty === 0,
+    // premiumQty === 0, memorialQty > 0) — the common memorial path. For
+    // mixed carts (Memorial + Soul Reading or Memorial + Soul Bond) we
+    // suppress the flag and let PostPurchaseIntake's per-pet occasion picker
+    // handle it — otherwise we'd stamp memorial on every placeholder.
     // TODO: wire per-line-item occasion_mode through checkout session metadata
-    // so mixed Memorial + Soul Reading carts can signal Memorial on just the
-    // Soul Bond placeholder.
-    const shouldForwardMemorial = memorialMode && premiumQty > 0 && basicQty === 0;
+    // so mixed Memorial + Soul Reading / Soul Bond carts can signal Memorial
+    // on just the memorial placeholders.
+    const shouldForwardMemorial = memorialQty > 0 && basicQty === 0 && premiumQty === 0;
     const occasionMode = shouldForwardMemorial ? "memorial" : undefined;
     trackFunnelEvent("v2_checkout_clicked", {
       tier: primaryTier,
       basicQty,
       premiumQty,
+      memorialQty,
       petCount,
       price: selectedPrice,
       isInApp,
       charityId: selectedCharity,
       charityBonus,
-      memorialMode,
       occasionMode: occasionMode || "discover",
     });
-    if (memorialMode && !shouldForwardMemorial) {
+    if (memorialQty > 0 && !shouldForwardMemorial) {
       // Visible in prod console so support can trace Memorial intent even when
       // we can't forward it at the cart level yet.
-      console.log("[V2 Checkout] memorial toggle on but cart is mixed — intake will default per-pet", { basicQty, premiumQty });
+      console.log("[V2 Checkout] memorial in mixed cart — intake will default per-pet", { basicQty, premiumQty, memorialQty });
     }
 
     try {
@@ -383,10 +408,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           quickCheckout: true,
           selectedTier: primaryTier,
           // Per-tier breakdown — backend prices each tier independently, then applies volume discount on the total.
+          // Memorial Reading is bundled into premiumCount (same $49 Stripe price).
           basicCount: basicQty,
-          premiumCount: premiumQty,
+          premiumCount: combinedPremiumCount,
           abVariant: "V2",
-          includesPortrait: premiumQty > 0,
+          includesPortrait: combinedPremiumCount > 0,
           petCount,
           quickCheckoutEmail: email.trim(),
           referralCode: refCode || undefined,
@@ -399,7 +425,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           couponId: appliedCoupon?.id || undefined,
           // Forward memorial intent so placeholder pet_reports.occasion_mode
           // is pre-set to 'memorial' and PostPurchaseIntake defaults the
-          // occasion picker accordingly. Only set when cart is pure Soul Bond.
+          // occasion picker accordingly. Only set when cart is purely memorial.
           occasionMode,
         },
       });
@@ -427,6 +453,293 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     else if (forwardedRef) (forwardedRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
   };
 
+  // Render a single tier card — reused for basic, premium, and the expanded
+  // memorial pill. Kept as an inner function so closure state (quantities,
+  // modal openers, helpers, visible flag) is available without prop drilling.
+  const renderTierCard = (
+    tier: (typeof TIERS)[number],
+    i: number,
+    opts?: { showCloseButton?: boolean; onClose?: () => void }
+  ) => {
+    const qty = tierQty(tier.id);
+    const isSelected = qty > 0;
+    const atMax = petCount >= MAX_PETS;
+    const minusDisabled = qty === 0 || (petCount === 1 && qty === 1);
+    const isPremium = tier.id === "premium";
+    const displayName = tier.name;
+    const displayBadge = tier.badge;
+    const displayFeatures = tier.features;
+    return (
+      <div
+        key={tier.id}
+        role="button"
+        tabIndex={0}
+        onClick={() => handleCardActivate(tier.id)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleCardActivate(tier.id); } }}
+        aria-pressed={isSelected}
+        aria-label={`${displayName} — ${qty} selected`}
+        className="relative text-left rounded-2xl p-4 sm:p-5 active:scale-[0.995] min-w-0 h-full flex flex-col cursor-pointer"
+        style={{
+          background: (() => {
+            const fill = isPremium
+              ? "linear-gradient(180deg, #fbf4e4 0%, #FFFDF5 100%)"
+              : "#FFFDF5";
+            const frame = isSelected
+              ? "linear-gradient(135deg, #d4b26b 0%, #bf524a 50%, #d4b26b 100%)"
+              : "linear-gradient(135deg, rgba(196,162,101,0.35) 0%, rgba(212,178,107,0.2) 100%)";
+            return `${fill} padding-box, ${frame} border-box`;
+          })(),
+          border: isSelected ? "2px solid transparent" : "1.5px solid transparent",
+          boxShadow: isSelected
+            ? "0 0 0 3px rgba(196,162,101,0.14), 0 8px 28px rgba(0,0,0,0.08)"
+            : "0 2px 14px rgba(0,0,0,0.04)",
+          opacity: visible ? 1 : 0,
+          transform: visible ? (isSelected ? "translateY(-2px)" : "translateY(0)") : "translateY(15px)",
+          transition: "transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.3s ease, opacity 0.6s ease",
+          transitionDelay: `${0.1 + i * 0.08}s`,
+        }}
+      >
+        {displayBadge && (
+          <div
+            className="absolute -top-2.5 left-5 px-2.5 py-0.5 rounded-full text-white whitespace-nowrap"
+            style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.04em", background: "var(--rose, #bf524a)" }}
+          >
+            {displayBadge}
+          </div>
+        )}
+
+        {opts?.showCloseButton && opts.onClose && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); opts.onClose!(); }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); opts.onClose!(); } }}
+            aria-label="Collapse Memorial Reading details"
+            className="absolute top-2.5 right-2.5 flex items-center justify-center rounded-full transition-opacity hover:opacity-70"
+            style={{ width: 28, height: 28, background: "rgba(196,162,101,0.14)", color: "var(--ink, #1f1c18)", border: "none", cursor: "pointer" }}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
+        {/* Header — stacked so long names + prices never crowd each other */}
+        <div className="mb-3.5">
+          <div className="flex items-center gap-2 min-w-0 mb-1.5">
+            <div
+              className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
+              style={{ borderColor: isSelected ? "var(--rose, #bf524a)" : "var(--sand, #d6c8b6)" }}
+            >
+              {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
+            </div>
+            <span
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.05rem, 3vw, 1.3rem)",
+                color: "var(--ink, #1f1c18)",
+                lineHeight: 1.15,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {displayName}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.6rem, 4.5vw, 2rem)",
+                color: "var(--black, #141210)",
+                lineHeight: 1,
+              }}
+            >
+              {fmtUsd(tier.price)}
+            </span>
+            {tier.wasPrice && (
+              <span
+                style={{
+                  fontFamily: '"DM Serif Display", Georgia, serif',
+                  fontSize: "clamp(0.9rem, 2.4vw, 1.05rem)",
+                  color: "var(--muted, #958779)",
+                  lineHeight: 1,
+                  textDecoration: "line-through",
+                  textDecorationColor: "rgba(191,82,74,0.55)",
+                  textDecorationThickness: "1.5px",
+                }}
+              >
+                {fmtUsd(tier.wasPrice)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* ── Quantity stepper — add multiples of this tier ── */}
+        <div
+          className="flex items-center justify-between mb-3 rounded-lg px-2.5 py-2"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.18)" }}
+        >
+          <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
+            How many?
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); changeTierQty(tier.id, -1); }}
+              disabled={minusDisabled}
+              aria-label={`Remove one ${displayName}`}
+              className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                width: 44, height: 44, minWidth: 44, minHeight: 44,
+                border: "1.5px solid var(--sand, #d6c8b6)", background: "#fff",
+                color: "var(--earth, #6e6259)", fontFamily: "Cormorant, Georgia, serif",
+                fontSize: "1.25rem", lineHeight: 1, cursor: minusDisabled ? "not-allowed" : "pointer",
+              }}
+            >−</button>
+            <span
+              aria-live="polite"
+              style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.1rem", color: "var(--ink, #1f1c18)", minWidth: 18, textAlign: "center" }}
+            >{qty}</span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); changeTierQty(tier.id, 1); }}
+              disabled={atMax}
+              aria-label={`Add one ${displayName}`}
+              className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{
+                width: 44, height: 44, minWidth: 44, minHeight: 44,
+                border: "1.5px solid var(--sand, #d6c8b6)", background: "#fff",
+                color: "var(--earth, #6e6259)", fontFamily: "Cormorant, Georgia, serif",
+                fontSize: "1.25rem", lineHeight: 1, cursor: atMax ? "not-allowed" : "pointer",
+              }}
+            >+</button>
+          </div>
+        </div>
+
+        {/* Features — top-aligned so both cards' feature lists start at
+            the same vertical point on desktop side-by-side view */}
+        <div className="flex-1 flex items-start">
+        <ul
+          className="rounded-lg overflow-hidden w-full"
+          style={{ border: "1px solid rgba(196,162,101,0.14)" }}
+        >
+          {displayFeatures.map((feature, fi) => {
+            const isDivider = feature.kind === "divider";
+            const isSoulSpeak = feature.kind === "soulspeak";
+            const isBonus = feature.kind === "bonus";
+            const isHoroscope = feature.kind === "horoscope";
+            const isPreviewable = isSoulSpeak || isHoroscope;
+            const handlePreviewActivate = (e: React.SyntheticEvent) => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (isSoulSpeak) openSoulSpeak();
+              else if (isHoroscope) openHoroscope();
+            };
+            return (
+              <li
+                key={fi}
+                className="text-left px-2.5 sm:px-3 py-2"
+                onClick={isPreviewable ? handlePreviewActivate : undefined}
+                onKeyDown={isPreviewable ? (e) => { if (e.key === "Enter" || e.key === " ") handlePreviewActivate(e); } : undefined}
+                role={isPreviewable ? "button" : undefined}
+                tabIndex={isPreviewable ? 0 : undefined}
+                aria-label={isSoulSpeak ? "Preview SoulSpeak" : isHoroscope ? "Preview weekly horoscopes" : undefined}
+                style={{
+                  fontSize: "0.8rem",
+                  color: isDivider ? "var(--gold, #c4a265)" : "var(--earth, #6e6259)",
+                  fontWeight: isDivider ? 600 : 700,
+                  fontStyle: isDivider ? "italic" : "normal",
+                  lineHeight: 1.4,
+                  cursor: isPreviewable ? "pointer" : "default",
+                  background: isDivider
+                    ? "rgba(196,162,101,0.08)"
+                    : fi % 2 === 0 ? "rgba(255,255,255,0.6)" : "rgba(246,241,230,0.55)",
+                  transition: isPreviewable ? "background 0.2s ease" : undefined,
+                }}
+              >
+                {(() => {
+                  const badgeBaseStyle: CSSProperties = {
+                    fontFamily: "Cormorant, Georgia, serif",
+                    fontSize: "0.6rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.12em",
+                    padding: "2px 7px",
+                    borderRadius: 4,
+                    color: "#fff",
+                    textTransform: "uppercase",
+                    whiteSpace: "nowrap",
+                    display: "inline-block",
+                  };
+                  const goldBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #d4b26b, #c4a265)" };
+                  const greenBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #5aa870, #4a8c5c)" };
+                  const badgeInner = isSoulSpeak
+                    ? <span style={goldBadge}>New</span>
+                    : isBonus
+                    ? <span style={goldBadge}>Bonus</span>
+                    : isHoroscope
+                    ? <span style={greenBadge}>Free</span>
+                    : null;
+                  const badge = badgeInner ? (
+                    <span style={{ width: 72, flexShrink: 0, display: "inline-flex", justifyContent: "flex-start" }}>
+                      {badgeInner}
+                    </span>
+                  ) : null;
+                  const infoIcon = (
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#958779"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                      style={{ flexShrink: 0 }}
+                    >
+                      <title>Tap to preview</title>
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                  );
+                  const labelNode = isSoulSpeak ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      {feature.label}
+                      {infoIcon}
+                    </span>
+                  ) : isBonus ? (
+                    <span>Bonus sections — little surprises written just for them</span>
+                  ) : isHoroscope ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      Weekly horoscopes — 1 month included
+                      {infoIcon}
+                    </span>
+                  ) : (
+                    <span>{feature.label}</span>
+                  );
+                  return (
+                    <div className="flex items-center gap-2">
+                      {!isDivider && (
+                        <svg className="w-3.5 h-3.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                      <span className="flex-1 min-w-0">{labelNode}</span>
+                      {badge}
+                    </div>
+                  );
+                })()}
+              </li>
+            );
+          })}
+        </ul>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <section
       ref={sectionRef}
@@ -436,11 +749,17 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         background: "var(--cream, #FFFDF5)",
       }}
     >
-      {/* Respect prefers-reduced-motion on the memorial switch thumb + track */}
+      {/* Respect prefers-reduced-motion on the memorial-pill expansion */}
       <style>{`
+        @keyframes lsMemorialExpandIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        [data-ls-memorial-expanded] {
+          animation: lsMemorialExpandIn 320ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
         @media (prefers-reduced-motion: reduce) {
-          [data-ls-memorial-switch] { transition: none !important; }
-          [data-ls-memorial-switch-thumb] { transition: none !important; }
+          [data-ls-memorial-expanded] { animation: none !important; }
         }
       `}</style>
       <HeartsBackdrop />
@@ -494,371 +813,103 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           </h2>
         </div>
 
-        {/* Tier cards — equal width, both fully visible. Stacks on mobile,
+        {/* Tier cards — Soul Reading + Soul Bond. Stacks on mobile,
             side-by-side on desktop. Click to select. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 items-stretch">
-          {TIERS.map((tier, i) => {
-            const qty = tierQty(tier.id);
-            const isSelected = qty > 0;
-            const atMax = petCount >= MAX_PETS;
-            const minusDisabled = qty === 0 || (petCount === 1 && qty === 1);
-            // Memorial variant only applies to the Soul Bond card, and only
-            // when the memorial toggle is ON. The card keeps its slot in the
-            // grid and its price — just swaps name/badge/features.
-            const isPremium = tier.id === "premium";
-            const isMemorialVariant = isPremium && memorialMode;
-            const displayName = isMemorialVariant ? MEMORIAL_PREMIUM_NAME : tier.name;
-            const displayBadge = isMemorialVariant ? MEMORIAL_BADGE : tier.badge;
-            const displayFeatures = isMemorialVariant ? MEMORIAL_PREMIUM_FEATURES : tier.features;
-            return (
-              <div
-                key={tier.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => handleCardActivate(tier.id)}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleCardActivate(tier.id); } }}
-                aria-pressed={isSelected}
-                aria-label={`${displayName} — ${qty} selected`}
-                className="relative text-left rounded-2xl p-4 sm:p-5 active:scale-[0.995] min-w-0 h-full flex flex-col cursor-pointer"
-                style={{
-                  background: (() => {
-                    // Memorial variant gets a subtly softer, cooler warm-grey
-                    // wash so the card visually signals a different mode
-                    // without a full colour swap.
-                    const fill = isMemorialVariant
-                      ? "linear-gradient(180deg, #f6f1ea 0%, #FFFDF5 100%)"
-                      : tier.id === "premium"
-                      ? "linear-gradient(180deg, #fbf4e4 0%, #FFFDF5 100%)"
-                      : "#FFFDF5";
-                    const frame = isSelected
-                      ? "linear-gradient(135deg, #d4b26b 0%, #bf524a 50%, #d4b26b 100%)"
-                      : "linear-gradient(135deg, rgba(196,162,101,0.35) 0%, rgba(212,178,107,0.2) 100%)";
-                    return `${fill} padding-box, ${frame} border-box`;
-                  })(),
-                  border: isSelected ? "2px solid transparent" : "1.5px solid transparent",
-                  boxShadow: isSelected
-                    ? "0 0 0 3px rgba(196,162,101,0.14), 0 8px 28px rgba(0,0,0,0.08)"
-                    : "0 2px 14px rgba(0,0,0,0.04)",
-                  opacity: visible ? 1 : 0,
-                  transform: visible ? (isSelected ? "translateY(-2px)" : "translateY(0)") : "translateY(15px)",
-                  transition: "transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.3s ease, opacity 0.6s ease",
-                  transitionDelay: `${0.1 + i * 0.08}s`,
-                }}
-              >
-                {displayBadge && (
-                  <div
-                    className="absolute -top-2.5 left-5 px-2.5 py-0.5 rounded-full text-white whitespace-nowrap"
-                    style={{ fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.04em", background: "var(--rose, #bf524a)" }}
-                  >
-                    {displayBadge}
-                  </div>
-                )}
-
-                {/* Memorial toggle — lives on the Soul Bond card only, at the top
-                    of the header so it reads before the tier name. Click/Space/Enter
-                    all flip the toggle; stopPropagation keeps card-activate quiet. */}
-                {isPremium && (
-                  <div
-                    className="mb-3"
-                    onClick={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <label
-                          htmlFor="v2-memorial-toggle"
-                          style={{
-                            fontFamily: "Cormorant, Georgia, serif",
-                            fontSize: "0.88rem",
-                            fontWeight: 700,
-                            color: "var(--ink, #1f1c18)",
-                            cursor: "pointer",
-                            display: "inline-block",
-                          }}
-                        >
-                          Memorial mode
-                        </label>
-                        <div
-                          style={{
-                            fontFamily: "Cormorant, Georgia, serif",
-                            fontSize: "0.74rem",
-                            fontStyle: "italic",
-                            color: "var(--muted, #958779)",
-                            lineHeight: 1.3,
-                            marginTop: 1,
-                          }}
-                        >
-                          For pets no longer with you
-                        </div>
-                      </div>
-                      <button
-                        id="v2-memorial-toggle"
-                        type="button"
-                        role="switch"
-                        aria-checked={memorialMode}
-                        aria-label="Memorial mode"
-                        data-ls-memorial-switch=""
-                        onClick={(e) => { e.stopPropagation(); toggleMemorialMode(); }}
-                        onKeyDown={(e) => {
-                          if (e.key === " " || e.key === "Enter") {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggleMemorialMode();
-                          }
-                        }}
-                        className="flex-shrink-0 rounded-full"
-                        style={{
-                          width: 44,
-                          height: 26,
-                          minWidth: 44,
-                          minHeight: 26,
-                          padding: 0,
-                          border: "none",
-                          cursor: "pointer",
-                          background: memorialMode ? "var(--rose, #bf524a)" : "rgba(120, 108, 98, 0.28)",
-                          position: "relative",
-                          transition: "background 0.22s ease",
-                          boxShadow: memorialMode ? "0 0 0 3px rgba(191,82,74,0.14)" : "none",
-                        }}
-                      >
-                        <span
-                          aria-hidden="true"
-                          data-ls-memorial-switch-thumb=""
-                          style={{
-                            display: "block",
-                            position: "absolute",
-                            top: 3,
-                            left: memorialMode ? 21 : 3,
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: "#fff",
-                            boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
-                            transition: "left 0.22s ease",
-                          }}
-                        />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Header — stacked so long names + prices never crowd each other */}
-                <div className="mb-3.5">
-                  <div className="flex items-center gap-2 min-w-0 mb-1.5">
-                    <div
-                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200"
-                      style={{ borderColor: isSelected ? "var(--rose, #bf524a)" : "var(--sand, #d6c8b6)" }}
-                    >
-                      {isSelected && <div className="w-2.5 h-2.5 rounded-full" style={{ background: "var(--rose, #bf524a)" }} />}
-                    </div>
-                    <span
-                      style={{
-                        fontFamily: '"DM Serif Display", Georgia, serif',
-                        fontSize: "clamp(1.05rem, 3vw, 1.3rem)",
-                        color: "var(--ink, #1f1c18)",
-                        lineHeight: 1.15,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {displayName}
-                    </span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span
-                      style={{
-                        fontFamily: '"DM Serif Display", Georgia, serif',
-                        fontSize: "clamp(1.6rem, 4.5vw, 2rem)",
-                        color: "var(--black, #141210)",
-                        lineHeight: 1,
-                      }}
-                    >
-                      {fmtUsd(tier.price)}
-                    </span>
-                    {tier.wasPrice && (
-                      <span
-                        style={{
-                          fontFamily: '"DM Serif Display", Georgia, serif',
-                          fontSize: "clamp(0.9rem, 2.4vw, 1.05rem)",
-                          color: "var(--muted, #958779)",
-                          lineHeight: 1,
-                          textDecoration: "line-through",
-                          textDecorationColor: "rgba(191,82,74,0.55)",
-                          textDecorationThickness: "1.5px",
-                        }}
-                      >
-                        {fmtUsd(tier.wasPrice)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* ── Quantity stepper — add multiples of this tier ── */}
-                <div
-                  className="flex items-center justify-between mb-3 rounded-lg px-2.5 py-2"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  style={{ background: "rgba(196,162,101,0.08)", border: "1px solid rgba(196,162,101,0.18)" }}
-                >
-                  <span style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", fontWeight: 600, color: "var(--earth, #6e6259)" }}>
-                    How many?
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); changeTierQty(tier.id, -1); }}
-                      disabled={minusDisabled}
-                      aria-label={`Remove one ${displayName}`}
-                      className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
-                      style={{
-                        width: 44, height: 44, minWidth: 44, minHeight: 44,
-                        border: "1.5px solid var(--sand, #d6c8b6)", background: "#fff",
-                        color: "var(--earth, #6e6259)", fontFamily: "Cormorant, Georgia, serif",
-                        fontSize: "1.25rem", lineHeight: 1, cursor: minusDisabled ? "not-allowed" : "pointer",
-                      }}
-                    >−</button>
-                    <span
-                      aria-live="polite"
-                      style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.1rem", color: "var(--ink, #1f1c18)", minWidth: 18, textAlign: "center" }}
-                    >{qty}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); changeTierQty(tier.id, 1); }}
-                      disabled={atMax}
-                      aria-label={`Add one ${displayName}`}
-                      className="rounded-full disabled:opacity-30 disabled:cursor-not-allowed"
-                      style={{
-                        width: 44, height: 44, minWidth: 44, minHeight: 44,
-                        border: "1.5px solid var(--sand, #d6c8b6)", background: "#fff",
-                        color: "var(--earth, #6e6259)", fontFamily: "Cormorant, Georgia, serif",
-                        fontSize: "1.25rem", lineHeight: 1, cursor: atMax ? "not-allowed" : "pointer",
-                      }}
-                    >+</button>
-                  </div>
-                </div>
-
-                {/* Features — top-aligned so both cards' feature lists start at
-                    the same vertical point on desktop side-by-side view */}
-                <div className="flex-1 flex items-start">
-                <ul
-                  className="rounded-lg overflow-hidden w-full"
-                  style={{ border: "1px solid rgba(196,162,101,0.14)" }}
-                >
-                  {displayFeatures.map((feature, fi) => {
-                    const isDivider = feature.kind === "divider";
-                    const isSoulSpeak = feature.kind === "soulspeak";
-                    const isBonus = feature.kind === "bonus";
-                    const isHoroscope = feature.kind === "horoscope";
-                    const isPreviewable = isSoulSpeak || isHoroscope;
-                    const handlePreviewActivate = (e: React.SyntheticEvent) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      if (isSoulSpeak) openSoulSpeak();
-                      else if (isHoroscope) openHoroscope();
-                    };
-                    return (
-                      <li
-                        key={fi}
-                        className="text-left px-2.5 sm:px-3 py-2"
-                        onClick={isPreviewable ? handlePreviewActivate : undefined}
-                        onKeyDown={isPreviewable ? (e) => { if (e.key === "Enter" || e.key === " ") handlePreviewActivate(e); } : undefined}
-                        role={isPreviewable ? "button" : undefined}
-                        tabIndex={isPreviewable ? 0 : undefined}
-                        aria-label={isSoulSpeak ? "Preview SoulSpeak" : isHoroscope ? "Preview weekly horoscopes" : undefined}
-                        style={{
-                          fontSize: "0.8rem",
-                          color: isDivider ? "var(--gold, #c4a265)" : "var(--earth, #6e6259)",
-                          fontWeight: isDivider ? 600 : 700,
-                          fontStyle: isDivider ? "italic" : "normal",
-                          lineHeight: 1.4,
-                          cursor: isPreviewable ? "pointer" : "default",
-                          background: isDivider
-                            ? "rgba(196,162,101,0.08)"
-                            : fi % 2 === 0 ? "rgba(255,255,255,0.6)" : "rgba(246,241,230,0.55)",
-                          transition: isPreviewable ? "background 0.2s ease" : undefined,
-                        }}
-                      >
-                        {(() => {
-                          const badgeBaseStyle: CSSProperties = {
-                            fontFamily: "Cormorant, Georgia, serif",
-                            fontSize: "0.6rem",
-                            fontWeight: 700,
-                            letterSpacing: "0.12em",
-                            padding: "2px 7px",
-                            borderRadius: 4,
-                            color: "#fff",
-                            textTransform: "uppercase",
-                            whiteSpace: "nowrap",
-                            display: "inline-block",
-                          };
-                          const goldBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #d4b26b, #c4a265)" };
-                          const greenBadge = { ...badgeBaseStyle, background: "linear-gradient(135deg, #5aa870, #4a8c5c)" };
-                          const badgeInner = isSoulSpeak
-                            ? <span style={goldBadge}>New</span>
-                            : isBonus
-                            ? <span style={goldBadge}>Bonus</span>
-                            : isHoroscope
-                            ? <span style={greenBadge}>Free</span>
-                            : null;
-                          const badge = badgeInner ? (
-                            <span style={{ width: 72, flexShrink: 0, display: "inline-flex", justifyContent: "flex-start" }}>
-                              {badgeInner}
-                            </span>
-                          ) : null;
-                          const infoIcon = (
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="#958779"
-                              strokeWidth={2}
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
-                              style={{ flexShrink: 0 }}
-                            >
-                              <title>Tap to preview</title>
-                              <circle cx="12" cy="12" r="10" />
-                              <line x1="12" y1="16" x2="12" y2="12" />
-                              <line x1="12" y1="8" x2="12.01" y2="8" />
-                            </svg>
-                          );
-                          const labelNode = isSoulSpeak ? (
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                              {feature.label}
-                              {infoIcon}
-                            </span>
-                          ) : isBonus ? (
-                            <span>Bonus sections — little surprises written just for them</span>
-                          ) : isHoroscope ? (
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                              Weekly horoscopes — 1 month included
-                              {infoIcon}
-                            </span>
-                          ) : (
-                            <span>{feature.label}</span>
-                          );
-                          return (
-                            <div className="flex items-center gap-2">
-                              {!isDivider && (
-                                <svg className="w-3.5 h-3.5 flex-shrink-0 text-[var(--green,#4a8c5c)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                              <span className="flex-1 min-w-0">{labelNode}</span>
-                              {badge}
-                            </div>
-                          );
-                        })()}
-                      </li>
-                    );
-                  })}
-                </ul>
-                </div>
-              </div>
-            );
-          })}
+          {TIERS.filter((t) => t.id === "basic" || t.id === "premium").map((tier, i) =>
+            renderTierCard(tier, i)
+          )}
         </div>
+
+        {/* Memorial Reading — collapsed pill by default, expands into a full
+            tier card identical in format to Soul Reading / Soul Bond. */}
+        {!memorialExpanded ? (
+          <div
+            role="button"
+            tabIndex={0}
+            aria-expanded={false}
+            aria-label="Expand Memorial Reading details"
+            onClick={toggleMemorialExpanded}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleMemorialExpanded();
+              }
+            }}
+            className="mb-3 flex items-center justify-center gap-2.5 w-full rounded-full cursor-pointer transition-colors duration-200"
+            style={{
+              padding: "10px 18px",
+              background: "rgba(255, 253, 245, 0.72)",
+              border: "1px solid rgba(196, 162, 101, 0.28)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
+              boxShadow: "0 1px 2px rgba(196, 162, 101, 0.06)",
+              color: "var(--rose, #bf524a)",
+            }}
+          >
+            {/* Minimal dove silhouette — stylised flight path */}
+            <svg
+              width="18"
+              height="14"
+              viewBox="0 0 20 16"
+              fill="none"
+              aria-hidden="true"
+              style={{ opacity: 0.75, color: "currentColor", flexShrink: 0 }}
+            >
+              <path
+                d="M1.5 10.5 C 5 6, 10 7.5, 13 9 L 17 4.5 L 15.5 10 C 12 13.5, 6 13, 1.5 10.5 Z"
+                fill="currentColor"
+                fillOpacity="0.18"
+                stroke="currentColor"
+                strokeWidth="1.1"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+              <path
+                d="M6 10.5 Q 8 11.5, 10.5 10.5"
+                stroke="currentColor"
+                strokeWidth="0.9"
+                strokeLinecap="round"
+                fill="none"
+                opacity="0.55"
+              />
+            </svg>
+            <span
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "0.92rem",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                lineHeight: 1,
+                color: "currentColor",
+              }}
+            >
+              Memorial Reading
+            </span>
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ opacity: 0.6, flexShrink: 0 }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+        ) : (
+          <div data-ls-memorial-expanded="" className="mb-3">
+            {renderTierCard(
+              TIERS.find((t) => t.id === "memorial")!,
+              2,
+              { showCloseButton: true, onClose: toggleMemorialExpanded }
+            )}
+          </div>
+        )}
 
         {/* Live multi-pet discount hint — replaces the old static footer line */}
         <p
