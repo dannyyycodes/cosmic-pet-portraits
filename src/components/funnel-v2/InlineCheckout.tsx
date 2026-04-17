@@ -121,17 +121,31 @@ function getVolumeDiscount(petCount: number): number {
 const MAX_PETS = 10;
 
 export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange }, forwardedRef) => {
+  // Detect memorial-intent URL params up-front so the cart + pill open to the
+  // right state. Supported signals: ?occasion=memorial or ?memorial=1. Also
+  // covers the case where a user clicks a memorial-specific CTA that routes
+  // them here with the flag. Falls back to cosmic default otherwise.
+  const memorialIntent = typeof window !== "undefined" && (() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("occasion") === "memorial" || params.get("memorial") === "1";
+    } catch {
+      return false;
+    }
+  })();
+
   // Per-tier quantities — users can mix Soul Reading + Soul Bond + Memorial in one order.
-  // Default: 1× Soul Reading, 0× Soul Bond, 0× Memorial (matches the previous single-tier default).
-  const [basicQty, setBasicQty] = useState<number>(1);
+  // Default: 1× Soul Reading, 0× Soul Bond, 0× Memorial.
+  // Memorial-intent arrivals flip the default to 1× Memorial, pill pre-expanded.
+  const [basicQty, setBasicQty] = useState<number>(memorialIntent ? 0 : 1);
   const [premiumQty, setPremiumQty] = useState<number>(0);
   // Memorial Reading quantity — shares Stripe price with Soul Bond ($49).
   // Bundled into premiumCount when sent to create-checkout; occasionMode
   // ='memorial' is forwarded only when the cart is purely memorial.
-  const [memorialQty, setMemorialQty] = useState<number>(0);
+  const [memorialQty, setMemorialQty] = useState<number>(memorialIntent ? 1 : 0);
   // Memorial pill expansion — collapsed by default, expands into a full
   // tier card identical in format to Soul Reading / Soul Bond when clicked.
-  const [memorialExpanded, setMemorialExpanded] = useState<boolean>(false);
+  const [memorialExpanded, setMemorialExpanded] = useState<boolean>(memorialIntent);
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");

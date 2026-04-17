@@ -8,6 +8,10 @@ interface ReportGeneratingProps {
   reportId?: string;
   /** Public URL of the customer's uploaded pet photo — rendered at the centre of the cosmic waiting room. */
   petPhotoUrl?: string;
+  /** discover / birthday / memorial / gift — drives tone of the wait copy.
+   *  Memorial mode uses gentler, past-tense-respectful reassurance so a
+   *  grieving buyer isn't told their pet's reading is about to "unveil itself". */
+  occasionMode?: string;
 }
 
 function getPronouns(gender?: string) {
@@ -57,15 +61,24 @@ const STAGE_CUMULATIVE = STAGE_SECS.reduce<number[]>((acc, s) => {
 }, []);
 
 // Reassurance copy tiers — shift as the wait stretches.
-function waitCopy(petName: string, elapsed: number) {
+// Memorial mode uses gentler phrasing so the grieving buyer isn't told their
+// pet's reading is about to "unveil itself" or that it's "worth the breath".
+function waitCopy(petName: string, elapsed: number, isMemorial: boolean) {
+  if (isMemorial) {
+    if (elapsed < 60) return `Stay here — ${petName}&rsquo;s memorial is being written with care.`;
+    if (elapsed < 120) return `We&rsquo;re taking our time with ${petName}. This kind of writing can&rsquo;t be rushed.`;
+    if (elapsed < 180) return `A moment more. We&rsquo;re holding ${petName} gently in every line.`;
+    return `We&rsquo;re taking extra care with ${petName}&rsquo;s memorial. Stay with us if you can — your link is saved to your account if you need to step away.`;
+  }
   if (elapsed < 60) return `Keep this tab open — ${petName}&rsquo;s reading will unveil itself right here.`;
   if (elapsed < 120) return `The stars are taking their time with ${petName}. Stay close — it&rsquo;s worth the breath.`;
   if (elapsed < 180) return `The cosmos is being thorough for ${petName}. A moment more.`;
   return `We&rsquo;re taking a little extra care with ${petName}&rsquo;s reading. Stay right here — it will unveil itself the moment it&rsquo;s ready. Your link is already saved to your account if you need to step away.`;
 }
 
-export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoUrl }: ReportGeneratingProps) {
+export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoUrl, occasionMode }: ReportGeneratingProps) {
   const p = getPronouns(gender);
+  const isMemorial = occasionMode === 'memorial';
   const [elapsed, setElapsed] = useState(0);
 
   // Tick elapsed seconds. Drives both the stage selector and the copy
@@ -416,7 +429,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
             transition={{ duration: 0.6 }}
             className="text-[0.84rem] max-w-sm text-[#faf6ef]/70 leading-relaxed italic"
             style={{ fontFamily: 'Cormorant, serif' }}
-            dangerouslySetInnerHTML={{ __html: waitCopy(petName, elapsed) }}
+            dangerouslySetInnerHTML={{ __html: waitCopy(petName, elapsed, isMemorial) }}
           />
         </AnimatePresence>
       </div>

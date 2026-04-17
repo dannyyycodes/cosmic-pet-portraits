@@ -40,9 +40,14 @@ const PLACEMENT_REQUIRED_SECTIONS = [
 // Tokens whose presence in a section's text proves the AI grounded that
 // section in real chart data. Includes planet names, sign names, and
 // astrology anchors. Case-insensitive check.
+//
+// NOTE: "rising" is deliberately EXCLUDED (too easily triggered by common
+// English — "rising to the occasion", "the sun is rising", etc.). Use
+// "ascendant" for that placement. Agent audit 2026-04-17 flagged "rising"
+// as the #1 false-negative in the citation auditor.
 const PLACEMENT_CITATION_TOKENS = [
   "sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
-  "uranus", "neptune", "pluto", "chiron", "lilith", "rising", "ascendant",
+  "uranus", "neptune", "pluto", "chiron", "lilith", "ascendant",
   "north node", "south node",
   "aries", "taurus", "gemini", "cancer", "leo", "virgo",
   "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces",
@@ -456,9 +461,16 @@ ${JSON.stringify(report).slice(0, 100_000)}`;   // Haiku 200k context, but cap a
 
     for (const raw of parsed.issues ?? []) {
       const category: VerificationIssue["category"] = raw.rule === "memorial_tense" ? "tense" : "language";
-      // memorial_tense flags are fuzzy (conditional/subjunctive forms often false-positive);
-      // don't block delivery. Language drift is a hard rule — still critical.
-      const severity: Severity = category === "language" ? "critical" : "warning";
+      // Language drift = always critical (non-English content in an English
+      // report is unusable). Memorial tense violations: previously warnings
+      // because conditional/subjunctive forms can false-positive, but a
+      // present-tense memorial report is a brand-level failure, so we escalate
+      // to critical for memorial mode. Cosmic reports stay at "warning" for
+      // tense (future-tense in a birthday report is fine).
+      const severity: Severity =
+        category === "language" ? "critical"
+        : (category === "tense" && opts.occasionMode === "memorial") ? "critical"
+        : "warning";
       issues.push({
         section: raw.section || "(global)",
         category,

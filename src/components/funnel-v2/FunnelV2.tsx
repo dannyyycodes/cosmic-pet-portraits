@@ -266,10 +266,10 @@ export const FunnelV2 = () => {
             {exitSubmitted ? (
               <div>
                 <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.3rem", color: "var(--black, #141210)", marginBottom: 8 }}>
-                  Check your inbox!
+                  Saved.
                 </h3>
                 <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--earth, #6e6259)" }}>
-                  Your pet's free mini reading is on the way.
+                  We&rsquo;ll send a link to your mini reading once it&rsquo;s ready &mdash; it unveils inside Little Souls.
                 </p>
               </div>
             ) : (
@@ -278,8 +278,8 @@ export const FunnelV2 = () => {
                   Before you go...
                 </h3>
                 <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--earth, #6e6259)", lineHeight: 1.6, marginBottom: 16 }}>
-                  Enter your email and we'll send a <strong>free mini cosmic reading</strong> with
-                  their sun sign personality and today's forecast.
+                  Leave your email and we&rsquo;ll hold a <strong>free mini cosmic reading</strong> for you &mdash;
+                  their sun sign personality and today&rsquo;s forecast, unveiled inside Little Souls.
                 </p>
                 <div className="flex gap-2">
                   <input

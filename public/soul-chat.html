@@ -2417,12 +2417,12 @@ async function loadChatHistory() {
     var bannerText = null;
     if (hoursAgo < 1) bannerText = null;
     else if (hoursAgo < 12) bannerText = 'picking up where you left off';
-    else if (hoursAgo < 48) bannerText = memorial ? petName + '\u2019s soul never drifted far' : petName + ' has been waiting';
+    else if (hoursAgo < 48) bannerText = memorial ? 'held in memory \u00b7 welcome back' : petName + ' has been waiting';
     else if (hoursAgo < 24 * 7) {
       var days = Math.max(1, Math.round(hoursAgo / 24));
-      bannerText = memorial ? 'still here, still with you' : 'welcome back \u00b7 ' + days + ' day' + (days === 1 ? '' : 's') + ' apart';
+      bannerText = memorial ? 'welcome back \u00b7 ' + days + ' day' + (days === 1 ? '' : 's') + ' since you were last here with ' + petName : 'welcome back \u00b7 ' + days + ' day' + (days === 1 ? '' : 's') + ' apart';
     } else {
-      bannerText = memorial ? petName + ' has been watching over you' : 'welcome back \u00b7 ' + petName + '\u2019s been keeping watch';
+      bannerText = memorial ? 'welcome back \u00b7 ' + petName + ' is still carried here' : 'welcome back \u00b7 ' + petName + '\u2019s been keeping watch';
     }
 
     var typing = document.getElementById('typingIndicator');
@@ -2708,7 +2708,7 @@ function updateHeaderUI() {
   if (isMemorial) {
     document.getElementById('welcomeTitle').textContent = petData.name + ' is still here';
     document.getElementById('welcomeText').textContent = petData.name + ' is no longer at your side in body, but the bond never ended \u2014 it only changed shape. Say what you need to say. They\u2019re listening.';
-    document.querySelector('.chat-pet-status').textContent = 'Always with you';
+    document.querySelector('.chat-pet-status').textContent = 'Held in memory';
   } else {
     document.getElementById('welcomeTitle').textContent = 'Talk to ' + petData.name + "'s soul";
     document.getElementById('welcomeText').textContent = 'Ask ' + petData.name + ' anything \u2014 why they do the things they do, what they\u2019re feeling, or just say what\u2019s on your heart. They\u2019re listening.';

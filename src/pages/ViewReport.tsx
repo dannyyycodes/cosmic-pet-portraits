@@ -256,8 +256,8 @@ export default function ViewReport() {
             {isTimeout ? 'Report Still Generating' : 'Report Not Available'}
           </h1>
           <p className="text-muted-foreground mb-6">
-            {isTimeout 
-              ? `${reportData?.petName || 'Your pet'}'s cosmic reading is taking a bit longer than usual. Please try again in a moment.`
+            {isTimeout
+              ? `${reportData?.petName || 'Your pet'}'s ${reportData?.occasionMode === 'memorial' ? 'memorial' : 'reading'} is taking a bit longer than usual. Please try again in a moment.`
               : errorMessage
             }
           </p>

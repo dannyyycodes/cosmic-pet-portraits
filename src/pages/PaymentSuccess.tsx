@@ -348,6 +348,7 @@ export default function PaymentSuccess() {
         sunSign={currentReport?.report?.sunSign}
         reportId={reportId || undefined}
         petPhotoUrl={loaderPhoto}
+        occasionMode={currentReport?.occasionMode}
       />
     );
   }

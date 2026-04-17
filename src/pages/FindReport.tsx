@@ -80,10 +80,10 @@ export default function FindReport() {
                 marginBottom: 8,
               }}
             >
-              Check your email!
+              Saved. Check your email for the link.
             </p>
             <p style={{ fontSize: '0.85rem', color: '#9B8E84', lineHeight: 1.6 }}>
-              If that email has reports linked to it, you'll receive them shortly.
+              If that email has readings linked to it, we&rsquo;ll send a secure link so you can return to them inside Little Souls.
             </p>
           </div>
         ) : (
