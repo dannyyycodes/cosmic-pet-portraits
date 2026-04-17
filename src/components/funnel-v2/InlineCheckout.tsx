@@ -48,8 +48,8 @@ const TIERS: Array<{
   {
     id: "basic",
     name: "Soul Reading",
-    price: 27,
-    wasPrice: 45,
+    price: 29,
+    wasPrice: 49,
     features: [
       { label: "Included:", kind: "divider" },
       { label: "Full astrological breakdown — 30+ sections (works for any pet)" },
@@ -64,8 +64,8 @@ const TIERS: Array<{
   {
     id: "premium",
     name: "Soul Bond",
-    price: 35,
-    wasPrice: 60,
+    price: 49,
+    wasPrice: 79,
     badge: "Most Chosen",
     features: [
       { label: "Everything in Soul Reading, plus:", kind: "divider" },

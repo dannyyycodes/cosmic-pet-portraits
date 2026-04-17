@@ -174,8 +174,8 @@ const StickyBottomCTA = ({ trackCTAClick }: { trackCTAClick: (cta: string, locat
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.9rem", color: c.ink, lineHeight: 1.2 }}>
-          <span style={{ textDecoration: "line-through", color: c.muted, fontSize: "0.82rem", marginRight: 6 }}>$60</span>
-          <span style={{ color: c.rose, fontWeight: 700 }}>$27</span>
+          <span style={{ textDecoration: "line-through", color: c.muted, fontSize: "0.82rem", marginRight: 6 }}>$49</span>
+          <span style={{ color: c.rose, fontWeight: 700 }}>$29</span>
         </div>
         <div style={{ fontSize: "0.68rem", color: c.rose, fontWeight: 600 }}>{subLabel}</div>
       </div>

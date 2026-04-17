@@ -555,8 +555,8 @@ serve(async (req) => {
             
             // Map tier to amount and tier name (must match GIFT_TIERS in create-checkout)
             const giftTierMap: Record<string, { cents: number; tier: string }> = {
-              basic: { cents: 1350, tier: 'basic' },
-              premium: { cents: 1750, tier: 'premium' },
+              basic: { cents: 1450, tier: 'basic' },
+              premium: { cents: 2450, tier: 'premium' },
             };
             const giftInfo = giftTierMap[giftTierForFriend] || giftTierMap.basic;
             

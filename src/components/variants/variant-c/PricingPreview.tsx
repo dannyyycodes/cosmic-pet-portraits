@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 const tiers = [
   {
     name: "Personality Reading",
-    price: "$27",
+    price: "$29",
     badge: null,
     features: [
       "15+ page personalized report",
@@ -22,7 +22,7 @@ const tiers = [
   },
   {
     name: "Premium with Portrait",
-    price: "$35",
+    price: "$49",
     badge: "Most Popular",
     features: [
       "Everything in Personality Reading",

@@ -216,7 +216,7 @@ export function MiniReport({ petData, cosmicReport }: MiniReportProps) {
             <ChevronRight className="w-5 h-5 ml-1" />
           </Button>
           <p className="text-center text-[11px] text-muted-foreground/80 mt-2.5">
-            From $35 • Instant access
+            From $29 • Instant access
           </p>
         </div>
       </motion.div>

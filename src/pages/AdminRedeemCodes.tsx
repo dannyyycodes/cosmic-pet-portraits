@@ -440,8 +440,8 @@ export default function AdminRedeemCodes() {
                     className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                     style={{ background: '#faf6ef', border: '1px solid #e8ddd0', color: '#3d2f2a' }}
                   >
-                    <option value="basic">Reading ($27 value)</option>
-                    <option value="premium">Reading + Portrait ($35 value)</option>
+                    <option value="basic">Reading ($29 value)</option>
+                    <option value="premium">Reading + Portrait ($49 value)</option>
                     <option value="hardcover">Hardcover Book ($99 value)</option>
                   </select>
                 </div>

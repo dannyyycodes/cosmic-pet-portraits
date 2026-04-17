@@ -40,6 +40,13 @@ function inferCountryFromTimezone(): string | undefined {
   return undefined;
 }
 
+/* Charm-parity currencies: major Western markets where prices are shown at
+   1:1 with the USD charm number (e.g. $29 → £29 / €29 / A$29). Keeps the
+   price feeling local and intentional rather than "$29 converted = £23.47".
+   Checkout still charges in USD — banks auto-convert, usually yielding the
+   customer a small discount from the displayed parity price. */
+const PARITY_CURRENCIES = new Set(["GBP", "EUR", "AUD", "CAD", "NZD"]);
+
 export function useLocalizedPrice() {
   const [state, setState] = useState<{ code: string; rate: number }>({ code: "USD", rate: 1 });
 
@@ -49,6 +56,11 @@ export function useLocalizedPrice() {
       const country = lang.split("-")[1]?.toUpperCase() || inferCountryFromTimezone();
       const code = country ? LOCALE_COUNTRY_TO_CURRENCY[country] : undefined;
       if (!code || code === "USD") return;
+
+      if (PARITY_CURRENCIES.has(code)) {
+        setState({ code, rate: 1 });
+        return;
+      }
 
       fetch("https://open.er-api.com/v6/latest/USD")
         .then((r) => r.json())

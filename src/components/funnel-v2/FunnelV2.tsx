@@ -32,7 +32,7 @@ export const FunnelV2 = () => {
   const [charityBonus, setCharityBonus] = useState(0);
   // Mirrors the tier price chosen inside <InlineCheckout/> so the sticky
   // bottom CTA and the FinalCTA display the right number.
-  const [selectedPrice, setSelectedPrice] = useState(27);
+  const [selectedPrice, setSelectedPrice] = useState(29);
   const isMobile = useIsMobile();
   const { fmtUsd } = useLocalizedPrice();
 

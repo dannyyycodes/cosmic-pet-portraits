@@ -15,14 +15,14 @@ function getCorsHeaders(req: Request) {
 
 // Fixed pricing tiers - SERVER-SIDE TRUTH
 const TIERS = {
-  basic: { name: 'Little Souls Reading', priceCents: 2700 },
-  premium: { name: 'Little Souls Reading + Portrait', priceCents: 3500 },
+  basic: { name: 'Little Souls Reading', priceCents: 2900 },
+  premium: { name: 'Little Souls Reading + Portrait', priceCents: 4900 },
 } as const;
 
 // Gift add-on — 50% off all tiers for friends (must match frontend CheckoutPanel)
 const GIFT_TIERS = {
-  basic: { priceCents: 1350, name: 'Gift: Little Souls Reading' },
-  premium: { priceCents: 1750, name: 'Gift: Little Souls Reading + Portrait' },
+  basic: { priceCents: 1450, name: 'Gift: Little Souls Reading' },
+  premium: { priceCents: 2450, name: 'Gift: Little Souls Reading + Portrait' },
 } as const;
 
 // Volume discount calculation - SERVER-SIDE (must match frontend)
@@ -39,8 +39,8 @@ const HARDCOVER_PRICE_CENTS = 9900; // $99.00 — includes reading + portrait + 
 
 // Variant C pricing
 const VARIANT_C_PRICES: Record<string, number> = {
-  basic: 2700,
-  premium: 3500,
+  basic: 2900,
+  premium: 4900,
 };
 const PORTRAIT_PRICE_CENTS = 800; // $8.00
 
@@ -125,8 +125,8 @@ serve(async (req) => {
 
     // ========== GIFT UPSELL CHECKOUT (post-purchase 30% off) ==========
     if (input.giftUpsellCheckout) {
-      const GIFT_UPSELL_PRICE_CENTS = 1890;
-      const GIFT_CERT_VALUE_CENTS = 2700;
+      const GIFT_UPSELL_PRICE_CENTS = 1990;
+      const GIFT_CERT_VALUE_CENTS = 2900;
       const purchaserEmail = input.purchaserEmail;
       if (!purchaserEmail) {
         return new Response(JSON.stringify({ error: "Purchaser email required" }), {
@@ -152,7 +152,7 @@ serve(async (req) => {
               name: "🎁 Gift a Little Souls Reading",
               description: input.giftRecipientName
                 ? `A cosmic reading for ${input.giftRecipientName} — they'll discover their pet's soul`
-                : "A cosmic pet reading gift certificate — worth $27",
+                : "A cosmic pet reading gift certificate — worth $29",
             },
             unit_amount: GIFT_UPSELL_PRICE_CENTS,
           },

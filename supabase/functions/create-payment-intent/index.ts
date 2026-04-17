@@ -23,8 +23,8 @@ function getVolumeDiscount(petCount: number): number {
 
 const HARDCOVER_PRICE_CENTS = 9900;
 const VARIANT_C_PRICES: Record<string, number> = {
-  basic: 2700,
-  premium: 3500,
+  basic: 2900,
+  premium: 4900,
 };
 const PORTRAIT_PRICE_CENTS = 800;
 

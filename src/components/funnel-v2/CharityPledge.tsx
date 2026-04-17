@@ -97,13 +97,13 @@ const CHARITY_ICONS: Record<CharityId, () => JSX.Element> = {
 /* ──────── Component ──────── */
 
 interface CharityPledgeProps {
-  /** The base price of the selected tier (27 or 35) */
+  /** The base price of the selected tier (29 or 49) */
   selectedPrice?: number;
   /** Callback when charity selection changes — parent stores it for checkout */
   onChange?: (data: { charityId: CharityId; bonusAmount: number }) => void;
 }
 
-export const CharityPledge = ({ selectedPrice = 27, onChange }: CharityPledgeProps) => {
+export const CharityPledge = ({ selectedPrice = 29, onChange }: CharityPledgeProps) => {
   const { ref, visible } = useScrollReveal(0.1);
   const [selected, setSelected] = useState<CharityId>(DEFAULT_CHARITY);
 

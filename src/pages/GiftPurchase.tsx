@@ -29,8 +29,8 @@ const C = {
 
 const TIERS = {
   essential: {
-    cents: 2700,
-    wasCents: 4500,
+    cents: 2900,
+    wasCents: 4900,
     label: 'Soul Reading',
     tagline: 'The reading they\'ll read aloud to their pet — and probably cry doing it.',
     badge: null as string | null,
@@ -46,8 +46,8 @@ const TIERS = {
     ],
   },
   portrait: {
-    cents: 3500,
-    wasCents: 6000,
+    cents: 4900,
+    wasCents: 7900,
     label: 'Soul Bond',
     tagline: 'For the bond worth understanding — them and their pet, read side by side.',
     badge: 'MOST CHOSEN' as string | null,

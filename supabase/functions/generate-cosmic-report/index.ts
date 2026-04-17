@@ -756,7 +756,7 @@ CRITICAL WRITING GUIDELINES:
 9. AVOID GENERIC PHRASES - "Loyal companion" "beloved pet" = lazy writing. Be SPECIFIC.
 10. ${isMemorial ? 'END WITH HOPE - They may be gone but the love never dies' : 'END WITH IMPACT - The last lines should be screenshot-worthy'}
 11. CRITICAL: The pet monologue section should make people CRY. That's the emotional peak.
-12. PRICE JUSTIFICATION: This report costs $35. Every section must justify that price. No filler. No generic text.
+12. PRICE JUSTIFICATION: This report costs $49. Every section must justify that price. No filler. No generic text.
 13. SPECIFICITY OVER EVERYTHING: Not "loyal companion" but "the one who sits on your feet during thunderstorms and stares at you until you feel safe." Species-specific ${petData.species} details = "they KNOW my pet!"
 14. EMOTIONAL STRUCTURE: The report should build. Curiosity → Understanding → Laughter → Deep emotion → Tears → Hope. The pet monologue and keeper's bond are the emotional peaks.
 15. FUN SECTIONS QUALITY: Crimes should be HILARIOUS and specific. Dating profile should be screenshot-worthy. Text messages should sound exactly like how a pet would text. Google searches should make people laugh out loud.
@@ -1143,7 +1143,7 @@ JSON Structure:
   }
 }
 
-QUALITY STANDARD: This report costs $35. Every section must justify that price.
+QUALITY STANDARD: This report costs $49. Every section must justify that price.
 - Fun sections should make people LAUGH OUT LOUD and immediately screenshot to share
 - Emotional sections should make people CRY — the pet monologue especially
 - Astrology sections should make people say "HOW did it know that?!" — accuracy builds trust

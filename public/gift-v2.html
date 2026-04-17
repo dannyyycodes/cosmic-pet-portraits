@@ -258,7 +258,7 @@ body::after {
     <div class="tier-desc">A thoughtful surprise</div>
     <div class="tier-price-row">
       <div class="tier-price-old">$49</div>
-      <div class="tier-price">$27</div>
+      <div class="tier-price">$29</div>
     </div>
     <ul class="tier-features">
       <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Deep personality reading</li>
@@ -282,8 +282,8 @@ body::after {
     <div class="tier-name">Reading + Portrait</div>
     <div class="tier-desc">The gift they'll treasure</div>
     <div class="tier-price-row">
-      <div class="tier-price-old">$57</div>
-      <div class="tier-price">$35</div>
+      <div class="tier-price-old">$79</div>
+      <div class="tier-price">$49</div>
     </div>
     <ul class="tier-features">
       <li><svg class="check-svg" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Everything in The Reading</li>
@@ -420,7 +420,7 @@ body::after {
     </div>
 
     <!-- CTA -->
-    <button class="gift-cta" id="giftCta" onclick="handleGiftCheckout()">Send This Gift — $35</button>
+    <button class="gift-cta" id="giftCta" onclick="handleGiftCheckout()">Send This Gift — $49</button>
 
     <!-- Trust (dynamic based on tier) -->
     <div class="gift-trust" id="trustSection">
@@ -448,8 +448,8 @@ var selectedTier = 'portrait';
 var deliveryMethod = 'link';
 
 var tierData = {
-  essential: { price: 27, label: 'The Reading', tier: 'basic', portrait: false, book: false },
-  portrait:  { price: 35, label: 'Reading + Portrait', tier: 'premium', portrait: true, book: false },
+  essential: { price: 29, label: 'The Reading', tier: 'basic', portrait: false, book: false },
+  portrait:  { price: 49, label: 'Reading + Portrait', tier: 'premium', portrait: true, book: false },
   hardcover: { price: 99, label: 'The Hardcover', tier: 'premium', portrait: true, book: true },
 };
 

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 
-/* Memorial reading = Soul Bond tier at $35 (was $60) — a dedicated product
+/* Memorial reading = Soul Bond tier at $49 (was $79) — a dedicated product
  * with its own viewer + prompt. This section pre-sells it directly rather
  * than scattering emotional beats across multiple small cards. */
-const MEMORIAL_PRICE = 35;
-const MEMORIAL_WAS_PRICE = 60;
+const MEMORIAL_PRICE = 49;
+const MEMORIAL_WAS_PRICE = 79;
 
 const MEMORIAL_FEATURES = [
   "Their full soul portrait, written in past tense",

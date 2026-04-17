@@ -49,8 +49,8 @@ const TIERS = {
     name: 'Soul Reading',
     shortName: 'Reading',
     description: "Finally understand your pet",
-    priceCents: 2700, // $27
-    originalPriceCents: 5400, // $54 anchoring
+    priceCents: 2900, // $29
+    originalPriceCents: 4900, // $49 anchoring
     icon: Moon,
     highlight: false,
     includesPortrait: false,
@@ -65,8 +65,8 @@ const TIERS = {
     name: 'Soul Bond',
     shortName: 'Bond',
     description: 'Deep pet-parent compatibility',
-    priceCents: 3500, // $35
-    originalPriceCents: 7000, // $70 anchoring
+    priceCents: 4900, // $49
+    originalPriceCents: 7900, // $79 anchoring
     icon: Crown,
     highlight: true,
     includesPortrait: true,
@@ -80,8 +80,8 @@ const TIERS = {
 
 // Gift tiers - 50% off all tiers for friends (must match server)
 const GIFT_TIERS = {
-  basic: { priceCents: 1350, originalCents: 2700, name: 'Soul Reading' },
-  premium: { priceCents: 1750, originalCents: 3500, name: 'Soul Bond Edition' },
+  basic: { priceCents: 1450, originalCents: 2900, name: 'Soul Reading' },
+  premium: { priceCents: 2450, originalCents: 4900, name: 'Soul Bond Edition' },
 };
 
 // Volume discount calculation - must match server

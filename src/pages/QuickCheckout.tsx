@@ -135,7 +135,7 @@ export default function QuickCheckout() {
   const [showStickyCta, setShowStickyCta] = useState(false);
   const mainCtaRef = useRef<HTMLButtonElement>(null);
 
-  const basePriceCents = 2700;
+  const basePriceCents = 2900;
   const portraitPriceCents = 800;
   const bookPriceCents = 8900;
 
@@ -382,8 +382,8 @@ export default function QuickCheckout() {
             </div>
             <div className="flex items-baseline gap-2">
               <span className="font-cormorant font-semibold text-base text-muted-foreground line-through">$49</span>
-              <span className="font-dm-serif text-2xl text-foreground">$27</span>
-              <span className="text-[0.65rem] font-bold text-white bg-primary px-2 py-0.5 rounded-full">45% OFF</span>
+              <span className="font-dm-serif text-2xl text-foreground">$29</span>
+              <span className="text-[0.65rem] font-bold text-white bg-primary px-2 py-0.5 rounded-full">40% OFF</span>
             </div>
           </div>
 

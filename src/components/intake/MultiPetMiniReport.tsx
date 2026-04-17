@@ -817,7 +817,7 @@ export function MultiPetMiniReport({ petsData }: MultiPetMiniReportProps) {
             className="w-full shadow-2xl shadow-gold/20"
           >
             <Sparkles className="w-5 h-5 mr-2" />
-            Unlock {petsData.length > 1 ? 'All Reports' : 'Full Report'} ($27{petsData.length > 1 ? '/each' : ''})
+            Unlock {petsData.length > 1 ? 'All Reports' : 'Full Report'} ($29{petsData.length > 1 ? '/each' : ''})
           </Button>
           <p className="text-center text-xs text-muted-foreground/60 mt-3">
             Instant access • 30-page PDF • Lifetime updates

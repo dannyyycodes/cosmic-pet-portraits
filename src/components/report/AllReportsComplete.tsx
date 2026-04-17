@@ -316,7 +316,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               </div>
               
               <p className="text-xs text-muted-foreground mt-3">
-                This gift code is worth $35 and never expires. They can use it for any pet!
+                This gift code is worth $29 and never expires. They can use it for any pet!
               </p>
             </motion.div>
           )}
@@ -395,8 +395,8 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 </h3>
                 <p className="text-xs md:text-sm text-muted-foreground mb-4">
                   Send a friend a full reading for{' '}
-                  <strong style={{ color: '#bf524a' }}>$18.90</strong>{' '}
-                  <span className="line-through text-xs text-muted-foreground">$27</span>
+                  <strong style={{ color: '#bf524a' }}>$19.90</strong>{' '}
+                  <span className="line-through text-xs text-muted-foreground">$29</span>
                   {' '}— they get a code that never expires.
                 </p>
 
@@ -428,11 +428,11 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                   {isGiftLoading ? (
                     <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 animate-spin" /> Loading...</span>
                   ) : (
-                    <span className="flex items-center gap-2"><Gift className="w-4 h-4" /> Send gift for $18.90</span>
+                    <span className="flex items-center gap-2"><Gift className="w-4 h-4" /> Send gift for $19.90</span>
                   )}
                 </Button>
                 <p className="text-center text-xs text-muted-foreground mt-2">
-                  They receive a full $27 reading · code never expires
+                  They receive a full $29 reading · code never expires
                 </p>
               </motion.div>
             )}

@@ -15,8 +15,8 @@ function getCorsHeaders(req: Request) {
 
 // Valid gift tiers with base amounts (server-side truth)
 const GIFT_TIERS = {
-  essential: { cents: 2700, name: 'Soul Reading' },
-  portrait: { cents: 3500, name: 'Soul Bond Edition' },
+  essential: { cents: 2900, name: 'Soul Reading' },
+  portrait: { cents: 4900, name: 'Soul Bond Edition' },
   hardcover: { cents: 9900, name: 'Hardcover Cosmic Portrait Book' },
 } as const;
 

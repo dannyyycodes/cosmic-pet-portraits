@@ -369,7 +369,7 @@ serve(async (req) => {
           .from("gift_certificates")
           .insert({
             code: giftCode,
-            amount_cents: 3500, // $35 basic report value
+            amount_cents: 2900, // $29 Soul Reading value
             purchaser_email: primaryReport.email,
             stripe_session_id: sessionId,
           });

@@ -99,8 +99,8 @@ export const GiftSection = () => {
           }}
         >
           {[
-            { name: "Soul Reading", price: "$27", desc: "Full cosmic portrait with SoulSpeak chat", tag: null },
-            { name: "Soul Bond", price: "$35", desc: "Everything plus pet & owner compatibility", tag: "Most Gifted" },
+            { name: "Soul Reading", price: "$29", desc: "Full cosmic portrait with SoulSpeak chat", tag: null },
+            { name: "Soul Bond", price: "$49", desc: "Everything plus pet & owner compatibility", tag: "Most Gifted" },
             { name: "Hardcover Book", price: "$99", desc: "Printed keepsake book, shipped worldwide", tag: "Premium Gift" },
           ].map((tier, i) => (
             <a
