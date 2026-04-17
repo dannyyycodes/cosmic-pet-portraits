@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Star, Sparkle, Sparkles } from "lucide-react";
 import { HeartsBackdrop } from "./HeartsBackdrop";
-import { HeroCardRotator } from "./HeroCardRotator";
+import { EmotionalVignettes } from "./EmotionalVignettes";
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -440,7 +440,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           }}
         >
           <div className="max-w-[720px] mx-auto">
-            <HeroCardRotator onFinishClick={onCtaClick} />
+            <EmotionalVignettes />
           </div>
         </div>
 
