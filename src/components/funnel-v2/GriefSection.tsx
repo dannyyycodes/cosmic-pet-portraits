@@ -193,8 +193,8 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
                 textAlign: "center",
               }}
             >
-              A reading for the space they left &mdash; so you can still
-              feel them near.
+              A reading for the space they left &mdash; a keepsake for
+              the days you need them.
             </p>
           </div>
         </div>
