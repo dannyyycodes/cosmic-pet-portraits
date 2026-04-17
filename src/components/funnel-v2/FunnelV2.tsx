@@ -7,6 +7,7 @@ import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
 import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
+import { GriefSection } from "./GriefSection";
 
 /**
  * V2 COPY — single universal set. A/B test retired, 100% of traffic
@@ -110,6 +111,8 @@ export const FunnelV2 = () => {
         <GoldDivider />
       </div>
       <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
+
+      <GriefSection onCtaClick={scrollToCheckout} />
 
       <InlineCheckout
         ref={checkoutRef}
