@@ -6,9 +6,15 @@ const BEATS: string[] = [
   "For the ones you miss.",
 ];
 
+const BRIDGE_TEXT = "Every little soul is mapped in the stars.";
+const TYPE_INTERVAL_MS = 40;
+const TYPE_LEAD_IN_MS = 900; // after 640ms pill reveal + a small breath
+
 export const EmotionalVignettes = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [typedCount, setTypedCount] = useState(0);
+  const [typingDone, setTypingDone] = useState(false);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -25,6 +31,55 @@ export const EmotionalVignettes = () => {
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    const reduceMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduceMotion) {
+      setTypedCount(BRIDGE_TEXT.length);
+      setTypingDone(true);
+      return;
+    }
+
+    const handles: { iv?: number; stopper?: number } = {};
+
+    const leadIn = window.setTimeout(() => {
+      const iv = window.setInterval(() => {
+        setTypedCount((c) => {
+          if (c >= BRIDGE_TEXT.length) {
+            window.clearInterval(iv);
+            return c;
+          }
+          return c + 1;
+        });
+      }, TYPE_INTERVAL_MS);
+
+      // Safety: stop after full duration
+      const stopper = window.setTimeout(() => {
+        window.clearInterval(iv);
+        setTypingDone(true);
+      }, TYPE_INTERVAL_MS * (BRIDGE_TEXT.length + 2));
+
+      handles.iv = iv;
+      handles.stopper = stopper;
+    }, TYPE_LEAD_IN_MS);
+
+    return () => {
+      window.clearTimeout(leadIn);
+      if (handles.iv !== undefined) window.clearInterval(handles.iv);
+      if (handles.stopper !== undefined) window.clearTimeout(handles.stopper);
+    };
+  }, [visible]);
+
+  useEffect(() => {
+    if (typedCount >= BRIDGE_TEXT.length && visible) {
+      setTypingDone(true);
+    }
+  }, [typedCount, visible]);
 
   return (
     <div
@@ -81,6 +136,7 @@ export const EmotionalVignettes = () => {
         }}
       >
         <p
+          aria-label={BRIDGE_TEXT}
           style={{
             fontFamily: '"Cormorant", Georgia, serif',
             fontSize: "clamp(1.1rem, 3.5vw, 1.3rem)",
@@ -90,9 +146,33 @@ export const EmotionalVignettes = () => {
             lineHeight: 1.5,
             letterSpacing: "0.005em",
             margin: 0,
+            position: "relative",
+            display: "inline-block",
           }}
         >
-          Every little soul is mapped in the stars.
+          {/* Invisible full-string spacer reserves the final layout to prevent jitter */}
+          <span aria-hidden="true" style={{ visibility: "hidden" }}>
+            {BRIDGE_TEXT}
+          </span>
+          {/* Overlaid typed substring + caret */}
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              right: 0,
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {BRIDGE_TEXT.slice(0, typedCount)}
+            <span
+              className={`triad-caret ${typingDone ? "triad-caret-fade" : ""}`}
+              aria-hidden="true"
+            >
+              |
+            </span>
+          </span>
         </p>
       </div>
 
@@ -129,6 +209,27 @@ export const EmotionalVignettes = () => {
             opacity: 1 !important;
             transform: none !important;
           }
+          .triad-caret {
+            display: none !important;
+          }
+        }
+        .triad-caret {
+          display: inline-block;
+          margin-left: 1px;
+          font-weight: 300;
+          color: var(--ink, #1f1c18);
+          opacity: 0.7;
+          animation: triadCaretBlink 900ms steps(2, end) infinite;
+        }
+        .triad-caret-fade {
+          animation: triadCaretOut 600ms ease-out forwards;
+        }
+        @keyframes triadCaretBlink {
+          50% { opacity: 0; }
+        }
+        @keyframes triadCaretOut {
+          from { opacity: 0.7; }
+          to { opacity: 0; }
         }
       `}</style>
     </div>
