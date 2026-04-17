@@ -585,6 +585,37 @@ try {
 
   const isMemorial = occasionMode === 'memorial';
 
+  // ─── Life stage (drives tone + age-aware guidance in the prompt) ─────────
+  // Rough species-aware buckets: puppy/kitten (< 1yr for dogs/cats),
+  // adolescent (1–2yr), adult (2–7yr), senior (7–12yr dogs, 10+ cats),
+  // elder (12+). For non-cat/dog species we default to adult unless memorial.
+  const ageYears = Math.max(0, (Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000));
+  let lifeStage: 'puppy' | 'adolescent' | 'adult' | 'senior' | 'elder' | 'memorial' = 'adult';
+  if (isMemorial) {
+    lifeStage = 'memorial';
+  } else if (species === 'dog' || species === 'cat') {
+    if (ageYears < 1) lifeStage = 'puppy';
+    else if (ageYears < 2.5) lifeStage = 'adolescent';
+    else if (ageYears < 7) lifeStage = 'adult';
+    else if (ageYears < 12) lifeStage = 'senior';
+    else lifeStage = 'elder';
+  } else {
+    // Other species — collapse into adult unless clearly senior.
+    if (ageYears >= 8) lifeStage = 'senior';
+    else if (ageYears < 0.5) lifeStage = 'puppy';
+  }
+
+  const lifeStageGuidance: Record<string, string> = {
+    puppy: `LIFE STAGE: PUPPY/KITTEN (~${ageYears.toFixed(1)}yr). Weave this awareness into the tone: ${name} is still becoming. Reference the chart as a *blueprint unfolding*, not a finished story. At least 2 sections should acknowledge ${pronouns.subject} is young — the future lives in this reading. Use phrases like 'you'll watch this show up', 'the ${moonSign} Moon will deepen as ${pronouns.subject} grows'. Do NOT make retrospective claims ('${pronouns.subject} has always been').`,
+    adolescent: `LIFE STAGE: ADOLESCENT (~${ageYears.toFixed(1)}yr). ${name} is between puppy chaos and settled adult. Honour the awkward in-between — ${pronouns.subject} is testing boundaries, rewriting rules. At least 1 section should name this transition (Saturn-at-2 for dogs, first-cycle for cats). Tone: affectionate, slightly conspiratorial about the phase.`,
+    adult: `LIFE STAGE: ADULT (~${ageYears.toFixed(1)}yr). ${name} is in full expression of ${pronouns.possessive} chart. Write with the confidence that these patterns are established and the owner has seen them play out.`,
+    senior: `LIFE STAGE: SENIOR (~${ageYears.toFixed(1)}yr). ${name} has been loved a long time. At least 2 sections must honour this — the settled wisdom of ${pronouns.possessive} ${saturn} Saturn, the rituals that have built up, the quiet depth of the bond. Avoid puppy-coded language ('mischief', 'chaos goblin') as the primary frame — those can appear as memories but not present-tense identity. The monologue should earn its tenderness by referencing the years already shared.`,
+    elder: `LIFE STAGE: ELDER (~${ageYears.toFixed(1)}yr). ${name} is in the late chapters. The reading must hold this sacredness: the bond is long, the body is softer, every day is noticed. Mention (gently, not morbidly) that ${pronouns.subject} is deep in the elder phase — the soul contract is mature, the teaching is near-complete. The monologue and epilogue must carry extra weight. DO NOT use puppy humour or "chaos" framing.`,
+    memorial: `LIFE STAGE: MEMORIAL. See memorial tone rules above.`,
+  };
+
+  const lifeStageContext = lifeStageGuidance[lifeStage];
+
   const modeContext: Record<string, string> = {
     discover: "This is a discovery reading - help the owner truly understand their pet for the first time. Tone: curious, exciting, revelatory. Use PRESENT TENSE throughout (is, loves, brings, has).",
     birthday: "This is a birthday celebration reading - honor how their pet has grown and the joy they bring. Tone: celebratory, warm, grateful. Use PRESENT TENSE throughout (is, loves, brings, has).",
@@ -824,6 +855,7 @@ CRITICAL CONTEXT:
 - Output Language: ${targetLanguage} (ALL TEXT MUST BE IN ${targetLanguage.toUpperCase()})
 - Mode: ${occasionMode} - ${modeContext[occasionMode]}
 - Emotional Tone: ${modeEmotionalGuidance[occasionMode]}
+- ${lifeStageContext}
 - Pet: ${name}, a ${gender === 'boy' ? 'male' : 'female'} ${breed || species}
 - Species: ${species} - ${speciesContext}
 - Breed: ${breed || 'mixed/unknown'}${petPhotoDescription ? `
@@ -923,7 +955,7 @@ VOICE & HUMANIZER RULES (THIS IS CRITICAL — THE REPORT MUST SOUND LIKE A REAL 
 You are Celeste — a warm, witty astrologer who genuinely loves animals. You talk like a real person, not an AI. Follow these rules STRICTLY:
 
 BANNED WORDS & PATTERNS (using these makes the report feel fake):
-- NEVER use: "fascinating", "gorgeous", "magnificent", "remarkable", "profound", "tapestry", "navigate", "embark", "realm", "delightful", "incredibly", "furthermore", "in essence", "it's worth noting", "essentially"
+- NEVER use: "fascinating", "gorgeous", "magnificent", "remarkable", "profound", "tapestry", "navigate", "embark", "realm", "delightful", "incredibly", "furthermore", "in essence", "it's worth noting", "essentially", "ultimately", "inherently", "innately", "truly", "deeply", "myriad", "seamlessly", "at its core", "as it were", "one might say"
 - NEVER use "creates this [noun]" — say what it IS, don't narrate the creating
 - NEVER use "here's the thing" or "but here's where it gets interesting" — these are AI crutches. Just say the interesting thing.
 - NEVER use ALL CAPS for emphasis more than 3 times in the ENTIRE report. Use italics-style phrasing instead: "really", "so", "genuinely" or just let strong words carry themselves
@@ -1133,9 +1165,9 @@ JSON Structure:
 
   "dreamJob": {
     "title": "💼 Dream Career",
-    "job": "If ${name} had a job, what would it be? Make it EPIC and specific. The job should feel inevitable based on their breed + chart combo. A Border Collie with Mars in Virgo has a VERY different career than a Bulldog with Mars in Taurus.",
-    "description": "3-4 sentences: why this job suits them (reference Sun, Moon, Mars + breed), how they'd behave at work (funny), and the dramatic reason they'd eventually get fired. Make it hilarious and shareable.",
-    "salary": "A funny fictional salary (e.g. '47 treats/hour + unlimited belly rubs' or '6 figures in kibble')"
+    "job": "A hyper-specific job title that ONLY makes sense for THIS chart + breed combo. Forbidden: generic 'therapy dog', 'service animal', 'influencer'. Required: a job title you can picture on a business card. Example format: 'Senior HR Director at a doggy daycare — in charge of feelings.' The title must imply specific duties rooted in ${name}'s ${mars} Mars + ${mercury} Mercury combination.",
+    "description": "3-4 sentences with this structure: (1) WHY this job fits — name at least TWO specific placements and what each contributes ('${sunSign} Sun runs the meetings, ${mars} Mars handles the conflict'). (2) One vivid workplace detail showing ${name} ON the job — a specific desk setup, a signature move, a policy ${pronouns.subject} would enforce. (3) The precise reason ${pronouns.subject} would get PROMOTED (rooted in ${venus} Venus or ${jupiter} Jupiter). (4) The precise reason ${pronouns.subject} would get FIRED (rooted in ${lilith} Lilith or ${mars} Mars). Must be screenshot-worthy funny. Banned: vague 'they'd be great at' phrasing.",
+    "salary": "A funny fictional salary that references ${name}'s specific breed or chart love-language — e.g. a Capricorn Venus pet earns 'rollover bonuses in belly rubs', a Taurus Sun pet earns 'six figures in organic kibble + a dental plan'. Numbers + perks both required."
   },
 
   "villainOriginStory": {
@@ -1166,6 +1198,21 @@ JSON Structure:
     "postScript": "A funny P.S. about something trivial (like treats or their favorite spot)"
   },
 
+  "directMessage": {
+    "title": "💌 The One Thing They Most Want You to Know",
+    "preamble": "A single short sentence introducing the message — e.g. 'If ${name} could say it just once, clearly, out loud, ${pronouns.subject} would say this:'",
+    "message": "EXACTLY 3 short lines, written from ${name}'s perspective, in first person. Each line its own line — NOT a paragraph. Designed to be displayed as a pullquote or shared as a standalone graphic. Line 1: a truth about YOU (the owner) that ${name} has observed and never had words for. Line 2: a secret about ${pronouns.object} ${pronouns.subject} wishes you understood. Line 3: a promise, grounded in ${pronouns.possessive} ${venus} Venus or ${moonSign} Moon, that is specific enough to make the owner stop scrolling. No clichés. No 'you are my everything'. Earn every word. This is the most shareable single moment in the report — treat it like a poem.",
+    "signoff": "A one-line sign-off that feels like ${name} actually signed a note — e.g. '— ${name}, from under the kitchen table' or '— ${name}, at 3:47am, watching you sleep'. Must reference a real behaviour or location."
+  },
+
+  "shadowSelf": {
+    "title": "🌑 The Wound They Came to Heal",
+    "preamble": "2 sentences framing this gently: every soul carries a shadow, and ${name}'s was shaped by ${pronouns.possessive} ${chiron} Chiron and ${saturn} Saturn — this isn't about fixing ${pronouns.object}, it's about recognising the gift inside the wound.",
+    "petShadow": "3-4 sentences describing ${name}'s specific shadow pattern — the fear, the over-reaction, the thing that looks like behaviour but is actually unprocessed sensitivity. Ground this in ${chiron} Chiron (the wound) and ${lilith} Lilith or ${saturn} Saturn (how it shows up). Be specific to ${breed || species}. Name the exact moment it surfaces (e.g. 'the long stare when you put on your coat', 'the over-correction when another ${species} approaches'). Never pathologise — this is sacred data.",
+    "mirrorInYou": "3-4 sentences naming the parallel wound this mirrors in YOU, the owner. Use soft, inviting language — 'you may notice...', 'pet parents with a ${name} often...'. Connect to a universal theme rather than diagnosing — abandonment, control, being unseen, needing to earn love. Close with: 'You didn't cause ${pronouns.possessive} shadow. You were chosen to witness it.'",
+    "healingPath": "2-3 sentences naming ONE specific, doable thing the owner can do this month to hold ${name}'s shadow gently. Must be concrete (a ritual, a boundary, a specific phrase to whisper, a specific pause before reacting). Tied to ${name}'s ${element} element."
+  },
+
   "elementalNature": {
     "title": "✦ Elemental Nature",
     "content": "3-4 sentences analyzing their elemental balance.",
@@ -1194,11 +1241,12 @@ JSON Structure:
 
   "luminousField": {
     "title": "Luminous Field: Spirit Colors",
-    "content": "2-3 sentences about their energy field.",
+    "content": "3-4 sentences painting ${name}'s aura as a living thing. Required structure: (1) name the dominant colour and JUSTIFY it from a specific placement — ${element} element gives the base tone (${aura.primary}), ${rulingPlanet} softens or sharpens the edges, and ${pronouns.possessive} ${neptune} Neptune adds the secondary shimmer (${aura.secondary}). Not decorative — say which planet gives which colour and why. (2) One sensory detail — what the aura feels like when ${name} walks into a room (weight, temperature, texture). (3) When it flares brightest (name a specific ${species} behaviour or moment). Forbidden: 'ethereal', 'magical', 'beautiful' without a reason.",
     "primaryColor": "${aura.primary}",
     "secondaryColor": "${aura.secondary}",
     "auraMeaning": "${aura.meaning}",
-    "howToSense": "A way to tune into their aura."
+    "howToSense": "2-3 sentences of an ACTIONABLE grounding ritual the owner can do with ${name} this week. Must be tied to ${name}'s ${element} element. For Fire pets: a sun-soaked spot + 3 slow breaths. For Earth pets: a hand on the chest + counting heartbeats. For Air pets: a window-watching moment together. For Water pets: a palm-to-paw connection in low light. Name the actual minutes, the actual posture, the actual feeling the owner should notice. Nothing vague like 'tune in'.",
+    "shadowShimmer": "1-2 sentences naming when the aura dims — a specific stress-response behaviour rooted in ${name}'s ${moonSign} Moon, and what the owner can do to bring the shimmer back."
   },
 
   "celestialGem": {
@@ -1214,8 +1262,9 @@ JSON Structure:
     "title": "Eternal Archetype",
     "archetypeName": "${archetype.name}",
     "archetypeDescription": "${archetype.description}",
-    "archetypeStory": "2-3 sentences expanding on this archetype.",
-    "archetypeLesson": "The main teaching they bring to your life."
+    "soulSignature": "A UNIQUE 3-5 word soul signature JUST for ${name} — not the shared archetype name. Build it from ${name}'s ${sunSign} Sun + ${moonSign} Moon + ${ascendant} Rising specifically. Examples of the shape: 'The Quiet Keeper of Small Hours', 'The Midnight Diplomat', 'The Stubborn Lightbearer'. This should NEVER match another pet with a different chart. Lead with a concrete noun, not 'the one who...'.",
+    "archetypeStory": "4-5 sentences telling ${name}'s unique myth. Required structure: (1) Name the cosmic story ${pronouns.subject} incarnates — and why THIS Sun+Moon+Rising combination specifically creates that story (not the generic '${archetype.name}' archetype alone — weave in what makes ${name}'s version different). (2) The origin — what ancient or mythic character does ${pronouns.subject} echo (Bilbo, Mary Oliver's wild geese, the psychopomp dog, the fox in The Little Prince). (3) The tension ${pronouns.subject} lives inside (every archetype has a shadow — name ${name}'s using ${lilith} Lilith or ${saturn} Saturn). (4) The quiet truth ${pronouns.subject} carries into your life. (5) One sentence that would fit on a bookplate. Forbidden: generic 'brings joy and wonder' language. Every sentence must be grounded in a placement.",
+    "archetypeLesson": "The ONE teaching ${name} came to deliver to YOU specifically — not to pet owners in general. Reference ${pronouns.possessive} ${northNode} North Node + your role in ${pronouns.possessive} journey. 2 sentences, quotable, not advice-column flat."
   },
 
   "keepersBond": {
@@ -1225,6 +1274,15 @@ JSON Structure:
     "soulContract": "The cosmic agreement between you.",
     "dailyRitual": "A simple daily ritual to honor your bond.",
     "affirmation": "An affirmation for your relationship."
+  },
+
+  "petOwnerFriction": {
+    "title": "⚡ When You and ${name} Clash",
+    "preamble": "1-2 sentences acknowledging that every real relationship has friction — the stars just make it legible. This isn't about ${name} being 'bad' or you being 'wrong'; it's where two charts rub.",
+    "clashPattern": "3-4 sentences naming the ONE specific recurring clash between you and ${name}. Must be grounded in an actual astrological tension — e.g. ${pronouns.possessive} ${mars} Mars pulling one way while a typical human Moon pulls another, or ${pronouns.possessive} ${lilith} Lilith needing space while an owner's Venus reaches for closeness. Name the exact scenario where it shows up (the bedtime routine, the walk, the doorway, the vet). Never shame ${name} or the reader.",
+    "whyItHappens": "2-3 sentences explaining what each of you is actually NEEDING in that clash. ${name}'s unmet need is rooted in ${moonSign} Moon or ${chiron} Chiron. The typical human response is rooted in our own overwhelm. Both are valid.",
+    "repairRitual": "2-3 sentences with a concrete 'repair ritual' — something the owner can do within 10 minutes of the clash to reset the bond. Must be specific and ${element}-appropriate (Fire = play it out; Earth = feed it; Air = talk it through out loud; Water = sit in silence with them). Include the exact sensory detail — a hand placement, a word, a length of time.",
+    "reframe": "One quotable closing line that turns the friction into a love letter (e.g. 'Every time ${pronouns.subject} tests you, ${pronouns.subject} is proving ${pronouns.subject} trusts you enough to be hard around.'). Must feel EARNED, not saccharine."
   },
 ${hasSoulBondData ? `
   "petParentSoulBond": {
@@ -1352,9 +1410,15 @@ ${hasSoulBondData ? `
   "epilogue": "A 5-6 sentence closing that weaves together ${name}'s key placements into a final, powerful message. Reference their ${sunSign} Sun, ${moonSign} Moon, and ${ascendant} Rising specifically. ${occasionMode === 'memorial' ? 'Use PAST TENSE. End with a message about eternal connection that provides genuine comfort.' : 'Use PRESENT TENSE — not \"came into your life\" but \"is in your life RIGHT NOW\". Not \"chose you\" but \"is here because...\". This is a culmination of everything they just discovered.'} For discover mode: end with a line that makes the owner see their pet differently — more deeply, more magically. For birthday: end with a cosmic blessing for the year ahead. For gift: end with a message about the cosmic bond between ${name} and their person. The last sentence should be the most quotable line in the entire report — something they'd put on a wall. NEVER write 'your owner' — the reader IS the owner. Address them as 'you'.",
 
   "compatibilityNotes": {
-    "bestPlaymates": ["Two zodiac signs that would be great playmate matches"],
-    "challengingEnergies": ["One sign that might need more adjustment"],
-    "humanCompatibility": "Which human zodiac signs ${name} vibes best with"
+    "bestPlaymates": [
+      "FORMAT STRICTLY: 'SignName — chart-justified reason (one sentence)'. The sign name MUST be the FIRST word, followed by ' — ' (space em-dash space), then the reason. The reason must reference at least ONE specific placement from ${name}'s chart (Sun, Moon, Venus, Mars, Lilith) and a real behaviour. Example pattern: 'Libra — their harmony-first energy settles ${name}'s ${mars} Mars intensity into side-by-side naps without territorial drama.' Pick the sign that most deeply complements ${name}'s ${moonSign} Moon or ${venus} Venus. Never just list a sign name alone. Never sun-sign match.",
+      "FORMAT IDENTICAL to above. Must reference a DIFFERENT chart placement than the first entry — rotate through Sun, Moon, Venus, Mars, Rising, Lilith so each playmate highlights a different facet of ${name}. Example: 'Aquarius — matches ${name}'s ${uranus} Uranus weirdness, so their zoomies align instead of collide.'"
+    ],
+    "challengingEnergies": [
+      "FORMAT STRICTLY: 'SignName — chart-grounded reason.' Justify by a specific elemental conflict or aspect, not vibes. Example: 'Capricorn — their need for structured routine collides with ${name}'s ${mars} Mars improv-mode, and neither backs down when dinner time shifts.' Never generic."
+    ],
+    "humanCompatibility": "3-4 sentences naming WHICH human chart signatures ${name} bonds most deeply with, and WHY — using at least TWO specific placements from ${name}'s own chart. Forbidden: listing sun signs without justification ('vibes with Gemini, Aries, and Sagittarius' = banned). Required: connect ${name}'s ${moonSign} Moon or ${ascendant} Rising to the kind of human energy that regulates them. Include one concrete daily-life example the owner will recognise. Address the reader as 'you' if the chart matches — that's the magic moment. End with why ${name} chose a human like you in particular.",
+    "relationshipGift": "1-2 sentences naming the specific gift ${name} brings into any close relationship (human or animal), grounded in ${pronouns.possessive} Venus in ${venus} + ${moonSign} Moon combination. Not generic ('loyalty'). Something only THIS combination gives."
   },
 
   "luckyElements": {
@@ -1365,15 +1429,15 @@ ${hasSoulBondData ? `
   },
 
   "cosmicRecipe": ${speciesRules.appropriate ? `{
-    "name": "A fun, creative recipe name inspired by ${name}'s personality — this is a ${species.toUpperCase()}-SAFE treat recipe",
-    "emoji": "A food emoji that matches",
-    "description": "1-2 sentences about why this recipe captures ${name}'s cosmic energy",
+    "name": "A fun, creative recipe name that ONLY makes sense for THIS pet — weave ${name}'s ${sunSign} Sun or ${moonSign} Moon energy into the title itself (e.g. a Virgo Moon dog might get 'Ritual Peanut-Butter Rounds', a Leo Sun cat might get 'Spotlight Salmon Bites'). Boring = banned. This is a ${species.toUpperCase()}-SAFE treat recipe the OWNER bakes for ${name} — not for humans to eat.",
+    "emoji": "A food emoji that matches the recipe, not a generic pet emoji",
+    "description": "2-3 sentences explaining WHY each central ingredient echoes ${name}'s chart. Weave symbolism: e.g. 'Oats ground Mercury's scattered thinking for ${pronouns.object}. Pumpkin softens that ${moonSign} Moon craving for comfort. The whole treat is ${name}'s ${element} temperament you can hold in your hand.' Cosmic tie-in must be specific, not decorative. Address the OWNER ('you') — this is something they make as an act of devotion.",
     "element": "${element}",
     "servings": "A realistic yield (e.g. 'makes 10-12 treats')",
     "prepTime": "A realistic prep time",
     "ingredients": ["6-8 ${species.toUpperCase()}-SAFE ingredients ONLY, chosen EXCLUSIVELY from this allowlist: ${speciesRules.safe.join(', ')}. ABSOLUTELY NEVER include any of: ${speciesRules.banned.join(', ')}. ${speciesRules.note}"],
-    "steps": ["4-6 clear steps appropriate for a ${species}"],
-    "cosmicNote": "A whimsical note about how ${name} would react to this treat"
+    "steps": ["4-6 clear steps appropriate for a ${species}. ONE step (your choice which) must name the placement it honours — e.g. 'Roll the dough slowly. This is the Taurus Venus step — ${name} will watch you from the doorway and judge your pace.' Keep the rest of the steps practical."],
+    "cosmicNote": "A whimsical note about how ${name} would react the moment the treats come out of the oven — grounded in ${pronouns.possessive} specific ${mars} Mars energy or ${venus} Venus love-language. Not generic excitement."
   }` : `{
     "title": "${speciesRules.fallbackTitle}",
     "description": "${speciesRules.fallbackFraming} Write this as a 3-4 sentence cosmic passage about ${name}'s feeding/prey rhythm. Do NOT provide any baked-treat recipe. Do NOT list ingredients that are not appropriate for a ${species}.",

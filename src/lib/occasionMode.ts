@@ -128,7 +128,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
     
     photoTitle: (name) => `Share a photo of ${name}`,
-    photoSubtitle: "We use AI to capture their unique aura for the report.",
+    photoSubtitle: "Their photo helps us weave their likeness and aura into the reading.",
     photoPlaceholder: "Drop your favorite photo here",
     
     emailBadge: "Report Ready",
@@ -190,7 +190,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
     
     photoTitle: (name) => `Share a photo of ${name}`,
-    photoSubtitle: "We use AI to capture their unique aura for the report.",
+    photoSubtitle: "Their photo helps us weave their likeness and aura into the reading.",
     photoPlaceholder: "Drop a birthday photo here",
     
     emailBadge: "Birthday Reading Ready!",
@@ -252,7 +252,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
     
     photoTitle: (name) => `Share a treasured photo of ${name}`,
-    photoSubtitle: "We use AI to capture their eternal aura for the memorial.",
+    photoSubtitle: "Their photo helps us hold their eternal likeness in the memorial.",
     photoPlaceholder: "Drop a cherished photo here",
     
     emailBadge: "Memorial Ready",
@@ -314,7 +314,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
     
     photoTitle: (name) => `Share a photo of ${name}`,
-    photoSubtitle: "We use AI to capture their unique aura for the gift.",
+    photoSubtitle: "Their photo helps us weave their likeness and aura into the gift reading.",
     photoPlaceholder: "Drop a photo here",
     
     emailBadge: "Gift Ready!",

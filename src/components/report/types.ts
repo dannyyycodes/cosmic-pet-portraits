@@ -42,6 +42,8 @@ export interface SectionContent {
   archetypeDescription?: string;
   archetypeStory?: string;
   archetypeLesson?: string;
+  soulSignature?: string;
+  shadowShimmer?: string;
   mirrorQuality?: string;
   soulContract?: string;
   dailyRitual?: string;
@@ -79,6 +81,8 @@ export interface ReportContent {
     bestPlaymates: string[];
     challengingEnergies: string[];
     humanCompatibility: string;
+    /** New (added 2026-04-17): one-line gift this pet brings into any close bond. */
+    relationshipGift?: string;
   };
   luckyElements: {
     luckyNumber: string;
@@ -160,6 +164,30 @@ export interface ReportContent {
   petMonologue?: {
     monologue: string;
     postScript: string;
+  };
+  /** The three-line shareable pullquote from the pet to the owner. */
+  directMessage?: {
+    title?: string;
+    preamble?: string;
+    message: string;
+    signoff?: string;
+  };
+  /** Chiron/Saturn synthesis — the wound they came to heal. */
+  shadowSelf?: {
+    title?: string;
+    preamble?: string;
+    petShadow: string;
+    mirrorInYou: string;
+    healingPath: string;
+  };
+  /** Chart-grounded friction + repair ritual between pet and owner. */
+  petOwnerFriction?: {
+    title?: string;
+    preamble?: string;
+    clashPattern: string;
+    whyItHappens: string;
+    repairRitual: string;
+    reframe?: string;
   };
   villainOriginStory?: {
     trigger: string;

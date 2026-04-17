@@ -50,6 +50,9 @@ import { TopProgressHairline } from './TopProgressHairline';
 import { ChapterReadingTime } from './ChapterReadingTime';
 import { PlanetSection } from './PlanetSection';
 import { PlanetOrbConfig } from './PlanetOrb';
+import { DirectMessage } from './DirectMessage';
+import { ShadowSelf } from './ShadowSelf';
+import { PetOwnerFriction } from './PetOwnerFriction';
 
 // Re-export types for backward compatibility
 export type { ReportContent, ReportData, ChartPlacement, SectionContent };
@@ -635,6 +638,22 @@ export function CosmicReportViewer({
             </>
           )}
 
+          {/* ═══ DIRECT MESSAGE — 3-line shareable pullquote from the pet ═══ */}
+          {report.directMessage && (
+            <>
+              <DirectMessage directMessage={report.directMessage} petName={petName} />
+              <SectionDivider />
+            </>
+          )}
+
+          {/* ═══ SHADOW SELF — Chiron/Saturn synthesis ═══ */}
+          {report.shadowSelf && (
+            <>
+              <ShadowSelf shadowSelf={report.shadowSelf} petName={petName} />
+              <SectionDivider />
+            </>
+          )}
+
           {/* ═══ PASSAGE 2 → QUOTE CARD: Before the fun sections ═══ */}
           <QuoteCard
             species={species}
@@ -850,6 +869,14 @@ export function CosmicReportViewer({
               </>
             );
           })()}
+
+          {/* ═══ PET ↔ OWNER FRICTION — chart-grounded clash + repair ritual ═══ */}
+          {report.petOwnerFriction && (
+            <>
+              <PetOwnerFriction petOwnerFriction={report.petOwnerFriction} petName={petName} />
+              <SectionDivider />
+            </>
+          )}
 
           {/* ═══ PET-PARENT SOUL BOND (premium) ═══ */}
           {report.petParentSoulBond && (() => {
@@ -1176,6 +1203,58 @@ export function CosmicReportViewer({
               'in the world.',
             ]}
           />
+
+          {/* ═══ COMPLETION CEREMONY — "You've seen them fully" moment ═══ */}
+          {!isPreview && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 1.4, ease: 'easeOut' }}
+              className="mx-4 my-10 max-w-[560px] sm:mx-auto"
+            >
+              <div
+                className="py-10 px-6 sm:px-10 rounded-[20px] text-center relative"
+                style={{
+                  background:
+                    'radial-gradient(circle at 50% 0%, #faf4e8 0%, #fdf5f5 55%, #fffdf5 100%)',
+                  border: '1px solid #e8ddd0',
+                }}
+              >
+                <div className="flex justify-center mb-4" aria-hidden>
+                  <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+                    <circle cx="21" cy="21" r="18" stroke="#c4a265" strokeWidth="1" opacity="0.5" />
+                    <circle cx="21" cy="21" r="10" stroke="#c4a265" strokeWidth="1" opacity="0.75" />
+                    <circle cx="21" cy="21" r="3" fill="#c4a265" />
+                  </svg>
+                </div>
+
+                <div className="text-[0.58rem] font-bold tracking-[3px] uppercase text-[#c4a265] mb-3">
+                  The Reading Is Complete
+                </div>
+
+                <h3
+                  className="text-[1.35rem] text-[#3d2f2a] leading-[1.35] mb-4 max-w-[460px] mx-auto"
+                  style={{ fontFamily: 'DM Serif Display, serif' }}
+                >
+                  You&rsquo;ve seen {petName} fully.
+                </h3>
+
+                <p className="text-[0.92rem] text-[#5a4a42] leading-[1.85] max-w-[440px] mx-auto mb-5">
+                  Every placement. Every shadow. Every quiet truth the stars have been holding for
+                  you. This isn&rsquo;t the end of the reading &mdash; it&rsquo;s the beginning of seeing
+                  {petName === 'your pet' ? ' them' : ' ' + petName} differently.
+                </p>
+
+                <p
+                  className="text-[0.95rem] text-[#3d2f2a] italic max-w-[400px] mx-auto"
+                  style={{ fontFamily: 'DM Serif Display, serif' }}
+                >
+                  Return whenever you need to remember.
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           {/* ═══ SOULSPEAK PREMIUM CLOSER ═══ */}
           {!isPreview && reportId && (

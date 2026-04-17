@@ -61,7 +61,7 @@ function waitCopy(petName: string, elapsed: number) {
   if (elapsed < 60) return `Keep this tab open — ${petName}&rsquo;s reading will unveil itself right here.`;
   if (elapsed < 120) return `The stars are taking their time with ${petName}. Stay close — it&rsquo;s worth the breath.`;
   if (elapsed < 180) return `The cosmos is being thorough for ${petName}. A moment more.`;
-  return `We&rsquo;re taking a little extra care with ${petName}&rsquo;s reading. It&rsquo;ll unveil itself here the moment it&rsquo;s ready — and we&rsquo;ll also email it to you.`;
+  return `We&rsquo;re taking a little extra care with ${petName}&rsquo;s reading. Stay right here — it will unveil itself the moment it&rsquo;s ready. Your link is already saved to your account if you need to step away.`;
 }
 
 export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoUrl }: ReportGeneratingProps) {
