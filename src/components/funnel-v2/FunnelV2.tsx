@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { InlineCheckout } from "./InlineCheckout";
 import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 import { GriefSection } from "./GriefSection";
+import { PathPicker, type FunnelPath } from "./PathPicker";
 
 /**
  * V2 COPY — single universal set. A/B test retired, 100% of traffic
@@ -21,6 +23,25 @@ export const FunnelV2 = () => {
   const copy = COPY;
   const checkoutRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const productRevealRef = useRef<HTMLDivElement>(null);
+
+  // Intent picker — `?path=discover` (default) or `?path=memorial`.
+  // Gift is a nav-away, not a path state.
+  const [searchParams] = useSearchParams();
+  const rawPath = searchParams.get("path");
+  const path: FunnelPath = rawPath === "memorial" ? "memorial" : "discover";
+
+  const handlePathChange = useCallback((_next: FunnelPath) => {
+    if (typeof window === "undefined") return;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+    // Give the DOM a tick to re-render the conditional GriefSection before scrolling.
+    setTimeout(() => {
+      productRevealRef.current?.scrollIntoView({
+        behavior: reduced ? "auto" : "smooth",
+        block: "start",
+      });
+    }, 60);
+  }, []);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [exitIntentShown, setExitIntentShown] = useState(false);
@@ -107,12 +128,17 @@ export const FunnelV2 = () => {
         <CompactReviews row={1} />
       </div>
       <CompactReviews row={2} />
+
+      <PathPicker path={path} onPathChange={handlePathChange} />
+
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
         <GoldDivider />
       </div>
-      <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
+      <div ref={productRevealRef}>
+        <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
+      </div>
 
-      <GriefSection onCtaClick={scrollToCheckout} />
+      {path === "memorial" && <GriefSection onCtaClick={scrollToCheckout} />}
 
       <InlineCheckout
         ref={checkoutRef}
@@ -120,6 +146,7 @@ export const FunnelV2 = () => {
         charityId={charityId}
         charityBonus={charityBonus}
         onSelectedPriceChange={setSelectedPrice}
+        memorialDefaultExpanded={path === "memorial"}
       />
 
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>

@@ -109,6 +109,12 @@ interface InlineCheckoutProps {
   /** Fired whenever the user changes tier so the parent (FunnelV2) can keep
    *  sticky + final CTAs in sync with the currently-chosen price. */
   onSelectedPriceChange?: (price: number) => void;
+  /** When true (e.g. user chose the Memorial path in the picker), the
+   *  Memorial tier pill starts expanded and memorialQty seeds to 1. Only
+   *  the initial render is affected — once the user interacts, their
+   *  collapse/expand state wins. Works alongside ?memorial=1 /
+   *  ?occasion=memorial URL intent. */
+  memorialDefaultExpanded?: boolean;
 }
 
 // Volume discount mirrors create-checkout server-side rates for per-pet bundles.
@@ -122,19 +128,22 @@ function getVolumeDiscount(petCount: number): number {
 
 const MAX_PETS = 10;
 
-export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange }, forwardedRef) => {
+export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange, memorialDefaultExpanded = false }, forwardedRef) => {
   // Detect memorial-intent URL params up-front so the cart + pill open to the
   // right state. Supported signals: ?occasion=memorial or ?memorial=1. Also
   // covers the case where a user clicks a memorial-specific CTA that routes
   // them here with the flag. Falls back to cosmic default otherwise.
-  const memorialIntent = typeof window !== "undefined" && (() => {
+  // The `memorialDefaultExpanded` prop (set by the FunnelV2 PathPicker when
+  // path=memorial) is OR'd in so the same seed logic applies to picker
+  // arrivals — only on the initial render.
+  const memorialIntent = memorialDefaultExpanded || (typeof window !== "undefined" && (() => {
     try {
       const params = new URLSearchParams(window.location.search);
       return params.get("occasion") === "memorial" || params.get("memorial") === "1";
     } catch {
       return false;
     }
-  })();
+  })());
 
   // Per-tier quantities — users can mix Soul Reading + Soul Bond + Memorial in one order.
   // Default: 1× Soul Reading, 0× Soul Bond, 0× Memorial.
