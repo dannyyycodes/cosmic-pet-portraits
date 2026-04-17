@@ -35,8 +35,8 @@ export const EmotionalVignettes = () => {
       <div
         className="flex flex-wrap items-center justify-center"
         style={{
-          gap: "clamp(10px, 2vw, 16px)",
-          maxWidth: 820,
+          gap: "clamp(12px, 2.2vw, 18px)",
+          maxWidth: 920,
           margin: "0 auto",
         }}
       >
@@ -47,7 +47,7 @@ export const EmotionalVignettes = () => {
             style={{
               animationDelay: `${i * 180}ms`,
               fontFamily: '"Caveat", cursive',
-              fontSize: "clamp(1.25rem, 4vw, 1.6rem)",
+              fontSize: "clamp(1.55rem, 5vw, 2.05rem)",
               fontWeight: 500,
               color: "var(--black, #141210)",
               lineHeight: 1.1,
@@ -58,9 +58,9 @@ export const EmotionalVignettes = () => {
               border: "1px solid rgba(196, 162, 101, 0.32)",
               borderRadius: 9999,
               padding:
-                "clamp(10px, 1.8vw, 14px) clamp(18px, 3.2vw, 26px)",
+                "clamp(14px, 2.4vw, 20px) clamp(24px, 4vw, 34px)",
               boxShadow:
-                "0 4px 18px rgba(20,15,8,0.05), inset 0 1px 0 rgba(255,255,255,0.7)",
+                "0 4px 20px rgba(20,15,8,0.06), inset 0 1px 0 rgba(255,255,255,0.7)",
               transition:
                 "transform 320ms cubic-bezier(0.22,1,0.36,1), box-shadow 320ms ease, border-color 320ms ease",
               whiteSpace: "nowrap",
@@ -72,14 +72,36 @@ export const EmotionalVignettes = () => {
         ))}
       </div>
 
+      {/* Bridge line — soft invitation after the triad */}
+      <p
+        className="triad-bridge"
+        style={{
+          textAlign: "center",
+          marginTop: "clamp(22px, 4vw, 32px)",
+          fontFamily: '"Cormorant", Georgia, serif',
+          fontSize: "clamp(1rem, 3.2vw, 1.15rem)",
+          fontStyle: "italic",
+          color: "var(--earth, #6e6259)",
+          lineHeight: 1.5,
+          letterSpacing: "0.005em",
+        }}
+      >
+        Whoever yours is — come meet them.
+      </p>
+
       <style>{`
-        .triad-pill {
+        .triad-pill,
+        .triad-bridge {
           opacity: 0;
           transform: translateY(10px);
           will-change: opacity, transform;
         }
         .emotional-triad.is-in .triad-pill {
           animation: triadPillIn 760ms cubic-bezier(0.22,1,0.36,1) forwards;
+        }
+        .emotional-triad.is-in .triad-bridge {
+          animation: triadPillIn 760ms cubic-bezier(0.22,1,0.36,1) forwards;
+          animation-delay: 640ms;
         }
         @keyframes triadPillIn {
           to { opacity: 1; transform: translateY(0); }
@@ -94,7 +116,8 @@ export const EmotionalVignettes = () => {
           }
         }
         @media (prefers-reduced-motion: reduce) {
-          .triad-pill {
+          .triad-pill,
+          .triad-bridge {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
