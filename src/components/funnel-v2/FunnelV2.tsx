@@ -25,11 +25,16 @@ export const FunnelV2 = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const productRevealRef = useRef<HTMLDivElement>(null);
 
-  // Intent picker — `?path=discover` (default) or `?path=memorial`.
-  // Gift is a nav-away, not a path state.
+  // Intent picker — four on-funnel states. `?path=discover` is the
+  // default (URL param omitted); every other intent carries an explicit
+  // param. Gift is no longer a nav-away; it stays on this page and
+  // shares the same sales cards, just with a neutral top-of-funnel tone.
   const [searchParams] = useSearchParams();
   const rawPath = searchParams.get("path");
-  const path: FunnelPath = rawPath === "memorial" ? "memorial" : "discover";
+  const path: FunnelPath =
+    rawPath === "new" || rawPath === "memorial" || rawPath === "gift"
+      ? rawPath
+      : "discover";
 
   const handlePathChange = useCallback((_next: FunnelPath) => {
     if (typeof window === "undefined") return;
@@ -134,11 +139,19 @@ export const FunnelV2 = () => {
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
         <GoldDivider />
       </div>
-      <div ref={productRevealRef}>
-        <ProductReveal onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} />
-      </div>
 
+      {/* Memorial: soothing copy lives BEFORE the authority block so the
+          grieving reader is met with care before any credibility content. */}
       {path === "memorial" && <GriefSection onCtaClick={scrollToCheckout} />}
+
+      <div ref={productRevealRef}>
+        <ProductReveal
+          onCtaClick={scrollToCheckout}
+          ctaLabel={copy.ctaPrimary}
+          path={path}
+          showBenefits={path === "discover"}
+        />
+      </div>
 
       <InlineCheckout
         ref={checkoutRef}

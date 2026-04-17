@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Star, Sparkle, Sparkles } from "lucide-react";
 import { HeartsBackdrop } from "./HeartsBackdrop";
-import { EmotionalVignettes } from "./EmotionalVignettes";
+import type { FunnelPath } from "./PathPicker";
 
 function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -206,7 +206,51 @@ const ConstellationBackdrop = () => (
 );
 
 /* ── VSOP Credibility — warm authority ── */
-const VsopCredibility = () => (
+const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPath }) => {
+  const isMemorial = path === "memorial";
+  const authorityLead = isMemorial
+    ? (
+        <>
+          Read with{" "}
+          <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
+          {" — the same planetary model "}
+          <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
+          {" uses — so the sky we hold for them is the exact one they knew."}
+        </>
+      )
+    : (
+        <>
+          Using{" "}
+          <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
+          {" — the same planetary model used by "}
+          <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
+          {" and professional observatories worldwide."}
+        </>
+      );
+
+  const authorityCards = isMemorial
+    ? [
+        {
+          h: "Read from real coordinates.",
+          d: "13 celestial bodies, rising sign, elemental balance and house placements — the sky they lived under, captured exactly.",
+        },
+        {
+          h: "Accurate to a fraction of a degree.",
+          d: "Their chart is remembered precisely — real planetary math, not a generic horoscope about grief.",
+        },
+      ]
+    : [
+        {
+          h: "Not a personality quiz. Real coordinates.",
+          d: "13 celestial bodies, rising sign, elemental balance, and house placements — all calculated to the exact minute.",
+        },
+        {
+          h: "Accurate to a fraction of a degree.",
+          d: "Their reading comes from real planetary math, not generic horoscope predictions.",
+        },
+      ];
+
+  return (
   <div className="relative text-center overflow-hidden vsop-section">
     {/* Decorative orbit backdrop — pure SVG, very low opacity, gently rotating */}
     <svg
@@ -232,38 +276,15 @@ const VsopCredibility = () => (
     </svg>
 
     <div className="relative">
-      {/* Section title — bold black */}
-      <p
-        style={{
-          fontFamily: '"DM Serif Display", Georgia, serif',
-          fontSize: "clamp(1.25rem, 5vw, 1.6rem)",
-          fontWeight: 400,
-          color: "var(--black, #141210)",
-          letterSpacing: "-0.01em",
-          marginBottom: 16,
-        }}
-      >
-        Real Astronomy. Not Guesswork.
-      </p>
-      <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(0.92rem, 3.2vw, 1rem)", color: "var(--earth, #6e6259)", lineHeight: 1.55, maxWidth: 440, margin: "0 auto 28px" }}>
-        Using{" "}
-        <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
-        {" — the same planetary model used by "}
-        <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
-        {" and professional observatories worldwide."}
+      {/* Authority lead — route-aware. The big section title now lives
+          outside this card (hoisted in ProductReveal) so this paragraph
+          acts as the supporting credibility statement. */}
+      <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(0.92rem, 3.2vw, 1rem)", color: "var(--earth, #6e6259)", lineHeight: 1.55, maxWidth: 460, margin: "0 auto 28px" }}>
+        {authorityLead}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
-        {[
-          {
-            h: "Not a personality quiz. Real coordinates.",
-            d: "13 celestial bodies, rising sign, elemental balance, and house placements — all calculated to the exact minute.",
-          },
-          {
-            h: "Accurate to a fraction of a degree.",
-            d: "Their reading comes from real planetary math, not generic horoscope predictions.",
-          },
-        ].map((item, i) => (
+        {authorityCards.map((item, i) => (
           <div
             key={i}
             className="relative rounded-xl py-5 px-5 text-left"
@@ -388,14 +409,22 @@ const VsopCredibility = () => (
       }
     `}</style>
   </div>
-);
+  );
+};
 
 interface ProductRevealProps {
   onCtaClick: () => void;
   ctaLabel: string;
+  /** Which intent the visitor selected. Drives the authority-title copy
+   * so memorial visitors see reverent language instead of discovery. */
+  path?: FunnelPath;
+  /** Whether to render the "Once You Understand Them" benefits block.
+   * True for discover; hidden for new/memorial/gift where the reader
+   * is in a different emotional lane. */
+  showBenefits?: boolean;
 }
 
-export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
+export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBenefits = true }: ProductRevealProps) => {
   const { ref, visible } = useScrollReveal(0.08);
   const [chatStep, setChatStep] = useState(0);
   const chatRef = useRef<HTMLDivElement>(null);
@@ -429,24 +458,50 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
       >
         <ConstellationBackdrop />
 
-        {/* Quote half — text sits in an opaque card so the starfield can't cross it */}
+        {/* Authority section title — hoisted above the credibility card.
+            Route-aware so memorial visitors see reverent phrasing. */}
         <div
-          className="relative px-5 py-14 sm:py-16 transition-all duration-[1200ms] ease-out"
+          className="relative px-5 pt-14 sm:pt-16 text-center transition-all duration-[1200ms] ease-out"
           style={{
             opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.1s",
+            transform: visible ? "translateY(0)" : "translateY(16px)",
+            transitionDelay: "0.05s",
             zIndex: 1,
           }}
         >
-          <div className="max-w-[720px] mx-auto">
-            <EmotionalVignettes />
-          </div>
+          <h2
+            style={{
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontSize: "clamp(1.6rem, 5.6vw, 2.15rem)",
+              fontWeight: 400,
+              fontStyle: "italic",
+              color: "var(--black, #141210)",
+              lineHeight: 1.2,
+              letterSpacing: "-0.015em",
+              margin: 0,
+              maxWidth: 620,
+              marginInline: "auto",
+            }}
+          >
+            {path === "memorial"
+              ? "Every little soul leaves their light in the stars."
+              : "Every little soul is mapped in the stars."}
+          </h2>
+          <div
+            aria-hidden="true"
+            style={{
+              width: 48,
+              height: 1,
+              background: "var(--gold, #c4a265)",
+              opacity: 0.55,
+              margin: "18px auto 0",
+            }}
+          />
         </div>
 
-        {/* Authority half — VSOP credibility content in its own opaque card */}
+        {/* Authority card — VSOP credibility content in its own opaque card */}
         <div
-          className="relative px-5 pb-14 sm:pb-16 transition-all duration-[1200ms] ease-out"
+          className="relative px-5 pt-8 pb-14 sm:pb-16 transition-all duration-[1200ms] ease-out"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(20px)",
@@ -466,12 +521,15 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
               boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
             }}
           >
-            <VsopCredibility />
+            <VsopCredibility path={path} />
           </div>
         </div>
       </div>
 
-      {/* ── Block 2: The Benefits ── cream band + hearts backdrop + cards ── */}
+      {/* ── Block 2: The Benefits ── cream band + hearts backdrop + cards ──
+           Rendered only on the Discover route. New-pet / memorial / gift
+           readers skip this and go straight to the sales cards below. */}
+      {showBenefits && (
       <div
         className="relative overflow-hidden px-5 py-12 sm:py-16 md:py-20"
         style={{ background: "var(--cream, #FFFDF5)" }}
@@ -629,6 +687,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel }: ProductRevealProps) => {
           }
         `}</style>
       </div>
+      )}
 
       {/* ── SoulSpeak section removed — moved into pricing card tap-to-expand preview ── */}
       {false && (
