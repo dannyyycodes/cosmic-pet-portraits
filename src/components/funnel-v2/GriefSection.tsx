@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-/* Subtle dove wallpaper — scattered flying-bird silhouettes drawn as a
- * minimal "M" arc, the iconic shorthand for a dove in flight. Positions
- * chosen by hand so the pattern feels drifted, not tiled. Very low
+/* Subtle dove wallpaper — scattered realistic peace-dove silhouettes.
+ * Positions chosen by hand so the pattern feels drifted, not tiled. Low
  * opacity so it reads as atmosphere rather than decoration. */
 type Dove = { x: number; y: number; size: number; rot: number; opacity: number; delay: number };
 
@@ -28,6 +27,12 @@ const DOVES: Dove[] = [
   { x: 92, y: 82, size: 30, rot: -3, opacity: 0.16, delay: 2.9 },
 ];
 
+/* Realistic flying dove silhouette — classic peace-dove shape viewed from
+ * above, wings spread wide, small head & body, forked tail. Filled so it
+ * reads as a recognizable dove at small sizes (not just an abstract arc). */
+const DOVE_PATH =
+  "M32 2 C30 2 28 4 27 6 C26 8 24 10 22 10 L8 6 C5 5 3 8 5 11 L20 16 L5 21 C3 24 5 27 8 26 L22 22 C24 22 26 24 27 26 C28 28 30 30 32 30 C34 30 36 28 37 26 C38 24 40 22 42 22 L56 26 C59 27 61 24 59 21 L44 16 L59 11 C61 8 59 5 56 6 L42 10 C40 10 38 8 37 6 C36 4 34 2 32 2 Z";
+
 const DoveWallpaper = () => (
   <div
     aria-hidden="true"
@@ -38,7 +43,7 @@ const DoveWallpaper = () => (
       <svg
         key={i}
         className="grief-dove"
-        viewBox="0 0 40 20"
+        viewBox="0 0 64 32"
         style={{
           position: "absolute",
           left: `${d.x}%`,
@@ -50,35 +55,10 @@ const DoveWallpaper = () => (
           animationDelay: `${d.delay}s`,
         }}
       >
-        <path
-          d="M 2 16 Q 10 4, 20 16 Q 30 4, 38 16"
-          stroke="#7d7772"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
+        <path d={DOVE_PATH} fill="#8a847d" />
       </svg>
     ))}
   </div>
-);
-
-/* Small gold ornamental 4-point star — used as a pendant at the top of
- * each elevated benefit card to signal reverence. */
-const Fleuron = ({ size = 14 }: { size?: number }) => (
-  <svg
-    aria-hidden="true"
-    viewBox="0 0 20 20"
-    width={size}
-    height={size}
-    style={{ display: "block", margin: "0 auto" }}
-  >
-    <path
-      d="M10 0 L12 8 L20 10 L12 12 L10 20 L8 12 L0 10 L8 8 Z"
-      fill="var(--gold, #c4a265)"
-      opacity="0.72"
-    />
-  </svg>
 );
 
 interface GriefSectionProps {
@@ -159,32 +139,49 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
           </div>
         </div>
 
-        {/* Sub */}
-        <p
-          className="grief-sub"
-          style={{
-            fontFamily: '"Cormorant", Georgia, serif',
-            fontSize: "clamp(1rem, 3.2vw, 1.15rem)",
-            fontStyle: "italic",
-            color: "var(--earth, #6e6259)",
-            lineHeight: 1.55,
-            marginBottom: "clamp(32px, 5.5vw, 44px)",
-            maxWidth: 440,
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
+        {/* Sub — wrapped in its own small cream-glass card so the dove
+            wallpaper doesn't cross behind the letterforms. */}
+        <div
+          className="grief-sub flex justify-center"
+          style={{ marginBottom: "clamp(32px, 5.5vw, 44px)" }}
         >
-          Their reading becomes something to keep close. Something to return
-          to, every time you need them.
-        </p>
+          <div
+            style={{
+              padding: "12px 22px",
+              background: "rgba(255, 253, 245, 0.9)",
+              border: "1px solid rgba(196, 162, 101, 0.14)",
+              borderRadius: 12,
+              boxShadow: "0 1px 14px rgba(20,15,8,0.03)",
+              backdropFilter: "blur(3px)",
+              WebkitBackdropFilter: "blur(3px)",
+              maxWidth: 440,
+            }}
+          >
+            <p
+              style={{
+                fontFamily: '"Cormorant", Georgia, serif',
+                fontSize: "clamp(1rem, 3.2vw, 1.15rem)",
+                fontStyle: "italic",
+                color: "var(--earth, #6e6259)",
+                lineHeight: 1.55,
+                margin: 0,
+                textAlign: "center",
+              }}
+            >
+              Their reading becomes something to keep close. Something to
+              return to, every time you need them.
+            </p>
+          </div>
+        </div>
 
-        {/* Elevated benefit cards — gold fleuron pendant, double-border, roomy */}
+        {/* Compact benefit cards — roomier than the sub card but tighter
+            than the previous hero-sized version. Fleuron pendant removed. */}
         <div
           className="grief-beats"
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "clamp(18px, 3vw, 26px)",
+            gap: "clamp(12px, 2.2vw, 18px)",
             marginBottom: "clamp(32px, 5vw, 44px)",
           }}
         >
@@ -194,45 +191,30 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
               className="grief-beat"
               style={{
                 position: "relative",
-                padding: "clamp(32px, 5vw, 44px) clamp(24px, 4.5vw, 36px) clamp(28px, 4.5vw, 38px)",
+                padding: "clamp(18px, 3vw, 24px) clamp(18px, 3.5vw, 26px)",
                 background:
                   "linear-gradient(180deg, rgba(255,253,245,0.92) 0%, rgba(250,244,232,0.9) 100%)",
                 backdropFilter: "blur(10px)",
                 WebkitBackdropFilter: "blur(10px)",
-                border: "1px solid rgba(196, 162, 101, 0.38)",
-                borderRadius: 18,
+                border: "1px solid rgba(196, 162, 101, 0.32)",
+                borderRadius: 14,
                 boxShadow: [
-                  "0 10px 38px rgba(20,15,8,0.06)",
-                  "0 2px 8px rgba(196,162,101,0.08)",
-                  "inset 0 1px 0 rgba(255,255,255,0.75)",
-                  "inset 0 0 0 1px rgba(255,253,245,0.65)",
+                  "0 6px 22px rgba(20,15,8,0.05)",
+                  "0 1px 4px rgba(196,162,101,0.06)",
+                  "inset 0 1px 0 rgba(255,255,255,0.7)",
                 ].join(", "),
               }}
             >
-              {/* Gold pendant fleuron at top-center */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: -8,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  padding: "4px 8px",
-                  background: "var(--cream, #FFFDF5)",
-                  borderRadius: 9999,
-                }}
-              >
-                <Fleuron size={14} />
-              </div>
-
               <p
                 style={{
                   fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(1.15rem, 3.8vw, 1.4rem)",
+                  fontSize: "clamp(1.02rem, 3.2vw, 1.2rem)",
                   fontStyle: "italic",
                   color: "var(--ink, #1f1c18)",
-                  lineHeight: 1.38,
+                  lineHeight: 1.35,
                   letterSpacing: "-0.01em",
                   margin: 0,
+                  textAlign: "center",
                 }}
               >
                 {line}
@@ -241,10 +223,10 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
               {/* Soft gold hairline below text */}
               <svg
                 aria-hidden="true"
-                width="54"
-                height="6"
+                width="42"
+                height="5"
                 viewBox="0 0 54 6"
-                style={{ display: "block", margin: "18px auto 0", opacity: 0.55 }}
+                style={{ display: "block", margin: "12px auto 0", opacity: 0.5 }}
               >
                 <path
                   d="M 1 3 Q 9 0.5 17 2.5 T 35 2.5 T 53 2.5"
