@@ -115,6 +115,11 @@ interface InlineCheckoutProps {
    *  collapse/expand state wins. Works alongside ?memorial=1 /
    *  ?occasion=memorial URL intent. */
   memorialDefaultExpanded?: boolean;
+  /** When true (memorial path), the Soul Reading + Soul Bond tier grid
+   *  is hidden entirely and the Memorial tier is rendered as the sole
+   *  full-width card. No pill, no toggle — a grieving reader should not
+   *  have two unrelated options competing for their attention. */
+  memorialOnly?: boolean;
 }
 
 // Volume discount mirrors create-checkout server-side rates for per-pet bundles.
@@ -128,7 +133,7 @@ function getVolumeDiscount(petCount: number): number {
 
 const MAX_PETS = 10;
 
-export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange, memorialDefaultExpanded = false }, forwardedRef) => {
+export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange, memorialDefaultExpanded = false, memorialOnly = false }, forwardedRef) => {
   // Detect memorial-intent URL params up-front so the cart + pill open to the
   // right state. Supported signals: ?occasion=memorial or ?memorial=1. Also
   // covers the case where a user clicks a memorial-specific CTA that routes
@@ -819,7 +824,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             pointerEvents: "none",
           }}
         />
-        {/* Header */}
+        {/* Header — route-aware. Memorial visitors see a reverent,
+            singular title instead of the generic "Begin Their Reading".
+            A tender sub-line then meets them before any pricing. */}
         <div
           className="text-center mb-7 sm:mb-8 transition-all duration-1000"
           style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)" }}
@@ -829,124 +836,156 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               fontFamily: '"DM Serif Display", Georgia, serif',
               fontSize: "clamp(1.5rem, 5.5vw, 2rem)",
               fontWeight: 400,
+              fontStyle: memorialOnly ? "italic" : "normal",
               color: "var(--black, #141210)",
               marginBottom: 8,
               lineHeight: 1.15,
             }}
           >
-            Begin Their Reading
+            {memorialOnly ? "A Reading for Their Memory" : "Begin Their Reading"}
           </h2>
-        </div>
-
-        {/* Tier cards — Soul Reading + Soul Bond. Stacks on mobile,
-            side-by-side on desktop. Click to select. */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 items-stretch">
-          {TIERS.filter((t) => t.id === "basic" || t.id === "premium").map((tier, i) =>
-            renderTierCard(tier, i)
-          )}
-        </div>
-
-        {/* Memorial Reading — collapsed pill by default, expands into a full
-            tier card identical in format to Soul Reading / Soul Bond. */}
-        {!memorialExpanded ? (
-          <div
-            role="button"
-            tabIndex={0}
-            aria-expanded={false}
-            aria-label="Expand Memorial Reading details"
-            onClick={toggleMemorialExpanded}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                toggleMemorialExpanded();
-              }
-            }}
-            className="mb-3 flex items-center justify-center gap-2.5 w-full rounded-full cursor-pointer transition-colors duration-200"
-            style={{
-              padding: "10px 18px",
-              background: "rgba(255, 253, 245, 0.72)",
-              border: "1px solid rgba(196, 162, 101, 0.28)",
-              backdropFilter: "blur(6px)",
-              WebkitBackdropFilter: "blur(6px)",
-              boxShadow: "0 1px 2px rgba(196, 162, 101, 0.06)",
-              color: "var(--rose, #bf524a)",
-            }}
-          >
-            {/* Minimal dove silhouette — stylised flight path */}
-            <svg
-              width="18"
-              height="14"
-              viewBox="0 0 20 16"
-              fill="none"
-              aria-hidden="true"
-              style={{ opacity: 0.75, color: "currentColor", flexShrink: 0 }}
-            >
-              <path
-                d="M1.5 10.5 C 5 6, 10 7.5, 13 9 L 17 4.5 L 15.5 10 C 12 13.5, 6 13, 1.5 10.5 Z"
-                fill="currentColor"
-                fillOpacity="0.18"
-                stroke="currentColor"
-                strokeWidth="1.1"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-              <path
-                d="M6 10.5 Q 8 11.5, 10.5 10.5"
-                stroke="currentColor"
-                strokeWidth="0.9"
-                strokeLinecap="round"
-                fill="none"
-                opacity="0.55"
-              />
-            </svg>
-            <span
+          {memorialOnly && (
+            <p
               style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "0.92rem",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                lineHeight: 1,
-                color: "currentColor",
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(0.98rem, 3vw, 1.1rem)",
+                color: "var(--earth, #6e6259)",
+                lineHeight: 1.5,
+                margin: "0 auto",
+                maxWidth: 440,
               }}
             >
-              Memorial Reading
-            </span>
-            <svg
-              width="11"
-              height="11"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ opacity: 0.6, flexShrink: 0 }}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
+              A keepsake for the space they left &mdash; written reverently,
+              to be felt, not skimmed.
+            </p>
+          )}
+        </div>
+
+        {memorialOnly ? (
+          /* Memorial-only route: render the Memorial tier as a single
+             full-width card. No pill, no toggle, no Soul Reading / Soul
+             Bond competing for attention. */
+          <div data-ls-memorial-expanded="" className="mb-3">
+            {renderTierCard(TIERS.find((t) => t.id === "memorial")!, 0)}
           </div>
         ) : (
-          <div data-ls-memorial-expanded="" className="mb-3">
-            {renderTierCard(
-              TIERS.find((t) => t.id === "memorial")!,
-              2,
-              { showCloseButton: true, onClose: toggleMemorialExpanded }
+          <>
+            {/* Tier cards — Soul Reading + Soul Bond. Stacks on mobile,
+                side-by-side on desktop. Click to select. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 items-stretch">
+              {TIERS.filter((t) => t.id === "basic" || t.id === "premium").map((tier, i) =>
+                renderTierCard(tier, i)
+              )}
+            </div>
+
+            {/* Memorial Reading — collapsed pill by default, expands into a full
+                tier card identical in format to Soul Reading / Soul Bond. */}
+            {!memorialExpanded ? (
+              <div
+                role="button"
+                tabIndex={0}
+                aria-expanded={false}
+                aria-label="Expand Memorial Reading details"
+                onClick={toggleMemorialExpanded}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleMemorialExpanded();
+                  }
+                }}
+                className="mb-3 flex items-center justify-center gap-2.5 w-full rounded-full cursor-pointer transition-colors duration-200"
+                style={{
+                  padding: "10px 18px",
+                  background: "rgba(255, 253, 245, 0.72)",
+                  border: "1px solid rgba(196, 162, 101, 0.28)",
+                  backdropFilter: "blur(6px)",
+                  WebkitBackdropFilter: "blur(6px)",
+                  boxShadow: "0 1px 2px rgba(196, 162, 101, 0.06)",
+                  color: "var(--rose, #bf524a)",
+                }}
+              >
+                {/* Minimal dove silhouette — stylised flight path */}
+                <svg
+                  width="18"
+                  height="14"
+                  viewBox="0 0 20 16"
+                  fill="none"
+                  aria-hidden="true"
+                  style={{ opacity: 0.75, color: "currentColor", flexShrink: 0 }}
+                >
+                  <path
+                    d="M1.5 10.5 C 5 6, 10 7.5, 13 9 L 17 4.5 L 15.5 10 C 12 13.5, 6 13, 1.5 10.5 Z"
+                    fill="currentColor"
+                    fillOpacity="0.18"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M6 10.5 Q 8 11.5, 10.5 10.5"
+                    stroke="currentColor"
+                    strokeWidth="0.9"
+                    strokeLinecap="round"
+                    fill="none"
+                    opacity="0.55"
+                  />
+                </svg>
+                <span
+                  style={{
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontSize: "0.92rem",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    lineHeight: 1,
+                    color: "currentColor",
+                  }}
+                >
+                  Memorial Reading
+                </span>
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ opacity: 0.6, flexShrink: 0 }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            ) : (
+              <div data-ls-memorial-expanded="" className="mb-3">
+                {renderTierCard(
+                  TIERS.find((t) => t.id === "memorial")!,
+                  2,
+                  { showCloseButton: true, onClose: toggleMemorialExpanded }
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
 
-        {/* Live multi-pet discount hint — replaces the old static footer line */}
-        <p
-          className="text-center mb-5"
-          style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: petCount >= 2 ? "var(--rose, #bf524a)" : "var(--muted, #958779)" }}
-        >
-          {petCount >= 2 ? (
-            <>🎉 {Math.round(discountRate * 100)}% multi-pet discount applied — {petCount} readings · {fmtUsd(selectedPrice)}</>
-          ) : (
-            <>🐾 Got more pets? Use the + buttons above — save up to 30% on 2 or more</>
-          )}
-        </p>
+        {/* Live multi-pet discount hint. Suppressed on memorial — a
+            grieving visitor is holding one soul in mind, and prompting
+            "got more pets?" is tonally wrong. */}
+        {!memorialOnly && (
+          <p
+            className="text-center mb-5"
+            style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: petCount >= 2 ? "var(--rose, #bf524a)" : "var(--muted, #958779)" }}
+          >
+            {petCount >= 2 ? (
+              <>🎉 {Math.round(discountRate * 100)}% multi-pet discount applied — {petCount} readings · {fmtUsd(selectedPrice)}</>
+            ) : (
+              <>🐾 Got more pets? Use the + buttons above — save up to 30% on 2 or more</>
+            )}
+          </p>
+        )}
 
         {/* Promo / gift / QATEST code input — single field that handles all three */}
         <div className="mb-3 text-center">

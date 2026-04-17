@@ -12,15 +12,19 @@ import { GriefSection } from "./GriefSection";
 import { PathPicker, type FunnelPath } from "./PathPicker";
 
 /**
- * V2 COPY — single universal set. A/B test retired, 100% of traffic
- * sees this copy.
+ * Per-path CTA labels. Memorial gets a tender, reverent verb so the
+ * final CTA and sticky bottom bar read as "Begin Their Memorial" rather
+ * than the default "Begin Their Reading". All other paths keep the
+ * default.
  */
-const COPY = {
-  ctaPrimary: "Begin Their Reading",
-} as const;
+const CTA_LABEL: Record<FunnelPath, string> = {
+  new: "Begin Their Reading",
+  discover: "Begin Their Reading",
+  memorial: "Begin Their Memorial",
+  gift: "Begin Their Reading",
+};
 
 export const FunnelV2 = () => {
-  const copy = COPY;
   const checkoutRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const productRevealRef = useRef<HTMLDivElement>(null);
@@ -36,16 +40,14 @@ export const FunnelV2 = () => {
       ? rawPath
       : "discover";
 
+  const ctaPrimary = CTA_LABEL[path];
+
+  // Deliberate no-op: selecting a path must NOT scroll the viewport.
+  // Scrolling would skip the primer copy below the picker and punish
+  // the visitor for triaging their intent. Accept the callback so the
+  // PathPicker API stays stable, but do nothing with it.
   const handlePathChange = useCallback((_next: FunnelPath) => {
-    if (typeof window === "undefined") return;
-    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-    // Give the DOM a tick to re-render the conditional GriefSection before scrolling.
-    setTimeout(() => {
-      productRevealRef.current?.scrollIntoView({
-        behavior: reduced ? "auto" : "smooth",
-        block: "start",
-      });
-    }, 60);
+    /* no scroll */
   }, []);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [showExitIntent, setShowExitIntent] = useState(false);
@@ -147,28 +149,29 @@ export const FunnelV2 = () => {
       <div ref={productRevealRef}>
         <ProductReveal
           onCtaClick={scrollToCheckout}
-          ctaLabel={copy.ctaPrimary}
+          ctaLabel={ctaPrimary}
           path={path}
-          showBenefits={path === "discover"}
+          showBenefits={path === "discover" || path === "new"}
         />
       </div>
 
       <InlineCheckout
         ref={checkoutRef}
-        ctaLabel={copy.ctaPrimary}
+        ctaLabel={ctaPrimary}
         charityId={charityId}
         charityBonus={charityBonus}
         onSelectedPriceChange={setSelectedPrice}
         memorialDefaultExpanded={path === "memorial"}
+        memorialOnly={path === "memorial"}
       />
 
       <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
         <GoldDivider />
       </div>
-      <FAQSection />
+      <FAQSection memorialFirst={path === "memorial"} />
 
       {/* Final emotional CTA */}
-      <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={copy.ctaPrimary} priceLabel={fmtUsd(selectedPrice + charityBonus)} />
+      <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={ctaPrimary} priceLabel={fmtUsd(selectedPrice + charityBonus)} />
 
       {/* Floating momentum signal */}
       <LiveActivityToast />
@@ -236,7 +239,7 @@ export const FunnelV2 = () => {
               minHeight: 52,
             }}
           >
-            {copy.ctaPrimary} · {fmtUsd(selectedPrice + charityBonus)}
+            {ctaPrimary} · {fmtUsd(selectedPrice + charityBonus)}
           </button>
         </div>
       )}
@@ -403,8 +406,19 @@ const FAQ_ITEMS = [
   },
 ];
 
-const FAQSection = () => {
+const FAQSection = ({ memorialFirst = false }: { memorialFirst?: boolean }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  // On the memorial route, hoist the "Can I get a reading for a pet
+  // who's passed away?" answer to the top so grieving visitors see the
+  // relevant question first instead of having to scroll past six generic
+  // FAQs. Order is preserved otherwise.
+  const items = memorialFirst
+    ? [
+        ...FAQ_ITEMS.filter((it) => it.q.toLowerCase().includes("passed away")),
+        ...FAQ_ITEMS.filter((it) => !it.q.toLowerCase().includes("passed away")),
+      ]
+    : FAQ_ITEMS;
 
   return (
     <section id="faq" className="py-10 sm:py-14 md:py-18 px-5 scroll-mt-24" style={{ background: "var(--cream, #FFFDF5)" }}>
@@ -422,7 +436,7 @@ const FAQSection = () => {
         </h2>
 
         <div className="space-y-0">
-          {FAQ_ITEMS.map((item, i) => {
+          {items.map((item, i) => {
             const isOpen = openIndex === i;
             return (
               <div key={i} className="border-b" style={{ borderColor: "var(--cream3, #f3eadb)" }}>
