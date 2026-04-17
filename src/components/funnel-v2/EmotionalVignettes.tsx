@@ -23,44 +23,44 @@ const VIGNETTES: Vignette[] = [
   {
     icon: Flame,
     accent: "#5a4a42",
-    eyebrow: "For those grieving",
-    headline: "You still reach for the leash some mornings.",
-    body: "A letter in their voice. The goodbye you never got.",
+    eyebrow: "If you're missing them",
+    headline: "Love doesn't stop at goodbye.",
+    body: "Every reading can be written in their memory — a soft goodbye in their voice, for when you're ready to hear it.",
   },
   {
     icon: Sparkle,
     accent: "#c4a265",
-    eyebrow: "For new beginnings",
-    headline: "Before this year blurs into memory.",
-    body: "Meet who they came here to be.",
+    eyebrow: "If they've just arrived",
+    headline: "Welcome them in — and really meet them.",
+    body: "Know who they came here to be from day one, so your bond grows on purpose.",
   },
   {
     icon: InfinityIcon,
     accent: "#8a6f8c",
-    eyebrow: "For the bond you can't explain",
-    headline: "You've felt them read you.",
-    body: "Words for what you've always known.",
+    eyebrow: "If you've felt it was more",
+    headline: "You've been reading each other for years.",
+    body: "Now see the bond you already live — finally put into words, in their chart, on the page.",
   },
   {
     icon: HouseLine,
     accent: "#7a8670",
-    eyebrow: "For the ones you rescued",
-    headline: "Whoever they were before you is still in there.",
-    body: "What they can't tell you, their chart remembers.",
+    eyebrow: "If they came to you with a past",
+    headline: "They're safe with you now.",
+    body: "What they can't tell you, their chart remembers — so you can love them even more knowingly.",
   },
   {
     icon: Gift,
     accent: "#b0773f",
-    eyebrow: "For someone you love",
-    headline: "The only gift they can't unwrap.",
-    body: "For the person whose pet is their person.",
+    eyebrow: "If this is a gift",
+    headline: "For the person whose pet is their whole world.",
+    body: "Something they'll read slowly, keep close, and come back to on the hard days.",
   },
   {
     icon: Eye,
     accent: "#bf524a",
-    eyebrow: "For the ones who do that thing",
-    headline: "Every oddity has a reason.",
-    body: "The 11pm vigil. The long stare. Decoded.",
+    eyebrow: "If you're here out of curiosity",
+    headline: "The midnight patrols. The long stares. The little rituals.",
+    body: "Every quirk has a reason written in the stars. Come meet the soul behind yours.",
   },
 ];
 
@@ -121,18 +121,18 @@ const VignetteCard = ({ v, index }: { v: Vignette; index: number }) => {
         <Icon size="100%" weight="thin" />
       </div>
 
-      {/* Eyebrow */}
+      {/* Eyebrow — handwritten invitation */}
       <p
         style={{
-          fontFamily: '"Cormorant", Georgia, serif',
-          fontSize: "0.72rem",
-          fontWeight: 700,
-          letterSpacing: "0.2em",
-          textTransform: "uppercase",
+          fontFamily: '"Caveat", cursive',
+          fontSize: "clamp(1.02rem, 2.8vw, 1.18rem)",
+          fontWeight: 500,
+          letterSpacing: "0.005em",
           color: v.accent,
-          opacity: 0.88,
-          marginBottom: 14,
+          opacity: 0.95,
+          marginBottom: 10,
           position: "relative",
+          lineHeight: 1.2,
         }}
       >
         {v.eyebrow}
@@ -228,10 +228,10 @@ export const EmotionalVignettes = () => {
             marginBottom: 14,
           }}
         >
-          You didn't land here{" "}
           <em style={{ color: "var(--rose, #bf524a)", fontStyle: "italic" }}>
-            by accident.
-          </em>
+            Wherever
+          </em>{" "}
+          you are with them, start here.
         </h2>
         <p
           style={{
@@ -244,7 +244,7 @@ export const EmotionalVignettes = () => {
             margin: "0 auto",
           }}
         >
-          This reading meets you where you are.
+          A soul reading for every chapter of your life with them.
         </p>
       </div>
 
