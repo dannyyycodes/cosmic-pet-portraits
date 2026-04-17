@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Flame } from "@phosphor-icons/react";
 
 /* Subtle dove wallpaper — scattered flying-bird silhouettes drawn as a
  * minimal "M" arc, the iconic shorthand for a dove in flight. Positions
@@ -8,25 +7,25 @@ import { Flame } from "@phosphor-icons/react";
 type Dove = { x: number; y: number; size: number; rot: number; opacity: number; delay: number };
 
 const DOVES: Dove[] = [
-  { x: 6,  y: 8,  size: 28, rot: -6, opacity: 0.10, delay: 0.0 },
-  { x: 22, y: 14, size: 22, rot: 3,  opacity: 0.08, delay: 0.6 },
-  { x: 42, y: 6,  size: 32, rot: -2, opacity: 0.09, delay: 1.2 },
-  { x: 62, y: 12, size: 24, rot: 5,  opacity: 0.07, delay: 1.8 },
-  { x: 82, y: 8,  size: 30, rot: -4, opacity: 0.09, delay: 2.4 },
-  { x: 14, y: 32, size: 26, rot: 2,  opacity: 0.08, delay: 0.3 },
-  { x: 36, y: 38, size: 34, rot: -5, opacity: 0.10, delay: 0.9 },
-  { x: 58, y: 34, size: 22, rot: 4,  opacity: 0.07, delay: 1.5 },
-  { x: 78, y: 40, size: 28, rot: -3, opacity: 0.09, delay: 2.1 },
-  { x: 4,  y: 58, size: 24, rot: 3,  opacity: 0.08, delay: 0.4 },
-  { x: 28, y: 62, size: 30, rot: -6, opacity: 0.09, delay: 1.0 },
-  { x: 50, y: 58, size: 22, rot: 2,  opacity: 0.07, delay: 1.6 },
-  { x: 72, y: 64, size: 32, rot: -2, opacity: 0.10, delay: 2.2 },
-  { x: 90, y: 60, size: 20, rot: 5,  opacity: 0.06, delay: 2.8 },
-  { x: 12, y: 82, size: 28, rot: -4, opacity: 0.09, delay: 0.5 },
-  { x: 34, y: 88, size: 22, rot: 3,  opacity: 0.07, delay: 1.1 },
-  { x: 56, y: 84, size: 30, rot: -5, opacity: 0.09, delay: 1.7 },
-  { x: 78, y: 90, size: 24, rot: 2,  opacity: 0.08, delay: 2.3 },
-  { x: 92, y: 82, size: 20, rot: -3, opacity: 0.06, delay: 2.9 },
+  { x: 6,  y: 8,  size: 44, rot: -6, opacity: 0.22, delay: 0.0 },
+  { x: 22, y: 14, size: 34, rot: 3,  opacity: 0.18, delay: 0.6 },
+  { x: 42, y: 6,  size: 48, rot: -2, opacity: 0.24, delay: 1.2 },
+  { x: 62, y: 12, size: 36, rot: 5,  opacity: 0.18, delay: 1.8 },
+  { x: 82, y: 8,  size: 42, rot: -4, opacity: 0.22, delay: 2.4 },
+  { x: 14, y: 32, size: 40, rot: 2,  opacity: 0.20, delay: 0.3 },
+  { x: 36, y: 38, size: 50, rot: -5, opacity: 0.26, delay: 0.9 },
+  { x: 58, y: 34, size: 34, rot: 4,  opacity: 0.18, delay: 1.5 },
+  { x: 78, y: 40, size: 42, rot: -3, opacity: 0.22, delay: 2.1 },
+  { x: 4,  y: 58, size: 36, rot: 3,  opacity: 0.20, delay: 0.4 },
+  { x: 28, y: 62, size: 44, rot: -6, opacity: 0.22, delay: 1.0 },
+  { x: 50, y: 58, size: 32, rot: 2,  opacity: 0.18, delay: 1.6 },
+  { x: 72, y: 64, size: 46, rot: -2, opacity: 0.24, delay: 2.2 },
+  { x: 90, y: 60, size: 30, rot: 5,  opacity: 0.16, delay: 2.8 },
+  { x: 12, y: 82, size: 42, rot: -4, opacity: 0.22, delay: 0.5 },
+  { x: 34, y: 88, size: 34, rot: 3,  opacity: 0.18, delay: 1.1 },
+  { x: 56, y: 84, size: 44, rot: -5, opacity: 0.22, delay: 1.7 },
+  { x: 78, y: 90, size: 36, rot: 2,  opacity: 0.20, delay: 2.3 },
+  { x: 92, y: 82, size: 30, rot: -3, opacity: 0.16, delay: 2.9 },
 ];
 
 const DoveWallpaper = () => (
@@ -53,8 +52,8 @@ const DoveWallpaper = () => (
       >
         <path
           d="M 2 16 Q 10 4, 20 16 Q 30 4, 38 16"
-          stroke="var(--gold, #c4a265)"
-          strokeWidth="1.6"
+          stroke="#7d7772"
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
@@ -127,22 +126,38 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
         className="relative max-w-[540px] mx-auto text-center"
         style={{ zIndex: 1 }}
       >
-        {/* Title */}
-        <h2
-          className="grief-title"
-          style={{
-            fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.65rem, 5.4vw, 2.2rem)",
-            fontWeight: 400,
-            fontStyle: "italic",
-            color: "var(--black, #141210)",
-            lineHeight: 1.18,
-            letterSpacing: "-0.02em",
-            marginBottom: 16,
-          }}
-        >
-          If you've already had to say goodbye.
-        </h2>
+        {/* Title — wrapped in a cream-glass card so the dove wallpaper
+            doesn't cross behind the letterforms (matches the pattern
+            used by "Once You Understand Them" above). */}
+        <div className="grief-title flex justify-center" style={{ marginBottom: 18 }}>
+          <div
+            style={{
+              padding: "16px 30px",
+              background: "rgba(255, 253, 245, 0.94)",
+              border: "1px solid rgba(196, 162, 101, 0.18)",
+              borderRadius: 14,
+              boxShadow: "0 2px 20px rgba(20,15,8,0.04)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: '"DM Serif Display", Georgia, serif',
+                fontSize: "clamp(1.55rem, 5.2vw, 2.1rem)",
+                fontWeight: 400,
+                fontStyle: "italic",
+                color: "var(--black, #141210)",
+                lineHeight: 1.18,
+                letterSpacing: "-0.02em",
+                margin: 0,
+                textAlign: "center",
+              }}
+            >
+              If you've already had to say goodbye.
+            </h2>
+          </div>
+        </div>
 
         {/* Sub */}
         <p
@@ -243,36 +258,30 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
           ))}
         </div>
 
-        {/* Memorial mode reassurance badge */}
+        {/* Memorial reassurance — tender label, no icon */}
         <div
           className="grief-badge"
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
-            padding: "8px 16px",
+            padding: "10px 20px",
             borderRadius: 9999,
-            background: "rgba(255, 253, 245, 0.85)",
+            background: "rgba(255, 253, 245, 0.88)",
             border: "1px solid rgba(191,82,74,0.22)",
           }}
         >
-          <Flame
-            size={13}
-            weight="fill"
-            color="var(--rose, #bf524a)"
-            style={{ opacity: 0.85 }}
-          />
           <span
             style={{
               fontFamily: '"Cormorant", Georgia, serif',
-              fontSize: "0.75rem",
+              fontSize: "0.78rem",
               fontWeight: 600,
-              letterSpacing: "0.12em",
+              letterSpacing: "0.14em",
               textTransform: "uppercase",
               color: "var(--rose, #bf524a)",
             }}
           >
-            Memorial mode — in every reading
+            Held gently in their memory
           </span>
         </div>
       </div>
