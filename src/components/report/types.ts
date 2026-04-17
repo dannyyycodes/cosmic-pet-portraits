@@ -284,6 +284,106 @@ export interface ReportContent {
   cosmicAdvice?: string;
 }
 
+// ─── Memorial Report schema (separate product) ──────────────────────────────
+
+export interface MemorialReportContent {
+  chartPlacements: Record<string, ChartPlacement>;
+  elementalBalance: Record<string, number>;
+  dominantElement: string;
+  aura: { primary: string; secondary: string; meaning: string };
+  archetype: { name: string; description: string };
+
+  prologue: string;
+
+  nameMeaning?: {
+    origin: string;
+    cosmicSignificance: string;
+    nameVibration: number;
+    numerologyMeaning: string;
+    memorialNote: string;
+  };
+
+  whoTheyWere: {
+    title?: string;
+    threeTruths: string;
+    goldenThread: string;
+  };
+
+  giftsTheyBrought: {
+    title?: string;
+    gifts: string[];
+    quietestGift: string;
+  };
+
+  theBridge: {
+    title?: string;
+    lessons: string[];
+    quotableLine: string;
+  };
+
+  soulStillSpeaks: {
+    title?: string;
+    content: string;
+    signatureYouCarry: string;
+    smallSigns: string[];
+  };
+
+  theirVoiceNow: {
+    title?: string;
+    letter: string;
+    signoff?: string;
+  };
+
+  griefCompass: {
+    title?: string;
+    content: string;
+    youAreNotDoingThisWrong?: string;
+  };
+
+  ritualsForRemembering: {
+    title?: string;
+    rituals: string[];
+    anchorObject: string;
+  };
+
+  threePermissionSlips: {
+    title?: string;
+    slips: string[];
+  };
+
+  anniversaryGuide: {
+    title?: string;
+    birthday: string;
+    passingDay: string;
+    hardRandomDays?: string;
+  };
+
+  whenAnotherArrives?: {
+    title?: string;
+    content: string;
+    signToWatchFor?: string;
+  };
+
+  aTreatForTheirMemory?: {
+    title?: string;
+    description: string;
+    ingredients: string[];
+    steps: string[];
+    whenToMake?: string;
+  };
+
+  keepersOath: {
+    title?: string;
+    oath: string;
+  };
+
+  epilogue: string;
+
+  /** Set by worker if guards couldn't fully satisfy schema — view still renders. */
+  _needsReview?: boolean;
+  _needsReviewReason?: string;
+}
+
 export interface ReportData {
   petName: string;
   report: ReportContent;

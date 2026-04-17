@@ -19,6 +19,33 @@ const BANNED_WORDS = [
   "fascinating", "gorgeous", "magnificent", "remarkable", "profound",
   "tapestry", "navigate", "embark", "realm", "delightful", "incredibly",
   "furthermore", "in essence", "it's worth noting", "essentially",
+  "ultimately", "inherently", "innately", "myriad", "seamlessly",
+];
+
+// ─── Sections that MUST cite at least one real placement or zodiac sign by
+//     name. A section that writes 200 words without naming Sun/Moon/Mars/etc
+//     is almost certainly generic "could be any pet" slop. Feeds the
+//     placement-citation auditor.
+const PLACEMENT_REQUIRED_SECTIONS = [
+  "solarSoulprint", "lunarHeart", "cosmicCuriosity", "harmonyHeartbeats",
+  "spiritOfMotion", "starlitGaze", "destinyCompass", "gentleHealer",
+  "wildSpirit", "cosmicExpansion", "cosmicLessons",
+  "elementalNature", "celestialChoreography", "earthlyExpression",
+  "luminousField", "eternalArchetype", "keepersBond",
+  "petMonologue", "epilogue",
+  // New 2026-04-17 sections:
+  "shadowSelf", "petOwnerFriction",
+] as const;
+
+// Tokens whose presence in a section's text proves the AI grounded that
+// section in real chart data. Includes planet names, sign names, and
+// astrology anchors. Case-insensitive check.
+const PLACEMENT_CITATION_TOKENS = [
+  "sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
+  "uranus", "neptune", "pluto", "chiron", "lilith", "rising", "ascendant",
+  "north node", "south node",
+  "aries", "taurus", "gemini", "cancer", "leo", "virgo",
+  "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces",
 ];
 
 // Phrases the AI must never produce
@@ -62,6 +89,9 @@ export interface VerifyOpts {
   chartDegrees: Record<string, { sign: string; degree: number }>;
   // Species-safe recipe banlist (applies to cosmicRecipe section)
   recipeBannedIngredients: string[];
+  // Override the default PLACEMENT_REQUIRED_SECTIONS list — used by memorial
+  // reports which have a different set of sections. If omitted, cosmic default.
+  placementRequiredSections?: readonly string[];
 }
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
@@ -149,13 +179,15 @@ export function runDeterministicVerification(
         }
       }
 
-      // 2. Banned brand-voice words → track but don't auto-strip (needs regen context)
+      // 2. Banned brand-voice words → flagged CRITICAL so the worker
+      //    regenerates the section instead of shipping slop. 48-hour probe —
+      //    dial back to "warning" if regen rate proves excessive.
       for (const word of BANNED_WORDS) {
         const re = new RegExp(`\\b${word}\\b`, "gi");
         const hits = fixed.match(re);
         if (hits) {
           issues.push({
-            section, category: "banned_word", severity: "warning",
+            section, category: "banned_word", severity: "critical",
             message: `Banned word "${word}" used ${hits.length}× — breaks brand voice.`,
             autoFixable: false, foundText: word,
           });
@@ -165,7 +197,7 @@ export function runDeterministicVerification(
         const hits = fixed.match(re);
         if (hits) {
           issues.push({
-            section, category: "banned_word", severity: "warning",
+            section, category: "banned_word", severity: "critical",
             message: `Banned phrase "${hits[0]}" — AI crutch language.`,
             autoFixable: false, foundText: hits[0],
           });
@@ -261,6 +293,48 @@ export function runDeterministicVerification(
   };
 
   const fixedReport = walkAndFix(report) as Record<string, unknown>;
+
+  // ─── Placement-citation audit ────────────────────────────────────────────
+  // Every required section must cite at least one placement/sign by name.
+  // A section that says 200 words about "energy" without ever naming a
+  // planet or sign is generic AI-slop — regenerate it.
+  const requiredSections = opts.placementRequiredSections ?? PLACEMENT_REQUIRED_SECTIONS;
+  for (const sectionName of requiredSections) {
+    const section = fixedReport[sectionName];
+    if (!section) continue;
+
+    // Flatten the section's text fields (title, content, preamble, etc.)
+    // into one string. Skip short meta-fields like title so we only check
+    // substantive narrative content.
+    const texts = extractStringsWithPath(section);
+    const body = texts
+      .filter((t) => t.text.length >= 60)      // skip titles / short subfields
+      .filter((t) => !/title$/i.test(t.path))  // belt + braces
+      .map((t) => t.text)
+      .join(" ")
+      .toLowerCase();
+
+    if (body.length < 80) continue; // nothing substantive to audit
+
+    const cited = PLACEMENT_CITATION_TOKENS.some((tok) => {
+      // Word-boundary match so "leo" doesn't trip on "sleeping".
+      const re = new RegExp(`\\b${tok.replace(/\s+/g, "\\s+")}\\b`, "i");
+      return re.test(body);
+    });
+
+    if (!cited) {
+      issues.push({
+        section: sectionName,
+        category: "other",
+        severity: "critical",
+        message:
+          `No placement citation in "${sectionName}" — section wrote ` +
+          `${body.length} chars without naming any planet, sign, or chart anchor. ` +
+          `This is generic slop; regenerate with chart-grounded rewrite.`,
+        autoFixable: false,
+      });
+    }
+  }
 
   // ─── Whole-report pronoun balance check ──────────────────────────────────
   // We count wrong-gender pronouns across the whole report. A few are fine

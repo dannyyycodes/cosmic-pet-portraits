@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
+import { MemorialReportViewer } from '@/components/report/MemorialReportViewer';
+import type { MemorialReportContent } from '@/components/report/types';
 import { ReportLoadingSkeleton } from '@/components/report/ReportSkeletons';
 import { CinematicReveal } from '@/components/report/CinematicReveal';
 import { toast } from 'sonner';
@@ -291,6 +293,23 @@ export default function ViewReport() {
     const sunSign = reportData.report?.chartPlacements?.sun?.sign || 'Aries';
     const archetype = reportData.report?.archetype?.name || 'Cosmic Soul';
     const element = reportData.report?.dominantElement || 'Fire';
+
+    // Memorial reports use an entirely different viewer (no cinematic reveal,
+    // different palette, grief-appropriate pacing). Detect via occasionMode.
+    const isMemorial = reportData.occasionMode === 'memorial';
+
+    if (isMemorial) {
+      return (
+        <MemorialReportViewer
+          petName={reportData.petName}
+          report={reportData.report as unknown as MemorialReportContent}
+          reportId={reportData.reportId}
+          gender={(reportData as { gender?: string }).gender}
+          petPhotoUrl={reportData.petPhotoUrl}
+          portraitUrl={reportData.portraitUrl}
+        />
+      );
+    }
 
     return (
       <>

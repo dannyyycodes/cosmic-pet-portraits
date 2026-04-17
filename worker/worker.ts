@@ -17,6 +17,14 @@ import {
 import { resolveBirthUTC } from "./timezone.ts";
 import { resolveSpeciesRules, findBannedIngredients } from "./species-recipe-rules.ts";
 import { verifyReport, type VerificationIssue } from "./verifier.ts";
+import { validateReport } from "./report-schema.ts";
+import {
+  buildMemorialSystemPrompt,
+  buildMemorialUserPrompt,
+  validateMemorialReport,
+  MEMORIAL_PLACEMENT_REQUIRED_SECTIONS,
+  type MemorialPromptContext,
+} from "./memorial-prompt.ts";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
@@ -802,7 +810,7 @@ OWNER-PROVIDED PERSONALITY INSIGHTS (CRITICAL - These are firsthand observations
 No specific personality insights provided - rely on astrological placements and species/breed traits.`;
   }
 
-  const systemPrompt = `You are Celeste, a cheeky but wise pet astrologer who creates cosmic portraits that make pet parents LAUGH OUT LOUD and then tear up. You blend accurate Western astrology with witty observations and heartfelt moments.
+  const cosmicSystemPrompt = `You are Celeste, a cheeky but wise pet astrologer who creates cosmic portraits that make pet parents LAUGH OUT LOUD and then tear up. You blend accurate Western astrology with witty observations and heartfelt moments.
 
 CRITICAL: ALL text content in your response MUST be written in ${targetLanguage}. This includes all titles, descriptions, paragraphs, quotes, and explanations. Only the JSON keys should remain in English.
 
@@ -982,7 +990,7 @@ ABSOLUTE DATA ACCURACY RULES (NEVER VIOLATE THESE):
 - Every zodiac sign mentioned in narrative text MUST match the calculated chartPlacements exactly. Do not swap or invent placements.
 - When referencing a planet's degree in prose, it MUST match the degree in chartPlacements (±1° tolerance for rounding only).`;
 
-  const userPrompt = `Generate a comprehensive cosmic portrait for ${name} the ${breed || species} with this JSON structure.
+  const cosmicUserPrompt = `Generate a comprehensive cosmic portrait for ${name} the ${breed || species} with this JSON structure.
 
 THE REPORT SHOULD FLOW LIKE A STORY:
 1. CHAPTER 1 - THE ARRIVAL: Introduction & first impressions (prologue, cosmicNickname, firstMeeting)
@@ -1487,6 +1495,39 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
 
 10. NARRATIVE THREAD — The ENTIRE report should feel like one cohesive story. The prologue introduces a theme. Each chapter builds on it. The epilogue brings it home. If ${name} is described as a "gentle old soul" in the prologue, that thread should weave through every section.`;
 
+  // ─── Memorial fork — swap in dedicated memorial prompts when applicable ──
+  //
+  //   Memorial reports use an entirely different prompt + schema (see
+  //   worker/memorial-prompt.ts). The cosmic prompts above are still built
+  //   (they're cheap string construction, cached by V8) but discarded for
+  //   memorial runs. We branch at the call site, not inside fetchOpenRouter.
+  const memorialReading = occasionMode === "memorial";
+
+  let systemPrompt: string;
+  let userPrompt: string;
+
+  if (memorialReading) {
+    const memCtx: MemorialPromptContext = {
+      name, species, breed, gender, pronouns, targetLanguage,
+      sunSign, moonSign, ascendant,
+      mercury, venus, mars, chiron, saturn, lilith, northNode, jupiter, neptune,
+      element, rulingPlanet, positions, hasRealAscendant,
+      chartPlacements, elementalBalance, aura, archetype, nameVibration,
+      dob,
+      passedDate: (reportRow.passed_date ?? petData.passed_date ?? "") as string,
+      rememberedBy: (reportRow.remembered_by ?? petData.remembered_by ?? "") as string,
+      favoriteMemory: (reportRow.favorite_memory ?? petData.favorite_memory ?? "") as string,
+      ownerInsights,
+      petPhotoDescription,
+    };
+    systemPrompt = buildMemorialSystemPrompt(memCtx);
+    userPrompt = buildMemorialUserPrompt(memCtx);
+    console.log("[WORKER] Memorial mode — using memorial prompts.");
+  } else {
+    systemPrompt = cosmicSystemPrompt;
+    userPrompt = cosmicUserPrompt;
+  }
+
   // ─── Call OpenRouter (with automatic retry) ────────────────────────────────
 
   const response = await fetchOpenRouter(systemPrompt, userPrompt);
@@ -1875,45 +1916,229 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
   const chartDegrees: Record<string, { sign: string; degree: number }> = {};
   for (const [k, v] of Object.entries(chartPlacements)) chartDegrees[k.toLowerCase()] = v;
 
-  try {
-    const verification = await verifyReport(
-      reportContent,
-      {
-        gender,
-        occasionMode: (occasionMode === "memorial" || occasionMode === "birthday" || occasionMode === "gift") ? occasionMode : "discover",
-        petName: name,
-        language,
-        validSigns,
-        chartDegrees,
-        recipeBannedIngredients: speciesRules.banned,
-      },
-      OPENROUTER_API_KEY,
-    );
-    reportContent = verification.report;
+  // ─── Quality guards: schema validation + verifier + targeted regeneration ──
+  //
+  //   Flow:
+  //   1. Zod schema validation      → flags sections that failed shape/length
+  //   2. verifyReport (deterministic + Haiku semantic) → flags drift/slop
+  //   3. For every failing section (that we DIDN'T force-override anyway),
+  //      call OpenRouter again for JUST that section. Max 1 retry per section
+  //      per session to cap cost.
+  //   4. Re-run schema + verifier. If critical issues STILL remain, mark the
+  //      report with _needsReview and Sentry-alert; we still ship (better an
+  //      imperfect report than none), but we know to audit it.
+  //
+  //   Sections whose values we overwrite via the locked-override mechanism
+  //   later in this function are excluded from regeneration — re-running the
+  //   model for fields we'll throw away is pure cost.
 
-    const { issues, autoFixesApplied, sectionsToRegenerate, overallPass } = verification.result;
-    const critical = issues.filter((i) => i.severity === "critical").length;
-    const warnings = issues.filter((i) => i.severity === "warning").length;
-    console.log(`[VERIFIER] auto-fixes=${autoFixesApplied}  critical=${critical}  warnings=${warnings}  pass=${overallPass}`);
-    for (const issue of issues) {
-      console.log(`  [${issue.severity}] ${issue.section} / ${issue.category}: ${issue.message.slice(0, 200)}`);
+  const LOCKED_SECTIONS = new Set(memorialReading
+    ? ["chartPlacements", "elementalBalance", "dominantElement", "aura", "archetype"]
+    : ["chartPlacements", "elementalBalance", "dominantElement",
+       "crystal", "aura", "archetype", "luckyElements", "basedOnYourAnswers"]
+  );
+  const META_SECTIONS = new Set(["(whole-report)", "(global)", "(root)", "unknown", ""]);
+  const isRegenerable = (s: string) => !LOCKED_SECTIONS.has(s) && !META_SECTIONS.has(s);
+
+  // One-shot regen helper — regenerates a SINGLE section via a focused call.
+  // Returns null on any failure; caller falls back to whatever was there.
+  const regenSection = async (
+    sectionName: string,
+    reason: string,
+  ): Promise<Record<string, unknown> | null> => {
+    console.log(`[REGEN] ${sectionName}  reason=${reason.slice(0, 140)}`);
+    const regenSystem =
+`You are Celeste, Little Souls' pet astrologer. You are REGENERATING a single failed section of ${name}'s cosmic reading.
+
+HARD RULES (any violation = failure):
+- ALL text in ${targetLanguage}.
+- Use ONLY these pronouns for the pet: ${pronouns.subject}/${pronouns.object}/${pronouns.possessive}/${pronouns.reflexive}. NEVER "they/them/their" for ${name}.
+- NEVER write "your owner" / "the owner" / "their owner" — the reader IS the owner. Address them as "you".
+- MUST cite at least ONE specific placement by name (Sun, Moon, Mars, Venus, Chiron, Lilith, rising, North Node, or a zodiac sign from ${name}'s chart). A section with no placement reference is an automatic failure.
+- NEVER use these words: fascinating, gorgeous, magnificent, remarkable, profound, tapestry, navigate, embark, realm, delightful, incredibly, furthermore, essentially, ultimately, inherently, innately, myriad, seamlessly, truly, deeply, "here's the thing", "let's be honest", "creates this".
+- ${isMemorial ? "PAST TENSE throughout — the pet has passed." : "PRESENT TENSE — the pet is alive RIGHT NOW. Not 'entered your life' but 'is in your life'."}
+- ${lifeStageContext}
+
+${name}'s chart:
+- Sun: ${sunSign} ${positions.sun.degree}°, Moon: ${moonSign} ${positions.moon.degree}°, Rising: ${ascendant} ${positions.ascendant?.degree || 0}°
+- Mercury: ${mercury}, Venus: ${venus}, Mars: ${mars}
+- Chiron: ${chiron}, Saturn: ${saturn}, Lilith: ${lilith}, North Node: ${northNode}
+- Jupiter: ${jupiter}, Uranus: ${uranus}, Neptune: ${neptune}, Pluto: ${pluto}
+- Element: ${element} | Ruling planet: ${rulingPlanet}
+- Species: ${species}${breed ? ` (${breed})` : ""} | Gender: ${gender}${petPhotoDescription ? `
+- Appearance: ${petPhotoDescription.slice(0, 240)}` : ""}
+
+Return ONLY a JSON object with a single key "${sectionName}". No markdown, no prose outside the JSON.`;
+
+    const existing = (reportContent as Record<string, unknown>)[sectionName];
+    const regenUser =
+`The "${sectionName}" section failed verification. Reason: ${reason}
+
+Rewrite the "${sectionName}" section with REAL chart grounding, vivid breed-specific behaviours, and zero banned words. Keep the same JSON STRUCTURE as what was originally generated. Longer where needed — do not skimp on the required body length.
+
+Previous (rejected) output for structure reference only — do NOT copy its phrasing, rewrite entirely:
+${JSON.stringify(existing ?? {}).slice(0, 2000)}
+
+Return: { "${sectionName}": { ...replacement... } }`;
+
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://littlesouls.app",
+          "X-Title": "Little Souls Section Regen",
+        },
+        body: JSON.stringify({
+          model: "anthropic/claude-sonnet-4.5",
+          max_tokens: 3000,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: regenSystem },
+            { role: "user", content: regenUser },
+          ],
+        }),
+      });
+      if (!res.ok) {
+        console.warn(`[REGEN] non-OK response ${res.status} for ${sectionName}`);
+        return null;
+      }
+      const j = await res.json();
+      const txt: string | undefined = j.choices?.[0]?.message?.content;
+      if (!txt) return null;
+      const cleaned = txt.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      const parsed = JSON.parse(cleaned) as Record<string, unknown>;
+      if (!parsed[sectionName]) {
+        console.warn(`[REGEN] ${sectionName} response missing expected key. Keys: ${Object.keys(parsed).join(",")}`);
+        // Salvage if AI wrapped the content without the expected key
+        if (Object.keys(parsed).length === 1) {
+          return { [sectionName]: Object.values(parsed)[0] };
+        }
+        return null;
+      }
+      return parsed;
+    } catch (e) {
+      console.warn(`[REGEN] ${sectionName} threw:`, e);
+      return null;
+    }
+  };
+
+  const attemptedRegen = new Set<string>();
+
+  // Two-pass loop: verify → regen failed sections → verify → regen still-failed.
+  for (let pass = 0; pass < 2; pass++) {
+    // ── Schema validation ──────────────────────────────────────────────────
+    const schema = memorialReading
+      ? validateMemorialReport(reportContent)
+      : validateReport(reportContent);
+    const schemaFailed = new Set(schema.failedSections.filter(isRegenerable));
+    if (!schema.valid) {
+      console.log(`[SCHEMA pass=${pass}] invalid — failed sections: ${[...schemaFailed].join(", ") || "(non-regenerable)"}`);
+      for (const e of schema.errors.slice(0, 10)) {
+        console.log(`  [schema] ${e}`);
+      }
+    } else {
+      console.log(`[SCHEMA pass=${pass}] valid`);
     }
 
-    // Log critical/regen-needed issues to Sentry so we can track quality drift over time
-    if (critical > 0) {
-      await reportToSentry(`[VERIFIER] ${critical} critical issues in report ${reportId}`, {
-        reportId,
-        petName: name,
-        criticalIssues: issues.filter((i) => i.severity === "critical").map((i) => ({
-          section: i.section, category: i.category, message: i.message,
-        })),
-        sectionsToRegenerate,
+    // ── Verifier (deterministic + Haiku semantic) ──────────────────────────
+    let verifierFailed = new Set<string>();
+    try {
+      const verification = await verifyReport(
+        reportContent,
+        {
+          gender,
+          occasionMode: (occasionMode === "memorial" || occasionMode === "birthday" || occasionMode === "gift") ? occasionMode : "discover",
+          petName: name,
+          language,
+          validSigns,
+          chartDegrees,
+          recipeBannedIngredients: speciesRules.banned,
+          placementRequiredSections: memorialReading
+            ? MEMORIAL_PLACEMENT_REQUIRED_SECTIONS
+            : undefined,
+        },
+        OPENROUTER_API_KEY,
+      );
+      reportContent = verification.report;
+
+      const { issues, autoFixesApplied, sectionsToRegenerate } = verification.result;
+      const critical = issues.filter((i) => i.severity === "critical").length;
+      const warnings = issues.filter((i) => i.severity === "warning").length;
+      console.log(`[VERIFIER pass=${pass}] auto-fixes=${autoFixesApplied} critical=${critical} warnings=${warnings}`);
+      for (const issue of issues) {
+        console.log(`  [${issue.severity}] ${issue.section} / ${issue.category}: ${issue.message.slice(0, 200)}`);
+      }
+
+      verifierFailed = new Set(sectionsToRegenerate.filter(isRegenerable));
+
+      if (critical > 0 && pass === 0) {
+        await reportToSentry(`[VERIFIER] ${critical} critical issues in report ${reportId}`, {
+          reportId, petName: name, pass,
+          criticalIssues: issues.filter((i) => i.severity === "critical").map((i) => ({
+            section: i.section, category: i.category, message: i.message,
+          })),
+          sectionsToRegenerate,
+        });
+      }
+    } catch (verifierErr) {
+      console.warn("[VERIFIER] threw (non-fatal):", verifierErr);
+    }
+
+    // ── Union of failures to regen this pass ───────────────────────────────
+    const toRegen = new Set<string>();
+    for (const s of [...schemaFailed, ...verifierFailed]) {
+      if (!attemptedRegen.has(s)) toRegen.add(s);
+    }
+    if (toRegen.size === 0) {
+      console.log(`[GUARDS pass=${pass}] no regenerable failures — stopping.`);
+      break;
+    }
+
+    console.log(`[GUARDS pass=${pass}] regenerating: ${[...toRegen].join(", ")}`);
+    for (const sec of toRegen) {
+      attemptedRegen.add(sec);
+      const reasonParts: string[] = [];
+      if (schemaFailed.has(sec)) reasonParts.push("schema invalid");
+      if (verifierFailed.has(sec)) reasonParts.push("verifier critical");
+      const replacement = await regenSection(sec, reasonParts.join(" + "));
+      if (replacement && replacement[sec] !== undefined) {
+        (reportContent as Record<string, unknown>)[sec] = replacement[sec];
+        console.log(`[REGEN] ${sec} replaced.`);
+      } else {
+        console.warn(`[REGEN] ${sec} — no usable replacement produced; keeping original.`);
+      }
+    }
+  }
+
+  // ── Final schema check — if still invalid, flag for review but ship ──────
+  const finalSchema = memorialReading
+    ? validateMemorialReport(reportContent)
+    : validateReport(reportContent);
+  if (!finalSchema.valid) {
+    const regenerableFails = finalSchema.failedSections.filter(isRegenerable);
+    if (regenerableFails.length > 0) {
+      console.error(`[SCHEMA] Still invalid post-regen. Failed: ${regenerableFails.join(", ")}`);
+      (reportContent as Record<string, unknown>)._needsReview = true;
+      (reportContent as Record<string, unknown>)._needsReviewReason =
+        `Schema still invalid after regen: ${regenerableFails.join(", ")}`;
+      await reportToSentry("Report _needsReview (schema still invalid post-regen)", {
+        reportId, petName: name,
+        failedSections: regenerableFails,
+        errors: finalSchema.errors.slice(0, 10),
       });
     }
-  } catch (verifierErr) {
-    // Verifier must never block delivery — log and continue
-    console.warn("[VERIFIER] Verifier threw (non-fatal):", verifierErr);
   }
+
+  // Re-apply locked overrides — regen responses might have sneaked changes
+  // into fields we treat as authoritative. This is cheap insurance.
+  reportContent.chartPlacements = chartPlacements;
+  reportContent.elementalBalance = elementalBalance;
+  reportContent.dominantElement = element;
+  reportContent.crystal = crystal;
+  reportContent.aura = aura;
+  reportContent.archetype = archetype;
 
   // Validation: species-unsafe ingredients in cosmicRecipe
   if (speciesRules.appropriate && reportContent && typeof reportContent === "object") {
@@ -1954,6 +2179,49 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
   console.log("[WORKER] Saving report content...");
   await bridgePatch({ reportId, reportContent });
   console.log("[WORKER] Done! Report saved for:", reportId);
+
+  // ─── Memorial follow-up touchpoints ──────────────────────────────────────
+  // On memorial report save, fire an optional webhook so a downstream system
+  // (n8n / Supabase cron) can schedule:
+  //   • 30-day check-in
+  //   • Annual birthday remembrance
+  //   • Annual passing-day remembrance
+  // If MEMORIAL_TOUCHPOINT_WEBHOOK env var isn't set, we skip silently — the
+  // migration in supabase/migrations/20260417000000_memorial_touchpoints.sql
+  // defines the target table; wire the sender in a separate session.
+  if (memorialReading) {
+    const webhookUrl = Deno.env.get("MEMORIAL_TOUCHPOINT_WEBHOOK");
+    if (webhookUrl) {
+      try {
+        const passedDateRaw = (reportRow.passed_date ?? petData.passed_date ?? null) as string | null;
+        await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${N8N_BRIDGE_SECRET}`,
+          },
+          body: JSON.stringify({
+            reportId,
+            email: reportRow.email,
+            petName: name,
+            pronounSubject: pronouns.subject,
+            petBirthDate: dateOfBirth,
+            petPassedDate: passedDateRaw,
+            species,
+            breed,
+            sunSign,
+            element,
+          }),
+        });
+        console.log("[MEMORIAL] Touchpoint webhook fired.");
+      } catch (e) {
+        // Non-fatal — memorial reading is already delivered, touchpoints are bonus.
+        console.warn("[MEMORIAL] Touchpoint webhook failed (non-fatal):", e);
+      }
+    } else {
+      console.log("[MEMORIAL] MEMORIAL_TOUCHPOINT_WEBHOOK not set — skipping touchpoint schedule.");
+    }
+  }
 
   // Send report email
   try {

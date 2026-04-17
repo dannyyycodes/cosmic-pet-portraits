@@ -132,9 +132,9 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     photoPlaceholder: "Drop your favorite photo here",
     
     emailBadge: "Report Ready",
-    emailTitle: (name) => `${name}'s personality report is complete`,
-    emailSubtitle: "Where should we send this heartfelt reading?",
-    emailButton: "Send My Report →",
+    emailTitle: (name) => `${name}'s reading is ready to be woven`,
+    emailSubtitle: "Where should we reach you? We'll send a private link so you can return to their cinematic reveal any time.",
+    emailButton: "Continue →",
     
     reportIntro: (name) => `A loving portrait of ${name} — your irreplaceable companion.`,
     sectionTitleSuffix: 'Bring',
@@ -194,9 +194,9 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     photoPlaceholder: "Drop a birthday photo here",
     
     emailBadge: "Birthday Reading Ready!",
-    emailTitle: (name) => `${name}'s birthday tribute is complete`,
-    emailSubtitle: "Where should we send this celebration?",
-    emailButton: "Send Birthday Report →",
+    emailTitle: (name) => `${name}'s birthday reading is ready to be woven`,
+    emailSubtitle: "Where should we reach you? We'll send a private link so you can return to their celebration any time.",
+    emailButton: "Continue →",
     
     reportIntro: (name) => `Celebrating another beautiful year with ${name} — a soul that brings endless joy.`,
     sectionTitleSuffix: 'Bring',
@@ -256,11 +256,11 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     photoPlaceholder: "Drop a cherished photo here",
     
     emailBadge: "Memorial Ready",
-    emailTitle: (name) => `${name}'s tribute is complete`,
-    emailSubtitle: "Where should we send this love letter to their memory?",
-    emailButton: "Send Memorial →",
-    
-    reportIntro: (name) => `For ${name}, whose love lives on in our hearts forever.`,
+    emailTitle: (name) => `${name}'s memorial is being written`,
+    emailSubtitle: "Where should we hold this for you? We'll send a private link so you can return whenever you need to.",
+    emailButton: "Continue →",
+
+    reportIntro: (name) => `In remembrance of ${name} — a soul who was, and still is, loved.`,
     sectionTitleSuffix: 'Brought',
   },
   
@@ -318,9 +318,9 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     photoPlaceholder: "Drop a photo here",
     
     emailBadge: "Gift Ready!",
-    emailTitle: (name) => `${name}'s gift is wrapped and ready`,
-    emailSubtitle: "Where should we send this heartfelt surprise?",
-    emailButton: "Send Gift →",
+    emailTitle: (name) => `${name}'s gift reading is ready to be woven`,
+    emailSubtitle: "Where should we reach you? We'll send a private link so you can return to their reveal any time.",
+    emailButton: "Continue →",
     
     reportIntro: (name) => `A gift of love — celebrating the beautiful bond with ${name}.`,
     sectionTitleSuffix: 'Bring',
