@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { clearIntakeProgress, clearOwnerData } from '@/lib/intakeStorage';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
 import { EmotionalReportReveal } from '@/components/report/EmotionalReportReveal';
@@ -85,6 +86,13 @@ export default function PaymentSuccess() {
       setGiftedInfo({ isGifted: true, giftedTier: giftedTierParam });
     }
   }, [isGiftedParam, giftedTierParam]);
+
+  // Purge intake draft the moment we land on payment-success. Stops the
+  // browser-back leak where users could rehydrate the form and resubmit.
+  useEffect(() => {
+    clearIntakeProgress();
+    clearOwnerData();
+  }, []);
 
   useEffect(() => {
     if (!sessionId || !reportId) {

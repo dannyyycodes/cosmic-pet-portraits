@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
+import { ReactLenis } from 'lenis/react';
 import DOMPurify from 'dompurify';
 import { Gift, Sparkles, ChevronRight, PartyPopper, Mail, Check, Star, ChevronDown, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,10 +18,13 @@ import { ReportMethodology } from './ReportMethodology';
 import { PlanetExplainers } from './PlanetExplainers';
 import { ReadingTransition } from './ReadingTransition';
 import { BirthChartTable } from './BirthChartTable';
+import { ConstellationChart } from './ConstellationChart';
 import { AuraVisual } from './AuraVisual';
+import { AuraPortrait } from './AuraPortrait';
 import { ElementalBalance } from './ElementalBalance';
 import { ReportSectionCard } from './ReportSectionCard';
 import { SoulLetter } from './SoulLetter';
+import { SoulLetterUnfurl } from './SoulLetterUnfurl';
 import { GoogleSearches } from './GoogleSearches';
 import { TextMessages } from './TextMessages';
 import { HumanProfile } from './HumanProfile';
@@ -37,6 +41,15 @@ import { YelpReviews } from './YelpReviews';
 import { CosmicAwards } from './CosmicAwards';
 import { StaticPassage } from './StaticPassage';
 import { CompatibilityOffer } from './CompatibilityOffer';
+import { ReportScrollProgress } from './ReportScrollProgress';
+import { PullQuote } from './PullQuote';
+import { QuoteCard } from './QuoteCard';
+import { ConstellationBreak } from './ConstellationBreak';
+import { DawnFadeReveal } from './DawnFadeReveal';
+import { TopProgressHairline } from './TopProgressHairline';
+import { ChapterReadingTime } from './ChapterReadingTime';
+import { PlanetSection } from './PlanetSection';
+import { PlanetOrbConfig } from './PlanetOrb';
 
 // Re-export types for backward compatibility
 export type { ReportContent, ReportData, ChartPlacement, SectionContent };
@@ -52,6 +65,8 @@ interface CosmicReportViewerProps {
   reportId?: string;
   shareToken?: string;
   portraitUrl?: string;
+  /** Optional user-uploaded pet photo; used by the Aura Portrait signature moment. */
+  petPhotoUrl?: string;
   allReports?: ReportData[];
   currentIndex?: number;
   onSwitchReport?: (index: number) => void;
@@ -61,6 +76,42 @@ interface CosmicReportViewerProps {
   hasActiveHoroscope?: boolean;
   species?: string;
 }
+
+// Per-section planet visual config — uses real NASA/Wikimedia planet
+// imagery for each reading so the report stops feeling like 12 copies
+// of the same card. Symbolic placements (Chiron, Aspects, Ascendant)
+// fall back to stylised SVG orbs.
+const planetConfigs: Record<string, PlanetOrbConfig> = {
+  // ☉ Sun — NASA SDO extreme-UV view, full disc with surface plasma detail.
+  solarSoulprint:    { image: '/planets/sun_sdo.jpg', imageScale: 1.04, color: '#e9a73d', glow: '#fbd07c', size: 134, rays: true,  rotateDur: 110 },
+  // ☽ Moon — slow, silvered. Image scaled to crop the JPG's black background.
+  lunarHeart:        { image: '/planets/moon.jpg',    imageScale: 1.22, color: '#b8b3c8', glow: '#e7e3f0', size: 112, rotateDur: 140 },
+  // ☿ Mercury — small, fast, particle-trailed
+  cosmicCuriosity:   { image: '/planets/mercury.png', color: '#a89074', glow: '#e0c4a8', size: 78,  particles: 6,  rotateDur: 40 },
+  // ♀ Venus — warm rose with subtle particles
+  harmonyHeartbeats: { image: '/planets/venus.png',   color: '#d28a4e', glow: '#f5c8a4', size: 100, rotateDur: 80 },
+  // ♂ Mars — rust-red with embers
+  spiritOfMotion:    { image: '/planets/mars.png',    color: '#b04a2a', glow: '#ed9379', size: 96,  particles: 4,  rotateDur: 60 },
+  // Ascendant — ISS sunrise photo, Earth's curved horizon with atmospheric glow.
+  // Static (no rotation) since it's a horizon, not a sphere.
+  starlitGaze:       { image: '/planets/ascendant.jpg', staticImage: true, imageScale: 1.4, color: '#c4956b', glow: '#f6c886', size: 110 },
+  // North Node — Earth with compass overlay (the soul's path on earth)
+  destinyCompass:    { image: '/planets/earth.png',   color: '#5d8a78', glow: '#a5d09f', size: 102, compass: true, rotateDur: 130 },
+  // Chiron — Hale-Bopp comet stand-in (Chiron itself is a comet/centaur,
+  // no usable photo of the body exists). Static so the tail doesn't spin.
+  gentleHealer:      { image: '/planets/chiron.jpg', staticImage: true, imageScale: 1.1, color: '#7eb5c8', glow: '#cfe7f0', size: 110 },
+  // Outer planets cluster — Neptune as the iconic outer world
+  wildSpirit:        { image: '/planets/neptune.png', color: '#3a5cb0', glow: '#7da4d8', size: 110, particles: 8, rotateDur: 90 },
+  // ♃ Jupiter — banded giant with rings
+  cosmicExpansion:   { image: '/planets/jupiter.png', color: '#c8954a', glow: '#f4d378', size: 142, rings: true, ringTilt: 14, rotateDur: 110 },
+  // ♄ Saturn — its own ring system is part of the image, but we add a
+  // subtle outer ring for cohesion.
+  cosmicLessons:     { image: '/planets/saturn.png',  color: '#c4a06e', glow: '#e6cfa0', size: 130, rings: true, ringTilt: 28, rotateDur: 130 },
+  // Aspects — symbolic, soft gold composite
+  celestialChoreography: { color: '#a89568', glow: '#dcc796', size: 116, particles: 6, rotateDur: 90 },
+  // Earthly Expression — Earth itself
+  earthlyExpression: { image: '/planets/earth.png',   color: '#3d6f8a', glow: '#7ab2c4', size: 110, rotateDur: 110 },
+};
 
 // Section configuration for the 12 reading sections
 const readingSections = [
@@ -234,6 +285,7 @@ export function CosmicReportViewer({
   reportId,
   shareToken,
   portraitUrl,
+  petPhotoUrl,
   allReports,
   currentIndex = 0,
   onSwitchReport,
@@ -308,37 +360,84 @@ export function CosmicReportViewer({
       );
     }
 
+    const planet = planetConfigs[config.key];
+
     return (
       <div key={config.key}>
-        <ReportSectionCard
-          icon={config.icon}
-          iconClass={config.iconClass}
-          label={config.label}
-          title={section.title}
-          whyText={config.whyPrefix || section.whyThisMatters}
-          whyBoxIcon={config.whyBoxIcon}
-          whyLabel={config.whyLabel}
-          content={section.content}
-          tipBox={
-            section.practicalTip
-              ? { icon: config.tipIcon, label: config.tipLabel, text: section.practicalTip }
-              : section.pastLifeHint
-              ? { icon: config.tipIcon, label: config.tipLabel, text: section.pastLifeHint }
-              : section.soulContract
-              ? { icon: config.tipIcon, label: config.tipLabel, text: section.soulContract }
-              : undefined
-          }
-          funFact={section.funFact}
-          variant={index % 3}
-          collapsible
-        />
+        {planet ? (
+          <PlanetSection
+            id={config.key}
+            planet={planet}
+            label={config.label}
+            title={section.title}
+            index={index}
+          >
+            <ReportSectionCard
+              icon={config.icon}
+              iconClass={config.iconClass}
+              label={config.label}
+              title={section.title}
+              whyText={config.whyPrefix || section.whyThisMatters}
+              whyBoxIcon={config.whyBoxIcon}
+              whyLabel={config.whyLabel}
+              content={section.content}
+              tipBox={
+                section.practicalTip
+                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.practicalTip }
+                  : section.pastLifeHint
+                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.pastLifeHint }
+                  : section.soulContract
+                  ? { icon: config.tipIcon, label: config.tipLabel, text: section.soulContract }
+                  : undefined
+              }
+              funFact={section.funFact}
+              variant={index % 3}
+              collapsible
+            />
+          </PlanetSection>
+        ) : (
+          <ReportSectionCard
+            icon={config.icon}
+            iconClass={config.iconClass}
+            label={config.label}
+            title={section.title}
+            whyText={config.whyPrefix || section.whyThisMatters}
+            whyBoxIcon={config.whyBoxIcon}
+            whyLabel={config.whyLabel}
+            content={section.content}
+            tipBox={
+              section.practicalTip
+                ? { icon: config.tipIcon, label: config.tipLabel, text: section.practicalTip }
+                : section.pastLifeHint
+                ? { icon: config.tipIcon, label: config.tipLabel, text: section.pastLifeHint }
+                : section.soulContract
+                ? { icon: config.tipIcon, label: config.tipLabel, text: section.soulContract }
+                : undefined
+            }
+            funFact={section.funFact}
+            variant={index % 3}
+            collapsible
+          />
+        )}
         <SectionDivider />
       </div>
     );
   };
 
+  // Map the 7 chapters into anchor descriptors for the side-rail progress.
+  const chapterAnchors = chapters.map((c) => ({
+    number: c.number,
+    title: c.title,
+    anchor: `chapter-${c.number}`,
+  }));
+
   return (
+    <ReactLenis root options={{ lerp: 0.1, smoothWheel: true, duration: 1.1 }}>
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #FFFDF5 0%, #f5efe6 15%, #f5efe6 85%, #ede5d8 100%)' }}>
+      {!isPreview && <TopProgressHairline />}
+      {!isPreview && <ReportScrollProgress chapters={chapterAnchors} />}
+      {!isPreview && <ChapterReadingTime chapterAnchors={chapterAnchors} />}
+
       {/* Multi-pet selector bar */}
       {hasMultipleReports && onSwitchReport && (
         <div className="sticky top-0 z-50 border-b border-[#e8ddd0]" style={{ background: 'rgba(245,239,230,0.95)', backdropFilter: 'blur(8px)' }}>
@@ -390,6 +489,13 @@ export function CosmicReportViewer({
         <PrologueSection prologue={report.prologue} petName={petName} />
       )}
 
+      {/* ═══ ARCHETYPE PULL-QUOTE — the Spotify-Wrapped-top-artist moment ═══ */}
+      {report.archetype?.name && (
+        <PullQuote attribution={`${petName}'s cosmic archetype`} tone="light">
+          {petName} is <em>the {report.archetype.name}</em>.
+        </PullQuote>
+      )}
+
       {/* ═══ TABLE OF CONTENTS ═══ */}
       {!isPreview && <TableOfContents />}
 
@@ -423,12 +529,21 @@ export function CosmicReportViewer({
          ══════════════════════════════════════════ */}
       <ChapterTitle chapter={chapters[1]} />
 
+      {/* ═══ CONSTELLATION CHART — signature moment: the wheel draws itself ═══ */}
+      <ConstellationChart placements={report.chartPlacements || {}} petName={petName} />
+
       {/* ═══ BIRTH CHART TABLE ═══ */}
       <BirthChartTable chartPlacements={report.chartPlacements || {}} petName={petName} />
       <SectionDivider />
 
-      {/* ═══ AURA VISUAL ═══ */}
-      <AuraVisual aura={report.aura} sunSign={sunSign} />
+      {/* ═══ AURA PORTRAIT — pet photo in cosmic frame (signature moment) ═══ */}
+      <AuraPortrait
+        aura={report.aura}
+        sunSign={sunSign}
+        petName={petName}
+        petPhotoUrl={petPhotoUrl}
+        portraitUrl={portraitUrl}
+      />
 
       {/* ═══ LUMINOUS FIELD (detailed aura) ═══ */}
       {report.luminousField && (
@@ -451,9 +566,10 @@ export function CosmicReportViewer({
       {/* ═══ READING TRANSITION (gateway into readings) ═══ */}
       <ReadingTransition petName={petName} />
 
-      {/* ═══ PASSAGE 1: Before readings ═══ */}
-      <StaticPassage
+      {/* ═══ PASSAGE 1 → QUOTE CARD: Before readings ═══ */}
+      <QuoteCard
         species={species}
+        attribution="From the chart"
         lines={[
           'Every animal that shares our life',
           'carries a universe inside them.',
@@ -519,9 +635,10 @@ export function CosmicReportViewer({
             </>
           )}
 
-          {/* ═══ PASSAGE 2: Before the fun sections ═══ */}
-          <StaticPassage
+          {/* ═══ PASSAGE 2 → QUOTE CARD: Before the fun sections ═══ */}
+          <QuoteCard
             species={species}
+            attribution="The chart, smirking"
             lines={[
               'But a soul isn\u2019t only depth and devotion.',
               '',
@@ -534,6 +651,9 @@ export function CosmicReportViewer({
               'to send to everyone you know.',
             ]}
           />
+
+          {/* ═══ CONSTELLATION BREAK — chapter ceremony ═══ */}
+          <ConstellationBreak label="The Lighter Side" seed={petName + '-ch3'} />
 
           {/* ══════════════════════════════════════════
               CHAPTER 3 — THE LIGHTER SIDE
@@ -654,20 +774,26 @@ export function CosmicReportViewer({
           <SectionShareHint petName={petName} section="Awards" />
           <SectionDivider />
 
-          {/* ═══ PASSAGE 3: Before the bond ═══ */}
-          <StaticPassage lines={[
-            'Of all the homes in all the world,',
-            'they ended up in yours.',
-            '',
-            'That\u2019s not coincidence.',
-            '',
-            'In astrology, the bonds we form are written',
-            'in the same sky that wrote our souls.',
-            '',
-            'They chose you before you chose them.',
-            'The moment your eyes met, something older',
-            'than both of you said: yes. This one.',
-          ]} />
+          {/* ═══ PASSAGE 3 → QUOTE CARD: Before the bond ═══ */}
+          <QuoteCard
+            attribution="The chart, certain"
+            lines={[
+              'Of all the homes in all the world,',
+              'they ended up in yours.',
+              '',
+              'That\u2019s not coincidence.',
+              '',
+              'In astrology, the bonds we form are written',
+              'in the same sky that wrote our souls.',
+              '',
+              'They chose you before you chose them.',
+              'The moment your eyes met, something older',
+              'than both of you said: yes. This one.',
+            ]}
+          />
+
+          {/* ═══ CONSTELLATION BREAK — chapter ceremony ═══ */}
+          <ConstellationBreak label="The Bond" seed={petName + '-ch5'} />
 
           {/* ══════════════════════════════════════════
               CHAPTER 5 — THE BOND
@@ -917,20 +1043,26 @@ export function CosmicReportViewer({
             );
           })()}
 
-          {/* ═══ PASSAGE 6: Near the keepsake ═══ */}
-          <StaticPassage lines={[
-            'You are their entire world.',
-            'Not part of it. All of it.',
-            'Every sunrise begins with you.',
-            'Every safe place is wherever you are.',
-            '',
-            'There is a reason they watch the door',
-            'when you leave.',
-            'And a reason they lose their mind',
-            'when you return.',
-            '',
-            'The reason is the same.',
-          ]} />
+          {/* ═══ PASSAGE 6 → QUOTE CARD: Near the keepsake ═══ */}
+          <QuoteCard
+            attribution="The chart, understanding"
+            lines={[
+              'You are their entire world.',
+              'Not part of it. All of it.',
+              'Every sunrise begins with you.',
+              'Every safe place is wherever you are.',
+              '',
+              'There is a reason they watch the door',
+              'when you leave.',
+              'And a reason they lose their mind',
+              'when you return.',
+              '',
+              'The reason is the same.',
+            ]}
+          />
+
+          {/* ═══ CONSTELLATION BREAK — chapter ceremony ═══ */}
+          <ConstellationBreak label="The Keepsake" seed={petName + '-ch6'} />
 
           {/* ══════════════════════════════════════════
               CHAPTER 6 — THE KEEPSAKE
@@ -979,28 +1111,37 @@ export function CosmicReportViewer({
              ══════════════════════════════════════════ */}
           <ChapterTitle chapter={chapters[6]} />
 
-          {/* ═══ PASSAGE 4: Before the soul letter ═══ */}
-          <StaticPassage lines={[
-            'In every quiet moment.',
-            'In every unbroken gaze.',
-            '',
-            'They are speaking to us',
-            'in a language older than words.',
-            '',
-            'They don\u2019t measure love in years.',
-            'They measure it in moments.',
-            'Every greeting. Every goodbye.',
-            'Every time they rest their weight',
-            'against you and breathe.',
-            '',
-            'The position of the stars',
-            'at the moment they arrived',
-            'tells us what they\u2019ve been trying to say',
-            'all along.',
-          ]} />
+          {/* ═══ PASSAGE 4 → QUOTE CARD: Before the soul letter ═══ */}
+          <QuoteCard
+            attribution="The chart, listening"
+            lines={[
+              'In every quiet moment.',
+              'In every unbroken gaze.',
+              '',
+              'They are speaking to us',
+              'in a language older than words.',
+              '',
+              'They don\u2019t measure love in years.',
+              'They measure it in moments.',
+              'Every greeting. Every goodbye.',
+              'Every time they rest their weight',
+              'against you and breathe.',
+              '',
+              'The position of the stars',
+              'at the moment they arrived',
+              'tells us what they\u2019ve been trying to say',
+              'all along.',
+            ]}
+          />
 
-          {/* ═══ SOUL LETTER (epilogue) ═══ */}
-          <SoulLetter
+          {/* ═══ DAWN FADE REVEAL — used once, before the Soul Letter ═══ */}
+          <DawnFadeReveal
+            whisper={`${petName}\u2019s soul has something to say.`}
+            subWhisper="The night gives way. A letter arrives."
+          />
+
+          {/* ═══ SOUL LETTER (epilogue) — with wax-seal unfurl reveal ═══ */}
+          <SoulLetterUnfurl
             petName={petName}
             epilogue={report.epilogue}
             sunSign={sunSign}
@@ -1008,32 +1149,33 @@ export function CosmicReportViewer({
           />
           <SectionDivider />
 
-          {/* ═══ PASSAGE 5: The close ═══ */}
-          <StaticPassage lines={[
-            'You already knew everything',
-            'in this reading.',
-            '',
-            'You felt it in the way they greet you.',
-            'The way they watch you.',
-            'The way they choose you',
-            '\u2014 every single day.',
-            '',
-            'We just gave it a name.',
-            '',
-            '\u2726',
-            '',
-            'They will never read these words.',
-            'But they already live them.',
-            'Every day.',
-            'Without hesitation.',
-            'Without keeping score.',
-            '',
-            'Most love comes with conditions.',
-            'Theirs doesn\u2019t.',
-            'That\u2019s not simple.',
-            'That\u2019s the most extraordinary thing',
-            'in the world.',
-          ]} />
+          {/* ═══ PASSAGE 5 → QUOTE CARD: The close ═══ */}
+          <QuoteCard
+            attribution="The chart, at last"
+            lines={[
+              'You already knew everything',
+              'in this reading.',
+              '',
+              'You felt it in the way they greet you.',
+              'The way they watch you.',
+              'The way they choose you',
+              '\u2014 every single day.',
+              '',
+              'We just gave it a name.',
+              '',
+              'They will never read these words.',
+              'But they already live them.',
+              'Every day.',
+              'Without hesitation.',
+              'Without keeping score.',
+              '',
+              'Most love comes with conditions.',
+              'Theirs doesn\u2019t.',
+              'That\u2019s not simple.',
+              'That\u2019s the most extraordinary thing',
+              'in the world.',
+            ]}
+          />
 
           {/* ═══ SOULSPEAK PREMIUM CLOSER ═══ */}
           {!isPreview && reportId && (
@@ -1225,6 +1367,7 @@ export function CosmicReportViewer({
       {/* ═══ SOULSPEAK FAB ═══ */}
       {!isPreview && <SoulSpeakFAB reportId={reportId} petName={petName} shareToken={shareToken} />}
     </div>
+    </ReactLenis>
   );
 }
 
@@ -1405,6 +1548,23 @@ function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
       )}
 
       <div className="text-center relative py-12 px-8">
+        {/* Ghost Roman numeral — sits behind the chapter, ~6% opacity. */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+          style={{
+            fontFamily: 'DM Serif Display, serif',
+            fontSize: 'clamp(8rem, 22vw, 14rem)',
+            color: chapter.accent,
+            opacity: isDark ? 0.1 : 0.06,
+            lineHeight: 1,
+            zIndex: 0,
+          }}
+        >
+          {['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][chapter.number - 1] || chapter.number}
+        </span>
+
+        <div className="relative z-10">
         {/* Top ornamental line */}
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="w-12 h-[1px]" style={{ background: `${chapter.accent}50` }} />
@@ -1436,6 +1596,7 @@ function ChapterTitle({ chapter }: { chapter: typeof chapters[number] }) {
           <div className="w-12 h-[1px]" style={{ background: `${chapter.accent}50` }} />
           <span style={{ color: `${chapter.accent}80` }} className="text-[0.8rem]">{chapter.ornament}</span>
           <div className="w-12 h-[1px]" style={{ background: `${chapter.accent}50` }} />
+        </div>
         </div>
       </div>
     </motion.div>
@@ -2438,10 +2599,10 @@ function PrologueSection({ prologue, petName }: { prologue: string; petName: str
           </div>
         </div>
 
-        {/* Content */}
-        <div className="px-6 py-6 sm:px-8 text-center">
+        {/* Content — drop-cap on the first letter sets editorial rhythm */}
+        <div className="px-6 py-6 sm:px-8 text-left">
           <p
-            className="text-[1rem] sm:text-[1.05rem] text-[#5a4a42] leading-[2.1]"
+            className="text-[1rem] sm:text-[1.05rem] text-[#5a4a42] leading-[2.1] first-letter:float-left first-letter:font-serif first-letter:text-[3.5rem] first-letter:leading-[0.9] first-letter:pr-2 first-letter:pt-1 first-letter:text-[#c4a265]"
             style={{ fontFamily: 'Cormorant, serif', fontStyle: 'italic' }}
             dangerouslySetInnerHTML={{ __html: safeHtml(prologue.replace(/\n\n/g, '<br /><br />')) }}
           />

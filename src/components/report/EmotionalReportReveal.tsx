@@ -86,7 +86,28 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
 
   useEffect(() => {
     setVisible(true);
-  }, []);
+
+    // Completion ritual — gold confetti burst the moment the reveal mounts
+    // (i.e. the report just came back from the worker). Skip for reduced
+    // motion. Dynamic import keeps the lib off the generating screen.
+    if (reducedMotion) return;
+    let cancelled = false;
+    import('canvas-confetti').then((m) => {
+      if (cancelled) return;
+      const fire = m.default;
+      const base = {
+        ticks: 160,
+        gravity: 0.6,
+        decay: 0.94,
+        scalar: 0.85,
+        colors: ['#c4a265', '#d9b87c', '#bf524a', '#faf6ef'],
+      };
+      fire({ ...base, particleCount: 60, spread: 75, origin: { y: 0.45 } });
+      setTimeout(() => fire({ ...base, particleCount: 40, spread: 110, origin: { x: 0.15, y: 0.55 } }), 180);
+      setTimeout(() => fire({ ...base, particleCount: 40, spread: 110, origin: { x: 0.85, y: 0.55 } }), 260);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [reducedMotion]);
 
   const d = (base: number) => base * timeMult;
 

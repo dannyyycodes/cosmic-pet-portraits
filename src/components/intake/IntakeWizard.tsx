@@ -26,7 +26,6 @@ import { IntakeStepSuperpower } from './IntakeStepSuperpower';
 import { IntakeStepStrangers } from './IntakeStepStrangers';
 import { IntakeStepOwnerDetails } from './IntakeStepOwnerDetails';
 import { IntakeStepEmail } from './IntakeStepEmail';
-import { IntakeStepEmailEarly } from './IntakeStepEmailEarly';
 import { IntakeStepPhoto } from './IntakeStepPhoto';
 import { IntakeStepPortraitSelect } from './IntakeStepPortraitSelect';
 import { CosmicLoading } from './CosmicLoading';
@@ -373,8 +372,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       // Going back from owner details step - go to last pet's strangers step
       setCurrentPetIndex(petCount - 1);
       setStep(10);
-    } else if (step === 12) {
-      // Going back from email step - go to owner details
+    } else if (step === 13) {
+      // Going back from email/checkout step - go to owner details
       setStep(11);
     } else if (step > 1) {
       setStep(step - 1); // Go to previous step
@@ -891,28 +890,9 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 ownerBirthTime={ownerData.birthTime}
                 ownerBirthLocation={ownerData.birthLocation}
                 onUpdate={handleOwnerDataUpdate}
-                onNext={() => goToStep(12)}
-                onSkip={() => goToStep(12)}
+                onNext={() => goToStep(13)}
+                onSkip={() => goToStep(13)}
                 petName={petsData[0]?.name || 'your pet'}
-              />
-            </motion.div>
-          )}
-
-          {step === 12 && (
-            <motion.div key="step12-email" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepEmailEarly 
-                petData={petsData[0]} 
-                onUpdate={(data) => {
-                  // Update email for all pets when entered
-                  if (data.email !== undefined) {
-                    setPetsData(prev => prev.map(pet => ({ ...pet, email: data.email! })));
-                  }
-                }}
-                onNext={() => goToStep(13)} 
-                onBack={handleBack} 
-                totalSteps={stepsPerPet}
-                currentStep={12}
-                modeContent={modeContent}
               />
             </motion.div>
           )}
@@ -940,7 +920,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                   }
                 }}
                 onBack={() => {
-                  setStep(12); // Back to email step
+                  setStep(11); // Back to owner details
                 }}
                 onAddAnotherPet={() => {
                   // Add a new pet slot and go to occasion step for the new pet
@@ -954,7 +934,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
                 modeContent={modeContent}
                 giftCode={giftCodeFromUrl}
                 giftedTier={giftData?.giftedTier}
-                skipEmailInput={true}
+                skipEmailInput={false}
               />
             </motion.div>
           )}

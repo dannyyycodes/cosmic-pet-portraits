@@ -6,7 +6,7 @@ interface ReportGeneratingProps {
   gender?: string;
   sunSign?: string;
   reportId?: string;
-  /** Public URL of the customer's uploaded pet photo — displayed while the report is being woven. */
+  /** Public URL of the customer's uploaded pet photo — rendered at the centre of the cosmic waiting room. */
   petPhotoUrl?: string;
 }
 
@@ -18,241 +18,415 @@ function getPronouns(gender?: string) {
   }
 }
 
-const grainStyle: React.CSSProperties = {
-  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
-};
+// Four named stages, paced so the ritual feels authored — not a timer.
+// Stage 1 ends at ~15s, stage 2 at ~45s, stage 3 at ~90s, stage 4 at ~115s+.
+const STAGES = [
+  {
+    key: 'casting',
+    eyebrow: 'I · Casting',
+    label: 'Casting the chart',
+    detail: 'Plotting planets at the exact moment of their arrival',
+  },
+  {
+    key: 'consulting',
+    eyebrow: 'II · Consulting',
+    label: 'Consulting the cosmos',
+    detail: 'Asking the stars what they remember',
+  },
+  {
+    key: 'writing',
+    eyebrow: 'III · Writing',
+    label: 'Writing their chapters',
+    detail: 'Turning the chart into the story of who they are',
+  },
+  {
+    key: 'sealing',
+    eyebrow: 'IV · Sealing',
+    label: 'Sealing the scroll',
+    detail: 'Setting the words in ink, tying the ribbon',
+  },
+] as const;
 
-const FUN_FACTS = [
-  "Every pet's birth chart contains 10+ planetary placements \u2014 just like yours.",
-  "The Moon moves through all 12 zodiac signs every 28 days \u2014 just like your pet's moods.",
-  "A dog's nose print is as unique as a human fingerprint.",
-  "In astrology, your pet's birth chart has the same complexity as yours \u2014 10+ planetary placements.",
-  "Rabbits purr when they're happy. It sounds like soft teeth chattering.",
-  "Saturn takes 29 years to orbit the Sun. Your pet might never experience their Saturn return!",
-  "Dogs dream about their owners. Researchers confirmed this by watching their brain patterns.",
-];
+// Each stage lasts this many seconds (approximate — real completion is
+// driven by Supabase realtime, not the clock). We slow near the end so
+// the copy never races past real progress.
+const STAGE_SECS = [15, 30, 45, 30];
+const STAGE_CUMULATIVE = STAGE_SECS.reduce<number[]>((acc, s) => {
+  acc.push((acc.at(-1) ?? 0) + s);
+  return acc;
+}, []);
 
-const STEPS = [
-  { label: 'Mapping celestial positions', threshold: 10 },
-  { label: 'Calculating planetary aspects', threshold: 30 },
-  { label: 'Writing soul portrait', threshold: 50 },
-  { label: 'Adding personal touches', threshold: 75 },
-];
+// Reassurance copy tiers — shift as the wait stretches.
+function waitCopy(petName: string, elapsed: number) {
+  if (elapsed < 60) return `Keep this tab open — ${petName}&rsquo;s reading will unveil itself right here.`;
+  if (elapsed < 120) return `The stars are taking their time with ${petName}. Stay close — it&rsquo;s worth the breath.`;
+  if (elapsed < 180) return `The cosmos is being thorough for ${petName}. A moment more.`;
+  return `We&rsquo;re taking a little extra care with ${petName}&rsquo;s reading. It&rsquo;ll unveil itself here the moment it&rsquo;s ready — and we&rsquo;ll also email it to you.`;
+}
 
 export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoUrl }: ReportGeneratingProps) {
   const p = getPronouns(gender);
-  const [progress, setProgress] = useState(0);
-  const [factIndex, setFactIndex] = useState(0);
-  const [showFallback, setShowFallback] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
 
-  // Progress increments ~0.8% per second → reaches ~96% in 2 minutes
+  // Tick elapsed seconds. Drives both the stage selector and the copy
+  // rotator. Max at 600s to avoid runaway; realtime normally navigates us
+  // away long before.
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => Math.min(prev + 0.8, 96));
-    }, 1000);
-    return () => clearInterval(interval);
+    const t = setInterval(() => setElapsed((s) => Math.min(s + 1, 600)), 1000);
+    return () => clearInterval(t);
   }, []);
 
-  // Rotate fun facts every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFactIndex(prev => (prev + 1) % FUN_FACTS.length);
-    }, 5000);
-    return () => clearInterval(interval);
+  const activeStage = useMemo(() => {
+    for (let i = 0; i < STAGE_CUMULATIVE.length; i++) {
+      if (elapsed < STAGE_CUMULATIVE[i]) return i;
+    }
+    return STAGE_CUMULATIVE.length - 1;
+  }, [elapsed]);
+
+  // Pre-computed starfield: 120 twinkling stars in stable positions.
+  const starfield = useMemo(() => {
+    return Array.from({ length: 120 }, (_, i) => ({
+      i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      size: 1 + Math.random() * 2,
+      duration: 3 + Math.random() * 4,
+      delay: Math.random() * 5,
+      opacity: 0.2 + Math.random() * 0.6,
+    }));
   }, []);
 
-  // Show the calm "taking extra care" reassurance state after 4 minutes —
-  // keeps the same animated screen (no scary "timeout" error). The Supabase
-  // realtime subscription in PaymentSuccess.tsx navigates immediately on
-  // completion; this is purely a fallback affordance.
-  useEffect(() => {
-    const timer = setTimeout(() => setShowFallback(true), 240000);
-    return () => clearTimeout(timer);
+  // Five anchor positions around the pet photo — one lights up per stage,
+  // plus a final centre flare. Each anchor connects to the previous with
+  // a drawn line as stages advance.
+  const anchors = useMemo(() => {
+    const r = 170;
+    return [
+      { angle: -70 },
+      { angle: -10 },
+      { angle: 70 },
+      { angle: 170 },
+    ].map((a) => {
+      const rad = (a.angle * Math.PI) / 180;
+      return { x: Math.cos(rad) * r, y: Math.sin(rad) * r };
+    });
   }, []);
-
-  // Generate paw print positions once
-  const pawPrints = useMemo(() => Array.from({ length: 7 }, (_, i) => ({
-    left: `${10 + Math.random() * 80}%`,
-    top: `${10 + Math.random() * 80}%`,
-    size: 0.6 + Math.random() * 0.3,
-    delay: i * 0.8,
-    rotation: Math.random() * 60 - 30,
-  })), []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden"
-      style={{ backgroundColor: '#FFFDF5', ...grainStyle }}>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden"
+      style={{
+        background:
+          'radial-gradient(ellipse at 30% 20%, #1f1a24 0%, #141016 40%, #0a0709 100%)',
+      }}
+    >
+      {/* ═══ STARFIELD BACKDROP ═══ */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        {starfield.map((s) => (
+          <motion.span
+            key={s.i}
+            className="absolute rounded-full"
+            style={{
+              left: s.left + '%',
+              top: s.top + '%',
+              width: s.size,
+              height: s.size,
+              background: '#faf6ef',
+              boxShadow: '0 0 ' + s.size * 2 + 'px rgba(250,246,239,0.6)',
+            }}
+            animate={{ opacity: [s.opacity * 0.3, s.opacity, s.opacity * 0.3] }}
+            transition={{
+              duration: s.duration,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: s.delay,
+            }}
+          />
+        ))}
 
-      {/* Floating paw prints */}
-      {pawPrints.map((paw, i) => (
-        <motion.span
-          key={i}
-          className="absolute select-none pointer-events-none"
-          style={{ left: paw.left, top: paw.top, fontSize: `${paw.size}rem`, rotate: `${paw.rotation}deg` }}
-          animate={{ opacity: [0, 0.06, 0], y: [0, -10, 0] }}
-          transition={{ duration: 7, repeat: Infinity, delay: paw.delay, ease: 'easeInOut' }}
+        {/* Slow-moving nebula */}
+        <motion.div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 60% 40% at 70% 60%, rgba(196,162,101,0.10), transparent 70%), radial-gradient(ellipse 50% 40% at 30% 80%, rgba(191,82,74,0.08), transparent 70%)',
+          }}
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
+
+      {/* ═══ CENTRAL RITUAL STAGE ═══ */}
+      <div className="relative z-10 w-full max-w-[520px] flex flex-col items-center text-center">
+
+        {/* Pet name in cursive */}
+        <motion.p
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-[1.5rem] text-[#c4a265] mb-5"
+          style={{ fontFamily: 'Caveat, cursive' }}
         >
-          🐾
-        </motion.span>
-      ))}
-
-      <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full">
-        {/* Pet name */}
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className="text-[1.3rem] text-[#bf524a] mb-4" style={{ fontFamily: 'Caveat, cursive' }}>
           {petName}
         </motion.p>
 
-        {/* Pet photo (or breathing orb fallback) surrounded by orbiting cosmic marks */}
-        <div className="relative w-[140px] h-[140px] mb-6 flex items-center justify-center">
-          {/* Orbiting glow ring */}
+        {/* Cosmic frame — pet photo at centre with orbiting anchors */}
+        <div className="relative" style={{ width: 380, height: 380, marginBottom: 24 }}>
+          {/* Outer drifting halo */}
           <motion.div
+            aria-hidden="true"
             className="absolute inset-0 rounded-full"
             style={{
-              background: 'radial-gradient(circle, #f0d5d2 0%, transparent 72%)',
-              boxShadow: '0 0 60px rgba(240,213,210,0.35)',
+              background:
+                'radial-gradient(circle, rgba(196,162,101,0.25) 0%, rgba(191,82,74,0.08) 45%, transparent 70%)',
+              filter: 'blur(8px)',
             }}
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ scale: [1, 1.06, 1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           />
-          {/* Orbiting sparkles */}
-          {['✨', '⭐', '🌙'].map((sym, i) => (
-            <motion.span
-              key={sym}
-              className="absolute select-none pointer-events-none text-[0.85rem]"
-              style={{ transformOrigin: '50% 60px' }}
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 14 + i * 2, repeat: Infinity, ease: 'linear', delay: i * 0.8 }}
-            >
-              <span
-                style={{ display: 'inline-block', transform: `translateY(-${60 + i * 6}px)`, opacity: 0.65 }}
-              >
-                {sym}
-              </span>
-            </motion.span>
-          ))}
 
-          {/* Pet photo in the centre */}
-          {petPhotoUrl ? (
-            <motion.img
-              src={petPhotoUrl}
-              alt={petName}
-              loading="eager"
-              className="relative z-10 w-[100px] h-[100px] rounded-full object-cover"
-              style={{
-                border: '3px solid rgba(191,82,74,0.25)',
-                boxShadow: '0 4px 18px rgba(191,82,74,0.2)',
-              }}
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: [1, 1.03, 1] }}
-              transition={{ opacity: { duration: 0.6 }, scale: { duration: 4.2, repeat: Infinity, ease: 'easeInOut' } }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-            />
-          ) : (
+          {/* Rotating gold ring */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-6 rounded-full"
+            style={{
+              padding: 2,
+              background:
+                'conic-gradient(from 0deg, #c4a265, #c4a26588, #c4a265, #d9b87c, #c4a265)',
+              animation: 'rg-rotate 22s linear infinite',
+              WebkitMask:
+                'radial-gradient(circle, transparent 55%, black 56%, black 58%, transparent 59%)',
+              mask:
+                'radial-gradient(circle, transparent 55%, black 56%, black 58%, transparent 59%)',
+              opacity: 0.8,
+            }}
+          />
+
+          {/* Constellation — anchors light up as stages advance, with a
+              line traced from the previous one. */}
+          <svg
+            className="absolute inset-0 pointer-events-none"
+            viewBox="-190 -190 380 380"
+            aria-hidden="true"
+          >
+            {/* Connecting lines (traced only for already-reached stages) */}
+            {anchors.map((a, i) => {
+              if (i === 0) return null;
+              const prev = anchors[i - 1];
+              const reached = activeStage >= i;
+              return (
+                <motion.line
+                  key={'line-' + i}
+                  x1={prev.x}
+                  y1={prev.y}
+                  x2={a.x}
+                  y2={a.y}
+                  stroke="#c4a265"
+                  strokeWidth="0.9"
+                  strokeOpacity="0.55"
+                  strokeDasharray="4 5"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: reached ? 1 : 0 }}
+                  transition={{ duration: 1.2, ease: 'easeInOut' }}
+                />
+              );
+            })}
+
+            {/* Anchor stars */}
+            {anchors.map((a, i) => {
+              const lit = activeStage >= i;
+              return (
+                <motion.g key={'anchor-' + i}>
+                  <motion.circle
+                    cx={a.x}
+                    cy={a.y}
+                    r={6}
+                    fill="#c4a265"
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={
+                      lit
+                        ? { opacity: [0.4, 1, 0.7], scale: 1 }
+                        : { opacity: 0.1, scale: 0.6 }
+                    }
+                    transition={{
+                      opacity: lit ? { duration: 2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.6 },
+                      scale: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+                    }}
+                    style={{ filter: lit ? 'drop-shadow(0 0 8px #c4a265)' : 'none' }}
+                  />
+                  <motion.circle
+                    cx={a.x}
+                    cy={a.y}
+                    r={2}
+                    fill="#faf6ef"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: lit ? 1 : 0 }}
+                    transition={{ duration: 0.4 }}
+                  />
+                </motion.g>
+              );
+            })}
+          </svg>
+
+          {/* Pet photo centre */}
+          <div
+            className="absolute rounded-full overflow-hidden"
+            style={{
+              top: '50%',
+              left: '50%',
+              width: 180,
+              height: 180,
+              marginLeft: -90,
+              marginTop: -90,
+              boxShadow:
+                '0 0 50px rgba(196,162,101,0.35), 0 0 100px rgba(191,82,74,0.25), inset 0 0 0 2px rgba(196,162,101,0.45)',
+            }}
+          >
+            {petPhotoUrl ? (
+              <img
+                src={petPhotoUrl}
+                alt={petName}
+                loading="eager"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center"
+                style={{
+                  background:
+                    'radial-gradient(circle, #3a2c2f 0%, #1f1a24 80%)',
+                }}
+              >
+                <span className="text-5xl">🐾</span>
+              </div>
+            )}
+            {/* Breathing colour wash */}
             <motion.div
-              className="relative z-10 w-[90px] h-[90px] rounded-full flex items-center justify-center"
+              aria-hidden="true"
+              className="absolute inset-0"
               style={{
-                background: 'radial-gradient(circle, #f6e6e3 0%, #fffdf5 75%)',
-                boxShadow: '0 4px 18px rgba(191,82,74,0.12)',
+                background:
+                  'radial-gradient(circle at 35% 30%, rgba(196,162,101,0.28), transparent 60%), radial-gradient(circle at 70% 75%, rgba(191,82,74,0.22), transparent 60%)',
+                mixBlendMode: 'overlay',
               }}
-              animate={{ scale: [1, 1.07, 1] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <span className="text-[1.6rem]">🐾</span>
-            </motion.div>
-          )}
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
         </div>
 
-        {/* Status text */}
-        <h2 className="text-[1.15rem] text-[#2D2926] mb-6" style={{ fontFamily: 'DM Serif Display, serif' }}>
-          Reading {p.possessive} stars now
-        </h2>
+        {/* Stage header — the ritual name changes over time */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={STAGES[activeStage].key}
+            initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-6"
+          >
+            <div className="text-[0.62rem] tracking-[2.8px] uppercase text-[#c4a265]/85 font-semibold mb-1.5">
+              {STAGES[activeStage].eyebrow}
+            </div>
+            <h2
+              className="text-[1.4rem] text-[#faf6ef]"
+              style={{ fontFamily: 'DM Serif Display, serif' }}
+            >
+              {STAGES[activeStage].label}&hellip;
+            </h2>
+            <p className="mt-2 text-[0.82rem] text-[#c4a265]/70 italic max-w-[320px] mx-auto leading-relaxed">
+              {STAGES[activeStage].detail}
+            </p>
+          </motion.div>
+        </AnimatePresence>
 
-        {/* Step-by-step progress indicators */}
-        <div className="w-full max-w-[320px] space-y-2 mb-6">
-          {STEPS.map((step, i) => {
-            const isDone = progress > step.threshold;
-            const isActive = !isDone && (i === 0 || progress > STEPS[i - 1].threshold);
+        {/* Named-stage pipeline checklist */}
+        <div className="w-full max-w-[360px] space-y-2.5 mb-8">
+          {STAGES.map((stage, i) => {
+            const done = i < activeStage;
+            const active = i === activeStage;
             return (
-              <div key={step.label} className="flex items-center gap-3">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                  isDone ? 'bg-[#bf524a]' : isActive ? 'bg-[#E8DFD6]' : 'bg-[#E8DFD6]/50'
-                }`}>
-                  {isDone ? (
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  ) : isActive ? (
-                    <motion.div className="w-2 h-2 rounded-full bg-[#bf524a]"
-                      animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
-                  ) : (
-                    <div className="w-2 h-2 rounded-full bg-[#d4cbc3]" />
+              <div
+                key={stage.key}
+                className="flex items-center gap-3 transition-opacity"
+                style={{ opacity: i > activeStage ? 0.38 : 1 }}
+              >
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                  style={{
+                    background: done ? '#c4a265' : active ? 'rgba(196,162,101,0.2)' : 'rgba(250,246,239,0.08)',
+                    border: active ? '1px solid #c4a265' : '1px solid rgba(250,246,239,0.15)',
+                  }}
+                >
+                  {done && (
+                    <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6L5 9L10 3" stroke="#1f1a24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                  {active && (
+                    <motion.span
+                      className="w-1.5 h-1.5 rounded-full bg-[#c4a265]"
+                      animate={{ scale: [1, 1.6, 1] }}
+                      transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                    />
                   )}
                 </div>
-                <span className={`text-[0.85rem] font-[Cormorant,serif] transition-colors ${
-                  isDone ? 'text-[#2D2926]' : isActive ? 'text-[#6B5E54]' : 'text-[#9B8E84]'
-                }`}>
-                  {step.label}
+                <span
+                  className="text-[0.88rem]"
+                  style={{
+                    color: done ? '#faf6ef' : active ? '#c4a265' : 'rgba(250,246,239,0.55)',
+                    fontFamily: 'Cormorant, serif',
+                  }}
+                >
+                  {stage.label}
                 </span>
               </div>
             );
           })}
         </div>
 
-        {/* Progress bar */}
-        <div className="w-[200px] h-[2px] bg-[#E8DFD6] rounded-full overflow-hidden mb-6">
+        {/* Breathing gold ring — ambient progress (not a % bar) */}
+        <div className="relative w-16 h-16 mb-6">
           <motion.div
-            className="h-full rounded-full"
-            style={{ background: 'linear-gradient(90deg, #bf524a, #c4a265)', width: `${progress}%` }}
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full border-2"
+            style={{ borderColor: '#c4a265', boxShadow: '0 0 24px rgba(196,162,101,0.35)' }}
+            animate={{ scale: [1, 1.25, 1], opacity: [0.9, 0.3, 0.9] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            aria-hidden="true"
+            className="absolute inset-3 rounded-full border"
+            style={{ borderColor: '#c4a265', boxShadow: '0 0 12px rgba(196,162,101,0.5)' }}
+            animate={{ scale: [1, 1.1, 1], opacity: [1, 0.7, 1] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
           />
         </div>
 
-        {/* Fun fact card */}
-        <div className="bg-white border border-[#E8DFD6] rounded-xl px-5 py-4 mb-6 max-w-sm">
-          <p className="text-[0.68rem] text-[#c4a265] uppercase tracking-widest font-semibold mb-1" style={{ fontFamily: 'Cormorant, serif' }}>
-            Did you know?
-          </p>
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={factIndex}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
-              className="text-[0.82rem] text-[#6B5E54] italic leading-relaxed"
-              style={{ fontFamily: 'Cormorant, serif' }}
-            >
-              {FUN_FACTS[factIndex]}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-
-        {/* Small note */}
-        <p className="text-[0.72rem] text-[#9B8E84]">
-          Creating something special just for them
-        </p>
-        <p className="text-[0.72rem] text-[#9B8E84] mt-2">
-          Keep this tab open — {petName}'s reading will reveal itself right here
-        </p>
-
-        {/* Calm reassurance after 4 minutes — never a "timeout" error */}
-        {showFallback && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-6 text-center max-w-xs">
-            <p className="text-[0.78rem] text-[#6B5E54] mb-2 leading-relaxed">
-              We're taking a little extra care with {petName}'s reading. Keep this tab open —
-              or open this link anytime to come back to it.
-            </p>
-            {reportId && (
-              <a
-                href={`/report?id=${reportId}`}
-                className="inline-block mt-2 px-5 py-2.5 rounded-xl text-white text-[0.85rem] font-semibold no-underline transition-opacity hover:opacity-90"
-                style={{ background: '#bf524a' }}
-              >
-                Check on your reading
-              </a>
-            )}
-          </motion.div>
-        )}
+        {/* Reassurance copy — tier shifts at 60s / 120s / 180s */}
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={Math.floor(elapsed / 60)}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.6 }}
+            className="text-[0.84rem] max-w-sm text-[#faf6ef]/70 leading-relaxed italic"
+            style={{ fontFamily: 'Cormorant, serif' }}
+            dangerouslySetInnerHTML={{ __html: waitCopy(petName, elapsed) }}
+          />
+        </AnimatePresence>
       </div>
+
+      <style>{`
+        @keyframes rg-rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
