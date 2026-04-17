@@ -86,7 +86,7 @@ export const EmotionalVignettes = () => {
           letterSpacing: "0.005em",
         }}
       >
-        Whoever yours is — come meet them.
+        The stars made this bond. Come read it.
       </p>
 
       <style>{`
