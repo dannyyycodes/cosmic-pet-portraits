@@ -447,6 +447,225 @@ interface ProductRevealProps {
   showBenefits?: boolean;
 }
 
+/* ── IntroTitle ──
+ * The first big moment after the visitor picks a path. Two-line title
+ * card, second line caught in rose, typed out character by character
+ * once it enters the viewport so it lands like an opening shot rather
+ * than appearing all at once. Width is reserved via an invisible full-
+ * string placeholder so nothing jumps as characters arrive. A blinking
+ * caret trails the typing cursor and fades 600ms after both lines
+ * finish. Respects prefers-reduced-motion. */
+
+const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
+  new:      { a: "A new little soul",            b: "just walked into your orbit." },
+  discover: { a: "Behind every little soul,",    b: "a cosmos." },
+  memorial: { a: "No little soul",               b: "is ever lost in the sky." },
+};
+
+const TYPE_MS_PER_CHAR = 48;     // speed of keystrokes
+const TYPE_PAUSE_MS    = 380;    // breath between line a and line b
+const TYPE_LEAD_IN_MS  = 280;    // small beat after reveal before typing starts
+const TYPE_CARET_FADE  = 700;    // caret fade-out after final char
+
+const IntroTitle = ({ path }: { path: FunnelPath }) => {
+  const { a, b } = INTRO_COPY[path];
+  const hostRef = useRef<HTMLHeadingElement>(null);
+  const [inView, setInView] = useState(false);
+  const [countA, setCountA] = useState(0);
+  const [countB, setCountB] = useState(0);
+  const [doneA, setDoneA] = useState(false);
+  const [doneB, setDoneB] = useState(false);
+
+  // Start typing when the title crosses into view — not at mount, so
+  // readers who pick a pill without scrolling still see the reveal
+  // when they get there.
+  useEffect(() => {
+    const el = hostRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setInView(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.35, rootMargin: "0px 0px -30px 0px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView) return;
+
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduced) {
+      setCountA(a.length); setDoneA(true);
+      setCountB(b.length); setDoneB(true);
+      return;
+    }
+
+    const handles: { leadIn?: number; ivA?: number; pause?: number; ivB?: number } = {};
+
+    handles.leadIn = window.setTimeout(() => {
+      handles.ivA = window.setInterval(() => {
+        setCountA((c) => {
+          if (c >= a.length) {
+            if (handles.ivA !== undefined) window.clearInterval(handles.ivA);
+            setDoneA(true);
+            handles.pause = window.setTimeout(() => {
+              handles.ivB = window.setInterval(() => {
+                setCountB((c2) => {
+                  if (c2 >= b.length) {
+                    if (handles.ivB !== undefined) window.clearInterval(handles.ivB);
+                    setDoneB(true);
+                    return c2;
+                  }
+                  return c2 + 1;
+                });
+              }, TYPE_MS_PER_CHAR);
+            }, TYPE_PAUSE_MS);
+            return c;
+          }
+          return c + 1;
+        });
+      }, TYPE_MS_PER_CHAR);
+    }, TYPE_LEAD_IN_MS);
+
+    return () => {
+      if (handles.leadIn !== undefined) window.clearTimeout(handles.leadIn);
+      if (handles.pause !== undefined) window.clearTimeout(handles.pause);
+      if (handles.ivA !== undefined) window.clearInterval(handles.ivA);
+      if (handles.ivB !== undefined) window.clearInterval(handles.ivB);
+    };
+  }, [inView, a, b]);
+
+  // Caret stays on the line currently being typed.
+  const caretOn: "a" | "b" | "done" = !doneA ? "a" : !doneB ? "b" : "done";
+
+  const lineStyle: React.CSSProperties = {
+    position: "relative",
+    display: "inline-block",
+    whiteSpace: "nowrap",
+  };
+  const placeholderStyle: React.CSSProperties = {
+    visibility: "hidden",
+  };
+  const overlayStyle: React.CSSProperties = {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    right: 0,
+  };
+
+  return (
+    <h2
+      ref={hostRef}
+      className="product-reveal-intro"
+      style={{
+        fontFamily: '"DM Serif Display", Georgia, serif',
+        fontSize: "clamp(1.75rem, 6.2vw, 2.5rem)",
+        fontWeight: 400,
+        fontStyle: "italic",
+        color: "var(--black, #141210)",
+        lineHeight: 1.22,
+        letterSpacing: "-0.018em",
+        margin: 0,
+        maxWidth: 720,
+        marginInline: "auto",
+        textAlign: "center",
+      }}
+      aria-label={`${a} ${b}`}
+    >
+      {/* Line A — ink black */}
+      <span style={lineStyle} aria-hidden="true">
+        <span style={placeholderStyle}>{a}</span>
+        <span style={overlayStyle}>
+          {a.slice(0, countA)}
+          {caretOn === "a" && (
+            <span className={`intro-caret ${inView ? "is-typing" : ""}`}>|</span>
+          )}
+        </span>
+      </span>
+      <br />
+      {/* Line B — rose, only revealed once Line A completes */}
+      <span style={{ ...lineStyle, color: "var(--rose, #bf524a)" }} aria-hidden="true">
+        <span style={placeholderStyle}>{b}</span>
+        <span style={overlayStyle}>
+          {b.slice(0, countB)}
+          {caretOn === "b" && (
+            <span className={`intro-caret is-typing is-rose`}>|</span>
+          )}
+          {caretOn === "done" && (
+            <span className="intro-caret is-rose is-fading">|</span>
+          )}
+        </span>
+      </span>
+
+      {/* Gold hairline — strokes in once both lines are typed */}
+      <span
+        aria-hidden="true"
+        className={`intro-rule ${doneB ? "is-in" : ""}`}
+      />
+
+      <style>{`
+        .intro-caret {
+          display: inline-block;
+          margin-left: 2px;
+          font-weight: 300;
+          opacity: 0.7;
+          color: inherit;
+        }
+        .intro-caret.is-typing {
+          animation: introCaretBlink 850ms steps(2, end) infinite;
+        }
+        .intro-caret.is-fading {
+          animation: introCaretOut ${TYPE_CARET_FADE}ms ease-out forwards;
+        }
+        @keyframes introCaretBlink {
+          50% { opacity: 0; }
+        }
+        @keyframes introCaretOut {
+          from { opacity: 0.7; }
+          to   { opacity: 0; }
+        }
+
+        .intro-rule {
+          display: block;
+          height: 1px;
+          width: 0;
+          margin: 22px auto 0;
+          background: var(--gold, #c4a265);
+          opacity: 0;
+          transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms ease;
+        }
+        .intro-rule.is-in {
+          width: 56px;
+          opacity: 0.65;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .intro-caret,
+          .intro-caret.is-typing,
+          .intro-caret.is-fading {
+            animation: none !important;
+            display: none !important;
+          }
+          .intro-rule {
+            transition: none !important;
+            width: 56px !important;
+            opacity: 0.65 !important;
+          }
+        }
+      `}</style>
+    </h2>
+  );
+};
+
 export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBenefits = true }: ProductRevealProps) => {
   const { ref, visible } = useScrollReveal(0.08);
   const [chatStep, setChatStep] = useState(0);
@@ -492,51 +711,7 @@ export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBen
             zIndex: 1,
           }}
         >
-          <h2
-            className="product-reveal-intro"
-            style={{
-              fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.75rem, 6.2vw, 2.5rem)",
-              fontWeight: 400,
-              fontStyle: "italic",
-              color: "var(--black, #141210)",
-              lineHeight: 1.22,
-              letterSpacing: "-0.018em",
-              margin: 0,
-              maxWidth: 640,
-              marginInline: "auto",
-            }}
-          >
-            {path === "memorial" ? (
-              <>
-                A soul doesn&rsquo;t end.
-                <br />
-                <span style={{ color: "var(--rose, #bf524a)" }}>It returns to starlight.</span>
-              </>
-            ) : path === "new" ? (
-              <>
-                The stars wrote them into being
-                <br />
-                <span style={{ color: "var(--rose, #bf524a)" }}>before you ever met.</span>
-              </>
-            ) : (
-              <>
-                A soul is a sky.
-                <br />
-                <span style={{ color: "var(--rose, #bf524a)" }}>Theirs is yours to read.</span>
-              </>
-            )}
-          </h2>
-          <div
-            aria-hidden="true"
-            style={{
-              width: 48,
-              height: 1,
-              background: "var(--gold, #c4a265)",
-              opacity: 0.55,
-              margin: "18px auto 0",
-            }}
-          />
+          <IntroTitle path={path} />
         </div>
 
         {/* Authority card — VSOP credibility content in its own opaque card */}
