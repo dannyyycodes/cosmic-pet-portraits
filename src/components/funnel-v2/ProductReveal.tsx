@@ -701,9 +701,10 @@ export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBen
         <ConstellationBackdrop />
 
         {/* Authority section title — hoisted above the credibility card.
-            Route-aware so memorial visitors see reverent phrasing. */}
+            Wrapped in its own opaque cream card so the constellation
+            starfield behind it never crosses the typed letterforms. */}
         <div
-          className="relative px-5 pt-14 sm:pt-16 text-center transition-all duration-[1200ms] ease-out"
+          className="relative px-5 pt-14 sm:pt-16 transition-all duration-[1200ms] ease-out"
           style={{
             opacity: visible ? 1 : 0,
             transform: visible ? "translateY(0)" : "translateY(16px)",
@@ -711,7 +712,20 @@ export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBen
             zIndex: 1,
           }}
         >
-          <IntroTitle path={path} />
+          <div
+            className="max-w-[620px] mx-auto text-center"
+            style={{
+              background: "rgba(255, 253, 245, 0.94)",
+              backdropFilter: "blur(3px)",
+              WebkitBackdropFilter: "blur(3px)",
+              border: "1px solid rgba(196, 162, 101, 0.16)",
+              borderRadius: 18,
+              padding: "clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px)",
+              boxShadow: "0 4px 32px rgba(0, 0, 0, 0.04)",
+            }}
+          >
+            <IntroTitle path={path} />
+          </div>
         </div>
 
         {/* Authority card — VSOP credibility content in its own opaque card */}
