@@ -78,7 +78,7 @@ const WALLPAPER_PETS_ROW2: PetItem[] = [
   { x: 96, y: 92, size: 22, rot: 8,   op: 0.14, Icon: Snail },
 ];
 
-const PetWallpaper = ({ row }: { row: 1 | 2 }) => {
+export const PetWallpaper = ({ row }: { row: 1 | 2 }) => {
   const pets = row === 1 ? WALLPAPER_PETS_ROW1 : WALLPAPER_PETS_ROW2;
   return (
     <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>

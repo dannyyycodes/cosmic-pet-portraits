@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
+import { PetWallpaper } from "./CompactReviews";
 
 export type FunnelPath = "new" | "discover" | "memorial";
 
@@ -70,9 +71,24 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
       className={`path-picker-section ${isLanding ? "is-landing" : "is-compact"}`}
       style={{
         background: "var(--cream, #FFFDF5)",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <div className="path-picker-inner max-w-4xl mx-auto text-center">
+      {/* Pet-icon wallpaper — same Lucide scatter as the review bands
+          above, extended down so the landing reads as one continuous
+          cream-and-gold canvas rather than three stacked sections. Both
+          row datasets are layered for denser coverage on this taller
+          container. Only shown on the landing (pre-selection) view — a
+          compact post-selection strip doesn't need decoration. */}
+      {isLanding && (
+        <>
+          <PetWallpaper row={1} />
+          <PetWallpaper row={2} />
+        </>
+      )}
+
+      <div className="path-picker-inner max-w-4xl mx-auto text-center" style={{ position: "relative", zIndex: 1 }}>
         <p
           className="path-picker-eyebrow"
           style={{
