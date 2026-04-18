@@ -485,7 +485,9 @@ export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBen
           >
             {path === "memorial"
               ? "Every little soul leaves their light in the stars."
-              : "Every little soul is mapped in the stars."}
+              : path === "new"
+                ? "Every new soul arrives written in the stars."
+                : "Every little soul is mapped in the stars."}
           </h2>
           <div
             aria-hidden="true"
@@ -562,19 +564,34 @@ export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBen
                   textAlign: "center",
                 }}
               >
-                Once You <em style={{ color: "var(--black, #141210)", fontWeight: 400 }}>Understand</em> Them
+                {path === "new" ? (
+                  <>Know Who You&rsquo;ve <em style={{ color: "var(--black, #141210)", fontWeight: 400 }}>Brought</em> Home</>
+                ) : (
+                  <>Once You <em style={{ color: "var(--black, #141210)", fontWeight: 400 }}>Understand</em> Them</>
+                )}
               </h2>
             </div>
           </div>
 
-          {/* Four benefit cards — 2x2 grid on desktop, stacked on mobile */}
+          {/* Four benefit cards — 2x2 grid on desktop, stacked on mobile.
+              Copy shifts per intent: new-pet readers see arrival-framed
+              benefits ("from day one", "just brought home") while the
+              discover path speaks to an established bond. */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-            {[
-              { roman: "I",   text: "You'll understand why they chose you." },
-              { roman: "II",  text: "Speak their love language — fluently." },
-              { roman: "III", text: "Finally put into words the bond you've always felt." },
-              { roman: "IV",  text: "Hear what they can't say." },
-            ].map((item, i) => (
+            {(path === "new"
+              ? [
+                  { roman: "I",   text: "Know why they came to you." },
+                  { roman: "II",  text: "Speak their love language from day one." },
+                  { roman: "III", text: "Start with the bond already mapped." },
+                  { roman: "IV",  text: "Hear what they already want you to know." },
+                ]
+              : [
+                  { roman: "I",   text: "You'll understand why they chose you." },
+                  { roman: "II",  text: "Speak their love language — fluently." },
+                  { roman: "III", text: "Finally put into words the bond you've always felt." },
+                  { roman: "IV",  text: "Hear what they can't say." },
+                ]
+            ).map((item, i) => (
               <div
                 key={i}
                 className={`benefit-row ${visible ? "is-in" : ""}`}
