@@ -77,10 +77,62 @@ const DoveWallpaper = () => (
   </div>
 );
 
+/* Rising embers — tiny gold specks drifting upward, like candle light
+ * caught in motion. Seven particles, staggered delays, varied sizes,
+ * absolutely-positioned so they scatter across the section. Pure CSS
+ * animation — no JS loop. Respects prefers-reduced-motion. */
+type Ember = { x: number; size: number; delay: number; duration: number; opacity: number };
+const EMBERS: Ember[] = [
+  { x: 12, size: 3,   delay: 0.0, duration: 14, opacity: 0.55 },
+  { x: 28, size: 2,   delay: 2.4, duration: 16, opacity: 0.45 },
+  { x: 42, size: 4,   delay: 4.8, duration: 13, opacity: 0.6  },
+  { x: 56, size: 2.5, delay: 1.2, duration: 18, opacity: 0.5  },
+  { x: 68, size: 3,   delay: 6.0, duration: 15, opacity: 0.55 },
+  { x: 82, size: 2,   delay: 3.6, duration: 17, opacity: 0.42 },
+  { x: 92, size: 3.5, delay: 5.2, duration: 14, opacity: 0.58 },
+];
+
+const EmberDrift = () => (
+  <div
+    aria-hidden="true"
+    className="absolute inset-0 pointer-events-none overflow-hidden"
+    style={{ zIndex: 0 }}
+  >
+    {EMBERS.map((e, i) => (
+      <span
+        key={i}
+        className="grief-ember"
+        style={{
+          position: "absolute",
+          left: `${e.x}%`,
+          bottom: "-6%",
+          width: e.size,
+          height: e.size,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(212,178,107,0.95) 0%, rgba(196,162,101,0.55) 45%, rgba(196,162,101,0) 75%)",
+          opacity: 0,
+          animationDelay: `${e.delay}s`,
+          animationDuration: `${e.duration}s`,
+          // Custom property pipes peak opacity into the keyframes
+          ["--ember-peak" as string]: e.opacity,
+        }}
+      />
+    ))}
+  </div>
+);
+
 interface GriefSectionProps {
   onCtaClick?: () => void;
 }
 
+/**
+ * Memorial prelude — a slow, cinematic three-beat reveal shown only on
+ * the memorial path, BEFORE any authority or checkout content. Each
+ * beat fades up with breath between them; a gold hairline expands from
+ * a point to mark the turn from acknowledgment to offer; embers drift
+ * upward in the background. Intentionally takes its time — grieving
+ * readers should not be rushed through this.
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -107,116 +159,209 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
       ref={ref}
       className={`grief-section relative overflow-hidden ${visible ? "is-in" : ""}`}
       style={{
-        background: "var(--cream, #FFFDF5)",
-        padding: "clamp(56px, 9vw, 88px) 20px clamp(52px, 8vw, 76px)",
+        background:
+          "radial-gradient(ellipse at 50% 30%, rgba(212,178,107,0.08) 0%, rgba(255,253,245,0) 60%), var(--cream, #FFFDF5)",
+        padding: "clamp(76px, 12vw, 128px) 20px clamp(68px, 10vw, 104px)",
       }}
     >
-      {/* Transition: handwritten prelude above the title. A single line in
-          Caveat sits quietly between the preceding benefits section and the
-          memorial tone — more of a whisper than a divider. */}
       <DoveWallpaper />
+      <EmberDrift />
+
+      {/* Soft aura behind the copy — a radial gold halo that pulses
+          gently to echo the embers. Very low opacity; atmospheric. */}
+      <div
+        aria-hidden="true"
+        className="grief-aura"
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          width: "min(600px, 90%)",
+          aspectRatio: "1 / 1",
+          transform: "translate(-50%, -50%)",
+          background:
+            "radial-gradient(circle, rgba(212,178,107,0.12) 0%, rgba(196,162,101,0.05) 40%, rgba(196,162,101,0) 70%)",
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      />
 
       <div
-        className="relative max-w-[500px] mx-auto text-center"
+        className="relative max-w-[620px] mx-auto text-center"
         style={{ zIndex: 1 }}
       >
-        {/* Primary card — three-line cadence: acknowledgment, validation,
-            offer. Gold hairline between validation and offer marks the
-            shift from feeling seen to the quiet resolution. */}
-        <div className="grief-card flex justify-center">
-          <div
+        {/* Beat 1 — acknowledgment. Large italic serif, slow fade-up. */}
+        <h2
+          className="grief-beat grief-beat-1"
+          style={{
+            fontFamily: '"DM Serif Display", Georgia, serif',
+            fontSize: "clamp(1.85rem, 6.2vw, 2.6rem)",
+            fontWeight: 400,
+            fontStyle: "italic",
+            color: "var(--black, #141210)",
+            lineHeight: 1.18,
+            letterSpacing: "-0.018em",
+            margin: 0,
+          }}
+        >
+          For the ones you still carry
+          <br />
+          in your heart.
+        </h2>
+
+        {/* Beat 2 — validation. Smaller, tender, slightly delayed. */}
+        <p
+          className="grief-beat grief-beat-2"
+          style={{
+            fontFamily: '"Cormorant", Georgia, serif',
+            fontSize: "clamp(1.1rem, 3.4vw, 1.32rem)",
+            fontStyle: "italic",
+            color: "var(--earth, #6e6259)",
+            lineHeight: 1.55,
+            margin: "clamp(20px, 3vw, 28px) auto 0",
+            maxWidth: 460,
+          }}
+        >
+          Even if they&rsquo;re no longer by your side.
+        </p>
+
+        {/* Hairline — expands from a point after the first two beats
+            land, marking the turn from feeling-seen to the offer. */}
+        <span
+          aria-hidden="true"
+          className="grief-rule"
+          style={{
+            display: "block",
+            height: 1,
+            background: "var(--gold, #c4a265)",
+            opacity: 0.7,
+            margin: "clamp(32px, 5vw, 44px) auto",
+          }}
+        />
+
+        {/* Beat 3 — offer. Italic serif with an emphasised noun. */}
+        <p
+          className="grief-beat grief-beat-3"
+          style={{
+            fontFamily: '"Cormorant", Georgia, serif',
+            fontSize: "clamp(1.18rem, 3.6vw, 1.4rem)",
+            fontStyle: "italic",
+            color: "var(--ink, #1f1c18)",
+            lineHeight: 1.55,
+            margin: "0 auto",
+            maxWidth: 520,
+          }}
+        >
+          A reading for the space they left &mdash;
+          <br />
+          <em
+            className="grief-emphasis"
             style={{
-              padding: "clamp(24px, 4.2vw, 34px) clamp(24px, 5vw, 36px)",
-              background: "rgba(255, 253, 245, 0.94)",
-              border: "1px solid rgba(196, 162, 101, 0.2)",
-              borderRadius: 16,
-              boxShadow: "0 4px 28px rgba(20,15,8,0.05)",
-              backdropFilter: "blur(5px)",
-              WebkitBackdropFilter: "blur(5px)",
-              maxWidth: 480,
+              fontFamily: '"DM Serif Display", Georgia, serif',
+              fontStyle: "italic",
+              color: "var(--rose, #bf524a)",
+              letterSpacing: "0.005em",
             }}
           >
-            {/* Line 1 — acknowledgment */}
-            <h2
-              style={{
-                fontFamily: '"DM Serif Display", Georgia, serif',
-                fontSize: "clamp(1.55rem, 5vw, 1.95rem)",
-                fontWeight: 400,
-                fontStyle: "italic",
-                color: "var(--black, #141210)",
-                lineHeight: 1.18,
-                letterSpacing: "-0.02em",
-                margin: 0,
-                textAlign: "center",
-              }}
-            >
-              For the ones you still carry in your heart.
-            </h2>
-
-            {/* Line 2 — validation */}
-            <p
-              style={{
-                fontFamily: '"Cormorant", Georgia, serif',
-                fontSize: "clamp(1.02rem, 3.1vw, 1.15rem)",
-                fontStyle: "italic",
-                color: "var(--earth, #6e6259)",
-                lineHeight: 1.45,
-                margin: "10px 0 0",
-                textAlign: "center",
-              }}
-            >
-              Even if they&rsquo;re no longer by your side.
-            </p>
-
-            {/* Hairline gold divider — single ornament, marks the turn
-                from emotion to offer. */}
-            <div
-              aria-hidden="true"
-              style={{
-                width: 42,
-                height: 1,
-                background: "var(--gold, #c4a265)",
-                opacity: 0.6,
-                margin: "18px auto",
-              }}
-            />
-
-            {/* Line 3 — offer (the solution) */}
-            <p
-              style={{
-                fontFamily: '"Cormorant", Georgia, serif',
-                fontSize: "clamp(1.02rem, 3vw, 1.12rem)",
-                fontStyle: "italic",
-                color: "var(--ink, #1f1c18)",
-                lineHeight: 1.55,
-                margin: 0,
-                textAlign: "center",
-              }}
-            >
-              A reading for the space they left &mdash; a keepsake for
-              the days you need them.
-            </p>
-          </div>
-        </div>
+            a keepsake
+          </em>{" "}
+          for the days you need them.
+        </p>
       </div>
 
       <style>{`
-        .grief-card {
+        /* ── Beat reveal — blur-to-sharp fade-up, staggered ── */
+        .grief-beat {
           opacity: 0;
-          transform: translateY(10px);
-          will-change: opacity, transform;
+          transform: translateY(14px);
+          filter: blur(4px);
+          will-change: opacity, transform, filter;
         }
-        .grief-section.is-in .grief-card {
-          animation: griefReveal 820ms cubic-bezier(0.22,1,0.36,1) forwards;
+        .grief-rule {
+          width: 0;
+          opacity: 0 !important;
+          will-change: width, opacity;
         }
-        @keyframes griefReveal {
-          to { opacity: 1; transform: translateY(0); }
+        .grief-section.is-in .grief-beat-1 {
+          animation: griefBeatIn 1400ms cubic-bezier(0.22, 1, 0.36, 1) 120ms forwards;
         }
+        .grief-section.is-in .grief-beat-2 {
+          animation: griefBeatIn 1200ms cubic-bezier(0.22, 1, 0.36, 1) 1500ms forwards;
+        }
+        .grief-section.is-in .grief-rule {
+          animation: griefRuleExpand 900ms cubic-bezier(0.22, 1, 0.36, 1) 2500ms forwards;
+        }
+        .grief-section.is-in .grief-beat-3 {
+          animation: griefBeatIn 1200ms cubic-bezier(0.22, 1, 0.36, 1) 3000ms forwards;
+        }
+        @keyframes griefBeatIn {
+          to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        @keyframes griefRuleExpand {
+          to { width: 56px; opacity: 0.7 !important; }
+        }
+
+        /* Emphasis picks up a gold underline once beat 3 is fully shown */
+        .grief-section .grief-emphasis {
+          background-image: linear-gradient(var(--gold, #c4a265), var(--gold, #c4a265));
+          background-repeat: no-repeat;
+          background-size: 0% 1px;
+          background-position: 0 100%;
+          transition: background-size 900ms cubic-bezier(0.22, 1, 0.36, 1) 4000ms;
+        }
+        .grief-section.is-in .grief-emphasis {
+          background-size: 100% 1px;
+        }
+
+        /* ── Rising embers ── */
+        .grief-ember {
+          animation-name: griefEmberRise;
+          animation-iteration-count: infinite;
+          animation-timing-function: ease-out;
+          filter: blur(0.3px);
+        }
+        @keyframes griefEmberRise {
+          0%   { transform: translate(0, 0) scale(0.6);        opacity: 0; }
+          8%   { opacity: var(--ember-peak, 0.55); }
+          50%  { transform: translate(6px, -50vh) scale(1);     opacity: var(--ember-peak, 0.55); }
+          90%  { opacity: var(--ember-peak, 0.55); }
+          100% { transform: translate(-4px, -110vh) scale(1.1); opacity: 0; }
+        }
+
+        /* ── Aura pulse ── */
+        .grief-aura {
+          animation: griefAuraPulse 7s ease-in-out infinite;
+        }
+        @keyframes griefAuraPulse {
+          0%, 100% { opacity: 0.9; }
+          50%      { opacity: 1;   }
+        }
+
+        /* ── Motion preferences ── */
         @media (prefers-reduced-motion: reduce) {
-          .grief-card {
+          .grief-beat,
+          .grief-section.is-in .grief-beat-1,
+          .grief-section.is-in .grief-beat-2,
+          .grief-section.is-in .grief-beat-3 {
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
+            filter: none !important;
+          }
+          .grief-rule,
+          .grief-section.is-in .grief-rule {
+            animation: none !important;
+            width: 56px !important;
+            opacity: 0.7 !important;
+          }
+          .grief-ember,
+          .grief-aura {
+            animation: none !important;
+          }
+          .grief-section .grief-emphasis,
+          .grief-section.is-in .grief-emphasis {
+            transition: none !important;
+            background-size: 100% 1px !important;
           }
         }
       `}</style>

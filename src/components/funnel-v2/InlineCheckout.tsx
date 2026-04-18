@@ -77,14 +77,15 @@ const TIERS: Array<{
     ],
   },
   {
-    // Memorial Reading — rendered as a collapsed pill under the two-tier grid.
-    // Shares Stripe price with Soul Bond ($49) so memorialQty bundles into
-    // premiumCount at checkout. Horoscope intentionally omitted — memorial
-    // readings are backward-looking.
+    // Memorial Reading — surfaced only on the memorial path as a sole
+    // full-card option. Shares Stripe price with Soul Bond ($49) so
+    // memorialQty bundles into premiumCount at checkout. Horoscope
+    // intentionally omitted — memorial readings are backward-looking.
     id: "memorial",
     name: "Memorial Reading",
     price: 49,
     wasPrice: 79,
+    badge: "In Loving Memory",
     features: [
       { label: "Included:", kind: "divider" },
       { label: "Dedicated to what made them, them." },
@@ -483,7 +484,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     const isSelected = qty > 0;
     const atMax = petCount >= MAX_PETS;
     const minusDisabled = qty === 0 || (petCount === 1 && qty === 1);
-    const isPremium = tier.id === "premium";
+    // Elevated treatment — soft gold gradient fill — is applied to the
+    // Soul Bond ($49 premium) card in the two-tier layout, and to the
+    // Memorial card on the memorial-only route so the sole option still
+    // feels considered rather than flat.
+    const isElevated = tier.id === "premium" || tier.id === "memorial";
     const displayName = tier.name;
     const displayBadge = tier.badge;
     const displayFeatures = tier.features;
@@ -499,7 +504,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         className="relative text-left rounded-2xl p-4 sm:p-5 active:scale-[0.995] min-w-0 h-full flex flex-col cursor-pointer"
         style={{
           background: (() => {
-            const fill = isPremium
+            const fill = isElevated
               ? "linear-gradient(180deg, #fbf4e4 0%, #FFFDF5 100%)"
               : "#FFFDF5";
             const frame = isSelected
@@ -852,9 +857,12 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
 
         {memorialOnly ? (
           /* Memorial-only route: render the Memorial tier as a single
-             full-width card. No pill, no toggle, no Soul Reading / Soul
-             Bond competing for attention. */
-          <div data-ls-memorial-expanded="" className="mb-3">
+             card sized to match one column of the regular two-tier grid
+             (~340px) and centred. Keeps the visual language consistent
+             — same chrome, same chip scale — without stretching the
+             card to the full container width, which would make it read
+             as a banner rather than a product card. */
+          <div data-ls-memorial-expanded="" className="mb-3 mx-auto w-full" style={{ maxWidth: 340 }}>
             {renderTierCard(TIERS.find((t) => t.id === "memorial")!, 0)}
           </div>
         ) : (
