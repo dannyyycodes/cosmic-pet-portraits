@@ -48,25 +48,24 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
     [setSearchParams, onSelect]
   );
 
+  const isLanding = selected === null;
+
   return (
     <section
       aria-label="Choose your path"
-      className="path-picker-section"
+      className={`path-picker-section ${isLanding ? "is-landing" : "is-compact"}`}
       style={{
         background: "var(--cream, #FFFDF5)",
-        padding: "28px 16px 34px",
       }}
     >
-      <div className="max-w-4xl mx-auto text-center">
+      <div className="path-picker-inner max-w-4xl mx-auto text-center">
         <p
           className="path-picker-eyebrow"
           style={{
             fontFamily: "Cormorant, Georgia, serif",
             fontStyle: "italic",
-            fontSize: "clamp(1.08rem, 3.2vw, 1.24rem)",
             color: "var(--earth, #6e6259)",
             margin: 0,
-            marginBottom: 18,
             letterSpacing: "0.01em",
           }}
         >
@@ -89,8 +88,10 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
                 onClick={() => setPath(value)}
                 className={`path-picker-pill ${active ? "is-active" : ""}`}
               >
-                <span className="path-picker-label">{label}</span>
-                <span aria-hidden="true" className="path-picker-underline" />
+                <span className="path-picker-label-wrap">
+                  <span className="path-picker-label">{label}</span>
+                  <span aria-hidden="true" className="path-picker-underline" />
+                </span>
               </button>
             );
           })}
@@ -98,16 +99,47 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
       </div>
 
       <style>{`
+        /* ── Section chrome ─────────────────────────────────
+           On landing (no selection yet) the section fills the
+           viewport so reviews + pills are the whole first screen
+           and the footer sits below the fold. After selection the
+           picker collapses to a tight top-of-page strip. */
+        .path-picker-section.is-landing {
+          min-height: calc(100vh - 240px);
+          min-height: calc(100svh - 240px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 36px 20px 48px;
+        }
+        .path-picker-section.is-compact {
+          padding: 26px 16px 32px;
+        }
+
+        .path-picker-inner { width: 100%; }
+
+        .is-landing .path-picker-eyebrow {
+          font-size: clamp(1.2rem, 4vw, 1.55rem);
+          margin-bottom: clamp(28px, 5vw, 44px);
+        }
+        .is-compact .path-picker-eyebrow {
+          font-size: clamp(1.08rem, 3.2vw, 1.24rem);
+          margin-bottom: 18px;
+        }
+
+        /* ── Pill row — always a vertical stack so each intent
+             reads as its own moment, never as a row of options. */
         .path-picker-row {
           display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
+          flex-direction: column;
+          align-items: center;
           gap: 10px;
-          max-width: 860px;
+          max-width: 440px;
           margin: 0 auto;
         }
-        @media (min-width: 760px) {
-          .path-picker-row { gap: 14px; }
+        .is-landing .path-picker-row {
+          gap: clamp(12px, 2.4vw, 16px);
+          max-width: 480px;
         }
 
         .path-picker-pill {
@@ -115,15 +147,13 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           appearance: none;
           -webkit-appearance: none;
           cursor: pointer;
+          width: 100%;
           background: rgba(255, 253, 245, 0.92);
           border: 1px solid rgba(196, 162, 101, 0.28);
           border-radius: 9999px;
-          padding: 12px 22px;
-          min-height: 46px;
           color: var(--ink, #1f1c18);
           font-family: "Cormorant", Georgia, serif;
           font-style: italic;
-          font-size: 1rem;
           letter-spacing: 0.005em;
           line-height: 1.1;
           transition:
@@ -139,12 +169,34 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           outline: none;
           white-space: nowrap;
         }
+
+        .is-landing .path-picker-pill {
+          padding: clamp(16px, 3vw, 22px) clamp(20px, 4vw, 32px);
+          min-height: clamp(60px, 9vw, 72px);
+          font-size: clamp(1.08rem, 3.4vw, 1.22rem);
+        }
+        .is-compact .path-picker-pill {
+          padding: 12px 22px;
+          min-height: 46px;
+          font-size: 1rem;
+        }
         @media (min-width: 760px) {
-          .path-picker-pill {
+          .is-compact .path-picker-pill {
             padding: 13px 26px;
             min-height: 50px;
             font-size: 1.08rem;
           }
+        }
+
+        .path-picker-pill {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .path-picker-label-wrap {
+          position: relative;
+          display: inline-block;
         }
 
         .path-picker-label {
@@ -153,12 +205,14 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           z-index: 1;
         }
 
-        /* Ink-stroke gold underline beneath the label. Strokes from
-           centre outward on hover, sits full-width on active. */
+        /* Ink-stroke gold underline beneath the label itself — sits
+           relative to the text, not the pill chrome, so it tracks
+           correctly across compact/landing sizes. Strokes from centre
+           outward on hover, sits full-width on active. */
         .path-picker-underline {
           position: absolute;
           left: 50%;
-          bottom: 8px;
+          bottom: -6px;
           height: 1px;
           width: 0;
           background: linear-gradient(
@@ -189,7 +243,7 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
               0 10px 28px rgba(20, 15, 8, 0.06);
           }
           .path-picker-pill:hover .path-picker-underline {
-            width: calc(100% - 52px);
+            width: 100%;
           }
         }
 
@@ -204,7 +258,7 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
             inset 0 0 0 1px rgba(191, 82, 74, 0.08);
         }
         .path-picker-pill.is-active .path-picker-underline {
-          width: calc(100% - 52px);
+          width: 100%;
           background: linear-gradient(
             90deg,
             rgba(191,82,74,0) 0%,
