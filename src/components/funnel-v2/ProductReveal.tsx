@@ -493,24 +493,39 @@ export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBen
           }}
         >
           <h2
+            className="product-reveal-intro"
             style={{
               fontFamily: '"DM Serif Display", Georgia, serif',
-              fontSize: "clamp(1.6rem, 5.6vw, 2.15rem)",
+              fontSize: "clamp(1.75rem, 6.2vw, 2.5rem)",
               fontWeight: 400,
               fontStyle: "italic",
               color: "var(--black, #141210)",
-              lineHeight: 1.2,
-              letterSpacing: "-0.015em",
+              lineHeight: 1.22,
+              letterSpacing: "-0.018em",
               margin: 0,
-              maxWidth: 620,
+              maxWidth: 640,
               marginInline: "auto",
             }}
           >
-            {path === "memorial"
-              ? "Every little soul leaves their light in the stars."
-              : path === "new"
-                ? "Every new soul arrives written in the stars."
-                : "Every little soul is mapped in the stars."}
+            {path === "memorial" ? (
+              <>
+                A soul doesn&rsquo;t end.
+                <br />
+                <span style={{ color: "var(--rose, #bf524a)" }}>It returns to starlight.</span>
+              </>
+            ) : path === "new" ? (
+              <>
+                The stars wrote them into being
+                <br />
+                <span style={{ color: "var(--rose, #bf524a)" }}>before you ever met.</span>
+              </>
+            ) : (
+              <>
+                A soul is a sky.
+                <br />
+                <span style={{ color: "var(--rose, #bf524a)" }}>Theirs is yours to read.</span>
+              </>
+            )}
           </h2>
           <div
             aria-hidden="true"
