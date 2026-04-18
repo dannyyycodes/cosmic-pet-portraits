@@ -121,6 +121,10 @@ interface InlineCheckoutProps {
    *  full-width card. No pill, no toggle — a grieving reader should not
    *  have two unrelated options competing for their attention. */
   memorialOnly?: boolean;
+  /** Which intent the visitor selected. Drives the checkout header copy
+   * — new-pet owners see an arrival-framed heading, discover readers
+   * see the default, memorial is handled separately by memorialOnly. */
+  path?: "new" | "discover" | "memorial";
 }
 
 // Volume discount mirrors create-checkout server-side rates for per-pet bundles.
@@ -134,7 +138,7 @@ function getVolumeDiscount(petCount: number): number {
 
 const MAX_PETS = 10;
 
-export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange, memorialDefaultExpanded = false, memorialOnly = false }, forwardedRef) => {
+export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({ ctaLabel, charityId: charityIdProp, charityBonus = 0, onSelectedPriceChange, memorialDefaultExpanded = false, memorialOnly = false, path = "discover" }, forwardedRef) => {
   // Detect memorial-intent URL params up-front so the cart + pill open to the
   // right state. Supported signals: ?occasion=memorial or ?memorial=1. Also
   // covers the case where a user clicks a memorial-specific CTA that routes
@@ -817,9 +821,10 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             pointerEvents: "none",
           }}
         />
-        {/* Header — route-aware. Memorial visitors see a reverent,
-            singular title instead of the generic "Begin Their Reading".
-            A tender sub-line then meets them before any pricing. */}
+        {/* Header — route-aware. Memorial: reverent italic + tender
+            sub-line. New-pet: arrival-framed heading with a welcoming
+            sub-line. Discover (default): the generic "Begin Their
+            Reading" brand heading. */}
         <div
           className="text-center mb-7 sm:mb-8 transition-all duration-1000"
           style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)" }}
@@ -835,7 +840,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               lineHeight: 1.15,
             }}
           >
-            {memorialOnly ? "A Reading for Their Memory" : "Begin Their Reading"}
+            {memorialOnly
+              ? "A Reading for Their Memory"
+              : path === "new"
+                ? "Meet Their Little Soul"
+                : "Begin Their Reading"}
           </h2>
           {memorialOnly && (
             <p
@@ -851,6 +860,22 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             >
               A keepsake for the space they left &mdash; written reverently,
               to be felt, not skimmed.
+            </p>
+          )}
+          {!memorialOnly && path === "new" && (
+            <p
+              style={{
+                fontFamily: "Cormorant, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(0.98rem, 3vw, 1.1rem)",
+                color: "var(--earth, #6e6259)",
+                lineHeight: 1.5,
+                margin: "0 auto",
+                maxWidth: 460,
+              }}
+            >
+              Their first reading &mdash; the sky they arrived under,
+              read line by line.
             </p>
           )}
         </div>

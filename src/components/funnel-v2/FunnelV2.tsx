@@ -28,21 +28,27 @@ export const FunnelV2 = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const productRevealRef = useRef<HTMLDivElement>(null);
 
-  // Intent picker — four on-funnel states. `?path=discover` is the
-  // default (URL param omitted); every other intent carries an explicit
-  // param. Gift is no longer a nav-away; it stays on this page and
-  // shares the same sales cards, just with a neutral top-of-funnel tone.
+  // Intent picker. Nothing below the pills renders until the visitor
+  // picks one — so on a fresh landing, the page is reviews + pills and
+  // that's it. Arriving with an explicit ?path=... from an external
+  // link counts as an implicit selection so deep-links still reach the
+  // content. No default selection otherwise.
   const [searchParams] = useSearchParams();
   const rawPath = searchParams.get("path");
-  const path: FunnelPath =
-    rawPath === "new" || rawPath === "memorial" ? rawPath : "discover";
+  const selectedPath: FunnelPath | null =
+    rawPath === "new" || rawPath === "discover" || rawPath === "memorial"
+      ? rawPath
+      : null;
+  // A concrete path for content that only renders when selected. Falls
+  // back to discover for type-safety but is only read once a selection
+  // exists.
+  const path: FunnelPath = selectedPath ?? "discover";
 
   const ctaPrimary = CTA_LABEL[path];
 
   // Deliberate no-op: selecting a path must NOT scroll the viewport.
-  // Scrolling would skip the primer copy below the picker and punish
-  // the visitor for triaging their intent. Accept the callback so the
-  // PathPicker API stays stable, but do nothing with it.
+  // The sections below reveal with a fade in place — scrolling would
+  // fight the visitor's own reading motion.
   const handlePathChange = useCallback((_next: FunnelPath) => {
     /* no scroll */
   }, []);
@@ -133,42 +139,66 @@ export const FunnelV2 = () => {
       </div>
       <CompactReviews row={2} />
 
-      <PathPicker path={path} onPathChange={handlePathChange} />
+      <PathPicker selected={selectedPath} onSelect={handlePathChange} />
 
-      <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
-        <GoldDivider />
-      </div>
+      {/* Everything below the pill picker is gated — until the visitor
+          picks an intent, the page shows reviews + pills + footer and
+          nothing else. Once selected, the whole block fades up in
+          place (no scroll-jack) with a single CSS animation keyed to
+          the mount. */}
+      {selectedPath && (
+        <div key={selectedPath} className="funnel-reveal">
+          <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
+            <GoldDivider />
+          </div>
 
-      {/* Memorial: soothing copy lives BEFORE the authority block so the
-          grieving reader is met with care before any credibility content. */}
-      {path === "memorial" && <GriefSection onCtaClick={scrollToCheckout} />}
+          {/* Memorial: soothing copy lives BEFORE the authority block so
+              the grieving reader is met with care before any credibility
+              content. */}
+          {path === "memorial" && <GriefSection onCtaClick={scrollToCheckout} />}
 
-      <div ref={productRevealRef}>
-        <ProductReveal
-          onCtaClick={scrollToCheckout}
-          ctaLabel={ctaPrimary}
-          path={path}
-          showBenefits={path === "discover" || path === "new"}
-        />
-      </div>
+          <div ref={productRevealRef}>
+            <ProductReveal
+              onCtaClick={scrollToCheckout}
+              ctaLabel={ctaPrimary}
+              path={path}
+              showBenefits={path === "discover" || path === "new"}
+            />
+          </div>
 
-      <InlineCheckout
-        ref={checkoutRef}
-        ctaLabel={ctaPrimary}
-        charityId={charityId}
-        charityBonus={charityBonus}
-        onSelectedPriceChange={setSelectedPrice}
-        memorialDefaultExpanded={path === "memorial"}
-        memorialOnly={path === "memorial"}
-      />
+          <InlineCheckout
+            ref={checkoutRef}
+            ctaLabel={ctaPrimary}
+            charityId={charityId}
+            charityBonus={charityBonus}
+            onSelectedPriceChange={setSelectedPrice}
+            memorialDefaultExpanded={path === "memorial"}
+            memorialOnly={path === "memorial"}
+            path={path}
+          />
 
-      <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
-        <GoldDivider />
-      </div>
-      <FAQSection memorialFirst={path === "memorial"} />
+          <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
+            <GoldDivider />
+          </div>
+          <FAQSection memorialFirst={path === "memorial"} />
 
-      {/* Final emotional CTA */}
-      <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={ctaPrimary} priceLabel={fmtUsd(selectedPrice + charityBonus)} />
+          {/* Final emotional CTA */}
+          <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={ctaPrimary} priceLabel={fmtUsd(selectedPrice + charityBonus)} />
+        </div>
+      )}
+
+      <style>{`
+        .funnel-reveal {
+          animation: funnelRevealIn 820ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @keyframes funnelRevealIn {
+          from { opacity: 0; transform: translateY(14px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .funnel-reveal { animation: none !important; }
+        }
+      `}</style>
 
       {/* Floating momentum signal */}
       <LiveActivityToast />
@@ -206,8 +236,10 @@ export const FunnelV2 = () => {
         </p>
       </footer>
 
-      {/* Sticky bottom CTA (mobile, appears after hero) */}
-      {isMobile && (
+      {/* Sticky bottom CTA (mobile, appears after hero) — only once
+          the visitor has picked a path, otherwise there's no checkout
+          to scroll to. */}
+      {isMobile && selectedPath && (
         <div
           className="fixed bottom-0 left-0 right-0 transition-all duration-300"
           style={{

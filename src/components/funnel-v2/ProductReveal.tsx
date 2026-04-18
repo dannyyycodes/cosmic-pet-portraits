@@ -208,6 +208,8 @@ const ConstellationBackdrop = () => (
 /* ── VSOP Credibility — warm authority ── */
 const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPath }) => {
   const isMemorial = path === "memorial";
+  const isNew = path === "new";
+
   const authorityLead = isMemorial
     ? (
         <>
@@ -216,6 +218,16 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
           {" — the same planetary model "}
           <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
           {" uses — so the sky we hold for them is the exact one they knew."}
+        </>
+      )
+    : isNew
+    ? (
+        <>
+          Their map was written the moment they arrived. Using{" "}
+          <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
+          {" — the same planetary model "}
+          <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
+          {" uses — we read the exact sky they came into."}
         </>
       )
     : (
@@ -237,6 +249,17 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
         {
           h: "Accurate to a fraction of a degree.",
           d: "Their chart is remembered precisely — real planetary math, not a generic horoscope about grief.",
+        },
+      ]
+    : isNew
+    ? [
+        {
+          h: "The sky they arrived under — captured exactly.",
+          d: "13 celestial bodies, rising sign, elemental balance and house placements — all mapped to the exact minute they came into the world.",
+        },
+        {
+          h: "Accurate to a fraction of a degree.",
+          d: "Their very first reading comes from real planetary math, not a generic personality guess.",
         },
       ]
     : [
