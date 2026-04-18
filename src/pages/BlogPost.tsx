@@ -516,11 +516,6 @@ const BlogPost = () => {
                         className="w-full aspect-[16/9] object-cover md:rounded-2xl"
                         style={{ background: "#f5efe6" }}
                       />
-                      {alt && alt.length > 3 && (
-                        <figcaption className="text-center text-xs mt-3 px-4 italic" style={{ color: "#9a8578" }}>
-                          {alt}
-                        </figcaption>
-                      )}
                     </figure>
                   ),
                   p: ({ children }) => {
@@ -575,10 +570,10 @@ const BlogPost = () => {
                 {cluster === "D"
                   ? "A cosmic reading becomes a keepsake — something to return to, on the hard days."
                   : cluster === "E"
-                  ? "A cosmic reading of their pet, revealed the moment they click open. £27."
+                  ? "A cosmic reading of their pet, revealed the moment they click open. £29."
                   : cluster === "G"
                   ? "SoulSpeak uses their chart to write in their voice. Start a conversation, free."
-                  : "£27. Cinematic reveal. The stars read aloud for the one you love most."}
+                  : "£29. Cinematic reveal. The stars read aloud for the one you love most."}
               </p>
               <button
                 onClick={() => trackCTAClick(ctaEnd, "end")}
