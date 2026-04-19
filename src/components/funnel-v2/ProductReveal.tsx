@@ -459,7 +459,7 @@ interface ProductRevealProps {
 const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
   new:      { a: "A new little soul",            b: "just walked into your orbit." },
   discover: { a: "Behind every little soul,",    b: "a cosmos." },
-  memorial: { a: "No little soul",               b: "is ever lost in the sky." },
+  memorial: { a: "No little soul",               b: "is ever forgotten by the stars." },
 };
 
 const TYPE_MS_PER_CHAR = 48;     // speed of keystrokes
