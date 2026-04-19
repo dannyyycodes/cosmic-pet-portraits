@@ -188,6 +188,70 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   const openHoroscope = () => setHoroscopeOpen(true);
   const closeHoroscope = () => setHoroscopeOpen(false);
 
+  // ── Cosmic Wheel handoff ──────────────────────────────────────────
+  //
+  // SpinWheel.tsx writes the won prize to sessionStorage. On first
+  // mount we look for it, prefill the email + reveal the code panel
+  // with the code already applied, and re-render the cards with the
+  // discount baked into the displayed totals. One read on mount —
+  // refreshes don't re-apply (sessionStorage survives the SPA route
+  // change but is wiped on tab close, which is the right TTL).
+  const wheelPrizeApplied = useRef(false);
+  useEffect(() => {
+    if (wheelPrizeApplied.current) return;
+    let cancelled = false;
+    (async () => {
+      let raw: string | null = null;
+      try { raw = sessionStorage.getItem("ls_wheel_prize"); } catch { return; }
+      if (!raw) return;
+      let parsed: { email?: string; code?: string; expiresAt?: string; prizeLabel?: string } | null = null;
+      try { parsed = JSON.parse(raw); } catch { return; }
+      if (!parsed?.code || !parsed?.email) return;
+      if (parsed.expiresAt && new Date(parsed.expiresAt).getTime() < Date.now()) {
+        try { sessionStorage.removeItem("ls_wheel_prize"); } catch { /* ignore */ }
+        return;
+      }
+      wheelPrizeApplied.current = true;
+      setEmail(parsed.email);
+      setCodeOpen(true);
+      setCodeInput(parsed.code);
+      setCodeStatus("checking");
+      try {
+        const { data: coupons } = await supabase
+          .from("coupons")
+          .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses")
+          .eq("code", parsed.code)
+          .eq("is_active", true)
+          .limit(1);
+        if (cancelled) return;
+        if (coupons && coupons.length > 0) {
+          const c = coupons[0];
+          if (c.expires_at && new Date(c.expires_at) < new Date()) {
+            setCodeError("This code has expired");
+            setCodeStatus("idle");
+            return;
+          }
+          if (c.max_uses && c.current_uses >= c.max_uses) {
+            setCodeError("This code has already been used");
+            setCodeStatus("idle");
+            return;
+          }
+          setAppliedCoupon(c);
+          setCodeStatus("applied");
+          trackFunnelEvent("v2_wheel_code_autoapplied", { code: parsed.code, prizeLabel: parsed.prizeLabel });
+        } else {
+          setCodeError("This code is no longer available");
+          setCodeStatus("idle");
+        }
+      } catch (e) {
+        console.error("[V2 wheel autofill]", e);
+        setCodeStatus("idle");
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Lock body scroll while any preview modal is open
   useEffect(() => {
     const anyOpen = soulSpeakOpen || horoscopeOpen;
@@ -1248,91 +1312,235 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           aria-modal="true"
           aria-labelledby="horoscope-modal-title"
           onClick={(e) => { if (e.target === e.currentTarget) closeHoroscope(); }}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 10000,
-            background: "rgba(20, 18, 16, 0.55)",
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "5vw",
-            animation: "soulSpeakBackdropIn 0.25s ease",
-          }}
+          className="horo-backdrop"
         >
-          <div
-            className="relative"
-            style={{
-              width: "min(560px, 96vw)",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              background: "var(--cream, #FFFDF5)",
-              borderRadius: 20,
-              padding: "clamp(24px, 5vw, 40px) clamp(22px, 5vw, 38px)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
-              animation: "soulSpeakPanelIn 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
-            }}
-          >
+          <div className="horo-panel">
+            {/* Celestial layers — starfield backdrop + three twinkling points.
+                Both sit on z-index 0, under the content on z-index 1. */}
+            <span aria-hidden="true" className="horo-starfield" />
+            <span aria-hidden="true" className="horo-twinkle horo-twinkle-1" />
+            <span aria-hidden="true" className="horo-twinkle horo-twinkle-2" />
+            <span aria-hidden="true" className="horo-twinkle horo-twinkle-3" />
+
             <button
               type="button"
               onClick={closeHoroscope}
               aria-label="Close"
-              className="absolute top-3 right-3 flex items-center justify-center rounded-full transition-opacity hover:opacity-70"
-              style={{ width: 34, height: 34, background: "rgba(196,162,101,0.14)", color: "var(--ink, #1f1c18)" }}
+              className="horo-close"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <div className="text-center mb-5">
-              <span
-                style={{
-                  display: "inline-block",
-                  fontFamily: "Cormorant, Georgia, serif",
-                  fontSize: "0.62rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.18em",
-                  textTransform: "uppercase",
-                  padding: "3px 10px",
-                  borderRadius: 4,
-                  background: "linear-gradient(135deg, #5aa870, #4a8c5c)",
-                  color: "#fff",
-                  marginBottom: 12,
-                }}
-              >
+            <div className="horo-header">
+              <span className="horo-badge">
+                <svg className="horo-badge-glyph" viewBox="0 0 10 10" aria-hidden="true">
+                  <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+                </svg>
                 Weekly Horoscopes · Free
               </span>
-              <h3
-                id="horoscope-modal-title"
-                style={{
-                  fontFamily: '"DM Serif Display", Georgia, serif',
-                  fontSize: "clamp(1.5rem, 6vw, 2rem)",
-                  color: "var(--black, #141210)",
-                  lineHeight: 1.15,
-                  letterSpacing: "-0.015em",
-                  margin: 0,
-                }}
-              >
-                Sundays <em style={{ color: "var(--rose, #bf524a)" }}>with them.</em>
+
+              <h3 id="horoscope-modal-title" className="horo-title">
+                Sundays <em>with them.</em>
               </h3>
+
+              <div className="horo-title-rule" aria-hidden="true">
+                <span />
+                <svg viewBox="0 0 10 10">
+                  <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+                </svg>
+                <span />
+              </div>
             </div>
 
             <HoroscopePreview />
 
-            <p
-              className="text-center mt-6"
-              style={{
-                fontFamily: "Cormorant, Georgia, serif",
-                fontStyle: "italic",
-                fontSize: "0.8rem",
-                color: "var(--muted, #958779)",
-              }}
-            >
+            <p className="horo-footer">
+              <svg className="horo-footer-glyph" viewBox="0 0 10 10" aria-hidden="true">
+                <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+              </svg>
               First month on us. Cancel anytime.
             </p>
+
+            <style>{`
+              @keyframes horoBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+              @keyframes horoPanelIn {
+                from { opacity: 0; transform: translateY(18px) scale(0.97); }
+                to   { opacity: 1; transform: translateY(0)    scale(1); }
+              }
+              @keyframes horoTwinkle {
+                0%, 100% { opacity: 0.25; transform: scale(0.8); }
+                50%      { opacity: 1;    transform: scale(1.25); }
+              }
+
+              .horo-backdrop {
+                position: fixed;
+                inset: 0;
+                z-index: 10000;
+                background: rgba(20, 18, 16, 0.58);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 5vw;
+                animation: horoBackdropIn 0.25s ease;
+              }
+
+              .horo-panel {
+                position: relative;
+                width: min(560px, 96vw);
+                max-height: 92vh;
+                overflow-y: auto;
+                overflow-x: hidden;
+                background:
+                  radial-gradient(140% 80% at 50% -10%, rgba(196, 162, 101, 0.11) 0%, rgba(196, 162, 101, 0) 60%),
+                  radial-gradient(120% 60% at 50% 0%, rgba(170, 148, 196, 0.10) 0%, rgba(170, 148, 196, 0) 55%),
+                  #FFFDF5;
+                border-radius: 24px;
+                padding: clamp(30px, 6vw, 46px) clamp(22px, 5vw, 38px) clamp(26px, 5vw, 36px);
+                box-shadow:
+                  0 0 0 1px rgba(196, 162, 101, 0.28) inset,
+                  0 30px 80px rgba(20, 15, 8, 0.28),
+                  0 4px 14px rgba(20, 15, 8, 0.08);
+                animation: horoPanelIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+              }
+
+              .horo-starfield {
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                height: 62%;
+                pointer-events: none;
+                z-index: 0;
+                background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='180' viewBox='0 0 260 180'><g fill='rgba(196,162,101,0.55)'><circle cx='22' cy='30' r='0.8'/><circle cx='72' cy='14' r='1.2'/><circle cx='110' cy='46' r='0.9'/><circle cx='168' cy='20' r='0.7'/><circle cx='228' cy='38' r='1'/><circle cx='50' cy='78' r='0.9'/><circle cx='196' cy='90' r='0.8'/><circle cx='16' cy='120' r='0.9'/><circle cx='92' cy='142' r='1.1'/><circle cx='148' cy='116' r='0.8'/><circle cx='244' cy='130' r='0.9'/><circle cx='212' cy='158' r='0.7'/></g><g fill='rgba(196,162,101,0.85)'><path transform='translate(134 62)' d='M4 0 L4.5 3.5 L8 4 L4.5 4.5 L4 8 L3.5 4.5 L0 4 L3.5 3.5 Z'/><path transform='translate(56 152)' d='M4 0 L4.5 3.5 L8 4 L4.5 4.5 L4 8 L3.5 4.5 L0 4 L3.5 3.5 Z'/></g></svg>");
+                background-repeat: repeat;
+                background-size: 260px 180px;
+                -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.55) 65%, transparent 100%);
+                        mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,0.55) 65%, transparent 100%);
+              }
+
+              .horo-twinkle {
+                position: absolute;
+                width: 3px;
+                height: 3px;
+                border-radius: 50%;
+                background: rgba(212, 178, 107, 0.95);
+                box-shadow: 0 0 6px rgba(212, 178, 107, 0.8);
+                pointer-events: none;
+                z-index: 0;
+              }
+              .horo-twinkle-1 { top: 38px;  left: 20%;  animation: horoTwinkle 3.2s ease-in-out infinite; }
+              .horo-twinkle-2 { top: 92px;  right: 22%; animation: horoTwinkle 4.4s ease-in-out 0.7s infinite; }
+              .horo-twinkle-3 { top: 148px; left: 62%;  animation: horoTwinkle 3.8s ease-in-out 1.5s infinite; }
+
+              .horo-close {
+                position: absolute;
+                top: 14px; right: 14px;
+                width: 34px; height: 34px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 9999px;
+                background: rgba(196, 162, 101, 0.16);
+                color: var(--ink, #1f1c18);
+                transition: background 200ms ease, transform 200ms ease;
+                z-index: 3;
+              }
+              .horo-close:hover { background: rgba(196, 162, 101, 0.28); transform: rotate(90deg); }
+
+              .horo-header {
+                position: relative;
+                z-index: 1;
+                text-align: center;
+                margin-bottom: clamp(20px, 3.4vw, 26px);
+              }
+
+              .horo-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-family: Cormorant, Georgia, serif;
+                font-size: 0.64rem;
+                font-weight: 700;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                padding: 4px 12px 4px 10px;
+                border-radius: 999px;
+                background: linear-gradient(135deg, #5aa870, #4a8c5c);
+                color: #fff;
+                margin-bottom: 16px;
+                box-shadow:
+                  0 4px 12px rgba(74, 140, 92, 0.22),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.24);
+              }
+              .horo-badge-glyph {
+                width: 9px; height: 9px;
+                color: #fff;
+                filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
+              }
+
+              .horo-title {
+                font-family: "DM Serif Display", Georgia, serif;
+                font-size: clamp(1.7rem, 6.4vw, 2.3rem);
+                color: var(--black, #141210);
+                line-height: 1.1;
+                letter-spacing: -0.018em;
+                margin: 0;
+              }
+              .horo-title em {
+                font-style: italic;
+                color: var(--rose, #bf524a);
+              }
+
+              .horo-title-rule {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 14px;
+                opacity: 0.9;
+              }
+              .horo-title-rule span {
+                display: block;
+                width: clamp(44px, 11vw, 78px);
+                height: 1px;
+                background: linear-gradient(90deg, rgba(196,162,101,0) 0%, rgba(196,162,101,0.65) 100%);
+              }
+              .horo-title-rule span:last-child {
+                background: linear-gradient(90deg, rgba(196,162,101,0.65) 0%, rgba(196,162,101,0) 100%);
+              }
+              .horo-title-rule svg {
+                width: 10px; height: 10px;
+                color: var(--gold, #c4a265);
+                filter: drop-shadow(0 0 3px rgba(212, 178, 107, 0.55));
+              }
+
+              .horo-footer {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 7px;
+                text-align: center;
+                margin-top: 22px;
+                font-family: Cormorant, Georgia, serif;
+                font-style: italic;
+                font-size: 0.82rem;
+                color: var(--muted, #958779);
+              }
+              .horo-footer-glyph {
+                width: 9px; height: 9px;
+                color: var(--gold, #c4a265);
+              }
+
+              @media (prefers-reduced-motion: reduce) {
+                .horo-twinkle { animation: none !important; opacity: 0.85; }
+                .horo-close { transition: none !important; }
+                .horo-close:hover { transform: none !important; }
+              }
+            `}</style>
           </div>
         </div>
       )}
@@ -1668,65 +1876,125 @@ const SoulSpeakPreview = () => (
 );
 
 const HoroscopePreview = () => (
-  <div className="space-y-5">
-    <p
-      style={{
-        fontFamily: "Cormorant, Georgia, serif",
-        fontSize: "1.05rem",
-        fontWeight: 600,
-        color: "var(--ink, #1f1c18)",
-        lineHeight: 1.5,
-        textAlign: "center",
-      }}
-    >
+  <div className="horo-preview">
+    <p className="horo-lead">
       A cosmic forecast — written every Sunday, just for them.
     </p>
 
-    <p
-      style={{
-        fontFamily: "Cormorant, Georgia, serif",
-        fontSize: "0.95rem",
-        color: "var(--earth, #6e6259)",
-        lineHeight: 1.75,
-        textAlign: "center",
-        padding: "0 4px",
-      }}
-    >
+    <div className="horo-divider" aria-hidden="true">
+      <span />
+      <svg viewBox="0 0 10 10">
+        <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+      </svg>
+      <span />
+    </div>
+
+    <p className="horo-body">
       Like a weather forecast — but made of starlight. Each Sunday, you'll see what the week ahead holds for their little soul: the tender days, the stirring ones, the quiet ones. A gentle map of the cosmos moving through their world — so nothing arrives without meaning.
     </p>
 
-    <p
-      style={{
-        fontFamily: "Cormorant, Georgia, serif",
-        fontSize: "0.92rem",
-        color: "var(--earth, #6e6259)",
-        lineHeight: 1.7,
-        textAlign: "center",
-        padding: "0 4px",
-      }}
-    >
-      Without it, the weeks just <em style={{ color: "var(--ink, #1f1c18)" }}>pass</em>. The small shifts, the soft turns, the days that wanted to be noticed — gone by before you saw them. And they only get so many weeks <em style={{ color: "var(--rose, #bf524a)" }}>with you</em>.
+    <p className="horo-body">
+      Without it, the weeks just <em className="ink">pass</em>. The small shifts, the soft turns, the days that wanted to be noticed — gone by before you saw them. And they only get so many weeks <em className="rose">with you</em>.
     </p>
 
-    <div
-      style={{
-        textAlign: "center",
-        padding: "18px 22px",
-        borderRadius: 14,
-        background: "rgba(196,162,101,0.08)",
-      }}
-    >
-      <p
-        style={{
-          fontFamily: "Cormorant, Georgia, serif",
-          fontStyle: "italic",
-          fontSize: "0.95rem",
-          color: "var(--ink, #1f1c18)",
-          lineHeight: 1.6,
-        }}
-      >
+    <figure className="horo-quote">
+      <span aria-hidden="true" className="horo-quote-corner tl" />
+      <span aria-hidden="true" className="horo-quote-corner tr" />
+      <span aria-hidden="true" className="horo-quote-corner bl" />
+      <span aria-hidden="true" className="horo-quote-corner br" />
+      <blockquote className="horo-quote-text">
         Knowing their week <br className="hidden sm:block" />is a way of knowing them deeper.
-      </p>
-    </div>
+      </blockquote>
+    </figure>
+
+    <style>{`
+      .horo-preview {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .horo-lead {
+        font-family: Cormorant, Georgia, serif;
+        font-size: clamp(1.04rem, 3.4vw, 1.18rem);
+        font-weight: 600;
+        color: var(--ink, #1f1c18);
+        line-height: 1.5;
+        text-align: center;
+        margin: 0;
+      }
+
+      .horo-divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: -4px auto 0;
+        opacity: 0.8;
+      }
+      .horo-divider span {
+        display: block;
+        width: 46px;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(196,162,101,0) 0%, rgba(196,162,101,0.5) 100%);
+      }
+      .horo-divider span:last-child {
+        background: linear-gradient(90deg, rgba(196,162,101,0.5) 0%, rgba(196,162,101,0) 100%);
+      }
+      .horo-divider svg {
+        width: 8px; height: 8px;
+        color: var(--gold, #c4a265);
+      }
+
+      .horo-body {
+        font-family: Cormorant, Georgia, serif;
+        font-size: clamp(0.94rem, 2.9vw, 1rem);
+        color: var(--earth, #6e6259);
+        line-height: 1.75;
+        text-align: center;
+        margin: 0;
+        padding: 0 2px;
+      }
+      .horo-body em.ink  { color: var(--ink,  #1f1c18); font-style: italic; font-weight: 500; }
+      .horo-body em.rose { color: var(--rose, #bf524a); font-style: italic; font-weight: 500; }
+
+      .horo-quote {
+        position: relative;
+        margin: 6px 0 0;
+        padding: clamp(22px, 4.5vw, 30px) clamp(22px, 5vw, 34px);
+        border-radius: 16px;
+        background:
+          radial-gradient(120% 120% at 50% 0%, rgba(212,178,107,0.12) 0%, rgba(212,178,107,0) 70%),
+          rgba(255, 251, 240, 0.78);
+        box-shadow:
+          0 0 0 1px rgba(196,162,101,0.32) inset,
+          0 6px 22px rgba(20, 15, 8, 0.06),
+          0 1px 2px rgba(20, 15, 8, 0.03);
+      }
+      .horo-quote-corner {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border: 1px solid var(--gold, #c4a265);
+        opacity: 0.55;
+      }
+      .horo-quote-corner.tl { top: 8px;    left: 8px;    border-right: none; border-bottom: none; border-top-left-radius: 4px; }
+      .horo-quote-corner.tr { top: 8px;    right: 8px;   border-left:  none; border-bottom: none; border-top-right-radius: 4px; }
+      .horo-quote-corner.bl { bottom: 8px; left: 8px;    border-right: none; border-top:    none; border-bottom-left-radius: 4px; }
+      .horo-quote-corner.br { bottom: 8px; right: 8px;   border-left:  none; border-top:    none; border-bottom-right-radius: 4px; }
+
+      .horo-quote-text {
+        font-family: Cormorant, Georgia, serif;
+        font-style: italic;
+        font-size: clamp(1rem, 3.1vw, 1.12rem);
+        color: var(--ink, #1f1c18);
+        line-height: 1.6;
+        text-align: center;
+        margin: 0;
+        letter-spacing: 0.002em;
+      }
+    `}</style>
   </div>
 );
