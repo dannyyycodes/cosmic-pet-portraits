@@ -13,6 +13,35 @@ function cors(req: Request) {
   };
 }
 
+// Strip Windows-1252-as-UTF-8 mojibake (e.g. "â€"" in place of em-dash). LLMs
+// occasionally regurgitate these sequences from training data; if they slip
+// through, every reader sees garbage until the row is manually cleaned.
+const MOJIBAKE_MAP: Array<[string, string]> = [
+  ["\u00e2\u20ac\u201d", "\u2014"], // em-dash —
+  ["\u00e2\u20ac\u201c", "\u2013"], // en-dash –
+  ["\u00e2\u20ac\u2122", "\u2019"], // right single quote '
+  ["\u00e2\u20ac\u02dc", "\u2018"], // left single quote '
+  ["\u00e2\u20ac\u0153", "\u201c"], // left double quote "
+  ["\u00e2\u20ac\u009d", "\u201d"], // right double quote "
+  ["\u00e2\u20ac\u00a6", "\u2026"], // ellipsis …
+  ["\u00e2\u20ac\u00a2", "\u2022"], // bullet •
+  ["\u00c2\u00a0", "\u00a0"],       // non-breaking space
+];
+function scrubMojibake<T>(v: T): T {
+  if (typeof v === "string") {
+    let s = v;
+    for (const [bad, good] of MOJIBAKE_MAP) s = s.split(bad).join(good);
+    return s as unknown as T;
+  }
+  if (Array.isArray(v)) return v.map(scrubMojibake) as unknown as T;
+  if (v && typeof v === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) out[k] = scrubMojibake(val);
+    return out as unknown as T;
+  }
+  return v;
+}
+
 const CLUSTER_LABEL: Record<string, string> = {
   A: "Pet Astrology",
   B: "Breed Personality",
@@ -427,7 +456,7 @@ Inline image rules:
 
         const { data: post, error: insertErr } = await supabase
           .from("blog_posts")
-          .insert(insertRow)
+          .insert(scrubMojibake(insertRow))
           .select()
           .single();
 
