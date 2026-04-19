@@ -514,21 +514,97 @@ serve(async (req) => {
             // Never fail the webhook over donation bookkeeping — the order is real.
           }
 
-          // Handle coupon usage - manual increment
+          // Handle coupon usage — increment + apply any wheel bonus
+          // (soul_speak_credits / tier_upgrade / horoscope_month) and
+          // mark the wheel-lead subscriber as purchased so the marketing
+          // pipeline stops nurturing them.
           const couponId = session.metadata?.coupon_id;
           if (couponId) {
             try {
               const { data: couponData } = await supabaseClient
                 .from("coupons")
-                .select("current_uses")
+                .select("current_uses, bonus_type, bonus_value, tier_upgrade_target, wheel_email, wheel_prize_label")
                 .eq("id", couponId)
                 .single();
-              
+
               if (couponData) {
                 await supabaseClient
                   .from("coupons")
                   .update({ current_uses: couponData.current_uses + 1 })
                   .eq("id", couponId);
+
+                // Wheel-bonus handler — only fires when bonus_type is set.
+                // Discount-only codes fall through with no extra work.
+                if (couponData.bonus_type === "soul_speak_credits") {
+                  const credits = Number(couponData.bonus_value) || 0;
+                  const targetReportId = reportIds[0];
+                  if (credits > 0 && targetReportId) {
+                    const { error: bonusErr } = await supabaseClient.rpc("increment_chat_credits", {
+                      p_order_id: targetReportId,
+                      p_amount: credits,
+                    });
+                    if (bonusErr) {
+                      console.error("[STRIPE-WEBHOOK] Wheel bonus credits failed:", bonusErr);
+                      await supabaseClient.from("webhook_failures").insert({
+                        source: "stripe-webhook",
+                        event_type: "wheel_bonus_credits",
+                        stripe_session_id: session.id,
+                        order_id: targetReportId,
+                        details: { coupon_id: couponId, credits, error: bonusErr },
+                      });
+                    } else {
+                      console.log("[STRIPE-WEBHOOK] Wheel bonus credits added:", credits, "to report:", targetReportId);
+                    }
+                  }
+                } else if (couponData.bonus_type === "tier_upgrade") {
+                  // TODO(spin-wheel-v2): tier upgrade requires create-checkout
+                  // to switch the line-item tier when this code is applied.
+                  // For now, log a webhook_failures row so the order can be
+                  // upgraded manually until the create-checkout patch lands.
+                  await supabaseClient.from("webhook_failures").insert({
+                    source: "stripe-webhook",
+                    event_type: "wheel_bonus_tier_upgrade_pending",
+                    stripe_session_id: session.id,
+                    order_id: reportIds[0] || null,
+                    details: {
+                      coupon_id: couponId,
+                      target_tier: couponData.tier_upgrade_target,
+                      wheel_email: couponData.wheel_email,
+                      report_ids: reportIds,
+                    },
+                  });
+                  console.log("[STRIPE-WEBHOOK] Wheel tier-upgrade flagged for manual fulfilment:", reportIds);
+                } else if (couponData.bonus_type === "horoscope_month") {
+                  // TODO(spin-wheel-v2): horoscope bonus needs trial_period_days
+                  // bumped from 30 → 60 at create-checkout time, OR a Stripe
+                  // subscription.update call to extend trial_end. Logged for
+                  // manual fulfilment until that lands.
+                  await supabaseClient.from("webhook_failures").insert({
+                    source: "stripe-webhook",
+                    event_type: "wheel_bonus_horoscope_pending",
+                    stripe_session_id: session.id,
+                    order_id: reportIds[0] || null,
+                    details: {
+                      coupon_id: couponId,
+                      months: Number(couponData.bonus_value) || 1,
+                      wheel_email: couponData.wheel_email,
+                    },
+                  });
+                  console.log("[STRIPE-WEBHOOK] Wheel horoscope bonus flagged for manual fulfilment");
+                }
+
+                // Mark the wheel-lead as purchased so email-nurture stops.
+                // Only updates if the coupon was won by a wheel lead AND the
+                // subscriber row exists — silent no-op otherwise.
+                if (couponData.wheel_email) {
+                  await supabaseClient
+                    .from("email_subscribers")
+                    .update({
+                      journey_stage: "purchased",
+                      purchase_completed_at: new Date().toISOString(),
+                    })
+                    .eq("email", couponData.wheel_email);
+                }
               }
             } catch (couponError) {
               console.error("[STRIPE-WEBHOOK] Failed to update coupon usage:", couponError);

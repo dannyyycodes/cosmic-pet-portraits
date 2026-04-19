@@ -1822,56 +1822,277 @@ const EdenReforestationMark = () => <CharityLogoImg src="/charities/eden.png" al
 /* ──────── Feature preview subcomponents ──────── */
 
 const SoulSpeakPreview = () => (
-  <div className="space-y-2">
-    <p
-      style={{
-        fontFamily: "Cormorant, Georgia, serif",
-        fontSize: "0.78rem",
-        fontWeight: 600,
-        color: "var(--ink, #1f1c18)",
-      }}
-    >
+  <div className="ss-preview">
+    <p className="ss-preview-intro">
       Have the conversation you've always wished you could have.
     </p>
-    <div className="flex justify-end">
-      <div
-        className="px-3 py-1.5 rounded-xl rounded-br-sm"
-        style={{ background: "var(--rose, #bf524a)", color: "#fff", maxWidth: "85%" }}
-      >
-        <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.74rem", lineHeight: 1.4 }}>
-          Why do you always steal my socks?
-        </p>
+
+    {/* Chat surface — mirrors the real SoulSpeak channel at /soul-chat.html.
+        Bubbles render staggered so the conversation feels alive, the last
+        pet reply is two words (the hook), and a typing indicator keeps
+        pulsing after — so the reader feels there's always more to hear. */}
+    <div className="ss-chat" role="log" aria-label="SoulSpeak conversation preview">
+      <div className="ss-msg ss-msg-user" style={{ animationDelay: "0.1s" }}>
+        <div className="ss-bubble">What do you wish I knew?</div>
+      </div>
+
+      <div className="ss-msg ss-msg-pet" style={{ animationDelay: "0.85s" }}>
+        <div className="ss-avatar" aria-hidden="true">
+          <svg viewBox="0 0 10 10">
+            <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+          </svg>
+        </div>
+        <div className="ss-bubble">
+          That I notice when you come home sad. I don't want to fix it — I just want to sit there with you.
+        </div>
+      </div>
+
+      <div className="ss-msg ss-msg-user" style={{ animationDelay: "2.1s" }}>
+        <div className="ss-bubble">Even when I don't say anything?</div>
+      </div>
+
+      <div className="ss-msg ss-msg-pet" style={{ animationDelay: "2.75s" }}>
+        <div className="ss-avatar" aria-hidden="true">
+          <svg viewBox="0 0 10 10">
+            <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+          </svg>
+        </div>
+        <div className="ss-bubble ss-bubble-hero">Especially then.</div>
+      </div>
+
+      <div className="ss-typing" aria-hidden="true" style={{ animationDelay: "3.45s" }}>
+        <div className="ss-avatar">
+          <svg viewBox="0 0 10 10">
+            <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+          </svg>
+        </div>
+        <div className="ss-typing-dots">
+          <span /><span /><span />
+        </div>
+      </div>
+
+      {/* Fake composer — non-interactive. The placeholder invites typing,
+          and the live cursor makes the field feel ready to be used. This
+          is the conversion lever: a reader who sees it wants to type. */}
+      <div className="ss-composer" aria-hidden="true">
+        <span className="ss-composer-field">
+          Ask them anything<span className="ss-cursor" />
+        </span>
+        <span className="ss-composer-send" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="14" height="14">
+            <path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10.2 15 12 3.4 13.8z" />
+          </svg>
+        </span>
       </div>
     </div>
-    <div className="flex justify-start">
-      <div
-        className="px-3 py-1.5 rounded-xl rounded-bl-sm"
-        style={{ background: "var(--cream3, #f3eadb)", maxWidth: "90%" }}
-      >
-        <p
-          style={{
-            fontFamily: "Cormorant, Georgia, serif",
-            fontStyle: "italic",
-            fontSize: "0.74rem",
-            color: "var(--earth, #6e6259)",
-            lineHeight: 1.4,
-          }}
-        >
-          Because they smell like you. And when you leave, that's the closest thing I have to you being here.
-        </p>
-      </div>
-    </div>
-    <p
-      style={{
-        fontFamily: "Cormorant, Georgia, serif",
-        fontStyle: "italic",
-        fontSize: "0.7rem",
-        color: "var(--muted, #958779)",
-        textAlign: "center",
-      }}
-    >
-      Ask them anything. Hear what they'd say.
-    </p>
+
+    <style>{`
+      .ss-preview {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .ss-preview-intro {
+        font-family: Cormorant, Georgia, serif;
+        font-size: clamp(0.95rem, 2.9vw, 1.04rem);
+        font-weight: 600;
+        color: var(--ink, #1f1c18);
+        line-height: 1.5;
+        text-align: center;
+        margin: 0;
+      }
+
+      .ss-chat {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: clamp(14px, 3vw, 18px) clamp(10px, 2.5vw, 14px) clamp(12px, 2.5vw, 14px);
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, rgba(255, 253, 245, 0.85) 0%, rgba(248, 240, 224, 0.55) 100%);
+        box-shadow:
+          inset 0 0 0 1px rgba(196, 162, 101, 0.24),
+          0 2px 8px rgba(20, 15, 8, 0.05);
+      }
+
+      .ss-msg {
+        display: flex;
+        max-width: 94%;
+        opacity: 0;
+        animation: ssMsgIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+      .ss-msg-user {
+        align-self: flex-end;
+        max-width: 84%;
+      }
+      .ss-msg-pet {
+        align-self: flex-start;
+        align-items: flex-end;
+        gap: 7px;
+      }
+
+      .ss-avatar {
+        flex-shrink: 0;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(227, 198, 135, 0.9) 0%, rgba(196, 162, 101, 0.95) 70%, rgba(169, 134, 85, 1) 100%);
+        border: 1.5px solid var(--cream3, #f3eadb);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 3px rgba(164, 129, 72, 0.22);
+      }
+      .ss-avatar svg {
+        width: 10px;
+        height: 10px;
+        color: #fff8f5;
+        filter: drop-shadow(0 0 2px rgba(255, 248, 245, 0.7));
+      }
+
+      .ss-bubble {
+        padding: 10px 14px;
+        border-radius: 17px;
+        font-family: Cormorant, Georgia, serif;
+        font-size: clamp(0.92rem, 2.8vw, 0.98rem);
+        line-height: 1.5;
+        letter-spacing: 0.005em;
+        word-wrap: break-word;
+      }
+
+      .ss-msg-user .ss-bubble {
+        background: linear-gradient(135deg, #bf524a 0%, #a84039 100%);
+        color: #fff8f5;
+        border-bottom-right-radius: 4px;
+        box-shadow:
+          0 2px 8px rgba(191, 82, 74, 0.22),
+          0 1px 2px rgba(191, 82, 74, 0.12);
+      }
+
+      .ss-msg-pet .ss-bubble {
+        background: #ffffff;
+        color: var(--ink, #1f1c18);
+        border: 1px solid var(--cream3, #f3eadb);
+        border-bottom-left-radius: 4px;
+        box-shadow:
+          0 1px 4px rgba(20, 15, 8, 0.04),
+          0 0 0 0.5px rgba(196, 162, 101, 0.06);
+      }
+
+      /* The two-word final reply — slightly larger, italic, gold-tinted
+         rule above the text so it reads like a soft revelation. */
+      .ss-bubble-hero {
+        font-style: italic;
+        font-size: clamp(1rem, 3vw, 1.08rem);
+        font-weight: 500;
+        color: var(--rose, #bf524a);
+        padding: 11px 18px;
+      }
+
+      /* Typing indicator — same bubble chrome as pet bubbles, gold dots
+         with a staggered bounce. Keeps pulsing to tease continuation. */
+      .ss-typing {
+        display: flex;
+        align-items: flex-end;
+        gap: 7px;
+        align-self: flex-start;
+        opacity: 0;
+        animation: ssMsgIn 0.4s ease forwards;
+      }
+      .ss-typing-dots {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 12px 16px;
+        background: #ffffff;
+        border: 1px solid var(--cream3, #f3eadb);
+        border-radius: 16px;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 4px rgba(20, 15, 8, 0.04);
+      }
+      .ss-typing-dots span {
+        display: block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gold, #c4a265);
+        opacity: 0.35;
+        animation: ssTypingBounce 1.4s ease-in-out infinite;
+      }
+      .ss-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+      .ss-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+      /* Fake composer — appears with the typing indicator */
+      .ss-composer {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 8px 8px 16px;
+        border-radius: 9999px;
+        background: #ffffff;
+        border: 1px solid var(--cream3, #f3eadb);
+        box-shadow:
+          0 2px 8px rgba(20, 15, 8, 0.04),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        opacity: 0;
+        animation: ssMsgIn 0.5s ease 3.8s forwards;
+      }
+      .ss-composer-field {
+        flex: 1;
+        font-family: Cormorant, Georgia, serif;
+        font-style: italic;
+        font-size: clamp(0.86rem, 2.6vw, 0.92rem);
+        color: var(--muted, #958779);
+        letter-spacing: 0.005em;
+        display: inline-flex;
+        align-items: center;
+      }
+      .ss-cursor {
+        display: inline-block;
+        width: 1px;
+        height: 0.95em;
+        margin-left: 3px;
+        background: var(--rose, #bf524a);
+        animation: ssCursorBlink 1.1s steps(2) infinite;
+      }
+      .ss-composer-send {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #bf524a 0%, #a84039 100%);
+        color: #fff8f5;
+        box-shadow: 0 2px 6px rgba(191, 82, 74, 0.28);
+      }
+
+      @keyframes ssMsgIn {
+        from { opacity: 0; transform: translateY(10px) scale(0.96); }
+        to   { opacity: 1; transform: translateY(0)    scale(1); }
+      }
+      @keyframes ssTypingBounce {
+        0%, 60%, 100% { transform: translateY(0);    opacity: 0.35; }
+        30%           { transform: translateY(-3px); opacity: 0.95; }
+      }
+      @keyframes ssCursorBlink {
+        0%, 50%   { opacity: 1; }
+        50.01%, 100% { opacity: 0; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ss-msg, .ss-typing, .ss-composer {
+          opacity: 1 !important;
+          animation: none !important;
+          transform: none !important;
+        }
+        .ss-typing-dots span { animation: none !important; opacity: 0.5; }
+        .ss-cursor { animation: none !important; opacity: 0; }
+      }
+    `}</style>
   </div>
 );
 

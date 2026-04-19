@@ -2,7 +2,6 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
-import { supabase } from "@/integrations/supabase/client";
 import { ProductReveal } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
@@ -10,6 +9,7 @@ import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 import { GriefSection } from "./GriefSection";
 import { PathPicker, type FunnelPath } from "./PathPicker";
+import { SpinWheel } from "./SpinWheel";
 
 /**
  * Per-path CTA labels. Memorial gets a tender, reverent verb so the
@@ -53,10 +53,14 @@ export const FunnelV2 = () => {
     /* no scroll */
   }, []);
   const [showStickyCta, setShowStickyCta] = useState(false);
-  const [showExitIntent, setShowExitIntent] = useState(false);
-  const [exitIntentShown, setExitIntentShown] = useState(false);
-  const [exitEmail, setExitEmail] = useState("");
-  const [exitSubmitted, setExitSubmitted] = useState(false);
+  const [showWheel, setShowWheel] = useState(false);
+  // Lifted from localStorage so the wheel only shows once per browser
+  // ever — including across sessions. The flag is also set on close /
+  // dismissal so a visitor who waved it off doesn't re-trigger it.
+  const [wheelShown, setWheelShown] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return localStorage.getItem("ls_wheel_shown") === "1"; } catch { return false; }
+  });
   const [showScrollNudge, setShowScrollNudge] = useState(false);
   const [scrollNudgeDismissed, setScrollNudgeDismissed] = useState(false);
   const [charityId, setCharityId] = useState("ifaw");
@@ -89,37 +93,66 @@ export const FunnelV2 = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isMobile, scrollNudgeDismissed, showScrollNudge]);
 
-  // Exit intent — desktop only
+  // ── Cosmic Wheel triggers ─────────────────────────────────────────
+  //
+  // Three triggers race; whichever fires first opens the wheel, and
+  // `wheelShown` (localStorage-persisted) blocks every subsequent
+  // attempt. Triggers:
+  //
+  //   1. SCROLL-TO-PRICING — visitor crosses within 240px of the
+  //      InlineCheckout section. Strongest "intent to buy" signal —
+  //      we want them to enter pricing already holding a code.
+  //   2. INTENT-DELAY — 7 seconds after they pick a path, IF they
+  //      haven't already scrolled to pricing. Catches readers who
+  //      linger on the product reveal.
+  //   3. EXIT-INTENT (desktop only) — backstop for visitors trying
+  //      to leave without picking a tier.
+  //
+  // We do NOT pop the wheel before the visitor has picked a path —
+  // the landing screen's job is one decision (pick intent), not two.
   useEffect(() => {
-    if (exitIntentShown || isMobile) return;
+    if (wheelShown || !selectedPath) return;
 
-    const handleMouseLeave = (e: MouseEvent) => {
-      if (e.clientY <= 5) {
-        setShowExitIntent(true);
-        setExitIntentShown(true);
-      }
+    let opened = false;
+    const fireOnce = () => {
+      if (opened || wheelShown) return;
+      opened = true;
+      setShowWheel(true);
+      setWheelShown(true);
+      try { localStorage.setItem("ls_wheel_shown", "1"); } catch { /* ignore */ }
     };
 
-    document.addEventListener("mouseleave", handleMouseLeave);
-    return () => document.removeEventListener("mouseleave", handleMouseLeave);
-  }, [exitIntentShown, isMobile]);
+    // Trigger 1 — scroll within 240px of the checkout section.
+    const onScroll = () => {
+      const node = checkoutRef.current;
+      if (!node) return;
+      const rect = node.getBoundingClientRect();
+      if (rect.top - window.innerHeight < 240) fireOnce();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
 
-  const handleExitSubmit = async () => {
-    if (!exitEmail.trim() || !exitEmail.includes("@")) return;
-    setExitSubmitted(true);
+    // Trigger 2 — 7s after path selection.
+    const intentTimer = window.setTimeout(fireOnce, 7000);
 
-    try {
-      await supabase.from("email_leads").insert({
-        email: exitEmail.trim().toLowerCase(),
-        source: "v2_exit_intent",
-        created_at: new Date().toISOString(),
-      });
-    } catch {
-      try { localStorage.setItem("ls_exit_email", exitEmail.trim()); } catch {}
-    }
+    // Trigger 3 — desktop exit-intent (mouseleave at top of viewport).
+    const onMouseLeave = (e: MouseEvent) => { if (e.clientY <= 5) fireOnce(); };
+    if (!isMobile) document.addEventListener("mouseleave", onMouseLeave);
 
-    setTimeout(() => setShowExitIntent(false), 2500);
-  };
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(intentTimer);
+      if (!isMobile) document.removeEventListener("mouseleave", onMouseLeave);
+    };
+  }, [wheelShown, selectedPath, isMobile]);
+
+  const handleWheelClaim = useCallback((_prize: { code: string; prizeLabel: string }) => {
+    // SpinWheel has already written to sessionStorage — InlineCheckout
+    // reads it on mount and applies the code. We just scroll there.
+    setShowWheel(false);
+    window.setTimeout(() => {
+      checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }, []);
 
   return (
     <div className="bg-[var(--cream,#FFFDF5)]">
@@ -305,101 +338,13 @@ export const FunnelV2 = () => {
         }
       `}</style>
 
-      {/* Exit intent overlay — desktop only */}
-      {showExitIntent && (
-        <div
-          className="fixed inset-0 flex items-center justify-center p-4"
-          style={{ zIndex: 10000, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowExitIntent(false); }}
-        >
-          <div
-            className="relative max-w-sm w-full rounded-2xl p-6 text-center"
-            style={{
-              background: "var(--cream, #FFFDF5)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-              animation: "exitSlideUp 0.4s ease-out",
-            }}
-          >
-            <button
-              onClick={() => setShowExitIntent(false)}
-              className="absolute top-3 right-3 p-1.5 rounded-full transition-opacity hover:opacity-70"
-              style={{ color: "var(--muted, #958779)" }}
-              aria-label="Close"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <div className="mb-4">
-              <svg className="w-10 h-10 mx-auto" viewBox="0 0 24 24" fill="var(--rose, #bf524a)" opacity={0.8}>
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
-            </div>
-
-            {exitSubmitted ? (
-              <div>
-                <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.3rem", color: "var(--black, #141210)", marginBottom: 8 }}>
-                  Saved.
-                </h3>
-                <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--earth, #6e6259)" }}>
-                  We&rsquo;ll send a link to your mini reading once it&rsquo;s ready &mdash; it unveils inside Little Souls.
-                </p>
-              </div>
-            ) : (
-              <>
-                <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "1.3rem", color: "var(--black, #141210)", marginBottom: 8, lineHeight: 1.2 }}>
-                  Before you go...
-                </h3>
-                <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--earth, #6e6259)", lineHeight: 1.6, marginBottom: 16 }}>
-                  Leave your email and we&rsquo;ll hold a <strong>free mini cosmic reading</strong> for you &mdash;
-                  their sun sign personality and today&rsquo;s forecast, unveiled inside Little Souls.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    value={exitEmail}
-                    onChange={(e) => setExitEmail(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") handleExitSubmit(); }}
-                    placeholder="your@email.com"
-                    className="flex-1 px-4 py-3 rounded-xl outline-none"
-                    style={{
-                      fontFamily: "Cormorant, Georgia, serif",
-                      fontSize: "0.95rem",
-                      border: "1.5px solid var(--cream3, #f3eadb)",
-                      color: "var(--ink, #1f1c18)",
-                      minHeight: 48,
-                    }}
-                  />
-                  <button
-                    onClick={handleExitSubmit}
-                    className="px-5 py-3 rounded-xl text-white font-semibold transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97]"
-                    style={{
-                      fontFamily: "Cormorant, Georgia, serif",
-                      fontWeight: 700,
-                      background: "var(--rose, #bf524a)",
-                      whiteSpace: "nowrap",
-                      minHeight: 48,
-                    }}
-                  >
-                    Send it
-                  </button>
-                </div>
-                <p className="mt-3" style={{ fontSize: "0.72rem", color: "var(--faded, #bfb2a3)" }}>
-                  No spam. Unsubscribe anytime.
-                </p>
-              </>
-            )}
-          </div>
-
-          <style>{`
-            @keyframes exitSlideUp {
-              from { opacity: 0; transform: translateY(20px) scale(0.95); }
-              to { opacity: 1; transform: translateY(0) scale(1); }
-            }
-          `}</style>
-        </div>
-      )}
+      {/* Cosmic Wheel — replaces the old "free mini cosmic reading"
+          exit-intent. Triggers managed in the useEffect above. */}
+      <SpinWheel
+        open={showWheel}
+        onClose={() => setShowWheel(false)}
+        onClaim={handleWheelClaim}
+      />
     </div>
   );
 };
