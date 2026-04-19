@@ -268,6 +268,54 @@ export function runDeterministicVerification(
         }
       }
 
+      // 5a. Memorial tense pre-check — fast deterministic catch for obvious
+      //     present-tense verbs about the deceased pet. Haiku semantic check
+      //     runs later (slower, LLM-based), but this catches ~80% of violations
+      //     for free. A present-tense sentence about a dead pet in a memorial
+      //     report is a critical failure. Attributing the verb to the pet is
+      //     required (via pet name + subject pronoun) so we don't false-fire
+      //     on sentences that happen to contain common present-tense verbs
+      //     about the owner ("you still love them").
+      if (opts.occasionMode === "memorial") {
+        // Common present-tense verbs the memorial prompt explicitly forbids
+        // (mirrors the cosmic→memorial verb substitution in occasionMode.ts).
+        const PT_VERBS =
+          "is|are|loves|brings|has|have|feels|shows|reacts|greets|wants|needs|does|goes|comes|runs|sits|sleeps|eats|thinks|knows";
+        const namePart = opts.petName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const subjectPronoun = opts.gender === "boy" ? "he" : "she";
+        const ptRe = new RegExp(
+          // Either "{name} <verb>" or "{subjectPronoun} <verb>" at word boundaries.
+          `\\b(?:${namePart}|${subjectPronoun})\\s+(?:${PT_VERBS})\\b`,
+          "gi",
+        );
+        // Conditional markers that legitimately use present tense in a memorial
+        // context ("if he is happy now", "when he comes to me in dreams") — we
+        // tolerate these so the verb only counts when it's a bare statement.
+        const conditionalRe =
+          /\b(if|when|whether|as if|even if|as though|should|would|might|could|in case|imagine|suppose|perhaps|maybe)\b/i;
+        const sentenceRe = new RegExp(
+          `[^.!?\\n]*\\b(?:${namePart}|${subjectPronoun})\\s+(?:${PT_VERBS})\\b[^.!?\\n]*[.!?]`,
+          "gi",
+        );
+        const ptMatches = [...fixed.matchAll(ptRe)];
+        if (ptMatches.length > 0) {
+          const sentences = fixed.match(sentenceRe) ?? [];
+          const badSentences = sentences.filter((s) => !conditionalRe.test(s));
+          if (badSentences.length > 0) {
+            issues.push({
+              section,
+              category: "tense",
+              severity: "critical",
+              message:
+                `Memorial mode requires PAST TENSE. Present-tense sentence detected: ` +
+                `"${badSentences[0].trim().slice(0, 160)}"`,
+              autoFixable: false,
+              foundText: ptMatches[0][0],
+            });
+          }
+        }
+      }
+
       // 5. Degree drift — if "Sun at 5°" claimed, must match calculated ±1°
       const degRe = /\b(sun|moon|mercury|venus|mars|jupiter|saturn|uranus|neptune|pluto|ascendant|rising|chiron|lilith|north node)\s+(?:at|is at|of|in)?\s*(?:[a-z]+\s+)?(\d{1,2})\s*°/gi;
       for (const m of fixed.matchAll(degRe)) {

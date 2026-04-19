@@ -224,7 +224,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
       they: 'they',
     },
     
-    nameTitle: "Tell us their name ❤️",
+    nameTitle: "Tell us their name",
     nameSubtitle: "Names carry vibrational energy that shaped who they were.",
     
     speciesTitle: (name) => `What kind of companion was ${name}?`,

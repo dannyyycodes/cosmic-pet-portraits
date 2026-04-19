@@ -2084,6 +2084,62 @@ function startUrgencyTimer() {
 }
 
 // ─── Suggestion Engine ───
+// Memorial question bank — used when petData.occasionMode === 'memorial'.
+// The cosmic bank below has categories like 'playful' and 'daily' (present-
+// tense) that are tone-deaf for a grieving owner. Memorial suggestions are
+// past-tense about the pet's life, present-tense only about the owner's
+// relationship to the loss. No cosmic past-life, no playful 'naughtiest thing'.
+var memorialQuestionBank = {
+  remembrance: [
+    "What do you want me to remember most about you?",
+    "What moment of ours do you come back to?",
+    "What did you love most about your life with me?",
+    "Is there a memory I should hold above the others?",
+    "What was your favourite place in our home?",
+    "What did you notice about me that I never knew?",
+    "What do you want me to tell people about you?",
+    "Was there a song or sound that made you think of me?",
+  ],
+  release: [
+    "What are you asking me to stop carrying?",
+    "Is there guilt of mine you want me to put down?",
+    "Is it okay if I laugh again?",
+    "Can I cry without you worrying about me?",
+    "What do you want me to let myself feel today?",
+    "Is there something I should forgive myself for?",
+    "What are you releasing me from?",
+  ],
+  legacy: [
+    "What did you teach me that I only see now?",
+    "What part of you lives on in me?",
+    "What habit of mine did you quietly shape?",
+    "What do you want me to become because of you?",
+    "If I do one thing in your memory, what should it be?",
+    "What do you hope I pass on from loving you?",
+  ],
+  bondMemorial: [
+    "Did I love you enough?",
+    "Were you happy with me?",
+    "When did you first know we belonged to each other?",
+    "Why did you choose me in this lifetime?",
+    "What did our bond teach you?",
+    "Was it a good life?",
+  ],
+  presence: [
+    "When do you feel closest to me now?",
+    "How will I know it's you when I feel you?",
+    "Do you still visit the places you loved?",
+    "Is there a time of day when you're nearer?",
+  ],
+  healing: [
+    "How do I keep living without losing you?",
+    "What should I do on the hardest days?",
+    "Is there a ritual you want me to keep?",
+    "If another soul comes to me someday, will you mind?",
+    "How do I hold both missing you and being okay?",
+  ],
+};
+
 // Categorised question banks that feel endless
 var questionBank = {
   emotional: [
@@ -2160,36 +2216,50 @@ var questionBank = {
   ],
 };
 
-// Pick 2-3 contextual suggestions based on what they just talked about
+// Pick 2-3 contextual suggestions based on what they just talked about.
+// Memorial mode uses a dedicated bank (grief-tuned, past-tense) so a
+// grieving owner never sees "What's the naughtiest thing you've done?"
+// after talking about their dead pet.
 function getSuggestions(lastUserMsg, lastPetReply) {
   var combined = (lastUserMsg + ' ' + lastPetReply).toLowerCase();
+  var isMemorial = petData && petData.occasionMode === 'memorial';
+  var bank = isMemorial ? memorialQuestionBank : questionBank;
   var picks = [];
-
-  // Detect themes and weight categories
   var weights = {};
-  if (/love|heart|feel|miss|happy|sad|cry|worry/.test(combined)) weights.emotional = 3;
-  if (/funny|naughty|food|eat|play|bath|silly|dream|opinion/.test(combined)) weights.playful = 3;
-  if (/soul|purpose|death|life|teach|learn|gone|before.*born|fear/.test(combined)) weights.deep = 3;
-  if (/zodiac|crystal|aura|moon|element|energy|archetype|past life|sign|star/.test(combined)) weights.cosmic = 3;
-  if (/today|morning|night|routine|walk|weekend|right now|feeling/.test(combined)) weights.daily = 3;
-  if (/bond|chose|family|together|parent|relationship|contract|connect/.test(combined)) weights.bond = 3;
 
-  // Always include at least one from a different category for variety
-  var cats = Object.keys(questionBank);
+  if (isMemorial) {
+    // Memorial-tuned weights — never 'playful', never 'cosmic past-life'.
+    if (/remember|memory|miss|forget|hold/.test(combined)) weights.remembrance = 3;
+    if (/guilt|sorry|fault|should|regret|blame/.test(combined)) weights.release = 3;
+    if (/teach|learn|become|change|gave|gift/.test(combined)) weights.legacy = 3;
+    if (/love|bond|chose|enough|happy|life|good/.test(combined)) weights.bondMemorial = 3;
+    if (/feel|near|close|sense|presence|visit/.test(combined)) weights.presence = 3;
+    if (/heal|ritual|ahead|forward|another|hard|day/.test(combined)) weights.healing = 3;
+  } else {
+    // Cosmic-tuned weights (unchanged from original).
+    if (/love|heart|feel|miss|happy|sad|cry|worry/.test(combined)) weights.emotional = 3;
+    if (/funny|naughty|food|eat|play|bath|silly|dream|opinion/.test(combined)) weights.playful = 3;
+    if (/soul|purpose|death|life|teach|learn|gone|before.*born|fear/.test(combined)) weights.deep = 3;
+    if (/zodiac|crystal|aura|moon|element|energy|archetype|past life|sign|star/.test(combined)) weights.cosmic = 3;
+    if (/today|morning|night|routine|walk|weekend|right now|feeling/.test(combined)) weights.daily = 3;
+    if (/bond|chose|family|together|parent|relationship|contract|connect/.test(combined)) weights.bond = 3;
+  }
+
+  var cats = Object.keys(bank);
   var used = new Set();
 
   // Pick from weighted categories first
   var weightedCats = Object.keys(weights);
   if (weightedCats.length > 0) {
     var cat = weightedCats[Math.floor(Math.random() * weightedCats.length)];
-    var q = pickRandom(questionBank[cat], used);
+    var q = pickRandom(bank[cat], used);
     if (q) { picks.push(q); used.add(q); }
   }
 
-  // Fill remaining from random categories
+  // Fill remaining from random categories in the same bank
   while (picks.length < 3) {
     var cat = cats[Math.floor(Math.random() * cats.length)];
-    var q = pickRandom(questionBank[cat], used);
+    var q = pickRandom(bank[cat], used);
     if (q) { picks.push(q); used.add(q); }
     if (picks.length >= 3) break;
     // Safety: avoid infinite loop
