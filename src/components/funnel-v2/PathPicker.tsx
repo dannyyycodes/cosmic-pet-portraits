@@ -160,9 +160,16 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
         .path-picker-hearts {
           position: absolute;
           inset: 0;
-          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><g fill='rgba(191,82,74,0.075)'><path transform='translate(14 16) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/><path transform='translate(108 110) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/></g><g fill='none' stroke='rgba(191,82,74,0.16)' stroke-width='1.25' stroke-linejoin='round'><path transform='translate(110 20) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/><path transform='translate(20 106) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/></g></svg>");
+          /* Sparse, scattered hearts — 4 per 340px tile, varied
+             scales and rotations so the repeat doesn't read as a
+             grid. 2 filled + 2 outline keeps the 50/50 split. A
+             second, offset layer at a different scale breaks any
+             residual tiling pattern. */
+          background-image:
+            url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340' viewBox='0 0 340 340'><g fill='rgba(191,82,74,0.07)'><path transform='translate(40 58) rotate(-14) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/><path transform='translate(248 234) rotate(9) scale(1.05)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/></g><g fill='none' stroke='rgba(191,82,74,0.14)' stroke-width='1.2' stroke-linejoin='round'><path transform='translate(236 48) rotate(18) scale(0.95)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/><path transform='translate(56 208) rotate(-7) scale(1.4)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/></g></svg>");
           background-repeat: repeat;
-          background-size: 180px 180px;
+          background-size: 340px 340px;
+          background-position: 0 0;
           pointer-events: none;
           z-index: 0;
           /* Soft cream fade at top + bottom so the wallpaper melts
@@ -170,20 +177,20 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           -webkit-mask-image: linear-gradient(
             180deg,
             transparent 0,
-            #000 8%,
-            #000 92%,
+            #000 10%,
+            #000 90%,
             transparent 100%
           );
                   mask-image: linear-gradient(
             180deg,
             transparent 0,
-            #000 8%,
-            #000 92%,
+            #000 10%,
+            #000 90%,
             transparent 100%
           );
         }
         .is-compact .path-picker-hearts {
-          background-size: 150px 150px;
+          background-size: 280px 280px;
           opacity: 0.7;
         }
 
