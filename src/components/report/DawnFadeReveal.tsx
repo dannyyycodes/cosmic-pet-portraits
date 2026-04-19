@@ -1,4 +1,4 @@
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
 
 interface DawnFadeRevealProps {
@@ -17,37 +17,44 @@ interface DawnFadeRevealProps {
 export function DawnFadeReveal({ whisper, subWhisper }: DawnFadeRevealProps) {
   const ref = useRef<HTMLDivElement | null>(null);
   const inView = useInView(ref, { once: true, margin: '-25% 0px' });
+  const reducedMotion = useReducedMotion();
 
+  // When reduced motion is preferred, render the final cream state
+  // immediately — no indigo-to-cream dawn animation, no bloom.
   return (
     <div ref={ref} className="relative w-full overflow-hidden my-10">
       <motion.div
-        initial={{ background: 'linear-gradient(180deg, #0f0a14 0%, #1a1224 100%)' }}
+        initial={reducedMotion ? false : { background: 'linear-gradient(180deg, #0f0a14 0%, #1a1224 100%)' }}
         animate={
-          inView
+          reducedMotion
+            ? { background: 'linear-gradient(180deg, #FFFDF5 0%, #faf6ef 100%)' }
+            : inView
             ? { background: 'linear-gradient(180deg, #FFFDF5 0%, #faf6ef 100%)' }
             : { background: 'linear-gradient(180deg, #0f0a14 0%, #1a1224 100%)' }
         }
-        transition={{ duration: 1.6, ease: [0.65, 0, 0.35, 1], delay: 0.4 }}
+        transition={reducedMotion ? { duration: 0 } : { duration: 1.6, ease: [0.65, 0, 0.35, 1], delay: 0.4 }}
         className="relative min-h-[55vh] flex flex-col items-center justify-center px-8 text-center"
       >
-        {/* Sunrise dot */}
-        <motion.div
-          aria-hidden="true"
-          className="absolute top-12 left-1/2 -translate-x-1/2 rounded-full"
-          style={{ background: '#c4a265' }}
-          initial={{ width: 2, height: 2, opacity: 0, boxShadow: '0 0 0 0 rgba(196,162,101,0)' }}
-          animate={
-            inView
-              ? {
-                  width: 64,
-                  height: 64,
-                  opacity: 1,
-                  boxShadow: '0 0 80px 40px rgba(196,162,101,0.45)',
-                }
-              : { width: 2, height: 2, opacity: 0 }
-          }
-          transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-        />
+        {/* Sunrise dot — suppressed for reduced motion (final state rendered flat) */}
+        {!reducedMotion && (
+          <motion.div
+            aria-hidden="true"
+            className="absolute top-12 left-1/2 -translate-x-1/2 rounded-full"
+            style={{ background: '#c4a265' }}
+            initial={{ width: 2, height: 2, opacity: 0, boxShadow: '0 0 0 0 rgba(196,162,101,0)' }}
+            animate={
+              inView
+                ? {
+                    width: 64,
+                    height: 64,
+                    opacity: 1,
+                    boxShadow: '0 0 80px 40px rgba(196,162,101,0.45)',
+                  }
+                : { width: 2, height: 2, opacity: 0 }
+            }
+            transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          />
+        )}
 
         {/* Whisper line — colour shifts from cream to ink as dawn breaks */}
         <motion.h3
@@ -71,7 +78,7 @@ export function DawnFadeReveal({ whisper, subWhisper }: DawnFadeRevealProps) {
         {subWhisper && (
           <motion.p
             initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 0.85, color: '#9a8578' } : { opacity: 0 }}
+            animate={inView ? { opacity: 0.9, color: '#6a4d40' } : { opacity: 0 }}
             transition={{ duration: 0.9, delay: 1.4 }}
             className="relative mt-4 italic max-w-[380px]"
             style={{ fontFamily: 'Cormorant, serif', fontSize: '1rem' }}

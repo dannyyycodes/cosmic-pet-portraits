@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useMemo } from 'react';
 
 export interface PlanetOrbConfig {
@@ -66,6 +66,10 @@ export function PlanetOrb({
   ringTilt = 18,
   compass = false,
 }: PlanetOrbProps) {
+  const reducedMotion = useReducedMotion();
+  // When the user prefers reduced motion, freeze the planet — halo/rings
+  // stay visible but the rotation + particle orbits are suppressed.
+  const freeze = !!reducedMotion;
   // Responsive size — shrink on phones, full on tablet+. Halo extends 35%.
   const minSize = Math.round(size * 0.62);
   const sizeCss = `clamp(${minSize}px, 26vw, ${size}px)`;
@@ -107,8 +111,8 @@ export function PlanetOrb({
           background: `radial-gradient(circle, ${glow}55 0%, ${color}22 35%, transparent 70%)`,
           filter: 'blur(6px)',
         }}
-        animate={{ scale: [1, 1.05, 1], opacity: [0.85, 1, 0.85] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        animate={freeze ? undefined : { scale: [1, 1.05, 1], opacity: [0.85, 1, 0.85] }}
+        transition={freeze ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
       />
 
       {/* Solar rays — for the Sun + Ascendant */}
@@ -119,8 +123,8 @@ export function PlanetOrb({
         >
           <motion.g
             style={{ transformOrigin: `${c}px ${c}px` }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 80, repeat: Infinity, ease: 'linear' }}
+            animate={freeze ? undefined : { rotate: 360 }}
+            transition={freeze ? undefined : { duration: 80, repeat: Infinity, ease: 'linear' }}
           >
             {Array.from({ length: 12 }).map((_, i) => {
               const angle = (i / 12) * Math.PI * 2;
@@ -176,8 +180,8 @@ export function PlanetOrb({
             strokeWidth="1"
             strokeDasharray="4 8"
             opacity="0.7"
-            animate={{ rotate: 360 }}
-            transition={{ duration: rotateDur, repeat: Infinity, ease: 'linear' }}
+            animate={freeze ? undefined : { rotate: 360 }}
+            transition={freeze ? undefined : { duration: rotateDur, repeat: Infinity, ease: 'linear' }}
             style={{ transformOrigin: `${c}px ${c}px` }}
           />
         </svg>
@@ -202,12 +206,12 @@ export function PlanetOrb({
             loading="lazy"
             className="w-full h-full object-cover"
             animate={
-              staticImage
+              staticImage || freeze
                 ? { scale: imageScale }
                 : { rotate: 360, scale: imageScale }
             }
             transition={
-              staticImage
+              staticImage || freeze
                 ? { scale: { duration: 0 } }
                 : {
                     rotate: { duration: rotateDur, repeat: Infinity, ease: 'linear' },
@@ -286,8 +290,8 @@ export function PlanetOrb({
           {/* Comet tail — gentle outward sweep */}
           <motion.g
             style={{ transformOrigin: `${c}px ${c}px` }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: rotateDur, repeat: Infinity, ease: 'linear' }}
+            animate={freeze ? undefined : { rotate: 360 }}
+            transition={freeze ? undefined : { duration: rotateDur, repeat: Infinity, ease: 'linear' }}
           >
             <ellipse
               cx={c + r * 0.95}
@@ -308,15 +312,15 @@ export function PlanetOrb({
             stroke={glow}
             strokeWidth="0.8"
             opacity="0.5"
-            animate={{ r: [r * 0.92, r * 1.15, r * 0.92], opacity: [0.5, 0, 0.5] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            animate={freeze ? undefined : { r: [r * 0.92, r * 1.15, r * 0.92], opacity: [0.5, 0, 0.5] }}
+            transition={freeze ? undefined : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           />
 
           {/* Body — irregular oval to feel like a small icy fragment */}
           <motion.g
             style={{ transformOrigin: `${c}px ${c}px` }}
-            animate={{ rotate: -360 }}
-            transition={{ duration: rotateDur * 1.4, repeat: Infinity, ease: 'linear' }}
+            animate={freeze ? undefined : { rotate: -360 }}
+            transition={freeze ? undefined : { duration: rotateDur * 1.4, repeat: Infinity, ease: 'linear' }}
           >
             <ellipse
               cx={c}
@@ -396,8 +400,8 @@ export function PlanetOrb({
               cy={total * p.y}
               r={p.s}
               fill={glow}
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 3 + i, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
+              animate={freeze ? undefined : { opacity: [0.4, 1, 0.4] }}
+              transition={freeze ? undefined : { duration: 3 + i, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
               style={{ filter: `drop-shadow(0 0 ${p.s * 2}px ${glow})` }}
             />
           ))}
@@ -407,8 +411,8 @@ export function PlanetOrb({
             {/* Rays */}
             <motion.g
               style={{ transformOrigin: `${c}px ${c + r * 0.1}px` }}
-              animate={{ rotate: 360 }}
-              transition={{ duration: rotateDur * 1.2, repeat: Infinity, ease: 'linear' }}
+              animate={freeze ? undefined : { rotate: 360 }}
+              transition={freeze ? undefined : { duration: rotateDur * 1.2, repeat: Infinity, ease: 'linear' }}
             >
               {Array.from({ length: 9 }).map((_, i) => {
                 const angle = (i / 9) * Math.PI - Math.PI / 2;
@@ -488,8 +492,8 @@ export function PlanetOrb({
 
           <motion.g
             style={{ transformOrigin: `${c}px ${c}px` }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: rotateDur, repeat: Infinity, ease: 'linear' }}
+            animate={freeze ? undefined : { rotate: 360 }}
+            transition={freeze ? undefined : { duration: rotateDur, repeat: Infinity, ease: 'linear' }}
           >
             <circle cx={c} cy={c} r={r} fill={`url(#orb-${id})`} />
             {banded && (
@@ -534,8 +538,8 @@ export function PlanetOrb({
         </svg>
       )}
 
-      {/* Orbital particles — Mercury, outer planets */}
-      {particleArray.map((p) => (
+      {/* Orbital particles — Mercury, outer planets. Suppressed for reduced motion. */}
+      {!freeze && particleArray.map((p) => (
         <motion.span
           key={p.i}
           className="absolute top-1/2 left-1/2 rounded-full pointer-events-none"

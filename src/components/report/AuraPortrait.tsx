@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useMemo } from 'react';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { zodiacSigns } from '@/lib/zodiac';
 import { AuraVisual } from './AuraVisual';
@@ -54,32 +55,30 @@ export function AuraPortrait({
 }: AuraPortraitProps) {
   const photo = portraitUrl || petPhotoUrl;
   const s = useScrollReveal();
+  const reducedMotion = useReducedMotion();
+
+  const primaryColor = getAuraColor(aura?.primary || '');
+  const secondaryColor = getAuraColor(aura?.secondary || '');
+
+  // Memoise so we don't regenerate 48 particles every render.
+  const particles = useMemo(() => {
+    return Array.from({ length: 48 }, (_, i) => {
+      const angle = (i / 48) * Math.PI * 2 + (i % 3) * 0.15;
+      const ring = i % 3; // 0 inner, 1 middle, 2 outer
+      const radiusPct = [36, 42, 48][ring];
+      const size = ring === 0 ? 3 : ring === 1 ? 2 : 1.5;
+      const duration = 14 + ring * 4;
+      const color = i % 2 === 0 ? primaryColor : secondaryColor;
+      return { i, angle, radiusPct, size, duration, color, ring };
+    });
+  }, [primaryColor, secondaryColor]);
 
   if (!photo) {
     return <AuraVisual aura={aura} sunSign={sunSign} />;
   }
 
-  const signData = zodiacSigns[sunSign.toLowerCase()];
+  const signData = zodiacSigns[(sunSign || '').toLowerCase()];
   const zodiacIcon = signData?.icon || '';
-
-  const primaryColor = getAuraColor(aura.primary);
-  const secondaryColor = getAuraColor(aura.secondary);
-
-  // Generate 48 orbital particles pre-computed — stable per render so
-  // React doesn't churn. Each gets a radius, starting angle, duration,
-  // and color (primary or secondary). Radii expressed as a % of the
-  // frame's half-width so they scale with the responsive container.
-  const particles = Array.from({ length: 48 }, (_, i) => {
-    const angle = (i / 48) * Math.PI * 2 + (i % 3) * 0.15;
-    const ring = i % 3; // 0 inner, 1 middle, 2 outer
-    // Frame is 80vw or 320px. Inner photo is 62% (radius 31%). Particles sit
-    // outside the photo at 36/42/48% of frame half-width.
-    const radiusPct = [36, 42, 48][ring];
-    const size = ring === 0 ? 3 : ring === 1 ? 2 : 1.5;
-    const duration = 14 + ring * 4;
-    const color = i % 2 === 0 ? primaryColor : secondaryColor;
-    return { i, angle, radiusPct, size, duration, color, ring };
-  });
 
   return (
     <motion.div
@@ -161,8 +160,9 @@ export function AuraPortrait({
           }}
         />
 
-        {/* Orbital particles — positioned via percentage so they scale */}
-        {particles.map((p) => (
+        {/* Orbital particles — positioned via percentage so they scale.
+            Suppressed entirely when the user prefers reduced motion. */}
+        {!reducedMotion && particles.map((p) => (
           <motion.span
             key={p.i}
             className="absolute top-1/2 left-1/2 rounded-full pointer-events-none"
@@ -211,7 +211,7 @@ export function AuraPortrait({
         >
           <img
             src={photo}
-            alt={`${petName}`}
+            alt={`${petName}'s cosmic portrait with ${aura?.primary || 'cosmic'} aura`}
             className="w-full h-full object-cover"
             loading="lazy"
           />

@@ -19,6 +19,7 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
   const { petName, sunSign } = props;
   const reducedMotion = useReducedMotion();
   const [stage, setStage] = useState<'sealed' | 'breaking' | 'letter'>('sealed');
+  const [paused, setPaused] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
   // Respect motion preferences — skip the seal theater entirely.
@@ -26,9 +27,11 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
     if (reducedMotion) setStage('letter');
   }, [reducedMotion]);
 
-  // Auto-break after a beat once the seal is on-screen.
+  // Auto-break after a beat once the seal is on-screen. Paused while the
+  // break button holds keyboard focus so users who Tab to it have time
+  // to read the prompt before the seal fires.
   useEffect(() => {
-    if (stage !== 'sealed' || reducedMotion) return;
+    if (stage !== 'sealed' || reducedMotion || paused) return;
     const el = ref.current;
     if (!el) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -45,7 +48,7 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
       io.disconnect();
       if (timer) clearTimeout(timer);
     };
-  }, [stage, reducedMotion]);
+  }, [stage, reducedMotion, paused]);
 
   // After the break animation plays, reveal the letter.
   useEffect(() => {
@@ -54,7 +57,7 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
     return () => clearTimeout(t);
   }, [stage]);
 
-  const signGlyph = zodiacSigns[sunSign.toLowerCase()]?.icon || '✦';
+  const signGlyph = zodiacSigns[(sunSign || '').toLowerCase()]?.icon || '✦';
 
   const breakNow = () => {
     if (stage === 'sealed') setStage('breaking');
@@ -108,8 +111,10 @@ export function SoulLetterUnfurl(props: SoulLetterUnfurlProps) {
         {/* Seal + aura */}
         <button
           onClick={breakNow}
-          aria-label="Break the seal"
-          className="absolute inset-0 flex items-center justify-center group"
+          onFocus={() => setPaused(true)}
+          onBlur={() => setPaused(false)}
+          aria-label="Break the seal to open the letter — auto-opens in a moment if you don't"
+          className="absolute inset-0 flex items-center justify-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c4a265] focus-visible:ring-offset-2 rounded-[20px]"
           disabled={stage !== 'sealed'}
         >
           {/* Ambient halo */}

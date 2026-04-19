@@ -9,6 +9,7 @@ import { OccasionMode } from '@/lib/occasionMode';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 
 // Types
 import type { ReportContent, ReportData, ChartPlacement, SectionContent } from './types';
@@ -299,6 +300,7 @@ export function CosmicReportViewer({
   species,
 }: CosmicReportViewerProps) {
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const { currency } = useLocalizedPrice();
 
   const hasMultipleReports = allReports && allReports.length > 1;
 
@@ -321,7 +323,7 @@ export function CosmicReportViewer({
     setIsSubscribing(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-horoscope-subscription', {
-        body: { email: '', petReportId: reportId, petName },
+        body: { email: '', petReportId: reportId, petName, currency },
       });
       if (error) throw error;
       if (data?.url) {
@@ -540,13 +542,15 @@ export function CosmicReportViewer({
       <SectionDivider />
 
       {/* ═══ AURA PORTRAIT — pet photo in cosmic frame (signature moment) ═══ */}
-      <AuraPortrait
-        aura={report.aura}
-        sunSign={sunSign}
-        petName={petName}
-        petPhotoUrl={petPhotoUrl}
-        portraitUrl={portraitUrl}
-      />
+      {report.aura && (
+        <AuraPortrait
+          aura={report.aura}
+          sunSign={sunSign}
+          petName={petName}
+          petPhotoUrl={petPhotoUrl}
+          portraitUrl={portraitUrl}
+        />
+      )}
 
       {/* ═══ LUMINOUS FIELD (detailed aura) ═══ */}
       {report.luminousField && (

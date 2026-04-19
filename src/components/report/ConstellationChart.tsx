@@ -60,7 +60,7 @@ const planetCatalog = [
 ];
 
 function toAbsoluteDeg(sign: string, degree: number): number {
-  const idx = zodiacData.findIndex((z) => z.name === sign.toLowerCase());
+  const idx = zodiacData.findIndex((z) => z.name === (sign || '').toLowerCase());
   if (idx === -1) return 0;
   return zodiacData[idx].startDeg + (degree || 0);
 }
@@ -318,9 +318,20 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
                   ease: [0.22, 1, 0.36, 1],
                 }}
                 style={{ cursor: 'pointer', transformOrigin: `${pos.x}px ${pos.y}px` }}
+                role="button"
+                tabIndex={0}
+                aria-label={`${p.name} at ${p.placement.sign} ${Math.round(p.placement.degree)} degrees`}
+                aria-pressed={isActive}
                 onClick={(e) => {
                   e.stopPropagation();
                   setActivePlanet(isActive ? null : p.key);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActivePlanet(isActive ? null : p.key);
+                  }
                 }}
               >
                 {/* Halo */}
@@ -407,7 +418,7 @@ export function ConstellationChart({ placements, petName }: ConstellationChartPr
               </div>
             </>
           ) : (
-            <div className="text-[0.72rem] text-[#9a8578] italic">
+            <div className="text-[0.75rem] text-[#6a4d40] italic">
               Tap a planet to see where the stars placed it
             </div>
           )}

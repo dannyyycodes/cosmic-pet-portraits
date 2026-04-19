@@ -631,3 +631,34 @@ curl -sSL "https://littlesouls.app/sitemap.xml?v=$(date +%s)" | grep -c "<loc>" 
 - [ ] E2E Stripe test, promo codes, GA4, OG image, ManyChat
 
 *Last updated: 2026-03-17*
+
+---
+
+## 2026-04-19 · Premium Report Viewer + Cosmic Waiting Room
+
+**What shipped**
+- Intake: dropped duplicate email step; `clearIntakeProgress()` on payment-success (closes the back-button re-report loop)
+- `/dev/report` route loads `src/fixtures/report-monty.json` into the viewer — no API calls, preview any stage via `?stage=generating|reveal|viewer`; gated behind `DEV` or `?devkey=littlesouls`
+- `scripts/dump-report.cjs <reportId> [name]` produces fresh fixtures from Supabase
+- Lenis smooth scroll wraps the viewer; top gold hairline + side-rail chapter dots (with focus ring + aria-current) + desktop-only "~X min left" pill
+- Signature moments: `ConstellationChart` (chart wheel draws itself, keyboard-reachable planets), `AuraPortrait` (pet photo in cosmic frame with 48 orbital particles), `SoulLetterUnfurl` (wax-seal break), `DawnFadeReveal` (single cross-fade before the letter)
+- `QuoteCard` replaces 6 `StaticPassage` calls (same words, editorial pull-quote treatment)
+- `ConstellationBreak` chapter-ceremony dividers (3 uses)
+- Ghost Roman numerals behind every `ChapterTitle`; drop cap on the prologue; asterism-trio `SectionDivider`
+- Per-section `PlanetOrb` with real Wikimedia imagery (sun_sdo, moon, mercury, venus, mars, jupiter, saturn, uranus, neptune, earth) + symbolic shapes for chiron/ascendant; `PlanetSection` alternates left/right per index
+- Cosmic waiting room `ReportGenerating` rewrite: starfield + nebula + constellation anchors, 4-stage pipeline (Casting → Consulting → Writing → Sealing), memorial-tone copy for grief reports, gold confetti burst on reveal mount
+
+**Audit pass (tier 1 + 2 + 3)**
+- `sunSign?.toLowerCase()` + `report.aura &&` guards protect legacy reports from crashing the viewer
+- `petName` escaped via `escapeHtml` before any `dangerouslySetInnerHTML`
+- `prefers-reduced-motion` respected across `AuraPortrait`, `PlanetOrb`, `ReportGenerating`, `DawnFadeReveal`, `SoulLetterUnfurl`
+- `AuraPortrait` 48-particle array memoised; `ReportGenerating` cosmic frame uses `min(380px, 85vw)` so it fits iPhone SE
+- Planet assets re-downloaded at 256px — total `public/planets/` dropped from 2.2MB to 684KB
+- `SectionDivider` dead variants removed (~60 lines)
+- `ReportScrollProgress` keyboard-focusable with visible focus ring; `SoulLetterUnfurl` auto-break pauses while the seal button has focus
+
+**Key files**
+- `src/components/report/` — all new components live here
+- `public/planets/` — NASA / Wikimedia imagery
+- `src/fixtures/report-monty.json` — dev preview seed
+- `src/pages/DevReport.tsx` — dev-only preview route

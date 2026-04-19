@@ -53,7 +53,8 @@ export function ReportScrollProgress({ chapters }: ReportScrollProgressProps) {
   return (
     <div
       className="fixed right-3 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-2 pointer-events-none"
-      aria-hidden="true"
+      role="navigation"
+      aria-label="Report chapter navigation"
     >
       {/* The rail */}
       <div className="relative w-px h-[60vh] bg-[#c4a265]/15 rounded-full overflow-hidden">
@@ -69,8 +70,9 @@ export function ReportScrollProgress({ chapters }: ReportScrollProgressProps) {
           <button
             key={c.anchor}
             onClick={() => scrollTo(c.anchor)}
-            className="pointer-events-auto group relative flex items-center justify-center w-4 h-4 -mx-2"
+            className="pointer-events-auto group relative flex items-center justify-center w-6 h-6 -mx-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#c4a265] focus-visible:ring-offset-2 focus-visible:ring-offset-[#FFFDF5]"
             aria-label={`Jump to ${c.title}`}
+            aria-current={i === active ? 'true' : undefined}
           >
             <span
               className={

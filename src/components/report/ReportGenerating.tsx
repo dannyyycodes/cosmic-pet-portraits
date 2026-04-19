@@ -1,5 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+
+/** Escape any HTML a malicious petName might contain before we inline it. */
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 interface ReportGeneratingProps {
   petName: string;
@@ -64,21 +74,25 @@ const STAGE_CUMULATIVE = STAGE_SECS.reduce<number[]>((acc, s) => {
 // Memorial mode uses gentler phrasing so the grieving buyer isn't told their
 // pet's reading is about to "unveil itself" or that it's "worth the breath".
 function waitCopy(petName: string, elapsed: number, isMemorial: boolean) {
+  // Escape petName so a malicious name can't inject HTML via
+  // dangerouslySetInnerHTML below.
+  const n = escapeHtml(petName);
   if (isMemorial) {
-    if (elapsed < 60) return `Stay here — ${petName}&rsquo;s memorial is being written with care.`;
-    if (elapsed < 120) return `We&rsquo;re taking our time with ${petName}. This kind of writing can&rsquo;t be rushed.`;
-    if (elapsed < 180) return `A moment more. We&rsquo;re holding ${petName} gently in every line.`;
-    return `We&rsquo;re taking extra care with ${petName}&rsquo;s memorial. Stay with us if you can — your link is saved to your account if you need to step away.`;
+    if (elapsed < 60) return `Stay here — ${n}&rsquo;s memorial is being written with care.`;
+    if (elapsed < 120) return `We&rsquo;re taking our time with ${n}. This kind of writing can&rsquo;t be rushed.`;
+    if (elapsed < 180) return `A moment more. We&rsquo;re holding ${n} gently in every line.`;
+    return `We&rsquo;re taking extra care with ${n}&rsquo;s memorial. Stay with us if you can — your link is saved to your account if you need to step away.`;
   }
-  if (elapsed < 60) return `Keep this tab open — ${petName}&rsquo;s reading will unveil itself right here.`;
-  if (elapsed < 120) return `The stars are taking their time with ${petName}. Stay close — it&rsquo;s worth the breath.`;
-  if (elapsed < 180) return `The cosmos is being thorough for ${petName}. A moment more.`;
-  return `We&rsquo;re taking a little extra care with ${petName}&rsquo;s reading. Stay right here — it will unveil itself the moment it&rsquo;s ready. Your link is already saved to your account if you need to step away.`;
+  if (elapsed < 60) return `Keep this tab open — ${n}&rsquo;s reading will unveil itself right here.`;
+  if (elapsed < 120) return `The stars are taking their time with ${n}. Stay close — it&rsquo;s worth the breath.`;
+  if (elapsed < 180) return `The cosmos is being thorough for ${n}. A moment more.`;
+  return `We&rsquo;re taking a little extra care with ${n}&rsquo;s reading. Stay right here — it will unveil itself the moment it&rsquo;s ready. Your link is already saved to your account if you need to step away.`;
 }
 
 export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoUrl, occasionMode }: ReportGeneratingProps) {
   const p = getPronouns(gender);
   const isMemorial = occasionMode === 'memorial';
+  const reducedMotion = useReducedMotion();
   const [elapsed, setElapsed] = useState(0);
 
   // Tick elapsed seconds. Drives both the stage selector and the copy
@@ -133,7 +147,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
           'radial-gradient(ellipse at 30% 20%, #1f1a24 0%, #141016 40%, #0a0709 100%)',
       }}
     >
-      {/* ═══ STARFIELD BACKDROP ═══ */}
+      {/* ═══ STARFIELD BACKDROP — twinkling suppressed for reduced motion ═══ */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         {starfield.map((s) => (
           <motion.span
@@ -145,10 +159,11 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
               width: s.size,
               height: s.size,
               background: '#faf6ef',
+              opacity: reducedMotion ? s.opacity * 0.6 : undefined,
               boxShadow: '0 0 ' + s.size * 2 + 'px rgba(250,246,239,0.6)',
             }}
-            animate={{ opacity: [s.opacity * 0.3, s.opacity, s.opacity * 0.3] }}
-            transition={{
+            animate={reducedMotion ? undefined : { opacity: [s.opacity * 0.3, s.opacity, s.opacity * 0.3] }}
+            transition={reducedMotion ? undefined : {
               duration: s.duration,
               repeat: Infinity,
               ease: 'easeInOut',
@@ -164,8 +179,8 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
             background:
               'radial-gradient(ellipse 60% 40% at 70% 60%, rgba(196,162,101,0.10), transparent 70%), radial-gradient(ellipse 50% 40% at 30% 80%, rgba(191,82,74,0.08), transparent 70%)',
           }}
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          animate={reducedMotion ? undefined : { opacity: [0.5, 1, 0.5] }}
+          transition={reducedMotion ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
       </div>
 
@@ -183,8 +198,16 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
           {petName}
         </motion.p>
 
-        {/* Cosmic frame — pet photo at centre with orbiting anchors */}
-        <div className="relative" style={{ width: 380, height: 380, marginBottom: 24 }}>
+        {/* Cosmic frame — scales with viewport so it never overflows a phone */}
+        <div
+          className="relative"
+          style={{
+            width: 'min(380px, 85vw)',
+            height: 'min(380px, 85vw)',
+            aspectRatio: '1 / 1',
+            marginBottom: 24,
+          }}
+        >
           {/* Outer drifting halo */}
           <motion.div
             aria-hidden="true"
@@ -194,8 +217,8 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                 'radial-gradient(circle, rgba(196,162,101,0.25) 0%, rgba(191,82,74,0.08) 45%, transparent 70%)',
               filter: 'blur(8px)',
             }}
-            animate={{ scale: [1, 1.06, 1], opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            animate={reducedMotion ? undefined : { scale: [1, 1.06, 1], opacity: [0.7, 1, 0.7] }}
+            transition={reducedMotion ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
           />
 
           {/* Rotating gold ring */}
@@ -206,7 +229,7 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
               padding: 2,
               background:
                 'conic-gradient(from 0deg, #c4a265, #c4a26588, #c4a265, #d9b87c, #c4a265)',
-              animation: 'rg-rotate 22s linear infinite',
+              animation: reducedMotion ? 'none' : 'rg-rotate 22s linear infinite',
               WebkitMask:
                 'radial-gradient(circle, transparent 55%, black 56%, black 58%, transparent 59%)',
               mask:
@@ -258,11 +281,13 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                     initial={{ opacity: 0, scale: 0 }}
                     animate={
                       lit
-                        ? { opacity: [0.4, 1, 0.7], scale: 1 }
+                        ? { opacity: reducedMotion ? 0.85 : [0.4, 1, 0.7], scale: 1 }
                         : { opacity: 0.1, scale: 0.6 }
                     }
                     transition={{
-                      opacity: lit ? { duration: 2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.6 },
+                      opacity: lit && !reducedMotion
+                        ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+                        : { duration: 0.6 },
                       scale: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
                     }}
                     style={{ filter: lit ? 'drop-shadow(0 0 8px #c4a265)' : 'none' }}
@@ -281,16 +306,15 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
             })}
           </svg>
 
-          {/* Pet photo centre */}
+          {/* Pet photo centre — percentage of frame so it scales on phones */}
           <div
             className="absolute rounded-full overflow-hidden"
             style={{
               top: '50%',
               left: '50%',
-              width: 180,
-              height: 180,
-              marginLeft: -90,
-              marginTop: -90,
+              width: '47%',
+              height: '47%',
+              transform: 'translate(-50%, -50%)',
               boxShadow:
                 '0 0 50px rgba(196,162,101,0.35), 0 0 100px rgba(191,82,74,0.25), inset 0 0 0 2px rgba(196,162,101,0.45)',
             }}
@@ -325,8 +349,8 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
                   'radial-gradient(circle at 35% 30%, rgba(196,162,101,0.28), transparent 60%), radial-gradient(circle at 70% 75%, rgba(191,82,74,0.22), transparent 60%)',
                 mixBlendMode: 'overlay',
               }}
-              animate={{ opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              animate={reducedMotion ? undefined : { opacity: [0.6, 1, 0.6] }}
+              transition={reducedMotion ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
             />
           </div>
         </div>
@@ -407,15 +431,15 @@ export function ReportGenerating({ petName, gender, sunSign, reportId, petPhotoU
             aria-hidden="true"
             className="absolute inset-0 rounded-full border-2"
             style={{ borderColor: '#c4a265', boxShadow: '0 0 24px rgba(196,162,101,0.35)' }}
-            animate={{ scale: [1, 1.25, 1], opacity: [0.9, 0.3, 0.9] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+            animate={reducedMotion ? undefined : { scale: [1, 1.25, 1], opacity: [0.9, 0.3, 0.9] }}
+            transition={reducedMotion ? undefined : { duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
           />
           <motion.div
             aria-hidden="true"
             className="absolute inset-3 rounded-full border"
             style={{ borderColor: '#c4a265', boxShadow: '0 0 12px rgba(196,162,101,0.5)' }}
-            animate={{ scale: [1, 1.1, 1], opacity: [1, 0.7, 1] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+            animate={reducedMotion ? undefined : { scale: [1, 1.1, 1], opacity: [1, 0.7, 1] }}
+            transition={reducedMotion ? undefined : { duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
           />
         </div>
 
