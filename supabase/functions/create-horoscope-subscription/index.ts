@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { normalizeCurrency } from "../_shared/pricing.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
@@ -12,10 +13,12 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-// Pricing options
+// Stripe Price IDs — multi-currency is handled via currency_options on each
+// Price (set once via scripts/stripe-horoscope-multi-currency.ts). Passing
+// `currency: "gbp"` in the session tells Stripe to use the GBP option.
 const PRICES = {
-  monthly: "price_1Sfi1vEFEZSdxrGttpk4iUEa", // $4.99/month
-  yearly: "price_1SgAP6EFEZSdxrGtiHMgxqx2",   // $39.99/year (33% off)
+  monthly: "price_1Sfi1vEFEZSdxrGttpk4iUEa", // $4.99/mo + currency_options
+  yearly: "price_1SgAP6EFEZSdxrGtiHMgxqx2",   // $39.99/yr + currency_options
 };
 
 serve(async (req) => {
@@ -24,13 +27,14 @@ serve(async (req) => {
   }
 
   try {
-    const { email, petReportId, petName, plan = "monthly" } = await req.json();
-    
+    const { email, petReportId, petName, plan = "monthly", currency: rawCurrency } = await req.json();
+
     if (!email || !petReportId || !petName) {
       throw new Error("Missing required fields: email, petReportId, petName");
     }
 
-    console.log("[HOROSCOPE-SUB] Creating subscription for:", { email, petName, petReportId, plan });
+    const currency = normalizeCurrency(rawCurrency);
+    console.log("[HOROSCOPE-SUB] Creating subscription for:", { email, petName, petReportId, plan, currency });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
@@ -39,7 +43,7 @@ serve(async (req) => {
     // Check if customer exists
     const customers = await stripe.customers.list({ email, limit: 1 });
     let customerId: string;
-    
+
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       console.log("[HOROSCOPE-SUB] Found existing customer:", customerId);
@@ -50,10 +54,11 @@ serve(async (req) => {
     }
 
     const priceId = plan === "yearly" ? PRICES.yearly : PRICES.monthly;
-    
+
     // Create checkout session for subscription with FIRST MONTH FREE
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
+      currency,
       line_items: [
         {
           price: priceId,
@@ -77,6 +82,7 @@ serve(async (req) => {
         email,
         type: "horoscope_subscription",
         plan,
+        currency,
       },
     });
 

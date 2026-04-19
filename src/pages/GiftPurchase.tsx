@@ -27,10 +27,11 @@ const C = {
   green: '#4a8c5c',
 };
 
+// Prices come from useLocalizedPrice() at render time — this const only
+// holds static copy. Price mapping: essential → prices.basic/wasBasic,
+// portrait → prices.premium/wasPremium.
 const TIERS = {
   essential: {
-    cents: 2900,
-    wasCents: 4900,
     label: 'Soul Reading',
     tagline: 'The reading they\'ll read aloud to their pet — and probably cry doing it.',
     badge: null as string | null,
@@ -46,8 +47,6 @@ const TIERS = {
     ],
   },
   portrait: {
-    cents: 4900,
-    wasCents: 7900,
     label: 'Soul Bond',
     tagline: 'For the bond worth understanding — them and their pet, read side by side.',
     badge: 'MOST CHOSEN' as string | null,
@@ -144,10 +143,12 @@ function WallpaperBackdrop() {
 }
 
 function TierCard({
-  tierKey, selected, onClick, fmt,
+  tierKey, selected, onClick, fmt, cents, wasCents,
 }: {
   tierKey: TierKey; selected: boolean; onClick: () => void;
   fmt: (cents: number) => string;
+  cents: number;
+  wasCents?: number;
 }) {
   const tier = TIERS[tierKey];
   const accent = C.rose;
@@ -198,7 +199,7 @@ function TierCard({
           </p>
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          {tier.wasCents && (
+          {wasCents && (
             <p style={{
               fontFamily: '"DM Serif Display", Georgia, serif',
               fontSize: '1rem', lineHeight: 1,
@@ -208,7 +209,7 @@ function TierCard({
               textDecorationThickness: '1.5px',
               marginBottom: 3,
             }}>
-              {fmt(tier.wasCents)}
+              {fmt(wasCents)}
             </p>
           )}
           <p style={{
@@ -217,7 +218,7 @@ function TierCard({
             color: C.ink,
             transition: 'color 0.2s',
           }}>
-            {fmt(tier.cents)}
+            {fmt(cents)}
           </p>
           <p style={{ fontSize: '0.65rem', color: C.muted, marginTop: 2 }}>one-time</p>
         </div>
@@ -474,7 +475,12 @@ function GiftReviewStrip() {
 
 export default function GiftPurchase() {
   const [searchParams] = useSearchParams();
-  const { fmt, code: currencyCode, isLocalized } = useLocalizedPrice();
+  const { fmt, code: currencyCode, currency, isLocalized, prices } = useLocalizedPrice();
+  // Map tier key → current-currency cents (mirrors the backend pricing table)
+  const TIER_CENTS: Record<TierKey, { cents: number; wasCents: number }> = {
+    essential: { cents: prices.basic, wasCents: prices.wasBasic },
+    portrait:  { cents: prices.premium, wasCents: prices.wasPremium },
+  };
   const [selectedTier, setSelectedTier] = useState<TierKey | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('link');
@@ -522,7 +528,7 @@ export default function GiftPurchase() {
 
   const pricing = useMemo(() => {
     if (!selectedTier) return { baseTotal: 0, discountAmount: 0, promoAmount: 0, finalTotal: 0 };
-    const tierCents = TIERS[selectedTier].cents;
+    const tierCents = TIER_CENTS[selectedTier].cents;
     const baseTotal = activeRecipients.reduce((sum) => sum + tierCents, 0);
     const discountAmount = Math.round(baseTotal * discount);
     const afterVolume = baseTotal - discountAmount;
@@ -577,6 +583,7 @@ export default function GiftPurchase() {
         deliveryMethod,
         multiRecipient: giftType === 'multiple',
         couponId: appliedCoupon?.id || null,
+        currency,
       };
 
       const { data, error } = await supabase.functions.invoke('purchase-gift-certificate', { body });
@@ -662,8 +669,8 @@ export default function GiftPurchase() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <TierCard tierKey="essential" selected={selectedTier === 'essential'} onClick={() => handleTierSelect('essential')} fmt={fmt} />
-            <TierCard tierKey="portrait" selected={selectedTier === 'portrait'} onClick={() => handleTierSelect('portrait')} fmt={fmt} />
+            <TierCard tierKey="essential" selected={selectedTier === 'essential'} onClick={() => handleTierSelect('essential')} fmt={fmt} cents={TIER_CENTS.essential.cents} wasCents={TIER_CENTS.essential.wasCents} />
+            <TierCard tierKey="portrait" selected={selectedTier === 'portrait'} onClick={() => handleTierSelect('portrait')} fmt={fmt} cents={TIER_CENTS.portrait.cents} wasCents={TIER_CENTS.portrait.wasCents} />
           </div>
         </motion.div>
 
@@ -680,7 +687,7 @@ export default function GiftPurchase() {
                 {/* Selected tier reminder */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 24 }}>
                   <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{TIERS[selectedTier].label}</span>
-                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{fmt(TIERS[selectedTier].cents)}</span>
+                  <span style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1rem', color: C.ink }}>{fmt(TIER_CENTS[selectedTier].cents)}</span>
                   <button
                     onClick={() => { setSelectedTier(null); setStep(1); }}
                     style={{ marginLeft: 4, fontSize: '0.72rem', color: C.muted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
@@ -935,7 +942,7 @@ export default function GiftPurchase() {
                                 {r.name && <p style={{ fontSize: '0.72rem', color: C.rose }}>for {r.name}</p>}
                               </div>
                             </div>
-                            <span style={{ fontSize: '0.88rem', color: C.muted }}>{fmt(TIERS[selectedTier!].cents)}</span>
+                            <span style={{ fontSize: '0.88rem', color: C.muted }}>{fmt(TIER_CENTS[selectedTier!].cents)}</span>
                           </div>
                         ))}
                         <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.cream3}` }}>

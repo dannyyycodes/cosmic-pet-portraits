@@ -62,10 +62,12 @@ export const FunnelV2 = () => {
   const [charityId, setCharityId] = useState("ifaw");
   const [charityBonus, setCharityBonus] = useState(0);
   // Mirrors the tier price chosen inside <InlineCheckout/> so the sticky
-  // bottom CTA and the FinalCTA display the right number.
-  const [selectedPrice, setSelectedPrice] = useState(29);
+  // bottom CTA and the FinalCTA display the right number. Value is in
+  // minor units (cents/pence) of the user's detected currency.
+  const { prices, fmt } = useLocalizedPrice();
+  const [selectedPrice, setSelectedPrice] = useState(prices.basic);
+  useEffect(() => { setSelectedPrice(prices.basic); }, [prices.basic]);
   const isMobile = useIsMobile();
-  const { fmtUsd } = useLocalizedPrice();
 
   const scrollToCheckout = useCallback(() => {
     checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -183,7 +185,7 @@ export const FunnelV2 = () => {
           <FAQSection memorialFirst={path === "memorial"} />
 
           {/* Final emotional CTA */}
-          <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={ctaPrimary} priceLabel={fmtUsd(selectedPrice + charityBonus)} />
+          <FinalCTA onCtaClick={scrollToCheckout} ctaLabel={ctaPrimary} priceLabel={fmt(selectedPrice + charityBonus * 100)} />
         </div>
       )}
 
@@ -268,7 +270,7 @@ export const FunnelV2 = () => {
               minHeight: 52,
             }}
           >
-            {ctaPrimary} · {fmtUsd(selectedPrice + charityBonus)}
+            {ctaPrimary} · {fmt(selectedPrice + charityBonus * 100)}
           </button>
         </div>
       )}

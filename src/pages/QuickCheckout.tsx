@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 
 // ─── Ticker Messages ───
 const tickerMessages = [
@@ -135,11 +136,12 @@ export default function QuickCheckout() {
   const [showStickyCta, setShowStickyCta] = useState(false);
   const mainCtaRef = useRef<HTMLButtonElement>(null);
 
-  const basePriceCents = 2900;
-  const portraitPriceCents = 800;
-  const bookPriceCents = 8900;
+  const { prices, fmt, currency } = useLocalizedPrice();
+  const basePriceCents = prices.basic;
+  const portraitPriceCents = prices.portrait;
+  const bookPriceCents = prices.hardcover;
 
-  // Calculate totals
+  // Calculate totals (in minor units of the user's local currency)
   const readingSubtotal = basePriceCents * petCount;
   const portraitSubtotal = includePortrait ? portraitPriceCents * petCount : 0;
   const discountableSubtotal = readingSubtotal + portraitSubtotal;
@@ -147,7 +149,7 @@ export default function QuickCheckout() {
   const discountAmount = Math.round(discountableSubtotal * discountRate);
   const bookTotal = includeBook ? bookPriceCents : 0;
   const totalCents = discountableSubtotal - discountAmount + bookTotal;
-  const totalDisplay = (totalCents / 100).toFixed(0);
+  const totalDisplay = fmt(totalCents);
 
   // Ticker rotation
   useEffect(() => {
@@ -188,6 +190,7 @@ export default function QuickCheckout() {
           includesBook: includeBook,
           occasionMode: selectedMode,
           petCount,
+          currency,
           ...(email.trim() ? { quickCheckoutEmail: email.trim() } : {}),
         },
       });
@@ -381,8 +384,8 @@ export default function QuickCheckout() {
               </div>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="font-cormorant font-semibold text-base text-muted-foreground line-through">$49</span>
-              <span className="font-dm-serif text-2xl text-foreground">$29</span>
+              <span className="font-cormorant font-semibold text-base text-muted-foreground line-through">{fmt(prices.wasBasic)}</span>
+              <span className="font-dm-serif text-2xl text-foreground">{fmt(prices.basic)}</span>
               <span className="text-[0.65rem] font-bold text-white bg-primary px-2 py-0.5 rounded-full">40% OFF</span>
             </div>
           </div>
@@ -443,7 +446,7 @@ export default function QuickCheckout() {
               </div>
             </div>
             <div className="flex items-center gap-2.5 shrink-0">
-              <span className="font-cormorant font-bold text-[0.92rem] text-muted-foreground">+$8</span>
+              <span className="font-cormorant font-bold text-[0.92rem] text-muted-foreground">+{fmt(prices.portrait)}</span>
               <Switch checked={includePortrait} onCheckedChange={setIncludePortrait} />
             </div>
           </div>
@@ -500,9 +503,8 @@ export default function QuickCheckout() {
           <div className="flex items-center justify-between mb-3">
             <span className="text-[0.78rem] text-muted-foreground font-cormorant">Bundle price</span>
             <div className="flex items-center gap-2">
-              <span className="text-[0.85rem] text-muted-foreground line-through">$99</span>
-              <span className="font-dm-serif text-[1.3rem] text-foreground">$89</span>
-              <span className="text-[0.6rem] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">SAVE $10</span>
+              <span className="font-dm-serif text-[1.3rem] text-foreground">{fmt(prices.hardcover)}</span>
+              <span className="text-[0.6rem] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">HARDCOVER</span>
             </div>
           </div>
 
@@ -514,7 +516,7 @@ export default function QuickCheckout() {
                 : "bg-muted text-foreground border border-border hover:bg-muted/80"
             }`}
           >
-            {includeBook ? "✓ Added — $89" : "Add to order — $89"}
+            {includeBook ? `✓ Added — ${fmt(prices.hardcover)}` : `Add to order — ${fmt(prices.hardcover)}`}
           </button>
 
           <p className="font-caveat italic text-[0.85rem] text-primary text-center mt-2.5">
@@ -537,31 +539,31 @@ export default function QuickCheckout() {
               <span className="text-muted-foreground">
                 {petCount > 1 ? `${petCount}× ` : ""}Little Souls Reading
               </span>
-              <span className="text-foreground font-semibold">${(readingSubtotal / 100).toFixed(2)}</span>
+              <span className="text-foreground font-semibold">{fmt(readingSubtotal)}</span>
             </div>
             {includePortrait && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">
                   {petCount > 1 ? `${petCount}× ` : ""}Little Souls Reading Edition
                 </span>
-                <span className="text-foreground font-semibold">${(portraitSubtotal / 100).toFixed(2)}</span>
+                <span className="text-foreground font-semibold">{fmt(portraitSubtotal)}</span>
               </div>
             )}
             {includeBook && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Printed Keepsake Book</span>
-                <span className="text-foreground font-semibold">$89.00</span>
+                <span className="text-foreground font-semibold">{fmt(prices.hardcover)}</span>
               </div>
             )}
             {discountAmount > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Multi-pet discount ({Math.round(discountRate * 100)}%)</span>
-                <span className="font-semibold">-${(discountAmount / 100).toFixed(2)}</span>
+                <span className="font-semibold">-{fmt(discountAmount)}</span>
               </div>
             )}
             <div className="border-t border-border pt-2 flex justify-between">
               <span className="text-foreground font-semibold">Total</span>
-              <span className="font-dm-serif text-lg text-foreground">${(totalCents / 100).toFixed(2)}</span>
+              <span className="font-dm-serif text-lg text-foreground">{fmt(totalCents)}</span>
             </div>
           </div>
         </motion.div>
@@ -594,6 +596,7 @@ export default function QuickCheckout() {
               includesBook={includeBook}
               occasionMode={selectedMode}
               email={email}
+              currency={currency}
               onError={(msg) => toast.error(msg)}
             />
           </Suspense>
@@ -617,7 +620,7 @@ export default function QuickCheckout() {
               "Redirecting to checkout..."
             ) : (
               <>
-                Discover Who They Really Are — ${totalDisplay}
+                Discover Who They Really Are — {totalDisplay}
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </>
             )}
@@ -708,6 +711,7 @@ export default function QuickCheckout() {
             includesBook={includeBook}
             occasionMode={selectedMode}
             email={email}
+            currency={currency}
             onError={(msg) => toast.error(msg)}
           />
         </Suspense>
@@ -726,7 +730,7 @@ export default function QuickCheckout() {
             "Redirecting to checkout..."
           ) : (
             <>
-              Discover Who They Really Are — ${totalDisplay}
+              Discover Who They Really Are — {totalDisplay}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </>
           )}
@@ -752,7 +756,7 @@ export default function QuickCheckout() {
             onClick={handleCheckout}
             disabled={isLoading}
           >
-            {isLoading ? "Redirecting..." : `Discover Them — $${totalDisplay}`}
+            {isLoading ? "Redirecting..." : `Discover Them — ${totalDisplay}`}
           </Button>
         </div>
       )}

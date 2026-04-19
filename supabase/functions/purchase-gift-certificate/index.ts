@@ -2,6 +2,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import {
+  type SupportedCurrency,
+  SUPPORTED_CURRENCIES,
+  PRICING,
+  normalizeCurrency,
+} from "../_shared/pricing.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
@@ -13,22 +19,29 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-// Valid gift tiers with base amounts (server-side truth)
-const GIFT_TIERS = {
-  essential: { cents: 2900, name: 'Soul Reading' },
-  portrait: { cents: 4900, name: 'Soul Bond Edition' },
-  hardcover: { cents: 9900, name: 'Hardcover Cosmic Portrait Book' },
+// Gift tier → name + which field to look up in PRICING[currency]
+const GIFT_TIER_META = {
+  essential: { name: 'Soul Reading', field: 'basic' as const },
+  portrait:  { name: 'Soul Bond Edition', field: 'premium' as const },
+  hardcover: { name: 'Hardcover Cosmic Portrait Book', field: 'hardcover' as const },
 } as const;
 
-// Horoscope subscription addons
-const HOROSCOPE_ADDONS = {
-  none: { cents: 0, name: '' },
-  monthly: { cents: 499, name: 'Weekly Cosmic Updates (Monthly)' },
-  yearly: { cents: 3999, name: 'Weekly Cosmic Updates (1 Year)' },
+const HOROSCOPE_ADDON_META = {
+  none:    { name: '', field: null as null },
+  monthly: { name: 'Weekly Cosmic Updates (Monthly)', field: 'horoscopeMonthly' as const },
+  yearly:  { name: 'Weekly Cosmic Updates (1 Year)',  field: 'horoscopeYearly'  as const },
 } as const;
 
-type GiftTier = keyof typeof GIFT_TIERS;
-type HoroscopeAddon = keyof typeof HOROSCOPE_ADDONS;
+type GiftTier = keyof typeof GIFT_TIER_META;
+type HoroscopeAddon = keyof typeof HOROSCOPE_ADDON_META;
+
+function giftCents(tier: GiftTier, currency: SupportedCurrency): number {
+  return PRICING[currency][GIFT_TIER_META[tier].field];
+}
+function addonCents(addon: HoroscopeAddon, currency: SupportedCurrency): number {
+  const field = HOROSCOPE_ADDON_META[addon].field;
+  return field ? PRICING[currency][field] : 0;
+}
 
 // Volume discount tiers
 function getVolumeDiscount(petCount: number): number {
@@ -79,6 +92,8 @@ const giftSchema = z.object({
   petCount: z.number().int().min(1).max(10).optional(),
   // Promo code
   couponId: z.string().uuid().nullable().optional(),
+  // User's display currency from useLocalizedPrice
+  currency: z.enum(SUPPORTED_CURRENCIES as unknown as [string, ...string[]]).optional(),
 });
 
 const logStep = (step: string, details?: unknown) => {
@@ -130,10 +145,11 @@ serve(async (req) => {
 
     const petCount = giftPets.length;
     const discount = getVolumeDiscount(petCount);
+    const currency: SupportedCurrency = normalizeCurrency(input.currency);
 
     // Calculate total based on individual pet tiers + horoscope addons
-    const tierTotal = giftPets.reduce((sum, pet) => sum + GIFT_TIERS[pet.tier].cents, 0);
-    const addonTotal = giftPets.reduce((sum, pet) => sum + HOROSCOPE_ADDONS[pet.horoscopeAddon].cents, 0);
+    const tierTotal = giftPets.reduce((sum, pet) => sum + giftCents(pet.tier, currency), 0);
+    const addonTotal = giftPets.reduce((sum, pet) => sum + addonCents(pet.horoscopeAddon, currency), 0);
     const baseTotal = tierTotal + addonTotal;
     const discountAmount = Math.round(tierTotal * discount); // Only discount tiers, not addons
 
@@ -247,11 +263,11 @@ serve(async (req) => {
     }, {} as Record<GiftTier, number>);
     
     const tierSummary = (Object.entries(tierCounts) as [GiftTier, number][])
-      .map(([tier, count]) => `${count}x ${GIFT_TIERS[tier].name}`)
+      .map(([tier, count]) => `${count}x ${GIFT_TIER_META[tier].name}`)
       .join(', ');
     
     const productName = petCount === 1 
-      ? `Gift Certificate: ${GIFT_TIERS[giftPets[0].tier].name}`
+      ? `Gift Certificate: ${GIFT_TIER_META[giftPets[0].tier].name}`
       : recipientGroups.length > 1
         ? `Gift Certificates: ${petCount} Readings for ${recipientGroups.length} Recipients`
         : `Gift Certificate: ${petCount} Pet Readings`;
@@ -269,7 +285,7 @@ serve(async (req) => {
     const giftAmount = tierTotal - discountAmount - couponDiscount;
     lineItems.push({
       price_data: {
-        currency: "usd",
+        currency,
         product_data: {
           name: productName,
           description: productDescription,
@@ -290,17 +306,17 @@ serve(async (req) => {
     
     for (const [addon, count] of Object.entries(addonCounts) as [HoroscopeAddon, number][]) {
       if (addon === 'none') continue;
-      const addonInfo = HOROSCOPE_ADDONS[addon];
+      const addonMeta = HOROSCOPE_ADDON_META[addon];
       lineItems.push({
         price_data: {
-          currency: "usd",
+          currency,
           product_data: {
-            name: `Gift Add-on: ${addonInfo.name}`,
-            description: addon === 'yearly' 
+            name: `Gift Add-on: ${addonMeta.name}`,
+            description: addon === 'yearly'
               ? 'A full year of weekly cosmic guidance for their pet'
               : 'Monthly subscription to weekly cosmic guidance',
           },
-          unit_amount: addonInfo.cents * count,
+          unit_amount: addonCents(addon, currency) * count,
         },
         quantity: 1,
       });
@@ -360,7 +376,7 @@ serve(async (req) => {
       const code = giftCodes[i];
       
       // Calculate amount for this group
-      const groupTotal = group.pets.reduce((sum, pet) => sum + GIFT_TIERS[pet.tier].cents, 0);
+      const groupTotal = group.pets.reduce((sum, pet) => sum + giftCents(pet.tier, currency), 0);
       const groupDiscount = Math.round(groupTotal * discount);
       const groupFinal = groupTotal - groupDiscount;
       

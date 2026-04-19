@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 
 interface GiftInfo {
   includeGift: boolean;
@@ -43,7 +44,8 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
   const [isGiftLoading, setIsGiftLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
-  
+  const { currency } = useLocalizedPrice();
+
   // Get the email from sessionStorage if not passed as prop
   const email = purchaseEmail || (() => {
     try {
@@ -138,6 +140,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
           purchaserEmail: email,
           ...(giftRecipientEmail.trim() ? { giftRecipientEmail: giftRecipientEmail.trim() } : {}),
           ...(giftRecipientName.trim() ? { giftRecipientName: giftRecipientName.trim() } : {}),
+          currency,
         },
       });
       if (error) throw error;

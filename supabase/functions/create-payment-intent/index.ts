@@ -2,6 +2,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { z } from "https://esm.sh/zod@3.22.4";
+import {
+  type SupportedCurrency,
+  SUPPORTED_CURRENCIES,
+  PRICING,
+  normalizeCurrency,
+} from "../_shared/pricing.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
@@ -21,13 +27,6 @@ function getVolumeDiscount(petCount: number): number {
   return 0;
 }
 
-const HARDCOVER_PRICE_CENTS = 9900;
-const VARIANT_C_PRICES: Record<string, number> = {
-  basic: 2900,
-  premium: 4900,
-};
-const PORTRAIT_PRICE_CENTS = 800;
-
 const inputSchema = z.object({
   selectedTier: z.enum(["basic", "premium"]).optional().default("basic"),
   petCount: z.number().int().min(1).max(10).optional().default(1),
@@ -35,6 +34,8 @@ const inputSchema = z.object({
   includesBook: z.boolean().optional().default(false),
   occasionMode: z.enum(["discover", "birthday", "gift", "memorial"]).optional().default("discover"),
   quickCheckoutEmail: z.string().email().max(255).optional().or(z.literal("")),
+  /** User's display currency from useLocalizedPrice. */
+  currency: z.enum(SUPPORTED_CURRENCIES as unknown as [string, ...string[]]).optional(),
 });
 
 serve(async (req: Request) => {
@@ -64,14 +65,18 @@ serve(async (req: Request) => {
 
     if (includesBook) includesPortrait = true;
 
+    // Resolve display currency — must match what the client passed to Stripe Elements.
+    const currency: SupportedCurrency = normalizeCurrency(input.currency);
+    const pricing = PRICING[currency];
+
     // Calculate price — mirrors create-checkout server-side logic exactly
     let totalAmount: number;
     if (includesBook) {
-      totalAmount = HARDCOVER_PRICE_CENTS * petCount;
+      totalAmount = pricing.hardcover * petCount;
     } else {
-      const basePriceCents = VARIANT_C_PRICES[tierKey] ?? VARIANT_C_PRICES.basic;
+      const basePriceCents = tierKey === "premium" ? pricing.premium : pricing.basic;
       const perPetPrice = tierKey === "basic" && includesPortrait
-        ? VARIANT_C_PRICES.basic + PORTRAIT_PRICE_CENTS
+        ? pricing.basic + pricing.portrait
         : basePriceCents;
       const readingTotal = perPetPrice * petCount;
       const discountRate = getVolumeDiscount(petCount);
@@ -115,7 +120,7 @@ serve(async (req: Request) => {
     // Create PaymentIntent with metadata matching what verify-payment and stripe-webhook expect
     const pi = await stripe.paymentIntents.create({
       amount: totalAmount,
-      currency: "usd",
+      currency,
       receipt_email: input.quickCheckoutEmail || undefined,
       automatic_payment_methods: { enabled: true },
       metadata: {
@@ -127,6 +132,7 @@ serve(async (req: Request) => {
         includes_portrait: String(includesPortrait),
         includes_book: String(includesBook),
         occasion_mode: occasionMode,
+        currency,
       },
     });
 

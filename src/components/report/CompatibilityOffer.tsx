@@ -23,12 +23,13 @@ interface CompatibilityOfferProps {
 
 /**
  * Tiered pricing — first pair at full price, subsequent pairs discounted to
- * match the multi-pet base-tier volume discount philosophy. Returns USD dollars.
+ * match the multi-pet base-tier volume discount philosophy. Returns minor
+ * units (cents/pence) from the currency's PRICING row.
  */
-function priceForPair(existingPairsCount: number): number {
-  if (existingPairsCount >= 2) return 8;   // 3rd+ pair
-  if (existingPairsCount >= 1) return 10;  // 2nd pair
-  return 12;                               // 1st pair
+function priceCentsForPair(existingPairsCount: number, prices: { compatTier1: number; compatTier2: number; compatTier3: number }): number {
+  if (existingPairsCount >= 2) return prices.compatTier3;
+  if (existingPairsCount >= 1) return prices.compatTier2;
+  return prices.compatTier1;
 }
 
 /**
@@ -38,7 +39,7 @@ function priceForPair(existingPairsCount: number): number {
  */
 export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: CompatibilityOfferProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { fmtUsd } = useLocalizedPrice();
+  const { fmt, currency, prices } = useLocalizedPrice();
 
   // Only living pets are eligible for compatibility pairings.
   const livingPets = pets.filter(p => p.occasionMode !== 'memorial');
@@ -65,8 +66,8 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
     return () => { cancelled = true; };
   }, [buyerEmail]);
 
-  const priceDollars = priceForPair(existingPairs);
-  const nextDiscountDollars = existingPairs === 0 ? priceForPair(1) : existingPairs === 1 ? priceForPair(2) : null;
+  const priceCents = priceCentsForPair(existingPairs, prices);
+  const nextDiscountCents = existingPairs === 0 ? priceCentsForPair(1, prices) : existingPairs === 1 ? priceCentsForPair(2, prices) : null;
 
   const petA = livingPets.find(p => p.reportId === petAId);
   const petB = livingPets.find(p => p.reportId === petBId);
@@ -84,7 +85,7 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
         })(),
         event_type: 'compat_upsell_started',
         page_path: '/report',
-        event_data: { pairIndex: existingPairs, priceUsd: priceDollars, petAId: petA!.reportId, petBId: petB!.reportId } as never,
+        event_data: { pairIndex: existingPairs, priceCents, currency, petAId: petA!.reportId, petBId: petB!.reportId } as never,
         user_agent: navigator.userAgent,
       }]);
     } catch { /* non-fatal */ }
@@ -99,6 +100,7 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
           // prevent tampering, but sending the client's count lets the
           // server log any mismatches in telemetry.
           existingPairsCount: existingPairs,
+          currency,
         },
       });
       if (error || !data?.url) throw error || new Error('No checkout URL');
@@ -233,7 +235,7 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
               <>Loading…</>
             ) : (
               <>
-                Reveal their bond · {fmtUsd(priceDollars)}
+                Reveal their bond · {fmt(priceCents)}
                 <Sparkles className="w-4 h-4" />
               </>
             )}
@@ -245,9 +247,9 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
           One-time · Lives in your account · Shareable with the other pet's family
         </p>
 
-        {nextDiscountDollars !== null && (
+        {nextDiscountCents !== null && (
           <p className="text-center text-[0.72rem] mt-1" style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}>
-            ✨ Next pairing drops to {fmtUsd(nextDiscountDollars)}{existingPairs === 0 ? ' · 3rd pairing ' + fmtUsd(8) : ''}
+            ✨ Next pairing drops to {fmt(nextDiscountCents)}{existingPairs === 0 ? ' · 3rd pairing ' + fmt(prices.compatTier3) : ''}
           </p>
         )}
       </div>

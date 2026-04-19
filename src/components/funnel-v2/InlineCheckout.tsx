@@ -39,19 +39,17 @@ interface Feature {
 
 type TierId = "basic" | "premium" | "memorial";
 
-const TIERS: Array<{
+type TierDef = {
   id: TierId;
   name: string;
-  price: number;
-  wasPrice?: number;
   badge?: string;
   features: Feature[];
-}> = [
+};
+
+const TIERS: TierDef[] = [
   {
     id: "basic",
     name: "Soul Reading",
-    price: 29,
-    wasPrice: 49,
     features: [
       { label: "Included:", kind: "divider" },
       { label: "Full astrological breakdown — 30+ sections (works for any pet)" },
@@ -66,8 +64,6 @@ const TIERS: Array<{
   {
     id: "premium",
     name: "Soul Bond",
-    price: 49,
-    wasPrice: 79,
     badge: "Most Chosen",
     features: [
       { label: "Everything in Soul Reading, plus:", kind: "divider" },
@@ -78,13 +74,11 @@ const TIERS: Array<{
   },
   {
     // Memorial Reading — surfaced only on the memorial path as a sole
-    // full-card option. Shares Stripe price with Soul Bond ($49) so
+    // full-card option. Shares Stripe price with Soul Bond so
     // memorialQty bundles into premiumCount at checkout. Horoscope
     // intentionally omitted — memorial readings are backward-looking.
     id: "memorial",
     name: "Memorial Reading",
-    price: 49,
-    wasPrice: 79,
     badge: "In Loving Memory",
     features: [
       { label: "Included:", kind: "divider" },
@@ -186,7 +180,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   );
   const { ref: revealRef, visible } = useScrollReveal(0.05);
   const isInApp = useIsInAppBrowser();
-  const { fmtUsd, code: currencyCode, isLocalized } = useLocalizedPrice();
+  const { code: currencyCode, currency, isLocalized, prices, fmt, fmtWhole } = useLocalizedPrice();
 
   // SoulSpeak row click → open full-screen modal
   const openSoulSpeak = () => setSoulSpeakOpen(true);
@@ -214,20 +208,23 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   }, [soulSpeakOpen, horoscopeOpen]);
 
   // Derived totals — recomputed on every render from per-tier qty state.
-  const basicPrice = TIERS.find((t) => t.id === "basic")!.price;
-  const premiumPrice = TIERS.find((t) => t.id === "premium")!.price;
-  const memorialPrice = TIERS.find((t) => t.id === "memorial")!.price;
+  // All amounts in MINOR UNITS (cents/pence) of the user's local currency.
+  const basicPrice = prices.basic;
+  const premiumPrice = prices.premium;
+  const memorialPrice = prices.premium; // shares Soul Bond Stripe price
   const petCount = basicQty + premiumQty + memorialQty;
   const subtotal = basicQty * basicPrice + premiumQty * premiumPrice + memorialQty * memorialPrice;
   const discountRate = getVolumeDiscount(petCount);
-  const volumeDiscountAmount = Math.round(subtotal * discountRate * 100) / 100;
+  const volumeDiscountAmount = Math.round(subtotal * discountRate);
   const selectedPrice = Math.max(0, subtotal - volumeDiscountAmount);
 
   // Apply coupon discount on top of the volume discount before display.
+  // Fixed-amount coupons (discount_value) are stored in USD cents server-side;
+  // we keep the same value here since we live in minor units too.
   const couponDiscountAmount = appliedCoupon
     ? appliedCoupon.discount_type === "percentage" || appliedCoupon.discount_type === "percent"
-      ? Math.round(selectedPrice * (appliedCoupon.discount_value / 100) * 100) / 100
-      : appliedCoupon.discount_value / 100
+      ? Math.round(selectedPrice * (appliedCoupon.discount_value / 100))
+      : appliedCoupon.discount_value
     : 0;
   const finalPrice = Math.max(0, selectedPrice - couponDiscountAmount);
 
@@ -431,7 +428,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           quickCheckout: true,
           selectedTier: primaryTier,
           // Per-tier breakdown — backend prices each tier independently, then applies volume discount on the total.
-          // Memorial Reading is bundled into premiumCount (same $49 Stripe price).
+          // Memorial Reading is bundled into premiumCount (same Stripe price as Soul Bond).
           basicCount: basicQty,
           premiumCount: combinedPremiumCount,
           abVariant: "V2",
@@ -450,6 +447,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           // is pre-set to 'memorial' and PostPurchaseIntake defaults the
           // occasion picker accordingly. Only set when cart is purely memorial.
           occasionMode,
+          currency,
         },
       });
 
@@ -580,9 +578,9 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                 lineHeight: 1,
               }}
             >
-              {fmtUsd(tier.price)}
+              {fmt(tier.id === "basic" ? prices.basic : prices.premium)}
             </span>
-            {tier.wasPrice && (
+            {(tier.id === "basic" || tier.id === "premium" || tier.id === "memorial") && (
               <span
                 style={{
                   fontFamily: '"DM Serif Display", Georgia, serif',
@@ -594,7 +592,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
                   textDecorationThickness: "1.5px",
                 }}
               >
-                {fmtUsd(tier.wasPrice)}
+                {fmt(tier.id === "basic" ? prices.wasBasic : prices.wasPremium)}
               </span>
             )}
           </div>
@@ -912,7 +910,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.85rem", fontWeight: 600, color: petCount >= 2 ? "var(--rose, #bf524a)" : "var(--muted, #958779)" }}
           >
             {petCount >= 2 ? (
-              <>🎉 {Math.round(discountRate * 100)}% multi-pet discount applied — {petCount} readings · {fmtUsd(selectedPrice)}</>
+              <>🎉 {Math.round(discountRate * 100)}% multi-pet discount applied — {petCount} readings · {fmt(selectedPrice)}</>
             ) : (
               <>🐾 Got more pets? Use the + buttons above — save up to 30% on 2 or more</>
             )}
@@ -1020,7 +1018,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               Taking you to secure checkout…
             </span>
           ) : (
-            `${ctaLabel} · ${fmtUsd(finalPrice + charityBonus)}`
+            `${ctaLabel} · ${fmt(finalPrice + charityBonus * 100)}`
           )}
         </button>
 
@@ -1049,7 +1047,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               fontWeight: 600,
             }}
           >
-            Includes {fmtUsd(charityBonus)} charity donation
+            Includes {fmtWhole(charityBonus)} charity donation
           </p>
         )}
 

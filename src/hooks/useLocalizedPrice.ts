@@ -1,27 +1,21 @@
 import { useEffect, useState } from "react";
+import {
+  type SupportedCurrency,
+  type CurrencyPricing,
+  PRICING,
+  DEFAULT_CURRENCY,
+  COUNTRY_TO_CURRENCY,
+} from "@/lib/pricing";
 
-/* ── Currency localisation ──
-   Maps the user's browser locale country code to a display currency, then
-   pulls a live USD→X rate from open.er-api.com (no API key, free tier).
-   Checkout still charges in USD; this only affects what's shown on the
-   page. Falls back to USD on any failure.
-
-   Single source of truth — used by the landing page (InlineCheckout,
-   FunnelV2 sticky + final CTAs) and the gift page (GiftPurchase).
+/* ── Regional pricing ──
+   Detects the user's country from navigator.language (falling back to
+   timezone), maps it to one of our 6 supported currencies, and exposes
+   the matching psychological-pricing amounts so UI and Stripe checkout
+   agree on the number. Long-tail locales (JP, IN, BR, MX, etc.) fall
+   back to USD — we'll add native pricing tables for those once volume
+   justifies it.
 */
-const LOCALE_COUNTRY_TO_CURRENCY: Record<string, string> = {
-  GB: "GBP", AU: "AUD", CA: "CAD", NZ: "NZD",
-  IE: "EUR", FR: "EUR", DE: "EUR", ES: "EUR", IT: "EUR", NL: "EUR",
-  AT: "EUR", BE: "EUR", PT: "EUR", FI: "EUR", GR: "EUR", LU: "EUR",
-  CY: "EUR", MT: "EUR", SK: "EUR", SI: "EUR", EE: "EUR", LV: "EUR",
-  LT: "EUR", HR: "EUR",
-  JP: "JPY", IN: "INR", MX: "MXN", BR: "BRL", ZA: "ZAR",
-  CH: "CHF", SE: "SEK", NO: "NOK", DK: "DKK", PL: "PLN",
-  SG: "SGD", HK: "HKD", AE: "AED", IL: "ILS",
-};
 
-/* Timezone fallback for cases where navigator.language has no region
-   (e.g. plain "en"). Covers the largest non-USD audiences. */
 function inferCountryFromTimezone(): string | undefined {
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
@@ -29,83 +23,88 @@ function inferCountryFromTimezone(): string | undefined {
     if (tz === "Europe/Dublin") return "IE";
     if (tz.startsWith("Australia/")) return "AU";
     if (tz === "Pacific/Auckland") return "NZ";
-    if (tz.startsWith("America/Toronto") || tz.startsWith("America/Vancouver") ||
-        tz.startsWith("America/Halifax") || tz.startsWith("America/Montreal") ||
-        tz.startsWith("America/Edmonton") || tz.startsWith("America/Winnipeg")) return "CA";
+    if (
+      tz.startsWith("America/Toronto") ||
+      tz.startsWith("America/Vancouver") ||
+      tz.startsWith("America/Halifax") ||
+      tz.startsWith("America/Montreal") ||
+      tz.startsWith("America/Edmonton") ||
+      tz.startsWith("America/Winnipeg")
+    ) return "CA";
     if (tz.startsWith("Europe/")) return "DE"; // → EUR
-    if (tz === "Asia/Tokyo") return "JP";
-    if (tz === "Asia/Singapore") return "SG";
-    if (tz === "Asia/Hong_Kong") return "HK";
   } catch { /* noop */ }
   return undefined;
 }
 
-/* Charm-parity currencies: major Western markets where prices are shown at
-   1:1 with the USD charm number (e.g. $29 → £29 / €29 / A$29). Keeps the
-   price feeling local and intentional rather than "$29 converted = £23.47".
-   Checkout still charges in USD — banks auto-convert, usually yielding the
-   customer a small discount from the displayed parity price. */
-const PARITY_CURRENCIES = new Set(["GBP", "EUR", "AUD", "CAD", "NZD"]);
+function detectCurrency(): SupportedCurrency {
+  try {
+    const lang = (typeof navigator !== "undefined" ? navigator.language : "en-US") || "en-US";
+    const country = lang.split("-")[1]?.toUpperCase() || inferCountryFromTimezone();
+    const code = country ? COUNTRY_TO_CURRENCY[country] : undefined;
+    return code || DEFAULT_CURRENCY;
+  } catch {
+    return DEFAULT_CURRENCY;
+  }
+}
 
 export function useLocalizedPrice() {
-  const [state, setState] = useState<{ code: string; rate: number }>({ code: "USD", rate: 1 });
+  const [currency, setCurrency] = useState<SupportedCurrency>(DEFAULT_CURRENCY);
 
   useEffect(() => {
-    try {
-      const lang = (typeof navigator !== "undefined" ? navigator.language : "en-US") || "en-US";
-      const country = lang.split("-")[1]?.toUpperCase() || inferCountryFromTimezone();
-      const code = country ? LOCALE_COUNTRY_TO_CURRENCY[country] : undefined;
-      if (!code || code === "USD") return;
-
-      if (PARITY_CURRENCIES.has(code)) {
-        setState({ code, rate: 1 });
-        return;
-      }
-
-      fetch("https://open.er-api.com/v6/latest/USD")
-        .then((r) => r.json())
-        .then((j) => {
-          const rate = j?.rates?.[code];
-          if (typeof rate === "number" && rate > 0) {
-            setState({ code, rate });
-          }
-        })
-        .catch(() => { /* stay on USD */ });
-    } catch { /* stay on USD */ }
+    setCurrency(detectCurrency());
   }, []);
 
+  const prices: CurrencyPricing = PRICING[currency];
   const locale = (typeof navigator !== "undefined" ? navigator.language : "en-US") || "en-US";
+  const intlCurrency = currency.toUpperCase();
 
-  /** Format a USD cents amount in the display currency (Intl-aware). */
+  /** Format a minor-unit (cents/pence) amount in the user's local currency. */
   const fmt = (cents: number) => {
-    const amount = (cents / 100) * state.rate;
+    const amount = cents / 100;
     try {
       return new Intl.NumberFormat(locale, {
         style: "currency",
-        currency: state.code,
-        maximumFractionDigits: state.code === "JPY" ? 0 : 2,
-        minimumFractionDigits: state.code === "JPY" ? 0 : 0,
+        currency: intlCurrency,
+        maximumFractionDigits: 2,
+        minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
       }).format(amount);
     } catch {
-      return `$${amount.toFixed(2)}`;
+      return `${intlCurrency} ${amount.toFixed(2)}`;
     }
   };
 
-  /** Format a USD whole-dollar amount in the display currency, rounded to
-   *  whole units for clean CTA copy (e.g. "£22" not "£21.33"). */
-  const fmtUsd = (usd: number) => {
-    const amount = usd * state.rate;
+  /** Format a whole-unit amount (convenience for e.g. charity donation dollars). */
+  const fmtWhole = (major: number) => {
     try {
       return new Intl.NumberFormat(locale, {
         style: "currency",
-        currency: state.code,
+        currency: intlCurrency,
         maximumFractionDigits: 0,
         minimumFractionDigits: 0,
-      }).format(amount);
+      }).format(major);
     } catch {
-      return `$${Math.round(amount)}`;
+      return `${intlCurrency} ${Math.round(major)}`;
     }
   };
 
-  return { code: state.code, rate: state.rate, fmt, fmtUsd, isLocalized: state.code !== "USD" };
+  /** Back-compat wrapper — callers still pass semantic GBP-style whole numbers
+   *  (29, 49, 99) and we route them to the matching product price. Prefer
+   *  `fmt(prices.basic)` etc. in new code. */
+  const fmtUsd = (legacy: number): string => {
+    if (legacy === 29) return fmt(prices.basic);
+    if (legacy === 49) return fmt(prices.premium);
+    if (legacy === 79) return fmt(prices.wasPremium);
+    if (legacy === 99) return fmt(prices.hardcover);
+    return fmtWhole(legacy);
+  };
+
+  return {
+    code: intlCurrency,           // e.g. "GBP"
+    currency,                     // lower-case: e.g. "gbp"
+    prices,
+    fmt,
+    fmtWhole,
+    fmtUsd,
+    isLocalized: currency !== "usd",
+  };
 }

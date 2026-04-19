@@ -21,6 +21,8 @@ interface Props {
   includesBook: boolean;
   occasionMode: string;
   email: string;
+  /** Lower-case ISO currency code from useLocalizedPrice, e.g. "gbp". */
+  currency: string;
   onError: (msg: string) => void;
 }
 
@@ -32,6 +34,7 @@ function CheckoutForm({
   includesBook,
   occasionMode,
   email,
+  currency,
   onError,
 }: Props) {
   const stripe = useStripe();
@@ -62,6 +65,7 @@ function CheckoutForm({
             includesPortrait,
             includesBook,
             occasionMode,
+            currency,
             ...(email.trim() ? { quickCheckoutEmail: email.trim() } : {}),
           },
         }
@@ -124,12 +128,12 @@ function CheckoutForm({
 export default function ExpressCheckoutButton(props: Props) {
   return (
     <Elements
-      key={props.totalCents}
+      key={`${props.totalCents}-${props.currency}`}
       stripe={stripePromise}
       options={{
         mode: "payment",
         amount: props.totalCents,
-        currency: "usd",
+        currency: props.currency,
         appearance: {
           theme: "stripe",
           variables: {

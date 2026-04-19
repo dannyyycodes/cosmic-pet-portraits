@@ -2,6 +2,12 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import {
+  type SupportedCurrency,
+  SUPPORTED_CURRENCIES,
+  PRICING,
+  normalizeCurrency,
+} from "../_shared/pricing.ts";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
@@ -13,16 +19,15 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-// Fixed pricing tiers - SERVER-SIDE TRUTH
-const TIERS = {
-  basic: { name: 'Little Souls Reading', priceCents: 2900 },
-  premium: { name: 'Little Souls Reading + Portrait', priceCents: 4900 },
+// Tier name lookup — prices come from PRICING[currency]
+const TIER_NAMES = {
+  basic: 'Little Souls Reading',
+  premium: 'Little Souls Reading + Portrait',
 } as const;
 
-// Gift add-on — 50% off all tiers for friends (must match frontend CheckoutPanel)
-const GIFT_TIERS = {
-  basic: { priceCents: 1450, name: 'Gift: Little Souls Reading' },
-  premium: { priceCents: 2450, name: 'Gift: Little Souls Reading + Portrait' },
+const GIFT_TIER_NAMES = {
+  basic: 'Gift: Little Souls Reading',
+  premium: 'Gift: Little Souls Reading + Portrait',
 } as const;
 
 // Volume discount calculation - SERVER-SIDE (must match frontend)
@@ -35,14 +40,6 @@ function getVolumeDiscount(petCount: number): number {
 }
 
 const HOROSCOPE_MONTHLY_CENTS = 0; // Free at checkout — Stripe subscription created in webhook with 30-day trial
-const HARDCOVER_PRICE_CENTS = 9900; // $99.00 — includes reading + portrait + book
-
-// Variant C pricing
-const VARIANT_C_PRICES: Record<string, number> = {
-  basic: 2900,
-  premium: 4900,
-};
-const PORTRAIT_PRICE_CENTS = 800; // $8.00
 
 // Input validation schema
 const checkoutSchema = z.object({
@@ -95,6 +92,9 @@ const checkoutSchema = z.object({
   compatPetReportBId: z.string().uuid().optional(),
   /** Client-reported — server recomputes from DB. Telemetry only. */
   existingPairsCount: z.number().int().min(0).max(50).optional(),
+  /** User's display currency from useLocalizedPrice. Server uses PRICING[currency]
+   *  for all amounts AND passes it as the Stripe Checkout Session currency. */
+  currency: z.enum(SUPPORTED_CURRENCIES as unknown as [string, ...string[]]).optional(),
 });
 
 serve(async (req) => {
@@ -123,10 +123,14 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "https://littlesouls.app";
 
+    // Resolve display currency once — used for all amounts + Stripe session.
+    const currency: SupportedCurrency = normalizeCurrency(input.currency);
+    const pricing = PRICING[currency];
+
     // ========== GIFT UPSELL CHECKOUT (post-purchase 30% off) ==========
     if (input.giftUpsellCheckout) {
-      const GIFT_UPSELL_PRICE_CENTS = 1990;
-      const GIFT_CERT_VALUE_CENTS = 2900;
+      const GIFT_UPSELL_PRICE_CENTS = pricing.giftUpsell;
+      const GIFT_CERT_VALUE_CENTS = pricing.giftCertValue;
       const purchaserEmail = input.purchaserEmail;
       if (!purchaserEmail) {
         return new Response(JSON.stringify({ error: "Purchaser email required" }), {
@@ -143,16 +147,20 @@ serve(async (req) => {
       for (let i = 4; i < 8; i++) giftCode += chars[randomBytes[i] % chars.length];
       const expiresAt = new Date();
       expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      const giftFaceLabel = new Intl.NumberFormat("en-US", {
+        style: "currency", currency: currency.toUpperCase(),
+        maximumFractionDigits: 0, minimumFractionDigits: 0,
+      }).format(GIFT_CERT_VALUE_CENTS / 100);
       const giftSession = await stripe.checkout.sessions.create({
         customer_email: purchaserEmail,
         line_items: [{
           price_data: {
-            currency: "usd",
+            currency,
             product_data: {
               name: "🎁 Gift a Little Souls Reading",
               description: input.giftRecipientName
                 ? `A cosmic reading for ${input.giftRecipientName} — they'll discover their pet's soul`
-                : "A cosmic pet reading gift certificate — worth $29",
+                : `A cosmic pet reading gift certificate — worth ${giftFaceLabel}`,
             },
             unit_amount: GIFT_UPSELL_PRICE_CENTS,
           },
@@ -249,7 +257,9 @@ serve(async (req) => {
         .eq("email", buyerEmail)
         .eq("status", "ready");
       const pairIndex = existingPairsCount ?? 0;
-      const COMPAT_PRICE_CENTS = pairIndex >= 2 ? 800 : pairIndex >= 1 ? 1000 : 1200;
+      const COMPAT_PRICE_CENTS = pairIndex >= 2 ? pricing.compatTier3
+        : pairIndex >= 1 ? pricing.compatTier2
+        : pricing.compatTier1;
 
       const nameA = sourceReports.find(r => r.id === compatPetReportAId)?.pet_name || "your first pet";
       const nameB = sourceReports.find(r => r.id === compatPetReportBId)?.pet_name || "your second pet";
@@ -258,7 +268,7 @@ serve(async (req) => {
         customer_email: purchaserEmail,
         line_items: [{
           price_data: {
-            currency: "usd",
+            currency,
             product_data: {
               name: `${nameA} × ${nameB} — Together`,
               description: `A cross-pet reading that reveals how ${nameA} and ${nameB} move through the world side by side.`,
@@ -323,18 +333,18 @@ serve(async (req) => {
 
       // Calculate price server-side
       if (includesBook) {
-        // Hardcover: $99 per pet — includes reading + portrait + book
-        var totalAmount = HARDCOVER_PRICE_CENTS * petCount;
+        // Hardcover per pet — includes reading + portrait + book
+        var totalAmount = pricing.hardcover * petCount;
       } else if (hasPerTierCounts) {
         // Mixed-tier digital: price each tier independently, then apply volume discount on the total.
-        const readingTotal = (basicCount * VARIANT_C_PRICES.basic) + (premiumCount * VARIANT_C_PRICES.premium);
+        const readingTotal = (basicCount * pricing.basic) + (premiumCount * pricing.premium);
         const discountRate = getVolumeDiscount(petCount);
         const discountAmount = Math.round(readingTotal * discountRate);
         var totalAmount = readingTotal - discountAmount;
       } else {
-        const basePriceCents = VARIANT_C_PRICES[tierKey] || VARIANT_C_PRICES.basic;
+        const basePriceCents = tierKey === 'premium' ? pricing.premium : pricing.basic;
         const perPetPrice = tierKey === 'basic' && includesPortrait
-          ? VARIANT_C_PRICES.basic + PORTRAIT_PRICE_CENTS
+          ? pricing.basic + pricing.portrait
           : basePriceCents;
         const readingTotal = perPetPrice * petCount;
         const discountRate = getVolumeDiscount(petCount);
@@ -439,11 +449,16 @@ serve(async (req) => {
       // Build line items
       const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
 
+      // Format the post-trial horoscope price for receipt copy in the user's currency.
+      const horoscopeMonthlyLabel = new Intl.NumberFormat("en-US", {
+        style: "currency", currency: currency.toUpperCase(),
+        maximumFractionDigits: 2, minimumFractionDigits: 2,
+      }).format(pricing.horoscopeMonthly / 100);
+
       if (includesBook) {
-        // HARDCOVER: Single line item at $99 per pet — includes reading + portrait
         lineItems.push({
           price_data: {
-            currency: "usd",
+            currency,
             product_data: {
               name: petCount > 1 ? `${petCount}× The Little Souls Book` : 'The Little Souls Book',
               description: 'Hardcover book + digital reading + AI portrait',
@@ -466,12 +481,12 @@ serve(async (req) => {
           const tierName = includesPortrait ? 'Soul Bond' : 'Soul Reading';
           productName = petCount > 1 ? `${petCount}× Little Souls — ${tierName}` : `Little Souls — ${tierName}`;
           productDescription = input.includeHoroscope
-            ? 'Includes 1 month of weekly horoscopes — free (then $4.99/month, cancel anytime)'
+            ? `Includes 1 month of weekly horoscopes — free (then ${horoscopeMonthlyLabel}/month, cancel anytime)`
             : undefined;
         }
         lineItems.push({
           price_data: {
-            currency: "usd",
+            currency,
             product_data: {
               name: productName,
               description: productDescription,
@@ -492,7 +507,7 @@ serve(async (req) => {
         const charityName = CHARITY_NAMES[input.charityId || ""] || "Animal Welfare";
         lineItems.push({
           price_data: {
-            currency: "usd",
+            currency,
             product_data: {
               name: `Charity Donation — ${charityName}`,
               description: `Your extra contribution to ${charityName}`,
@@ -542,6 +557,7 @@ serve(async (req) => {
           horoscope_pet_count: input.includeHoroscope ? petCount.toString() : "0",
           charity_id: input.charityId || "",
           charity_bonus: charityBonus.toString(),
+          currency,
         },
       });
 
@@ -590,8 +606,7 @@ serve(async (req) => {
     let baseTotal = 0;
     for (let i = 0; i < actualPetCount; i++) {
       const tierKey = petTiers[String(i)] || input.selectedTier || 'premium';
-      const tier = TIERS[tierKey as keyof typeof TIERS] || TIERS.premium;
-      baseTotal += tier.priceCents;
+      baseTotal += tierKey === 'basic' ? pricing.basic : pricing.premium;
     }
     
     const volumeDiscountRate = getVolumeDiscount(actualPetCount);
@@ -613,7 +628,9 @@ serve(async (req) => {
     }
     
     const giftTier = input.giftTierForFriend || 'basic';
-    const giftAmount = input.includeGiftForFriend ? GIFT_TIERS[giftTier].priceCents : 0;
+    const giftAmount = input.includeGiftForFriend
+      ? (giftTier === 'premium' ? pricing.giftPremium : pricing.giftBasic)
+      : 0;
     
     let couponDiscount = 0;
     if (input.couponId) {
@@ -696,7 +713,7 @@ serve(async (req) => {
     }
     
     // Book upsell for standard checkout
-    const bookAmount = input.includesBook ? HARDCOVER_PRICE_CENTS : 0;
+    const bookAmount = input.includesBook ? pricing.hardcover : 0;
 
     const calculatedTotal = Math.max(0, 
       baseTotal - volumeDiscount - couponDiscount - giftCertificateDiscount - customerReferralDiscount + giftAmount + horoscopeCost + bookAmount
@@ -797,16 +814,21 @@ serve(async (req) => {
     
     const orderDesc = Object.entries(tierCounts)
       .filter(([_, count]) => count > 0)
-      .map(([tier, count]) => `${count}× ${TIERS[tier as keyof typeof TIERS].name}`)
+      .map(([tier, count]) => `${count}× ${TIER_NAMES[tier as keyof typeof TIER_NAMES]}`)
       .join(' + ');
-    
+
+    const horoscopeMonthlyLabelStd = new Intl.NumberFormat("en-US", {
+      style: "currency", currency: currency.toUpperCase(),
+      maximumFractionDigits: 2, minimumFractionDigits: 2,
+    }).format(pricing.horoscopeMonthly / 100);
+
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [{
       price_data: {
-        currency: "usd",
+        currency,
         product_data: {
-          name: actualPetCount > 1 
+          name: actualPetCount > 1
             ? `Little Souls Readings (${actualPetCount} pets)`
-            : TIERS[input.selectedTier].name,
+            : TIER_NAMES[input.selectedTier],
           description: actualPetCount > 1 ? orderDesc : undefined,
         },
         unit_amount: mainItemAmount,
@@ -817,12 +839,12 @@ serve(async (req) => {
     if (horoscopeCost > 0 && horoscopePetCount > 0) {
       lineItems.push({
         price_data: {
-          currency: "usd",
+          currency,
           product_data: {
-            name: horoscopePetCount > 1 
+            name: horoscopePetCount > 1
               ? `🌙 Weekly Horoscopes - ${horoscopePetCount} pets (1st month)`
               : '🌙 Weekly Horoscope Subscription (1st month)',
-            description: 'Personalized cosmic guidance delivered weekly. $4.99/month - cancel anytime.',
+            description: `Personalized cosmic guidance delivered weekly. ${horoscopeMonthlyLabelStd}/month - cancel anytime.`,
           },
           unit_amount: horoscopeCost,
         },
@@ -832,15 +854,16 @@ serve(async (req) => {
 
     if (input.includeGiftForFriend) {
       const giftTierSelected = input.giftTierForFriend || 'basic';
-      const giftInfo = GIFT_TIERS[giftTierSelected];
+      const giftUnitAmount = giftTierSelected === 'premium' ? pricing.giftPremium : pricing.giftBasic;
+      const giftName = GIFT_TIER_NAMES[giftTierSelected];
       lineItems.push({
         price_data: {
-          currency: "usd",
+          currency,
           product_data: {
-            name: `🎁 ${giftInfo.name} (50% OFF!)`,
+            name: `🎁 ${giftName} (50% OFF!)`,
             description: "A cosmic pet reading gift certificate",
           },
-          unit_amount: giftInfo.priceCents,
+          unit_amount: giftUnitAmount,
         },
         quantity: 1,
       });
@@ -850,12 +873,12 @@ serve(async (req) => {
     if (input.includesBook) {
       lineItems.push({
         price_data: {
-          currency: "usd",
+          currency,
           product_data: {
             name: 'The Little Souls Book',
             description: 'Hardcover book + digital reading + AI portrait',
           },
-          unit_amount: HARDCOVER_PRICE_CENTS,
+          unit_amount: pricing.hardcover,
         },
         quantity: 1,
       });
@@ -925,6 +948,7 @@ serve(async (req) => {
         pet_horoscopes: JSON.stringify(petHoroscopes),
         pet_photo_url: input.petPhotoUrl || "",
         ab_variant: input.abVariant || "",
+        currency,
       },
     });
 
