@@ -72,6 +72,7 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
         background: "var(--cream, #FFFDF5)",
       }}
     >
+      <span aria-hidden="true" className="path-picker-hearts" />
       <div className="path-picker-inner max-w-4xl mx-auto text-center">
         <p
           className="path-picker-eyebrow"
@@ -131,6 +132,11 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
            viewport so the visitor sees reviews + pills and
            nothing else. After a pick it collapses to a strip.
            ══════════════════════════════════════════════════════ */
+        .path-picker-section {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+        }
         .path-picker-section.is-landing {
           min-height: calc(100vh - 240px);
           min-height: calc(100svh - 240px);
@@ -143,7 +149,49 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           padding: 26px 16px 32px;
         }
 
-        .path-picker-inner { width: 100%; }
+        /* ══════════════════════════════════════════════════════
+           ROSE HEART WALLPAPER
+           Tiled SVG pattern. Half the hearts are 100% filled rose,
+           the other half are stroke-only outlines — an even split
+           that reads as quiet texture, not decoration.
+           The layer sits above the cream base and below the
+           content (z-index: 0, content is on z-index: 1).
+           ══════════════════════════════════════════════════════ */
+        .path-picker-hearts {
+          position: absolute;
+          inset: 0;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><g fill='rgba(191,82,74,0.075)'><path transform='translate(14 16) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/><path transform='translate(108 110) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/></g><g fill='none' stroke='rgba(191,82,74,0.16)' stroke-width='1.25' stroke-linejoin='round'><path transform='translate(110 20) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/><path transform='translate(20 106) scale(1.25)' d='M12 21s-7.5-4.5-10-9.5C0.5 8 2.5 4 6.5 4c2 0 3.5 1 5.5 3 2-2 3.5-3 5.5-3 4 0 6 4 4.5 7.5C19.5 16.5 12 21 12 21z'/></g></svg>");
+          background-repeat: repeat;
+          background-size: 180px 180px;
+          pointer-events: none;
+          z-index: 0;
+          /* Soft cream fade at top + bottom so the wallpaper melts
+             into adjacent sections rather than hard-edging. */
+          -webkit-mask-image: linear-gradient(
+            180deg,
+            transparent 0,
+            #000 8%,
+            #000 92%,
+            transparent 100%
+          );
+                  mask-image: linear-gradient(
+            180deg,
+            transparent 0,
+            #000 8%,
+            #000 92%,
+            transparent 100%
+          );
+        }
+        .is-compact .path-picker-hearts {
+          background-size: 150px 150px;
+          opacity: 0.7;
+        }
+
+        .path-picker-inner {
+          width: 100%;
+          position: relative;
+          z-index: 1;
+        }
 
         /* ── Eyebrow prompt ─────────────────────────────────── */
         .is-landing .path-picker-eyebrow {
@@ -198,12 +246,18 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(
-            180deg,
-            rgba(255, 253, 245, 0.98) 0%,
-            rgba(251, 244, 232, 0.92) 100%
-          );
-          border: 1px solid rgba(196, 162, 101, 0.32);
+          background:
+            radial-gradient(
+              120% 160% at 50% -20%,
+              rgba(212, 178, 107, 0.14) 0%,
+              rgba(212, 178, 107, 0) 55%
+            ),
+            linear-gradient(
+              180deg,
+              rgba(255, 253, 245, 0.98) 0%,
+              rgba(249, 240, 224, 0.94) 100%
+            );
+          border: 1px solid rgba(196, 162, 101, 0.36);
           border-radius: 9999px;
           color: var(--ink, #1f1c18);
           font-family: "Cormorant", Georgia, serif;
@@ -214,16 +268,18 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
             background 320ms ease,
             border-color 320ms ease,
             color 320ms ease,
-            box-shadow 320ms ease,
-            transform 320ms ease;
+            box-shadow 380ms ease,
+            transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
           box-shadow:
-            0 1px 2px rgba(20, 15, 8, 0.03),
-            0 8px 22px rgba(20, 15, 8, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            0 1px 2px rgba(20, 15, 8, 0.04),
+            0 10px 26px rgba(20, 15, 8, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.78),
+            inset 0 -1px 0 rgba(196, 162, 101, 0.12);
           -webkit-tap-highlight-color: transparent;
           outline: none;
           white-space: nowrap;
           overflow: hidden;
+          backdrop-filter: saturate(1.05);
         }
 
         /* Top-edge gold sheen — very subtle highlight, adds depth */
@@ -232,13 +288,45 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           top: 0;
           left: 0;
           right: 0;
-          height: 42%;
+          height: 45%;
           background: linear-gradient(
             180deg,
-            rgba(212, 178, 107, 0.10) 0%,
+            rgba(212, 178, 107, 0.14) 0%,
             rgba(212, 178, 107, 0) 100%
           );
           pointer-events: none;
+          z-index: 0;
+        }
+
+        /* Diagonal gold shimmer sweep — sits off-pill by default and
+           traverses left-to-right on hover. Adds a moment of light
+           without shouting, matching the brand's quiet-gold language. */
+        .path-picker-pill::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -55%;
+          width: 55%;
+          height: 100%;
+          background: linear-gradient(
+            115deg,
+            rgba(212, 178, 107, 0) 0%,
+            rgba(212, 178, 107, 0.28) 50%,
+            rgba(212, 178, 107, 0) 100%
+          );
+          opacity: 0;
+          transform: translateX(0);
+          transition:
+            transform 1100ms cubic-bezier(0.22, 1, 0.36, 1),
+            opacity 220ms ease;
+          pointer-events: none;
+          z-index: 0;
+        }
+        @media (hover: hover) {
+          .path-picker-pill:hover::after {
+            opacity: 1;
+            transform: translateX(330%);
+          }
         }
 
         .is-landing .path-picker-pill {
@@ -270,6 +358,7 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           display: inline-flex;
           align-items: center;
           gap: clamp(10px, 1.8vw, 14px);
+          z-index: 1;
         }
 
         .path-picker-label {
@@ -354,17 +443,47 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
 
         .path-picker-pill.is-active {
           color: var(--rose, #bf524a);
-          background: linear-gradient(
-            180deg,
-            #FFFDF5 0%,
-            #fbf2e4 100%
-          );
+          background:
+            radial-gradient(
+              140% 200% at 50% -30%,
+              rgba(212, 178, 107, 0.18) 0%,
+              rgba(212, 178, 107, 0) 60%
+            ),
+            linear-gradient(
+              180deg,
+              #FFFDF5 0%,
+              #fbeedd 100%
+            );
           border-color: var(--rose, #bf524a);
           box-shadow:
-            0 0 0 4px rgba(191, 82, 74, 0.05),
-            0 3px 6px rgba(191, 82, 74, 0.10),
-            0 16px 36px rgba(191, 82, 74, 0.14),
-            inset 0 1px 0 rgba(255, 255, 255, 0.85);
+            0 0 0 5px rgba(191, 82, 74, 0.07),
+            0 0 0 1px rgba(191, 82, 74, 0.18),
+            0 4px 10px rgba(191, 82, 74, 0.14),
+            0 20px 44px rgba(191, 82, 74, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 0.92),
+            inset 0 -2px 6px rgba(212, 178, 107, 0.18);
+          animation: pp-halo-pulse 3.6s ease-in-out infinite;
+        }
+
+        @keyframes pp-halo-pulse {
+          0%, 100% {
+            box-shadow:
+              0 0 0 5px rgba(191, 82, 74, 0.07),
+              0 0 0 1px rgba(191, 82, 74, 0.18),
+              0 4px 10px rgba(191, 82, 74, 0.14),
+              0 20px 44px rgba(191, 82, 74, 0.18),
+              inset 0 1px 0 rgba(255, 255, 255, 0.92),
+              inset 0 -2px 6px rgba(212, 178, 107, 0.18);
+          }
+          50% {
+            box-shadow:
+              0 0 0 7px rgba(191, 82, 74, 0.10),
+              0 0 0 1px rgba(191, 82, 74, 0.24),
+              0 6px 14px rgba(191, 82, 74, 0.18),
+              0 24px 52px rgba(191, 82, 74, 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.95),
+              inset 0 -2px 8px rgba(212, 178, 107, 0.22);
+          }
         }
         .path-picker-pill.is-active .path-picker-underline {
           width: calc(100% - 4px);
@@ -392,9 +511,13 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           .path-picker-pill,
           .path-picker-pill:hover,
           .path-picker-underline,
-          .pp-spark {
+          .pp-spark,
+          .path-picker-pill::after {
             transition: none !important;
             transform: none !important;
+          }
+          .path-picker-pill.is-active {
+            animation: none !important;
           }
         }
       `}</style>
