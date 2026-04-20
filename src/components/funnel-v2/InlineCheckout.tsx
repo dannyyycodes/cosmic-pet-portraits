@@ -252,6 +252,70 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Cosmic Wheel handoff ──────────────────────────────────────────
+  //
+  // SpinWheel.tsx writes the won prize to sessionStorage. On first
+  // mount we look for it, prefill the email + reveal the code panel
+  // with the code already applied, and re-render the cards with the
+  // discount baked into the displayed totals. One read on mount —
+  // refreshes don't re-apply (sessionStorage survives the SPA route
+  // change but is wiped on tab close, which is the right TTL).
+  const wheelPrizeApplied = useRef(false);
+  useEffect(() => {
+    if (wheelPrizeApplied.current) return;
+    let cancelled = false;
+    (async () => {
+      let raw: string | null = null;
+      try { raw = sessionStorage.getItem("ls_wheel_prize"); } catch { return; }
+      if (!raw) return;
+      let parsed: { email?: string; code?: string; expiresAt?: string; prizeLabel?: string } | null = null;
+      try { parsed = JSON.parse(raw); } catch { return; }
+      if (!parsed?.code || !parsed?.email) return;
+      if (parsed.expiresAt && new Date(parsed.expiresAt).getTime() < Date.now()) {
+        try { sessionStorage.removeItem("ls_wheel_prize"); } catch { /* ignore */ }
+        return;
+      }
+      wheelPrizeApplied.current = true;
+      setEmail(parsed.email);
+      setCodeOpen(true);
+      setCodeInput(parsed.code);
+      setCodeStatus("checking");
+      try {
+        const { data: coupons } = await supabase
+          .from("coupons")
+          .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses")
+          .eq("code", parsed.code)
+          .eq("is_active", true)
+          .limit(1);
+        if (cancelled) return;
+        if (coupons && coupons.length > 0) {
+          const c = coupons[0];
+          if (c.expires_at && new Date(c.expires_at) < new Date()) {
+            setCodeError("This code has expired");
+            setCodeStatus("idle");
+            return;
+          }
+          if (c.max_uses && c.current_uses >= c.max_uses) {
+            setCodeError("This code has already been used");
+            setCodeStatus("idle");
+            return;
+          }
+          setAppliedCoupon(c);
+          setCodeStatus("applied");
+          trackFunnelEvent("v2_wheel_code_autoapplied", { code: parsed.code, prizeLabel: parsed.prizeLabel });
+        } else {
+          setCodeError("This code is no longer available");
+          setCodeStatus("idle");
+        }
+      } catch (e) {
+        console.error("[V2 wheel autofill]", e);
+        setCodeStatus("idle");
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Lock body scroll while any preview modal is open
   useEffect(() => {
     const anyOpen = soulSpeakOpen || horoscopeOpen;
