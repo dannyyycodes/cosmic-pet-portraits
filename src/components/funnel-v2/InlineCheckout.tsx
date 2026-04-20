@@ -1855,22 +1855,72 @@ const SOUL_SPEAK_SCRIPTS: Record<SoulSpeakPath, SoulSpeakScript> = {
   memorial: {
     intro: "The conversation you didn't get to have.",
     messages: {
-      u1: "Did I hold on too long?",
-      p1: "You held on exactly right. You were the best goodbye I could've had.",
-      u2: "I miss you.",
-      hero: "I'm in the quiet with you.",
+      u1: "I still look for you in the kitchen.",
+      p1: "That's where I came when I heard the cutlery drawer. I thought that drawer had my name on it.",
+      u2: "I dropped a spoon last week and cried.",
+      hero: "I came anyway.",
     },
   },
 };
 
+/* Pet name shown in the chat header — one per path. Kept warm and
+ * ordinary (not brand-y). Discover / new imply a living pet; memorial
+ * implies a remembered one. */
+const SOUL_SPEAK_PET_NAME: Record<SoulSpeakPath, string> = {
+  discover: "Biscuit",
+  new:      "Mochi",
+  memorial: "Scout",
+};
+
 const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
   const script = SOUL_SPEAK_SCRIPTS[path] ?? SOUL_SPEAK_SCRIPTS.discover;
+  const petName = SOUL_SPEAK_PET_NAME[path] ?? SOUL_SPEAK_PET_NAME.discover;
   const messages = script.messages;
   const isMystery = !messages;
+  // Memorial gets gold "always-with-you" dot; living paths get green
+  // "online" dot. Mirrors the real SoulSpeak header treatment.
+  const isMemorial = path === "memorial";
   // Typing indicator appears later for memorial (after 4 bubbles); almost
   // immediately in mystery mode so the reader sees motion from the start.
   const typingDelay = isMystery ? "0.15s" : "3.45s";
   const composerDelay = isMystery ? "0.4s" : "3.8s";
+
+  // Pull a real dog photo from dog.ceo (free, no API key, CORS-enabled)
+  // so the preview looks like a genuine screenshot of a live chat rather
+  // than a stylised illustration. Fails silently to the sparkle avatar.
+  const [petPhoto, setPetPhoto] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("https://dog.ceo/api/breeds/image/random")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data && data.status === "success" && typeof data.message === "string") {
+          setPetPhoto(data.message);
+        }
+      })
+      .catch(() => { /* keep fallback */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  const PetAvatar = ({ size = "small" }: { size?: "small" | "header" }) => {
+    const dim = size === "header" ? 44 : 26;
+    return (
+      <div
+        className={size === "header" ? "ss-chat-avatar" : "ss-avatar"}
+        aria-hidden="true"
+        style={{ width: dim, height: dim }}
+      >
+        {petPhoto ? (
+          <img src={petPhoto} alt="" loading="lazy" />
+        ) : (
+          <svg viewBox="0 0 10 10" className="ss-avatar-fallback">
+            <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+          </svg>
+        )}
+      </div>
+    );
+  };
+
   return (
   <div className="ss-preview">
     <p className="ss-preview-intro">
@@ -1890,6 +1940,20 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
     >
       <span aria-hidden="true" className="ss-chat-wallpaper" />
 
+      {/* Chat header — dog photo + name + status dot, mirroring the real
+          SoulSpeak chat screen at /soul-chat.html so the preview reads
+          as a screenshot, not a stylised widget. */}
+      <div className="ss-chat-header">
+        <PetAvatar size="header" />
+        <div className="ss-chat-info">
+          <div className="ss-chat-name">{petName}</div>
+          <div className={`ss-chat-status${isMemorial ? " is-memorial" : ""}`}>
+            <span className="ss-chat-dot" aria-hidden="true" />
+            {isMemorial ? "always with you" : "online"}
+          </div>
+        </div>
+      </div>
+
       {messages && (
         <>
           <div className="ss-msg ss-msg-user" style={{ animationDelay: "0.1s" }}>
@@ -1897,11 +1961,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
           </div>
 
           <div className="ss-msg ss-msg-pet" style={{ animationDelay: "0.85s" }}>
-            <div className="ss-avatar" aria-hidden="true">
-              <svg viewBox="0 0 10 10">
-                <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
-              </svg>
-            </div>
+            <PetAvatar />
             <div className="ss-bubble">{messages.p1}</div>
           </div>
 
@@ -1910,22 +1970,14 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
           </div>
 
           <div className="ss-msg ss-msg-pet" style={{ animationDelay: "2.75s" }}>
-            <div className="ss-avatar" aria-hidden="true">
-              <svg viewBox="0 0 10 10">
-                <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
-              </svg>
-            </div>
+            <PetAvatar />
             <div className="ss-bubble ss-bubble-hero">{messages.hero}</div>
           </div>
         </>
       )}
 
       <div className="ss-typing" aria-hidden="true" style={{ animationDelay: typingDelay }}>
-        <div className="ss-avatar">
-          <svg viewBox="0 0 10 10">
-            <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
-          </svg>
-        </div>
+        <PetAvatar />
         <div className="ss-typing-dots">
           <span /><span /><span />
         </div>
@@ -1978,12 +2030,14 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
           0 2px 8px rgba(20, 15, 8, 0.05);
       }
 
-      /* Mystery-mode chat — new + discover. No bubbles, just the pet
-         typing forever. Give the surface enough height to feel
-         anticipatory rather than squashed. */
+      /* Mystery-mode chat — new + discover. Header stays top; typing
+         indicator pushes to the bottom so the empty space between
+         reads as "something is about to happen". */
       .ss-chat-mystery {
-        min-height: clamp(150px, 22vw, 186px);
-        justify-content: flex-end;
+        min-height: clamp(200px, 28vw, 240px);
+      }
+      .ss-chat-mystery .ss-typing {
+        margin-top: auto;
       }
 
       /* Gold-constellations wallpaper — verbatim pattern from the real
@@ -2023,6 +2077,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         width: 26px;
         height: 26px;
         border-radius: 50%;
+        overflow: hidden;
         background: linear-gradient(135deg, rgba(227, 198, 135, 0.9) 0%, rgba(196, 162, 101, 0.95) 70%, rgba(169, 134, 85, 1) 100%);
         border: 1.5px solid var(--cream3, #f3eadb);
         display: flex;
@@ -2030,11 +2085,99 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         justify-content: center;
         box-shadow: 0 1px 3px rgba(164, 129, 72, 0.22);
       }
-      .ss-avatar svg {
+      .ss-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .ss-avatar .ss-avatar-fallback {
         width: 10px;
         height: 10px;
         color: #fff8f5;
         filter: drop-shadow(0 0 2px rgba(255, 248, 245, 0.7));
+      }
+
+      /* ── Chat header ──────────────────────────────────────────
+         Mirrors the real SoulSpeak header at /soul-chat.html:
+         large rounded pet photo with gold-tinted ring, pet name
+         in DM Serif, status dot (pulsing green for living, soft
+         gold glow for memorial). Gives the preview the feel of
+         a real chat screenshot. */
+      .ss-chat-header {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 2px 4px 10px;
+        border-bottom: 1px solid rgba(196, 162, 101, 0.18);
+        margin-bottom: 4px;
+      }
+      .ss-chat-avatar {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(196,162,101,0.12) 0%, rgba(196,162,101,0.06) 100%);
+        border: 2px solid var(--gold, #c4a265);
+        box-shadow: 0 0 0 3px rgba(196, 162, 101, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      .ss-chat-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .ss-chat-avatar .ss-avatar-fallback {
+        width: 14px;
+        height: 14px;
+        color: var(--gold, #c4a265);
+      }
+      .ss-chat-info {
+        flex: 1;
+        min-width: 0;
+        line-height: 1.2;
+      }
+      .ss-chat-name {
+        font-family: "DM Serif Display", Georgia, serif;
+        font-size: clamp(1rem, 3.2vw, 1.1rem);
+        color: var(--ink, #1f1c18);
+        line-height: 1.15;
+      }
+      .ss-chat-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        font-family: Cormorant, Georgia, serif;
+        font-size: 0.74rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        color: var(--gold, #c4a265);
+      }
+      .ss-chat-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #5aa870;
+        box-shadow: 0 0 0 rgba(90, 168, 112, 0);
+        animation: ssStatusPulse 2s ease-in-out infinite;
+      }
+      .ss-chat-status.is-memorial .ss-chat-dot {
+        background: var(--gold, #c4a265);
+        animation: ssStatusGlow 3.4s ease-in-out infinite;
+      }
+      @keyframes ssStatusPulse {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.45; }
+      }
+      @keyframes ssStatusGlow {
+        0%, 100% { opacity: 0.9; box-shadow: 0 0 0 rgba(196,162,101,0); }
+        50%      { opacity: 1;   box-shadow: 0 0 7px rgba(196,162,101,0.8); }
       }
 
       .ss-bubble {
