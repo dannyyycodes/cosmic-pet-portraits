@@ -624,82 +624,14 @@ serve(async (req) => {
               .eq("id", giftCertificateId);
           }
           
-          // Handle gift add-on - create a gift certificate for friend
-          const includeGift = session.metadata?.include_gift === "true";
-          if (includeGift && session.customer_email) {
-            const giftTierForFriend = session.metadata?.gift_tier_for_friend || 'basic';
-            
-            // Map tier to amount and tier name (must match GIFT_TIERS in create-checkout)
-            const giftTierMap: Record<string, { cents: number; tier: string }> = {
-              basic: { cents: 1450, tier: 'basic' },
-              premium: { cents: 2450, tier: 'premium' },
-            };
-            const giftInfo = giftTierMap[giftTierForFriend] || giftTierMap.basic;
-            
-            // Generate unique gift code
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-            const randomBytes = new Uint8Array(8);
-            crypto.getRandomValues(randomBytes);
-            let giftCode = "GIFT-";
-            for (let i = 0; i < 4; i++) {
-              giftCode += chars[randomBytes[i] % chars.length];
-            }
-            giftCode += "-";
-            for (let i = 4; i < 8; i++) {
-              giftCode += chars[randomBytes[i] % chars.length];
-            }
-            
-            const expiresAt = new Date();
-            expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-            
-            const { error: giftInsertError } = await supabaseClient
-              .from("gift_certificates")
-              .insert({
-                code: giftCode,
-                purchaser_email: session.customer_email,
-                recipient_email: null, // Purchaser will share the code manually
-                recipient_name: null,
-                gift_message: null,
-                amount_cents: giftInfo.cents,
-                gift_tier: giftInfo.tier,
-                stripe_session_id: session.id,
-                expires_at: expiresAt.toISOString(),
-              });
-            
-            if (giftInsertError) {
-              console.error("[STRIPE-WEBHOOK] Failed to create gift certificate:", giftInsertError);
-            } else {
-              console.log("[STRIPE-WEBHOOK] Gift certificate created:", giftCode, giftInfo.tier);
-              
-              // Send gift certificate email to purchaser
-              try {
-                const supabaseUrl = Deno.env.get("SUPABASE_URL");
-                const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-                
-                // Get the gift certificate ID for the email function
-                const { data: newGift } = await supabaseClient
-                  .from("gift_certificates")
-                  .select("id")
-                  .eq("code", giftCode)
-                  .single();
-                
-                if (newGift) {
-                  await fetch(`${supabaseUrl}/functions/v1/send-gift-certificate-email`, {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "Authorization": `Bearer ${serviceRoleKey}`,
-                    },
-                    body: JSON.stringify({ giftCertificateId: newGift.id }),
-                  });
-                  console.log("[STRIPE-WEBHOOK] Gift certificate email sent to:", session.customer_email);
-                }
-              } catch (emailErr) {
-                console.error("[STRIPE-WEBHOOK] Failed to send gift email:", emailErr);
-              }
-            }
-          }
-          
+          // At-checkout gift-for-friend handler removed in
+          // PR feat/gift-upsell-cleanup. The metadata (`include_gift`,
+          // `gift_tier_for_friend`) is no longer written by create-checkout
+          // and the 50%-off gift path was removed. Post-purchase gift
+          // certificates still flow through the `type === "gift_certificate"`
+          // branch above, which is the only remaining gift codepath.
+
+
           // Generate reports and send emails for each report
           for (const reportId of reportIds) {
             try {

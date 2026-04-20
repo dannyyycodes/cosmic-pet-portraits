@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Crown, Check, Gift, X, Clock, Users, Zap, Moon, Camera, Heart } from 'lucide-react';
+import { Sparkles, Crown, Check, X, Clock, Users, Zap, Moon, Camera, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PetData } from './IntakeWizard';
@@ -79,12 +79,6 @@ const TIERS = {
   },
 };
 
-// Gift tiers - 50% off all tiers for friends (must match server)
-const GIFT_TIERS = {
-  basic: { priceCents: 1450, originalCents: 2900, name: 'Soul Reading' },
-  premium: { priceCents: 2450, originalCents: 4900, name: 'Soul Bond Edition' },
-};
-
 // Volume discount calculation - must match server
 function getVolumeDiscount(petCount: number): number {
   if (petCount >= 5) return 0.30; // 30% off for 5+ pets
@@ -124,8 +118,6 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     return initial;
   });
   
-  const [showGiftUpsell, setShowGiftUpsell] = useState(false);
-  const [selectedGiftTier, setSelectedGiftTier] = useState<'basic' | 'premium'>('basic');
   const [spotsLeft, setSpotsLeft] = useState(7);
   const [recentPurchases, setRecentPurchases] = useState(0);
   const [petPhotos, setPetPhotos] = useState<Record<number, PetPhotoData>>({});
@@ -265,18 +257,16 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   };
 
   const handleCheckoutClick = () => {
-    proceedToCheckout(false);
-  };
+    // The at-checkout gift mechanic was self-arbitrageable (customer "gifts
+    // to themselves" at 50% off), so it was removed in
+    // PR feat/gift-upsell-cleanup. Gifts now live exclusively on the
+    // post-purchase path (30% off via giftUpsell) and the dedicated /gift page.
+    const finalTotal = total;
 
-  const proceedToCheckout = (withGift: boolean) => {
-    setShowGiftUpsell(false);
-    const giftPrice = withGift ? GIFT_TIERS[selectedGiftTier].priceCents : 0;
-    const finalTotal = total + giftPrice;
-    
     // Get the first pet's photo URL for backward compatibility
     const firstPortraitPetIdx = petsNeedingPhotos[0]?.idx;
     const firstPetPhoto = firstPortraitPetIdx !== undefined ? petPhotos[firstPortraitPetIdx] : undefined;
-    
+
     // Determine dominant tier for backward compatibility
     const tierCounts = { basic: 0, premium: 0 };
     Object.values(petTiers).forEach(t => tierCounts[t]++);
@@ -285,12 +275,6 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     // Check if any pets have horoscope enabled
     const anyPetHasHoroscope = Object.values(petHoroscopes).some(Boolean);
 
-    // Count how many pets have paid horoscope subscriptions (non-memorial)
-    const horoscopeCount = allPets.filter((pet, idx) => {
-      const isMemorial = pet.occasionMode === 'memorial';
-      return !isMemorial && petHoroscopes[idx];
-    }).length;
-    
     onCheckout({
       selectedProducts: anyPetHasHoroscope ? [dominantTier, 'horoscope_subscription'] : [dominantTier],
       couponId: null,
@@ -302,8 +286,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       totalCents: finalTotal,
       petCount: allPets.length,
       selectedTier: dominantTier,
-      includeGiftForFriend: withGift,
-      giftTierForFriend: withGift ? selectedGiftTier : undefined,
+      includeGiftForFriend: false,
+      giftTierForFriend: undefined,
       includesPortrait: anyPetNeedsPortrait,
       petPhotoUrl: firstPetPhoto?.url || null,
       petPhotos: petPhotos,
@@ -601,115 +585,9 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
           : `Finally know what ${petData.gender === 'boy' ? 'he' : 'she'}'s thinking.`}
       </p>
 
-      {/* Gift Upsell Modal removed — gifts available at /gift */}
-      <AnimatePresence>
-        {false && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
-            onClick={() => setShowGiftUpsell(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
-            >
-              <button
-                onClick={() => setShowGiftUpsell(false)}
-                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-red-500 text-white text-sm font-bold rounded-full">
-                50% OFF ALL TIERS
-              </div>
-
-              <div className="flex justify-center mb-4 mt-2">
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                  className="w-16 h-16 rounded-full bg-gradient-to-br from-nebula-pink to-nebula-purple flex items-center justify-center"
-                >
-                  <Gift className="w-8 h-8 text-white" />
-                </motion.div>
-              </div>
-
-              <div className="text-center space-y-2 mb-4">
-                <h3 className="text-xl font-display font-bold text-foreground">
-                  Gift One to a Friend?
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  Know someone who'd love this? All tiers are 50% off!
-                </p>
-              </div>
-
-              <div className="space-y-2 mb-4">
-                {(['basic', 'premium'] as const).map((giftTier) => {
-                  const tierInfo = GIFT_TIERS[giftTier];
-                  const isSelected = selectedGiftTier === giftTier;
-                  const Icon = TIERS[giftTier].icon;
-                  
-                  return (
-                    <button
-                      key={giftTier}
-                      onClick={() => setSelectedGiftTier(giftTier)}
-                      className={cn(
-                        "w-full p-3 rounded-lg border-2 text-left transition-all flex items-center gap-3",
-                        isSelected 
-                          ? "border-nebula-purple bg-nebula-purple/10" 
-                          : "border-border/50 bg-card/30 hover:border-nebula-purple/50"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                        isSelected ? "border-nebula-purple bg-nebula-purple" : "border-muted-foreground/40"
-                      )}>
-                        {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
-                      </div>
-                      <Icon className={cn("w-4 h-4", isSelected ? "text-nebula-purple" : "text-muted-foreground")} />
-                      <span className="flex-1 text-sm font-medium text-foreground">{tierInfo.name}</span>
-                      <div className="text-right">
-                        <span className="text-xs text-muted-foreground line-through">${(tierInfo.originalCents / 100).toFixed(0)}</span>
-                        <span className="text-sm font-bold text-cosmic-gold ml-1">${(tierInfo.priceCents / 100).toFixed(2)}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-3">
-                <Button
-                  onClick={() => proceedToCheckout(true)}
-                  variant="gold"
-                  size="lg"
-                  className="w-full"
-                >
-                  <Gift className="w-5 h-5 mr-2" />
-                  Add {GIFT_TIERS[selectedGiftTier].name} — ${(GIFT_TIERS[selectedGiftTier].priceCents / 100).toFixed(2)}
-                </Button>
-                
-                <Button
-                  onClick={() => proceedToCheckout(false)}
-                  variant="ghost"
-                  size="lg"
-                  className="w-full text-muted-foreground hover:text-foreground"
-                >
-                  No thanks, continue to checkout
-                </Button>
-              </div>
-
-              <p className="text-center text-xs text-muted-foreground mt-4">
-                🎁 1,284 gifts sent this week alone!
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Gift-at-checkout modal removed entirely. Gifts live on the
+          post-purchase path (30% off via giftUpsell) and at /gift.
+          See PR feat/gift-upsell-cleanup. */}
     </motion.div>
   );
 }

@@ -25,10 +25,9 @@ const TIER_NAMES = {
   premium: 'Little Souls Reading + Portrait',
 } as const;
 
-const GIFT_TIER_NAMES = {
-  basic: 'Gift: Little Souls Reading',
-  premium: 'Gift: Little Souls Reading + Portrait',
-} as const;
+// GIFT_TIER_NAMES removed in PR feat/gift-upsell-cleanup — at-checkout gift
+// line items no longer render, so the name map is unused. Post-purchase
+// gifts go through the gift_certificates table + dedicated checkout branch.
 
 // Volume discount calculation - SERVER-SIDE (must match frontend)
 function getVolumeDiscount(petCount: number): number {
@@ -626,10 +625,11 @@ serve(async (req) => {
       }
     }
     
-    const giftTier = input.giftTierForFriend || 'basic';
-    const giftAmount = input.includeGiftForFriend
-      ? (giftTier === 'premium' ? pricing.giftPremium : pricing.giftBasic)
-      : 0;
+    // At-checkout gift mechanic removed in PR feat/gift-upsell-cleanup.
+    // Keep giftAmount in scope as 0 so downstream math + logging keeps working
+    // without per-site-wide refactor; the post-purchase gift path uses its
+    // own dedicated checkout branch above.
+    const giftAmount = 0;
     
     let couponDiscount = 0;
     if (input.couponId) {
@@ -851,22 +851,9 @@ serve(async (req) => {
       });
     }
 
-    if (input.includeGiftForFriend) {
-      const giftTierSelected = input.giftTierForFriend || 'basic';
-      const giftUnitAmount = giftTierSelected === 'premium' ? pricing.giftPremium : pricing.giftBasic;
-      const giftName = GIFT_TIER_NAMES[giftTierSelected];
-      lineItems.push({
-        price_data: {
-          currency,
-          product_data: {
-            name: `🎁 ${giftName} (50% OFF!)`,
-            description: "A cosmic pet reading gift certificate",
-          },
-          unit_amount: giftUnitAmount,
-        },
-        quantity: 1,
-      });
-    }
+    // Gift-for-friend line item at checkout was removed in
+    // PR feat/gift-upsell-cleanup (the 50% off mechanic was self-arbitrageable).
+    // Gifts now flow through the post-purchase giftUpsell path and /gift.
 
     // Book line item
     if (input.includesBook) {
