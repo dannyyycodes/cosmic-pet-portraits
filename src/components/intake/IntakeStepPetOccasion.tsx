@@ -41,7 +41,7 @@ export function IntakeStepPetOccasion({
       id: 'memorial' as OccasionMode,
       icon: Heart,
       title: "I lost my beloved pet",
-      subtitle: "Create a beautiful tribute celebrating the love you shared. A keepsake honoring the paw prints left on your heart.",
+      subtitle: "Create a beautiful tribute honouring a soul who was irreplaceable.",
       gradient: 'from-blue-400 to-indigo-500',
       bgGlow: 'bg-blue-500/20',
     },

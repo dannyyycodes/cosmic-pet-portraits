@@ -15,7 +15,7 @@
 
 CREATE TABLE IF NOT EXISTS public.memorial_touchpoints (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  report_id uuid NOT NULL REFERENCES public.reports(id) ON DELETE CASCADE,
+  report_id uuid NOT NULL REFERENCES public.pet_reports(id) ON DELETE CASCADE,
 
   -- Which of the three memorial touchpoints this row represents.
   touchpoint_type text NOT NULL

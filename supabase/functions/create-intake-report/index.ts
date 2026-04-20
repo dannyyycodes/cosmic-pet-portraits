@@ -26,6 +26,10 @@ const petReportSchema = z.object({
   superpower: z.string().max(50).nullable().optional(),
   stranger_reaction: z.string().max(50).nullable().optional(),
   occasion_mode: z.string().max(20).nullable().optional(),
+  // Memorial-only intake fields
+  passed_date: z.string().nullable().optional(), // ISO date string
+  favorite_memory: z.string().max(500).nullable().optional(),
+  remembered_by: z.string().max(80).nullable().optional(),
   language: z.string().max(10).optional().default('en'),
   // Owner data for compatibility (optional)
   owner_name: z.string().max(50).nullable().optional(),
@@ -90,6 +94,10 @@ serve(async (req) => {
           superpower: pet.superpower?.trim() || null,
           stranger_reaction: pet.stranger_reaction?.trim() || null,
           occasion_mode: pet.occasion_mode || null,
+          // Memorial-only fields
+          passed_date: pet.passed_date || null,
+          favorite_memory: pet.favorite_memory?.trim() || null,
+          remembered_by: pet.remembered_by?.trim() || null,
           user_id: userId,
           language: pet.language || 'en',
           payment_status: 'pending',
