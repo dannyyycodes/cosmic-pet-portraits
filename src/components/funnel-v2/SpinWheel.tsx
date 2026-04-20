@@ -61,7 +61,16 @@ export interface SpinWheelProps {
 }
 
 export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
+  // Feature parked — the spin-wheel server function, frontend mount point,
+  // and coupon stacking guards are all incomplete. Returning null ensures
+  // the component renders nothing anywhere it's (accidentally) imported or
+  // mounted until the feature is ready to ship cleanly.
+  // See PR feat/disable-spin-wheel-incomplete.
+  return null;
+
+  // eslint-disable-next-line no-unreachable
   type Stage = "form" | "spinning" | "revealed" | "error";
+  // eslint-disable-next-line no-unreachable
   const [stage, setStage] = useState<Stage>("form");
   const [email, setEmail] = useState("");
   const [honeypot, setHoneypot] = useState("");
