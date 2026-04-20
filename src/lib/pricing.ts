@@ -21,7 +21,8 @@ export interface CurrencyPricing {
   basic: number;           // Soul Reading
   premium: number;         // Soul Bond
   hardcover: number;       // The Little Souls Book (reading + portrait + book)
-  portrait: number;        // Add-on portrait when bought on basic tier
+  /** @deprecated Photo upload is included for all tiers. Field retained for legacy type compatibility; do not read at runtime. */
+  portrait: number;
   wasBasic: number;        // Display-only slashed price for basic (social proof)
   wasPremium: number;      // Display-only slashed price for premium
   horoscopeMonthly: number; // Recurring /mo after 30-day trial

@@ -19,6 +19,7 @@ export interface CurrencyPricing {
   basic: number;
   premium: number;
   hardcover: number;
+  /** @deprecated Photo upload is included for all tiers. Field retained for legacy type compatibility; do not read at runtime. */
   portrait: number;
   wasBasic: number;
   wasPremium: number;

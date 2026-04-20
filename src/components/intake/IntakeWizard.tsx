@@ -575,7 +575,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           report_id: primaryReportId,
           gifted: 'true',
           gifted_tier: redeemResult.giftedTier || 'basic',
-          includes_portrait: redeemResult.includesPortrait ? 'true' : 'false',
+          // Photo upload is included on every tier — see PR feat/portrait-included-all-tiers.
+          includes_portrait: 'true',
         });
         
         // Add all report IDs for multi-pet flow
@@ -609,9 +610,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         if (checkoutData?.selectedTier) {
           devParams.set('selected_tier', checkoutData.selectedTier);
         }
-        if (checkoutData?.includesPortrait) {
-          devParams.set('includes_portrait', 'true');
-        }
+        // Photo upload is included on every tier — see PR feat/portrait-included-all-tiers.
+        devParams.set('includes_portrait', 'true');
         
         // Store petPhotos and petTiers in sessionStorage for dev mode (too big for URL)
         if (checkoutData?.petPhotos && Object.keys(checkoutData.petPhotos).length > 0) {
@@ -659,7 +659,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               giftTierForFriend: checkoutData.giftTierForFriend || 'basic',
               referralCode: referralCode || undefined, // Pass referral code to checkout
               includeHoroscope: checkoutData.includeHoroscope || false, // Weekly horoscope add-on
-              includesPortrait: checkoutData.includesPortrait || false,
+              // Photo upload is included on every tier — see PR feat/portrait-included-all-tiers.
+              includesPortrait: true,
               petPhotoUrl: checkoutData.petPhotoUrl || undefined, // Pass photo URL for portrait generation
               petTiers: checkoutData.petTiers || {}, // Per-pet tier selection
               petPhotos: checkoutData.petPhotos || {}, // Per-pet photo URLs
