@@ -752,7 +752,7 @@ CRITICAL WRITING GUIDELINES:
 5. CREATE QUOTABLE MOMENTS - ${isMemorial ? 'Lines they\'ll read at the memorial, put in photo books' : 'Lines they\'ll put in Instagram captions, read aloud to friends'}
 6. ${isMemorial ? 'FOCUS ON LEGACY - What did they teach? How did they change their human? What lives on?' : 'BALANCE COMEDY + EMOTION - The funniest reports also make people cry once. That contrast is the magic.'}
 7. USE THE CHART - Reference specific placements. "Your ${sunSign} Sun with that ${moonSign} Moon combo..." 
-8. ${isMemorial ? 'HEALING LANGUAGE - "Their paws left prints on your heart forever" type energy' : 'CONVERSATIONAL TONE - Write like you\'re telling a friend about their pet, not writing a textbook'}
+8. ${isMemorial ? 'HEALING LANGUAGE - "The love they carried into your house is still there" type energy' : 'CONVERSATIONAL TONE - Write like you\'re telling a friend about their pet, not writing a textbook'}
 9. AVOID GENERIC PHRASES - "Loyal companion" "beloved pet" = lazy writing. Be SPECIFIC.
 10. ${isMemorial ? 'END WITH HOPE - They may be gone but the love never dies' : 'END WITH IMPACT - The last lines should be screenshot-worthy'}
 11. CRITICAL: The pet monologue section should make people CRY. That's the emotional peak.

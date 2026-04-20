@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { clearIntakeProgress, clearOwnerData } from '@/lib/intakeStorage';
 import { ReportGenerating } from '@/components/report/ReportGenerating';
 import { CosmicReportViewer } from '@/components/report/CosmicReportViewer';
+import { MemorialReportViewer } from '@/components/report/MemorialReportViewer';
+import type { MemorialReportContent } from '@/components/report/types';
 import { EmotionalReportReveal } from '@/components/report/EmotionalReportReveal';
 import { GiftConfirmation } from '@/components/report/GiftConfirmation';
 import { AllReportsComplete } from '@/components/report/AllReportsComplete';
@@ -500,26 +502,53 @@ export default function PaymentSuccess() {
 
   // Complete
   if (stage === 'complete' && allReports.length > 0) {
-    const activePetName = currentReport?.petName || allReports[0].petName;
-    const activeReportId = currentReport?.reportId || allReports[0].reportId;
+    const activeReport = currentReport || allReports[0];
+    const activePetName = activeReport.petName;
+    const activeReportId = activeReport.reportId;
+    const activeReportContent = activeReport.report;
+
+    // Memorial branch — grieving customers must NOT land on the cosmic purple
+    // viewer. Route them to MemorialReportViewer, which has the cream/gold
+    // palette, grief-appropriate pacing, and the keepsake/share affordances.
+    // Guard on presence of the memorial schema shape to avoid crashing legacy
+    // memorial reports written before the dedicated schema (those still need
+    // the cosmic viewer to render).
+    const isMemorial = activeReport.occasionMode === 'memorial';
+    const hasMemorialShape = Boolean(
+      (activeReportContent as unknown as { whoTheyWere?: unknown })?.whoTheyWere,
+    );
+    if (isMemorial && hasMemorialShape) {
+      return (
+        <MemorialReportViewer
+          petName={activePetName}
+          report={activeReportContent as unknown as MemorialReportContent}
+          reportId={activeReportId}
+          shareToken={activeReportContent?.shareToken}
+          gender={activeReport.gender}
+          petPhotoUrl={activeReport.petPhotoUrl}
+          portraitUrl={activeReport.portraitUrl}
+        />
+      );
+    }
+
     return (
       <>
         <CosmicReportViewer
           petName={activePetName}
-          report={currentReport?.report || allReports[0].report}
-          portraitUrl={currentReport?.portraitUrl || currentReport?.petPhotoUrl}
+          report={activeReportContent}
+          portraitUrl={activeReport.portraitUrl || activeReport.petPhotoUrl}
           allReports={hasMultipleReports ? allReports : undefined}
           currentIndex={currentReportIndex}
           onSwitchReport={setCurrentReportIndex}
           onNextPet={handleNextPetFromViewer}
           onAllComplete={handleAllComplete}
           hasActiveHoroscope={horoscopeInfo.enabled}
-          occasionMode={currentReport?.occasionMode}
+          occasionMode={activeReport.occasionMode}
         />
         {activeReportId && (
           <div className="flex justify-center my-8">
             <a
-              href={`/soul-chat.html?id=${activeReportId}${currentReport?.report?.shareToken ? '&token=' + currentReport.report.shareToken : ''}`}
+              href={`/soul-chat.html?id=${activeReportId}${activeReportContent?.shareToken ? '&token=' + activeReportContent.shareToken : ''}`}
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl text-white font-semibold text-base no-underline transition-all hover:opacity-90 hover:scale-[1.02] shadow-lg"
               style={{ background: '#bf524a', fontFamily: "'DM Serif Display', Georgia, serif" }}
             >

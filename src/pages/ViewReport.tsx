@@ -310,6 +310,7 @@ export default function ViewReport() {
           petName={reportData.petName}
           report={reportData.report as unknown as MemorialReportContent}
           reportId={reportData.reportId}
+          shareToken={reportData.shareToken}
           gender={(reportData as { gender?: string }).gender}
           petPhotoUrl={reportData.petPhotoUrl}
           portraitUrl={reportData.portraitUrl}

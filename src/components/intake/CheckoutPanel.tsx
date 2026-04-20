@@ -48,7 +48,7 @@ const TIERS = {
     id: 'basic',
     name: 'Soul Reading',
     shortName: 'Reading',
-    description: "Finally understand your pet",
+    description: "A reading from their soul",
     priceCents: 2900, // $29
     originalPriceCents: 4900, // $49 anchoring
     icon: Moon,
@@ -94,6 +94,13 @@ function getVolumeDiscount(petCount: number): number {
 }
 
 export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isLoading, occasionMode }: CheckoutPanelProps) {
+  // Memorial-aware copy: any pet in memorial mode (or the single pet being a memorial)
+  // switches the checkout language to past-tense, grief-aware framing.
+  const isMemorial =
+    occasionMode === 'memorial' ||
+    petData.occasionMode === 'memorial' ||
+    (petsData || []).some(p => p.occasionMode === 'memorial');
+
   const [searchParams, setSearchParams] = useSearchParams();
   const isDevMode = searchParams.get('dev') === 'true';
   const isPreviewHost =
@@ -290,7 +297,9 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
       {/* Compact Header */}
       <div className="text-center">
         <h2 className="text-lg font-display font-bold text-foreground">
-          {allPets.length > 1 ? 'Choose Your Package' : `Get ${petData.name}'s Reading`}
+          {allPets.length > 1
+            ? (isMemorial ? 'Choose Their Remembrance' : 'Choose Your Package')
+            : (isMemorial ? `Create ${petData.name}'s Remembrance` : `Get ${petData.name}'s Reading`)}
         </h2>
       </div>
 
@@ -466,7 +475,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             SoulSpeak by Little Souls
             <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-amber-500 text-white rounded-full">New</span>
           </span>
-          <span className="text-[10px] text-muted-foreground/60 block mt-0.5">Hear your pet speak back to you for the first time</span>
+          <span className="text-[10px] text-muted-foreground/60 block mt-0.5">{isMemorial ? `A way to keep talking to ${petData.name || 'them'}` : 'Hear your pet speak back to you for the first time'}</span>
         </span>
         <span className="text-[11px] text-muted-foreground/70 shrink-0">Included free</span>
       </div>
@@ -529,14 +538,18 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
         ) : (
           <span className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
-            Get {petData.name}'s Reading — ${(total / 100).toFixed(0)}
+            {isMemorial
+              ? `Create ${petData.name}'s Remembrance — $${(total / 100).toFixed(0)}`
+              : `Get ${petData.name}'s Reading — $${(total / 100).toFixed(0)}`}
           </span>
         )}
       </Button>
-      
+
       {/* Soft close */}
       <p className="text-center text-[11px] text-muted-foreground/80">
-        Finally know what {petData.gender === 'boy' ? 'he' : 'she'}'s thinking.
+        {isMemorial
+          ? 'Hear them once more, quietly.'
+          : `Finally know what ${petData.gender === 'boy' ? 'he' : 'she'}'s thinking.`}
       </p>
 
       {/* Gift Upsell Modal removed — gifts available at /gift */}

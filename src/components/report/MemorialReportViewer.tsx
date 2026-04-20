@@ -16,9 +16,12 @@
  */
 
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import DOMPurify from "dompurify";
 import type { MemorialReportContent } from "./types";
+import { MemorialPDFDownload } from "./MemorialPDFDownload";
+import { MemorialShareButton } from "./MemorialShareButton";
 
 interface MemorialReportViewerProps {
   report: MemorialReportContent;
@@ -27,6 +30,14 @@ interface MemorialReportViewerProps {
   petPhotoUrl?: string;
   portraitUrl?: string;
   reportId?: string;
+  /** Optional share token for public share URLs. */
+  shareToken?: string;
+  /** Optional birth year — used for OG years string and PDF subtitle. */
+  birthYear?: number;
+  /** Optional passing year — used for OG years string and PDF subtitle. */
+  passingYear?: number;
+  /** Optional quiet-revisit mode — gentler entry, still shows keepsake + share. */
+  quietMode?: boolean;
 }
 
 const safeHtml = (html: string) => DOMPurify.sanitize(html);
@@ -129,8 +140,31 @@ export function MemorialReportViewer({
   gender,
   petPhotoUrl,
   portraitUrl,
+  reportId,
+  shareToken,
+  birthYear,
+  passingYear,
 }: MemorialReportViewerProps) {
   const he = subjectPronoun(gender);
+
+  // Build a "2015 – 2024" style years string when both years are present.
+  const yearsString =
+    birthYear && passingYear
+      ? `${birthYear} \u2013 ${passingYear}`
+      : undefined;
+
+  // Memorial OG image URL — the /api/og-memorial endpoint returns an SVG card
+  // naming the pet + years. Used so WhatsApp / iMessage / Slack show a quiet
+  // cream-on-gold "In Remembrance" preview rather than the generic SPA default.
+  const ogImageUrl = (() => {
+    const params = new URLSearchParams();
+    params.set("pet", petName);
+    if (yearsString) params.set("years", yearsString);
+    return `/api/og-memorial?${params.toString()}`;
+  })();
+
+  const ogTitle = `${petName} \u2014 in remembrance`;
+  const ogDescription = `A reading held in remembrance of ${petName}.`;
 
   return (
     <div
@@ -143,6 +177,18 @@ export function MemorialReportViewer({
           'Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
       }}
     >
+      <Helmet>
+        <title>{ogTitle}</title>
+        <meta name="description" content={ogDescription} />
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDescription} />
+        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={ogTitle} />
+        <meta name="twitter:description" content={ogDescription} />
+        <meta name="twitter:image" content={ogImageUrl} />
+      </Helmet>
       {/* ── QUIET ENTRY ─────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -627,7 +673,26 @@ export function MemorialReportViewer({
           <br />
           or you need to hear {he === "they" ? "them" : he === "he" ? "him" : "her"}.
         </p>
-        <div className="mt-8 text-[0.6rem] font-semibold tracking-[3px] uppercase" style={{ color: "#8fa082" }}>
+
+        {/* Keepsake + share — intentionally placed after the benediction so
+            the first pass through is undisturbed. Kept visible in quiet-revisit
+            mode too, since a returning owner may come back specifically to
+            save the reading or send it to a family member. */}
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <MemorialPDFDownload
+            petName={petName}
+            reportContent={report}
+            years={yearsString}
+          />
+          <MemorialShareButton
+            petName={petName}
+            reportId={reportId}
+            shareToken={shareToken}
+            years={yearsString}
+          />
+        </div>
+
+        <div className="mt-10 text-[0.6rem] font-semibold tracking-[3px] uppercase" style={{ color: "#8fa082" }}>
           Held in Remembrance
         </div>
       </motion.div>

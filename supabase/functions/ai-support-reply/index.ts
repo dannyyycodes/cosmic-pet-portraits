@@ -41,7 +41,7 @@ ABOUT THE SERVICE:
 - Gift Certificates: Available and redeemable at checkout.
 - Affiliate program: 50% commission on referred sales.
 - We do readings for any animal — dogs, cats, rabbits, horses, birds, reptiles, fish, and more.
-- Memorial readings: Available for pets who have crossed the rainbow bridge.
+- Memorial readings: Available for any pet who has passed on. Written with grief awareness. Never use phrases like "rainbow bridge", "crossed over", "watching over you", "in a better place", or "paw prints on your heart" — speak plainly.
 
 COMMON TOPICS & RESPONSES:
 

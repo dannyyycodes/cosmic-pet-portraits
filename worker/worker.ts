@@ -946,7 +946,7 @@ CRITICAL WRITING GUIDELINES:
 5. CREATE QUOTABLE MOMENTS - ${isMemorial ? 'Lines they\'ll read at the memorial, put in photo books' : 'Lines they\'ll put in Instagram captions, read aloud to friends'}
 6. ${isMemorial ? 'FOCUS ON LEGACY - What did they teach? How did they change their human? What lives on?' : 'BALANCE COMEDY + EMOTION - The funniest reports also make people cry once. That contrast is the magic.'}
 7. USE THE CHART - Reference specific placements. "Your ${sunSign} Sun with that ${moonSign} Moon combo..."
-8. ${isMemorial ? 'HEALING LANGUAGE - "Their paws left prints on your heart forever" type energy' : 'CONVERSATIONAL TONE - Write like you\'re telling a friend about their pet, not writing a textbook'}
+8. ${isMemorial ? 'HEALING LANGUAGE - "The love they carried into your house is still there" type energy' : 'CONVERSATIONAL TONE - Write like you\'re telling a friend about their pet, not writing a textbook'}
 9. AVOID GENERIC PHRASES - "Loyal companion" "beloved pet" = lazy writing. Be SPECIFIC.
 10. ${isMemorial ? 'END WITH HOPE - They may be gone but the love never dies' : 'END WITH IMPACT - The last lines should be screenshot-worthy'}
 11. CRITICAL: The pet monologue section should make people CRY. That's the emotional peak.
@@ -1779,48 +1779,186 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
     }
   });
 
+  // ─── Memorial-specific fallback builder ────────────────────────────────────
+  // If OpenRouter fails on a memorial run, we CANNOT ship the cosmic fallback
+  // (wrong schema → MemorialReportViewer renders undefined). This fallback
+  // satisfies memorialReportSchema's minimum character lengths with honest
+  // placeholder copy that acknowledges the reading is still being prepared.
+  // It is flagged with needs_regeneration:true so ops can re-queue.
+  const createMemorialFallbackReport = (): Record<string, unknown> => {
+    const pn = pronouns;
+    const elementLower = element.toLowerCase();
+    const elementColour = element === "Fire" ? "warm amber light"
+      : element === "Earth" ? "the colour of soil after rain"
+      : element === "Air" ? "the pale shade of a clear morning"
+      : "the blue-grey of deep still water";
+    const elementObject = element === "Fire" ? "a small candle"
+      : element === "Earth" ? "a smooth stone from somewhere you walked together"
+      : element === "Air" ? "a single feather"
+      : "a small bowl of water by the window";
+
+    return {
+      chartPlacements,
+      elementalBalance,
+      dominantElement: element,
+      aura,
+      archetype,
+
+      prologue: `${name} was here. ${pn.subject.charAt(0).toUpperCase() + pn.subject.slice(1)} was a ${sunSign} Sun with a ${moonSign} Moon, and ${ascendant} was rising the hour ${pn.subject} arrived. This reading — the full one, written slowly, the way ${name} deserves — is still being prepared. We would rather get it right than hand you rushed words inside a moment like this one. The ${element.toLowerCase()} element ${pn.subject} carried is here in the chart. The particular light ${pn.subject} was has been noted. Please come back in a few hours. This page will hold the finished reading when it is ready, and ${name} will be waiting inside it.`,
+
+      whoTheyWere: {
+        title: `Who ${name} Was`,
+        threeTruths: `The full portrait of who ${name} was — grounded in ${pn.possessive} ${sunSign} Sun, ${moonSign} Moon, and ${ascendant} Rising — is still being written carefully. ${pn.subject.charAt(0).toUpperCase() + pn.subject.slice(1)} carried a ${sunSign} core, and that specificity matters; it will be named properly in the finished reading, not rushed.\n\nThe ${moonSign} Moon held how ${pn.subject} felt safe, what soothed ${pn.object}, and the quiet comfort rituals only you would have recognised. We are taking the time to describe these honestly rather than generically.\n\nThe ${ascendant} Rising — the way ${pn.subject} met the world and the first-impression signature ${pn.subject} wore — will be traced once the reading is complete. For now, know that ${name} was a specific ${species}, not a general one, and that is what this reading will honour.`,
+        goldenThread: `The single thread running through everything ${name} did is still being named carefully.`,
+      },
+
+      giftsTheyBrought: {
+        title: `What ${name} Gave You`,
+        gifts: [
+          `The first gift ${name} brought — tied to ${pn.possessive} ${venus} Venus and the particular way ${pn.subject} offered love — is still being described here. The finished reading will name it specifically, in language that fits this ${species} and this home.`,
+          `The second gift — the energy ${pn.subject} walked in with, rooted in ${pn.possessive} ${mars} Mars — is in progress. We are choosing the words with care so they match what ${pn.subject} actually was, not what a general ${species} might be.`,
+          `The third gift — the one only ${name}, in particular, could have given — ties to ${pn.possessive} ${sunSign} Sun and is still being written. It will land in the finished reading. That gift was real. It is still real.`,
+        ],
+        quietestGift: `The quietest gift ${name} brought — grounded in ${pn.possessive} ${moonSign} Moon — is still being found. You will recognise it when it appears.`,
+      },
+
+      theBridge: {
+        title: `What ${name} Taught You`,
+        lessons: [
+          `The first lesson, tied to ${pn.possessive} ${sunSign} Sun, is still being named. This is where the reading describes the specific thing ${name} taught you to see, to do, or to hold. We are writing it properly rather than quickly.`,
+          `The second lesson, tied to ${pn.possessive} ${moonSign} Moon and ${chiron} Chiron, is being prepared. It will be specific, and it will be true to what ${name} actually gave you. Please come back soon.`,
+          `The third lesson, tied to ${pn.possessive} ${ascendant} Rising and ${northNode} North Node, is still being written. What ${name} opened in you — what ${pn.subject} was sent here to free — will be named in the finished reading.`,
+        ],
+        quotableLine: `The words they left you are still being found.`,
+      },
+
+      soulStillSpeaks: {
+        title: "What Lives On",
+        content: `${name}'s chart did not end the hour ${pn.subject} did. The ${chiron} Chiron placement and the ${northNode} North Node keep working in your life, shaping small reflexes you may not even notice yet. The full description of what ${name}'s soul is still doing for you — the specific ways ${pn.possessive} presence has been sewn into how you move through your days — is still being written. It will be in the finished reading. For now, simply notice that you reach for ${pn.object} in small moments. That is not nothing. That is how ${pn.subject} stays.`,
+        signatureYouCarry: `The specific signature you now carry because of ${name} is still being named.`,
+        smallSigns: [
+          `Watch for ${elementColour} showing up in small places you did not expect it — a reflection, a shadow, a scrap of fabric.`,
+          `Notice the hour of day that always seems to feel like ${name} — ${element === "Fire" ? "mid-morning light" : element === "Earth" ? "late afternoon warmth" : element === "Air" ? "the pale edge of a clear day" : "the soft hour just before evening"} — and let it count.`,
+        ],
+      },
+
+      theirVoiceNow: {
+        title: `If ${name} Could Speak to You Now`,
+        letter: `The letter from ${name} is still being written carefully. We do not want to hand you words from ${pn.object} that are not earned, so this section is being written with more time than the rest. Please come back in a few hours — it will be here when it is ready. In the meantime, know this: you were loved by a specific ${species}, not a general one. That love was real. It stays real now that ${pn.subject} is gone. Nothing about the fact that the reading is still being finished changes what you and ${name} actually had together. ${pn.subject.charAt(0).toUpperCase() + pn.subject.slice(1)} was a ${sunSign} Sun with a ${moonSign} Moon. ${pn.subject.charAt(0).toUpperCase() + pn.subject.slice(1)} noticed you. ${pn.subject.charAt(0).toUpperCase() + pn.subject.slice(1)} still noticed you at the end. The words in ${pn.possessive} voice will be waiting here soon, and they will be worth the small wait.`,
+        signoff: `— from ${name}, still close by`,
+      },
+
+      griefCompass: {
+        title: `Your Grief, Through ${name}'s Chart`,
+        content: `Grief has a texture, and ${name}'s ${element.toLowerCase()} element shaped the one you are inside right now. ${element === "Fire" ? "A Fire pet leaves a restless grief — you will want motion, and that is allowed." : element === "Earth" ? "An Earth pet leaves an emptied-house grief — the body of the home feels wrong, and that wrongness is real." : element === "Air" ? "An Air pet leaves a silence grief — the sound of the house changes, and the quiet is loud." : "A Water pet leaves a tidal grief — it comes in waves, and each wave is a memory."} The full, specific description of how this is moving through you is still being written. For today: one small act of ${elementLower} — a short walk, a cup of something warm, a minute by a window — is enough. You are not behind. This is not a race.`,
+        youAreNotDoingThisWrong: `You are not doing this wrong. There is no wrong way.`,
+      },
+
+      ritualsForRemembering: {
+        title: `Rituals Written in ${name}'s Chart`,
+        rituals: [
+          `A daily ritual tied to ${pn.possessive} ${element} element is being prepared — something small, two or three minutes, at ${element === "Fire" ? "first light" : element === "Earth" ? "the hour you used to feed ${pn.object}" : element === "Air" ? "the open-window part of the day" : "the soft hour just before evening"}. It will be here in the finished reading.`,
+          `A weekly ritual tied to ${pn.possessive} ${venus} Venus — involving something the two of you loved together — is still being written. Choose a quiet night and we will give you the shape of it.`,
+          `A monthly ritual tied to ${pn.possessive} ${moonSign} Moon — a small gesture on the new moon or full moon — is being chosen carefully. The finished reading will name which one fits ${name}.`,
+        ],
+        anchorObject: `Keep ${elementObject} somewhere you will see it every day.`,
+      },
+
+      threePermissionSlips: {
+        title: `Three Things ${name} Wants You to Know`,
+        slips: [
+          `You are allowed to wait for this reading. Nothing in your love for ${name} needs a reading to be valid.`,
+          `You are allowed to grieve in ways that are not scripted, that are not tidy, that do not match anyone else's pace.`,
+          `You are allowed to come back to this page when you are ready, and not a moment sooner. ${name} is not going anywhere.`,
+        ],
+      },
+
+      anniversaryGuide: {
+        title: "The Days That Will Ask Something of You",
+        birthday: `On ${name}'s birthday each year, a small ritual tied to ${pn.possessive} ${sunSign} Sun will be named in the finished reading — something simple, repeatable, and quiet. Until then: light a candle, say ${pn.possessive} name aloud, and let the day be what it is. That is enough. That was always going to be enough.`,
+        passingDay: `On the anniversary of the day ${pn.subject} went, you will find yourself asking what to do. The full guidance, tied to ${pn.possessive} ${moonSign} Moon, will be here soon. Until then: you are allowed to mark the day, and you are allowed to let it pass. Both are correct. Both are love.`,
+        hardRandomDays: `Some days out of nowhere will flatten you. Grief is not a calendar; it is a weather system.`,
+      },
+
+      keepersOath: {
+        title: "What You Carry",
+        oath: `I carry ${name}. I carry the specific light ${pn.subject} was — ${sunSign} Sun, ${moonSign} Moon, ${ascendant} Rising. I carry what ${pn.subject} gave me. I keep ${pn.possessive} name in my mouth.`,
+      },
+
+      epilogue: `${name} was here. ${pn.subject.charAt(0).toUpperCase() + pn.subject.slice(1)} was a ${sunSign} Sun, a ${moonSign} Moon, and ${ascendant} Rising when ${pn.subject} arrived. This reading is still being written — slowly, properly, with the kind of care a ${species} like ${name} earned simply by being who ${pn.subject} was. Come back in a few hours. The finished reading will be waiting. ${name} mattered. ${name} still does.`,
+
+      needs_regeneration: true,
+      _needsReview: true,
+      _needsReviewReason: "memorial_fallback_shipped",
+    };
+  };
+
   // ─── Parse response — fail loudly on any problem, never ship a template ────
 
   let reportContent: Record<string, unknown>;
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "<no body>");
-    throw new Error(`OpenRouter returned HTTP ${response.status}: ${errorText.slice(0, 500)}`);
-  }
-
-  const json = await response.json();
-  let rawContent: string | undefined = json.choices?.[0]?.message?.content;
-  if (!rawContent) {
-    throw new Error(`OpenRouter returned empty content. Full response: ${JSON.stringify(json).slice(0, 500)}`);
-  }
-  console.log("[WORKER] Received", rawContent.length, "chars from AI");
-  rawContent = rawContent.replace(/^```json\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
-
-  try {
-    reportContent = JSON.parse(rawContent);
-  } catch (parseError) {
-    console.warn("[WORKER] Primary JSON parse failed, attempting bracket repair:", parseError);
-    // Attempt to repair truncated JSON — close any open strings, arrays, objects
-    let repaired = rawContent;
-    let openBraces = 0, openBrackets = 0, inString = false, escaped = false;
-    for (const ch of repaired) {
-      if (escaped) { escaped = false; continue; }
-      if (ch === "\\") { escaped = true; continue; }
-      if (ch === '"') { inString = !inString; continue; }
-      if (inString) continue;
-      if (ch === "{") openBraces++;
-      if (ch === "}") openBraces--;
-      if (ch === "[") openBrackets++;
-      if (ch === "]") openBrackets--;
+    if (memorialReading) {
+      console.warn(`[WORKER] Memorial run — OpenRouter HTTP ${response.status}. Serving memorial fallback. Body: ${errorText.slice(0, 300)}`);
+      await reportToSentry(`Memorial fallback served (HTTP ${response.status})`, { reportId, body: errorText.slice(0, 300) });
+      reportContent = createMemorialFallbackReport();
+    } else {
+      throw new Error(`OpenRouter returned HTTP ${response.status}: ${errorText.slice(0, 500)}`);
     }
-    if (inString) repaired += '"';
-    while (openBrackets > 0) { repaired += "]"; openBrackets--; }
-    while (openBraces > 0) { repaired += "}"; openBraces--; }
-    try {
-      reportContent = JSON.parse(repaired);
-      console.log("[WORKER] Repaired truncated JSON successfully");
-    } catch (repairError) {
-      throw new Error(`JSON parse + repair both failed. Parse: ${parseError}. Repair: ${repairError}. Head of content: ${rawContent.slice(0, 300)}`);
+  } else {
+    const json = await response.json();
+    let rawContent: string | undefined = json.choices?.[0]?.message?.content;
+    if (!rawContent) {
+      if (memorialReading) {
+        console.warn("[WORKER] Memorial run — OpenRouter returned empty content. Serving memorial fallback.");
+        await reportToSentry("Memorial fallback served (empty content)", { reportId });
+        reportContent = createMemorialFallbackReport();
+      } else {
+        throw new Error(`OpenRouter returned empty content. Full response: ${JSON.stringify(json).slice(0, 500)}`);
+      }
+    } else {
+      console.log("[WORKER] Received", rawContent.length, "chars from AI");
+      rawContent = rawContent.replace(/^```json\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+
+      try {
+        reportContent = JSON.parse(rawContent);
+      } catch (parseError) {
+        console.warn("[WORKER] Primary JSON parse failed, attempting bracket repair:", parseError);
+        // Attempt to repair truncated JSON — close any open strings, arrays, objects
+        let repaired = rawContent;
+        let openBraces = 0, openBrackets = 0, inString = false, escaped = false;
+        for (const ch of repaired) {
+          if (escaped) { escaped = false; continue; }
+          if (ch === "\\") { escaped = true; continue; }
+          if (ch === '"') { inString = !inString; continue; }
+          if (inString) continue;
+          if (ch === "{") openBraces++;
+          if (ch === "}") openBraces--;
+          if (ch === "[") openBrackets++;
+          if (ch === "]") openBrackets--;
+        }
+        if (inString) repaired += '"';
+        while (openBrackets > 0) { repaired += "]"; openBrackets--; }
+        while (openBraces > 0) { repaired += "}"; openBraces--; }
+        try {
+          reportContent = JSON.parse(repaired);
+          console.log("[WORKER] Repaired truncated JSON successfully");
+        } catch (repairError) {
+          if (memorialReading) {
+            console.warn("[WORKER] Memorial run — JSON parse + repair both failed. Serving memorial fallback.");
+            await reportToSentry("Memorial fallback served (parse failure)", {
+              reportId,
+              parseError: String(parseError).slice(0, 200),
+              repairError: String(repairError).slice(0, 200),
+              head: rawContent.slice(0, 200),
+            });
+            reportContent = createMemorialFallbackReport();
+          } else {
+            throw new Error(`JSON parse + repair both failed. Parse: ${parseError}. Repair: ${repairError}. Head of content: ${rawContent.slice(0, 300)}`);
+          }
+        }
+      }
     }
   }
 
@@ -2181,45 +2319,113 @@ Return: { "${sectionName}": { ...replacement... } }`;
   console.log("[WORKER] Done! Report saved for:", reportId);
 
   // ─── Memorial follow-up touchpoints ──────────────────────────────────────
-  // On memorial report save, fire an optional webhook so a downstream system
-  // (n8n / Supabase cron) can schedule:
-  //   • 30-day check-in
-  //   • Annual birthday remembrance
-  //   • Annual passing-day remembrance
-  // If MEMORIAL_TOUCHPOINT_WEBHOOK env var isn't set, we skip silently — the
-  // migration in supabase/migrations/20260417000000_memorial_touchpoints.sql
-  // defines the target table; wire the sender in a separate session.
+  // On memorial report save, insert three rows into public.memorial_touchpoints:
+  //   • 30-day check-in (scheduled_for = now + 30 days)
+  //   • Annual birthday remembrance (next occurrence of dob month/day)
+  //   • Annual passing-day remembrance (next occurrence of passed_date month/day)
+  //     — skipped if passed_date is not provided.
+  // The sender (supabase/functions/send-memorial-touchpoint) picks these up via
+  // cron and emails them. Insert failure is non-fatal: report is already saved.
   if (memorialReading) {
-    const webhookUrl = Deno.env.get("MEMORIAL_TOUCHPOINT_WEBHOOK");
-    if (webhookUrl) {
-      try {
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL") || "https://aduibsyrnenzobuyetmn.supabase.co";
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+      if (!serviceRoleKey) {
+        console.warn("[MEMORIAL] SUPABASE_SERVICE_ROLE_KEY unset — skipping touchpoint insert.");
+      } else {
         const passedDateRaw = (reportRow.passed_date ?? petData.passed_date ?? null) as string | null;
-        await fetch(webhookUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${N8N_BRIDGE_SECRET}`,
-          },
-          body: JSON.stringify({
-            reportId,
-            email: reportRow.email,
-            petName: name,
-            pronounSubject: pronouns.subject,
-            petBirthDate: dateOfBirth,
-            petPassedDate: passedDateRaw,
-            species,
-            breed,
-            sunSign,
-            element,
-          }),
+
+        // Compute next anniversary date (month+day from source, year = next future occurrence).
+        const nextAnniversary = (iso: string): string | null => {
+          try {
+            const src = new Date(iso);
+            if (isNaN(src.getTime())) return null;
+            const now = new Date();
+            const candidate = new Date(Date.UTC(
+              now.getUTCFullYear(),
+              src.getUTCMonth(),
+              src.getUTCDate(),
+              12, 0, 0, 0,
+            ));
+            if (candidate.getTime() <= now.getTime()) {
+              candidate.setUTCFullYear(candidate.getUTCFullYear() + 1);
+            }
+            return candidate.toISOString();
+          } catch {
+            return null;
+          }
+        };
+
+        const thirtyDayScheduled = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        const birthdayScheduled = nextAnniversary(dateOfBirth);
+        const passingScheduled = passedDateRaw ? nextAnniversary(passedDateRaw) : null;
+
+        const rows: Array<Record<string, unknown>> = [];
+        rows.push({
+          report_id: reportId,
+          touchpoint_type: "thirty_day",
+          scheduled_for: thirtyDayScheduled,
+          sent_at: null,
+          email: reportRow.email ?? null,
+          pet_name: name,
+          pronoun_subject: pronouns.subject,
+          pet_birth_date: dateOfBirth ? dateOfBirth.slice(0, 10) : null,
+          pet_passed_date: passedDateRaw ? passedDateRaw.slice(0, 10) : null,
+          metadata: { species, breed, sunSign, element },
         });
-        console.log("[MEMORIAL] Touchpoint webhook fired.");
-      } catch (e) {
-        // Non-fatal — memorial reading is already delivered, touchpoints are bonus.
-        console.warn("[MEMORIAL] Touchpoint webhook failed (non-fatal):", e);
+        if (birthdayScheduled) {
+          rows.push({
+            report_id: reportId,
+            touchpoint_type: "anniversary_birth",
+            scheduled_for: birthdayScheduled,
+            sent_at: null,
+            email: reportRow.email ?? null,
+            pet_name: name,
+            pronoun_subject: pronouns.subject,
+            pet_birth_date: dateOfBirth ? dateOfBirth.slice(0, 10) : null,
+            pet_passed_date: passedDateRaw ? passedDateRaw.slice(0, 10) : null,
+            metadata: { species, breed, sunSign, element },
+          });
+        }
+        if (passingScheduled && passedDateRaw) {
+          rows.push({
+            report_id: reportId,
+            touchpoint_type: "anniversary_passing",
+            scheduled_for: passingScheduled,
+            sent_at: null,
+            email: reportRow.email ?? null,
+            pet_name: name,
+            pronoun_subject: pronouns.subject,
+            pet_birth_date: dateOfBirth ? dateOfBirth.slice(0, 10) : null,
+            pet_passed_date: passedDateRaw.slice(0, 10),
+            metadata: { species, breed, sunSign, element },
+          });
+        }
+
+        const insertRes = await fetch(
+          `${supabaseUrl}/rest/v1/memorial_touchpoints?on_conflict=report_id,touchpoint_type`,
+          {
+            method: "POST",
+            headers: {
+              apikey: serviceRoleKey,
+              Authorization: `Bearer ${serviceRoleKey}`,
+              "Content-Type": "application/json",
+              Prefer: "resolution=merge-duplicates,return=minimal",
+            },
+            body: JSON.stringify(rows),
+          },
+        );
+        if (!insertRes.ok) {
+          const body = await insertRes.text();
+          throw new Error(`touchpoint insert ${insertRes.status}: ${body.slice(0, 300)}`);
+        }
+        console.log(`[MEMORIAL] Touchpoints scheduled: ${rows.length} row(s) inserted.`);
       }
-    } else {
-      console.log("[MEMORIAL] MEMORIAL_TOUCHPOINT_WEBHOOK not set — skipping touchpoint schedule.");
+    } catch (e) {
+      // Non-fatal — memorial reading is already delivered, touchpoints are bonus.
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn("[MEMORIAL] Touchpoint insert failed (non-fatal):", msg);
+      await reportToSentry(`Memorial touchpoint insert failed: ${msg}`, { reportId });
     }
   }
 

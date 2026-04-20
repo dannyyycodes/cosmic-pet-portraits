@@ -28,6 +28,7 @@ import { IntakeStepOwnerDetails } from './IntakeStepOwnerDetails';
 import { IntakeStepEmail } from './IntakeStepEmail';
 import { IntakeStepPhoto } from './IntakeStepPhoto';
 import { IntakeStepPortraitSelect } from './IntakeStepPortraitSelect';
+import { IntakeStepMemorialDetails } from './IntakeStepMemorialDetails';
 import { CosmicLoading } from './CosmicLoading';
 import { IntakeStepSkeleton, IntakeEmailSkeleton, IntakeCheckoutSkeleton } from './IntakeSkeletons';
 
@@ -63,6 +64,10 @@ export interface PetData {
   email: string;
   occasionMode: OccasionMode;
   photoUrl?: string | null;
+  // Memorial-only intake fields (collected in IntakeStepMemorialDetails)
+  passedDate?: Date | null;
+  favoriteMemory?: string;
+  rememberedBy?: string;
 }
 
 export interface CosmicReport {
@@ -96,6 +101,9 @@ const createEmptyPetData = (mode: OccasionMode): PetData => ({
   email: '',
   occasionMode: mode,
   photoUrl: null,
+  passedDate: null,
+  favoriteMemory: '',
+  rememberedBy: '',
 });
 
 // Wrapper component with EmotionProvider
@@ -235,6 +243,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
       const restoredPets = saved.petsData.map((pet) => ({
         ...pet,
         dateOfBirth: pet.dateOfBirth ? new Date(pet.dateOfBirth) : null,
+        passedDate: pet.passedDate ? new Date(pet.passedDate) : null,
       }));
 
       setPetsData(restoredPets);
@@ -369,14 +378,28 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
     } else if (step === 1 && currentPetIndex === 0) {
       setStep(0); // Go back to pet count selection
     } else if (step === 11) {
-      // Going back from owner details step - go to last pet's strangers step
-      setCurrentPetIndex(petCount - 1);
-      setStep(10);
+      // Going back from owner details step - go to last pet's last per-pet step.
+      // Memorial pets have an extra grief-aware step (16) after strangers.
+      const lastIdx = petCount - 1;
+      setCurrentPetIndex(lastIdx);
+      const lastPetMode = petsData[lastIdx]?.occasionMode;
+      setStep(lastPetMode === 'memorial' ? 16 : 10);
     } else if (step === 13) {
       // Going back from email/checkout step - go to owner details
       setStep(11);
     } else if (step > 1) {
       setStep(step - 1); // Go to previous step
+    }
+  };
+
+  // Called after step 10 (strangers). Memorial pets get a grief-aware
+  // intake step (16) before advancing; other occasions skip it entirely.
+  const handleAfterStrangers = () => {
+    const isMemorial = petsData[currentPetIndex]?.occasionMode === 'memorial';
+    if (isMemorial) {
+      goToStep(16);
+    } else {
+      handleNextPetOrOwnerDetails();
     }
   };
 
@@ -468,6 +491,19 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
         superpower: (pet.superpower || '').trim().slice(0, 50) || null,
         stranger_reaction: (pet.strangerReaction || '').trim().slice(0, 50) || null,
         occasion_mode: pet.occasionMode || null,
+        // Memorial-only fields (nulled for non-memorial pets)
+        passed_date:
+          pet.occasionMode === 'memorial' && pet.passedDate instanceof Date
+            ? pet.passedDate.toISOString().split('T')[0]
+            : null,
+        favorite_memory:
+          pet.occasionMode === 'memorial'
+            ? pet.favoriteMemory?.trim().slice(0, 500) || null
+            : null,
+        remembered_by:
+          pet.occasionMode === 'memorial'
+            ? pet.rememberedBy?.trim().slice(0, 80) || null
+            : null,
         language: language,
         // Owner data for compatibility (optional)
         owner_name: ownerData.name?.trim().slice(0, 50) || null,
@@ -738,8 +774,8 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
           <CosmicProgress current={getGlobalStep()} total={totalSteps} />
         )}
 
-        {/* Pet indicator for multi-pet flow - only during per-pet steps (1-10) */}
-        {step >= 1 && step <= 10 && petCount > 1 && (
+        {/* Pet indicator for multi-pet flow - per-pet steps (1-10) + memorial extras (16) */}
+        {((step >= 1 && step <= 10) || step === 16) && petCount > 1 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -750,7 +786,7 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
               {currentPetData?.name && `: ${currentPetData.name}`}
               {currentPetData?.occasionMode && step > 1 && (
                 <span className="opacity-70">
-                  ({currentPetData.occasionMode === 'discover' ? '🔮' : currentPetData.occasionMode === 'birthday' ? '🎂' : currentPetData.occasionMode === 'memorial' ? '🌈' : '🎁'})
+                  ({currentPetData.occasionMode === 'discover' ? '🔮' : currentPetData.occasionMode === 'birthday' ? '🎂' : currentPetData.occasionMode === 'memorial' ? '🕊️' : '🎁'})
                 </span>
               )}
             </span>
@@ -871,11 +907,25 @@ function IntakeWizardContent({ mode }: IntakeWizardProps) {
 
           {step === 10 && (
             <motion.div key={`step10-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
-              <IntakeStepStrangers 
-                petData={currentPetData} 
-                onUpdate={updatePetData} 
-                onNext={handleNextPetOrOwnerDetails} 
-                onBack={handleBack} 
+              <IntakeStepStrangers
+                petData={currentPetData}
+                onUpdate={updatePetData}
+                onNext={handleAfterStrangers}
+                onBack={handleBack}
+                totalSteps={stepsPerPet}
+                modeContent={modeContent}
+              />
+            </motion.div>
+          )}
+
+          {step === 16 && currentPetData?.occasionMode === 'memorial' && (
+            <motion.div key={`step16-pet${currentPetIndex}`} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }}>
+              <IntakeStepMemorialDetails
+                petData={currentPetData}
+                onUpdate={updatePetData}
+                onNext={handleNextPetOrOwnerDetails}
+                onSkip={handleNextPetOrOwnerDetails}
+                onBack={() => setStep(10)}
                 totalSteps={stepsPerPet}
                 modeContent={modeContent}
               />

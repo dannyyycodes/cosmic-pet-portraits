@@ -346,6 +346,31 @@ function wrapEmailTemplate(content: string, petName: string, email: string): str
 </html>`;
 }
 
+// ─── Memorial exclusion helper ──────────────────────────────────────────────
+// Memorial customers must NEVER receive post-purchase gifting, upsell, or
+// re-engagement emails — they are grieving. Their own cadence is handled by
+// memorial_touchpoints (30d + annual) and the dedicated memorial 24h check-in.
+// Returns true if the subscriber is tied to a memorial reading and should be
+// skipped for this campaign.
+async function isMemorialSubscriber(
+  supabase: ReturnType<typeof createClient>,
+  subscriber: { pet_report_id?: string | null },
+): Promise<boolean> {
+  const reportId = subscriber.pet_report_id;
+  if (!reportId) return false;
+  try {
+    const { data } = await supabase
+      .from("pet_reports")
+      .select("occasion_mode")
+      .eq("id", reportId)
+      .maybeSingle();
+    return data?.occasion_mode === "memorial";
+  } catch (e) {
+    console.warn(`[EMAIL-NURTURE] memorial-check failed for report ${reportId}:`, e);
+    return false; // fail open (send) rather than block a legitimate customer
+  }
+}
+
 // ─── Send Helper ────────────────────────────────────────────────────────────
 
 async function sendNurtureEmail(
@@ -528,6 +553,11 @@ serve(async (req) => {
 
     for (const s of postPurchase1 || []) {
       try {
+        // Memorial customers must not receive the gifting/referral pitch.
+        if (await isMemorialSubscriber(supabase, s)) {
+          console.log(`[EMAIL-NURTURE] Skipping post_purchase_1 for memorial subscriber ${s.email}`);
+          continue;
+        }
         if (await sendNurtureEmail(resend, supabase, s, "post_purchase_1", now)) emailsSent++;
       } catch (e) { console.error(`[EMAIL-NURTURE] Error ${s.email}:`, e); errors.push(s.email); }
     }
@@ -542,6 +572,11 @@ serve(async (req) => {
 
     for (const s of postPurchase2 || []) {
       try {
+        // Memorial customers must not receive the horoscope/SoulSpeak upsell.
+        if (await isMemorialSubscriber(supabase, s)) {
+          console.log(`[EMAIL-NURTURE] Skipping post_purchase_2 for memorial subscriber ${s.email}`);
+          continue;
+        }
         if (await sendNurtureEmail(resend, supabase, s, "post_purchase_2", now)) emailsSent++;
       } catch (e) { console.error(`[EMAIL-NURTURE] Error ${s.email}:`, e); errors.push(s.email); }
     }
@@ -557,6 +592,11 @@ serve(async (req) => {
 
     for (const s of reEngagement || []) {
       try {
+        // Memorial customers must not receive a "come back for another reading" nudge.
+        if (await isMemorialSubscriber(supabase, s)) {
+          console.log(`[EMAIL-NURTURE] Skipping re_engagement for memorial subscriber ${s.email}`);
+          continue;
+        }
         if (await sendNurtureEmail(resend, supabase, s, "re_engagement", now)) emailsSent++;
       } catch (e) { console.error(`[EMAIL-NURTURE] Error ${s.email}:`, e); errors.push(s.email); }
     }

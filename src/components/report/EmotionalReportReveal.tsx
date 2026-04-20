@@ -89,8 +89,10 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
 
     // Completion ritual — gold confetti burst the moment the reveal mounts
     // (i.e. the report just came back from the worker). Skip for reduced
-    // motion. Dynamic import keeps the lib off the generating screen.
-    if (reducedMotion) return;
+    // motion. Also skip for memorial mode — a celebratory burst is tonally
+    // wrong for a grieving owner, no matter how quiet the palette. Dynamic
+    // import keeps the lib off the generating screen.
+    if (reducedMotion || isMemorial) return;
     let cancelled = false;
     import('canvas-confetti').then((m) => {
       if (cancelled) return;
@@ -107,7 +109,7 @@ export function EmotionalReportReveal({ petName, report, onComplete, occasionMod
       setTimeout(() => fire({ ...base, particleCount: 40, spread: 110, origin: { x: 0.85, y: 0.55 } }), 260);
     }).catch(() => {});
     return () => { cancelled = true; };
-  }, [reducedMotion]);
+  }, [reducedMotion, isMemorial]);
 
   const d = (base: number) => base * timeMult;
 
