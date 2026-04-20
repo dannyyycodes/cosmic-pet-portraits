@@ -9,7 +9,7 @@ import { LiveActivityToast } from "./LiveActivityToast";
 import { GoldDivider } from "./GoldDivider";
 import { GriefSection } from "./GriefSection";
 import { PathPicker, type FunnelPath } from "./PathPicker";
-import { SpinWheel } from "./SpinWheel";
+import { SpinWheel, FloatingPrizeChip } from "./SpinWheel";
 
 /**
  * Per-path CTA labels. Memorial gets a tender, reverent verb so the
@@ -60,6 +60,14 @@ export const FunnelV2 = () => {
   const [wheelShown, setWheelShown] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     try { return localStorage.getItem("ls_wheel_shown") === "1"; } catch { return false; }
+  });
+  // Floating chip — visible after wheel close, until the visitor
+  // dismisses it OR scrolls into the checkout section. We don't tie it
+  // to the wheel state directly so it survives a refresh / SPA route
+  // change as long as the sessionStorage prize is still present.
+  const [chipDismissed, setChipDismissed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return sessionStorage.getItem("ls_wheel_chip_dismissed") === "1"; } catch { return false; }
   });
   const [showScrollNudge, setShowScrollNudge] = useState(false);
   const [scrollNudgeDismissed, setScrollNudgeDismissed] = useState(false);
@@ -153,6 +161,30 @@ export const FunnelV2 = () => {
       checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 80);
   }, []);
+
+  const dismissChip = useCallback(() => {
+    setChipDismissed(true);
+    try { sessionStorage.setItem("ls_wheel_chip_dismissed", "1"); } catch { /* ignore */ }
+  }, []);
+
+  // Auto-dismiss the chip when the visitor reaches the checkout section
+  // — at that point the code is already auto-applied on the cards, so
+  // the floating reminder becomes noise.
+  useEffect(() => {
+    if (chipDismissed) return;
+    const node = checkoutRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) { dismissChip(); obs.disconnect(); break; }
+        }
+      },
+      { threshold: 0.15 }
+    );
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [chipDismissed, dismissChip, selectedPath]);
 
   return (
     <div className="bg-[var(--cream,#FFFDF5)]">
@@ -345,6 +377,17 @@ export const FunnelV2 = () => {
         onClose={() => setShowWheel(false)}
         onClaim={handleWheelClaim}
       />
+
+      {/* Floating chip — only renders when wheel is closed AND the
+          visitor hasn't dismissed it. The chip itself reads
+          sessionStorage and renders nothing if no prize was won.
+          Auto-dismisses when the checkout section enters viewport. */}
+      {!showWheel && !chipDismissed && (
+        <FloatingPrizeChip
+          onUse={() => { dismissChip(); scrollToCheckout(); }}
+          onDismiss={dismissChip}
+        />
+      )}
     </div>
   );
 };

@@ -55,7 +55,30 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
   const [error, setError] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
   const [prize, setPrize] = useState<{ code: string; prizeLabel: string; slice: number; expiresAt: string; repeat: boolean } | null>(null);
+  const [copied, setCopied] = useState(false);
   const wheelRef = useRef<HTMLDivElement>(null);
+
+  const copyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // Older browsers / insecure contexts. Fall back to a hidden input + execCommand.
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = code;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1800);
+      } catch { /* give up silently — code is still on screen */ }
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -400,16 +423,51 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
                 background: "#faf4e8",
                 border: "1px dashed var(--gold, #c4a265)",
                 borderRadius: 12,
-                padding: "16px 14px",
-                margin: "0 0 16px 0",
+                padding: "16px 14px 14px",
+                margin: "0 0 14px 0",
               }}
             >
               <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--gold, #c4a265)", margin: "0 0 6px 0", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
                 Your code
               </p>
-              <p style={{ fontFamily: '"Courier New", monospace', fontSize: "1.45rem", fontWeight: 700, letterSpacing: "0.18em", color: "var(--ink, #1f1c18)", margin: 0 }}>
+              <p style={{ fontFamily: '"Courier New", monospace', fontSize: "1.45rem", fontWeight: 700, letterSpacing: "0.18em", color: "var(--ink, #1f1c18)", margin: "0 0 10px 0" }}>
                 {prize?.code}
               </p>
+              <button
+                type="button"
+                onClick={() => prize && copyCode(prize.code)}
+                aria-live="polite"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-200 active:scale-[0.97]"
+                style={{
+                  fontFamily: "Cormorant, Georgia, serif",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: copied ? "#fff" : "var(--gold, #c4a265)",
+                  background: copied ? "var(--gold, #c4a265)" : "transparent",
+                  border: "1.5px solid var(--gold, #c4a265)",
+                  cursor: "pointer",
+                  minHeight: 32,
+                }}
+              >
+                {copied ? (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <rect x="9" y="9" width="11" height="11" rx="2" />
+                      <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                    </svg>
+                    Copy code
+                  </>
+                )}
+              </button>
             </div>
             <button
               type="button"
@@ -426,10 +484,10 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
                 minHeight: 52,
               }}
             >
-              Use My Code →
+              Apply at Checkout →
             </button>
             <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", color: "var(--muted, #958779)", margin: "10px 0 0 0", lineHeight: 1.5 }}>
-              Also sent to your inbox · Expires in 48 hours
+              Code shown above ↑ · Also emailed as backup · Expires in 48 hours
             </p>
           </div>
         )}
@@ -448,6 +506,173 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
           }
         `}</style>
       </div>
+    </div>
+  );
+};
+
+/* ───────────────────────────────────────────────────────────────────────
+   FloatingPrizeChip — corner reminder of the won prize
+   ─────────────────────────────────────────────────────────────────────── */
+
+export interface FloatingPrizeChipProps {
+  /** Called when the visitor taps "Use" — parent should scroll to checkout. */
+  onUse: () => void;
+  /** Called when the visitor explicitly dismisses the chip. */
+  onDismiss: () => void;
+}
+
+/**
+ * After the wheel modal closes, this small chip pins itself to the bottom
+ * of the viewport so the code is always visible while the visitor reads
+ * the rest of the page. Reads the same `ls_wheel_prize` sessionStorage
+ * key SpinWheel writes — renders nothing if no prize was won, expired,
+ * or sessionStorage is empty.
+ */
+export const FloatingPrizeChip = ({ onUse, onDismiss }: FloatingPrizeChipProps) => {
+  const [prize, setPrize] = useState<{ code: string; prizeLabel: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let raw: string | null = null;
+    try { raw = sessionStorage.getItem("ls_wheel_prize"); } catch { return; }
+    if (!raw) return;
+    let parsed: { code?: string; prizeLabel?: string; expiresAt?: string } | null = null;
+    try { parsed = JSON.parse(raw); } catch { return; }
+    if (!parsed?.code || !parsed?.prizeLabel) return;
+    if (parsed.expiresAt && new Date(parsed.expiresAt).getTime() < Date.now()) return;
+    setPrize({ code: parsed.code, prizeLabel: parsed.prizeLabel });
+  }, []);
+
+  if (!prize) return null;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(prize.code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch { /* silently noop */ }
+  };
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: "fixed",
+        // Sits ABOVE the mobile sticky CTA (which uses bottom: 0 + padding).
+        // 92px gives clearance for the sticky bar's height + safe-area inset.
+        bottom: "max(20px, env(safe-area-inset-bottom, 0px))",
+        right: 16,
+        left: "auto",
+        maxWidth: "min(340px, calc(100vw - 32px))",
+        zIndex: 50,
+        background: "var(--cream, #FFFDF5)",
+        border: "1px solid rgba(196,162,101,0.4)",
+        borderRadius: 14,
+        boxShadow: "0 12px 36px rgba(20,15,8,0.18), 0 0 0 1px rgba(196,162,101,0.08)",
+        padding: "12px 14px",
+        animation: "lsChipIn 460ms cubic-bezier(0.22,1,0.36,1)",
+      }}
+    >
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Dismiss cosmic gift reminder"
+        style={{
+          position: "absolute",
+          top: 6,
+          right: 6,
+          width: 22,
+          height: 22,
+          padding: 0,
+          background: "transparent",
+          border: "none",
+          color: "var(--muted, #958779)",
+          cursor: "pointer",
+          fontSize: 14,
+          lineHeight: 1,
+          opacity: 0.7,
+        }}
+      >
+        ✕
+      </button>
+      <p style={{
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: "0.22em",
+        textTransform: "uppercase",
+        color: "var(--gold, #c4a265)",
+        margin: 0,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}>
+        Your Cosmic Gift
+      </p>
+      <p style={{
+        fontFamily: '"DM Serif Display", Georgia, serif',
+        fontSize: "0.95rem",
+        color: "var(--ink, #1f1c18)",
+        margin: "2px 0 8px 0",
+        lineHeight: 1.25,
+        paddingRight: 16,
+      }}>
+        {prize.prizeLabel}
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleCopy}
+          style={{
+            flex: 1,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            padding: "8px 10px",
+            borderRadius: 8,
+            background: copied ? "var(--gold, #c4a265)" : "#faf4e8",
+            color: copied ? "#fff" : "var(--ink, #1f1c18)",
+            border: "1px dashed var(--gold, #c4a265)",
+            fontFamily: '"Courier New", monospace',
+            fontSize: "0.82rem",
+            fontWeight: 700,
+            letterSpacing: "0.12em",
+            cursor: "pointer",
+            minHeight: 36,
+            transition: "background 200ms ease, color 200ms ease",
+          }}
+        >
+          {copied ? "Copied ✓" : prize.code}
+        </button>
+        <button
+          type="button"
+          onClick={onUse}
+          style={{
+            padding: "8px 14px",
+            borderRadius: 8,
+            background: "var(--rose, #bf524a)",
+            color: "#fff",
+            border: "none",
+            fontFamily: "Cormorant, Georgia, serif",
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            cursor: "pointer",
+            minHeight: 36,
+          }}
+        >
+          Use →
+        </button>
+      </div>
+      <style>{`
+        @keyframes lsChipIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [role="status"] { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 };

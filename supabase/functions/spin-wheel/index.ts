@@ -126,6 +126,81 @@ async function hashIp(ip: string): Promise<string> {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+// ─── Disposable / throwaway email domains ─────────────────────────────
+//
+// Curated set of the most common single-use email services. Covers the
+// great majority of casual wheel abuse without the bloat of a 3000-entry
+// list. Add new offenders here as you spot them by querying:
+//   SELECT split_part(email,'@',2) AS domain, count(*)
+//   FROM wheel_spins GROUP BY 1 ORDER BY 2 DESC;
+const DISPOSABLE_DOMAINS = new Set<string>([
+  "mailinator.com", "guerrillamail.com", "guerrillamail.net", "guerrillamail.org",
+  "guerrillamail.biz", "guerrillamailblock.com", "sharklasers.com", "spam4.me",
+  "10minutemail.com", "10minutemail.net", "10minutemail.co.uk", "10minutemail.de",
+  "tempmail.com", "tempmail.org", "tempmail.email", "temp-mail.org", "temp-mail.io",
+  "yopmail.com", "yopmail.net", "yopmail.fr", "throwaway.email",
+  "throwawaymail.com", "trashmail.com", "trashmail.net", "trashmail.de",
+  "trashmail.io", "dispostable.com", "getnada.com", "nada.email",
+  "maildrop.cc", "mailnesia.com", "fakeinbox.com", "fakemailgenerator.com",
+  "emailondeck.com", "mintemail.com", "mailsac.com", "moakt.com",
+  "mt2009.com", "mt2014.com", "mt2015.com", "tempinbox.com",
+  "tempemail.net", "tempemails.com", "tempemail.com", "throwam.com",
+  "fakemail.fr", "noclickemail.com", "spamgourmet.com", "spamgourmet.net",
+  "spamgourmet.org", "deadaddress.com", "easytrashmail.com", "instant-mail.de",
+  "anonbox.net", "anonymbox.com", "burnermail.io", "discardmail.com",
+  "discardmail.de", "emltmp.com", "filzmail.com", "harakirimail.com",
+  "incognitomail.com", "incognitomail.net", "jetable.org", "jourrapide.com",
+  "kasmail.com", "klassmaster.com", "kurzepost.de", "letthemeatspam.com",
+  "mailbidon.com", "mailcatch.com", "mailde.de", "maileater.com",
+  "mailexpire.com", "mailforspam.com", "mailfreeonline.com", "mailmetrash.com",
+  "mailmoat.com", "mailtemporanea.com", "mailtemporanea.it", "mailto.de",
+  "mailtrash.net", "mailtv.net", "mvrht.com", "mytrashmail.com",
+  "neomailbox.com", "no-spam.ws", "nogmailspam.info", "noref.in",
+  "objectmail.com", "obobbo.com", "onewaymail.com", "pjkp.com",
+  "poofy.org", "pookmail.com", "privacy.net", "proxymail.eu",
+  "punkass.com", "rmqkr.net", "rppkn.com", "safe-mail.net",
+  "selfdestructingmail.com", "sendspamhere.com", "shortmail.net",
+  "sneakemail.com", "sofort-mail.de", "sogetthis.com", "spambob.net",
+  "spambob.com", "spambob.org", "spambog.com", "spambog.de",
+  "spambog.ru", "spamcero.com", "spamfellas.com", "spamfree24.com",
+  "spamfree24.de", "spamfree24.eu", "spamfree24.info", "spamfree24.net",
+]);
+
+// Cloudflare DNS-over-HTTPS MX check. Verifies the email's domain has
+// at least one MX record (i.e. can actually receive mail). Catches
+// typos like "gmial.com" / "yhaoo.co" before we issue a code that
+// would just bounce.
+//
+// Strict fail-open: any DNS error / timeout / weird response returns
+// true. We'd rather let a real visitor through than block them on a
+// transient DNS hiccup — the disposable blocklist + IP rate limit
+// already cover the common abuse vectors.
+async function domainHasMx(domain: string): Promise<boolean> {
+  if (!domain) return false;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2000);
+  try {
+    const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=MX`;
+    const res = await fetch(url, {
+      headers: { "Accept": "application/dns-json" },
+      signal: controller.signal,
+    });
+    if (!res.ok) return true;
+    const data = await res.json() as { Status?: number; Answer?: Array<{ type: number; data: string }> };
+    // RFC 8484 status codes: 0 = NOERROR, 3 = NXDOMAIN.
+    if (data.Status === 3) return false;
+    if (data.Status !== 0) return true;
+    // RFC 1035 record type 15 = MX.
+    if (Array.isArray(data.Answer) && data.Answer.some((a) => a.type === 15)) return true;
+    // NOERROR but no MX records — domain exists but doesn't accept mail.
+    return false;
+  } catch {
+    return true;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ─── Email template ───────────────────────────────────────────────────
 
 function getEmailHtml(opts: { code: string; prizeLabel: string; emailHook: string; expiresAt: Date }) {
@@ -211,10 +286,25 @@ serve(async (req) => {
     });
   }
 
-  // 4. Email
+  // 4. Email — three-layer validation:
+  //    (a) format regex
+  //    (b) disposable-domain blocklist
+  //    (c) MX record check via Cloudflare DoH (fail-open on errors)
   const email = (body.email || "").trim().toLowerCase();
   if (!email || !EMAIL_RE.test(email) || email.length > 254) {
     return new Response(JSON.stringify({ error: "Please enter a valid email." }), {
+      status: 400, headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+  const emailDomain = email.split("@")[1] ?? "";
+  if (DISPOSABLE_DOMAINS.has(emailDomain)) {
+    return new Response(JSON.stringify({ error: "Please use your real email — disposable addresses can't receive your code." }), {
+      status: 400, headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+  const hasMx = await domainHasMx(emailDomain);
+  if (!hasMx) {
+    return new Response(JSON.stringify({ error: "We couldn't reach that email's domain. Check the spelling and try again." }), {
       status: 400, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
