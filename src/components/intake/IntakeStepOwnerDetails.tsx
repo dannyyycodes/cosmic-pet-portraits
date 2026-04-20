@@ -160,6 +160,9 @@ export function IntakeStepOwnerDetails({
           </label>
           <CosmicInput
             type="text"
+            name="owner-name"
+            autoComplete="name"
+            autoCapitalize="words"
             value={ownerName}
             onChange={(e) => onUpdate({ ownerName: e.target.value })}
             placeholder="Enter your name"
@@ -174,6 +177,8 @@ export function IntakeStepOwnerDetails({
           </label>
           <CosmicInput
             type="date"
+            name="bday"
+            autoComplete="bday"
             value={ownerBirthDate}
             onChange={(e) => onUpdate({ ownerBirthDate: e.target.value })}
             max={new Date().toISOString().split('T')[0]}
@@ -217,6 +222,8 @@ export function IntakeStepOwnerDetails({
               </label>
               <CosmicInput
                 type="time"
+                name="bday-time"
+                autoComplete="off"
                 value={ownerBirthTime}
                 onChange={(e) => onUpdate({ ownerBirthTime: e.target.value })}
               />
@@ -232,6 +239,8 @@ export function IntakeStepOwnerDetails({
               <div className="relative">
                 <CosmicInput
                   type="text"
+                  name="birth-city"
+                  autoComplete="address-level2"
                   value={ownerBirthLocation}
                   onChange={(e) => onUpdate({ ownerBirthLocation: e.target.value })}
                   placeholder="Start typing a city..."

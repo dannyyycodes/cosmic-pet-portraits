@@ -499,6 +499,11 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
               <div className="flex gap-2 mt-2">
                 <input
                   type="text"
+                  name="redeem-code"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  autoCorrect="off"
+                  spellCheck={false}
                   value={redeemCode}
                   onChange={(e) => setRedeemCode(e.target.value)}
                   placeholder="Enter code"

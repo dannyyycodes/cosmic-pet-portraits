@@ -53,6 +53,10 @@ export function IntakeStepBreed({ petData, onUpdate, onNext, onBack, totalSteps,
       <div className="space-y-6">
         <Input
           type="text"
+          name="pet-breed"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder={getBreedPlaceholder(petData.species)}
           value={petData.breed}
           onChange={(e) => onUpdate({ breed: e.target.value })}

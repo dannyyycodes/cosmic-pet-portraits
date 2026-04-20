@@ -1158,6 +1158,12 @@ export function PostPurchaseIntake({
                   <label className={labelClass}>Your email</label>
                   <input
                     type="email"
+                    name="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="your@email.com"

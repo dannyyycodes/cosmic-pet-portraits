@@ -279,6 +279,7 @@ serve(async (req) => {
         }],
         mode: "payment",
         payment_method_types: ["card", "link", "klarna", "afterpay_clearpay", "amazon_pay", "revolut_pay", "bancontact", "eps"],
+        allow_promotion_codes: true,
         success_url: `${origin}/compatibility?session_id={CHECKOUT_SESSION_ID}&a=${compatPetReportAId}&b=${compatPetReportBId}`,
         cancel_url: `${origin}/?compat_cancelled=1`,
         metadata: {
@@ -533,7 +534,7 @@ serve(async (req) => {
           "amazon_pay", "revolut_pay",
           "bancontact", "eps",
         ],
-        allow_promotion_codes: false,
+        allow_promotion_codes: true,
         ...(includesBook ? {
           shipping_address_collection: {
             allowed_countries: ["US", "GB", "CA", "AU", "IE", "NZ", "DE", "FR", "NL", "SE", "NO", "DK", "FI", "ES", "IT", "PT", "BE", "CH", "AT", "SG", "HK", "JP"],
@@ -923,7 +924,7 @@ serve(async (req) => {
       // Klarna/Afterpay don't support off_session — Stripe will filter them out automatically
       // when horoscopes are included, which is correct (recurring billing needs a saved card).
       ...(horoscopePetCount > 0 ? { payment_intent_data: { setup_future_usage: "off_session" } } : {}),
-      allow_promotion_codes: false,
+      allow_promotion_codes: true,
       success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&report_id=${primaryReportId}`,
       cancel_url: `${origin}/`,
       metadata: {
