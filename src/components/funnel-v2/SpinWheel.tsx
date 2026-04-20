@@ -14,15 +14,32 @@ import { supabase } from "@/integrations/supabase/client";
  * very next page interaction — zero re-typing for the visitor.
  */
 
-const PRIZE_LABELS: Record<number, string> = {
-  1: "10% Off",
-  2: "+500 SoulSpeak Credits",
-  3: "30% Off Gift",
-  4: "15% Off",
-  5: "Free Bond Upgrade",
-  6: "20% Off",
-  7: "30% Off Jackpot",
-  8: "Free Horoscope Month",
+// Two-line sector labels — top line is the headline number/word, bottom
+// line is the qualifier. Short so they fit comfortably inside a 45°
+// sector without overflowing the arc at our chosen label radius.
+const PRIZE_LABELS: Record<number, { top: string; bottom: string }> = {
+  1: { top: "10%",  bottom: "OFF" },
+  2: { top: "+500", bottom: "CREDITS" },
+  3: { top: "30%",  bottom: "GIFT" },
+  4: { top: "15%",  bottom: "OFF" },
+  5: { top: "FREE", bottom: "UPGRADE" },
+  6: { top: "20%",  bottom: "OFF" },
+  7: { top: "30%",  bottom: "JACKPOT" },
+  8: { top: "FREE", bottom: "MONTH" },
+};
+
+// Four-tone sector rotation — alternates around the wheel so adjacent
+// sectors always read as distinct. Jackpot (7) overrides with rose-fill
+// + white text so it stands out as the marquee prize.
+const SECTOR_FILLS: Record<number, string> = {
+  1: "#FFFDF5", // cream
+  2: "#fbeedd", // gold-tint
+  3: "#fbe8e0", // rose-blush
+  4: "#fff8ed", // ivory
+  5: "#FFFDF5",
+  6: "#fbeedd",
+  7: "#bf524a", // jackpot — rose primary
+  8: "#fff8ed",
 };
 
 const SECTOR_COUNT = 8;
@@ -50,7 +67,6 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
   type Stage = "form" | "spinning" | "revealed" | "error";
   const [stage, setStage] = useState<Stage>("form");
   const [email, setEmail] = useState("");
-  const [petName, setPetName] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [rotation, setRotation] = useState(0);
@@ -107,7 +123,7 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
     let res: ApiResponse | null = null;
     try {
       const { data, error: invokeError } = await supabase.functions.invoke<ApiResponse>("spin-wheel", {
-        body: { email: trimmed, honeypot, petName: petName.trim() || undefined },
+        body: { email: trimmed, honeypot },
       });
       if (invokeError) throw invokeError;
       res = data;
@@ -225,43 +241,52 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
           >
             {stage === "revealed" ? (prize?.repeat ? "Welcome back" : "The stars liked you") : "Spin for a Cosmic Gift"}
           </h2>
-          {stage !== "revealed" && (
-            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.95rem", color: "var(--earth, #6e6259)", margin: 0, lineHeight: 1.55 }}>
-              One spin, one gift, one soul. Enter your email and turn the wheel.
-            </p>
-          )}
         </div>
 
         {/* ── Wheel ────────────────────────────────────────── */}
         <div
           className="relative mx-auto"
-          style={{ width: "min(320px, 80vw)", aspectRatio: "1 / 1", marginBottom: 16 }}
+          style={{ width: "min(360px, 86vw)", aspectRatio: "1 / 1", marginBottom: 18 }}
         >
-          {/* Pointer */}
-          <div
+          {/* Pointer — chunky rose triangle with a tiny gold star inset.
+              Sits ABOVE the wheel so the wheel's overflow can't clip it. */}
+          <svg
             aria-hidden="true"
+            viewBox="0 0 40 44"
+            width="36"
+            height="40"
             style={{
-              position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)",
-              width: 0, height: 0,
-              borderLeft: "12px solid transparent",
-              borderRight: "12px solid transparent",
-              borderTop: "20px solid var(--rose, #bf524a)",
-              filter: "drop-shadow(0 4px 6px rgba(191,82,74,0.35))",
+              position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)",
+              filter: "drop-shadow(0 5px 8px rgba(191,82,74,0.45))",
               zIndex: 3,
             }}
-          />
-          {/* Hub */}
+          >
+            {/* Outer gold trim */}
+            <path d="M20 42 L2 8 Q2 2 8 2 L32 2 Q38 2 38 8 Z" fill="#c4a265" />
+            {/* Inner rose fill */}
+            <path d="M20 38 L6 9 Q6 5 10 5 L30 5 Q34 5 34 9 Z" fill="#bf524a" />
+            {/* Tiny cream star */}
+            <path d="M20 13 L21.5 17 L26 17.7 L22.6 20.6 L23.7 25 L20 22.6 L16.3 25 L17.4 20.6 L14 17.7 L18.5 17 Z" fill="#FFFDF5" />
+          </svg>
+
+          {/* Hub — bigger, glassier, with a small rose star core */}
           <div
             aria-hidden="true"
             style={{
               position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-              width: 38, height: 38, borderRadius: "50%",
-              background: "radial-gradient(circle at 35% 30%, #fff 0%, #f6e9c8 60%, #c4a265 100%)",
-              border: "3px solid var(--cream, #FFFDF5)",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.18), inset 0 0 6px rgba(0,0,0,0.08)",
+              width: 64, height: 64, borderRadius: "50%",
+              background: "radial-gradient(circle at 30% 28%, #fff 0%, #fbeedd 45%, #d4b26b 90%, #b9954c 100%)",
+              border: "4px solid var(--cream, #FFFDF5)",
+              boxShadow: "0 6px 18px rgba(20,15,8,0.28), 0 0 0 1px rgba(196,162,101,0.55), inset 0 -3px 6px rgba(0,0,0,0.12), inset 0 3px 6px rgba(255,255,255,0.6)",
               zIndex: 2,
+              display: "flex", alignItems: "center", justifyContent: "center",
             }}
-          />
+          >
+            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+              <path d="M11 1 L13.2 8.8 L21 11 L13.2 13.2 L11 21 L8.8 13.2 L1 11 L8.8 8.8 Z" fill="#bf524a" opacity="0.92" />
+            </svg>
+          </div>
+
           {/* Wheel */}
           <div
             ref={wheelRef}
@@ -271,7 +296,7 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
               transition: stage === "spinning"
                 ? `transform ${SPIN_DURATION_MS}ms cubic-bezier(0.17, 0.67, 0.21, 1)`
                 : "none",
-              boxShadow: "0 12px 40px rgba(20,15,8,0.18), 0 0 0 4px rgba(196,162,101,0.18), 0 0 0 5px rgba(196,162,101,0.4)",
+              boxShadow: "0 18px 56px rgba(20,15,8,0.32), 0 0 0 4px #c4a265, 0 0 0 6px rgba(196,162,101,0.25), 0 0 0 9px rgba(255,253,245,0.85), 0 0 0 11px rgba(196,162,101,0.35)",
               willChange: "transform",
             }}
           >
@@ -283,55 +308,110 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
                 const startAngle = -90 + i * SECTOR_DEG;
                 const endAngle = startAngle + SECTOR_DEG;
                 const r = 100;
-                const toXY = (deg: number) => {
+                const toXY = (deg: number, rad_ = r) => {
                   const rad = (deg * Math.PI) / 180;
-                  return [Math.cos(rad) * r, Math.sin(rad) * r] as const;
+                  return [Math.cos(rad) * rad_, Math.sin(rad) * rad_] as const;
                 };
                 const [x1, y1] = toXY(startAngle);
                 const [x2, y2] = toXY(endAngle);
-                const isAlt = i % 2 === 0;
-                const fill = isAlt ? "#FFFDF5" : "#fbeedd";
-                const stroke = "rgba(196,162,101,0.55)";
+
+                const sliceNum = i + 1;
+                const isJackpot = sliceNum === 7;
+                const fill = SECTOR_FILLS[sliceNum];
+                const textFill = isJackpot ? "#FFFDF5" : "#1f1c18";
+                const subFill = isJackpot ? "#fbeedd" : "#7a6a60";
 
                 const labelAngle = startAngle + SECTOR_DEG / 2;
-                const [lx, ly] = (() => {
-                  const rad = (labelAngle * Math.PI) / 180;
-                  const lr = 62;
-                  return [Math.cos(rad) * lr, Math.sin(rad) * lr] as const;
-                })();
+                const [lx, ly] = toXY(labelAngle, 60);
+                // Rotate text so it reads outward (radially), but keep
+                // the baseline horizontal-to-the-radius so two lines
+                // stack correctly. +90 puts the baseline tangent → rotate
+                // by labelAngle+90 so the text reads from inside out.
                 const labelRotation = labelAngle + 90;
-                const sliceNum = i + 1;
-                const isJackpot = sliceNum === 7 || sliceNum === 8;
+                const labels = PRIZE_LABELS[sliceNum];
+
+                // Stars at sector boundaries — tiny constellation dots
+                // sitting just inside the gold rim so the wheel reads as
+                // cosmic, not just generic. Drawn for HALF the sectors
+                // (every other boundary) so the pattern feels rhythmic
+                // rather than busy.
+                const [sx, sy] = toXY(startAngle, 92);
+                const drawBoundaryStar = i % 2 === 0;
 
                 return (
                   <g key={i}>
                     <path
                       d={`M 0 0 L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`}
                       fill={fill}
-                      stroke={stroke}
-                      strokeWidth={1}
+                      stroke="#FFFDF5"
+                      strokeWidth={1.5}
                     />
+                    {/* Subtle inner shadow ring on jackpot for depth */}
+                    {isJackpot && (
+                      <path
+                        d={`M 0 0 L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`}
+                        fill="url(#jackpotGlow)"
+                        opacity={0.6}
+                      />
+                    )}
                     <text
                       x={lx}
                       y={ly}
                       transform={`rotate(${labelRotation}, ${lx}, ${ly})`}
                       textAnchor="middle"
                       dominantBaseline="middle"
-                      style={{
-                        fontFamily: '"DM Serif Display", Georgia, serif',
-                        fontSize: 8.5,
-                        fill: isJackpot ? "#bf524a" : "#1f1c18",
-                        fontWeight: isJackpot ? 700 : 400,
-                        letterSpacing: 0.2,
-                      }}
+                      style={{ pointerEvents: "none" }}
                     >
-                      {PRIZE_LABELS[sliceNum]}
+                      <tspan
+                        x={lx}
+                        dy={-5}
+                        style={{
+                          fontFamily: '"DM Serif Display", Georgia, serif',
+                          fontSize: 14,
+                          fontWeight: 400,
+                          fill: textFill,
+                          letterSpacing: 0.4,
+                        }}
+                      >
+                        {labels.top}
+                      </tspan>
+                      <tspan
+                        x={lx}
+                        dy={13}
+                        style={{
+                          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+                          fontSize: 6.4,
+                          fontWeight: 700,
+                          fill: subFill,
+                          letterSpacing: 1.6,
+                        }}
+                      >
+                        {labels.bottom}
+                      </tspan>
                     </text>
+                    {drawBoundaryStar && (
+                      <path
+                        d={`M ${sx} ${sy - 2.6} L ${sx + 0.7} ${sy - 0.7} L ${sx + 2.6} ${sy} L ${sx + 0.7} ${sy + 0.7} L ${sx} ${sy + 2.6} L ${sx - 0.7} ${sy + 0.7} L ${sx - 2.6} ${sy} L ${sx - 0.7} ${sy - 0.7} Z`}
+                        fill="#c4a265"
+                        opacity={0.9}
+                      />
+                    )}
                   </g>
                 );
               })}
-              {/* Inner gold ring */}
-              <circle cx="0" cy="0" r="100" fill="none" stroke="#c4a265" strokeWidth="1.5" opacity="0.6" />
+
+              <defs>
+                <radialGradient id="jackpotGlow" cx="0.5" cy="0.5" r="0.6">
+                  <stop offset="0%" stopColor="#FFFDF5" stopOpacity="0" />
+                  <stop offset="100%" stopColor="#000" stopOpacity="0.35" />
+                </radialGradient>
+              </defs>
+
+              {/* Inner gold ring — sits just inside the sector arc to
+                  define the wheel's edge cleanly even before the outer
+                  box-shadow band kicks in. */}
+              <circle cx="0" cy="0" r="100" fill="none" stroke="#c4a265" strokeWidth="2" />
+              <circle cx="0" cy="0" r="98" fill="none" stroke="rgba(196,162,101,0.4)" strokeWidth="1" />
             </svg>
           </div>
         </div>
@@ -356,30 +436,16 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
               onKeyDown={(e) => { if (e.key === "Enter" && stage === "form") spin(); }}
               placeholder="your@email.com"
               disabled={stage === "spinning"}
-              className="w-full px-4 py-3 rounded-xl outline-none mb-2"
+              autoFocus
+              className="w-full px-4 py-3.5 rounded-xl outline-none mb-3"
               style={{
                 fontFamily: "Cormorant, Georgia, serif",
-                fontSize: "1rem",
+                fontSize: "1.05rem",
+                textAlign: "center",
                 border: "1.5px solid var(--cream3, #f3eadb)",
                 color: "var(--ink, #1f1c18)",
                 background: stage === "spinning" ? "rgba(0,0,0,0.03)" : "#fff",
-                minHeight: 48,
-              }}
-            />
-            <input
-              type="text"
-              value={petName}
-              onChange={(e) => setPetName(e.target.value)}
-              placeholder="Pet's name (optional)"
-              disabled={stage === "spinning"}
-              className="w-full px-4 py-3 rounded-xl outline-none mb-3"
-              style={{
-                fontFamily: "Cormorant, Georgia, serif",
-                fontSize: "0.95rem",
-                border: "1.5px solid var(--cream3, #f3eadb)",
-                color: "var(--ink, #1f1c18)",
-                background: stage === "spinning" ? "rgba(0,0,0,0.03)" : "#fff",
-                minHeight: 44,
+                minHeight: 52,
               }}
             />
             {error && (
