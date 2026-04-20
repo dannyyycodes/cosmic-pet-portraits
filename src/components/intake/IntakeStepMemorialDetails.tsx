@@ -167,6 +167,8 @@ export function IntakeStepMemorialDetails({
           </p>
           <textarea
             id="favoriteMemory"
+            name="favorite-memory"
+            autoComplete="off"
             rows={4}
             maxLength={500}
             value={petData.favoriteMemory || ''}
@@ -193,6 +195,10 @@ export function IntakeStepMemorialDetails({
           <input
             id="rememberedBy"
             type="text"
+            name="remembered-by"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             maxLength={80}
             value={petData.rememberedBy || ''}
             onChange={(e) => onUpdate({ rememberedBy: e.target.value })}

@@ -241,9 +241,22 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
               </p>
             </div>
 
-            <div className="space-y-4 pt-2">
+            <form
+              name="intake-email"
+              className="space-y-4 pt-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (isValidEmail) handleProceedToCheckout();
+              }}
+            >
               <Input
                 type="email"
+                name="email"
+                autoComplete="email"
+                inputMode="email"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
                 placeholder="your@email.com"
                 value={petData.email}
                 onChange={(e) => handleEmailChange(e.target.value)}
@@ -253,6 +266,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
 
               <div className="flex flex-col items-center gap-3">
                 <Button
+                  type="submit"
                   onClick={handleProceedToCheckout}
                   disabled={!isValidEmail}
                   variant="gold"
@@ -262,10 +276,11 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                   <Sparkles className="w-5 h-5 mr-2" />
                   {modeContent.emailButton}
                 </Button>
-                
+
                 {/* Add Another Pet Option - on its own line below */}
                 {onAddAnotherPet && (
                   <button
+                    type="button"
                     onClick={onAddAnotherPet}
                     className="text-primary/70 hover:text-primary underline text-sm transition-colors"
                   >
@@ -273,7 +288,7 @@ export function IntakeStepEmail({ petData, petsData, petCount = 1, onUpdate, onR
                   </button>
                 )}
               </div>
-            </div>
+            </form>
           </motion.div>
         )}
 

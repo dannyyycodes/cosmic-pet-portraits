@@ -77,6 +77,11 @@ export function IntakeStepName({ petData, onUpdate, onNext, onBack, totalSteps, 
       <div className="space-y-2">
         <Input
           type="text"
+          name="pet-name"
+          autoComplete="off"
+          autoCapitalize="words"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder={t('intake.name.placeholder')}
           value={petData.name}
           onChange={(e) => handleChange(e.target.value)}

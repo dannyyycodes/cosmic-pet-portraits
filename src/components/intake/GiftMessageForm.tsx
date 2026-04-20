@@ -82,6 +82,10 @@ export function GiftMessageForm({
 
           <div className="grid gap-3">
             <Input
+              type="text"
+              name="recipient-name"
+              autoComplete="off"
+              autoCapitalize="words"
               value={recipientName}
               onChange={(e) => onUpdateRecipientName(e.target.value)}
               placeholder="Recipient's Name"
@@ -89,6 +93,12 @@ export function GiftMessageForm({
             />
             <Input
               type="email"
+              name="recipient-email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
               value={recipientEmail}
               onChange={(e) => onUpdateRecipientEmail(e.target.value)}
               placeholder="Recipient's Email"

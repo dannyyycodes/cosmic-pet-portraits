@@ -116,19 +116,31 @@ export function IntakeStepEmailEarly({
         </p>
       </div>
 
-      <div className="space-y-4 pt-2">
+      <form
+        name="intake-email-early"
+        className="space-y-4 pt-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (isValidEmail && !isTracking) handleContinue();
+        }}
+      >
         <Input
           type="email"
+          name="email"
+          autoComplete="email"
+          inputMode="email"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder="your@email.com"
           value={petData.email}
           onChange={(e) => handleEmailChange(e.target.value)}
           onBlur={(e) => handleEmailChange(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && isValidEmail && handleContinue()}
           className="h-14 text-lg text-center bg-card/50 border-border/50 focus:border-primary"
-          autoComplete="email"
         />
 
         <Button
+          type="submit"
           onClick={handleContinue}
           disabled={!isValidEmail || isTracking}
           variant="gold"
@@ -151,7 +163,7 @@ export function IntakeStepEmailEarly({
             </>
           )}
         </Button>
-      </div>
+      </form>
 
       {/* Trust signals */}
       <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground pt-4">

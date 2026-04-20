@@ -186,6 +186,8 @@ export function IntakeStepLocation({ petData, onUpdate, onNext, onBack, totalSte
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/60" />
             <input
               type="text"
+              name="pet-location"
+              autoComplete="address-level2"
               placeholder={t('intake.location.placeholder')}
               value={petData.location}
               onChange={(e) => {
