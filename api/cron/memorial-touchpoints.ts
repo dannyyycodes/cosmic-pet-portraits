@@ -1,14 +1,14 @@
-// Fires the memorial touchpoint sender every hour. The sender itself
+// Fires the memorial touchpoint sender daily. The sender itself
 // (supabase/functions/send-memorial-touchpoint) selects due rows from
 // public.memorial_touchpoints where scheduled_for <= now() and sent_at is null,
 // emails them via Resend, and rolls anniversary rows forward by a year.
 //
 // Auth: Vercel cron injects `Authorization: Bearer ${CRON_SECRET}`. We forward
-// the service-role key to the edge function so it can hit the DB + email.
+// the same CRON_SECRET to the edge function (which has MEMORIAL_CRON_SECRET
+// set to the same value) so the two halves share one gate.
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://aduibsyrnenzobuyetmn.supabase.co";
-const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const CRON_SECRET = process.env.CRON_SECRET || "";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -17,15 +17,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  if (!SERVICE_ROLE) {
-    return res.status(500).json({ error: "SUPABASE_SERVICE_ROLE_KEY not set" });
+  if (!CRON_SECRET) {
+    return res.status(500).json({ error: "CRON_SECRET not set" });
   }
 
   try {
     const resp = await fetch(`${SUPABASE_URL}/functions/v1/send-memorial-touchpoint`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${SERVICE_ROLE}`,
+        Authorization: `Bearer ${CRON_SECRET}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({}),
