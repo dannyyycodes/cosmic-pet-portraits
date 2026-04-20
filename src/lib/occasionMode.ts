@@ -204,7 +204,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
   
   memorial: {
     tense: 'past',
-    
+
     verb: {
       is: 'was',
       has: 'had',
@@ -217,42 +217,42 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
       reacts: 'reacted',
       greets: 'greeted',
     },
-    
+
     pronoun: {
       their: 'their',
       them: 'them',
       they: 'they',
     },
-    
-    nameTitle: "Tell us their name",
+
+    nameTitle: "What was their name?",
     nameSubtitle: "Names carry vibrational energy that shaped who they were.",
-    
+
     speciesTitle: (name) => `What kind of companion was ${name}?`,
-    speciesSubtitle: "Different species have unique archetypal energies in cosmic readings.",
-    
+    speciesSubtitle: "Different species carried unique archetypal energies in their reading.",
+
     breedTitle: (name) => `What breed was ${name}?`,
-    breedSubtitle: "Breed traits blend with astrological influences for deeper accuracy.",
-    
+    breedSubtitle: "Breed traits blend with astrological influences for a truer likeness.",
+
     genderTitle: (name) => `Was ${name} a boy or girl?`,
-    genderSubtitle: "Gender affected how planetary energies expressed in the chart.",
-    
-    dobTitle: (name) => `When did ${name} come into your life?`,
-    dobSubtitle: "Birth date reveals Sun sign, Moon phase & planetary positions.",
-    
+    genderSubtitle: "Gender shaped how planetary energies expressed in their chart.",
+
+    dobTitle: (name) => `When was ${name} born?`,
+    dobSubtitle: "Birth date reveals their Sun sign, Moon phase, and planetary positions.",
+
     locationTitle: (name) => `Where did ${name} call home?`,
-    locationSubtitle: "Location set the Ascendant & house positions in the birth chart.",
-    
+    locationSubtitle: "Location set the Ascendant & house positions in their chart.",
+
     soulTitle: "When you looked into their eyes, what did you see?",
-    soulSubtitle: (name) => `Your memory helps calibrate ${name}'s Neptune & 12th house themes.`,
-    
+    soulSubtitle: (name) => `Your memory helps us hold ${name}'s truest nature in the reading.`,
+
     superpowerTitle: (name) => `What was ${name}'s greatest gift to you?`,
-    superpowerSubtitle: "This reveals dominant planetary strengths in the chart.",
-    
-    strangersTitle: (name) => `How did ${name} greet new friends?`,
-    strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
-    
+    superpowerSubtitle: "The thing only they could do. The quality you still miss most.",
+
+    strangersTitle: (name) => `How did ${name} greet new people?`,
+    strangersSubtitle: "The way they met the world — warm, watchful, or somewhere in between.",
+
     photoTitle: (name) => `Share a treasured photo of ${name}`,
-    photoSubtitle: "Their photo helps us hold their eternal likeness in the memorial.",
+    photoSubtitle: "A photo helps us hold their likeness in the reading.",
     photoPlaceholder: "Drop a cherished photo here",
     
     emailBadge: "Memorial Ready",
