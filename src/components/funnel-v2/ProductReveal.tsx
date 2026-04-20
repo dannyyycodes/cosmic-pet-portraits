@@ -465,6 +465,10 @@ const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
 const TYPE_MS_PER_CHAR = 48;     // speed of keystrokes
 const TYPE_PAUSE_MS    = 380;    // breath between line a and line b
 const TYPE_LEAD_IN_MS  = 280;    // small beat after reveal before typing starts
+// Memorial lead-in waits for GriefSection's full 3-beat reveal to
+// complete (~5.5s) so if both sections are visible at once the
+// typewriter doesn't step on the prelude.
+const TYPE_LEAD_IN_MEMORIAL_MS = 5800;
 const TYPE_CARET_FADE  = 700;    // caret fade-out after final char
 
 const IntroTitle = ({ path }: { path: FunnelPath }) => {
@@ -511,6 +515,7 @@ const IntroTitle = ({ path }: { path: FunnelPath }) => {
 
     const handles: { leadIn?: number; ivA?: number; pause?: number; ivB?: number } = {};
 
+    const leadIn = path === "memorial" ? TYPE_LEAD_IN_MEMORIAL_MS : TYPE_LEAD_IN_MS;
     handles.leadIn = window.setTimeout(() => {
       handles.ivA = window.setInterval(() => {
         setCountA((c) => {
@@ -534,7 +539,7 @@ const IntroTitle = ({ path }: { path: FunnelPath }) => {
           return c + 1;
         });
       }, TYPE_MS_PER_CHAR);
-    }, TYPE_LEAD_IN_MS);
+    }, leadIn);
 
     return () => {
       if (handles.leadIn !== undefined) window.clearTimeout(handles.leadIn);
