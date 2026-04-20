@@ -44,7 +44,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
   const [isGiftLoading, setIsGiftLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
-  const { currency } = useLocalizedPrice();
+  const { currency, prices, fmt } = useLocalizedPrice();
 
   // Get the email from sessionStorage if not passed as prop
   const email = purchaseEmail || (() => {
@@ -319,7 +319,7 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               </div>
               
               <p className="text-xs text-muted-foreground mt-3">
-                This gift code is worth $29 and never expires. They can use it for any pet!
+                This gift code is worth {fmt(prices.basic)} and never expires. They can use it for any pet!
               </p>
             </motion.div>
           )}
@@ -398,8 +398,8 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                 </h3>
                 <p className="text-xs md:text-sm text-muted-foreground mb-4">
                   Send a friend a full reading for{' '}
-                  <strong style={{ color: '#bf524a' }}>$19.90</strong>{' '}
-                  <span className="line-through text-xs text-muted-foreground">$29</span>
+                  <strong style={{ color: '#bf524a' }}>{fmt(prices.giftUpsell)}</strong>{' '}
+                  <span className="line-through text-xs text-muted-foreground">{fmt(prices.basic)}</span>
                   {' '}— they get a code that never expires.
                 </p>
 
@@ -431,11 +431,11 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
                   {isGiftLoading ? (
                     <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 animate-spin" /> Loading...</span>
                   ) : (
-                    <span className="flex items-center gap-2"><Gift className="w-4 h-4" /> Send gift for $19.90</span>
+                    <span className="flex items-center gap-2"><Gift className="w-4 h-4" /> Send gift for {fmt(prices.giftUpsell)}</span>
                   )}
                 </Button>
                 <p className="text-center text-xs text-muted-foreground mt-2">
-                  They receive a full $29 reading · code never expires
+                  They receive a full {fmt(prices.basic)} reading · code never expires
                 </p>
               </motion.div>
             )}

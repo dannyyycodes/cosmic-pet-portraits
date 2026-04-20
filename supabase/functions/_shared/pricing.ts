@@ -25,8 +25,11 @@ export interface CurrencyPricing {
   wasPremium: number;
   horoscopeMonthly: number;
   horoscopeYearly: number;
+  /** @deprecated At-checkout gift-for-friend mechanic was removed in PR feat/gift-upsell-cleanup (self-arbitrageable). Use `giftUpsell` for the post-purchase discounted gift path. Values retained for type safety. */
   giftBasic: number;
+  /** @deprecated At-checkout gift-for-friend mechanic was removed in PR feat/gift-upsell-cleanup. Use `giftUpsell` for the post-purchase discounted gift path. Values retained for type safety. */
   giftPremium: number;
+  /** Post-purchase gift upsell — 30% off basic. Only discounted gift path in the product. */
   giftUpsell: number;
   giftCertValue: number;
   compatTier1: number;

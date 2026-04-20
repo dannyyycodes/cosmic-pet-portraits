@@ -27,9 +27,12 @@ export interface CurrencyPricing {
   wasPremium: number;      // Display-only slashed price for premium
   horoscopeMonthly: number; // Recurring /mo after 30-day trial
   horoscopeYearly: number;  // Recurring /yr (33% off monthly equivalent)
-  giftBasic: number;       // Gift-for-friend add-on — 50% off basic
-  giftPremium: number;     // Gift-for-friend add-on — 50% off premium
-  giftUpsell: number;      // Post-purchase gift upsell (~30% off)
+  /** @deprecated At-checkout gift-for-friend mechanic was removed in PR feat/gift-upsell-cleanup (self-arbitrageable). Use `giftUpsell` for the post-purchase discounted gift path. Values retained for type safety. */
+  giftBasic: number;
+  /** @deprecated At-checkout gift-for-friend mechanic was removed in PR feat/gift-upsell-cleanup. Use `giftUpsell` for the post-purchase discounted gift path. Values retained for type safety. */
+  giftPremium: number;
+  /** Post-purchase gift upsell — 30% off basic. Only discounted gift path in the product. */
+  giftUpsell: number;
   giftCertValue: number;   // Face value of a gift certificate (= basic)
   compatTier1: number;     // First cross-pet pairing
   compatTier2: number;     // Second pairing
