@@ -202,12 +202,12 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
       aria-label="Cosmic Wheel"
     >
       <div
-        className="relative w-full max-w-md rounded-2xl"
+        className="relative w-full max-w-sm rounded-2xl"
         style={{
           background: "var(--cream, #FFFDF5)",
           border: "1px solid rgba(196,162,101,0.25)",
           boxShadow: "0 30px 80px rgba(20,15,8,0.35), 0 0 0 1px rgba(196,162,101,0.12)",
-          padding: "clamp(20px, 5vw, 32px)",
+          padding: "clamp(16px, 4vw, 24px)",
           animation: "lsWheelIn 480ms cubic-bezier(0.22,1,0.36,1)",
         }}
       >
@@ -246,18 +246,18 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
         {/* ── Wheel ────────────────────────────────────────── */}
         <div
           className="relative mx-auto"
-          style={{ width: "min(360px, 86vw)", aspectRatio: "1 / 1", marginBottom: 18 }}
+          style={{ width: "min(300px, 76vw)", aspectRatio: "1 / 1", marginBottom: 14 }}
         >
           {/* Pointer — chunky rose triangle with a tiny gold star inset.
               Sits ABOVE the wheel so the wheel's overflow can't clip it. */}
           <svg
             aria-hidden="true"
             viewBox="0 0 40 44"
-            width="36"
-            height="40"
+            width="30"
+            height="34"
             style={{
-              position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)",
-              filter: "drop-shadow(0 5px 8px rgba(191,82,74,0.45))",
+              position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)",
+              filter: "drop-shadow(0 4px 6px rgba(191,82,74,0.4))",
               zIndex: 3,
             }}
           >
@@ -274,15 +274,15 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
             aria-hidden="true"
             style={{
               position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-              width: 64, height: 64, borderRadius: "50%",
+              width: 52, height: 52, borderRadius: "50%",
               background: "radial-gradient(circle at 30% 28%, #fff 0%, #fbeedd 45%, #d4b26b 90%, #b9954c 100%)",
-              border: "4px solid var(--cream, #FFFDF5)",
-              boxShadow: "0 6px 18px rgba(20,15,8,0.28), 0 0 0 1px rgba(196,162,101,0.55), inset 0 -3px 6px rgba(0,0,0,0.12), inset 0 3px 6px rgba(255,255,255,0.6)",
+              border: "3px solid var(--cream, #FFFDF5)",
+              boxShadow: "0 5px 14px rgba(20,15,8,0.26), 0 0 0 1px rgba(196,162,101,0.55), inset 0 -2px 5px rgba(0,0,0,0.12), inset 0 2px 5px rgba(255,255,255,0.6)",
               zIndex: 2,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 22 22" aria-hidden="true">
               <path d="M11 1 L13.2 8.8 L21 11 L13.2 13.2 L11 21 L8.8 13.2 L1 11 L8.8 8.8 Z" fill="#bf524a" opacity="0.92" />
             </svg>
           </div>
@@ -432,7 +432,17 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setEmail(v);
+                // Persist as the visitor types so InlineCheckout can
+                // prefill on /checkout even if they close the wheel
+                // without spinning. Only saved when format looks valid
+                // to avoid junk like "a" landing in the field later.
+                if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim())) {
+                  try { sessionStorage.setItem("ls_wheel_email", v.trim().toLowerCase()); } catch { /* ignore */ }
+                }
+              }}
               onKeyDown={(e) => { if (e.key === "Enter" && stage === "form") spin(); }}
               placeholder="your@email.com"
               disabled={stage === "spinning"}

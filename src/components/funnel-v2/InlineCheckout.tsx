@@ -201,6 +201,17 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     if (wheelPrizeApplied.current) return;
     let cancelled = false;
     (async () => {
+      // Email-only fallback: SpinWheel writes the email to
+      // `ls_wheel_email` as the visitor types, even before they spin.
+      // If they bounced without spinning, we still get to prefill the
+      // email field so checkout doesn't ask twice.
+      try {
+        const fallback = sessionStorage.getItem("ls_wheel_email");
+        if (fallback && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(fallback)) {
+          setEmail((current) => current || fallback);
+        }
+      } catch { /* ignore */ }
+
       let raw: string | null = null;
       try { raw = sessionStorage.getItem("ls_wheel_prize"); } catch { return; }
       if (!raw) return;
