@@ -22,7 +22,28 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { code, petName, species, occasionMode } = body;
+    const {
+      code,
+      petName,
+      species,
+      occasionMode,
+      // Extra intake fields — optional, single-pet redemption only.
+      // When present (e.g. the memorial funnel has already captured them),
+      // we persist them on the newly-created pet_reports row so the worker
+      // has real content instead of "Pending" placeholders.
+      gender,
+      breed,
+      birthDate,
+      birthTime,
+      birthLocation,
+      soulType,
+      superpower,
+      strangerReaction,
+      // Memorial-only fields. Ignored for non-memorial occasions.
+      passedDate,
+      favoriteMemory,
+      rememberedBy,
+    } = body;
     const email = body.email?.trim().toLowerCase() || "";
 
     // Multi-pet testing support — if the buyer has N pets in their cart,
@@ -143,6 +164,12 @@ serve(async (req) => {
       });
     }
 
+    const isMemorial = occasionMode === "memorial";
+    // Only apply the extra intake fields when we're redeeming a single pet.
+    // Multi-pet redemption doesn't have per-pet payloads here, and we don't
+    // want to stamp pet 1's name across all N reports.
+    const applyExtras = !isMultiPet;
+
     const rowsToInsert = petTiers.map((t) => ({
       email: email || "pending@redeem.littlesouls.app",
       pet_name: petName || "Pending",
@@ -152,6 +179,18 @@ serve(async (req) => {
       includes_book: t === "hardcover",
       includes_portrait: t === "premium" || t === "hardcover",
       redeem_code: normalizedCode,
+      ...(applyExtras && gender ? { gender } : {}),
+      ...(applyExtras && breed ? { breed } : {}),
+      ...(applyExtras && birthDate ? { birth_date: birthDate } : {}),
+      ...(applyExtras && birthTime ? { birth_time: birthTime } : {}),
+      ...(applyExtras && birthLocation ? { birth_location: birthLocation } : {}),
+      ...(applyExtras && soulType ? { soul_type: soulType } : {}),
+      ...(applyExtras && superpower ? { superpower } : {}),
+      ...(applyExtras && strangerReaction ? { stranger_reaction: strangerReaction } : {}),
+      // Memorial-only fields are only written when the occasion is memorial.
+      ...(applyExtras && isMemorial && passedDate ? { passed_date: passedDate } : {}),
+      ...(applyExtras && isMemorial && favoriteMemory ? { favorite_memory: favoriteMemory } : {}),
+      ...(applyExtras && isMemorial && rememberedBy ? { remembered_by: rememberedBy } : {}),
     }));
 
     const { data: inserted, error: insertError } = await supabase

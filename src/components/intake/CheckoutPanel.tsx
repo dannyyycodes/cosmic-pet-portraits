@@ -205,14 +205,57 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
     if (!code) return;
     setIsRedeeming(true);
     try {
+      const isMemorialRedeem = petData.occasionMode === 'memorial';
+      // Memorial redemptions carry grief-critical intake fields already
+      // collected on the funnel (date of passing, a held moment, essence word).
+      // Pass them through so the generated report has real content to work
+      // with instead of reprompting the user on the post-purchase screen.
+      const passedDateISO =
+        petData.passedDate instanceof Date
+          ? petData.passedDate.toISOString().split('T')[0]
+          : undefined;
       const { data, error } = await supabase.functions.invoke('redeem-free-code', {
-        body: { code, email: petData.email, petName: petData.name, species: petData.species, occasionMode: petData.occasionMode },
+        body: {
+          code,
+          email: petData.email,
+          petName: petData.name,
+          species: petData.species,
+          occasionMode: petData.occasionMode,
+          // Extra fields — only sent when present so non-memorial flows stay lean.
+          ...(petData.gender ? { gender: petData.gender } : {}),
+          ...(petData.breed ? { breed: petData.breed } : {}),
+          ...(petData.dateOfBirth instanceof Date
+            ? { birthDate: petData.dateOfBirth.toISOString().split('T')[0] }
+            : {}),
+          ...(petData.timeOfBirth ? { birthTime: petData.timeOfBirth } : {}),
+          ...(petData.location ? { birthLocation: petData.location } : {}),
+          ...(petData.soulType ? { soulType: petData.soulType } : {}),
+          ...(petData.superpower ? { superpower: petData.superpower } : {}),
+          ...(petData.strangerReaction ? { strangerReaction: petData.strangerReaction } : {}),
+          // Memorial-only fields
+          ...(isMemorialRedeem && passedDateISO ? { passedDate: passedDateISO } : {}),
+          ...(isMemorialRedeem && petData.favoriteMemory
+            ? { favoriteMemory: petData.favoriteMemory }
+            : {}),
+          ...(isMemorialRedeem && petData.rememberedBy
+            ? { rememberedBy: petData.rememberedBy }
+            : {}),
+        },
       });
       if (error || !data?.success) {
         toast.error(data?.error || 'Invalid or expired code. Please try again.');
         return;
       }
-      navigate(`/payment-success?session_id=redeem_${Date.now()}&report_id=${data.reportId}&quick=true`);
+      // When the caller has already captured name + species (true for every
+      // funnel redemption today), skip post-purchase intake entirely — the
+      // memorial flow was bouncing grieving users back to the occasion-picker
+      // screen because `quick=true` always routes to PostPurchaseIntake. With
+      // a fully-populated row we can go straight to verify + reveal.
+      const hasFullIntake = Boolean(petData.name && petData.species);
+      const successUrl = hasFullIntake
+        ? `/payment-success?session_id=redeem_${Date.now()}&report_id=${data.reportId}`
+        : `/payment-success?session_id=redeem_${Date.now()}&report_id=${data.reportId}&quick=true`;
+      navigate(successUrl);
     } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
@@ -413,7 +456,7 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
             <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
               <div className="flex items-center gap-2 mb-2">
                 <Camera className="w-4 h-4 text-primary" />
-                <span className="text-xs font-medium text-foreground">Upload your pet's photo</span>
+                <span className="text-xs font-medium text-foreground">{isMemorial ? 'Share a treasured photo' : "Upload your pet's photo"}</span>
                 <span className="text-[9px] font-bold text-green-400 ml-auto">INCLUDED</span>
               </div>
               <div className="space-y-2">

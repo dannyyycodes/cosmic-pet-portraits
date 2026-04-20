@@ -296,6 +296,10 @@ export function PostPurchaseIntake({
 
   const pronouns = getPronouns(gender);
 
+  // Memorial mode reshapes every present-tense prompt into past-tense,
+  // grief-aware phrasing. Branch once here so the JSX stays readable.
+  const isMemorial = occasionMode === 'memorial';
+
   // Location autocomplete (Nominatim)
   useEffect(() => {
     if (locationTimeout.current) clearTimeout(locationTimeout.current);
@@ -547,7 +551,9 @@ export function PostPurchaseIntake({
           {/* SCREEN 1: Name, Species, Gender */}
           {screen === 1 && (
             <motion.div key="s1" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
-              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>Let's meet them</h1>
+              <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+                {isMemorial ? 'Tell us about them' : "Let's meet them"}
+              </h1>
 
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
                 <input
@@ -556,7 +562,8 @@ export function PostPurchaseIntake({
                     const formatted = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
                     setPetName(formatted);
                   }}
-                  placeholder="What's their name?" className={cn(inputClass, "text-center")}
+                  placeholder={isMemorial ? 'What was their name?' : "What's their name?"}
+                  className={cn(inputClass, "text-center")}
                   autoFocus style={{ fontSize: '1.1rem' }}
                   aria-label="Pet name"
                 />
@@ -609,7 +616,9 @@ export function PostPurchaseIntake({
                 When was {petName} born?
               </h1>
               <p className="text-center text-[0.92rem] text-[#6B5E54] italic" style={{ fontFamily: 'Cormorant, serif' }}>
-                Every planetary position in {pronouns.possessive} chart is calculated from this exact date.
+                {isMemorial
+                  ? `Every planetary position in ${pronouns.possessive} chart was set the moment ${pronouns.subject} arrived.`
+                  : `Every planetary position in ${pronouns.possessive} chart is calculated from this exact date.`}
               </p>
 
               {/* Toggle: Know exact date vs Estimate age */}
@@ -768,7 +777,7 @@ export function PostPurchaseIntake({
                 A little more about {petName}
               </h1>
               <p className="text-center text-[0.88rem] text-[#9B8E84] italic" style={{ fontFamily: 'Cormorant, serif' }}>
-                Both optional — skip if you're not sure.
+                {isMemorial ? 'Share only what you remember — skip anything unclear.' : "Both optional — skip if you're not sure."}
               </p>
 
               <div>
@@ -860,10 +869,12 @@ export function PostPurchaseIntake({
               </div>
 
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                Help us really see {petName}
+                {isMemorial ? `Help us really hold ${petName}` : `Help us really see ${petName}`}
               </h1>
               <p className="text-center text-[0.88rem] text-[#6B5E54]" style={{ fontFamily: 'Cormorant, serif' }}>
-                The more we know, the more the reading sounds like it was written by someone who actually knows {petName}.
+                {isMemorial
+                  ? `The more you share, the more the reading sounds like it was written by someone who truly knew ${petName}.`
+                  : `The more we know, the more the reading sounds like it was written by someone who actually knows ${petName}.`}
               </p>
 
               {/* Soul Type */}
@@ -908,7 +919,7 @@ export function PostPurchaseIntake({
 
               {/* Stranger Reaction */}
               <div>
-                <label className={labelClass}>How do they react to strangers?</label>
+                <label className={labelClass}>{isMemorial ? 'How did they greet new people?' : 'How do they react to strangers?'}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {STRANGER_REACTIONS.map(r => (
                     <button key={r.label} onClick={() => setStrangerReaction(strangerReaction === r.label ? "" : r.label)}
@@ -929,12 +940,17 @@ export function PostPurchaseIntake({
               {/* One memory — optional, powers SoulSpeak personalisation */}
               <div>
                 <label className={labelClass}>
-                  One memory that's SO them <span className="text-[#9B8E84] font-normal">(optional)</span>
+                  {isMemorial
+                    ? 'One moment you want us to hold'
+                    : "One memory that's SO them"}{' '}
+                  <span className="text-[#9B8E84] font-normal">(optional)</span>
                 </label>
                 <textarea
                   value={ownerMemory}
                   onChange={(e) => setOwnerMemory(e.target.value.slice(0, 500))}
-                  placeholder={`The one story that makes ${petName || 'them'} ${petName || 'them'}. ${petName || 'They'} will reference it in SoulSpeak someday and you'll gasp.`}
+                  placeholder={isMemorial
+                    ? `A small moment only you'd remember — the spot ${petName || 'they'} sat, the sound ${petName || 'they'} made when you came home. Share as much or as little as you're ready to.`
+                    : `The one story that makes ${petName || 'them'} ${petName || 'them'}. ${petName || 'They'} will reference it in SoulSpeak someday and you'll gasp.`}
                   rows={3}
                   className="w-full px-3 py-2 rounded-[10px] border-[1.5px] border-[#E8DFD6] bg-white text-[0.88rem] font-[Cormorant,serif] text-[#2D2926] placeholder:text-[#C2B8AE] focus:border-[#bf524a] focus:outline-none resize-none"
                   maxLength={500}
@@ -946,7 +962,7 @@ export function PostPurchaseIntake({
                 Continue →
               </button>
               <button onClick={() => setScreen(showSoulBondScreen ? soulBondScreen : confirmScreen)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
-                Skip — let the stars do the talking
+                {isMemorial ? 'Skip — let the stars speak for them' : 'Skip — let the stars do the talking'}
               </button>
             </motion.div>
           )}
@@ -1070,7 +1086,7 @@ export function PostPurchaseIntake({
           {screen === confirmScreen && (
             <motion.div key="s5" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                Ready to read {petName}'s stars
+                {isMemorial ? `Ready to hold ${petName}'s stars` : `Ready to read ${petName}'s stars`}
               </h1>
 
               {/* Summary Card */}
@@ -1091,10 +1107,12 @@ export function PostPurchaseIntake({
               {/* Photo Upload */}
               <div>
                 <p className="text-[0.95rem] text-[#2D2926] font-[Cormorant,serif] font-semibold mb-1">
-                  📸 Upload {petName}'s photo
+                  {isMemorial ? `📸 Share a treasured photo of ${petName}` : `📸 Upload ${petName}'s photo`}
                 </p>
                 <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-3">
-                  We'll weave {pronouns.possessive} photo through the reveal and SoulSpeak — it brings everything to life.
+                  {isMemorial
+                    ? `We'll hold ${pronouns.possessive} photo through the reading and SoulSpeak — so you can see ${pronouns.object} again, quietly.`
+                    : `We'll weave ${pronouns.possessive} photo through the reveal and SoulSpeak — it brings everything to life.`}
                 </p>
                 <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" className="hidden"
                   onChange={e => { if (e.target.files?.[0]) handlePhotoUpload(e.target.files[0]); }} />
@@ -1189,7 +1207,13 @@ export function PostPurchaseIntake({
                 )}
                 style={{ fontFamily: 'DM Serif Display, serif' }}
               >
-                {isSubmitting ? "Creating..." : (submitLabel ? submitLabel(petName) : `Create ${petName}'s Soul Reading →`)}
+                {isSubmitting
+                  ? (isMemorial ? 'Holding...' : 'Creating...')
+                  : (submitLabel
+                      ? submitLabel(petName)
+                      : (isMemorial
+                          ? `Hold ${petName} in Their Reading →`
+                          : `Create ${petName}'s Soul Reading →`))}
               </button>
               <p className="text-center text-[0.72rem] text-[#9B8E84] font-[Cormorant,serif]">
                 🔒 Your data is encrypted and never shared.{' '}
