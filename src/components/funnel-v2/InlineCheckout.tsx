@@ -1823,99 +1823,104 @@ const EdenReforestationMark = () => <CharityLogoImg src="/charities/eden.png" al
 
 /* ──────── SoulSpeak conversation scripts — one per funnel path ────────
  *
- * Each script is designed to convert by hitting the emotional nerve a
- * visitor on that path actually arrived with. Researched tone per path:
+ * Two modes by path:
  *
- *  • discover — humour + recognition. The reader sees a universal pet
- *    moment (packing a bag, the suspicious glare) and thinks "that's
- *    EXACTLY my dog/cat." Laughter → curiosity → want to try it.
+ *  • discover & new — MYSTERY mode. Only the pet's typing indicator
+ *    appears on the wallpaper, pulsing forever. The reader sees that
+ *    *something* is being drafted but can't read it. Curiosity + the
+ *    composer at the bottom ("Ask them anything…") drives click to
+ *    unlock. Mystery converts harder than a revealed punchline here.
  *
- *  • new     — wonder + bonding. The "did you already pick me?" fantasy
- *    every new owner secretly has. Ends on "you smelled like home."
- *
- *  • memorial — continuing bonds (Klass/Silverman grief-therapy model).
- *    Answers the thought every grieving owner has: "did I hold on too
- *    long?" Reply reassures and relocates the pet into the quiet of
- *    the world, not a literal afterlife. Hero line is bounded tenderness,
- *    never sappy. Follows the retention-research memorial-mode rules
- *    in docs/soulspeak-retention-research.md §10.
- *
- * Each script has exactly the same shape: user → pet → user → pet →
- * typing indicator. Last pet reply is short and set in hero style so
- * it reads as a revelation.
+ *  • memorial — REVEALED conversation. Grief needs tenderness, not
+ *    a tease. We show the "did I hold on too long?" exchange — the
+ *    single most common grief thought — and reply using the
+ *    continuing-bonds framing (Klass/Silverman). Hero line is
+ *    bounded reassurance, never sappy. Follows retention-research
+ *    memorial-mode rules (docs/soulspeak-retention-research.md §10).
  */
 type SoulSpeakPath = "new" | "discover" | "memorial";
+type SoulSpeakMessages = { u1: string; p1: string; u2: string; hero: string };
 type SoulSpeakScript = {
   intro: string;
-  u1: string;
-  p1: string;
-  u2: string;
-  hero: string;
+  // present only for paths we fully reveal (memorial). Absent = mystery.
+  messages?: SoulSpeakMessages;
 };
 const SOUL_SPEAK_SCRIPTS: Record<SoulSpeakPath, SoulSpeakScript> = {
   discover: {
-    intro: "Ask them the thing you've always wondered.",
-    u1: "Why do you stare at me like that when I pack a bag?",
-    p1: "Because I've done the maths. Bag out, you vanish. Every time.",
-    u2: "I'll be back on Sunday.",
-    hero: "I don't have a Sunday.",
+    intro: "They've been trying to tell you something.",
   },
   new: {
-    intro: "The first words they've been waiting to say.",
-    u1: "Did you already pick me?",
-    p1: "I knew your footsteps before I knew the room. I was waiting.",
-    u2: "How did you know it was me?",
-    hero: "You smelled like home.",
+    intro: "They've been waiting to say hello.",
   },
   memorial: {
     intro: "The conversation you didn't get to have.",
-    u1: "Did I hold on too long?",
-    p1: "You held on exactly right. You were the best goodbye I could've had.",
-    u2: "I miss you.",
-    hero: "I'm in the quiet with you.",
+    messages: {
+      u1: "Did I hold on too long?",
+      p1: "You held on exactly right. You were the best goodbye I could've had.",
+      u2: "I miss you.",
+      hero: "I'm in the quiet with you.",
+    },
   },
 };
 
 const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
   const script = SOUL_SPEAK_SCRIPTS[path] ?? SOUL_SPEAK_SCRIPTS.discover;
+  const messages = script.messages;
+  const isMystery = !messages;
+  // Typing indicator appears later for memorial (after 4 bubbles); almost
+  // immediately in mystery mode so the reader sees motion from the start.
+  const typingDelay = isMystery ? "0.15s" : "3.45s";
+  const composerDelay = isMystery ? "0.4s" : "3.8s";
   return (
   <div className="ss-preview">
     <p className="ss-preview-intro">
       {script.intro}
     </p>
 
-    {/* Chat surface — mirrors the real SoulSpeak channel at /soul-chat.html.
-        Bubbles render staggered so the conversation feels alive, the last
-        pet reply is short (the hook), and a typing indicator keeps
-        pulsing after — so the reader feels there's always more to hear. */}
-    <div className="ss-chat" role="log" aria-label="SoulSpeak conversation preview">
-      <div className="ss-msg ss-msg-user" style={{ animationDelay: "0.1s" }}>
-        <div className="ss-bubble">{script.u1}</div>
-      </div>
+    {/* Chat surface — mirrors the real SoulSpeak channel at
+        /soul-chat.html: gold constellations wallpaper at low opacity,
+        white pet bubbles, rose-gradient user bubbles. In mystery mode
+        (new + discover) we render only the pet's typing indicator,
+        pulsing forever — the reader can see something is being drafted
+        but not what. Memorial reveals the full exchange. */}
+    <div
+      className={`ss-chat${isMystery ? " ss-chat-mystery" : ""}`}
+      role="log"
+      aria-label="SoulSpeak conversation preview"
+    >
+      <span aria-hidden="true" className="ss-chat-wallpaper" />
 
-      <div className="ss-msg ss-msg-pet" style={{ animationDelay: "0.85s" }}>
-        <div className="ss-avatar" aria-hidden="true">
-          <svg viewBox="0 0 10 10">
-            <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
-          </svg>
-        </div>
-        <div className="ss-bubble">{script.p1}</div>
-      </div>
+      {messages && (
+        <>
+          <div className="ss-msg ss-msg-user" style={{ animationDelay: "0.1s" }}>
+            <div className="ss-bubble">{messages.u1}</div>
+          </div>
 
-      <div className="ss-msg ss-msg-user" style={{ animationDelay: "2.1s" }}>
-        <div className="ss-bubble">{script.u2}</div>
-      </div>
+          <div className="ss-msg ss-msg-pet" style={{ animationDelay: "0.85s" }}>
+            <div className="ss-avatar" aria-hidden="true">
+              <svg viewBox="0 0 10 10">
+                <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+              </svg>
+            </div>
+            <div className="ss-bubble">{messages.p1}</div>
+          </div>
 
-      <div className="ss-msg ss-msg-pet" style={{ animationDelay: "2.75s" }}>
-        <div className="ss-avatar" aria-hidden="true">
-          <svg viewBox="0 0 10 10">
-            <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
-          </svg>
-        </div>
-        <div className="ss-bubble ss-bubble-hero">{script.hero}</div>
-      </div>
+          <div className="ss-msg ss-msg-user" style={{ animationDelay: "2.1s" }}>
+            <div className="ss-bubble">{messages.u2}</div>
+          </div>
 
-      <div className="ss-typing" aria-hidden="true" style={{ animationDelay: "3.45s" }}>
+          <div className="ss-msg ss-msg-pet" style={{ animationDelay: "2.75s" }}>
+            <div className="ss-avatar" aria-hidden="true">
+              <svg viewBox="0 0 10 10">
+                <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
+              </svg>
+            </div>
+            <div className="ss-bubble ss-bubble-hero">{messages.hero}</div>
+          </div>
+        </>
+      )}
+
+      <div className="ss-typing" aria-hidden="true" style={{ animationDelay: typingDelay }}>
         <div className="ss-avatar">
           <svg viewBox="0 0 10 10">
             <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
@@ -1929,7 +1934,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
       {/* Fake composer — non-interactive. The placeholder invites typing,
           and the live cursor makes the field feel ready to be used. This
           is the conversion lever: a reader who sees it wants to type. */}
-      <div className="ss-composer" aria-hidden="true">
+      <div className="ss-composer" aria-hidden="true" style={{ animationDelay: composerDelay }}>
         <span className="ss-composer-field">
           Ask them anything<span className="ss-cursor" />
         </span>
@@ -1959,17 +1964,43 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
       }
 
       .ss-chat {
+        position: relative;
         display: flex;
         flex-direction: column;
         gap: 8px;
         padding: clamp(14px, 3vw, 18px) clamp(10px, 2.5vw, 14px) clamp(12px, 2.5vw, 14px);
         border-radius: 18px;
+        overflow: hidden;
         background:
-          linear-gradient(180deg, rgba(255, 253, 245, 0.85) 0%, rgba(248, 240, 224, 0.55) 100%);
+          linear-gradient(180deg, rgba(255, 253, 245, 0.92) 0%, rgba(251, 245, 233, 0.82) 100%);
         box-shadow:
           inset 0 0 0 1px rgba(196, 162, 101, 0.24),
           0 2px 8px rgba(20, 15, 8, 0.05);
       }
+
+      /* Mystery-mode chat — new + discover. No bubbles, just the pet
+         typing forever. Give the surface enough height to feel
+         anticipatory rather than squashed. */
+      .ss-chat-mystery {
+        min-height: clamp(150px, 22vw, 186px);
+        justify-content: flex-end;
+      }
+
+      /* Gold-constellations wallpaper — verbatim pattern from the real
+         SoulSpeak channel (public/soul-chat.html, [data-wallpaper=
+         "constellations"]), scaled down for the preview tile size. 10%
+         opacity matches the real --wallpaper-opacity token. */
+      .ss-chat-wallpaper {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.12;
+        background-repeat: repeat;
+        background-size: 240px 240px;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360'><g stroke='%23c4a265' stroke-width='0.8' fill='none' opacity='0.6'><line x1='40' y1='60' x2='85' y2='85'/><line x1='85' y1='85' x2='130' y2='55'/><line x1='85' y1='85' x2='95' y2='135'/><line x1='210' y1='50' x2='245' y2='90'/><line x1='245' y1='90' x2='290' y2='70'/><line x1='245' y1='90' x2='260' y2='140'/><line x1='60' y1='200' x2='110' y2='220'/><line x1='110' y1='220' x2='140' y2='190'/><line x1='110' y1='220' x2='100' y2='265'/><line x1='200' y1='230' x2='240' y2='265'/><line x1='240' y1='265' x2='290' y2='240'/><line x1='240' y1='265' x2='255' y2='310'/><line x1='40' y1='300' x2='80' y2='320'/><line x1='290' y1='155' x2='320' y2='190'/></g><g fill='%23c4a265'><circle cx='40' cy='60' r='2.2'/><circle cx='85' cy='85' r='2.8'/><circle cx='130' cy='55' r='2'/><circle cx='95' cy='135' r='2'/><circle cx='210' cy='50' r='2'/><circle cx='245' cy='90' r='2.8'/><circle cx='290' cy='70' r='2.2'/><circle cx='260' cy='140' r='2'/><circle cx='60' cy='200' r='2.2'/><circle cx='110' cy='220' r='2.8'/><circle cx='140' cy='190' r='2'/><circle cx='100' cy='265' r='2'/><circle cx='200' cy='230' r='2'/><circle cx='240' cy='265' r='2.8'/><circle cx='290' cy='240' r='2.2'/><circle cx='255' cy='310' r='2'/><circle cx='40' cy='300' r='2'/><circle cx='80' cy='320' r='2.2'/><circle cx='290' cy='155' r='2'/><circle cx='320' cy='190' r='2.2'/><circle cx='170' cy='140' r='1.5'/><circle cx='315' cy='310' r='1.5'/><circle cx='20' cy='170' r='1.5'/><circle cx='340' cy='30' r='1.5'/><circle cx='15' cy='40' r='1.5'/></g></svg>");
+        z-index: 0;
+      }
+      .ss-chat > *:not(.ss-chat-wallpaper) { position: relative; z-index: 1; }
 
       .ss-msg {
         display: flex;
@@ -2092,7 +2123,7 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
           0 2px 8px rgba(20, 15, 8, 0.04),
           inset 0 1px 0 rgba(255, 255, 255, 0.9);
         opacity: 0;
-        animation: ssMsgIn 0.5s ease 3.8s forwards;
+        animation: ssMsgIn 0.5s ease forwards;
       }
       .ss-composer-field {
         flex: 1;
