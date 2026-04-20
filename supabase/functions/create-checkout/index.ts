@@ -323,11 +323,11 @@ serve(async (req) => {
         petCount = input.petCount || 1;
       }
 
-      let includesPortrait = hasPerTierCounts
-        ? premiumCount > 0
-        : (input.includesPortrait || tierKey === 'premium');
-
-      // Hardcover always includes portrait
+      // Photo upload is included on every tier for quickCheckout orders.
+      // See PR feat/portrait-included-all-tiers — the portrait toggle was
+      // removed; all paid reports ship with the portrait flag on.
+      let includesPortrait = true;
+      // Hardcover always includes portrait (harmless now — retained for clarity)
       if (includesBook) {
         includesPortrait = true;
       }
@@ -343,10 +343,8 @@ serve(async (req) => {
         const discountAmount = Math.round(readingTotal * discountRate);
         var totalAmount = readingTotal - discountAmount;
       } else {
-        const basePriceCents = tierKey === 'premium' ? pricing.premium : pricing.basic;
-        const perPetPrice = tierKey === 'basic' && includesPortrait
-          ? pricing.basic + pricing.portrait
-          : basePriceCents;
+        // Photo upload is included at the tier price — no separate portrait add-on.
+        const perPetPrice = tierKey === 'premium' ? pricing.premium : pricing.basic;
         const readingTotal = perPetPrice * petCount;
         const discountRate = getVolumeDiscount(petCount);
         const discountAmount = Math.round(readingTotal * discountRate);

@@ -53,7 +53,8 @@ const TIERS = {
     originalPriceCents: 4900, // $49 anchoring
     icon: Moon,
     highlight: false,
-    includesPortrait: false,
+    // Photo upload is included on every tier — see PR feat/portrait-included-all-tiers.
+    includesPortrait: true,
     benefits: [
       "Full astrology reading with pet photo",
       "Decode your pet's quirky behaviors",
@@ -193,8 +194,8 @@ export function CheckoutPanel({ petData, petsData, petCount = 1, onCheckout, isL
   // Only show gift upsell for non-gift occasion modes
   const shouldShowGiftUpsell = occasionMode !== 'gift';
 
-  // Check if any pet needs portrait
-  const anyPetNeedsPortrait = Object.values(petTiers).some(tier => tier === 'premium');
+  // Photo upload is included for every tier — portrait always applies.
+  const anyPetNeedsPortrait = true;
 
   const handleTierChange = (petIndex: number, tier: 'basic' | 'premium') => {
     setPetTiers(prev => ({ ...prev, [petIndex]: tier }));

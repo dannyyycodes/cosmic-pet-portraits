@@ -177,7 +177,8 @@ serve(async (req) => {
       payment_status: "paid",
       occasion_mode: occasionMode || "discover",
       includes_book: t === "hardcover",
-      includes_portrait: t === "premium" || t === "hardcover",
+      // Photo upload is included on every tier — see PR feat/portrait-included-all-tiers.
+      includes_portrait: true,
       redeem_code: normalizedCode,
       ...(applyExtras && gender ? { gender } : {}),
       ...(applyExtras && breed ? { breed } : {}),

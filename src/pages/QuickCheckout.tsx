@@ -17,7 +17,6 @@ import {
   Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
@@ -124,7 +123,8 @@ function getDiscountLabel(petCount: number): string {
 }
 
 export default function QuickCheckout() {
-  const [includePortrait, setIncludePortrait] = useState(false);
+  // Photo upload is included on every tier — the old includePortrait toggle
+  // was removed in PR feat/portrait-included-all-tiers.
   const [includeBook, setIncludeBook] = useState(false);
   const [petCount, setPetCount] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -138,13 +138,12 @@ export default function QuickCheckout() {
 
   const { prices, fmt, currency } = useLocalizedPrice();
   const basePriceCents = prices.basic;
-  const portraitPriceCents = prices.portrait;
   const bookPriceCents = prices.hardcover;
 
-  // Calculate totals (in minor units of the user's local currency)
+  // Calculate totals (in minor units of the user's local currency).
+  // Photo upload is now included in every reading — no separate portrait line item.
   const readingSubtotal = basePriceCents * petCount;
-  const portraitSubtotal = includePortrait ? portraitPriceCents * petCount : 0;
-  const discountableSubtotal = readingSubtotal + portraitSubtotal;
+  const discountableSubtotal = readingSubtotal;
   const discountRate = getVolumeDiscount(petCount);
   const discountAmount = Math.round(discountableSubtotal * discountRate);
   const bookTotal = includeBook ? bookPriceCents : 0;
@@ -184,9 +183,9 @@ export default function QuickCheckout() {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           quickCheckout: true,
-          selectedTier: includePortrait ? "premium" : "basic",
+          selectedTier: "basic",
           abVariant: "C",
-          includesPortrait: includePortrait,
+          includesPortrait: true,
           includesBook: includeBook,
           occasionMode: selectedMode,
           petCount,
@@ -422,33 +421,20 @@ export default function QuickCheckout() {
             ))}
           </div>
 
-          {/* ── Portrait Upsell (inside product card) ── */}
-          <div
-            onClick={() => setIncludePortrait(!includePortrait)}
-            className={`rounded-xl border p-4 flex items-center justify-between cursor-pointer transition-all ${
-              includePortrait
-                ? "border-accent shadow-[0_0_0_2px_hsl(var(--accent)/0.15)]"
-                : "border-border hover:border-muted-foreground/30"
-            }`}
-          >
+          {/* ── Photo Included Info (inside product card) ── */}
+          <div className="rounded-xl border border-border p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-                <Palette className={`w-4 h-4 ${includePortrait ? "text-accent" : "text-muted-foreground"}`} />
+              <div className="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center">
+                <Palette className="w-4 h-4 text-accent" />
               </div>
               <div>
-                <p className="font-cormorant font-semibold text-[0.92rem] text-foreground">✨ Little Souls Reading Edition</p>
+                <p className="font-cormorant font-semibold text-[0.92rem] text-foreground">✨ Your photo is included</p>
                 <p className="text-[0.78rem] text-muted-foreground">
-                  Your favourite photo set in a cosmic scene matched to their aura colours. Featured on the report, shareable card, and printed book cover.
+                  Upload after payment — their favourite photo becomes part of the reveal, the shareable card, and any printed book.
                 </p>
-                {includePortrait && (
-                  <p className="text-[0.75rem] text-muted-foreground italic mt-1">You'll upload the photo after payment</p>
-                )}
               </div>
             </div>
-            <div className="flex items-center gap-2.5 shrink-0">
-              <span className="font-cormorant font-bold text-[0.92rem] text-muted-foreground">+{fmt(prices.portrait)}</span>
-              <Switch checked={includePortrait} onCheckedChange={setIncludePortrait} />
-            </div>
+            <span className="font-cormorant font-semibold text-[0.78rem] text-green-600 shrink-0 uppercase tracking-wide">Included</span>
           </div>
         </motion.div>
 
@@ -541,14 +527,6 @@ export default function QuickCheckout() {
               </span>
               <span className="text-foreground font-semibold">{fmt(readingSubtotal)}</span>
             </div>
-            {includePortrait && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  {petCount > 1 ? `${petCount}× ` : ""}Little Souls Reading Edition
-                </span>
-                <span className="text-foreground font-semibold">{fmt(portraitSubtotal)}</span>
-              </div>
-            )}
             {includeBook && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Printed Keepsake Book</span>
@@ -591,8 +569,8 @@ export default function QuickCheckout() {
             <ExpressCheckoutButton
               totalCents={totalCents}
               petCount={petCount}
-              selectedTier={includePortrait ? "premium" : "basic"}
-              includesPortrait={includePortrait}
+              selectedTier="basic"
+              includesPortrait={true}
               includesBook={includeBook}
               occasionMode={selectedMode}
               email={email}
@@ -706,8 +684,8 @@ export default function QuickCheckout() {
           <ExpressCheckoutButton
             totalCents={totalCents}
             petCount={petCount}
-            selectedTier={includePortrait ? "premium" : "basic"}
-            includesPortrait={includePortrait}
+            selectedTier="basic"
+            includesPortrait={true}
             includesBook={includeBook}
             occasionMode={selectedMode}
             email={email}
