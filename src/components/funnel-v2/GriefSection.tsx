@@ -282,17 +282,28 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
           opacity: 0 !important;
           will-change: width, opacity;
         }
+        /* Sequential cadence — each beat lands fully before the next
+           starts, with a deliberate breath between them. Grieving
+           readers should feel the pause, not be rushed. Timeline:
+             Beat 1  : 200ms  → 1300ms   (1100ms fade)
+             breath  : 500ms
+             Beat 2  : 1800ms → 2800ms   (1000ms fade)
+             breath  : 500ms
+             Rule    : 3300ms → 4000ms   (700ms expand)
+             breath  : 400ms
+             Beat 3  : 4400ms → 5500ms   (1100ms fade)
+             Emphasis underline : 5700ms → 6500ms */
         .grief-section.is-in .grief-beat-1 {
-          animation: griefBeatIn 1400ms cubic-bezier(0.22, 1, 0.36, 1) 120ms forwards;
+          animation: griefBeatIn 1100ms cubic-bezier(0.22, 1, 0.36, 1) 200ms forwards;
         }
         .grief-section.is-in .grief-beat-2 {
-          animation: griefBeatIn 1200ms cubic-bezier(0.22, 1, 0.36, 1) 1500ms forwards;
+          animation: griefBeatIn 1000ms cubic-bezier(0.22, 1, 0.36, 1) 1800ms forwards;
         }
         .grief-section.is-in .grief-rule {
-          animation: griefRuleExpand 900ms cubic-bezier(0.22, 1, 0.36, 1) 2500ms forwards;
+          animation: griefRuleExpand 700ms cubic-bezier(0.22, 1, 0.36, 1) 3300ms forwards;
         }
         .grief-section.is-in .grief-beat-3 {
-          animation: griefBeatIn 1200ms cubic-bezier(0.22, 1, 0.36, 1) 3000ms forwards;
+          animation: griefBeatIn 1100ms cubic-bezier(0.22, 1, 0.36, 1) 4400ms forwards;
         }
         @keyframes griefBeatIn {
           to { opacity: 1; transform: translateY(0); filter: blur(0); }
@@ -307,7 +318,7 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
           background-repeat: no-repeat;
           background-size: 0% 1px;
           background-position: 0 100%;
-          transition: background-size 900ms cubic-bezier(0.22, 1, 0.36, 1) 4000ms;
+          transition: background-size 800ms cubic-bezier(0.22, 1, 0.36, 1) 5700ms;
         }
         .grief-section.is-in .grief-emphasis {
           background-size: 100% 1px;
