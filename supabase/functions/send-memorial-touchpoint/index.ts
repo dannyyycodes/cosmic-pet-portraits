@@ -260,14 +260,17 @@ serve(async (req) => {
 
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const bridgeSecret = Deno.env.get("N8N_BRIDGE_SECRET") || "";
+  const cronSecret = Deno.env.get("MEMORIAL_CRON_SECRET") || "";
   const authHeader = req.headers.get("Authorization") || "";
 
   const isServiceRole =
     serviceRoleKey.length > 0 && authHeader.includes(serviceRoleKey);
   const isBridgeAuth =
     bridgeSecret.length > 0 && authHeader.includes(bridgeSecret);
+  const isCronAuth =
+    cronSecret.length > 0 && authHeader.includes(cronSecret);
 
-  if (!isServiceRole && !isBridgeAuth) {
+  if (!isServiceRole && !isBridgeAuth && !isCronAuth) {
     console.error(
       "[send-memorial-touchpoint] unauthorized — missing or invalid auth",
     );
