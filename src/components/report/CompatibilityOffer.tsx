@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Heart, ChevronDown } from 'lucide-react';
+import { Sparkles, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
+// priceCentsForPair is kept imported-ish via this comment because the paid
+// compatibility upsell is parked — see PR feat/compat-free-multipet. The
+// paid path (and priceCentsForPair, tiered pricing) stays in `pricing.ts`
+// so re-enabling is a one-file edit when the feature is ready again.
 
 interface PetSummary {
   reportId: string;
@@ -16,104 +19,82 @@ interface PetSummary {
 
 interface CompatibilityOfferProps {
   pets: PetSummary[];
-  /** Current pet being viewed — auto-selects as "Pet A" so the picker asks "and which one with them?". */
+  /** Current pet being viewed — not used for the complimentary path but kept
+   *  for API compatibility with the prior paid-upsell signature. */
   currentReportId?: string;
   buyerEmail: string;
 }
 
 /**
- * Tiered pricing — first pair at full price, subsequent pairs discounted to
- * match the multi-pet base-tier volume discount philosophy. Returns minor
- * units (cents/pence) from the currency's PRICING row.
+ * Complimentary cross-pet reading teaser — shown inside the multi-pet report
+ * viewer when the buyer has 2+ living pets. Replaces the prior paid upsell
+ * (see PR feat/compat-free-multipet): instead of charging per pairing, we
+ * auto-generate the first pair on checkout and surface it here. Status is
+ * read from the `pet_compatibilities` row seeded by stripe-webhook.
  */
-function priceCentsForPair(existingPairsCount: number, prices: { compatTier1: number; compatTier2: number; compatTier3: number }): number {
-  if (existingPairsCount >= 2) return prices.compatTier3;
-  if (existingPairsCount >= 1) return prices.compatTier2;
-  return prices.compatTier1;
-}
-
-/**
- * Appears inside the multi-pet report viewer as a contextual upsell. Lets a
- * buyer with 2+ pets pair any two of their pets and pay to generate a
- * cross-pet compatibility reading.
- */
-export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: CompatibilityOfferProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const { fmt, currency, prices } = useLocalizedPrice();
-
+export function CompatibilityOffer({ pets, buyerEmail }: CompatibilityOfferProps) {
   // Only living pets are eligible for compatibility pairings.
   const livingPets = pets.filter(p => p.occasionMode !== 'memorial');
 
-  const defaultA = livingPets.find(p => p.reportId === currentReportId)?.reportId ?? livingPets[0]?.reportId ?? '';
-  const defaultB = livingPets.find(p => p.reportId !== defaultA)?.reportId ?? '';
+  // Canonical pair = the first two living pets sorted by reportId (matches
+  // the stripe-webhook insert + the DB check constraint).
+  const sortedIds = [...livingPets.map(p => p.reportId)].sort();
+  const pairA = sortedIds[0];
+  const pairB = sortedIds[1];
+  const petA = livingPets.find(p => p.reportId === pairA);
+  const petB = livingPets.find(p => p.reportId === pairB);
 
-  const [petAId, setPetAId] = useState<string>(defaultA);
-  const [petBId, setPetBId] = useState<string>(defaultB);
-  // Look up how many compatibility pairings this household has already
-  // unlocked so we can surface the volume discount in the CTA copy.
-  const [existingPairs, setExistingPairs] = useState<number>(0);
+  type CompatRow = {
+    id: string;
+    status: string;
+    share_token: string | null;
+    is_complimentary: boolean | null;
+  };
+  const [row, setRow] = useState<CompatRow | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
-    if (!buyerEmail) return;
-    (async () => {
-      const { count } = await supabase
-        .from('pet_compatibilities')
-        .select('id', { count: 'exact', head: true })
-        .eq('email', buyerEmail.toLowerCase().trim())
-        .eq('status', 'ready');
-      if (!cancelled) setExistingPairs(count ?? 0);
-    })();
-    return () => { cancelled = true; };
-  }, [buyerEmail]);
-
-  const priceCents = priceCentsForPair(existingPairs, prices);
-  const nextDiscountCents = existingPairs === 0 ? priceCentsForPair(1, prices) : existingPairs === 1 ? priceCentsForPair(2, prices) : null;
-
-  const petA = livingPets.find(p => p.reportId === petAId);
-  const petB = livingPets.find(p => p.reportId === petBId);
-  const canProceed = !!petA && !!petB && petA.reportId !== petB.reportId && !!buyerEmail && !isLoading;
-
-  const handleStart = async () => {
-    if (!canProceed) return;
-    setIsLoading(true);
-    // Fire-and-forget analytics — don't block the Stripe redirect on it.
-    try {
-      await supabase.from('page_analytics').insert([{
-        session_id: (() => {
-          try { return sessionStorage.getItem('analytics_session_id') || `${Date.now()}`; }
-          catch { return `${Date.now()}`; }
-        })(),
-        event_type: 'compat_upsell_started',
-        page_path: '/report',
-        event_data: { pairIndex: existingPairs, priceCents, currency, petAId: petA!.reportId, petBId: petB!.reportId } as never,
-        user_agent: navigator.userAgent,
-      }]);
-    } catch { /* non-fatal */ }
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          compatibilityUpsellCheckout: true,
-          compatPetReportAId: petA!.reportId,
-          compatPetReportBId: petB!.reportId,
-          purchaserEmail: buyerEmail,
-          // Server-side pricing authority — the server recomputes from DB to
-          // prevent tampering, but sending the client's count lets the
-          // server log any mismatches in telemetry.
-          existingPairsCount: existingPairs,
-          currency,
-        },
-      });
-      if (error || !data?.url) throw error || new Error('No checkout URL');
-      window.location.href = data.url;
-    } catch (err) {
-      console.error('[CompatibilityOffer] Checkout error:', err);
-      toast.error('Could not start checkout — please try again.');
-      setIsLoading(false);
+    if (!buyerEmail || !pairA || !pairB) {
+      setLoaded(true);
+      return;
     }
-  };
+
+    const fetchRow = async () => {
+      const { data } = await supabase
+        .from('pet_compatibilities')
+        .select('id, status, share_token, is_complimentary')
+        .eq('pet_report_a_id', pairA)
+        .eq('pet_report_b_id', pairB)
+        .maybeSingle();
+      if (!cancelled) {
+        setRow((data as CompatRow | null) ?? null);
+        setLoaded(true);
+      }
+    };
+
+    fetchRow();
+    // Poll every 10s while we're waiting for generation to finish, so the
+    // UI flips from "preparing" → "ready" without a manual refresh.
+    const interval = window.setInterval(fetchRow, 10_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [buyerEmail, pairA, pairB]);
 
   // Need at least two living pets for a compatibility pairing to make sense.
   if (livingPets.length < 2) return null;
+  // Hide entirely until the first fetch completes — avoids flashing a
+  // "preparing" state when the row is actually ready.
+  if (!loaded) return null;
+
+  const isReady = row?.status === 'ready' && !!row?.share_token;
+  // CompatibilityViewer expects `/compatibility?token=...` — the existing
+  // share-link format used in all other surfaces.
+  const compatHref = row?.share_token
+    ? `/compatibility?token=${row.share_token}`
+    : `/compatibility?a=${pairA}&b=${pairB}`;
 
   return (
     <motion.div
@@ -130,7 +111,6 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
           border: '1.5px solid rgba(196,162,101,0.35)',
         }}
       >
-        {/* Floating sparkle accents */}
         <motion.div
           className="absolute top-3 right-4 text-[#c4a265]"
           animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.1, 0.9] }}
@@ -141,7 +121,7 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
 
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[0.62rem] font-bold uppercase tracking-wider mb-3"
           style={{ background: 'rgba(191,82,74,0.9)', color: 'white' }}>
-          <Heart className="w-3 h-3" /> New · Cross-pet reading
+          <Heart className="w-3 h-3" /> Complimentary · Cross-pet reading
         </div>
 
         <h3 className="text-[1.35rem] md:text-[1.55rem] text-[#2D2926] mb-2"
@@ -151,54 +131,9 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
 
         <p className="text-[0.92rem] text-[#6B5E54] italic mb-5 leading-relaxed"
           style={{ fontFamily: 'Cormorant, serif' }}>
-          We'll compose a cross-pet reading showing how their charts interact — where they harmonise, where they clash, and the little rituals that keep the bond steady.
+          We composed a cross-pet reading showing how their charts interact — where they harmonise, where they clash, and the little rituals that keep the bond steady.
         </p>
 
-        {/* Pet pair picker */}
-        {livingPets.length > 2 && (
-          <div className="grid grid-cols-2 gap-3 mb-5">
-            <div>
-              <label className="text-[0.6rem] uppercase tracking-widest text-[#9B8E84] font-semibold mb-1 block"
-                style={{ fontFamily: 'Cormorant, serif' }}>First pet</label>
-              <div className="relative">
-                <select
-                  value={petAId}
-                  onChange={(e) => setPetAId(e.target.value)}
-                  className="w-full appearance-none pr-8 pl-3.5 py-2.5 rounded-xl border-[1.5px] text-[0.92rem] text-[#2D2926] bg-white focus:outline-none focus:border-[#bf524a]"
-                  style={{ borderColor: '#E8DFD6', fontFamily: 'Cormorant, serif', fontSize: '16px' }}
-                >
-                  {livingPets.map(p => (
-                    <option key={p.reportId} value={p.reportId} disabled={p.reportId === petBId}>
-                      🐾 {p.petName}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
-              </div>
-            </div>
-            <div>
-              <label className="text-[0.6rem] uppercase tracking-widest text-[#9B8E84] font-semibold mb-1 block"
-                style={{ fontFamily: 'Cormorant, serif' }}>Second pet</label>
-              <div className="relative">
-                <select
-                  value={petBId}
-                  onChange={(e) => setPetBId(e.target.value)}
-                  className="w-full appearance-none pr-8 pl-3.5 py-2.5 rounded-xl border-[1.5px] text-[0.92rem] text-[#2D2926] bg-white focus:outline-none focus:border-[#bf524a]"
-                  style={{ borderColor: '#E8DFD6', fontFamily: 'Cormorant, serif', fontSize: '16px' }}
-                >
-                  {livingPets.map(p => (
-                    <option key={p.reportId} value={p.reportId} disabled={p.reportId === petAId}>
-                      🐾 {p.petName}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Visual duet */}
         <div className="flex items-center justify-center gap-4 mb-5">
           <PetAvatar pet={petA} />
           <motion.div
@@ -210,48 +145,51 @@ export function CompatibilityOffer({ pets, currentReportId, buyerEmail }: Compat
           <PetAvatar pet={petB} />
         </div>
 
-        <button
-          onClick={handleStart}
-          disabled={!canProceed}
-          className="w-full py-3.5 rounded-xl text-white font-semibold transition-all relative overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
-          style={{
-            background: canProceed
-              ? 'linear-gradient(135deg, #c4a265, #bf524a)'
-              : '#d8c7b5',
-            fontFamily: 'DM Serif Display, serif',
-            fontSize: '1.02rem',
-          }}
-        >
-          {canProceed && (
+        {isReady ? (
+          <Link
+            to={compatHref}
+            className="block w-full py-3.5 rounded-xl text-white font-semibold text-center transition-all relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, #c4a265, #bf524a)',
+              fontFamily: 'DM Serif Display, serif',
+              fontSize: '1.02rem',
+            }}
+          >
             <motion.div
               className="absolute inset-0"
               style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)' }}
               animate={{ x: ['-100%', '200%'] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             />
-          )}
-          <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
-            {isLoading ? (
-              <>Loading…</>
-            ) : (
-              <>
-                Reveal their bond · {fmt(priceCents)}
-                <Sparkles className="w-4 h-4" />
-              </>
-            )}
-          </span>
-        </button>
+            <span className="relative z-10 inline-flex items-center justify-center gap-1.5">
+              Your complimentary cross-pet reading is ready
+              <Sparkles className="w-4 h-4" />
+            </span>
+          </Link>
+        ) : (
+          <div
+            className="block w-full py-3.5 rounded-xl font-semibold text-center"
+            style={{
+              background: '#e8dccb',
+              color: '#6B5E54',
+              fontFamily: 'DM Serif Display, serif',
+              fontSize: '1.02rem',
+            }}
+          >
+            <span className="inline-flex items-center justify-center gap-1.5">
+              Your complimentary reading is being prepared
+              <motion.span
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.4, repeat: Infinity }}
+              >…</motion.span>
+            </span>
+          </div>
+        )}
 
         <p className="text-center text-[0.72rem] text-[#9B8E84] mt-2.5"
           style={{ fontFamily: 'Cormorant, serif' }}>
-          One-time · Lives in your account · Shareable with the other pet's family
+          Included with your multi-pet order · Lives in your account
         </p>
-
-        {nextDiscountCents !== null && (
-          <p className="text-center text-[0.72rem] mt-1" style={{ color: '#a07c3a', fontFamily: 'Cormorant, serif' }}>
-            ✨ Next pairing drops to {fmt(nextDiscountCents)}{existingPairs === 0 ? ' · 3rd pairing ' + fmt(prices.compatTier3) : ''}
-          </p>
-        )}
       </div>
     </motion.div>
   );

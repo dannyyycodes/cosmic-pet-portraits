@@ -40,6 +40,12 @@ function getVolumeDiscount(petCount: number): number {
 
 const HOROSCOPE_MONTHLY_CENTS = 0; // Free at checkout — Stripe subscription created in webhook with 30-day trial
 
+// Paid cross-pet compatibility upsell is parked — multi-pet orders now
+// auto-generate one complimentary compatibility reading via stripe-webhook.
+// Flip back to true (plus update the Compatibility UI CTA) to re-enable the
+// paid path. See PR feat/compat-free-multipet.
+const ENABLE_PAID_COMPATIBILITY = false;
+
 // Input validation schema
 const checkoutSchema = z.object({
   reportIds: z.array(z.string().uuid()).optional(),
@@ -205,6 +211,14 @@ serve(async (req) => {
     //   1st pairing: $12 · 2nd: $10 · 3rd+: $8.
     // Pair count is read fresh from the DB so clients can't tamper.
     if (input.compatibilityUpsellCheckout) {
+      if (!ENABLE_PAID_COMPATIBILITY) {
+        return new Response(JSON.stringify({
+          error: "Compatibility upsell is disabled — complimentary readings are generated automatically for multi-pet orders",
+        }), {
+          status: 410,
+          headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        });
+      }
       const { compatPetReportAId, compatPetReportBId, purchaserEmail } = input;
       if (!compatPetReportAId || !compatPetReportBId || compatPetReportAId === compatPetReportBId) {
         return new Response(JSON.stringify({ error: "Two distinct pet report ids required" }), {

@@ -5,6 +5,11 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const ALLOWED_ORIGINS = ["https://littlesouls.app", "https://www.littlesouls.app"];
 
+// Paid cross-pet compatibility upsell is parked — multi-pet orders now
+// auto-generate one complimentary compatibility reading. Flip to true to
+// re-enable the paid path. See PR feat/compat-free-multipet.
+const ENABLE_PAID_COMPATIBILITY = false;
+
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("Origin") || "";
   return {
@@ -303,8 +308,10 @@ serve(async (req) => {
         }
       }
       // Cross-pet compatibility upsell — buyer paid for a compatibility
-      // reading comparing two of their existing pet reports.
-      else if (session.metadata?.type === "pet_compatibility") {
+      // reading comparing two of their existing pet reports. Gated on
+      // ENABLE_PAID_COMPATIBILITY; multi-pet orders now get a complimentary
+      // pairing generated below (see "Multi-pet bonus" block).
+      else if (ENABLE_PAID_COMPATIBILITY && session.metadata?.type === "pet_compatibility") {
         const aId = session.metadata?.pet_report_a_id;
         const bId = session.metadata?.pet_report_b_id;
         const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -456,6 +463,53 @@ serve(async (req) => {
             console.error("[STRIPE-WEBHOOK] Failed to update reports:", updateError);
           } else {
             console.log("[STRIPE-WEBHOOK] Reports marked as paid:", reportIds);
+          }
+
+          // ────────────────────────────────────────────────────────────
+          // Multi-pet bonus — reserve 1 complimentary compatibility reading
+          // for the first two pets when 2+ pets are paid together. This
+          // replaces the paid compatibility upsell for normal orders.
+          //
+          // We only INSERT the row here; generation is kicked off later
+          // (after both source reports are generated in the for-loop
+          // below). Inserting now lets the CompatibilityOffer UI render
+          // the "your complimentary reading is being prepared" state
+          // immediately.
+          // ────────────────────────────────────────────────────────────
+          if (reportIds.length >= 2) {
+            const buyerEmail = (session.customer_details?.email || session.customer_email || "").toLowerCase().trim();
+            const [aId, bId] = [...reportIds].sort(); // canonical order (matches DB check constraint)
+            try {
+              const { data: existing } = await supabaseClient
+                .from("pet_compatibilities")
+                .select("id")
+                .eq("pet_report_a_id", aId)
+                .eq("pet_report_b_id", bId)
+                .maybeSingle();
+              if (!existing) {
+                const { error: insErr } = await supabaseClient
+                  .from("pet_compatibilities")
+                  .insert({
+                    pet_report_a_id: aId,
+                    pet_report_b_id: bId,
+                    is_complimentary: true,
+                    payment_status: "paid",
+                    status: "pending",
+                    email: buyerEmail,
+                    stripe_session_id: session.id,
+                  });
+                if (insErr) {
+                  console.error("[STRIPE-WEBHOOK] complimentary compat insert failed:", insErr);
+                } else {
+                  console.log("[STRIPE-WEBHOOK] Complimentary compatibility row reserved:", aId, bId);
+                }
+              } else {
+                console.log("[STRIPE-WEBHOOK] Complimentary compat already exists for pair:", aId, bId);
+              }
+            } catch (e) {
+              console.error("[STRIPE-WEBHOOK] complimentary compat reservation failed:", e);
+              // Do not fail the webhook — primary reports are already paid.
+            }
           }
 
           // ────────────────────────────────────────────────────────────
@@ -827,6 +881,40 @@ serve(async (req) => {
             } catch (reportError) {
               console.error("[STRIPE-WEBHOOK] Error processing report:", reportId, reportError);
               // Continue with other reports
+            }
+          }
+
+          // ── Complimentary multi-pet compatibility — kick off now that
+          //    both source reports have been generated above.
+          if (reportIds.length >= 2) {
+            const [aId, bId] = [...reportIds].sort();
+            try {
+              const { data: compatRow } = await supabaseClient
+                .from("pet_compatibilities")
+                .select("id, status, is_complimentary")
+                .eq("pet_report_a_id", aId)
+                .eq("pet_report_b_id", bId)
+                .maybeSingle();
+              if (compatRow?.is_complimentary && compatRow.status === "pending") {
+                const compatSupabaseUrl = Deno.env.get("SUPABASE_URL");
+                const compatServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+                // Fire-and-forget — a failure here leaves the row in `pending`
+                // and can be retried manually or by the UI when the user
+                // visits the compat page.
+                fetch(`${compatSupabaseUrl}/functions/v1/generate-pet-compatibility`, {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${compatServiceRoleKey}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ petReportAId: aId, petReportBId: bId, stripeSessionId: session.id }),
+                }).catch((e) => {
+                  console.error("[STRIPE-WEBHOOK] complimentary compat trigger failed:", e);
+                });
+                console.log("[STRIPE-WEBHOOK] Complimentary compatibility generation triggered:", aId, bId);
+              }
+            } catch (e) {
+              console.error("[STRIPE-WEBHOOK] complimentary compat kick-off threw:", e);
             }
           }
 
