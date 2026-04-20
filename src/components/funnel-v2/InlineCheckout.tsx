@@ -199,6 +199,12 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   const wheelPrizeApplied = useRef(false);
   useEffect(() => {
     if (wheelPrizeApplied.current) return;
+    // NOTE: the spin wheel feature is currently disabled
+    // (see PR feat/disable-spin-wheel-incomplete). The sessionStorage
+    // reads below will never find wheel data in production until the
+    // wheel is re-enabled, so this whole block is effectively a no-op.
+    // Kept in place so the integration wires back up automatically when
+    // the feature ships again.
     let cancelled = false;
     (async () => {
       // Email-only fallback: SpinWheel writes the email to
