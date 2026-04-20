@@ -15,34 +15,31 @@ import { supabase } from "@/integrations/supabase/client";
  */
 
 // Two-line sector labels — top line is the headline number/word, bottom
-// line is the qualifier. Short so they fit comfortably inside a 45°
-// sector without overflowing the arc at our chosen label radius.
+// line is the qualifier. Short so they fit comfortably inside a 60°
+// sector (six prizes total) without overflowing the arc.
 const PRIZE_LABELS: Record<number, { top: string; bottom: string }> = {
-  1: { top: "10%",  bottom: "OFF" },
-  2: { top: "+500", bottom: "CREDITS" },
-  3: { top: "30%",  bottom: "GIFT" },
-  4: { top: "15%",  bottom: "OFF" },
-  5: { top: "FREE", bottom: "UPGRADE" },
-  6: { top: "20%",  bottom: "OFF" },
-  7: { top: "30%",  bottom: "JACKPOT" },
-  8: { top: "FREE", bottom: "MONTH" },
+  1: { top: "10%",   bottom: "OFF" },
+  2: { top: "500",   bottom: "CREDITS" },
+  3: { top: "15%",   bottom: "OFF" },
+  4: { top: "25%",   bottom: "FRIEND" },
+  5: { top: "30%",   bottom: "OFF" },
+  6: { top: "EXTRA", bottom: "MONTH" },
 };
 
-// Four-tone sector rotation — alternates around the wheel so adjacent
-// sectors always read as distinct. Jackpot (7) overrides with rose-fill
-// + white text so it stands out as the marquee prize.
+// Sector colour rotation across all six wedges — picked so adjacent
+// sectors (and slice 6 ↔ slice 1 wrap) always read as distinct.
+// Slice 5 (30% off) overrides with rose-fill + white text so it pops
+// as the marquee prize.
 const SECTOR_FILLS: Record<number, string> = {
   1: "#FFFDF5", // cream
   2: "#fbeedd", // gold-tint
   3: "#fbe8e0", // rose-blush
   4: "#fff8ed", // ivory
-  5: "#FFFDF5",
-  6: "#fbeedd",
-  7: "#bf524a", // jackpot — rose primary
-  8: "#fff8ed",
+  5: "#bf524a", // jackpot — rose primary
+  6: "#fbeedd", // gold-tint (different from neighbour 1 cream + neighbour 5 rose)
 };
 
-const SECTOR_COUNT = 8;
+const SECTOR_COUNT = 6;
 const SECTOR_DEG = 360 / SECTOR_COUNT;
 const SPIN_DURATION_MS = 5200;
 const EXTRA_FULL_TURNS = 6;
@@ -239,7 +236,7 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
               lineHeight: 1.2,
             }}
           >
-            {stage === "revealed" ? (prize?.repeat ? "Welcome back" : "The stars liked you") : "Spin for a Cosmic Gift"}
+            {stage === "revealed" ? (prize?.repeat ? "Your gift is still here" : "The stars chose for you") : "Your Cosmic Gift Awaits"}
           </h2>
         </div>
 
@@ -316,7 +313,7 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
                 const [x2, y2] = toXY(endAngle);
 
                 const sliceNum = i + 1;
-                const isJackpot = sliceNum === 7;
+                const isJackpot = sliceNum === 5;
                 const fill = SECTOR_FILLS[sliceNum];
                 const textFill = isJackpot ? "#FFFDF5" : "#1f1c18";
                 const subFill = isJackpot ? "#fbeedd" : "#7a6a60";
@@ -480,7 +477,7 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
                 cursor: stage === "spinning" ? "wait" : "pointer",
               }}
             >
-              {stage === "spinning" ? "Spinning…" : "Spin the Wheel ✨"}
+              {stage === "spinning" ? "Spinning…" : "Reveal My Gift ✨"}
             </button>
             <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.74rem", color: "var(--faded, #bfb2a3)", textAlign: "center", margin: "10px 0 0 0", lineHeight: 1.5 }}>
               One spin per soul · 48-hour gift · No spam, unsubscribe anytime
