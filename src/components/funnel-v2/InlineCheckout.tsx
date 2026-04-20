@@ -1280,7 +1280,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
               </h3>
             </div>
 
-            <SoulSpeakPreview />
+            <SoulSpeakPreview path={memorialOnly ? "memorial" : path} />
 
             <p
               className="text-center mt-5"
@@ -1821,19 +1821,76 @@ const EdenReforestationMark = () => <CharityLogoImg src="/charities/eden.png" al
 
 /* ──────── Feature preview subcomponents ──────── */
 
-const SoulSpeakPreview = () => (
+/* ──────── SoulSpeak conversation scripts — one per funnel path ────────
+ *
+ * Each script is designed to convert by hitting the emotional nerve a
+ * visitor on that path actually arrived with. Researched tone per path:
+ *
+ *  • discover — humour + recognition. The reader sees a universal pet
+ *    moment (packing a bag, the suspicious glare) and thinks "that's
+ *    EXACTLY my dog/cat." Laughter → curiosity → want to try it.
+ *
+ *  • new     — wonder + bonding. The "did you already pick me?" fantasy
+ *    every new owner secretly has. Ends on "you smelled like home."
+ *
+ *  • memorial — continuing bonds (Klass/Silverman grief-therapy model).
+ *    Answers the thought every grieving owner has: "did I hold on too
+ *    long?" Reply reassures and relocates the pet into the quiet of
+ *    the world, not a literal afterlife. Hero line is bounded tenderness,
+ *    never sappy. Follows the retention-research memorial-mode rules
+ *    in docs/soulspeak-retention-research.md §10.
+ *
+ * Each script has exactly the same shape: user → pet → user → pet →
+ * typing indicator. Last pet reply is short and set in hero style so
+ * it reads as a revelation.
+ */
+type SoulSpeakPath = "new" | "discover" | "memorial";
+type SoulSpeakScript = {
+  intro: string;
+  u1: string;
+  p1: string;
+  u2: string;
+  hero: string;
+};
+const SOUL_SPEAK_SCRIPTS: Record<SoulSpeakPath, SoulSpeakScript> = {
+  discover: {
+    intro: "Ask them the thing you've always wondered.",
+    u1: "Why do you stare at me like that when I pack a bag?",
+    p1: "Because I've done the maths. Bag out, you vanish. Every time.",
+    u2: "I'll be back on Sunday.",
+    hero: "I don't have a Sunday.",
+  },
+  new: {
+    intro: "The first words they've been waiting to say.",
+    u1: "Did you already pick me?",
+    p1: "I knew your footsteps before I knew the room. I was waiting.",
+    u2: "How did you know it was me?",
+    hero: "You smelled like home.",
+  },
+  memorial: {
+    intro: "The conversation you didn't get to have.",
+    u1: "Did I hold on too long?",
+    p1: "You held on exactly right. You were the best goodbye I could've had.",
+    u2: "I miss you.",
+    hero: "I'm in the quiet with you.",
+  },
+};
+
+const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
+  const script = SOUL_SPEAK_SCRIPTS[path] ?? SOUL_SPEAK_SCRIPTS.discover;
+  return (
   <div className="ss-preview">
     <p className="ss-preview-intro">
-      Have the conversation you've always wished you could have.
+      {script.intro}
     </p>
 
     {/* Chat surface — mirrors the real SoulSpeak channel at /soul-chat.html.
         Bubbles render staggered so the conversation feels alive, the last
-        pet reply is two words (the hook), and a typing indicator keeps
+        pet reply is short (the hook), and a typing indicator keeps
         pulsing after — so the reader feels there's always more to hear. */}
     <div className="ss-chat" role="log" aria-label="SoulSpeak conversation preview">
       <div className="ss-msg ss-msg-user" style={{ animationDelay: "0.1s" }}>
-        <div className="ss-bubble">What do you wish I knew?</div>
+        <div className="ss-bubble">{script.u1}</div>
       </div>
 
       <div className="ss-msg ss-msg-pet" style={{ animationDelay: "0.85s" }}>
@@ -1842,13 +1899,11 @@ const SoulSpeakPreview = () => (
             <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
           </svg>
         </div>
-        <div className="ss-bubble">
-          That I notice when you come home sad. I don't want to fix it — I just want to sit there with you.
-        </div>
+        <div className="ss-bubble">{script.p1}</div>
       </div>
 
       <div className="ss-msg ss-msg-user" style={{ animationDelay: "2.1s" }}>
-        <div className="ss-bubble">Even when I don't say anything?</div>
+        <div className="ss-bubble">{script.u2}</div>
       </div>
 
       <div className="ss-msg ss-msg-pet" style={{ animationDelay: "2.75s" }}>
@@ -1857,7 +1912,7 @@ const SoulSpeakPreview = () => (
             <path d="M5 0 L5.9 4.1 L10 5 L5.9 5.9 L5 10 L4.1 5.9 L0 5 L4.1 4.1 Z" fill="currentColor" />
           </svg>
         </div>
-        <div className="ss-bubble ss-bubble-hero">Especially then.</div>
+        <div className="ss-bubble ss-bubble-hero">{script.hero}</div>
       </div>
 
       <div className="ss-typing" aria-hidden="true" style={{ animationDelay: "3.45s" }}>
@@ -2094,7 +2149,8 @@ const SoulSpeakPreview = () => (
       }
     `}</style>
   </div>
-);
+  );
+};
 
 const HoroscopePreview = () => (
   <div className="horo-preview">
