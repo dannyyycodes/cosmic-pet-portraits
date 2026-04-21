@@ -53,6 +53,20 @@ export interface MemorialPromptContext {
   ownerInsights: { soulType: string; superpower: string; strangerReaction: string };
 
   petPhotoDescription: string;
+
+  // Optional owner chart — if the grieving buyer opted into Soul Bond (or had
+  // it set from a prior reading on another pet), we use it to write a "You &
+  // Them" synastry section. When absent, the memorial reading simply omits
+  // that section; memorial stands alone without it.
+  ownerChart?: {
+    name?: string;
+    sunSign: string;
+    moonSign: string;
+    ascendant: string;
+    element: string;
+    // Most synastry aspects for pet-owner are described in plain language,
+    // not by aspect angles, so a minimal subset of placements is enough.
+  };
 }
 
 // ─── System prompt ───────────────────────────────────────────────────────────
@@ -123,15 +137,17 @@ EVERY MAJOR SECTION must:
 export function buildMemorialUserPrompt(ctx: MemorialPromptContext): string {
   const {
     name, species, breed, gender, pronouns,
-    sunSign, moonSign, ascendant, venus, mars, chiron, saturn,
+    sunSign, moonSign, ascendant, venus, mars, chiron, saturn, jupiter,
     element, rulingPlanet, dob, passedDate, rememberedBy, favoriteMemory,
     ownerInsights, archetype, aura, chartPlacements, elementalBalance, nameVibration,
+    ownerChart,
   } = ctx;
 
   const dobFormatted = dob.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const passedFormatted = passedDate
     ? new Date(passedDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
     : null;
+  const hasOwnerChart = !!(ownerChart && ownerChart.sunSign && ownerChart.moonSign);
 
   return `Generate a memorial reading for ${name} the ${breed || species}. Return ONLY valid JSON matching this structure. Each narrative section must be substantive — memorial readings err on the side of deeper, slower, more specific.
 
@@ -145,6 +161,10 @@ OWNER'S OBSERVATIONS (weave in where they fit — never force):
 ${ownerInsights.soulType ? `- Soul type: "${ownerInsights.soulType}"` : "- Soul type: not specified"}
 ${ownerInsights.superpower ? `- Their gift: "${ownerInsights.superpower}"` : "- Gift: not specified"}
 ${ownerInsights.strangerReaction ? `- With strangers: "${ownerInsights.strangerReaction}"` : ""}
+
+${hasOwnerChart ? `OWNER'S CHART (present — include the "ourBond" section; see schema below):
+- Owner${ownerChart?.name ? ` (${ownerChart.name})` : ""}: Sun ${ownerChart?.sunSign}, Moon ${ownerChart?.moonSign}, Rising ${ownerChart?.ascendant}, dominant element ${ownerChart?.element}.
+- This is a synastry thread, written past-tense: what ${pronouns.possessive} chart MET in yours. What ${pronouns.subject} came to teach your ${ownerChart?.sunSign} Sun. How ${pronouns.possessive} ${element} element balanced or challenged your ${ownerChart?.element} element. Keep it reverent. No Hallmark.` : `OWNER'S CHART: not provided. Do NOT emit the "ourBond" section — omit it entirely from the JSON output.`}
 
 JSON STRUCTURE:
 
@@ -253,7 +273,15 @@ JSON STRUCTURE:
   "keepersOath": {
     "title": "What You Carry",
     "oath": "3-4 short lines, formatted as a vow. First person ('I carry ${name}'s...'). Each line tied to a different placement (e.g. Sun, Moon, Venus). The owner can read it aloud on hard days. Must feel earned, not saccharine. Should end with a specific, personal commitment — not a generic 'I will remember'."
-  },
+  },${hasOwnerChart ? `
+
+  "ourBond": {
+    "title": "You and ${name}",
+    "content": "4-5 sentences. Past-tense synastry: the specific way your ${ownerChart?.sunSign} Sun met ${pronouns.possessive} ${sunSign} Sun, what ${pronouns.possessive} ${element} element gave your ${ownerChart?.element} element, the thread that ran between you that was not accidental. Be reverent. No Hallmark phrasing.",
+    "whatYouGave": "2-3 sentences. What the chart shows YOU gave ${name} — grounded in your ${ownerChart?.moonSign} Moon or ${ownerChart?.sunSign} Sun.",
+    "whatTheyGave": "2-3 sentences. What ${pronouns.subject} gave back — grounded in ${pronouns.possessive} ${moonSign} Moon or ${venus} Venus. Specific, not generic.",
+    "aspectInAWord": "A single word that names the shape of your bond in the sky (e.g. 'answer', 'mirror', 'teacher', 'shelter'). Tie to the synastry — no meaningless poetry."
+  },` : ""}
 
   "epilogue": "5-6 sentences. The closing letter. Past tense. Weave ${sunSign} Sun, ${moonSign} Moon, and ${ascendant} Rising into a final, quotable goodbye-that-is-not-a-goodbye. The final line is the most important line in the entire reading — it must be the one the owner will come back to when ${pronouns.subject} needs to hear from ${name} again. Make it small. Make it true."
 }
@@ -364,6 +392,17 @@ export const memorialReportSchema = z.object({
     title: z.string().optional(),
     oath: memMin(80),
   }).passthrough(),
+
+  // Optional synastry section — only emitted when ownerChart is provided in
+  // the memorial context. Gives memorial + Soul Bond buyers a dedicated
+  // "You & Them" thread without bloating the reading for grief-only buyers.
+  ourBond: z.object({
+    title: z.string().optional(),
+    content: memMin(300),
+    whatYouGave: memMin(100),
+    whatTheyGave: memMin(100),
+    aspectInAWord: z.string().optional(),
+  }).passthrough().optional(),
 
   epilogue: memMin(300),
 }).passthrough();

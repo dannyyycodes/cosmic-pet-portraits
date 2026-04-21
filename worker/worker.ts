@@ -1521,10 +1521,22 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
       favoriteMemory: (reportRow.favorite_memory ?? petData.favorite_memory ?? "") as string,
       ownerInsights,
       petPhotoDescription,
+      // Soul Bond × Memorial — memorial intake skips the owner-chart screen
+      // by default, but if the buyer's row already carries owner chart data
+      // (e.g. prior reading, data import, or future opt-in flow), weave a
+      // dedicated "ourBond" synastry section into the memorial output. When
+      // this is absent the memorial prompt omits the section entirely.
+      ownerChart: hasSoulBondData ? {
+        name: ownerName || undefined,
+        sunSign: ownerSunSign,
+        moonSign: ownerMoonSign,
+        ascendant: (ownerPositions?.ascendant?.sign ?? ""),
+        element: ownerElement,
+      } : undefined,
     };
     systemPrompt = buildMemorialSystemPrompt(memCtx);
     userPrompt = buildMemorialUserPrompt(memCtx);
-    console.log("[WORKER] Memorial mode — using memorial prompts.");
+    console.log("[WORKER] Memorial mode — using memorial prompts.", { hasOwnerChart: hasSoulBondData });
   } else {
     systemPrompt = cosmicSystemPrompt;
     userPrompt = cosmicUserPrompt;
@@ -2198,6 +2210,19 @@ Return: { "${sectionName}": { ...replacement... } }`;
           placementRequiredSections: memorialReading
             ? MEMORIAL_PLACEMENT_REQUIRED_SECTIONS
             : undefined,
+          // Phase C guardrails — passes the owner-provided text + memorial
+          // anchors through so the deterministic weave checks can confirm
+          // each piece actually surfaces in the generated narrative.
+          ownerInsights: {
+            soulType: soulType || undefined,
+            superpower: superpower || undefined,
+            strangerReaction: strangerReaction || undefined,
+          },
+          memorialAnchors: memorialReading ? {
+            passedDate: (reportRow.passed_date ?? undefined) as string | undefined,
+            favoriteMemory: (reportRow.favorite_memory ?? undefined) as string | undefined,
+            rememberedBy: (reportRow.remembered_by ?? undefined) as string | undefined,
+          } : undefined,
         },
         OPENROUTER_API_KEY,
       );

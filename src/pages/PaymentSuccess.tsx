@@ -31,6 +31,10 @@ interface ReportData {
   petPhotoUrl?: string;
   gender?: string;
   occasionMode?: string;
+  // Memorial-only — enables the "2018 – 2024" years band on the viewer.
+  // Passed through from pet_reports.birth_date + pet_reports.passed_date.
+  birthYear?: number;
+  passingYear?: number;
 }
 
 interface GiftInfo {
@@ -165,10 +169,21 @@ export default function PaymentSuccess() {
             }
             
             const isGiftBeingSent = petReport.occasion_mode === 'gift' && !isGiftRedemption;
+            // Memorial viewer uses birth + passing YEARS (not the full ISO
+            // dates) for the "2018 – 2024" band that anchors the reading. If
+            // the row doesn't have both, the viewer gracefully hides the band.
+            const birthYearVal = petReport.birth_date
+              ? parseInt(String(petReport.birth_date).slice(0, 4), 10)
+              : undefined;
+            const passingYearVal = petReport.passed_date
+              ? parseInt(String(petReport.passed_date).slice(0, 4), 10)
+              : undefined;
             processedReports.push({
               petName: petReport.pet_name, email: petReport.email, report: petReport.report_content,
               reportId: petReport.id, isGift: isGiftBeingSent, portraitUrl: petReport.portrait_url,
               petPhotoUrl: petReport.pet_photo_url, gender: petReport.gender, occasionMode: petReport.occasion_mode,
+              birthYear: Number.isFinite(birthYearVal) ? birthYearVal : undefined,
+              passingYear: Number.isFinite(passingYearVal) ? passingYearVal : undefined,
             });
           }
         }
@@ -527,6 +542,8 @@ export default function PaymentSuccess() {
           gender={activeReport.gender}
           petPhotoUrl={activeReport.petPhotoUrl}
           portraitUrl={activeReport.portraitUrl}
+          birthYear={activeReport.birthYear}
+          passingYear={activeReport.passingYear}
         />
       );
     }

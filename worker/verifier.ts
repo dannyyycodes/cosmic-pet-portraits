@@ -69,7 +69,9 @@ export type Severity = "critical" | "warning" | "info";
 export interface VerificationIssue {
   section: string;                // e.g. "prologue", "petMonologue", "cosmicRecipe"
   category: "pronoun" | "tense" | "banned_word" | "owner_phrasing" | "sign_mismatch"
-          | "degree_mismatch" | "name_drift" | "language" | "recipe_safety" | "other";
+          | "degree_mismatch" | "name_drift" | "language" | "recipe_safety"
+          | "owner_weave" | "memorial_anchor_weave" | "genericness"
+          | "other";
   severity: Severity;
   message: string;
   autoFixable: boolean;
@@ -97,6 +99,26 @@ export interface VerifyOpts {
   // Override the default PLACEMENT_REQUIRED_SECTIONS list — used by memorial
   // reports which have a different set of sections. If omitted, cosmic default.
   placementRequiredSections?: readonly string[];
+  // Owner-provided insights. When present, the verifier checks the finished
+  // report actually weaves each of them in — a report that captures the
+  // owner's own words of their pet should echo those words back. Thresholds
+  // are intentionally low (≥2) since these are meant to colour the writing,
+  // not dominate it.
+  ownerInsights?: {
+    soulType?: string;
+    superpower?: string;
+    strangerReaction?: string;
+  };
+  // Memorial-only anchor fields from PostPurchaseIntake Screen 5. When the
+  // buyer provided these, the memorial report MUST weave them in — otherwise
+  // the grieving owner paid for a personalised reading and got generic grief
+  // writing. Each check is a soft weave check (excerpt/year/word appearing
+  // at least once in the narrative text), not an exact-match assertion.
+  memorialAnchors?: {
+    passedDate?: string;        // ISO yyyy-mm-dd
+    favoriteMemory?: string;
+    rememberedBy?: string;
+  };
 }
 
 // ─── Utilities ──────────────────────────────────────────────────────────────
@@ -402,6 +424,132 @@ export function runDeterministicVerification(
     });
   }
 
+  // ─── Owner-insight weave check ──────────────────────────────────────────
+  // The buyer told us their pet's soul type / superpower / stranger reaction.
+  // A reading that never echoes those back feels anonymous. Check each
+  // provided insight appears at least twice across the whole narrative (case-
+  // insensitive, whole-word). Soft warning — doesn't block delivery, but
+  // surfaces in Sentry so we can trend "how often does the AI ignore owner
+  // inputs" per occasion mode.
+  const lowerFullText = fullText.toLowerCase();
+  const insights = opts.ownerInsights ?? {};
+  const insightChecks: Array<{ label: string; value?: string }> = [
+    { label: "soulType", value: insights.soulType },
+    { label: "superpower", value: insights.superpower },
+    { label: "strangerReaction", value: insights.strangerReaction },
+  ];
+  for (const { label, value } of insightChecks) {
+    if (!value || value.trim().length < 3) continue;
+    // Owner inputs like "Old Soul" / "Loves everyone" are multi-word — count
+    // appearances of either the whole phrase OR the headline noun/verb that
+    // carries it. We take the first ≥4-char word as the signature token,
+    // which matches how the prompt asks the AI to weave them in.
+    const whole = value.trim().toLowerCase();
+    const tokens = whole.split(/[\s,]+/).filter((w) => w.length >= 4);
+    if (tokens.length === 0) continue;
+    const signature = tokens[0];
+    const wholePhraseRe = new RegExp(`\\b${whole.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
+    const signatureRe = new RegExp(`\\b${signature.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
+    const wholeHits = (lowerFullText.match(wholePhraseRe) ?? []).length;
+    const signatureHits = (lowerFullText.match(signatureRe) ?? []).length;
+    const woven = Math.max(wholeHits, signatureHits);
+    if (woven < 2) {
+      issues.push({
+        section: "(whole-report)",
+        category: "owner_weave",
+        severity: "warning",
+        message:
+          `Owner-provided ${label} "${value.slice(0, 60)}" appears only ${woven}× in the report. ` +
+          `Weave threshold is ≥2. The reading should echo the owner's own words.`,
+        autoFixable: false,
+        foundText: value,
+      });
+    }
+  }
+
+  // ─── Memorial-anchor weave check ────────────────────────────────────────
+  // When the grieving owner provided passed_date, favorite_memory, or
+  // remembered_by on PostPurchaseIntake Screen 5, the memorial prompt is
+  // explicitly instructed to weave them in. If they went uncited, the buyer
+  // got a generic memorial reading despite sharing something specific. Only
+  // runs for memorial occasion (anchors only relevant there).
+  if (opts.occasionMode === "memorial") {
+    const anchors = opts.memorialAnchors ?? {};
+
+    // rememberedBy — the one-word essence. Must appear at least once; ideally
+    // cited verbatim in prologue, keepersOath or epilogue.
+    if (anchors.rememberedBy && anchors.rememberedBy.trim().length >= 2) {
+      const essence = anchors.rememberedBy.trim().toLowerCase();
+      // Whole phrase OR longest word >= 4 chars (handles "golden light" etc)
+      const essenceTokens = essence.split(/[\s,]+/).filter((w) => w.length >= 4);
+      const matcher = essenceTokens.length > 0 ? essenceTokens[0] : essence;
+      const re = new RegExp(`\\b${matcher.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi");
+      const hits = (lowerFullText.match(re) ?? []).length;
+      if (hits < 1) {
+        issues.push({
+          section: "(whole-report)",
+          category: "memorial_anchor_weave",
+          severity: "warning",
+          message:
+            `Memorial anchor "rememberedBy" = "${anchors.rememberedBy}" never appears in the reading. ` +
+            `Owner shared the one-word essence and the report never echoed it.`,
+          autoFixable: false,
+          foundText: anchors.rememberedBy,
+        });
+      }
+    }
+
+    // favoriteMemory — a sentence or two of a specific moment. We pick the
+    // first ≥5-char noun-ish word as the weave signature (can't expect the
+    // full memory verbatim, but a signature word should surface).
+    if (anchors.favoriteMemory && anchors.favoriteMemory.trim().length >= 20) {
+      const memWords = anchors.favoriteMemory
+        .toLowerCase()
+        .split(/[\s,.\-]+/)
+        .filter((w) => w.length >= 5 && !["which", "their", "where", "there", "would", "could", "about", "every", "those", "these", "again", "always", "never"].includes(w));
+      // Take top 3 unique signature words.
+      const uniq = Array.from(new Set(memWords)).slice(0, 3);
+      if (uniq.length > 0) {
+        const anyHit = uniq.some((w) => {
+          const re = new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+          return re.test(lowerFullText);
+        });
+        if (!anyHit) {
+          issues.push({
+            section: "(whole-report)",
+            category: "memorial_anchor_weave",
+            severity: "warning",
+            message:
+              `Memorial anchor "favoriteMemory" contains no signature word (tried: ${uniq.join(", ")}) ` +
+              `that appears in the report. The held-moment the owner shared isn't being woven in.`,
+            autoFixable: false,
+            foundText: anchors.favoriteMemory.slice(0, 120),
+          });
+        }
+      }
+    }
+
+    // passed_date — we don't expect the full date cited but the YEAR should
+    // surface in the anniversaryGuide section (birthday / passingDay). If the
+    // year never appears anywhere, the anniversary guidance is hollow.
+    if (anchors.passedDate && /^\d{4}-\d{2}-\d{2}$/.test(anchors.passedDate)) {
+      const year = anchors.passedDate.slice(0, 4);
+      const yearHits = (fullText.match(new RegExp(`\\b${year}\\b`, "g")) ?? []).length;
+      if (yearHits < 1) {
+        issues.push({
+          section: "(whole-report)",
+          category: "memorial_anchor_weave",
+          severity: "info",
+          message:
+            `Memorial anchor "passedDate" (${anchors.passedDate}) year never cited in report. ` +
+            `anniversaryGuide may be hollow without a specific date anchor.`,
+          autoFixable: false,
+          foundText: anchors.passedDate,
+        });
+      }
+    }
+  }
+
   return { report: fixedReport, issues, autoFixesApplied };
 }
 
@@ -419,10 +567,14 @@ export async function runSemanticVerification(
 ): Promise<{ issues: VerificationIssue[] }> {
   const issues: VerificationIssue[] = [];
 
-  // Only run if we have something actually worth semantic-checking
+  // Genericness check runs for every report (one cheap Haiku call) so we
+  // catch "could be any Scorpio" AI-slop before it ships. Tense + language
+  // checks layered on conditionally — they share the same Haiku invocation
+  // to keep cost to a single call per report (~$0.01 on Haiku 4.5).
   const needsTenseCheck = opts.occasionMode === "memorial";
   const needsLangCheck = opts.language !== "en";
-  if (!needsTenseCheck && !needsLangCheck) return { issues };
+  const needsGenericCheck = true;
+  if (!needsTenseCheck && !needsLangCheck && !needsGenericCheck) return { issues };
 
   const targetLangNames: Record<string, string> = {
     es: "Spanish", de: "German", fr: "French", pt: "Portuguese", ar: "Arabic",
@@ -434,12 +586,13 @@ Return schema:
 {
   "issues": [
     { "section": "prologue" | "petMonologue" | ... | "(global)",
-      "rule": "memorial_tense" | "language",
+      "rule": "memorial_tense" | "language" | "generic",
       "excerpt": "<the problematic sentence>",
       "why": "<brief reason>" }
   ]
 }
-If no issues, return { "issues": [] }.`;
+If no issues, return { "issues": [] }.
+Be sparing with "generic" — only flag sections that read like they could apply to ANY pet of that sign (no name, no breed, no specific behaviour). Sections with even one pet-specific detail pass.`;
 
   const checks: string[] = [];
   if (needsTenseCheck) {
@@ -455,6 +608,11 @@ critical violations. Ignore dialogue or quotes that are intentionally in past-te
 `RULE — LANGUAGE: This report MUST be entirely in ${targetLangNames[opts.language] || opts.language}.
 JSON keys stay in English, but every VALUE (titles, descriptions, sentences) must be in
 ${targetLangNames[opts.language] || opts.language}. Flag any English sentence in a string value.`
+    );
+  }
+  if (needsGenericCheck) {
+    checks.push(
+`RULE — GENERICNESS: A good pet astrology reading is specific. It references the pet's NAME, their BREED, their OWNER-PROVIDED traits (if given), or concrete pet-specific observable details. A BAD section reads like a horoscope that could apply to any ${opts.occasionMode === "memorial" ? "grieving owner" : "pet of that sun sign"}. Rule: pick up to 3 sections that feel most generic (no name, no breed, no specific behaviour, just sign-trait paragraphs) and flag them. Ignore sections shorter than 200 characters. If NO sections are generic, return no "generic" entries. Err toward silence — only flag obvious slop. You MUST NOT flag more than 3 per report.`
     );
   }
 
@@ -508,13 +666,18 @@ ${JSON.stringify(report).slice(0, 100_000)}`;   // Haiku 200k context, but cap a
     }
 
     for (const raw of parsed.issues ?? []) {
-      const category: VerificationIssue["category"] = raw.rule === "memorial_tense" ? "tense" : "language";
+      const category: VerificationIssue["category"] =
+        raw.rule === "memorial_tense" ? "tense"
+        : raw.rule === "language" ? "language"
+        : raw.rule === "generic" ? "genericness"
+        : "other";
       // Language drift = always critical (non-English content in an English
       // report is unusable). Memorial tense violations: previously warnings
       // because conditional/subjunctive forms can false-positive, but a
       // present-tense memorial report is a brand-level failure, so we escalate
-      // to critical for memorial mode. Cosmic reports stay at "warning" for
-      // tense (future-tense in a birthday report is fine).
+      // to critical for memorial mode. Genericness is always a warning —
+      // it's a quality signal, not a hard fail (we don't want a single false
+      // positive to burn an expensive regeneration).
       const severity: Severity =
         category === "language" ? "critical"
         : (category === "tense" && opts.occasionMode === "memorial") ? "critical"
