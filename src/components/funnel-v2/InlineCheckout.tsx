@@ -483,7 +483,15 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     // so mixed Memorial + Soul Reading / Soul Bond carts can signal Memorial
     // on just the memorial placeholders.
     const shouldForwardMemorial = memorialQty > 0 && basicQty === 0 && premiumQty === 0;
-    const occasionMode = shouldForwardMemorial ? "memorial" : undefined;
+    // Landing path → occasion_mode. Memorial takes priority (own tier). For
+    // non-memorial carts, the landing choice ("new" vs "discover") decides
+    // whether the report is written in arrival-bonding voice or established-
+    // pet-revelation voice. Gift buyers have their own /gift flow and never
+    // hit this code path.
+    const occasionMode: "memorial" | "new" | "discover" | undefined =
+      shouldForwardMemorial ? "memorial"
+      : path === "new" ? "new"
+      : undefined;
     trackFunnelEvent("v2_checkout_clicked", {
       tier: primaryTier,
       basicQty,
@@ -519,10 +527,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           referralCode: refCode || undefined,
           charityId: selectedCharity,
           charityBonus: charityBonus || 0,
-          // Both tiers advertise "1 month of weekly horoscopes — included free",
-          // so always flag it. Webhook uses this to create the trialing Stripe
-          // subscription (price_1Sfi1v…) with trial_period_days: 30.
-          includeHoroscope: true,
+          // Both living-pet tiers advertise "1 month of weekly horoscopes — free".
+          // Pure Memorial carts must NOT get horoscope: forward-looking "what's
+          // ahead this week" copy for a pet who has crossed the rainbow bridge
+          // would be a serious care failure (also suppresses the horoscope line
+          // on the Stripe checkout product description). Webhook already skips
+          // the Stripe subscription for memorial rows — this stops the leak at
+          // the source so the description reads cleanly too.
+          includeHoroscope: !shouldForwardMemorial,
           couponId: appliedCoupon?.id || undefined,
           // Forward memorial intent so placeholder pet_reports.occasion_mode
           // is pre-set to 'memorial' and PostPurchaseIntake defaults the

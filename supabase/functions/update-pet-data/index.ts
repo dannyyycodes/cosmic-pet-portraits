@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { reportId, petName, species, breed, gender, birthDate, birthTime, location, soulType, superpower, strangerReaction, petPhotoUrl, occasionMode, email, ownerName, ownerBirthDate, ownerBirthTime, ownerBirthLocation, ownerMemory } = await req.json();
+    const { reportId, petName, species, breed, gender, birthDate, birthTime, location, soulType, superpower, strangerReaction, petPhotoUrl, occasionMode, email, ownerName, ownerBirthDate, ownerBirthTime, ownerBirthLocation, ownerMemory, passedDate, favoriteMemory, rememberedBy } = await req.json();
 
     if (!reportId || !petName || !species) {
       return new Response(JSON.stringify({ error: "Missing required fields: reportId, petName, species" }), {
@@ -89,6 +89,28 @@ serve(async (req) => {
     if (typeof ownerMemory === "string") {
       const trimmed = ownerMemory.trim().slice(0, 600);
       if (trimmed) updateData.owner_memory = trimmed;
+    }
+    // Memorial-only anchor fields — the worker's memorial-prompt.ts reads
+    // passed_date, favorite_memory and remembered_by from pet_reports to
+    // ground every section in this specific pet's story. Only persist when
+    // the intake is a memorial flow (occasionMode === "memorial") so we don't
+    // accidentally stamp these on a discover / new / birthday / gift row.
+    if (occasionMode === "memorial") {
+      if (passedDate) {
+        const iso = String(passedDate).match(/^\d{4}-\d{2}-\d{2}$/) ? String(passedDate) : null;
+        if (iso) {
+          const today = new Date().toISOString().slice(0, 10);
+          if (iso <= today) updateData.passed_date = iso;
+        }
+      }
+      if (typeof favoriteMemory === "string") {
+        const trimmed = favoriteMemory.trim().slice(0, 500);
+        if (trimmed) updateData.favorite_memory = trimmed;
+      }
+      if (typeof rememberedBy === "string") {
+        const trimmed = rememberedBy.trim().slice(0, 80);
+        if (trimmed) updateData.remembered_by = trimmed;
+      }
     }
 
     const { error: updateError } = await supabaseClient

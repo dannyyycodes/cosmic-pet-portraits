@@ -1,4 +1,4 @@
-export type OccasionMode = 'discover' | 'birthday' | 'memorial' | 'gift';
+export type OccasionMode = 'discover' | 'new' | 'birthday' | 'memorial' | 'gift';
 
 export interface ModeContent {
   // Tense
@@ -139,7 +139,73 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
     reportIntro: (name) => `A loving portrait of ${name} — your irreplaceable companion.`,
     sectionTitleSuffix: 'Bring',
   },
-  
+
+  // New pet — arrival voice. The pet just joined the household, so we shape
+  // every question toward welcome + bonding rather than recognition of an
+  // already-known creature. Present tense throughout (they're here now) but
+  // the reading leans into who-they're-becoming rather than who-they've-been.
+  new: {
+    tense: 'present',
+
+    verb: {
+      is: 'is',
+      has: 'has',
+      does: 'does',
+      loves: 'loves',
+      brings: 'brings',
+      makes: 'makes',
+      feels: 'feels',
+      shows: 'shows',
+      reacts: 'reacts',
+      greets: 'greets',
+    },
+
+    pronoun: {
+      their: 'their',
+      them: 'them',
+      they: 'they',
+    },
+
+    nameTitle: "What's your new arrival's name?",
+    nameSubtitle: "Names carry vibrational energy that shapes how they'll settle into your world.",
+
+    speciesTitle: (name) => `What kind of soul is ${name}?`,
+    speciesSubtitle: "Different species arrive with different archetypal energies.",
+
+    breedTitle: (name) => `What breed is ${name}?`,
+    breedSubtitle: "Breed traits blend with astrological influences for a clearer first map of them.",
+
+    genderTitle: (name) => `Is ${name} a boy or girl?`,
+    genderSubtitle: "Gender affects how planetary energies express in the birth chart.",
+
+    dobTitle: (name) => `When was ${name} born?`,
+    dobSubtitle: "Birth date reveals Sun sign, Moon phase & planetary positions.",
+
+    locationTitle: (name) => `Where was ${name} born?`,
+    locationSubtitle: "Location sets the Ascendant & house positions in their chart.",
+
+    soulTitle: "When you look into their eyes, what do you see?",
+    soulSubtitle: (name) => `First impressions help calibrate how ${name}'s Neptune & 12th house will unfold with you.`,
+
+    superpowerTitle: (name) => `What's the first thing that made you smile about ${name}?`,
+    superpowerSubtitle: "Early gifts hint at dominant planetary strengths in the chart.",
+
+    strangersTitle: (name) => `How does ${name} greet new people so far?`,
+    strangersSubtitle: "Social response maps to Mars, Venus & Ascendant placements.",
+
+    photoTitle: (name) => `Share a photo of ${name}`,
+    photoSubtitle: "Their photo helps us weave their likeness and aura into the arrival reading.",
+    photoPlaceholder: "Drop your first favourite photo here",
+
+    emailBadge: "Welcome Reading Ready",
+    emailTitle: (name) => `${name}'s welcome reading is ready to be woven`,
+    emailSubtitle: "Where should we reach you? We'll send a private link so you can return to their arrival any time.",
+    emailButton: "Continue →",
+
+    reportIntro: (name) => `Welcome, ${name}. Let's map who you've just chosen to live alongside.`,
+    sectionTitleSuffix: 'Bring',
+  },
+
   birthday: {
     tense: 'present',
     
