@@ -13,11 +13,24 @@ import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
 type DeliveryMethod = 'email' | 'link';
 type GiftTier = 'essential' | 'portrait';
 
+type GiftOccasion = 'discover' | 'new' | 'memorial' | 'birthday';
+
 interface GiftRecipient {
   id: string;
   name: string;
   email: string;
+  // Gifter can pre-specify what kind of reading this recipient gets.
+  // Defaults to 'discover' so legacy behaviour is unchanged; buyer changes
+  // it per recipient if they're gifting a new-pet or memorial reading.
+  occasion?: GiftOccasion;
 }
+
+const GIFT_OCCASION_OPTIONS: Array<{ value: GiftOccasion; emoji: string; label: string; hint: string }> = [
+  { value: 'discover', emoji: '🔮', label: 'Discover', hint: 'For a pet they already have' },
+  { value: 'new', emoji: '🌱', label: 'New Pet', hint: 'They just got a new pet' },
+  { value: 'memorial', emoji: '🕊️', label: 'Memorial', hint: 'They lost a beloved pet' },
+  { value: 'birthday', emoji: '🎂', label: 'Birthday', hint: 'Celebrating their pet' },
+];
 
 const C = {
   cream: '#FFFDF5', cream2: '#faf4e8', cream3: '#f3eadb',
@@ -492,8 +505,8 @@ export default function GiftPurchase() {
   const [promoError, setPromoError] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; discount_value: number } | null>(null);
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
-  const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({ id: crypto.randomUUID(), name: '', email: '' });
-  const [recipients, setRecipients] = useState<GiftRecipient[]>([{ id: crypto.randomUUID(), name: '', email: '' }]);
+  const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({ id: crypto.randomUUID(), name: '', email: '', occasion: 'discover' });
+  const [recipients, setRecipients] = useState<GiftRecipient[]>([{ id: crypto.randomUUID(), name: '', email: '', occasion: 'discover' }]);
 
   // Auto-apply promo from URL
   useEffect(() => {
@@ -579,6 +592,7 @@ export default function GiftPurchase() {
           recipientName: r.name || '',
           recipientEmail: deliveryMethod === 'email' ? r.email : null,
           horoscopeAddon: 'none',
+          occasion: r.occasion ?? 'discover',
         })),
         deliveryMethod,
         multiRecipient: giftType === 'multiple',
@@ -828,6 +842,40 @@ export default function GiftPurchase() {
                             {deliveryMethod === 'email' && (
                               <input type="email" value={singleRecipient.email} onChange={e => updateSingleRecipient('email', e.target.value)} placeholder="Their email address" style={inputStyle} />
                             )}
+                            <div>
+                              <p style={{ fontWeight: 600, color: C.ink, fontSize: '0.82rem', marginBottom: 6 }}>What's this reading for?</p>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+                                {GIFT_OCCASION_OPTIONS.map((opt) => {
+                                  const selected = (singleRecipient.occasion ?? 'discover') === opt.value;
+                                  const isMem = opt.value === 'memorial';
+                                  return (
+                                    <button
+                                      key={opt.value}
+                                      type="button"
+                                      onClick={() => setSingleRecipient(r => ({ ...r, occasion: opt.value }))}
+                                      style={{
+                                        padding: '8px 10px', borderRadius: 10, textAlign: 'left', cursor: 'pointer',
+                                        border: selected
+                                          ? `1.5px solid ${isMem ? '#788280' : C.gold}`
+                                          : `1px solid ${C.cream3}`,
+                                        background: selected
+                                          ? (isMem ? 'rgba(120,130,125,0.12)' : C.goldSoft)
+                                          : 'white',
+                                        fontFamily: 'Cormorant, Georgia, serif',
+                                      }}
+                                    >
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', fontWeight: 600, color: C.ink }}>
+                                        <span>{opt.emoji}</span>{opt.label}
+                                      </div>
+                                      <div style={{ fontSize: '0.7rem', color: C.muted, marginTop: 2 }}>{opt.hint}</div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              <p style={{ fontSize: '0.72rem', color: C.muted, marginTop: 6 }}>
+                                Don't know? Leave as Discover — they can change it when they redeem.
+                              </p>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -854,11 +902,40 @@ export default function GiftPurchase() {
                                   <input type="email" value={r.email} onChange={e => updateRecipient(r.id, 'email', e.target.value)} placeholder="Email" style={{ ...inputStyle, padding: '10px 14px', fontSize: '0.88rem' }} />
                                 )}
                               </div>
+                              <div style={{ marginTop: 10 }}>
+                                <p style={{ fontWeight: 600, color: C.ink, fontSize: '0.78rem', marginBottom: 6 }}>What's their reading for?</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                  {GIFT_OCCASION_OPTIONS.map((opt) => {
+                                    const selected = (r.occasion ?? 'discover') === opt.value;
+                                    const isMem = opt.value === 'memorial';
+                                    return (
+                                      <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setRecipients(rs => rs.map(x => x.id === r.id ? { ...x, occasion: opt.value } : x))}
+                                        style={{
+                                          padding: '6px 10px', borderRadius: 14, cursor: 'pointer',
+                                          border: selected
+                                            ? `1.5px solid ${isMem ? '#788280' : C.gold}`
+                                            : `1px solid ${C.cream3}`,
+                                          background: selected
+                                            ? (isMem ? 'rgba(120,130,125,0.12)' : C.goldSoft)
+                                            : 'white',
+                                          fontFamily: 'Cormorant, Georgia, serif',
+                                          fontSize: '0.78rem', fontWeight: 600, color: C.ink,
+                                        }}
+                                      >
+                                        {opt.emoji} {opt.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
                             </div>
                           ))}
                           {recipients.length < 10 && (
                             <button
-                              onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '' }])}
+                              onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '', occasion: 'discover' }])}
                               style={{
                                 padding: 14, borderRadius: 14, border: `2px dashed ${C.rose}40`, background: C.roseGlow, cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: C.rose, fontWeight: 600, fontSize: '0.88rem', fontFamily: 'Cormorant, Georgia, serif',
