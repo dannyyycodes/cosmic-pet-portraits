@@ -714,10 +714,7 @@ export const AuthoritySection = ({
 const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
   new:      { a: "A new little soul",            b: "just walked into your orbit." },
   discover: { a: "Behind every little soul,",    b: "a cosmos." },
-  // Memorial opener reamped 2026-04-21 — replaces "No little soul /
-  // is ever forgotten by the stars." The transformation-frame line
-  // lands harder: the bond didn't end, just changed form.
-  memorial: { a: "They didn't leave.",           b: "They just changed places." },
+  memorial: { a: "No little soul",               b: "is ever forgotten by the stars." },
 };
 
 const TYPE_MS_PER_CHAR = 26;     // speed of keystrokes — snappy but still reads
