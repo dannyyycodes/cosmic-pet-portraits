@@ -219,6 +219,11 @@ export const FunnelV2 = () => {
             <GoldDivider />
           </div>
 
+          {/* Memorial: grief prelude lives at the top, above the
+              product reveal, so grieving readers are met with care
+              before anything else. */}
+          {path === "memorial" && <GriefSection onCtaClick={scrollToCheckout} />}
+
           <div ref={productRevealRef}>
             <ProductReveal
               onCtaClick={scrollToCheckout}
@@ -240,18 +245,12 @@ export const FunnelV2 = () => {
             path={path}
           />
 
-          {/* Memorial path: the grief prelude now lives BELOW the
-              checkout cards, immediately above the full authority
-              band (title + credibility). Readers ready to buy hit the
-              cards first; readers who scroll on get the emotional
-              reveal and then the credibility close. Non-memorial
-              paths render the full authority band above the cards. */}
-          {path === "memorial" && (
-            <>
-              <GriefSection onCtaClick={scrollToCheckout} />
-              <AuthoritySection path={path} variant="both" />
-            </>
-          )}
+          {/* Memorial path: typed IntroTitle ("No little soul / is
+              ever forgotten by the stars.") + VSOP credibility card
+              sit together BELOW the checkout cards. Buyers ready to
+              convert see cards first; readers who keep scrolling get
+              the typed landing line and then the credibility close. */}
+          {path === "memorial" && <AuthoritySection path={path} variant="both" />}
 
           <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
             <GoldDivider />
