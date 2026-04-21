@@ -446,7 +446,7 @@ const MEMORIAL_FAQ_ITEMS = [
   },
   {
     q: "What if I don't know their exact birthday?",
-    a: "You don't need it. Their adoption date works. Their best-guess arrival month works. Even a rough year means we can still read their chart meaningfully. Accuracy helps, but it isn't the whole story — love carries a lot of the distance.",
+    a: "Give us what you have. The more precise the date, the sharper the reading — the moon changes sign every couple of days and the rising sign every two hours, so exactness does real work. If their actual birthday isn't known, their adoption date reads as a 'born-to-you' chart (a long-standing astrological convention for rescued animals), and an estimated month still gives the Sun sign and the outer-planet framework reliably. Less precision means some layers are approximate, not that the reading stops being real.",
   },
   {
     q: "How long ago is too long ago?",
