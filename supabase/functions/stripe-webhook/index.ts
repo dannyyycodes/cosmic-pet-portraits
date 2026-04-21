@@ -737,22 +737,18 @@ serve(async (req) => {
                   // Memorial pets are excluded — weekly "what's ahead" emails for a pet who has
                   // crossed the rainbow bridge would be a serious care failure.
                   //
-                  // Mixed-cart safety: has_memorial is set when the ORIGINAL cart
-                  // included ANY memorial pet, even alongside non-memorial tiers.
-                  // In that case we skip horoscope-sub creation for EVERY row in
-                  // the session — the per-row occasion_mode isn't yet propagated
-                  // through Stripe metadata, so without this flag a mixed cart
-                  // would enroll the memorial row in weekly horoscopes. Buyers
-                  // can opt in later at intake if they confirm the pet is
-                  // non-memorial (update-pet-data handles that path).
+                  // Per-pet occasion_mode is now authoritative (create-checkout writes memorial
+                  // on the correct rows at placeholder creation time via memorialCount). We
+                  // judge each row on its own occasion, so non-memorial pets in a mixed cart
+                  // correctly receive their horoscope and memorial pets are skipped. The
+                  // has_memorial session flag is retained as an audit log only — NOT used
+                  // to suppress non-memorial rows.
                   const includeHoroscope = session.metadata?.include_horoscope === "true";
                   const hasMemorialInCart = session.metadata?.has_memorial === "true";
-                  const isMemorial = report.occasion_mode === "memorial" || hasMemorialInCart;
+                  const isMemorial = report.occasion_mode === "memorial";
                   const thisPetGetsHoroscope = includeHoroscope && !isMemorial;
-                  if (hasMemorialInCart && includeHoroscope) {
-                    console.log("[STRIPE-WEBHOOK] Mixed-cart memorial safety — suppressing horoscope for ALL rows in session:", reportId, report.pet_name);
-                  } else if (report.occasion_mode === "memorial" && includeHoroscope) {
-                    console.log("[STRIPE-WEBHOOK] Skipping horoscope subscription for memorial pet:", reportId, report.pet_name);
+                  if (isMemorial && includeHoroscope) {
+                    console.log("[STRIPE-WEBHOOK] Skipping horoscope subscription for memorial pet:", reportId, report.pet_name, { hasMemorialInCart });
                   }
 
                   if (thisPetGetsHoroscope && report.email) {

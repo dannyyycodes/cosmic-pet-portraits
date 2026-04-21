@@ -520,6 +520,12 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           // Memorial Reading is bundled into premiumCount (same Stripe price as Soul Bond).
           basicCount: basicQty,
           premiumCount: combinedPremiumCount,
+          // Memorial rows are the LAST memorialCount placeholders in the cart
+          // — create-checkout uses this to stamp occasion_mode='memorial' on
+          // exactly those rows while non-memorial pets inherit the cart-level
+          // landing occasion. This is what makes mixed carts work end-to-end
+          // without a has_memorial workaround.
+          memorialCount: memorialQty,
           abVariant: "V2",
           includesPortrait: combinedPremiumCount > 0,
           petCount,

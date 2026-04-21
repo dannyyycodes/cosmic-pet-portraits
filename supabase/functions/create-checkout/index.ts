@@ -85,12 +85,18 @@ const checkoutSchema = z.object({
   charityId: z.enum(["ifaw", "world-land-trust", "eden-reforestation"]).optional(),
   charityBonus: z.number().int().min(0).max(500).optional().default(0),
   occasionMode: z.enum(["discover", "new", "birthday", "memorial", "gift"]).optional(),
-  // Safety flag — when the cart contains ANY memorial pet (even mixed with
-  // non-memorial tiers), we propagate has_memorial=true to Stripe metadata
-  // so stripe-webhook can suppress horoscope-sub creation for the entire
-  // session. Prevents grief-inappropriate weekly emails when per-line-item
-  // occasion isn't yet propagated. See InlineCheckout.tsx.
+  // Safety flag — retained for belt-and-braces but largely superseded by
+  // memorialCount below. When any memorial pet is in the cart we still set
+  // has_memorial=true in Stripe metadata as a cross-check; stripe-webhook's
+  // primary guard is the per-row occasion_mode field.
   hasMemorial: z.boolean().optional().default(false),
+  // Per-line-item memorial count — the canonical way to signal "N of the
+  // pets in this cart should be memorial readings." When > 0, the loop
+  // that creates pet_reports placeholders writes occasion_mode='memorial'
+  // on the LAST N rows, so each pet's DB row carries the correct occasion
+  // at payment time — no intake-time reconciliation needed. Non-memorial
+  // rows inherit the cart-level occasionMode (landing-path default).
+  memorialCount: z.number().int().min(0).max(10).optional().default(0),
   giftUpsellCheckout: z.boolean().optional().default(false),
   purchaserEmail: z.string().email().max(255).optional().or(z.literal('')),
   giftRecipientEmail: z.string().email().max(255).optional().or(z.literal('')),
@@ -395,11 +401,25 @@ serve(async (req) => {
 
       // Create placeholder report(s). With mixed tiers, first basicCount placeholders
       // are basic (no portrait), remaining premiumCount get includes_portrait=true.
+      //
+      // Memorial occasion slot: the LAST memorialCount rows of the cart are
+      // flagged occasion_mode='memorial'. Memorial tier shares the premium
+      // Stripe price so memorialCount always lands inside the premiumCount
+      // block — see the InlineCheckout cart (memorialQty bundles into
+      // combinedPremiumCount). Non-memorial rows inherit the cart-level
+      // occasionMode (landing-path default: new / discover / etc.). This
+      // means each pet_reports row leaves create-checkout with the correct
+      // per-pet occasion already written, so stripe-webhook + intake read
+      // the right mode per row without any reconciliation step.
+      const memorialCount = input.memorialCount ?? 0;
+      const firstMemorialIndex = petCount - memorialCount;
       const reportIds: string[] = [];
       for (let i = 0; i < petCount; i++) {
         const perPetIncludesPortrait = hasPerTierCounts
           ? (i >= basicCount) // basic first, premium after
           : includesPortrait;
+        const isMemorialRow = memorialCount > 0 && i >= firstMemorialIndex;
+        const perPetOccasion = isMemorialRow ? "memorial" : occasionMode;
         const { data: placeholderReport, error: insertError } = await supabaseClient
           .from("pet_reports")
           .insert({
@@ -407,7 +427,7 @@ serve(async (req) => {
             pet_name: "Pending",
             species: "pending",
             payment_status: "pending",
-            occasion_mode: occasionMode,
+            occasion_mode: perPetOccasion,
             includes_book: includesBook,
             includes_portrait: perPetIncludesPortrait || includesBook,
           })
@@ -573,8 +593,15 @@ serve(async (req) => {
           occasion_mode: occasionMode,
           include_horoscope: input.includeHoroscope ? "true" : "false",
           horoscope_pet_count: input.includeHoroscope ? petCount.toString() : "0",
-          // Mixed-cart memorial safety — webhook reads this and skips
-          // horoscope subscription creation for the entire session if true.
+          // Per-line-item memorial count — canonical source. Each pet_reports
+          // placeholder row already carries the correct occasion_mode; this
+          // metadata is the audit trail so stripe-webhook + verify-payment
+          // can cross-check without a DB round-trip.
+          memorial_count: (input.memorialCount ?? 0).toString(),
+          // Mixed-cart memorial safety — retained as belt-and-braces. With
+          // per-row occasion correctness the webhook's primary guard is
+          // report.occasion_mode === 'memorial'; has_memorial just ensures
+          // we double-check even if per-row writes ever regress.
           has_memorial: input.hasMemorial ? "true" : "false",
           charity_id: input.charityId || "",
           charity_bonus: charityBonus.toString(),
