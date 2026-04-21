@@ -719,11 +719,15 @@ const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
 
 const TYPE_MS_PER_CHAR = 26;     // speed of keystrokes — snappy but still reads
 const TYPE_PAUSE_MS    = 240;    // breath between line a and line b
-const TYPE_LEAD_IN_MS  = 180;    // small beat after reveal before typing starts
-// Memorial lead-in used to wait 5.8s to sit behind GriefSection's
-// 3-beat prelude — but by the time the title enters the viewport (35%
-// threshold) the prelude is long done. A short beat is enough.
-const TYPE_LEAD_IN_MEMORIAL_MS = 700;
+// The IntroTitle sits inside AuthoritySection's card which fades in
+// over 900ms from its own scroll observer. If we start typing inside
+// that window the first characters are invisible behind the card's
+// opacity transition. Lead-in must cover the card fade + a small
+// breath so the first keystroke always lands on a fully-visible
+// card. Memorial gets a touch longer to feel like a deliberate
+// continuation of GriefSection's cadence.
+const TYPE_LEAD_IN_MS  = 1100;
+const TYPE_LEAD_IN_MEMORIAL_MS = 1400;
 const TYPE_CARET_FADE  = 700;    // caret fade-out after final char
 
 const IntroTitle = ({ path }: { path: FunnelPath }) => {
