@@ -5,13 +5,17 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Ticket, Sparkles, CheckCircle } from 'lucide-react';
 
-type OccasionMode = 'discover' | 'birthday' | 'memorial' | 'gift';
+type OccasionMode = 'discover' | 'new' | 'birthday' | 'memorial' | 'gift';
 
+// Order: the three primary landing paths first (discover / new / memorial),
+// then birthday + gift. Matches the landing-page PathPicker so redeem flows
+// can carry intent through to the same report voice.
 const OCCASION_OPTIONS: Array<{ value: OccasionMode; emoji: string; label: string; desc: string }> = [
   { value: 'discover', emoji: '🔮', label: 'Discover', desc: 'Explore who they are' },
-  { value: 'birthday', emoji: '🎂', label: 'Birthday', desc: 'Celebrate another year' },
+  { value: 'new', emoji: '🌱', label: 'New Pet', desc: 'A soul just arrived in your life' },
   { value: 'memorial', emoji: '🕊️', label: 'Memorial', desc: 'For a soul no longer at your side' },
-  { value: 'gift', emoji: '🎁', label: 'Gift', desc: 'A cosmic gift for someone special' },
+  { value: 'birthday', emoji: '🎂', label: 'Birthday', desc: 'Celebrate another year' },
+  { value: 'gift', emoji: '🎁', label: 'Gift', desc: 'A cosmic gift for someone' },
 ];
 
 export default function RedeemCode() {
@@ -22,7 +26,7 @@ export default function RedeemCode() {
   // and skips the occasion picker when this is set to anything other than 'discover'.
   const urlOccasion = searchParams.get('occasion') as OccasionMode | null;
   const initialOccasion: OccasionMode =
-    urlOccasion && ['discover', 'birthday', 'memorial', 'gift'].includes(urlOccasion)
+    urlOccasion && ['discover', 'new', 'birthday', 'memorial', 'gift'].includes(urlOccasion)
       ? urlOccasion
       : 'discover';
   const [code, setCode] = useState('');

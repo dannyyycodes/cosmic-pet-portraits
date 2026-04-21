@@ -85,7 +85,7 @@ export interface VerificationResult {
 
 export interface VerifyOpts {
   gender: "boy" | "girl";
-  occasionMode: "discover" | "birthday" | "memorial" | "gift";
+  occasionMode: "discover" | "new" | "birthday" | "memorial" | "gift";
   petName: string;
   language: string;                 // "en", "es", "de", "fr", "pt", "ar"
   // All zodiac signs that legitimately appear in the calculated chart

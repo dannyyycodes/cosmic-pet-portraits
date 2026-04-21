@@ -483,7 +483,15 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     // so mixed Memorial + Soul Reading / Soul Bond carts can signal Memorial
     // on just the memorial placeholders.
     const shouldForwardMemorial = memorialQty > 0 && basicQty === 0 && premiumQty === 0;
-    const occasionMode = shouldForwardMemorial ? "memorial" : undefined;
+    // Landing path → occasion_mode. Memorial takes priority (own tier). For
+    // non-memorial carts, the landing choice ("new" vs "discover") decides
+    // whether the report is written in arrival-bonding voice or established-
+    // pet-revelation voice. Gift buyers have their own /gift flow and never
+    // hit this code path.
+    const occasionMode: "memorial" | "new" | "discover" | undefined =
+      shouldForwardMemorial ? "memorial"
+      : path === "new" ? "new"
+      : undefined;
     trackFunnelEvent("v2_checkout_clicked", {
       tier: primaryTier,
       basicQty,

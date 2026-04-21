@@ -81,8 +81,9 @@ const SUPERPOWERS = [
 
 const OCCASION_OPTIONS = [
   { value: "discover", emoji: "🔮", label: "Discover", desc: "Explore who they truly are" },
-  { value: "birthday", emoji: "🎂", label: "Birthday", desc: "Celebrate another year of magic" },
+  { value: "new", emoji: "🌱", label: "New Pet", desc: "A soul just arrived in your life" },
   { value: "memorial", emoji: "🕊️", label: "Memorial", desc: "For a beloved soul no longer at your side" },
+  { value: "birthday", emoji: "🎂", label: "Birthday", desc: "Celebrate another year of magic" },
   { value: "gift", emoji: "🎁", label: "Gift", desc: "A cosmic gift for someone special" },
 ];
 
@@ -175,7 +176,7 @@ export function PostPurchaseIntake({
           .single();
         if (data?.includes_portrait) setIncludesSoulBond(true);
         const dbOccasion = (data as { occasion_mode?: string } | null)?.occasion_mode;
-        if (dbOccasion && ['discover', 'birthday', 'memorial', 'gift'].includes(dbOccasion)) {
+        if (dbOccasion && ['discover', 'new', 'birthday', 'memorial', 'gift'].includes(dbOccasion)) {
           setOccasionMode(dbOccasion);
           // Jump past Screen 0 — we already know why they're here.
           setScreen(1);
@@ -206,6 +207,17 @@ export function PostPurchaseIntake({
       window.scrollTo(0, 0);
     }
   }, [screen]);
+
+  // Memorial-only anchors — the memorial prompt on the worker reads these
+  // three columns from pet_reports (passed_date, favorite_memory, remembered_by)
+  // to anchor grief-specific sections. Without them the memorial report is
+  // generic grief writing rather than a reading *about this pet*.
+  const [passedMonth, setPassedMonth] = useState("");
+  const [passedYear, setPassedYear] = useState("");
+  const [passedDay, setPassedDay] = useState("");
+  const [passedDate, setPassedDate] = useState("");
+  const [favoriteMemory, setFavoriteMemory] = useState("");
+  const [rememberedBy, setRememberedBy] = useState("");
 
   // Improved date picker state
   const [useEstimateAge, setUseEstimateAge] = useState(false);
@@ -262,12 +274,32 @@ export function PostPurchaseIntake({
     }
   }, [ownerBirthMonth, ownerBirthYear, ownerBirthDay]);
 
+  // Sync passed month/year/day → passedDate. Refuses future passed-dates AND
+  // passed-dates before the pet's birth date. Picker is optional — all three
+  // parts must be set for the date to emit; partial entries don't commit.
+  useEffect(() => {
+    if (passedMonth && passedYear && passedDay) {
+      const m = (parseInt(passedMonth) + 1).toString().padStart(2, '0');
+      const d = passedDay.padStart(2, '0');
+      const candidate = `${passedYear}-${m}-${d}`;
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const afterBirth = !birthDate || candidate >= birthDate;
+      setPassedDate(candidate <= today && afterBirth ? candidate : "");
+    }
+  }, [passedMonth, passedYear, passedDay, birthDate]);
+
   const ownerDaysInMonth = useMemo(() => {
     if (ownerBirthMonth === "" || !ownerBirthYear) return 31;
     return new Date(parseInt(ownerBirthYear), parseInt(ownerBirthMonth) + 1, 0).getDate();
   }, [ownerBirthMonth, ownerBirthYear]);
 
   const ownerYears = useMemo(() => Array.from({ length: 80 }, (_, i) => currentYear - 16 - i), [currentYear]);
+
+  const passedDaysInMonth = useMemo(() => {
+    if (passedMonth === "" || !passedYear) return 31;
+    return new Date(parseInt(passedYear), parseInt(passedMonth) + 1, 0).getDate();
+  }, [passedMonth, passedYear]);
 
   // Owner location autocomplete
   useEffect(() => {
@@ -314,6 +346,11 @@ export function PostPurchaseIntake({
   // Memorial mode reshapes every present-tense prompt into past-tense,
   // grief-aware phrasing. Branch once here so the JSX stays readable.
   const isMemorial = occasionMode === 'memorial';
+  // New-pet mode reshapes copy toward arrival / bonding / who-will-they-become
+  // rather than revelation-about-established-pet. Every screen that talks to
+  // the reader as a long-time owner needs a different voice when the pet just
+  // walked in the door.
+  const isNew = occasionMode === 'new';
 
   // Location autocomplete (Nominatim)
   useEffect(() => {
@@ -400,7 +437,14 @@ export function PostPurchaseIntake({
           strangerReaction: strangerReaction || undefined, petPhotoUrl: petPhotoUrl || undefined,
           ownerMemory: ownerMemory.trim() || undefined,
           email: email.trim() || undefined,
-          ...(includesSoulBond && ownerBirthDate ? {
+          // Memorial-only anchor fields — worker memorial-prompt.ts uses these
+          // to ground sections in *this* pet rather than generic grief writing.
+          ...(isMemorial ? {
+            passedDate: passedDate || undefined,
+            favoriteMemory: favoriteMemory.trim() || undefined,
+            rememberedBy: rememberedBy.trim() || undefined,
+          } : {}),
+          ...(includesSoulBond && !isMemorial && ownerBirthDate ? {
             ownerName: ownerName.trim() || undefined,
             ownerBirthDate: ownerBirthDate || undefined,
             ownerBirthTime: ownerBirthTime || undefined,
@@ -453,25 +497,39 @@ export function PostPurchaseIntake({
   const labelClass = "text-[0.7rem] text-[#9B8E84] uppercase tracking-widest font-[Cormorant,serif] font-semibold mb-1 block";
   const roseBtn = "w-full py-[0.9rem] rounded-xl text-white font-[Cormorant,serif] font-semibold text-[1rem] transition-all";
 
+  // Screen 5 is a per-product slot:
+  // - Memorial path  → memorial anchors (passed_date, favorite_memory, remembered_by)
+  // - Premium path   → Soul Bond owner chart
+  // - Basic path     → skipped straight to confirm
+  // Memorial and Soul Bond are mutually exclusive — Soul Bond adds owner-vs-pet
+  // compatibility to the report, but the memorial prompt has no compatibility
+  // section, so collecting owner chart on a memorial cart would be a silent
+  // value leak. Memorial carts pay the premium £49 price but deliver memorial
+  // content, not synastry.
   // When owner data is already captured from a previous pet in a multi-pet flow,
   // skip the Soul Bond screen entirely — we already have what we need.
   const skipSoulBondScreen = includesSoulBond && hasSharedOwner;
-  const showSoulBondScreen = includesSoulBond && !hasSharedOwner;
-  const totalScreens = showSoulBondScreen ? 7 : 6;
-  // For premium: 0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=soul bond, 6=confirm
-  // For basic:   0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=confirm
-  const confirmScreen = showSoulBondScreen ? 6 : 5;
+  const showMemorialScreen = isMemorial;
+  const showSoulBondScreen = includesSoulBond && !hasSharedOwner && !isMemorial;
+  const extraScreen = showMemorialScreen || showSoulBondScreen;
+  const totalScreens = extraScreen ? 7 : 6;
+  // For memorial: 0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=memorial anchors, 6=confirm
+  // For premium:  0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=soul bond,        6=confirm
+  // For basic:    0=occasion, 1=name, 2=birthday, 3=breed/location, 4=personality, 5=confirm
+  const confirmScreen = extraScreen ? 6 : 5;
+  const memorialScreen = 5; // only used when showMemorialScreen
   const soulBondScreen = 5; // only used when showSoulBondScreen
 
   // Previous-screen resolver for the back button. Accounts for the optional
-  // Soul Bond screen (premium-only) so basic-tier buyers go 4 → confirm(5)
-  // and premium-tier buyers go 4 → soulBond(5) → confirm(6). Screen 0 is the
-  // occasion picker and has no further back step.
+  // screen 5 (memorial anchors OR Soul Bond, mutually exclusive) so basic-tier
+  // buyers go 4 → confirm(5), premium buyers go 4 → soulBond(5) → confirm(6),
+  // memorial buyers go 4 → memorial(5) → confirm(6). Screen 0 is the occasion
+  // picker and has no further back step.
   const previousScreen = (current: number): number => {
     if (current <= 1) return 0;
     if (current <= 4) return current - 1;
-    if (current === soulBondScreen && showSoulBondScreen) return 4;
-    if (current === confirmScreen) return showSoulBondScreen ? soulBondScreen : 4;
+    if (current === 5 && extraScreen) return 4;
+    if (current === confirmScreen) return extraScreen ? 5 : 4;
     return 0;
   };
   const goBack = () => setScreen((s) => previousScreen(s));
@@ -592,7 +650,7 @@ export function PostPurchaseIntake({
           {screen === 1 && (
             <motion.div key="s1" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                {isMemorial ? 'Tell us about them' : "Let's meet them"}
+                {isMemorial ? 'Tell us about them' : isNew ? 'Let\'s welcome them' : "Let's meet them"}
               </h1>
 
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
@@ -602,7 +660,7 @@ export function PostPurchaseIntake({
                     const formatted = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
                     setPetName(formatted);
                   }}
-                  placeholder={isMemorial ? 'What was their name?' : "What's their name?"}
+                  placeholder={isMemorial ? 'What was their name?' : isNew ? "What's your new arrival's name?" : "What's their name?"}
                   className={cn(inputClass, "text-center")}
                   autoFocus style={{ fontSize: '1.1rem' }}
                   aria-label="Pet name"
@@ -658,6 +716,8 @@ export function PostPurchaseIntake({
               <p className="text-center text-[0.92rem] text-[#6B5E54] italic" style={{ fontFamily: 'Cormorant, serif' }}>
                 {isMemorial
                   ? `Every planetary position in ${pronouns.possessive} chart was set the moment ${pronouns.subject} arrived.`
+                  : isNew
+                  ? `The stars were arranged on the day ${pronouns.subject} came into the world — this is what ${pronouns.subject} brings to you.`
                   : `Every planetary position in ${pronouns.possessive} chart is calculated from this exact date.`}
               </p>
 
@@ -817,7 +877,11 @@ export function PostPurchaseIntake({
                 A little more about {petName}
               </h1>
               <p className="text-center text-[0.88rem] text-[#9B8E84] italic" style={{ fontFamily: 'Cormorant, serif' }}>
-                {isMemorial ? 'Share only what you remember — skip anything unclear.' : "Both optional — skip if you're not sure."}
+                {isMemorial
+                  ? 'Share only what you remember — skip anything unclear.'
+                  : isNew
+                  ? "If you don't know these yet, skip — you'll get to know them as you go."
+                  : "Both optional — skip if you're not sure."}
               </p>
 
               <div>
@@ -909,11 +973,17 @@ export function PostPurchaseIntake({
               </div>
 
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                {isMemorial ? `Help us really hold ${petName}` : `Help us really see ${petName}`}
+                {isMemorial
+                  ? `Help us really hold ${petName}`
+                  : isNew
+                  ? `First impressions of ${petName}`
+                  : `Help us really see ${petName}`}
               </h1>
               <p className="text-center text-[0.88rem] text-[#6B5E54]" style={{ fontFamily: 'Cormorant, serif' }}>
                 {isMemorial
                   ? `The more you share, the more the reading sounds like it was written by someone who truly knew ${petName}.`
+                  : isNew
+                  ? `Even a few days is enough — your earliest read on ${petName} is more accurate than you think.`
                   : `The more we know, the more the reading sounds like it was written by someone who actually knows ${petName}.`}
               </p>
 
@@ -959,7 +1029,7 @@ export function PostPurchaseIntake({
 
               {/* Stranger Reaction */}
               <div>
-                <label className={labelClass}>{isMemorial ? 'How did they greet new people?' : 'How do they react to strangers?'}</label>
+                <label className={labelClass}>{isMemorial ? 'How did they greet new people?' : isNew ? 'How are they with new people so far?' : 'How do they react to strangers?'}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {STRANGER_REACTIONS.map(r => (
                     <button key={r.label} onClick={() => setStrangerReaction(strangerReaction === r.label ? "" : r.label)}
@@ -982,6 +1052,8 @@ export function PostPurchaseIntake({
                 <label className={labelClass}>
                   {isMemorial
                     ? 'One moment you want us to hold'
+                    : isNew
+                    ? 'The first moment that made you know'
                     : "One memory that's SO them"}{' '}
                   <span className="text-[#9B8E84] font-normal">(optional)</span>
                 </label>
@@ -990,6 +1062,8 @@ export function PostPurchaseIntake({
                   onChange={(e) => setOwnerMemory(e.target.value.slice(0, 500))}
                   placeholder={isMemorial
                     ? `A small moment only you'd remember — the spot ${petName || 'they'} sat, the sound ${petName || 'they'} made when you came home. Share as much or as little as you're ready to.`
+                    : isNew
+                    ? `The first time ${petName || 'they'} looked at you and you knew. Or the first small thing ${petName || 'they'} did that felt like them.`
                     : `The one story that makes ${petName || 'them'} ${petName || 'them'}. ${petName || 'They'} will reference it in SoulSpeak someday and you'll gasp.`}
                   rows={3}
                   className="w-full px-3 py-2 rounded-[10px] border-[1.5px] border-[#E8DFD6] bg-white text-[0.88rem] font-[Cormorant,serif] text-[#2D2926] placeholder:text-[#C2B8AE] focus:border-[#bf524a] focus:outline-none resize-none"
@@ -998,11 +1072,11 @@ export function PostPurchaseIntake({
                 <div className="text-right text-[0.7rem] text-[#9B8E84] font-[Cormorant,serif] mt-1">{ownerMemory.length}/500</div>
               </div>
 
-              <button onClick={() => setScreen(showSoulBondScreen ? soulBondScreen : confirmScreen)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+              <button onClick={() => setScreen(extraScreen ? 5 : confirmScreen)} className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
                 Continue →
               </button>
-              <button onClick={() => setScreen(showSoulBondScreen ? soulBondScreen : confirmScreen)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
-                {isMemorial ? 'Skip — let the stars speak for them' : 'Skip — let the stars do the talking'}
+              <button onClick={() => setScreen(extraScreen ? 5 : confirmScreen)} className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+                {isMemorial ? 'Skip — let the stars speak for them' : isNew ? "Skip — you'll learn the rest as you go" : 'Skip — let the stars do the talking'}
               </button>
             </motion.div>
           )}
@@ -1122,11 +1196,116 @@ export function PostPurchaseIntake({
             </motion.div>
           )}
 
+          {/* SCREEN 5 (memorial-only): grief anchors. The worker's memorial
+              prompt reads passed_date + favorite_memory + remembered_by from
+              pet_reports to ground each section in what *this* pet was.
+              Without them every memorial reading becomes generic grief prose. */}
+          {showMemorialScreen && screen === memorialScreen && (
+            <motion.div key="s-mem" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
+              <div className="text-center">
+                <h1 className="text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
+                  A few last, gentle details
+                </h1>
+                <p className="text-[0.92rem] text-[#6B5E54] italic mt-2" style={{ fontFamily: 'Cormorant, serif' }}>
+                  Only share what you're ready to. Each of these shapes how we write about {petName || 'them'} specifically.
+                </p>
+              </div>
+
+              {/* Field 1: when they passed */}
+              <div>
+                <label className={labelClass}>When did {petName || 'they'} pass? <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(optional — for gentle anniversary remembrances)</span></label>
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <select value={passedMonth} onChange={e => setPassedMonth(e.target.value)}
+                      className={cn(inputClass, "appearance-none pr-8")} style={{ fontSize: '16px' }}>
+                      <option value="">Month</option>
+                      {months.map((m, i) => <option key={m} value={i.toString()}>{m}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                  </div>
+                  <div className="w-[100px] relative">
+                    <select value={passedYear} onChange={e => setPassedYear(e.target.value)}
+                      className={cn(inputClass, "appearance-none pr-8")} style={{ fontSize: '16px' }}>
+                      <option value="">Year</option>
+                      {years.map(y => <option key={y} value={y.toString()}>{y}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9B8E84] pointer-events-none" />
+                  </div>
+                </div>
+                {passedMonth !== "" && passedYear && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-3">
+                    <label className={labelClass}>Day</label>
+                    <div className="grid grid-cols-7 gap-1">
+                      {Array.from({ length: passedDaysInMonth }, (_, i) => i + 1).map(day => (
+                        <button key={day} onClick={() => setPassedDay(day.toString())}
+                          className={cn(
+                            "py-2 rounded-lg text-[0.88rem] font-[Cormorant,serif] font-semibold transition-all",
+                            passedDay === day.toString()
+                              ? "bg-[#bf524a] text-white"
+                              : "bg-white border border-[#E8DFD6] text-[#2D2926] hover:border-[#c9665f]"
+                          )}>
+                          {day}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Field 2: favorite memory */}
+              <div>
+                <label className={labelClass}>Is there one moment you want us to hold? <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(optional)</span></label>
+                <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-2">
+                  A small moment only you'd remember — where {petName || 'they'} sat, a sound {petName || 'they'} made, a tiny ritual you shared.
+                </p>
+                <textarea
+                  value={favoriteMemory}
+                  onChange={e => setFavoriteMemory(e.target.value.slice(0, 500))}
+                  placeholder="A quiet moment, a small ritual, the way they looked at you…"
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-xl border-[1.5px] border-[#E8DFD6] bg-white text-[0.95rem] font-[Cormorant,serif] text-[#2D2926] placeholder:text-[#C2B8AE] focus:border-[#bf524a] focus:outline-none resize-none"
+                  style={{ fontSize: '16px' }}
+                  maxLength={500}
+                />
+                <div className="text-right text-[0.7rem] text-[#9B8E84] font-[Cormorant,serif] mt-1">{favoriteMemory.length}/500</div>
+              </div>
+
+              {/* Field 3: one-word essence */}
+              <div>
+                <label className={labelClass}>If you had one word to capture {petName || 'them'}, what would it be? <span className="text-[#9B8E84] normal-case tracking-normal font-normal">(optional)</span></label>
+                <p className="text-[0.78rem] text-[#9B8E84] font-[Cormorant,serif] mb-2">
+                  Their essence. "Golden light." "Gentle." "Mischief." Skip if nothing fits.
+                </p>
+                <input
+                  value={rememberedBy}
+                  onChange={e => setRememberedBy(e.target.value.slice(0, 80))}
+                  placeholder="One word, or a short phrase"
+                  className={inputClass}
+                  style={{ fontSize: '16px' }}
+                  maxLength={80}
+                />
+              </div>
+
+              <button onClick={() => setScreen(confirmScreen)}
+                className={cn(roseBtn, "bg-[#bf524a] hover:bg-[#c9665f]")}>
+                Continue →
+              </button>
+              <button onClick={() => setScreen(confirmScreen)}
+                className="w-full text-center text-[0.85rem] text-[#9B8E84] font-[Cormorant,serif] hover:underline mt-1">
+                Skip for now — the stars will hold {petName || 'them'} regardless
+              </button>
+            </motion.div>
+          )}
+
           {/* CONFIRMATION SCREEN */}
           {screen === confirmScreen && (
             <motion.div key="s5" variants={screenVariants} initial="enter" animate="center" exit="exit" className="space-y-5">
               <h1 className="text-center text-[1.5rem] text-[#2D2926]" style={{ fontFamily: 'DM Serif Display, serif' }}>
-                {isMemorial ? `Ready to hold ${petName}'s stars` : `Ready to read ${petName}'s stars`}
+                {isMemorial
+                  ? `Ready to hold ${petName}'s stars`
+                  : isNew
+                  ? `Ready to welcome ${petName}'s stars`
+                  : `Ready to read ${petName}'s stars`}
               </h1>
 
               {/* Summary Card */}
@@ -1248,11 +1427,13 @@ export function PostPurchaseIntake({
                 style={{ fontFamily: 'DM Serif Display, serif' }}
               >
                 {isSubmitting
-                  ? (isMemorial ? 'Holding...' : 'Creating...')
+                  ? (isMemorial ? 'Holding...' : isNew ? 'Welcoming...' : 'Creating...')
                   : (submitLabel
                       ? submitLabel(petName)
                       : (isMemorial
                           ? `Hold ${petName} in Their Reading →`
+                          : isNew
+                          ? `Welcome ${petName} with Their Reading →`
                           : `Create ${petName}'s Soul Reading →`))}
               </button>
               <p className="text-center text-[0.72rem] text-[#9B8E84] font-[Cormorant,serif]">
