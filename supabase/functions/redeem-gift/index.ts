@@ -273,6 +273,13 @@ serve(async (req) => {
               pet_report_id: reportId,
               status: "active",
               next_send_at: nextMonday.toISOString(),
+              // Stamp occasion on the sub itself so the batch generator can
+              // filter without needing a join back to pet_reports. Defense-
+              // in-depth: the app-side memorial guard above already prevents
+              // this insert from firing for memorial pets, but if that logic
+              // ever changes, the batch generator's own memorial WHERE
+              // clause reads this column.
+              occasion_mode: petOccasion,
             });
 
           if (subError) {

@@ -32,7 +32,7 @@ const inputSchema = z.object({
   petCount: z.number().int().min(1).max(10).optional().default(1),
   includesPortrait: z.boolean().optional().default(false),
   includesBook: z.boolean().optional().default(false),
-  occasionMode: z.enum(["discover", "birthday", "gift", "memorial"]).optional().default("discover"),
+  occasionMode: z.enum(["discover", "new", "birthday", "memorial", "gift"]).optional().default("discover"),
   quickCheckoutEmail: z.string().email().max(255).optional().or(z.literal("")),
   /** User's display currency from useLocalizedPrice. */
   currency: z.enum(SUPPORTED_CURRENCIES as unknown as [string, ...string[]]).optional(),

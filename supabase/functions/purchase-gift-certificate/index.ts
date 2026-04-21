@@ -82,7 +82,7 @@ const giftPetSchema = z.object({
   recipientName: z.string().max(100).optional(),
   recipientEmail: z.string().email().max(255).optional().or(z.literal("")).or(z.null()),
   horoscopeAddon: z.enum(["none", "monthly", "yearly"]).optional().default("none"),
-  occasion: z.enum(["discover", "new", "birthday", "memorial"]).optional().default("discover"),
+  occasion: z.enum(["discover", "new", "birthday", "memorial", "gift"]).optional().default("discover"),
 });
 
 // Input validation schema
@@ -205,7 +205,12 @@ serve(async (req) => {
         }
         
         const group = groupMap.get(key)!;
-        group.pets.push({ id: pet.id, tier: pet.tier, horoscopeAddon: pet.horoscopeAddon });
+        group.pets.push({
+          id: pet.id,
+          tier: pet.tier,
+          horoscopeAddon: pet.horoscopeAddon,
+          occasion: pet.occasion ?? "discover",
+        });
         // Update name if provided
         if (pet.recipientName && !group.recipientName) {
           group.recipientName = pet.recipientName;
@@ -218,7 +223,12 @@ serve(async (req) => {
       recipientGroups.push({
         recipientEmail: input.recipientEmail || null,
         recipientName: input.recipientName || '',
-        pets: giftPets.map(p => ({ id: p.id, tier: p.tier, horoscopeAddon: p.horoscopeAddon })),
+        pets: giftPets.map(p => ({
+          id: p.id,
+          tier: p.tier,
+          horoscopeAddon: p.horoscopeAddon,
+          occasion: p.occasion ?? "discover",
+        })),
       });
     }
 

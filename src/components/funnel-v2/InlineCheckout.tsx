@@ -535,6 +535,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           // the Stripe subscription for memorial rows — this stops the leak at
           // the source so the description reads cleanly too.
           includeHoroscope: !shouldForwardMemorial,
+          // Safety flag for mixed carts (memorial + non-memorial). The webhook
+          // uses this to suppress horoscope-sub creation for the ENTIRE session
+          // when memorial intent is present — even if individual pet_reports
+          // rows ended up stamped 'discover' because the checkout metadata
+          // doesn't yet support per-line-item occasion. Without this, a mixed
+          // cart would silently enroll the memorial pet in weekly horoscopes.
+          hasMemorial: memorialQty > 0,
           couponId: appliedCoupon?.id || undefined,
           // Forward memorial intent so placeholder pet_reports.occasion_mode
           // is pre-set to 'memorial' and PostPurchaseIntake defaults the
