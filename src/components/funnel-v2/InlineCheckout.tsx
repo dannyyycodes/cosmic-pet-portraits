@@ -340,13 +340,26 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         return;
       }
       // 2. Try as free redeem code (e.g. QATEST) — pass the buyer's cart
-      // mix so the redeem flow creates the matching N reports and routes
-      // through the real multi-pet intake instead of a single-pet shortcut.
+      // mix AND landing-path occasion intent so redeem-free-code creates
+      // placeholder rows with the right occasion_mode per row. Previously
+      // skipped occasionMode here, which meant memorial-path QATEST tests
+      // landed on "What's the occasion?" intake picker instead of jumping
+      // straight into the memorial flow (reported 2026-04-21).
+      const redeemShouldForwardMemorial = memorialQty > 0 && basicQty === 0 && premiumQty === 0;
+      const redeemOccasionMode: "memorial" | "new" | undefined =
+        redeemShouldForwardMemorial ? "memorial"
+        : path === "new" ? "new"
+        : undefined;
       const { data: redeemData, error: redeemErr } = await supabase.functions.invoke("redeem-free-code", {
         body: {
           code,
           basicCount: basicQty,
           premiumCount: premiumQty,
+          // Memorial tier is bundled into premiumCount for pricing but tracked
+          // separately so redeem-free-code can stamp occasion='memorial' on
+          // the right rows in mixed redemptions.
+          memorialCount: memorialQty,
+          occasionMode: redeemOccasionMode,
           email: email.trim() || undefined,
         },
       });
@@ -1881,7 +1894,7 @@ const EdenReforestationMark = () => <CharityLogoImg src="/charities/eden.png" al
  *    memorial-mode rules (docs/soulspeak-retention-research.md §10).
  */
 type SoulSpeakPath = "new" | "discover" | "memorial";
-type SoulSpeakMessages = { u1: string; p1: string; u2: string; hero: string };
+type SoulSpeakMessages = { u1: string; p1: string; u2: string };
 type SoulSpeakScript = {
   intro: string;
   // present only for paths we fully reveal (memorial). Absent = mystery.
@@ -1900,7 +1913,6 @@ const SOUL_SPEAK_SCRIPTS: Record<SoulSpeakPath, SoulSpeakScript> = {
       u1: "I still look for you in the kitchen.",
       p1: "That's where I came when I heard the cutlery drawer. I thought that drawer had my name on it.",
       u2: "I dropped a spoon last week and cried.",
-      hero: "I came anyway.",
     },
   },
 };
@@ -1922,10 +1934,12 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
   // Memorial gets gold "always-with-you" dot; living paths get green
   // "online" dot. Mirrors the real SoulSpeak header treatment.
   const isMemorial = path === "memorial";
-  // Typing indicator appears later for memorial (after 4 bubbles); almost
-  // immediately in mystery mode so the reader sees motion from the start.
-  const typingDelay = isMystery ? "0.15s" : "3.45s";
-  const composerDelay = isMystery ? "0.4s" : "3.8s";
+  // Typing indicator appears later for memorial (after 3 bubbles, in the
+  // pet-reply slot, so the preview reads as "they're about to answer —
+  // type to continue"); almost immediately in mystery mode so the reader
+  // sees motion from the start.
+  const typingDelay = isMystery ? "0.15s" : "2.75s";
+  const composerDelay = isMystery ? "0.4s" : "3.4s";
 
   // Pull a real dog photo from dog.ceo (free, no API key, CORS-enabled)
   // so the preview looks like a genuine screenshot of a live chat rather
@@ -2009,11 +2023,6 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
 
           <div className="ss-msg ss-msg-user" style={{ animationDelay: "2.1s" }}>
             <div className="ss-bubble">{messages.u2}</div>
-          </div>
-
-          <div className="ss-msg ss-msg-pet" style={{ animationDelay: "2.75s" }}>
-            <PetAvatar />
-            <div className="ss-bubble ss-bubble-hero">{messages.hero}</div>
           </div>
         </>
       )}
@@ -2249,16 +2258,6 @@ const SoulSpeakPreview = ({ path = "discover" }: { path?: SoulSpeakPath }) => {
         box-shadow:
           0 1px 4px rgba(20, 15, 8, 0.04),
           0 0 0 0.5px rgba(196, 162, 101, 0.06);
-      }
-
-      /* The two-word final reply — slightly larger, italic, gold-tinted
-         rule above the text so it reads like a soft revelation. */
-      .ss-bubble-hero {
-        font-style: italic;
-        font-size: clamp(1rem, 3vw, 1.08rem);
-        font-weight: 500;
-        color: var(--rose, #bf524a);
-        padding: 11px 18px;
       }
 
       /* Typing indicator — same bubble chrome as pet bubbles, gold dots

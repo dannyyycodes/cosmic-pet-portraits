@@ -122,6 +122,12 @@ export function PostPurchaseIntake({
 
   const [screen, setScreen] = useState(0);
   const [occasionMode, setOccasionMode] = useState("discover");
+  // Gate the first paint until we've checked the DB for a known occasion.
+  // Without this, Screen 0 ("What's the occasion?") flashes for the ~200-500ms
+  // DB round-trip before the auto-skip fires — a grieving memorial buyer
+  // should never see that header, even briefly. Reported 2026-04-21 after
+  // a QATEST memorial redeem landed on the occasion picker.
+  const [ready, setReady] = useState(false);
   const [petName, setPetName] = useState("");
   const [species, setSpecies] = useState("");
   const [gender, setGender] = useState("");
@@ -189,6 +195,11 @@ export function PostPurchaseIntake({
           }
         }
       } catch { /* non-fatal — Screen 0 still available as fallback */ }
+      finally {
+        // Unblock the first paint regardless of fetch success. Even on error
+        // we want the form to render — Screen 0 is the graceful fallback.
+        setReady(true);
+      }
     })();
   }, [reportId]);
 
@@ -603,6 +614,31 @@ export function PostPurchaseIntake({
     { label: "Superpower", value: superpowers.join(', ') },
     { label: "Stranger reaction", value: strangerReaction },
   ];
+
+  // Hold the first paint until the DB check resolves — prevents Screen 0
+  // ("What's the occasion?") from flashing to memorial buyers during the
+  // ~200-500ms round-trip before auto-skip fires. Show a quiet loading
+  // state in the same cream background so the transition feels continuous.
+  if (!ready) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center px-4"
+        style={{
+          backgroundColor: '#FFFDF5',
+          paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))',
+          paddingTop: 'calc(2rem + env(safe-area-inset-top, 0px))',
+          ...grainStyle,
+        }}
+      >
+        <div className="flex flex-col items-center gap-3" aria-busy="true" aria-live="polite">
+          <Loader2 className="w-6 h-6 text-[#bf524a] animate-spin" />
+          <p className="text-[0.88rem] text-[#9B8E84] font-[Cormorant,serif]">
+            Preparing your reading…
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
