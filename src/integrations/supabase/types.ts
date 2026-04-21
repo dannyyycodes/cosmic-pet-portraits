@@ -108,6 +108,44 @@ export type Database = {
           },
         ]
       }
+      affiliate_sessions: {
+        Row: {
+          affiliate_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          session_token: string | null
+          verification_code: string | null
+          verified: boolean
+        }
+        Insert: {
+          affiliate_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          session_token?: string | null
+          verification_code?: string | null
+          verified?: boolean
+        }
+        Update: {
+          affiliate_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          session_token?: string | null
+          verification_code?: string | null
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_sessions_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliates: {
         Row: {
           commission_rate: number
@@ -153,6 +191,66 @@ export type Database = {
         }
         Relationships: []
       }
+      authors: {
+        Row: {
+          created_at: string
+          description: string
+          image_url: string | null
+          job_title: string
+          knows_about: string[]
+          long_bio: string
+          name: string
+          never_writes_clusters: string[]
+          primary_clusters: string[]
+          same_as: string[]
+          secondary_clusters: string[]
+          short_name: string
+          slug: string
+          updated_at: string
+          voice_donts: string[]
+          voice_dos: string[]
+          voice_profile: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          image_url?: string | null
+          job_title: string
+          knows_about?: string[]
+          long_bio: string
+          name: string
+          never_writes_clusters?: string[]
+          primary_clusters?: string[]
+          same_as?: string[]
+          secondary_clusters?: string[]
+          short_name: string
+          slug: string
+          updated_at?: string
+          voice_donts?: string[]
+          voice_dos?: string[]
+          voice_profile: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          image_url?: string | null
+          job_title?: string
+          knows_about?: string[]
+          long_bio?: string
+          name?: string
+          never_writes_clusters?: string[]
+          primary_clusters?: string[]
+          same_as?: string[]
+          secondary_clusters?: string[]
+          short_name?: string
+          slug?: string
+          updated_at?: string
+          voice_donts?: string[]
+          voice_dos?: string[]
+          voice_profile?: string
+        }
+        Relationships: []
+      }
       blog_analytics: {
         Row: {
           blog_post_id: string | null
@@ -193,102 +291,321 @@ export type Database = {
       }
       blog_posts: {
         Row: {
+          anchor_variants: string[] | null
+          author_slug: string | null
           category: string | null
+          cluster: string | null
           content: string
           conversions: number | null
           created_at: string
           cta_clicks: number | null
+          cta_end_url: string | null
+          cta_middle_url: string | null
+          date_modified: string | null
           excerpt: string | null
+          faq: Json | null
           featured_image_url: string | null
+          hero_alt: string | null
           id: string
+          is_pillar: boolean | null
           is_published: boolean | null
           meta_description: string
           published_at: string | null
           reading_time_minutes: number | null
           secondary_keywords: string[] | null
           slug: string
+          sources: Json | null
           species: string | null
+          tags: string[] | null
           target_keyword: string
+          target_query: string | null
           title: string
+          tldr: string | null
           updated_at: string
           views: number | null
+          word_count: number | null
         }
         Insert: {
+          anchor_variants?: string[] | null
+          author_slug?: string | null
           category?: string | null
+          cluster?: string | null
           content: string
           conversions?: number | null
           created_at?: string
           cta_clicks?: number | null
+          cta_end_url?: string | null
+          cta_middle_url?: string | null
+          date_modified?: string | null
           excerpt?: string | null
+          faq?: Json | null
           featured_image_url?: string | null
+          hero_alt?: string | null
           id?: string
+          is_pillar?: boolean | null
           is_published?: boolean | null
           meta_description: string
           published_at?: string | null
           reading_time_minutes?: number | null
           secondary_keywords?: string[] | null
           slug: string
+          sources?: Json | null
           species?: string | null
+          tags?: string[] | null
           target_keyword: string
+          target_query?: string | null
           title: string
+          tldr?: string | null
           updated_at?: string
           views?: number | null
+          word_count?: number | null
         }
         Update: {
+          anchor_variants?: string[] | null
+          author_slug?: string | null
           category?: string | null
+          cluster?: string | null
           content?: string
           conversions?: number | null
           created_at?: string
           cta_clicks?: number | null
+          cta_end_url?: string | null
+          cta_middle_url?: string | null
+          date_modified?: string | null
           excerpt?: string | null
+          faq?: Json | null
           featured_image_url?: string | null
+          hero_alt?: string | null
           id?: string
+          is_pillar?: boolean | null
           is_published?: boolean | null
           meta_description?: string
           published_at?: string | null
           reading_time_minutes?: number | null
           secondary_keywords?: string[] | null
           slug?: string
+          sources?: Json | null
           species?: string | null
+          tags?: string[] | null
           target_keyword?: string
+          target_query?: string | null
           title?: string
+          tldr?: string | null
           updated_at?: string
           views?: number | null
+          word_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_slug_fkey"
+            columns: ["author_slug"]
+            isOneToOne: false
+            referencedRelation: "authors"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       blog_topics: {
         Row: {
+          author_slug: string | null
           category: string
+          cluster: string | null
           created_at: string
+          cta_url: string | null
           id: string
+          is_pillar: boolean | null
           is_used: boolean | null
           priority: number | null
+          scheduled_for: string | null
           species: string
+          tags: string[] | null
+          target_keyword: string | null
           topic: string
           used_at: string | null
+          working_title: string | null
         }
         Insert: {
+          author_slug?: string | null
           category?: string
+          cluster?: string | null
           created_at?: string
+          cta_url?: string | null
           id?: string
+          is_pillar?: boolean | null
           is_used?: boolean | null
           priority?: number | null
+          scheduled_for?: string | null
           species?: string
+          tags?: string[] | null
+          target_keyword?: string | null
           topic: string
           used_at?: string | null
+          working_title?: string | null
         }
         Update: {
+          author_slug?: string | null
           category?: string
+          cluster?: string | null
           created_at?: string
+          cta_url?: string | null
           id?: string
+          is_pillar?: boolean | null
           is_used?: boolean | null
           priority?: number | null
+          scheduled_for?: string | null
           species?: string
+          tags?: string[] | null
+          target_keyword?: string | null
           topic?: string
           used_at?: string | null
+          working_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_topics_author_slug_fkey"
+            columns: ["author_slug"]
+            isOneToOne: false
+            referencedRelation: "authors"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      breed_photo_review: {
+        Row: {
+          animal_type: string
+          breed_slug: string
+          created_at: string | null
+          expected_breed: string
+          gemini_breed: string | null
+          gemini_confidence: number | null
+          id: string
+          pexels_alt: string | null
+          pexels_id: number | null
+          photo_url: string
+          reviewed_at: string | null
+          status: string
+          storage_path: string | null
+          verified: boolean | null
+        }
+        Insert: {
+          animal_type?: string
+          breed_slug: string
+          created_at?: string | null
+          expected_breed: string
+          gemini_breed?: string | null
+          gemini_confidence?: number | null
+          id?: string
+          pexels_alt?: string | null
+          pexels_id?: number | null
+          photo_url: string
+          reviewed_at?: string | null
+          status?: string
+          storage_path?: string | null
+          verified?: boolean | null
+        }
+        Update: {
+          animal_type?: string
+          breed_slug?: string
+          created_at?: string | null
+          expected_breed?: string
+          gemini_breed?: string | null
+          gemini_confidence?: number | null
+          id?: string
+          pexels_alt?: string | null
+          pexels_id?: number | null
+          photo_url?: string
+          reviewed_at?: string | null
+          status?: string
+          storage_path?: string | null
+          verified?: boolean | null
         }
         Relationships: []
+      }
+      breed_photos: {
+        Row: {
+          animal_type: string
+          breed: string
+          breed_slug: string
+          created_at: string | null
+          height: number | null
+          id: string
+          photo_url: string
+          source: string | null
+          storage_path: string
+          width: number | null
+        }
+        Insert: {
+          animal_type?: string
+          breed: string
+          breed_slug: string
+          created_at?: string | null
+          height?: number | null
+          id?: string
+          photo_url: string
+          source?: string | null
+          storage_path: string
+          width?: number | null
+        }
+        Update: {
+          animal_type?: string
+          breed?: string
+          breed_slug?: string
+          created_at?: string | null
+          height?: number | null
+          id?: string
+          photo_url?: string
+          source?: string | null
+          storage_path?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
+      calendar_orders: {
+        Row: {
+          created_at: string | null
+          gelato_order_id: string | null
+          id: string
+          month_photos: Json
+          order_token: string
+          report_id: string
+          shipping_address: Json | null
+          status: string
+          submitted_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          gelato_order_id?: string | null
+          id?: string
+          month_photos?: Json
+          order_token?: string
+          report_id: string
+          shipping_address?: Json | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          gelato_order_id?: string | null
+          id?: string
+          month_photos?: Json
+          order_token?: string
+          report_id?: string
+          shipping_address?: Json | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_orders_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_credits: {
         Row: {
@@ -298,10 +615,13 @@ export type Database = {
           email: string | null
           id: string
           is_unlimited: boolean
+          next_credit_refresh: string | null
           order_id: string | null
           plan: string | null
           report_id: string | null
+          stripe_subscription_id: string | null
           updated_at: string | null
+          weekly_credits: number | null
         }
         Insert: {
           created_at?: string | null
@@ -310,10 +630,13 @@ export type Database = {
           email?: string | null
           id?: string
           is_unlimited?: boolean
+          next_credit_refresh?: string | null
           order_id?: string | null
           plan?: string | null
           report_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string | null
+          weekly_credits?: number | null
         }
         Update: {
           created_at?: string | null
@@ -322,10 +645,13 @@ export type Database = {
           email?: string | null
           id?: string
           is_unlimited?: boolean
+          next_credit_refresh?: string | null
           order_id?: string | null
           plan?: string | null
           report_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string | null
+          weekly_credits?: number | null
         }
         Relationships: [
           {
@@ -421,42 +747,261 @@ export type Database = {
         }
         Relationships: []
       }
+      content_log: {
+        Row: {
+          account: string
+          animal: string | null
+          awareness_level: number | null
+          blotato_post_id: string | null
+          caption: string | null
+          composed_storage_path: string | null
+          composed_video_url: string | null
+          content_ratio_slot: string | null
+          content_type: string
+          created_at: string
+          hashtags: string | null
+          hook_text: string | null
+          id: string
+          is_recycled: boolean | null
+          original_post_id: string | null
+          platform: string
+          platform_post_id: string | null
+          post_status: string | null
+          series: string | null
+          style_variant: string | null
+          video_library_id: string | null
+          workflow_id: string | null
+        }
+        Insert: {
+          account: string
+          animal?: string | null
+          awareness_level?: number | null
+          blotato_post_id?: string | null
+          caption?: string | null
+          composed_storage_path?: string | null
+          composed_video_url?: string | null
+          content_ratio_slot?: string | null
+          content_type: string
+          created_at?: string
+          hashtags?: string | null
+          hook_text?: string | null
+          id?: string
+          is_recycled?: boolean | null
+          original_post_id?: string | null
+          platform: string
+          platform_post_id?: string | null
+          post_status?: string | null
+          series?: string | null
+          style_variant?: string | null
+          video_library_id?: string | null
+          workflow_id?: string | null
+        }
+        Update: {
+          account?: string
+          animal?: string | null
+          awareness_level?: number | null
+          blotato_post_id?: string | null
+          caption?: string | null
+          composed_storage_path?: string | null
+          composed_video_url?: string | null
+          content_ratio_slot?: string | null
+          content_type?: string
+          created_at?: string
+          hashtags?: string | null
+          hook_text?: string | null
+          id?: string
+          is_recycled?: boolean | null
+          original_post_id?: string | null
+          platform?: string
+          platform_post_id?: string | null
+          post_status?: string | null
+          series?: string | null
+          style_variant?: string | null
+          video_library_id?: string | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_log_original_post_id_fkey"
+            columns: ["original_post_id"]
+            isOneToOne: false
+            referencedRelation: "content_log"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_log_video_library_id_fkey"
+            columns: ["video_library_id"]
+            isOneToOne: false
+            referencedRelation: "recyclable_clips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_log_video_library_id_fkey"
+            columns: ["video_library_id"]
+            isOneToOne: false
+            referencedRelation: "video_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_performance: {
+        Row: {
+          comments: number | null
+          completion_rate: number | null
+          content_log_id: string
+          engagement_rate: number | null
+          id: string
+          likes: number | null
+          measured_at: string
+          save_rate: number | null
+          saves: number | null
+          shares: number | null
+          views: number | null
+          virality_score: number | null
+          watch_time_seconds: number | null
+        }
+        Insert: {
+          comments?: number | null
+          completion_rate?: number | null
+          content_log_id: string
+          engagement_rate?: number | null
+          id?: string
+          likes?: number | null
+          measured_at?: string
+          save_rate?: number | null
+          saves?: number | null
+          shares?: number | null
+          views?: number | null
+          virality_score?: number | null
+          watch_time_seconds?: number | null
+        }
+        Update: {
+          comments?: number | null
+          completion_rate?: number | null
+          content_log_id?: string
+          engagement_rate?: number | null
+          id?: string
+          likes?: number | null
+          measured_at?: string
+          save_rate?: number | null
+          saves?: number | null
+          shares?: number | null
+          views?: number | null
+          virality_score?: number | null
+          watch_time_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_performance_content_log_id_fkey"
+            columns: ["content_log_id"]
+            isOneToOne: false
+            referencedRelation: "content_log"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cosmic_households: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          digest_day: number
+          display_name: string | null
+          email: string
+          id: string
+          last_digest_sent_at: string | null
+          monthly_cents: number | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          weekly_digest_enabled: boolean
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          digest_day?: number
+          display_name?: string | null
+          email: string
+          id?: string
+          last_digest_sent_at?: string | null
+          monthly_cents?: number | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          weekly_digest_enabled?: boolean
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          digest_day?: number
+          display_name?: string | null
+          email?: string
+          id?: string
+          last_digest_sent_at?: string | null
+          monthly_cents?: number | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          weekly_digest_enabled?: boolean
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
+          bonus_type: string | null
+          bonus_value: number | null
           code: string
           created_at: string
           current_uses: number
           discount_type: string
           discount_value: number
           expires_at: string | null
+          gift_only: boolean
           id: string
           is_active: boolean
           max_uses: number | null
           min_purchase_cents: number | null
+          tier_upgrade_target: string | null
+          wheel_email: string | null
+          wheel_prize_label: string | null
         }
         Insert: {
+          bonus_type?: string | null
+          bonus_value?: number | null
           code: string
           created_at?: string
           current_uses?: number
           discount_type?: string
           discount_value: number
           expires_at?: string | null
+          gift_only?: boolean
           id?: string
           is_active?: boolean
           max_uses?: number | null
           min_purchase_cents?: number | null
+          tier_upgrade_target?: string | null
+          wheel_email?: string | null
+          wheel_prize_label?: string | null
         }
         Update: {
+          bonus_type?: string | null
+          bonus_value?: number | null
           code?: string
           created_at?: string
           current_uses?: number
           discount_type?: string
           discount_value?: number
           expires_at?: string | null
+          gift_only?: boolean
           id?: string
           is_active?: boolean
           max_uses?: number | null
           min_purchase_cents?: number | null
+          tier_upgrade_target?: string | null
+          wheel_email?: string | null
+          wheel_prize_label?: string | null
         }
         Relationships: []
       }
@@ -683,10 +1228,13 @@ export type Database = {
           cancelled_at: string | null
           created_at: string
           email: string
+          household_id: string | null
           id: string
           next_send_at: string
+          occasion_mode: string | null
           pet_name: string
           pet_report_id: string | null
+          plan: string | null
           status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -695,10 +1243,13 @@ export type Database = {
           cancelled_at?: string | null
           created_at?: string
           email: string
+          household_id?: string | null
           id?: string
           next_send_at?: string
+          occasion_mode?: string | null
           pet_name: string
           pet_report_id?: string | null
+          plan?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -707,15 +1258,25 @@ export type Database = {
           cancelled_at?: string | null
           created_at?: string
           email?: string
+          household_id?: string | null
           id?: string
           next_send_at?: string
+          occasion_mode?: string | null
           pet_name?: string
           pet_report_id?: string | null
+          plan?: string | null
           status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "horoscope_subscriptions_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "cosmic_households"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "horoscope_subscriptions_pet_report_id_fkey"
             columns: ["pet_report_id"]
@@ -787,6 +1348,62 @@ export type Database = {
           youtube?: string | null
         }
         Relationships: []
+      }
+      memorial_touchpoints: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          metadata: Json | null
+          pet_birth_date: string | null
+          pet_name: string | null
+          pet_passed_date: string | null
+          pronoun_subject: string | null
+          report_id: string
+          scheduled_for: string
+          sent_at: string | null
+          touchpoint_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+          pet_birth_date?: string | null
+          pet_name?: string | null
+          pet_passed_date?: string | null
+          pronoun_subject?: string | null
+          report_id: string
+          scheduled_for: string
+          sent_at?: string | null
+          touchpoint_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          metadata?: Json | null
+          pet_birth_date?: string | null
+          pet_name?: string | null
+          pet_passed_date?: string | null
+          pronoun_subject?: string | null
+          report_id?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          touchpoint_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memorial_touchpoints_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
@@ -883,6 +1500,69 @@ export type Database = {
         }
         Relationships: []
       }
+      pet_compatibilities: {
+        Row: {
+          created_at: string
+          email: string
+          error_message: string | null
+          id: string
+          is_complimentary: boolean
+          payment_status: string
+          pet_report_a_id: string
+          pet_report_b_id: string
+          reading_content: Json | null
+          share_token: string | null
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          error_message?: string | null
+          id?: string
+          is_complimentary?: boolean
+          payment_status?: string
+          pet_report_a_id: string
+          pet_report_b_id: string
+          reading_content?: Json | null
+          share_token?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          error_message?: string | null
+          id?: string
+          is_complimentary?: boolean
+          payment_status?: string
+          pet_report_a_id?: string
+          pet_report_b_id?: string
+          reading_content?: Json | null
+          share_token?: string | null
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_compatibilities_pet_report_a_id_fkey"
+            columns: ["pet_report_a_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_compatibilities_pet_report_b_id_fkey"
+            columns: ["pet_report_b_id"]
+            isOneToOne: false
+            referencedRelation: "pet_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pet_reports: {
         Row: {
           birth_date: string | null
@@ -891,25 +1571,35 @@ export type Database = {
           breed: string | null
           created_at: string
           email: string
+          favorite_memory: string | null
+          fulfillment_status: string | null
+          gelato_order_id: string | null
           gender: string | null
           id: string
           includes_book: boolean
           includes_portrait: boolean | null
           language: string | null
+          lulu_order_id: string | null
           occasion_mode: string | null
           owner_birth_date: string | null
           owner_birth_location: string | null
           owner_birth_time: string | null
           owner_compatibility_insights: Json | null
           owner_compatibility_score: number | null
+          owner_memory: string | null
           owner_name: string | null
+          passed_date: string | null
           payment_status: string | null
+          pet_memory: Json | null
           pet_name: string
           pet_photo_url: string | null
+          photo_description: string | null
           portrait_url: string | null
           redeem_code: string | null
+          remembered_by: string | null
           report_content: Json | null
           share_token: string | null
+          shipping_address: Json | null
           soul_type: string | null
           species: string
           stranger_reaction: string | null
@@ -925,25 +1615,35 @@ export type Database = {
           breed?: string | null
           created_at?: string
           email: string
+          favorite_memory?: string | null
+          fulfillment_status?: string | null
+          gelato_order_id?: string | null
           gender?: string | null
           id?: string
           includes_book?: boolean
           includes_portrait?: boolean | null
           language?: string | null
+          lulu_order_id?: string | null
           occasion_mode?: string | null
           owner_birth_date?: string | null
           owner_birth_location?: string | null
           owner_birth_time?: string | null
           owner_compatibility_insights?: Json | null
           owner_compatibility_score?: number | null
+          owner_memory?: string | null
           owner_name?: string | null
+          passed_date?: string | null
           payment_status?: string | null
+          pet_memory?: Json | null
           pet_name: string
           pet_photo_url?: string | null
+          photo_description?: string | null
           portrait_url?: string | null
           redeem_code?: string | null
+          remembered_by?: string | null
           report_content?: Json | null
           share_token?: string | null
+          shipping_address?: Json | null
           soul_type?: string | null
           species: string
           stranger_reaction?: string | null
@@ -959,25 +1659,35 @@ export type Database = {
           breed?: string | null
           created_at?: string
           email?: string
+          favorite_memory?: string | null
+          fulfillment_status?: string | null
+          gelato_order_id?: string | null
           gender?: string | null
           id?: string
           includes_book?: boolean
           includes_portrait?: boolean | null
           language?: string | null
+          lulu_order_id?: string | null
           occasion_mode?: string | null
           owner_birth_date?: string | null
           owner_birth_location?: string | null
           owner_birth_time?: string | null
           owner_compatibility_insights?: Json | null
           owner_compatibility_score?: number | null
+          owner_memory?: string | null
           owner_name?: string | null
+          passed_date?: string | null
           payment_status?: string | null
+          pet_memory?: Json | null
           pet_name?: string
           pet_photo_url?: string | null
+          photo_description?: string | null
           portrait_url?: string | null
           redeem_code?: string | null
+          remembered_by?: string | null
           report_content?: Json | null
           share_token?: string | null
+          shipping_address?: Json | null
           soul_type?: string | null
           species?: string
           stranger_reaction?: string | null
@@ -1045,6 +1755,27 @@ export type Database = {
           email?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          identifier: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          identifier: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          identifier?: string
         }
         Relationships: []
       }
@@ -1209,6 +1940,114 @@ export type Database = {
         }
         Relationships: []
       }
+      video_library: {
+        Row: {
+          animal: string
+          aspect_ratio: string | null
+          avg_save_rate: number | null
+          created_at: string
+          duration_seconds: number | null
+          file_size_bytes: number | null
+          id: string
+          is_archived: boolean | null
+          is_raw: boolean | null
+          last_used_account: string | null
+          last_used_at: string | null
+          public_url: string
+          quality_score: number | null
+          scene_description: string | null
+          scene_slug: string
+          sora_prompt: string | null
+          source: string
+          storage_path: string
+          tags: string[] | null
+          times_used: number | null
+        }
+        Insert: {
+          animal: string
+          aspect_ratio?: string | null
+          avg_save_rate?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          id?: string
+          is_archived?: boolean | null
+          is_raw?: boolean | null
+          last_used_account?: string | null
+          last_used_at?: string | null
+          public_url: string
+          quality_score?: number | null
+          scene_description?: string | null
+          scene_slug: string
+          sora_prompt?: string | null
+          source: string
+          storage_path: string
+          tags?: string[] | null
+          times_used?: number | null
+        }
+        Update: {
+          animal?: string
+          aspect_ratio?: string | null
+          avg_save_rate?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          id?: string
+          is_archived?: boolean | null
+          is_raw?: boolean | null
+          last_used_account?: string | null
+          last_used_at?: string | null
+          public_url?: string
+          quality_score?: number | null
+          scene_description?: string | null
+          scene_slug?: string
+          sora_prompt?: string | null
+          source?: string
+          storage_path?: string
+          tags?: string[] | null
+          times_used?: number | null
+        }
+        Relationships: []
+      }
+      webhook_failures: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string | null
+          id: string
+          order_id: string | null
+          resolved: boolean
+          resolved_at: string | null
+          resolved_note: string | null
+          source: string
+          stripe_session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string | null
+          id?: string
+          order_id?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_note?: string | null
+          source: string
+          stripe_session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string | null
+          id?: string
+          order_id?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_note?: string | null
+          source?: string
+          stripe_session_id?: string | null
+        }
+        Relationships: []
+      }
       weekly_horoscopes: {
         Row: {
           content: Json
@@ -1244,12 +2083,131 @@ export type Database = {
           },
         ]
       }
+      wheel_spins: {
+        Row: {
+          coupon_id: string | null
+          created_at: string
+          email: string
+          id: string
+          ip_hash: string
+          prize_label: string
+          prize_slice: number
+          redeemed_at: string | null
+          source: string
+          user_agent: string | null
+        }
+        Insert: {
+          coupon_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          ip_hash: string
+          prize_label: string
+          prize_slice: number
+          redeemed_at?: string | null
+          source?: string
+          user_agent?: string | null
+        }
+        Update: {
+          coupon_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          ip_hash?: string
+          prize_label?: string
+          prize_slice?: number
+          redeemed_at?: string | null
+          source?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wheel_spins_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      breed_photo_library: {
+        Row: {
+          breed_slug: string | null
+          expected_breed: string | null
+          id: string | null
+          photo_url: string | null
+          storage_path: string | null
+        }
+        Insert: {
+          breed_slug?: string | null
+          expected_breed?: string | null
+          id?: string | null
+          photo_url?: string | null
+          storage_path?: string | null
+        }
+        Update: {
+          breed_slug?: string | null
+          expected_breed?: string | null
+          id?: string | null
+          photo_url?: string | null
+          storage_path?: string | null
+        }
+        Relationships: []
+      }
+      daily_post_summary: {
+        Row: {
+          account: string | null
+          content_type: string | null
+          failed: number | null
+          platform: string | null
+          post_date: string | null
+          posts: number | null
+          recycled: number | null
+          successful: number | null
+        }
+        Relationships: []
+      }
+      recyclable_clips: {
+        Row: {
+          animal: string | null
+          aspect_ratio: string | null
+          avg_save_rate: number | null
+          calc_save_rate: number | null
+          created_at: string | null
+          duration_seconds: number | null
+          file_size_bytes: number | null
+          id: string | null
+          is_archived: boolean | null
+          is_raw: boolean | null
+          last_used_account: string | null
+          last_used_at: string | null
+          public_url: string | null
+          quality_score: number | null
+          scene_description: string | null
+          scene_slug: string | null
+          sora_prompt: string | null
+          source: string | null
+          storage_path: string | null
+          tags: string[] | null
+          times_used: number | null
+          total_uses: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      cleanup_expired_affiliate_sessions: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      decrement_affiliate_balance: {
+        Args: { p_affiliate_id: string; p_amount_cents: number }
+        Returns: undefined
+      }
+      decrement_chat_credits: {
+        Args: { p_amount: number; p_order_id: string }
+        Returns: number
+      }
       increment_affiliate_stats: {
         Args: { p_affiliate_id: string; p_commission_cents: number }
         Returns: undefined
