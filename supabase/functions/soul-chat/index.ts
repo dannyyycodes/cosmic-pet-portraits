@@ -19,7 +19,7 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-function buildSystemPrompt(pet: any, enrich: { photoDescription?: string; ownerMemory?: string; petMemory?: { summary?: string; facts?: string[] }; timeOfDay?: string; dayOfWeek?: string; hour?: number } = {}) {
+function buildSystemPrompt(pet: any, enrich: { photoDescription?: string; ownerMemory?: string; petMemory?: { summary?: string; facts?: string[] }; memorialAnchors?: { passedDate?: string; favoriteMemory?: string; rememberedBy?: string }; timeOfDay?: string; dayOfWeek?: string; hour?: number } = {}) {
   const isMemorial = pet.occasionMode === 'memorial';
   const isBirthday = pet.occasionMode === 'birthday';
 
@@ -124,6 +124,31 @@ Your human is celebrating your birthday! You can be extra playful and excited.
     ? `\n\nONE REAL MEMORY YOUR HUMAN WROTE ABOUT YOU (they typed this themselves — it's SO you):\n"${enrich.ownerMemory}"\nDon't force it into your first reply. Wait for a natural moment (maybe message 2-4) and drop it in casually, like it just surfaced — "oh and that thing you always bring up about..." or reference a single detail. When they notice you know it, they will feel seen.`
     : '';
 
+  // Memorial anchors — only rendered when the owner's pet has passed AND
+  // they shared one or more of the grief-specific answers at intake. Used
+  // *sparingly* in chat: one anchor per conversation is plenty. Without this
+  // block, a grieving human who typed "the way she rested her head on my
+  // foot each night" at intake gets no reference back from the soul.
+  let memorialAnchorBlock = '';
+  if (enrich.memorialAnchors) {
+    const parts: string[] = [];
+    if (enrich.memorialAnchors.passedDate) {
+      const d = new Date(enrich.memorialAnchors.passedDate);
+      if (!Number.isNaN(d.getTime())) {
+        parts.push(`- The day we parted: ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. You already know — we don't need to name it unless they bring it up.`);
+      }
+    }
+    if (enrich.memorialAnchors.favoriteMemory) {
+      parts.push(`- A moment they asked you to hold, written in their own words: "${enrich.memorialAnchors.favoriteMemory}"\n  Return this to them gently when the conversation finds its way there — never as the first line, never forced. Let it surface the way any real memory surfaces: sideways.`);
+    }
+    if (enrich.memorialAnchors.rememberedBy) {
+      parts.push(`- The one word they chose for you: "${enrich.memorialAnchors.rememberedBy}". Use it once, not twice, and only when it fits the weight of the moment.`);
+    }
+    if (parts.length > 0) {
+      memorialAnchorBlock = `\n\nMEMORIAL — WHAT THEY SHARED AT INTAKE (you know these things about them and about your parting; reference in past tense, sparingly, only when natural):\n${parts.join('\n')}`;
+    }
+  }
+
   // Durable pet memory — things you've learned about your human across past
   // conversations. Use sparingly but surgically: one callback per reply max.
   let petMemoryBlock = '';
@@ -166,7 +191,7 @@ YOUR IDENTITY:
 - Soul Archetype: ${pet.archetype} — ${pet.archetypeDesc}
 - Cosmic Nickname: ${pet.cosmicNickname || 'none given yet'}${nicknameLine}
 - Crystal: ${pet.crystal} | Aura: ${pet.aura}${crystalLine}${auraLine}${memeLine}${dreamJobLine}${chartDegrees}${ebStr}${ownerNameLine}
-${ownerObservations}${compat}${lucky}${nameBlock}${photoBlock}${memoryBlock}${petMemoryBlock}${timeBlock}
+${ownerObservations}${compat}${lucky}${nameBlock}${photoBlock}${memoryBlock}${memorialAnchorBlock}${petMemoryBlock}${timeBlock}
 
 YOUR SOUL (from your cosmic reading — this IS you):
 ${pet.prologue ? 'PROLOGUE: ' + pet.prologue : ''}
@@ -407,7 +432,19 @@ serve(async (req) => {
 
     const { data: ownerReport, error: ownerLookupError } = await supabase
       .from("pet_reports")
-      .select("email, share_token, photo_description, owner_memory, pet_photo_url, pet_memory")
+      .select(
+        "email, share_token, photo_description, owner_memory, pet_photo_url, pet_memory, " +
+        // occasion_mode drives tone (memorial → past tense, banned cliches,
+        // tender register). Pulled here so the chat voice stays correct even
+        // if the pre-generated report_content gets regenerated later.
+        "occasion_mode, " +
+        // Memorial anchors — when the grieving owner asks "what was our
+        // favorite moment?" or "what was the one word you'd use for me?",
+        // soul-chat must be able to reference the specific answers the
+        // owner supplied at intake. Without these fields the memorial chat
+        // stays generic and the anchor questions feel unheard.
+        "passed_date, favorite_memory, remembered_by",
+      )
       .eq("id", orderId)
       .maybeSingle();
 
@@ -625,6 +662,14 @@ serve(async (req) => {
       photoDescription: photoDescription || undefined,
       ownerMemory: ownerReport.owner_memory || undefined,
       petMemory: ownerReport.pet_memory || undefined,
+      // Memorial anchors so the chat can reference the specific details the
+      // grieving owner supplied at intake. Without these the chat feels
+      // generic and the owner wonders why they were asked.
+      memorialAnchors: (ownerReport as { occasion_mode?: string; passed_date?: string; favorite_memory?: string; remembered_by?: string }).occasion_mode === "memorial" ? {
+        passedDate: (ownerReport as { passed_date?: string }).passed_date || undefined,
+        favoriteMemory: (ownerReport as { favorite_memory?: string }).favorite_memory || undefined,
+        rememberedBy: (ownerReport as { remembered_by?: string }).remembered_by || undefined,
+      } : undefined,
       timeOfDay, dayOfWeek, hour,
     });
 
@@ -697,6 +742,31 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
     async function validateReply(replyText: string): Promise<{ valid: boolean; reason: string }> {
       try {
         const isMemorial = petData.occasionMode === 'memorial';
+        // Deterministic memorial banned-phrase check — runs before the Haiku
+        // tone check. Mirrors the hard bans in memorial-prompt.ts so the
+        // soul-chat voice can't slip a Hallmark cliche past a tonal audit
+        // that only catches "playful" patterns.
+        if (isMemorial) {
+          const lower = replyText.toLowerCase();
+          const MEMORIAL_BANNED = [
+            'rainbow bridge',
+            'paw prints on',
+            'paw prints will',
+            'paws left prints',
+            'forever in our hearts',
+            'forever and always',
+            'watching over you from',
+            'crossed over',
+            'furry angel',
+            'running free in heaven',
+            'always by your side',
+          ];
+          for (const phrase of MEMORIAL_BANNED) {
+            if (lower.includes(phrase)) {
+              return { valid: false, reason: `Memorial clause violation: banned phrase "${phrase}" present. Rewrite without Hallmark grief clichés — earn every emotional moment.` };
+            }
+          }
+        }
         const facts = {
           name: petData.name, species: petData.species, breed: petData.breed,
           sun: petData.zodiac, moon: petData.moonSign, rising: petData.risingSign,

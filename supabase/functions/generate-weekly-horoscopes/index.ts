@@ -561,13 +561,33 @@ serve(async (req) => {
         _testMode: true,
       }];
     } else {
-      // Get all active subscriptions (include plan & occasion_mode)
+      // Get all active subscriptions (include plan & occasion_mode).
+      // Subscription-level filter: skip anything flagged memorial at the sub
+      // row itself. Horoscopes are forward-looking ("what's ahead this week");
+      // sending that to a grieving owner is a category-level care failure.
       const { data: subs, error: subError } = await supabase
         .from("horoscope_subscriptions")
         .select("*, pet_reports(*)")
-        .eq("status", "active");
+        .eq("status", "active")
+        .or("occasion_mode.is.null,occasion_mode.neq.memorial");
       if (subError) throw subError;
-      subscriptions = subs || [];
+      // Belt-and-braces: also drop any sub whose joined pet_reports row says
+      // memorial — handles the case where the sub was seeded before
+      // occasion_mode was stamped on it, or where the owner flipped the pet
+      // to memorial after the sub was created and the sub row is stale.
+      subscriptions = (subs || []).filter((s: { pet_reports?: { occasion_mode?: string } | null; occasion_mode?: string }) => {
+        const subOcc = s.occasion_mode;
+        const petOcc = s.pet_reports?.occasion_mode;
+        const effective = subOcc || petOcc;
+        if (effective === "memorial") {
+          console.warn(
+            "[WEEKLY-HOROSCOPE] skipping memorial sub — should not have passed query filter",
+            { subOcc, petOcc, reportId: (s as { pet_report_id?: string }).pet_report_id },
+          );
+          return false;
+        }
+        return true;
+      });
     }
 
     console.log(`[WEEKLY-HOROSCOPE] Found ${subscriptions.length} active subscriptions`);
@@ -741,6 +761,19 @@ Return only valid JSON.`,
           weekDateRange,
           petReport.pet_photo_url || undefined
         );
+
+        // LAST-MILE SAFETY GATE: outright refusal for memorial. The two
+        // earlier guards (subscription INSERT, batch SELECT) should already
+        // have excluded any memorial sub by the time we reach this point,
+        // but belt-and-braces — forward-looking weekly emails for a deceased
+        // pet are unacceptable under any circumstance. If we ever reach
+        // here with occasionMode === 'memorial', skip the send and log loud.
+        if (occasionMode === "memorial") {
+          console.error(
+            `[WEEKLY-HOROSCOPE] REFUSING to send memorial horoscope for ${sub.pet_name} (${sub.pet_report_id}) — prior guards failed, investigate.`,
+          );
+          continue;
+        }
 
         const { error: emailError } = await resend.emails.send({
           from: "Little Souls <hello@littlesouls.app>",

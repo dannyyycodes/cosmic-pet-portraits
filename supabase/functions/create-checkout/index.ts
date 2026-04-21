@@ -84,7 +84,13 @@ const checkoutSchema = z.object({
   // Whitelist — any charity_id flowing into Stripe metadata + charity_donations ledger must match one of these.
   charityId: z.enum(["ifaw", "world-land-trust", "eden-reforestation"]).optional(),
   charityBonus: z.number().int().min(0).max(500).optional().default(0),
-  occasionMode: z.string().max(20).optional(),
+  occasionMode: z.enum(["discover", "new", "birthday", "memorial", "gift"]).optional(),
+  // Safety flag — when the cart contains ANY memorial pet (even mixed with
+  // non-memorial tiers), we propagate has_memorial=true to Stripe metadata
+  // so stripe-webhook can suppress horoscope-sub creation for the entire
+  // session. Prevents grief-inappropriate weekly emails when per-line-item
+  // occasion isn't yet propagated. See InlineCheckout.tsx.
+  hasMemorial: z.boolean().optional().default(false),
   giftUpsellCheckout: z.boolean().optional().default(false),
   purchaserEmail: z.string().email().max(255).optional().or(z.literal('')),
   giftRecipientEmail: z.string().email().max(255).optional().or(z.literal('')),
@@ -567,6 +573,9 @@ serve(async (req) => {
           occasion_mode: occasionMode,
           include_horoscope: input.includeHoroscope ? "true" : "false",
           horoscope_pet_count: input.includeHoroscope ? petCount.toString() : "0",
+          // Mixed-cart memorial safety — webhook reads this and skips
+          // horoscope subscription creation for the entire session if true.
+          has_memorial: input.hasMemorial ? "true" : "false",
           charity_id: input.charityId || "",
           charity_bonus: charityBonus.toString(),
           currency,

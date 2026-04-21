@@ -736,10 +736,22 @@ serve(async (req) => {
                   // Create horoscope subscription only when explicitly opted in — hardcover does NOT get free horoscopes.
                   // Memorial pets are excluded — weekly "what's ahead" emails for a pet who has
                   // crossed the rainbow bridge would be a serious care failure.
+                  //
+                  // Mixed-cart safety: has_memorial is set when the ORIGINAL cart
+                  // included ANY memorial pet, even alongside non-memorial tiers.
+                  // In that case we skip horoscope-sub creation for EVERY row in
+                  // the session — the per-row occasion_mode isn't yet propagated
+                  // through Stripe metadata, so without this flag a mixed cart
+                  // would enroll the memorial row in weekly horoscopes. Buyers
+                  // can opt in later at intake if they confirm the pet is
+                  // non-memorial (update-pet-data handles that path).
                   const includeHoroscope = session.metadata?.include_horoscope === "true";
-                  const isMemorial = report.occasion_mode === "memorial";
+                  const hasMemorialInCart = session.metadata?.has_memorial === "true";
+                  const isMemorial = report.occasion_mode === "memorial" || hasMemorialInCart;
                   const thisPetGetsHoroscope = includeHoroscope && !isMemorial;
-                  if (isMemorial && includeHoroscope) {
+                  if (hasMemorialInCart && includeHoroscope) {
+                    console.log("[STRIPE-WEBHOOK] Mixed-cart memorial safety — suppressing horoscope for ALL rows in session:", reportId, report.pet_name);
+                  } else if (report.occasion_mode === "memorial" && includeHoroscope) {
                     console.log("[STRIPE-WEBHOOK] Skipping horoscope subscription for memorial pet:", reportId, report.pet_name);
                   }
 
