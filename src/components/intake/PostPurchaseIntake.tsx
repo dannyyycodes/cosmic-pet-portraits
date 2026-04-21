@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, X, MapPin, Loader2, ChevronDown } from "lucide-react";
+import { Camera, X, MapPin, Loader2, ChevronDown, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -159,13 +159,28 @@ export function PostPurchaseIntake({
   // Drag-and-drop state
   const [isDragging, setIsDragging] = useState(false);
 
-  // Fetch report row to check if premium (includes_portrait)
+  // Fetch report row to check premium tier AND pre-seed the occasion from the
+  // purchase context. For pure-memorial Stripe carts the webhook already wrote
+  // occasion_mode='memorial' to the row; for redeem codes the user picks their
+  // occasion on /redeem-code. Either way we know the occasion before intake —
+  // so we skip the redundant "What's the occasion?" screen and jump straight
+  // into the pet-details flow with the correct copy already wired via isMemorial.
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await supabase.from('pet_reports').select('includes_portrait').eq('id', reportId).single();
+        const { data } = await supabase
+          .from('pet_reports')
+          .select('includes_portrait, occasion_mode')
+          .eq('id', reportId)
+          .single();
         if (data?.includes_portrait) setIncludesSoulBond(true);
-      } catch { /* non-fatal */ }
+        const dbOccasion = (data as { occasion_mode?: string } | null)?.occasion_mode;
+        if (dbOccasion && ['discover', 'birthday', 'memorial', 'gift'].includes(dbOccasion)) {
+          setOccasionMode(dbOccasion);
+          // Jump past Screen 0 — we already know why they're here.
+          setScreen(1);
+        }
+      } catch { /* non-fatal — Screen 0 still available as fallback */ }
     })();
   }, [reportId]);
 
@@ -448,6 +463,19 @@ export function PostPurchaseIntake({
   const confirmScreen = showSoulBondScreen ? 6 : 5;
   const soulBondScreen = 5; // only used when showSoulBondScreen
 
+  // Previous-screen resolver for the back button. Accounts for the optional
+  // Soul Bond screen (premium-only) so basic-tier buyers go 4 → confirm(5)
+  // and premium-tier buyers go 4 → soulBond(5) → confirm(6). Screen 0 is the
+  // occasion picker and has no further back step.
+  const previousScreen = (current: number): number => {
+    if (current <= 1) return 0;
+    if (current <= 4) return current - 1;
+    if (current === soulBondScreen && showSoulBondScreen) return 4;
+    if (current === confirmScreen) return showSoulBondScreen ? soulBondScreen : 4;
+    return 0;
+  };
+  const goBack = () => setScreen((s) => previousScreen(s));
+
   const ProgressDots = () => (
     <div className="flex flex-col items-center gap-2 mb-6">
       {isMultiPet && (
@@ -522,6 +550,18 @@ export function PostPurchaseIntake({
       }}
     >
       <div className="w-full max-w-[480px]">
+        {screen > 0 && !isSubmitting && (
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label="Go back to the previous step"
+            className="flex items-center gap-1.5 mb-3 text-[0.82rem] text-[#9B8E84] hover:text-[#2D2926] transition-colors"
+            style={{ fontFamily: 'Cormorant, serif' }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+        )}
         <ProgressDots />
         <AnimatePresence mode="wait">
           {/* SCREEN 0: Occasion Mode */}

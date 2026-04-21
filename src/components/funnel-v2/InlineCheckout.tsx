@@ -519,10 +519,14 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           referralCode: refCode || undefined,
           charityId: selectedCharity,
           charityBonus: charityBonus || 0,
-          // Both tiers advertise "1 month of weekly horoscopes — included free",
-          // so always flag it. Webhook uses this to create the trialing Stripe
-          // subscription (price_1Sfi1v…) with trial_period_days: 30.
-          includeHoroscope: true,
+          // Both living-pet tiers advertise "1 month of weekly horoscopes — free".
+          // Pure Memorial carts must NOT get horoscope: forward-looking "what's
+          // ahead this week" copy for a pet who has crossed the rainbow bridge
+          // would be a serious care failure (also suppresses the horoscope line
+          // on the Stripe checkout product description). Webhook already skips
+          // the Stripe subscription for memorial rows — this stops the leak at
+          // the source so the description reads cleanly too.
+          includeHoroscope: !shouldForwardMemorial,
           couponId: appliedCoupon?.id || undefined,
           // Forward memorial intent so placeholder pet_reports.occasion_mode
           // is pre-set to 'memorial' and PostPurchaseIntake defaults the

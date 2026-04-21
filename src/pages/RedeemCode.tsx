@@ -1,13 +1,32 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Ticket, Sparkles, CheckCircle } from 'lucide-react';
 
+type OccasionMode = 'discover' | 'birthday' | 'memorial' | 'gift';
+
+const OCCASION_OPTIONS: Array<{ value: OccasionMode; emoji: string; label: string; desc: string }> = [
+  { value: 'discover', emoji: '🔮', label: 'Discover', desc: 'Explore who they are' },
+  { value: 'birthday', emoji: '🎂', label: 'Birthday', desc: 'Celebrate another year' },
+  { value: 'memorial', emoji: '🕊️', label: 'Memorial', desc: 'For a soul no longer at your side' },
+  { value: 'gift', emoji: '🎁', label: 'Gift', desc: 'A cosmic gift for someone special' },
+];
+
 export default function RedeemCode() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Accept ?occasion=memorial|birthday|discover|gift so landing pages can deep-link
+  // straight into the right context. The post-purchase intake reads pet_reports.occasion_mode
+  // and skips the occasion picker when this is set to anything other than 'discover'.
+  const urlOccasion = searchParams.get('occasion') as OccasionMode | null;
+  const initialOccasion: OccasionMode =
+    urlOccasion && ['discover', 'birthday', 'memorial', 'gift'].includes(urlOccasion)
+      ? urlOccasion
+      : 'discover';
   const [code, setCode] = useState('');
+  const [occasion, setOccasion] = useState<OccasionMode>(initialOccasion);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{
     reportId: string;
@@ -21,7 +40,7 @@ export default function RedeemCode() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('redeem-free-code', {
-        body: { code: code.trim() },
+        body: { code: code.trim(), occasionMode: occasion },
       });
 
       if (error || data?.error) {
@@ -91,6 +110,32 @@ export default function RedeemCode() {
             style={{ background: 'white', border: '1px solid #e8ddd0', boxShadow: '0 2px 8px rgba(61,47,42,0.06)' }}
           >
             <form onSubmit={handleRedeem} className="space-y-6">
+              <div>
+                <label
+                  className="block text-sm font-medium mb-2"
+                  style={{ color: '#3d2f2a' }}
+                >
+                  What's this reading for?
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {OCCASION_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setOccasion(opt.value)}
+                      className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all text-center"
+                      style={{
+                        background: occasion === opt.value ? 'rgba(196,162,101,0.12)' : '#faf6ef',
+                        border: occasion === opt.value ? '1.5px solid #c4a265' : '1.5px solid #e8ddd0',
+                      }}
+                    >
+                      <span className="text-xl">{opt.emoji}</span>
+                      <span className="text-[0.85rem] font-semibold" style={{ color: '#3d2f2a' }}>{opt.label}</span>
+                      <span className="text-[0.68rem]" style={{ color: '#9a8578' }}>{opt.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div>
                 <label
                   className="block text-sm font-medium mb-2"
