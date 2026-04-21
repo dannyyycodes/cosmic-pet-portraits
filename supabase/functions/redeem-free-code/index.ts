@@ -49,11 +49,19 @@ serve(async (req) => {
     // Multi-pet testing support — if the buyer has N pets in their cart,
     // create N free reports matching the selected tier mix. Lets QATEST
     // exercise the real 4-pet intake + reveal flow end-to-end.
+    //
+    // memorialCount (added 2026-04-21): memorial tier shares the premium
+    // Stripe price, but we track it separately so the LAST memorialCount
+    // rows get stamped with occasion_mode='memorial'. Without this, a
+    // memorial-path QATEST test silently wrote occasion='discover' and
+    // the intake dumped the user on the occasion picker.
     const rawBasicCount = Number(body.basicCount);
     const rawPremiumCount = Number(body.premiumCount);
+    const rawMemorialCount = Number(body.memorialCount);
     const basicCount = Number.isFinite(rawBasicCount) && rawBasicCount > 0 ? Math.floor(rawBasicCount) : 0;
     const premiumCount = Number.isFinite(rawPremiumCount) && rawPremiumCount > 0 ? Math.floor(rawPremiumCount) : 0;
-    const totalPetCount = basicCount + premiumCount;
+    const memorialCount = Number.isFinite(rawMemorialCount) && rawMemorialCount > 0 ? Math.floor(rawMemorialCount) : 0;
+    const totalPetCount = basicCount + premiumCount + memorialCount;
     const isMultiPet = totalPetCount > 1;
     // Hard cap — same as MAX_PETS in the frontend, never trust the client.
     if (totalPetCount > 10) {
@@ -152,6 +160,12 @@ serve(async (req) => {
           : [
               ...Array.from({ length: basicCount }, () => "basic" as const),
               ...Array.from({ length: premiumCount }, () => "premium" as const),
+              // Memorial tier shares the premium Stripe price, so memorial
+              // rows sit alongside premium tier but are flagged with
+              // occasion_mode='memorial' below. This keeps the buyer's credit
+              // allocation / includes_portrait logic consistent while routing
+              // each row to the correct report prompt.
+              ...Array.from({ length: memorialCount }, () => "premium" as const),
             ])
       : [codeTier as PetTier];
 
@@ -170,29 +184,47 @@ serve(async (req) => {
     // want to stamp pet 1's name across all N reports.
     const applyExtras = !isMultiPet;
 
-    const rowsToInsert = petTiers.map((t) => ({
-      email: email || "pending@redeem.littlesouls.app",
-      pet_name: petName || "Pending",
-      species: species || "pending",
-      payment_status: "paid",
-      occasion_mode: occasionMode || "discover",
-      includes_book: t === "hardcover",
-      // Photo upload is included on every tier — see PR feat/portrait-included-all-tiers.
-      includes_portrait: true,
-      redeem_code: normalizedCode,
-      ...(applyExtras && gender ? { gender } : {}),
-      ...(applyExtras && breed ? { breed } : {}),
-      ...(applyExtras && birthDate ? { birth_date: birthDate } : {}),
-      ...(applyExtras && birthTime ? { birth_time: birthTime } : {}),
-      ...(applyExtras && birthLocation ? { birth_location: birthLocation } : {}),
-      ...(applyExtras && soulType ? { soul_type: soulType } : {}),
-      ...(applyExtras && superpower ? { superpower } : {}),
-      ...(applyExtras && strangerReaction ? { stranger_reaction: strangerReaction } : {}),
-      // Memorial-only fields are only written when the occasion is memorial.
-      ...(applyExtras && isMemorial && passedDate ? { passed_date: passedDate } : {}),
-      ...(applyExtras && isMemorial && favoriteMemory ? { favorite_memory: favoriteMemory } : {}),
-      ...(applyExtras && isMemorial && rememberedBy ? { remembered_by: rememberedBy } : {}),
-    }));
+    // Memorial rows are the LAST memorialCount entries in petTiers (append
+    // order above). For each row we compute its occasion: memorial if the
+    // row is in the memorial slot, otherwise the cart-level occasionMode
+    // (landing path default). This mirrors create-checkout's per-row stamping
+    // so paid and redeemed memorial carts route identically.
+    const firstMemorialIndex = petTiers.length - memorialCount;
+
+    const rowsToInsert = petTiers.map((t, idx) => {
+      const isMemorialRow = memorialCount > 0 && idx >= firstMemorialIndex;
+      // Single-pet redeem + explicit occasionMode='memorial' also counts as memorial.
+      const rowOccasion = isMemorialRow
+        ? "memorial"
+        : (occasionMode || "discover");
+      const rowIsMemorial = rowOccasion === "memorial";
+      return {
+        email: email || "pending@redeem.littlesouls.app",
+        pet_name: petName || "Pending",
+        species: species || "pending",
+        payment_status: "paid",
+        occasion_mode: rowOccasion,
+        includes_book: t === "hardcover",
+        // Photo upload is included on every tier — see PR feat/portrait-included-all-tiers.
+        includes_portrait: true,
+        redeem_code: normalizedCode,
+        ...(applyExtras && gender ? { gender } : {}),
+        ...(applyExtras && breed ? { breed } : {}),
+        ...(applyExtras && birthDate ? { birth_date: birthDate } : {}),
+        ...(applyExtras && birthTime ? { birth_time: birthTime } : {}),
+        ...(applyExtras && birthLocation ? { birth_location: birthLocation } : {}),
+        ...(applyExtras && soulType ? { soul_type: soulType } : {}),
+        ...(applyExtras && superpower ? { superpower } : {}),
+        ...(applyExtras && strangerReaction ? { stranger_reaction: strangerReaction } : {}),
+        // Memorial-only fields are only written when the row is actually memorial.
+        ...(applyExtras && rowIsMemorial && passedDate ? { passed_date: passedDate } : {}),
+        ...(applyExtras && rowIsMemorial && favoriteMemory ? { favorite_memory: favoriteMemory } : {}),
+        ...(applyExtras && rowIsMemorial && rememberedBy ? { remembered_by: rememberedBy } : {}),
+      };
+    });
+
+    // keep isMemorial reference for downstream code that uses it (horoscope logic etc.)
+    void isMemorial;
 
     const { data: inserted, error: insertError } = await supabase
       .from("pet_reports")
