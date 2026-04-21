@@ -445,7 +445,87 @@ interface ProductRevealProps {
    * True for discover; hidden for new/memorial/gift where the reader
    * is in a different emotional lane. */
   showBenefits?: boolean;
+  /** Whether to render the authority/credibility band inside this component.
+   * Default true. Memorial path hides it here and renders
+   * {@link AuthoritySection} below the checkout cards instead, so the
+   * emotional cadence (grief → offer → cards → proof) stays intact. */
+  showAuthority?: boolean;
 }
+
+/* ── AuthoritySection ──
+ * Standalone, exportable authority band (cosmic backdrop + IntroTitle +
+ * VsopCredibility). Previously rendered only inside ProductReveal.
+ * Extracted so memorial path can push it BELOW the checkout cards — a
+ * grieving reader has already been met by GriefSection and doesn't want
+ * credibility-first; skeptical/curious readers on discover + new still
+ * get it before price. */
+export const AuthoritySection = ({ path = "discover" as FunnelPath }: { path?: FunnelPath }) => {
+  const { ref, visible } = useScrollReveal(0.08);
+  return (
+    <section ref={ref} className="relative overflow-hidden">
+      <div
+        className="relative overflow-hidden"
+        style={{ background: "var(--cream, #FFFDF5)" }}
+      >
+        <ConstellationBackdrop />
+
+        {/* Authority section title — hoisted above the credibility card.
+            Wrapped in its own opaque cream card so the constellation
+            starfield behind it never crosses the typed letterforms. */}
+        <div
+          className="relative px-5 pt-14 sm:pt-16 transition-all duration-[1200ms] ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(16px)",
+            transitionDelay: "0.05s",
+            zIndex: 1,
+          }}
+        >
+          <div
+            className="max-w-[620px] mx-auto text-center"
+            style={{
+              background: "rgba(255, 253, 245, 0.94)",
+              backdropFilter: "blur(3px)",
+              WebkitBackdropFilter: "blur(3px)",
+              border: "1px solid rgba(196, 162, 101, 0.16)",
+              borderRadius: 18,
+              padding: "clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px)",
+              boxShadow: "0 4px 32px rgba(0, 0, 0, 0.04)",
+            }}
+          >
+            <IntroTitle path={path} />
+          </div>
+        </div>
+
+        {/* Authority card — VSOP credibility content in its own opaque card */}
+        <div
+          className="relative px-5 pt-8 pb-14 sm:pb-16 transition-all duration-[1200ms] ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(20px)",
+            transitionDelay: "0.15s",
+            zIndex: 1,
+          }}
+        >
+          <div
+            className="max-w-[560px] mx-auto"
+            style={{
+              background: "rgba(255, 253, 245, 0.92)",
+              backdropFilter: "blur(2px)",
+              WebkitBackdropFilter: "blur(2px)",
+              border: "1px solid rgba(196, 162, 101, 0.14)",
+              borderRadius: 18,
+              padding: "clamp(28px, 6vw, 48px) clamp(22px, 5vw, 40px)",
+              boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
+            }}
+          >
+            <VsopCredibility path={path} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 /* ── IntroTitle ──
  * The first big moment after the visitor picks a path. Two-line title
@@ -671,7 +751,7 @@ const IntroTitle = ({ path }: { path: FunnelPath }) => {
   );
 };
 
-export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBenefits = true }: ProductRevealProps) => {
+export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBenefits = true, showAuthority = true }: ProductRevealProps) => {
   const { ref, visible } = useScrollReveal(0.08);
   const [chatStep, setChatStep] = useState(0);
   const chatRef = useRef<HTMLDivElement>(null);
@@ -698,67 +778,13 @@ export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBen
   return (
     <section ref={ref} className="relative overflow-hidden">
 
-      {/* ── Cosmic band: quote + authority share the constellation backdrop ── */}
-      <div
-        className="relative overflow-hidden"
-        style={{ background: "var(--cream, #FFFDF5)" }}
-      >
-        <ConstellationBackdrop />
-
-        {/* Authority section title — hoisted above the credibility card.
-            Wrapped in its own opaque cream card so the constellation
-            starfield behind it never crosses the typed letterforms. */}
-        <div
-          className="relative px-5 pt-14 sm:pt-16 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(16px)",
-            transitionDelay: "0.05s",
-            zIndex: 1,
-          }}
-        >
-          <div
-            className="max-w-[620px] mx-auto text-center"
-            style={{
-              background: "rgba(255, 253, 245, 0.94)",
-              backdropFilter: "blur(3px)",
-              WebkitBackdropFilter: "blur(3px)",
-              border: "1px solid rgba(196, 162, 101, 0.16)",
-              borderRadius: 18,
-              padding: "clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px)",
-              boxShadow: "0 4px 32px rgba(0, 0, 0, 0.04)",
-            }}
-          >
-            <IntroTitle path={path} />
-          </div>
-        </div>
-
-        {/* Authority card — VSOP credibility content in its own opaque card */}
-        <div
-          className="relative px-5 pt-8 pb-14 sm:pb-16 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.15s",
-            zIndex: 1,
-          }}
-        >
-          <div
-            className="max-w-[560px] mx-auto"
-            style={{
-              background: "rgba(255, 253, 245, 0.92)",
-              backdropFilter: "blur(2px)",
-              WebkitBackdropFilter: "blur(2px)",
-              border: "1px solid rgba(196, 162, 101, 0.14)",
-              borderRadius: 18,
-              padding: "clamp(28px, 6vw, 48px) clamp(22px, 5vw, 40px)",
-              boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
-            }}
-          >
-            <VsopCredibility path={path} />
-          </div>
-        </div>
-      </div>
+      {/* ── Authority band (IntroTitle + VSOP credibility) ──
+           Rendered inline here by default. Memorial path passes
+           showAuthority={false} and renders <AuthoritySection /> below
+           the checkout cards instead, so a grieving reader hits the
+           offer + cards before any credibility-chrome interrupts the
+           emotional cadence. */}
+      {showAuthority && <AuthoritySection path={path} />}
 
       {/* ── Block 2: The Benefits ── cream band + hearts backdrop + cards ──
            Rendered only on the Discover route. New-pet / memorial / gift

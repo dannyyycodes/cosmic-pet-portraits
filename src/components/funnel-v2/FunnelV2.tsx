@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
-import { ProductReveal } from "./ProductReveal";
+import { ProductReveal, AuthoritySection } from "./ProductReveal";
 import { CompactReviews } from "./CompactReviews";
 import { InlineCheckout } from "./InlineCheckout";
 import { LiveActivityToast } from "./LiveActivityToast";
@@ -230,6 +230,7 @@ export const FunnelV2 = () => {
               ctaLabel={ctaPrimary}
               path={path}
               showBenefits={path === "discover" || path === "new"}
+              showAuthority={path !== "memorial"}
             />
           </div>
 
@@ -243,6 +244,13 @@ export const FunnelV2 = () => {
             memorialOnly={path === "memorial"}
             path={path}
           />
+
+          {/* Memorial path: authority/credibility lives BELOW the cards
+              so the grieving reader hits the offer first and only meets
+              credentials once they've decided to keep scrolling for
+              reassurance. Non-memorial paths render authority inside
+              ProductReveal above, where skeptical shoppers expect it. */}
+          {path === "memorial" && <AuthoritySection path={path} />}
 
           <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
             <GoldDivider />
