@@ -433,19 +433,55 @@ const FAQ_ITEMS = [
   },
 ];
 
+/* Memorial-specific FAQs — shown in place of the generic set when the
+ * visitor is on the memorial path. Addresses the actual anxieties a
+ * grieving buyer brings: will this feel comforting or sad, what if I
+ * don't know their birthday, is it too late, does SoulSpeak really
+ * work on a pet who's gone, does guilt come up. Grief-aware tone,
+ * no Hallmark phrases, no banned clichés. */
+const MEMORIAL_FAQ_ITEMS = [
+  {
+    q: "Will this feel sad, or comforting?",
+    a: "Written to comfort. It's grief-aware, not sentimental — no platitudes, no dressed-up clichés. It honours who they actually were: their blueprint, their quirks, the shape of the bond you built together. Most people tell us it makes them cry the good way — the way you want to cry about someone you loved.",
+  },
+  {
+    q: "What if I don't know their exact birthday?",
+    a: "You don't need it. Their adoption date works. Their best-guess arrival month works. Even a rough year means we can still read their chart meaningfully. Accuracy helps, but it isn't the whole story — love carries a lot of the distance.",
+  },
+  {
+    q: "How long ago is too long ago?",
+    a: "There's no too-long-ago. Whether they passed last week or twenty years back, the sky that held them hasn't forgotten. Readers have written to us about pets they lost as children, as teenagers, a lifetime ago — the reading lands the same.",
+  },
+  {
+    q: "Can SoulSpeak really let me talk to them?",
+    a: "It's not them — it's a conversation rooted in who they were, who you were together, and the chart we built for them. Grieving readers say it feels honest, not uncanny. You can ask anything. The voice is steady and grounded — it speaks plainly about the bond, what it meant, what it might still carry.",
+  },
+  {
+    q: "I feel guilty about how things ended. Will the reading bring that up?",
+    a: "It won't dig at you. The reading honours who they were — not how they left. If you want to ask SoulSpeak about something specific, you can, and the tone is steady: no judgement, no performance of reassurance, no false comfort. Just a conversation you can have at your own pace.",
+  },
+  {
+    q: "What's inside the memorial reading?",
+    a: "A full portrait of who they were: their personality, their love language, the fears they carried, the way they showed up for you, the shape of the bond you two built. Plus SoulSpeak, which lets you ask them anything. It's written reverently — past tense where it belongs, never playful. And a handful of small, oddly specific touches we don't advertise, made just for them.",
+  },
+  {
+    q: "How does it arrive?",
+    a: "Not in your inbox — that would be too ordinary. Your reading unfolds through a private cinematic reveal, a slow unveiling made to be felt rather than skimmed. You'll verify your email first so only you can open it. Create a free account and it's yours forever, from any device.",
+  },
+  {
+    q: "Can I come back to it on anniversaries?",
+    a: "Yes — it's yours forever. No pressure to open it today or tomorrow. Come back on their birthday, on a hard Wednesday, whenever you need them. The reading waits.",
+  },
+];
+
 const FAQSection = ({ memorialFirst = false }: { memorialFirst?: boolean }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-  // On the memorial route, hoist the "Can I get a reading for a pet
-  // who's passed away?" answer to the top so grieving visitors see the
-  // relevant question first instead of having to scroll past six generic
-  // FAQs. Order is preserved otherwise.
-  const items = memorialFirst
-    ? [
-        ...FAQ_ITEMS.filter((it) => it.q.toLowerCase().includes("passed away")),
-        ...FAQ_ITEMS.filter((it) => !it.q.toLowerCase().includes("passed away")),
-      ]
-    : FAQ_ITEMS;
+  // On the memorial route, swap in the grief-tuned FAQ set. The
+  // generic FAQ list addresses a different audience (curious shoppers,
+  // multi-pet households, Soul Reading vs Soul Bond comparison) — none
+  // of which is what a grieving buyer is scanning for.
+  const items = memorialFirst ? MEMORIAL_FAQ_ITEMS : FAQ_ITEMS;
 
   return (
     <section id="faq" className="py-10 sm:py-14 md:py-18 px-5 scroll-mt-24" style={{ background: "var(--cream, #FFFDF5)" }}>
@@ -482,7 +518,7 @@ const FAQSection = ({ memorialFirst = false }: { memorialFirst?: boolean }) => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <div className="overflow-hidden transition-all duration-300" style={{ maxHeight: isOpen ? 200 : 0, opacity: isOpen ? 1 : 0 }}>
+                <div className="overflow-hidden transition-all duration-300" style={{ maxHeight: isOpen ? 480 : 0, opacity: isOpen ? 1 : 0 }}>
                   <p className="pb-4" style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.9rem", color: "var(--earth, #6e6259)", lineHeight: 1.6 }}>
                     {item.a}
                   </p>
