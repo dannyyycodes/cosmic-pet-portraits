@@ -206,7 +206,16 @@ const ConstellationBackdrop = () => (
 );
 
 /* ── VSOP Credibility — warm authority ── */
-const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPath }) => {
+const VsopCredibility = ({
+  path = "discover" as FunnelPath,
+  revealed = true,
+}: {
+  path?: FunnelPath;
+  /** Whether the parent section has entered view — drives the staggered
+   * entrance animation for the lead paragraph, cards and glyph row so
+   * the whole block reads as choreographed rather than a single fade. */
+  revealed?: boolean;
+}) => {
   const isMemorial = path === "memorial";
   const isNew = path === "new";
 
@@ -214,9 +223,9 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
     ? (
         <>
           Read with{" "}
-          <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
+          <span className="vsop-gold" style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
           {" — the same planetary model "}
-          <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
+          <span className="vsop-ink" style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
           {" uses — so the sky we hold for them is the exact one they knew."}
         </>
       )
@@ -224,18 +233,18 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
     ? (
         <>
           Their map was written the moment they arrived. Using{" "}
-          <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
+          <span className="vsop-gold" style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
           {" — the same planetary model "}
-          <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
+          <span className="vsop-ink" style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
           {" uses — we read the exact sky they came into."}
         </>
       )
     : (
         <>
           Using{" "}
-          <span style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
+          <span className="vsop-gold" style={{ color: "var(--gold, #c4a265)", fontWeight: 700, letterSpacing: "0.03em" }}>VSOP87</span>
           {" — the same planetary model used by "}
-          <span style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
+          <span className="vsop-ink" style={{ color: "var(--ink, #1f1c18)", fontWeight: 700 }}>NASA</span>
           {" and professional observatories worldwide."}
         </>
       );
@@ -273,6 +282,8 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
         },
       ];
 
+  const r = revealed ? " is-in" : "";
+
   return (
   <div className="relative text-center overflow-hidden vsop-section">
     {/* Decorative orbit backdrop — pure SVG, very low opacity, gently rotating */}
@@ -301,8 +312,19 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
     <div className="relative">
       {/* Authority lead — route-aware. The big section title now lives
           outside this card (hoisted in ProductReveal) so this paragraph
-          acts as the supporting credibility statement. */}
-      <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "clamp(0.92rem, 3.2vw, 1rem)", color: "var(--earth, #6e6259)", lineHeight: 1.55, maxWidth: 460, margin: "0 auto 28px" }}>
+          acts as the supporting credibility statement. Gold-highlighted
+          brand names (VSOP87 / NASA) get a one-pass shimmer on reveal. */}
+      <p
+        className={`vsop-lead${r}`}
+        style={{
+          fontFamily: "Cormorant, Georgia, serif",
+          fontSize: "clamp(0.92rem, 3.2vw, 1rem)",
+          color: "var(--earth, #6e6259)",
+          lineHeight: 1.55,
+          maxWidth: 460,
+          margin: "0 auto 28px",
+        }}
+      >
         {authorityLead}
       </p>
 
@@ -310,11 +332,16 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
         {authorityCards.map((item, i) => (
           <div
             key={i}
-            className="relative rounded-xl py-5 px-5 text-left"
+            className={`vsop-auth-card${r}`}
             style={{
+              position: "relative",
+              borderRadius: 12,
+              padding: "20px 20px",
+              textAlign: "left",
               background: "linear-gradient(180deg, #FFFDF5 0%, #faf4e8 100%)",
               border: "1px solid rgba(196,162,101,0.28)",
               boxShadow: "0 2px 16px rgba(196,162,101,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
+              transitionDelay: `${250 + i * 110}ms`,
             }}
           >
             <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.95rem", color: "var(--ink, #1f1c18)", lineHeight: 1.3, marginBottom: 8 }}>
@@ -344,7 +371,7 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
       </p>
 
       {/* Planet row — gold gradient glyphs on rich pills */}
-      <div className="flex flex-wrap justify-center gap-1.5 mb-8">
+      <div className={`flex flex-wrap justify-center gap-1.5 mb-8 vsop-glyph-row${r}`}>
         {[
           ["Sun","\u2609\uFE0E"],["Moon","\u263D\uFE0E"],["Mercury","\u263F\uFE0E"],["Venus","\u2640\uFE0E"],
           ["Mars","\u2642\uFE0E"],["Jupiter","\u2643\uFE0E"],["Saturn","\u2644\uFE0E"],["Uranus","\u2645\uFE0E"],
@@ -362,6 +389,7 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
               border: "1px solid rgba(196,162,101,0.32)",
               boxShadow: "0 1px 4px rgba(196,162,101,0.1)",
               animationDelay: `${i * 120}ms`,
+              transitionDelay: `${560 + i * 40}ms`,
             }}
           >
             <span
@@ -384,7 +412,7 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
       </div>
 
       {/* Standards row with gold diamond separators */}
-      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+      <div className={`flex flex-wrap items-center justify-center gap-x-3 gap-y-1 vsop-standards-row${r}`}>
         {["VSOP87", "JPL HORIZONS", "IAU STANDARDS", "ASTRONOMIA ENGINE"].map((label, i) => (
           <span key={label} className="inline-flex items-center gap-2">
             {i > 0 && (
@@ -427,8 +455,80 @@ const VsopCredibility = ({ path = "discover" as FunnelPath }: { path?: FunnelPat
         animation-delay: inherit;
         will-change: transform;
       }
+
+      /* Staggered entrance — lead paragraph, each card, glyph row, standards
+         row. Each element opts in via is-in + its own transitionDelay. */
+      .vsop-lead,
+      .vsop-auth-card,
+      .vsop-glyph-row,
+      .vsop-standards-row {
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 720ms cubic-bezier(0.22, 1, 0.36, 1),
+                    transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .vsop-lead.is-in,
+      .vsop-auth-card.is-in,
+      .vsop-glyph-row.is-in,
+      .vsop-standards-row.is-in {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .vsop-lead           { transition-delay: 60ms; }
+      .vsop-glyph-row.is-in { transition-delay: 560ms; }
+      .vsop-standards-row.is-in { transition-delay: 680ms; }
+
+      /* Individual planet pill cascade — each pill fades up with its
+         own delay, riding on top of the row-level fade. */
+      .vsop-glyph-pill {
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 420ms ease, transform 420ms ease;
+      }
+      .vsop-glyph-row.is-in .vsop-glyph-pill {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* One-pass gold shimmer on the VSOP87 / NASA highlight spans.
+         Runs once when the section enters view — draws the eye to the
+         credibility anchors without nagging. */
+      .vsop-lead .vsop-gold,
+      .vsop-lead .vsop-ink {
+        position: relative;
+        display: inline-block;
+      }
+      .vsop-lead.is-in .vsop-gold::after,
+      .vsop-lead.is-in .vsop-ink::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(100deg, transparent 0%, transparent 40%, rgba(255, 253, 245, 0.9) 50%, transparent 60%, transparent 100%);
+        background-size: 220% 100%;
+        background-position: -120% 0;
+        mix-blend-mode: overlay;
+        animation: vsopShimmer 1500ms ease-out 900ms 1 forwards;
+      }
+      .vsop-lead.is-in .vsop-ink::after {
+        animation-delay: 1400ms;
+      }
+      @keyframes vsopShimmer {
+        0%   { background-position: -120% 0; opacity: 0; }
+        20%  { opacity: 1; }
+        100% { background-position: 220% 0;  opacity: 0; }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .vsop-orbit, .vsop-diamond, .vsop-glyph-pill { animation: none !important; }
+        .vsop-lead, .vsop-auth-card, .vsop-glyph-row, .vsop-standards-row,
+        .vsop-glyph-pill {
+          opacity: 1 !important;
+          transform: none !important;
+          transition: none !important;
+        }
+        .vsop-lead.is-in .vsop-gold::after,
+        .vsop-lead.is-in .vsop-ink::after { animation: none !important; }
       }
     `}</style>
   </div>
@@ -445,22 +545,44 @@ interface ProductRevealProps {
    * True for discover; hidden for new/memorial/gift where the reader
    * is in a different emotional lane. */
   showBenefits?: boolean;
-  /** Whether to render the authority/credibility band inside this component.
-   * Default true. Memorial path hides it here and renders
-   * {@link AuthoritySection} below the checkout cards instead, so the
-   * emotional cadence (grief → offer → cards → proof) stays intact. */
-  showAuthority?: boolean;
+  /** How much of the authority band to render inline here.
+   * - `"both"` (default) — typed IntroTitle + VSOP credibility card
+   *   stacked above the checkout cards. Used by discover + new paths.
+   * - `"title"` — only the typed IntroTitle. Memorial path uses this
+   *   so the emotional opener still lands above the checkout cards,
+   *   while the VSOP credibility card is rendered below the cards by
+   *   the parent funnel via `<AuthoritySection variant="credibility" />`.
+   * - `false` — skip the band entirely. */
+  showAuthority?: AuthorityVariant | false;
 }
 
 /* ── AuthoritySection ──
- * Standalone, exportable authority band (cosmic backdrop + IntroTitle +
- * VsopCredibility). Previously rendered only inside ProductReveal.
- * Extracted so memorial path can push it BELOW the checkout cards — a
- * grieving reader has already been met by GriefSection and doesn't want
- * credibility-first; skeptical/curious readers on discover + new still
- * get it before price. */
-export const AuthoritySection = ({ path = "discover" as FunnelPath }: { path?: FunnelPath }) => {
+ * Exportable authority band (cosmic backdrop + IntroTitle +
+ * VsopCredibility). Accepts a variant prop so callers can render just
+ * the typed title, just the credibility card, or both.
+ *
+ * Memorial path uses this to keep the typed IntroTitle above the
+ * checkout cards (emotional opener after GriefSection) but push the
+ * VSOP credibility card BELOW the cards, so credentials don't
+ * interrupt the grief-to-offer cadence.
+ */
+export type AuthorityVariant = "title" | "credibility" | "both";
+
+export const AuthoritySection = ({
+  path = "discover" as FunnelPath,
+  variant = "both",
+}: {
+  path?: FunnelPath;
+  variant?: AuthorityVariant;
+}) => {
   const { ref, visible } = useScrollReveal(0.08);
+  const showTitle = variant === "title" || variant === "both";
+  const showCredibility = variant === "credibility" || variant === "both";
+
+  // When rendered as a single part we tighten the vertical padding so
+  // the band doesn't leave an awkward gap above/below in splitting mode.
+  const singlePart = variant !== "both";
+
   return (
     <section ref={ref} className="relative overflow-hidden">
       <div
@@ -469,60 +591,113 @@ export const AuthoritySection = ({ path = "discover" as FunnelPath }: { path?: F
       >
         <ConstellationBackdrop />
 
-        {/* Authority section title — hoisted above the credibility card.
-            Wrapped in its own opaque cream card so the constellation
-            starfield behind it never crosses the typed letterforms. */}
+        {/* Entrance spotlight — a single soft gold wash that sweeps
+            through behind the card(s) on first view. Fires once, tied
+            to the scroll-reveal. Adds life without overwhelming. */}
         <div
-          className="relative px-5 pt-14 sm:pt-16 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(16px)",
-            transitionDelay: "0.05s",
-            zIndex: 1,
-          }}
-        >
-          <div
-            className="max-w-[620px] mx-auto text-center"
-            style={{
-              background: "rgba(255, 253, 245, 0.94)",
-              backdropFilter: "blur(3px)",
-              WebkitBackdropFilter: "blur(3px)",
-              border: "1px solid rgba(196, 162, 101, 0.16)",
-              borderRadius: 18,
-              padding: "clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px)",
-              boxShadow: "0 4px 32px rgba(0, 0, 0, 0.04)",
-            }}
-          >
-            <IntroTitle path={path} />
-          </div>
-        </div>
+          aria-hidden="true"
+          className={`authority-spotlight${visible ? " is-in" : ""}`}
+        />
 
-        {/* Authority card — VSOP credibility content in its own opaque card */}
-        <div
-          className="relative px-5 pt-8 pb-14 sm:pb-16 transition-all duration-[1200ms] ease-out"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(20px)",
-            transitionDelay: "0.15s",
-            zIndex: 1,
-          }}
-        >
+        {showTitle && (
           <div
-            className="max-w-[560px] mx-auto"
+            className={`relative px-5 ${singlePart ? "pt-12 sm:pt-14 pb-10 sm:pb-12" : "pt-14 sm:pt-16"} transition-all duration-[900ms] ease-out`}
             style={{
-              background: "rgba(255, 253, 245, 0.92)",
-              backdropFilter: "blur(2px)",
-              WebkitBackdropFilter: "blur(2px)",
-              border: "1px solid rgba(196, 162, 101, 0.14)",
-              borderRadius: 18,
-              padding: "clamp(28px, 6vw, 48px) clamp(22px, 5vw, 40px)",
-              boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
+              opacity: visible ? 1 : 0,
+              transform: visible ? "translateY(0)" : "translateY(14px)",
+              transitionDelay: "0.05s",
+              zIndex: 1,
             }}
           >
-            <VsopCredibility path={path} />
+            <div
+              className="max-w-[620px] mx-auto text-center authority-card"
+              style={{
+                background: "rgba(255, 253, 245, 0.94)",
+                backdropFilter: "blur(3px)",
+                WebkitBackdropFilter: "blur(3px)",
+                border: "1px solid rgba(196, 162, 101, 0.16)",
+                borderRadius: 18,
+                padding: "clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px)",
+                boxShadow: "0 4px 32px rgba(0, 0, 0, 0.04)",
+              }}
+            >
+              <IntroTitle path={path} />
+            </div>
           </div>
-        </div>
+        )}
+
+        {showCredibility && (
+          <div
+            className={`relative px-5 ${singlePart ? "pt-12 sm:pt-14 pb-14 sm:pb-16" : "pt-8 pb-14 sm:pb-16"} transition-all duration-[900ms] ease-out`}
+            style={{
+              opacity: visible ? 1 : 0,
+              transform: visible ? "translateY(0)" : "translateY(18px)",
+              transitionDelay: "0.12s",
+              zIndex: 1,
+            }}
+          >
+            <div
+              className="max-w-[560px] mx-auto authority-card"
+              style={{
+                background: "rgba(255, 253, 245, 0.92)",
+                backdropFilter: "blur(2px)",
+                WebkitBackdropFilter: "blur(2px)",
+                border: "1px solid rgba(196, 162, 101, 0.14)",
+                borderRadius: 18,
+                padding: "clamp(28px, 6vw, 48px) clamp(22px, 5vw, 40px)",
+                boxShadow: "0 4px 36px rgba(0, 0, 0, 0.04)",
+              }}
+            >
+              <VsopCredibility path={path} revealed={visible} />
+            </div>
+          </div>
+        )}
       </div>
+
+      <style>{`
+        /* Soft gold spotlight behind the authority card(s) — fades in
+           once when the section enters view, drifts quietly. Gives the
+           backdrop a sense of depth without touching text legibility. */
+        .authority-spotlight {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          opacity: 0;
+          transition: opacity 1200ms ease-out;
+          background:
+            radial-gradient(circle at 30% 22%, rgba(196, 162, 101, 0.12) 0%, rgba(196, 162, 101, 0) 38%),
+            radial-gradient(circle at 72% 78%, rgba(191, 82, 74, 0.06) 0%, rgba(191, 82, 74, 0) 40%);
+        }
+        .authority-spotlight.is-in {
+          opacity: 1;
+          animation: authorityDrift 22s ease-in-out 800ms infinite;
+        }
+        @keyframes authorityDrift {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          50%      { transform: translate3d(-2%, 1%, 0); }
+        }
+        /* Gentle hover lift on the card — invites without being pushy */
+        .authority-card {
+          transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
+                      box-shadow 480ms cubic-bezier(0.22, 1, 0.36, 1),
+                      border-color 480ms ease;
+        }
+        @media (hover: hover) {
+          .authority-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 42px rgba(20, 15, 8, 0.08);
+            border-color: rgba(196, 162, 101, 0.32);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .authority-spotlight, .authority-spotlight.is-in {
+            animation: none !important;
+            transition: none !important;
+          }
+          .authority-card { transition: none !important; }
+        }
+      `}</style>
     </section>
   );
 };
@@ -542,13 +717,13 @@ const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
   memorial: { a: "No little soul",               b: "is ever forgotten by the stars." },
 };
 
-const TYPE_MS_PER_CHAR = 48;     // speed of keystrokes
-const TYPE_PAUSE_MS    = 380;    // breath between line a and line b
-const TYPE_LEAD_IN_MS  = 280;    // small beat after reveal before typing starts
-// Memorial lead-in waits for GriefSection's full 3-beat reveal to
-// complete (~5.5s) so if both sections are visible at once the
-// typewriter doesn't step on the prelude.
-const TYPE_LEAD_IN_MEMORIAL_MS = 5800;
+const TYPE_MS_PER_CHAR = 26;     // speed of keystrokes — snappy but still reads
+const TYPE_PAUSE_MS    = 240;    // breath between line a and line b
+const TYPE_LEAD_IN_MS  = 180;    // small beat after reveal before typing starts
+// Memorial lead-in used to wait 5.8s to sit behind GriefSection's
+// 3-beat prelude — but by the time the title enters the viewport (35%
+// threshold) the prelude is long done. A short beat is enough.
+const TYPE_LEAD_IN_MEMORIAL_MS = 700;
 const TYPE_CARET_FADE  = 700;    // caret fade-out after final char
 
 const IntroTitle = ({ path }: { path: FunnelPath }) => {
@@ -751,7 +926,7 @@ const IntroTitle = ({ path }: { path: FunnelPath }) => {
   );
 };
 
-export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBenefits = true, showAuthority = true }: ProductRevealProps) => {
+export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBenefits = true, showAuthority = "both" }: ProductRevealProps) => {
   const { ref, visible } = useScrollReveal(0.08);
   const [chatStep, setChatStep] = useState(0);
   const chatRef = useRef<HTMLDivElement>(null);
@@ -779,12 +954,11 @@ export const ProductReveal = ({ onCtaClick, ctaLabel, path = "discover", showBen
     <section ref={ref} className="relative overflow-hidden">
 
       {/* ── Authority band (IntroTitle + VSOP credibility) ──
-           Rendered inline here by default. Memorial path passes
-           showAuthority={false} and renders <AuthoritySection /> below
-           the checkout cards instead, so a grieving reader hits the
-           offer + cards before any credibility-chrome interrupts the
-           emotional cadence. */}
-      {showAuthority && <AuthoritySection path={path} />}
+           `"both"` is the default (discover/new). Memorial passes
+           `"title"` so the typed opener still lands above the cards
+           but the VSOP credibility card is hoisted below the cards
+           by FunnelV2 — keeping the emotional cadence intact. */}
+      {showAuthority && <AuthoritySection path={path} variant={showAuthority} />}
 
       {/* ── Block 2: The Benefits ── cream band + hearts backdrop + cards ──
            Rendered only on the Discover route. New-pet / memorial / gift

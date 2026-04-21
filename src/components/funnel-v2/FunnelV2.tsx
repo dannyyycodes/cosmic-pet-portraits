@@ -230,7 +230,7 @@ export const FunnelV2 = () => {
               ctaLabel={ctaPrimary}
               path={path}
               showBenefits={path === "discover" || path === "new"}
-              showAuthority={path !== "memorial"}
+              showAuthority={path === "memorial" ? "title" : "both"}
             />
           </div>
 
@@ -245,12 +245,12 @@ export const FunnelV2 = () => {
             path={path}
           />
 
-          {/* Memorial path: authority/credibility lives BELOW the cards
-              so the grieving reader hits the offer first and only meets
-              credentials once they've decided to keep scrolling for
-              reassurance. Non-memorial paths render authority inside
-              ProductReveal above, where skeptical shoppers expect it. */}
-          {path === "memorial" && <AuthoritySection path={path} />}
+          {/* Memorial path: only the VSOP credibility card is hoisted
+              BELOW the cards. The typed IntroTitle still sits above
+              them (rendered inside ProductReveal via showAuthority=
+              "title") so the emotional opener lands where it should.
+              Non-memorial paths render the full authority band above. */}
+          {path === "memorial" && <AuthoritySection path={path} variant="credibility" />}
 
           <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
             <GoldDivider />
