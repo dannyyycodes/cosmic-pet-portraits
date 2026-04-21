@@ -1,0 +1,113 @@
+name: Deploy worker to droplet
+
+# Mirrors scripts/deploy-worker.sh. Fires on any push to main that touches
+# the worker/ directory. Behaviour:
+#   1. Install Deno.
+#   2. Type-check the production worker files against the same command the
+#      local deploy script runs. Build fails here → deploy never starts.
+#   3. SSH-backup the current droplet files with a SHA-tagged suffix.
+#   4. scp every production worker file from the repo.
+#   5. Run `deno check` on the droplet. If it fails, roll the backups back
+#      in and fail the job.
+#   6. Append a deploy marker to /opt/littlesouls/worker.log with the git SHA.
+#
+# Secrets required (add via GitHub → Settings → Secrets → Actions):
+#   DROPLET_HOST         e.g. root@159.65.169.204
+#   DROPLET_SSH_KEY      private key matching the droplet's authorized_keys
+#   DROPLET_KNOWN_HOSTS  output of `ssh-keyscan 159.65.169.204` — pins host
+#                         identity so we don't just trust on first use
+#
+# Rollback if you ever need it:
+#   ssh root@<droplet> "cd /opt/littlesouls && ls -lt *.bak-pre-deploy-<sha>-*"
+#   then `cp` the one you want back to <file>.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      - ".github/workflows/deploy-worker.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Type-check worker locally
+        working-directory: worker
+        run: deno check worker.ts verifier.ts memorial-prompt.ts report-schema.ts
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.DROPLET_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Back up current worker files
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          SHORT_SHA="${GIT_SHA:0:7}"
+          TS=$(date +%s)
+          SUFFIX=".bak-pre-deploy-${SHORT_SHA}-${TS}"
+          FILES=(worker.ts verifier.ts memorial-prompt.ts report-schema.ts compatibility-reading.ts species-recipe-rules.ts chiron-table.ts ephemeris-v2.ts ephemeris.ts timezone.ts)
+          CMD="cd /opt/littlesouls"
+          for f in "${FILES[@]}"; do
+            CMD+=" && ([[ -f $f ]] && cp $f ${f}${SUFFIX} || true)"
+          done
+          ssh "${DROPLET_HOST}" "${CMD}"
+          echo "BACKUP_SUFFIX=${SUFFIX}" >> "$GITHUB_ENV"
+
+      - name: Ship worker files
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+        run: |
+          scp \
+            worker/worker.ts \
+            worker/verifier.ts \
+            worker/memorial-prompt.ts \
+            worker/report-schema.ts \
+            worker/compatibility-reading.ts \
+            worker/species-recipe-rules.ts \
+            worker/chiron-table.ts \
+            worker/ephemeris-v2.ts \
+            worker/ephemeris.ts \
+            worker/timezone.ts \
+            "${DROPLET_HOST}:/opt/littlesouls/"
+
+      - name: Deno check on droplet (rollback on fail)
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          SHORT_SHA="${GIT_SHA:0:7}"
+          CHECK="set -o pipefail; export PATH=/root/.deno/bin:\$PATH && cd /opt/littlesouls && deno check worker.ts verifier.ts memorial-prompt.ts report-schema.ts 2>&1 | tail -60"
+          if ! ssh "${DROPLET_HOST}" "bash -c '${CHECK}'"; then
+            echo "::error::Deno check failed — rolling back"
+            FILES=(worker.ts verifier.ts memorial-prompt.ts report-schema.ts compatibility-reading.ts species-recipe-rules.ts chiron-table.ts ephemeris-v2.ts ephemeris.ts timezone.ts)
+            ROLLBACK="cd /opt/littlesouls"
+            for f in "${FILES[@]}"; do
+              ROLLBACK+=" && ([[ -f ${f}${BACKUP_SUFFIX} ]] && cp ${f}${BACKUP_SUFFIX} ${f} || true)"
+            done
+            ssh "${DROPLET_HOST}" "${ROLLBACK}"
+            exit 1
+          fi
+          ssh "${DROPLET_HOST}" "echo '[deploy] $(date -Iseconds) — CI deployed SHA ${SHORT_SHA}' >> /opt/littlesouls/worker.log"

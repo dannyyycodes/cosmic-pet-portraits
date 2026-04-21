@@ -724,7 +724,15 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
           "X-Title": "Little Souls - Soul Chat",
         },
         body: JSON.stringify({
-          model: "anthropic/claude-sonnet-4.5",
+          // Per-occasion model routing. Memorial chats are the highest-
+          // emotional-stakes SoulSpeak mode — literary nuance matters more
+          // than latency, so we pay the Opus tax for those sessions. Living-
+          // pet chats stay on Sonnet 4.5 where chat UX benefits from the
+          // faster first-token latency. Tonal failures in grief writing cost
+          // more than a 1-2s latency bump.
+          model: petData.occasionMode === 'memorial'
+            ? "anthropic/claude-opus-4.7"
+            : "anthropic/claude-sonnet-4.5",
           messages: [
             { role: "system", content: finalSystem },
             ...messages.slice(-20),
