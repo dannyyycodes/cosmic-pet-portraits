@@ -1176,7 +1176,10 @@ QUALITY STANDARD: This report costs $49. Every section must justify that price.
         "X-Title": "Little Souls Reading",
       },
       body: JSON.stringify({
-        model: "anthropic/claude-sonnet-4.5",
+        // Upgraded to Opus 4.7 on 2026-04-21 to match the primary droplet
+        // worker. This edge fn is the legacy fallback path — kept aligned in
+        // case it ever takes traffic again.
+        model: "anthropic/claude-opus-4.7",
         max_tokens: 8000,
         stream: true,
         messages: [

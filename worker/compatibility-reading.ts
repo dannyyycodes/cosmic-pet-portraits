@@ -14,7 +14,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "https://aduibsyrnenzobuyetmn.supabase.co";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const OPENROUTER_MODEL = Deno.env.get("OPENROUTER_MODEL") || "anthropic/claude-sonnet-4.5";
+// Opus 4.7 matches the primary cosmic worker — cross-pet synastry is the
+// most reasoning-heavy reading we ship, so the premium model is worth it.
+// Override via OPENROUTER_MODEL env var if a future experiment wants to test
+// a cheaper pass.
+const OPENROUTER_MODEL = Deno.env.get("OPENROUTER_MODEL") || "anthropic/claude-opus-4.7";
 
 const compatibilityId = Deno.args[0];
 const petReportAId = Deno.args[1];

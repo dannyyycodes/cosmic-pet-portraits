@@ -264,9 +264,14 @@ let _customerPetName = "your pet";
 // Policy (per product owner): on failure, retry SAME model. Never silently
 // substitute a cheaper model. If all attempts fail, the worker fails loudly
 // and triggers notifyFailure() — we never ship a template report.
+//
+// Model choice: Opus 4.7. Upgraded from Sonnet 4.5 on 2026-04-21 per product
+// decision to prioritise reading quality over per-report cost. Memorial + Soul
+// Bond synastry in particular benefit from Opus's stronger literary nuance;
+// cost still under 5% of revenue on a £29 Soul Reading and under 3% on £49 tiers.
 async function fetchOpenRouter(systemPrompt: string, userPrompt: string): Promise<Response> {
   const body = JSON.stringify({
-    model: "anthropic/claude-sonnet-4.5",
+    model: "anthropic/claude-opus-4.7",
     max_tokens: 24000,
     stream: false,
     messages: [
@@ -2143,7 +2148,9 @@ Return: { "${sectionName}": { ...replacement... } }`;
           "X-Title": "Little Souls Section Regen",
         },
         body: JSON.stringify({
-          model: "anthropic/claude-sonnet-4.5",
+          // Match main-generation model so regenerated sections retain the
+          // same voice / quality floor as the rest of the report.
+          model: "anthropic/claude-opus-4.7",
           max_tokens: 3000,
           response_format: { type: "json_object" },
           messages: [
