@@ -1,138 +1,135 @@
 import { useEffect, useRef, useState } from "react";
 
-/* Memorial backdrop — scattered soul silhouettes (two hand-picked SVGs
- * served from /memorial/). Density, sizes and opacity mirror the hearts
- * backdrop used elsewhere in the funnel so the memorial section lives
- * in the same visual family. Very low opacity — reads as atmosphere. */
-type Soul = { x: number; y: number; size: number; rot: number; op: number; src: string };
+/**
+ * GriefSection — memorial prelude (2026-04-21 redesign).
+ *
+ * Copy is unchanged. This pass rebuilds the visual atmosphere to be
+ * simpler, more beautiful, more mystical. What changed:
+ *
+ * - Dove-silhouette wallpaper removed (sympathy-card energy).
+ * - Rising embers removed (fireworks, not candlelight).
+ * - New: a single large gold orrery (concentric rings + three slow-
+ *   orbiting points) rotating imperceptibly behind the copy — the
+ *   sky, turning. Reads as sacred geometry.
+ * - New: distant gold starlight — eight quiet points placed around
+ *   the text column (never behind letterforms), each breathing with
+ *   its own slow pulse.
+ * - New: the horizontal hairline between beats is replaced with a
+ *   vesica-style gold sigil — a six-pointed star inside a ring. One
+ *   ornament, drawn on reveal, then still.
+ * - Background deepens to a soft vignette: warm gold glow at 30%
+ *   top-centre fading into cream at the edges, so the copy sits in
+ *   a pool of light rather than flat cream.
+ * - Typography unchanged; the section now breathes more.
+ *
+ * Cadence kept from previous version — 200ms → 5500ms, grieving
+ * readers should not be rushed.
+ */
 
-const S1 = "/memorial/soul-1.svg";
-const S2 = "/memorial/soul-2.svg";
-
-const SOULS: Soul[] = [
-  // Top edge
-  { x: 4,  y: 4,  size: 26, rot: -12, op: 0.10, src: S1 },
-  { x: 18, y: 8,  size: 30, rot: 10,  op: 0.11, src: S2 },
-  { x: 32, y: 5,  size: 24, rot: 14,  op: 0.09, src: S1 },
-  { x: 46, y: 9,  size: 34, rot: -6,  op: 0.11, src: S2 },
-  { x: 62, y: 4,  size: 26, rot: 12,  op: 0.10, src: S1 },
-  { x: 76, y: 8,  size: 28, rot: -14, op: 0.11, src: S2 },
-  { x: 92, y: 5,  size: 22, rot: 6,   op: 0.09, src: S1 },
-
-  // Upper-mid
-  { x: 8,  y: 24, size: 28, rot: 14,  op: 0.10, src: S2 },
-  { x: 28, y: 28, size: 24, rot: -10, op: 0.09, src: S1 },
-  { x: 52, y: 26, size: 32, rot: 4,   op: 0.11, src: S2 },
-  { x: 76, y: 30, size: 26, rot: -16, op: 0.10, src: S1 },
-  { x: 94, y: 24, size: 26, rot: 8,   op: 0.10, src: S2 },
-
-  // Middle
-  { x: 4,  y: 48, size: 24, rot: -8,  op: 0.09, src: S1 },
-  { x: 22, y: 52, size: 30, rot: 16,  op: 0.11, src: S2 },
-  { x: 44, y: 48, size: 22, rot: -12, op: 0.09, src: S1 },
-  { x: 64, y: 52, size: 32, rot: 6,   op: 0.11, src: S2 },
-  { x: 86, y: 50, size: 24, rot: -14, op: 0.10, src: S1 },
-
-  // Lower-mid
-  { x: 10, y: 72, size: 28, rot: 12,  op: 0.10, src: S2 },
-  { x: 32, y: 76, size: 22, rot: -10, op: 0.09, src: S1 },
-  { x: 54, y: 72, size: 30, rot: 14,  op: 0.11, src: S2 },
-  { x: 74, y: 78, size: 24, rot: -6,  op: 0.09, src: S1 },
-  { x: 94, y: 72, size: 32, rot: 8,   op: 0.11, src: S2 },
-
-  // Bottom edge
-  { x: 4,  y: 94, size: 22, rot: -12, op: 0.09, src: S1 },
-  { x: 20, y: 92, size: 28, rot: 8,   op: 0.10, src: S2 },
-  { x: 36, y: 96, size: 24, rot: 14,  op: 0.09, src: S1 },
-  { x: 52, y: 92, size: 32, rot: -8,  op: 0.11, src: S2 },
-  { x: 68, y: 96, size: 22, rot: 10,  op: 0.09, src: S1 },
-  { x: 82, y: 92, size: 28, rot: -14, op: 0.10, src: S2 },
-  { x: 96, y: 96, size: 24, rot: 6,   op: 0.09, src: S1 },
+/* ── Distant starlight — tiny gold points around the text column.
+ *    Placed so none sit inside the centered copy's reading path. */
+type Star = { x: number; y: number; size: number; delay: number };
+const STARS: Star[] = [
+  { x: 10, y: 14, size: 2,   delay: 0.0 },
+  { x: 88, y: 12, size: 2.5, delay: 1.4 },
+  { x: 6,  y: 42, size: 1.8, delay: 0.8 },
+  { x: 94, y: 38, size: 2,   delay: 2.2 },
+  { x: 12, y: 72, size: 2.2, delay: 0.4 },
+  { x: 90, y: 70, size: 1.8, delay: 1.8 },
+  { x: 20, y: 90, size: 2,   delay: 3.0 },
+  { x: 80, y: 92, size: 2.4, delay: 2.6 },
 ];
 
-const DoveWallpaper = () => (
+const Starlight = () => (
   <div
     aria-hidden="true"
     className="absolute inset-0 pointer-events-none overflow-hidden"
     style={{ zIndex: 0 }}
   >
-    {SOULS.map((s, i) => (
-      <img
+    {STARS.map((s, i) => (
+      <span
         key={i}
-        src={s.src}
-        alt=""
+        className="grief-starlight"
         style={{
           position: "absolute",
           left: `${s.x}%`,
           top: `${s.y}%`,
           width: s.size,
-          height: "auto",
-          transform: `translate(-50%, -50%) rotate(${s.rot}deg)`,
-          opacity: s.op,
-          userSelect: "none",
+          height: s.size,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(232,212,154,1) 0%, rgba(196,162,101,0.55) 55%, rgba(196,162,101,0) 100%)",
+          boxShadow: "0 0 6px rgba(212,178,107,0.5)",
+          animationDelay: `${s.delay}s`,
+          transform: "translate(-50%, -50%)",
         }}
-        draggable={false}
       />
     ))}
   </div>
 );
 
-/* Rising embers — tiny gold specks drifting upward, like candle light
- * caught in motion. Seven particles, staggered delays, varied sizes,
- * absolutely-positioned so they scatter across the section. Pure CSS
- * animation — no JS loop. Respects prefers-reduced-motion. */
-type Ember = { x: number; size: number; delay: number; duration: number; opacity: number };
-const EMBERS: Ember[] = [
-  { x: 12, size: 3,   delay: 0.0, duration: 14, opacity: 0.55 },
-  { x: 28, size: 2,   delay: 2.4, duration: 16, opacity: 0.45 },
-  { x: 42, size: 4,   delay: 4.8, duration: 13, opacity: 0.6  },
-  { x: 56, size: 2.5, delay: 1.2, duration: 18, opacity: 0.5  },
-  { x: 68, size: 3,   delay: 6.0, duration: 15, opacity: 0.55 },
-  { x: 82, size: 2,   delay: 3.6, duration: 17, opacity: 0.42 },
-  { x: 92, size: 3.5, delay: 5.2, duration: 14, opacity: 0.58 },
-];
-
-const EmberDrift = () => (
-  <div
+/* ── Orrery — a single large celestial disc. Concentric gold rings
+ *    with three orbiting dots. Rotates over 240s (almost still, just
+ *    enough to feel alive). Very low opacity — atmosphere, not decor. */
+const Orrery = () => (
+  <svg
     aria-hidden="true"
-    className="absolute inset-0 pointer-events-none overflow-hidden"
-    style={{ zIndex: 0 }}
+    className="grief-orrery"
+    viewBox="0 0 400 400"
+    style={{
+      position: "absolute",
+      left: "50%",
+      top: "50%",
+      width: "min(640px, 96%)",
+      height: "auto",
+      transform: "translate(-50%, -50%)",
+      pointerEvents: "none",
+      zIndex: 0,
+      opacity: 0.32,
+    }}
   >
-    {EMBERS.map((e, i) => (
-      <span
-        key={i}
-        className="grief-ember"
-        style={{
-          position: "absolute",
-          left: `${e.x}%`,
-          bottom: "-6%",
-          width: e.size,
-          height: e.size,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(212,178,107,0.95) 0%, rgba(196,162,101,0.55) 45%, rgba(196,162,101,0) 75%)",
-          opacity: 0,
-          animationDelay: `${e.delay}s`,
-          animationDuration: `${e.duration}s`,
-          // Custom property pipes peak opacity into the keyframes
-          ["--ember-peak" as string]: e.opacity,
-        }}
-      />
-    ))}
-  </div>
+    <defs>
+      <radialGradient id="orreryCore" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"  stopColor="#d4b26b" stopOpacity="0.18" />
+        <stop offset="60%" stopColor="#c4a265" stopOpacity="0.04" />
+        <stop offset="100%" stopColor="#c4a265" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+
+    {/* Soft gold core so the rings sit in light, not void */}
+    <circle cx="200" cy="200" r="200" fill="url(#orreryCore)" />
+
+    {/* Three concentric rings — dashed, different densities */}
+    <circle
+      cx="200" cy="200" r="84"
+      fill="none" stroke="#c4a265" strokeWidth="0.7"
+      strokeDasharray="1 5" opacity="0.6"
+    />
+    <circle
+      cx="200" cy="200" r="128"
+      fill="none" stroke="#c4a265" strokeWidth="0.6"
+      strokeDasharray="2 7" opacity="0.5"
+    />
+    <circle
+      cx="200" cy="200" r="176"
+      fill="none" stroke="#c4a265" strokeWidth="0.5"
+      strokeDasharray="1 9" opacity="0.4"
+    />
+
+    {/* Three orbiting points — placed at different angles so the
+        eye reads a triangle of tiny lights */}
+    <g>
+      <circle cx="284" cy="200" r="2.2" fill="#c4a265" opacity="0.8" />
+      <circle cx="200" cy="72"  r="2"   fill="#bf524a" opacity="0.7" />
+      <circle cx="136" cy="310" r="1.8" fill="#c4a265" opacity="0.65" />
+    </g>
+  </svg>
 );
 
 interface GriefSectionProps {
   onCtaClick?: () => void;
 }
 
-/**
- * Memorial prelude — a slow, cinematic three-beat reveal shown only on
- * the memorial path, BEFORE any authority or checkout content. Each
- * beat fades up with breath between them; a gold hairline expands from
- * a point to mark the turn from acknowledgment to offer; embers drift
- * upward in the background. Intentionally takes its time — grieving
- * readers should not be rushed through this.
- */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -159,35 +156,18 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
       ref={ref}
       className={`grief-section relative overflow-hidden ${visible ? "is-in" : ""}`}
       style={{
+        /* Pool of warm light at top-centre, fading to cream at edges.
+           Depth — the copy sits inside atmosphere, not on flat cream. */
         background:
-          "radial-gradient(ellipse at 50% 30%, rgba(212,178,107,0.08) 0%, rgba(255,253,245,0) 60%), var(--cream, #FFFDF5)",
-        padding: "clamp(76px, 12vw, 128px) 20px clamp(68px, 10vw, 104px)",
+          "radial-gradient(ellipse 70% 55% at 50% 22%, rgba(212,178,107,0.13) 0%, rgba(212,178,107,0.04) 45%, rgba(255,253,245,0) 75%), var(--cream, #FFFDF5)",
+        padding: "clamp(88px, 13vw, 140px) 20px clamp(80px, 11vw, 120px)",
       }}
     >
-      <DoveWallpaper />
-      <EmberDrift />
-
-      {/* Soft aura behind the copy — a radial gold halo that pulses
-          gently to echo the embers. Very low opacity; atmospheric. */}
-      <div
-        aria-hidden="true"
-        className="grief-aura"
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          width: "min(600px, 90%)",
-          aspectRatio: "1 / 1",
-          transform: "translate(-50%, -50%)",
-          background:
-            "radial-gradient(circle, rgba(212,178,107,0.12) 0%, rgba(196,162,101,0.05) 40%, rgba(196,162,101,0) 70%)",
-          zIndex: 0,
-          pointerEvents: "none",
-        }}
-      />
+      <Orrery />
+      <Starlight />
 
       <div
-        className="relative max-w-[620px] mx-auto text-center"
+        className="relative max-w-[640px] mx-auto text-center"
         style={{ zIndex: 1 }}
       >
         {/* Beat 1 — acknowledgment. Large italic serif, slow fade-up. */}
@@ -195,11 +175,11 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
           className="grief-beat grief-beat-1"
           style={{
             fontFamily: '"DM Serif Display", Georgia, serif',
-            fontSize: "clamp(1.85rem, 6.2vw, 2.6rem)",
+            fontSize: "clamp(1.9rem, 6.4vw, 2.7rem)",
             fontWeight: 400,
             fontStyle: "italic",
             color: "var(--black, #141210)",
-            lineHeight: 1.18,
+            lineHeight: 1.16,
             letterSpacing: "-0.018em",
             margin: 0,
           }}
@@ -209,7 +189,7 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
           in your heart.
         </h2>
 
-        {/* Beat 2 — validation. Smaller, tender, slightly delayed. */}
+        {/* Beat 2 — validation. */}
         <p
           className="grief-beat grief-beat-2"
           style={{
@@ -218,26 +198,54 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
             fontStyle: "italic",
             color: "var(--earth, #6e6259)",
             lineHeight: 1.55,
-            margin: "clamp(20px, 3vw, 28px) auto 0",
+            margin: "clamp(22px, 3vw, 30px) auto 0",
             maxWidth: 460,
           }}
         >
           Even if they&rsquo;re no longer by your side.
         </p>
 
-        {/* Hairline — expands from a point after the first two beats
-            land, marking the turn from feeling-seen to the offer. */}
-        <span
+        {/* Sigil — six-pointed star inside a thin ring. Draws on
+            reveal, then sits quietly. Replaces the old hairline —
+            one sacred ornament instead of a diagrammatic rule. */}
+        <svg
           aria-hidden="true"
-          className="grief-rule"
+          className="grief-sigil"
+          viewBox="0 0 40 40"
           style={{
             display: "block",
-            height: 1,
-            background: "var(--gold, #c4a265)",
-            opacity: 0.7,
-            margin: "clamp(32px, 5vw, 44px) auto",
+            width: 34,
+            height: 34,
+            margin: "clamp(32px, 5vw, 46px) auto",
           }}
-        />
+        >
+          {/* Outer ring */}
+          <circle
+            cx="20" cy="20" r="17"
+            fill="none" stroke="#c4a265"
+            strokeWidth="0.9"
+            className="grief-sigil-ring"
+          />
+          {/* Six-pointed star (two overlapping triangles) */}
+          <path
+            d="M20 6 L30.4 24 L9.6 24 Z"
+            fill="none" stroke="#c4a265"
+            strokeWidth="0.9"
+            className="grief-sigil-triA"
+          />
+          <path
+            d="M20 34 L9.6 16 L30.4 16 Z"
+            fill="none" stroke="#c4a265"
+            strokeWidth="0.9"
+            className="grief-sigil-triB"
+          />
+          {/* Centre dot — a single gold point at the heart */}
+          <circle
+            cx="20" cy="20" r="1"
+            fill="#c4a265"
+            className="grief-sigil-core"
+          />
+        </svg>
 
         {/* Beat 3 — offer. Italic serif with an emphasised noun. */}
         <p
@@ -277,39 +285,17 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
           filter: blur(4px);
           will-change: opacity, transform, filter;
         }
-        .grief-rule {
-          width: 0;
-          opacity: 0 !important;
-          will-change: width, opacity;
-        }
-        /* Sequential cadence — each beat lands fully before the next
-           starts, with a deliberate breath between them. Grieving
-           readers should feel the pause, not be rushed. Timeline:
-             Beat 1  : 200ms  → 1300ms   (1100ms fade)
-             breath  : 500ms
-             Beat 2  : 1800ms → 2800ms   (1000ms fade)
-             breath  : 500ms
-             Rule    : 3300ms → 4000ms   (700ms expand)
-             breath  : 400ms
-             Beat 3  : 4400ms → 5500ms   (1100ms fade)
-             Emphasis underline : 5700ms → 6500ms */
         .grief-section.is-in .grief-beat-1 {
           animation: griefBeatIn 1100ms cubic-bezier(0.22, 1, 0.36, 1) 200ms forwards;
         }
         .grief-section.is-in .grief-beat-2 {
           animation: griefBeatIn 1000ms cubic-bezier(0.22, 1, 0.36, 1) 1800ms forwards;
         }
-        .grief-section.is-in .grief-rule {
-          animation: griefRuleExpand 700ms cubic-bezier(0.22, 1, 0.36, 1) 3300ms forwards;
-        }
         .grief-section.is-in .grief-beat-3 {
           animation: griefBeatIn 1100ms cubic-bezier(0.22, 1, 0.36, 1) 4400ms forwards;
         }
         @keyframes griefBeatIn {
           to { opacity: 1; transform: translateY(0); filter: blur(0); }
-        }
-        @keyframes griefRuleExpand {
-          to { width: 56px; opacity: 0.7 !important; }
         }
 
         /* Emphasis picks up a gold underline once beat 3 is fully shown */
@@ -324,28 +310,71 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
           background-size: 100% 1px;
         }
 
-        /* ── Rising embers ── */
-        .grief-ember {
-          animation-name: griefEmberRise;
-          animation-iteration-count: infinite;
-          animation-timing-function: ease-out;
-          filter: blur(0.3px);
+        /* ── Sigil — rings + triangles stroke in, centre dot fades ── */
+        .grief-sigil {
+          opacity: 0;
+          transition: opacity 900ms ease 3300ms;
         }
-        @keyframes griefEmberRise {
-          0%   { transform: translate(0, 0) scale(0.6);        opacity: 0; }
-          8%   { opacity: var(--ember-peak, 0.55); }
-          50%  { transform: translate(6px, -50vh) scale(1);     opacity: var(--ember-peak, 0.55); }
-          90%  { opacity: var(--ember-peak, 0.55); }
-          100% { transform: translate(-4px, -110vh) scale(1.1); opacity: 0; }
+        .grief-section.is-in .grief-sigil { opacity: 1; }
+        .grief-sigil-ring,
+        .grief-sigil-triA,
+        .grief-sigil-triB {
+          stroke-dasharray: 140;
+          stroke-dashoffset: 140;
+        }
+        .grief-section.is-in .grief-sigil-ring {
+          animation: griefSigilDraw 1100ms cubic-bezier(0.22, 1, 0.36, 1) 3400ms forwards;
+        }
+        .grief-section.is-in .grief-sigil-triA {
+          animation: griefSigilDraw 1000ms cubic-bezier(0.22, 1, 0.36, 1) 3900ms forwards;
+        }
+        .grief-section.is-in .grief-sigil-triB {
+          animation: griefSigilDraw 1000ms cubic-bezier(0.22, 1, 0.36, 1) 4000ms forwards;
+        }
+        @keyframes griefSigilDraw {
+          to { stroke-dashoffset: 0; }
+        }
+        .grief-sigil-core {
+          opacity: 0;
+        }
+        .grief-section.is-in .grief-sigil-core {
+          animation: griefSigilCoreIn 900ms ease 4700ms forwards,
+                     griefSigilCorePulse 4s ease-in-out 5600ms infinite;
+          transform-origin: center;
+        }
+        @keyframes griefSigilCoreIn {
+          from { opacity: 0; transform: scale(0.3); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes griefSigilCorePulse {
+          0%, 100% { opacity: 1;   transform: scale(1); }
+          50%      { opacity: 0.6; transform: scale(1.3); }
         }
 
-        /* ── Aura pulse ── */
-        .grief-aura {
-          animation: griefAuraPulse 7s ease-in-out infinite;
+        /* ── Orrery — almost-still rotation ── */
+        .grief-orrery {
+          opacity: 0;
+          transition: opacity 1600ms ease 300ms;
         }
-        @keyframes griefAuraPulse {
-          0%, 100% { opacity: 0.9; }
-          50%      { opacity: 1;   }
+        .grief-section.is-in .grief-orrery {
+          opacity: 0.32;
+          animation: griefOrrerySpin 240s linear infinite;
+          transform-origin: center;
+          transform-box: fill-box;
+        }
+        @keyframes griefOrrerySpin {
+          to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* ── Distant starlight — each breathes independently ── */
+        .grief-starlight {
+          opacity: 0;
+          animation: griefStarBreath 5.5s ease-in-out infinite;
+          will-change: opacity, transform;
+        }
+        @keyframes griefStarBreath {
+          0%, 100% { opacity: 0.25; transform: translate(-50%, -50%) scale(0.9); }
+          50%      { opacity: 0.9;  transform: translate(-50%, -50%) scale(1.15); }
         }
 
         /* ── Motion preferences ── */
@@ -359,21 +388,27 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
             transform: none !important;
             filter: none !important;
           }
-          .grief-rule,
-          .grief-section.is-in .grief-rule {
-            animation: none !important;
-            width: 56px !important;
-            opacity: 0.7 !important;
-          }
-          .grief-ember,
-          .grief-aura {
-            animation: none !important;
-          }
           .grief-section .grief-emphasis,
           .grief-section.is-in .grief-emphasis {
             transition: none !important;
             background-size: 100% 1px !important;
           }
+          .grief-sigil,
+          .grief-section.is-in .grief-sigil { opacity: 1 !important; transition: none !important; }
+          .grief-sigil-ring,
+          .grief-sigil-triA,
+          .grief-sigil-triB,
+          .grief-section.is-in .grief-sigil-ring,
+          .grief-section.is-in .grief-sigil-triA,
+          .grief-section.is-in .grief-sigil-triB {
+            animation: none !important;
+            stroke-dashoffset: 0 !important;
+          }
+          .grief-sigil-core,
+          .grief-section.is-in .grief-sigil-core { animation: none !important; opacity: 1 !important; }
+          .grief-orrery,
+          .grief-section.is-in .grief-orrery { animation: none !important; opacity: 0.32 !important; }
+          .grief-starlight { animation: none !important; opacity: 0.55 !important; }
         }
       `}</style>
     </div>
