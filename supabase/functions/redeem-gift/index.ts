@@ -163,8 +163,11 @@ serve(async (req) => {
       }
     }
 
-    // Parse per-pet tier info from gift_pets_json
-    const giftPetsJson = gift.gift_pets_json as { id: string; tier: string; horoscopeAddon?: string }[] | null;
+    // Parse per-pet tier info from gift_pets_json. `occasion` is optional and
+    // was added 2026-04-21 — legacy gifts without it default to 'discover'
+    // downstream, so the intake still shows the occasion picker (Screen 0) as
+    // a safety net.
+    const giftPetsJson = gift.gift_pets_json as { id: string; tier: string; horoscopeAddon?: string; occasion?: string }[] | null;
     
     // Determine which pet indices have portrait tier
     const portraitPetIndices = new Set<number>();
@@ -205,11 +208,35 @@ serve(async (req) => {
       // Determine if THIS pet gets portrait based on per-pet tier
       const petTier = giftPetsJson?.[i]?.tier || giftedTier;
       const petHoroscopeAddon = giftPetsJson?.[i]?.horoscopeAddon || 'none';
+      // Per-pet occasion — the gifter pre-specified this on /gift, so we
+      // push it onto the corresponding pet_reports row so the recipient's
+      // intake flow shows the right occasion (memorial gets anchor fields,
+      // new gets arrival voice, etc.). Falls back to 'discover' for legacy
+      // gifts missing the field. If the gifter chose 'memorial', we also
+      // flip the horoscope flag OFF — forward-looking weekly emails for a
+      // deceased pet are a serious care failure.
+      const petOccasionRaw = giftPetsJson?.[i]?.occasion;
+      const petOccasion = petOccasionRaw && ["discover", "new", "birthday", "memorial"].includes(petOccasionRaw)
+        ? petOccasionRaw
+        : "discover";
       const thisPetIncludesPortrait = petTier === 'portrait';
-      // Horoscope: either from portrait tier OR from explicit addon purchase
-      const thisPetIncludesHoroscope = petTier === 'portrait' || (petHoroscopeAddon !== 'none');
-      
-      console.log(`[REDEEM-GIFT] Processing report ${i}:`, { reportId, petTier, petHoroscopeAddon, thisPetIncludesPortrait, thisPetIncludesHoroscope });
+      // Horoscope: portrait tier OR explicit addon — BUT never for memorial.
+      const thisPetIncludesHoroscope = petOccasion !== "memorial" && (petTier === 'portrait' || (petHoroscopeAddon !== 'none'));
+
+      // Push per-pet occasion onto pet_reports so the rest of the system
+      // (intake, worker, viewer) sees the correct mode. We only update the
+      // occasion field — don't stomp pet_name / email which the recipient
+      // may have already filled. PostPurchaseIntake's !isMemorial guard
+      // prevents the Soul Bond screen from showing even if includes_portrait
+      // was true from the gifter's tier choice, so no separate override
+      // needed here for memorial.
+      try {
+        await supabase.from("pet_reports").update({ occasion_mode: petOccasion }).eq("id", reportId);
+      } catch (updateErr) {
+        console.warn("[REDEEM-GIFT] Failed to update pet occasion, continuing:", updateErr);
+      }
+
+      console.log(`[REDEEM-GIFT] Processing report ${i}:`, { reportId, petTier, petHoroscopeAddon, petOccasion, thisPetIncludesPortrait, thisPetIncludesHoroscope });
       
       const { data: report } = await supabase
         .from("pet_reports")

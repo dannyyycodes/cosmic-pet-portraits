@@ -68,13 +68,21 @@ function generateGiftCode(): string {
   return code;
 }
 
-// Pet schema for individual pet tiers with optional recipient
+// Pet schema for individual pet tiers with optional recipient.
+// `occasion` lets the gifter pre-specify what kind of reading each gifted
+// pet should be (new / discover / memorial / birthday). The recipient still
+// sees the 5-way occasion picker on /redeem-code as a safety net in case
+// the gifter got it wrong, but the default picks up the gifter's intent so
+// a memorial-gift buyer's grieving friend doesn't land on "Discover" by
+// default. Stored in gift_pets_json and read by redeem-free-code /
+// redeem-gift to pre-seed pet_reports.occasion_mode correctly.
 const giftPetSchema = z.object({
   id: z.string(),
   tier: z.enum(["essential", "portrait", "hardcover"]),
   recipientName: z.string().max(100).optional(),
   recipientEmail: z.string().email().max(255).optional().or(z.literal("")).or(z.null()),
   horoscopeAddon: z.enum(["none", "monthly", "yearly"]).optional().default("none"),
+  occasion: z.enum(["discover", "new", "birthday", "memorial"]).optional().default("discover"),
 });
 
 // Input validation schema

@@ -178,8 +178,15 @@ export function PostPurchaseIntake({
         const dbOccasion = (data as { occasion_mode?: string } | null)?.occasion_mode;
         if (dbOccasion && ['discover', 'new', 'birthday', 'memorial', 'gift'].includes(dbOccasion)) {
           setOccasionMode(dbOccasion);
-          // Jump past Screen 0 — we already know why they're here.
-          setScreen(1);
+          // Single-pet orders: auto-skip Screen 0 — we already know why they're here.
+          // Multi-pet orders: show Screen 0 with the cart-level occasion pre-selected
+          // so the buyer can confirm OR change per pet. This is the fix for mixed-
+          // occasion carts where today all pets silently inherited the landing path's
+          // occasion (e.g. a new-pet cart with 4 pets used to write occasion=new to
+          // all 4 even if the buyer actually wanted pet 3 to be a memorial reading).
+          if (!isMultiPet) {
+            setScreen(1);
+          }
         }
       } catch { /* non-fatal — Screen 0 still available as fallback */ }
     })();
