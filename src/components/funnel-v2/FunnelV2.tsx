@@ -219,18 +219,13 @@ export const FunnelV2 = () => {
             <GoldDivider />
           </div>
 
-          {/* Memorial: soothing copy lives BEFORE the authority block so
-              the grieving reader is met with care before any credibility
-              content. */}
-          {path === "memorial" && <GriefSection onCtaClick={scrollToCheckout} />}
-
           <div ref={productRevealRef}>
             <ProductReveal
               onCtaClick={scrollToCheckout}
               ctaLabel={ctaPrimary}
               path={path}
               showBenefits={path === "discover" || path === "new"}
-              showAuthority={path === "memorial" ? "title" : "both"}
+              showAuthority={path === "memorial" ? false : "both"}
             />
           </div>
 
@@ -245,12 +240,18 @@ export const FunnelV2 = () => {
             path={path}
           />
 
-          {/* Memorial path: only the VSOP credibility card is hoisted
-              BELOW the cards. The typed IntroTitle still sits above
-              them (rendered inside ProductReveal via showAuthority=
-              "title") so the emotional opener lands where it should.
-              Non-memorial paths render the full authority band above. */}
-          {path === "memorial" && <AuthoritySection path={path} variant="credibility" />}
+          {/* Memorial path: the grief prelude now lives BELOW the
+              checkout cards, immediately above the full authority
+              band (title + credibility). Readers ready to buy hit the
+              cards first; readers who scroll on get the emotional
+              reveal and then the credibility close. Non-memorial
+              paths render the full authority band above the cards. */}
+          {path === "memorial" && (
+            <>
+              <GriefSection onCtaClick={scrollToCheckout} />
+              <AuthoritySection path={path} variant="both" />
+            </>
+          )}
 
           <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
             <GoldDivider />
