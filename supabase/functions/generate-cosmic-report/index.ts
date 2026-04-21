@@ -51,7 +51,7 @@ const petDataSchema = z.object({
 const reportSchema = z.object({
   petData: petDataSchema,
   reportId: z.string().uuid().optional(),
-  occasionMode: z.enum(['discover', 'birthday', 'memorial', 'gift']).optional().default('discover'),
+  occasionMode: z.enum(['discover', 'new', 'birthday', 'memorial', 'gift']).optional().default('discover'),
   language: z.enum(['en', 'es', 'pt', 'fr', 'ar', 'de']).optional().default('en'),
 });
 

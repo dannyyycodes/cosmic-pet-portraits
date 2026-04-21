@@ -122,22 +122,35 @@ export default function RedeemCode() {
                   What's this reading for?
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {OCCASION_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setOccasion(opt.value)}
-                      className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all text-center"
-                      style={{
-                        background: occasion === opt.value ? 'rgba(196,162,101,0.12)' : '#faf6ef',
-                        border: occasion === opt.value ? '1.5px solid #c4a265' : '1.5px solid #e8ddd0',
-                      }}
-                    >
-                      <span className="text-xl">{opt.emoji}</span>
-                      <span className="text-[0.85rem] font-semibold" style={{ color: '#3d2f2a' }}>{opt.label}</span>
-                      <span className="text-[0.68rem]" style={{ color: '#9a8578' }}>{opt.desc}</span>
-                    </button>
-                  ))}
+                  {OCCASION_OPTIONS.map((opt) => {
+                    // Memorial gets a muted dove/sage palette — a grieving
+                    // buyer shouldn't see the same warm gold as birthday
+                    // and discover options. The colour shift is subtle but
+                    // signals product respect.
+                    const isMemorialOpt = opt.value === 'memorial';
+                    const selectedBg = isMemorialOpt
+                      ? 'rgba(120,130,125,0.12)'
+                      : 'rgba(196,162,101,0.12)';
+                    const selectedBorder = isMemorialOpt ? '#788280' : '#c4a265';
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setOccasion(opt.value)}
+                        className="flex flex-col items-center gap-1 py-3 px-2 rounded-xl transition-all text-center"
+                        style={{
+                          background: occasion === opt.value ? selectedBg : '#faf6ef',
+                          border: occasion === opt.value
+                            ? `1.5px solid ${selectedBorder}`
+                            : '1.5px solid #e8ddd0',
+                        }}
+                      >
+                        <span className="text-xl">{opt.emoji}</span>
+                        <span className="text-[0.85rem] font-semibold" style={{ color: '#3d2f2a' }}>{opt.label}</span>
+                        <span className="text-[0.68rem]" style={{ color: '#9a8578' }}>{opt.desc}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div>

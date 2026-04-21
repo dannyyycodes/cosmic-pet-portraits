@@ -396,7 +396,7 @@ export const occasionModeContent: Record<OccasionMode, ModeContent> = {
 export function getModeFromUrl(): OccasionMode {
   const params = new URLSearchParams(window.location.search);
   const mode = params.get('mode');
-  if (mode && ['discover', 'birthday', 'memorial', 'gift'].includes(mode)) {
+  if (mode && ['discover', 'new', 'birthday', 'memorial', 'gift'].includes(mode)) {
     return mode as OccasionMode;
   }
   return 'discover';
