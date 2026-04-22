@@ -14,11 +14,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "https://aduibsyrnenzobuyetmn.supabase.co";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-// Opus 4.7 matches the primary cosmic worker — cross-pet synastry is the
-// most reasoning-heavy reading we ship, so the premium model is worth it.
-// Override via OPENROUTER_MODEL env var if a future experiment wants to test
-// a cheaper pass.
-const OPENROUTER_MODEL = Deno.env.get("OPENROUTER_MODEL") || "anthropic/claude-opus-4.7";
+// Opus 4.6 per the 2026-04-22 research sweep — human blind-rater panel
+// preferred Opus 4.6 over GPT-5.4 and Gemini 3.1 Pro for literary / emotional
+// prose. Opus 4.7 regressed (reviewer-reported bullets + sycophancy). Cross-
+// pet synastry is the most reasoning-heavy reading we ship, literary register
+// matches the product tone. Override via OPENROUTER_MODEL env var if a future
+// experiment wants to test a cheaper pass.
+const OPENROUTER_MODEL = Deno.env.get("OPENROUTER_MODEL") || "anthropic/claude-opus-4.6";
 
 const compatibilityId = Deno.args[0];
 const petReportAId = Deno.args[1];

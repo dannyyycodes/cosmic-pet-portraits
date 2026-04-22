@@ -1176,10 +1176,12 @@ QUALITY STANDARD: This report costs $49. Every section must justify that price.
         "X-Title": "Little Souls Reading",
       },
       body: JSON.stringify({
-        // Upgraded to Opus 4.7 on 2026-04-21 to match the primary droplet
-        // worker. This edge fn is the legacy fallback path — kept aligned in
-        // case it ever takes traffic again.
-        model: "anthropic/claude-opus-4.7",
+        // Opus 4.6 per the 2026-04-22 research sweep. Opus 4.7 regressed on
+        // prose per independent reviewers (bullets + sycophancy); 4.6 holds
+        // the 47% blind-rater preference for literary/emotional work. This
+        // edge fn is the legacy fallback path; primary worker runs per-
+        // occasion routing via modelForOccasion() in worker/worker.ts.
+        model: "anthropic/claude-opus-4.6",
         max_tokens: 8000,
         stream: true,
         messages: [
