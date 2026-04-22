@@ -260,18 +260,49 @@ async function geocodeLocation(location: string): Promise<{ lat: number; lon: nu
 let _customerEmail = "";
 let _customerPetName = "your pet";
 
+// ─── Per-occasion model routing ──────────────────────────────────────────────
+// Chosen 2026-04-22 after a 4-agent research sweep across Jan-Apr 2026
+// benchmarks + human blind-rater panels. Honest per-route best model:
+//
+// • memorial / discover / gift → claude-opus-4.6
+//   Human blind-rater preference 47% (vs GPT-5.4 29%, Gemini 3.1 Pro 24%)
+//   for literary fiction. Best at subtext, earned emotion, chart-grounded
+//   insight. Opus 4.7 regressed to bullets + sycophancy per multiple
+//   independent reviewers — downgraded deliberately.
+//
+// • new / birthday → gpt-5.1
+//   Celebration + arrival warmth lands better here. GPT-5.1 restored the
+//   emotional warmth that GPT-5 lost (OpenAI had to patch post-backlash).
+//   Short punchy celebratory copy is a GPT strength; Opus defaults to
+//   literary-register which feels over-formal for birthday and arrival.
+//
+// Sources + reasoning in session memory (project_littlesouls_model_research).
+export function modelForOccasion(
+  occasion: "discover" | "new" | "birthday" | "memorial" | "gift",
+): string {
+  switch (occasion) {
+    case "new":
+    case "birthday":
+      return "openai/gpt-5.1";
+    case "memorial":
+    case "discover":
+    case "gift":
+    default:
+      return "anthropic/claude-opus-4.6";
+  }
+}
+
 // ─── OpenRouter fetch — 4 attempts, exponential backoff, no downgrade ────────
 // Policy (per product owner): on failure, retry SAME model. Never silently
 // substitute a cheaper model. If all attempts fail, the worker fails loudly
 // and triggers notifyFailure() — we never ship a template report.
-//
-// Model choice: Opus 4.7. Upgraded from Sonnet 4.5 on 2026-04-21 per product
-// decision to prioritise reading quality over per-report cost. Memorial + Soul
-// Bond synastry in particular benefit from Opus's stronger literary nuance;
-// cost still under 5% of revenue on a £29 Soul Reading and under 3% on £49 tiers.
-async function fetchOpenRouter(systemPrompt: string, userPrompt: string): Promise<Response> {
+async function fetchOpenRouter(
+  systemPrompt: string,
+  userPrompt: string,
+  model: string = "anthropic/claude-opus-4.6",
+): Promise<Response> {
   const body = JSON.stringify({
-    model: "anthropic/claude-opus-4.7",
+    model,
     max_tokens: 24000,
     stream: false,
     messages: [
@@ -1548,8 +1579,11 @@ OVERDELIVERY STANDARD — This report must feel like it's worth 10x what they pa
   }
 
   // ─── Call OpenRouter (with automatic retry) ────────────────────────────────
-
-  const response = await fetchOpenRouter(systemPrompt, userPrompt);
+  // Model selected per-occasion — see modelForOccasion() header comment at
+  // the top of this file for the research trail behind each route's pick.
+  const selectedModel = modelForOccasion(occasionMode);
+  console.log("[WORKER] Occasion + model:", { occasionMode, model: selectedModel });
+  const response = await fetchOpenRouter(systemPrompt, userPrompt, selectedModel);
 
   // ─── Fallback report builder (identical to edge function) ──────────────────
 
@@ -2148,9 +2182,9 @@ Return: { "${sectionName}": { ...replacement... } }`;
           "X-Title": "Little Souls Section Regen",
         },
         body: JSON.stringify({
-          // Match main-generation model so regenerated sections retain the
-          // same voice / quality floor as the rest of the report.
-          model: "anthropic/claude-opus-4.7",
+          // Match main-generation per-occasion model so regenerated sections
+          // retain the same voice / quality floor as the rest of the report.
+          model: modelForOccasion(occasionMode),
           max_tokens: 3000,
           response_format: { type: "json_object" },
           messages: [

@@ -730,8 +730,12 @@ You're ${userMsgCount} messages deep. Go ALL IN emotionally:
           // pet chats stay on Sonnet 4.5 where chat UX benefits from the
           // faster first-token latency. Tonal failures in grief writing cost
           // more than a 1-2s latency bump.
+          //
+          // Opus pinned to 4.6 per the 2026-04-22 research sweep — 4.7
+          // regressed on prose (bullets + sycophancy); 4.6 is the blind-
+          // rater-preferred literary/grief model.
           model: petData.occasionMode === 'memorial'
-            ? "anthropic/claude-opus-4.7"
+            ? "anthropic/claude-opus-4.6"
             : "anthropic/claude-sonnet-4.5",
           messages: [
             { role: "system", content: finalSystem },
