@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Gift, ArrowLeft, Send, LinkIcon, CheckCircle, Plus, Trash2,
@@ -495,6 +495,12 @@ export default function GiftPurchase() {
     portrait:  { cents: prices.premium, wasCents: prices.wasPremium },
   };
   const [selectedTier, setSelectedTier] = useState<TierKey | null>(null);
+  // Top-level gift occasion — memorial/new/discover/birthday. This is the
+  // PRIMARY product choice on the page (the real products we ship), with
+  // Soul Reading / Soul Bond as depth-of-reading picks underneath it.
+  // Null on first render — the occasion picker above the tier cards
+  // forces the visitor to frame what kind of gift this is first.
+  const [selectedOccasion, setSelectedOccasion] = useState<GiftOccasion | null>(null);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('link');
   const [giftType, setGiftType] = useState<'single' | 'multiple' | null>(null);
@@ -507,6 +513,15 @@ export default function GiftPurchase() {
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [singleRecipient, setSingleRecipient] = useState<GiftRecipient>({ id: crypto.randomUUID(), name: '', email: '', occasion: 'discover' });
   const [recipients, setRecipients] = useState<GiftRecipient[]>([{ id: crypto.randomUUID(), name: '', email: '', occasion: 'discover' }]);
+
+  // When the primary occasion is picked, propagate it to all recipient
+  // rows as the default so downstream steps start in the right tone.
+  // Per-recipient picker stays editable afterwards for mixed gifts.
+  const handleOccasionSelect = useCallback((occ: GiftOccasion) => {
+    setSelectedOccasion(occ);
+    setSingleRecipient(r => ({ ...r, occasion: occ }));
+    setRecipients(rs => rs.map(r => ({ ...r, occasion: occ })));
+  }, []);
 
   // Auto-apply promo from URL
   useEffect(() => {
@@ -676,10 +691,226 @@ export default function GiftPurchase() {
           <GiftReviewStrip />
         </motion.div>
 
-        {/* ── TIER CARDS ── */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+        {/* ── OCCASION PICKER ── */}
+        {/* First-class product choice: what kind of gift is this? Mirrors
+            the main funnel's PathPicker pill design (italic Cormorant
+            labels, gold-on-cream gradient, rose active halo) but adds a
+            fourth slot for Birthday and uses gift-framed copy. Tier
+            selection below is gated on this. */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.06 }}
+          style={{ marginBottom: 40 }}
+        >
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
+            Who is this gift for?
+          </p>
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto 22px', maxWidth: 420 }}>
+            Each reading is written in a different voice — pick the one that fits.
+          </p>
+
+          <div
+            role="radiogroup"
+            aria-label="Gift occasion"
+            className="gift-occasion-row"
+          >
+            {([
+              { value: 'new',      emoji: '🌱', label: 'For a new pet' },
+              { value: 'discover', emoji: '🔮', label: 'To discover their pet' },
+              { value: 'memorial', emoji: '🕊️', label: 'In loving memory' },
+              { value: 'birthday', emoji: '🎂', label: "For their pet's birthday" },
+            ] as Array<{ value: GiftOccasion; emoji: string; label: string }>).map(({ value, emoji, label }) => {
+              const active = selectedOccasion === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => handleOccasionSelect(value)}
+                  className={`gift-occasion-pill ${active ? 'is-active' : ''}`}
+                >
+                  <span aria-hidden="true" className="gop-sheen" />
+                  <span className="gift-occasion-label-wrap">
+                    <span className="gop-emoji" aria-hidden="true">{emoji}</span>
+                    <span className="gift-occasion-label">{label}</span>
+                    <span aria-hidden="true" className="gift-occasion-underline" />
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <style>{`
+            .gift-occasion-row {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 12px;
+              max-width: 500px;
+              margin: 0 auto;
+            }
+
+            .gift-occasion-pill {
+              position: relative;
+              appearance: none;
+              -webkit-appearance: none;
+              cursor: pointer;
+              width: 100%;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              background:
+                radial-gradient(
+                  120% 160% at 50% -20%,
+                  rgba(212, 178, 107, 0.14) 0%,
+                  rgba(212, 178, 107, 0) 55%
+                ),
+                linear-gradient(
+                  180deg,
+                  rgba(255, 253, 245, 0.98) 0%,
+                  rgba(249, 240, 224, 0.94) 100%
+                );
+              border: 1px solid rgba(196, 162, 101, 0.36);
+              border-radius: 9999px;
+              color: ${C.ink};
+              font-family: "Cormorant", Georgia, serif;
+              font-style: italic;
+              letter-spacing: 0.005em;
+              line-height: 1.1;
+              padding: 16px 24px;
+              min-height: 58px;
+              font-size: clamp(1rem, 3.2vw, 1.18rem);
+              transition:
+                background 320ms ease,
+                border-color 320ms ease,
+                color 320ms ease,
+                box-shadow 380ms ease,
+                transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+              box-shadow:
+                0 1px 2px rgba(20, 15, 8, 0.04),
+                0 10px 26px rgba(20, 15, 8, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.78),
+                inset 0 -1px 0 rgba(196, 162, 101, 0.12);
+              -webkit-tap-highlight-color: transparent;
+              outline: none;
+              white-space: nowrap;
+              overflow: hidden;
+            }
+
+            .gop-sheen {
+              position: absolute; top: 0; left: 0; right: 0; height: 45%;
+              background: linear-gradient(180deg, rgba(212,178,107,0.14) 0%, rgba(212,178,107,0) 100%);
+              pointer-events: none; z-index: 0;
+            }
+
+            .gift-occasion-pill::after {
+              content: "";
+              position: absolute; top: 0; left: -55%; width: 55%; height: 100%;
+              background: linear-gradient(115deg, rgba(212,178,107,0) 0%, rgba(212,178,107,0.28) 50%, rgba(212,178,107,0) 100%);
+              opacity: 0; transform: translateX(0);
+              transition: transform 1100ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease;
+              pointer-events: none; z-index: 0;
+            }
+            @media (hover: hover) {
+              .gift-occasion-pill:hover::after { opacity: 1; transform: translateX(330%); }
+              .gift-occasion-pill:hover {
+                border-color: rgba(196, 162, 101, 0.62);
+                transform: translateY(-2px);
+                box-shadow:
+                  0 2px 4px rgba(20, 15, 8, 0.04),
+                  0 16px 34px rgba(20, 15, 8, 0.08),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+              }
+              .gift-occasion-pill:hover .gift-occasion-underline { width: calc(100% - 4px); }
+            }
+
+            .gift-occasion-label-wrap {
+              position: relative;
+              display: inline-flex;
+              align-items: center;
+              gap: 12px;
+              z-index: 1;
+            }
+            .gop-emoji {
+              font-size: 1.2em;
+              line-height: 1;
+              filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+            }
+            .gift-occasion-label { position: relative; display: inline-block; z-index: 1; }
+
+            .gift-occasion-underline {
+              position: absolute; left: 50%; bottom: -7px; height: 1px; width: 0;
+              background: linear-gradient(90deg, rgba(196,162,101,0) 0%, rgba(196,162,101,1) 20%, rgba(196,162,101,1) 80%, rgba(196,162,101,0) 100%);
+              transform: translateX(-50%);
+              transition: width 380ms cubic-bezier(0.22,1,0.36,1);
+              pointer-events: none; opacity: 0.85;
+            }
+
+            .gift-occasion-pill:focus-visible { outline: 2px solid ${C.rose}; outline-offset: 3px; }
+
+            .gift-occasion-pill.is-active {
+              color: ${C.rose};
+              background:
+                radial-gradient(140% 200% at 50% -30%, rgba(212,178,107,0.18) 0%, rgba(212,178,107,0) 60%),
+                linear-gradient(180deg, #FFFDF5 0%, #fbeedd 100%);
+              border-color: ${C.rose};
+              box-shadow:
+                0 0 0 5px rgba(191,82,74,0.07),
+                0 0 0 1px rgba(191,82,74,0.18),
+                0 4px 10px rgba(191,82,74,0.14),
+                0 20px 44px rgba(191,82,74,0.18),
+                inset 0 1px 0 rgba(255,255,255,0.92),
+                inset 0 -2px 6px rgba(212,178,107,0.18);
+              animation: gop-halo-pulse 3.6s ease-in-out infinite;
+            }
+            @keyframes gop-halo-pulse {
+              0%, 100% {
+                box-shadow:
+                  0 0 0 5px rgba(191,82,74,0.07),
+                  0 0 0 1px rgba(191,82,74,0.18),
+                  0 4px 10px rgba(191,82,74,0.14),
+                  0 20px 44px rgba(191,82,74,0.18),
+                  inset 0 1px 0 rgba(255,255,255,0.92),
+                  inset 0 -2px 6px rgba(212,178,107,0.18);
+              }
+              50% {
+                box-shadow:
+                  0 0 0 7px rgba(191,82,74,0.10),
+                  0 0 0 1px rgba(191,82,74,0.24),
+                  0 6px 14px rgba(191,82,74,0.18),
+                  0 24px 52px rgba(191,82,74,0.22),
+                  inset 0 1px 0 rgba(255,255,255,0.95),
+                  inset 0 -2px 8px rgba(212,178,107,0.22);
+              }
+            }
+            .gift-occasion-pill.is-active .gift-occasion-underline {
+              width: calc(100% - 4px); opacity: 1;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+              .gift-occasion-pill, .gift-occasion-pill::after, .gift-occasion-underline {
+                transition: none !important; transform: none !important;
+              }
+              .gift-occasion-pill.is-active { animation: none !important; }
+            }
+          `}</style>
+        </motion.div>
+
+        {/* ── TIER CARDS — gated on occasion pick ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{
+            opacity: selectedOccasion ? 1 : 0.35,
+            y: 0,
+            filter: selectedOccasion ? 'none' : 'grayscale(0.5)',
+          }}
+          transition={{ delay: 0.08, duration: 0.35 }}
+          style={{ pointerEvents: selectedOccasion ? 'auto' : 'none' }}
+        >
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 22 }}>
-            Choose Their Reading
+            {selectedOccasion ? 'Choose Their Reading' : 'Pick an occasion first ↑'}
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -935,7 +1166,7 @@ export default function GiftPurchase() {
                           ))}
                           {recipients.length < 10 && (
                             <button
-                              onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '', occasion: 'discover' }])}
+                              onClick={() => setRecipients(rs => [...rs, { id: crypto.randomUUID(), name: '', email: '', occasion: selectedOccasion ?? 'discover' }])}
                               style={{
                                 padding: 14, borderRadius: 14, border: `2px dashed ${C.rose}40`, background: C.roseGlow, cursor: 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: C.rose, fontWeight: 600, fontSize: '0.88rem', fontFamily: 'Cormorant, Georgia, serif',
