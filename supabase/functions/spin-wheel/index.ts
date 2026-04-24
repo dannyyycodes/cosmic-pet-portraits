@@ -235,17 +235,6 @@ serve(async (req) => {
   const cors = getCorsHeaders(req);
 
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
-
-  // Feature flag — spin wheel is parked pending proper completion.
-  // Missing migration, not mounted on frontend, stacking guards incomplete.
-  const SPIN_WHEEL_ENABLED = false;
-  if (!SPIN_WHEEL_ENABLED) {
-    return new Response(JSON.stringify({ error: "Feature not available" }), {
-      status: 503,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
-  }
-
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405, headers: { ...cors, "Content-Type": "application/json" },
