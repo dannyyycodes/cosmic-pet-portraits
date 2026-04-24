@@ -74,6 +74,143 @@ const TIERS = {
   },
 } as const;
 
+// ─── Occasion-specific tier overrides ─────────────────────────────────
+//
+// Different occasions call for different tier framing — Memorial isn't
+// about "bonding" language, a gift for a new pet leans into "welcome
+// them into the family", birthday leans celebratory, etc. This table
+// overrides the default TIERS copy at render time so each occasion
+// presents its own version of the same underlying product.
+//
+// Memorial intentionally has NO `essential` entry — the memorial product
+// is one single offering at the Soul Bond price (£49), matching the
+// main funnel which never shows a tier choice for memorial either.
+type TierContent = {
+  label: string;
+  tagline: string;
+  badge: string | null;
+  features: readonly string[];
+};
+type OccasionTiers = Partial<Record<TierKey, TierContent>>;
+
+const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
+  new: {
+    essential: {
+      label: 'Welcome Reading',
+      tagline: 'For the first chapter of their new bond — the pet they just brought home.',
+      badge: null,
+      features: [
+        'Written for a pet they just welcomed into their life',
+        'How this new soul wants to be loved, trained, and understood',
+        'What their new pet needs to feel at home — from day one',
+        'Their pet\'s photo becomes part of the reveal',
+        'SoulSpeak — they can talk to their new pet whenever they want',
+        '1 month of weekly horoscopes — included free',
+        'Theirs forever — revisit anytime, from any device',
+      ],
+    },
+    portrait: {
+      label: 'Welcome Soul Bond',
+      tagline: 'The new-pet reading + the cosmic story of why this soul found them.',
+      badge: 'MOST CHOSEN',
+      features: [
+        'Everything in the Welcome Reading, plus:',
+        'Their chart against their new pet\'s — why THIS soul landed in their life',
+        'Where their energies mirror, balance, and align',
+        'The soul-reasons the universe paired them at this exact moment',
+      ],
+    },
+  },
+  discover: {
+    essential: {
+      label: 'Discover Reading',
+      tagline: 'Finally understand the pet they\'ve known and loved for years.',
+      badge: null,
+      features: [
+        '30+ sections that reveal the pet they already love, deeply',
+        'The quiet truths they\'ve sensed but never had words for',
+        'How their pet loves, learns, heals, hopes, fears — fully decoded',
+        'Their pet\'s photo becomes part of the reveal',
+        'SoulSpeak — ask their pet the questions they\'ve always wondered',
+        '1 month of weekly horoscopes — included free',
+        'Theirs forever — revisit anytime, from any device',
+      ],
+    },
+    portrait: {
+      label: 'Discover Soul Bond',
+      tagline: 'The reading + the cosmic proof of why they were always meant to be together.',
+      badge: 'MOST CHOSEN',
+      features: [
+        'Everything in the Discover Reading, plus:',
+        'Their chart against their pet\'s — read side by side',
+        'Where they align, where they challenge, why the stars paired them',
+        'The soul-reasons this bond exists at all',
+      ],
+    },
+  },
+  memorial: {
+    portrait: {
+      label: 'Memorial Reading',
+      tagline: 'A remembrance written for a pet who has crossed the rainbow bridge — honouring the soul they loved.',
+      badge: 'A TRIBUTE',
+      features: [
+        'Honours the pet they lost with the respect their soul deserves',
+        'Their chart against their pet\'s — the bond that didn\'t end when the body did',
+        'What their pet came to teach them, what they leave behind, what stays',
+        'Their pet\'s photo becomes part of the memorial reveal',
+        'SoulSpeak — a sacred space to still talk to them, one more time',
+        'Theirs forever — a keepsake they\'ll return to on the hard days',
+        'No weekly horoscopes — memorial readings honour the life that was',
+      ],
+    },
+  },
+  birthday: {
+    essential: {
+      label: 'Birthday Reading',
+      tagline: 'A reading to celebrate another year of the soul they love most.',
+      badge: null,
+      features: [
+        'A celebration of the pet whose birthday it is',
+        '30+ sections decoding their pet\'s personality, love language, and year ahead',
+        'Their pet\'s photo becomes part of the reveal',
+        'SoulSpeak — they can ask their pet anything, on their special day',
+        '1 month of weekly horoscopes — the year ahead, read by the stars',
+        'Theirs forever — a birthday gift that keeps giving',
+      ],
+    },
+    portrait: {
+      label: 'Birthday Soul Bond',
+      tagline: 'The birthday reading + the full bond story — them and their pet, read together.',
+      badge: 'MOST CHOSEN',
+      features: [
+        'Everything in the Birthday Reading, plus:',
+        'Their chart against their pet\'s — how their souls dance together',
+        'Where they mirror, balance, and bring out the best in each other',
+        'The cosmic reason this bond began, celebrated on this birthday',
+      ],
+    },
+  },
+};
+
+// Short prompt line above the tier cards that reframes per occasion.
+const OCCASION_TIER_KICKER: Record<GiftOccasion, string> = {
+  new:      'Choose their Welcome Reading',
+  discover: 'Choose their Discover Reading',
+  memorial: 'The Memorial Reading',
+  birthday: 'Choose their Birthday Reading',
+};
+
+// Subtle visual accent per occasion — a soft coloured hairline that
+// frames the tier cards so they don't feel like carbon copies across
+// occasions. Kept minimal so the cream/rose/gold brand palette still
+// dominates.
+const OCCASION_ACCENT: Record<GiftOccasion, { ring: string; badge: string }> = {
+  new:      { ring: 'rgba(74,140,92,0.28)',   badge: '#4a8c5c' }, // green (fresh beginning)
+  discover: { ring: 'rgba(139,92,172,0.28)',  badge: '#8b5cac' }, // violet (mystery/reveal)
+  memorial: { ring: 'rgba(196,162,101,0.42)', badge: '#c4a265' }, // gold (sacred, honouring)
+  birthday: { ring: 'rgba(217,119,60,0.30)',  badge: '#d9773c' }, // amber (celebration)
+};
+
 type TierKey = keyof typeof TIERS;
 
 const getVolumeDiscount = (count: number): number => {
@@ -156,14 +293,17 @@ function WallpaperBackdrop() {
 }
 
 function TierCard({
-  tierKey, selected, onClick, fmt, cents, wasCents,
+  tierKey, selected, onClick, fmt, cents, wasCents, override, accent: occAccent,
 }: {
   tierKey: TierKey; selected: boolean; onClick: () => void;
   fmt: (cents: number) => string;
   cents: number;
   wasCents?: number;
+  override?: TierContent;
+  accent?: { ring: string; badge: string };
 }) {
-  const tier = TIERS[tierKey];
+  const base = TIERS[tierKey];
+  const tier = override ?? base;
   const accent = C.rose;
   const accentGlow = C.roseGlow;
 
@@ -178,16 +318,21 @@ function TierCard({
         background: selected ? 'rgba(255,253,245,0.96)' : 'rgba(255,253,245,0.92)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
-        boxShadow: selected ? `0 6px 24px ${accentGlow}` : '0 2px 12px rgba(0,0,0,0.04)',
+        boxShadow: selected
+          ? `0 6px 24px ${accentGlow}${occAccent ? `, 0 0 0 5px ${occAccent.ring}` : ''}`
+          : `0 2px 12px rgba(0,0,0,0.04)${occAccent ? `, inset 0 0 0 1px ${occAccent.ring}` : ''}`,
         transition: 'border-color 0.2s, background 0.2s, box-shadow 0.2s',
         position: 'relative',
       }}
     >
-      {/* Badge */}
+      {/* Badge — occasion overrides provide their own label; when an
+          override is in play, use the occasion's badge accent colour
+          so it reads as part of that occasion's visual language. */}
       {tier.badge && (
         <span style={{
           position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)',
-          background: tier.badgeColor, color: '#fff',
+          background: occAccent?.badge ?? base.badgeColor,
+          color: '#fff',
           fontSize: '0.58rem', fontWeight: 800, padding: '3px 14px', borderRadius: 20, letterSpacing: '0.1em',
           whiteSpace: 'nowrap',
         }}>
@@ -517,10 +662,18 @@ export default function GiftPurchase() {
   // When the primary occasion is picked, propagate it to all recipient
   // rows as the default so downstream steps start in the right tone.
   // Per-recipient picker stays editable afterwards for mixed gifts.
+  // Also clear the tier selection if switching to Memorial (which only
+  // has portrait) or away from a tier that isn't offered on the new
+  // occasion — keeps the flow from getting into impossible states.
   const handleOccasionSelect = useCallback((occ: GiftOccasion) => {
     setSelectedOccasion(occ);
     setSingleRecipient(r => ({ ...r, occasion: occ }));
     setRecipients(rs => rs.map(r => ({ ...r, occasion: occ })));
+    setSelectedTier((prev) => {
+      if (prev === null) return null;
+      if (occ === 'memorial' && prev !== 'portrait') return null;
+      return prev;
+    });
   }, []);
 
   // Auto-apply promo from URL
@@ -898,7 +1051,11 @@ export default function GiftPurchase() {
           `}</style>
         </motion.div>
 
-        {/* ── TIER CARDS — gated on occasion pick ── */}
+        {/* ── TIER CARDS — gated on occasion pick, tier set + copy
+            varies per occasion. Memorial is portrait-only (single
+            product at the Soul Bond price, matching the main funnel);
+            new/discover/birthday show both tiers with occasion-framed
+            copy so they don't feel like carbon copies. ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{
@@ -910,12 +1067,33 @@ export default function GiftPurchase() {
           style={{ pointerEvents: selectedOccasion ? 'auto' : 'none' }}
         >
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 22 }}>
-            {selectedOccasion ? 'Choose Their Reading' : 'Pick an occasion first ↑'}
+            {selectedOccasion ? OCCASION_TIER_KICKER[selectedOccasion] : 'Pick an occasion first ↑'}
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <TierCard tierKey="essential" selected={selectedTier === 'essential'} onClick={() => handleTierSelect('essential')} fmt={fmt} cents={TIER_CENTS.essential.cents} wasCents={TIER_CENTS.essential.wasCents} />
-            <TierCard tierKey="portrait" selected={selectedTier === 'portrait'} onClick={() => handleTierSelect('portrait')} fmt={fmt} cents={TIER_CENTS.portrait.cents} wasCents={TIER_CENTS.portrait.wasCents} />
+            {(() => {
+              const occTiers = selectedOccasion ? OCCASION_TIERS[selectedOccasion] : null;
+              const accent = selectedOccasion ? OCCASION_ACCENT[selectedOccasion] : undefined;
+              // Memorial = single-product (portrait only at £49). Others
+              // render both tiers with their occasion-specific copy.
+              const visibleKeys: TierKey[] = selectedOccasion === 'memorial'
+                ? ['portrait']
+                : ['essential', 'portrait'];
+
+              return visibleKeys.map((key) => (
+                <TierCard
+                  key={key}
+                  tierKey={key}
+                  selected={selectedTier === key}
+                  onClick={() => handleTierSelect(key)}
+                  fmt={fmt}
+                  cents={TIER_CENTS[key].cents}
+                  wasCents={TIER_CENTS[key].wasCents}
+                  override={occTiers?.[key]}
+                  accent={accent}
+                />
+              ));
+            })()}
           </div>
         </motion.div>
 
