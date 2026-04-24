@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, forwardRef, type ReactNode, type CSSProperties } from "react";
+import { useState, useEffect, useRef, useCallback, forwardRef, type ReactNode, type CSSProperties } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getReferralCode } from "@/lib/referralTracking";
 import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
@@ -197,71 +197,79 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   // refreshes don't re-apply (sessionStorage survives the SPA route
   // change but is wiped on tab close, which is the right TTL).
   const wheelPrizeApplied = useRef(false);
-  useEffect(() => {
+  // Extracted so we can run it on mount AND in response to the
+  // `ls-wheel-prize` event dispatched by SpinWheel mid-session (the
+  // wheel opens AFTER this component is already mounted, so the
+  // mount-only read would always miss it without the listener).
+  const applyWheelPrize = useCallback(async (
+    source: { email?: string; code?: string; expiresAt?: string; prizeLabel?: string } | null,
+  ) => {
     if (wheelPrizeApplied.current) return;
-    let cancelled = false;
-    (async () => {
-      // Email-only fallback: SpinWheel writes the email to
-      // `ls_wheel_email` as the visitor types, even before they spin.
-      // If they bounced without spinning, we still get to prefill the
-      // email field so checkout doesn't ask twice.
-      try {
-        const fallback = sessionStorage.getItem("ls_wheel_email");
-        if (fallback && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(fallback)) {
-          setEmail((current) => current || fallback);
-        }
-      } catch { /* ignore */ }
-
-      let raw: string | null = null;
-      try { raw = sessionStorage.getItem("ls_wheel_prize"); } catch { return; }
-      if (!raw) return;
-      let parsed: { email?: string; code?: string; expiresAt?: string; prizeLabel?: string } | null = null;
-      try { parsed = JSON.parse(raw); } catch { return; }
-      if (!parsed?.code || !parsed?.email) return;
-      if (parsed.expiresAt && new Date(parsed.expiresAt).getTime() < Date.now()) {
-        try { sessionStorage.removeItem("ls_wheel_prize"); } catch { /* ignore */ }
-        return;
-      }
-      wheelPrizeApplied.current = true;
-      setEmail(parsed.email);
-      setCodeOpen(true);
-      setCodeInput(parsed.code);
-      setCodeStatus("checking");
-      try {
-        const { data: coupons } = await supabase
-          .from("coupons")
-          .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses")
-          .eq("code", parsed.code)
-          .eq("is_active", true)
-          .limit(1);
-        if (cancelled) return;
-        if (coupons && coupons.length > 0) {
-          const c = coupons[0];
-          if (c.expires_at && new Date(c.expires_at) < new Date()) {
-            setCodeError("This code has expired");
-            setCodeStatus("idle");
-            return;
-          }
-          if (c.max_uses && c.current_uses >= c.max_uses) {
-            setCodeError("This code has already been used");
-            setCodeStatus("idle");
-            return;
-          }
-          setAppliedCoupon(c);
-          setCodeStatus("applied");
-          trackFunnelEvent("v2_wheel_code_autoapplied", { code: parsed.code, prizeLabel: parsed.prizeLabel });
-        } else {
-          setCodeError("This code is no longer available");
+    if (!source?.code || !source?.email) return;
+    if (source.expiresAt && new Date(source.expiresAt).getTime() < Date.now()) {
+      try { sessionStorage.removeItem("ls_wheel_prize"); } catch { /* ignore */ }
+      return;
+    }
+    wheelPrizeApplied.current = true;
+    setEmail(source.email);
+    setCodeOpen(true);
+    setCodeInput(source.code);
+    setCodeStatus("checking");
+    try {
+      const { data: coupons } = await supabase
+        .from("coupons")
+        .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses")
+        .eq("code", source.code)
+        .eq("is_active", true)
+        .limit(1);
+      if (coupons && coupons.length > 0) {
+        const c = coupons[0];
+        if (c.expires_at && new Date(c.expires_at) < new Date()) {
+          setCodeError("This code has expired");
           setCodeStatus("idle");
+          return;
         }
-      } catch (e) {
-        console.error("[V2 wheel autofill]", e);
+        if (c.max_uses && c.current_uses >= c.max_uses) {
+          setCodeError("This code has already been used");
+          setCodeStatus("idle");
+          return;
+        }
+        setAppliedCoupon(c);
+        setCodeStatus("applied");
+        trackFunnelEvent("v2_wheel_code_autoapplied", { code: source.code, prizeLabel: source.prizeLabel });
+      } else {
+        setCodeError("This code is no longer available");
         setCodeStatus("idle");
       }
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    } catch (e) {
+      console.error("[V2 wheel autofill]", e);
+      setCodeStatus("idle");
+    }
   }, []);
+
+  useEffect(() => {
+    // Mount: email prefill + one-shot read of any pre-existing prize.
+    try {
+      const fallback = sessionStorage.getItem("ls_wheel_email");
+      if (fallback && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(fallback)) {
+        setEmail((current) => current || fallback);
+      }
+    } catch { /* ignore */ }
+    try {
+      const raw = sessionStorage.getItem("ls_wheel_prize");
+      if (raw) applyWheelPrize(JSON.parse(raw));
+    } catch { /* ignore */ }
+
+    // Live: fires the moment SpinWheel reveals a prize in the same session.
+    const onWheelPrize = (e: Event) => {
+      const detail = (e as CustomEvent).detail as {
+        email?: string; code?: string; expiresAt?: string; prizeLabel?: string;
+      } | undefined;
+      if (detail) applyWheelPrize(detail);
+    };
+    window.addEventListener("ls-wheel-prize", onWheelPrize);
+    return () => window.removeEventListener("ls-wheel-prize", onWheelPrize);
+  }, [applyWheelPrize]);
 
   // Lock body scroll while any preview modal is open
   useEffect(() => {
@@ -1064,11 +1072,39 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
             </div>
           )}
           {appliedCoupon && (
-            <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg" style={{ background: "rgba(74,140,92,0.1)", border: "1px solid rgba(74,140,92,0.3)" }}>
-              <span style={{ fontSize: "0.85rem", color: "var(--green, #4a8c5c)", fontWeight: 600 }}>
-                ✓ {appliedCoupon.code} — {appliedCoupon.discount_value}% off applied
-              </span>
-              <button type="button" onClick={removeAppliedCoupon} aria-label="Remove code" style={{ background: "none", border: "none", color: "var(--green, #4a8c5c)", cursor: "pointer", fontSize: "1rem" }}>×</button>
+            <div
+              className="flex items-center justify-between gap-2 px-4 py-3 rounded-xl"
+              style={{
+                background: "linear-gradient(135deg, rgba(196,162,101,0.14) 0%, rgba(191,82,74,0.12) 100%)",
+                border: "1.5px solid rgba(196,162,101,0.5)",
+                boxShadow: "0 2px 10px rgba(196,162,101,0.15)",
+                animation: "lsCouponPop 520ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: "1.15rem", lineHeight: 1 }}>✨</span>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "0.98rem", color: "var(--rose, #bf524a)", margin: 0, lineHeight: 1.15, fontWeight: 400 }}>
+                    Extra {appliedCoupon.discount_value}% off — stacked
+                  </p>
+                  <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.74rem", color: "var(--gold, #c4a265)", margin: "2px 0 0 0", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                    Code {appliedCoupon.code} · on top of your launch saving
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={removeAppliedCoupon}
+                aria-label="Remove code"
+                style={{ background: "none", border: "none", color: "var(--muted, #958779)", cursor: "pointer", fontSize: "1.1rem", padding: "2px 6px", lineHeight: 1 }}
+              >×</button>
+              <style>{`
+                @keyframes lsCouponPop {
+                  0%   { opacity: 0; transform: scale(0.85) translateY(-6px); }
+                  60%  { opacity: 1; transform: scale(1.04) translateY(0); }
+                  100% { opacity: 1; transform: scale(1) translateY(0); }
+                }
+              `}</style>
             </div>
           )}
           {codeError && <p className="mt-1.5" style={{ fontSize: "0.78rem", color: "var(--rose, #bf524a)" }}>{codeError}</p>}

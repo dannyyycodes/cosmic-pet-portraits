@@ -14,16 +14,36 @@ import { supabase } from "@/integrations/supabase/client";
  * very next page interaction — zero re-typing for the visitor.
  */
 
-// Two-line sector labels — top line is the headline number/word, bottom
-// line is the qualifier. Short so they fit comfortably inside a 60°
-// sector (six prizes total) without overflowing the arc.
-const PRIZE_LABELS: Record<number, { top: string; bottom: string }> = {
-  1: { top: "10%",   bottom: "OFF" },
-  2: { top: "500",   bottom: "CREDITS" },
-  3: { top: "15%",   bottom: "OFF" },
-  4: { top: "25%",   bottom: "FRIEND" },
-  5: { top: "30%",   bottom: "OFF" },
-  6: { top: "EXTRA", bottom: "MONTH" },
+// SINGLE SOURCE OF TRUTH for what each slice looks like AND reads as in
+// the reveal panel. The server returns only `slice` (an integer 1..6) and
+// a code — all display copy is looked up here so the wheel-under-pointer
+// and the reveal-text can never drift out of alignment.
+type PrizeSpec = {
+  top: string;        // wheel wedge — top line (large headline)
+  bottom: string;     // wheel wedge — bottom line (qualifier)
+  hero: string;       // reveal — huge hero headline ("30% OFF")
+  revealLabel: string;// reveal — full sentence below hero
+  stackNote: string;  // reveal — sub-line explaining the stack / dopamine
+};
+const PRIZES: Record<number, PrizeSpec> = {
+  1: { top: "10%", bottom: "OFF", hero: "10% OFF",
+       revealLabel: "10% off your reading",
+       stackNote: "Stacks on top of your launch saving" },
+  2: { top: "500", bottom: "CREDITS", hero: "500 CREDITS",
+       revealLabel: "500 bonus SoulSpeak credits",
+       stackNote: "Hundreds of extra messages with their soul" },
+  3: { top: "15%", bottom: "OFF", hero: "15% OFF",
+       revealLabel: "15% off your reading",
+       stackNote: "Stacks on top of your launch saving" },
+  4: { top: "25%", bottom: "GIFT", hero: "25% OFF · GIFT",
+       revealLabel: "25% off — to gift a reading",
+       stackNote: "A reading for someone you love" },
+  5: { top: "30%", bottom: "OFF", hero: "30% OFF",
+       revealLabel: "30% off your reading",
+       stackNote: "The biggest gift on the wheel — stacks on your launch saving" },
+  6: { top: "EXTRA", bottom: "MONTH", hero: "BONUS MONTH",
+       revealLabel: "An extra month of weekly horoscopes",
+       stackNote: "Four more weeks of cosmic guidance on us" },
 };
 
 // Sector colour rotation across all six wedges — picked so adjacent
@@ -172,6 +192,21 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
         }));
       } catch { /* ignore */ }
       try { localStorage.setItem("ls_wheel_shown", "1"); } catch { /* ignore */ }
+      // Notify InlineCheckout (or any listener) that a prize is ready.
+      // InlineCheckout's mount-time sessionStorage read fires BEFORE the
+      // wheel opens (it's on the same page), so without this event it
+      // would never auto-apply the coupon in the same session.
+      try {
+        window.dispatchEvent(new CustomEvent("ls-wheel-prize", {
+          detail: {
+            email: trimmed,
+            code: winningPrize.code,
+            prizeLabel: winningPrize.prizeLabel,
+            slice: winningPrize.slice,
+            expiresAt: winningPrize.expiresAt,
+          },
+        }));
+      } catch { /* ignore */ }
       setStage("revealed");
     }, SPIN_DURATION_MS);
   };
@@ -325,7 +360,7 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
                 // stack correctly. +90 puts the baseline tangent → rotate
                 // by labelAngle+90 so the text reads from inside out.
                 const labelRotation = labelAngle + 90;
-                const labels = PRIZE_LABELS[sliceNum];
+                const labels = PRIZES[sliceNum];
 
                 // Stars at sector boundaries — tiny constellation dots
                 // sitting just inside the gold rim so the wheel reads as
@@ -484,13 +519,27 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
             </p>
           </>
         ) : (
-          <div className="text-center" style={{ animation: "lsRevealIn 520ms cubic-bezier(0.22,1,0.36,1)" }}>
-            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "1.05rem", color: "var(--earth, #6e6259)", margin: "0 0 8px 0", lineHeight: 1.55 }}>
-              You won
+          <div className="text-center relative" style={{ animation: "lsRevealIn 520ms cubic-bezier(0.22,1,0.36,1)" }}>
+            {/* Confetti burst — pure-CSS sparkles that radiate out on
+                reveal. Aria-hidden; motion is skipped if the visitor has
+                prefers-reduced-motion. Triggers the dopamine hit. */}
+            <div aria-hidden="true" className="ls-confetti" style={{ position: "absolute", top: -18, left: "50%", width: 1, height: 1, pointerEvents: "none" }}>
+              {Array.from({ length: 14 }, (_, i) => (
+                <span key={i} className={`ls-confetti-piece ls-cf-${i}`} />
+              ))}
+            </div>
+            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.98rem", color: "var(--earth, #6e6259)", margin: "0 0 4px 0", lineHeight: 1.55, letterSpacing: "0.04em" }}>
+              {prize?.repeat ? "You already won" : "You won"}
             </p>
-            <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(1.4rem, 4.5vw, 1.75rem)", color: "var(--rose, #bf524a)", margin: "0 0 16px 0", lineHeight: 1.2 }}>
-              {prize?.prizeLabel}
+            <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(2rem, 7.5vw, 2.75rem)", color: "var(--rose, #bf524a)", margin: "0 0 6px 0", lineHeight: 1.05, letterSpacing: "-0.01em", animation: "lsHeroPop 640ms cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
+              {prize ? (PRIZES[prize.slice]?.hero ?? prize.prizeLabel) : ""}
             </h3>
+            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.98rem", color: "var(--ink, #1f1c18)", margin: "0 0 4px 0", lineHeight: 1.4, fontStyle: "italic" }}>
+              {prize ? (PRIZES[prize.slice]?.revealLabel ?? prize.prizeLabel) : ""}
+            </p>
+            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--gold, #c4a265)", margin: "0 0 14px 0", lineHeight: 1.45, fontWeight: 600, letterSpacing: "0.02em" }}>
+              ✨ {prize ? (PRIZES[prize.slice]?.stackNote ?? "") : ""}
+            </p>
             <div
               style={{
                 background: "#faf4e8",
@@ -557,10 +606,10 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
                 minHeight: 52,
               }}
             >
-              Apply at Checkout →
+              See My New Total →
             </button>
             <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", color: "var(--muted, #958779)", margin: "10px 0 0 0", lineHeight: 1.5 }}>
-              Code shown above ↑ · Also emailed as backup · Expires in 48 hours
+              Applied automatically · Also emailed · Expires in 48h
             </p>
           </div>
         )}
@@ -574,8 +623,47 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
             from { opacity: 0; transform: translateY(8px); }
             to   { opacity: 1; transform: translateY(0); }
           }
+          @keyframes lsHeroPop {
+            0%   { opacity: 0; transform: scale(0.6) rotate(-4deg); }
+            55%  { opacity: 1; transform: scale(1.08) rotate(1.5deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0); }
+          }
+
+          /* Confetti burst — 14 pieces radiate outward with slight
+             rotation & gold/rose/cream palette. Each piece has a unique
+             angle + distance set via the .ls-cf-N classes below. */
+          .ls-confetti-piece {
+            position: absolute;
+            left: 0; top: 0;
+            width: 7px; height: 11px;
+            border-radius: 1.5px;
+            opacity: 0;
+            transform-origin: center;
+            animation: lsConfettiBurst 1100ms cubic-bezier(0.22,1,0.36,1) forwards;
+          }
+          @keyframes lsConfettiBurst {
+            0%   { opacity: 0; transform: translate(-50%, -50%) rotate(0) scale(0.4); }
+            18%  { opacity: 1; }
+            100% { opacity: 0; transform: translate(var(--cx, 0), var(--cy, 0)) rotate(var(--cr, 120deg)) scale(1); }
+          }
+          .ls-cf-0  { background: #c4a265; --cx:  -72px; --cy: -28px; --cr:  180deg; animation-delay: 20ms; }
+          .ls-cf-1  { background: #bf524a; --cx:  -54px; --cy: -58px; --cr: -120deg; animation-delay: 60ms; }
+          .ls-cf-2  { background: #fbeedd; --cx:  -22px; --cy: -72px; --cr:   90deg; animation-delay: 0ms;  }
+          .ls-cf-3  { background: #c4a265; --cx:   14px; --cy: -78px; --cr:  220deg; animation-delay: 40ms; }
+          .ls-cf-4  { background: #bf524a; --cx:   46px; --cy: -66px; --cr:  -90deg; animation-delay: 10ms; }
+          .ls-cf-5  { background: #fbeedd; --cx:   74px; --cy: -40px; --cr:  160deg; animation-delay: 80ms; }
+          .ls-cf-6  { background: #c4a265; --cx:   86px; --cy:  -4px; --cr: -200deg; animation-delay: 30ms; }
+          .ls-cf-7  { background: #bf524a; --cx:   68px; --cy:  32px; --cr:  140deg; animation-delay: 50ms; }
+          .ls-cf-8  { background: #fbeedd; --cx:   28px; --cy:  58px; --cr: -160deg; animation-delay: 70ms; }
+          .ls-cf-9  { background: #c4a265; --cx:  -12px; --cy:  62px; --cr:  200deg; animation-delay: 35ms; }
+          .ls-cf-10 { background: #bf524a; --cx:  -48px; --cy:  48px; --cr: -100deg; animation-delay: 55ms; }
+          .ls-cf-11 { background: #fbeedd; --cx:  -78px; --cy:  18px; --cr:  110deg; animation-delay: 15ms; }
+          .ls-cf-12 { background: #c4a265; --cx:  -92px; --cy: -12px; --cr: -180deg; animation-delay: 65ms; }
+          .ls-cf-13 { background: #bf524a; --cx:    4px; --cy: -90px; --cr:  240deg; animation-delay: 25ms; }
+
           @media (prefers-reduced-motion: reduce) {
             .ls-wheel-anim, [data-ls-wheel] { animation: none !important; transition: none !important; }
+            .ls-confetti-piece { display: none !important; }
           }
         `}</style>
       </div>

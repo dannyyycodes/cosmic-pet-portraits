@@ -61,23 +61,28 @@ interface Prize {
 // Six-prize line-up — slot order matches PRIZE_LABELS in SpinWheel.tsx.
 // Slice 5 (30% off) is the marquee jackpot (rose-fill on the wheel).
 // Soul Bond tier upgrade was retired with this revision.
+// Labels MUST stay in lock-step with PRIZES in src/components/funnel-v2/SpinWheel.tsx
+// — the frontend derives its reveal text from `slice` (not the label string),
+// but the label is what lands in the prize email + `wheel_spins.prize_label`
+// + `coupons.wheel_prize_label`. If you change a slice's copy here, mirror
+// the change in the frontend PRIZES map so admin-facing data matches UI.
 const PRIZES: Prize[] = [
   { slice: 1, weight: 68, label: "10% off your reading",
     emailHook: "10% off",
     kind: { type: "discount", value: 10 } },
-  { slice: 2, weight: 4,  label: "500 SoulSpeak credits",
+  { slice: 2, weight: 4,  label: "500 bonus SoulSpeak credits",
     emailHook: "500 SoulSpeak credits",
     kind: { type: "bonus", bonusType: "soul_speak_credits", value: 500 } },
   { slice: 3, weight: 14, label: "15% off your reading",
     emailHook: "15% off",
     kind: { type: "discount", value: 15 } },
-  { slice: 4, weight: 8,  label: "25% off — gift to a friend",
+  { slice: 4, weight: 8,  label: "25% off — to gift a reading",
     emailHook: "25% off a gift reading",
     kind: { type: "discount", value: 25, giftOnly: true } },
   { slice: 5, weight: 3,  label: "30% off your reading",
     emailHook: "30% off",
     kind: { type: "discount", value: 30 } },
-  { slice: 6, weight: 3,  label: "Extra month of horoscopes",
+  { slice: 6, weight: 3,  label: "An extra month of weekly horoscopes",
     emailHook: "an extra month of horoscopes",
     kind: { type: "bonus", bonusType: "horoscope_month", value: 1 } },
 ];
