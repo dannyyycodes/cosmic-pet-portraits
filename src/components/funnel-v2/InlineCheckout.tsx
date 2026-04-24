@@ -173,7 +173,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
   const [codeInput, setCodeInput] = useState("");
   const [codeError, setCodeError] = useState("");
   const [codeStatus, setCodeStatus] = useState<"idle" | "checking" | "applied">("idle");
-  const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; discount_type: string; discount_value: number } | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ id: string; code: string; discount_type: string; discount_value: number; gift_only?: boolean } | null>(null);
   // Charity selection lives in the checkout card itself (compact brand row near payment badges).
   const [selectedCharity, setSelectedCharity] = useState<"ifaw" | "world-land-trust" | "eden-reforestation">(
     (charityIdProp as "ifaw" | "world-land-trust" | "eden-reforestation") || "ifaw"
@@ -218,7 +218,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
     try {
       const { data: coupons } = await supabase
         .from("coupons")
-        .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses")
+        .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses,gift_only")
         .eq("code", source.code)
         .eq("is_active", true)
         .limit(1);
@@ -231,6 +231,13 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         }
         if (c.max_uses && c.current_uses >= c.max_uses) {
           setCodeError("This code has already been used");
+          setCodeStatus("idle");
+          return;
+        }
+        if (c.gift_only) {
+          // Gift-only wheel prize (25% gift slice). Not applicable to this
+          // flow — visitor should use it at /gift for a friend's reading.
+          setCodeError("Your gift prize is saved — use it at /gift to send a reading to a friend.");
           setCodeStatus("idle");
           return;
         }
@@ -320,7 +327,7 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
       // 1. Try as discount coupon first
       const { data: coupons } = await supabase
         .from("coupons")
-        .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses")
+        .select("id,code,discount_type,discount_value,expires_at,max_uses,current_uses,gift_only")
         .eq("code", code)
         .eq("is_active", true)
         .limit(1);
@@ -333,6 +340,11 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         }
         if (coupon.max_uses && coupon.current_uses >= coupon.max_uses) {
           setCodeError("This code has reached its limit");
+          setCodeStatus("idle");
+          return;
+        }
+        if (coupon.gift_only) {
+          setCodeError("This code is for gift purchases — try it on the /gift page.");
           setCodeStatus("idle");
           return;
         }
