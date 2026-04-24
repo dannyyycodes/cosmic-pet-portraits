@@ -96,108 +96,110 @@ type OccasionTiers = Partial<Record<TierKey, TierContent>>;
 const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
   new: {
     essential: {
-      label: 'Welcome Reading',
-      tagline: 'For the first chapter of their new bond — the pet they just brought home.',
+      label: 'The Welcome Reading',
+      tagline: 'For the new pet they can\'t stop photographing — and the human who\'s already obsessed.',
       badge: null,
       features: [
-        'Written for a pet they just welcomed into their life',
-        'How this new soul wants to be loved, trained, and understood',
-        'What their new pet needs to feel at home — from day one',
-        'Their pet\'s photo becomes part of the reveal',
-        'SoulSpeak — they can talk to their new pet whenever they want',
-        '1 month of weekly horoscopes — included free',
-        'Theirs forever — revisit anytime, from any device',
+        'Who this little soul actually is — before they even know themselves',
+        'Why this pet landed in their life, right now',
+        'How they want to be loved, trained, trusted',
+        'Their pet\'s photo woven into the reveal',
+        'SoulSpeak — ask the new pet anything, any time',
+        '1 month of weekly horoscopes, free',
+        'Theirs forever, any device',
       ],
     },
     portrait: {
-      label: 'Welcome Soul Bond',
-      tagline: 'The new-pet reading + the cosmic story of why this soul found them.',
-      badge: 'MOST CHOSEN',
+      label: 'The Welcome Bond',
+      tagline: 'For the one who already knows: this pet is their soul pet. Here\'s the proof.',
+      badge: 'MOST GIFTED',
       features: [
         'Everything in the Welcome Reading, plus:',
-        'Their chart against their new pet\'s — why THIS soul landed in their life',
-        'Where their energies mirror, balance, and align',
-        'The soul-reasons the universe paired them at this exact moment',
+        'Their chart × their new pet\'s — why the stars paired them now',
+        'Where they\'ll click, where they\'ll clash, what it means',
+        'The first-chapter bond, written in full',
       ],
     },
   },
   discover: {
     essential: {
-      label: 'Discover Reading',
-      tagline: 'Finally understand the pet they\'ve known and loved for years.',
+      label: 'The Discover Reading',
+      tagline: 'For the pet they\'ve loved for years but never quite had the words for. Here are the words.',
       badge: null,
       features: [
-        '30+ sections that reveal the pet they already love, deeply',
-        'The quiet truths they\'ve sensed but never had words for',
-        'How their pet loves, learns, heals, hopes, fears — fully decoded',
-        'Their pet\'s photo becomes part of the reveal',
-        'SoulSpeak — ask their pet the questions they\'ve always wondered',
-        '1 month of weekly horoscopes — included free',
-        'Theirs forever — revisit anytime, from any device',
+        'Why their dog leans on the left leg, not the right',
+        'Why their cat forgave the move before they did',
+        'The quirks they\'ve always sensed, finally named',
+        'Their pet\'s photo woven into the reveal',
+        'SoulSpeak — ask the questions they\'ve always wondered',
+        '1 month of weekly horoscopes, free',
+        'Theirs forever, any device',
       ],
     },
     portrait: {
-      label: 'Discover Soul Bond',
-      tagline: 'The reading + the cosmic proof of why they were always meant to be together.',
-      badge: 'MOST CHOSEN',
+      label: 'The Discover Bond',
+      tagline: 'For the one who swears their pet is their soulmate. The stars agree — read side by side.',
+      badge: 'MOST GIFTED',
       features: [
         'Everything in the Discover Reading, plus:',
-        'Their chart against their pet\'s — read side by side',
-        'Where they align, where they challenge, why the stars paired them',
-        'The soul-reasons this bond exists at all',
+        'Their chart × their pet\'s — the cosmic reason this bond exists',
+        'The question they\'ve always wondered: was this meant to be?',
+        'Answer: yes. Here\'s the evidence.',
       ],
     },
   },
   memorial: {
     portrait: {
-      label: 'Memorial Reading',
-      tagline: 'A remembrance written for a pet who has crossed the rainbow bridge — honouring the soul they loved.',
+      label: 'The Memorial Reading',
+      tagline: 'For the pet who\'s gone — and the person still talking to them. Written with the respect that soul deserves.',
       badge: 'A TRIBUTE',
       features: [
-        'Honours the pet they lost with the respect their soul deserves',
-        'Their chart against their pet\'s — the bond that didn\'t end when the body did',
-        'What their pet came to teach them, what they leave behind, what stays',
-        'Their pet\'s photo becomes part of the memorial reveal',
-        'SoulSpeak — a sacred space to still talk to them, one more time',
-        'Theirs forever — a keepsake they\'ll return to on the hard days',
-        'No weekly horoscopes — memorial readings honour the life that was',
+        'Honours the pet they lost. Not the loss.',
+        'Their chart × their pet\'s — the bond that didn\'t end',
+        'What this pet came to teach, what they left behind',
+        'Their pet\'s photo woven into the memorial',
+        'SoulSpeak — a sacred place to still talk to them',
+        'Theirs forever — a keepsake for the hard days',
+        'No horoscopes, no platitudes — only presence',
       ],
     },
   },
   birthday: {
     essential: {
-      label: 'Birthday Reading',
-      tagline: 'A reading to celebrate another year of the soul they love most.',
+      label: 'The Birthday Reading',
+      tagline: 'For the pet whose birthday matters more to them than their own.',
       badge: null,
       features: [
-        'A celebration of the pet whose birthday it is',
-        '30+ sections decoding their pet\'s personality, love language, and year ahead',
-        'Their pet\'s photo becomes part of the reveal',
-        'SoulSpeak — they can ask their pet anything, on their special day',
-        '1 month of weekly horoscopes — the year ahead, read by the stars',
-        'Theirs forever — a birthday gift that keeps giving',
+        'A reading about who their pet actually is',
+        'The year ahead — written by the stars',
+        'Every quirk, every trait, decoded on their day',
+        'Their pet\'s photo woven into the reveal',
+        'SoulSpeak — birthday questions, answered',
+        '1 month of weekly horoscopes — their year, mapped',
+        'Theirs forever',
       ],
     },
     portrait: {
-      label: 'Birthday Soul Bond',
-      tagline: 'The birthday reading + the full bond story — them and their pet, read together.',
-      badge: 'MOST CHOSEN',
+      label: 'The Birthday Bond',
+      tagline: 'Birthday gift + soulmate proof. Them and their pet, read side by side.',
+      badge: 'MOST GIFTED',
       features: [
         'Everything in the Birthday Reading, plus:',
-        'Their chart against their pet\'s — how their souls dance together',
-        'Where they mirror, balance, and bring out the best in each other',
-        'The cosmic reason this bond began, celebrated on this birthday',
+        'Their chart × their pet\'s — how their souls celebrate together',
+        'The year ahead for both of them',
+        'The cosmic reason this bond began, marked on this birthday',
       ],
     },
   },
 };
 
-// Short prompt line above the tier cards that reframes per occasion.
+// Desire-framed kicker above tier cards. Tells the gifter what the
+// recipient will DO with it — not what it is.
 const OCCASION_TIER_KICKER: Record<GiftOccasion, string> = {
-  new:      'Choose their Welcome Reading',
-  discover: 'Choose their Discover Reading',
-  memorial: 'The Memorial Reading',
-  birthday: 'Choose their Birthday Reading',
+  new:      'What they\'ll open first',
+  discover: "What they'll read twice",
+  memorial: 'What they\'ll return to on the hard days',
+  birthday: 'What makes this birthday the one',
 };
 
 // Subtle visual accent per occasion — a soft coloured hairline that
@@ -816,21 +818,21 @@ export default function GiftPurchase() {
         >
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 16px', borderRadius: 50, background: C.roseGlow, border: `1px solid rgba(191,82,74,0.15)`, marginBottom: 18 }}>
             <Gift style={{ width: 13, height: 13, color: C.rose }} />
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: C.rose, letterSpacing: '0.1em' }}>THE GIFT EVERY PET PARENT SECRETLY WANTS</span>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: C.rose, letterSpacing: '0.1em' }}>THE GIFT THAT ACTUALLY LANDS</span>
           </div>
 
           <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2rem, 8vw, 3rem)', color: C.ink, lineHeight: 1.02, letterSpacing: '-0.025em', marginBottom: 18 }}>
-            The Best Gift<br />
-            You'll Ever Give<br />
-            <em style={{ color: C.rose }}>a Pet Parent.</em>
+            Not another mug<br />
+            with their dog's face.<br />
+            <em style={{ color: C.rose }}>A gift they'll cry at.</em>
           </h1>
 
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.6vw, 1.2rem)', lineHeight: 1.55, maxWidth: 440, margin: '0 auto 14px' }}>
-            A cosmic portrait of the soul they love most. Everything about their pet — personality, love language, the quiet truths only the stars know — written for the one person who'd read it aloud through tears.
+            A reading about their pet — written for them. Why the bond works. What makes it rare. The things they've always known, finally written down.
           </p>
 
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', color: C.deep, fontSize: 'clamp(0.92rem, 3vw, 1.02rem)', fontWeight: 600, lineHeight: 1.5, maxWidth: 420, margin: '0 auto' }}>
-            The kind of gift they'll keep forever, show their friends, and never stop bringing up.
+            The gift they'll screenshot, read aloud to their pet, and bring up six months later.
           </p>
         </motion.div>
 
@@ -857,10 +859,10 @@ export default function GiftPurchase() {
           style={{ marginBottom: 40 }}
         >
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
-            Who is this gift for?
+            Start here — who's it for?
           </p>
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto 22px', maxWidth: 420 }}>
-            Each reading is written in a different voice — pick the one that fits.
+            Four readings, four different voices. Pick the one that fits their moment.
           </p>
 
           <div
@@ -869,10 +871,10 @@ export default function GiftPurchase() {
             className="gift-occasion-row"
           >
             {([
-              { value: 'new',      emoji: '🌱', label: 'For a new pet' },
-              { value: 'discover', emoji: '🔮', label: 'To discover their pet' },
-              { value: 'memorial', emoji: '🕊️', label: 'In loving memory' },
-              { value: 'birthday', emoji: '🎂', label: "For their pet's birthday" },
+              { value: 'new',      emoji: '🌱', label: 'They just got a new pet' },
+              { value: 'discover', emoji: '🔮', label: "They've had their pet for years" },
+              { value: 'memorial', emoji: '🕊️', label: 'Their pet has passed' },
+              { value: 'birthday', emoji: '🎂', label: "It's their pet's birthday" },
             ] as Array<{ value: GiftOccasion; emoji: string; label: string }>).map(({ value, emoji, label }) => {
               const active = selectedOccasion === value;
               return (
