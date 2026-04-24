@@ -1183,6 +1183,38 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
           )}
         </button>
 
+        {/* Gift-this-reading option — available on every path (new /
+            discover / memorial). Links through to /gift so the visitor can
+            buy this as a surprise for someone else without having to
+            discover the gift page on their own. */}
+        <div className="text-center mt-3">
+          <a
+            href="/gift"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 18px",
+              borderRadius: 999,
+              background: "rgba(196,162,101,0.10)",
+              border: "1px solid rgba(196,162,101,0.35)",
+              color: "var(--gold, #c4a265)",
+              fontFamily: "Cormorant, Georgia, serif",
+              fontSize: "0.92rem",
+              fontWeight: 600,
+              letterSpacing: "0.02em",
+              textDecoration: "none",
+              transition: "all 180ms ease",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(196,162,101,0.18)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(196,162,101,0.10)"; }}
+            onClick={() => trackFunnelEvent("v2_gift_link_clicked", { path })}
+          >
+            <span role="img" aria-hidden="true">🎁</span>
+            Or gift this to someone →
+          </a>
+        </div>
+
         {/* Currency note — only shown when display currency is not USD */}
         {isLocalized && (
           <p

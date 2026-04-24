@@ -19,31 +19,36 @@ import { supabase } from "@/integrations/supabase/client";
 // a code — all display copy is looked up here so the wheel-under-pointer
 // and the reveal-text can never drift out of alignment.
 type PrizeSpec = {
-  top: string;        // wheel wedge — top line (large headline)
-  bottom: string;     // wheel wedge — bottom line (qualifier)
-  hero: string;       // reveal — huge hero headline ("30% OFF")
-  revealLabel: string;// reveal — full sentence below hero
-  stackNote: string;  // reveal — sub-line explaining the stack / dopamine
+  top: string;        // wheel wedge — top line
+  bottom: string;     // wheel wedge — bottom line
+  hero: string;       // reveal — one big number/word
+  subline: string;    // reveal — one short phrase under hero (single line only)
+  ctaLabel: string;   // reveal — button copy
+  routeTo?: "gift";   // if set, apply goes to /gift?code=X instead of checkout
 };
+// Strict single-source: ONE short hero + ONE short subline. No triplet
+// repetition. "Your gift is still here" (repeat) + hero + subline = 3
+// short lines total, max.
 const PRIZES: Record<number, PrizeSpec> = {
-  1: { top: "10%", bottom: "OFF", hero: "10% OFF",
-       revealLabel: "10% off your reading",
-       stackNote: "Stacks on top of your launch saving" },
-  2: { top: "500", bottom: "CREDITS", hero: "500 CREDITS",
-       revealLabel: "500 bonus SoulSpeak credits",
-       stackNote: "Hundreds of extra messages with their soul" },
-  3: { top: "15%", bottom: "OFF", hero: "15% OFF",
-       revealLabel: "15% off your reading",
-       stackNote: "Stacks on top of your launch saving" },
-  4: { top: "25%", bottom: "GIFT", hero: "25% OFF · GIFT",
-       revealLabel: "25% off — to gift a reading",
-       stackNote: "A reading for someone you love" },
-  5: { top: "30%", bottom: "OFF", hero: "30% OFF",
-       revealLabel: "30% off your reading",
-       stackNote: "The biggest gift on the wheel — stacks on your launch saving" },
-  6: { top: "EXTRA", bottom: "MONTH", hero: "BONUS MONTH",
-       revealLabel: "An extra month of weekly horoscopes",
-       stackNote: "Four more weeks of cosmic guidance on us" },
+  1: { top: "10%",   bottom: "OFF",     hero: "10% OFF",
+       subline: "your reading · stacked",
+       ctaLabel: "See My New Total →" },
+  2: { top: "500",   bottom: "CREDITS", hero: "500 CREDITS",
+       subline: "bonus SoulSpeak messages",
+       ctaLabel: "Continue to Checkout →" },
+  3: { top: "15%",   bottom: "OFF",     hero: "15% OFF",
+       subline: "your reading · stacked",
+       ctaLabel: "See My New Total →" },
+  4: { top: "25%",   bottom: "GIFT",    hero: "25% OFF",
+       subline: "to gift a reading ✨",
+       ctaLabel: "Gift a Reading →",
+       routeTo: "gift" },
+  5: { top: "30%",   bottom: "OFF",     hero: "30% OFF",
+       subline: "biggest on the wheel · stacked",
+       ctaLabel: "See My New Total →" },
+  6: { top: "EXTRA", bottom: "MONTH",   hero: "BONUS MONTH",
+       subline: "of weekly horoscopes",
+       ctaLabel: "Continue to Checkout →" },
 };
 
 // Sector colour rotation across all six wedges — picked so adjacent
@@ -213,6 +218,14 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
 
   const handleClaim = () => {
     if (!prize) return;
+    // Gift-only prize: route to /gift so the coupon is actually usable.
+    // The /gift page's useEffect auto-applies any `?code=` query param.
+    const spec = PRIZES[prize.slice];
+    if (spec?.routeTo === "gift") {
+      onClose();
+      window.location.href = `/gift?code=${encodeURIComponent(prize.code)}`;
+      return;
+    }
     onClaim?.({ code: prize.code, prizeLabel: prize.prizeLabel });
     onClose();
   };
@@ -522,23 +535,17 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
           <div className="text-center relative" style={{ animation: "lsRevealIn 520ms cubic-bezier(0.22,1,0.36,1)" }}>
             {/* Confetti burst — pure-CSS sparkles that radiate out on
                 reveal. Aria-hidden; motion is skipped if the visitor has
-                prefers-reduced-motion. Triggers the dopamine hit. */}
+                prefers-reduced-motion. */}
             <div aria-hidden="true" className="ls-confetti" style={{ position: "absolute", top: -18, left: "50%", width: 1, height: 1, pointerEvents: "none" }}>
               {Array.from({ length: 14 }, (_, i) => (
                 <span key={i} className={`ls-confetti-piece ls-cf-${i}`} />
               ))}
             </div>
-            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.98rem", color: "var(--earth, #6e6259)", margin: "0 0 4px 0", lineHeight: 1.55, letterSpacing: "0.04em" }}>
-              {prize?.repeat ? "You already won" : "You won"}
-            </p>
-            <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(2rem, 7.5vw, 2.75rem)", color: "var(--rose, #bf524a)", margin: "0 0 6px 0", lineHeight: 1.05, letterSpacing: "-0.01em", animation: "lsHeroPop 640ms cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
+            <h3 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: "clamp(2.1rem, 8vw, 2.9rem)", color: "var(--rose, #bf524a)", margin: "4px 0 4px 0", lineHeight: 1.05, letterSpacing: "-0.01em", animation: "lsHeroPop 640ms cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
               {prize ? (PRIZES[prize.slice]?.hero ?? prize.prizeLabel) : ""}
             </h3>
-            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.98rem", color: "var(--ink, #1f1c18)", margin: "0 0 4px 0", lineHeight: 1.4, fontStyle: "italic" }}>
-              {prize ? (PRIZES[prize.slice]?.revealLabel ?? prize.prizeLabel) : ""}
-            </p>
-            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.82rem", color: "var(--gold, #c4a265)", margin: "0 0 14px 0", lineHeight: 1.45, fontWeight: 600, letterSpacing: "0.02em" }}>
-              ✨ {prize ? (PRIZES[prize.slice]?.stackNote ?? "") : ""}
+            <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.92rem", color: "var(--earth, #6e6259)", margin: "0 0 14px 0", lineHeight: 1.4, fontStyle: "italic" }}>
+              {prize ? (PRIZES[prize.slice]?.subline ?? "") : ""}
             </p>
             <div
               style={{
@@ -606,7 +613,7 @@ export const SpinWheel = ({ open, onClose, onClaim }: SpinWheelProps) => {
                 minHeight: 52,
               }}
             >
-              See My New Total →
+              {prize ? (PRIZES[prize.slice]?.ctaLabel ?? "Continue to Checkout →") : "Continue →"}
             </button>
             <p style={{ fontFamily: "Cormorant, Georgia, serif", fontSize: "0.78rem", color: "var(--muted, #958779)", margin: "10px 0 0 0", lineHeight: 1.5 }}>
               Applied automatically · Also emailed · Expires in 48h
