@@ -376,7 +376,12 @@ serve(async (req) => {
         var totalAmount = readingTotal - discountAmount;
       }
 
-      // Apply coupon discount for quick checkout
+      // Apply coupon discount for quick checkout.
+      // Two stacking guards:
+      //   (a) gift_only coupons are rejected here — they're for /gift only.
+      //   (b) combined (volume + coupon) discount capped at STACK_CAP of
+      //       the pre-discount reading total, so a 5-pet 30% volume cart
+      //       stacked with a 30% wheel coupon can't go below 60% of base.
       if (input.couponId) {
         const { data: coupon } = await supabaseClient
           .from("coupons")
@@ -387,14 +392,37 @@ serve(async (req) => {
         if (coupon) {
           const valid = (!coupon.expires_at || new Date(coupon.expires_at) > new Date())
             && (!coupon.max_uses || coupon.current_uses < coupon.max_uses);
-          if (valid) {
-            const discount = (coupon.discount_type === 'percentage' || coupon.discount_type === 'percent')
+          if (valid && coupon.gift_only) {
+            console.log("[CREATE-CHECKOUT] Quick checkout: gift_only coupon rejected on regular flow:", coupon.code);
+          } else if (valid) {
+            // Pre-cap discount
+            let discount = (coupon.discount_type === 'percentage' || coupon.discount_type === 'percent')
               ? Math.round(totalAmount * (coupon.discount_value / 100))
               : coupon.discount_value;
+
+            // Stacking cap — totalAmount at this point has volume discount
+            // already subtracted. We need the pre-volume-discount base to
+            // compute the cap. Recompute it cheaply.
+            const baseBeforeVolume = includesBook
+              ? pricing.hardcover * petCount
+              : (hasPerTierCounts
+                  ? (basicCount * pricing.basic) + (premiumCount * pricing.premium)
+                  : (tierKey === 'premium' ? pricing.premium : pricing.basic) * petCount);
+            const volumeAlreadyApplied = baseBeforeVolume - totalAmount; // positive
+            const STACK_CAP = 0.40;
+            const maxTotalDiscount = Math.floor(baseBeforeVolume * STACK_CAP);
+            const cappedCouponDiscount = Math.max(0, maxTotalDiscount - volumeAlreadyApplied);
+            if (discount > cappedCouponDiscount) {
+              console.log("[CREATE-CHECKOUT] Quick checkout: coupon capped by stack rule. raw=", discount, "capped=", cappedCouponDiscount, "volumeAlready=", volumeAlreadyApplied);
+              discount = cappedCouponDiscount;
+            }
+
             totalAmount = totalAmount - discount;
             console.log("[CREATE-CHECKOUT] Quick checkout coupon applied:", coupon.code, "discount:", discount, "new total:", totalAmount);
-            // Increment usage
-            await supabaseClient.from("coupons").update({ current_uses: coupon.current_uses + 1 }).eq("id", coupon.id);
+            // Increment usage (only if the coupon actually discounted something)
+            if (discount > 0) {
+              await supabaseClient.from("coupons").update({ current_uses: coupon.current_uses + 1 }).eq("id", coupon.id);
+            }
           }
         }
       }
@@ -689,9 +717,15 @@ serve(async (req) => {
         .eq("id", input.couponId)
         .eq("is_active", true)
         .single();
-      
+
       if (!couponError && coupon) {
-        if (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) {
+        // Gift-only coupons (e.g. the wheel's 25% gift prize) are only
+        // valid on the /gift purchase flow, not on regular checkout.
+        // Silently reject here so margin is protected even if a stale
+        // coupon slips past the frontend guard in InlineCheckout.
+        if (coupon.gift_only) {
+          console.log("[CREATE-CHECKOUT] gift_only coupon rejected on regular flow:", coupon.code);
+        } else if (!coupon.expires_at || new Date(coupon.expires_at) > new Date()) {
           if (!coupon.max_uses || coupon.current_uses < coupon.max_uses) {
             const subtotal = baseTotal - volumeDiscount;
             if (!coupon.min_purchase_cents || subtotal >= coupon.min_purchase_cents) {
@@ -704,6 +738,19 @@ serve(async (req) => {
           }
         }
       }
+    }
+
+    // Stack cap — combined (volume + coupon) discount can't exceed 40%
+    // of the pre-discount base total. Protects margin when a max volume
+    // discount (30% at 5+ pets) stacks with a max wheel coupon (30% off).
+    // Without this a £245 subtotal could drop to £120 (51% off); the cap
+    // pulls the floor to £147 (40% off max combined).
+    const STACK_CAP = 0.40;
+    const maxTotalDiscount = Math.floor(baseTotal * STACK_CAP);
+    if (volumeDiscount + couponDiscount > maxTotalDiscount) {
+      const capped = Math.max(0, maxTotalDiscount - volumeDiscount);
+      console.log("[CREATE-CHECKOUT] coupon capped by stack rule. raw=", couponDiscount, "capped=", capped, "volume=", volumeDiscount, "baseTotal=", baseTotal);
+      couponDiscount = capped;
     }
     
     let giftCertificateDiscount = 0;
@@ -814,8 +861,10 @@ serve(async (req) => {
           }, { onConflict: "report_id" });
       }
 
-      // Increment coupon usage
-      if (input.couponId) {
+      // Increment coupon usage — only when the coupon actually discounted
+      // something. Gift-only rejections + stack-cap zeroes leave couponDiscount
+      // at 0, and those shouldn't burn the coupon's single-use budget.
+      if (input.couponId && couponDiscount > 0) {
         const { data: couponData } = await supabaseClient
           .from("coupons")
           .select("current_uses")
