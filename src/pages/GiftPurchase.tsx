@@ -818,38 +818,41 @@ export default function GiftPurchase() {
             <path d="M11 1 L12.8 8.2 L20 9 L12.8 9.8 L11 17 L9.2 9.8 L2 9 L9.2 8.2 Z" fill={C.gold} />
           </svg>
 
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.7rem', fontWeight: 700, color: C.gold, letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 32 }}>
+          {/* Eyebrow — Lato (sans) per DESIGN.md UI-label rule.
+              Cormorant 700 was wrong here (Cormorant is an italic
+              accent serif; misuse at small sizes). */}
+          <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.72rem', fontWeight: 600, color: C.gold, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 36 }}>
             A soul reading &mdash; written for their pet
           </p>
 
-          {/* H1 — identity-mirror in two beats. Line 1 flatters the
-              giver's perception ("you see X"). Line 2 is the payoff
-              ("they get to read X" — and "X" cleanly references line 1).
-              The eyebrow already establishes the product is a soul
-              reading, so "read it" lands as: the gift turns your
-              unspoken perception into a thing they can hold. All-black
-              ink — no rose accent on line 2 (per Danny). Italic on
-              line 2 for visual hierarchy. */}
-          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2.15rem, 7.8vw, 3.3rem)', color: C.ink, lineHeight: 1.06, letterSpacing: '-0.025em', marginBottom: 24, textWrap: 'balance' }}>
+          {/* H1 — identity-mirror in two beats. Both lines SAME font,
+              SAME size, SAME color — italic on line 2 is the only
+              differentiator (per typographic-hierarchy skill: less
+              size variation, not more). Playfair Display 500 is the
+              brand primary display per DESIGN.md (warmer than
+              DM Serif Display for hero typography). */}
+          <h1 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 500, fontSize: 'clamp(2.1rem, 6.6vw, 2.85rem)', color: C.ink, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 36, textWrap: 'balance' }}>
             You see what their pet means to them.
             <br />
-            <em style={{ color: C.ink, fontSize: '0.82em' }}>Now they get to read it.</em>
+            <em style={{ fontStyle: 'italic', fontWeight: 500 }}>Now they get to read it.</em>
           </h1>
 
+          {/* CTA — Lato (sans) per DESIGN.md button rule. Slightly
+              tighter padding so the button feels confident, not bloated. */}
           <button
             onClick={() => {
               const el = document.querySelector('[role="radiogroup"][aria-label="Gift occasion"]');
               el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
             style={{
-              marginTop: 12,
-              padding: '17px 34px',
+              padding: '15px 30px',
               borderRadius: 50,
               background: C.rose,
               color: '#fff',
-              fontFamily: 'Cormorant, Georgia, serif',
-              fontWeight: 700,
-              fontSize: '1.08rem',
+              fontFamily: 'Lato, system-ui, sans-serif',
+              fontWeight: 600,
+              fontSize: '0.98rem',
+              letterSpacing: '0.02em',
               border: 'none',
               cursor: 'pointer',
               boxShadow: `0 8px 24px ${C.roseGlow}`,
@@ -858,7 +861,7 @@ export default function GiftPurchase() {
               gap: 10,
             }}
           >
-            <Gift style={{ width: 18, height: 18 }} />
+            <Gift style={{ width: 17, height: 17 }} />
             Begin their gift &mdash; from {fmt(prices.basic)}
           </button>
         </motion.div>
@@ -880,7 +883,7 @@ export default function GiftPurchase() {
               hairline rows, no pill chrome. Small muted left glyph
               keeps occasion-scanning fast. */}
           <div className="gift-toc-card">
-            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
+            <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.72rem', fontWeight: 600, color: C.gold, textAlign: 'center', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
               Start here — who's it for?
             </p>
             <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto', maxWidth: 420 }}>
@@ -1029,7 +1032,7 @@ export default function GiftPurchase() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 22 }}>
+          <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.72rem', fontWeight: 600, color: C.gold, textAlign: 'center', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 22 }}>
             {OCCASION_TIER_KICKER[selectedOccasion]}
           </p>
 
@@ -1146,7 +1149,7 @@ export default function GiftPurchase() {
                           onClick={() => setStep(2)}
                           style={{
                             width: '100%', padding: '16px 0', borderRadius: 50, background: C.rose, color: '#fff',
-                            fontFamily: 'Cormorant, Georgia, serif', fontWeight: 700, fontSize: '1rem', border: 'none', cursor: 'pointer',
+                            fontFamily: 'Lato, system-ui, sans-serif', fontWeight: 600, fontSize: '0.96rem', letterSpacing: '0.02em', border: 'none', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                             boxShadow: `0 4px 16px ${C.roseGlow}`,
                           }}
@@ -1330,7 +1333,7 @@ export default function GiftPurchase() {
                         width: '100%', padding: '16px 0', borderRadius: 50,
                         background: canProceedStep2() ? C.rose : C.cream3,
                         color: canProceedStep2() ? '#fff' : C.muted,
-                        fontFamily: 'Cormorant, Georgia, serif', fontWeight: 700, fontSize: '1rem',
+                        fontFamily: 'Lato, system-ui, sans-serif', fontWeight: 600, fontSize: '0.96rem', letterSpacing: '0.02em',
                         border: 'none', cursor: canProceedStep2() ? 'pointer' : 'default',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         boxShadow: canProceedStep2() ? `0 4px 16px ${C.roseGlow}` : 'none',
@@ -1474,7 +1477,7 @@ export default function GiftPurchase() {
                           width: '100%', padding: '18px 0', borderRadius: 50,
                           background: (isLoading || !purchaserEmail.includes('@')) ? C.cream3 : C.rose,
                           color: (isLoading || !purchaserEmail.includes('@')) ? C.muted : '#fff',
-                          fontFamily: 'Cormorant, Georgia, serif', fontWeight: 700, fontSize: '1.1rem', border: 'none',
+                          fontFamily: 'Lato, system-ui, sans-serif', fontWeight: 600, fontSize: '1.04rem', letterSpacing: '0.02em', border: 'none',
                           cursor: (isLoading || !purchaserEmail.includes('@')) ? 'default' : 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           boxShadow: `0 6px 20px ${C.roseGlow}`,
@@ -1550,10 +1553,10 @@ export default function GiftPurchase() {
           }}
         >
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 14 }}>
+            <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.72rem', fontWeight: 600, color: C.gold, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 14 }}>
               Real gifts. Real moments.
             </p>
-            <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 'clamp(1.4rem, 4.6vw, 1.8rem)', color: C.ink, lineHeight: 1.2, letterSpacing: '-0.02em', maxWidth: 460, margin: '0 auto', textWrap: 'balance' }}>
+            <p style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 500, fontSize: 'clamp(1.5rem, 4.6vw, 1.85rem)', color: C.ink, lineHeight: 1.2, letterSpacing: '-0.018em', maxWidth: 460, margin: '0 auto', textWrap: 'balance' }}>
               The kind of gift people actually remember they got.
             </p>
           </div>
@@ -1578,8 +1581,8 @@ export default function GiftPurchase() {
             textAlign: 'center',
           }}
         >
-          <h2 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(1.95rem, 6.4vw, 2.7rem)', color: C.ink, lineHeight: 1.08, letterSpacing: '-0.022em', marginBottom: 28, textWrap: 'balance' }}>
-            Be the friend who <em style={{ color: C.rose }}>actually got it.</em>
+          <h2 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 500, fontSize: 'clamp(1.95rem, 6.4vw, 2.7rem)', color: C.ink, lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 28, textWrap: 'balance' }}>
+            Be the friend who <em>actually got it.</em>
           </h2>
           <button
             onClick={() => {
@@ -1587,13 +1590,14 @@ export default function GiftPurchase() {
               el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
             style={{
-              padding: '16px 32px',
+              padding: '15px 30px',
               borderRadius: 50,
               background: C.rose,
               color: '#fff',
-              fontFamily: 'Cormorant, Georgia, serif',
-              fontWeight: 700,
-              fontSize: '1.04rem',
+              fontFamily: 'Lato, system-ui, sans-serif',
+              fontWeight: 600,
+              fontSize: '0.98rem',
+              letterSpacing: '0.02em',
               border: 'none',
               cursor: 'pointer',
               boxShadow: `0 6px 20px ${C.roseGlow}`,
@@ -1602,11 +1606,11 @@ export default function GiftPurchase() {
               gap: 8,
             }}
           >
-            <Gift style={{ width: 18, height: 18 }} />
+            <Gift style={{ width: 17, height: 17 }} />
             Begin their gift &mdash; from {fmt(prices.basic)}
           </button>
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.82rem', color: C.muted, marginTop: 16 }}>
-            If their reading doesn&rsquo;t move them, we&rsquo;ll rewrite it — or refund you. No awkward conversations.
+          <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.82rem', color: C.muted, marginTop: 18, lineHeight: 1.5 }}>
+            If their reading doesn&rsquo;t move them, we&rsquo;ll rewrite it &mdash; or refund you. No awkward conversations.
           </p>
         </motion.div>
 
