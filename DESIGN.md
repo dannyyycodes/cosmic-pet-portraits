@@ -151,6 +151,20 @@ A cosmic delivery…      <- 21px Cormorant italic, warm
 - Tabular figures on numbers.
 - Never zebra-stripe with saturated color — use `--cream-2`.
 
+### Text on busy wallpaper (HARD RULE)
+When text sits on top of a textured backdrop (`HeartsBackdrop`, `ConstellationBackdrop`, any patterned wallpaper), it MUST be wrapped in a translucent cream card so the wallpaper doesn't fight the words. **Do not float bare text on a wallpaper layer** — that's where I went wrong on Apr 25 and Danny had to call it out.
+
+Card spec for wallpaper containment:
+```
+background:        rgba(255, 253, 245, 0.92)   /* translucent cream */
+backdrop-filter:   blur(3px)                   /* softens pattern behind */
+border:            1px solid rgba(196, 162, 101, 0.16)
+border-radius:     18px
+box-shadow:        0 4px 28px rgba(0, 0, 0, 0.04)
+padding:           clamp(32px, 6vw, 48px) clamp(24px, 5vw, 44px)
+```
+This is the ONLY case where card shadows + backdrop-blur are allowed (the §6 ban is the default; this is the named exception). On flat-cream sections without wallpaper, cards stay flat (no shadow, no blur, no border-radius theatrics).
+
 ### Photos & imagery
 - **Pet photos:** circular frame, 2px gold hairline border, soft cream backdrop. Never rectangular drop-shadow boxes.
 - **Cosmic imagery:** real astrophotography (NASA, ESO public domain) or commissioned warm-watercolor — never AI-generic-cosmos clipart, never neon nebulae stock.

@@ -47,8 +47,18 @@ export const GriefSection = ({ onCtaClick: _onCtaClick }: GriefSectionProps) => 
       <HeartsBackdrop />
 
       <div
-        className="grief-stack relative max-w-[600px] mx-auto text-center"
-        style={{ zIndex: 1 }}
+        className="grief-stack relative max-w-[640px] mx-auto"
+        style={{
+          zIndex: 1,
+          background: "rgba(255, 253, 245, 0.92)",
+          backdropFilter: "blur(3px)",
+          WebkitBackdropFilter: "blur(3px)",
+          border: "1px solid rgba(196, 162, 101, 0.16)",
+          borderRadius: 18,
+          boxShadow: "0 4px 28px rgba(0, 0, 0, 0.04)",
+          padding: "clamp(48px, 7vw, 72px) clamp(28px, 4.5vw, 56px)",
+          textAlign: "center",
+        }}
       >
         {/* Beat 1 — acknowledgment */}
         <h2
