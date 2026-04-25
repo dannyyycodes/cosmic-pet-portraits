@@ -1563,57 +1563,6 @@ export default function GiftPurchase() {
           <GiftReviewStrip />
         </motion.div>
 
-        {/* ── FINAL EMOTIONAL CTA — closes the page on a conversion
-             beat. Scrolls to top of tier flow. ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.28 }}
-          style={{
-            marginTop: 56,
-            padding: 'clamp(40px, 6vw, 56px) clamp(24px, 4vw, 40px)',
-            borderRadius: 18,
-            background: 'rgba(255,253,245,0.92)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            border: '1px solid rgba(196,162,101,0.16)',
-            boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
-            textAlign: 'center',
-          }}
-        >
-          <h2 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 500, fontSize: 'clamp(1.95rem, 6.4vw, 2.7rem)', color: C.ink, lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: 28, textWrap: 'balance' }}>
-            Be the friend who <em>actually got it.</em>
-          </h2>
-          <button
-            onClick={() => {
-              const el = document.getElementById('gift-flow') ?? document.querySelector('[role="radiogroup"]');
-              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-            style={{
-              padding: '15px 30px',
-              borderRadius: 50,
-              background: C.rose,
-              color: '#fff',
-              fontFamily: 'Lato, system-ui, sans-serif',
-              fontWeight: 600,
-              fontSize: '0.98rem',
-              letterSpacing: '0.02em',
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: `0 6px 20px ${C.roseGlow}`,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <Gift style={{ width: 17, height: 17 }} />
-            Begin their gift &mdash; from {fmt(prices.basic)}
-          </button>
-          <p style={{ fontFamily: 'Lato, system-ui, sans-serif', fontSize: '0.82rem', color: C.muted, marginTop: 18, lineHeight: 1.5 }}>
-            If their reading doesn&rsquo;t move them, we&rsquo;ll rewrite it &mdash; or refund you. No awkward conversations.
-          </p>
-        </motion.div>
-
       </div>
 
       <style>{`
