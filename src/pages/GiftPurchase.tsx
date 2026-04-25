@@ -776,40 +776,60 @@ export default function GiftPurchase() {
           <ArrowLeft style={{ width: 16, height: 16 }} /> Back
         </Link>
 
-        {/* ── HERO — Cameo-punchy. ONE identity-mirror moment. Pet-
-             agnostic ("their pet", "they/them"). No inline reviews,
-             no anticipated-moment script paragraph, no deliverables
-             list. Sparse: eyebrow + H1 + sub + CTA. The reviews live
-             at the bottom; the picker + tiers carry the rest. ── */}
+        {/* ── HERO — gift-presentation card with a small gold ornament
+             on top so it reads as a gift artifact, not a generic
+             content panel. Eyebrow names the product clearly. H1 sits
+             on identity-mirror: lets the buyer feel they're the
+             perceptive friend. Single CTA + correct starting price
+             (basic tier = £29, NOT £49). Pet-agnostic and gender-
+             neutral throughout. ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
+            position: 'relative',
             textAlign: 'center', marginBottom: 40,
-            padding: 'clamp(40px, 6vw, 56px) clamp(24px, 4vw, 36px)',
+            padding: 'clamp(48px, 7vw, 64px) clamp(24px, 4vw, 40px) clamp(40px, 5vw, 48px)',
             borderRadius: 18,
-            background: 'rgba(255,253,245,0.92)',
+            background: 'rgba(255,253,245,0.94)',
             backdropFilter: 'blur(3px)',
             WebkitBackdropFilter: 'blur(3px)',
-            border: '1px solid rgba(196,162,101,0.16)',
-            boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
+            border: '1px solid rgba(196,162,101,0.22)',
+            boxShadow: '0 6px 32px rgba(0,0,0,0.05)',
           }}
         >
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.7rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 28 }}>
-            A gift for the friend who already gets it
+          {/* Gold star ornament — small presentation cue at the top of
+              the card. Reads as a gift artifact, not a content panel. */}
+          <svg
+            aria-hidden="true"
+            width="22"
+            height="22"
+            viewBox="0 0 22 22"
+            style={{
+              position: 'absolute',
+              top: -11,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#FFFDF5',
+              padding: 4,
+              borderRadius: '50%',
+            }}
+          >
+            <path d="M11 1 L12.8 8.2 L20 9 L12.8 9.8 L11 17 L9.2 9.8 L2 9 L9.2 8.2 Z" fill={C.gold} />
+          </svg>
+
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.7rem', fontWeight: 700, color: C.gold, letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 32 }}>
+            A soul reading &mdash; written for their pet
           </p>
 
-          {/* Identity-mirror H1 — flatters the giver's perceptiveness.
-              Pet-agnostic; "them" = the recipient. */}
-          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2.1rem, 7.6vw, 3.2rem)', color: C.ink, lineHeight: 1.05, letterSpacing: '-0.025em', marginBottom: 24, textWrap: 'balance' }}>
-            Most people see the pet.
+          {/* Identity-mirror H1 — flatters the giver as the perceptive
+              friend. Sells the gift-GIVER's feeling, not the recipient's
+              experience. Two short lines, balanced. */}
+          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2.15rem, 7.8vw, 3.3rem)', color: C.ink, lineHeight: 1.06, letterSpacing: '-0.025em', marginBottom: 24, textWrap: 'balance' }}>
+            You&rsquo;re the friend who actually sees them.
             <br />
-            <em style={{ color: C.rose }}>You see what the pet means to them.</em>
+            <em style={{ color: C.rose, fontSize: '0.82em' }}>This is the gift that proves it.</em>
           </h1>
-
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.1rem, 3.6vw, 1.28rem)', lineHeight: 1.55, maxWidth: 460, margin: '0 auto 36px', textWrap: 'balance' }}>
-            A reading written for the soul they live with &mdash; the kind of gift they&rsquo;ll keep coming back to.
-          </p>
 
           <button
             onClick={() => {
@@ -817,23 +837,24 @@ export default function GiftPurchase() {
               el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
             style={{
-              padding: '16px 32px',
+              marginTop: 12,
+              padding: '17px 34px',
               borderRadius: 50,
               background: C.rose,
               color: '#fff',
               fontFamily: 'Cormorant, Georgia, serif',
               fontWeight: 700,
-              fontSize: '1.05rem',
+              fontSize: '1.08rem',
               border: 'none',
               cursor: 'pointer',
-              boxShadow: `0 6px 20px ${C.roseGlow}`,
+              boxShadow: `0 8px 24px ${C.roseGlow}`,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 10,
             }}
           >
             <Gift style={{ width: 18, height: 18 }} />
-            Begin their gift &mdash; from £49
+            Begin their gift &mdash; from {fmt(prices.basic)}
           </button>
         </motion.div>
 
@@ -989,29 +1010,28 @@ export default function GiftPurchase() {
           `}</style>
         </motion.div>
 
-        {/* ── TIER CARDS — gated on occasion pick, tier set + copy
-            varies per occasion. Memorial is portrait-only (single
-            product at the Soul Bond price, matching the main funnel);
-            new/discover/birthday show both tiers with occasion-framed
-            copy so they don't feel like carbon copies. ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{
-            opacity: selectedOccasion ? 1 : 0.35,
-            y: 0,
-            filter: selectedOccasion ? 'none' : 'grayscale(0.5)',
-          }}
-          transition={{ delay: 0.08, duration: 0.35 }}
-          style={{ pointerEvents: selectedOccasion ? 'auto' : 'none' }}
-        >
+        {/* ── TIER CARDS — gated on occasion pick. They MOUNT after
+            the visitor selects an occasion (no greyed-out preview).
+            Hidden state = nothing renders; selection triggers a fade-
+            and-slide-in. Memorial is portrait-only (single product at
+            Soul Bond price); other occasions render both tiers. ── */}
+        <AnimatePresence>
+          {selectedOccasion && (
+            <motion.div
+              key={`tiers-${selectedOccasion}`}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 22 }}>
-            {selectedOccasion ? OCCASION_TIER_KICKER[selectedOccasion] : 'Pick an occasion first ↑'}
+            {OCCASION_TIER_KICKER[selectedOccasion]}
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {(() => {
-              const occTiers = selectedOccasion ? OCCASION_TIERS[selectedOccasion] : null;
-              const accent = selectedOccasion ? OCCASION_ACCENT[selectedOccasion] : undefined;
+              const occTiers = OCCASION_TIERS[selectedOccasion];
+              const accent = OCCASION_ACCENT[selectedOccasion];
               // Memorial = single-product (portrait only at £49). Others
               // render both tiers with their occasion-specific copy.
               const visibleKeys: TierKey[] = selectedOccasion === 'memorial'
@@ -1033,7 +1053,9 @@ export default function GiftPurchase() {
               ));
             })()}
           </div>
-        </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── FLOW (appears after tier selection) ── */}
         <div id="gift-flow">
@@ -1576,7 +1598,7 @@ export default function GiftPurchase() {
             }}
           >
             <Gift style={{ width: 18, height: 18 }} />
-            Begin their gift — from £49
+            Begin their gift &mdash; from {fmt(prices.basic)}
           </button>
           <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.82rem', color: C.muted, marginTop: 16 }}>
             If their reading doesn&rsquo;t move them, we&rsquo;ll rewrite it — or refund you. No awkward conversations.
