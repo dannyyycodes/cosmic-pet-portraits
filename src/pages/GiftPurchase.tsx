@@ -822,13 +822,18 @@ export default function GiftPurchase() {
             A soul reading &mdash; written for their pet
           </p>
 
-          {/* Identity-mirror H1 — flatters the giver as the perceptive
-              friend. Sells the gift-GIVER's feeling, not the recipient's
-              experience. Two short lines, balanced. */}
+          {/* H1 — identity-mirror in two beats. Line 1 flatters the
+              giver's perception ("you see X"). Line 2 is the payoff
+              ("they get to read X" — and "X" cleanly references line 1).
+              The eyebrow already establishes the product is a soul
+              reading, so "read it" lands as: the gift turns your
+              unspoken perception into a thing they can hold. All-black
+              ink — no rose accent on line 2 (per Danny). Italic on
+              line 2 for visual hierarchy. */}
           <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2.15rem, 7.8vw, 3.3rem)', color: C.ink, lineHeight: 1.06, letterSpacing: '-0.025em', marginBottom: 24, textWrap: 'balance' }}>
-            You&rsquo;re the friend who actually sees them.
+            You see what their pet means to them.
             <br />
-            <em style={{ color: C.rose, fontSize: '0.82em' }}>This is the gift that proves it.</em>
+            <em style={{ color: C.ink, fontSize: '0.82em' }}>Now they get to read it.</em>
           </h1>
 
           <button
