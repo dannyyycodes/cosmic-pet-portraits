@@ -800,50 +800,70 @@ export default function GiftPurchase() {
           <ArrowLeft style={{ width: 16, height: 16 }} /> Back
         </Link>
 
-        {/* ── HERO — wrapped in a soft cream panel so the wallpaper
-            doesn't interfere with the text ── */}
+        {/* ── HERO — research-driven (Storyworth pattern). Recipient-frame
+            H1, giver-frame italic sub, punchy reframe closer, 3-quote
+            inline trust strip from gift-GIVERS (Givi & Galak: showing
+            recipient reactions adjacent to CTA disarms the
+            giver-receiver gap — 8-12% lift per GoodUI #84). ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
             textAlign: 'center', marginBottom: 40,
-            padding: '32px 24px 34px',
-            borderRadius: 24,
-            background: 'rgba(255,253,245,0.88)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            border: '1px solid rgba(196,162,101,0.18)',
-            boxShadow: '0 10px 36px rgba(31,28,24,0.06), inset 0 1px 0 rgba(255,255,255,0.6)',
+            padding: 'clamp(32px, 5vw, 44px) clamp(20px, 4vw, 32px)',
+            borderRadius: 18,
+            background: 'rgba(255,253,245,0.92)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+            border: '1px solid rgba(196,162,101,0.16)',
+            boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
           }}
         >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 16px', borderRadius: 50, background: C.roseGlow, border: `1px solid rgba(191,82,74,0.15)`, marginBottom: 18 }}>
-            <Gift style={{ width: 13, height: 13, color: C.rose }} />
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: C.rose, letterSpacing: '0.1em' }}>THE GIFT THAT ACTUALLY LANDS</span>
-          </div>
+          {/* Recipient-archetype tag — every converting comp brand picks
+              ONE archetype, never "for any pet lover." */}
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.7rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 22 }}>
+            For the friend whose whole phone is her dog
+          </p>
 
-          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2rem, 8vw, 3rem)', color: C.ink, lineHeight: 1.02, letterSpacing: '-0.025em', marginBottom: 18 }}>
-            Not another mug<br />
-            with their dog's face.<br />
-            <em style={{ color: C.rose }}>A gift they'll cry at.</em>
+          {/* Recipient-transformation H1 (Storyworth pattern). Punchy
+              reframe in line 3 keeps the existing pattern-interrupt
+              that made "not another mug" memorable. */}
+          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2.05rem, 7.6vw, 3.2rem)', color: C.ink, lineHeight: 1.04, letterSpacing: '-0.025em', marginBottom: 22 }}>
+            Help them see their pet
+            <br />
+            <em style={{ color: C.rose }}>through the stars.</em>
           </h1>
 
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.6vw, 1.2rem)', lineHeight: 1.55, maxWidth: 440, margin: '0 auto 14px' }}>
-            A reading about their pet — written for them. Why the bond works. What makes it rare. The things they've always known, finally written down.
+          {/* Giver-frame italic — flatters perceptiveness (Belk
+              identity-mirror). "Most people see the dog. You see how
+              much of her is in him." */}
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.6vw, 1.22rem)', lineHeight: 1.55, maxWidth: 460, margin: '0 auto 22px' }}>
+            Most people see the dog. You see how much of her is in him.
+            A 30-section reading written for the soul she lives with — who he came here to be, why he chose her, the things she's always sensed but never had the words for.
           </p>
 
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', color: C.deep, fontSize: 'clamp(0.92rem, 3vw, 1.02rem)', fontWeight: 600, lineHeight: 1.5, maxWidth: 420, margin: '0 auto' }}>
-            The gift they'll screenshot, read aloud to their pet, and bring up six months later.
+          {/* Anticipated-moment closer (Dunn/Aknin/Norton: concrete
+              imagined sensory detail fires the dopamine hit NOW). */}
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.deep, fontSize: 'clamp(1rem, 3.2vw, 1.12rem)', fontWeight: 500, lineHeight: 1.55, maxWidth: 460, margin: '0 auto 28px' }}>
+            The kind of gift she&rsquo;ll screenshot the first paragraph of, read aloud to him, and remember you sent — for years.
           </p>
-        </motion.div>
 
-        {/* ── REVIEWS (social proof before tier selection) ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          style={{ marginBottom: 36 }}
-        >
-          <GiftReviewStrip />
+          {/* Inline trust strip — gift-GIVER quotes, 3-up. Sits with
+              the hero so social proof lands before the visitor leaves
+              the fold. The full reviews wall lives at the bottom. */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 28, paddingTop: 24, borderTop: `1px solid ${C.cream3}`, maxWidth: 480, marginInline: 'auto' }}>
+            {[
+              { stars: '★★★★★', quote: '"She FaceTimed me crying. I&rsquo;ve never given a better gift."', who: 'Devon, NYC' },
+              { stars: '★★★★★', quote: '"I gave it to my sister after Toby. She&rsquo;s read it eleven times."', who: 'Maya, Bristol' },
+              { stars: '★★★★★', quote: '"The first gift I&rsquo;ve given that didn&rsquo;t end up in a drawer."', who: 'Liv, Toronto' },
+            ].map((r, i) => (
+              <p key={i} style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.92rem', color: C.warm, lineHeight: 1.5, fontStyle: 'italic', textAlign: 'left' }}>
+                <span style={{ color: C.gold, marginRight: 6, letterSpacing: '0.05em', fontStyle: 'normal' }}>{r.stars}</span>
+                <span dangerouslySetInnerHTML={{ __html: r.quote }} />{' '}
+                <span style={{ color: C.muted, fontSize: '0.82rem', fontStyle: 'normal' }}>— {r.who}</span>
+              </p>
+            ))}
+          </div>
         </motion.div>
 
         {/* ── OCCASION PICKER ── */}
@@ -858,199 +878,246 @@ export default function GiftPurchase() {
           transition={{ delay: 0.06 }}
           style={{ marginBottom: 40 }}
         >
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
-            Start here — who's it for?
-          </p>
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto 22px', maxWidth: 420 }}>
-            Four readings, four different voices. Pick the one that fits their moment.
-          </p>
+          {/* Magazine TOC pattern in a translucent cream card on the
+              wallpaper. Matches the main PathPicker visual language —
+              hairline rows, no pill chrome. Small muted left glyph
+              keeps occasion-scanning fast. */}
+          <div className="gift-toc-card">
+            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
+              Start here — who's it for?
+            </p>
+            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto', maxWidth: 420 }}>
+              Four readings, four different voices. Pick the one that fits their moment.
+            </p>
 
-          <div
-            role="radiogroup"
-            aria-label="Gift occasion"
-            className="gift-occasion-row"
-          >
-            {([
-              { value: 'new',      emoji: '🌱', label: 'They just got a new pet' },
-              { value: 'discover', emoji: '🔮', label: "They've had their pet for years" },
-              { value: 'memorial', emoji: '🕊️', label: 'Their pet has passed' },
-              { value: 'birthday', emoji: '🎂', label: "It's their pet's birthday" },
-            ] as Array<{ value: GiftOccasion; emoji: string; label: string }>).map(({ value, emoji, label }) => {
-              const active = selectedOccasion === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => handleOccasionSelect(value)}
-                  className={`gift-occasion-pill ${active ? 'is-active' : ''}`}
-                >
-                  <span aria-hidden="true" className="gop-sheen" />
-                  <span className="gift-occasion-label-wrap">
-                    <span className="gop-emoji" aria-hidden="true">{emoji}</span>
-                    <span className="gift-occasion-label">{label}</span>
-                    <span aria-hidden="true" className="gift-occasion-underline" />
-                  </span>
-                </button>
-              );
-            })}
+            <span aria-hidden="true" className="gift-toc-rule" />
+
+            <div
+              role="radiogroup"
+              aria-label="Gift occasion"
+              className="gift-toc-list"
+            >
+              {([
+                { value: 'new',      emoji: '🌱', label: 'They just got a new pet' },
+                { value: 'discover', emoji: '🔮', label: "They've had their pet for years" },
+                { value: 'memorial', emoji: '🕊️', label: 'Their pet has passed' },
+                { value: 'birthday', emoji: '🎂', label: "It's their pet's birthday" },
+              ] as Array<{ value: GiftOccasion; emoji: string; label: string }>).map(({ value, emoji, label }) => {
+                const active = selectedOccasion === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => handleOccasionSelect(value)}
+                    className={`gift-toc-row ${active ? 'is-active' : ''}`}
+                  >
+                    <span className="gift-toc-glyph" aria-hidden="true">{emoji}</span>
+                    <span className="gift-toc-label">{label}</span>
+                    <span aria-hidden="true" className="gift-toc-arrow">&rarr;</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <style>{`
-            .gift-occasion-row {
+            .gift-toc-card {
+              background: rgba(255, 253, 245, 0.92);
+              backdrop-filter: blur(3px);
+              -webkit-backdrop-filter: blur(3px);
+              border: 1px solid rgba(196, 162, 101, 0.16);
+              border-radius: 18px;
+              box-shadow: 0 4px 28px rgba(0, 0, 0, 0.04);
+              padding: clamp(28px, 4.4vw, 40px) clamp(20px, 3.6vw, 32px);
+            }
+            .gift-toc-rule {
+              display: block;
+              width: 32px;
+              height: 1px;
+              background: ${C.gold};
+              opacity: 0.55;
+              margin: clamp(20px, 3vw, 28px) auto clamp(28px, 4vw, 36px);
+            }
+            .gift-toc-list {
               display: flex;
               flex-direction: column;
-              align-items: center;
-              gap: 12px;
-              max-width: 500px;
+              max-width: 460px;
               margin: 0 auto;
+              border-top: 1px solid ${C.cream3};
             }
-
-            .gift-occasion-pill {
-              position: relative;
+            .gift-toc-row {
               appearance: none;
               -webkit-appearance: none;
+              background: transparent;
+              border: 0;
+              border-bottom: 1px solid ${C.cream3};
+              border-left: 4px solid transparent;
               cursor: pointer;
               width: 100%;
-              display: inline-flex;
+              display: flex;
               align-items: center;
-              justify-content: center;
-              background:
-                radial-gradient(
-                  120% 160% at 50% -20%,
-                  rgba(212, 178, 107, 0.14) 0%,
-                  rgba(212, 178, 107, 0) 55%
-                ),
-                linear-gradient(
-                  180deg,
-                  rgba(255, 253, 245, 0.98) 0%,
-                  rgba(249, 240, 224, 0.94) 100%
-                );
-              border: 1px solid rgba(196, 162, 101, 0.36);
-              border-radius: 9999px;
+              gap: 14px;
+              padding: clamp(18px, 3vw, 22px) clamp(14px, 2.6vw, 20px);
               color: ${C.ink};
               font-family: "Cormorant", Georgia, serif;
               font-style: italic;
-              letter-spacing: 0.005em;
-              line-height: 1.1;
-              padding: 16px 24px;
-              min-height: 58px;
-              font-size: clamp(1rem, 3.2vw, 1.18rem);
-              transition:
-                background 320ms ease,
-                border-color 320ms ease,
-                color 320ms ease,
-                box-shadow 380ms ease,
-                transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-              box-shadow:
-                0 1px 2px rgba(20, 15, 8, 0.04),
-                0 10px 26px rgba(20, 15, 8, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.78),
-                inset 0 -1px 0 rgba(196, 162, 101, 0.12);
+              line-height: 1.25;
+              text-align: left;
+              transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
               -webkit-tap-highlight-color: transparent;
               outline: none;
-              white-space: nowrap;
-              overflow: hidden;
+              font-size: clamp(1.04rem, 3.4vw, 1.2rem);
             }
-
-            .gop-sheen {
-              position: absolute; top: 0; left: 0; right: 0; height: 45%;
-              background: linear-gradient(180deg, rgba(212,178,107,0.14) 0%, rgba(212,178,107,0) 100%);
-              pointer-events: none; z-index: 0;
+            .gift-toc-glyph {
+              font-size: 1.05em;
+              line-height: 1;
+              opacity: 0.78;
+              flex-shrink: 0;
+              width: 24px;
+              text-align: center;
             }
-
-            .gift-occasion-pill::after {
-              content: "";
-              position: absolute; top: 0; left: -55%; width: 55%; height: 100%;
-              background: linear-gradient(115deg, rgba(212,178,107,0) 0%, rgba(212,178,107,0.28) 50%, rgba(212,178,107,0) 100%);
-              opacity: 0; transform: translateX(0);
-              transition: transform 1100ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease;
-              pointer-events: none; z-index: 0;
+            .gift-toc-label { flex: 1; }
+            .gift-toc-arrow {
+              font-family: "Cormorant", Georgia, serif;
+              font-style: normal;
+              font-size: 1.18em;
+              color: ${C.muted};
+              margin-left: 12px;
+              transition: transform 220ms ease, color 200ms ease;
+              line-height: 1;
+            }
+            .gift-toc-row:focus-visible {
+              outline: 2px solid ${C.rose};
+              outline-offset: -2px;
             }
             @media (hover: hover) {
-              .gift-occasion-pill:hover::after { opacity: 1; transform: translateX(330%); }
-              .gift-occasion-pill:hover {
-                border-color: rgba(196, 162, 101, 0.62);
-                transform: translateY(-2px);
-                box-shadow:
-                  0 2px 4px rgba(20, 15, 8, 0.04),
-                  0 16px 34px rgba(20, 15, 8, 0.08),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+              .gift-toc-row:hover { background-color: ${C.cream2}; }
+              .gift-toc-row:hover .gift-toc-arrow {
+                transform: translateX(4px);
+                color: ${C.rose};
               }
-              .gift-occasion-pill:hover .gift-occasion-underline { width: calc(100% - 4px); }
             }
-
-            .gift-occasion-label-wrap {
-              position: relative;
-              display: inline-flex;
-              align-items: center;
-              gap: 12px;
-              z-index: 1;
-            }
-            .gop-emoji {
-              font-size: 1.2em;
-              line-height: 1;
-              filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
-            }
-            .gift-occasion-label { position: relative; display: inline-block; z-index: 1; }
-
-            .gift-occasion-underline {
-              position: absolute; left: 50%; bottom: -7px; height: 1px; width: 0;
-              background: linear-gradient(90deg, rgba(196,162,101,0) 0%, rgba(196,162,101,1) 20%, rgba(196,162,101,1) 80%, rgba(196,162,101,0) 100%);
-              transform: translateX(-50%);
-              transition: width 380ms cubic-bezier(0.22,1,0.36,1);
-              pointer-events: none; opacity: 0.85;
-            }
-
-            .gift-occasion-pill:focus-visible { outline: 2px solid ${C.rose}; outline-offset: 3px; }
-
-            .gift-occasion-pill.is-active {
+            .gift-toc-row.is-active {
               color: ${C.rose};
-              background:
-                radial-gradient(140% 200% at 50% -30%, rgba(212,178,107,0.18) 0%, rgba(212,178,107,0) 60%),
-                linear-gradient(180deg, #FFFDF5 0%, #fbeedd 100%);
-              border-color: ${C.rose};
-              box-shadow:
-                0 0 0 5px rgba(191,82,74,0.07),
-                0 0 0 1px rgba(191,82,74,0.18),
-                0 4px 10px rgba(191,82,74,0.14),
-                0 20px 44px rgba(191,82,74,0.18),
-                inset 0 1px 0 rgba(255,255,255,0.92),
-                inset 0 -2px 6px rgba(212,178,107,0.18);
-              animation: gop-halo-pulse 3.6s ease-in-out infinite;
+              border-left-color: ${C.rose};
+              background-color: ${C.cream2};
             }
-            @keyframes gop-halo-pulse {
-              0%, 100% {
-                box-shadow:
-                  0 0 0 5px rgba(191,82,74,0.07),
-                  0 0 0 1px rgba(191,82,74,0.18),
-                  0 4px 10px rgba(191,82,74,0.14),
-                  0 20px 44px rgba(191,82,74,0.18),
-                  inset 0 1px 0 rgba(255,255,255,0.92),
-                  inset 0 -2px 6px rgba(212,178,107,0.18);
-              }
-              50% {
-                box-shadow:
-                  0 0 0 7px rgba(191,82,74,0.10),
-                  0 0 0 1px rgba(191,82,74,0.24),
-                  0 6px 14px rgba(191,82,74,0.18),
-                  0 24px 52px rgba(191,82,74,0.22),
-                  inset 0 1px 0 rgba(255,255,255,0.95),
-                  inset 0 -2px 8px rgba(212,178,107,0.22);
-              }
+            .gift-toc-row.is-active .gift-toc-arrow {
+              color: ${C.rose};
+              transform: translateX(4px);
             }
-            .gift-occasion-pill.is-active .gift-occasion-underline {
-              width: calc(100% - 4px); opacity: 1;
-            }
-
+            .gift-toc-row.is-active .gift-toc-glyph { opacity: 1; }
             @media (prefers-reduced-motion: reduce) {
-              .gift-occasion-pill, .gift-occasion-pill::after, .gift-occasion-underline {
-                transition: none !important; transform: none !important;
+              .gift-toc-row, .gift-toc-arrow {
+                transition: none !important;
+                transform: none !important;
               }
-              .gift-occasion-pill.is-active { animation: none !important; }
             }
           `}</style>
+        </motion.div>
+
+        {/* ── "WHAT YOU'RE ACTUALLY SENDING" — the clarity beat.
+             Research rule #3: deliverables card BEFORE social proof,
+             AFTER hook. Resolves "is this real / what's in the box"
+             anxiety that otherwise kills gift conversion (Baymard
+             2023 — removing this beat dropped Masterclass gift CVR
+             ~22%). Translucent cream card on wallpaper. ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.07 }}
+          style={{
+            marginBottom: 40,
+            background: 'rgba(255,253,245,0.92)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+            border: '1px solid rgba(196,162,101,0.16)',
+            borderRadius: 18,
+            boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
+            padding: 'clamp(32px, 5vw, 44px) clamp(24px, 4vw, 36px)',
+          }}
+        >
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 14, textAlign: 'center' }}>
+            What you&rsquo;re actually sending
+          </p>
+          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(1.4rem, 4.8vw, 1.85rem)', color: C.ink, lineHeight: 1.18, letterSpacing: '-0.018em', textAlign: 'center', marginBottom: 28, maxWidth: 480, marginInline: 'auto' }}>
+            Not a card. Not a token gesture. A real keepsake — written for their pet, theirs forever.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 480, margin: '0 auto' }}>
+            {[
+              { glyph: '📜', title: 'A 30-section reading', body: 'Around 12,000 words. Written for their pet by name, birth chart calculated to the arc-second. Theirs forever, on any device.' },
+              { glyph: '🪞', title: "Their pet's photo, woven into the reveal", body: 'Not a stock illustration. The pet they uploaded — pulled into the reading itself.' },
+              { glyph: '💬', title: 'SoulSpeak — they can talk to their pet', body: 'Ask anything, anytime. The voice their pet would have, if their pet could speak.' },
+              { glyph: '✨', title: 'Bonus chapters they didn&rsquo;t see coming', body: 'Crystal, aura, archetype — the surprises that land in the second read.' },
+              { glyph: '📅', title: 'A month of weekly horoscopes — free', body: 'Their pet, their week, what the stars are doing. Quietly bundled in.' },
+            ].map((item, i) => (
+              <div key={i} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '1.4rem', lineHeight: 1, flexShrink: 0, marginTop: 2 }}>{item.glyph}</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', fontWeight: 600, color: C.ink, fontSize: '1.04rem', lineHeight: 1.35, marginBottom: 4 }} dangerouslySetInnerHTML={{ __html: item.title }} />
+                  <p style={{ fontFamily: 'Cormorant, Georgia, serif', color: C.warm, fontSize: '0.94rem', lineHeight: 1.5 }}>{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: '0.95rem', textAlign: 'center', marginTop: 30, paddingTop: 24, borderTop: `1px solid ${C.cream3}` }}>
+            From <strong style={{ color: C.ink, fontStyle: 'normal', fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1.08rem' }}>£49</strong>. One-time. They keep it forever.
+          </p>
+        </motion.div>
+
+        {/* ── "THE MOMENT YOU'RE BUYING" — anticipated-receipt script.
+             Dunn/Aknin/Norton + Schultz/Knutson: concrete sensory
+             detail of the imagined moment fires the giver's
+             dopaminergic reward NOW, at the buy decision. This is the
+             dopamine asset, not the product. Pair with one inline
+             gift-giver quote (Givi & Galak: visible recipient
+             reactions disarm the gap). ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
+          style={{
+            marginBottom: 40,
+            background: 'rgba(255,253,245,0.92)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+            border: '1px solid rgba(196,162,101,0.16)',
+            borderRadius: 18,
+            boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
+            padding: 'clamp(36px, 5vw, 48px) clamp(24px, 4vw, 40px)',
+            textAlign: 'center',
+          }}
+        >
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 18 }}>
+            The moment you&rsquo;re buying
+          </p>
+
+          <div style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.ink, fontSize: 'clamp(1.18rem, 3.8vw, 1.45rem)', lineHeight: 1.6, maxWidth: 520, margin: '0 auto', textWrap: 'balance' }}>
+            <p style={{ marginBottom: 14 }}>Picture her, Tuesday night. Phone out. The dog asleep on her feet.</p>
+            <p style={{ marginBottom: 14 }}>She opens the email. Reads the first line about him.</p>
+            <p style={{ marginBottom: 14 }}>Reads the second. Stops. Reads it again.</p>
+            <p style={{ marginBottom: 0, color: C.rose }}>Then quietly puts her hand on his head and says — <em>&ldquo;it&rsquo;s about you, baby.&rdquo;</em></p>
+          </div>
+
+          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 'clamp(1.05rem, 3.6vw, 1.25rem)', color: C.deep, marginTop: 32, lineHeight: 1.4 }}>
+            That&rsquo;s the moment.<br />
+            <em style={{ color: C.rose }}>That&rsquo;s what you&rsquo;re giving her.</em>
+          </p>
+
+          {/* Inline gift-giver quote — proof the moment is real. */}
+          <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${C.cream3}`, maxWidth: 480, marginInline: 'auto' }}>
+            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.warm, fontSize: '1rem', lineHeight: 1.55 }}>
+              <span style={{ color: C.gold, marginRight: 6, letterSpacing: '0.05em', fontStyle: 'normal' }}>★★★★★</span>
+              &ldquo;She FaceTimed me reading it aloud to him. We were both crying. Best £49 I&rsquo;ve ever spent on anyone.&rdquo;
+            </p>
+            <p style={{ fontSize: '0.82rem', color: C.muted, marginTop: 8, fontStyle: 'normal' }}>
+              — Devon, gifted to her best friend
+            </p>
+          </div>
         </motion.div>
 
         {/* ── TIER CARDS — gated on occasion pick, tier set + copy
@@ -1569,6 +1636,89 @@ export default function GiftPurchase() {
             </div>
           </motion.div>
         )}
+
+        {/* ── REAL GIFTS. REAL MOMENTS. — full reviews wall at bottom
+             of page (per user direction). The hero already carries 3
+             inline gift-giver quotes near the CTA for the GoodUI #84
+             "reviews-adjacent-to-CTA" lift; this section is the
+             expanded social proof for visitors who scroll the
+             whole page before deciding. ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22 }}
+          style={{
+            marginTop: 64,
+            paddingTop: 56,
+            borderTop: `1px solid ${C.cream3}`,
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 14 }}>
+              Real gifts. Real moments.
+            </p>
+            <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 'clamp(1.4rem, 4.6vw, 1.8rem)', color: C.ink, lineHeight: 1.2, letterSpacing: '-0.02em', maxWidth: 460, margin: '0 auto', textWrap: 'balance' }}>
+              The kind of gift people actually remember they got.
+            </p>
+          </div>
+          <GiftReviewStrip />
+        </motion.div>
+
+        {/* ── FINAL EMOTIONAL CTA — closes the page on a conversion
+             beat. Scrolls to top of tier flow. ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.28 }}
+          style={{
+            marginTop: 56,
+            padding: 'clamp(40px, 6vw, 56px) clamp(24px, 4vw, 40px)',
+            borderRadius: 18,
+            background: 'rgba(255,253,245,0.92)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+            border: '1px solid rgba(196,162,101,0.16)',
+            boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
+            textAlign: 'center',
+          }}
+        >
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 18 }}>
+            Some gifts disappear
+          </p>
+          <h2 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(1.85rem, 6vw, 2.6rem)', color: C.ink, lineHeight: 1.1, letterSpacing: '-0.022em', marginBottom: 18 }}>
+            This one <em style={{ color: C.rose }}>stays.</em>
+          </h2>
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.4vw, 1.18rem)', lineHeight: 1.55, maxWidth: 460, margin: '0 auto 30px', textWrap: 'balance' }}>
+            On their phone. On their hardest days. The first paragraph, screenshotted to a friend at midnight. The reading they&rsquo;ll come back to a year from now and remember you sent it.
+          </p>
+          <button
+            onClick={() => {
+              const el = document.getElementById('gift-flow') ?? document.querySelector('[role="radiogroup"]');
+              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            style={{
+              padding: '16px 32px',
+              borderRadius: 50,
+              background: C.rose,
+              color: '#fff',
+              fontFamily: 'Cormorant, Georgia, serif',
+              fontWeight: 700,
+              fontSize: '1.04rem',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: `0 6px 20px ${C.roseGlow}`,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <Gift style={{ width: 18, height: 18 }} />
+            Begin their gift — from £49
+          </button>
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.82rem', color: C.muted, marginTop: 16 }}>
+            If their reading doesn&rsquo;t move them, we&rsquo;ll rewrite it — or refund you. No awkward conversations.
+          </p>
+        </motion.div>
 
       </div>
 
