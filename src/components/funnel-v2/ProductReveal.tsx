@@ -589,38 +589,20 @@ export const AuthoritySection = ({
         className="relative overflow-hidden"
         style={{ background: "var(--cream, #FFFDF5)" }}
       >
-        <ConstellationBackdrop />
-
-        {/* Entrance spotlight — a single soft gold wash that sweeps
-            through behind the card(s) on first view. Fires once, tied
-            to the scroll-reveal. Adds life without overwhelming. */}
-        <div
-          aria-hidden="true"
-          className={`authority-spotlight${visible ? " is-in" : ""}`}
-        />
+        <HeartsBackdrop />
 
         {showTitle && (
           <div
-            className={`relative px-5 ${singlePart ? "pt-12 sm:pt-14 pb-10 sm:pb-12" : "pt-14 sm:pt-16"} transition-all duration-[900ms] ease-out`}
+            className={`relative px-5 ${singlePart ? "pt-16 sm:pt-20 pb-12 sm:pb-16" : "pt-20 sm:pt-24"}`}
             style={{
               opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(14px)",
+              transform: visible ? "translateY(0)" : "translateY(16px)",
+              transition: "opacity 800ms cubic-bezier(0.22, 1, 0.36, 1), transform 800ms cubic-bezier(0.22, 1, 0.36, 1)",
               transitionDelay: "0.05s",
               zIndex: 1,
             }}
           >
-            <div
-              className="max-w-[620px] mx-auto text-center authority-card"
-              style={{
-                background: "rgba(255, 253, 245, 0.94)",
-                backdropFilter: "blur(3px)",
-                WebkitBackdropFilter: "blur(3px)",
-                border: "1px solid rgba(196, 162, 101, 0.16)",
-                borderRadius: 18,
-                padding: "clamp(28px, 6vw, 44px) clamp(22px, 5vw, 40px)",
-                boxShadow: "0 4px 32px rgba(0, 0, 0, 0.04)",
-              }}
-            >
+            <div className="max-w-[720px] mx-auto text-center">
               <IntroTitle path={path} />
             </div>
           </div>
@@ -655,46 +637,7 @@ export const AuthoritySection = ({
       </div>
 
       <style>{`
-        /* Soft gold spotlight behind the authority card(s) — fades in
-           once when the section enters view, drifts quietly. Gives the
-           backdrop a sense of depth without touching text legibility. */
-        .authority-spotlight {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          z-index: 0;
-          opacity: 0;
-          transition: opacity 1200ms ease-out;
-          background:
-            radial-gradient(circle at 30% 22%, rgba(196, 162, 101, 0.12) 0%, rgba(196, 162, 101, 0) 38%),
-            radial-gradient(circle at 72% 78%, rgba(191, 82, 74, 0.06) 0%, rgba(191, 82, 74, 0) 40%);
-        }
-        .authority-spotlight.is-in {
-          opacity: 1;
-          animation: authorityDrift 22s ease-in-out 800ms infinite;
-        }
-        @keyframes authorityDrift {
-          0%, 100% { transform: translate3d(0, 0, 0); }
-          50%      { transform: translate3d(-2%, 1%, 0); }
-        }
-        /* Gentle hover lift on the card — invites without being pushy */
-        .authority-card {
-          transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
-                      box-shadow 480ms cubic-bezier(0.22, 1, 0.36, 1),
-                      border-color 480ms ease;
-        }
-        @media (hover: hover) {
-          .authority-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 42px rgba(20, 15, 8, 0.08);
-            border-color: rgba(196, 162, 101, 0.32);
-          }
-        }
         @media (prefers-reduced-motion: reduce) {
-          .authority-spotlight, .authority-spotlight.is-in {
-            animation: none !important;
-            transition: none !important;
-          }
           .authority-card { transition: none !important; }
         }
       `}</style>
@@ -703,13 +646,10 @@ export const AuthoritySection = ({
 };
 
 /* ── IntroTitle ──
- * The first big moment after the visitor picks a path. Two-line title
- * card, second line caught in rose, typed out character by character
- * once it enters the viewport so it lands like an opening shot rather
- * than appearing all at once. Width is reserved via an invisible full-
- * string placeholder so nothing jumps as characters arrive. A blinking
- * caret trails the typing cursor and fades 600ms after both lines
- * finish. Respects prefers-reduced-motion. */
+ * Static two-line opener. Line 1 in Playfair Display ink, line 2 in
+ * DM Serif Display italic with a per-path colour signature
+ * (rose=arrival, gold=mystery, ink=memorial stillness). The wrapping
+ * AuthoritySection handles the single fade-up on scroll-in. */
 
 const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
   new:      { a: "A new little soul",            b: "just walked into your orbit." },
@@ -717,127 +657,19 @@ const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
   memorial: { a: "No little soul",               b: "is ever forgotten by the stars." },
 };
 
-const TYPE_MS_PER_CHAR = 26;     // speed of keystrokes — snappy but still reads
-const TYPE_PAUSE_MS    = 240;    // breath between line a and line b
-// The IntroTitle sits inside AuthoritySection's card which fades in
-// over 900ms from its own scroll observer. If we start typing inside
-// that window the first characters are invisible behind the card's
-// opacity transition. Lead-in must cover the card fade + a small
-// breath so the first keystroke always lands on a fully-visible
-// card. Memorial gets a touch longer to feel like a deliberate
-// continuation of GriefSection's cadence.
-const TYPE_LEAD_IN_MS  = 1100;
-const TYPE_LEAD_IN_MEMORIAL_MS = 1400;
-const TYPE_CARET_FADE  = 700;    // caret fade-out after final char
+const LINE_B_COLOR: Record<FunnelPath, string> = {
+  new:      "var(--rose, #bf524a)",
+  discover: "var(--gold, #c4a265)",
+  memorial: "var(--black, #141210)",
+};
 
 const IntroTitle = ({ path }: { path: FunnelPath }) => {
   const { a, b } = INTRO_COPY[path];
-  const hostRef = useRef<HTMLHeadingElement>(null);
-  const [inView, setInView] = useState(false);
-  const [countA, setCountA] = useState(0);
-  const [countB, setCountB] = useState(0);
-  const [doneA, setDoneA] = useState(false);
-  const [doneB, setDoneB] = useState(false);
-
-  // Start typing when the title crosses into view — not at mount, so
-  // readers who pick a pill without scrolling still see the reveal
-  // when they get there.
-  useEffect(() => {
-    const el = hostRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setInView(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.35, rootMargin: "0px 0px -30px 0px" }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!inView) return;
-
-    const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (reduced) {
-      setCountA(a.length); setDoneA(true);
-      setCountB(b.length); setDoneB(true);
-      return;
-    }
-
-    const handles: { leadIn?: number; ivA?: number; pause?: number; ivB?: number } = {};
-
-    const leadIn = path === "memorial" ? TYPE_LEAD_IN_MEMORIAL_MS : TYPE_LEAD_IN_MS;
-    handles.leadIn = window.setTimeout(() => {
-      handles.ivA = window.setInterval(() => {
-        setCountA((c) => {
-          if (c >= a.length) {
-            if (handles.ivA !== undefined) window.clearInterval(handles.ivA);
-            setDoneA(true);
-            handles.pause = window.setTimeout(() => {
-              handles.ivB = window.setInterval(() => {
-                setCountB((c2) => {
-                  if (c2 >= b.length) {
-                    if (handles.ivB !== undefined) window.clearInterval(handles.ivB);
-                    setDoneB(true);
-                    return c2;
-                  }
-                  return c2 + 1;
-                });
-              }, TYPE_MS_PER_CHAR);
-            }, TYPE_PAUSE_MS);
-            return c;
-          }
-          return c + 1;
-        });
-      }, TYPE_MS_PER_CHAR);
-    }, leadIn);
-
-    return () => {
-      if (handles.leadIn !== undefined) window.clearTimeout(handles.leadIn);
-      if (handles.pause !== undefined) window.clearTimeout(handles.pause);
-      if (handles.ivA !== undefined) window.clearInterval(handles.ivA);
-      if (handles.ivB !== undefined) window.clearInterval(handles.ivB);
-    };
-  }, [inView, a, b]);
-
-  // Caret stays on the line currently being typed.
-  const caretOn: "a" | "b" | "done" = !doneA ? "a" : !doneB ? "b" : "done";
-
-  const lineStyle: React.CSSProperties = {
-    position: "relative",
-    display: "inline-block",
-    whiteSpace: "nowrap",
-  };
-  const placeholderStyle: React.CSSProperties = {
-    visibility: "hidden",
-  };
-  const overlayStyle: React.CSSProperties = {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    right: 0,
-  };
 
   return (
     <h2
-      ref={hostRef}
       className="product-reveal-intro"
       style={{
-        fontFamily: '"DM Serif Display", Georgia, serif',
-        fontSize: "clamp(1.75rem, 6.2vw, 2.5rem)",
-        fontWeight: 400,
-        fontStyle: "italic",
-        color: "var(--black, #141210)",
-        lineHeight: 1.22,
-        letterSpacing: "-0.018em",
         margin: 0,
         maxWidth: 720,
         marginInline: "auto",
@@ -845,87 +677,48 @@ const IntroTitle = ({ path }: { path: FunnelPath }) => {
       }}
       aria-label={`${a} ${b}`}
     >
-      {/* Line A — ink black */}
-      <span style={lineStyle} aria-hidden="true">
-        <span style={placeholderStyle}>{a}</span>
-        <span style={overlayStyle}>
-          {a.slice(0, countA)}
-          {caretOn === "a" && (
-            <span className={`intro-caret ${inView ? "is-typing" : ""}`}>|</span>
-          )}
-        </span>
+      <span
+        style={{
+          display: "block",
+          fontFamily: '"Playfair Display", Georgia, serif',
+          fontSize: "clamp(2rem, 6.4vw, 3.1rem)",
+          fontWeight: 500,
+          color: "var(--black, #141210)",
+          lineHeight: 1.18,
+          letterSpacing: "-0.018em",
+          textWrap: "balance",
+        }}
+      >
+        {a}
       </span>
-      <br />
-      {/* Line B — rose, only revealed once Line A completes */}
-      <span style={{ ...lineStyle, color: "var(--rose, #bf524a)" }} aria-hidden="true">
-        <span style={placeholderStyle}>{b}</span>
-        <span style={overlayStyle}>
-          {b.slice(0, countB)}
-          {caretOn === "b" && (
-            <span className={`intro-caret is-typing is-rose`}>|</span>
-          )}
-          {caretOn === "done" && (
-            <span className="intro-caret is-rose is-fading">|</span>
-          )}
-        </span>
+      <span
+        style={{
+          display: "block",
+          fontFamily: '"DM Serif Display", Georgia, serif',
+          fontSize: "clamp(1.55rem, 5vw, 2.5rem)",
+          fontStyle: "italic",
+          fontWeight: 400,
+          color: LINE_B_COLOR[path],
+          lineHeight: 1.22,
+          letterSpacing: "-0.012em",
+          marginTop: "clamp(8px, 1.4vw, 14px)",
+          textWrap: "balance",
+        }}
+      >
+        {b}
       </span>
 
-      {/* Gold hairline — strokes in once both lines are typed */}
       <span
         aria-hidden="true"
-        className={`intro-rule ${doneB ? "is-in" : ""}`}
+        style={{
+          display: "block",
+          width: 32,
+          height: 1,
+          background: "var(--gold, #c4a265)",
+          opacity: 0.55,
+          margin: "clamp(28px, 4vw, 40px) auto 0",
+        }}
       />
-
-      <style>{`
-        .intro-caret {
-          display: inline-block;
-          margin-left: 2px;
-          font-weight: 300;
-          opacity: 0.7;
-          color: inherit;
-        }
-        .intro-caret.is-typing {
-          animation: introCaretBlink 850ms steps(2, end) infinite;
-        }
-        .intro-caret.is-fading {
-          animation: introCaretOut ${TYPE_CARET_FADE}ms ease-out forwards;
-        }
-        @keyframes introCaretBlink {
-          50% { opacity: 0; }
-        }
-        @keyframes introCaretOut {
-          from { opacity: 0.7; }
-          to   { opacity: 0; }
-        }
-
-        .intro-rule {
-          display: block;
-          height: 1px;
-          width: 0;
-          margin: 22px auto 0;
-          background: var(--gold, #c4a265);
-          opacity: 0;
-          transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms ease;
-        }
-        .intro-rule.is-in {
-          width: 56px;
-          opacity: 0.65;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .intro-caret,
-          .intro-caret.is-typing,
-          .intro-caret.is-fading {
-            animation: none !important;
-            display: none !important;
-          }
-          .intro-rule {
-            transition: none !important;
-            width: 56px !important;
-            opacity: 0.65 !important;
-          }
-        }
-      `}</style>
     </h2>
   );
 };
