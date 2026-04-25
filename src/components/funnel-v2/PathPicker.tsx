@@ -58,12 +58,13 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
     >
       <HeartsBackdrop />
 
-      <div className="path-picker-inner max-w-[560px] mx-auto text-center">
-        <p className="path-picker-eyebrow">What brings you here today?</p>
+      <div className="path-picker-inner max-w-[560px] mx-auto">
+        <div className="path-picker-card text-center">
+          <p className="path-picker-eyebrow">What brings you here today?</p>
 
-        <span aria-hidden="true" className="path-picker-rule" />
+          <span aria-hidden="true" className="path-picker-rule" />
 
-        <div role="radiogroup" aria-label="Funnel path" className="path-picker-list">
+          <div role="radiogroup" aria-label="Funnel path" className="path-picker-list">
           {INTENTS.map(({ value, label }, i) => {
             const active = selected === value;
             const isLast = i === INTENTS.length - 1;
@@ -81,6 +82,7 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
               </button>
             );
           })}
+          </div>
         </div>
       </div>
 
@@ -106,6 +108,24 @@ export const PathPicker = ({ selected, onSelect }: PathPickerProps) => {
           width: 100%;
           position: relative;
           z-index: 1;
+        }
+
+        /* ── Translucent cream card so the heart wallpaper doesn't
+              interfere with the text. Soft gold hairline + light blur,
+              no hover lift. ────────────────────────────────────── */
+        .path-picker-card {
+          background: rgba(255, 253, 245, 0.92);
+          backdrop-filter: blur(3px);
+          -webkit-backdrop-filter: blur(3px);
+          border: 1px solid rgba(196, 162, 101, 0.16);
+          border-radius: 18px;
+          box-shadow: 0 4px 28px rgba(0, 0, 0, 0.04);
+        }
+        .is-landing .path-picker-card {
+          padding: clamp(40px, 6vw, 56px) clamp(24px, 4vw, 40px);
+        }
+        .is-compact .path-picker-card {
+          padding: clamp(24px, 3.6vw, 32px) clamp(20px, 3vw, 32px);
         }
 
         /* ── Eyebrow prompt ─────────────────────────────────── */

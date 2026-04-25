@@ -583,17 +583,24 @@ export const AuthoritySection = ({
   // the band doesn't leave an awkward gap above/below in splitting mode.
   const singlePart = variant !== "both";
 
+  // Per-path backdrop language: memorial reverts to constellations
+  // (it always lived under that wallpaper). New/discover get the
+  // hearts wallpaper for the title scene. The credibility (VSOP87)
+  // block always sits on constellations — that's the celestial-rigor
+  // section.
+  const TitleBackdrop = path === "memorial" ? ConstellationBackdrop : HeartsBackdrop;
+
   return (
     <section ref={ref} className="relative overflow-hidden">
-      <div
-        className="relative overflow-hidden"
-        style={{ background: "var(--cream, #FFFDF5)" }}
-      >
-        <HeartsBackdrop />
+      {showTitle && (
+        <div
+          className={`relative overflow-hidden ${singlePart ? "py-16 sm:py-20" : "pt-20 sm:pt-24 pb-10 sm:pb-12"}`}
+          style={{ background: "var(--cream, #FFFDF5)" }}
+        >
+          <TitleBackdrop />
 
-        {showTitle && (
           <div
-            className={`relative px-5 ${singlePart ? "pt-16 sm:pt-20 pb-12 sm:pb-16" : "pt-20 sm:pt-24"}`}
+            className="relative px-5"
             style={{
               opacity: visible ? 1 : 0,
               transform: visible ? "translateY(0)" : "translateY(16px)",
@@ -602,18 +609,37 @@ export const AuthoritySection = ({
               zIndex: 1,
             }}
           >
-            <div className="max-w-[720px] mx-auto text-center">
+            <div
+              className="max-w-[720px] mx-auto text-center authority-card"
+              style={{
+                background: "rgba(255, 253, 245, 0.92)",
+                backdropFilter: "blur(3px)",
+                WebkitBackdropFilter: "blur(3px)",
+                border: "1px solid rgba(196, 162, 101, 0.16)",
+                borderRadius: 18,
+                padding: "clamp(32px, 6vw, 48px) clamp(24px, 5vw, 44px)",
+                boxShadow: "0 4px 28px rgba(0, 0, 0, 0.04)",
+              }}
+            >
               <IntroTitle path={path} />
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {showCredibility && (
+      {showCredibility && (
+        <div
+          className={`relative overflow-hidden ${singlePart ? "py-14 sm:py-16" : "pt-8 pb-14 sm:pb-16"}`}
+          style={{ background: "var(--cream, #FFFDF5)" }}
+        >
+          <ConstellationBackdrop />
+
           <div
-            className={`relative px-5 ${singlePart ? "pt-12 sm:pt-14 pb-14 sm:pb-16" : "pt-8 pb-14 sm:pb-16"} transition-all duration-[900ms] ease-out`}
+            className="relative px-5"
             style={{
               opacity: visible ? 1 : 0,
               transform: visible ? "translateY(0)" : "translateY(18px)",
+              transition: "opacity 900ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
               transitionDelay: "0.12s",
               zIndex: 1,
             }}
@@ -633,8 +659,8 @@ export const AuthoritySection = ({
               <VsopCredibility path={path} revealed={visible} />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <style>{`
         @media (prefers-reduced-motion: reduce) {
@@ -657,13 +683,24 @@ const INTRO_COPY: Record<FunnelPath, { a: string; b: string }> = {
   memorial: { a: "No little soul",               b: "is ever forgotten by the stars." },
 };
 
-const LINE_B_COLOR: Record<FunnelPath, string> = {
+// Static line-2 colour signature for new/discover paths only.
+// Memorial keeps its original rose-on-typewriter treatment via
+// TypewriterIntroTitle below.
+const LINE_B_COLOR: Record<"new" | "discover", string> = {
   new:      "var(--rose, #bf524a)",
   discover: "var(--gold, #c4a265)",
-  memorial: "var(--black, #141210)",
 };
 
+/* ── IntroTitle dispatcher ──
+ * Memorial path uses the original character-by-character typewriter
+ * (rose line 2 + caret + gold-rule stroke-in). New/Discover get the
+ * static balanced two-liner with per-path colour signature. */
 const IntroTitle = ({ path }: { path: FunnelPath }) => {
+  if (path === "memorial") return <TypewriterIntroTitle path={path} />;
+  return <StaticIntroTitle path={path} />;
+};
+
+const StaticIntroTitle = ({ path }: { path: "new" | "discover" }) => {
   const { a, b } = INTRO_COPY[path];
 
   return (
@@ -719,6 +756,202 @@ const IntroTitle = ({ path }: { path: FunnelPath }) => {
           margin: "clamp(28px, 4vw, 40px) auto 0",
         }}
       />
+    </h2>
+  );
+};
+
+/* ── TypewriterIntroTitle (memorial only) ──
+ * Restored original behaviour: line A types ink-black character by
+ * character once it crosses into view, then a 240ms breath, then
+ * line B types in rose. Caret blinks on the active line and fades
+ * once both are typed. Gold hairline strokes in last. */
+const TYPE_MS_PER_CHAR = 26;
+const TYPE_PAUSE_MS    = 240;
+const TYPE_LEAD_IN_MS  = 1400;
+const TYPE_CARET_FADE  = 700;
+
+const TypewriterIntroTitle = ({ path }: { path: FunnelPath }) => {
+  const { a, b } = INTRO_COPY[path];
+  const hostRef = useRef<HTMLHeadingElement>(null);
+  const [inView, setInView] = useState(false);
+  const [countA, setCountA] = useState(0);
+  const [countB, setCountB] = useState(0);
+  const [doneA, setDoneA] = useState(false);
+  const [doneB, setDoneB] = useState(false);
+
+  useEffect(() => {
+    const el = hostRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setInView(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.35, rootMargin: "0px 0px -30px 0px" }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView) return;
+
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reduced) {
+      setCountA(a.length); setDoneA(true);
+      setCountB(b.length); setDoneB(true);
+      return;
+    }
+
+    const handles: { leadIn?: number; ivA?: number; pause?: number; ivB?: number } = {};
+
+    handles.leadIn = window.setTimeout(() => {
+      handles.ivA = window.setInterval(() => {
+        setCountA((c) => {
+          if (c >= a.length) {
+            if (handles.ivA !== undefined) window.clearInterval(handles.ivA);
+            setDoneA(true);
+            handles.pause = window.setTimeout(() => {
+              handles.ivB = window.setInterval(() => {
+                setCountB((c2) => {
+                  if (c2 >= b.length) {
+                    if (handles.ivB !== undefined) window.clearInterval(handles.ivB);
+                    setDoneB(true);
+                    return c2;
+                  }
+                  return c2 + 1;
+                });
+              }, TYPE_MS_PER_CHAR);
+            }, TYPE_PAUSE_MS);
+            return c;
+          }
+          return c + 1;
+        });
+      }, TYPE_MS_PER_CHAR);
+    }, TYPE_LEAD_IN_MS);
+
+    return () => {
+      if (handles.leadIn !== undefined) window.clearTimeout(handles.leadIn);
+      if (handles.pause !== undefined) window.clearTimeout(handles.pause);
+      if (handles.ivA !== undefined) window.clearInterval(handles.ivA);
+      if (handles.ivB !== undefined) window.clearInterval(handles.ivB);
+    };
+  }, [inView, a, b]);
+
+  const caretOn: "a" | "b" | "done" = !doneA ? "a" : !doneB ? "b" : "done";
+
+  const lineStyle: React.CSSProperties = {
+    position: "relative",
+    display: "inline-block",
+    whiteSpace: "nowrap",
+  };
+  const placeholderStyle: React.CSSProperties = { visibility: "hidden" };
+  const overlayStyle: React.CSSProperties = {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    right: 0,
+  };
+
+  return (
+    <h2
+      ref={hostRef}
+      className="product-reveal-intro"
+      style={{
+        fontFamily: '"DM Serif Display", Georgia, serif',
+        fontSize: "clamp(1.75rem, 6.2vw, 2.5rem)",
+        fontWeight: 400,
+        fontStyle: "italic",
+        color: "var(--black, #141210)",
+        lineHeight: 1.22,
+        letterSpacing: "-0.018em",
+        margin: 0,
+        maxWidth: 720,
+        marginInline: "auto",
+        textAlign: "center",
+      }}
+      aria-label={`${a} ${b}`}
+    >
+      <span style={lineStyle} aria-hidden="true">
+        <span style={placeholderStyle}>{a}</span>
+        <span style={overlayStyle}>
+          {a.slice(0, countA)}
+          {caretOn === "a" && (
+            <span className={`intro-caret ${inView ? "is-typing" : ""}`}>|</span>
+          )}
+        </span>
+      </span>
+      <br />
+      <span style={{ ...lineStyle, color: "var(--rose, #bf524a)" }} aria-hidden="true">
+        <span style={placeholderStyle}>{b}</span>
+        <span style={overlayStyle}>
+          {b.slice(0, countB)}
+          {caretOn === "b" && (
+            <span className="intro-caret is-typing is-rose">|</span>
+          )}
+          {caretOn === "done" && (
+            <span className="intro-caret is-rose is-fading">|</span>
+          )}
+        </span>
+      </span>
+
+      <span
+        aria-hidden="true"
+        className={`intro-rule ${doneB ? "is-in" : ""}`}
+      />
+
+      <style>{`
+        .intro-caret {
+          display: inline-block;
+          margin-left: 2px;
+          font-weight: 300;
+          opacity: 0.7;
+          color: inherit;
+        }
+        .intro-caret.is-typing {
+          animation: introCaretBlink 850ms steps(2, end) infinite;
+        }
+        .intro-caret.is-fading {
+          animation: introCaretOut ${TYPE_CARET_FADE}ms ease-out forwards;
+        }
+        @keyframes introCaretBlink { 50% { opacity: 0; } }
+        @keyframes introCaretOut {
+          from { opacity: 0.7; }
+          to   { opacity: 0; }
+        }
+        .intro-rule {
+          display: block;
+          height: 1px;
+          width: 0;
+          margin: 22px auto 0;
+          background: var(--gold, #c4a265);
+          opacity: 0;
+          transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms ease;
+        }
+        .intro-rule.is-in {
+          width: 56px;
+          opacity: 0.65;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .intro-caret,
+          .intro-caret.is-typing,
+          .intro-caret.is-fading {
+            animation: none !important;
+            display: none !important;
+          }
+          .intro-rule {
+            transition: none !important;
+            width: 56px !important;
+            opacity: 0.65 !important;
+          }
+        }
+      `}</style>
     </h2>
   );
 };
