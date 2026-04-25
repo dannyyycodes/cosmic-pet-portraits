@@ -265,6 +265,14 @@ serve(async (req) => {
           nextMonday.setDate(nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7));
           nextMonday.setHours(9, 0, 0, 0);
 
+          // 28-day trial for gift recipients. After trial_ends_at the
+          // weekly batch stops sending unless the recipient has subscribed
+          // via the keep-horoscopes flow (which links a stripe_subscription_id
+          // and clears trial_ends_at). Conversion reminder emails fire from
+          // the batch on weeks 3 + 4.
+          const trialEndsAt = new Date();
+          trialEndsAt.setDate(trialEndsAt.getDate() + 28);
+
           const { error: subError } = await supabase
             .from("horoscope_subscriptions")
             .insert({
@@ -280,6 +288,9 @@ serve(async (req) => {
               // ever changes, the batch generator's own memorial WHERE
               // clause reads this column.
               occasion_mode: petOccasion,
+              is_gift: true,
+              trial_ends_at: trialEndsAt.toISOString(),
+              plan: "gift_trial",
             });
 
           if (subError) {
