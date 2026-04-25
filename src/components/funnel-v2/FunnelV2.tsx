@@ -230,7 +230,7 @@ export const FunnelV2 = () => {
               ctaLabel={ctaPrimary}
               path={path}
               showBenefits={path === "discover" || path === "new"}
-              showAuthority={path === "memorial" ? false : "both"}
+              showAuthority={false}
             />
           </div>
 
@@ -245,12 +245,12 @@ export const FunnelV2 = () => {
             path={path}
           />
 
-          {/* Memorial path: typed IntroTitle ("No little soul / is
-              ever forgotten by the stars.") + VSOP credibility card
-              sit together BELOW the checkout cards. Buyers ready to
-              convert see cards first; readers who keep scrolling get
-              the typed landing line and then the credibility close. */}
-          {path === "memorial" && <AuthoritySection path={path} variant="both" />}
+          {/* AuthoritySection lives BELOW the checkout cards on every
+              route — the offer lands first, then the typed IntroTitle
+              + VSOP credibility close cements trust. Mirrors the
+              memorial flow that was already proven; consistent UX
+              across all 3 paths. */}
+          <AuthoritySection path={path} variant="both" />
 
           <div className="py-4" style={{ background: "var(--cream, #FFFDF5)" }}>
             <GoldDivider />

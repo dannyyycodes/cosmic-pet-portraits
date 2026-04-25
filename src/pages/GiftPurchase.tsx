@@ -858,197 +858,158 @@ export default function GiftPurchase() {
           transition={{ delay: 0.06 }}
           style={{ marginBottom: 40 }}
         >
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
-            Start here — who's it for?
-          </p>
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto 22px', maxWidth: 420 }}>
-            Four readings, four different voices. Pick the one that fits their moment.
-          </p>
+          <div className="gift-toc-card">
+            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, textAlign: 'center', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 10 }}>
+              Start here — who's it for?
+            </p>
+            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1rem, 3vw, 1.15rem)', textAlign: 'center', margin: '0 auto', maxWidth: 420 }}>
+              Four readings, four different voices. Pick the one that fits their moment.
+            </p>
 
-          <div
-            role="radiogroup"
-            aria-label="Gift occasion"
-            className="gift-occasion-row"
-          >
-            {([
-              { value: 'new',      emoji: '🌱', label: 'They just got a new pet' },
-              { value: 'discover', emoji: '🔮', label: "They've had their pet for years" },
-              { value: 'memorial', emoji: '🕊️', label: 'Their pet has passed' },
-              { value: 'birthday', emoji: '🎂', label: "It's their pet's birthday" },
-            ] as Array<{ value: GiftOccasion; emoji: string; label: string }>).map(({ value, emoji, label }) => {
-              const active = selectedOccasion === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => handleOccasionSelect(value)}
-                  className={`gift-occasion-pill ${active ? 'is-active' : ''}`}
-                >
-                  <span aria-hidden="true" className="gop-sheen" />
-                  <span className="gift-occasion-label-wrap">
-                    <span className="gop-emoji" aria-hidden="true">{emoji}</span>
-                    <span className="gift-occasion-label">{label}</span>
-                    <span aria-hidden="true" className="gift-occasion-underline" />
-                  </span>
-                </button>
-              );
-            })}
+            <span aria-hidden="true" className="gift-toc-rule" />
+
+            <div
+              role="radiogroup"
+              aria-label="Gift occasion"
+              className="gift-toc-list"
+            >
+              {([
+                { value: 'new',      emoji: '🌱', label: 'They just got a new pet' },
+                { value: 'discover', emoji: '🔮', label: "They've had their pet for years" },
+                { value: 'memorial', emoji: '🕊️', label: 'Their pet has passed' },
+                { value: 'birthday', emoji: '🎂', label: "It's their pet's birthday" },
+              ] as Array<{ value: GiftOccasion; emoji: string; label: string }>).map(({ value, emoji, label }) => {
+                const active = selectedOccasion === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => handleOccasionSelect(value)}
+                    className={`gift-toc-row ${active ? 'is-active' : ''}`}
+                  >
+                    <span className="gift-toc-glyph" aria-hidden="true">{emoji}</span>
+                    <span className="gift-toc-label">{label}</span>
+                    <span aria-hidden="true" className="gift-toc-arrow">&rarr;</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <style>{`
-            .gift-occasion-row {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 12px;
-              max-width: 500px;
-              margin: 0 auto;
+            /* Translucent cream card so the pet-icon wallpaper doesn't
+               fight the eyebrow + label text. Matches the main
+               PathPicker container. */
+            .gift-toc-card {
+              background: rgba(255, 253, 245, 0.92);
+              backdrop-filter: blur(3px);
+              -webkit-backdrop-filter: blur(3px);
+              border: 1px solid rgba(196, 162, 101, 0.16);
+              border-radius: 18px;
+              box-shadow: 0 4px 28px rgba(0, 0, 0, 0.04);
+              padding: clamp(28px, 4.4vw, 40px) clamp(20px, 3.6vw, 32px);
             }
 
-            .gift-occasion-pill {
-              position: relative;
+            .gift-toc-rule {
+              display: block;
+              width: 32px;
+              height: 1px;
+              background: ${C.gold};
+              opacity: 0.55;
+              margin: clamp(20px, 3vw, 28px) auto clamp(28px, 4vw, 36px);
+            }
+
+            /* Magazine TOC stack — hairline-separated rows, no pill chrome. */
+            .gift-toc-list {
+              display: flex;
+              flex-direction: column;
+              max-width: 460px;
+              margin: 0 auto;
+              border-top: 1px solid ${C.cream3};
+            }
+
+            .gift-toc-row {
               appearance: none;
               -webkit-appearance: none;
+              background: transparent;
+              border: 0;
+              border-bottom: 1px solid ${C.cream3};
+              border-left: 4px solid transparent;
               cursor: pointer;
               width: 100%;
-              display: inline-flex;
+              display: flex;
               align-items: center;
-              justify-content: center;
-              background:
-                radial-gradient(
-                  120% 160% at 50% -20%,
-                  rgba(212, 178, 107, 0.14) 0%,
-                  rgba(212, 178, 107, 0) 55%
-                ),
-                linear-gradient(
-                  180deg,
-                  rgba(255, 253, 245, 0.98) 0%,
-                  rgba(249, 240, 224, 0.94) 100%
-                );
-              border: 1px solid rgba(196, 162, 101, 0.36);
-              border-radius: 9999px;
+              gap: 14px;
+              padding: clamp(18px, 3vw, 22px) clamp(14px, 2.6vw, 20px);
               color: ${C.ink};
               font-family: "Cormorant", Georgia, serif;
               font-style: italic;
-              letter-spacing: 0.005em;
-              line-height: 1.1;
-              padding: 16px 24px;
-              min-height: 58px;
-              font-size: clamp(1rem, 3.2vw, 1.18rem);
-              transition:
-                background 320ms ease,
-                border-color 320ms ease,
-                color 320ms ease,
-                box-shadow 380ms ease,
-                transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-              box-shadow:
-                0 1px 2px rgba(20, 15, 8, 0.04),
-                0 10px 26px rgba(20, 15, 8, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.78),
-                inset 0 -1px 0 rgba(196, 162, 101, 0.12);
+              line-height: 1.25;
+              text-align: left;
+              transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
               -webkit-tap-highlight-color: transparent;
               outline: none;
-              white-space: nowrap;
-              overflow: hidden;
+              font-size: clamp(1.04rem, 3.4vw, 1.2rem);
             }
 
-            .gop-sheen {
-              position: absolute; top: 0; left: 0; right: 0; height: 45%;
-              background: linear-gradient(180deg, rgba(212,178,107,0.14) 0%, rgba(212,178,107,0) 100%);
-              pointer-events: none; z-index: 0;
+            .gift-toc-glyph {
+              font-size: 1.05em;
+              line-height: 1;
+              opacity: 0.78;
+              flex-shrink: 0;
+              width: 24px;
+              text-align: center;
             }
 
-            .gift-occasion-pill::after {
-              content: "";
-              position: absolute; top: 0; left: -55%; width: 55%; height: 100%;
-              background: linear-gradient(115deg, rgba(212,178,107,0) 0%, rgba(212,178,107,0.28) 50%, rgba(212,178,107,0) 100%);
-              opacity: 0; transform: translateX(0);
-              transition: transform 1100ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease;
-              pointer-events: none; z-index: 0;
+            .gift-toc-label {
+              flex: 1;
+            }
+
+            .gift-toc-arrow {
+              font-family: "Cormorant", Georgia, serif;
+              font-style: normal;
+              font-size: 1.18em;
+              color: ${C.muted};
+              margin-left: 12px;
+              transition: transform 220ms ease, color 200ms ease;
+              line-height: 1;
+            }
+
+            .gift-toc-row:focus-visible {
+              outline: 2px solid ${C.rose};
+              outline-offset: -2px;
             }
             @media (hover: hover) {
-              .gift-occasion-pill:hover::after { opacity: 1; transform: translateX(330%); }
-              .gift-occasion-pill:hover {
-                border-color: rgba(196, 162, 101, 0.62);
-                transform: translateY(-2px);
-                box-shadow:
-                  0 2px 4px rgba(20, 15, 8, 0.04),
-                  0 16px 34px rgba(20, 15, 8, 0.08),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+              .gift-toc-row:hover {
+                background-color: ${C.cream2};
               }
-              .gift-occasion-pill:hover .gift-occasion-underline { width: calc(100% - 4px); }
+              .gift-toc-row:hover .gift-toc-arrow {
+                transform: translateX(4px);
+                color: ${C.rose};
+              }
             }
 
-            .gift-occasion-label-wrap {
-              position: relative;
-              display: inline-flex;
-              align-items: center;
-              gap: 12px;
-              z-index: 1;
-            }
-            .gop-emoji {
-              font-size: 1.2em;
-              line-height: 1;
-              filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
-            }
-            .gift-occasion-label { position: relative; display: inline-block; z-index: 1; }
-
-            .gift-occasion-underline {
-              position: absolute; left: 50%; bottom: -7px; height: 1px; width: 0;
-              background: linear-gradient(90deg, rgba(196,162,101,0) 0%, rgba(196,162,101,1) 20%, rgba(196,162,101,1) 80%, rgba(196,162,101,0) 100%);
-              transform: translateX(-50%);
-              transition: width 380ms cubic-bezier(0.22,1,0.36,1);
-              pointer-events: none; opacity: 0.85;
-            }
-
-            .gift-occasion-pill:focus-visible { outline: 2px solid ${C.rose}; outline-offset: 3px; }
-
-            .gift-occasion-pill.is-active {
+            .gift-toc-row.is-active {
               color: ${C.rose};
-              background:
-                radial-gradient(140% 200% at 50% -30%, rgba(212,178,107,0.18) 0%, rgba(212,178,107,0) 60%),
-                linear-gradient(180deg, #FFFDF5 0%, #fbeedd 100%);
-              border-color: ${C.rose};
-              box-shadow:
-                0 0 0 5px rgba(191,82,74,0.07),
-                0 0 0 1px rgba(191,82,74,0.18),
-                0 4px 10px rgba(191,82,74,0.14),
-                0 20px 44px rgba(191,82,74,0.18),
-                inset 0 1px 0 rgba(255,255,255,0.92),
-                inset 0 -2px 6px rgba(212,178,107,0.18);
-              animation: gop-halo-pulse 3.6s ease-in-out infinite;
+              border-left-color: ${C.rose};
+              background-color: ${C.cream2};
             }
-            @keyframes gop-halo-pulse {
-              0%, 100% {
-                box-shadow:
-                  0 0 0 5px rgba(191,82,74,0.07),
-                  0 0 0 1px rgba(191,82,74,0.18),
-                  0 4px 10px rgba(191,82,74,0.14),
-                  0 20px 44px rgba(191,82,74,0.18),
-                  inset 0 1px 0 rgba(255,255,255,0.92),
-                  inset 0 -2px 6px rgba(212,178,107,0.18);
-              }
-              50% {
-                box-shadow:
-                  0 0 0 7px rgba(191,82,74,0.10),
-                  0 0 0 1px rgba(191,82,74,0.24),
-                  0 6px 14px rgba(191,82,74,0.18),
-                  0 24px 52px rgba(191,82,74,0.22),
-                  inset 0 1px 0 rgba(255,255,255,0.95),
-                  inset 0 -2px 8px rgba(212,178,107,0.22);
-              }
+            .gift-toc-row.is-active .gift-toc-arrow {
+              color: ${C.rose};
+              transform: translateX(4px);
             }
-            .gift-occasion-pill.is-active .gift-occasion-underline {
-              width: calc(100% - 4px); opacity: 1;
+            .gift-toc-row.is-active .gift-toc-glyph {
+              opacity: 1;
             }
 
             @media (prefers-reduced-motion: reduce) {
-              .gift-occasion-pill, .gift-occasion-pill::after, .gift-occasion-underline {
-                transition: none !important; transform: none !important;
+              .gift-toc-row,
+              .gift-toc-arrow {
+                transition: none !important;
+                transform: none !important;
               }
-              .gift-occasion-pill.is-active { animation: none !important; }
             }
           `}</style>
         </motion.div>
