@@ -346,6 +346,47 @@ Return ONLY valid JSON with exactly these fields:
 
 // ── Email template ──────────────────────────────────────────────
 
+// Gift trial → paid conversion email. Sent on weeks 3 + 4 of a gift
+// recipient's free trial, after their weekly horoscope. Two stages:
+//   - "halfway" (~14 days left): soft prompt
+//   - "final" (~7 days left): last-chance, harder CTA
+function renderGiftReminderEmail(opts: {
+  petName: string;
+  daysLeft: number;
+  subscriptionId: string;
+  stage: "halfway" | "final";
+}): string {
+  const { petName, daysLeft, subscriptionId, stage } = opts;
+  const url = `https://www.littlesouls.app/keep-horoscopes/${subscriptionId}`;
+  const headline = stage === "final"
+    ? `${petName}'s last horoscope arrives soon.`
+    : `${petName}'s weekly stars — only ${daysLeft} days left.`;
+  const body = stage === "final"
+    ? `Their gift trial ends in ${daysLeft} day${daysLeft === 1 ? "" : "s"}. The next horoscope is the last one — unless you keep them coming. £4.99/month. Cancel anytime.`
+    : `You're halfway through the free month that came with the gift. Want ${petName}'s weekly cosmic guidance to keep arriving after that? £4.99/month. Cancel anytime.`;
+  const cta = stage === "final" ? "Add card · Keep them coming" : "Keep their stars arriving";
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#FFFDF5;font-family:Georgia,'Times New Roman',serif;">
+  <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#c4a265;margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Little Souls</p>
+    </div>
+    <div style="background:#ffffff;border-radius:16px;border:1px solid #e8ddd0;padding:36px 28px;text-align:center;box-shadow:0 4px 20px rgba(35,40,30,0.06);">
+      <p style="font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:#c4a265;margin:0 0 14px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">Their Gift · Weekly Horoscopes</p>
+      <h1 style="color:#141210;font-size:24px;font-weight:400;margin:0 0 14px 0;line-height:1.35;">${headline}</h1>
+      <p style="color:#5a4a42;font-size:15px;line-height:1.7;margin:0 0 26px 0;">${body}</p>
+      <div style="margin:8px 0 18px 0;">
+        <a href="${url}" style="display:inline-block;background:#bf524a;color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:50px;font-weight:600;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0.5px;box-shadow:0 4px 16px rgba(191,82,74,0.25);">${cta} &rarr;</a>
+      </div>
+      <p style="color:#958779;font-size:12px;line-height:1.6;margin:0;">No card on file yet — you'd be subscribing on yours, not the gifter's. Cancel anytime in two clicks.</p>
+    </div>
+    <p style="text-align:center;color:#bfb2a3;font-size:11px;margin:20px 0 0 0;">Little Souls · <a href="https://www.littlesouls.app" style="color:#bfb2a3;text-decoration:none;">littlesouls.app</a></p>
+  </div>
+</body></html>`;
+}
+
 function generateHoroscopeEmail(
   petName: string,
   content: any,
@@ -571,11 +612,30 @@ serve(async (req) => {
         .eq("status", "active")
         .or("occasion_mode.is.null,occasion_mode.neq.memorial");
       if (subError) throw subError;
+
+      // Gift trial cap: drop rows where trial_ends_at has passed AND no
+      // Stripe subscription has been linked. Recipient stops receiving
+      // horoscopes until they convert via keep-horoscopes. Paid subs
+      // (trial_ends_at IS NULL) are unaffected.
+      const nowMs = Date.now();
+      const expiredGiftIds: string[] = [];
+      const liveSubs = (subs || []).filter((s: { trial_ends_at?: string | null; stripe_subscription_id?: string | null; id?: string }) => {
+        if (!s.trial_ends_at) return true; // paid sub, no cap
+        if (s.stripe_subscription_id) return true; // already converted
+        if (new Date(s.trial_ends_at).getTime() < nowMs) {
+          if (s.id) expiredGiftIds.push(s.id);
+          return false;
+        }
+        return true;
+      });
+      if (expiredGiftIds.length > 0) {
+        console.log(`[WEEKLY-HOROSCOPE] Skipping ${expiredGiftIds.length} expired gift trials (no conversion):`, expiredGiftIds);
+      }
       // Belt-and-braces: also drop any sub whose joined pet_reports row says
       // memorial — handles the case where the sub was seeded before
       // occasion_mode was stamped on it, or where the owner flipped the pet
       // to memorial after the sub was created and the sub row is stale.
-      subscriptions = (subs || []).filter((s: { pet_reports?: { occasion_mode?: string } | null; occasion_mode?: string }) => {
+      subscriptions = liveSubs.filter((s: { pet_reports?: { occasion_mode?: string } | null; occasion_mode?: string }) => {
         const subOcc = s.occasion_mode;
         const petOcc = s.pet_reports?.occasion_mode;
         const effective = subOcc || petOcc;
@@ -801,6 +861,50 @@ Return only valid JSON.`,
               .from("horoscope_subscriptions")
               .update({ next_send_at: nextSend.toISOString() })
               .eq("id", sub.id);
+          }
+        }
+
+        // Gift conversion reminders — fire after the horoscope is sent
+        // so the recipient sees the value first, then the upsell. Two
+        // touchpoints, both gated by once-only flags so the cron firing
+        // multiple times in a window doesn't spam.
+        if (!sub._testMode && sub.is_gift && sub.trial_ends_at && !sub.stripe_subscription_id) {
+          try {
+            const trialEndsMs = new Date(sub.trial_ends_at).getTime();
+            const daysLeft = Math.ceil((trialEndsMs - Date.now()) / (24 * 60 * 60 * 1000));
+            const isWeek3Window = daysLeft <= 14 && daysLeft > 7 && !sub.reminder_sent_at_week3;
+            const isWeek4Window = daysLeft <= 7 && daysLeft > 0 && !sub.reminder_sent_at_week4;
+
+            if (isWeek3Window || isWeek4Window) {
+              const reminderHtml = renderGiftReminderEmail({
+                petName: sub.pet_name,
+                daysLeft,
+                subscriptionId: sub.id,
+                stage: isWeek4Window ? "final" : "halfway",
+              });
+              const subject = isWeek4Window
+                ? `${sub.pet_name}'s last cosmic guidance arrives soon`
+                : `${sub.pet_name}'s weekly horoscope — keep it coming?`;
+
+              await resend.emails.send({
+                from: "Little Souls <hello@littlesouls.app>",
+                to: [sub.email],
+                subject,
+                html: reminderHtml,
+              });
+
+              const stamp: Record<string, string> = {};
+              if (isWeek4Window) stamp.reminder_sent_at_week4 = new Date().toISOString();
+              else stamp.reminder_sent_at_week3 = new Date().toISOString();
+              await supabase
+                .from("horoscope_subscriptions")
+                .update(stamp)
+                .eq("id", sub.id);
+
+              console.log(`[WEEKLY-HOROSCOPE] Sent ${isWeek4Window ? "week4" : "week3"} gift reminder to ${sub.email}`);
+            }
+          } catch (reminderErr) {
+            console.error(`[WEEKLY-HOROSCOPE] Gift reminder failed for ${sub.email}:`, reminderErr);
           }
         }
 

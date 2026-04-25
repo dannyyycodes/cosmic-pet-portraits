@@ -169,7 +169,40 @@ serve(async (req) => {
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-      
+
+      // Gift recipient converting their free 28-day trial → paid sub.
+      // This branch updates the EXISTING horoscope_subscriptions row
+      // (created at /redeem-gift) with the new stripe_subscription_id +
+      // stripe_customer_id, clears trial_ends_at, stamps converted_at,
+      // and bumps plan to 'paid'. The Stripe customer here is the
+      // RECIPIENT's (created in start-recipient-horoscope-sub) — not
+      // the gifter's, so the recipient's card gets billed monthly,
+      // not the original gifter's.
+      const giftHoroscopeSubId = session.metadata?.gift_horoscope_sub_id;
+      if (giftHoroscopeSubId) {
+        console.log("[STRIPE-WEBHOOK] Gift horoscope conversion completed:", giftHoroscopeSubId);
+        const { error: convertErr } = await supabaseClient
+          .from("horoscope_subscriptions")
+          .update({
+            stripe_subscription_id: session.subscription as string,
+            stripe_customer_id: session.customer as string,
+            trial_ends_at: null,
+            converted_at: new Date().toISOString(),
+            plan: "paid",
+            status: "active",
+          })
+          .eq("id", giftHoroscopeSubId);
+        if (convertErr) {
+          console.error("[STRIPE-WEBHOOK] Failed to update converted gift sub:", convertErr);
+        } else {
+          console.log("[STRIPE-WEBHOOK] Gift sub converted to paid");
+        }
+        // Don't fall through — this session is purely a gift conversion.
+        return new Response(JSON.stringify({ received: true }), {
+          status: 200, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+        });
+      }
+
       // Check if this is a horoscope subscription
       if (session.metadata?.type === "horoscope_subscription") {
         const { petReportId, petName, email, plan } = session.metadata;
