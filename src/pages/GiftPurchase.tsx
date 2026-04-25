@@ -834,7 +834,7 @@ export default function GiftPurchase() {
           <h1 style={{ fontFamily: '"Playfair Display", Georgia, serif', fontWeight: 500, fontSize: 'clamp(2.1rem, 6.6vw, 2.85rem)', color: C.ink, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 36, textWrap: 'balance' }}>
             You see what their pet means to them.
             <br />
-            <em style={{ fontStyle: 'italic', fontWeight: 500 }}>Now they get to read it.</em>
+            Now they get to read it.
           </h1>
 
           {/* CTA — Lato (sans) per DESIGN.md button rule. Slightly
