@@ -46,29 +46,24 @@ const C = {
 const TIERS = {
   essential: {
     label: 'Soul Reading',
-    tagline: 'The reading they\'ll read aloud to their pet — and probably cry doing it.',
+    tagline: 'The reading they\'ll keep coming back to.',
     badge: null as string | null,
     badgeColor: C.rose,
     features: [
-      'Full astrological breakdown — 30+ sections (works for any pet)',
-      'How their pet loves, learns, heals, what they hope for, what they fear — and what makes them feel most themselves',
-      'Their pet\'s photo becomes part of the reveal',
-      'SoulSpeak — they can ask their pet anything',
-      'Plus bonus sections — little surprises written just for them',
-      'Theirs forever — they can revisit anytime, from any device',
-      '1 month of weekly horoscopes — included free',
+      'A 30-section reading written for their pet',
+      'Their pet\'s photo, woven into the reveal',
+      'Theirs forever — on any device',
     ],
   },
   portrait: {
     label: 'Soul Bond',
-    tagline: 'For the bond worth understanding — them and their pet, read side by side.',
+    tagline: 'Them and their pet, read side by side.',
     badge: 'MOST CHOSEN' as string | null,
     badgeColor: C.rose,
     popular: true,
     features: [
       'Everything in Soul Reading, plus:',
-      'Their chart against their pet\'s — where they align, where they challenge each other, and why the universe paired them',
-      'Where their energies meet, mirror, and balance',
+      'Their chart against their pet\'s — why the universe paired them',
       'The soul-reasons they found each other',
     ],
   },
@@ -97,26 +92,21 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
   new: {
     essential: {
       label: 'The Welcome Reading',
-      tagline: 'For the new pet they can\'t stop photographing — and the human who\'s already obsessed.',
+      tagline: 'For the new soul they just brought home.',
       badge: null,
       features: [
-        'Who this little soul actually is — before they even know themselves',
-        'Why this pet landed in their life, right now',
-        'How they want to be loved, trained, trusted',
-        'Their pet\'s photo woven into the reveal',
-        'SoulSpeak — ask the new pet anything, any time',
-        '1 month of weekly horoscopes, free',
-        'Theirs forever, any device',
+        'Who this pet actually is — before they even know themselves',
+        'Why this pet landed in their life now',
+        'Theirs forever — on any device',
       ],
     },
     portrait: {
       label: 'The Welcome Bond',
-      tagline: 'For the one who already knows: this pet is their soul pet. Here\'s the proof.',
+      tagline: 'The pairing the universe just made — written in full.',
       badge: 'MOST GIFTED',
       features: [
         'Everything in the Welcome Reading, plus:',
-        'Their chart × their new pet\'s — why the stars paired them now',
-        'Where they\'ll click, where they\'ll clash, what it means',
+        'Their chart × their pet\'s — why the stars paired them now',
         'The first-chapter bond, written in full',
       ],
     },
@@ -124,70 +114,56 @@ const OCCASION_TIERS: Record<GiftOccasion, OccasionTiers> = {
   discover: {
     essential: {
       label: 'The Discover Reading',
-      tagline: 'For the pet they\'ve loved for years but never quite had the words for. Here are the words.',
+      tagline: 'The pet they\'ve loved for years, finally written down.',
       badge: null,
       features: [
-        'Why their dog leans on the left leg, not the right',
-        'Why their cat forgave the move before they did',
-        'The quirks they\'ve always sensed, finally named',
-        'Their pet\'s photo woven into the reveal',
-        'SoulSpeak — ask the questions they\'ve always wondered',
-        '1 month of weekly horoscopes, free',
-        'Theirs forever, any device',
+        'The quirks they\'ve always sensed — finally named',
+        'Their pet\'s photo, woven into the reveal',
+        'Theirs forever — on any device',
       ],
     },
     portrait: {
       label: 'The Discover Bond',
-      tagline: 'For the one who swears their pet is their soulmate. The stars agree — read side by side.',
+      tagline: 'Them and their pet, read side by side. The proof it was meant to be.',
       badge: 'MOST GIFTED',
       features: [
         'Everything in the Discover Reading, plus:',
         'Their chart × their pet\'s — the cosmic reason this bond exists',
-        'The question they\'ve always wondered: was this meant to be?',
-        'Answer: yes. Here\'s the evidence.',
+        'The answer to the question they\'ve always wondered',
       ],
     },
   },
   memorial: {
     portrait: {
       label: 'The Memorial Reading',
-      tagline: 'For the pet who\'s gone — and the person still talking to them. Written with the respect that soul deserves.',
+      tagline: 'For the pet who\'s gone — and the person still talking to them.',
       badge: 'A TRIBUTE',
       features: [
         'Honours the pet they lost. Not the loss.',
         'Their chart × their pet\'s — the bond that didn\'t end',
-        'What this pet came to teach, what they left behind',
-        'Their pet\'s photo woven into the memorial',
-        'SoulSpeak — a sacred place to still talk to them',
         'Theirs forever — a keepsake for the hard days',
-        'No horoscopes, no platitudes — only presence',
       ],
     },
   },
   birthday: {
     essential: {
       label: 'The Birthday Reading',
-      tagline: 'For the pet whose birthday matters more to them than their own.',
+      tagline: 'For the pet whose birthday matters more than their own.',
       badge: null,
       features: [
-        'A reading about who their pet actually is',
+        'A reading written for who their pet actually is',
         'The year ahead — written by the stars',
-        'Every quirk, every trait, decoded on their day',
-        'Their pet\'s photo woven into the reveal',
-        'SoulSpeak — birthday questions, answered',
-        '1 month of weekly horoscopes — their year, mapped',
-        'Theirs forever',
+        'Theirs forever — on any device',
       ],
     },
     portrait: {
       label: 'The Birthday Bond',
-      tagline: 'Birthday gift + soulmate proof. Them and their pet, read side by side.',
+      tagline: 'Birthday gift + soulmate proof. Them and their pet, side by side.',
       badge: 'MOST GIFTED',
       features: [
         'Everything in the Birthday Reading, plus:',
         'Their chart × their pet\'s — how their souls celebrate together',
-        'The year ahead for both of them',
-        'The cosmic reason this bond began, marked on this birthday',
+        'The cosmic reason this bond began',
       ],
     },
   },
@@ -800,17 +776,17 @@ export default function GiftPurchase() {
           <ArrowLeft style={{ width: 16, height: 16 }} /> Back
         </Link>
 
-        {/* ── HERO — research-driven (Storyworth pattern). Recipient-frame
-            H1, giver-frame italic sub, punchy reframe closer, 3-quote
-            inline trust strip from gift-GIVERS (Givi & Galak: showing
-            recipient reactions adjacent to CTA disarms the
-            giver-receiver gap — 8-12% lift per GoodUI #84). ── */}
+        {/* ── HERO — Cameo-punchy. ONE identity-mirror moment. Pet-
+             agnostic ("their pet", "they/them"). No inline reviews,
+             no anticipated-moment script paragraph, no deliverables
+             list. Sparse: eyebrow + H1 + sub + CTA. The reviews live
+             at the bottom; the picker + tiers carry the rest. ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
             textAlign: 'center', marginBottom: 40,
-            padding: 'clamp(32px, 5vw, 44px) clamp(20px, 4vw, 32px)',
+            padding: 'clamp(40px, 6vw, 56px) clamp(24px, 4vw, 36px)',
             borderRadius: 18,
             background: 'rgba(255,253,245,0.92)',
             backdropFilter: 'blur(3px)',
@@ -819,51 +795,46 @@ export default function GiftPurchase() {
             boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
           }}
         >
-          {/* Recipient-archetype tag — every converting comp brand picks
-              ONE archetype, never "for any pet lover." */}
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.7rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 22 }}>
-            For the friend whose whole phone is her dog
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.7rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 28 }}>
+            A gift for the friend who already gets it
           </p>
 
-          {/* Recipient-transformation H1 (Storyworth pattern). Punchy
-              reframe in line 3 keeps the existing pattern-interrupt
-              that made "not another mug" memorable. */}
-          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2.05rem, 7.6vw, 3.2rem)', color: C.ink, lineHeight: 1.04, letterSpacing: '-0.025em', marginBottom: 22 }}>
-            Help them see their pet
+          {/* Identity-mirror H1 — flatters the giver's perceptiveness.
+              Pet-agnostic; "them" = the recipient. */}
+          <h1 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(2.1rem, 7.6vw, 3.2rem)', color: C.ink, lineHeight: 1.05, letterSpacing: '-0.025em', marginBottom: 24, textWrap: 'balance' }}>
+            Most people see the pet.
             <br />
-            <em style={{ color: C.rose }}>through the stars.</em>
+            <em style={{ color: C.rose }}>You see what the pet means to them.</em>
           </h1>
 
-          {/* Giver-frame italic — flatters perceptiveness (Belk
-              identity-mirror). "Most people see the dog. You see how
-              much of her is in him." */}
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.6vw, 1.22rem)', lineHeight: 1.55, maxWidth: 460, margin: '0 auto 22px' }}>
-            Most people see the dog. You see how much of her is in him.
-            A 30-section reading written for the soul she lives with — who he came here to be, why he chose her, the things she's always sensed but never had the words for.
+          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.1rem, 3.6vw, 1.28rem)', lineHeight: 1.55, maxWidth: 460, margin: '0 auto 36px', textWrap: 'balance' }}>
+            A reading written for the soul they live with &mdash; the kind of gift they&rsquo;ll keep coming back to.
           </p>
 
-          {/* Anticipated-moment closer (Dunn/Aknin/Norton: concrete
-              imagined sensory detail fires the dopamine hit NOW). */}
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.deep, fontSize: 'clamp(1rem, 3.2vw, 1.12rem)', fontWeight: 500, lineHeight: 1.55, maxWidth: 460, margin: '0 auto 28px' }}>
-            The kind of gift she&rsquo;ll screenshot the first paragraph of, read aloud to him, and remember you sent — for years.
-          </p>
-
-          {/* Inline trust strip — gift-GIVER quotes, 3-up. Sits with
-              the hero so social proof lands before the visitor leaves
-              the fold. The full reviews wall lives at the bottom. */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 28, paddingTop: 24, borderTop: `1px solid ${C.cream3}`, maxWidth: 480, marginInline: 'auto' }}>
-            {[
-              { stars: '★★★★★', quote: '"She FaceTimed me crying. I&rsquo;ve never given a better gift."', who: 'Devon, NYC' },
-              { stars: '★★★★★', quote: '"I gave it to my sister after Toby. She&rsquo;s read it eleven times."', who: 'Maya, Bristol' },
-              { stars: '★★★★★', quote: '"The first gift I&rsquo;ve given that didn&rsquo;t end up in a drawer."', who: 'Liv, Toronto' },
-            ].map((r, i) => (
-              <p key={i} style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.92rem', color: C.warm, lineHeight: 1.5, fontStyle: 'italic', textAlign: 'left' }}>
-                <span style={{ color: C.gold, marginRight: 6, letterSpacing: '0.05em', fontStyle: 'normal' }}>{r.stars}</span>
-                <span dangerouslySetInnerHTML={{ __html: r.quote }} />{' '}
-                <span style={{ color: C.muted, fontSize: '0.82rem', fontStyle: 'normal' }}>— {r.who}</span>
-              </p>
-            ))}
-          </div>
+          <button
+            onClick={() => {
+              const el = document.querySelector('[role="radiogroup"][aria-label="Gift occasion"]');
+              el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            style={{
+              padding: '16px 32px',
+              borderRadius: 50,
+              background: C.rose,
+              color: '#fff',
+              fontFamily: 'Cormorant, Georgia, serif',
+              fontWeight: 700,
+              fontSize: '1.05rem',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: `0 6px 20px ${C.roseGlow}`,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
+            <Gift style={{ width: 18, height: 18 }} />
+            Begin their gift &mdash; from £49
+          </button>
         </motion.div>
 
         {/* ── OCCASION PICKER ── */}
@@ -1016,108 +987,6 @@ export default function GiftPurchase() {
               }
             }
           `}</style>
-        </motion.div>
-
-        {/* ── "WHAT YOU'RE ACTUALLY SENDING" — the clarity beat.
-             Research rule #3: deliverables card BEFORE social proof,
-             AFTER hook. Resolves "is this real / what's in the box"
-             anxiety that otherwise kills gift conversion (Baymard
-             2023 — removing this beat dropped Masterclass gift CVR
-             ~22%). Translucent cream card on wallpaper. ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.07 }}
-          style={{
-            marginBottom: 40,
-            background: 'rgba(255,253,245,0.92)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            border: '1px solid rgba(196,162,101,0.16)',
-            borderRadius: 18,
-            boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
-            padding: 'clamp(32px, 5vw, 44px) clamp(24px, 4vw, 36px)',
-          }}
-        >
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 14, textAlign: 'center' }}>
-            What you&rsquo;re actually sending
-          </p>
-          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(1.4rem, 4.8vw, 1.85rem)', color: C.ink, lineHeight: 1.18, letterSpacing: '-0.018em', textAlign: 'center', marginBottom: 28, maxWidth: 480, marginInline: 'auto' }}>
-            Not a card. Not a token gesture. A real keepsake — written for their pet, theirs forever.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 480, margin: '0 auto' }}>
-            {[
-              { glyph: '📜', title: 'A 30-section reading', body: 'Around 12,000 words. Written for their pet by name, birth chart calculated to the arc-second. Theirs forever, on any device.' },
-              { glyph: '🪞', title: "Their pet's photo, woven into the reveal", body: 'Not a stock illustration. The pet they uploaded — pulled into the reading itself.' },
-              { glyph: '💬', title: 'SoulSpeak — they can talk to their pet', body: 'Ask anything, anytime. The voice their pet would have, if their pet could speak.' },
-              { glyph: '✨', title: 'Bonus chapters they didn&rsquo;t see coming', body: 'Crystal, aura, archetype — the surprises that land in the second read.' },
-              { glyph: '📅', title: 'A month of weekly horoscopes — free', body: 'Their pet, their week, what the stars are doing. Quietly bundled in.' },
-            ].map((item, i) => (
-              <div key={i} style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '1.4rem', lineHeight: 1, flexShrink: 0, marginTop: 2 }}>{item.glyph}</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', fontWeight: 600, color: C.ink, fontSize: '1.04rem', lineHeight: 1.35, marginBottom: 4 }} dangerouslySetInnerHTML={{ __html: item.title }} />
-                  <p style={{ fontFamily: 'Cormorant, Georgia, serif', color: C.warm, fontSize: '0.94rem', lineHeight: 1.5 }}>{item.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: '0.95rem', textAlign: 'center', marginTop: 30, paddingTop: 24, borderTop: `1px solid ${C.cream3}` }}>
-            From <strong style={{ color: C.ink, fontStyle: 'normal', fontFamily: '"DM Serif Display", Georgia, serif', fontSize: '1.08rem' }}>£49</strong>. One-time. They keep it forever.
-          </p>
-        </motion.div>
-
-        {/* ── "THE MOMENT YOU'RE BUYING" — anticipated-receipt script.
-             Dunn/Aknin/Norton + Schultz/Knutson: concrete sensory
-             detail of the imagined moment fires the giver's
-             dopaminergic reward NOW, at the buy decision. This is the
-             dopamine asset, not the product. Pair with one inline
-             gift-giver quote (Givi & Galak: visible recipient
-             reactions disarm the gap). ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-          style={{
-            marginBottom: 40,
-            background: 'rgba(255,253,245,0.92)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            border: '1px solid rgba(196,162,101,0.16)',
-            borderRadius: 18,
-            boxShadow: '0 4px 28px rgba(0,0,0,0.04)',
-            padding: 'clamp(36px, 5vw, 48px) clamp(24px, 4vw, 40px)',
-            textAlign: 'center',
-          }}
-        >
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 18 }}>
-            The moment you&rsquo;re buying
-          </p>
-
-          <div style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.ink, fontSize: 'clamp(1.18rem, 3.8vw, 1.45rem)', lineHeight: 1.6, maxWidth: 520, margin: '0 auto', textWrap: 'balance' }}>
-            <p style={{ marginBottom: 14 }}>Picture her, Tuesday night. Phone out. The dog asleep on her feet.</p>
-            <p style={{ marginBottom: 14 }}>She opens the email. Reads the first line about him.</p>
-            <p style={{ marginBottom: 14 }}>Reads the second. Stops. Reads it again.</p>
-            <p style={{ marginBottom: 0, color: C.rose }}>Then quietly puts her hand on his head and says — <em>&ldquo;it&rsquo;s about you, baby.&rdquo;</em></p>
-          </div>
-
-          <p style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontSize: 'clamp(1.05rem, 3.6vw, 1.25rem)', color: C.deep, marginTop: 32, lineHeight: 1.4 }}>
-            That&rsquo;s the moment.<br />
-            <em style={{ color: C.rose }}>That&rsquo;s what you&rsquo;re giving her.</em>
-          </p>
-
-          {/* Inline gift-giver quote — proof the moment is real. */}
-          <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${C.cream3}`, maxWidth: 480, marginInline: 'auto' }}>
-            <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.warm, fontSize: '1rem', lineHeight: 1.55 }}>
-              <span style={{ color: C.gold, marginRight: 6, letterSpacing: '0.05em', fontStyle: 'normal' }}>★★★★★</span>
-              &ldquo;She FaceTimed me reading it aloud to him. We were both crying. Best £49 I&rsquo;ve ever spent on anyone.&rdquo;
-            </p>
-            <p style={{ fontSize: '0.82rem', color: C.muted, marginTop: 8, fontStyle: 'normal' }}>
-              — Devon, gifted to her best friend
-            </p>
-          </div>
         </motion.div>
 
         {/* ── TIER CARDS — gated on occasion pick, tier set + copy
@@ -1682,15 +1551,9 @@ export default function GiftPurchase() {
             textAlign: 'center',
           }}
         >
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontSize: '0.72rem', fontWeight: 700, color: C.gold, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 18 }}>
-            Some gifts disappear
-          </p>
-          <h2 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(1.85rem, 6vw, 2.6rem)', color: C.ink, lineHeight: 1.1, letterSpacing: '-0.022em', marginBottom: 18 }}>
-            This one <em style={{ color: C.rose }}>stays.</em>
+          <h2 style={{ fontFamily: '"DM Serif Display", Georgia, serif', fontWeight: 400, fontSize: 'clamp(1.95rem, 6.4vw, 2.7rem)', color: C.ink, lineHeight: 1.08, letterSpacing: '-0.022em', marginBottom: 28, textWrap: 'balance' }}>
+            Be the friend who <em style={{ color: C.rose }}>actually got it.</em>
           </h2>
-          <p style={{ fontFamily: 'Cormorant, Georgia, serif', fontStyle: 'italic', color: C.earth, fontSize: 'clamp(1.05rem, 3.4vw, 1.18rem)', lineHeight: 1.55, maxWidth: 460, margin: '0 auto 30px', textWrap: 'balance' }}>
-            On their phone. On their hardest days. The first paragraph, screenshotted to a friend at midnight. The reading they&rsquo;ll come back to a year from now and remember you sent it.
-          </p>
           <button
             onClick={() => {
               const el = document.getElementById('gift-flow') ?? document.querySelector('[role="radiogroup"]');
