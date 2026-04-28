@@ -2,8 +2,9 @@
 # Generate 5 author portraits via Kie.ai nano-banana-2 and update authors.image_url
 set -u
 
-KIE_KEY="${KIE_API_KEY:-b6950bc9ee85f941ecb523ce34efb4a0}"
-SUPABASE_PAT="${SUPABASE_PAT:-sbp_c42487f85976568fe45b151e012df814d5df3f49}"
+: "${KIE_API_KEY:?Set KIE_API_KEY env var (rotate at kie.ai/account)}"
+: "${SUPABASE_PAT:?Set SUPABASE_PAT env var (canonical: ~/.claude/settings.local.json)}"
+KIE_KEY="$KIE_API_KEY"
 PROJECT_REF="aduibsyrnenzobuyetmn"
 
 AUTHORS=(elena-whitaker callum-hayes maggie-oshea river-callahan rowan-sterling)

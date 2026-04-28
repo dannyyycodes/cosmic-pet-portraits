@@ -46,7 +46,7 @@ This file is updated by Claude Code as we work. If your computer crashes, share 
 ### Dependencies that can break the autopilot
 1. **OpenRouter credit** — powers blog + horoscopes + reports. Only recurring maintenance.
 2. Topic queue (10-month runway, alert when <30 remain)
-3. Working Supabase PAT — primary `sbp_c42487...` died mid-session; fallback `sbp_aa46d3c653a36fe9f8cad763f989778a5fbdfbea` verified active w/ admin scope
+3. Working Supabase PAT — Danny rotates daily; canonical location is `~/.claude/settings.local.json` (env: SUPABASE_ACCESS_TOKEN)
 
 ### Cost per post (verified)
 ~$0.05-0.06 per post (Claude Sonnet 4.5 via OpenRouter). Annual autopilot: **~$9-14**. Pexels + Supabase + Vercel all free-tier.
