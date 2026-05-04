@@ -206,9 +206,9 @@ const App = () => (
                   <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   <Route path="/dev/report" element={<DevReport />} />
-                  {/* /portraits IS the AI Studio now — prompt + signup gate + fal generation.
-                      Old composite-photo flow deprecated 2026-05-04. */}
-                  <Route path="/portraits" element={<PortraitsStudio />} />
+                  {/* /portraits = landing (hero, character packs, how-it-works, reviews, FAQ).
+                      /portraits/studio = configurator (photo + prompt + signup gate + fal gen). */}
+                  <Route path="/portraits" element={<Portraits />} />
                   <Route path="/portraits/studio" element={<PortraitsStudio />} />
                   <Route path="/portraits/templates" element={<PortraitsTemplates />} />
                   <Route path="/unlimited" element={<PortraitsUnlimited />} />

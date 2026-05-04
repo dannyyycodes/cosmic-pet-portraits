@@ -886,17 +886,57 @@ const Portraits = () => {
       <div style={{ position: "relative", zIndex: 1 }}>
       <PortraitsHero onBegin={scrollToUpload} />
       <TrustStrip />
+      <CharacterPacks onPickPack={handlePickPack} />
       <HowItWorks />
-      <UploadStudio
-        currency={currency}
-        uploadRef={uploadRef}
-        productType="framed-canvas"
-        initialPackId={presetPack}
-        initialSoulEdition={presetSoulEdition}
-        onPackChange={setPresetPack}
-        onProductChange={setProductType}
-        onAddToCart={handleAddToCart}
-      />
+
+      {/* Start-designing CTA — routes to the AI Studio configurator at /portraits/studio
+          where the prompt input + signup gate + fal generation lives. The legacy
+          UploadStudio (photo→canvas composite) was deprecated 2026-05-04. */}
+      <section
+        ref={uploadRef}
+        id="upload"
+        className="relative px-6 md:px-10"
+        style={{
+          background: PALETTE.cream2,
+          paddingTop: "clamp(96px, 12vh, 160px)",
+          paddingBottom: "clamp(96px, 12vh, 160px)",
+          borderTop: `1px solid ${PALETTE.sand}`,
+        }}
+        aria-labelledby="upload-heading"
+      >
+        <div className="mx-auto text-center" style={{ maxWidth: "720px" }}>
+          <p style={eyebrow(PALETTE.earthMuted)}>The studio</p>
+          <h2 id="upload-heading" style={{ ...display("44px"), color: PALETTE.ink, marginTop: "12px", marginBottom: "20px" }}>
+            Start designing your portrait
+          </h2>
+          <p style={{ ...cormorantItalic("19px"), color: PALETTE.earth, marginBottom: "36px" }}>
+            Upload your pet's photo, describe how you want them styled, and our AI brings it to life on a museum-quality framed canvas.
+          </p>
+          <a
+            href="/portraits/studio"
+            className="inline-block rounded-sm px-8 py-4"
+            style={{
+              background: PALETTE.rose,
+              color: PALETTE.cream,
+              fontSize: "15px",
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              textDecoration: "none",
+              boxShadow: "0 18px 48px rgba(191, 82, 74, 0.28)",
+            }}
+          >
+            Open the Studio →
+          </a>
+          <p style={{ marginTop: "16px", fontSize: "13px", color: PALETTE.earthMuted }}>
+            1 portrait free with sign-up · then £4.99 / pack or subscribe.
+          </p>
+        </div>
+      </section>
+
+      <ReviewsCarousel />
+      <div id="faq" />
+      <PortraitsFAQ />
+      <PortraitsFooter />
       </div>
     </main>
   );
