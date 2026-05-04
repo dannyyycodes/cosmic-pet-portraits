@@ -114,10 +114,11 @@ function SignInDialog({
   onOpenChange: (v: boolean) => void;
 }) {
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [step, setStep] = useState<"email" | "code">("email");
 
-  async function handleMagicLink(e: React.FormEvent) {
+  async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
     if (!email) return;
     if (isDisposableEmail(email)) {
@@ -126,18 +127,19 @@ function SignInDialog({
     }
     setBusy(true);
     try {
-      // Capture device fingerprint so the server-side trigger can dedup
-      // by device too (catches alias-spam from same browser).
       const visitorId = await getVisitorId();
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
+          // Magic link in email also works (clickable fallback) — but the
+          // template includes the 6-digit code so customers never leave site.
           emailRedirectTo: `${window.location.origin}/portraits#studio`,
           data: visitorId ? { visitor_id: visitorId } : undefined,
         },
       });
       if (error) throw error;
-      setSent(true);
+      setStep("code");
+      setCode("");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -145,71 +147,122 @@ function SignInDialog({
     }
   }
 
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault();
+    if (code.length < 6) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: code,
+        type: "email",
+      });
+      if (error) throw error;
+      onOpenChange(false);
+      toast.success("Welcome — 3 free portraits ready to generate.");
+    } catch (e) {
+      toast.error("That code didn't work. Try again or send a new one.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function reset() {
+    setStep("email");
+    setCode("");
+    setBusy(false);
+  }
+
   return (
     <Dialog
       open={open}
       onOpenChange={(v) => {
-        if (!v) {
-          // Reset on close so the next open is fresh.
-          setTimeout(() => { setEmail(""); setSent(false); }, 200);
-        }
+        if (!v) setTimeout(reset, 200);
         onOpenChange(v);
       }}
     >
-      <DialogContent className="max-w-[420px] p-0 overflow-hidden border-0" style={{ background: PALETTE.cream, borderRadius: 20 }}>
+      <DialogContent
+        className="
+          max-w-[420px] p-0 overflow-hidden border-0
+          max-h-[92vh] overflow-y-auto
+          top-[max(6vh,env(safe-area-inset-top))] !translate-y-0
+          sm:top-[50%] sm:!translate-y-[-50%]
+          rounded-3xl
+        "
+        style={{
+          background: `linear-gradient(180deg, ${PALETTE.cream} 0%, ${PALETTE.cream2} 100%)`,
+          boxShadow: "0 32px 80px rgba(20, 18, 16, 0.18), 0 8px 24px rgba(20, 18, 16, 0.08)",
+        }}
+      >
         <DialogTitle className="sr-only">Sign in to generate</DialogTitle>
         <DialogDescription className="sr-only">
-          Get a one-tap sign-in link in your inbox. No password needed.
+          Sign in with a 6-digit code emailed to you. No password, no leaving the site.
         </DialogDescription>
 
-        <div className="px-7 pt-8 pb-6 text-center">
+        {/* Header */}
+        <div className="px-7 pt-9 pb-6 text-center relative">
+          {/* Gilt hairline at top */}
           <div
-            className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4"
-            style={{ background: PALETTE.roseSoft }}
+            aria-hidden
+            style={{
+              position: "absolute", top: 0, left: "50%",
+              transform: "translateX(-50%)",
+              width: 56, height: 1.5,
+              background: `linear-gradient(90deg, transparent 0%, ${PALETTE.gold} 50%, transparent 100%)`,
+            }}
+          />
+          <div
+            className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4"
+            style={{
+              background: PALETTE.roseSoft,
+              boxShadow: "0 6px 18px rgba(191, 82, 74, 0.18)",
+            }}
           >
-            <Sparkles className="w-5 h-5" style={{ color: PALETTE.rose }} />
+            <Sparkles className="w-6 h-6" style={{ color: PALETTE.rose }} />
           </div>
-          <h2 style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 22, fontWeight: 700, color: PALETTE.ink, letterSpacing: "-0.02em" }}>
-            {sent ? "Check your inbox" : "3 free portraits"}
+          <h2 style={{ ...display("26px"), color: PALETTE.ink }}>
+            {step === "email" ? "3 free portraits" : "Enter your code"}
           </h2>
           <p
-            className="mx-auto"
+            className="mx-auto mt-2"
             style={{
               fontFamily: 'Assistant, system-ui, sans-serif',
               fontSize: 14,
               color: PALETTE.earthMuted,
-              marginTop: 6,
               maxWidth: 320,
               lineHeight: 1.5,
             }}
           >
-            {sent ? (
-              <>We sent a sign-in link to <strong style={{ color: PALETTE.ink }}>{email}</strong>. Open it on this device and you're in — no password needed.</>
+            {step === "email" ? (
+              <>Get a 6-digit code in your inbox. Type it below — you stay right here.</>
             ) : (
-              <>One-tap sign in. Enter your email and we'll send a sign-in link. No password to remember.</>
+              <>We just emailed a 6-digit code to <strong style={{ color: PALETTE.ink }}>{email}</strong></>
             )}
           </p>
         </div>
 
-        <div className="px-7 pb-7">
-          {!sent ? (
-            <form onSubmit={handleMagicLink} className="space-y-2.5">
+        {/* Body */}
+        <div className="px-7 pb-8">
+          {step === "email" ? (
+            <form onSubmit={handleSendCode} className="space-y-2.5">
               <input
                 type="email"
                 required
                 autoFocus
+                inputMode="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full rounded-xl px-4 py-3.5 outline-none transition-colors focus:border-[var(--rose)]"
+                className="w-full rounded-xl px-4 py-3.5 outline-none transition-all focus:ring-2"
                 style={{
                   background: "#fff",
                   border: `1px solid ${PALETTE.sandDeep}`,
                   color: PALETTE.ink,
                   fontFamily: 'Assistant, system-ui, sans-serif',
-                  fontSize: 15,
-                  // @ts-expect-error CSS var used by focus
-                  "--rose": PALETTE.rose,
+                  fontSize: 16,
+                  // @ts-expect-error css var
+                  "--tw-ring-color": "rgba(191, 82, 74, 0.18)",
                 }}
               />
               <button
@@ -220,40 +273,93 @@ function SignInDialog({
                   background: PALETTE.rose,
                   color: PALETTE.cream,
                   fontFamily: 'Asap, system-ui, sans-serif',
-                  fontSize: 14.5,
+                  fontSize: 15,
                   fontWeight: 600,
                   letterSpacing: "0.02em",
-                  boxShadow: "0 8px 22px rgba(191, 82, 74, 0.25)",
+                  boxShadow: "0 10px 26px rgba(191, 82, 74, 0.32)",
                 }}
               >
-                {busy ? "Sending…" : "Email me a sign-in link →"}
+                {busy ? "Sending…" : "Send me a code"}
               </button>
               <p
-                className="text-center pt-2"
-                style={{ fontSize: 12, color: PALETTE.earthMuted, fontFamily: 'Assistant, system-ui, sans-serif', lineHeight: 1.5 }}
+                className="text-center pt-1"
+                style={{
+                  fontSize: 12,
+                  color: PALETTE.earthMuted,
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                  lineHeight: 1.5,
+                }}
               >
-                We'll never share your email. By continuing you agree to our terms.
+                No password to remember. We'll never share your email.
               </p>
             </form>
           ) : (
-            <div className="space-y-3 text-center">
-              <div
-                className="mx-auto w-14 h-14 rounded-full flex items-center justify-center"
-                style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}
+            <form onSubmit={handleVerifyCode} className="space-y-2.5">
+              <input
+                type="text"
+                required
+                autoFocus
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="000000"
+                className="w-full rounded-xl px-4 py-4 outline-none transition-all text-center"
+                style={{
+                  background: "#fff",
+                  border: `1px solid ${PALETTE.sandDeep}`,
+                  color: PALETTE.ink,
+                  fontFamily: 'Asap, system-ui, sans-serif',
+                  fontSize: 28,
+                  fontWeight: 700,
+                  letterSpacing: "0.4em",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              />
+              <button
+                type="submit"
+                disabled={busy || code.length < 6}
+                className="w-full rounded-xl py-3.5 transition-all disabled:opacity-50"
+                style={{
+                  background: PALETTE.rose,
+                  color: PALETTE.cream,
+                  fontFamily: 'Asap, system-ui, sans-serif',
+                  fontSize: 15,
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                  boxShadow: code.length === 6 ? "0 10px 26px rgba(191, 82, 74, 0.32)" : "none",
+                }}
               >
-                <span style={{ fontSize: 28 }}>📨</span>
-              </div>
-              <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 13, color: PALETTE.earthMuted }}>
-                The link expires in 1 hour. Didn't get it?{" "}
+                {busy ? "Verifying…" : "Verify & continue"}
+              </button>
+              <div
+                className="flex items-center justify-between pt-1 text-[12.5px]"
+                style={{
+                  color: PALETTE.earthMuted,
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                }}
+              >
                 <button
                   type="button"
-                  onClick={() => setSent(false)}
+                  onClick={() => { setStep("email"); setCode(""); }}
+                  className="hover:underline"
+                  style={{ color: PALETTE.earthMuted }}
+                >
+                  ← Wrong email
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); handleSendCode(e); }}
+                  disabled={busy}
+                  className="hover:underline disabled:opacity-50"
                   style={{ color: PALETTE.rose, fontWeight: 600 }}
                 >
-                  Try again
+                  Resend code
                 </button>
-              </p>
-            </div>
+              </div>
+            </form>
           )}
         </div>
       </DialogContent>
