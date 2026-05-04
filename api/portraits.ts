@@ -601,12 +601,17 @@ async function generateVariant(args: { imageUrl: string; prompt: string; negativ
 
 async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
-  const body = (req.body ?? {}) as { imageUrl?: string; styleId?: string; themeId?: string; addDetails?: string };
+  const body = (req.body ?? {}) as { imageUrl?: string; styleId?: string; themeId?: string; addDetails?: string; customPrompt?: string };
   const { imageUrl, styleId, themeId } = body;
   const addDetails = sanitiseAddDetails(body.addDetails ?? "");
+  const customPrompt = sanitiseAddDetails(body.customPrompt ?? "").slice(0, 400);
   if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
-  if (!styleId) return res.status(400).json({ error: "styleId required" });
-  if (!themeId) return res.status(400).json({ error: "themeId required" });
+  // Either freeform customPrompt OR (styleId + themeId) is required.
+  const usingCustomPrompt = customPrompt.length > 0;
+  if (!usingCustomPrompt) {
+    if (!styleId) return res.status(400).json({ error: "styleId required (or send customPrompt)" });
+    if (!themeId) return res.status(400).json({ error: "themeId required (or send customPrompt)" });
+  }
 
   const auth = req.headers.authorization;
   if (!auth?.startsWith("Bearer ")) {
@@ -633,12 +638,27 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   const subject = await extractSubject(imageUrl);
   const prompts: { prompt: string; negative: string; compositionId: string }[] = [];
   for (let i = 0; i < 4; i++) {
-    const built = buildPrompt({
-      species: subject.species, breed: subject.breed, furColor: subject.furColor,
-      styleId, themeId, addDetails, compositionIdx: i as 0 | 1 | 2 | 3,
-    } satisfies BuildPromptInput);
-    if (!built) return res.status(400).json({ error: "Unknown styleId or themeId" });
-    prompts.push({ ...built, compositionId: COMPOSITIONS[i].id });
+    if (usingCustomPrompt) {
+      // Freeform path — wrap the customer's prompt in identity-lock + composition variant.
+      const subj = [subject.breed, subject.species].filter(Boolean).join(" ") || subject.species;
+      const fur = subject.furColor ? `, with ${subject.furColor} fur` : "";
+      const compositionSuffix = COMPOSITIONS[i].suffix;
+      const prompt = [
+        `Transform this ${subj}${fur} into: ${customPrompt}.`,
+        `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${subject.species}.`,
+        compositionSuffix,
+        `Painterly cinematic lighting, premium polish, 4:5 vertical composition for framed wall art.`,
+      ].join(" ");
+      const negative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark, text overlay";
+      prompts.push({ prompt, negative, compositionId: COMPOSITIONS[i].id });
+    } else {
+      const built = buildPrompt({
+        species: subject.species, breed: subject.breed, furColor: subject.furColor,
+        styleId: styleId!, themeId: themeId!, addDetails, compositionIdx: i as 0 | 1 | 2 | 3,
+      } satisfies BuildPromptInput);
+      if (!built) return res.status(400).json({ error: "Unknown styleId or themeId" });
+      prompts.push({ ...built, compositionId: COMPOSITIONS[i].id });
+    }
   }
 
   try {
