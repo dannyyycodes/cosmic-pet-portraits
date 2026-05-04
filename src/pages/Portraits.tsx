@@ -124,12 +124,13 @@ function UploadStudio({
   const [cutoutStatus, setCutoutStatus] = useState<"idle" | "cutting" | "ready" | "error">("idle");
   const [adding, setAdding] = useState(false);
   const [addStatus, setAddStatus] = useState<AddStatus>("idle");
-  // Mockup cache: composite of cutout on blank product photo. Keyed by
-  // `${productType}|${cutoutUrl}` so switching products is instant after
-  // first composite. Each mockup is ~200kb PNG kept in memory as object URL.
+  // Mockup cache: photoreal product render from Printful. Keyed by the design
+  // URL we actually sent (cutoutUrl preferred, photoUrl fallback when bg-remove
+  // failed). Switching products = new key = new render.
   const [mockupCache, setMockupCache] = useState<Record<string, string>>({});
-  const mockupKey = `${productType}|${cutoutUrl ?? ""}`;
-  const mockupUrl = cutoutUrl ? mockupCache[mockupKey] ?? null : null;
+  const designForMockup = cutoutUrl ?? photoUrl;
+  const mockupKey = `${productType}|${designForMockup ?? ""}`;
+  const mockupUrl = designForMockup ? mockupCache[mockupKey] ?? null : null;
 
   // Soul Edition is only relevant when the primary product is the framed canvas.
   // For other surfaces we hide the toggle and force-off.
@@ -174,8 +175,11 @@ function UploadStudio({
       setCutoutUrl(data.publicUrl);
       setCutoutStatus("ready");
     } catch (err) {
-      console.error("[bg-removal]", err);
-      toast.error("Couldn't cut out the pet face. Try a clearer face-on photo.");
+      // Soft-fail: bg-removal isn't required for the mockup any more.
+      // The Printful Mockup endpoint accepts the raw photoUrl directly,
+      // so the customer still sees a real product preview — just with
+      // the original photo background instead of a clean cutout.
+      console.warn("[bg-removal] falling back to raw photo:", err);
       setCutoutStatus("error");
     }
   }
@@ -509,9 +513,10 @@ function UploadStudio({
                   boxShadow: "0 24px 48px rgba(20, 18, 16, 0.05)",
                 }}
               >
-                {/* Realistic product mockup once cutout + composite ready;
-                    falls back to bare cutout while mockup composites; falls
-                    back to empty/loading state otherwise. */}
+                {/* Photoreal Printful mockup if ready; otherwise rendering /
+                    cutting / idle states. Mockup shows regardless of whether
+                    bg-remove succeeded — Printful prints the raw photo if no
+                    cutout exists. */}
                 {mockupUrl ? (
                   <div className="flex justify-center">
                     <img
@@ -521,9 +526,9 @@ function UploadStudio({
                       style={{ maxWidth: "100%", height: "auto", maxHeight: "480px" }}
                     />
                   </div>
-                ) : cutoutStatus === "ready" && cutoutUrl ? (
+                ) : designForMockup ? (
                   <div
-                    className="rounded-sm flex items-center justify-center relative"
+                    className="rounded-sm flex flex-col items-center justify-center relative px-6"
                     style={{
                       aspectRatio: "1/1",
                       background: `radial-gradient(ellipse at center, #FFFDF5 0%, ${PALETTE.cream2} 80%)`,
@@ -531,13 +536,19 @@ function UploadStudio({
                     }}
                   >
                     <img
-                      src={cutoutUrl}
-                      alt="Your pet — ready for printing"
-                      style={{ maxWidth: "70%", maxHeight: "70%", objectFit: "contain" }}
+                      src={cutoutUrl ?? photoUrl ?? undefined}
+                      alt="Your pet"
+                      style={{ maxWidth: "70%", maxHeight: "60%", objectFit: "contain", borderRadius: "4px" }}
                     />
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[11px]" style={{ background: "rgba(20,18,16,0.7)", color: "#FFFDF5", letterSpacing: "0.1em" }}>
-                      Putting them on the {product.shortLabel.toLowerCase()}…
-                    </div>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 rounded-full border-2 mt-4"
+                      style={{ borderColor: PALETTE.rose, borderTopColor: "transparent" }}
+                    />
+                    <p className="mt-3" style={{ ...cormorantItalic("15px"), color: PALETTE.earth }}>
+                      Rendering on the {product.shortLabel.toLowerCase()}…
+                    </p>
                   </div>
                 ) : (
                   <div
@@ -548,27 +559,9 @@ function UploadStudio({
                       border: `1px dashed ${PALETTE.sand}`,
                     }}
                   >
-                    {cutoutStatus === "cutting" ? (
-                      <>
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-7 h-7 rounded-full border-2"
-                          style={{ borderColor: PALETTE.rose, borderTopColor: "transparent" }}
-                        />
-                        <p className="mt-3" style={{ ...cormorantItalic("16px"), color: PALETTE.earth }}>
-                          Cutting their face out of the background…
-                        </p>
-                      </>
-                    ) : cutoutStatus === "error" ? (
-                      <p style={{ ...cormorantItalic("15px"), color: PALETTE.earth }}>
-                        Couldn't cut that one. Try a clearer face-on photo.
-                      </p>
-                    ) : (
-                      <p style={{ ...cormorantItalic("16px"), color: PALETTE.earthMuted }}>
-                        Drop their photo and we'll cut them out, ready for the {product.shortLabel.toLowerCase()}.
-                      </p>
-                    )}
+                    <p style={{ ...cormorantItalic("16px"), color: PALETTE.earthMuted }}>
+                      Drop their photo and we'll show them on a real {product.shortLabel.toLowerCase()}.
+                    </p>
                   </div>
                 )}
 
