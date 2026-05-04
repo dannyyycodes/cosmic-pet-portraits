@@ -365,12 +365,25 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       id="studio"
       className="relative px-4 md:px-8"
       style={{
-        background: PALETTE.cream2,
-        paddingTop: "clamp(48px, 6vh, 80px)",
-        paddingBottom: "clamp(64px, 8vh, 96px)",
+        background: `radial-gradient(ellipse 90% 50% at top, ${PALETTE.cream} 0%, ${PALETTE.cream2} 50%, ${PALETTE.paper} 100%)`,
+        paddingTop: "clamp(56px, 7vh, 96px)",
+        paddingBottom: "clamp(72px, 9vh, 120px)",
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
     >
+      {/* Subtle gilt hairline accent at top */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 64,
+          height: 1.5,
+          background: `linear-gradient(90deg, transparent 0%, ${PALETTE.gold} 50%, transparent 100%)`,
+        }}
+      />
       <div className="mx-auto" style={{ maxWidth: 720 }}>
 
         {/* ── Credits / status pill ─────────────────────────────────── */}
@@ -614,58 +627,116 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               transition={sectionTransition}
               className="mt-10"
             >
-              <VariantGallery
-                variants={variants}
-                selectedUrl={selectedVariantUrl}
-                onSelect={setSelectedVariantUrl}
-              />
-
-              <div className="grid grid-cols-3 gap-2 mt-6">
-                {Object.entries(product.variants).map(([key, v]) => {
-                  if (!v) return null;
-                  const active = sizeKey === key;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => setSizeKey(key as AnySizeKey)}
-                      className="rounded-xl p-3.5 text-center transition-all"
-                      style={{
-                        background: active ? PALETTE.ink : PALETTE.cream,
-                        color: active ? PALETTE.cream : PALETTE.ink,
-                        border: active ? `1.5px solid ${PALETTE.ink}` : `1px solid ${PALETTE.sandDeep}`,
-                        fontFamily: 'Asap, system-ui, sans-serif',
-                      }}
-                    >
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>{v.sizeLabel}</div>
-                      <div
-                        className="tabular-nums mt-0.5"
-                        style={{
-                          fontSize: 12,
-                          color: active ? PALETTE.cream : PALETTE.earthMuted,
-                        }}
-                      >
-                        {formatPrice(v.priceMajor)}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                onClick={handleAdd}
-                disabled={!canAdd}
-                className="mt-5 w-full rounded-xl py-3.5 transition-all disabled:opacity-40"
+              {/* Variant gallery + size + cart wrapped in a premium card */}
+              <div
+                className="rounded-2xl p-5 md:p-7"
                 style={{
-                  background: PALETTE.ink,
-                  color: PALETTE.cream,
-                  fontFamily: 'Asap, system-ui, sans-serif',
-                  fontSize: 14.5,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
+                  background: PALETTE.cream,
+                  border: `1px solid ${PALETTE.sand}`,
+                  boxShadow: "0 24px 48px rgba(20, 18, 16, 0.06), 0 4px 12px rgba(20, 18, 16, 0.03)",
                 }}
               >
-                Add to cart {variant ? `· ${formatPrice(variant.priceMajor)}` : ""}
-              </button>
+                <VariantGallery
+                  variants={variants}
+                  selectedUrl={selectedVariantUrl}
+                  onSelect={setSelectedVariantUrl}
+                />
+
+                <div
+                  className="my-6"
+                  style={{ height: 1, background: PALETTE.sand }}
+                />
+
+                <p
+                  className="text-center mb-4"
+                  style={{
+                    fontFamily: 'Asap, system-ui, sans-serif',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: PALETTE.earthMuted,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Choose your canvas
+                </p>
+
+                <div className="grid grid-cols-3 gap-2.5">
+                  {Object.entries(product.variants).map(([key, v]) => {
+                    if (!v) return null;
+                    const active = sizeKey === key;
+                    const isHero = product.heroSizeKey === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setSizeKey(key as AnySizeKey)}
+                        className="rounded-xl p-4 text-center transition-all relative"
+                        style={{
+                          background: active ? PALETTE.ink : PALETTE.cream,
+                          color: active ? PALETTE.cream : PALETTE.ink,
+                          border: active
+                            ? `1.5px solid ${PALETTE.ink}`
+                            : isHero
+                              ? `1.5px solid ${PALETTE.gold}`
+                              : `1px solid ${PALETTE.sandDeep}`,
+                          fontFamily: 'Asap, system-ui, sans-serif',
+                          boxShadow: active
+                            ? "0 8px 18px rgba(20, 18, 16, 0.18)"
+                            : isHero
+                              ? "0 6px 14px rgba(196, 162, 101, 0.18)"
+                              : "0 2px 4px rgba(20, 18, 16, 0.02)",
+                        }}
+                      >
+                        {isHero && !active && (
+                          <span
+                            className="absolute -top-2 left-1/2 -translate-x-1/2 px-2"
+                            style={{
+                              fontSize: 9,
+                              fontWeight: 700,
+                              color: PALETTE.goldDeep,
+                              background: PALETTE.cream,
+                              letterSpacing: "0.16em",
+                              textTransform: "uppercase",
+                              fontFamily: 'Asap, system-ui, sans-serif',
+                            }}
+                          >
+                            Most loved
+                          </span>
+                        )}
+                        <div style={{ fontSize: 15, fontWeight: 600 }}>{v.sizeLabel}</div>
+                        <div
+                          className="tabular-nums mt-1"
+                          style={{
+                            fontSize: 13,
+                            color: active ? PALETTE.cream : PALETTE.earthMuted,
+                          }}
+                        >
+                          {formatPrice(v.priceMajor)}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={handleAdd}
+                  disabled={!canAdd}
+                  className="mt-6 w-full rounded-xl py-4 transition-all disabled:opacity-40"
+                  style={{
+                    background: PALETTE.ink,
+                    color: PALETTE.cream,
+                    fontFamily: 'Asap, system-ui, sans-serif',
+                    fontSize: 15,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    boxShadow: canAdd
+                      ? "0 14px 32px rgba(20, 18, 16, 0.18), 0 2px 6px rgba(20, 18, 16, 0.08)"
+                      : "none",
+                  }}
+                >
+                  Add to cart {variant ? `· ${formatPrice(variant.priceMajor)}` : ""}
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
