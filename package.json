@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fal-ai/client": "^1.10.0",
+    "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@hookform/resolvers": "^3.10.0",
     "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-accordion": "^1.2.11",

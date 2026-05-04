@@ -39,6 +39,23 @@ import {
 import { buildCartItem, type CartItem } from "@/components/portraits/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { isDisposableEmail } from "@/lib/auth/disposableEmailDomains";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
+
+// Lazy-load + cache FingerprintJS visitor ID. Stable across cache clears,
+// incognito, and minor browser updates. Used by the Supabase signup trigger
+// to enforce one-free-trial-per-device.
+let cachedVisitorId: string | null = null;
+async function getVisitorId(): Promise<string | null> {
+  if (cachedVisitorId) return cachedVisitorId;
+  try {
+    const fp = await FingerprintJS.load();
+    const result = await fp.get();
+    cachedVisitorId = result.visitorId;
+    return cachedVisitorId;
+  } catch {
+    return null;
+  }
+}
 import { PALETTE, EASE, MOTION } from "@/components/portraits/tokens";
 
 interface StudioFlowProps {
@@ -109,9 +126,15 @@ function SignInDialog({
     }
     setBusy(true);
     try {
+      // Capture device fingerprint so the server-side trigger can dedup
+      // by device too (catches alias-spam from same browser).
+      const visitorId = await getVisitorId();
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/portraits#studio` },
+        options: {
+          emailRedirectTo: `${window.location.origin}/portraits#studio`,
+          data: visitorId ? { visitor_id: visitorId } : undefined,
+        },
       });
       if (error) throw error;
       setSent(true);
