@@ -888,6 +888,7 @@ const Portraits = () => {
       <PortraitsHero onBegin={scrollToUpload} />
       <TrustStrip />
       <HowItWorks />
+      <FrameSizes currency={currency} onPickSize={handlePickSize} />
 
       {/* Studio — full configurator inline on the landing page. */}
       <div ref={uploadRef}>

@@ -1,18 +1,30 @@
 /**
- * StudioFlow — sleek single-prompt configurator.
+ * StudioFlow — sleek single-prompt configurator (premium app aesthetic).
  *
- * App aesthetic, not editorial. Strip text. One big prompt input as the
- * centerpiece. Rotating typewriter placeholder. "?" icon expands guidance.
- * Photo upload above. After generate → variant grid + size + add to cart.
+ * Layout:
+ *   credits badge → photo upload → premium prompt box → variants/size/cart
  *
- * Pipeline:
- *   imageUrl + customPrompt → /api/portraits?action=generate (auth-gated)
- *   → 4 fal Kontext variants → pick one → choose canvas size → cart.
+ * Premium prompt box:
+ *   - glass surface with multi-layer shadow + rose-accent focus ring
+ *   - rounded-2xl, generous padding, refined typography
+ *   - typewriter placeholder cycles 8 examples (char-by-char)
+ *   - HelpCircle "?" icon expands inline guidance
+ *   - ArrowUp send button (Midjourney/v0/ChatGPT pattern)
+ *
+ * Auth gate:
+ *   - frictionless inline Dialog instead of route-leaving redirect
+ *   - "Continue with Google" + "Continue with Apple" + email fallback
+ *
+ * API:
+ *   POST /api/portraits?action=generate { imageUrl, customPrompt }
+ *   → 4 fal Kontext variants → pick one → choose size → add to cart
  */
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { ArrowUp, HelpCircle, Sparkles, X } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PetPhotoUpload } from "@/components/portraits/PetPhotoUpload";
 import { VariantGallery, type Variant } from "@/components/portraits/styles/VariantGallery";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +37,7 @@ import {
   type AnySizeKey,
 } from "@/components/portraits/productLineup";
 import { buildCartItem, type CartItem } from "@/components/portraits/cart";
+import { supabase } from "@/integrations/supabase/client";
 import { PALETTE, EASE, MOTION } from "@/components/portraits/tokens";
 
 interface StudioFlowProps {
@@ -42,8 +55,7 @@ const PROMPT_EXAMPLES = [
   "a galaxy smuggler in a worn leather flight jacket",
 ];
 
-// Typewriter effect for the placeholder — types one example, pauses,
-// deletes, types the next. Apple-homepage-style.
+// Typewriter placeholder — types one example, holds, deletes, types next.
 function useTypewriterPlaceholder(examples: string[], paused: boolean): string {
   const [text, setText] = useState("");
   const [exampleIdx, setExampleIdx] = useState(0);
@@ -75,6 +87,189 @@ function useTypewriterPlaceholder(examples: string[], paused: boolean): string {
   return text;
 }
 
+// ── Inline sign-in dialog ─────────────────────────────────────────────────
+function SignInDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onSuccess?: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<"login" | "signup">("signup");
+
+  async function handleOAuth(provider: "google" | "apple") {
+    setBusy(true);
+    const redirectTo = `${window.location.origin}/portraits#studio`;
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
+    if (error) {
+      toast.error(`${provider} sign-in unavailable — try email`);
+      setBusy(false);
+    }
+  }
+
+  async function handleEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email || !password) return;
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/portraits#studio` } });
+        if (error) throw error;
+        toast.success("Check your email to confirm");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        onSuccess?.();
+        onOpenChange(false);
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[420px] p-0 overflow-hidden border-0" style={{ background: PALETTE.cream, borderRadius: 20 }}>
+        <DialogTitle className="sr-only">Sign in to generate</DialogTitle>
+        <DialogDescription className="sr-only">Continue with Google, Apple, or email to generate AI portraits.</DialogDescription>
+
+        <div className="px-7 pt-8 pb-6 text-center">
+          <div
+            className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4"
+            style={{ background: PALETTE.roseSoft }}
+          >
+            <Sparkles className="w-5 h-5" style={{ color: PALETTE.rose }} />
+          </div>
+          <h2 style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 22, fontWeight: 700, color: PALETTE.ink, letterSpacing: "-0.02em" }}>
+            3 free portraits
+          </h2>
+          <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 14, color: PALETTE.earthMuted, marginTop: 6 }}>
+            Sign in to start. No credit card needed.
+          </p>
+        </div>
+
+        <div className="px-7 pb-7 space-y-2.5">
+          {/* Google */}
+          <button
+            onClick={() => handleOAuth("google")}
+            disabled={busy}
+            className="w-full flex items-center justify-center gap-3 rounded-xl py-3 transition-all disabled:opacity-50"
+            style={{
+              background: "#fff",
+              border: `1px solid ${PALETTE.sandDeep}`,
+              color: PALETTE.ink,
+              fontFamily: 'Assistant, system-ui, sans-serif',
+              fontSize: 14.5,
+              fontWeight: 500,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.255h2.908c1.702-1.567 2.684-3.875 2.684-6.612z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          {/* Apple */}
+          <button
+            onClick={() => handleOAuth("apple")}
+            disabled={busy}
+            className="w-full flex items-center justify-center gap-3 rounded-xl py-3 transition-all disabled:opacity-50"
+            style={{
+              background: PALETTE.ink,
+              color: PALETTE.cream,
+              fontFamily: 'Assistant, system-ui, sans-serif',
+              fontSize: 14.5,
+              fontWeight: 500,
+            }}
+          >
+            <svg width="16" height="18" viewBox="0 0 16 18" fill="currentColor" aria-hidden>
+              <path d="M13.18 9.59c-.027-2.48 2.024-3.67 2.117-3.728-1.151-1.683-2.946-1.913-3.586-1.94-1.527-.155-2.98.901-3.755.901-.79 0-1.97-.879-3.241-.853-1.667.024-3.205.97-4.061 2.466-1.732 3.003-.443 7.444 1.243 9.875.821 1.193 1.798 2.527 3.085 2.481 1.241-.05 1.706-.806 3.205-.806s1.918.806 3.226.78c1.331-.024 2.176-1.207 2.99-2.405.94-1.382 1.328-2.717 1.351-2.787-.03-.013-2.59-.994-2.617-3.945zM10.794 2.408c.685-.83 1.146-1.984 1.02-3.135-.985.04-2.18.656-2.888 1.484-.633.733-1.187 1.91-1.038 3.039 1.1.084 2.222-.558 2.906-1.388z"/>
+            </svg>
+            Continue with Apple
+          </button>
+
+          <div className="flex items-center gap-3 py-2">
+            <div className="flex-1" style={{ height: 1, background: PALETTE.sand }} />
+            <span style={{ fontSize: 12, color: PALETTE.earthMuted, fontFamily: 'Assistant, system-ui, sans-serif' }}>or</span>
+            <div className="flex-1" style={{ height: 1, background: PALETTE.sand }} />
+          </div>
+
+          <form onSubmit={handleEmail} className="space-y-2">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@example.com"
+              className="w-full rounded-xl px-4 py-3 outline-none transition-colors"
+              style={{
+                background: "#fff",
+                border: `1px solid ${PALETTE.sandDeep}`,
+                color: PALETTE.ink,
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                fontSize: 14,
+              }}
+            />
+            <input
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password (6+ characters)"
+              className="w-full rounded-xl px-4 py-3 outline-none transition-colors"
+              style={{
+                background: "#fff",
+                border: `1px solid ${PALETTE.sandDeep}`,
+                color: PALETTE.ink,
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                fontSize: 14,
+              }}
+            />
+            <button
+              type="submit"
+              disabled={busy}
+              className="w-full rounded-xl py-3 transition-all disabled:opacity-50"
+              style={{
+                background: PALETTE.rose,
+                color: PALETTE.cream,
+                fontFamily: 'Asap, system-ui, sans-serif',
+                fontSize: 14.5,
+                fontWeight: 600,
+                letterSpacing: "0.02em",
+              }}
+            >
+              {busy ? "..." : mode === "signup" ? "Sign up — get 3 free portraits" : "Sign in"}
+            </button>
+          </form>
+
+          <p className="text-center pt-1" style={{ fontSize: 12.5, color: PALETTE.earthMuted, fontFamily: 'Assistant, system-ui, sans-serif' }}>
+            {mode === "signup" ? "Already have an account? " : "New here? "}
+            <button
+              type="button"
+              onClick={() => setMode((m) => (m === "signup" ? "login" : "signup"))}
+              style={{ color: PALETTE.rose, fontWeight: 600 }}
+            >
+              {mode === "signup" ? "Sign in" : "Sign up"}
+            </button>
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Studio ─────────────────────────────────────────────────────────────────
 export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   const navigate = useNavigate();
   const { user, session } = useAuth();
@@ -90,13 +285,15 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   const [variants, setVariants] = useState<Variant[]>([]);
   const [selectedVariantUrl, setSelectedVariantUrl] = useState<string | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   const productType = "framed-canvas" as const;
   const product = PRODUCTS[productType];
   const [sizeKey, setSizeKey] = useState<AnySizeKey>(product.defaultSizeKey);
 
   const variant = resolveVariant(productType, sizeKey);
-  const placeholder = useTypewriterPlaceholder(PROMPT_EXAMPLES, prompt.length > 0);
+  const placeholder = useTypewriterPlaceholder(PROMPT_EXAMPLES, prompt.length > 0 || focused);
   const canGenerate = !!photoUrl && prompt.trim().length > 3 && !generating;
   const canAdd = !!selectedVariantUrl && !!variant && !!photoUrl;
 
@@ -105,8 +302,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   async function handleGenerate() {
     if (!photoUrl || prompt.trim().length < 4) return;
     if (!user || !session?.access_token) {
-      toast("Sign in to generate — 3 free portraits on us.", { duration: 2200 });
-      setTimeout(() => navigate(`/auth?next=${encodeURIComponent("/portraits#studio")}`), 800);
+      setSignInOpen(true);
       return;
     }
     setGenerating(true);
@@ -131,7 +327,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         return;
       }
       if (res.status === 503 && data.error === "ai-service-paused") {
-        toast.error(data.message ?? "AI is briefly paused — try again in a moment.");
+        toast.error(data.message ?? "AI is briefly paused — try again.");
         refreshCredits();
         return;
       }
@@ -170,6 +366,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   }
 
   const sectionTransition = { duration: MOTION.base / 1000, ease: EASE.out };
+  const generationsRemaining = balance != null ? Math.floor(balance / 4) : null;
 
   return (
     <section
@@ -177,14 +374,55 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       className="relative px-4 md:px-8"
       style={{
         background: PALETTE.cream2,
-        paddingTop: "clamp(64px, 8vh, 96px)",
+        paddingTop: "clamp(48px, 6vh, 80px)",
         paddingBottom: "clamp(64px, 8vh, 96px)",
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
     >
       <div className="mx-auto" style={{ maxWidth: 720 }}>
 
-        {/* ── Photo upload (compact) ───────────────────────────────── */}
+        {/* ── Credits / status pill ─────────────────────────────────── */}
+        <div className="flex justify-center mb-7">
+          {user ? (
+            <Link
+              to="/unlimited"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full transition-colors"
+              style={{
+                background: PALETTE.cream,
+                border: `1px solid ${PALETTE.sand}`,
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                fontSize: 13,
+                color: PALETTE.earth,
+              }}
+            >
+              <Sparkles className="w-3.5 h-3.5" style={{ color: PALETTE.rose }} />
+              <strong style={{ color: PALETTE.ink }}>
+                {generationsRemaining != null ? generationsRemaining : "…"}
+              </strong>
+              {" "}
+              generation{generationsRemaining === 1 ? "" : "s"} remaining
+              <span style={{ color: PALETTE.earthMuted, marginLeft: 4 }}>· Top up</span>
+            </Link>
+          ) : (
+            <button
+              onClick={() => setSignInOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full transition-colors"
+              style={{
+                background: PALETTE.cream,
+                border: `1px solid ${PALETTE.sand}`,
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                fontSize: 13,
+                color: PALETTE.earth,
+              }}
+            >
+              <Sparkles className="w-3.5 h-3.5" style={{ color: PALETTE.rose }} />
+              <strong style={{ color: PALETTE.ink }}>3 free portraits</strong>
+              <span style={{ color: PALETTE.earthMuted, marginLeft: 4 }}>· Sign in</span>
+            </button>
+          )}
+        </div>
+
+        {/* ── Photo upload ─────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -202,7 +440,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           />
         </motion.div>
 
-        {/* ── Prompt box (the centerpiece) ─────────────────────────── */}
+        {/* ── Premium prompt box ────────────────────────────────────── */}
         <AnimatePresence>
           {photoUrl && (
             <motion.div
@@ -211,63 +449,74 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={sectionTransition}
-              className="mt-6"
+              className="mt-7"
             >
               <div
-                className="relative rounded-xl"
+                className="relative"
                 style={{
-                  background: PALETTE.cream,
-                  border: `1px solid ${PALETTE.sandDeep}`,
-                  boxShadow: "0 12px 32px rgba(20, 18, 16, 0.06)",
-                  transition: "border-color 200ms",
+                  background: focused
+                    ? `linear-gradient(180deg, #ffffff 0%, ${PALETTE.cream} 100%)`
+                    : `linear-gradient(180deg, #ffffff 0%, ${PALETTE.cream2} 100%)`,
+                  border: `1.5px solid ${focused ? PALETTE.rose : PALETTE.sandDeep}`,
+                  borderRadius: 20,
+                  boxShadow: focused
+                    ? "0 0 0 4px rgba(191, 82, 74, 0.08), 0 24px 48px rgba(20, 18, 16, 0.10), 0 4px 12px rgba(20, 18, 16, 0.04)"
+                    : "0 18px 38px rgba(20, 18, 16, 0.06), 0 2px 6px rgba(20, 18, 16, 0.03)",
+                  transition: "box-shadow 240ms, border-color 240ms, background 240ms",
                 }}
               >
                 <textarea
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value.slice(0, 400))}
-                  placeholder={placeholder + (prompt.length === 0 ? "▎" : "")}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
+                  placeholder={placeholder + (prompt.length === 0 && !focused ? "▎" : "")}
                   rows={3}
-                  className="w-full resize-none bg-transparent outline-none px-5 pt-5 pb-2"
+                  className="w-full resize-none bg-transparent outline-none px-6 pt-6 pb-2"
                   style={{
                     fontFamily: 'Assistant, system-ui, sans-serif',
-                    fontSize: 16,
+                    fontSize: 17,
                     color: PALETTE.ink,
                     lineHeight: 1.55,
+                    letterSpacing: "-0.005em",
                   }}
                 />
-                <div className="flex items-center justify-between px-3 pb-3 pt-1">
+
+                <div className="flex items-center justify-between px-3.5 pb-3.5 pt-1">
                   <button
                     type="button"
                     onClick={() => setHelpOpen((v) => !v)}
                     aria-expanded={helpOpen}
-                    className="flex items-center justify-center w-7 h-7 rounded-full transition-colors"
-                    style={{
-                      background: helpOpen ? PALETTE.paper : "transparent",
-                      color: PALETTE.earthMuted,
-                      fontSize: 13,
-                      fontWeight: 600,
-                      fontFamily: 'Asap, system-ui, sans-serif',
-                      border: `1px solid ${PALETTE.sand}`,
-                    }}
-                    title="How to write a good prompt"
+                    aria-label="How to write a good prompt"
+                    className="flex items-center justify-center w-9 h-9 rounded-full transition-all hover:bg-black/5"
+                    style={{ color: PALETTE.earthMuted }}
                   >
-                    ?
+                    <HelpCircle className="w-[18px] h-[18px]" />
                   </button>
+
                   <button
                     onClick={handleGenerate}
                     disabled={!canGenerate}
-                    className="rounded-lg px-5 py-2.5 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    aria-label="Generate"
+                    className="flex items-center justify-center rounded-full transition-all disabled:cursor-not-allowed"
                     style={{
-                      background: PALETTE.rose,
+                      width: 40,
+                      height: 40,
+                      background: canGenerate ? PALETTE.rose : PALETTE.sandDeep,
                       color: PALETTE.cream,
-                      fontFamily: 'Asap, system-ui, sans-serif',
-                      fontSize: 14,
-                      fontWeight: 600,
-                      letterSpacing: "0.02em",
-                      boxShadow: canGenerate ? "0 8px 22px rgba(191, 82, 74, 0.28)" : "none",
+                      boxShadow: canGenerate ? "0 6px 18px rgba(191, 82, 74, 0.32)" : "none",
                     }}
                   >
-                    {generating ? "Generating…" : "Generate ↑"}
+                    {generating ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 rounded-full border-2"
+                        style={{ borderColor: "currentColor", borderTopColor: "transparent" }}
+                      />
+                    ) : (
+                      <ArrowUp className="w-[18px] h-[18px]" strokeWidth={2.5} />
+                    )}
                   </button>
                 </div>
               </div>
@@ -281,26 +530,30 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.22, ease: EASE.out }}
-                    className="overflow-hidden mt-2"
+                    className="overflow-hidden mt-2.5"
                   >
                     <div
-                      className="rounded-xl px-5 py-4"
+                      className="rounded-2xl p-5"
                       style={{
-                        background: PALETTE.paper,
+                        background: PALETTE.cream,
                         border: `1px solid ${PALETTE.sand}`,
-                        fontFamily: 'Assistant, system-ui, sans-serif',
-                        fontSize: 14,
-                        color: PALETTE.earth,
                       }}
                     >
-                      <p style={{ marginBottom: 10, color: PALETTE.ink, fontWeight: 600 }}>
-                        How to write a good prompt
-                      </p>
-                      <p style={{ marginBottom: 10, lineHeight: 1.55 }}>
-                        Describe how you want your pet shown. Costume, scene, mood — keep it simple, like talking to a friend.
-                      </p>
-                      <p style={{ marginBottom: 6, color: PALETTE.earthMuted, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                        Tap to use:
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <div>
+                          <p style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 14, fontWeight: 600, color: PALETTE.ink }}>
+                            How to write a good prompt
+                          </p>
+                          <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 13, color: PALETTE.earthMuted, marginTop: 4, lineHeight: 1.5 }}>
+                            Describe how you want your pet shown. Costume, scene, mood — keep it simple, like talking to a friend.
+                          </p>
+                        </div>
+                        <button onClick={() => setHelpOpen(false)} className="-mr-1 -mt-1 p-1 rounded-md hover:bg-black/5" aria-label="Close">
+                          <X className="w-4 h-4" style={{ color: PALETTE.earthMuted }} />
+                        </button>
+                      </div>
+                      <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 11, color: PALETTE.earthMuted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>
+                        Tap any to use:
                       </p>
                       <div className="flex flex-col gap-1.5">
                         {PROMPT_EXAMPLES.slice(0, 5).map((ex) => (
@@ -308,11 +561,12 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                             key={ex}
                             type="button"
                             onClick={() => { setPrompt(ex); setHelpOpen(false); }}
-                            className="text-left rounded-md px-3 py-2 transition-colors"
+                            className="text-left rounded-lg px-3.5 py-2.5 transition-colors hover:bg-black/[0.03]"
                             style={{
-                              background: PALETTE.cream,
+                              background: PALETTE.cream2,
                               border: `1px solid ${PALETTE.sand}`,
                               color: PALETTE.ink,
+                              fontFamily: 'Assistant, system-ui, sans-serif',
                               fontSize: 13.5,
                             }}
                           >
@@ -324,33 +578,6 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {/* credit hint */}
-              <p
-                className="mt-3 text-center"
-                style={{
-                  fontFamily: 'Assistant, system-ui, sans-serif',
-                  fontSize: 12.5,
-                  color: PALETTE.earthMuted,
-                }}
-              >
-                {user
-                  ? <>
-                      <strong style={{ color: PALETTE.ink }}>{balance ?? "…"}</strong> credit{(balance ?? 0) === 1 ? "" : "s"} left
-                      <span> · </span>
-                      <Link to="/unlimited" style={{ color: PALETTE.rose, fontWeight: 600 }}>Top up</Link>
-                    </>
-                  : <>
-                      3 free with sign-up · then £4.99 / pack
-                      <span> · </span>
-                      <Link
-                        to={`/auth?next=${encodeURIComponent("/portraits#studio")}`}
-                        style={{ color: PALETTE.rose, fontWeight: 600 }}
-                      >
-                        Sign in
-                      </Link>
-                    </>}
-              </p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -364,7 +591,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="mt-10 rounded-xl py-12 text-center"
+              className="mt-10 rounded-2xl py-12 text-center"
               style={{ background: PALETTE.cream, border: `1px solid ${PALETTE.sand}` }}
             >
               <motion.div
@@ -401,7 +628,6 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                 onSelect={setSelectedVariantUrl}
               />
 
-              {/* Size selector */}
               <div className="grid grid-cols-3 gap-2 mt-6">
                 {Object.entries(product.variants).map(([key, v]) => {
                   if (!v) return null;
@@ -410,11 +636,11 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     <button
                       key={key}
                       onClick={() => setSizeKey(key as AnySizeKey)}
-                      className="rounded-lg p-3 text-center transition-all"
+                      className="rounded-xl p-3.5 text-center transition-all"
                       style={{
                         background: active ? PALETTE.ink : PALETTE.cream,
                         color: active ? PALETTE.cream : PALETTE.ink,
-                        border: active ? `1px solid ${PALETTE.ink}` : `1px solid ${PALETTE.sandDeep}`,
+                        border: active ? `1.5px solid ${PALETTE.ink}` : `1px solid ${PALETTE.sandDeep}`,
                         fontFamily: 'Asap, system-ui, sans-serif',
                       }}
                     >
@@ -436,12 +662,12 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               <button
                 onClick={handleAdd}
                 disabled={!canAdd}
-                className="mt-5 w-full rounded-lg py-3.5 transition-all disabled:opacity-40"
+                className="mt-5 w-full rounded-xl py-3.5 transition-all disabled:opacity-40"
                 style={{
                   background: PALETTE.ink,
                   color: PALETTE.cream,
                   fontFamily: 'Asap, system-ui, sans-serif',
-                  fontSize: 14,
+                  fontSize: 14.5,
                   fontWeight: 600,
                   letterSpacing: "0.04em",
                 }}
@@ -452,6 +678,8 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           )}
         </AnimatePresence>
       </div>
+
+      <SignInDialog open={signInOpen} onOpenChange={setSignInOpen} />
     </section>
   );
 }
