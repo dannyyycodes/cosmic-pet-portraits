@@ -30,7 +30,6 @@ import { PortraitsBackdrop } from "@/components/portraits/PortraitsBackdrop";
 import { PetPhotoUpload } from "@/components/portraits/PetPhotoUpload";
 import { TEMPLATES } from "@/components/portraits/templates/data";
 import { toast } from "sonner";
-import { removeBackground } from "@imgly/background-removal";
 import { supabase } from "@/integrations/supabase/client";
 import { MasterPortraitPlaceholder } from "@/components/portraits/MasterPortraitPlaceholder";
 import { PortraitsHero } from "@/components/portraits/PortraitsHero";
@@ -155,103 +154,45 @@ function UploadStudio({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSoulEdition]);
 
-  // Auto-cutout when photo arrives — runs entirely in browser via @imgly.
-  // Free forever. Model files (~10MB) cached after first load.
-  async function fireCutout(imageUrl: string) {
-    setCutoutStatus("cutting");
-    setCutoutUrl(null);
-    try {
-      const cutoutBlob = await removeBackground(imageUrl, {
-        output: { format: "image/png", quality: 0.95 },
-      });
-      // Upload the cutout PNG to Supabase so the server-side compositor can
-      // fetch it for the mockup composite.
-      const path = `cutouts/${crypto.randomUUID()}.png`;
-      const { error } = await supabase.storage
-        .from("pet-photos")
-        .upload(path, cutoutBlob, { contentType: "image/png", cacheControl: "31536000", upsert: false });
-      if (error) throw error;
-      const { data } = supabase.storage.from("pet-photos").getPublicUrl(path);
-      setCutoutUrl(data.publicUrl);
-      setCutoutStatus("ready");
-    } catch (err) {
-      // Soft-fail: bg-removal isn't required for the mockup any more.
-      // The Printful Mockup endpoint accepts the raw photoUrl directly,
-      // so the customer still sees a real product preview — just with
-      // the original photo background instead of a clean cutout.
-      console.warn("[bg-removal] falling back to raw photo:", err);
-      setCutoutStatus("error");
-    }
-  }
-
+  // Industry-standard pattern (Customily, Teeinblue, every Etsy POD shop):
+  // flat product photo + design overlay, server-rendered via Sharp. ~500ms,
+  // free, no ML downloads, no async polling. cutoutUrl is kept = photoUrl so
+  // the existing cart/composite/print-master code paths work unchanged — the
+  // raw photo IS the design that prints (truthful, what-you-upload-is-what-prints).
   const handlePhotoUploaded = (url: string) => {
     setPhotoUrl(url);
-    void fireCutout(url);
+    setCutoutUrl(url);
+    setCutoutStatus("ready");
   };
 
-  // Fetch photoreal mockup via Printful Mockup Generator API.
-  // Submits as soon as we have a design URL (cutout preferred, raw photo fallback),
-  // polls every 3s, typical e2e 10–30s.
+  // Live mockup: composite design onto the real product photo via Sharp.
+  // Sub-second. Cached per (product × design) so switching products is instant
+  // after first render.
   useEffect(() => {
-    const designUrl = cutoutUrl ?? photoUrl;
-    if (!designUrl) return;
-    const key = `${productType}|${designUrl}`;
+    if (!photoUrl) return;
+    const key = `${productType}|${photoUrl}`;
     if (mockupCache[key]) return;
     let cancelled = false;
 
     (async () => {
       try {
-        // Phase 1 — submit
-        const submitRes = await fetch("/api/portraits?action=printful-mockup", {
+        const res = await fetch("/api/portraits?action=mockup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ designUrl, productType }),
+          body: JSON.stringify({ designUrl: photoUrl, productType }),
         });
+        if (!res.ok || cancelled) return;
+        const blob = await res.blob();
         if (cancelled) return;
-        const submitData = await submitRes.json().catch(() => ({}));
-        if (!submitRes.ok || !submitData.taskId) {
-          // Fallback: try the legacy Sharp mockup so user still sees something
-          if (submitData?.error === "printful-store-missing" || submitData?.error === "printful-not-configured") {
-            const fb = await fetch("/api/portraits?action=mockup", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ designUrl, productType }),
-            });
-            if (!cancelled && fb.ok) {
-              const blob = await fb.blob();
-              const url = URL.createObjectURL(blob);
-              setMockupCache((prev) => ({ ...prev, [key]: url }));
-            }
-          }
-          return;
-        }
-        const taskId: string = submitData.taskId;
-
-        // Phase 2 — poll up to 60s (every 3s)
-        for (let i = 0; i < 20; i++) {
-          if (cancelled) return;
-          await new Promise((r) => setTimeout(r, 3000));
-          if (cancelled) return;
-          const pollRes = await fetch("/api/portraits?action=printful-mockup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ taskId }),
-          });
-          const pollData = await pollRes.json().catch(() => ({}));
-          if (pollData.status === "completed" && pollData.mockupUrl) {
-            if (cancelled) return;
-            setMockupCache((prev) => ({ ...prev, [key]: pollData.mockupUrl }));
-            return;
-          }
-          if (pollData.status === "failed") return;
-        }
+        const url = URL.createObjectURL(blob);
+        setMockupCache((prev) => ({ ...prev, [key]: url }));
       } catch {
-        /* silent — empty preview state shows */
+        /* silent — fallback render shows photo on cream backdrop */
       }
     })();
 
     return () => { cancelled = true; };
-  }, [cutoutUrl, photoUrl, productType, mockupCache]);
+  }, [photoUrl, productType, mockupCache]);
 
   const handleResetPhoto = () => {
     setPhotoUrl(null);
