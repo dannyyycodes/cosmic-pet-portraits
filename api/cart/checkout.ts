@@ -39,6 +39,44 @@ interface VariantDef {
 
 const PRODUCT_VARIANTS: Record<ProductTypeKey, Record<string, VariantDef>> = {
   "framed-canvas": {
+    // ── v2 product (handle: cosmic-pet-portrait-framed-canvas-v2) — 33 SKUs ──
+    // 11 sizes × 3 frame colors. Composite key: `${size}__${color}`. Modern
+    // Gelato productUid format set on each variant's metafield.
+    "8x10__black":         { variantId: 64599875256669, priceMajor: 39,  sizeLabel: "8×10″ Black" },
+    "8x10__natural-wood":  { variantId: 64599875289437, priceMajor: 39,  sizeLabel: "8×10″ Natural" },
+    "8x10__dark-wood":     { variantId: 64599875322205, priceMajor: 39,  sizeLabel: "8×10″ Dark Brown" },
+    "12x16__black":        { variantId: 64599875354973, priceMajor: 49,  sizeLabel: "12×16″ Black" },
+    "12x16__natural-wood": { variantId: 64599875387741, priceMajor: 49,  sizeLabel: "12×16″ Natural" },
+    "12x16__dark-wood":    { variantId: 64599875420509, priceMajor: 49,  sizeLabel: "12×16″ Dark Brown" },
+    "12x18__black":        { variantId: 64599875453277, priceMajor: 55,  sizeLabel: "12×18″ Black" },
+    "12x18__natural-wood": { variantId: 64599875486045, priceMajor: 55,  sizeLabel: "12×18″ Natural" },
+    "12x18__dark-wood":    { variantId: 64599875518813, priceMajor: 55,  sizeLabel: "12×18″ Dark Brown" },
+    "16x20__black":        { variantId: 64599875551581, priceMajor: 65,  sizeLabel: "16×20″ Black" },
+    "16x20__natural-wood": { variantId: 64599875584349, priceMajor: 65,  sizeLabel: "16×20″ Natural" },
+    "16x20__dark-wood":    { variantId: 64599875617117, priceMajor: 65,  sizeLabel: "16×20″ Dark Brown" },
+    "16x24__black":        { variantId: 64599875649885, priceMajor: 75,  sizeLabel: "16×24″ Black" },
+    "16x24__natural-wood": { variantId: 64599875682653, priceMajor: 75,  sizeLabel: "16×24″ Natural" },
+    "16x24__dark-wood":    { variantId: 64599875715421, priceMajor: 75,  sizeLabel: "16×24″ Dark Brown" },
+    "18x24__black":        { variantId: 64599875748189, priceMajor: 79,  sizeLabel: "18×24″ Black" },
+    "18x24__natural-wood": { variantId: 64599875780957, priceMajor: 79,  sizeLabel: "18×24″ Natural" },
+    "18x24__dark-wood":    { variantId: 64599875813725, priceMajor: 79,  sizeLabel: "18×24″ Dark Brown" },
+    "20x28__black":        { variantId: 64599875846493, priceMajor: 89,  sizeLabel: "20×28″ Black" },
+    "20x28__natural-wood": { variantId: 64599875879261, priceMajor: 89,  sizeLabel: "20×28″ Natural" },
+    "20x28__dark-wood":    { variantId: 64599875912029, priceMajor: 89,  sizeLabel: "20×28″ Dark Brown" },
+    "20x30__black":        { variantId: 64599875944797, priceMajor: 95,  sizeLabel: "20×30″ Black" },
+    "20x30__natural-wood": { variantId: 64599875977565, priceMajor: 95,  sizeLabel: "20×30″ Natural" },
+    "20x30__dark-wood":    { variantId: 64599876010333, priceMajor: 95,  sizeLabel: "20×30″ Dark Brown" },
+    "24x24__black":        { variantId: 64599876043101, priceMajor: 95,  sizeLabel: "24×24″ Black" },
+    "24x24__natural-wood": { variantId: 64599876075869, priceMajor: 95,  sizeLabel: "24×24″ Natural" },
+    "24x24__dark-wood":    { variantId: 64599876108637, priceMajor: 95,  sizeLabel: "24×24″ Dark Brown" },
+    "24x32__black":        { variantId: 64599876141405, priceMajor: 109, sizeLabel: "24×32″ Black" },
+    "24x32__natural-wood": { variantId: 64599876174173, priceMajor: 109, sizeLabel: "24×32″ Natural" },
+    "24x32__dark-wood":    { variantId: 64599876206941, priceMajor: 109, sizeLabel: "24×32″ Dark Brown" },
+    "24x36__black":        { variantId: 64599876239709, priceMajor: 119, sizeLabel: "24×36″ Black" },
+    "24x36__natural-wood": { variantId: 64599876272477, priceMajor: 119, sizeLabel: "24×36″ Natural" },
+    "24x36__dark-wood":    { variantId: 64599876305245, priceMajor: 119, sizeLabel: "24×36″ Dark Brown" },
+    // ── Legacy 4 variants on the old product (handle: cosmic-pet-portrait-framed-canvas) ──
+    // Kept so any in-flight cart from before the v2 migration still resolves.
     "8x10":  { variantId: 64592196600157, priceMajor: 39, sizeLabel: "8×10″" },
     "12x16": { variantId: 64592196632925, priceMajor: 49, sizeLabel: "12×16″" },
     "16x20": { variantId: 64592196665693, priceMajor: 65, sizeLabel: "16×20″" },
@@ -81,6 +119,8 @@ interface CartItemBody {
   kind?: "ai" | "template";
   productType: ProductTypeKey;
   sizeKey: string;
+  /** Framed canvas only — wood-tone (Black / Natural Wood / Dark Brown). */
+  frameColor?: "black" | "natural-wood" | "dark-wood";
   packId: string;
   packName: string;
   style?: "photographic" | "illustrated";
@@ -138,12 +178,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!it.sourcePhotoUrl || typeof it.sourcePhotoUrl !== "string")
       return res.status(400).json({ error: `items[${i}].sourcePhotoUrl required` });
 
-    const sizeKey = it.sizeKey ?? "default";
-    const variant = PRODUCT_VARIANTS[it.productType][sizeKey];
+    // Framed canvas: when frameColor is provided, look up by composite key
+    // `${sizeKey}__${frameColor}` (v2 product). Falls back to plain sizeKey
+    // for legacy carts created before v2 migration.
+    const baseSizeKey = it.sizeKey ?? "default";
+    const lookupKey =
+      it.productType === "framed-canvas" && it.frameColor
+        ? `${baseSizeKey}__${it.frameColor}`
+        : baseSizeKey;
+    const variant = PRODUCT_VARIANTS[it.productType][lookupKey]
+      ?? PRODUCT_VARIANTS[it.productType][baseSizeKey];
     if (!variant) {
       const validSizes = Object.keys(PRODUCT_VARIANTS[it.productType]).join(", ");
       return res.status(400).json({
-        error: `items[${i}]: unknown size '${sizeKey}' for product '${it.productType}'. Valid: ${validSizes}`,
+        error: `items[${i}]: unknown size '${lookupKey}' for product '${it.productType}'. Valid: ${validSizes}`,
       });
     }
 

@@ -24,6 +24,8 @@ export interface CartItem {
   // Product config:
   productType: ProductTypeKey;
   sizeKey: AnySizeKey;
+  /** Framed canvas only — frame wood-tone (Black / Natural / Dark Brown). */
+  frameColor?: "black" | "natural-wood" | "dark-wood";
   variantId: number;
   // Portrait config:
   packId: string;                  // ai: scene id ("wizard-school") | template: template id ("circle-mug")
@@ -76,6 +78,8 @@ export function buildCartItem(input: {
   kind?: CartItemKind;
   /** Required when kind="template". */
   printMasterUrl?: string;
+  /** Optional — framed canvas frame wood-tone. */
+  frameColor?: "black" | "natural-wood" | "dark-wood";
 }): CartItem {
   const product = PRODUCTS[input.productType];
   return {
@@ -83,6 +87,7 @@ export function buildCartItem(input: {
     kind: input.kind ?? "ai",
     productType: input.productType,
     sizeKey: input.sizeKey,
+    frameColor: input.frameColor,
     variantId: input.variant.variantId,
     packId: input.packId,
     packName: input.packName,

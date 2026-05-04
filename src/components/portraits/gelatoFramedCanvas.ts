@@ -173,3 +173,59 @@ export function allCatalogCombos(): Array<{
   }
   return out;
 }
+
+/**
+ * Live Shopify variant map — created 2026-05-04 by extend_framed_canvas.py.
+ * Source: scripts/shopify-launch/created_variants_v2.json
+ * Product handle: cosmic-pet-portrait-framed-canvas-v2 (id 16175767519581).
+ *
+ * Key format: `${sizeUid}__${frameColorUid}`.
+ */
+export const FRAMED_CANVAS_V2_VARIANTS: Record<string, { variantId: number; priceMajor: number }> = {
+  "8x10__black":          { variantId: 64599875256669, priceMajor: 39 },
+  "8x10__natural-wood":   { variantId: 64599875289437, priceMajor: 39 },
+  "8x10__dark-wood":      { variantId: 64599875322205, priceMajor: 39 },
+  "12x16__black":         { variantId: 64599875354973, priceMajor: 49 },
+  "12x16__natural-wood":  { variantId: 64599875387741, priceMajor: 49 },
+  "12x16__dark-wood":     { variantId: 64599875420509, priceMajor: 49 },
+  "12x18__black":         { variantId: 64599875453277, priceMajor: 55 },
+  "12x18__natural-wood":  { variantId: 64599875486045, priceMajor: 55 },
+  "12x18__dark-wood":     { variantId: 64599875518813, priceMajor: 55 },
+  "16x20__black":         { variantId: 64599875551581, priceMajor: 65 },
+  "16x20__natural-wood":  { variantId: 64599875584349, priceMajor: 65 },
+  "16x20__dark-wood":     { variantId: 64599875617117, priceMajor: 65 },
+  "16x24__black":         { variantId: 64599875649885, priceMajor: 75 },
+  "16x24__natural-wood":  { variantId: 64599875682653, priceMajor: 75 },
+  "16x24__dark-wood":     { variantId: 64599875715421, priceMajor: 75 },
+  "18x24__black":         { variantId: 64599875748189, priceMajor: 79 },
+  "18x24__natural-wood":  { variantId: 64599875780957, priceMajor: 79 },
+  "18x24__dark-wood":     { variantId: 64599875813725, priceMajor: 79 },
+  "20x28__black":         { variantId: 64599875846493, priceMajor: 89 },
+  "20x28__natural-wood":  { variantId: 64599875879261, priceMajor: 89 },
+  "20x28__dark-wood":     { variantId: 64599875912029, priceMajor: 89 },
+  "20x30__black":         { variantId: 64599875944797, priceMajor: 95 },
+  "20x30__natural-wood":  { variantId: 64599875977565, priceMajor: 95 },
+  "20x30__dark-wood":     { variantId: 64599876010333, priceMajor: 95 },
+  "24x24__black":         { variantId: 64599876043101, priceMajor: 95 },
+  "24x24__natural-wood":  { variantId: 64599876075869, priceMajor: 95 },
+  "24x24__dark-wood":     { variantId: 64599876108637, priceMajor: 95 },
+  "24x32__black":         { variantId: 64599876141405, priceMajor: 109 },
+  "24x32__natural-wood":  { variantId: 64599876174173, priceMajor: 109 },
+  "24x32__dark-wood":     { variantId: 64599876206941, priceMajor: 109 },
+  "24x36__black":         { variantId: 64599876239709, priceMajor: 119 },
+  "24x36__natural-wood":  { variantId: 64599876272477, priceMajor: 119 },
+  "24x36__dark-wood":     { variantId: 64599876305245, priceMajor: 119 },
+};
+
+export function resolveFramedCanvasVariant(
+  sizeUid: string,
+  color: FrameColor,
+): { variantId: number; priceMajor: number; sizeLabel: string; gelatoUid: string } | null {
+  const v = FRAMED_CANVAS_V2_VARIANTS[`${sizeUid}__${color}`];
+  if (!v) return null;
+  const size = CANVAS_SIZES.find((s) => s.uid === sizeUid);
+  if (!size) return null;
+  const gelatoUid = gelatoProductUid(sizeUid, color);
+  if (!gelatoUid) return null;
+  return { variantId: v.variantId, priceMajor: v.priceMajor, sizeLabel: size.label, gelatoUid };
+}

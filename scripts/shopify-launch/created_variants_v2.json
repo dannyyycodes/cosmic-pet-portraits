@@ -1,0 +1,270 @@
+{
+  "product_id": 16175767519581,
+  "product_handle": "cosmic-pet-portrait-framed-canvas-v2",
+  "variants": {
+    "8x10__black": {
+      "size_uid": "8x10",
+      "color_uid": "black",
+      "variant_id": 64599875256669,
+      "sku": "LS-FC-8X10-BLK",
+      "price": "39.00",
+      "gelato_uid": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_black_252x302-mm-10x12-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "8x10__natural-wood": {
+      "size_uid": "8x10",
+      "color_uid": "natural-wood",
+      "variant_id": 64599875289437,
+      "sku": "LS-FC-8X10-NAT",
+      "price": "39.00",
+      "gelato_uid": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_natural-wood_252x302-mm-10x12-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "8x10__dark-wood": {
+      "size_uid": "8x10",
+      "color_uid": "dark-wood",
+      "variant_id": 64599875322205,
+      "sku": "LS-FC-8X10-DRK",
+      "price": "39.00",
+      "gelato_uid": "framed_canvas_geo_simplified_200x250-mm-8x10-inch_dark-wood_252x302-mm-10x12-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "12x16__black": {
+      "size_uid": "12x16",
+      "color_uid": "black",
+      "variant_id": 64599875354973,
+      "sku": "LS-FC-12X16-BLK",
+      "price": "49.00",
+      "gelato_uid": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_black_352x452-mm-14x18-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "12x16__natural-wood": {
+      "size_uid": "12x16",
+      "color_uid": "natural-wood",
+      "variant_id": 64599875387741,
+      "sku": "LS-FC-12X16-NAT",
+      "price": "49.00",
+      "gelato_uid": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_natural-wood_352x452-mm-14x18-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "12x16__dark-wood": {
+      "size_uid": "12x16",
+      "color_uid": "dark-wood",
+      "variant_id": 64599875420509,
+      "sku": "LS-FC-12X16-DRK",
+      "price": "49.00",
+      "gelato_uid": "framed_canvas_geo_simplified_300x400-mm-12x16-inch_dark-wood_352x452-mm-14x18-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "12x18__black": {
+      "size_uid": "12x18",
+      "color_uid": "black",
+      "variant_id": 64599875453277,
+      "sku": "LS-FC-12X18-BLK",
+      "price": "55.00",
+      "gelato_uid": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_black_352x502-mm-14x20-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "12x18__natural-wood": {
+      "size_uid": "12x18",
+      "color_uid": "natural-wood",
+      "variant_id": 64599875486045,
+      "sku": "LS-FC-12X18-NAT",
+      "price": "55.00",
+      "gelato_uid": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_natural-wood_352x502-mm-14x20-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "12x18__dark-wood": {
+      "size_uid": "12x18",
+      "color_uid": "dark-wood",
+      "variant_id": 64599875518813,
+      "sku": "LS-FC-12X18-DRK",
+      "price": "55.00",
+      "gelato_uid": "framed_canvas_geo_simplified_300x450-mm-12x18-inch_dark-wood_352x502-mm-14x20-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "16x20__black": {
+      "size_uid": "16x20",
+      "color_uid": "black",
+      "variant_id": 64599875551581,
+      "sku": "LS-FC-16X20-BLK",
+      "price": "65.00",
+      "gelato_uid": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_black_452x552-mm-18x22-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "16x20__natural-wood": {
+      "size_uid": "16x20",
+      "color_uid": "natural-wood",
+      "variant_id": 64599875584349,
+      "sku": "LS-FC-16X20-NAT",
+      "price": "65.00",
+      "gelato_uid": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_natural-wood_452x552-mm-18x22-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "16x20__dark-wood": {
+      "size_uid": "16x20",
+      "color_uid": "dark-wood",
+      "variant_id": 64599875617117,
+      "sku": "LS-FC-16X20-DRK",
+      "price": "65.00",
+      "gelato_uid": "framed_canvas_geo_simplified_400x500-mm-16x20-inch_dark-wood_452x552-mm-18x22-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "16x24__black": {
+      "size_uid": "16x24",
+      "color_uid": "black",
+      "variant_id": 64599875649885,
+      "sku": "LS-FC-16X24-BLK",
+      "price": "75.00",
+      "gelato_uid": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_black_452x652-mm-18x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "16x24__natural-wood": {
+      "size_uid": "16x24",
+      "color_uid": "natural-wood",
+      "variant_id": 64599875682653,
+      "sku": "LS-FC-16X24-NAT",
+      "price": "75.00",
+      "gelato_uid": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_natural-wood_452x652-mm-18x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "16x24__dark-wood": {
+      "size_uid": "16x24",
+      "color_uid": "dark-wood",
+      "variant_id": 64599875715421,
+      "sku": "LS-FC-16X24-DRK",
+      "price": "75.00",
+      "gelato_uid": "framed_canvas_geo_simplified_400x600-mm-16x24-inch_dark-wood_452x652-mm-18x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "18x24__black": {
+      "size_uid": "18x24",
+      "color_uid": "black",
+      "variant_id": 64599875748189,
+      "sku": "LS-FC-18X24-BLK",
+      "price": "79.00",
+      "gelato_uid": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_black_502x652-mm-20x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "18x24__natural-wood": {
+      "size_uid": "18x24",
+      "color_uid": "natural-wood",
+      "variant_id": 64599875780957,
+      "sku": "LS-FC-18X24-NAT",
+      "price": "79.00",
+      "gelato_uid": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_natural-wood_502x652-mm-20x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "18x24__dark-wood": {
+      "size_uid": "18x24",
+      "color_uid": "dark-wood",
+      "variant_id": 64599875813725,
+      "sku": "LS-FC-18X24-DRK",
+      "price": "79.00",
+      "gelato_uid": "framed_canvas_geo_simplified_450x600-mm-18x24-inch_dark-wood_502x652-mm-20x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "20x28__black": {
+      "size_uid": "20x28",
+      "color_uid": "black",
+      "variant_id": 64599875846493,
+      "sku": "LS-FC-20X28-BLK",
+      "price": "89.00",
+      "gelato_uid": "framed_canvas_geo_simplified_500x700-mm-20x28-inch_black_552x752-mm-22x30-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "20x28__natural-wood": {
+      "size_uid": "20x28",
+      "color_uid": "natural-wood",
+      "variant_id": 64599875879261,
+      "sku": "LS-FC-20X28-NAT",
+      "price": "89.00",
+      "gelato_uid": "framed_canvas_geo_simplified_500x700-mm-20x28-inch_natural-wood_552x752-mm-22x30-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "20x28__dark-wood": {
+      "size_uid": "20x28",
+      "color_uid": "dark-wood",
+      "variant_id": 64599875912029,
+      "sku": "LS-FC-20X28-DRK",
+      "price": "89.00",
+      "gelato_uid": "framed_canvas_geo_simplified_500x700-mm-20x28-inch_dark-wood_552x752-mm-22x30-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "20x30__black": {
+      "size_uid": "20x30",
+      "color_uid": "black",
+      "variant_id": 64599875944797,
+      "sku": "LS-FC-20X30-BLK",
+      "price": "95.00",
+      "gelato_uid": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_black_552x802-mm-22x32-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "20x30__natural-wood": {
+      "size_uid": "20x30",
+      "color_uid": "natural-wood",
+      "variant_id": 64599875977565,
+      "sku": "LS-FC-20X30-NAT",
+      "price": "95.00",
+      "gelato_uid": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_natural-wood_552x802-mm-22x32-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "20x30__dark-wood": {
+      "size_uid": "20x30",
+      "color_uid": "dark-wood",
+      "variant_id": 64599876010333,
+      "sku": "LS-FC-20X30-DRK",
+      "price": "95.00",
+      "gelato_uid": "framed_canvas_geo_simplified_500x750-mm-20x30-inch_dark-wood_552x802-mm-22x32-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x24__black": {
+      "size_uid": "24x24",
+      "color_uid": "black",
+      "variant_id": 64599876043101,
+      "sku": "LS-FC-24X24-BLK",
+      "price": "95.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x600-mm-24x24-inch_black_652x652-mm-26x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x24__natural-wood": {
+      "size_uid": "24x24",
+      "color_uid": "natural-wood",
+      "variant_id": 64599876075869,
+      "sku": "LS-FC-24X24-NAT",
+      "price": "95.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x600-mm-24x24-inch_natural-wood_652x652-mm-26x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x24__dark-wood": {
+      "size_uid": "24x24",
+      "color_uid": "dark-wood",
+      "variant_id": 64599876108637,
+      "sku": "LS-FC-24X24-DRK",
+      "price": "95.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x600-mm-24x24-inch_dark-wood_652x652-mm-26x26-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x32__black": {
+      "size_uid": "24x32",
+      "color_uid": "black",
+      "variant_id": 64599876141405,
+      "sku": "LS-FC-24X32-BLK",
+      "price": "109.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x800-mm-24x32-inch_black_652x852-mm-26x34-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x32__natural-wood": {
+      "size_uid": "24x32",
+      "color_uid": "natural-wood",
+      "variant_id": 64599876174173,
+      "sku": "LS-FC-24X32-NAT",
+      "price": "109.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x800-mm-24x32-inch_natural-wood_652x852-mm-26x34-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x32__dark-wood": {
+      "size_uid": "24x32",
+      "color_uid": "dark-wood",
+      "variant_id": 64599876206941,
+      "sku": "LS-FC-24X32-DRK",
+      "price": "109.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x800-mm-24x32-inch_dark-wood_652x852-mm-26x34-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x36__black": {
+      "size_uid": "24x36",
+      "color_uid": "black",
+      "variant_id": 64599876239709,
+      "sku": "LS-FC-24X36-BLK",
+      "price": "119.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_black_652x952-mm-26x38-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x36__natural-wood": {
+      "size_uid": "24x36",
+      "color_uid": "natural-wood",
+      "variant_id": 64599876272477,
+      "sku": "LS-FC-24X36-NAT",
+      "price": "119.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_natural-wood_652x952-mm-26x38-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    },
+    "24x36__dark-wood": {
+      "size_uid": "24x36",
+      "color_uid": "dark-wood",
+      "variant_id": 64599876305245,
+      "sku": "LS-FC-24X36-DRK",
+      "price": "119.00",
+      "gelato_uid": "framed_canvas_geo_simplified_600x900-mm-24x36-inch_dark-wood_652x952-mm-26x38-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0"
+    }
+  }
+}

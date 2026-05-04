@@ -45,6 +45,7 @@ import { buildCartItem, type CartItem } from "@/components/portraits/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { isDisposableEmail } from "@/lib/auth/disposableEmailDomains";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
+import { PALETTE, EASE, MOTION, display } from "@/components/portraits/tokens";
 
 // Lazy-load + cache FingerprintJS visitor ID. Stable across cache clears,
 // incognito, and minor browser updates. Used by the Supabase signup trigger
@@ -61,7 +62,6 @@ async function getVisitorId(): Promise<string | null> {
     return null;
   }
 }
-import { PALETTE, EASE, MOTION, display } from "@/components/portraits/tokens";
 
 interface StudioFlowProps {
   onCartAdd: (item: CartItem) => void;
@@ -772,19 +772,18 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     textTransform: "uppercase",
                   }}
                 >
-                  Choose your canvas
+                  Choose your canvas size
                 </p>
 
-                <div className="grid grid-cols-3 gap-2.5">
-                  {Object.entries(product.variants).map(([key, v]) => {
-                    if (!v) return null;
-                    const active = sizeKey === key;
-                    const isHero = product.heroSizeKey === key;
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {CANVAS_SIZES.map((s) => {
+                    const active = sizeKey === s.uid;
+                    const isHero = !!s.hero;
                     return (
                       <button
-                        key={key}
-                        onClick={() => setSizeKey(key as AnySizeKey)}
-                        className="rounded-xl p-4 text-center transition-all relative"
+                        key={s.uid}
+                        onClick={() => setSizeKey(s.uid)}
+                        className="rounded-xl p-3 text-center transition-all relative"
                         style={{
                           background: active ? PALETTE.ink : PALETTE.cream,
                           color: active ? PALETTE.cream : PALETTE.ink,
@@ -803,30 +802,87 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                       >
                         {isHero && !active && (
                           <span
-                            className="absolute -top-2 left-1/2 -translate-x-1/2 px-2"
+                            className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5"
                             style={{
-                              fontSize: 9,
+                              fontSize: 8.5,
                               fontWeight: 700,
                               color: PALETTE.goldDeep,
                               background: PALETTE.cream,
-                              letterSpacing: "0.16em",
+                              letterSpacing: "0.14em",
                               textTransform: "uppercase",
                               fontFamily: 'Asap, system-ui, sans-serif',
+                              whiteSpace: "nowrap",
                             }}
                           >
                             Most loved
                           </span>
                         )}
-                        <div style={{ fontSize: 15, fontWeight: 600 }}>{v.sizeLabel}</div>
+                        <div style={{ fontSize: 13.5, fontWeight: 600 }}>{s.label}</div>
                         <div
-                          className="tabular-nums mt-1"
+                          className="tabular-nums mt-0.5"
                           style={{
-                            fontSize: 13,
+                            fontSize: 12,
                             color: active ? PALETTE.cream : PALETTE.earthMuted,
                           }}
                         >
-                          {formatPrice(v.priceMajor)}
+                          £{s.priceGBP}
                         </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Frame color picker */}
+                <p
+                  className="text-center mt-6 mb-3"
+                  style={{
+                    fontFamily: 'Asap, system-ui, sans-serif',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: PALETTE.earthMuted,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Choose frame colour
+                </p>
+                <div className="flex justify-center gap-4">
+                  {FRAME_COLORS.map((c) => {
+                    const active = frameColor === c.uid;
+                    return (
+                      <button
+                        key={c.uid}
+                        onClick={() => setFrameColor(c.uid)}
+                        className="flex flex-col items-center gap-2 transition-all"
+                        title={c.label}
+                        aria-label={`Frame: ${c.label}`}
+                        aria-pressed={active}
+                      >
+                        <div
+                          className="rounded-full transition-all"
+                          style={{
+                            width: active ? 48 : 40,
+                            height: active ? 48 : 40,
+                            background: c.swatchHex,
+                            border: active
+                              ? `2.5px solid ${PALETTE.ink}`
+                              : `1.5px solid ${PALETTE.sandDeep}`,
+                            boxShadow: active
+                              ? "0 6px 14px rgba(20,18,16,0.18)"
+                              : "0 2px 6px rgba(20,18,16,0.08)",
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontFamily: 'Assistant, system-ui, sans-serif',
+                            fontSize: 11.5,
+                            fontWeight: active ? 600 : 400,
+                            color: active ? PALETTE.ink : PALETTE.earthMuted,
+                            letterSpacing: "0.02em",
+                          }}
+                        >
+                          {c.label}
+                        </span>
                       </button>
                     );
                   })}
