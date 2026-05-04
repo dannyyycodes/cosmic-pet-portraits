@@ -329,15 +329,27 @@ async function handlePrintfulMockup(req: VercelRequest, res: VercelResponse) {
 
   const body = (req.body ?? {}) as { taskId?: string; designUrl?: string; productType?: ProductType };
 
+  // Printful v2 returns `data` as an array of mockup-tasks, even for a single task.
+  type PfMockupTask = {
+    id?: string | number;
+    status?: string;
+    catalog_variant_mockups?: Array<{ mockups?: Array<{ mockup_url?: string }> }>;
+  };
+  const firstTask = (j: { data?: PfMockupTask | PfMockupTask[] }): PfMockupTask | undefined => {
+    if (Array.isArray(j.data)) return j.data[0];
+    return j.data;
+  };
+
   // ── Poll mode ─────────────────────────────────────────────────────────────
   if (body.taskId) {
     try {
       const r = await fetch(`https://api.printful.com/v2/mockup-tasks?id=${encodeURIComponent(body.taskId)}`, { headers });
-      const j = await r.json() as { data?: { status?: string; catalog_variant_mockups?: Array<{ mockups?: Array<{ mockup_url?: string }> }> }; error?: unknown };
+      const j = await r.json() as { data?: PfMockupTask | PfMockupTask[]; error?: unknown };
       if (!r.ok) return res.status(r.status).json({ error: "printful-poll-failed", detail: j });
-      const status = j.data?.status ?? "unknown";
+      const task = firstTask(j);
+      const status = task?.status ?? "unknown";
       let mockupUrl: string | undefined;
-      const cvm = j.data?.catalog_variant_mockups;
+      const cvm = task?.catalog_variant_mockups;
       if (status === "completed" && cvm && cvm.length > 0) {
         mockupUrl = cvm[0]?.mockups?.[0]?.mockup_url;
       }
@@ -375,9 +387,9 @@ async function handlePrintfulMockup(req: VercelRequest, res: VercelResponse) {
       headers,
       body: JSON.stringify(submitBody),
     });
-    const j = await r.json() as { data?: { id?: string }; error?: unknown };
+    const j = await r.json() as { data?: PfMockupTask | PfMockupTask[]; error?: unknown };
     if (!r.ok) return res.status(r.status).json({ error: "printful-submit-failed", detail: j });
-    const taskId = j.data?.id;
+    const taskId = String(firstTask(j)?.id ?? "");
     if (!taskId) return res.status(502).json({ error: "printful-no-task-id", detail: j });
     return res.status(202).json({ taskId, status: "pending", productType });
   } catch (err) {
