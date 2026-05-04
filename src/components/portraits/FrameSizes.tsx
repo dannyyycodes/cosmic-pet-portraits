@@ -29,19 +29,19 @@ export const PRICING: Record<
   }
 > = {
   GBP: {
-    "8x10":  { size: "8×10″",  retail: 69,  label: "£69",  caption: "Desk · shelf · bedside scale" },
-    "12x16": { size: "12×16″", retail: 99,  label: "£99",  hero: true, caption: "Hero size · the wall statement" },
-    "16x20": { size: "16×20″", retail: 149, label: "£149", caption: "Premium · main wall feature" },
-    "20x30": { size: "20×30″", retail: 199, label: "£199", caption: "Statement piece" },
-    digital:     { retail: 29, label: "£29" },
+    "8x10":  { size: "8×10″",  retail: 39, label: "£39", caption: "Desk · shelf · bedside" },
+    "12x16": { size: "12×16″", retail: 49, label: "£49", caption: "Entry · gift-friendly" },
+    "16x20": { size: "16×20″", retail: 65, label: "£65", hero: true, caption: "Hero · main wall feature" },
+    "20x30": { size: "20×30″", retail: 99, label: "£99", caption: "Statement · large feature" },
+    digital:     { retail: 19, label: "£19" },
     soulEdition: { retail: 40, label: "+£40" },
   },
   USD: {
-    "8x10":  { size: "8×10″",  retail: 89,  label: "$89",  caption: "Desk · shelf · bedside scale" },
-    "12x16": { size: "12×16″", retail: 129, label: "$129", hero: true, caption: "Hero size · the wall statement" },
-    "16x20": { size: "16×20″", retail: 189, label: "$189", caption: "Premium · main wall feature" },
-    "20x30": { size: "20×30″", retail: 249, label: "$249", caption: "Statement piece" },
-    digital:     { retail: 35, label: "$35" },
+    "8x10":  { size: "8×10″",  retail: 49,  label: "$49",  caption: "Desk · shelf · bedside" },
+    "12x16": { size: "12×16″", retail: 65,  label: "$65",  caption: "Entry · gift-friendly" },
+    "16x20": { size: "16×20″", retail: 85,  label: "$85",  hero: true, caption: "Hero · main wall feature" },
+    "20x30": { size: "20×30″", retail: 129, label: "$129", caption: "Statement · large feature" },
+    digital:     { retail: 25, label: "$25" },
     soulEdition: { retail: 50, label: "+$50" },
   },
 };

@@ -51,13 +51,17 @@ export const PRODUCTS: Record<ProductTypeKey, ProductDef> = {
     label: "Framed Canvas",
     shortLabel: "Canvas",
     hasSize: true,
-    defaultSizeKey: "12x16",
-    heroSizeKey: "12x16",
+    defaultSizeKey: "16x20",
+    // Hero moved to 16×20 — matches Crown & Paw / PawFav competitive positioning.
+    heroSizeKey: "16x20",
+    // Competitive launch pricing (locked 2026-05-04). Targets 50-55% margin
+    // pre-Gelato+ Gold; jumps to ~70% organically once Gelato+ Gold subscription
+    // is enabled (worth it ≥15 mid-size orders/mo).
     variants: {
-      "8x10":  { variantId: 64592196600157, priceMajor: 69,  sizeLabel: "8×10″" },
-      "12x16": { variantId: 64592196632925, priceMajor: 99,  sizeLabel: "12×16″" },
-      "16x20": { variantId: 64592196665693, priceMajor: 149, sizeLabel: "16×20″" },
-      "20x30": { variantId: 64592196698461, priceMajor: 199, sizeLabel: "20×30″" },
+      "8x10":  { variantId: 64592196600157, priceMajor: 39, sizeLabel: "8×10″" },
+      "12x16": { variantId: 64592196632925, priceMajor: 49, sizeLabel: "12×16″" },
+      "16x20": { variantId: 64592196665693, priceMajor: 65, sizeLabel: "16×20″" },
+      "20x30": { variantId: 64592196698461, priceMajor: 99, sizeLabel: "20×30″" },
     },
   },
   mug: {

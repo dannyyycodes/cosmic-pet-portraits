@@ -39,10 +39,10 @@ interface VariantDef {
 
 const PRODUCT_VARIANTS: Record<ProductTypeKey, Record<string, VariantDef>> = {
   "framed-canvas": {
-    "8x10":  { variantId: 64592196600157, priceMajor: 69,  sizeLabel: "8×10″" },
-    "12x16": { variantId: 64592196632925, priceMajor: 99,  sizeLabel: "12×16″" },
-    "16x20": { variantId: 64592196665693, priceMajor: 149, sizeLabel: "16×20″" },
-    "20x30": { variantId: 64592196698461, priceMajor: 199, sizeLabel: "20×30″" },
+    "8x10":  { variantId: 64592196600157, priceMajor: 39, sizeLabel: "8×10″" },
+    "12x16": { variantId: 64592196632925, priceMajor: 49, sizeLabel: "12×16″" },
+    "16x20": { variantId: 64592196665693, priceMajor: 65, sizeLabel: "16×20″" },
+    "20x30": { variantId: 64592196698461, priceMajor: 99, sizeLabel: "20×30″" },
   },
   mug: {
     default: { variantId: 64592196763997, priceMajor: 19, sizeLabel: "11oz" },
