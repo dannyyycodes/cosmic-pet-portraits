@@ -46,6 +46,7 @@ import {
 } from "@/components/portraits/cart";
 import { HowItWorks } from "@/components/portraits/HowItWorks";
 import { StudioFlow } from "@/components/portraits/StudioFlow";
+import { TopUpPlans } from "@/components/portraits/TopUpPlans";
 import { FrameSizes, PRICING, SIZE_KEYS } from "@/components/portraits/FrameSizes";
 import type { Currency, SizeKey } from "@/components/portraits/FrameSizes";
 import {
@@ -894,6 +895,9 @@ const Portraits = () => {
       <div ref={uploadRef}>
         <StudioFlow onCartAdd={handleAddToCart} />
       </div>
+
+      {/* Top-up plans — inline below the studio so customers never leave the page. */}
+      <TopUpPlans variant="inline" authRedirect="/portraits#topup" />
       </div>
     </main>
   );

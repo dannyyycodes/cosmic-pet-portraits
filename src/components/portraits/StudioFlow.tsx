@@ -314,8 +314,8 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       });
       const data = await res.json();
       if (res.status === 402) {
-        toast.error("Out of credits. Top up to keep going.");
-        navigate("/unlimited");
+        toast.error("Out of credits. Top up below to keep going.");
+        document.getElementById("topup")?.scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
       if (res.status === 503 && data.error === "ai-service-paused") {
@@ -390,7 +390,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         <div className="flex justify-center mb-7">
           {user ? (
             <Link
-              to="/unlimited"
+              to="/portraits#topup"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full transition-colors"
               style={{
                 background: PALETTE.cream,
