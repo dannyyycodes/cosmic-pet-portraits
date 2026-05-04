@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ABTestProvider } from "@/contexts/ABTestContext";
@@ -206,10 +206,10 @@ const App = () => (
                   <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   <Route path="/dev/report" element={<DevReport />} />
-                  {/* /portraits = landing (hero, character packs, how-it-works, reviews, FAQ).
-                      /portraits/studio = configurator (photo + prompt + signup gate + fal gen). */}
+                  {/* Studio is now inline at /portraits#studio. Old /portraits/studio
+                      redirects there so any cached/bookmarked link still lands correctly. */}
                   <Route path="/portraits" element={<Portraits />} />
-                  <Route path="/portraits/studio" element={<PortraitsStudio />} />
+                  <Route path="/portraits/studio" element={<Navigate to="/portraits#studio" replace />} />
                   <Route path="/portraits/templates" element={<PortraitsTemplates />} />
                   <Route path="/unlimited" element={<PortraitsUnlimited />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
