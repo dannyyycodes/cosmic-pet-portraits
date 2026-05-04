@@ -91,42 +91,25 @@ function useTypewriterPlaceholder(examples: string[], paused: boolean): string {
 function SignInDialog({
   open,
   onOpenChange,
-  onSuccess,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onSuccess?: () => void;
 }) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [mode, setMode] = useState<"login" | "signup">("signup");
+  const [sent, setSent] = useState(false);
 
-  async function handleOAuth(provider: "google" | "apple") {
-    setBusy(true);
-    const redirectTo = `${window.location.origin}/portraits#studio`;
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
-    if (error) {
-      toast.error(`${provider} sign-in unavailable — try email`);
-      setBusy(false);
-    }
-  }
-
-  async function handleEmail(e: React.FormEvent) {
+  async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email) return;
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/portraits#studio` } });
-        if (error) throw error;
-        toast.success("Check your email to confirm");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        onSuccess?.();
-        onOpenChange(false);
-      }
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/portraits#studio` },
+      });
+      if (error) throw error;
+      setSent(true);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -135,10 +118,21 @@ function SignInDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) {
+          // Reset on close so the next open is fresh.
+          setTimeout(() => { setEmail(""); setSent(false); }, 200);
+        }
+        onOpenChange(v);
+      }}
+    >
       <DialogContent className="max-w-[420px] p-0 overflow-hidden border-0" style={{ background: PALETTE.cream, borderRadius: 20 }}>
         <DialogTitle className="sr-only">Sign in to generate</DialogTitle>
-        <DialogDescription className="sr-only">Continue with Google, Apple, or email to generate AI portraits.</DialogDescription>
+        <DialogDescription className="sr-only">
+          Get a one-tap sign-in link in your inbox. No password needed.
+        </DialogDescription>
 
         <div className="px-7 pt-8 pb-6 text-center">
           <div
@@ -148,121 +142,91 @@ function SignInDialog({
             <Sparkles className="w-5 h-5" style={{ color: PALETTE.rose }} />
           </div>
           <h2 style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 22, fontWeight: 700, color: PALETTE.ink, letterSpacing: "-0.02em" }}>
-            3 free portraits
+            {sent ? "Check your inbox" : "3 free portraits"}
           </h2>
-          <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 14, color: PALETTE.earthMuted, marginTop: 6 }}>
-            Sign in to start. No credit card needed.
+          <p
+            className="mx-auto"
+            style={{
+              fontFamily: 'Assistant, system-ui, sans-serif',
+              fontSize: 14,
+              color: PALETTE.earthMuted,
+              marginTop: 6,
+              maxWidth: 320,
+              lineHeight: 1.5,
+            }}
+          >
+            {sent ? (
+              <>We sent a sign-in link to <strong style={{ color: PALETTE.ink }}>{email}</strong>. Open it on this device and you're in — no password needed.</>
+            ) : (
+              <>One-tap sign in. Enter your email and we'll send a sign-in link. No password to remember.</>
+            )}
           </p>
         </div>
 
-        <div className="px-7 pb-7 space-y-2.5">
-          {/* Google */}
-          <button
-            onClick={() => handleOAuth("google")}
-            disabled={busy}
-            className="w-full flex items-center justify-center gap-3 rounded-xl py-3 transition-all disabled:opacity-50"
-            style={{
-              background: "#fff",
-              border: `1px solid ${PALETTE.sandDeep}`,
-              color: PALETTE.ink,
-              fontFamily: 'Assistant, system-ui, sans-serif',
-              fontSize: 14.5,
-              fontWeight: 500,
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
-              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.255h2.908c1.702-1.567 2.684-3.875 2.684-6.612z"/>
-              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-              <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
-            </svg>
-            Continue with Google
-          </button>
-
-          {/* Apple */}
-          <button
-            onClick={() => handleOAuth("apple")}
-            disabled={busy}
-            className="w-full flex items-center justify-center gap-3 rounded-xl py-3 transition-all disabled:opacity-50"
-            style={{
-              background: PALETTE.ink,
-              color: PALETTE.cream,
-              fontFamily: 'Assistant, system-ui, sans-serif',
-              fontSize: 14.5,
-              fontWeight: 500,
-            }}
-          >
-            <svg width="16" height="18" viewBox="0 0 16 18" fill="currentColor" aria-hidden>
-              <path d="M13.18 9.59c-.027-2.48 2.024-3.67 2.117-3.728-1.151-1.683-2.946-1.913-3.586-1.94-1.527-.155-2.98.901-3.755.901-.79 0-1.97-.879-3.241-.853-1.667.024-3.205.97-4.061 2.466-1.732 3.003-.443 7.444 1.243 9.875.821 1.193 1.798 2.527 3.085 2.481 1.241-.05 1.706-.806 3.205-.806s1.918.806 3.226.78c1.331-.024 2.176-1.207 2.99-2.405.94-1.382 1.328-2.717 1.351-2.787-.03-.013-2.59-.994-2.617-3.945zM10.794 2.408c.685-.83 1.146-1.984 1.02-3.135-.985.04-2.18.656-2.888 1.484-.633.733-1.187 1.91-1.038 3.039 1.1.084 2.222-.558 2.906-1.388z"/>
-            </svg>
-            Continue with Apple
-          </button>
-
-          <div className="flex items-center gap-3 py-2">
-            <div className="flex-1" style={{ height: 1, background: PALETTE.sand }} />
-            <span style={{ fontSize: 12, color: PALETTE.earthMuted, fontFamily: 'Assistant, system-ui, sans-serif' }}>or</span>
-            <div className="flex-1" style={{ height: 1, background: PALETTE.sand }} />
-          </div>
-
-          <form onSubmit={handleEmail} className="space-y-2">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@example.com"
-              className="w-full rounded-xl px-4 py-3 outline-none transition-colors"
-              style={{
-                background: "#fff",
-                border: `1px solid ${PALETTE.sandDeep}`,
-                color: PALETTE.ink,
-                fontFamily: 'Assistant, system-ui, sans-serif',
-                fontSize: 14,
-              }}
-            />
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (6+ characters)"
-              className="w-full rounded-xl px-4 py-3 outline-none transition-colors"
-              style={{
-                background: "#fff",
-                border: `1px solid ${PALETTE.sandDeep}`,
-                color: PALETTE.ink,
-                fontFamily: 'Assistant, system-ui, sans-serif',
-                fontSize: 14,
-              }}
-            />
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full rounded-xl py-3 transition-all disabled:opacity-50"
-              style={{
-                background: PALETTE.rose,
-                color: PALETTE.cream,
-                fontFamily: 'Asap, system-ui, sans-serif',
-                fontSize: 14.5,
-                fontWeight: 600,
-                letterSpacing: "0.02em",
-              }}
-            >
-              {busy ? "..." : mode === "signup" ? "Sign up — get 3 free portraits" : "Sign in"}
-            </button>
-          </form>
-
-          <p className="text-center pt-1" style={{ fontSize: 12.5, color: PALETTE.earthMuted, fontFamily: 'Assistant, system-ui, sans-serif' }}>
-            {mode === "signup" ? "Already have an account? " : "New here? "}
-            <button
-              type="button"
-              onClick={() => setMode((m) => (m === "signup" ? "login" : "signup"))}
-              style={{ color: PALETTE.rose, fontWeight: 600 }}
-            >
-              {mode === "signup" ? "Sign in" : "Sign up"}
-            </button>
-          </p>
+        <div className="px-7 pb-7">
+          {!sent ? (
+            <form onSubmit={handleMagicLink} className="space-y-2.5">
+              <input
+                type="email"
+                required
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@example.com"
+                className="w-full rounded-xl px-4 py-3.5 outline-none transition-colors focus:border-[var(--rose)]"
+                style={{
+                  background: "#fff",
+                  border: `1px solid ${PALETTE.sandDeep}`,
+                  color: PALETTE.ink,
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                  fontSize: 15,
+                  // @ts-expect-error CSS var used by focus
+                  "--rose": PALETTE.rose,
+                }}
+              />
+              <button
+                type="submit"
+                disabled={busy}
+                className="w-full rounded-xl py-3.5 transition-all disabled:opacity-50"
+                style={{
+                  background: PALETTE.rose,
+                  color: PALETTE.cream,
+                  fontFamily: 'Asap, system-ui, sans-serif',
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                  boxShadow: "0 8px 22px rgba(191, 82, 74, 0.25)",
+                }}
+              >
+                {busy ? "Sending…" : "Email me a sign-in link →"}
+              </button>
+              <p
+                className="text-center pt-2"
+                style={{ fontSize: 12, color: PALETTE.earthMuted, fontFamily: 'Assistant, system-ui, sans-serif', lineHeight: 1.5 }}
+              >
+                We'll never share your email. By continuing you agree to our terms.
+              </p>
+            </form>
+          ) : (
+            <div className="space-y-3 text-center">
+              <div
+                className="mx-auto w-14 h-14 rounded-full flex items-center justify-center"
+                style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}
+              >
+                <span style={{ fontSize: 28 }}>📨</span>
+              </div>
+              <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 13, color: PALETTE.earthMuted }}>
+                The link expires in 1 hour. Didn't get it?{" "}
+                <button
+                  type="button"
+                  onClick={() => setSent(false)}
+                  style={{ color: PALETTE.rose, fontWeight: 600 }}
+                >
+                  Try again
+                </button>
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
