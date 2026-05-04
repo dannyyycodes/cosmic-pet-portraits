@@ -300,17 +300,21 @@ interface PrintfulProductConfig {
   technique: string;
 }
 
+// Verified live against Printful API on 2026-05-04 — variant IDs are real,
+// mockup style IDs match the placement+technique pair returned by /v2/catalog-products/{id}/mockup-styles.
 const PRINTFUL_PRODUCTS: Record<ProductType, PrintfulProductConfig> = {
-  // White Glossy Mug 11oz · Default — Front view
+  // White Glossy Mug 11oz · Default Front view (style 10423)
   "mug":           { catalog_product_id: 19,  catalog_variant_id: 1320,  mockup_style_id: 10423, placement: "default", technique: "sublimation" },
-  // Framed Canvas (in) · Lifestyle Front  — variant_id placeholder, will resolve at submit time
-  "framed-canvas": { catalog_product_id: 614, catalog_variant_id: 21038, mockup_style_id: 3794,  placement: "default", technique: "digital" },
-  // All-Over Print Tote Bag · Flat Front
-  "tote":          { catalog_product_id: 84,  catalog_variant_id: 5589,  mockup_style_id: 12781, placement: "default", technique: "cut-sew" },
-  // Bella+Canvas 3001 · Men's Lifestyle Front (white M will resolve at submit)
+  // Framed Canvas Black 12″×16″ · Lifestyle Front (style 3795 — Black-variant of 3794)
+  "framed-canvas": { catalog_product_id: 614, catalog_variant_id: 16035, mockup_style_id: 3795,  placement: "default", technique: "digital" },
+  // Eco Tote Oyster (cream, on-brand) · Flat Lifestyle Front (style 19430)
+  // Switched from product 84 (All-Over Print, cut-sew) → 367 (Eco Tote, DTG) to
+  // avoid the cut-sew stitch_color required-option dance.
+  "tote":          { catalog_product_id: 367, catalog_variant_id: 10458, mockup_style_id: 19430, placement: "front",   technique: "dtg" },
+  // Bella+Canvas 3001 White / M · Men's Lifestyle Front (style 744)
   "tee":           { catalog_product_id: 71,  catalog_variant_id: 4012,  mockup_style_id: 744,   placement: "front",   technique: "dtg" },
-  // Gildan 18500 · Flat Lifestyle Front
-  "hoodie":        { catalog_product_id: 146, catalog_variant_id: 5530,  mockup_style_id: 1405,  placement: "front",   technique: "dtg" },
+  // Gildan 18500 White / M · Flat Lifestyle Front (style 1405)
+  "hoodie":        { catalog_product_id: 146, catalog_variant_id: 5523,  mockup_style_id: 1405,  placement: "front",   technique: "dtg" },
 };
 
 async function handlePrintfulMockup(req: VercelRequest, res: VercelResponse) {
