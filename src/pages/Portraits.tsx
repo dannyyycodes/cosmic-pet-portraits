@@ -287,13 +287,7 @@ function UploadStudio({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mt-12 items-start">
           {/* ─── Configurator column (no numbered steps — compact sections) ─── */}
           <div className="lg:col-span-7">
-            {/* ── Surface switcher ─ always-visible, lets customer change
-                product without scrolling back up to ExploreRange ─────── */}
-            <SectionLabel className="!mb-3">Print on</SectionLabel>
-            <ProductTypeSwitcher
-              value={productType}
-              onChange={(p) => onProductChange?.(p)}
-            />
+            {/* Canvas-only — product type switcher removed 2026-05-04. */}
 
             {/* ── 2. SIZE — only when product has sizes (canvas, tee, hoodie). ── */}
             {product.hasSize && (
@@ -903,16 +897,14 @@ const Portraits = () => {
       <div style={{ position: "relative", zIndex: 1 }}>
       <PortraitsHero onBegin={scrollToUpload} />
       <TrustStrip />
-      <ExploreRange
-        onTileClick={handleRangeTile}
-        activeId={presetSoulEdition ? "soul-edition" : productType}
-      />
+      {/* ExploreRange (multi-product tile rail) removed 2026-05-04 —
+          we now sell canvas portraits only. Customer picks size in UploadStudio. */}
       <CharacterPacks onPickPack={handlePickPack} />
       <HowItWorks />
       <UploadStudio
         currency={currency}
         uploadRef={uploadRef}
-        productType={productType}
+        productType="framed-canvas"
         initialPackId={presetPack}
         initialSoulEdition={presetSoulEdition}
         onPackChange={setPresetPack}
