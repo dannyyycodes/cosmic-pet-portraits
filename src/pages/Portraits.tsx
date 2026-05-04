@@ -45,6 +45,7 @@ import {
   cartCount as countCart,
 } from "@/components/portraits/cart";
 import { HowItWorks } from "@/components/portraits/HowItWorks";
+import { StudioFlow } from "@/components/portraits/StudioFlow";
 import { FrameSizes, PRICING, SIZE_KEYS } from "@/components/portraits/FrameSizes";
 import type { Currency, SizeKey } from "@/components/portraits/FrameSizes";
 import {
@@ -888,47 +889,10 @@ const Portraits = () => {
       <TrustStrip />
       <HowItWorks />
 
-      {/* Start-designing CTA — routes to the AI Studio at /portraits/studio. */}
-      <section
-        ref={uploadRef}
-        id="upload"
-        className="relative px-6 md:px-10"
-        style={{
-          background: PALETTE.cream2,
-          paddingTop: "clamp(96px, 12vh, 160px)",
-          paddingBottom: "clamp(96px, 12vh, 160px)",
-          borderTop: `1px solid ${PALETTE.sand}`,
-        }}
-        aria-labelledby="upload-heading"
-      >
-        <div className="mx-auto text-center" style={{ maxWidth: "720px" }}>
-          <p style={eyebrow(PALETTE.earthMuted)}>The studio</p>
-          <h2 id="upload-heading" style={{ ...display("44px"), color: PALETTE.ink, marginTop: "12px", marginBottom: "20px" }}>
-            Start designing your portrait
-          </h2>
-          <p style={{ ...cormorantItalic("19px"), color: PALETTE.earth, marginBottom: "36px" }}>
-            Upload your pet's photo, describe how you want them shown, and our AI brings it to life on a museum-quality framed canvas.
-          </p>
-          <a
-            href="/portraits/studio"
-            className="inline-block rounded-sm px-8 py-4"
-            style={{
-              background: PALETTE.rose,
-              color: PALETTE.cream,
-              fontSize: "15px",
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textDecoration: "none",
-              boxShadow: "0 18px 48px rgba(191, 82, 74, 0.28)",
-            }}
-          >
-            Open the Studio →
-          </a>
-          <p style={{ marginTop: "16px", fontSize: "13px", color: PALETTE.earthMuted }}>
-            3 free portraits with sign-up · then £4.99 / pack or subscribe.
-          </p>
-        </div>
-      </section>
+      {/* Studio — full configurator inline on the landing page. */}
+      <div ref={uploadRef}>
+        <StudioFlow onCartAdd={handleAddToCart} />
+      </div>
       </div>
     </main>
   );

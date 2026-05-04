@@ -24,10 +24,8 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Studio",           href: "/portraits/studio" },
+  { label: "Studio",           href: "/portraits#studio" },
   { label: "How It Works",     href: "/portraits#how" },
-  { label: "Reviews",          href: "/portraits#reviews" },
-  { label: "FAQ",              href: "/portraits#faq" },
 ];
 
 interface PortraitsNavProps {
