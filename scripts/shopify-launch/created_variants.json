@@ -1,0 +1,163 @@
+{
+  "cosmic-pet-portrait-framed-canvas": {
+    "product_id": 16173633765725,
+    "product_title": "Cosmic Pet Portrait \u2014 Framed Canvas",
+    "product_type": "Framed Canvas",
+    "variants": {
+      "8\u00d710\u2033": {
+        "variant_id": 64592196600157,
+        "variant_gid": "gid://shopify/ProductVariant/64592196600157",
+        "sku": "LS-FC-8X10",
+        "price": "69.00",
+        "gelato_uid": "framed_canvas_wood_w14xt32-mm_8x10-inch_ver_natural-wood_10x12-inch_wood-fsc-2-cm_canvas_4-0_canvas-mounting"
+      },
+      "12\u00d716\u2033": {
+        "variant_id": 64592196632925,
+        "variant_gid": "gid://shopify/ProductVariant/64592196632925",
+        "sku": "LS-FC-12X16",
+        "price": "99.00",
+        "gelato_uid": "framed_canvas_wood_w14xt32-mm_12x16-inch_ver_natural-wood_14x18-inch_wood-fsc-2-cm_canvas_4-0_canvas-mounting"
+      },
+      "16\u00d720\u2033": {
+        "variant_id": 64592196665693,
+        "variant_gid": "gid://shopify/ProductVariant/64592196665693",
+        "sku": "LS-FC-16X20",
+        "price": "149.00",
+        "gelato_uid": "framed_canvas_wood_w14xt32-mm_16x20-inch_ver_natural-wood_18x22-inch_wood-fsc-2-cm_canvas_4-0_canvas-mounting"
+      },
+      "20\u00d730\u2033": {
+        "variant_id": 64592196698461,
+        "variant_gid": "gid://shopify/ProductVariant/64592196698461",
+        "sku": "LS-FC-20X30",
+        "price": "199.00",
+        "gelato_uid": "framed_canvas_wood_w14xt32-mm_20x30-inch_ver_natural-wood_22x32-inch_wood-fsc-2-cm_canvas_4-0_canvas-mounting"
+      }
+    }
+  },
+  "cosmic-pet-portrait-mug": {
+    "product_id": 16173633831261,
+    "product_title": "Cosmic Pet Portrait \u2014 Ceramic Mug",
+    "product_type": "Mug",
+    "variants": {
+      "11oz": {
+        "variant_id": 64592196763997,
+        "variant_gid": "gid://shopify/ProductVariant/64592196763997",
+        "sku": "LS-MUG-11",
+        "price": "19.00",
+        "gelato_uid": "mug_product_msz_11-oz_mmat_ceramic-white_cl_4-0"
+      }
+    }
+  },
+  "cosmic-pet-portrait-tote": {
+    "product_id": 16173633864029,
+    "product_title": "Cosmic Pet Portrait \u2014 Tote Bag",
+    "product_type": "Tote Bag",
+    "variants": {
+      "Standard": {
+        "variant_id": 64592196796765,
+        "variant_gid": "gid://shopify/ProductVariant/64592196796765",
+        "sku": "LS-TOTE-STD",
+        "price": "29.00",
+        "gelato_uid": "bag_product_bsc_tote-bag_bqa_clc_bsi_std-t_bco_white_bpr_4-0"
+      }
+    }
+  },
+  "cosmic-pet-portrait-tee": {
+    "product_id": 16173633896797,
+    "product_title": "Cosmic Pet Portrait \u2014 Unisex Tee",
+    "product_type": "T-Shirt",
+    "variants": {
+      "XS": {
+        "variant_id": 64592196829533,
+        "variant_gid": "gid://shopify/ProductVariant/64592196829533",
+        "sku": "LS-TEE-XS",
+        "price": "29.00",
+        "gelato_uid": "apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_classic_gsi_xs_gco_white_gpr_0-4"
+      },
+      "S": {
+        "variant_id": 64592196862301,
+        "variant_gid": "gid://shopify/ProductVariant/64592196862301",
+        "sku": "LS-TEE-S",
+        "price": "29.00",
+        "gelato_uid": "apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_classic_gsi_s_gco_white_gpr_0-4"
+      },
+      "M": {
+        "variant_id": 64592196895069,
+        "variant_gid": "gid://shopify/ProductVariant/64592196895069",
+        "sku": "LS-TEE-M",
+        "price": "29.00",
+        "gelato_uid": "apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_classic_gsi_m_gco_white_gpr_0-4"
+      },
+      "L": {
+        "variant_id": 64592196927837,
+        "variant_gid": "gid://shopify/ProductVariant/64592196927837",
+        "sku": "LS-TEE-L",
+        "price": "29.00",
+        "gelato_uid": "apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_classic_gsi_l_gco_white_gpr_0-4"
+      },
+      "XL": {
+        "variant_id": 64592196960605,
+        "variant_gid": "gid://shopify/ProductVariant/64592196960605",
+        "sku": "LS-TEE-XL",
+        "price": "32.00",
+        "gelato_uid": "apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_classic_gsi_xl_gco_white_gpr_0-4"
+      },
+      "2XL": {
+        "variant_id": 64592196993373,
+        "variant_gid": "gid://shopify/ProductVariant/64592196993373",
+        "sku": "LS-TEE-2XL",
+        "price": "34.00",
+        "gelato_uid": "apparel_product_gca_t-shirt_gsc_crewneck_gcu_unisex_gqa_classic_gsi_2xl_gco_white_gpr_0-4"
+      }
+    }
+  },
+  "cosmic-pet-portrait-hoodie": {
+    "product_id": 16173634060637,
+    "product_title": "Cosmic Pet Portrait \u2014 Unisex Hoodie",
+    "product_type": "Hoodie",
+    "variants": {
+      "XS": {
+        "variant_id": 64592197026141,
+        "variant_gid": "gid://shopify/ProductVariant/64592197026141",
+        "sku": "LS-HOOD-XS",
+        "price": "49.00",
+        "gelato_uid": "apparel_product_gca_hoodie_gsc_pullover_gcu_unisex_gqa_classic_gsi_xs_gco_black_gpr_0-4"
+      },
+      "S": {
+        "variant_id": 64592197058909,
+        "variant_gid": "gid://shopify/ProductVariant/64592197058909",
+        "sku": "LS-HOOD-S",
+        "price": "49.00",
+        "gelato_uid": "apparel_product_gca_hoodie_gsc_pullover_gcu_unisex_gqa_classic_gsi_s_gco_black_gpr_0-4"
+      },
+      "M": {
+        "variant_id": 64592197091677,
+        "variant_gid": "gid://shopify/ProductVariant/64592197091677",
+        "sku": "LS-HOOD-M",
+        "price": "49.00",
+        "gelato_uid": "apparel_product_gca_hoodie_gsc_pullover_gcu_unisex_gqa_classic_gsi_m_gco_black_gpr_0-4"
+      },
+      "L": {
+        "variant_id": 64592197124445,
+        "variant_gid": "gid://shopify/ProductVariant/64592197124445",
+        "sku": "LS-HOOD-L",
+        "price": "49.00",
+        "gelato_uid": "apparel_product_gca_hoodie_gsc_pullover_gcu_unisex_gqa_classic_gsi_l_gco_black_gpr_0-4"
+      },
+      "XL": {
+        "variant_id": 64592197157213,
+        "variant_gid": "gid://shopify/ProductVariant/64592197157213",
+        "sku": "LS-HOOD-XL",
+        "price": "52.00",
+        "gelato_uid": "apparel_product_gca_hoodie_gsc_pullover_gcu_unisex_gqa_classic_gsi_xl_gco_black_gpr_0-4"
+      },
+      "2XL": {
+        "variant_id": 64592197189981,
+        "variant_gid": "gid://shopify/ProductVariant/64592197189981",
+        "sku": "LS-HOOD-2XL",
+        "price": "55.00",
+        "gelato_uid": "apparel_product_gca_hoodie_gsc_pullover_gcu_unisex_gqa_classic_gsi_2xl_gco_black_gpr_0-4"
+      }
+    }
+  }
+}

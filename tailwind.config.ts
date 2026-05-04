@@ -19,6 +19,8 @@ export default {
         caveat: ['Caveat', 'cursive'],
         'dm-serif': ['"DM Serif Display"', 'Georgia', 'serif'],
         cormorant: ['Cormorant', 'Georgia', 'serif'],
+        asap: ['Asap', 'system-ui', 'sans-serif'],
+        assistant: ['Assistant', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

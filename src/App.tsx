@@ -66,6 +66,10 @@ const CardsPreview = lazy(() => import("./pages/CardsPreview"));
 const CompatibilityViewer = lazy(() => import("./pages/CompatibilityViewer"));
 const SoulSpeakHub = lazy(() => import("./pages/SoulSpeakHub"));
 const DevReport = lazy(() => import("./pages/DevReport"));
+const Portraits = lazy(() => import("./pages/Portraits"));
+const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
+const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
+const PortraitsUnlimited = lazy(() => import("./pages/PortraitsUnlimited"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the homepage InlineCheckout section.
@@ -202,6 +206,10 @@ const App = () => (
                   <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   <Route path="/dev/report" element={<DevReport />} />
+                  <Route path="/portraits" element={<Portraits />} />
+                  <Route path="/portraits/templates" element={<PortraitsTemplates />} />
+                  <Route path="/portraits/studio" element={<PortraitsStudio />} />
+                  <Route path="/unlimited" element={<PortraitsUnlimited />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
