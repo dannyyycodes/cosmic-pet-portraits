@@ -667,33 +667,78 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-// ─── handleCutout — Photoroom ───────────────────────────────────────────────
-async function handleCutout(req: VercelRequest, res: VercelResponse) {
-  if (!PHOTOROOM_KEY) return res.status(500).json({ error: "PHOTOROOM_API_KEY not configured" });
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return res.status(500).json({ error: "Supabase service env not configured" });
+// ─── handleCutout — Photoroom primary, HuggingFace BRIA RMBG fallback ──────
+// Photoroom is best quality ($0.02/call) but the trial plan can exhaust.
+// HuggingFace Inference API for `briaai/RMBG-1.4` is free (rate-limited)
+// and ships an image-in/image-out endpoint that takes raw bytes.
+const HF_TOKEN = process.env.HUGGINGFACE_API_KEY ?? process.env.HF_TOKEN ?? "";
+const HF_RMBG_ENDPOINT = "https://api-inference.huggingface.co/models/briaai/RMBG-1.4";
 
-  const { imageUrl } = (req.body ?? {}) as { imageUrl?: string };
-  if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
-
+async function tryPhotoroom(imageUrl: string): Promise<Buffer | null> {
+  if (!PHOTOROOM_KEY) return null;
   try {
     const url = new URL(PHOTOROOM_ENDPOINT);
     url.searchParams.set("imageUrl", imageUrl);
     url.searchParams.set("background.color", "transparent");
     url.searchParams.set("outputSize", "1500x1500");
     url.searchParams.set("padding", "0.05");
+    const r = await fetch(url.toString(), { method: "GET", headers: { "x-api-key": PHOTOROOM_KEY, Accept: "image/png" } });
+    if (!r.ok) return null;
+    return Buffer.from(await r.arrayBuffer());
+  } catch { return null; }
+}
 
-    const prRes = await fetch(url.toString(), { method: "GET", headers: { "x-api-key": PHOTOROOM_KEY, Accept: "image/png" } });
-    if (!prRes.ok) {
-      const text = await prRes.text();
-      return res.status(prRes.status).json({ error: "Photoroom failed", detail: text.slice(0, 500) });
+async function tryHfRmbg(imageUrl: string): Promise<Buffer | null> {
+  try {
+    // Fetch the source image bytes
+    const imgRes = await fetch(imageUrl);
+    if (!imgRes.ok) return null;
+    const imgBuf = Buffer.from(await imgRes.arrayBuffer());
+
+    // POST raw bytes to HF Inference API. Free anonymous tier works at low volume;
+    // adding HUGGINGFACE_API_KEY gives generous limits.
+    const headers: Record<string, string> = { "Content-Type": "application/octet-stream", Accept: "image/png" };
+    if (HF_TOKEN) headers["Authorization"] = `Bearer ${HF_TOKEN}`;
+
+    // Cold-start retry: HF returns 503 with `estimated_time` while warming.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const r = await fetch(HF_RMBG_ENDPOINT, { method: "POST", headers, body: imgBuf });
+      if (r.ok) return Buffer.from(await r.arrayBuffer());
+      if (r.status === 503) {
+        const waitMs = 4000;
+        await new Promise(rs => setTimeout(rs, waitMs));
+        continue;
+      }
+      return null;
     }
-    const buffer = Buffer.from(await prRes.arrayBuffer());
+    return null;
+  } catch { return null; }
+}
+
+async function handleCutout(req: VercelRequest, res: VercelResponse) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return res.status(500).json({ error: "Supabase service env not configured" });
+
+  const { imageUrl } = (req.body ?? {}) as { imageUrl?: string };
+  if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
+
+  try {
+    // Try Photoroom first (highest quality), then HuggingFace BRIA RMBG (free).
+    let buffer = await tryPhotoroom(imageUrl);
+    let provider = "photoroom";
+    if (!buffer) {
+      buffer = await tryHfRmbg(imageUrl);
+      provider = "huggingface";
+    }
+    if (!buffer) {
+      return res.status(502).json({ error: "All cutout providers failed (photoroom + huggingface)" });
+    }
+
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
     const path = `cutouts/${crypto.randomUUID()}.png`;
     const { error: upErr } = await supabase.storage.from("pet-photos").upload(path, buffer, { contentType: "image/png", cacheControl: "31536000", upsert: false });
     if (upErr) return res.status(500).json({ error: "Cutout upload failed", detail: upErr.message });
     const { data } = supabase.storage.from("pet-photos").getPublicUrl(path);
-    return res.status(200).json({ cutoutUrl: data.publicUrl, mime: "image/png" });
+    return res.status(200).json({ cutoutUrl: data.publicUrl, mime: "image/png", provider });
   } catch (err) {
     return res.status(500).json({ error: "Cutout failed", detail: (err as Error).message });
   }
