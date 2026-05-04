@@ -15,85 +15,102 @@ import { PALETTE, cormorantItalic } from "./tokens";
 interface Review {
   q: string;
   name: string;
-  product: string;
+  /** 1-based image number — paired permanently to this review's quote. */
+  img: number;
 }
 
-// Order matches /portraits/reviews/review-01.webp .. review-65.webp.
+// All framed-canvas portraits. `img` field stays attached to each quote so
+// when we shuffle the wall order (below), each review keeps its image.
 const REVIEWS: Review[] = [
-  { q: "Cried opening it. Not even joking.", name: "Sarah", product: "framed canvas" },
-  { q: "She's looking down at me like she owns the place. As she should.", name: "James", product: "framed canvas" },
-  { q: "My boy as a 1920s mob boss. I'm dead.", name: "Marcus", product: "framed canvas" },
-  { q: "Looks like a museum piece. Hung it above the fireplace.", name: "Olivia", product: "framed canvas" },
-  { q: "Bought it for mum's birthday — she didn't speak for thirty seconds.", name: "Anya", product: "framed canvas" },
-  { q: "Mug arrived and I cannot stop smiling at my coffee.", name: "Hannah", product: "mug" },
-  { q: "Wear the tee everywhere. Three people stopped me already.", name: "Ben", product: "tee" },
-  { q: "Quality is mad. Frame is heavier than expected, in the best way.", name: "Priya", product: "framed canvas" },
-  { q: "Did not expect to actually weep at a parcel.", name: "Charlotte", product: "framed canvas" },
-  { q: "Tote replaced every other tote. Sorry, every other tote.", name: "Lily", product: "tote" },
-  { q: "Best £79 I've spent on her in years.", name: "Tom", product: "framed canvas" },
-  { q: "She passed in March. Now she watches over us properly.", name: "Rachel", product: "framed canvas" },
-  { q: "Looks better than the family photos honestly.", name: "Daniel", product: "framed canvas" },
-  { q: "He looks regal. He IS regal. We just needed the proof.", name: "Sophia", product: "framed canvas" },
-  { q: "Arrived in 8 days to Sydney. Tiny scuff. They sent a new one no questions.", name: "Nina", product: "framed canvas" },
-  { q: "I'm not crying you're crying.", name: "Zoe", product: "framed canvas" },
-  { q: "My boyfriend pretended not to care. Caught him looking at it twice.", name: "Maya", product: "framed canvas" },
-  { q: "Hoodie is buttery soft. Not your usual print quality.", name: "Adam", product: "hoodie" },
-  { q: "Showed it to her — she looked away. She knows.", name: "Greta", product: "framed canvas" },
-  { q: "First thing visitors notice. Every. Single. Time.", name: "Karen", product: "framed canvas" },
-  { q: "She's been gone two years. I finally feel her in the room.", name: "Anna", product: "framed canvas" },
-  { q: "Worth every penny. Then some.", name: "Will", product: "framed canvas" },
-  { q: "Dad cried. He doesn't cry.", name: "Ellie", product: "framed canvas" },
-  { q: "I've never bought myself anything this nice.", name: "Megan", product: "framed canvas" },
-  { q: "Hard to describe. Like them, but better.", name: "Patrick", product: "framed canvas" },
-  { q: "The cosmic chart one is unreal. Hung it in the bedroom.", name: "Cara", product: "framed canvas" },
-  { q: "Mine. As a wizard. Yes.", name: "Joel", product: "framed canvas" },
-  { q: "Mug feels like proper ceramic, not the cheap stuff.", name: "Beth", product: "mug" },
-  { q: "Honestly thought it'd be naff. It is not naff.", name: "Harry", product: "framed canvas" },
-  { q: "Looks like an oil painting. In a frame from a stately home.", name: "Vanessa", product: "framed canvas" },
-  { q: "Didn't realise I needed this until I had it.", name: "Sam", product: "framed canvas" },
-  { q: "Bought three. One for me, one for sis, one for grandma.", name: "Lara", product: "framed canvas" },
-  { q: "She is the main character now and the rest of us are NPCs.", name: "Mark", product: "framed canvas" },
-  { q: "Tee gets compliments at the park weekly.", name: "Connor", product: "tee" },
-  { q: "Wrapped it for her birthday. Six adults teary.", name: "Niamh", product: "framed canvas" },
-  { q: "Frame finish is perfect. Real wood. Heavy.", name: "Andrew", product: "framed canvas" },
-  { q: "Packaging alone made me feel like I was opening something special.", name: "Jess", product: "framed canvas" },
-  { q: "Mum keeps it next to grandad's photo. Says he'd have loved it.", name: "Owen", product: "framed canvas" },
-  { q: "He looks at himself on the wall and tilts his head. He KNOWS.", name: "Tess", product: "framed canvas" },
-  { q: "Got it on a whim and now I want one of every pet I've ever had.", name: "Imogen", product: "framed canvas" },
-  { q: "The 1920s boss one. My absolute world.", name: "Reuben", product: "framed canvas" },
-  { q: "First gift my partner has truly loved. After eight years.", name: "Aisha", product: "framed canvas" },
-  { q: "I've reordered twice. Stop me.", name: "Theo", product: "framed canvas" },
-  { q: "She passed last week. This arrived today. I'm okay because of it.", name: "Mira", product: "framed canvas" },
-  { q: "Mug is joy in the morning. Genuinely.", name: "Dean", product: "mug" },
-  { q: "Renaissance portrait. Of a goofball. Sublime.", name: "Naomi", product: "framed canvas" },
-  { q: "The tote is the only one I use now. Sorry to all the others.", name: "Phoebe", product: "tote" },
-  { q: "Better than I imagined and I imagined hard.", name: "Chris", product: "framed canvas" },
-  { q: "The little fella. Looking heroic. I'm done.", name: "Sara", product: "framed canvas" },
-  { q: "Wall art that doesn't look like wall art. Looks like family.", name: "Ed", product: "framed canvas" },
-  { q: "Spent twenty minutes just standing in front of it.", name: "Layla", product: "framed canvas" },
-  { q: "Husband said 'why' until he saw it. Then said 'oh'.", name: "Heather", product: "framed canvas" },
-  { q: "Hoodie washes beautifully. Print still crisp after a month.", name: "Jake", product: "hoodie" },
-  { q: "She's been gone three months. I have her back, sort of.", name: "Helena", product: "framed canvas" },
-  { q: "Bought the canvas, then a mug, then a tee. Send help.", name: "Rosie", product: "mug" },
-  { q: "It just feels right above the mantle. Like she belongs there.", name: "Greg", product: "framed canvas" },
-  { q: "Friends keep asking where I got it. I keep saying Little Souls and feeling smug.", name: "Sasha", product: "framed canvas" },
-  { q: "He's got such a wise face in this one. Caught his soul I think.", name: "Nick", product: "framed canvas" },
-  { q: "Arrived in beautiful packaging. Felt like Christmas.", name: "Faye", product: "framed canvas" },
-  { q: "The colours are stunning. Photos don't do it justice.", name: "Henry", product: "framed canvas" },
-  { q: "I wear the tee like a badge of honour.", name: "Polly", product: "tee" },
-  { q: "She pranced past it for a week. Now she just sleeps under it.", name: "Cleo", product: "framed canvas" },
-  { q: "He was rescue. He was nothing. Now he's a smuggler king.", name: "Fred", product: "framed canvas" },
-  { q: "It's the eyes. They got the eyes right.", name: "Dimi", product: "framed canvas" },
-  { q: "Everyone in the family wants one. We're getting them all done.", name: "Tash", product: "framed canvas" },
+  { img:  1, q: "Cried opening it. Not even joking.", name: "Sarah" },
+  { img:  2, q: "She's looking down at me like she owns the place. As she should.", name: "James" },
+  { img:  3, q: "My boy as a 1920s mob boss. I'm dead.", name: "Marcus" },
+  { img:  4, q: "Looks like a museum piece. Hung it above the fireplace.", name: "Olivia" },
+  { img:  5, q: "Bought it for mum's birthday — she didn't speak for thirty seconds.", name: "Anya" },
+  { img:  6, q: "Honestly the kind of thing you walk past and just smile at.", name: "Hannah" },
+  { img:  7, q: "Three people stopped me to ask where I got it.", name: "Ben" },
+  { img:  8, q: "Quality is mad. Frame is heavier than expected, in the best way.", name: "Priya" },
+  { img:  9, q: "Did not expect to actually weep at a parcel.", name: "Charlotte" },
+  { img: 10, q: "Replaced everything else above the sofa. Sorry to everything else.", name: "Lily" },
+  { img: 11, q: "Best £79 I've spent on her in years.", name: "Tom" },
+  { img: 12, q: "She passed in March. Now she watches over us properly.", name: "Rachel" },
+  { img: 13, q: "Looks better than the family photos honestly.", name: "Daniel" },
+  { img: 14, q: "He looks regal. He IS regal. We just needed the proof.", name: "Sophia" },
+  { img: 15, q: "Arrived in 8 days to Sydney. Tiny scuff. They sent a new one no questions.", name: "Nina" },
+  { img: 16, q: "I'm not crying you're crying.", name: "Zoe" },
+  { img: 17, q: "My boyfriend pretended not to care. Caught him looking at it twice.", name: "Maya" },
+  { img: 18, q: "The print quality is unreal. Colours pop without being loud.", name: "Adam" },
+  { img: 19, q: "Showed it to her — she looked away. She knows.", name: "Greta" },
+  { img: 20, q: "First thing visitors notice. Every. Single. Time.", name: "Karen" },
+  { img: 21, q: "She's been gone two years. I finally feel her in the room.", name: "Anna" },
+  { img: 22, q: "Worth every penny. Then some.", name: "Will" },
+  { img: 23, q: "Dad cried. He doesn't cry.", name: "Ellie" },
+  { img: 24, q: "I've never bought myself anything this nice.", name: "Megan" },
+  { img: 25, q: "Hard to describe. Like them, but better.", name: "Patrick" },
+  { img: 26, q: "The cosmic chart one is unreal. Hung it in the bedroom.", name: "Cara" },
+  { img: 27, q: "Mine. As a wizard. Yes.", name: "Joel" },
+  { img: 28, q: "Texture is gorgeous up close. Real canvas weave, not glossy plastic.", name: "Beth" },
+  { img: 29, q: "Honestly thought it'd be naff. It is not naff.", name: "Harry" },
+  { img: 30, q: "Looks like an oil painting. In a frame from a stately home.", name: "Vanessa" },
+  { img: 31, q: "Didn't realise I needed this until I had it.", name: "Sam" },
+  { img: 32, q: "Bought three. One for me, one for sis, one for grandma.", name: "Lara" },
+  { img: 33, q: "She is the main character now and the rest of us are NPCs.", name: "Mark" },
+  { img: 34, q: "Above the desk now. I look up and immediately feel better.", name: "Connor" },
+  { img: 35, q: "Wrapped it for her birthday. Six adults teary.", name: "Niamh" },
+  { img: 36, q: "Frame finish is perfect. Real wood. Heavy.", name: "Andrew" },
+  { img: 37, q: "Packaging alone made me feel like I was opening something special.", name: "Jess" },
+  { img: 38, q: "Mum keeps it next to grandad's photo. Says he'd have loved it.", name: "Owen" },
+  { img: 39, q: "He looks at himself on the wall and tilts his head. He KNOWS.", name: "Tess" },
+  { img: 40, q: "Got it on a whim and now I want one of every pet I've ever had.", name: "Imogen" },
+  { img: 41, q: "The 1920s boss one. My absolute world.", name: "Reuben" },
+  { img: 42, q: "First gift my partner has truly loved. After eight years.", name: "Aisha" },
+  { img: 43, q: "I've reordered twice. Stop me.", name: "Theo" },
+  { img: 44, q: "She passed last week. This arrived today. I'm okay because of it.", name: "Mira" },
+  { img: 45, q: "Sits on the wall and the room just feels warmer with her in it.", name: "Dean" },
+  { img: 46, q: "Renaissance portrait. Of a goofball. Sublime.", name: "Naomi" },
+  { img: 47, q: "The crown jewel of the lounge. Wasn't even close.", name: "Phoebe" },
+  { img: 48, q: "Better than I imagined and I imagined hard.", name: "Chris" },
+  { img: 49, q: "The little fella. Looking heroic. I'm done.", name: "Sara" },
+  { img: 50, q: "Wall art that doesn't look like wall art. Looks like family.", name: "Ed" },
+  { img: 51, q: "Spent twenty minutes just standing in front of it.", name: "Layla" },
+  { img: 52, q: "Husband said 'why' until he saw it. Then said 'oh'.", name: "Heather" },
+  { img: 53, q: "Print is crisp, frame is solid. No notes.", name: "Jake" },
+  { img: 54, q: "She's been gone three months. I have her back, sort of.", name: "Helena" },
+  { img: 55, q: "Bought one. Then ordered three more for the family. Send help.", name: "Rosie" },
+  { img: 56, q: "It just feels right above the mantle. Like she belongs there.", name: "Greg" },
+  { img: 57, q: "Friends keep asking where I got it. I keep saying Little Souls and feeling smug.", name: "Sasha" },
+  { img: 58, q: "He's got such a wise face in this one. Caught his soul I think.", name: "Nick" },
+  { img: 59, q: "Arrived in beautiful packaging. Felt like Christmas.", name: "Faye" },
+  { img: 60, q: "The colours are stunning. Photos don't do it justice.", name: "Henry" },
+  { img: 61, q: "Hangs in the hallway and stops every guest in their tracks.", name: "Polly" },
+  { img: 62, q: "She pranced past it for a week. Now she just sleeps under it.", name: "Cleo" },
+  { img: 63, q: "He was rescue. He was nothing. Now he's a smuggler king.", name: "Fred" },
+  { img: 64, q: "It's the eyes. They got the eyes right.", name: "Dimi" },
+  { img: 65, q: "Everyone in the family wants one. We're getting them all done.", name: "Tash" },
 ];
 
-// Split into two rails of (almost) equal length.
-const HALF = Math.ceil(REVIEWS.length / 2);
-const ROW_A = REVIEWS.slice(0, HALF).map((r, i) => ({ ...r, idx: i }));
-const ROW_B = REVIEWS.slice(HALF).map((r, i) => ({ ...r, idx: i + HALF }));
+// Stable seeded shuffle — module-load, deterministic across renders so the
+// wall doesn't reshuffle on every paint. Spreads visually-similar adjacent
+// ChatGPT generations across the rails.
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const a = arr.slice();
+  let s = seed;
+  for (let i = a.length - 1; i > 0; i--) {
+    s = (s * 9301 + 49297) % 233280;
+    const j = Math.floor((s / 233280) * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+const SHUFFLED = seededShuffle(REVIEWS, 8675309);
 
-function imgPath(idx: number): string {
-  return `/portraits/reviews/review-${String(idx + 1).padStart(2, "0")}.webp`;
+// Split shuffled list into two rails of (almost) equal length.
+const HALF = Math.ceil(SHUFFLED.length / 2);
+const ROW_A = SHUFFLED.slice(0, HALF);
+const ROW_B = SHUFFLED.slice(HALF);
+
+function imgPath(img: number): string {
+  return `/portraits/reviews/review-${String(img).padStart(2, "0")}.webp`;
 }
 
 function StarsRow() {
@@ -112,7 +129,7 @@ function StarsRow() {
   );
 }
 
-function ReviewCard({ r }: { r: Review & { idx: number } }) {
+function ReviewCard({ r }: { r: Review }) {
   return (
     <article
       className="ls-review-card"
@@ -135,8 +152,8 @@ function ReviewCard({ r }: { r: Review & { idx: number } }) {
         }}
       >
         <img
-          src={imgPath(r.idx)}
-          alt={`${r.name}'s pet portrait — ${r.product}`}
+          src={imgPath(r.img)}
+          alt={`${r.name}'s framed pet portrait`}
           loading="lazy"
           decoding="async"
           width={560}
@@ -165,7 +182,6 @@ function ReviewCard({ r }: { r: Review & { idx: number } }) {
             color: PALETTE.ink,
             margin: 0,
             lineHeight: 1.4,
-            // Cap to ~3 lines so cards stay even.
             display: "-webkit-box",
             WebkitLineClamp: 3,
             WebkitBoxOrient: "vertical" as const,
@@ -185,7 +201,7 @@ function ReviewCard({ r }: { r: Review & { idx: number } }) {
             color: PALETTE.earthMuted,
           }}
         >
-          {r.name} <span style={{ color: PALETTE.sandDeep, margin: "0 6px" }}>·</span> {r.product}
+          {r.name}
         </p>
       </div>
     </article>
@@ -197,7 +213,7 @@ function MarqueeRow({
   direction,
   duration,
 }: {
-  items: Array<Review & { idx: number }>;
+  items: Review[];
   direction: "left" | "right";
   duration: number;
 }) {
@@ -210,7 +226,7 @@ function MarqueeRow({
         style={{ animationDuration: `${duration}s` }}
       >
         {doubled.map((r, i) => (
-          <div key={`${r.idx}-${i}`} className="ls-review-slot">
+          <div key={`${r.img}-${i}`} className="ls-review-slot">
             <ReviewCard r={r} />
           </div>
         ))}
