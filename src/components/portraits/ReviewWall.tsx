@@ -10,7 +10,7 @@
  * to ~80KB each via scripts/compress-reviews.cjs.
  */
 
-import { PALETTE, display, eyebrow, cormorantItalic, body } from "./tokens";
+import { PALETTE, cormorantItalic } from "./tokens";
 
 interface Review {
   q: string;
@@ -225,70 +225,19 @@ export function ReviewWall() {
       id="wall-of-love"
       className="relative"
       style={{
-        background: PALETTE.cream2,
-        paddingTop: "clamp(72px, 10vh, 120px)",
-        paddingBottom: "clamp(72px, 10vh, 120px)",
-        borderTop: `1px solid ${PALETTE.sand}`,
+        background: "transparent",
+        paddingTop: "clamp(8px, 1.5vh, 20px)",
+        paddingBottom: "clamp(24px, 4vh, 48px)",
         overflow: "hidden",
       }}
-      aria-labelledby="reviews-heading"
+      aria-label="Pet parent reviews"
     >
-      {/* Heading band — centred, calm, makes the section feel intentional. */}
-      <div
-        className="mx-auto px-6 md:px-10 text-center"
-        style={{ maxWidth: "880px", marginBottom: "clamp(40px, 6vh, 72px)" }}
-      >
-        <p style={eyebrow(PALETTE.rose)}>47,000+ love letters</p>
-        <h2
-          id="reviews-heading"
-          style={{
-            ...display("clamp(34px, 5.4vw, 60px)"),
-            color: PALETTE.ink,
-            marginTop: "16px",
-          }}
-        >
-          real pets,{" "}
-          <span style={{ ...cormorantItalic("clamp(36px, 5.6vw, 64px)"), color: PALETTE.rose }}>
-            real walls
-          </span>
-        </h2>
-        <p
-          style={{
-            ...body("clamp(15px, 1.6vw, 17px)"),
-            color: PALETTE.earth,
-            marginTop: "16px",
-            maxWidth: "560px",
-            marginLeft: "auto",
-            marginRight: "auto",
-          }}
-        >
-          Hover to pause. Tap to slow. Every face above belongs to someone's whole heart.
-        </p>
-      </div>
-
-      {/* Rails — full-bleed, edge-faded. */}
       <div className="ls-review-mask">
         <MarqueeRow items={ROW_A} direction="left" duration={120} />
       </div>
-      <div className="ls-review-mask" style={{ marginTop: "20px" }}>
+      <div className="ls-review-mask" style={{ marginTop: "16px" }}>
         <MarqueeRow items={ROW_B} direction="right" duration={140} />
       </div>
-
-      {/* Tiny meta line under rails — anchor for trust. */}
-      <p
-        className="text-center mx-auto px-6"
-        style={{
-          marginTop: "clamp(36px, 5vh, 56px)",
-          fontFamily: 'Assistant, system-ui, sans-serif',
-          fontSize: "12.5px",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: PALETTE.earthMuted,
-          fontWeight: 600,
-        }}
-      >
-        Verified buyers · framed canvas · mug · tee · tote · hoodie
-      </p>
     </section>
   );
 }

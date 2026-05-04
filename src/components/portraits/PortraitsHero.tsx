@@ -50,7 +50,6 @@ export function PortraitsHero({ onBegin }: PortraitsHeroProps) {
       ref={sectionRef}
       className="relative overflow-hidden"
       style={{
-        minHeight: "78svh",
         background: "#ffffff",
         color: PALETTE.ink,
       }}
@@ -60,9 +59,8 @@ export function PortraitsHero({ onBegin }: PortraitsHeroProps) {
         className="relative z-10 mx-auto px-6 md:px-10 flex flex-col items-center justify-center text-center"
         style={{
           maxWidth: "960px",
-          paddingTop: "clamp(80px, 14vh, 180px)",
-          paddingBottom: "clamp(60px, 10vh, 140px)",
-          minHeight: "70svh",
+          paddingTop: "clamp(40px, 6vh, 84px)",
+          paddingBottom: "clamp(20px, 3vh, 40px)",
         }}
       >
         <motion.div style={reduce ? undefined : { y: copyScrollY }}>
@@ -82,9 +80,9 @@ export function PortraitsHero({ onBegin }: PortraitsHeroProps) {
           <h1
             id="portraits-hero-heading"
             style={{
-              ...display("clamp(48px, 9vw, 110px)"),
+              ...display("clamp(40px, 6.4vw, 84px)"),
               color: PALETTE.ink,
-              marginTop: "22px",
+              marginTop: "16px",
               maxWidth: "16ch",
               marginInline: "auto",
             }}
@@ -92,12 +90,12 @@ export function PortraitsHero({ onBegin }: PortraitsHeroProps) {
             <SplitWords text="your pet is the" />{" "}
             <SplitWords
               text="main character"
-              style={{ ...cormorantItalic("clamp(50px, 9.2vw, 116px)"), color: PALETTE.rose }}
+              style={{ ...cormorantItalic("clamp(42px, 6.6vw, 88px)"), color: PALETTE.rose }}
               delay={0.36}
             />
           </h1>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-5">
             <button
               type="button"
               onClick={onBegin}
