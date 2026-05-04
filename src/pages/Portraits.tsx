@@ -24,8 +24,8 @@ import { PetPhotoUpload } from "@/components/portraits/PetPhotoUpload";
 import { TEMPLATES } from "@/components/portraits/templates/data";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { MasterPortraitPlaceholder } from "@/components/portraits/MasterPortraitPlaceholder";
 import { PortraitsHero } from "@/components/portraits/PortraitsHero";
+import { ReviewWall } from "@/components/portraits/ReviewWall";
 import { TrustStrip } from "@/components/portraits/TrustStrip";
 import { type RangeTileId } from "@/components/portraits/ExploreRange";
 import {
@@ -887,6 +887,7 @@ const Portraits = () => {
       <div style={{ height: "62px" }} aria-hidden />
       <div style={{ position: "relative", zIndex: 1 }}>
       <PortraitsHero onBegin={scrollToUpload} />
+      <ReviewWall />
       <TrustStrip />
       <HowItWorks />
       <FrameSizes currency={currency} onPickSize={handlePickSize} />

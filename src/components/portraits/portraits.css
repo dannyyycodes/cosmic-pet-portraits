@@ -168,6 +168,106 @@
   .ls-marquee { animation: none !important; }
 }
 
+/* ── Review Wall: two opposing marquees, edge-faded, pause on hover ──── */
+.ls-review-mask {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 80px,
+    #000 calc(100% - 80px),
+    transparent 100%
+  );
+          mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 80px,
+    #000 calc(100% - 80px),
+    transparent 100%
+  );
+}
+.ls-review-rail {
+  width: 100%;
+  overflow: hidden;
+}
+.ls-review-track {
+  display: flex;
+  width: max-content;
+  gap: 24px;
+  padding: 8px 0;
+  will-change: transform;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+.ls-review-track--left  { animation-name: lsMarqueeLeft;  }
+.ls-review-track--right { animation-name: lsMarqueeRight; }
+.ls-review-rail:hover .ls-review-track,
+.ls-review-rail:focus-within .ls-review-track {
+  animation-play-state: paused;
+}
+.ls-review-slot {
+  flex: 0 0 auto;
+  width: 320px;
+}
+.ls-review-card {
+  height: 100%;
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ls-review-card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 18px 36px rgba(28, 28, 28, 0.12),
+    0 2px 6px rgba(28, 28, 28, 0.06);
+}
+
+@keyframes lsMarqueeLeft {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes lsMarqueeRight {
+  from { transform: translate3d(-50%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+
+@media (max-width: 768px) {
+  .ls-review-slot { width: 240px; }
+  .ls-review-track { gap: 16px; }
+  .ls-review-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 32px,
+      #000 calc(100% - 32px),
+      transparent 100%
+    );
+            mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 32px,
+      #000 calc(100% - 32px),
+      transparent 100%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-review-track--left,
+  .ls-review-track--right {
+    animation: none !important;
+    transform: none !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .ls-review-slot { scroll-snap-align: start; }
+}
+
 /* ── Soft underline that draws on hover ─────────────────────────────── */
 .ls-link {
   position: relative;
