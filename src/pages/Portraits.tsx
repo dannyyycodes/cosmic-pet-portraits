@@ -4,15 +4,8 @@
  * Composition order (top → bottom):
  *   1. PortraitsHero       — 3-layer cinematic, rotating master portrait
  *   2. TrustStrip          — 3 metrics, hairline-divided cream band
- *   3. CharacterPacks      — 6 archetype cards, scroll-into-view stagger
- *   4. HowItWorks          — 3-step ribbon
- *   5. FrameSizes          — 4-tier price ladder with gold seal on £99 tier
- *   6. UploadStudio        — drop / character / size / live preview / checkout
- *   7. SoulEditionUpsell   — gold-hairline ceremonial card
- *   8. ReviewsCarousel     — testimonial scroll-snap, money-line typography
- *   9. InTheWildGallery    — 9-frame placeholder mosaic
- *  10. PortraitsFAQ        — 6 objection accordions
- *  11. PortraitsFooter     — newsletter capture + page links
+ *   3. HowItWorks          — 3-step ribbon
+ *   4. UploadStudio        — drop / size / photo / preview / add to cart
  *
  * Pricing locked: vault/01-projects/little-souls/pet-portraits/pricing-ladder-2026-05-02.md
  * Build plan:     vault/01-projects/little-souls/pet-portraits/build-plan-2026-05-02.md
@@ -34,8 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MasterPortraitPlaceholder } from "@/components/portraits/MasterPortraitPlaceholder";
 import { PortraitsHero } from "@/components/portraits/PortraitsHero";
 import { TrustStrip } from "@/components/portraits/TrustStrip";
-import { CharacterPacks, CHARACTER_PACKS } from "@/components/portraits/CharacterPacks";
-import { ExploreRange, type RangeTileId } from "@/components/portraits/ExploreRange";
+import { type RangeTileId } from "@/components/portraits/ExploreRange";
 import {
   PRODUCTS,
   PRODUCT_KEYS,
@@ -55,9 +47,6 @@ import {
 import { HowItWorks } from "@/components/portraits/HowItWorks";
 import { FrameSizes, PRICING, SIZE_KEYS } from "@/components/portraits/FrameSizes";
 import type { Currency, SizeKey } from "@/components/portraits/FrameSizes";
-import { ReviewsCarousel } from "@/components/portraits/ReviewsCarousel";
-import { PortraitsFAQ } from "@/components/portraits/PortraitsFAQ";
-import { PortraitsFooter } from "@/components/portraits/PortraitsFooter";
 import {
   PALETTE,
   display,
@@ -897,9 +886,6 @@ const Portraits = () => {
       <div style={{ position: "relative", zIndex: 1 }}>
       <PortraitsHero onBegin={scrollToUpload} />
       <TrustStrip />
-      {/* ExploreRange (multi-product tile rail) removed 2026-05-04 —
-          we now sell canvas portraits only. Customer picks size in UploadStudio. */}
-      <CharacterPacks onPickPack={handlePickPack} />
       <HowItWorks />
       <UploadStudio
         currency={currency}
@@ -911,10 +897,6 @@ const Portraits = () => {
         onProductChange={setProductType}
         onAddToCart={handleAddToCart}
       />
-      <ReviewsCarousel />
-      <div id="faq" />
-      <PortraitsFAQ />
-      <PortraitsFooter />
       </div>
     </main>
   );
