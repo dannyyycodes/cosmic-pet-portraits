@@ -1,19 +1,22 @@
 /**
- * FrameSizes — four-tier price ladder shown before the Upload Studio.
+ * FrameSizes — informational pricing strip shown above the studio.
  *
- * Pricing locked in vault: pricing-ladder-2026-05-02.md
- *   GBP £69/£99/£149/£199 + Soul Edition +£40 · USD $89/$129/$189/$249 + +$50
+ * Displays all 11 launch sizes + 3 frame colors so customers know what they'll
+ * pay BEFORE they generate. NOT interactive — the actual size + frame
+ * selection happens in the studio below. No per-card CTAs (those caused
+ * confusion about whether clicking selected the size).
  *
- * Hero seal on the 12×16 (£99/$129) — CRO anchor per build plan.
- * Tabular numerals on every price.
+ * Pricing locked: src/components/portraits/gelatoFramedCanvas.ts (CANVAS_SIZES).
  */
-import { SplitWords } from "./SplitWords";
+import { Check } from "lucide-react";
+import { CANVAS_SIZES, FRAME_COLORS } from "./gelatoFramedCanvas";
 import { PALETTE, display, cormorantItalic, eyebrow, tabularPrice } from "./tokens";
 
+// Re-exports for backward compat with any other imports.
 export type Currency = "GBP" | "USD";
-export type SizeKey = "8x10" | "12x16" | "16x20" | "20x30";
+export type SizeKey = string;
 
-export interface SizePricing {
+interface SizePricing {
   size: string;
   retail: number;
   label: string;
@@ -21,140 +24,183 @@ export interface SizePricing {
   caption: string;
 }
 
-export const PRICING: Record<
-  Currency,
-  Record<SizeKey, SizePricing> & {
-    soulEdition: { retail: number; label: string };
-    digital: { retail: number; label: string };
-  }
-> = {
+// Compatibility shim — old code paths read PRICING and SIZE_KEYS. The studio
+// uses gelatoFramedCanvas.ts directly, so this is just for shared add-on prices.
+export const PRICING = {
   GBP: {
-    "8x10":  { size: "8×10″",  retail: 39, label: "£39", caption: "Desk · shelf · bedside" },
-    "12x16": { size: "12×16″", retail: 49, label: "£49", caption: "Entry · gift-friendly" },
-    "16x20": { size: "16×20″", retail: 65, label: "£65", hero: true, caption: "Hero · main wall feature" },
-    "20x30": { size: "20×30″", retail: 99, label: "£99", caption: "Statement · large feature" },
     digital:     { retail: 19, label: "£19" },
     soulEdition: { retail: 40, label: "+£40" },
-  },
+  } as Record<string, SizePricing | { retail: number; label: string }>,
   USD: {
-    "8x10":  { size: "8×10″",  retail: 49,  label: "$49",  caption: "Desk · shelf · bedside" },
-    "12x16": { size: "12×16″", retail: 65,  label: "$65",  caption: "Entry · gift-friendly" },
-    "16x20": { size: "16×20″", retail: 85,  label: "$85",  hero: true, caption: "Hero · main wall feature" },
-    "20x30": { size: "20×30″", retail: 129, label: "$129", caption: "Statement · large feature" },
     digital:     { retail: 25, label: "$25" },
     soulEdition: { retail: 50, label: "+$50" },
-  },
+  } as Record<string, SizePricing | { retail: number; label: string }>,
 };
 
-export const SIZE_KEYS: SizeKey[] = ["8x10", "12x16", "16x20", "20x30"];
+export const SIZE_KEYS: SizeKey[] = CANVAS_SIZES.map((s) => s.uid);
 
 interface FrameSizesProps {
   currency: Currency;
-  /** Optional — pre-select size in upload studio when a tile is clicked. */
   onPickSize?: (size: SizeKey) => void;
 }
 
-export function FrameSizes({ currency, onPickSize }: FrameSizesProps) {
+export function FrameSizes({ currency }: FrameSizesProps) {
+  const symbol = currency === "GBP" ? "£" : "$";
+  const usdMul = 1.3; // rough conversion for display only
+  const formatPrice = (gbp: number) =>
+    currency === "GBP" ? `${symbol}${gbp}` : `${symbol}${Math.round(gbp * usdMul)}`;
+  const min = CANVAS_SIZES[0].priceGBP;
+  const max = CANVAS_SIZES[CANVAS_SIZES.length - 1].priceGBP;
+
   return (
     <section
       id="sizes"
-      className="relative px-6 md:px-10"
+      className="relative px-5 md:px-10"
       style={{
-        background: "rgba(255, 255, 255, 0.84)",
-        paddingTop: "clamp(96px, 12vh, 160px)",
-        paddingBottom: "clamp(96px, 12vh, 160px)",
+        background: PALETTE.cream,
+        paddingTop: "clamp(72px, 9vh, 110px)",
+        paddingBottom: "clamp(72px, 9vh, 110px)",
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
       aria-labelledby="frame-sizes-heading"
     >
-      <div className="mx-auto" style={{ maxWidth: "1240px" }}>
-        <div className="max-w-[760px]">
-          <p style={eyebrow(PALETTE.earthMuted)}>Pick the wall</p>
+      <div className="mx-auto" style={{ maxWidth: 980 }}>
+        {/* Header */}
+        <div className="text-center mb-10">
+          <p style={eyebrow(PALETTE.earthMuted)}>Sizes &amp; pricing</p>
           <h2
             id="frame-sizes-heading"
-            style={{ ...display("clamp(34px, 5vw, 58px)"), color: PALETTE.ink, marginTop: "18px" }}
+            style={{
+              ...display("clamp(30px, 4.4vw, 48px)"),
+              color: PALETTE.ink,
+              marginTop: 14,
+              marginBottom: 14,
+            }}
           >
-            <SplitWords text="Four sizes." />{" "}
-            <SplitWords text="One frame" style={{ color: PALETTE.rose, fontStyle: "italic" }} delay={0.3} />{" "}
-            <SplitWords text="you'll keep forever." delay={0.55} />
+            From {formatPrice(min)} to {formatPrice(max)}
           </h2>
-          <p style={{ ...cormorantItalic("21px"), color: PALETTE.earth, marginTop: "20px" }}>
-            FSC-certified slim poplar/pine. Cotton-poly canvas. Archival inks. Printed and
-            framed at our partner closest to your address.
+          <p
+            style={{
+              ...cormorantItalic("clamp(16px, 1.9vw, 19px)"),
+              color: PALETTE.earth,
+              maxWidth: 540,
+              margin: "0 auto",
+            }}
+          >
+            Eleven sizes, three frame tones. Pick yours in the studio below.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-14">
-          {SIZE_KEYS.map((key) => {
-            const tier = PRICING[currency][key];
-            const isHero = !!tier.hero;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => onPickSize?.(key)}
-                className="group text-left rounded-sm relative transition-all hover:-translate-y-0.5"
+        {/* Size pricing grid — informational, not interactive */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+          {CANVAS_SIZES.map((s) => (
+            <div
+              key={s.uid}
+              className="rounded-xl px-3 py-3.5 text-center relative"
+              style={{
+                background: s.hero ? PALETTE.cream : PALETTE.cream2,
+                border: s.hero ? `1.5px solid ${PALETTE.gold}` : `1px solid ${PALETTE.sand}`,
+                boxShadow: s.hero
+                  ? "0 8px 18px rgba(196, 162, 101, 0.16)"
+                  : "0 1px 3px rgba(20,18,16,0.03)",
+              }}
+            >
+              {s.hero && (
+                <span
+                  className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5"
+                  style={{
+                    fontSize: 8.5,
+                    fontWeight: 700,
+                    color: PALETTE.goldDeep,
+                    background: PALETTE.cream,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    fontFamily: 'Asap, system-ui, sans-serif',
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Hero
+                </span>
+              )}
+              <div
                 style={{
-                  background: PALETTE.cream2,
-                  border: isHero
-                    ? `1px solid ${PALETTE.gold}`
-                    : `1px solid ${PALETTE.sand}`,
-                  padding: "26px",
-                  boxShadow: isHero ? "0 18px 36px rgba(196, 162, 101, 0.15)" : "none",
+                  fontFamily: 'Asap, system-ui, sans-serif',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: PALETTE.ink,
                 }}
               >
-                {isHero && (
-                  <span
-                    aria-label="Hero size — most popular"
-                    className="absolute -top-3 right-5 px-3 py-1 rounded-full"
-                    style={{
-                      background: PALETTE.gold,
-                      color: PALETTE.cream,
-                      fontSize: "10.5px",
-                      letterSpacing: "0.16em",
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Hero
-                  </span>
-                )}
-                <p
-                  style={{
-                    fontFamily: 'Asap, system-ui, sans-serif',
-                    fontSize: "21px",
-                    fontWeight: 500,
-                    color: PALETTE.ink,
-                  }}
-                >
-                  {tier.size}
-                </p>
-                <p style={{ ...tabularPrice("32px"), marginTop: "10px" }}>{tier.label}</p>
-                <p style={{ marginTop: "8px", color: PALETTE.earth, fontSize: "14px", lineHeight: 1.5 }}>
-                  {tier.caption}
-                </p>
-                <p
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{
-                    marginTop: "16px",
-                    fontSize: "13px",
-                    color: PALETTE.rose,
-                    fontWeight: 500,
-                  }}
-                >
-                  Use this size →
-                </p>
-              </button>
-            );
-          })}
+                {s.label}
+              </div>
+              <div style={{ ...tabularPrice("18px"), marginTop: 2 }}>
+                {formatPrice(s.priceGBP)}
+              </div>
+            </div>
+          ))}
         </div>
 
-        <p
-          className="mt-10 text-center"
-          style={{ fontSize: "13.5px", color: PALETTE.earthMuted, letterSpacing: "0.04em" }}
-        >
-          Slim poplar/pine frame · cotton-poly canvas · framed and shipped in 3–5 days · UK · EU · US
-        </p>
+        {/* Frame swatches strip */}
+        <div className="flex items-center justify-center gap-5 mt-9">
+          <span
+            style={{
+              fontFamily: 'Assistant, system-ui, sans-serif',
+              fontSize: 12.5,
+              color: PALETTE.earthMuted,
+              letterSpacing: "0.04em",
+            }}
+          >
+            Frame:
+          </span>
+          {FRAME_COLORS.map((c) => (
+            <div key={c.uid} className="flex items-center gap-2">
+              <div
+                className="rounded-full"
+                style={{
+                  width: 18,
+                  height: 18,
+                  background: c.swatchHex,
+                  border: `1px solid ${PALETTE.sandDeep}`,
+                  boxShadow: "0 1px 3px rgba(20,18,16,0.08)",
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                  fontSize: 12.5,
+                  color: PALETTE.earth,
+                }}
+              >
+                {c.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Trust line */}
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-9 text-center">
+          {[
+            "Cotton-poly canvas",
+            "FSC-certified slim frame",
+            "Archival inks",
+            "3–5 day delivery",
+            "UK · EU · US",
+          ].map((line, i) => (
+            <span
+              key={line}
+              className="inline-flex items-center gap-1.5"
+              style={{
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                fontSize: 12.5,
+                color: PALETTE.earthMuted,
+                letterSpacing: "0.02em",
+              }}
+            >
+              {i > 0 && <span style={{ color: PALETTE.sandDeep }}>·</span>}
+              <Check className="w-3 h-3" style={{ color: PALETTE.rose, marginRight: 1 }} />
+              {line}
+            </span>
+          ))}
+        </div>
       </div>
     </section>
   );

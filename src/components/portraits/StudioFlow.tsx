@@ -23,7 +23,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowUp, HelpCircle, Sparkles, X } from "lucide-react";
+import { ArrowUp, HelpCircle, Sparkles, X, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PetPhotoUpload } from "@/components/portraits/PetPhotoUpload";
 import { VariantGallery, type Variant } from "@/components/portraits/styles/VariantGallery";
@@ -396,6 +396,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   // 11 sizes × 3 frame colors. 16x20 is the default hero size.
   const [sizeKey, setSizeKey] = useState<string>("16x20");
   const [frameColor, setFrameColor] = useState<FrameColor>("black");
+  const [cartAddCount, setCartAddCount] = useState(0);
 
   const variant = resolveFramedCanvasVariant(sizeKey, frameColor);
   const placeholder = useTypewriterPlaceholder(PROMPT_EXAMPLES, prompt.length > 0 || focused);
@@ -468,7 +469,13 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       id: crypto.randomUUID(),
     });
     onCartAdd(item);
-    toast.success("Added to cart");
+    setCartAddCount((n) => n + 1);
+    toast.success(
+      cartAddCount === 0
+        ? "Added to cart — pick a different size or frame to add another"
+        : `Added — ${cartAddCount + 1} in cart`,
+      { duration: 3500 },
+    );
   }
 
   const sectionTransition = { duration: MOTION.base / 1000, ease: EASE.out };
@@ -783,23 +790,39 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                       <button
                         key={s.uid}
                         onClick={() => setSizeKey(s.uid)}
+                        aria-pressed={active}
                         className="rounded-xl p-3 text-center transition-all relative"
                         style={{
-                          background: active ? PALETTE.ink : PALETTE.cream,
+                          background: active ? PALETTE.rose : PALETTE.cream,
                           color: active ? PALETTE.cream : PALETTE.ink,
                           border: active
-                            ? `1.5px solid ${PALETTE.ink}`
+                            ? `2px solid ${PALETTE.rose}`
                             : isHero
                               ? `1.5px solid ${PALETTE.gold}`
                               : `1px solid ${PALETTE.sandDeep}`,
                           fontFamily: 'Asap, system-ui, sans-serif',
                           boxShadow: active
-                            ? "0 8px 18px rgba(20, 18, 16, 0.18)"
+                            ? "0 10px 24px rgba(191, 82, 74, 0.32), 0 2px 6px rgba(191, 82, 74, 0.14)"
                             : isHero
                               ? "0 6px 14px rgba(196, 162, 101, 0.18)"
                               : "0 2px 4px rgba(20, 18, 16, 0.02)",
+                          transform: active ? "translateY(-1px)" : "translateY(0)",
                         }}
                       >
+                        {/* Active checkmark badge */}
+                        {active && (
+                          <span
+                            className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full"
+                            style={{
+                              width: 18,
+                              height: 18,
+                              background: PALETTE.cream,
+                              boxShadow: "0 2px 6px rgba(20,18,16,0.16)",
+                            }}
+                          >
+                            <Check className="w-3 h-3" strokeWidth={3} style={{ color: PALETTE.rose }} />
+                          </span>
+                        )}
                         {isHero && !active && (
                           <span
                             className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5"
@@ -822,7 +845,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                           className="tabular-nums mt-0.5"
                           style={{
                             fontSize: 12,
-                            color: active ? PALETTE.cream : PALETTE.earthMuted,
+                            color: active ? "rgba(255,253,245,0.85)" : PALETTE.earthMuted,
                           }}
                         >
                           £{s.priceGBP}
@@ -846,7 +869,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                 >
                   Choose frame colour
                 </p>
-                <div className="flex justify-center gap-4">
+                <div className="flex justify-center gap-5">
                   {FRAME_COLORS.map((c) => {
                     const active = frameColor === c.uid;
                     return (
@@ -858,26 +881,39 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                         aria-label={`Frame: ${c.label}`}
                         aria-pressed={active}
                       >
-                        <div
-                          className="rounded-full transition-all"
+                        {/* Outer ring grows when active to make selection unambiguous */}
+                        <span
+                          className="rounded-full flex items-center justify-center transition-all"
                           style={{
-                            width: active ? 48 : 40,
-                            height: active ? 48 : 40,
-                            background: c.swatchHex,
-                            border: active
-                              ? `2.5px solid ${PALETTE.ink}`
-                              : `1.5px solid ${PALETTE.sandDeep}`,
-                            boxShadow: active
-                              ? "0 6px 14px rgba(20,18,16,0.18)"
-                              : "0 2px 6px rgba(20,18,16,0.08)",
+                            width: 60,
+                            height: 60,
+                            padding: 4,
+                            background: active ? PALETTE.roseSoft : "transparent",
+                            border: active ? `2px solid ${PALETTE.rose}` : "2px solid transparent",
+                            boxShadow: active ? "0 6px 14px rgba(191, 82, 74, 0.18)" : "none",
                           }}
-                        />
+                        >
+                          <span
+                            className="rounded-full flex items-center justify-center"
+                            style={{
+                              width: 44,
+                              height: 44,
+                              background: c.swatchHex,
+                              border: `1.5px solid ${PALETTE.sandDeep}`,
+                              boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.4)",
+                            }}
+                          >
+                            {active && (
+                              <Check className="w-5 h-5" strokeWidth={3} style={{ color: PALETTE.cream }} />
+                            )}
+                          </span>
+                        </span>
                         <span
                           style={{
                             fontFamily: 'Assistant, system-ui, sans-serif',
-                            fontSize: 11.5,
-                            fontWeight: active ? 600 : 400,
-                            color: active ? PALETTE.ink : PALETTE.earthMuted,
+                            fontSize: 12,
+                            fontWeight: active ? 700 : 500,
+                            color: active ? PALETTE.rose : PALETTE.earth,
                             letterSpacing: "0.02em",
                           }}
                         >
@@ -904,8 +940,24 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                       : "none",
                   }}
                 >
-                  Add to cart {variant ? `· ${formatPrice(variant.priceMajor)}` : ""}
+                  {cartAddCount > 0 ? "Add another to cart" : "Add to cart"}
+                  {variant ? ` · £${variant.priceMajor}` : ""}
                 </button>
+                {cartAddCount > 0 && (
+                  <p
+                    className="text-center mt-3"
+                    style={{
+                      fontFamily: 'Assistant, system-ui, sans-serif',
+                      fontSize: 12.5,
+                      color: PALETTE.earthMuted,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <Sparkles className="inline-block w-3 h-3 mr-1" style={{ color: PALETTE.rose }} />
+                    {cartAddCount} in your cart · pick a different size or frame to add another, or{" "}
+                    <span style={{ color: PALETTE.rose, fontWeight: 600 }}>open the cart to checkout</span>
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
