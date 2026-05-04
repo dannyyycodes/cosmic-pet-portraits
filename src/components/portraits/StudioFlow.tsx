@@ -38,6 +38,7 @@ import {
 } from "@/components/portraits/productLineup";
 import { buildCartItem, type CartItem } from "@/components/portraits/cart";
 import { supabase } from "@/integrations/supabase/client";
+import { isDisposableEmail } from "@/lib/auth/disposableEmailDomains";
 import { PALETTE, EASE, MOTION } from "@/components/portraits/tokens";
 
 interface StudioFlowProps {
@@ -102,6 +103,10 @@ function SignInDialog({
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     if (!email) return;
+    if (isDisposableEmail(email)) {
+      toast.error("Please use a real email address — that one's a temporary inbox.");
+      return;
+    }
     setBusy(true);
     try {
       const { error } = await supabase.auth.signInWithOtp({
