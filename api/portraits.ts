@@ -406,14 +406,19 @@ async function handlePrintfulMockup(req: VercelRequest, res: VercelResponse) {
 // (the same shots used by ExploreRange tile rail — generated 2026-05-03).
 // Free forever. No third-party API.
 //
-// Design area coords (cx, cy, w as fraction of product photo) — hand-tuned
-// per product based on the centered composition of those product photos.
+// Design area coords (cx, cy, w/h as fractions) — tuned for the clean
+// Printful blank base images (1000×1000) pulled from /v2/catalog-variants/{id}/images:
+//   mug    → 03_whitemug_11oz_front_base_whitebg.png
+//   canvas → 05_12x16_black_base.png
+//   tote   → 05_ec8000_flat_front_base_whitebg.png
+//   tee    → 05_bc3001_flat_front_base_whitebg.png
+//   hoodie → 05_gildan18500_flat_front_base_whitebg.png
 const MOCKUP_COORDS: Record<ProductType, { cx: number; cy: number; w: number; h: number }> = {
-  "mug": { cx: 0.5, cy: 0.48, w: 0.34, h: 0.34 },
-  "framed-canvas": { cx: 0.5, cy: 0.5, w: 0.6, h: 0.75 },
-  "tote": { cx: 0.5, cy: 0.5, w: 0.42, h: 0.42 },
-  "tee": { cx: 0.5, cy: 0.42, w: 0.32, h: 0.32 },
-  "hoodie": { cx: 0.5, cy: 0.45, w: 0.3, h: 0.3 },
+  "mug":           { cx: 0.5,  cy: 0.55, w: 0.34, h: 0.40 },
+  "framed-canvas": { cx: 0.5,  cy: 0.5,  w: 0.62, h: 0.62 },
+  "tote":          { cx: 0.5,  cy: 0.55, w: 0.38, h: 0.46 },
+  "tee":           { cx: 0.5,  cy: 0.43, w: 0.30, h: 0.40 },
+  "hoodie":        { cx: 0.5,  cy: 0.45, w: 0.28, h: 0.36 },
 };
 
 async function handleMockup(req: VercelRequest, res: VercelResponse) {

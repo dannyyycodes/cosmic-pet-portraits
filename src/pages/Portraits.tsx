@@ -154,23 +154,44 @@ function UploadStudio({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSoulEdition]);
 
-  // Industry-standard pattern (Customily, Teeinblue, every Etsy POD shop):
-  // flat product photo + design overlay, server-rendered via Sharp. ~500ms,
-  // free, no ML downloads, no async polling. cutoutUrl is kept = photoUrl so
-  // the existing cart/composite/print-master code paths work unchanged — the
-  // raw photo IS the design that prints (truthful, what-you-upload-is-what-prints).
+  // Server-side bg-removal via Photoroom — clean cutout of the pet face,
+  // then composited onto the clean Printful blank base via Sharp. Two-step:
+  //   1. POST /api/portraits?action=cutout  (Photoroom $0.02/call)
+  //   2. POST /api/portraits?action=mockup  (Sharp composite onto blank)
+  // Total ~2-3s. The cutout layer ensures the pet face is alone on the mug,
+  // not a rectangular photo with background.
+  async function fireCutout(imageUrl: string) {
+    setCutoutStatus("cutting");
+    setCutoutUrl(null);
+    try {
+      const res = await fetch("/api/portraits?action=cutout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.cutoutUrl) throw new Error(data.error || "cutout-failed");
+      setCutoutUrl(data.cutoutUrl);
+      setCutoutStatus("ready");
+    } catch (err) {
+      console.warn("[cutout] falling back to raw photo:", err);
+      // Fallback: use the raw photo as design. Mockup still renders, just with
+      // the photo's background visible. Better than empty preview.
+      setCutoutUrl(imageUrl);
+      setCutoutStatus("ready");
+    }
+  }
+
   const handlePhotoUploaded = (url: string) => {
     setPhotoUrl(url);
-    setCutoutUrl(url);
-    setCutoutStatus("ready");
+    void fireCutout(url);
   };
 
-  // Live mockup: composite design onto the real product photo via Sharp.
-  // Sub-second. Cached per (product × design) so switching products is instant
-  // after first render.
+  // Live mockup: composite the cutout onto the clean Printful blank via Sharp.
+  // ~500ms. Cached per (product × cutout) so switching products is instant.
   useEffect(() => {
-    if (!photoUrl) return;
-    const key = `${productType}|${photoUrl}`;
+    if (!cutoutUrl || cutoutStatus !== "ready") return;
+    const key = `${productType}|${cutoutUrl}`;
     if (mockupCache[key]) return;
     let cancelled = false;
 
@@ -179,7 +200,7 @@ function UploadStudio({
         const res = await fetch("/api/portraits?action=mockup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ designUrl: photoUrl, productType }),
+          body: JSON.stringify({ designUrl: cutoutUrl, productType }),
         });
         if (!res.ok || cancelled) return;
         const blob = await res.blob();
@@ -192,7 +213,7 @@ function UploadStudio({
     })();
 
     return () => { cancelled = true; };
-  }, [photoUrl, productType, mockupCache]);
+  }, [cutoutUrl, cutoutStatus, productType, mockupCache]);
 
   const handleResetPhoto = () => {
     setPhotoUrl(null);
