@@ -56,13 +56,45 @@ export function StyleThemePicker({
           className="uppercase mb-2"
           style={{ color: PALETTE.muted, fontSize: 11, letterSpacing: "0.12em" }}
         >
-          Optional · Add details
+          Step 3 · Tell us what to draw (optional)
         </p>
+        <p className="mb-2 text-sm" style={{ color: PALETTE.ink, lineHeight: 1.5 }}>
+          Type a short note describing how you'd like your pet shown. Don't worry — keep it simple,
+          like you're talking to a friend. We'll handle the rest.
+        </p>
+
+        <div className="mb-3 p-3 rounded-lg" style={{ background: "#FFFDF5", border: `1px solid ${PALETTE.sand}` }}>
+          <p className="text-[12px] mb-1.5" style={{ color: PALETTE.muted, fontWeight: 600 }}>
+            Examples (tap to use):
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {[
+              "wearing a little red bow-tie",
+              "sitting on a pile of books in a library",
+              "looking proud and majestic",
+              "with a tiny crown on their head",
+              "in front of a starry night sky",
+            ].map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                onClick={() => onAddDetailsChange(ex)}
+                className="text-left text-[13px] px-2 py-1 rounded transition-colors"
+                style={{ color: PALETTE.ink, background: "transparent" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#f0e8d8")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                "{ex}"
+              </button>
+            ))}
+          </div>
+        </div>
+
         <textarea
           value={addDetails}
           onChange={(e) => onAddDetailsChange(e.target.value.slice(0, 200))}
-          placeholder="e.g. 'wearing a red bow-tie', 'looking up to the left'…"
-          rows={2}
+          placeholder="Or type your own — what should they be wearing or doing?"
+          rows={3}
           maxLength={200}
           className="w-full rounded-lg p-3 text-sm"
           style={{
@@ -73,7 +105,7 @@ export function StyleThemePicker({
           }}
         />
         <p className="mt-1 text-[11px]" style={{ color: PALETTE.muted }}>
-          {addDetails.length}/200
+          {addDetails.length}/200 characters
         </p>
       </div>
     </div>

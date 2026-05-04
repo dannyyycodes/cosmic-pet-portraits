@@ -886,12 +886,9 @@ const Portraits = () => {
       <div style={{ position: "relative", zIndex: 1 }}>
       <PortraitsHero onBegin={scrollToUpload} />
       <TrustStrip />
-      <CharacterPacks onPickPack={handlePickPack} />
       <HowItWorks />
 
-      {/* Start-designing CTA — routes to the AI Studio configurator at /portraits/studio
-          where the prompt input + signup gate + fal generation lives. The legacy
-          UploadStudio (photo→canvas composite) was deprecated 2026-05-04. */}
+      {/* Start-designing CTA — routes to the AI Studio at /portraits/studio. */}
       <section
         ref={uploadRef}
         id="upload"
@@ -910,7 +907,7 @@ const Portraits = () => {
             Start designing your portrait
           </h2>
           <p style={{ ...cormorantItalic("19px"), color: PALETTE.earth, marginBottom: "36px" }}>
-            Upload your pet's photo, describe how you want them styled, and our AI brings it to life on a museum-quality framed canvas.
+            Upload your pet's photo, describe how you want them shown, and our AI brings it to life on a museum-quality framed canvas.
           </p>
           <a
             href="/portraits/studio"
@@ -928,15 +925,10 @@ const Portraits = () => {
             Open the Studio →
           </a>
           <p style={{ marginTop: "16px", fontSize: "13px", color: PALETTE.earthMuted }}>
-            1 portrait free with sign-up · then £4.99 / pack or subscribe.
+            3 free portraits with sign-up · then £4.99 / pack or subscribe.
           </p>
         </div>
       </section>
-
-      <ReviewsCarousel />
-      <div id="faq" />
-      <PortraitsFAQ />
-      <PortraitsFooter />
       </div>
     </main>
   );
