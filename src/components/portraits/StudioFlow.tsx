@@ -32,10 +32,15 @@ import { useCredits } from "@/components/portraits/useCredits";
 import { savePetPhoto, loadPetPhoto, clearPetPhoto } from "@/components/portraits/photoSharing";
 import {
   PRODUCTS,
-  resolveVariant,
   formatPrice,
   type AnySizeKey,
 } from "@/components/portraits/productLineup";
+import {
+  CANVAS_SIZES,
+  FRAME_COLORS,
+  resolveFramedCanvasVariant,
+  type FrameColor,
+} from "@/components/portraits/gelatoFramedCanvas";
 import { buildCartItem, type CartItem } from "@/components/portraits/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { isDisposableEmail } from "@/lib/auth/disposableEmailDomains";
@@ -56,7 +61,7 @@ async function getVisitorId(): Promise<string | null> {
     return null;
   }
 }
-import { PALETTE, EASE, MOTION } from "@/components/portraits/tokens";
+import { PALETTE, EASE, MOTION, display } from "@/components/portraits/tokens";
 
 interface StudioFlowProps {
   onCartAdd: (item: CartItem) => void;
@@ -388,9 +393,11 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
 
   const productType = "framed-canvas" as const;
   const product = PRODUCTS[productType];
-  const [sizeKey, setSizeKey] = useState<AnySizeKey>(product.defaultSizeKey);
+  // 11 sizes × 3 frame colors. 16x20 is the default hero size.
+  const [sizeKey, setSizeKey] = useState<string>("16x20");
+  const [frameColor, setFrameColor] = useState<FrameColor>("black");
 
-  const variant = resolveVariant(productType, sizeKey);
+  const variant = resolveFramedCanvasVariant(sizeKey, frameColor);
   const placeholder = useTypewriterPlaceholder(PROMPT_EXAMPLES, prompt.length > 0 || focused);
   const canGenerate = !!photoUrl && prompt.trim().length > 3 && !generating;
   const canAdd = !!selectedVariantUrl && !!variant && !!photoUrl;
@@ -448,7 +455,8 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     const item = buildCartItem({
       kind: "ai",
       productType,
-      sizeKey,
+      sizeKey: sizeKey as AnySizeKey,
+      frameColor,
       packId: "custom-prompt",
       packName: prompt.trim().slice(0, 60),
       style: "photographic",
@@ -456,7 +464,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       previewUrl: selectedVariantUrl,
       soulEdition: false,
       soulEditionPriceMajor: 40,
-      variant,
+      variant: { variantId: variant.variantId, priceMajor: variant.priceMajor, sizeLabel: variant.sizeLabel },
       id: crypto.randomUUID(),
     });
     onCartAdd(item);
