@@ -206,9 +206,11 @@ const App = () => (
                   <Route path="/v2" element={<LandingV2 />} />
                   <Route path="/chat" element={<SoulChatRedirect />} />
                   <Route path="/dev/report" element={<DevReport />} />
-                  <Route path="/portraits" element={<Portraits />} />
-                  <Route path="/portraits/templates" element={<PortraitsTemplates />} />
+                  {/* /portraits IS the AI Studio now — prompt + signup gate + fal generation.
+                      Old composite-photo flow deprecated 2026-05-04. */}
+                  <Route path="/portraits" element={<PortraitsStudio />} />
                   <Route path="/portraits/studio" element={<PortraitsStudio />} />
+                  <Route path="/portraits/templates" element={<PortraitsTemplates />} />
                   <Route path="/unlimited" element={<PortraitsUnlimited />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />

@@ -76,7 +76,7 @@ export default function PortraitsStudio() {
   async function handleGenerate() {
     if (!photoUrl || !styleId || !themeId) return;
     if (!user || !session?.access_token) {
-      toast("Sign in to generate AI portraits — your 5 free portraits are waiting.", { duration: 2200 });
+      toast("Sign in to generate your AI portrait — 1 free portrait on us.", { duration: 2200 });
       setTimeout(() => navigate(`/auth?next=${encodeURIComponent("/portraits/studio")}`), 800);
       return;
     }
@@ -214,7 +214,7 @@ export default function PortraitsStudio() {
                 </>
               ) : (
                 <>
-                  <span>5 portraits free with sign-up.</span>
+                  <span>1 portrait free with sign-up.</span>
                   <Link to={`/auth?next=${encodeURIComponent("/portraits/studio")}`} style={{ color: PALETTE.rose, fontWeight: 600 }}>
                     Sign in →
                   </Link>

@@ -24,8 +24,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Templates",        href: "/portraits/templates" },
-  { label: "AI Studio",        href: "/portraits/studio" },
+  { label: "Studio",           href: "/portraits/studio" },
   { label: "How It Works",     href: "/portraits#how" },
   { label: "Reviews",          href: "/portraits#reviews" },
   { label: "FAQ",              href: "/portraits#faq" },
