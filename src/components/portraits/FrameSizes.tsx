@@ -74,30 +74,11 @@ export function FrameSizes({ currency }: FrameSizesProps) {
               key={s.uid}
               className="rounded-xl px-3 py-3.5 text-center relative"
               style={{
-                background: s.hero ? PALETTE.cream : PALETTE.cream2,
-                border: s.hero ? `1.5px solid ${PALETTE.gold}` : `1px solid ${PALETTE.sand}`,
-                boxShadow: s.hero
-                  ? "0 8px 18px rgba(196, 162, 101, 0.16)"
-                  : "0 1px 3px rgba(20,18,16,0.03)",
+                background: PALETTE.cream2,
+                border: `1px solid ${PALETTE.sand}`,
+                boxShadow: "0 1px 3px rgba(20,18,16,0.03)",
               }}
             >
-              {s.hero && (
-                <span
-                  className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5"
-                  style={{
-                    fontSize: 8.5,
-                    fontWeight: 700,
-                    color: PALETTE.goldDeep,
-                    background: PALETTE.cream,
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                    fontFamily: 'Asap, system-ui, sans-serif',
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Hero
-                </span>
-              )}
               <div
                 style={{
                   fontFamily: 'Asap, system-ui, sans-serif',
