@@ -183,9 +183,13 @@ export function FloatingCartPill({ onOpen, drawerOpen = false }: FloatingCartPil
   const tweened = useNumberTween(subtotal, SUBTOTAL_TWEEN_MS, reduce);
   const tweenedRounded = Math.round(tweened);
 
-  if (count === 0) return null;
-
-  const ariaLabel = `Open basket, ${count} ${count === 1 ? "item" : "items"}, total £${subtotal}`;
+  // Always render — even with 0 items the pill stays visible as a "Basket"
+  // entry-point so the customer can click into it from any scroll position.
+  // Empty state shows the FAB with no count badge and no subtotal.
+  const ariaLabel =
+    count === 0
+      ? "Open basket, empty"
+      : `Open basket, ${count} ${count === 1 ? "item" : "items"}, total £${subtotal}`;
   const itemWord = count === 1 ? "item" : "items";
 
   return (
@@ -348,8 +352,8 @@ export function FloatingCartPill({ onOpen, drawerOpen = false }: FloatingCartPil
             )}
           </AnimatePresence>
 
-          {/* Count badge — only in FAB (collapsed) state. */}
-          {!expanded && (
+          {/* Count badge — only in FAB (collapsed) state, and only when cart has items. */}
+          {!expanded && count > 0 && (
             <motion.span
               key={`badge-${badgePulse}`}
               aria-hidden

@@ -10,7 +10,7 @@
  */
 import { Check } from "lucide-react";
 import { CANVAS_SIZES, FRAME_COLORS } from "./gelatoFramedCanvas";
-import { PALETTE, display, cormorantItalic, eyebrow, tabularPrice } from "./tokens";
+import { PALETTE, tabularPrice } from "./tokens";
 
 // Re-exports for backward compat with any other imports.
 export type Currency = "GBP" | "USD";
@@ -49,8 +49,6 @@ export function FrameSizes({ currency }: FrameSizesProps) {
   const usdMul = 1.3; // rough conversion for display only
   const formatPrice = (gbp: number) =>
     currency === "GBP" ? `${symbol}${gbp}` : `${symbol}${Math.round(gbp * usdMul)}`;
-  const min = CANVAS_SIZES[0].priceGBP;
-  const max = CANVAS_SIZES[CANVAS_SIZES.length - 1].priceGBP;
 
   return (
     <section
@@ -65,31 +63,9 @@ export function FrameSizes({ currency }: FrameSizesProps) {
       aria-labelledby="frame-sizes-heading"
     >
       <div className="mx-auto" style={{ maxWidth: 980 }}>
-        {/* Header */}
-        <div className="text-center mb-10">
-          <p style={eyebrow(PALETTE.earthMuted)}>Sizes &amp; pricing</p>
-          <h2
-            id="frame-sizes-heading"
-            style={{
-              ...display("clamp(30px, 4.4vw, 48px)"),
-              color: PALETTE.ink,
-              marginTop: 14,
-              marginBottom: 14,
-            }}
-          >
-            From {formatPrice(min)} to {formatPrice(max)}
-          </h2>
-          <p
-            style={{
-              ...cormorantItalic("clamp(16px, 1.9vw, 19px)"),
-              color: PALETTE.earth,
-              maxWidth: 540,
-              margin: "0 auto",
-            }}
-          >
-            Eleven sizes, three frame tones. Pick yours in the studio below.
-          </p>
-        </div>
+        <h2 id="frame-sizes-heading" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>
+          Canvas sizes and prices
+        </h2>
 
         {/* Size pricing grid — informational, not interactive */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">

@@ -577,9 +577,9 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           />
         </motion.div>
 
-        {/* ── Pet name (optional) ───────────────────────────────────── */}
+        {/* ── Pet name (optional) — always visible ──────────────────── */}
         <AnimatePresence>
-          {photoUrl && (
+          {true && (
             <motion.div
               key="petname"
               initial={{ opacity: 0, y: 12 }}
@@ -629,9 +629,9 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           )}
         </AnimatePresence>
 
-        {/* ── Premium prompt box ────────────────────────────────────── */}
+        {/* ── Premium prompt box — always visible (Generate gated by !!photoUrl) ─ */}
         <AnimatePresence>
-          {photoUrl && (
+          {true && (
             <motion.div
               key="prompt"
               initial={{ opacity: 0, y: 12 }}
@@ -709,6 +709,21 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                   </button>
                 </div>
               </div>
+
+              {/* Upload-first hint when no photo yet — sits below the prompt */}
+              {!photoUrl && (
+                <p
+                  className="text-center mt-3 px-2"
+                  style={{
+                    fontFamily: 'Assistant, system-ui, sans-serif',
+                    fontSize: 13,
+                    color: PALETTE.earthMuted,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Upload your pet's photo above to generate.
+                </p>
+              )}
 
               {/* Help expansion */}
               <AnimatePresence initial={false}>
