@@ -19,13 +19,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
   const action = req.query.action;
-  switch (action) {
-    case "checkout":
-      return handleCheckout(req, res);
-    case "portal":
-      return handlePortal(req, res);
-    default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: checkout|portal` });
+  try {
+    switch (action) {
+      case "checkout":
+        return await handleCheckout(req, res);
+      case "portal":
+        return await handlePortal(req, res);
+      default:
+        return res.status(400).json({ error: `Unknown action: ${action}. Valid: checkout|portal` });
+    }
+  } catch (err) {
+    // Defensive: ALWAYS return JSON so the client's res.json() doesn't choke
+    // on Vercel's HTML 500 page. Without this wrap an unhandled Stripe SDK
+    // throw (eg. STRIPE_SECRET_KEY missing, automatic_tax not configured,
+    // bad price id) bubbles up as text/html and the client throws
+    // "JSON.parse: unexpected character at line 1 column 1".
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[api/stripe] unhandled", JSON.stringify({ action, message }));
+    if (!res.headersSent) {
+      return res.status(500).json({ error: message || "Stripe request failed" });
+    }
   }
 }
 

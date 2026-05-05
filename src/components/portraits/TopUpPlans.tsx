@@ -36,7 +36,7 @@ const PLANS: Plan[] = [
     label: "Pack of 5",
     price: "£4.99",
     cadence: "one-off",
-    generations: "5 portraits",
+    generations: "5 pawtraits",
     tagline: "Top up without committing.",
     features: [
       "5 generations · 4 variants each",
@@ -51,7 +51,7 @@ const PLANS: Plan[] = [
     label: "Pass",
     price: "£8.99",
     cadence: "per month",
-    generations: "25 portraits/mo",
+    generations: "25 pawtraits/mo",
     tagline: "Worth it after one print.",
     features: [
       "25 generations · 4 variants each",
@@ -68,8 +68,8 @@ const PLANS: Plan[] = [
     label: "Elite",
     price: "£17.99",
     cadence: "per month",
-    generations: "75 portraits/mo",
-    tagline: "For serious portrait obsessives.",
+    generations: "75 pawtraits/mo",
+    tagline: "For serious pawtrait obsessives.",
     features: [
       "75 generations · 4 variants each",
       "Priority generation queue",
@@ -94,7 +94,7 @@ interface TopUpPlansProps {
 export function TopUpPlans({
   variant = "section",
   showHeader = true,
-  heading = "Need more portraits?",
+  heading = "Need more pawtraits?",
   authRedirect = "/portraits#topup",
 }: TopUpPlansProps) {
   const navigate = useNavigate();
@@ -119,8 +119,16 @@ export function TopUpPlans({
         },
         body: JSON.stringify({ sku }),
       });
-      const data = await res.json();
-      if (!res.ok || !data.url) throw new Error(data.error || "Checkout creation failed");
+      // Read text first so non-JSON responses (HTML error pages, gateway 500s)
+      // surface a useful message instead of "JSON.parse: unexpected character".
+      const raw = await res.text();
+      let data: { url?: string; error?: string } = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        throw new Error(`Checkout failed (${res.status}): ${raw.slice(0, 140) || "no response body"}`);
+      }
+      if (!res.ok || !data.url) throw new Error(data.error || `Checkout failed (${res.status})`);
       window.location.href = data.url;
     } catch (e) {
       toast.error((e as Error).message);

@@ -164,7 +164,7 @@ function SignInDialog({
       });
       if (error) throw error;
       onOpenChange(false);
-      toast.success("Welcome — 3 free portraits ready to generate.");
+      toast.success("Welcome — 3 free pawtraits ready to generate.");
     } catch (e) {
       toast.error("That code didn't work. Try again or send a new one.");
     } finally {
@@ -226,7 +226,7 @@ function SignInDialog({
             <Sparkles className="w-6 h-6" style={{ color: PALETTE.rose }} />
           </div>
           <h2 style={{ ...display("26px"), color: PALETTE.ink }}>
-            {step === "email" ? "3 free portraits" : "Enter your code"}
+            {step === "email" ? "3 free pawtraits" : "Enter your code"}
           </h2>
           <p
             className="mx-auto mt-2"
@@ -553,7 +553,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               }}
             >
               <Sparkles className="w-3.5 h-3.5" style={{ color: PALETTE.rose }} />
-              <strong style={{ color: PALETTE.ink }}>3 free portraits</strong>
+              <strong style={{ color: PALETTE.ink }}>3 free pawtraits</strong>
               <span style={{ color: PALETTE.earthMuted, marginLeft: 4 }}>· Sign in</span>
             </button>
           )}
@@ -599,6 +599,17 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               >
                 Pet's name <span style={{ color: PALETTE.earthSubtle, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
               </label>
+              <p
+                className="text-xs mb-2 px-1.5"
+                style={{
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                  fontSize: 12,
+                  color: PALETTE.earthSubtle,
+                  lineHeight: 1.5,
+                }}
+              >
+                For your order &amp; email — not added to the canvas artwork.
+              </p>
               <input
                 type="text"
                 value={petName}
@@ -710,7 +721,8 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                 </div>
               </div>
 
-              {/* Upload-first hint when no photo yet — sits below the prompt */}
+              {/* Upload-first hint when no photo yet — sits below the prompt.
+                  Also clarifies that size + frame are picked AFTER variants generate. */}
               {!photoUrl && (
                 <p
                   className="text-center mt-3 px-2"
@@ -721,7 +733,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     lineHeight: 1.5,
                   }}
                 >
-                  Upload your pet's photo above to generate.
+                  Upload your pet's photo above to generate. Pick your canvas size &amp; frame after.
                 </p>
               )}
 
