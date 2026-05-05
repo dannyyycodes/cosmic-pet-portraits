@@ -503,19 +503,6 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
     >
-      {/* Subtle gilt hairline accent at top */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 64,
-          height: 1.5,
-          background: `linear-gradient(90deg, transparent 0%, ${PALETTE.gold} 50%, transparent 100%)`,
-        }}
-      />
       <div className="mx-auto" style={{ maxWidth: 720 }}>
 
         {/* ── Credits / status pill ─────────────────────────────────── */}

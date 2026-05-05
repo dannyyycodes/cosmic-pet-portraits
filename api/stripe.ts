@@ -30,14 +30,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (err) {
     // Defensive: ALWAYS return JSON so the client's res.json() doesn't choke
-    // on Vercel's HTML 500 page. Without this wrap an unhandled Stripe SDK
-    // throw (eg. STRIPE_SECRET_KEY missing, automatic_tax not configured,
-    // bad price id) bubbles up as text/html and the client throws
-    // "JSON.parse: unexpected character at line 1 column 1".
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[api/stripe] unhandled", JSON.stringify({ action, message }));
+    // on Vercel's HTML 500 page. Surface the FULL Stripe error shape — type,
+    // code, statusCode — so the client toast tells us exactly which API call
+    // failed and why (vs a generic "connection error").
+    const e = err as { type?: string; code?: string; statusCode?: number; message?: string; raw?: { message?: string; type?: string; code?: string } };
+    const message = e?.message || (err instanceof Error ? err.message : String(err));
+    const stripeType = e?.type || e?.raw?.type;
+    const stripeCode = e?.code || e?.raw?.code;
+    const stripeStatus = e?.statusCode;
+    console.error(
+      "[api/stripe] unhandled",
+      JSON.stringify({ action, message, stripeType, stripeCode, stripeStatus, stack: err instanceof Error ? err.stack?.split("\n").slice(0, 5) : undefined }),
+    );
     if (!res.headersSent) {
-      return res.status(500).json({ error: message || "Stripe request failed" });
+      return res.status(500).json({
+        error: message || "Stripe request failed",
+        type: stripeType,
+        code: stripeCode,
+        stripeStatus,
+      });
     }
   }
 }
@@ -77,13 +88,20 @@ async function handleCheckout(req: VercelRequest, res: VercelResponse) {
     customerId = c.id;
   }
 
+  // automatic_tax requires Stripe Tax fully configured (tax registrations,
+  // tax-eligible customer addresses). Until that's wired, default OFF — set
+  // STRIPE_AUTOMATIC_TAX=1 in Vercel env to flip on. Without this gate,
+  // Stripe returns a tax-not-configured 5xx that the SDK retries until it
+  // bubbles up as a confusing "connection error" toast.
+  const automaticTaxEnabled = process.env.STRIPE_AUTOMATIC_TAX === "1";
+
   const origin = req.headers.origin ?? "https://littlesouls.app";
   const session = await stripe.checkout.sessions.create({
     mode,
     customer: customerId,
     client_reference_id: user.id,
     line_items: [{ price: priceId, quantity: 1 }],
-    automatic_tax: { enabled: true },
+    ...(automaticTaxEnabled ? { automatic_tax: { enabled: true } } : {}),
     success_url: `${origin}/portraits/studio?checkout=success&sku=${sku}`,
     cancel_url:  `${origin}/unlimited?checkout=cancelled`,
     ...(mode === "subscription" ? { subscription_data: { metadata: { account_id: user.id } } } : {}),

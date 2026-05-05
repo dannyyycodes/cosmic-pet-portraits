@@ -16,6 +16,12 @@ export function getStripe(): Stripe {
   _stripe = new Stripe(key, {
     apiVersion: "2024-11-20.acacia" as Stripe.LatestApiVersion,
     typescript: true,
+    // Vercel cold-starts can stretch the first network round-trip; bumping
+    // the per-call timeout + adding a couple of automatic retries makes the
+    // checkout-session create resilient instead of throwing
+    // StripeConnectionError after a transient hiccup.
+    timeout: 30_000,
+    maxNetworkRetries: 2,
   });
   return _stripe;
 }
