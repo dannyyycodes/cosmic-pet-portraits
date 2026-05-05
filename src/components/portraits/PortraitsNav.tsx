@@ -68,7 +68,7 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
-          aria-label="Little Souls Portraits — back to top"
+          aria-label="Little Souls Pawtraits — back to top"
         >
           <span
             style={{
@@ -82,7 +82,7 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
             Little Souls
           </span>
           <span style={{ fontSize: "11px", color: PALETTE.rose, fontWeight: 700, letterSpacing: "0.18em" }}>
-            ✦ &nbsp;PORTRAITS
+            ✦ &nbsp;PAWTRAITS
           </span>
         </Link>
 
@@ -267,7 +267,7 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
                         padding: "12px 18px",
                       }}
                     >
-                      Begin their portrait →
+                      Begin their pawtrait →
                     </a>
                   </SheetClose>
                 </div>

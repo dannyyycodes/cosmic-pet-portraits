@@ -74,7 +74,7 @@ export function PortraitsHero({ onBegin }: PortraitsHeroProps) {
               textTransform: "uppercase",
             }}
           >
-            Pet Portraits · framed wall art
+            Pet Pawtraits · framed wall art
           </p>
 
           <h1
@@ -87,10 +87,10 @@ export function PortraitsHero({ onBegin }: PortraitsHeroProps) {
               marginInline: "auto",
             }}
           >
-            <SplitWords text="your pet is the" />{" "}
+            <SplitWords text="your pet as the" />{" "}
             <SplitWords
               text="main character"
-              style={{ ...cormorantItalic("clamp(42px, 6.6vw, 88px)"), color: PALETTE.rose }}
+              style={{ ...cormorantItalic("clamp(42px, 6.6vw, 88px)"), color: PALETTE.rose, fontWeight: 700 }}
               delay={0.36}
             />
           </h1>
@@ -112,23 +112,9 @@ export function PortraitsHero({ onBegin }: PortraitsHeroProps) {
                 boxShadow: "0 18px 48px rgba(191, 82, 74, 0.28)",
               }}
             >
-              Begin their portrait
+              Begin their pawtrait
               <span aria-hidden style={{ fontSize: "18px" }}>↓</span>
             </button>
-            <a
-              href="#wall-of-love"
-              style={{
-                fontFamily: 'Assistant, system-ui, sans-serif',
-                fontSize: "14.5px",
-                color: PALETTE.earth,
-                textDecoration: "underline",
-                textDecorationColor: "rgba(58, 58, 58, 0.4)",
-                textUnderlineOffset: "5px",
-                fontWeight: 500,
-              }}
-            >
-              see what other pet parents got first
-            </a>
           </div>
         </motion.div>
       </div>

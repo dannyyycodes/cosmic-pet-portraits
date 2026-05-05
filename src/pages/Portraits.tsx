@@ -787,7 +787,7 @@ const Portraits = () => {
       ? ` ${item.frameColor.replace("-", " ")} frame`
       : "";
     emitCartChanged(
-      `Added ${item.sizeLabel}${frame} ${item.productShortLabel.toLowerCase()} portrait`,
+      `Added ${item.sizeLabel}${frame} ${item.productShortLabel.toLowerCase()} pawtrait`,
     );
     // Briefly open the cart so the customer sees the item land
     setCartOpen(true);

@@ -94,7 +94,7 @@ export function CartDrawer({
               letterSpacing: "-0.01em",
             }}
           >
-            Your portraits
+            Your pawtraits
             {!isEmpty && (
               <span style={{ color: PALETTE.earthMuted, fontWeight: 400, marginLeft: "8px" }}>
                 · {items.length}
@@ -105,7 +105,7 @@ export function CartDrawer({
             <SheetDescription
               style={{ fontSize: "13px", color: PALETTE.earthMuted, marginTop: "2px" }}
             >
-              Each portrait ships in 3–5 days · refund if it doesn't feel like them
+              Each pawtrait ships in 3–5 days · refund if it doesn't feel like them
             </SheetDescription>
           )}
         </SheetHeader>
@@ -275,7 +275,7 @@ function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) =
               fontWeight: 700,
             }}
           >
-            {item.kind === "template" ? "Real photo" : "AI portrait"}
+            {item.kind === "template" ? "Real photo" : "AI pawtrait"}
           </span>
         </div>
         <p
@@ -469,7 +469,7 @@ function EmptyState() {
         }}
       >
         Nothing in your cart yet.<br />
-        Configure their portrait in the studio and add it here.
+        Configure their pawtrait in the studio and add it here.
       </p>
     </div>
   );

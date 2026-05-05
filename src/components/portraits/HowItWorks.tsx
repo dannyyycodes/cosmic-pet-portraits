@@ -34,7 +34,7 @@ const STEPS: Step[] = [
     title: "Review and approve your custom artwork.",
     body: (
       <>
-        We'll prepare a proof of your pet's portrait for you to review. Look it over,
+        We'll prepare a proof of your pet's pawtrait for you to review. Look it over,
         request any changes you'd like, and approve the final design. Then we'll get it
         ready for printing and shipping.{" "}
         <strong style={{ fontWeight: 600 }}>Your happiness is 100% guaranteed.</strong>
@@ -75,7 +75,7 @@ export function HowItWorks() {
           >
             <SplitWords text="Three steps." />{" "}
             <SplitWords text="Three minutes" style={{ color: PALETTE.rose, fontStyle: "italic" }} delay={0.3} />{" "}
-            <SplitWords text="from photo to wall." delay={0.55} />
+            <SplitWords text="from photo to delivery." delay={0.55} />
           </h2>
         </div>
 
@@ -92,7 +92,7 @@ export function HowItWorks() {
             sizes="(max-width: 1280px) calc(100vw - 48px), 1192px"
             width={1672}
             height={941}
-            alt="Three steps to a custom pet portrait — upload your pet's photo on your phone, approve the proof, then hang the framed artwork on your wall."
+            alt="Three steps to a custom pet pawtrait — upload your pet's photo on your phone, approve the proof, then hang the framed artwork on your wall."
             style={{
               width: "100%",
               height: "auto",

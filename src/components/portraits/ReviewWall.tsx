@@ -65,9 +65,9 @@ const REVIEWS: Review[] = [
   { img: 41, q: "The 1920s boss one. My absolute world.", name: "Reuben" },
   { img: 42, q: "First gift my partner has truly loved. After eight years.", name: "Aisha" },
   { img: 43, q: "I've reordered twice. Stop me.", name: "Theo" },
-  { img: 44, q: "She sits beside her own portrait now. Two queens of the room.", name: "Mira" },
+  { img: 44, q: "She sits beside her own pawtrait now. Two queens of the room.", name: "Mira" },
   { img: 45, q: "Sits on the wall and the room just feels warmer with her in it.", name: "Dean" },
-  { img: 46, q: "Renaissance portrait. Of a goofball. Sublime.", name: "Naomi" },
+  { img: 46, q: "Renaissance pawtrait. Of a goofball. Sublime.", name: "Naomi" },
   { img: 47, q: "The crown jewel of the lounge. Wasn't even close.", name: "Phoebe" },
   { img: 48, q: "Better than I imagined and I imagined hard.", name: "Chris" },
   { img: 49, q: "The little fella. Looking heroic. I'm done.", name: "Sara" },
@@ -153,7 +153,7 @@ function ReviewCard({ r }: { r: Review }) {
       >
         <img
           src={imgPath(r.img)}
-          alt={`${r.name}'s framed pet portrait`}
+          alt={`${r.name}'s framed pet pawtrait`}
           loading="lazy"
           decoding="async"
           width={560}
