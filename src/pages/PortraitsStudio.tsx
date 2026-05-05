@@ -99,7 +99,7 @@ export default function PortraitsStudio() {
       const data = await res.json();
       if (res.status === 402) {
         toast.error("Out of credits. Subscribe or buy a pack to continue.");
-        navigate("/unlimited");
+        navigate("/portraits#topup");
         return;
       }
       if (res.status === 503 && data.error === "ai-service-paused") {
@@ -208,7 +208,7 @@ export default function PortraitsStudio() {
                 <>
                   <span><strong style={{ color: PALETTE.ink }}>{balance ?? "…"}</strong> credits</span>
                   {tier && <span style={{ color: PALETTE.muted }}>· {tier === "elite" ? "Elite" : "Pass"}</span>}
-                  <Link to="/unlimited" className="ml-2" style={{ color: PALETTE.rose, fontWeight: 600 }}>
+                  <Link to="/portraits#topup" className="ml-2" style={{ color: PALETTE.rose, fontWeight: 600 }}>
                     Top up →
                   </Link>
                 </>

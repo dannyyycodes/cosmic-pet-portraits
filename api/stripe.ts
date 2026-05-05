@@ -102,8 +102,10 @@ async function handleCheckout(req: VercelRequest, res: VercelResponse) {
     client_reference_id: user.id,
     line_items: [{ price: priceId, quantity: 1 }],
     ...(automaticTaxEnabled ? { automatic_tax: { enabled: true } } : {}),
-    success_url: `${origin}/portraits/studio?checkout=success&sku=${sku}`,
-    cancel_url:  `${origin}/unlimited?checkout=cancelled`,
+    // Both success + cancel land back on the single landing page. /unlimited
+    // was deleted 2026-05-05 — TopUpPlans now lives inline at /portraits#topup.
+    success_url: `${origin}/portraits?checkout=success&sku=${sku}#studio`,
+    cancel_url:  `${origin}/portraits?checkout=cancelled#topup`,
     ...(mode === "subscription" ? { subscription_data: { metadata: { account_id: user.id } } } : {}),
   });
 
@@ -130,7 +132,7 @@ async function handlePortal(req: VercelRequest, res: VercelResponse) {
   const origin = req.headers.origin ?? "https://littlesouls.app";
   const session = await getStripe().billingPortal.sessions.create({
     customer: existing.stripe_customer_id,
-    return_url: `${origin}/portraits/studio`,
+    return_url: `${origin}/portraits#topup`,
   });
 
   return res.status(200).json({ url: session.url });

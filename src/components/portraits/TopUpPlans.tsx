@@ -1,9 +1,9 @@
 /**
  * TopUpPlans — reusable 3-card pricing block (Pack / Pass / Elite).
  *
- * Rendered:
- *   - inline on /portraits below the StudioFlow (so customers never leave the page)
- *   - full-page on /unlimited (for bio-link campaigns / paid-traffic landing)
+ * Rendered inline on /portraits below the StudioFlow (so customers never
+ * leave the page). The standalone /unlimited page was removed 2026-05-05 —
+ * single-page funnel: studio + pricing + checkout all on /portraits.
  *
  * Anonymous users get redirected to /auth?next=... before Stripe checkout.
  * Authed users hit Stripe Checkout directly.
@@ -323,6 +323,6 @@ export function TopUpPlans({
     );
   }
 
-  // Default: full-page section variant (used by /unlimited)
+  // Default: full-page section variant (legacy bio-link entry; now mostly used inline on /portraits)
   return cards;
 }

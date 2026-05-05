@@ -71,7 +71,6 @@ const Portraits = lazy(() => import("./pages/Portraits"));
 const Reading = lazy(() => import("./pages/Reading"));
 const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
-const PortraitsUnlimited = lazy(() => import("./pages/PortraitsUnlimited"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the homepage InlineCheckout section.
@@ -216,7 +215,8 @@ const App = () => (
                   <Route path="/portraits" element={<Portraits />} />
                   <Route path="/portraits/studio" element={<Navigate to="/portraits#studio" replace />} />
                   <Route path="/portraits/templates" element={<PortraitsTemplates />} />
-                  <Route path="/unlimited" element={<PortraitsUnlimited />} />
+                  {/* /unlimited removed 2026-05-05 — TopUpPlans now lives inline at /portraits#topup */}
+                  <Route path="/unlimited" element={<Navigate to="/portraits#topup" replace />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
