@@ -8,6 +8,7 @@
  *
  * Empty state nudges them back to the studio.
  */
+import { useCallback, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -18,13 +19,23 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { PALETTE, cormorantItalic, EASE } from "./tokens";
 import { type CartItem, cartSubtotalMajor, itemTotalMajor } from "./cart";
+import { isSoulReadingItem } from "./soulReading";
+import { SoulReadingUpsell } from "./SoulReadingUpsell";
+import { CartConsents, type ConsentSnapshot } from "./CartConsents";
+import { Sparkles } from "lucide-react";
 
 interface CartDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: CartItem[];
   onRemove: (id: string) => void;
-  onCheckout: () => void;
+  /** Adds a new line (used by the in-drawer Soul Reading upsell). */
+  onAddItem?: (item: CartItem) => void;
+  /** Fired when the customer clicks Checkout. Receives the consent snapshot
+   *  (timestamps) so the parent can pass it to /api/cart/checkout for
+   *  metafield persistence. Existing callers that ignore the arg keep
+   *  working — the snapshot is null when no consents apply. */
+  onCheckout: (consent?: ConsentSnapshot | null) => void;
   checkoutBusy?: boolean;
   checkoutError?: string | null;
 }
@@ -34,12 +45,34 @@ export function CartDrawer({
   onOpenChange,
   items,
   onRemove,
+  onAddItem,
   onCheckout,
   checkoutBusy,
   checkoutError,
 }: CartDrawerProps) {
   const subtotal = cartSubtotalMajor(items);
   const isEmpty = items.length === 0;
+
+  // Consent gating — drives both the disabled state of the Checkout button
+  // and the consent timestamps passed into the checkout API on submit.
+  const [consentState, setConsentState] = useState<{
+    allRequiredChecked: boolean;
+    snapshot: ConsentSnapshot;
+  }>({
+    allRequiredChecked: true, // empty cart / no applicable consents → not blocked
+    snapshot: { canvasPersonalisedAt: null, readingImmediateAt: null },
+  });
+  const handleConsentChange = useCallback(
+    (state: { allRequiredChecked: boolean; snapshot: ConsentSnapshot }) => {
+      setConsentState(state);
+    },
+    [],
+  );
+
+  const checkoutDisabled = !!checkoutBusy || !consentState.allRequiredChecked;
+  const checkoutTooltip = !consentState.allRequiredChecked
+    ? "Tick the consent boxes above to continue"
+    : undefined;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -82,32 +115,48 @@ export function CartDrawer({
           {isEmpty ? (
             <EmptyState />
           ) : (
-            <ul className="px-6 py-4 space-y-4">
-              <AnimatePresence initial={false}>
-                {items.map((item) => (
-                  <motion.li
-                    key={item.id}
-                    layout
-                    initial={{ opacity: 0, x: 20, height: 0 }}
-                    animate={{ opacity: 1, x: 0, height: "auto" }}
-                    exit={{ opacity: 0, x: 20, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
-                    transition={{ duration: 0.32, ease: EASE.out }}
-                    className="overflow-hidden"
-                  >
-                    <CartLine item={item} onRemove={onRemove} />
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </ul>
+            <>
+              <ul className="px-6 py-4 space-y-4">
+                <AnimatePresence initial={false}>
+                  {items.map((item) => (
+                    <motion.li
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, x: 20, height: 0 }}
+                      animate={{ opacity: 1, x: 0, height: "auto" }}
+                      exit={{ opacity: 0, x: 20, height: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
+                      transition={{ duration: 0.32, ease: EASE.out }}
+                      className="overflow-hidden"
+                    >
+                      {isSoulReadingItem(item) ? (
+                        <SoulReadingLine item={item} onRemove={onRemove} />
+                      ) : (
+                        <CartLine item={item} onRemove={onRemove} />
+                      )}
+                    </motion.li>
+                  ))}
+                </AnimatePresence>
+              </ul>
+
+              {/* Soul Reading upsell card — sits between line items and
+                  footer. Hides itself when there are no canvas items or
+                  when a Soul Reading is already in cart. */}
+              {onAddItem && (
+                <SoulReadingUpsell cart={items} onAdd={onAddItem} />
+              )}
+            </>
           )}
         </div>
 
-        {/* ── Footer (subtotal + CTA) ─────────────────────────────── */}
+        {/* ── Footer (consents + subtotal + CTA) ──────────────────── */}
         {!isEmpty && (
           <footer
             className="px-6 py-5"
             style={{ borderTop: `1px solid ${PALETTE.sand}`, background: PALETTE.cream2 }}
           >
+            {/* CCR consent checkboxes — required before checkout enables. */}
+            <CartConsents items={items} onChange={handleConsentChange} />
+
             <div className="flex items-baseline justify-between mb-4">
               <span
                 style={{
@@ -137,9 +186,11 @@ export function CartDrawer({
 
             <button
               type="button"
-              onClick={onCheckout}
-              disabled={checkoutBusy}
-              className="w-full px-6 py-4 rounded-full transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+              onClick={() => onCheckout(consentState.snapshot)}
+              disabled={checkoutDisabled}
+              title={checkoutTooltip}
+              aria-disabled={checkoutDisabled}
+              className="w-full px-6 py-4 rounded-full transition-all hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed"
               style={{
                 background: PALETTE.rose,
                 color: PALETTE.cream,
@@ -147,7 +198,10 @@ export function CartDrawer({
                 fontSize: "16px",
                 fontWeight: 700,
                 letterSpacing: "0.01em",
-                boxShadow: "0 18px 40px rgba(191, 82, 74, 0.28)",
+                boxShadow: checkoutDisabled
+                  ? "none"
+                  : "0 18px 40px rgba(191, 82, 74, 0.28)",
+                opacity: checkoutDisabled ? 0.55 : 1,
               }}
             >
               {checkoutBusy ? "Opening checkout…" : "Continue to checkout →"}
@@ -255,6 +309,113 @@ function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) =
               letterSpacing: "0.02em",
             }}
             aria-label={`Remove ${item.productShortLabel} ${item.sizeLabel} from cart`}
+          >
+            Remove
+          </button>
+          <span
+            style={{
+              fontFamily: 'Asap, system-ui, sans-serif',
+              fontSize: "16px",
+              fontWeight: 700,
+              color: PALETTE.ink,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            £{total}
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* ─── Soul Reading line ───────────────────────────────────────────── */
+function SoulReadingLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) => void }) {
+  const total = itemTotalMajor(item);
+  const props = (item as unknown as { properties?: Record<string, string> }).properties ?? {};
+  const petName = props._pet_name?.trim() || "Your pet";
+  return (
+    <article
+      className="flex gap-4 p-3 rounded-sm"
+      style={{
+        background: "#FFFAF3",
+        border: `1px dashed rgba(191, 82, 74, 0.45)`,
+      }}
+    >
+      <div
+        className="flex-shrink-0 overflow-hidden rounded-sm"
+        style={{
+          width: 72,
+          height: 90,
+          background: PALETTE.cosmos,
+          border: `1px solid ${PALETTE.sand}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: PALETTE.cream,
+        }}
+        aria-hidden
+      >
+        <Sparkles size={28} strokeWidth={1.6} style={{ color: PALETTE.rose }} />
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p
+          style={{
+            fontFamily: 'Asap, system-ui, sans-serif',
+            fontSize: "14px",
+            fontWeight: 700,
+            color: PALETTE.ink,
+            letterSpacing: "-0.005em",
+          }}
+        >
+          Soul Reading · Digital
+        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <span
+            className="inline-block px-1.5 py-0.5 rounded-sm text-[10px] uppercase"
+            style={{
+              background: "rgba(196, 162, 101, 0.18)",
+              color: PALETTE.goldDeep,
+              letterSpacing: "0.1em",
+              fontWeight: 700,
+            }}
+          >
+            Add-on
+          </span>
+        </div>
+        <p
+          className="truncate"
+          style={{ fontSize: "12.5px", color: PALETTE.earth, marginTop: "4px" }}
+        >
+          For {petName}
+          {props._pet_dob ? ` · ${props._pet_dob}` : ""}
+        </p>
+        {props._pet_birth_location && (
+          <p
+            className="truncate"
+            style={{
+              fontSize: "11.5px",
+              color: PALETTE.earthMuted,
+              marginTop: "2px",
+              letterSpacing: "0.02em",
+            }}
+          >
+            {props._pet_birth_location}
+          </p>
+        )}
+
+        <div className="flex items-baseline justify-between mt-2">
+          <button
+            type="button"
+            onClick={() => onRemove(item.id)}
+            className="transition-colors hover:underline"
+            style={{
+              fontSize: "12px",
+              color: PALETTE.earthMuted,
+              letterSpacing: "0.02em",
+            }}
+            aria-label="Remove Soul Reading from cart"
           >
             Remove
           </button>

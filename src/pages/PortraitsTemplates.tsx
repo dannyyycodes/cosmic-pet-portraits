@@ -23,6 +23,7 @@ import { PortraitsNav } from "@/components/portraits/PortraitsNav";
 import { PortraitsFooter } from "@/components/portraits/PortraitsFooter";
 import { PetPhotoUpload } from "@/components/portraits/PetPhotoUpload";
 import { CartDrawer } from "@/components/portraits/CartDrawer";
+import { FloatingCartPill, emitCartChanged } from "@/components/portraits/FloatingCartPill";
 import { TemplatePreview } from "@/components/portraits/templates/TemplatePreview";
 import { TEMPLATES, DEFAULT_TRANSFORM, type TemplateDef, type PetTransform } from "@/components/portraits/templates/data";
 import { PRODUCTS, resolveVariant, formatPrice, type AnySizeKey } from "@/components/portraits/productLineup";
@@ -52,7 +53,10 @@ export default function PortraitsTemplates() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   useEffect(() => { saveCart(cart); }, [cart]);
 
-  async function handleCheckout() {
+  async function handleCheckout(consent?: {
+    canvasPersonalisedAt: string | null;
+    readingImmediateAt: string | null;
+  } | null) {
     if (cart.length === 0) return;
     setCheckoutBusy(true);
     setCheckoutError(null);
@@ -60,7 +64,7 @@ export default function PortraitsTemplates() {
       const res = await fetch("/api/cart/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currency: "GBP", items: cart }),
+        body: JSON.stringify({ currency: "GBP", items: cart, consent: consent ?? undefined }),
       });
       const data = await res.json();
       if (!res.ok || !data.invoiceUrl) throw new Error(data.error || "Checkout failed");
@@ -69,6 +73,11 @@ export default function PortraitsTemplates() {
       setCheckoutError((e as Error).message);
       setCheckoutBusy(false);
     }
+  }
+
+  function handleAddSoulReading(item: CartItem) {
+    setCart((c) => [...c, item]);
+    emitCartChanged("Added Soul Reading");
   }
 
   // Auto-cutout when photo uploads
@@ -141,6 +150,9 @@ export default function PortraitsTemplates() {
         id: crypto.randomUUID(),
       });
       setCart((c) => [...c, item]);
+      emitCartChanged(
+        `Added ${selectedTemplate.label} ${item.productShortLabel.toLowerCase()}`,
+      );
       toast.success(`${selectedTemplate.label} added`);
       setCartOpen(true);
     } catch (e) {
@@ -350,11 +362,16 @@ export default function PortraitsTemplates() {
         open={cartOpen}
         onOpenChange={setCartOpen}
         items={cart}
-        onRemove={(id) => setCart((c) => c.filter((i) => i.id !== id))}
+        onRemove={(id) => {
+          setCart((c) => c.filter((i) => i.id !== id));
+          emitCartChanged();
+        }}
+        onAddItem={handleAddSoulReading}
         onCheckout={handleCheckout}
         checkoutBusy={checkoutBusy}
         checkoutError={checkoutError}
       />
+      <FloatingCartPill onOpen={() => setCartOpen(true)} drawerOpen={cartOpen} />
     </div>
   );
 }

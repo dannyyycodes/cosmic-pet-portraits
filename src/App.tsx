@@ -49,6 +49,7 @@ const AffiliateDashboard = lazy(() => import("./pages/AffiliateDashboard"));
 const ReferralRedirect = lazy(() => import("./pages/ReferralRedirect"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const Refund = lazy(() => import("./pages/Refund"));
 const Contact = lazy(() => import("./pages/Contact"));
 const MapPreview = lazy(() => import("./pages/MapPreview"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
@@ -67,6 +68,7 @@ const CompatibilityViewer = lazy(() => import("./pages/CompatibilityViewer"));
 const SoulSpeakHub = lazy(() => import("./pages/SoulSpeakHub"));
 const DevReport = lazy(() => import("./pages/DevReport"));
 const Portraits = lazy(() => import("./pages/Portraits"));
+const Reading = lazy(() => import("./pages/Reading"));
 const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
 const PortraitsUnlimited = lazy(() => import("./pages/PortraitsUnlimited"));
@@ -178,6 +180,7 @@ const App = () => (
                   <Route path="/ref/:code" element={<ReferralRedirect />} />
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/refund" element={<Refund />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/unsubscribe" element={<Unsubscribe />} />
                   <Route path="/account" element={<Account />} />
@@ -208,6 +211,8 @@ const App = () => (
                   <Route path="/dev/report" element={<DevReport />} />
                   {/* Studio is now inline at /portraits#studio. Old /portraits/studio
                       redirects there so any cached/bookmarked link still lands correctly. */}
+                  {/* Soul Reading viewer (Shopify-fulfilled flow). Token-gated, noindex. */}
+                  <Route path="/reading/:token" element={<Reading />} />
                   <Route path="/portraits" element={<Portraits />} />
                   <Route path="/portraits/studio" element={<Navigate to="/portraits#studio" replace />} />
                   <Route path="/portraits/templates" element={<PortraitsTemplates />} />

@@ -31,6 +31,11 @@ import { createDraftOrder, shopifyConfigured, type DraftOrderLineItem } from "..
 // ─── Locked variant map (mirrors productLineup.ts) ─────────────────────
 type ProductTypeKey = "framed-canvas" | "mug" | "tote" | "tee" | "hoodie";
 
+// ─── Soul Reading constants (mirrors src/components/portraits/soulReading.ts) ──
+const SOUL_READING_VARIANT_ID = 64601427640669;
+const SOUL_READING_PRODUCT_TYPE = "soul-reading";
+const SOUL_READING_TITLE = "Soul Reading — Personalised Pet Astrology";
+
 interface VariantDef {
   variantId: number;
   priceMajor: number;
@@ -117,7 +122,7 @@ const PRODUCT_LABELS: Record<ProductTypeKey, string> = {
 interface CartItemBody {
   /** Tier 0 (template) vs Tier 1+ (AI gen). Defaults "ai". */
   kind?: "ai" | "template";
-  productType: ProductTypeKey;
+  productType: ProductTypeKey | "soul-reading";
   sizeKey: string;
   /** Framed canvas only — wood-tone (Black / Natural Wood / Dark Brown). */
   frameColor?: "black" | "natural-wood" | "dark-wood";
@@ -130,11 +135,21 @@ interface CartItemBody {
   printMasterUrl?: string;
   soulEdition?: boolean;
   soulEditionPriceMajor?: number;
+  /** Soul Reading line: variantId pre-set, properties carry pet inputs. */
+  variantId?: number;
+  properties?: Record<string, string>;
+}
+
+interface ConsentBody {
+  canvasPersonalisedAt?: string | null;
+  readingImmediateAt?: string | null;
 }
 
 interface CheckoutBody {
   currency?: "GBP" | "USD";
   items?: CartItemBody[];
+  /** Optional CCR consent timestamps captured from CartConsents. */
+  consent?: ConsentBody;
 }
 
 const VALID_CURRENCIES = new Set(["GBP", "USD"]);
@@ -163,11 +178,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const noteSummary: string[] = [];
   let soulEditionCount = 0;
 
+  let soulReadingCount = 0;
   for (let i = 0; i < b.items.length; i++) {
     const it = b.items[i];
 
+    // ── Soul Reading line — digital service, fixed variant, pet inputs as
+    //    line-item properties. Branched early so the canvas/POD validators
+    //    don't reject it.
+    if (
+      it.productType === SOUL_READING_PRODUCT_TYPE ||
+      (typeof it.variantId === "number" && it.variantId === SOUL_READING_VARIANT_ID)
+    ) {
+      const props = it.properties ?? {};
+      const petName = (props._pet_name ?? "").toString().trim();
+      const petDob = (props._pet_dob ?? "").toString().trim();
+      const petLoc = (props._pet_birth_location ?? "").toString().trim();
+      if (!petName)
+        return res.status(400).json({ error: `items[${i}]: _pet_name required for Soul Reading` });
+      if (!petDob)
+        return res.status(400).json({ error: `items[${i}]: _pet_dob required for Soul Reading` });
+      if (!petLoc)
+        return res.status(400).json({ error: `items[${i}]: _pet_birth_location required for Soul Reading` });
+
+      lineItems.push({
+        variantId: SOUL_READING_VARIANT_ID,
+        quantity: 1,
+        properties: [
+          { name: "Pet Name", value: petName },
+          { name: "Pet Date of Birth", value: petDob },
+          { name: "Pet Birth Location", value: petLoc },
+          { name: "_canvas_order_ref", value: (props._canvas_order_ref ?? "").toString() },
+          { name: "_line_kind", value: "soul-reading" },
+        ],
+      });
+      noteSummary.push(`${SOUL_READING_TITLE} · ${petName}`);
+      soulReadingCount++;
+      continue;
+    }
+
     // Per-item validation
-    if (!it.productType || !PRODUCT_VARIANTS[it.productType])
+    if (!it.productType || !PRODUCT_VARIANTS[it.productType as ProductTypeKey])
       return res.status(400).json({ error: `items[${i}].productType invalid` });
     if (!it.packId || typeof it.packId !== "string")
       return res.status(400).json({ error: `items[${i}].packId required` });
@@ -178,20 +228,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!it.sourcePhotoUrl || typeof it.sourcePhotoUrl !== "string")
       return res.status(400).json({ error: `items[${i}].sourcePhotoUrl required` });
 
+    const productKey = it.productType as ProductTypeKey;
     // Framed canvas: when frameColor is provided, look up by composite key
     // `${sizeKey}__${frameColor}` (v2 product). Falls back to plain sizeKey
     // for legacy carts created before v2 migration.
     const baseSizeKey = it.sizeKey ?? "default";
     const lookupKey =
-      it.productType === "framed-canvas" && it.frameColor
+      productKey === "framed-canvas" && it.frameColor
         ? `${baseSizeKey}__${it.frameColor}`
         : baseSizeKey;
-    const variant = PRODUCT_VARIANTS[it.productType][lookupKey]
-      ?? PRODUCT_VARIANTS[it.productType][baseSizeKey];
+    const variant = PRODUCT_VARIANTS[productKey][lookupKey]
+      ?? PRODUCT_VARIANTS[productKey][baseSizeKey];
     if (!variant) {
-      const validSizes = Object.keys(PRODUCT_VARIANTS[it.productType]).join(", ");
+      const validSizes = Object.keys(PRODUCT_VARIANTS[productKey]).join(", ");
       return res.status(400).json({
-        error: `items[${i}]: unknown size '${lookupKey}' for product '${it.productType}'. Valid: ${validSizes}`,
+        error: `items[${i}]: unknown size '${lookupKey}' for product '${productKey}'. Valid: ${validSizes}`,
       });
     }
 
@@ -199,7 +250,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const isTemplate = it.kind === "template";
 
     const properties = [
-      { name: "Product", value: PRODUCT_LABELS[it.productType] },
+      { name: "Product", value: PRODUCT_LABELS[productKey] },
       { name: isTemplate ? "Template" : "Character pack", value: it.packName },
       ...(isTemplate ? [] : [{ name: "Style", value: styleLabel }]),
       { name: isTemplate ? "Template id" : "Pack id", value: it.packId },
@@ -216,11 +267,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       properties,
     });
 
-    noteSummary.push(`${PRODUCT_LABELS[it.productType]} (${variant.sizeLabel}) · ${it.packName}`);
+    noteSummary.push(`${PRODUCT_LABELS[productKey]} (${variant.sizeLabel}) · ${it.packName}`);
 
     // Soul Edition add-on — only valid on framed-canvas items
     if (
-      it.productType === "framed-canvas" &&
+      productKey === "framed-canvas" &&
       it.soulEdition &&
       typeof it.soulEditionPriceMajor === "number" &&
       it.soulEditionPriceMajor > 0
@@ -239,14 +290,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // ─── Build CCR consent metafields (Phase 2 launch plan §6) ─────────────
+  // Each ticked checkbox lands here as a UTC timestamp metafield. These
+  // become discoverable on the order via Admin GraphQL `order.metafields`
+  // and on REST as `note_attributes`. Never overwrite if missing — absence
+  // of a metafield preserves the legal record (consent never given).
+  const metafields = [];
+  const noteAttributes: { name: string; value: string }[] = [];
+  if (b.consent?.canvasPersonalisedAt) {
+    metafields.push({
+      namespace: "consent",
+      key: "canvas_personalised_at",
+      value: b.consent.canvasPersonalisedAt,
+      type: "date_time",
+    });
+    noteAttributes.push({
+      name: "Consent — canvas personalised (CCR Reg 28(1)(b))",
+      value: b.consent.canvasPersonalisedAt,
+    });
+  }
+  if (b.consent?.readingImmediateAt) {
+    metafields.push({
+      namespace: "consent",
+      key: "reading_immediate_at",
+      value: b.consent.readingImmediateAt,
+      type: "date_time",
+    });
+    noteAttributes.push({
+      name: "Consent — Soul Reading immediate delivery (CCR Reg 37)",
+      value: b.consent.readingImmediateAt,
+    });
+  }
+
   // ─── Create draft order ────────────────────────────────────────────────
   try {
+    const noteParts = [noteSummary.join(" • ")];
+    if (soulEditionCount > 0) {
+      noteParts.push(
+        `+${soulEditionCount} Soul Edition${soulEditionCount === 1 ? "" : "s"}`,
+      );
+    }
+    if (soulReadingCount > 0) {
+      noteParts.push(
+        `+${soulReadingCount} Soul Reading${soulReadingCount === 1 ? "" : "s"}`,
+      );
+    }
+
     const draft = await createDraftOrder({
       lineItems,
       currency: b.currency,
-      note:
-        noteSummary.join(" • ") +
-        (soulEditionCount > 0 ? ` • +${soulEditionCount} Soul Edition${soulEditionCount === 1 ? "" : "s"}` : ""),
+      note: noteParts.filter(Boolean).join(" • "),
+      ...(metafields.length > 0 ? { metafields } : {}),
+      ...(noteAttributes.length > 0 ? { noteAttributes } : {}),
     });
 
     return res.status(200).json({

@@ -1,0 +1,7 @@
+{
+  "id": "gid://shopify/WebhookSubscription/2425073074525",
+  "topic": "ORDERS_PAID",
+  "format": "JSON",
+  "callbackUrl": "https://littlesouls.app/api/shopify/order-paid",
+  "already_existed": false
+}

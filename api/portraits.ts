@@ -25,6 +25,10 @@ import {
   type PetTransform,
 } from "../src/components/portraits/templates/data.js";
 import { getSupabaseAdmin } from "./_lib/supabaseAdmin.js";
+import {
+  runPrintPipeline,
+  type PrintPipelineInput,
+} from "./portraits/printPipeline.js";
 
 // ─── Shared config ──────────────────────────────────────────────────────────
 const FAL_KEY = process.env.FAL_KEY;
@@ -278,8 +282,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return handleMockup(req, res);
     case "printful-mockup":
       return handlePrintfulMockup(req, res);
+    case "printOrder":
+      return handlePrintOrder(req, res);
     default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup` });
+      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder` });
+  }
+}
+
+// ─── handlePrintOrder — Phase 9 print pipeline (AuraSR + preflight + Gelato) ──
+// Called by the orders/paid webhook handler (Phase 4) once the customer has
+// picked a variant + size SKU. Body matches PrintPipelineInput.
+async function handlePrintOrder(req: VercelRequest, res: VercelResponse) {
+  const body = (req.body ?? {}) as Partial<PrintPipelineInput>;
+
+  // Validate the required fields up-front so we surface a clear 400 instead of
+  // burning AuraSR cycles on a malformed call.
+  const missing: string[] = [];
+  if (!body.sourceImageUrl || typeof body.sourceImageUrl !== "string") missing.push("sourceImageUrl");
+  if (!body.sizeKey || typeof body.sizeKey !== "string") missing.push("sizeKey");
+  if (!body.frameColor || !["black", "natural-wood", "dark-wood"].includes(body.frameColor)) missing.push("frameColor");
+  if (!body.shippingAddress || typeof body.shippingAddress !== "object") missing.push("shippingAddress");
+  if (!body.customerEmail || typeof body.customerEmail !== "string") missing.push("customerEmail");
+  if (typeof body.shopifyOrderId !== "number") missing.push("shopifyOrderId");
+  if (typeof body.shopifyLineItemId !== "number") missing.push("shopifyLineItemId");
+  if (missing.length > 0) {
+    return res.status(400).json({ error: "missing_or_invalid_fields", fields: missing });
+  }
+
+  try {
+    const result = await runPrintPipeline(body as PrintPipelineInput);
+    // Always 200 — the result itself encodes ok/!ok and the caller (webhook)
+    // decides what to do (queue for manual review, retry, etc.).
+    return res.status(200).json(result);
+  } catch (err) {
+    // The orchestrator should already have caught everything internally and
+    // returned a typed result, but defend the perimeter just in case.
+    return res.status(500).json({
+      ok: false,
+      stage: "manual_review",
+      reason: `unexpected exception in pipeline: ${(err as Error).message}`,
+    });
   }
 }
 

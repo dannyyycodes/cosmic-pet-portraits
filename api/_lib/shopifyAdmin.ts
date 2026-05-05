@@ -88,6 +88,17 @@ export interface DraftOrderLineItem {
   properties?: DraftOrderLineProperty[];
 }
 
+export interface DraftOrderMetafield {
+  /** Custom namespace, e.g. "consent". */
+  namespace: string;
+  /** Field key, e.g. "canvas_personalised_at". */
+  key: string;
+  /** Field value (always serialised string per Shopify metafield contract). */
+  value: string;
+  /** "single_line_text_field" | "date_time" | "boolean" | "json" etc. */
+  type?: string;
+}
+
 export interface DraftOrderInput {
   lineItems: DraftOrderLineItem[];
   /** ISO 4217 e.g. "GBP", "USD". Defaults to store presentment currency. */
@@ -96,6 +107,10 @@ export interface DraftOrderInput {
   email?: string;
   /** Internal note attached to the draft (visible to merchant only). */
   note?: string;
+  /** Custom note attributes (visible on order; survives to fulfilment). */
+  noteAttributes?: { name: string; value: string }[];
+  /** Persistent metafields on the draft order (read by webhook handlers). */
+  metafields?: DraftOrderMetafield[];
 }
 
 export interface DraftOrderResult {
@@ -131,6 +146,19 @@ export async function createDraftOrder(input: DraftOrderInput): Promise<DraftOrd
       ...(input.currency ? { presentment_currency: input.currency } : {}),
       ...(input.email ? { email: input.email } : {}),
       ...(input.note ? { note: input.note } : {}),
+      ...(input.noteAttributes && input.noteAttributes.length > 0
+        ? { note_attributes: input.noteAttributes }
+        : {}),
+      ...(input.metafields && input.metafields.length > 0
+        ? {
+            metafields: input.metafields.map((m) => ({
+              namespace: m.namespace,
+              key: m.key,
+              value: m.value,
+              type: m.type ?? "single_line_text_field",
+            })),
+          }
+        : {}),
       // use_customer_default_address omitted — guest checkout flow
     },
   };

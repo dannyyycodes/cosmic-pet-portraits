@@ -36,6 +36,7 @@ import {
   type AnySizeKey,
 } from "@/components/portraits/productLineup";
 import { CartDrawer } from "@/components/portraits/CartDrawer";
+import { FloatingCartPill, emitCartChanged } from "@/components/portraits/FloatingCartPill";
 import { savePetPhoto, loadPetPhoto, clearPetPhoto } from "@/components/portraits/photoSharing";
 import {
   type CartItem,
@@ -44,6 +45,7 @@ import {
   saveCart,
   cartCount as countCart,
 } from "@/components/portraits/cart";
+import { isSoulReadingItem } from "@/components/portraits/soulReading";
 import { HowItWorks } from "@/components/portraits/HowItWorks";
 import { StudioFlow } from "@/components/portraits/StudioFlow";
 import { TopUpPlans } from "@/components/portraits/TopUpPlans";
@@ -774,6 +776,19 @@ const Portraits = () => {
 
   const handleAddToCart = (item: CartItem) => {
     setCart((prev) => [...prev, item]);
+    // Notify the floating cart pill (a11y live-region announcement + animations).
+    if (isSoulReadingItem(item)) {
+      emitCartChanged("Added Soul Reading");
+      // Drawer is already open when this fires (upsell lives inside the
+      // drawer) — don't trigger the "auto-close after 1.8s" branch.
+      return;
+    }
+    const frame = item.frameColor
+      ? ` ${item.frameColor.replace("-", " ")} frame`
+      : "";
+    emitCartChanged(
+      `Added ${item.sizeLabel}${frame} ${item.productShortLabel.toLowerCase()} portrait`,
+    );
     // Briefly open the cart so the customer sees the item land
     setCartOpen(true);
     window.setTimeout(() => setCartOpen(false), 1800);
@@ -781,9 +796,13 @@ const Portraits = () => {
 
   const handleRemoveFromCart = (id: string) => {
     setCart((prev) => prev.filter((it) => it.id !== id));
+    emitCartChanged();
   };
 
-  const handleCheckoutAll = async () => {
+  const handleCheckoutAll = async (consent?: {
+    canvasPersonalisedAt: string | null;
+    readingImmediateAt: string | null;
+  } | null) => {
     if (cart.length === 0) return;
     setCheckoutBusy(true);
     setCheckoutError(null);
@@ -794,6 +813,7 @@ const Portraits = () => {
         body: JSON.stringify({
           currency,
           items: cart,
+          consent: consent ?? undefined,
         }),
       });
       const data = await res.json();
@@ -879,10 +899,12 @@ const Portraits = () => {
         onOpenChange={setCartOpen}
         items={cart}
         onRemove={handleRemoveFromCart}
+        onAddItem={handleAddToCart}
         onCheckout={handleCheckoutAll}
         checkoutBusy={checkoutBusy}
         checkoutError={checkoutError}
       />
+      <FloatingCartPill onOpen={() => setCartOpen(true)} drawerOpen={cartOpen} />
       {/* nav is fixed-position 62px tall — push hero below */}
       <div style={{ height: "62px" }} aria-hidden />
       <div style={{ position: "relative", zIndex: 1 }}>

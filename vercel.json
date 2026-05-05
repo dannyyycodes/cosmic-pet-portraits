@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/memorial-touchpoints",
       "schedule": "15 12 * * *"
+    },
+    {
+      "path": "/api/cron/soul-reading-reconcile",
+      "schedule": "*/10 * * * *"
     }
   ],
   "headers": [

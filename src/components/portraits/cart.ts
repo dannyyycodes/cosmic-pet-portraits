@@ -43,6 +43,10 @@ export interface CartItem {
   productShortLabel: string;       // "Canvas"
   sizeLabel: string;               // "12×16″" / "M" / "11oz" / "Standard"
   priceMajor: number;              // base variant price
+  /** Shopify line-item properties — underscore-prefixed keys are hidden from
+   *  customer-facing displays. Used for pet-name pre-fill into the Soul
+   *  Reading upsell + post-purchase customisation flows. */
+  properties?: Record<string, string>;
 }
 
 /** Sum of base + soul-edition for a single item. */
@@ -80,6 +84,8 @@ export function buildCartItem(input: {
   printMasterUrl?: string;
   /** Optional — framed canvas frame wood-tone. */
   frameColor?: "black" | "natural-wood" | "dark-wood";
+  /** Optional — Shopify line-item properties (e.g. `_pet_name`). */
+  properties?: Record<string, string>;
 }): CartItem {
   const product = PRODUCTS[input.productType];
   return {
@@ -101,6 +107,7 @@ export function buildCartItem(input: {
     productShortLabel: product.shortLabel,
     sizeLabel: input.variant.sizeLabel,
     priceMajor: input.variant.priceMajor,
+    properties: input.properties,
   };
 }
 

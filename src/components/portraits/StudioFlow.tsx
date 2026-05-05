@@ -384,6 +384,12 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     if (url) savePetPhoto(url); else clearPetPhoto();
   };
   const [prompt, setPrompt] = useState("");
+  // Pet name carries forward to the Soul Reading upsell pre-fill (cart drawer)
+  // and to the Shopify line-item-properties so the order admin shows the pet.
+  const [petName, setPetName] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try { return window.sessionStorage.getItem("portraits.lastPet") ?? ""; } catch { return ""; }
+  });
   const [generating, setGenerating] = useState(false);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [selectedVariantUrl, setSelectedVariantUrl] = useState<string | null>(null);
@@ -453,6 +459,10 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
 
   function handleAdd() {
     if (!selectedVariantUrl || !variant || !photoUrl) return;
+    const trimmedPet = petName.trim().slice(0, 40);
+    if (trimmedPet && typeof window !== "undefined") {
+      try { window.sessionStorage.setItem("portraits.lastPet", trimmedPet); } catch {}
+    }
     const item = buildCartItem({
       kind: "ai",
       productType,
@@ -467,6 +477,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       soulEditionPriceMajor: 40,
       variant: { variantId: variant.variantId, priceMajor: variant.priceMajor, sizeLabel: variant.sizeLabel },
       id: crypto.randomUUID(),
+      properties: trimmedPet ? { _pet_name: trimmedPet } : undefined,
     });
     onCartAdd(item);
     setCartAddCount((n) => n + 1);
@@ -565,6 +576,58 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             }}
           />
         </motion.div>
+
+        {/* ── Pet name (optional) ───────────────────────────────────── */}
+        <AnimatePresence>
+          {photoUrl && (
+            <motion.div
+              key="petname"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={sectionTransition}
+              className="mt-7"
+            >
+              <label
+                className="block text-xs mb-1.5 px-1.5"
+                style={{
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                  color: PALETTE.earthMuted,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Pet's name <span style={{ color: PALETTE.earthSubtle, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={petName}
+                onChange={(e) => setPetName(e.target.value.slice(0, 40))}
+                placeholder="Luna"
+                maxLength={40}
+                className="w-full bg-transparent outline-none px-5 py-3"
+                style={{
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                  fontSize: 16,
+                  color: PALETTE.ink,
+                  background: '#ffffff',
+                  border: `1.5px solid ${PALETTE.sandDeep}`,
+                  borderRadius: 14,
+                  boxShadow: '0 8px 18px rgba(20,18,16,.04), 0 1px 2px rgba(20,18,16,.02)',
+                  transition: 'box-shadow 220ms, border-color 220ms',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = PALETTE.rose;
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(191,82,74,.08), 0 14px 28px rgba(20,18,16,.06)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = PALETTE.sandDeep;
+                  e.currentTarget.style.boxShadow = '0 8px 18px rgba(20,18,16,.04), 0 1px 2px rgba(20,18,16,.02)';
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Premium prompt box ────────────────────────────────────── */}
         <AnimatePresence>

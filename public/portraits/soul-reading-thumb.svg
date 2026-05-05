@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="200" viewBox="0 0 160 200" role="img" aria-label="Soul Reading">
+  <defs>
+    <radialGradient id="cosmos" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#3a2e4a"/>
+      <stop offset="60%" stop-color="#1a1814"/>
+      <stop offset="100%" stop-color="#0c0a08"/>
+    </radialGradient>
+    <linearGradient id="rose" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#bf524a"/>
+      <stop offset="100%" stop-color="#9c3d36"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="200" fill="url(#cosmos)"/>
+  <!-- starfield -->
+  <g fill="#FFFDF5" opacity="0.85">
+    <circle cx="22" cy="28" r="0.9"/>
+    <circle cx="48" cy="14" r="0.6"/>
+    <circle cx="74" cy="36" r="0.8"/>
+    <circle cx="106" cy="22" r="0.7"/>
+    <circle cx="134" cy="40" r="0.9"/>
+    <circle cx="20" cy="62" r="0.7"/>
+    <circle cx="62" cy="78" r="0.6"/>
+    <circle cx="118" cy="74" r="0.9"/>
+    <circle cx="142" cy="92" r="0.7"/>
+    <circle cx="14" cy="120" r="0.6"/>
+    <circle cx="36" cy="148" r="0.8"/>
+    <circle cx="84" cy="160" r="0.7"/>
+    <circle cx="120" cy="148" r="0.6"/>
+    <circle cx="146" cy="174" r="0.9"/>
+    <circle cx="68" cy="186" r="0.7"/>
+  </g>
+  <!-- central sparkle -->
+  <g transform="translate(80,100)">
+    <circle r="36" fill="url(#rose)" opacity="0.18"/>
+    <circle r="22" fill="url(#rose)" opacity="0.35"/>
+    <g fill="#FFFDF5">
+      <path d="M0,-22 L3,-3 L22,0 L3,3 L0,22 L-3,3 L-22,0 L-3,-3 Z"/>
+    </g>
+    <g fill="#c4a265" opacity="0.85">
+      <path d="M-18,-14 L-16,-9 L-11,-7 L-16,-5 L-18,0 L-20,-5 L-25,-7 L-20,-9 Z" transform="translate(-2,-3) scale(0.6)"/>
+      <path d="M22,8 L24,13 L29,15 L24,17 L22,22 L20,17 L15,15 L20,13 Z" transform="translate(0,0) scale(0.55)"/>
+    </g>
+  </g>
+  <!-- gold ring -->
+  <circle cx="80" cy="100" r="58" fill="none" stroke="#c4a265" stroke-width="0.8" opacity="0.45"/>
+</svg>

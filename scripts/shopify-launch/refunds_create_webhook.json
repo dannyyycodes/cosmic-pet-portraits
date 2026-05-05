@@ -1,0 +1,7 @@
+{
+  "id": "gid://shopify/WebhookSubscription/2425581109597",
+  "topic": "REFUNDS_CREATE",
+  "format": "JSON",
+  "callbackUrl": "https://littlesouls.app/api/shopify/refunds-create",
+  "already_existed": false
+}
