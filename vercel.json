@@ -18,7 +18,7 @@
     },
     {
       "path": "/api/cron/soul-reading-reconcile",
-      "schedule": "*/10 * * * *"
+      "schedule": "30 12 * * *"
     }
   ],
   "headers": [
