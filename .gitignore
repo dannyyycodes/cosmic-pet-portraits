@@ -36,3 +36,7 @@ credentials.json
 *.njsproj
 *.sln
 *.sw?
+
+# Local-only Vercel link state and Supabase CLI temp (do not commit)
+.vercel/
+supabase/.temp/
