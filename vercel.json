@@ -9,15 +9,11 @@
       "schedule": "0 10 * * 1,3,5"
     },
     {
-      "path": "/api/cron/indexnow-ping",
-      "schedule": "30 10 * * 1,3,5"
-    },
-    {
       "path": "/api/cron/memorial-touchpoints",
       "schedule": "15 12 * * *"
     },
     {
-      "path": "/api/cron/soul-reading-reconcile",
+      "path": "/api/soul-reading?action=reconcile",
       "schedule": "30 12 * * *"
     }
   ],
@@ -55,6 +51,7 @@
     { "source": "/apple-touch-icon.png", "destination": "/og-image.jpg" },
     { "source": "/apple-touch-icon-precomposed.png", "destination": "/og-image.jpg" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/api/reading/:token", "destination": "/api/soul-reading?action=view&token=:token" },
     {
       "source": "/blog/:slug",
       "has": [

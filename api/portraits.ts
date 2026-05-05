@@ -28,7 +28,7 @@ import { getSupabaseAdmin } from "./_lib/supabaseAdmin.js";
 import {
   runPrintPipeline,
   type PrintPipelineInput,
-} from "./portraits/printPipeline.js";
+} from "./_lib/printPipeline.js";
 
 // ─── Shared config ──────────────────────────────────────────────────────────
 const FAL_KEY = process.env.FAL_KEY;
