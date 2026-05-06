@@ -160,6 +160,29 @@ export function TopUpPlans({
                 : `0 16px 38px rgba(20, 18, 16, 0.06), 0 2px 6px rgba(20, 18, 16, 0.03)`,
             }}
           >
+            <div
+              aria-hidden
+              className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `url(/pawtraits/topup-${plan.sku}.webp)`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    plan.sku === "elite"
+                      ? "rgba(255,255,255,0.62)"
+                      : "rgba(255,255,255,0.55)",
+                }}
+              />
+            </div>
+
             {plan.recommended && (
               <span
                 className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full"
@@ -172,11 +195,14 @@ export function TopUpPlans({
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
                   boxShadow: "0 6px 16px rgba(191, 82, 74, 0.32)",
+                  zIndex: 20,
                 }}
               >
                 Most loved
               </span>
             )}
+
+            <div className="relative z-10 flex flex-col flex-1">
 
             <div
               className="w-11 h-11 rounded-full flex items-center justify-center mb-5"
@@ -267,6 +293,7 @@ export function TopUpPlans({
             >
               {busySku === plan.sku ? "Redirecting…" : plan.cta}
             </button>
+            </div>
           </motion.div>
         );
       })}
