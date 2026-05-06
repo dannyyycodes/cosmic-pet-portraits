@@ -186,10 +186,10 @@ export function TopUpPlans({
             style={{
               background: PALETTE.cream,
               border: plan.recommended
-                ? `1.5px solid ${PALETTE.rose}`
+                ? `1.5px solid ${PALETTE.ink}`
                 : `1px solid ${PALETTE.sand}`,
               boxShadow: plan.recommended
-                ? `0 24px 56px rgba(191, 82, 74, 0.18), 0 4px 12px rgba(20, 18, 16, 0.04)`
+                ? `0 24px 56px rgba(20, 18, 16, 0.14), 0 4px 12px rgba(20, 18, 16, 0.05)`
                 : `0 16px 38px rgba(20, 18, 16, 0.06), 0 2px 6px rgba(20, 18, 16, 0.03)`,
             }}
           >
@@ -243,12 +243,12 @@ export function TopUpPlans({
             <div
               className="w-11 h-11 rounded-full flex items-center justify-center mb-4"
               style={{
-                background: plan.recommended ? PALETTE.roseSoft : PALETTE.cream2,
-                border: `1px solid ${plan.recommended ? "rgba(191, 82, 74, 0.18)" : PALETTE.sand}`,
+                background: PALETTE.cream2,
+                border: `1px solid ${PALETTE.sand}`,
                 boxShadow: "0 2px 8px rgba(20,18,16,0.06)",
               }}
             >
-              <Icon className="w-5 h-5" style={{ color: plan.recommended ? PALETTE.rose : PALETTE.earth }} />
+              <Icon className="w-5 h-5" style={{ color: PALETTE.earth }} />
             </div>
 
             <h3
@@ -369,9 +369,7 @@ export function TopUpPlans({
                 aria-hidden
                 className="absolute inset-0"
                 style={{
-                  background: plan.recommended
-                    ? "rgba(191, 82, 74, 0.78)"
-                    : "rgba(20, 18, 16, 0.78)",
+                  background: "rgba(20, 18, 16, 0.45)",
                 }}
               />
               <div

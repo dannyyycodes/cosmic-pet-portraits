@@ -9,11 +9,11 @@ mkdirSync(OUT, { recursive: true });
 const TIERS = ["pack", "pass", "elite"];
 
 const TEXT_TINT = {
-  pack:  "#d4889e",
+  pack:  null,
   pass:  "#94a3ae",
   elite: null,
 };
-const TEXT_SAT = { pack: 1.5, pass: 1.25, elite: 1.10 };
+const TEXT_SAT = { pack: 1.10, pass: 1.25, elite: 1.10 };
 const TEXT_BRI = { pack: 0.95, pass: 0.88, elite: 0.95 };
 
 (async () => {
