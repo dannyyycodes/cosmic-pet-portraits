@@ -47,6 +47,10 @@
       ]
     }
   ],
+  "redirects": [
+    { "source": "/pawtraits", "destination": "/portraits", "permanent": true },
+    { "source": "/pawtrait", "destination": "/portraits", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/apple-touch-icon.png", "destination": "/og-image.jpg" },
     { "source": "/apple-touch-icon-precomposed.png", "destination": "/og-image.jpg" },
