@@ -181,7 +181,22 @@ export interface BuildPromptInput {
   styleId: string;
   themeId: string;
   addDetails?: string;   // freeform user input, sanitised upstream
+  petName?: string;      // optional, sanitised upstream — added 2026-05-06
   compositionIdx: 0 | 1 | 2 | 3;
+}
+
+/**
+ * If a pet name is set, append an explicit text-rendering directive that fal
+ * Kontext / FLUX can honour. Spelled out fully because FLUX text reliability is
+ * 50/50 for short strings — being directive ("rendered in clean serif",
+ * "readable", "lower margin") increases the hit rate. Quotes around the name
+ * make the model treat it as literal text not a description.
+ */
+function petNameDirective(petName: string | undefined): string {
+  if (!petName) return "";
+  const cleaned = petName.trim().slice(0, 40);
+  if (!cleaned) return "";
+  return ` Render the name "${cleaned}" in elegant clean serif typography along the lower margin of the artwork, centered, readable, no decorative flourishes that obscure the letters, no spelling errors.`;
 }
 
 export function buildPrompt(input: BuildPromptInput): { prompt: string; negative: string } | null {
@@ -193,18 +208,24 @@ export function buildPrompt(input: BuildPromptInput): { prompt: string; negative
   const furNote = input.furColor ? `, with ${input.furColor} fur` : "";
   const composition = COMPOSITIONS[input.compositionIdx]?.suffix ?? "";
   const addDetails = input.addDetails?.trim() ? ` ${input.addDetails.trim()}` : "";
+  const nameDirective = petNameDirective(input.petName);
 
   const prompt = [
     `Transform this ${subject}${furNote} into ${theme.prompt}, rendered in ${style.prompt}.`,
     `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${input.species}.`,
     composition,
     addDetails,
+    nameDirective,
   ]
     .filter(Boolean)
     .join(" ")
     .trim();
 
-  const negative = [style.negative, theme.negative].filter(Boolean).join(", ");
+  // Always reinforce in negative prompt — catches misspelled / garbled letters.
+  const baseNeg = [style.negative, theme.negative].filter(Boolean).join(", ");
+  const negative = input.petName
+    ? `${baseNeg}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names`
+    : baseNeg;
 
   return { prompt, negative };
 }

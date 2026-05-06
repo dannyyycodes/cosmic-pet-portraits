@@ -431,7 +431,13 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ imageUrl: photoUrl, customPrompt: prompt.trim() }),
+        body: JSON.stringify({
+          imageUrl: photoUrl,
+          customPrompt: prompt.trim(),
+          // Slots into the prompt: 'Render the name "{petName}" in serif typography
+          // along the lower margin…'. Server re-sanitises and caps at 24 chars.
+          petName: petName.trim().slice(0, 40),
+        }),
         signal: ctrl.signal,
       });
       const data = await res.json();

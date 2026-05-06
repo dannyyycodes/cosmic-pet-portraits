@@ -653,10 +653,17 @@ async function generateVariant(args: { imageUrl: string; prompt: string; negativ
 
 async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
-  const body = (req.body ?? {}) as { imageUrl?: string; styleId?: string; themeId?: string; addDetails?: string; customPrompt?: string };
+  const body = (req.body ?? {}) as { imageUrl?: string; styleId?: string; themeId?: string; addDetails?: string; customPrompt?: string; petName?: string };
   const { imageUrl, styleId, themeId } = body;
   const addDetails = sanitiseAddDetails(body.addDetails ?? "");
   const customPrompt = sanitiseAddDetails(body.customPrompt ?? "").slice(0, 400);
+  // Pet name → on-canvas typography. Sanitise to letters / numbers / space / hyphen / apostrophe
+  // (covers "O'Connor", "Mary Jane", "Mr. Bean" — drops the dot but keeps recognisable shape).
+  // Cap at 24 chars — anything longer doesn't render legibly along a canvas margin anyway.
+  const petName = (body.petName ?? "")
+    .replace(/[^\p{L}\p{N} '-]/gu, "")
+    .trim()
+    .slice(0, 24);
   if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
   // Either freeform customPrompt OR (styleId + themeId) is required.
   const usingCustomPrompt = customPrompt.length > 0;
@@ -688,6 +695,17 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   }
 
   const subject = await extractSubject(imageUrl);
+  // Shared name-on-canvas directive — used by both freeform and Style×Theme
+  // branches. Quoted name = treated as literal text by FLUX. Explicit serif +
+  // lower margin + readable improves text reliability.
+  const nameDirective = petName
+    ? ` Render the name "${petName}" in elegant clean serif typography along the lower margin of the artwork, centered, readable, no decorative flourishes that obscure the letters, no spelling errors.`
+    : "";
+  const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
+  const negativeWithName = petName
+    ? `${baseNegative}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names`
+    : `${baseNegative}, text overlay`;
+
   let promptDef: { prompt: string; negative: string; compositionId: string };
   if (usingCustomPrompt) {
     // Freeform path — wrap the customer's prompt in identity-lock.
@@ -699,13 +717,13 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${subject.species}.`,
       compositionSuffix,
       `Painterly cinematic lighting, premium polish, 4:5 vertical composition for framed wall art.`,
-    ].join(" ");
-    const negative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark, text overlay";
-    promptDef = { prompt, negative, compositionId: COMPOSITIONS[0].id };
+      nameDirective,
+    ].filter(Boolean).join(" ");
+    promptDef = { prompt, negative: negativeWithName, compositionId: COMPOSITIONS[0].id };
   } else {
     const built = buildPrompt({
       species: subject.species, breed: subject.breed, furColor: subject.furColor,
-      styleId: styleId!, themeId: themeId!, addDetails, compositionIdx: 0,
+      styleId: styleId!, themeId: themeId!, addDetails, petName, compositionIdx: 0,
     } satisfies BuildPromptInput);
     if (!built) return res.status(400).json({ error: "Unknown styleId or themeId" });
     promptDef = { ...built, compositionId: COMPOSITIONS[0].id };
