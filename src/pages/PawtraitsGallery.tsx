@@ -213,7 +213,10 @@ export default function PawtraitsGallery() {
       const r = await fetch('/api/portraits?action=library', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ op: 'gallery', limit: PAGE_SIZE, offset: off }),
+        // Library = portraits only (full-frame artistic). Scenes are reserved
+        // for Facebook / IG / TikTok where the customer-style framing makes
+        // sense, not the explore gallery.
+        body: JSON.stringify({ op: 'gallery', image_style: 'portrait', limit: PAGE_SIZE, offset: off }),
       });
       const d = await r.json() as { rows?: GalleryRow[] };
       const next = d.rows ?? [];

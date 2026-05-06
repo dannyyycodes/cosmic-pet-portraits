@@ -994,14 +994,20 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
 
   if (op === 'gallery') {
     // Public gallery feed. Strips prompts, returns thumbs + captions.
+    // Optional filters: image_style ('portrait' / 'scene'), pet_kind, breed, art_style.
     const limit = Math.min(Number(body.limit ?? 24) || 24, 60);
     const offset = Math.max(Number(body.offset ?? 0) || 0, 0);
-    const { data, error } = await supabase
+    let q = supabase
       .from('pawtrait_library')
       .select('id,pet_kind,breed,pet_name,image_style,art_style,aspect_ratio,backstory,image_url,thumbnail_url,width,height,created_at')
       .eq('approved', true)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
+    for (const k of ['image_style', 'pet_kind', 'breed', 'art_style'] as const) {
+      const v = body[k];
+      if (typeof v === 'string' && v) q = q.eq(k, v);
+    }
+    const { data, error } = await q;
     if (error) return res.status(500).json({ error: 'gallery_failed', detail: error.message });
     return res.status(200).json({ rows: data ?? [] });
   }

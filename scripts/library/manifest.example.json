@@ -1,0 +1,36 @@
+{
+  "_comment": "Copy this file to ~/pet-portraits/incoming/<batch-name>/manifest.json next to your Codex outputs, fill in items, then run: bun scripts/library/ingest.ts ~/pet-portraits/incoming/<batch-name>",
+  "defaults": {
+    "image_style": "portrait",
+    "pet_kind": "dog",
+    "art_style": "watercolour-floral",
+    "aspect_ratio": "1:1",
+    "approved": true
+  },
+  "items": [
+    {
+      "file": "img_001.png",
+      "breed": "golden retriever",
+      "pet_name": "Rosie",
+      "prompt": "Watercolour-floral pet portrait of a golden retriever, soft pastel hues, botanical wreath frame, museum-grade detail, suitable for canvas print, sRGB, square aspect 1:1."
+    },
+    {
+      "file": "img_002.png",
+      "breed": "miniature dachshund",
+      "pet_name": "Milo",
+      "art_style": "cowboy-poster",
+      "prompt": "Vintage western cowboy wanted-poster of a miniature dachshund named Milo, faded sepia tones, hand-stamped serif typography, distressed paper texture, museum-grade detail, sRGB, square aspect 1:1."
+    },
+    {
+      "file": "img_003.png",
+      "breed": "french bulldog",
+      "pet_name": "Biscuit",
+      "image_style": "scene",
+      "home_setting": "narrow entryway with shoes and coats",
+      "pet_action": "being held up with paws dangling",
+      "canvas_format": "small square canvas on wall",
+      "aspect_ratio": "9:16",
+      "prompt": "Casual Android phone photo, vertical 9:16, taken by a real customer in a lived-in home. A cream French bulldog puppy named Biscuit is being held up beside a small square canvas on the wall. The canvas shows the same puppy as a soft hand-painted watercolour portrait with the name 'Biscuit' at the bottom. Cozy hallway background with normal home details: shoes near the door, textured wall, soft daylight from a nearby window. Slight imperfect framing, mild phone-camera noise. Make it look like a genuine customer photo."
+    }
+  ]
+}
