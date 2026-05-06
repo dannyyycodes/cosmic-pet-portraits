@@ -10,11 +10,11 @@ const TIERS = ["pack", "pass", "elite"];
 
 const TEXT_TINT = {
   pack:  "#d4889e",
-  pass:  "#bf524a",
-  elite: "#8b6f3a",
+  pass:  null,
+  elite: null,
 };
-const TEXT_SAT = { pack: 1.5, pass: 1.25, elite: 1.3 };
-const TEXT_BRI = { pack: 0.95, pass: 1.0, elite: 0.95 };
+const TEXT_SAT = { pack: 1.5, pass: 1.05, elite: 1.10 };
+const TEXT_BRI = { pack: 0.95, pass: 0.96, elite: 0.95 };
 
 (async () => {
   for (const tier of TIERS) {
@@ -28,9 +28,10 @@ const TEXT_BRI = { pack: 0.95, pass: 1.0, elite: 0.95 };
   }
 
   for (const tier of TIERS) {
-    await sharp(join(SRC, tier + ".png"))
-      .resize(700, 700, { fit: "cover", position: "center" })
-      .tint(TEXT_TINT[tier])
+    let pipeline = sharp(join(SRC, tier + ".png"))
+      .resize(700, 700, { fit: "cover", position: "center" });
+    if (TEXT_TINT[tier]) pipeline = pipeline.tint(TEXT_TINT[tier]);
+    await pipeline
       .modulate({ saturation: TEXT_SAT[tier], brightness: TEXT_BRI[tier] })
       .webp({ quality: 88, effort: 5 })
       .toFile(join(OUT, "topup-" + tier + "-text.webp"));

@@ -228,8 +228,8 @@ export function TopUpPlans({
                     plan.sku === "pack"
                       ? "linear-gradient(135deg, #e8b8c5 0%, #c47888 55%, #8e4f6a 100%), url(/pawtraits/topup-pack-text.webp)"
                       : plan.sku === "pass"
-                      ? "linear-gradient(135deg, #c2615a 0%, #a83c34 55%, #7a2922 100%), url(/pawtraits/topup-pass-text.webp)"
-                      : "linear-gradient(135deg, #b8843e 0%, #8b6f3a 50%, #5e4720 100%), url(/pawtraits/topup-elite-text.webp)",
+                      ? "linear-gradient(135deg, #c4cdd2 0%, #7a8690 55%, #3a4754 100%), url(/pawtraits/topup-pass-text.webp)"
+                      : "linear-gradient(135deg, #d6b06a 0%, #a07b3a 55%, #5a3f15 100%), url(/pawtraits/topup-elite-text.webp)",
                   backgroundSize: "cover, cover",
                   backgroundPosition: "center, center",
                   backgroundBlendMode: "overlay",
