@@ -25,20 +25,37 @@ import { PortraitsNav } from "@/components/portraits/PortraitsNav";
 //   photoshoot of Little Souls canvases on actual walls (~£600 one-off, owned
 //   forever, no recurring AI cost, brand-perfect).
 // ─────────────────────────────────────────────────────────────────────────────
-const LIFESTYLE_SETTINGS = [
+// Each setting includes a `frame` block: { top, left, widthPct, aspect }
+// that positions a CSS-rendered framed canvas overlay on the photo, so the
+// customer always SEES a frame on the wall (not just an empty room).
+type Setting = {
+  id: string;
+  img: string;
+  setting: string;
+  size: string;
+  sizeUid: string;
+  price: number;
+  pitch: string;
+  span: "narrow" | "wide";
+  isHero?: boolean;
+  frame: { top: string; left: string; widthPct: number; aspect: number };
+};
+
+const LIFESTYLE_SETTINGS: Setting[] = [
   {
     id: "bedside",
-    img: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1400&q=85&auto=format&fit=crop",
+    img: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=1400&q=88&auto=format&fit=crop",
     setting: "Bedside · shelf · desk",
     size: "8×10″",
     sizeUid: "8x10",
     price: 39,
     pitch: "Quiet companion. Pairs in 2s.",
     span: "narrow",
+    frame: { top: "22%", left: "50%", widthPct: 18, aspect: 8 / 10 },
   },
   {
     id: "hero",
-    img: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1800&q=90&auto=format&fit=crop",
+    img: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1800&q=92&auto=format&fit=crop",
     setting: "Above the sofa · headboard",
     size: "16×20″",
     sizeUid: "16x20",
@@ -46,48 +63,150 @@ const LIFESTYLE_SETTINGS = [
     pitch: "Most loved. Hero of the room.",
     span: "wide",
     isHero: true,
+    frame: { top: "20%", left: "50%", widthPct: 22, aspect: 16 / 20 },
   },
   {
     id: "console",
-    img: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1400&q=85&auto=format&fit=crop",
+    img: "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=1400&q=88&auto=format&fit=crop",
     setting: "Hallway console · entryway",
     size: "12×18″",
     sizeUid: "12x18",
     price: 55,
     pitch: "Welcoming first impression.",
     span: "narrow",
+    frame: { top: "18%", left: "50%", widthPct: 24, aspect: 12 / 18 },
   },
   {
     id: "gallery",
-    img: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1400&q=85&auto=format&fit=crop",
+    img: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1400&q=88&auto=format&fit=crop",
     setting: "Gallery wall · staircase",
     size: "8×10″ × 3",
     sizeUid: "8x10",
     price: 39,
     pitch: "Three at this size. Layered story.",
     span: "narrow",
+    frame: { top: "22%", left: "50%", widthPct: 16, aspect: 8 / 10 },
   },
   {
     id: "statement",
-    img: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1800&q=90&auto=format&fit=crop",
+    img: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1800&q=92&auto=format&fit=crop",
     setting: "Statement wall · centerpiece",
     size: "24×36″",
     sizeUid: "24x36",
     price: 119,
     pitch: "Stops you walking past.",
     span: "wide",
+    frame: { top: "16%", left: "50%", widthPct: 26, aspect: 24 / 36 },
   },
   {
     id: "desk",
-    img: "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1400&q=85&auto=format&fit=crop",
+    img: "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1400&q=88&auto=format&fit=crop",
     setting: "Desk · home office",
     size: "12×16″",
     sizeUid: "12x16",
     price: 49,
     pitch: "Eye-line companion at the desk.",
     span: "narrow",
+    frame: { top: "20%", left: "50%", widthPct: 20, aspect: 12 / 16 },
   },
 ];
+
+/** CSS-overlay framed canvas — visible on every photo regardless of source. */
+function CanvasOverlay({
+  frame,
+  isHero,
+  count = 1,
+}: {
+  frame: Setting["frame"];
+  isHero?: boolean;
+  count?: number;
+}) {
+  const frameBorder = isHero ? "#8b6f3a" : "#1c1c1c";
+  const matBg = "linear-gradient(135deg, #fdf6e7 0%, #f0e3c2 60%, #e6d4a8 100%)";
+
+  // Single canvas
+  if (count === 1) {
+    return (
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: frame.top,
+          left: frame.left,
+          transform: "translateX(-50%)",
+          width: `${frame.widthPct}%`,
+          aspectRatio: `${frame.aspect}`,
+          background: matBg,
+          border: `${isHero ? 3 : 2.5}px solid ${frameBorder}`,
+          borderRadius: 1,
+          boxShadow: isHero
+            ? "0 14px 32px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 253, 245, 0.3)"
+            : "0 10px 22px rgba(0, 0, 0, 0.40), 0 3px 6px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(255, 253, 245, 0.3)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span
+          style={{
+            color: isHero ? "#8b6f3a" : "#7a6e62",
+            fontSize: "min(38%, 24px)",
+            opacity: 0.55,
+            lineHeight: 1,
+          }}
+        >
+          ✦
+        </span>
+      </div>
+    );
+  }
+
+  // Triptych (gallery)
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        top: frame.top,
+        left: frame.left,
+        transform: "translateX(-50%)",
+        width: `${frame.widthPct * 3 + 6}%`,
+        display: "flex",
+        gap: "3%",
+        justifyContent: "center",
+      }}
+    >
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          style={{
+            width: `${frame.widthPct * 3}%`,
+            aspectRatio: `${frame.aspect}`,
+            background: matBg,
+            border: `2.5px solid ${frameBorder}`,
+            borderRadius: 1,
+            boxShadow:
+              "0 10px 22px rgba(0, 0, 0, 0.40), 0 3px 6px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(255, 253, 245, 0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              color: "#7a6e62",
+              fontSize: "min(38%, 16px)",
+              opacity: 0.55,
+              lineHeight: 1,
+            }}
+          >
+            ✦
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function Option6LifestyleGuide() {
   return (
@@ -127,14 +246,22 @@ function Option6LifestyleGuide() {
                 cursor: "pointer",
               }}
             >
-              {/* Photo */}
+              {/* Photo (subtle desaturation so the overlaid canvas reads as the hero) */}
               <div
                 className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105"
                 style={{
                   backgroundImage: `url(${s.img})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
+                  filter: "brightness(0.96) saturate(0.85)",
                 }}
+              />
+
+              {/* Framed canvas overlay — the visible hero of every tile */}
+              <CanvasOverlay
+                frame={s.frame}
+                isHero={isHero}
+                count={s.id === "gallery" ? 3 : 1}
               />
 
               {/* Bottom gradient for legibility */}
@@ -251,7 +378,7 @@ function Option6LifestyleGuide() {
             lineHeight: 1.55,
           }}
         >
-          Demo uses curated Unsplash interiors. <strong>For ship</strong>: one half-day product photoshoot with our actual canvases hung in 6 styled rooms (~£500–700 one-off via local stylist). Owned forever, brand-perfect, zero recurring cost. Customers see real LittleSouls canvases — not stock interiors — which is the difference between trustworthy and generic.
+          The framed canvas on each tile is rendered in CSS so it always shows — you actually see a frame in every shot, not an empty wall to imagine. Demo uses Unsplash interiors as the room backdrop. <strong>For ship</strong>: one half-day product photoshoot with real Little Souls canvases on styled walls (~£500–700 one-off via local stylist). Owned forever, brand-perfect, zero recurring per-customer cost.
         </p>
       </div>
     </div>
