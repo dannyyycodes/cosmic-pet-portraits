@@ -140,6 +140,31 @@ export function TopUpPlans({
 
   const cards = (
     <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-stretch">
+      <style>{`
+        @keyframes topupTitleDrift {
+          0%   { background-position: 25% 25%, 25% 25%; }
+          100% { background-position: 75% 75%, 75% 75%; }
+        }
+        .topup-title-marble {
+          animation: topupTitleDrift 24s ease-in-out infinite alternate;
+          transition: filter 0.5s ease;
+          filter: drop-shadow(0 2px 1px rgba(20,18,16,0.10)) drop-shadow(0 8px 20px rgba(196,162,101,0.18));
+        }
+        .topup-shimmer {
+          background-position: -120% 0;
+          transition: background-position 1.4s cubic-bezier(.4,.1,.4,1);
+        }
+        .topup-rule-line {
+          flex: 0 0 28px;
+          height: 1px;
+          transition: flex-basis 0.6s cubic-bezier(.2,.7,.2,1);
+        }
+        .topup-card:hover .topup-shimmer { background-position: 220% 0; }
+        .topup-card:hover .topup-title-marble {
+          filter: drop-shadow(0 2px 1px rgba(20,18,16,0.12)) drop-shadow(0 12px 28px rgba(196,162,101,0.25));
+        }
+        .topup-card:hover .topup-rule-line { flex-basis: 56px; }
+      `}</style>
       {PLANS.map((plan, i) => {
         const Icon = plan.icon;
         return (
@@ -149,7 +174,7 @@ export function TopUpPlans({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ delay: i * 0.08, duration: 0.5, ease: EASE.out }}
-            className="relative rounded-2xl p-7 md:p-8 flex flex-col"
+            className="topup-card relative rounded-2xl p-7 md:p-8 flex flex-col"
             style={{
               background: PALETTE.cream,
               border: plan.recommended
@@ -160,29 +185,6 @@ export function TopUpPlans({
                 : `0 16px 38px rgba(20, 18, 16, 0.06), 0 2px 6px rgba(20, 18, 16, 0.03)`,
             }}
           >
-            <div
-              aria-hidden
-              className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
-            >
-              <div
-                className="absolute inset-0"
-                style={{
-                  backgroundImage: `url(/pawtraits/topup-${plan.sku}.webp)`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    plan.sku === "elite"
-                      ? "rgba(255,255,255,0.62)"
-                      : "rgba(255,255,255,0.55)",
-                }}
-              />
-            </div>
-
             {plan.recommended && (
               <span
                 className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full"
@@ -202,10 +204,8 @@ export function TopUpPlans({
               </span>
             )}
 
-            <div className="relative z-10 flex flex-col flex-1">
-
             <div
-              className="w-11 h-11 rounded-full flex items-center justify-center mb-5"
+              className="w-11 h-11 rounded-full flex items-center justify-center mb-4"
               style={{
                 background: plan.recommended ? PALETTE.roseSoft : PALETTE.cream2,
                 border: `1px solid ${plan.recommended ? "rgba(191, 82, 74, 0.18)" : PALETTE.sand}`,
@@ -214,10 +214,96 @@ export function TopUpPlans({
               <Icon className="w-5 h-5" style={{ color: plan.recommended ? PALETTE.rose : PALETTE.earth }} />
             </div>
 
-            <h3 style={{ ...display("24px"), color: PALETTE.ink }}>{plan.label}</h3>
+            {/* Marble-Veined Typography — gold marble for Pack, rose for Pass, deep gold for Elite */}
+            <div className="relative" style={{ marginTop: 2, marginBottom: 6 }}>
+              <div
+                className="topup-title-marble"
+                style={{
+                  fontFamily: "Asap, system-ui, sans-serif",
+                  fontWeight: 800,
+                  fontSize: "clamp(46px, 5vw, 60px)",
+                  lineHeight: 0.95,
+                  letterSpacing: "-0.04em",
+                  backgroundImage:
+                    plan.sku === "pack"
+                      ? "linear-gradient(135deg, #d6a85e 0%, #b88543 55%, #8d6128 100%), url(/pawtraits/topup-pack-text.webp)"
+                      : plan.sku === "pass"
+                      ? "linear-gradient(135deg, #c2615a 0%, #a83c34 55%, #7a2922 100%), url(/pawtraits/topup-pass-text.webp)"
+                      : "linear-gradient(135deg, #b8843e 0%, #8b6f3a 50%, #5e4720 100%), url(/pawtraits/topup-elite-text.webp)",
+                  backgroundSize: "cover, cover",
+                  backgroundPosition: "center, center",
+                  backgroundBlendMode: "overlay",
+                  backgroundRepeat: "no-repeat, no-repeat",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  color: "transparent",
+                  WebkitTextStroke:
+                    plan.sku === "pack"
+                      ? "0.8px rgba(20,18,16,0.55)"
+                      : "0.5px rgba(20,18,16,0.35)",
+                  margin: 0,
+                  padding: 0,
+                }}
+              >
+                {plan.label}
+              </div>
+              <div
+                aria-hidden
+                className="topup-shimmer"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  pointerEvents: "none",
+                  fontFamily: "Asap, system-ui, sans-serif",
+                  fontWeight: 800,
+                  fontSize: "clamp(46px, 5vw, 60px)",
+                  lineHeight: 0.95,
+                  letterSpacing: "-0.04em",
+                  background:
+                    "linear-gradient(110deg, transparent 30%, rgba(255,250,235,0.85) 50%, transparent 70%)",
+                  backgroundSize: "220% 100%",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  color: "transparent",
+                  mixBlendMode: "screen",
+                  margin: 0,
+                  padding: 0,
+                }}
+              >
+                {plan.label}
+              </div>
+            </div>
+
+            {/* Ornamented gold rule */}
+            <div className="flex items-center gap-1.5 mt-1 mb-3">
+              <span
+                className="topup-rule-line"
+                style={{
+                  background: `linear-gradient(90deg, ${PALETTE.goldDeep}, ${PALETTE.gold})`,
+                }}
+              />
+              <span
+                aria-hidden
+                style={{
+                  width: 5,
+                  height: 5,
+                  background: PALETTE.gold,
+                  transform: "rotate(45deg)",
+                  boxShadow: "0 0 0 1px rgba(196,162,101,0.3)",
+                }}
+              />
+              <span
+                className="topup-rule-line"
+                style={{
+                  background: `linear-gradient(90deg, ${PALETTE.gold}, ${PALETTE.goldDeep})`,
+                }}
+              />
+            </div>
 
             <div className="mt-3 flex items-baseline gap-1.5">
-              <span style={{ ...tabularPrice("44px"), color: PALETTE.ink, fontWeight: 700 }}>
+              <span style={{ ...tabularPrice("38px"), color: PALETTE.ink, fontWeight: 700 }}>
                 {plan.price}
               </span>
               <span
@@ -293,7 +379,6 @@ export function TopUpPlans({
             >
               {busySku === plan.sku ? "Redirecting…" : plan.cta}
             </button>
-            </div>
           </motion.div>
         );
       })}
