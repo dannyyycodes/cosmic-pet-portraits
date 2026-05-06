@@ -9,12 +9,12 @@ mkdirSync(OUT, { recursive: true });
 const TIERS = ["pack", "pass", "elite"];
 
 const TEXT_TINT = {
-  pack:  "#c4a265",
+  pack:  "#d4889e",
   pass:  "#bf524a",
   elite: "#8b6f3a",
 };
-const TEXT_SAT = { pack: 1.6, pass: 1.25, elite: 1.3 };
-const TEXT_BRI = { pack: 0.92, pass: 1.0, elite: 0.95 };
+const TEXT_SAT = { pack: 1.5, pass: 1.25, elite: 1.3 };
+const TEXT_BRI = { pack: 0.95, pass: 1.0, elite: 0.95 };
 
 (async () => {
   for (const tier of TIERS) {
