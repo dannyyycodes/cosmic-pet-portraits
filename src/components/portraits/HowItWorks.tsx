@@ -74,8 +74,8 @@ export function HowItWorks() {
             style={{ ...display("clamp(34px, 5vw, 58px)"), color: PALETTE.ink, marginTop: "18px" }}
           >
             <SplitWords text="Three steps." />{" "}
-            <SplitWords text="Three minutes" style={{ color: PALETTE.rose, fontStyle: "italic" }} delay={0.3} />{" "}
-            <SplitWords text="from photo to delivery." delay={0.55} />
+            <SplitWords text="Three minutes." style={{ color: PALETTE.rose, fontStyle: "italic" }} delay={0.3} />{" "}
+            <SplitWords text="Infinite possibilities." delay={0.55} />
           </h2>
         </div>
 
