@@ -301,3 +301,174 @@
 }
 .ls-snap-x::-webkit-scrollbar { display: none; }
 .ls-snap-item { scroll-snap-align: start; }
+
+/* ── Studio backdrop atmospherics (parallax-webdesign skill rules) ────────
+ * Three GPU-only layers + cursor-tracked accent. All transforms only;
+ * mobile travel halved; reduced-motion fully disables.
+ * ─────────────────────────────────────────────────────────────────────── */
+.ls-studio-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.ls-studio-bloom {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(60px);
+  will-change: transform;
+}
+.ls-studio-bloom--rose {
+  top: 6%; left: -12%;
+  width: 56vmax; height: 56vmax;
+  background: radial-gradient(circle at center,
+    rgba(191, 82, 74, 0.16) 0%,
+    rgba(191, 82, 74, 0.08) 32%,
+    transparent 64%);
+}
+.ls-studio-bloom--gold {
+  bottom: -10%; right: -16%;
+  width: 64vmax; height: 64vmax;
+  background: radial-gradient(circle at center,
+    rgba(196, 162, 101, 0.18) 0%,
+    rgba(196, 162, 101, 0.06) 36%,
+    transparent 66%);
+}
+.ls-studio-stars {
+  position: absolute;
+  inset: -10% -5%;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, rgba(196, 162, 101, 0.55), transparent),
+    radial-gradient(1px 1px at 78% 14%, rgba(191, 82, 74, 0.40), transparent),
+    radial-gradient(1.5px 1.5px at 32% 64%, rgba(196, 162, 101, 0.50), transparent),
+    radial-gradient(1px 1px at 64% 48%, rgba(28, 28, 28, 0.18), transparent),
+    radial-gradient(1px 1px at 46% 30%, rgba(196, 162, 101, 0.42), transparent),
+    radial-gradient(1px 1px at 88% 76%, rgba(191, 82, 74, 0.32), transparent),
+    radial-gradient(1.4px 1.4px at 18% 86%, rgba(196, 162, 101, 0.40), transparent),
+    radial-gradient(1px 1px at 8%  56%, rgba(28, 28, 28, 0.14), transparent),
+    radial-gradient(1px 1px at 92% 38%, rgba(196, 162, 101, 0.34), transparent);
+}
+
+/* Scroll-driven parallax for studio backdrop layers — modern CSS only. */
+@supports (animation-timeline: scroll()) {
+  .ls-studio-bloom--rose {
+    animation: lsStudioDriftA linear both;
+    animation-timeline: scroll(root block);
+    animation-range: entry 0% exit 100%;
+  }
+  .ls-studio-bloom--gold {
+    animation: lsStudioDriftB linear both;
+    animation-timeline: scroll(root block);
+    animation-range: entry 0% exit 100%;
+  }
+  .ls-studio-stars {
+    animation: lsStudioStars linear both;
+    animation-timeline: scroll(root block);
+    animation-range: entry 0% exit 100%;
+    will-change: transform;
+  }
+}
+@keyframes lsStudioDriftA {
+  to { transform: translate3d(0, -8%, 0) scale(1.04); }
+}
+@keyframes lsStudioDriftB {
+  to { transform: translate3d(0, -14%, 0) scale(1.06); }
+}
+@keyframes lsStudioStars {
+  to { transform: translate3d(0, -22%, 0); }
+}
+@media (max-width: 768px) {
+  @keyframes lsStudioDriftA { to { transform: translate3d(0, -4%, 0) scale(1.02); } }
+  @keyframes lsStudioDriftB { to { transform: translate3d(0, -7%, 0) scale(1.03); } }
+  @keyframes lsStudioStars  { to { transform: translate3d(0, -11%, 0); } }
+  .ls-studio-bloom { filter: blur(40px); }
+}
+
+/* Cursor-tracked accent — JS sets --mx/--my (range -1..1). */
+.ls-studio-accent {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 320px; height: 320px;
+  margin: -160px 0 0 -160px;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(48px);
+  background: radial-gradient(circle at center,
+    rgba(196, 162, 101, 0.14) 0%,
+    rgba(196, 162, 101, 0.05) 36%,
+    transparent 70%);
+  transform: translate3d(calc(var(--mx, 0) * 18px), calc(var(--my, 0) * 12px), 0);
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Breathing gilt halo around the prompt box on focus — opacity only. */
+@keyframes lsPromptHalo {
+  0%, 100% { opacity: 0.0; transform: scale(1.00); }
+  50%      { opacity: 0.55; transform: scale(1.015); }
+}
+.ls-prompt-halo {
+  position: absolute;
+  inset: -8px;
+  border-radius: 24px;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 80% at 50% 0%, rgba(196, 162, 101, 0.22), transparent 70%),
+    radial-gradient(60% 80% at 50% 100%, rgba(191, 82, 74, 0.16), transparent 70%);
+  filter: blur(14px);
+  opacity: 0;
+  animation: lsPromptHalo 4.6s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* Magnetic button — JS sets --mag-x/--mag-y in px while hovering. */
+.ls-magnet {
+  transform: translate3d(var(--mag-x, 0px), var(--mag-y, 0px), 0);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Slow diagonal light-sweep on the active frame swatch. */
+.ls-glint { position: relative; overflow: hidden; }
+.ls-glint::after {
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 60%;
+  height: 160%;
+  background: linear-gradient(110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 48%,
+    rgba(255, 255, 255, 0.15) 56%,
+    transparent 72%);
+  transform: translateX(0);
+  animation: lsGlint 5.6s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+@keyframes lsGlint {
+  0%   { transform: translateX(0); opacity: 0; }
+  18%  { opacity: 0.9; }
+  55%  { transform: translateX(360%); opacity: 0; }
+  100% { transform: translateX(360%); opacity: 0; }
+}
+
+/* Reduced motion — disable the lot. */
+@media (prefers-reduced-motion: reduce) {
+  .ls-studio-bloom--rose,
+  .ls-studio-bloom--gold,
+  .ls-studio-stars,
+  .ls-studio-accent,
+  .ls-prompt-halo,
+  .ls-magnet,
+  .ls-glint::after {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .ls-prompt-halo { opacity: 0 !important; }
+  .ls-glint::after { display: none; }
+}
