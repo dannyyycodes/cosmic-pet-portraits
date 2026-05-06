@@ -65,11 +65,11 @@ const PLANS: Plan[] = [
   },
   {
     sku: "elite",
-    label: "Elite",
+    label: "Business Runner",
     price: "£17.99",
     cadence: "per month",
     generations: "75 pawtraits/mo",
-    tagline: "For serious pawtrait obsessives.",
+    tagline: "Built for creators and resellers.",
     features: [
       "75 generations · 4 variants each",
       "Priority generation queue",
@@ -77,7 +77,7 @@ const PLANS: Plan[] = [
       "Re-download anytime",
       "Cancel any time",
     ],
-    cta: "Start Elite",
+    cta: "Start Business",
     icon: Crown,
   },
 ];
@@ -148,7 +148,7 @@ export function TopUpPlans({
         .topup-title-marble {
           animation: topupTitleDrift 24s ease-in-out infinite alternate;
           transition: filter 0.5s ease;
-          filter: drop-shadow(0 2px 1px rgba(20,18,16,0.10)) drop-shadow(0 8px 20px rgba(196,162,101,0.18));
+          filter: drop-shadow(0 1px 0 rgba(20,18,16,0.06)) drop-shadow(0 4px 10px rgba(20,18,16,0.06));
         }
         .topup-shimmer {
           background-position: -120% 0;
@@ -220,19 +220,19 @@ export function TopUpPlans({
                 className="topup-title-marble"
                 style={{
                   fontFamily: "Asap, system-ui, sans-serif",
-                  fontWeight: 800,
+                  fontWeight: 700,
                   fontSize: "clamp(46px, 5vw, 60px)",
                   lineHeight: 0.95,
-                  letterSpacing: "-0.04em",
+                  letterSpacing: "-0.035em",
                   backgroundImage:
                     plan.sku === "pack"
-                      ? "linear-gradient(135deg, #e8b8c5 0%, #c47888 55%, #8e4f6a 100%), url(/pawtraits/topup-pack-text.webp)"
+                      ? "linear-gradient(135deg, #e0c4cb 0%, #a87082 55%, #6e3f53 100%), url(/pawtraits/topup-pack-text.webp)"
                       : plan.sku === "pass"
                       ? "linear-gradient(135deg, #c4cdd2 0%, #7a8690 55%, #3a4754 100%), url(/pawtraits/topup-pass-text.webp)"
                       : "linear-gradient(135deg, #d6b06a 0%, #a07b3a 55%, #5a3f15 100%), url(/pawtraits/topup-elite-text.webp)",
                   backgroundSize: "cover, cover",
                   backgroundPosition: "center, center",
-                  backgroundBlendMode: "overlay",
+                  backgroundBlendMode: "soft-light",
                   backgroundRepeat: "no-repeat, no-repeat",
                   WebkitBackgroundClip: "text",
                   backgroundClip: "text",
@@ -240,8 +240,8 @@ export function TopUpPlans({
                   color: "transparent",
                   WebkitTextStroke:
                     plan.sku === "pack"
-                      ? "1px rgba(20,18,16,0.6)"
-                      : "1.2px rgba(20,18,16,0.6)",
+                      ? "0.8px rgba(20,18,16,0.5)"
+                      : "0.9px rgba(20,18,16,0.55)",
                   margin: 0,
                   padding: 0,
                 }}
