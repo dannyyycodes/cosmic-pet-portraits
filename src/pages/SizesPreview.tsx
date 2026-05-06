@@ -16,6 +16,308 @@ import { PALETTE, display, eyebrow, cormorantItalic } from "@/components/portrai
 import { PortraitsNav } from "@/components/portraits/PortraitsNav";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Option 7 — West & Willow pattern: hero shot + relative-scale swatch row
+//   Direct copy of what direct pet-portrait competitors actually ship:
+//   one lifestyle hero shot at top, swatch grid below with each canvas
+//   sized to TRUE relative scale of the others. No SVG ladders, no bento.
+// ─────────────────────────────────────────────────────────────────────────────
+function Option7Swatches() {
+  const [selectedUid, setSelectedUid] = useState<string>("16x20");
+  const heroSize = CANVAS_SIZES.find((s) => s.uid === "16x20")!;
+
+  // Largest dimension across all sizes — used as the scale baseline
+  const maxIn = Math.max(...CANVAS_SIZES.map((s) => Math.max(s.inches.w, s.inches.h)));
+
+  return (
+    <div>
+      {/* ── Hero lifestyle shot ─────────────────────────────────────── */}
+      <div
+        className="relative rounded-lg overflow-hidden mb-7"
+        style={{
+          aspectRatio: "16 / 9",
+          background: PALETTE.cream2,
+          border: `1px solid ${PALETTE.sand}`,
+          boxShadow: "0 12px 30px rgba(20, 18, 16, 0.08)",
+        }}
+      >
+        {/* Backdrop photo */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "url(https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=2000&q=92&auto=format&fit=crop)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "brightness(0.97) saturate(0.88)",
+          }}
+        />
+
+        {/* Centered framed canvas overlay (placeholder for real product shot) */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: "20%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "20%",
+            aspectRatio: `${heroSize.inches.w / heroSize.inches.h}`,
+            background:
+              "linear-gradient(135deg, #fdf6e7 0%, #f0e3c2 60%, #e6d4a8 100%)",
+            border: "3px solid #8b6f3a",
+            borderRadius: 1,
+            boxShadow:
+              "0 14px 32px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 253, 245, 0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              color: "#8b6f3a",
+              fontSize: "min(48%, 32px)",
+              opacity: 0.55,
+              lineHeight: 1,
+            }}
+          >
+            ✦
+          </span>
+        </div>
+
+        {/* Eyebrow + caption */}
+        <div className="absolute bottom-0 inset-x-0 p-6">
+          <span
+            className="inline-block px-2.5 py-1 rounded-full mb-2"
+            style={{
+              background: PALETTE.gold,
+              color: PALETTE.cream,
+              fontFamily: "Asap, system-ui, sans-serif",
+              fontSize: 9.5,
+              fontWeight: 800,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+            }}
+          >
+            ✦ Most loved
+          </span>
+          <p
+            style={{
+              fontFamily: "Asap, system-ui, sans-serif",
+              fontSize: 16,
+              fontWeight: 600,
+              color: PALETTE.cream,
+              textShadow: "0 2px 8px rgba(0, 0, 0, 0.5)",
+              letterSpacing: "-0.005em",
+            }}
+          >
+            16×20″ — above the sofa
+          </p>
+        </div>
+      </div>
+
+      {/* ── Replace-with-real-shot note ─────────────────────────────── */}
+      <p
+        className="text-center mb-6"
+        style={{
+          fontFamily: "Assistant, system-ui, sans-serif",
+          fontSize: 12,
+          color: PALETTE.earthMuted,
+          fontStyle: "italic",
+        }}
+      >
+        Hero shot above is a placeholder. Production: one real product photo (or one AI-generated mockup) of 16×20 above a sofa with an actual pawtrait inside.
+      </p>
+
+      {/* ── Swatch row: 11 sizes, true-relative-scale canvas inside each button ─── */}
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 gap-2.5">
+        {CANVAS_SIZES.map((s) => {
+          const isHero = !!s.hero;
+          const isSelected = selectedUid === s.uid;
+
+          // Canvas thumb scaled to its TRUE proportion of the largest size
+          const scaleFactor = Math.max(s.inches.w, s.inches.h) / maxIn;
+          const baseHeight = 64; // px — biggest canvas thumb height
+          const thumbH = baseHeight * scaleFactor;
+          const thumbW = thumbH * (s.inches.w / s.inches.h);
+
+          return (
+            <button
+              key={s.uid}
+              type="button"
+              onClick={() => setSelectedUid(s.uid)}
+              aria-pressed={isSelected}
+              className="relative rounded-md flex flex-col items-center justify-end transition-all"
+              style={{
+                background: isSelected ? PALETTE.cream : PALETTE.cream,
+                border: isSelected
+                  ? `2px solid ${PALETTE.rose}`
+                  : isHero
+                    ? `1.5px solid ${PALETTE.gold}`
+                    : `1px solid ${PALETTE.sand}`,
+                padding: "12px 6px 10px",
+                boxShadow: isSelected
+                  ? "0 8px 20px rgba(191, 82, 74, 0.18)"
+                  : isHero
+                    ? "0 4px 12px rgba(196, 162, 101, 0.16)"
+                    : "0 1px 3px rgba(20, 18, 16, 0.04)",
+                cursor: "pointer",
+                minHeight: 130,
+              }}
+            >
+              {/* "Most loved" tiny pill on hero */}
+              {isHero && !isSelected && (
+                <span
+                  className="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                  style={{
+                    background: PALETTE.gold,
+                    color: PALETTE.cream,
+                    fontFamily: "Asap, system-ui, sans-serif",
+                    fontSize: 7.5,
+                    fontWeight: 800,
+                    letterSpacing: "0.16em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  ✦
+                </span>
+              )}
+
+              {/* Canvas thumbnail at TRUE relative scale */}
+              <div
+                className="flex items-end justify-center mb-2"
+                style={{ height: baseHeight + 4, width: "100%" }}
+              >
+                <div
+                  style={{
+                    width: thumbW,
+                    height: thumbH,
+                    background:
+                      "linear-gradient(135deg, #fdf6e7 0%, #f0e3c2 60%, #e6d4a8 100%)",
+                    border: isHero
+                      ? `1.5px solid ${PALETTE.goldDeep}`
+                      : `1.25px solid ${PALETTE.ink}`,
+                    borderRadius: 1,
+                    boxShadow:
+                      "0 3px 6px rgba(20, 18, 16, 0.18), inset 0 0 0 1px rgba(255, 253, 245, 0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {scaleFactor > 0.55 && (
+                    <span
+                      style={{
+                        color: isHero ? PALETTE.gold : PALETTE.earthMuted,
+                        fontSize: thumbH * 0.32,
+                        opacity: 0.55,
+                        lineHeight: 1,
+                      }}
+                    >
+                      ✦
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Size label */}
+              <div
+                style={{
+                  fontFamily: "Asap, system-ui, sans-serif",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: PALETTE.ink,
+                  letterSpacing: "-0.005em",
+                  lineHeight: 1.1,
+                }}
+              >
+                {s.label}
+              </div>
+
+              {/* Price */}
+              <div
+                style={{
+                  fontFamily: "Asap, system-ui, sans-serif",
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: isSelected
+                    ? PALETTE.rose
+                    : isHero
+                      ? PALETTE.goldDeep
+                      : PALETTE.earthMuted,
+                  marginTop: 2,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                £{s.priceGBP}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Frame swatches (unchanged from prod) ────────────────────── */}
+      <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 mt-8">
+        <span
+          style={{
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 11,
+            fontWeight: 700,
+            color: PALETTE.earthMuted,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+          }}
+        >
+          Frames
+        </span>
+        {/* Hardcoded swatches matching FRAME_COLORS */}
+        {[
+          { uid: "black", label: "Black", swatch: "#1c1c1c" },
+          { uid: "walnut", label: "Walnut", swatch: "#5a3e29" },
+          { uid: "natural", label: "Natural Oak", swatch: "#c9a66b" },
+        ].map((c) => (
+          <div key={c.uid} className="flex items-center gap-2.5">
+            <span
+              aria-hidden
+              className="rounded-full inline-block"
+              style={{
+                width: 22,
+                height: 22,
+                background: c.swatch,
+                border: `1px solid ${PALETTE.sandDeep}`,
+                boxShadow:
+                  "0 2px 6px rgba(20, 18, 16, 0.10), inset 0 0 0 2px rgba(255, 255, 255, 0.06)",
+              }}
+            />
+            <span
+              style={{
+                fontFamily: "Asap, system-ui, sans-serif",
+                fontSize: 13,
+                fontWeight: 500,
+                color: PALETTE.earth,
+              }}
+            >
+              {c.label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <p
+        className="text-center mt-5"
+        style={{
+          fontFamily: "Assistant, system-ui, sans-serif",
+          fontSize: 13,
+          color: PALETTE.earthMuted,
+        }}
+      >
+        Canvas + frame only — delivery is calculated at checkout.
+      </p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Option 6 — Curated lifestyle context guide (RECOMMENDED)
 //   Mix of "Where it lives" + lifestyle imagery. Pre-selected pro photography,
 //   NOT per-pet AI gen. Each setting maps to a recommended size.
@@ -1164,13 +1466,21 @@ function Option5AILifestyle() {
 export default function SizesPreview() {
   const sections = [
     {
+      n: 7,
+      title: "Hero shot + relative-scale swatches (West & Willow pattern)",
+      sub: "Direct copy of what direct pet-portrait competitors actually ship",
+      pros: "Proven pattern from Crown & Paw, West & Willow, Mixtiles. Fast to scan all 11 sizes at true relative scale. Only ONE hero photo asset to produce. Selectable buttons feel native to product configurators.",
+      cons: "Hero shot needs one real product photo or AI mockup (single image, not 11). Less editorial than bento grid.",
+      Component: Option7Swatches,
+      recommended: true,
+    },
+    {
       n: 6,
       title: "Lifestyle context guide",
       sub: "Curated photography × per-setting size guidance — pre-selected, not per-pet",
-      pros: "Real lifestyle imagery + clear size guidance in one. Pre-shot once → owned forever, no per-customer cost. Most trustworthy and conversion-friendly.",
-      cons: "Needs a real product photoshoot for ship (~£500–700 one-off). Demo uses curated Unsplash placeholders.",
+      pros: "Real lifestyle imagery + clear size guidance in one. Pre-shot once → owned forever, no per-customer cost.",
+      cons: "Needs 6 real product photos for ship (~£500–700 photoshoot). Demo uses curated Unsplash placeholders with CSS-overlay frames.",
       Component: Option6LifestyleGuide,
-      recommended: true,
     },
     {
       n: 1,
@@ -1240,7 +1550,7 @@ export default function SizesPreview() {
               lineHeight: 1.5,
             }}
           >
-            Six patterns from canvas-print and furniture e-commerce. The first one (your pick — lifestyle photography × per-setting size guidance) is the refined draft. The other five stay below for reference.
+            Top of page = Option 7, the West & Willow / Crown & Paw pattern that direct competitors actually ship. The rest stay below for reference.
           </p>
         </div>
       </section>
