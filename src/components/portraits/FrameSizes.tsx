@@ -1,18 +1,16 @@
 /**
- * FrameSizes — editorial canvas catalog shown above the studio.
+ * FrameSizes — informational pricing strip shown above the studio.
  *
- * Refined gallery register: proportion-accurate mini-frames so customers
- * SEE the scale ladder before picking. Hero size (16×20) carries gold
- * accent + "Most loved" pill. Frame-color swatches sit at the top because
- * the frame is the constant — choose once, then scan sizes.
- *
- * NOT interactive — actual selection happens in the studio below.
+ * Displays all 11 launch sizes + 3 frame colors so customers know what they'll
+ * pay BEFORE they generate. NOT interactive — the actual size + frame
+ * selection happens in the studio below. No per-card CTAs (those caused
+ * confusion about whether clicking selected the size).
  *
  * Pricing locked: src/components/portraits/gelatoFramedCanvas.ts (CANVAS_SIZES).
  */
 import { Check } from "lucide-react";
 import { CANVAS_SIZES, FRAME_COLORS } from "./gelatoFramedCanvas";
-import { PALETTE, display, eyebrow, tabularPrice } from "./tokens";
+import { PALETTE, tabularPrice } from "./tokens";
 
 // Re-exports for backward compat with any other imports.
 export type Currency = "GBP" | "USD";
@@ -52,95 +50,81 @@ export function FrameSizes({ currency }: FrameSizesProps) {
   const formatPrice = (gbp: number) =>
     currency === "GBP" ? `${symbol}${gbp}` : `${symbol}${Math.round(gbp * usdMul)}`;
 
-  // Proportion-accurate mini frame: same height across all tiles, width
-  // scales with the actual canvas aspect ratio so the eye reads the ladder.
-  const FRAME_HEIGHT = 86;
-
   return (
     <section
       id="sizes"
-      className="relative overflow-hidden px-5 md:px-10"
+      className="relative px-5 md:px-10"
       style={{
         background: PALETTE.cream,
-        paddingTop: "clamp(96px, 12vh, 140px)",
-        paddingBottom: "clamp(96px, 12vh, 140px)",
+        paddingTop: "clamp(72px, 9vh, 110px)",
+        paddingBottom: "clamp(72px, 9vh, 110px)",
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
       aria-labelledby="frame-sizes-heading"
     >
-      {/* Soft gold ambient orb — depth without noise */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2"
-        style={{
-          width: 720,
-          height: 720,
-          maxWidth: "120%",
-          background:
-            "radial-gradient(ellipse at center, rgba(196, 162, 101, 0.10) 0%, rgba(196, 162, 101, 0.00) 60%)",
-          filter: "blur(40px)",
-          zIndex: 0,
-        }}
-      />
+      <div className="mx-auto" style={{ maxWidth: 980 }}>
+        <h2 id="frame-sizes-heading" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>
+          Canvas sizes and prices
+        </h2>
 
-      <div className="relative mx-auto" style={{ maxWidth: 1080, zIndex: 1 }}>
-        {/* ── Editorial header ─────────────────────────────────────── */}
-        <div className="text-center mx-auto" style={{ maxWidth: 640 }}>
-          <p style={eyebrow(PALETTE.goldDeep)}>Sized for the wall</p>
-          <h2
-            id="frame-sizes-heading"
-            style={{
-              ...display("clamp(34px, 5vw, 54px)"),
-              color: PALETTE.ink,
-              marginTop: 18,
-              lineHeight: 1.05,
-            }}
-          >
-            Eleven sizes.{" "}
-            <span style={{ color: PALETTE.rose }}>
-              One archival print.
-            </span>
-          </h2>
+        {/* Size pricing grid — informational, not interactive */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+          {CANVAS_SIZES.map((s) => (
+            <div
+              key={s.uid}
+              className="rounded-xl px-3 py-3.5 text-center relative"
+              style={{
+                background: PALETTE.cream2,
+                border: `1px solid ${PALETTE.sand}`,
+                boxShadow: "0 1px 3px rgba(20,18,16,0.03)",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: 'Asap, system-ui, sans-serif',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: PALETTE.ink,
+                }}
+              >
+                {s.label}
+              </div>
+              <div style={{ ...tabularPrice("18px"), marginTop: 2 }}>
+                {formatPrice(s.priceGBP)}
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* ── Frame swatches ───────────────────────────────────────── */}
-        <div
-          className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 mt-10 mb-10"
-          aria-label="Available frame finishes"
-        >
+        {/* Frame swatches strip */}
+        <div className="flex items-center justify-center gap-5 mt-9">
           <span
             style={{
-              fontFamily: "Assistant, system-ui, sans-serif",
-              fontSize: 11,
-              fontWeight: 700,
+              fontFamily: 'Assistant, system-ui, sans-serif',
+              fontSize: 12.5,
               color: PALETTE.earthMuted,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
+              letterSpacing: "0.04em",
             }}
           >
-            Frames
+            Frame:
           </span>
           {FRAME_COLORS.map((c) => (
-            <div key={c.uid} className="flex items-center gap-2.5">
-              <span
-                aria-hidden
-                className="rounded-full inline-block"
+            <div key={c.uid} className="flex items-center gap-2">
+              <div
+                className="rounded-full"
                 style={{
-                  width: 22,
-                  height: 22,
+                  width: 18,
+                  height: 18,
                   background: c.swatchHex,
                   border: `1px solid ${PALETTE.sandDeep}`,
-                  boxShadow:
-                    "0 2px 6px rgba(20, 18, 16, 0.10), inset 0 0 0 2px rgba(255, 255, 255, 0.06)",
+                  boxShadow: "0 1px 3px rgba(20,18,16,0.08)",
                 }}
               />
               <span
                 style={{
-                  fontFamily: "Asap, system-ui, sans-serif",
-                  fontSize: 13,
-                  fontWeight: 500,
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                  fontSize: 12.5,
                   color: PALETTE.earth,
-                  letterSpacing: "-0.005em",
                 }}
               >
                 {c.label}
@@ -149,170 +133,11 @@ export function FrameSizes({ currency }: FrameSizesProps) {
           ))}
         </div>
 
-        {/* ── Size ladder: proportion-accurate gallery tiles ───────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 md:gap-3">
-          {CANVAS_SIZES.map((s) => {
-            const isHero = !!s.hero;
-            const aspectRatio = s.inches.w / s.inches.h;
-            const frameW = FRAME_HEIGHT * aspectRatio;
-
-            return (
-              <article
-                key={s.uid}
-                className="group relative rounded-md flex flex-col items-center text-center"
-                style={{
-                  background: isHero
-                    ? `linear-gradient(180deg, ${PALETTE.cream} 0%, rgba(196, 162, 101, 0.04) 100%)`
-                    : PALETTE.cream,
-                  border: isHero
-                    ? `1px solid ${PALETTE.gold}`
-                    : `1px solid ${PALETTE.sand}`,
-                  padding: "22px 14px 18px",
-                  boxShadow: isHero
-                    ? "0 14px 38px rgba(196, 162, 101, 0.20), 0 2px 6px rgba(20, 18, 16, 0.04)"
-                    : "0 2px 8px rgba(20, 18, 16, 0.03)",
-                  transition: "transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 320ms",
-                }}
-              >
-                {/* "Most loved" pill on hero */}
-                {isHero && (
-                  <span
-                    aria-hidden
-                    className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full whitespace-nowrap"
-                    style={{
-                      background: PALETTE.gold,
-                      color: PALETTE.cream,
-                      fontFamily: "Asap, system-ui, sans-serif",
-                      fontSize: 9.5,
-                      fontWeight: 800,
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      boxShadow: "0 4px 10px rgba(196, 162, 101, 0.32)",
-                    }}
-                  >
-                    Most loved
-                  </span>
-                )}
-
-                {/* Proportional canvas preview */}
-                <div
-                  aria-hidden
-                  className="flex items-end justify-center mb-3.5"
-                  style={{ height: FRAME_HEIGHT + 6 }}
-                >
-                  <div
-                    style={{
-                      width: frameW,
-                      height: FRAME_HEIGHT,
-                      maxWidth: "100%",
-                      background: `linear-gradient(135deg, ${PALETTE.cream2} 0%, ${PALETTE.cream} 50%, ${PALETTE.cream2} 100%)`,
-                      border: isHero
-                        ? `2px solid ${PALETTE.goldDeep}`
-                        : `1.5px solid ${PALETTE.sandDeep}`,
-                      borderRadius: 1.5,
-                      boxShadow: isHero
-                        ? "0 6px 14px rgba(196, 162, 101, 0.28), inset 0 0 0 1px rgba(255, 253, 245, 0.6)"
-                        : "0 3px 8px rgba(20, 18, 16, 0.10), inset 0 0 0 1px rgba(255, 253, 245, 0.5)",
-                      position: "relative",
-                    }}
-                  >
-                    {isHero && (
-                      <span
-                        aria-hidden
-                        className="absolute"
-                        style={{
-                          top: "50%",
-                          left: "50%",
-                          transform: "translate(-50%, -50%)",
-                          color: PALETTE.gold,
-                          fontSize: 16,
-                          opacity: 0.55,
-                          lineHeight: 1,
-                        }}
-                      >
-                        ✦
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Size label */}
-                <div
-                  style={{
-                    fontFamily: "Asap, system-ui, sans-serif",
-                    fontSize: 14.5,
-                    fontWeight: 700,
-                    color: PALETTE.ink,
-                    letterSpacing: "-0.005em",
-                  }}
-                >
-                  {s.label}
-                </div>
-
-                {/* Caption (small sans, readable) */}
-                <div
-                  style={{
-                    fontFamily: "Assistant, system-ui, sans-serif",
-                    fontSize: 12.5,
-                    fontWeight: 500,
-                    color: PALETTE.earthMuted,
-                    marginTop: 4,
-                    lineHeight: 1.4,
-                    letterSpacing: "0.005em",
-                    minHeight: "1.4em",
-                  }}
-                >
-                  {s.caption}
-                </div>
-
-                {/* Hairline divider */}
-                <span
-                  aria-hidden
-                  className="block"
-                  style={{
-                    height: 1,
-                    width: 22,
-                    background: isHero ? PALETTE.gold : PALETTE.sandDeep,
-                    margin: "11px 0 8px",
-                    opacity: isHero ? 0.85 : 0.5,
-                  }}
-                />
-
-                {/* Price */}
-                <div
-                  style={{
-                    ...tabularPrice("19px"),
-                    color: isHero ? PALETTE.goldDeep : PALETTE.ink,
-                    fontWeight: 700,
-                  }}
-                >
-                  {formatPrice(s.priceGBP)}
-                </div>
-              </article>
-            );
-          })}
-        </div>
-
-        {/* ── Delivery disclaimer (sans, quiet) ────────────────────── */}
-        <p
-          className="text-center mt-9"
-          style={{
-            fontFamily: "Assistant, system-ui, sans-serif",
-            fontSize: 14,
-            fontWeight: 500,
-            color: PALETTE.earthMuted,
-            letterSpacing: "0.01em",
-            lineHeight: 1.5,
-          }}
-        >
-          Canvas + frame only — delivery is calculated at checkout.
-        </p>
-
-        {/* ── Trust line ───────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-5 text-center">
+        {/* Trust line */}
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-9 text-center">
           {[
             "Cotton-poly canvas",
-            "FSC-certified solid frame",
+            "FSC-certified slim frame",
             "Archival inks",
             "3–5 day delivery",
             "UK · EU · US",
@@ -321,7 +146,7 @@ export function FrameSizes({ currency }: FrameSizesProps) {
               key={line}
               className="inline-flex items-center gap-1.5"
               style={{
-                fontFamily: "Assistant, system-ui, sans-serif",
+                fontFamily: 'Assistant, system-ui, sans-serif',
                 fontSize: 12.5,
                 color: PALETTE.earthMuted,
                 letterSpacing: "0.02em",

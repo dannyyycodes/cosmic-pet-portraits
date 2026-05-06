@@ -71,7 +71,6 @@ const Portraits = lazy(() => import("./pages/Portraits"));
 const Reading = lazy(() => import("./pages/Reading"));
 const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
-const SizesPreview = lazy(() => import("./pages/SizesPreview"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the homepage InlineCheckout section.
@@ -219,8 +218,6 @@ const App = () => (
                   <Route path="/pawtraits" element={<Portraits />} />
                   <Route path="/pawtraits/templates" element={<PortraitsTemplates />} />
                   <Route path="/pawtraits/studio" element={<Navigate to="/pawtraits#studio" replace />} />
-                  {/* Internal: 5-way size visualisation comparison page (delete after pick). */}
-                  <Route path="/pawtraits/sizes-preview" element={<SizesPreview />} />
                   <Route path="/portraits" element={<Navigate to="/pawtraits" replace />} />
                   <Route path="/portraits/templates" element={<Navigate to="/pawtraits/templates" replace />} />
                   <Route path="/portraits/studio" element={<Navigate to="/pawtraits#studio" replace />} />
