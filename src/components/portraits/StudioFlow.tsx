@@ -138,7 +138,7 @@ function SignInDialog({
         options: {
           // Magic link in email also works (clickable fallback) — but the
           // template includes the 6-digit code so customers never leave site.
-          emailRedirectTo: `${window.location.origin}/portraits#studio`,
+          emailRedirectTo: `${window.location.origin}/pawtraits#studio`,
           data: visitorId ? { visitor_id: visitorId } : undefined,
         },
       });
@@ -509,7 +509,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         <div className="flex justify-center mb-7">
           {user ? (
             <Link
-              to="/portraits#topup"
+              to="/pawtraits#topup"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full transition-colors"
               style={{
                 background: PALETTE.cream,

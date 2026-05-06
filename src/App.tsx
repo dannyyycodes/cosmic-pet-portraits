@@ -212,11 +212,17 @@ const App = () => (
                       redirects there so any cached/bookmarked link still lands correctly. */}
                   {/* Soul Reading viewer (Shopify-fulfilled flow). Token-gated, noindex. */}
                   <Route path="/reading/:token" element={<Reading />} />
-                  <Route path="/portraits" element={<Portraits />} />
-                  <Route path="/portraits/studio" element={<Navigate to="/portraits#studio" replace />} />
-                  <Route path="/portraits/templates" element={<PortraitsTemplates />} />
-                  {/* /unlimited removed 2026-05-05 — TopUpPlans now lives inline at /portraits#topup */}
-                  <Route path="/unlimited" element={<Navigate to="/portraits#topup" replace />} />
+                  {/* Canonical /pawtraits route (rebranded 2026-05-06).
+                      vercel.json 308's /portraits → /pawtraits at the edge for direct hits;
+                      the SPA Navigate routes below cover client-side nav that bypasses Vercel. */}
+                  <Route path="/pawtraits" element={<Portraits />} />
+                  <Route path="/pawtraits/templates" element={<PortraitsTemplates />} />
+                  <Route path="/pawtraits/studio" element={<Navigate to="/pawtraits#studio" replace />} />
+                  <Route path="/portraits" element={<Navigate to="/pawtraits" replace />} />
+                  <Route path="/portraits/templates" element={<Navigate to="/pawtraits/templates" replace />} />
+                  <Route path="/portraits/studio" element={<Navigate to="/pawtraits#studio" replace />} />
+                  {/* /unlimited removed 2026-05-05 — TopUpPlans now lives inline at /pawtraits#topup */}
+                  <Route path="/unlimited" element={<Navigate to="/pawtraits#topup" replace />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

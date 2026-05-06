@@ -190,7 +190,7 @@ export default function PortraitsTemplates() {
             </p>
             <p className="mt-6">
               <Link
-                to="/portraits"
+                to="/pawtraits"
                 className="text-[13px] underline-offset-4 hover:underline"
                 style={{ color: PALETTE.muted }}
               >

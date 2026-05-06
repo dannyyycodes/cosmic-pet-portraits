@@ -24,8 +24,8 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Studio",           href: "/portraits#studio" },
-  { label: "How It Works",     href: "/portraits#how" },
+  { label: "Studio",           href: "/pawtraits#studio" },
+  { label: "How It Works",     href: "/pawtraits#how" },
 ];
 
 interface PortraitsNavProps {
@@ -62,7 +62,7 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
       >
         {/* ── Brand wordmark ── */}
         <Link
-          to="/portraits"
+          to="/pawtraits"
           className="flex items-baseline gap-2 transition-opacity hover:opacity-80"
           onClick={(e) => {
             e.preventDefault();

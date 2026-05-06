@@ -95,7 +95,7 @@ export function TopUpPlans({
   variant = "section",
   showHeader = true,
   heading = "Need more pawtraits?",
-  authRedirect = "/portraits#topup",
+  authRedirect = "/pawtraits#topup",
 }: TopUpPlansProps) {
   const navigate = useNavigate();
   const { user, session } = useAuth();

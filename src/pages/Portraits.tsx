@@ -749,7 +749,7 @@ function _StepBlock({
 // ─────────────────────────────────────────────────────────────────────────────
 
 const Portraits = () => {
-  usePageAnalytics("/portraits");
+  usePageAnalytics("/pawtraits");
 
   // Phase 2: detect via IP geolocation + persist to localStorage
   const currency: Currency = "GBP";
@@ -920,7 +920,7 @@ const Portraits = () => {
       </div>
 
       {/* Top-up plans — inline below the studio so customers never leave the page. */}
-      <TopUpPlans variant="inline" authRedirect="/portraits#topup" />
+      <TopUpPlans variant="inline" authRedirect="/pawtraits#topup" />
       </div>
     </main>
   );

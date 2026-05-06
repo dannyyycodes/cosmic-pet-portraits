@@ -1,5 +1,5 @@
 /**
- * /portraits/studio — Tier 1+ AI Studio (Style × Theme + 4 variants).
+ * /pawtraits/studio — Tier 1+ AI Studio (Style × Theme + 4 variants).
  *
  * Customer journey:
  *   1. Upload pet photo
@@ -11,7 +11,7 @@
  *
  * Phase 1B = anonymous free, no auth gate yet (Phase 2 adds Turnstile + sign-up wall).
  *
- * Distinct from /portraits (legacy 6-pack flow) and /portraits/templates (Tier 0).
+ * Distinct from /portraits (legacy 6-pack flow) and /pawtraits/templates (Tier 0).
  */
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -77,7 +77,7 @@ export default function PortraitsStudio() {
     if (!photoUrl || !styleId || !themeId) return;
     if (!user || !session?.access_token) {
       toast("Sign in to generate your AI portrait — 3 free attempts on us.", { duration: 2200 });
-      setTimeout(() => navigate(`/auth?next=${encodeURIComponent("/portraits/studio")}`), 800);
+      setTimeout(() => navigate(`/auth?next=${encodeURIComponent("/pawtraits/studio")}`), 800);
       return;
     }
     setGenerating(true);
@@ -99,7 +99,7 @@ export default function PortraitsStudio() {
       const data = await res.json();
       if (res.status === 402) {
         toast.error("Out of credits. Subscribe or buy a pack to continue.");
-        navigate("/portraits#topup");
+        navigate("/pawtraits#topup");
         return;
       }
       if (res.status === 503 && data.error === "ai-service-paused") {
@@ -192,7 +192,7 @@ export default function PortraitsStudio() {
             </p>
             <p className="mt-6">
               <Link
-                to="/portraits/templates"
+                to="/pawtraits/templates"
                 className="text-[13px] underline-offset-4 hover:underline"
                 style={{ color: PALETTE.muted }}
               >
@@ -208,14 +208,14 @@ export default function PortraitsStudio() {
                 <>
                   <span><strong style={{ color: PALETTE.ink }}>{balance ?? "…"}</strong> credits</span>
                   {tier && <span style={{ color: PALETTE.muted }}>· {tier === "elite" ? "Elite" : "Pass"}</span>}
-                  <Link to="/portraits#topup" className="ml-2" style={{ color: PALETTE.rose, fontWeight: 600 }}>
+                  <Link to="/pawtraits#topup" className="ml-2" style={{ color: PALETTE.rose, fontWeight: 600 }}>
                     Top up →
                   </Link>
                 </>
               ) : (
                 <>
                   <span>3 free portraits with sign-up — then £4.99 for 5 more.</span>
-                  <Link to={`/auth?next=${encodeURIComponent("/portraits/studio")}`} style={{ color: PALETTE.rose, fontWeight: 600 }}>
+                  <Link to={`/auth?next=${encodeURIComponent("/pawtraits/studio")}`} style={{ color: PALETTE.rose, fontWeight: 600 }}>
                     Sign in →
                   </Link>
                 </>
@@ -282,7 +282,7 @@ export default function PortraitsStudio() {
                         Our AI is briefly out of credit. Your generation credits weren't charged. Try the Templates flow — your pet's actual face on a beautifully framed product, no AI required.
                       </p>
                       <Link
-                        to="/portraits/templates"
+                        to="/pawtraits/templates"
                         className="mt-5 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium"
                         style={{ background: PALETTE.rose, color: "#fff", letterSpacing: "0.04em" }}
                       >

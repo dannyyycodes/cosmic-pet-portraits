@@ -48,8 +48,10 @@
     }
   ],
   "redirects": [
-    { "source": "/pawtraits", "destination": "/portraits", "permanent": true },
-    { "source": "/pawtrait", "destination": "/portraits", "permanent": true }
+    { "source": "/portraits", "destination": "/pawtraits", "permanent": true },
+    { "source": "/portraits/templates", "destination": "/pawtraits/templates", "permanent": true },
+    { "source": "/portraits/studio", "destination": "/pawtraits#studio", "permanent": true },
+    { "source": "/pawtrait", "destination": "/pawtraits", "permanent": true }
   ],
   "rewrites": [
     { "source": "/apple-touch-icon.png", "destination": "/og-image.jpg" },

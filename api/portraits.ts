@@ -548,7 +548,7 @@ function balancePausedResponse(res: VercelResponse) {
   return res.status(503).json({
     error: "ai-service-paused",
     message: "Our AI portrait service is paused (account top-up needed). Try the Templates flow — your pet's actual face on a beautifully framed product, no AI required.",
-    cta: { label: "Try Templates instead", href: "/portraits/templates" },
+    cta: { label: "Try Templates instead", href: "/pawtraits/templates" },
   });
 }
 
@@ -657,7 +657,7 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
 
   const auth = req.headers.authorization;
   if (!auth?.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Sign in to generate", cta: { label: "Sign in or sign up", href: "/auth?next=/portraits/studio" } });
+    return res.status(401).json({ error: "Sign in to generate", cta: { label: "Sign in or sign up", href: "/auth?next=/pawtraits/studio" } });
   }
   const token = auth.slice("Bearer ".length);
   const supabase = getSupabaseAdmin();
