@@ -371,7 +371,7 @@ export function TopUpPlans({
                 className="absolute inset-0"
                 style={{
                   background:
-                    "linear-gradient(180deg, rgba(20,18,16,0.10) 0%, rgba(20,18,16,0.45) 100%)",
+                    "linear-gradient(180deg, rgba(20,18,16,0) 0%, rgba(20,18,16,0.10) 35%, rgba(20,18,16,0.55) 100%)",
                 }}
               />
               <div
@@ -392,7 +392,7 @@ export function TopUpPlans({
                   fontSize: 14.5,
                   fontWeight: 600,
                   letterSpacing: "0.04em",
-                  textShadow: "0 1px 3px rgba(20,18,16,0.85), 0 0 8px rgba(20,18,16,0.6)",
+                  textShadow: "0 1px 3px rgba(20,18,16,0.9), 0 0 6px rgba(20,18,16,0.7), 0 2px 6px rgba(20,18,16,0.5)",
                 }}
               >
                 {busySku === plan.sku ? "Redirecting…" : plan.cta}
