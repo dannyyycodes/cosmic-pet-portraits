@@ -74,7 +74,7 @@ const PROMPT_EXAMPLES = [
   "a 1920s underworld boss with cigar smoke and pinstripes",
   "the centre of a luminous cosmic birth-chart wheel",
   "a Pixar-style hero with big expressive eyes",
-  "a watercolour portrait in the style of an old children's book",
+  "a watercolour pawtrait in the style of an old children's book",
   "a galaxy smuggler in a worn leather flight jacket",
 ];
 

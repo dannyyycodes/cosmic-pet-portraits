@@ -69,7 +69,7 @@ export const CANVAS_SIZES: CanvasSizeMeta[] = [
     uid: "12x18", label: "12×18″",
     inches: { w: 12, h: 18 }, cm: { w: 30, h: 45 },
     gelatoFormat: "300x450-mm-12x18-inch", frameSizeUid: "352x502-mm-14x20-inch",
-    priceGBP: 55, caption: "Slim portrait",
+    priceGBP: 55, caption: "Slim pawtrait",
   },
   {
     uid: "16x20", label: "16×20″",
@@ -88,7 +88,7 @@ export const CANVAS_SIZES: CanvasSizeMeta[] = [
     uid: "18x24", label: "18×24″",
     inches: { w: 18, h: 24 }, cm: { w: 45, h: 60 },
     gelatoFormat: "450x600-mm-18x24-inch", frameSizeUid: "502x652-mm-20x26-inch",
-    priceGBP: 79, caption: "Statement portrait",
+    priceGBP: 79, caption: "Statement pawtrait",
   },
   {
     uid: "20x28", label: "20×28″",
