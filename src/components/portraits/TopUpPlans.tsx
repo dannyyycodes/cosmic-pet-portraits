@@ -170,8 +170,9 @@ export function TopUpPlans({
         }
         .topup-card:hover .topup-hero-bg { filter: saturate(1.15); transform: scale(1.04); }
         .topup-card:hover .topup-rule-line { flex-basis: 56px; }
-        .topup-cta-marble:hover .topup-cta-bg { filter: saturate(1.25); }
+        .topup-cta-marble:hover .topup-cta-bg { filter: saturate(1.4) brightness(1.05); transform: scale(1.06); }
         .topup-cta-marble:hover .topup-cta-shine { background-position: 220% 0; }
+        .topup-cta-bg { transform-origin: center; }
       `}</style>
       {PLANS.map((plan, i) => {
         const Icon = plan.icon;
@@ -223,14 +224,14 @@ export function TopUpPlans({
               <span
                 className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full"
                 style={{
-                  background: PALETTE.rose,
+                  background: PALETTE.ink,
                   color: PALETTE.cream,
                   fontFamily: 'Asap, system-ui, sans-serif',
                   fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
-                  boxShadow: "0 6px 16px rgba(191, 82, 74, 0.32)",
+                  boxShadow: "0 6px 16px rgba(20, 18, 16, 0.32)",
                   zIndex: 20,
                 }}
               >
@@ -308,7 +309,7 @@ export function TopUpPlans({
                 fontFamily: 'Asap, system-ui, sans-serif',
                 fontSize: 14,
                 fontWeight: 600,
-                color: plan.recommended ? PALETTE.rose : PALETTE.earth,
+                color: PALETTE.earth,
               }}
             >
               {plan.generations}
@@ -337,7 +338,7 @@ export function TopUpPlans({
                     style={{
                       width: 16,
                       height: 16,
-                      color: plan.recommended ? PALETTE.rose : PALETTE.earthMuted,
+                      color: PALETTE.earthMuted,
                       strokeWidth: 2.5,
                     }}
                   />
@@ -369,7 +370,8 @@ export function TopUpPlans({
                 aria-hidden
                 className="absolute inset-0"
                 style={{
-                  background: "rgba(20, 18, 16, 0.45)",
+                  background:
+                    "linear-gradient(180deg, rgba(20,18,16,0.10) 0%, rgba(20,18,16,0.45) 100%)",
                 }}
               />
               <div
@@ -390,7 +392,7 @@ export function TopUpPlans({
                   fontSize: 14.5,
                   fontWeight: 600,
                   letterSpacing: "0.04em",
-                  textShadow: "0 1px 2px rgba(20,18,16,0.4)",
+                  textShadow: "0 1px 3px rgba(20,18,16,0.85), 0 0 8px rgba(20,18,16,0.6)",
                 }}
               >
                 {busySku === plan.sku ? "Redirecting…" : plan.cta}
