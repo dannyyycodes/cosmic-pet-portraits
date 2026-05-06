@@ -541,13 +541,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             <SplitWords
               text="anywhere."
               delay={0.28}
-              style={{
-                fontFamily: '"Cormorant", "Cormorant Garamond", Georgia, serif',
-                fontStyle: "italic",
-                fontWeight: 400,
-                color: PALETTE.rose,
-                letterSpacing: "-0.005em",
-              }}
+              style={{ color: PALETTE.rose }}
             />
           </h2>
           <p

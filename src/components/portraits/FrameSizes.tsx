@@ -12,7 +12,7 @@
  */
 import { Check } from "lucide-react";
 import { CANVAS_SIZES, FRAME_COLORS } from "./gelatoFramedCanvas";
-import { PALETTE, display, cormorantItalic, eyebrow, tabularPrice } from "./tokens";
+import { PALETTE, display, eyebrow, tabularPrice } from "./tokens";
 
 // Re-exports for backward compat with any other imports.
 export type Currency = "GBP" | "USD";
@@ -97,13 +97,7 @@ export function FrameSizes({ currency }: FrameSizesProps) {
             }}
           >
             Eleven sizes.{" "}
-            <span
-              style={{
-                ...cormorantItalic("clamp(36px, 5.2vw, 56px)"),
-                color: PALETTE.rose,
-                fontWeight: 600,
-              }}
-            >
+            <span style={{ color: PALETTE.rose }}>
               One archival print.
             </span>
           </h2>
