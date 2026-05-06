@@ -37,15 +37,17 @@ export function stripeConfigured(): boolean {
 export const PRICES = {
   passMonthly: process.env.STRIPE_PRICE_PASS_GBP ?? "",   // £8.99/mo, +100 credits/period
   eliteMonthly: process.env.STRIPE_PRICE_ELITE_GBP ?? "", // £17.99/mo, +300 credits/period
-  pack20: process.env.STRIPE_PRICE_PACK_GBP ?? "",        // £4.99 one-off, +20 credits
+  pack20: process.env.STRIPE_PRICE_PACK_GBP ?? "",        // £4.99 one-off, +5 credits (5 generations)
 } as const;
 
 export type SubTier = "pass" | "elite";
+// 1 token = 1 generation (one full-size portrait). Locked 2026-05-06.
+// Per-period grants give the same generation count as advertised in TopUpPlans.
 export const TOKENS_PER_PERIOD: Record<SubTier, number> = {
-  pass: 100,
-  elite: 300,
+  pass: 25,
+  elite: 75,
 };
-export const PACK_TOKENS = 20;
+export const PACK_TOKENS = 5;
 
 export function priceIdToTier(priceId: string): SubTier | null {
   if (priceId === PRICES.passMonthly) return "pass";

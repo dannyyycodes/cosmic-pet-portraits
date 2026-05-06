@@ -492,7 +492,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   }
 
   const sectionTransition = { duration: MOTION.base / 1000, ease: EASE.out };
-  const generationsRemaining = balance != null ? Math.floor(balance / 4) : null;
+  const generationsRemaining = balance ?? null;
 
   return (
     <section

@@ -2,7 +2,7 @@
  * /api/portraits — single router for the portrait actions.
  *
  *   POST /api/portraits?action=preview     legacy 6-pack one-shot
- *   POST /api/portraits?action=generate    Tier 1 Style×Theme 4-variant + auth + credits
+ *   POST /api/portraits?action=generate    Tier 1 Style×Theme single full-size portrait + auth + credits
  *   POST /api/portraits?action=cutout      Photoroom cutout
  *   POST /api/portraits?action=composite   sharp 3000×3000 print master for Gelato
  *   POST /api/portraits?action=mockup      Dynamic Mockups realistic product preview
@@ -40,7 +40,10 @@ const PHOTOROOM_ENDPOINT = "https://image-api.photoroom.com/v2/edit";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PRINT_SIZE = 3000;
-const TOKENS_PER_GENERATION = 4;
+// 1 token = 1 generation = 1 full-size portrait. Locked 2026-05-06 — replaces
+// the 4-variant pack model. Customers download the single result; if they want
+// alternatives they spend another token.
+const TOKENS_PER_GENERATION = 1;
 
 type ProductType = "framed-canvas" | "mug" | "tote" | "tee" | "hoodie";
 
@@ -284,8 +287,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return handlePrintfulMockup(req, res);
     case "printOrder":
       return handlePrintOrder(req, res);
+    case "library":
+      return handleLibrary(req, res);
     default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder` });
+      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder|library` });
   }
 }
 
@@ -589,7 +594,12 @@ async function handlePreview(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-// ─── handleGenerate — Tier 1 4-variant Style×Theme ───────────────────────────
+// ─── handleGenerate — Tier 1 single full-size Style×Theme portrait ───────────
+// Returns one image, full-size, downloadable. Customer spends 1 credit. If
+// they want a different composition or re-roll, they spend another credit.
+// Response shape kept as { variants: [single] } for back-compat with existing
+// frontend (StudioFlow + PortraitsStudio + PortraitsTemplates) — UI cleanup
+// to drop the picker is a follow-up.
 interface SubjectInfo { species: string; breed?: string; furColor?: string }
 
 async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
@@ -678,54 +688,47 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   }
 
   const subject = await extractSubject(imageUrl);
-  const prompts: { prompt: string; negative: string; compositionId: string }[] = [];
-  for (let i = 0; i < 4; i++) {
-    if (usingCustomPrompt) {
-      // Freeform path — wrap the customer's prompt in identity-lock + composition variant.
-      const subj = [subject.breed, subject.species].filter(Boolean).join(" ") || subject.species;
-      const fur = subject.furColor ? `, with ${subject.furColor} fur` : "";
-      const compositionSuffix = COMPOSITIONS[i].suffix;
-      const prompt = [
-        `Transform this ${subj}${fur} into: ${customPrompt}.`,
-        `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${subject.species}.`,
-        compositionSuffix,
-        `Painterly cinematic lighting, premium polish, 4:5 vertical composition for framed wall art.`,
-      ].join(" ");
-      const negative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark, text overlay";
-      prompts.push({ prompt, negative, compositionId: COMPOSITIONS[i].id });
-    } else {
-      const built = buildPrompt({
-        species: subject.species, breed: subject.breed, furColor: subject.furColor,
-        styleId: styleId!, themeId: themeId!, addDetails, compositionIdx: i as 0 | 1 | 2 | 3,
-      } satisfies BuildPromptInput);
-      if (!built) return res.status(400).json({ error: "Unknown styleId or themeId" });
-      prompts.push({ ...built, compositionId: COMPOSITIONS[i].id });
-    }
+  let promptDef: { prompt: string; negative: string; compositionId: string };
+  if (usingCustomPrompt) {
+    // Freeform path — wrap the customer's prompt in identity-lock.
+    const subj = [subject.breed, subject.species].filter(Boolean).join(" ") || subject.species;
+    const fur = subject.furColor ? `, with ${subject.furColor} fur` : "";
+    const compositionSuffix = COMPOSITIONS[0].suffix;
+    const prompt = [
+      `Transform this ${subj}${fur} into: ${customPrompt}.`,
+      `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${subject.species}.`,
+      compositionSuffix,
+      `Painterly cinematic lighting, premium polish, 4:5 vertical composition for framed wall art.`,
+    ].join(" ");
+    const negative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark, text overlay";
+    promptDef = { prompt, negative, compositionId: COMPOSITIONS[0].id };
+  } else {
+    const built = buildPrompt({
+      species: subject.species, breed: subject.breed, furColor: subject.furColor,
+      styleId: styleId!, themeId: themeId!, addDetails, compositionIdx: 0,
+    } satisfies BuildPromptInput);
+    if (!built) return res.status(400).json({ error: "Unknown styleId or themeId" });
+    promptDef = { ...built, compositionId: COMPOSITIONS[0].id };
   }
 
   try {
-    const results = await Promise.all(prompts.map((p) => generateVariant({ imageUrl, prompt: p.prompt, negative: p.negative })));
+    const result = await generateVariant({ imageUrl, prompt: promptDef.prompt, negative: promptDef.negative });
 
-    // If ANY result reports balance exhausted, full refund + service-paused response.
-    if (results.some((r) => r.balanceExhausted)) {
+    if (result.balanceExhausted) {
       await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "fal-balance-exhausted" } });
       return balancePausedResponse(res);
     }
 
-    const variants = results.map((r, i) => (r.url ? { url: r.url, composition: prompts[i].compositionId } : null)).filter((v): v is { url: string; composition: string } => v !== null);
+    if (!result.url) {
+      await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "generation-failed" } });
+      return res.status(502).json({ error: "Generation failed (credit refunded)" });
+    }
 
-    if (variants.length === 0) {
-      await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "all-failed" } });
-      return res.status(502).json({ error: "All variants failed (credits refunded)" });
-    }
-    if (variants.length < TOKENS_PER_GENERATION) {
-      const refund = TOKENS_PER_GENERATION - variants.length;
-      await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: refund, p_reason: "refund", p_metadata: { detail: "partial", returned: variants.length } });
-    }
-    return res.status(200).json({ variants, subject, prompts: prompts.map((p) => p.prompt) });
+    const variants = [{ url: result.url, composition: promptDef.compositionId }];
+    return res.status(200).json({ variants, subject, prompts: [promptDef.prompt] });
   } catch (err) {
     await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "exception", error: (err as Error).message } });
-    return res.status(500).json({ error: "Generation failed (credits refunded)", detail: (err as Error).message });
+    return res.status(500).json({ error: "Generation failed (credit refunded)", detail: (err as Error).message });
   }
 }
 
@@ -877,4 +880,216 @@ async function handleComposite(req: VercelRequest, res: VercelResponse) {
   } catch (err) {
     return res.status(500).json({ error: "Composite failed", detail: (err as Error).message });
   }
+}
+
+// ─── handleLibrary — Pawtraits content library router ───────────────────────
+// Single endpoint, body-dispatched on `op` so the Hobby-plan 12-function cap
+// stays intact. Used by:
+//   - Maker (Codex CLI / n8n / scripts/library/maker.ts) → op:"insert"
+//   - Filer (manual / cron QA pass)                       → op:"approve" | "reject"
+//   - Poster (n8n per-platform crons)                     → op:"list" → op:"logPost"
+//   - Public gallery page (later)                         → op:"gallery"
+//
+// Auth: requires `x-library-secret` header matching env LIBRARY_API_SECRET for
+// any write op. Reads (list/gallery/get) are open so the gallery page works
+// without leaking the secret to the browser.
+type LibraryRow = {
+  id?: string;
+  pet_kind: 'dog' | 'cat' | 'small-pet' | 'other';
+  breed: string;
+  pet_name?: string | null;
+  image_style: 'portrait' | 'scene';
+  art_style: string;
+  home_setting?: string | null;
+  pet_action?: string | null;
+  canvas_format?: string | null;
+  aspect_ratio: string;
+  prompt: string;
+  negative_prompt?: string | null;
+  backstory?: string | null;
+  story_long?: string | null;
+  captions?: Record<string, unknown>;
+  image_path: string;
+  image_url: string;
+  thumbnail_path?: string | null;
+  thumbnail_url?: string | null;
+  width: number;
+  height: number;
+  quality_score?: number | null;
+  quality_notes?: string | null;
+  approved?: boolean;
+  generated_by?: string | null;
+  generation_model?: string | null;
+  generation_cost_usd?: number | null;
+};
+
+const LIBRARY_API_SECRET = process.env.LIBRARY_API_SECRET;
+
+function libraryAuthOk(req: VercelRequest): boolean {
+  if (!LIBRARY_API_SECRET) return false;
+  const got = req.headers['x-library-secret'];
+  return typeof got === 'string' && got === LIBRARY_API_SECRET;
+}
+
+async function handleLibrary(req: VercelRequest, res: VercelResponse) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    return res.status(503).json({ error: 'supabase-not-configured' });
+  }
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  const body = (req.body ?? {}) as { op?: string; [k: string]: unknown };
+  const op = String(body.op ?? '');
+
+  // ── reads (no auth) ──
+  if (op === 'list') {
+    // List approved rows that have NOT been successfully posted to {platform}.
+    // Optional filters: pet_kind, image_style, breed, art_style, limit.
+    const platform = String(body.platform ?? '').trim();
+    if (!platform) return res.status(400).json({ error: 'platform required' });
+    const limit = Math.min(Number(body.limit ?? 1) || 1, 50);
+
+    // Filter shape
+    const filters: Record<string, string> = {};
+    if (body.pet_kind) filters.pet_kind = String(body.pet_kind);
+    if (body.image_style) filters.image_style = String(body.image_style);
+    if (body.breed) filters.breed = String(body.breed);
+    if (body.art_style) filters.art_style = String(body.art_style);
+
+    // Get the approved candidates, then exclude the ones already posted
+    // successfully on this platform. Two queries — small data set, simpler than
+    // a single LEFT JOIN with PostgREST.
+    const { data: posted, error: pErr } = await supabase
+      .from('pawtrait_post_log')
+      .select('library_id')
+      .eq('platform', platform)
+      .eq('status', 'success');
+    if (pErr) return res.status(500).json({ error: 'post_log_query_failed', detail: pErr.message });
+    const postedIds = new Set((posted ?? []).map((r: { library_id: string }) => r.library_id));
+
+    let q = supabase
+      .from('pawtrait_library')
+      .select('*')
+      .eq('approved', true)
+      .order('created_at', { ascending: false })
+      .limit(limit + postedIds.size + 10);
+    for (const [k, v] of Object.entries(filters)) q = q.eq(k, v);
+
+    const { data: rows, error } = await q;
+    if (error) return res.status(500).json({ error: 'list_failed', detail: error.message });
+    const filtered = (rows ?? []).filter((r: { id: string }) => !postedIds.has(r.id)).slice(0, limit);
+    return res.status(200).json({ rows: filtered, count: filtered.length });
+  }
+
+  if (op === 'get') {
+    const id = String(body.id ?? '');
+    if (!id) return res.status(400).json({ error: 'id required' });
+    const { data, error } = await supabase
+      .from('pawtrait_library')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) return res.status(500).json({ error: 'get_failed', detail: error.message });
+    if (!data) return res.status(404).json({ error: 'not_found' });
+    return res.status(200).json({ row: data });
+  }
+
+  if (op === 'gallery') {
+    // Public gallery feed. Strips prompts, returns thumbs + captions.
+    const limit = Math.min(Number(body.limit ?? 24) || 24, 60);
+    const offset = Math.max(Number(body.offset ?? 0) || 0, 0);
+    const { data, error } = await supabase
+      .from('pawtrait_library')
+      .select('id,pet_kind,breed,pet_name,image_style,art_style,aspect_ratio,backstory,image_url,thumbnail_url,width,height,created_at')
+      .eq('approved', true)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+    if (error) return res.status(500).json({ error: 'gallery_failed', detail: error.message });
+    return res.status(200).json({ rows: data ?? [] });
+  }
+
+  // ── writes (auth required) ──
+  if (!libraryAuthOk(req)) return res.status(401).json({ error: 'unauthorised' });
+
+  if (op === 'insert') {
+    const row = body.row as Partial<LibraryRow> | undefined;
+    if (!row) return res.status(400).json({ error: 'row required' });
+    const required: (keyof LibraryRow)[] = [
+      'pet_kind','breed','image_style','art_style','aspect_ratio',
+      'prompt','image_path','image_url','width','height',
+    ];
+    for (const k of required) {
+      if (row[k] === undefined || row[k] === null || row[k] === '') {
+        return res.status(400).json({ error: `field required: ${k}` });
+      }
+    }
+    const { data, error } = await supabase
+      .from('pawtrait_library')
+      .insert(row)
+      .select('*')
+      .single();
+    if (error) return res.status(500).json({ error: 'insert_failed', detail: error.message });
+    return res.status(200).json({ row: data });
+  }
+
+  if (op === 'approve') {
+    const id = String(body.id ?? '');
+    if (!id) return res.status(400).json({ error: 'id required' });
+    const updates: Record<string, unknown> = {
+      approved: true,
+      approved_at: new Date().toISOString(),
+    };
+    if (body.quality_score !== undefined) updates.quality_score = Number(body.quality_score);
+    if (body.quality_notes !== undefined) updates.quality_notes = String(body.quality_notes);
+    const { data, error } = await supabase
+      .from('pawtrait_library')
+      .update(updates)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) return res.status(500).json({ error: 'approve_failed', detail: error.message });
+    return res.status(200).json({ row: data });
+  }
+
+  if (op === 'reject') {
+    const id = String(body.id ?? '');
+    if (!id) return res.status(400).json({ error: 'id required' });
+    const updates: Record<string, unknown> = {
+      approved: false,
+      quality_notes: body.quality_notes ?? 'rejected by Filer',
+    };
+    if (body.quality_score !== undefined) updates.quality_score = Number(body.quality_score);
+    const { data, error } = await supabase
+      .from('pawtrait_library')
+      .update(updates)
+      .eq('id', id)
+      .select('*')
+      .single();
+    if (error) return res.status(500).json({ error: 'reject_failed', detail: error.message });
+    return res.status(200).json({ row: data });
+  }
+
+  if (op === 'logPost') {
+    // Poster calls this immediately after a Blotato (or other platform) post
+    // attempt. status:'success' makes the row count as "used" on that platform.
+    const library_id = String(body.library_id ?? '');
+    const platform = String(body.platform ?? '');
+    const status = String(body.status ?? '');
+    if (!library_id || !platform || !['queued','success','failed'].includes(status)) {
+      return res.status(400).json({ error: 'library_id, platform, status (queued|success|failed) required' });
+    }
+    const insert: Record<string, unknown> = { library_id, platform, status };
+    if (body.account) insert.account = String(body.account);
+    if (body.post_url) insert.post_url = String(body.post_url);
+    if (body.post_id) insert.post_id = String(body.post_id);
+    if (body.error_text) insert.error_text = String(body.error_text);
+    if (body.metadata) insert.metadata = body.metadata;
+    const { data, error } = await supabase
+      .from('pawtrait_post_log')
+      .insert(insert)
+      .select('*')
+      .single();
+    if (error) return res.status(500).json({ error: 'log_failed', detail: error.message });
+    return res.status(200).json({ row: data });
+  }
+
+  return res.status(400).json({ error: `unknown op: ${op}. Valid: list|get|gallery|insert|approve|reject|logPost` });
 }

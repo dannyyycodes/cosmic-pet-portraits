@@ -71,6 +71,7 @@ const Portraits = lazy(() => import("./pages/Portraits"));
 const Reading = lazy(() => import("./pages/Reading"));
 const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
+const PawtraitsGallery = lazy(() => import("./pages/PawtraitsGallery"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the homepage InlineCheckout section.
@@ -217,6 +218,7 @@ const App = () => (
                       the SPA Navigate routes below cover client-side nav that bypasses Vercel. */}
                   <Route path="/pawtraits" element={<Portraits />} />
                   <Route path="/pawtraits/templates" element={<PortraitsTemplates />} />
+                  <Route path="/pawtraits/gallery" element={<PawtraitsGallery />} />
                   <Route path="/pawtraits/studio" element={<Navigate to="/pawtraits#studio" replace />} />
                   <Route path="/portraits" element={<Navigate to="/pawtraits" replace />} />
                   <Route path="/portraits/templates" element={<Navigate to="/pawtraits/templates" replace />} />

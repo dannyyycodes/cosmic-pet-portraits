@@ -1,13 +1,12 @@
 /**
- * /pawtraits/studio — Tier 1+ AI Studio (Style × Theme + 4 variants).
+ * /pawtraits/studio — Tier 1+ AI Studio (Style × Theme, single full-size portrait).
  *
  * Customer journey:
  *   1. Upload pet photo
  *   2. Pick Style (8 cards) + Theme (8 cards) + optional details
- *   3. Generate → 4 variants come back from /api/portraits/generate
- *   4. Pick favourite variant
- *   5. Pick product surface + size
- *   6. Add to cart → existing Shopify checkout
+ *   3. Generate → single full-size portrait from /api/portraits/generate
+ *   4. Download or pick product surface + size
+ *   5. Add to cart → existing Shopify checkout
  *
  * Phase 1B = anonymous free, no auth gate yet (Phase 2 adds Turnstile + sign-up wall).
  *
@@ -176,7 +175,7 @@ export default function PortraitsStudio() {
               className="uppercase mb-4"
               style={{ color: PALETTE.muted, letterSpacing: "0.16em", fontSize: 12, fontWeight: 600 }}
             >
-              AI Studio · 64 styles · 4 variants per portrait
+              AI Studio · 64 styles · full-size pawtrait per generation
             </p>
             <h1
               className="font-serif"
@@ -188,7 +187,7 @@ export default function PortraitsStudio() {
               className="mt-4 mx-auto font-cormorant italic"
               style={{ fontSize: 20, color: PALETTE.warm, maxWidth: 560 }}
             >
-              Pick a Style, pick a Theme, get 4 portraits in under 10 seconds. Their face, locked. The world, anything.
+              Pick a Style, pick a Theme, get a full-size portrait in under 10 seconds. Their face, locked. The world, anything.
             </p>
             <p className="mt-6">
               <Link
@@ -259,7 +258,7 @@ export default function PortraitsStudio() {
                     boxShadow: "0 6px 18px rgba(191, 82, 74, 0.3)",
                   }}
                 >
-                  {generating ? "Generating 4 variants…" : "Generate 4 variants →"}
+                  {generating ? "Generating your pawtrait…" : "Generate pawtrait →"}
                 </button>
               </div>
 
