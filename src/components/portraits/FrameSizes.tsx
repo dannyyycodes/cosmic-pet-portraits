@@ -107,16 +107,6 @@ export function FrameSizes({ currency }: FrameSizesProps) {
               One archival print.
             </span>
           </h2>
-          <p
-            style={{
-              ...cormorantItalic("clamp(16px, 1.8vw, 19px)"),
-              color: PALETTE.earth,
-              marginTop: 14,
-              lineHeight: 1.55,
-            }}
-          >
-            From a bedside companion to a statement above the sofa — every canvas, the same cotton-poly weave, the same archival inks. Only the scale changes.
-          </p>
         </div>
 
         {/* ── Frame swatches ───────────────────────────────────────── */}
@@ -265,14 +255,17 @@ export function FrameSizes({ currency }: FrameSizesProps) {
                   {s.label}
                 </div>
 
-                {/* Caption (italic, gentle) */}
+                {/* Caption (small sans, readable) */}
                 <div
                   style={{
-                    ...cormorantItalic("12.5px"),
+                    fontFamily: "Assistant, system-ui, sans-serif",
+                    fontSize: 12.5,
+                    fontWeight: 500,
                     color: PALETTE.earthMuted,
-                    marginTop: 2,
-                    lineHeight: 1.25,
-                    minHeight: "1.25em",
+                    marginTop: 4,
+                    lineHeight: 1.4,
+                    letterSpacing: "0.005em",
+                    minHeight: "1.4em",
                   }}
                 >
                   {s.caption}
@@ -306,13 +299,16 @@ export function FrameSizes({ currency }: FrameSizesProps) {
           })}
         </div>
 
-        {/* ── Delivery disclaimer (italic, quiet) ──────────────────── */}
+        {/* ── Delivery disclaimer (sans, quiet) ────────────────────── */}
         <p
           className="text-center mt-9"
           style={{
-            ...cormorantItalic("15.5px"),
-            color: PALETTE.earth,
-            opacity: 0.85,
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 14,
+            fontWeight: 500,
+            color: PALETTE.earthMuted,
+            letterSpacing: "0.01em",
+            lineHeight: 1.5,
           }}
         >
           Canvas + frame only — delivery is calculated at checkout.
