@@ -45,7 +45,9 @@ import { buildCartItem, type CartItem } from "@/components/portraits/cart";
 import { supabase } from "@/integrations/supabase/client";
 import { isDisposableEmail } from "@/lib/auth/disposableEmailDomains";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
-import { PALETTE, EASE, MOTION, display } from "@/components/portraits/tokens";
+import { PALETTE, EASE, MOTION, display, eyebrow } from "@/components/portraits/tokens";
+import { SplitWords } from "@/components/portraits/SplitWords";
+import { StudioBackdrop } from "@/components/portraits/StudioBackdrop";
 
 // Lazy-load + cache FingerprintJS visitor ID. Stable across cache clears,
 // incognito, and minor browser updates. Used by the Supabase signup trigger
@@ -495,7 +497,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   return (
     <section
       id="studio"
-      className="relative px-4 md:px-8"
+      className="relative px-4 md:px-8 overflow-hidden"
       style={{
         background: `radial-gradient(ellipse 90% 50% at top, ${PALETTE.cream} 0%, ${PALETTE.cream2} 50%, ${PALETTE.paper} 100%)`,
         paddingTop: "clamp(56px, 7vh, 96px)",
@@ -503,7 +505,64 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
     >
-      <div className="mx-auto" style={{ maxWidth: 720 }}>
+      <StudioBackdrop />
+
+      <div className="mx-auto relative" style={{ maxWidth: 720, zIndex: 1 }}>
+
+        {/* ── Studio anchor heading ─────────────────────────────────── */}
+        <div className="text-center mb-9 md:mb-12">
+          {/* Gilt rule above eyebrow — cinematic anchor */}
+          <span
+            aria-hidden
+            style={{
+              display: "block",
+              width: 44,
+              height: 1,
+              margin: "0 auto 16px",
+              background: `linear-gradient(90deg, transparent 0%, ${PALETTE.gold} 50%, transparent 100%)`,
+              opacity: 0.7,
+            }}
+          />
+          <p style={{ ...eyebrow(PALETTE.goldDeep), letterSpacing: "0.22em" }}>
+            The Studio
+          </p>
+          <h2
+            id="studio-heading"
+            style={{
+              ...display("clamp(30px, 4.6vw, 52px)"),
+              color: PALETTE.ink,
+              marginTop: 14,
+              maxWidth: 620,
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            <SplitWords text="Imagine your pet," />{" "}
+            <SplitWords
+              text="anywhere."
+              delay={0.28}
+              style={{
+                fontFamily: '"Cormorant", "Cormorant Garamond", Georgia, serif',
+                fontStyle: "italic",
+                fontWeight: 400,
+                color: PALETTE.rose,
+                letterSpacing: "-0.005em",
+              }}
+            />
+          </h2>
+          <p
+            className="mx-auto mt-4"
+            style={{
+              fontFamily: 'Assistant, system-ui, sans-serif',
+              fontSize: 15,
+              color: PALETTE.earthMuted,
+              maxWidth: 540,
+              lineHeight: 1.55,
+            }}
+          >
+            Upload one photo. Describe the world. Pick the version that feels like them — then choose your size and frame.
+          </p>
+        </div>
 
         {/* ── Credits / status pill ─────────────────────────────────── */}
         <div className="flex justify-center mb-7">
@@ -564,68 +623,168 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           />
         </motion.div>
 
-        {/* ── Pet name (optional) — always visible ──────────────────── */}
-        <AnimatePresence>
-          {true && (
-            <motion.div
-              key="petname"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={sectionTransition}
-              className="mt-7"
+        {/* ── Pet name → on-canvas typography (optional) ─────────────── */}
+        <motion.div
+          key="petname"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={sectionTransition}
+          className="mt-7"
+        >
+          <div className="flex items-baseline justify-between gap-3 px-1.5 mb-1.5">
+            <label
+              className="block text-xs"
+              style={{
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                color: PALETTE.earthMuted,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
             >
-              <label
-                className="block text-xs mb-1.5 px-1.5"
-                style={{
-                  fontFamily: 'Assistant, system-ui, sans-serif',
-                  color: PALETTE.earthMuted,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                }}
+              <span aria-hidden style={{ color: PALETTE.gold, marginRight: 6 }}>✦</span>
+              Add your pet's name to the canvas?
+            </label>
+            <span
+              style={{
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                fontSize: 11,
+                color: PALETTE.earthSubtle,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Optional
+            </span>
+          </div>
+          <p
+            className="text-xs mb-2.5 px-1.5"
+            style={{
+              fontFamily: 'Assistant, system-ui, sans-serif',
+              fontSize: 12.5,
+              color: PALETTE.earthSubtle,
+              lineHeight: 1.55,
+              maxWidth: 520,
+            }}
+          >
+            Set in elegant typography along the lower margin of your print. Leave blank for a clean canvas.
+          </p>
+          <input
+            type="text"
+            value={petName}
+            onChange={(e) => setPetName(e.target.value.slice(0, 40))}
+            placeholder="e.g. Luna"
+            maxLength={40}
+            aria-label="Pet's name to print on the canvas"
+            className="w-full bg-transparent outline-none px-5 py-3"
+            style={{
+              fontFamily: 'Assistant, system-ui, sans-serif',
+              fontSize: 16,
+              color: PALETTE.ink,
+              background: '#ffffff',
+              border: `1.5px solid ${PALETTE.sandDeep}`,
+              borderRadius: 14,
+              boxShadow: '0 8px 18px rgba(20,18,16,.04), 0 1px 2px rgba(20,18,16,.02)',
+              transition: 'box-shadow 220ms, border-color 220ms',
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = PALETTE.rose;
+              e.currentTarget.style.boxShadow = '0 0 0 4px rgba(191,82,74,.08), 0 14px 28px rgba(20,18,16,.06)';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = PALETTE.sandDeep;
+              e.currentTarget.style.boxShadow = '0 8px 18px rgba(20,18,16,.04), 0 1px 2px rgba(20,18,16,.02)';
+            }}
+          />
+
+          {/* ── Live "on the canvas" preview ──────────────────────── */}
+          <AnimatePresence initial={false}>
+            {petName.trim().length > 0 && (
+              <motion.div
+                key="petname-preview"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 4 }}
+                transition={{ duration: 0.36, ease: EASE.out }}
+                className="flex items-center gap-3 mt-3 px-1.5"
+                aria-live="polite"
               >
-                Pet's name <span style={{ color: PALETTE.earthSubtle, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
-              </label>
-              <p
-                className="text-xs mb-2 px-1.5"
-                style={{
-                  fontFamily: 'Assistant, system-ui, sans-serif',
-                  fontSize: 12,
-                  color: PALETTE.earthSubtle,
-                  lineHeight: 1.5,
-                }}
-              >
-                For your order &amp; email — not added to the canvas artwork.
-              </p>
-              <input
-                type="text"
-                value={petName}
-                onChange={(e) => setPetName(e.target.value.slice(0, 40))}
-                placeholder="Luna"
-                maxLength={40}
-                className="w-full bg-transparent outline-none px-5 py-3"
-                style={{
-                  fontFamily: 'Assistant, system-ui, sans-serif',
-                  fontSize: 16,
-                  color: PALETTE.ink,
-                  background: '#ffffff',
-                  border: `1.5px solid ${PALETTE.sandDeep}`,
-                  borderRadius: 14,
-                  boxShadow: '0 8px 18px rgba(20,18,16,.04), 0 1px 2px rgba(20,18,16,.02)',
-                  transition: 'box-shadow 220ms, border-color 220ms',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = PALETTE.rose;
-                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(191,82,74,.08), 0 14px 28px rgba(20,18,16,.06)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = PALETTE.sandDeep;
-                  e.currentTarget.style.boxShadow = '0 8px 18px rgba(20,18,16,.04), 0 1px 2px rgba(20,18,16,.02)';
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <div
+                  className="relative shrink-0 overflow-hidden"
+                  style={{
+                    width: 88,
+                    height: 110,
+                    borderRadius: 8,
+                    background: selectedVariantUrl
+                      ? `#000`
+                      : `linear-gradient(160deg, ${PALETTE.cosmosMid} 0%, ${PALETTE.cosmos} 100%)`,
+                    border: `1px solid ${PALETTE.sandDeep}`,
+                    boxShadow: '0 8px 20px rgba(20,18,16,.10), inset 0 0 0 1px rgba(196,162,101,.18)',
+                  }}
+                  aria-hidden
+                >
+                  {selectedVariantUrl ? (
+                    <img
+                      src={selectedVariantUrl}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover"
+                      style={{ opacity: 0.86 }}
+                    />
+                  ) : (
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          'radial-gradient(80% 60% at 50% 35%, rgba(196,162,101,.22) 0%, transparent 60%)',
+                      }}
+                    />
+                  )}
+                  {/* Soft bottom scrim so the name reads cleanly */}
+                  <div
+                    className="absolute left-0 right-0 bottom-0"
+                    style={{
+                      height: '46%',
+                      background:
+                        'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.55) 100%)',
+                    }}
+                  />
+                  {/* The name as it'll print */}
+                  <div
+                    className="absolute left-0 right-0 bottom-1 px-1.5 text-center"
+                    style={{
+                      fontFamily: '"Cormorant", "Cormorant Garamond", Georgia, serif',
+                      fontStyle: 'italic',
+                      fontWeight: 500,
+                      fontSize: 13,
+                      letterSpacing: '0.02em',
+                      color: '#fdf6e3',
+                      textShadow: '0 1px 2px rgba(0,0,0,.5)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    <span style={{ color: PALETTE.goldSoft, marginRight: 4 }}>·</span>
+                    {petName.trim()}
+                    <span style={{ color: PALETTE.goldSoft, marginLeft: 4 }}>·</span>
+                  </div>
+                </div>
+                <p
+                  style={{
+                    fontFamily: 'Assistant, system-ui, sans-serif',
+                    fontSize: 12.5,
+                    color: PALETTE.earthMuted,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  This is roughly how <strong style={{ color: PALETTE.ink, fontWeight: 600 }}>{petName.trim()}</strong> will appear on your printed canvas.{' '}
+                  <span style={{ color: PALETTE.earthSubtle }}>
+                    Position and proportions are finalised during print preparation.
+                  </span>
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
         {/* ── Premium prompt box — always visible (Generate gated by !!photoUrl) ─ */}
         <AnimatePresence>
@@ -638,6 +797,11 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               transition={sectionTransition}
               className="mt-7"
             >
+            <div style={{ position: "relative" }}>
+              {/* Breathing gilt halo — only renders when focused or actively typing */}
+              {(focused || prompt.length > 0) && (
+                <div className="ls-prompt-halo" aria-hidden />
+              )}
               <div
                 className="relative"
                 style={{
@@ -685,13 +849,28 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     onClick={handleGenerate}
                     disabled={!canGenerate}
                     aria-label="Generate"
-                    className="flex items-center justify-center rounded-full transition-all disabled:cursor-not-allowed"
+                    className="ls-magnet flex items-center justify-center rounded-full transition-[background,box-shadow] disabled:cursor-not-allowed"
                     style={{
                       width: 40,
                       height: 40,
                       background: canGenerate ? PALETTE.rose : PALETTE.sandDeep,
                       color: PALETTE.cream,
                       boxShadow: canGenerate ? "0 6px 18px rgba(191, 82, 74, 0.32)" : "none",
+                    }}
+                    onMouseMove={(e) => {
+                      if (!canGenerate) return;
+                      const r = e.currentTarget.getBoundingClientRect();
+                      const dx = e.clientX - (r.left + r.width / 2);
+                      const dy = e.clientY - (r.top + r.height / 2);
+                      const cap = 8;
+                      const x = Math.max(-cap, Math.min(cap, dx * 0.35));
+                      const y = Math.max(-cap, Math.min(cap, dy * 0.35));
+                      e.currentTarget.style.setProperty("--mag-x", `${x}px`);
+                      e.currentTarget.style.setProperty("--mag-y", `${y}px`);
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.setProperty("--mag-x", "0px");
+                      e.currentTarget.style.setProperty("--mag-y", "0px");
                     }}
                   >
                     {generating ? (
@@ -707,6 +886,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                   </button>
                 </div>
               </div>
+            </div>{/* /halo wrapper */}
 
               {/* Upload-first hint when no photo yet — sits below the prompt.
                   Also clarifies that size + frame are picked AFTER variants generate. */}
@@ -971,7 +1151,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                           }}
                         >
                           <span
-                            className="rounded-full flex items-center justify-center"
+                            className={`rounded-full flex items-center justify-center ${active ? "ls-glint" : ""}`}
                             style={{
                               width: 44,
                               height: 44,
@@ -981,7 +1161,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                             }}
                           >
                             {active && (
-                              <Check className="w-5 h-5" strokeWidth={3} style={{ color: PALETTE.cream }} />
+                              <Check className="w-5 h-5" strokeWidth={3} style={{ color: PALETTE.cream, position: "relative", zIndex: 1 }} />
                             )}
                           </span>
                         </span>

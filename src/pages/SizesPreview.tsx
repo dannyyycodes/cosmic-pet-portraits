@@ -16,6 +16,249 @@ import { PALETTE, display, eyebrow, cormorantItalic } from "@/components/portrai
 import { PortraitsNav } from "@/components/portraits/PortraitsNav";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Option 6 — Curated lifestyle context guide (RECOMMENDED)
+//   Mix of "Where it lives" + lifestyle imagery. Pre-selected pro photography,
+//   NOT per-pet AI gen. Each setting maps to a recommended size.
+//
+//   For preview we use carefully-picked Unsplash interior shots that approximate
+//   the brand register. For production these get replaced with a real product
+//   photoshoot of Little Souls canvases on actual walls (~£600 one-off, owned
+//   forever, no recurring AI cost, brand-perfect).
+// ─────────────────────────────────────────────────────────────────────────────
+const LIFESTYLE_SETTINGS = [
+  {
+    id: "bedside",
+    img: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1400&q=85&auto=format&fit=crop",
+    setting: "Bedside · shelf · desk",
+    size: "8×10″",
+    sizeUid: "8x10",
+    price: 39,
+    pitch: "Quiet companion. Pairs in 2s.",
+    span: "narrow",
+  },
+  {
+    id: "hero",
+    img: "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1800&q=90&auto=format&fit=crop",
+    setting: "Above the sofa · headboard",
+    size: "16×20″",
+    sizeUid: "16x20",
+    price: 65,
+    pitch: "Most loved. Hero of the room.",
+    span: "wide",
+    isHero: true,
+  },
+  {
+    id: "console",
+    img: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=1400&q=85&auto=format&fit=crop",
+    setting: "Hallway console · entryway",
+    size: "12×18″",
+    sizeUid: "12x18",
+    price: 55,
+    pitch: "Welcoming first impression.",
+    span: "narrow",
+  },
+  {
+    id: "gallery",
+    img: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=1400&q=85&auto=format&fit=crop",
+    setting: "Gallery wall · staircase",
+    size: "8×10″ × 3",
+    sizeUid: "8x10",
+    price: 39,
+    pitch: "Three at this size. Layered story.",
+    span: "narrow",
+  },
+  {
+    id: "statement",
+    img: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=1800&q=90&auto=format&fit=crop",
+    setting: "Statement wall · centerpiece",
+    size: "24×36″",
+    sizeUid: "24x36",
+    price: 119,
+    pitch: "Stops you walking past.",
+    span: "wide",
+  },
+  {
+    id: "desk",
+    img: "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=1400&q=85&auto=format&fit=crop",
+    setting: "Desk · home office",
+    size: "12×16″",
+    sizeUid: "12x16",
+    price: 49,
+    pitch: "Eye-line companion at the desk.",
+    span: "narrow",
+  },
+];
+
+function Option6LifestyleGuide() {
+  return (
+    <div>
+      {/* Section sub-header */}
+      <div className="text-center mx-auto mb-8" style={{ maxWidth: 560 }}>
+        <p
+          style={{
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 14,
+            fontWeight: 500,
+            color: PALETTE.earth,
+            lineHeight: 1.55,
+          }}
+        >
+          Six rooms. Six recommendations. Tap a card to scroll to that size in the studio.
+        </p>
+      </div>
+
+      {/* Bento-style grid: hero photo span-2, the rest 1-up */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 auto-rows-[260px] md:auto-rows-[300px]">
+        {LIFESTYLE_SETTINGS.map((s) => {
+          const isHero = !!s.isHero;
+          const isWide = s.span === "wide";
+          return (
+            <article
+              key={s.id}
+              className={`group relative overflow-hidden rounded-lg ${
+                isWide ? "col-span-2 row-span-1 md:row-span-2" : ""
+              }`}
+              style={{
+                background: PALETTE.cream,
+                border: isHero ? `1px solid ${PALETTE.gold}` : `1px solid ${PALETTE.sand}`,
+                boxShadow: isHero
+                  ? "0 14px 38px rgba(196, 162, 101, 0.20), 0 2px 6px rgba(20, 18, 16, 0.06)"
+                  : "0 6px 18px rgba(20, 18, 16, 0.06), 0 1px 3px rgba(20, 18, 16, 0.04)",
+                cursor: "pointer",
+              }}
+            >
+              {/* Photo */}
+              <div
+                className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105"
+                style={{
+                  backgroundImage: `url(${s.img})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+
+              {/* Bottom gradient for legibility */}
+              <div
+                className="absolute inset-x-0 bottom-0"
+                style={{
+                  height: "62%",
+                  background:
+                    "linear-gradient(180deg, rgba(20, 18, 16, 0) 0%, rgba(20, 18, 16, 0.55) 60%, rgba(20, 18, 16, 0.85) 100%)",
+                }}
+              />
+
+              {/* Hero pill */}
+              {isHero && (
+                <span
+                  className="absolute top-3 left-3 px-2.5 py-1 rounded-full"
+                  style={{
+                    background: PALETTE.gold,
+                    color: PALETTE.cream,
+                    fontFamily: "Asap, system-ui, sans-serif",
+                    fontSize: 9.5,
+                    fontWeight: 800,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  ✦ Most loved
+                </span>
+              )}
+
+              {/* Size badge — top right */}
+              <div
+                className="absolute top-3 right-3 px-3 py-1.5 rounded-full backdrop-blur-md"
+                style={{
+                  background: "rgba(255, 253, 245, 0.92)",
+                  border: `1px solid rgba(20, 18, 16, 0.06)`,
+                  fontFamily: "Asap, system-ui, sans-serif",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: PALETTE.ink,
+                  letterSpacing: "-0.005em",
+                  boxShadow: "0 4px 12px rgba(20, 18, 16, 0.16)",
+                }}
+              >
+                {s.size}
+                <span style={{ color: PALETTE.earthMuted, fontWeight: 500, marginLeft: 6 }}>
+                  £{s.price}
+                </span>
+              </div>
+
+              {/* Footer copy */}
+              <div className="absolute inset-x-0 bottom-0 p-4 md:p-5">
+                <p
+                  style={{
+                    fontFamily: "Assistant, system-ui, sans-serif",
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: "rgba(255, 253, 245, 0.78)",
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {s.setting}
+                </p>
+                <p
+                  className="mt-1.5"
+                  style={{
+                    fontFamily: isHero
+                      ? '"Cormorant", "Cormorant Garamond", Georgia, serif'
+                      : "Asap, system-ui, sans-serif",
+                    fontStyle: isHero ? "italic" : "normal",
+                    fontSize: isHero ? 22 : 16,
+                    fontWeight: isHero ? 600 : 600,
+                    color: PALETTE.cream,
+                    lineHeight: 1.25,
+                    letterSpacing: "-0.005em",
+                    textShadow: "0 1px 8px rgba(0, 0, 0, 0.4)",
+                  }}
+                >
+                  {s.pitch}
+                </p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      {/* Production note */}
+      <div
+        className="mt-6 rounded-md p-4"
+        style={{
+          background: "rgba(196, 162, 101, 0.08)",
+          border: "1px solid rgba(196, 162, 101, 0.22)",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "Asap, system-ui, sans-serif",
+            fontSize: 11,
+            fontWeight: 700,
+            color: PALETTE.goldDeep,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+          }}
+        >
+          Production note
+        </p>
+        <p
+          className="mt-1.5"
+          style={{
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 13.5,
+            color: PALETTE.earth,
+            lineHeight: 1.55,
+          }}
+        >
+          Demo uses curated Unsplash interiors. <strong>For ship</strong>: one half-day product photoshoot with our actual canvases hung in 6 styled rooms (~£500–700 one-off via local stylist). Owned forever, brand-perfect, zero recurring cost. Customers see real LittleSouls canvases — not stock interiors — which is the difference between trustworthy and generic.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Shared scale: 1 inch = SCALE px. Used by SVG-based options (1, 2).
 // ─────────────────────────────────────────────────────────────────────────────
 const SCALE = 5; // 1 inch = 5px → 36" = 180px, 84" sofa = 420px
@@ -794,6 +1037,15 @@ function Option5AILifestyle() {
 export default function SizesPreview() {
   const sections = [
     {
+      n: 6,
+      title: "Lifestyle context guide",
+      sub: "Curated photography × per-setting size guidance — pre-selected, not per-pet",
+      pros: "Real lifestyle imagery + clear size guidance in one. Pre-shot once → owned forever, no per-customer cost. Most trustworthy and conversion-friendly.",
+      cons: "Needs a real product photoshoot for ship (~£500–700 one-off). Demo uses curated Unsplash placeholders.",
+      Component: Option6LifestyleGuide,
+      recommended: true,
+    },
+    {
       n: 1,
       title: "True-scale ladder",
       sub: "All 11 sizes drawn beside a 5′8″ silhouette and an 84″ sofa",
@@ -861,21 +1113,42 @@ export default function SizesPreview() {
               lineHeight: 1.5,
             }}
           >
-            Five live patterns from canvas-print and furniture e-commerce. Skim, pick the one that fits — we'll wire it into FrameSizes and bin the others.
+            Six patterns from canvas-print and furniture e-commerce. The first one (your pick — lifestyle photography × per-setting size guidance) is the refined draft. The other five stay below for reference.
           </p>
         </div>
       </section>
 
-      {sections.map(({ n, title, sub, pros, cons, Component }) => (
+      {sections.map(({ n, title, sub, pros, cons, Component, recommended }, idx) => (
         <section
           key={n}
           className="px-5 md:px-10 py-12"
           style={{
             borderTop: `1px solid ${PALETTE.sand}`,
-            background: n % 2 === 0 ? PALETTE.cream2 : PALETTE.cream,
+            background: recommended
+              ? `linear-gradient(180deg, rgba(196, 162, 101, 0.06) 0%, ${PALETTE.cream} 100%)`
+              : idx % 2 === 0
+                ? PALETTE.cream
+                : PALETTE.cream2,
           }}
         >
           <div className="mx-auto" style={{ maxWidth: 1100 }}>
+            {recommended && (
+              <div
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4"
+                style={{
+                  background: PALETTE.gold,
+                  color: PALETTE.cream,
+                  fontFamily: "Asap, system-ui, sans-serif",
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  boxShadow: "0 6px 16px rgba(196, 162, 101, 0.32)",
+                }}
+              >
+                ✦ Your pick — refined draft
+              </div>
+            )}
             {/* Header */}
             <div className="flex items-baseline gap-4 mb-2">
               <span
@@ -884,7 +1157,7 @@ export default function SizesPreview() {
                   fontSize: 36,
                   fontWeight: 800,
                   color: PALETTE.gold,
-                  opacity: 0.7,
+                  opacity: recommended ? 0.85 : 0.7,
                   fontVariantNumeric: "tabular-nums",
                   lineHeight: 1,
                 }}
