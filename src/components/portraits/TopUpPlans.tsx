@@ -39,7 +39,7 @@ const PLANS: Plan[] = [
     generations: "5 pawtraits",
     tagline: "Top up without committing.",
     features: [
-      "5 generations · 4 variants each",
+      "5 full-size pawtraits · download instantly",
       "Credits never expire",
       "No subscription",
     ],
@@ -54,7 +54,7 @@ const PLANS: Plan[] = [
     generations: "25 pawtraits/mo",
     tagline: "Worth it after one print.",
     features: [
-      "25 generations · 4 variants each",
+      "25 full-size pawtraits per month",
       "All styles & themes",
       "Re-download anytime",
       "Cancel any time",
@@ -71,7 +71,7 @@ const PLANS: Plan[] = [
     generations: "75 pawtraits/mo",
     tagline: "Built for creators and resellers.",
     features: [
-      "75 generations · 4 variants each",
+      "75 full-size pawtraits per month",
       "Priority generation queue",
       "Freeform prompt details",
       "Re-download anytime",
@@ -136,7 +136,7 @@ export function TopUpPlans({
     }
   }
 
-  const generationsRemaining = balance != null ? Math.floor(balance / 4) : null;
+  const generationsRemaining = balance ?? null;
 
   const cards = (
     <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-stretch">
@@ -167,7 +167,7 @@ export function TopUpPlans({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ delay: i * 0.08, duration: 0.5, ease: EASE.out }}
-            className="topup-card relative rounded-2xl p-7 md:p-8 flex flex-col overflow-hidden"
+            className="topup-card relative rounded-2xl p-7 md:p-8 flex flex-col"
             style={{
               background: PALETTE.cream,
               border: plan.recommended
@@ -191,7 +191,7 @@ export function TopUpPlans({
               <div
                 className="topup-hero-bg absolute inset-0"
                 style={{
-                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp)`,
+                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp?v=3)`,
                   backgroundPosition: "center",
                 }}
               />
