@@ -49,6 +49,7 @@ import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { PALETTE, EASE, MOTION, display, eyebrow } from "@/components/portraits/tokens";
 import { SplitWords } from "@/components/portraits/SplitWords";
 import { StudioBackdrop } from "@/components/portraits/StudioBackdrop";
+import { GenerationCanvas } from "@/components/portraits/studio/GenerationCanvas";
 
 // Lazy-load + cache FingerprintJS visitor ID. Stable across cache clears,
 // incognito, and minor browser updates. Used by the Supabase signup trigger
@@ -563,7 +564,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
     >
-      <StudioBackdrop />
+      <StudioBackdrop active={generating} />
 
       <div className="mx-auto relative" style={{ maxWidth: 720, zIndex: 1 }}>
 
@@ -901,13 +902,17 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     onClick={handleGenerate}
                     disabled={!canGenerate}
                     aria-label="Generate"
-                    className="ls-magnet flex items-center justify-center rounded-full transition-[background,box-shadow] disabled:cursor-not-allowed"
+                    className={`ls-magnet ls-send-btn flex items-center justify-center rounded-full overflow-hidden relative transition-[background,box-shadow] disabled:cursor-not-allowed${canGenerate ? " ls-send-btn--ready" : ""}`}
                     style={{
                       width: 40,
                       height: 40,
-                      background: canGenerate ? PALETTE.rose : PALETTE.sandDeep,
+                      background: canGenerate
+                        ? `linear-gradient(135deg, ${PALETTE.rose} 0%, ${PALETTE.roseDeep} 100%)`
+                        : PALETTE.sandDeep,
                       color: PALETTE.cream,
-                      boxShadow: canGenerate ? "0 6px 18px rgba(191, 82, 74, 0.32)" : "none",
+                      boxShadow: canGenerate
+                        ? `0 8px 22px ${PALETTE.rose}66, 0 0 0 4px ${PALETTE.rose}1a`
+                        : "none",
                     }}
                     onMouseMove={(e) => {
                       if (!canGenerate) return;
@@ -1021,31 +1026,9 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         <div ref={variantsRef} />
         <AnimatePresence>
           {generating && (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mt-10 rounded-2xl py-12 text-center"
-              style={{ background: PALETTE.cream, border: `1px solid ${PALETTE.sand}` }}
-            >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
-                className="w-8 h-8 mx-auto rounded-full border-2"
-                style={{ borderColor: PALETTE.rose, borderTopColor: "transparent" }}
-              />
-              <p
-                className="mt-4"
-                style={{
-                  fontFamily: 'Assistant, system-ui, sans-serif',
-                  fontSize: 13.5,
-                  color: PALETTE.earthMuted,
-                }}
-              >
-                Generating four versions… ~10 seconds
-              </p>
-            </motion.div>
+            <div className="mt-10 mx-auto" style={{ maxWidth: 460 }}>
+              <GenerationCanvas />
+            </div>
           )}
 
           {!generating && variants.length > 0 && (

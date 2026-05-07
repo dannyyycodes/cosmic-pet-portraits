@@ -456,19 +456,104 @@
   100% { transform: translateX(360%); opacity: 0; }
 }
 
+/* Studio "active" mode — kicks in while a generation is running.
+   Brightens both blooms, scales the gold one slightly, drops in a
+   sweeping rose pulse-ring radiating from the prompt box origin. */
+.ls-studio-pulse {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 60vmax; height: 60vmax;
+  margin: -30vmax 0 0 -30vmax;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(circle at center,
+    rgba(191, 82, 74, 0.0) 0%,
+    rgba(191, 82, 74, 0.10) 40%,
+    rgba(191, 82, 74, 0.0) 60%);
+  filter: blur(20px);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.ls-studio-backdrop--active .ls-studio-bloom--rose {
+  background: radial-gradient(circle at center,
+    rgba(191, 82, 74, 0.32) 0%,
+    rgba(191, 82, 74, 0.16) 32%,
+    transparent 64%);
+  transition: background 600ms ease-out;
+}
+.ls-studio-backdrop--active .ls-studio-bloom--gold {
+  background: radial-gradient(circle at center,
+    rgba(196, 162, 101, 0.34) 0%,
+    rgba(196, 162, 101, 0.12) 36%,
+    transparent 66%);
+  transition: background 600ms ease-out;
+}
+.ls-studio-backdrop--active .ls-studio-pulse {
+  animation: lsStudioPulse 3.2s ease-out infinite;
+}
+@keyframes lsStudioPulse {
+  0%   { transform: scale(0.6); opacity: 0; }
+  20%  { opacity: 0.85; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Send button — pulsing rose halo + ripple shimmer when ready. */
+.ls-send-btn--ready::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at center,
+    rgba(191, 82, 74, 0.55) 0%,
+    rgba(191, 82, 74, 0.0) 70%);
+  filter: blur(8px);
+  opacity: 0.5;
+  z-index: -1;
+  animation: lsSendHalo 1.8s ease-in-out infinite;
+}
+.ls-send-btn--ready::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(110deg,
+    transparent 35%,
+    rgba(255,255,255,0.45) 50%,
+    transparent 65%);
+  transform: translateX(-150%);
+  animation: lsSendShimmer 2.4s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+@keyframes lsSendHalo {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 0.75; transform: scale(1.08); }
+}
+@keyframes lsSendShimmer {
+  0%   { transform: translateX(-150%); }
+  60%  { transform: translateX(150%); }
+  100% { transform: translateX(150%); }
+}
+
 /* Reduced motion — disable the lot. */
 @media (prefers-reduced-motion: reduce) {
   .ls-studio-bloom--rose,
   .ls-studio-bloom--gold,
   .ls-studio-stars,
   .ls-studio-accent,
+  .ls-studio-pulse,
   .ls-prompt-halo,
   .ls-magnet,
-  .ls-glint::after {
+  .ls-glint::after,
+  .ls-send-btn--ready::before,
+  .ls-send-btn--ready::after {
     animation: none !important;
     transform: none !important;
     transition: none !important;
   }
   .ls-prompt-halo { opacity: 0 !important; }
+  .ls-studio-pulse { opacity: 0 !important; }
   .ls-glint::after { display: none; }
+  .ls-send-btn--ready::before { opacity: 0.4 !important; }
+  .ls-send-btn--ready::after { display: none; }
 }

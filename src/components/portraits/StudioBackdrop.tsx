@@ -12,7 +12,12 @@
  */
 import { useEffect, useRef } from "react";
 
-export function StudioBackdrop() {
+interface StudioBackdropProps {
+  /** When true, blooms brighten + scale + a sweeping rose ring kicks in. */
+  active?: boolean;
+}
+
+export function StudioBackdrop({ active = false }: StudioBackdropProps = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -46,11 +51,16 @@ export function StudioBackdrop() {
   }, []);
 
   return (
-    <div ref={rootRef} className="ls-studio-backdrop" aria-hidden>
+    <div
+      ref={rootRef}
+      className={`ls-studio-backdrop${active ? " ls-studio-backdrop--active" : ""}`}
+      aria-hidden
+    >
       <div className="ls-studio-bloom ls-studio-bloom--rose" />
       <div className="ls-studio-bloom ls-studio-bloom--gold" />
       <div className="ls-studio-stars" />
       <div className="ls-studio-accent" />
+      <div className="ls-studio-pulse" />
     </div>
   );
 }
