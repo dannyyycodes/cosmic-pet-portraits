@@ -605,33 +605,83 @@ async function handlePreview(req: VercelRequest, res: VercelResponse) {
 // Response shape kept as { variants: [single] } for back-compat with existing
 // frontend (StudioFlow + PortraitsStudio + PortraitsTemplates) — UI cleanup
 // to drop the picker is a follow-up.
-interface SubjectInfo { species: string; breed?: string; furColor?: string }
+interface SubjectInfo {
+  species: string;
+  breed?: string;
+  furColor?: string;
+  eyeColor?: string;
+  earShape?: string;
+  distinguishing?: string;
+}
+
+// Vision pre-pass — extracts the physical descriptors that get slotted LITERALLY
+// into the gpt-image-2 prompt's KEEP block. Identity preservation is only as
+// strong as this extraction: if breed comes back null, gpt-image-2 has nothing
+// to anchor against and drifts to "generic dog matching style training data."
+//
+// Model: Claude Sonnet 4.5 via OpenRouter — better at structured JSON +
+// specific breed identification than Gemini Flash (which the original German
+// Shepherd test failed silently on, returning species:"pet"). Sonnet sees the
+// image natively and is held to a strict JSON shape via response_format.
+//
+// VISION_MODEL env override kept for cost-sensitive A/B (e.g. swap to Gemini
+// Flash if Sonnet is too expensive at scale — ~$0.003/image vs ~$0.001).
+const SUBJECT_VISION_MODEL = process.env.SUBJECT_VISION_MODEL ?? 'anthropic/claude-sonnet-4.5';
 
 async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
   const fallback: SubjectInfo = { species: "pet" };
   if (!OPENROUTER_KEY) return fallback;
+
+  const systemPrompt = `You are a pet-breed identification specialist. Examine the photo and return STRICT JSON describing the pet's identifiable physical features.
+
+Return shape (every field required, use null only if you genuinely cannot tell):
+{
+  "species": "dog" | "cat" | "rabbit" | "bird" | "horse" | "other",
+  "breed": "<specific breed name — be precise, e.g. 'German Shepherd', 'Cream French Bulldog', 'Maine Coon'. Use 'mixed breed (looks like X with Y)' if a clear cross. NEVER return null unless the image truly does not show a pet.>",
+  "furColor": "<specific descriptor: 'black saddle with tan markings', 'cream with apricot ears', 'tortoiseshell calico', 'white with grey tabby patches'. NOT just 'brown' — include patterns and markings.>",
+  "eyeColor": "<'amber', 'dark brown', 'green', 'blue', 'heterochromia (one blue one green)', etc>",
+  "earShape": "<'erect triangular', 'drop pendulous', 'semi-erect', 'cropped', 'folded', 'tufted', 'rose'>",
+  "distinguishing": "<one short phrase capturing what makes THIS individual recognisable: 'white sock on left front paw', 'pink nose with black freckle', 'long bushy tail with white tip', 'one ear flopped'. If nothing stands out, the most prominent breed feature.>"
+}
+
+Rules:
+- Be confident. "best guess" is acceptable; null is failure.
+- Specific beats vague. "Black saddle with tan markings" not "black and tan".
+- Output JSON only — no prose, no markdown fences, no commentary.`;
+
   try {
     const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENROUTER_KEY}` },
       body: JSON.stringify({
-        model: VISION_MODEL,
+        model: SUBJECT_VISION_MODEL,
         messages: [
-          { role: "system", content: 'You analyse pet photos. Return STRICT JSON: {"species":"dog|cat|rabbit|bird|other","breed":"<best guess or null>","furColor":"<short description or null>"}. No prose. No markdown.' },
-          { role: "user", content: [{ type: "text", text: "What pet is this? Return JSON only." }, { type: "image_url", image_url: { url: imageUrl } }] },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: [
+            { type: "text", text: "Identify this pet. Return the JSON shape exactly." },
+            { type: "image_url", image_url: { url: imageUrl } },
+          ] },
         ],
-        response_format: { type: "json_object" }, max_tokens: 120,
+        response_format: { type: "json_object" },
+        max_tokens: 300,
+        temperature: 0.1,  // low temp = more consistent identification
       }),
     });
     if (!r.ok) return fallback;
     const d = await r.json() as { choices?: Array<{ message?: { content?: string } }> };
     const c = d.choices?.[0]?.message?.content;
     if (!c) return fallback;
-    const p = JSON.parse(c) as Partial<SubjectInfo>;
+    const cleaned = c.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
+    const p = JSON.parse(cleaned) as Partial<SubjectInfo>;
+    const stringOrUndef = (v: unknown): string | undefined =>
+      (typeof v === 'string' && v.trim() && v.trim().toLowerCase() !== 'null') ? v.trim() : undefined;
     return {
-      species: p.species && typeof p.species === "string" ? p.species : "pet",
-      breed: typeof p.breed === "string" && p.breed !== "null" ? p.breed : undefined,
-      furColor: typeof p.furColor === "string" && p.furColor !== "null" ? p.furColor : undefined,
+      species: stringOrUndef(p.species) ?? "pet",
+      breed: stringOrUndef(p.breed),
+      furColor: stringOrUndef(p.furColor),
+      eyeColor: stringOrUndef(p.eyeColor),
+      earShape: stringOrUndef(p.earShape),
+      distinguishing: stringOrUndef(p.distinguishing),
     };
   } catch { return fallback; }
 }
@@ -671,15 +721,21 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 // fal API model_id, in full. URL builder uses the model_id literally — no
 // prefix games. Pass the full slug including any vendor prefix.
 //
-// CUSTOMER PIPELINE ROLLED BACK 2026-05-07: gpt-image-2 produced wrong breeds
-// in test (60% miss rate on a German Shepherd source — 2 wrong breeds + 1
-// French Bulldog out of 5 generations). Default reverted to FLUX Kontext —
-// the original identity-preservation-trained model — until the
-// research-2026-05-07-* notes inform a proper architecture rebuild.
-// Test tool (?action=test-aspects) can still hit gpt-image-2 explicitly via
-// the GPT_IMAGE_FAL_MODEL env override during evaluation.
-const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'fal-ai/flux-pro/kontext';
-const GPT_IMAGE_FALLBACK_MODEL = 'fal-ai/gpt-image-1/edit-image';
+// CUSTOMER PIPELINE LOCKED ON gpt-image-2 (2026-05-07 v2 — un-rolled-back).
+// Danny has empirical evidence from manual ChatGPT use that gpt-image-2 holds
+// pet identity well WHEN the prompt follows OpenAI's documented Keep/Add/
+// Don't-redesign structure WITH the literal breed name slotted in. The earlier
+// German-Shepherd test that 60%-missed was because:
+//   1. Vision pre-pass returned species:"pet" (no breed) → prompt said
+//      "transform this pet" not "transform this German Shepherd"
+//   2. Source was a Getty stock with watermark — degraded signal to Vision
+//   3. Prompt structure was free-form, not the documented preserve-list pattern
+// All three are now fixed: stronger Vision (Sonnet 4.5), Keep/Add/Don't-redesign
+// prompt with breed slotted in literally, separate handling for low-signal sources.
+// Brand consistency: same model used for marketing content (Codex) → customer
+// canvases. fal.ai is just the rails — the model is gpt-image-2.
+const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'openai/gpt-image-2';
+const GPT_IMAGE_FALLBACK_MODEL = 'fal-ai/flux-pro/kontext'; // soft fallback only on hard 404 / model-missing
 const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high';
 const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
 const GPT_IMAGE_HEIGHT = Number(process.env.GPT_IMAGE_HEIGHT ?? 1280);
@@ -778,34 +834,62 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   }
 
   const subject = await extractSubject(imageUrl);
-  // Shared name-on-canvas directive — used by both freeform and Style×Theme
-  // branches. Quoted name = treated as literal text by FLUX. Explicit serif +
-  // lower margin + readable improves text reliability.
-  const nameDirective = petName
-    ? ` Render the name "${petName}" in elegant clean serif typography along the lower margin of the artwork, centered, readable, no decorative flourishes that obscure the letters, no spelling errors.`
-    : "";
+
+  // Build the locked Keep/Add/Don't-redesign prompt — gpt-image-2 + fal docs
+  // both say this 3-block structure is what holds identity on edit endpoints.
+  // Free-form one-line prompts collapse to "generic dog matching style training
+  // data" because the model has no anchor to weight image tokens against.
+  //
+  // The customer's freeform input becomes the ADD block — their imagination is
+  // the artistic twist on top of an identity-locked base. Name (if entered)
+  // becomes its own TEXT block. Identity is everything Vision extracted.
+
+  const subj = [subject.breed, subject.species].filter(Boolean).join(" ") || subject.species;
   const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
   const negativeWithName = petName
     ? `${baseNegative}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names`
     : `${baseNegative}, text overlay`;
 
+  /** Builds the KEEP block — the literal physical descriptors that pin identity. */
+  function buildKeepBlock(): string {
+    const keeps: string[] = [];
+    if (subject.breed) keeps.push(`the ${subject.breed} silhouette and breed characteristics`);
+    keeps.push(`exact facial features and head shape`);
+    if (subject.furColor) keeps.push(`${subject.furColor} fur pattern`);
+    if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
+    if (subject.earShape) keeps.push(`${subject.earShape} ear shape`);
+    if (subject.distinguishing) keeps.push(subject.distinguishing);
+    return keeps.join(", ");
+  }
+
   let promptDef: { prompt: string; negative: string; compositionId: string };
+
   if (usingCustomPrompt) {
-    // Freeform path — wrap the customer's prompt in identity-lock.
-    const subj = [subject.breed, subject.species].filter(Boolean).join(" ") || subject.species;
-    const fur = subject.furColor ? `, with ${subject.furColor} fur` : "";
-    const compositionSuffix = COMPOSITIONS[0].suffix;
-    const prompt = [
-      `Transform this ${subj}${fur} into: ${customPrompt}.`,
-      `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${subject.species}.`,
-      compositionSuffix,
-      `Painterly cinematic lighting, premium polish, 4:5 vertical composition for framed wall art.`,
-      nameDirective,
-    ].filter(Boolean).join(" ");
+    // Customer's freeform input becomes the ADD block.
+    const keepBlock = buildKeepBlock();
+    const promptParts = [
+      `Pet: ${subj}${subject.distinguishing ? `, ${subject.distinguishing}` : ''}.`,
+      ``,
+      `KEEP (do not change): ${keepBlock}. Do NOT change the breed. Do NOT redesign the ${subject.species}.`,
+      ``,
+      `ADD (the artistic transformation): ${customPrompt}.`,
+      ``,
+      petName
+        ? `TEXT: render the name "${petName}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
+        : '',
+      ``,
+      `Output: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.`,
+    ];
+    const prompt = promptParts.filter(p => p !== '').join('\n');
     promptDef = { prompt, negative: negativeWithName, compositionId: COMPOSITIONS[0].id };
   } else {
     const built = buildPrompt({
-      species: subject.species, breed: subject.breed, furColor: subject.furColor,
+      species: subject.species,
+      breed: subject.breed,
+      furColor: subject.furColor,
+      eyeColor: subject.eyeColor,
+      earShape: subject.earShape,
+      distinguishing: subject.distinguishing,
       styleId: styleId!, themeId: themeId!, addDetails, petName, compositionIdx: 0,
     } satisfies BuildPromptInput);
     if (!built) return res.status(400).json({ error: "Unknown styleId or themeId" });
@@ -1447,20 +1531,35 @@ async function handleTestAspects(req: VercelRequest, res: VercelResponse) {
   }
   const mode = body.mode === 'print' ? 'print' : 'preview';
 
-  // Identity-lock + name directive — same recipe handleGenerate uses.
+  // Use the SAME Keep/Add/Don't-redesign 3-block prompt structure as the live
+  // customer-facing handleGenerate so the test mirrors production exactly.
   const subject = await extractSubject(body.imageUrl);
   const subj = [subject.breed, subject.species].filter(Boolean).join(' ') || subject.species;
-  const fur = subject.furColor ? `, with ${subject.furColor} fur` : '';
   const petName = (body.petName ?? '').replace(/[^\p{L}\p{N} '-]/gu, '').trim().slice(0, 24);
-  const nameDirective = petName
-    ? ` Render the name "${petName}" in elegant clean serif typography along the lower margin of the artwork, centered, readable, no spelling errors.`
-    : '';
-  const fullPrompt = [
-    `Transform this ${subj}${fur} into: ${body.prompt}.`,
-    `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${subject.species}.`,
-    `Painterly cinematic lighting, premium polish.`,
-    nameDirective,
-  ].filter(Boolean).join(' ');
+
+  const keeps: string[] = [];
+  if (subject.breed) keeps.push(`the ${subject.breed} silhouette and breed characteristics`);
+  keeps.push(`exact facial features and head shape`);
+  if (subject.furColor) keeps.push(`${subject.furColor} fur pattern`);
+  if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
+  if (subject.earShape) keeps.push(`${subject.earShape} ear shape`);
+  if (subject.distinguishing) keeps.push(subject.distinguishing);
+  const keepBlock = keeps.join(', ');
+
+  const fullPromptParts = [
+    `Pet: ${subj}${subject.distinguishing ? `, ${subject.distinguishing}` : ''}.`,
+    ``,
+    `KEEP (do not change): ${keepBlock}. Do NOT change the breed. Do NOT redesign the ${subject.species}.`,
+    ``,
+    `ADD (the artistic transformation): ${body.prompt}.`,
+    ``,
+    petName
+      ? `TEXT: render the name "${petName}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
+      : '',
+    ``,
+    `Output: canvas composition, painterly cinematic finish, premium polish for framed wall art.`,
+  ];
+  const fullPrompt = fullPromptParts.filter(p => p !== '').join('\n');
 
   // Run all 5 aspects in parallel.
   const results = await Promise.all(ASPECTS.map(async (aspect) => {

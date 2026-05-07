@@ -175,53 +175,68 @@ export const COMPOSITIONS = [
 ] as const;
 
 export interface BuildPromptInput {
-  species: string;       // "dog" | "cat" | etc — from Gemini Vision pre-call
-  breed?: string;        // optional breed extracted by Vision
-  furColor?: string;     // optional fur descriptor
+  species: string;          // "dog" | "cat" | etc — from Vision pre-call
+  breed?: string;           // optional specific breed (e.g. "German Shepherd")
+  furColor?: string;        // optional fur descriptor (e.g. "black saddle with tan markings")
+  eyeColor?: string;        // optional (e.g. "amber", "dark brown")
+  earShape?: string;        // optional (e.g. "erect triangular", "drop pendulous")
+  distinguishing?: string;  // optional one-phrase identifier (e.g. "white sock on left front paw")
   styleId: string;
   themeId: string;
-  addDetails?: string;   // freeform user input, sanitised upstream
-  petName?: string;      // optional, sanitised upstream — added 2026-05-06
+  addDetails?: string;      // freeform user input, sanitised upstream
+  petName?: string;         // optional, sanitised upstream
   compositionIdx: 0 | 1 | 2 | 3;
 }
 
 /**
- * If a pet name is set, append an explicit text-rendering directive that fal
- * Kontext / FLUX can honour. Spelled out fully because FLUX text reliability is
- * 50/50 for short strings — being directive ("rendered in clean serif",
- * "readable", "lower margin") increases the hit rate. Quotes around the name
- * make the model treat it as literal text not a description.
+ * Builds the gpt-image-2 prompt for the Style×Theme path. Same Keep/Add/Don't-
+ * redesign 3-block structure as the customer-facing freeform path in
+ * api/portraits.ts handleGenerate — the only difference is ADD = chosen
+ * style + theme + optional addDetails (instead of customer's freeform prompt).
+ *
+ * Identity preservation only works if the KEEP block names the breed literally.
+ * Generic "preserve the breed characteristics" without naming it = no-op for
+ * gpt-image-2. Vision must extract breed and we slot it in.
  */
-function petNameDirective(petName: string | undefined): string {
-  if (!petName) return "";
-  const cleaned = petName.trim().slice(0, 40);
-  if (!cleaned) return "";
-  return ` Render the name "${cleaned}" in elegant clean serif typography along the lower margin of the artwork, centered, readable, no decorative flourishes that obscure the letters, no spelling errors.`;
-}
-
 export function buildPrompt(input: BuildPromptInput): { prompt: string; negative: string } | null {
   const style = getStyle(input.styleId);
   const theme = getTheme(input.themeId);
   if (!style || !theme) return null;
 
   const subject = [input.breed, input.species].filter(Boolean).join(" ") || input.species;
-  const furNote = input.furColor ? `, with ${input.furColor} fur` : "";
+
+  // KEEP block — the literal physical descriptors that pin identity.
+  const keeps: string[] = [];
+  if (input.breed) keeps.push(`the ${input.breed} silhouette and breed characteristics`);
+  keeps.push(`exact facial features and head shape`);
+  if (input.furColor) keeps.push(`${input.furColor} fur pattern`);
+  if (input.eyeColor) keeps.push(`${input.eyeColor} eyes`);
+  if (input.earShape) keeps.push(`${input.earShape} ear shape`);
+  if (input.distinguishing) keeps.push(input.distinguishing);
+  const keepBlock = keeps.join(", ");
+
+  // ADD block — the chosen artistic transformation.
+  const addBlock = `${theme.prompt}, rendered in ${style.prompt}${input.addDetails?.trim() ? `. Additional detail: ${input.addDetails.trim()}` : ''}`;
+
+  // Composition hint — folds into ADD as a directive on framing.
   const composition = COMPOSITIONS[input.compositionIdx]?.suffix ?? "";
-  const addDetails = input.addDetails?.trim() ? ` ${input.addDetails.trim()}` : "";
-  const nameDirective = petNameDirective(input.petName);
 
-  const prompt = [
-    `Transform this ${subject}${furNote} into ${theme.prompt}, rendered in ${style.prompt}.`,
-    `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${input.species}.`,
-    composition,
-    addDetails,
-    nameDirective,
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
+  const promptParts: string[] = [
+    `Pet: ${subject}${input.distinguishing ? `, ${input.distinguishing}` : ''}.`,
+    ``,
+    `KEEP (do not change): ${keepBlock}. Do NOT change the breed. Do NOT redesign the ${input.species}.`,
+    ``,
+    `ADD (the artistic transformation): ${addBlock}.${composition ? ` ${composition}` : ''}`,
+    ``,
+    input.petName
+      ? `TEXT: render the name "${input.petName.trim().slice(0, 40)}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
+      : '',
+    ``,
+    `Output: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.`,
+  ];
+  const prompt = promptParts.filter(p => p !== '').join('\n');
 
-  // Always reinforce in negative prompt — catches misspelled / garbled letters.
+  // Style/theme negatives + name reinforcement.
   const baseNeg = [style.negative, theme.negative].filter(Boolean).join(", ");
   const negative = input.petName
     ? `${baseNeg}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names`
