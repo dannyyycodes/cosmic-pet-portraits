@@ -52,7 +52,6 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Refund = lazy(() => import("./pages/Refund"));
 const Contact = lazy(() => import("./pages/Contact"));
 const MapPreview = lazy(() => import("./pages/MapPreview"));
-const TrustStripPreview = lazy(() => import("./pages/TrustStripPreview"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const Account = lazy(() => import("./pages/Account"));
 const AffiliateMediaKit = lazy(() => import("./pages/AffiliateMediaKit"));
@@ -164,7 +163,6 @@ const App = () => (
                   <Route path="/" element={<LandingV2 />} />
                   <Route path="/legacy" element={<Index />} />
                   <Route path="/v2-map-preview" element={<MapPreview />} />
-                  <Route path="/trust-preview" element={<TrustStripPreview />} />
                   <Route path="/intake" element={<Intake />} />
                   <Route path="/checkout" element={<CheckoutRedirect />} />
                   <Route path="/gift" element={<GiftPurchase />} />
