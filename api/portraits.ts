@@ -833,14 +833,16 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Photo-anchored prompt: treat the source image as ground truth, tell the
-  // model to USE the pet shown in it. Vision is OFF by default (env knob to
-  // enable for A/B). Reasoning: gpt-image-2 IS image-to-image; the photo
-  // shows the breed/markings more reliably than any text we could pre-extract.
-  // Vision misidentification (~5% on common breeds) actively hurts when it
-  // happens — telling the model "Labrador" on a Golden makes it produce a Lab.
-  // Trust the photo.
-  const useVision = process.env.USE_SUBJECT_VISION === 'true';
+  // Vision pre-pass — ON by default. EMPIRICAL PROOF (2026-05-07):
+  //   With Vision    → 5/5 correct breed on German Shepherd test
+  //   Without Vision → 0/4 correct breed on same German Shepherd
+  // gpt-image-2 via fal.ai needs the breed named explicitly in text. The
+  // ChatGPT app handles this with an INVISIBLE Vision pre-pass behind the
+  // scenes — same model, but the chat client orchestrates a vision-then-edit
+  // chain. fal.ai's endpoint is the raw model with no orchestration, so we
+  // do the Vision step ourselves. Photo provides identity; text reinforces it.
+  // Env knob USE_SUBJECT_VISION=false to disable for A/B (not recommended).
+  const useVision = process.env.USE_SUBJECT_VISION !== 'false';
   const subject = useVision
     ? await extractSubject(imageUrl)
     : { species: 'pet' } as SubjectInfo;
@@ -853,10 +855,22 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   let promptDef: { prompt: string; negative: string; compositionId: string };
 
   if (usingCustomPrompt) {
-    // Photo-anchored prompt — image is ground truth, customer's imagination
-    // is the artistic transformation, name has its own line.
+    // Photo-anchored AND text-reinforced. The photo is ground truth; Vision-
+    // extracted descriptors get slotted in as a Keep-list to give the model
+    // explicit text anchors that match what's in the image.
+    const keeps: string[] = [];
+    if (subject.breed) keeps.push(`the ${subject.breed} silhouette and breed characteristics`);
+    if (subject.furColor) keeps.push(`${subject.furColor} fur pattern`);
+    if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
+    if (subject.earShape) keeps.push(`${subject.earShape} ear shape`);
+    if (subject.distinguishing) keeps.push(subject.distinguishing);
+    const keepLine = keeps.length > 0
+      ? `Specifically preserve: ${keeps.join(', ')}.`
+      : '';
+
     const promptParts = [
       `Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.`,
+      keepLine,
       ``,
       `Apply this artistic transformation: ${customPrompt}.`,
       ``,
@@ -1416,6 +1430,7 @@ async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
   );
 
   if (alreadyExists) {
+    console.log('[instant-signup] existing user — falling back to OTP:', { email, supabaseStatus: createErr?.status, supabaseMessage: createErr?.message });
     // Don't leak whether the address is registered for non-Turnstile-passing
     // requests, but Turnstile passed so this is a real user — they need to
     // verify ownership via OTP on /auth instead. Send the OTP for them so
@@ -1427,15 +1442,21 @@ async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
     if (otpErr) {
       return res.status(500).json({ error: 'otp_send_failed', detail: otpErr.message });
     }
-    return res.status(200).json({ status: 'exists', email, message: 'OTP sent — verify on /auth' });
+    // otpLength is read from env (mirrors Supabase dashboard "Email OTP Length").
+    // Default 6 — bump if you change the dashboard value to 7 or 8.
+    const otpLength = Number(process.env.SUPABASE_EMAIL_OTP_LENGTH ?? '6') || 6;
+    return res.status(200).json({ status: 'exists', email, otpLength, message: 'OTP sent — verify on /auth' });
   }
 
   if (createErr) {
+    console.error('[instant-signup] createUser failed (not the exists branch):', { email, status: createErr.status, message: createErr.message });
     return res.status(500).json({ error: 'create_failed', detail: createErr.message });
   }
   if (!createData?.user) {
+    console.error('[instant-signup] createUser returned no user:', { email });
     return res.status(500).json({ error: 'create_returned_no_user' });
   }
+  console.log('[instant-signup] new user created:', { email, userId: createData.user.id });
 
   // Generate a single-use magic-link OTP. Client calls supabase.auth.verifyOtp
   // locally with this token to establish a real session — equivalent to the
@@ -1526,16 +1547,29 @@ async function handleTestAspects(req: VercelRequest, res: VercelResponse) {
   }
   const mode = body.mode === 'print' ? 'print' : 'preview';
 
-  // Same photo-anchored prompt as live handleGenerate. Vision optional via env
-  // knob — default off, photo is ground truth.
-  const useVision = process.env.USE_SUBJECT_VISION === 'true' || body.useVision === true;
+  // Same photo-anchored + Vision-reinforced prompt as live handleGenerate.
+  // Vision ON by default; body.useVision can flip OFF for explicit A/B tests.
+  const useVision = body.useVision === false
+    ? false
+    : (process.env.USE_SUBJECT_VISION !== 'false');
   const subject = useVision
     ? await extractSubject(body.imageUrl)
     : { species: 'pet' } as SubjectInfo;
   const petName = (body.petName ?? '').replace(/[^\p{L}\p{N} '-]/gu, '').trim().slice(0, 24);
 
+  const keeps: string[] = [];
+  if (subject.breed) keeps.push(`the ${subject.breed} silhouette and breed characteristics`);
+  if (subject.furColor) keeps.push(`${subject.furColor} fur pattern`);
+  if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
+  if (subject.earShape) keeps.push(`${subject.earShape} ear shape`);
+  if (subject.distinguishing) keeps.push(subject.distinguishing);
+  const keepLine = keeps.length > 0
+    ? `Specifically preserve: ${keeps.join(', ')}.`
+    : '';
+
   const fullPromptParts = [
     `Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.`,
+    keepLine,
     ``,
     `Apply this artistic transformation: ${body.prompt}.`,
     ``,
