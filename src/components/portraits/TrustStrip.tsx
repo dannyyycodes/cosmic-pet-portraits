@@ -173,22 +173,6 @@ export function TrustStrip() {
         }}
       />
 
-      {/* Top + bottom horizontal gold hairlines, with gradient fade at edges. */}
-      <div
-        aria-hidden
-        className="absolute left-0 right-0"
-        style={{ top: 0, height: 1 }}
-      >
-        <GoldRule orientation="horizontal" />
-      </div>
-      <div
-        aria-hidden
-        className="absolute left-0 right-0"
-        style={{ bottom: 0, height: 1 }}
-      >
-        <GoldRule orientation="horizontal" />
-      </div>
-
       <div
         className="relative mx-auto"
         style={{ maxWidth: 1120 }}
