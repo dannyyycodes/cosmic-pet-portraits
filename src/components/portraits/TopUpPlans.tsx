@@ -94,7 +94,7 @@ interface TopUpPlansProps {
 export function TopUpPlans({
   variant = "section",
   showHeader = true,
-  heading = "Need more pawtraits?",
+  heading = "Need more generations?",
   authRedirect = "/pawtraits#topup",
 }: TopUpPlansProps) {
   const navigate = useNavigate();
