@@ -635,41 +635,65 @@ async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
 
 interface VariantResult { url?: string; balanceExhausted?: boolean }
 
-// gpt-image-1 via fal.ai — same FAL_KEY, no new env var, no base64+upload
-// dance. fal marks up ~20-30% vs native OpenAI (~$0.05/gen vs $0.042) which
-// is rounding error at our scale; the operational simplification is worth it.
+// gpt-image (1 or 2) via fal.ai — same FAL_KEY, no new env var, no base64
+// upload dance. fal marks up ~20-30% vs native OpenAI; rounding error at our
+// scale, the operational simplification is worth it.
 //
-// Output: fal returns a CDN URL (no base64 wrangling). 2:3 portrait by
-// default — best fit for canvas SKUs (24x36 hero exact, 8x10/16x20/20x24
-// crop center cleanly).
+// Output: fal returns a CDN URL. 2:3 portrait — best fit for canvas SKUs
+// (24x36 hero exact; 8x10/16x20/20x24 crop centre cleanly).
 //
-// Flag GPT_IMAGE_QUALITY env to bump from 'medium' → 'high' if name-on-canvas
-// text legibility ever needs reinforcement (costs ~+£0.10/gen).
-const GPT_IMAGE_EDIT_ENDPOINT = "https://fal.run/fal-ai/gpt-image-1/edit-image";
+// Knobs:
+//   GPT_IMAGE_FAL_MODEL  — fal model slug, default 'gpt-image-2-image-to-image'.
+//                          Falls back to 'gpt-image-1/edit-image' on 404 so a
+//                          model-name mismatch doesn't break customer flow.
+//   GPT_IMAGE_QUALITY    — low | medium | high | auto (default medium)
+const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'gpt-image-2-image-to-image';
+const GPT_IMAGE_FALLBACK_MODEL = 'gpt-image-1/edit-image';
 const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high' | 'auto';
-const GPT_IMAGE_ASPECT = '2:3'; // matches canvas SKUs
+const GPT_IMAGE_ASPECT = '2:3';
+
+async function callGptImage(model: string, body: Record<string, unknown>): Promise<{ res: Response; bodyText: string | null }> {
+  const r = await fetch(`https://fal.run/fal-ai/${model}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Key ${FAL_KEY}` },
+    body: JSON.stringify(body),
+  });
+  if (r.ok) return { res: r, bodyText: null };
+  const text = await r.text();
+  return { res: r, bodyText: text };
+}
 
 async function generateVariant(args: { imageUrl: string; prompt: string; negative?: string }): Promise<VariantResult> {
-  // Negatives go inline in the prompt — gpt-image-1 has no separate
-  // negative_prompt slot. The styleTheme builder already includes the
-  // negative reinforcement when petName is set, so this is fine.
+  // Negatives fold into the prompt — gpt-image has no separate negative slot.
   const fullPrompt = args.negative
     ? `${args.prompt}\n\nAvoid: ${args.negative}.`
     : args.prompt;
 
-  const r = await fetch(GPT_IMAGE_EDIT_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Key ${FAL_KEY}` },
-    body: JSON.stringify({
-      prompt: fullPrompt,
-      image_urls: [args.imageUrl],
-      image_size: GPT_IMAGE_ASPECT,
-      quality: GPT_IMAGE_QUALITY,
-      num_images: 1,
-    }),
-  });
+  const requestBody = {
+    prompt: fullPrompt,
+    image_urls: [args.imageUrl],
+    image_size: GPT_IMAGE_ASPECT,
+    quality: GPT_IMAGE_QUALITY,
+    num_images: 1,
+  };
+
+  // Try the primary model first. If fal returns 404 (model not found / slug
+  // wrong) OR 400 with an unknown-model signal, soft-fallback to gpt-image-1
+  // so a slug mismatch never burns the customer's credit.
+  let { res: r, bodyText } = await callGptImage(GPT_IMAGE_PRIMARY_MODEL, requestBody);
+
   if (!r.ok) {
-    const text = await r.text();
+    const looksLikeModelMissing = r.status === 404 ||
+      (r.status === 400 && /model|not.*found|unknown/i.test(bodyText ?? ''));
+    if (looksLikeModelMissing && GPT_IMAGE_PRIMARY_MODEL !== GPT_IMAGE_FALLBACK_MODEL) {
+      console.warn(`[generate] primary model ${GPT_IMAGE_PRIMARY_MODEL} unavailable (${r.status}), falling back to ${GPT_IMAGE_FALLBACK_MODEL}`);
+      ({ res: r, bodyText } = await callGptImage(GPT_IMAGE_FALLBACK_MODEL, requestBody));
+    }
+  }
+
+  if (!r.ok) {
+    // bodyText was already consumed inside callGptImage on non-OK; reuse it.
+    const text = bodyText ?? '';
     if (isFalBalanceExhausted(text)) return { balanceExhausted: true };
     return {};
   }
