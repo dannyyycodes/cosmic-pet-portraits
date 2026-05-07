@@ -1,8 +1,21 @@
 /**
- * StudioFlow — sleek single-prompt configurator (premium app aesthetic).
+ * StudioFlow — sleek multi-pet configurator (premium app aesthetic).
  *
  * Layout:
- *   credits badge → photo upload → premium prompt box → variants/size/cart
+ *   credits badge → multi-pet upload stack → shared prompt box →
+ *   approval gate (Reveal step) → variants/size/cart
+ *
+ * Multi-pet upload (Crown & Paw / West & Willow proven model — vault:
+ *   research-2026-05-07-multipet-orientation-ux.md):
+ *   - One PetUploadCard per pet (photo + name input). Cap at 4 pets.
+ *   - "+ Add another pet" button below the stack; per-card "×" delete.
+ *   - The freeform `prompt` is shared — it's the artistic transformation
+ *     for ALL pets together (not per-pet).
+ *
+ * Approval gate (Reveal):
+ *   - After generation, customer must explicitly approve before SKU pick.
+ *   - "Continue", "Try again (1 credit)", "Tweak the prompt" affordances.
+ *   - Resets to false on any change to pets or prompt.
  *
  * Premium prompt box:
  *   - glass surface with multi-layer shadow + rose-accent focus ring
@@ -15,17 +28,25 @@
  *   - frictionless inline Dialog instead of route-leaving redirect
  *   - "Continue with Google" + "Continue with Apple" + email fallback
  *
- * API:
- *   POST /api/portraits?action=generate { imageUrl, customPrompt }
- *   → 4 fal Kontext variants → pick one → choose size → add to cart
+ * API contracts (Agent 1 owns the backend):
+ *   POST /api/portraits?action=generate
+ *     body { imageUrls: string[], petNames?: string[], customPrompt }
+ *     → { variants: [{url, composition}], subjects, prompts }
+ *     → 400 { error: 'no_pet_detected', petIndex } — show inline on card N
+ *     → 402 / 503 — same handling as today
+ *   POST /api/portraits?action=printMaster
+ *     body { imageUrls, petNames?, customPrompt, sizeKey }
+ *     → { printMasterUrl, width, height, aspect, costEstimate }
+ *     → triggered on cart-add to produce the print-grade asset
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowUp, HelpCircle, Sparkles, X, Check, Brush } from "lucide-react";
+import { ArrowUp, HelpCircle, Sparkles, X, Check, Brush, Plus, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { PetPhotoUpload } from "@/components/portraits/PetPhotoUpload";
+import { PetUploadCard, type Pet } from "@/components/portraits/PetUploadCard";
+import { ApprovalGate } from "@/components/portraits/ApprovalGate";
 import { VariantGallery, type Variant } from "@/components/portraits/styles/VariantGallery";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/components/portraits/useCredits";
@@ -49,6 +70,19 @@ import { PALETTE, EASE, MOTION, display, eyebrow } from "@/components/portraits/
 import { SplitWords } from "@/components/portraits/SplitWords";
 import { StudioBackdrop } from "@/components/portraits/StudioBackdrop";
 import { GenerationCanvas } from "@/components/portraits/studio/GenerationCanvas";
+
+// Multi-pet hard cap. Per Crown & Paw's model + research above, 4 is the
+// composition ceiling — beyond that per-pet recognition drops sharply.
+const MAX_PETS = 4;
+
+/** Generate a stable client-side id for a pet card. Falls back to a
+ *  Math.random key in older browsers without crypto.randomUUID. */
+function newPetId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `pet_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
 
 interface StudioFlowProps {
   onCartAdd: (item: CartItem) => void;
@@ -426,21 +460,76 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   const { user, session } = useAuth();
   const { balance, refresh: refreshCredits } = useCredits();
 
-  const [photoUrl, setPhotoUrlState] = useState<string | null>(() => loadPetPhoto());
-  const setPhotoUrl = (url: string | null) => {
-    setPhotoUrlState(url);
-    if (url) savePetPhoto(url); else clearPetPhoto();
-  };
-  const [prompt, setPrompt] = useState("");
-  // Pet name carries forward to the Soul Reading upsell pre-fill (cart drawer)
-  // and to the Shopify line-item-properties so the order admin shows the pet.
-  const [petName, setPetName] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    try { return window.sessionStorage.getItem("portraits.lastPet") ?? ""; } catch { return ""; }
+  // ── Multi-pet state ──────────────────────────────────────────────────
+  // The first pet seeds from the photoSharing helper so a customer who
+  // uploaded on /portraits/templates lands here with their photo intact.
+  // (Multi-pet is NOT persisted across sessions for now — overscope.)
+  // Session-stored pet-name pre-fill from the prior single-pet flow goes
+  // onto the first card so returning customers don't lose their typed name.
+  const [pets, setPets] = useState<Pet[]>(() => {
+    const seedPhoto = loadPetPhoto();
+    let seedName = "";
+    if (typeof window !== "undefined") {
+      try { seedName = window.sessionStorage.getItem("portraits.lastPet") ?? ""; } catch { /* */ }
+    }
+    return [{ id: newPetId(), photoUrl: seedPhoto, name: seedName }];
   });
+
+  // Per-pet error messages from the backend (e.g. no_pet_detected).
+  // Keyed by pet.id so it survives reorder/delete.
+  const [petErrors, setPetErrors] = useState<Record<string, string>>({});
+
+  /** Mutate one pet by id — also clears any per-pet API error so the
+   *  red border drops as soon as the user touches that card. Persists
+   *  the FIRST pet's photo to the cross-page sharing helper (per spec
+   *  — multi-pet persistence is out of scope). */
+  function updatePet(id: string, next: Pet) {
+    setPets((prev) => {
+      const updated = prev.map((p) => (p.id === id ? next : p));
+      // Persist the first pet's photo for cross-page hand-off.
+      const first = updated[0];
+      if (first?.photoUrl) savePetPhoto(first.photoUrl);
+      else if (first && !first.photoUrl) clearPetPhoto();
+      return updated;
+    });
+    setPetErrors((prev) => {
+      if (!prev[id]) return prev;
+      const { [id]: _drop, ...rest } = prev;
+      return rest;
+    });
+    // Approval is invalidated by any pet change.
+    setApproved(false);
+  }
+
+  function addPet() {
+    setPets((prev) =>
+      prev.length >= MAX_PETS
+        ? prev
+        : [...prev, { id: newPetId(), photoUrl: null, name: "" }],
+    );
+    setApproved(false);
+  }
+
+  function removePet(id: string) {
+    setPets((prev) => (prev.length > 1 ? prev.filter((p) => p.id !== id) : prev));
+    setPetErrors((prev) => {
+      const { [id]: _drop, ...rest } = prev;
+      return rest;
+    });
+    setApproved(false);
+  }
+
+  const [prompt, setPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [selectedVariantUrl, setSelectedVariantUrl] = useState<string | null>(null);
+  // Approval gate — the Reveal step. Customer must explicitly approve
+  // before size/frame picker + cart UI become visible.
+  const [approved, setApproved] = useState(false);
+  const [generationCount, setGenerationCount] = useState(0);
+  // Print-master regen state — busy spinner over the cart-add button while
+  // the print-grade asset is being prepared (~10-20s).
+  const [preparingPrintMaster, setPreparingPrintMaster] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -454,13 +543,27 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
 
   const variant = resolveFramedCanvasVariant(sizeKey, frameColor);
   const placeholder = useTypewriterPlaceholder(PROMPT_EXAMPLES, prompt.length > 0 || focused);
-  const canGenerate = !!photoUrl && prompt.trim().length > 3 && !generating;
-  const canAdd = !!selectedVariantUrl && !!variant && !!photoUrl;
+
+  // Derived: at least one pet has a photo + prompt is long enough.
+  const uploadedPets = useMemo(() => pets.filter((p) => p.photoUrl), [pets]);
+  const canGenerate =
+    uploadedPets.length >= 1 && prompt.trim().length >= 4 && !generating;
+  const canAdd =
+    approved && !!selectedVariantUrl && !!variant && uploadedPets.length >= 1 && !preparingPrintMaster;
+
+  // Reset approval whenever the prompt changes (any prompt edit invalidates
+  // the prior generation's approval state — same gen no longer represents
+  // what the customer wants).
+  useEffect(() => {
+    setApproved(false);
+  }, [prompt]);
 
   const variantsRef = useRef<HTMLDivElement>(null);
+  const approvalRef = useRef<HTMLDivElement>(null);
+  const promptRef = useRef<HTMLTextAreaElement>(null);
 
   async function handleGenerate() {
-    if (!photoUrl || prompt.trim().length < 4) return;
+    if (uploadedPets.length < 1 || prompt.trim().length < 4) return;
     if (!user || !session?.access_token) {
       setSignInOpen(true);
       return;
@@ -468,9 +571,17 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     setGenerating(true);
     setVariants([]);
     setSelectedVariantUrl(null);
+    setApproved(false);
+    setPetErrors({});
+
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 60000);
     try {
+      // Build the request body per the API contract Agent 1 implemented:
+      //   imageUrls is the array of uploaded pet photos (filter out empty
+      //   slots so we never send null), petNames is parallel to that list
+      //   so the server can map per-pet name → per-pet typography.
+      const orderedPets = pets.filter((p) => p.photoUrl);
       const res = await fetch("/api/portraits?action=generate", {
         method: "POST",
         headers: {
@@ -478,15 +589,29 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          imageUrl: photoUrl,
+          imageUrls: orderedPets.map((p) => p.photoUrl as string),
+          petNames: orderedPets.map((p) => p.name.trim().slice(0, 40)),
           customPrompt: prompt.trim(),
-          // Slots into the prompt: 'Render the name "{petName}" in serif typography
-          // along the lower margin…'. Server re-sanitises and caps at 24 chars.
-          petName: petName.trim().slice(0, 40),
         }),
         signal: ctrl.signal,
       });
       const data = await res.json();
+
+      // 400 — no pet detected on a specific upload. Highlight that card
+      // inline rather than firing a generic toast (per task spec).
+      if (res.status === 400 && data?.error === "no_pet_detected") {
+        const idx: number = typeof data.petIndex === "number" ? data.petIndex : 0;
+        const target = orderedPets[idx]?.id;
+        const message: string =
+          data.message || "We couldn't find a pet in this photo. Try a clearer, well-lit shot.";
+        if (target) {
+          setPetErrors((prev) => ({ ...prev, [target]: message }));
+        } else {
+          toast.error(message);
+        }
+        return;
+      }
+
       if (res.status === 402) {
         toast.error("Out of credits. Top up below to keep going.");
         document.getElementById("topup")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -498,10 +623,15 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         return;
       }
       if (!res.ok) throw new Error(data.error || "Generation failed");
+
       setVariants(data.variants);
       if (data.variants[0]) setSelectedVariantUrl(data.variants[0].url);
+      setGenerationCount((n) => n + 1);
       refreshCredits();
-      requestAnimationFrame(() => variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      // Scroll to the Approval gate (replaces the old "scroll to variants").
+      requestAnimationFrame(() =>
+        approvalRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
     } catch (e) {
       const err = e as Error;
       toast.error(err.name === "AbortError" ? "Took too long — please try again." : err.message);
@@ -511,12 +641,99 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     }
   }
 
-  function handleAdd() {
-    if (!selectedVariantUrl || !variant || !photoUrl) return;
-    const trimmedPet = petName.trim().slice(0, 40);
-    if (trimmedPet && typeof window !== "undefined") {
-      try { window.sessionStorage.setItem("portraits.lastPet", trimmedPet); } catch {}
+  /** Approval-gate retry: regenerate with same photos + prompt. */
+  function handleTryAgain() {
+    handleGenerate();
+  }
+
+  /** Approval-gate tweak: collapse gate, scroll back to prompt editor. */
+  function handleTweak() {
+    setVariants([]);
+    setSelectedVariantUrl(null);
+    setApproved(false);
+    requestAnimationFrame(() => {
+      promptRef.current?.focus();
+      promptRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  /** Approval-gate continue: flip approved=true → reveals size/frame picker. */
+  function handleApprove() {
+    setApproved(true);
+    setCartAddCount(0);
+    requestAnimationFrame(() =>
+      variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+  }
+
+  async function handleAdd() {
+    if (!selectedVariantUrl || !variant) return;
+    if (uploadedPets.length === 0) return;
+    if (!session?.access_token) {
+      setSignInOpen(true);
+      return;
     }
+
+    // Persist the first pet's name for the Soul Reading upsell pre-fill.
+    const trimmedNames = pets.map((p) => p.name.trim().slice(0, 40));
+    const firstName = trimmedNames[0];
+    if (firstName && typeof window !== "undefined") {
+      try { window.sessionStorage.setItem("portraits.lastPet", firstName); } catch {}
+    }
+
+    // ── Print-master regen ──────────────────────────────────────────────
+    // The selectedVariantUrl is preview-grade. For physical canvas we POST
+    // back to /api/portraits?action=printMaster to get the print-grade
+    // asset at the correct aspect for the chosen size. ~10-20s typical.
+    setPreparingPrintMaster(true);
+    let printMasterUrl: string | null = null;
+    try {
+      const orderedPhotos = uploadedPets.map((p) => p.photoUrl as string);
+      const orderedNames = uploadedPets.map((p) => p.name.trim().slice(0, 40));
+      // 30s timeout is generous — print-grade gens average 10-20s.
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 30000);
+      try {
+        const res = await fetch("/api/portraits?action=printMaster", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            imageUrls: orderedPhotos,
+            petNames: orderedNames,
+            customPrompt: prompt.trim(),
+            sizeKey,
+          }),
+          signal: ctrl.signal,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data?.printMasterUrl) {
+          throw new Error(data?.error || `printMaster failed (${res.status})`);
+        }
+        printMasterUrl = data.printMasterUrl as string;
+      } finally {
+        clearTimeout(timer);
+      }
+    } catch (e) {
+      console.error("[StudioFlow] printMaster failed", e);
+      toast.error("Couldn't prepare print master — please try again.");
+      setPreparingPrintMaster(false);
+      return; // Hard stop — do NOT add to cart with a bad master.
+    }
+    setPreparingPrintMaster(false);
+
+    // Multi-pet line-item property: Shopify line-item-property is one key,
+    // one string value — comma-join the names so the order admin shows them.
+    const nameList = trimmedNames.filter((n) => n.length > 0);
+    const properties: Record<string, string> = {};
+    if (nameList.length === 1) {
+      properties._pet_name = nameList[0];
+    } else if (nameList.length > 1) {
+      properties._pet_names = nameList.join(", ");
+    }
+
     const item = buildCartItem({
       kind: "ai",
       productType,
@@ -525,13 +742,17 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       packId: "custom-prompt",
       packName: prompt.trim().slice(0, 60),
       style: "photographic",
-      sourcePhotoUrl: photoUrl,
-      previewUrl: selectedVariantUrl,
+      // Source photo: first pet's upload — fulfilment uses this as the
+      // "anchor" photo of record. The print master carries the actual
+      // composited art for fulfilment.
+      sourcePhotoUrl: uploadedPets[0].photoUrl as string,
+      previewUrl: printMasterUrl,
+      printMasterUrl,
       soulEdition: false,
       soulEditionPriceMajor: 40,
       variant: { variantId: variant.variantId, priceMajor: variant.priceMajor, sizeLabel: variant.sizeLabel },
-      id: crypto.randomUUID(),
-      properties: trimmedPet ? { _pet_name: trimmedPet } : undefined,
+      id: newPetId(),
+      properties: Object.keys(properties).length > 0 ? properties : undefined,
     });
     onCartAdd(item);
     setCartAddCount((n) => n + 1);
@@ -658,186 +879,164 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           )}
         </div>
 
-        {/* ── Photo upload ─────────────────────────────────────────── */}
+        {/* ── Multi-pet upload stack ──────────────────────────────────
+            One PetUploadCard per pet (photo + name input). Cap at MAX_PETS.
+            "+ Add another pet" button below; per-card "×" delete affordance.
+            Each pet's photo + name are isolated so multi-pet flows work
+            without ballooning the JSX inline. */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={sectionTransition}
+          className="space-y-3"
         >
-          <PetPhotoUpload
-            photoUrl={photoUrl}
-            onUploaded={setPhotoUrl}
-            onReset={() => {
-              setPhotoUrl(null);
-              setVariants([]);
-              setSelectedVariantUrl(null);
-              setPrompt("");
-            }}
-          />
-        </motion.div>
+          <AnimatePresence initial={false}>
+            {pets.map((p, idx) => (
+              <PetUploadCard
+                key={p.id}
+                pet={p}
+                index={idx + 1}
+                onChange={(next) => updatePet(p.id, next)}
+                onDelete={() => removePet(p.id)}
+                canDelete={pets.length > 1}
+                errorMessage={petErrors[p.id]}
+              />
+            ))}
+          </AnimatePresence>
 
-        {/* ── Pet name → on-canvas typography (optional) ─────────────── */}
-        <motion.div
-          key="petname"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={sectionTransition}
-          className="mt-7"
-        >
-          <div className="flex items-baseline justify-between gap-3 px-1.5 mb-1.5">
-            <label
-              className="block text-xs"
-              style={{
-                fontFamily: 'Assistant, system-ui, sans-serif',
-                color: PALETTE.earthMuted,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-              }}
-            >
-              <span aria-hidden style={{ color: PALETTE.gold, marginRight: 6 }}>✦</span>
-              Add your pet's name to the canvas?
-            </label>
-            <span
-              style={{
-                fontFamily: 'Assistant, system-ui, sans-serif',
-                fontSize: 11,
-                color: PALETTE.earthSubtle,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Optional
-            </span>
-          </div>
-          <p
-            className="text-xs mb-2.5 px-1.5"
+          {/* "+ Add another pet" — disabled at MAX_PETS with tooltip. */}
+          <button
+            type="button"
+            onClick={addPet}
+            disabled={pets.length >= MAX_PETS}
+            title={
+              pets.length >= MAX_PETS
+                ? `Up to ${MAX_PETS} pets per portrait — beyond that, recognition drops.`
+                : "Add another pet to this portrait"
+            }
+            className="w-full rounded-2xl py-3.5 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center justify-center gap-2"
             style={{
-              fontFamily: 'Assistant, system-ui, sans-serif',
-              fontSize: 12.5,
-              color: PALETTE.earthSubtle,
-              lineHeight: 1.55,
-              maxWidth: 520,
+              background: "transparent",
+              border: `1.5px dashed ${PALETTE.sandDeep}`,
+              color: PALETTE.earth,
+              fontFamily: "Asap, system-ui, sans-serif",
+              fontSize: 14,
+              fontWeight: 600,
             }}
           >
-            Set in elegant typography along the lower margin of your print. Leave blank for a clean canvas.
-          </p>
-          <input
-            type="text"
-            value={petName}
-            onChange={(e) => setPetName(e.target.value.slice(0, 40))}
-            placeholder="e.g. Luna"
-            maxLength={40}
-            aria-label="Pet's name to print on the canvas"
-            className="w-full bg-transparent outline-none px-5 py-3"
-            style={{
-              fontFamily: 'Assistant, system-ui, sans-serif',
-              fontSize: 16,
-              color: PALETTE.ink,
-              background: '#ffffff',
-              border: `1.5px solid ${PALETTE.sandDeep}`,
-              borderRadius: 14,
-              boxShadow: '0 8px 18px rgba(20,18,16,.04), 0 1px 2px rgba(20,18,16,.02)',
-              transition: 'box-shadow 220ms, border-color 220ms',
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = PALETTE.rose;
-              e.currentTarget.style.boxShadow = '0 0 0 4px rgba(191,82,74,.08), 0 14px 28px rgba(20,18,16,.06)';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = PALETTE.sandDeep;
-              e.currentTarget.style.boxShadow = '0 8px 18px rgba(20,18,16,.04), 0 1px 2px rgba(20,18,16,.02)';
-            }}
-          />
-
-          {/* ── Live "on the canvas" preview ──────────────────────── */}
-          <AnimatePresence initial={false}>
-            {petName.trim().length > 0 && (
-              <motion.div
-                key="petname-preview"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 4 }}
-                transition={{ duration: 0.36, ease: EASE.out }}
-                className="flex items-center gap-3 mt-3 px-1.5"
-                aria-live="polite"
-              >
-                <div
-                  className="relative shrink-0 overflow-hidden"
-                  style={{
-                    width: 88,
-                    height: 110,
-                    borderRadius: 8,
-                    background: selectedVariantUrl
-                      ? `#000`
-                      : `linear-gradient(160deg, ${PALETTE.cosmosMid} 0%, ${PALETTE.cosmos} 100%)`,
-                    border: `1px solid ${PALETTE.sandDeep}`,
-                    boxShadow: '0 8px 20px rgba(20,18,16,.10), inset 0 0 0 1px rgba(196,162,101,.18)',
-                  }}
-                  aria-hidden
-                >
-                  {selectedVariantUrl ? (
-                    <img
-                      src={selectedVariantUrl}
-                      alt=""
-                      className="absolute inset-0 w-full h-full object-cover"
-                      style={{ opacity: 0.86 }}
-                    />
-                  ) : (
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background:
-                          'radial-gradient(80% 60% at 50% 35%, rgba(196,162,101,.22) 0%, transparent 60%)',
-                      }}
-                    />
-                  )}
-                  {/* Soft bottom scrim so the name reads cleanly */}
-                  <div
-                    className="absolute left-0 right-0 bottom-0"
-                    style={{
-                      height: '46%',
-                      background:
-                        'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.55) 100%)',
-                    }}
-                  />
-                  {/* The name as it'll print */}
-                  <div
-                    className="absolute left-0 right-0 bottom-1 px-1.5 text-center"
-                    style={{
-                      fontFamily: '"Cormorant", "Cormorant Garamond", Georgia, serif',
-                      fontStyle: 'italic',
-                      fontWeight: 500,
-                      fontSize: 13,
-                      letterSpacing: '0.02em',
-                      color: '#fdf6e3',
-                      textShadow: '0 1px 2px rgba(0,0,0,.5)',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    <span style={{ color: PALETTE.goldSoft, marginRight: 4 }}>·</span>
-                    {petName.trim()}
-                    <span style={{ color: PALETTE.goldSoft, marginLeft: 4 }}>·</span>
-                  </div>
-                </div>
-                <p
-                  style={{
-                    fontFamily: 'Assistant, system-ui, sans-serif',
-                    fontSize: 12.5,
-                    color: PALETTE.earthMuted,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  This is roughly how <strong style={{ color: PALETTE.ink, fontWeight: 600 }}>{petName.trim()}</strong> will appear on your printed canvas.{' '}
-                  <span style={{ color: PALETTE.earthSubtle }}>
-                    Position and proportions are finalised during print preparation.
-                  </span>
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            <Plus className="w-[16px] h-[16px]" strokeWidth={2.4} />
+            {pets.length >= MAX_PETS
+              ? `${MAX_PETS}-pet maximum reached`
+              : `Add another pet (${pets.length}/${MAX_PETS})`}
+          </button>
         </motion.div>
+
+        {/* ── On-canvas typography preview ──────────────────────────────
+            One chip per named pet, side-by-side. Same look as the prior
+            single-pet preview, just rendered per pet. Uses the first
+            generated variant as the chip background once available. */}
+        <AnimatePresence initial={false}>
+          {pets.some((p) => p.name.trim().length > 0) && (
+            <motion.div
+              key="petname-previews"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.36, ease: EASE.out }}
+              className="mt-5 flex items-start gap-3 flex-wrap px-1.5"
+              aria-live="polite"
+            >
+              {pets
+                .filter((p) => p.name.trim().length > 0)
+                .map((p) => (
+                  <div key={p.id} className="flex items-center gap-2.5">
+                    <div
+                      className="relative shrink-0 overflow-hidden"
+                      style={{
+                        width: 76,
+                        height: 96,
+                        borderRadius: 8,
+                        background: selectedVariantUrl
+                          ? "#000"
+                          : `linear-gradient(160deg, ${PALETTE.cosmosMid} 0%, ${PALETTE.cosmos} 100%)`,
+                        border: `1px solid ${PALETTE.sandDeep}`,
+                        boxShadow:
+                          "0 6px 14px rgba(20,18,16,.08), inset 0 0 0 1px rgba(196,162,101,.18)",
+                      }}
+                      aria-hidden
+                    >
+                      {selectedVariantUrl ? (
+                        <img
+                          src={selectedVariantUrl}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover"
+                          style={{ opacity: 0.84 }}
+                        />
+                      ) : p.photoUrl ? (
+                        <img
+                          src={p.photoUrl}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover"
+                          style={{ opacity: 0.7 }}
+                        />
+                      ) : (
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background:
+                              "radial-gradient(80% 60% at 50% 35%, rgba(196,162,101,.22) 0%, transparent 60%)",
+                          }}
+                        />
+                      )}
+                      {/* Soft bottom scrim so the name reads cleanly */}
+                      <div
+                        className="absolute left-0 right-0 bottom-0"
+                        style={{
+                          height: "46%",
+                          background:
+                            "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.55) 100%)",
+                        }}
+                      />
+                      <div
+                        className="absolute left-0 right-0 bottom-1 px-1.5 text-center"
+                        style={{
+                          fontFamily: '"Cormorant", "Cormorant Garamond", Georgia, serif',
+                          fontStyle: "italic",
+                          fontWeight: 500,
+                          fontSize: 12,
+                          letterSpacing: "0.02em",
+                          color: "#fdf6e3",
+                          textShadow: "0 1px 2px rgba(0,0,0,.5)",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        <span style={{ color: PALETTE.goldSoft, marginRight: 3 }}>·</span>
+                        {p.name.trim()}
+                        <span style={{ color: PALETTE.goldSoft, marginLeft: 3 }}>·</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              <p
+                className="self-center"
+                style={{
+                  fontFamily: "Assistant, system-ui, sans-serif",
+                  fontSize: 12.5,
+                  color: PALETTE.earthMuted,
+                  lineHeight: 1.5,
+                  maxWidth: 280,
+                }}
+              >
+                Roughly how each name will appear on the canvas.{" "}
+                <span style={{ color: PALETTE.earthSubtle }}>
+                  Position and proportions are finalised during print preparation.
+                </span>
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Premium prompt box — always visible (Generate gated by !!photoUrl) ─ */}
         <AnimatePresence>
@@ -870,6 +1069,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                 }}
               >
                 <textarea
+                  ref={promptRef}
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value.slice(0, 400))}
                   onFocus={() => setFocused(true)}
@@ -948,7 +1148,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
 
               {/* Upload-first hint when no photo yet — sits below the prompt.
                   Also clarifies that size + frame are picked AFTER variants generate. */}
-              {!photoUrl && (
+              {uploadedPets.length === 0 && (
                 <p
                   className="text-center mt-3 px-2"
                   style={{
@@ -958,7 +1158,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     lineHeight: 1.5,
                   }}
                 >
-                  Upload your pet's photo above to generate. Pick your canvas size &amp; frame after.
+                  Upload {pets.length > 1 ? "at least one pet's photo above" : "your pet's photo above"} to generate. Pick your canvas size &amp; frame after.
                 </p>
               )}
 
@@ -1023,7 +1223,36 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           )}
         </AnimatePresence>
 
-        {/* ── Variants + size + cart ───────────────────────────────── */}
+        {/* ── Approval gate (Reveal step) ─────────────────────────────
+            After variants return, customer must explicitly approve before
+            the size/frame picker + cart UI become visible. This matches the
+            Crown & Paw "preview & approve before print" pattern (research
+            doc §8 Screen 5). Resets to false on any pet/prompt change. */}
+        <div ref={approvalRef} />
+        <AnimatePresence>
+          {!generating && variants.length > 0 && !approved && selectedVariantUrl && (
+            <motion.div
+              key="approval"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={sectionTransition}
+              className="mt-10"
+            >
+              <ApprovalGate
+                previewUrl={selectedVariantUrl}
+                generationCount={generationCount}
+                creditsRemaining={generationsRemaining}
+                busy={generating}
+                onApprove={handleApprove}
+                onTryAgain={handleTryAgain}
+                onTweak={handleTweak}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Variants + size + cart (post-approval) ─────────────────── */}
         <div ref={variantsRef} />
         <AnimatePresence>
           {generating && (
@@ -1032,7 +1261,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             </div>
           )}
 
-          {!generating && variants.length > 0 && (
+          {!generating && variants.length > 0 && approved && (
             <motion.div
               key="variants"
               initial={{ opacity: 0, y: 12 }}
@@ -1220,7 +1449,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                 <button
                   onClick={handleAdd}
                   disabled={!canAdd}
-                  className="mt-6 w-full rounded-xl py-4 transition-all disabled:opacity-40"
+                  className="mt-6 w-full rounded-xl py-4 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
                   style={{
                     background: PALETTE.ink,
                     color: PALETTE.cream,
@@ -1233,9 +1462,32 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                       : "none",
                   }}
                 >
-                  {cartAddCount > 0 ? "Add another to cart" : "Add to cart"}
-                  {variant ? ` · £${variant.priceMajor}` : ""}
+                  {preparingPrintMaster ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2.4} />
+                      Preparing print master…
+                    </>
+                  ) : (
+                    <>
+                      {cartAddCount > 0 ? "Add another to cart" : "Add to cart"}
+                      {variant ? ` · £${variant.priceMajor}` : ""}
+                    </>
+                  )}
                 </button>
+                {preparingPrintMaster && (
+                  <p
+                    className="text-center mt-2"
+                    style={{
+                      fontFamily: 'Assistant, system-ui, sans-serif',
+                      fontSize: 12,
+                      color: PALETTE.earthMuted,
+                      lineHeight: 1.4,
+                    }}
+                    aria-live="polite"
+                  >
+                    Generating a print-grade version at {variant?.sizeLabel ?? "your size"} — usually 10–20 seconds.
+                  </p>
+                )}
                 {cartAddCount > 0 && (
                   <p
                     className="text-center mt-3"
