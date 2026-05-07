@@ -1596,5 +1596,5 @@ async function handleTestAspects(req: VercelRequest, res: VercelResponse) {
     };
   }));
 
-  return res.status(200).json({ mode, prompt: fullPrompt, aspects: results });
+  return res.status(200).json({ mode, subject, prompt: fullPrompt, aspects: results });
 }
