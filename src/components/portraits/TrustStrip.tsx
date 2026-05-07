@@ -1,85 +1,148 @@
 /**
- * TrustStrip — three trust cards: rating · shipping · guarantee.
+ * TrustStrip — three trust signals in an editorial colophon strip.
  *
- * Designed to feel premium without shouting. Each card is a clean white
- * surface with a tinted icon halo and a confident headline. The rating
- * card leads with the 4.9 number (strongest trust signal for e-commerce).
+ * Design intent: refined European luxury (Aesop, Hermès, Le Labo trust bands),
+ * not generic e-commerce icon-cards. The visual conceit is a printed-page
+ * spread:
+ *   - Three columns separated by hand-feel hairlines (no card containers).
+ *   - Italic Cormorant 4.9 numeral as the typographic anchor of column 1.
+ *   - Asap display for headlines, Cormorant italic for captions — the same
+ *     editorial pairing the brand uses elsewhere for "emotional whispers".
+ *   - Subtle paper-grain texture and gold-fade rules at the strip edges.
  *
- * Mobile-first: stacks with breathing room, then sits side-by-side at md+.
- * Subtle hover lift on devices that support hover (no jitter on touch).
+ * Stacks gracefully on mobile (rules go horizontal), staggered entrance on
+ * scroll-into-view, restrained hover on devices that support hover.
+ *
+ * Copy is held verbatim — every word as supplied.
  */
+import { motion, useReducedMotion } from "framer-motion";
 import { Globe, ShieldCheck } from "lucide-react";
-import { PALETTE, display, body } from "./tokens";
+import { PALETTE, display, cormorantItalic, EASE } from "./tokens";
 
-const RATING = {
-  score: "4.9",
-  count: "47,000+",
-};
+// ── 1px noise texture, base64-inlined so we don't ship an asset.
+// Subtle: 6% black opacity over the section, multiply blend.
+const PAPER_GRAIN_DATA_URI =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240">` +
+      `<filter id="n">` +
+        `<feTurbulence type="fractalNoise" baseFrequency="0.86" numOctaves="2" stitchTiles="stitch"/>` +
+        `<feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.06 0"/>` +
+      `</filter>` +
+      `<rect width="100%" height="100%" filter="url(#n)"/>` +
+    `</svg>`
+  );
 
-const Stars = ({ size = 14 }: { size?: number }) => (
-  <div
-    aria-hidden
-    style={{
-      color: PALETTE.gold,
-      fontSize: `${size}px`,
-      letterSpacing: "0.12em",
-      lineHeight: 1,
-      whiteSpace: "nowrap",
-    }}
-  >
-    ★★★★★
-  </div>
-);
-
-interface CardShellProps {
-  haloBg: string;
-  haloIcon: React.ReactNode;
-  children: React.ReactNode;
+// ── A proper SVG star (consistent kerning, sharp at any size, vs unicode ★)
+function Star({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill={PALETTE.gold}
+      aria-hidden
+      style={{ display: "block" }}
+    >
+      <path d="M12 1.7l3.18 7.05 7.62.85-5.7 5.21 1.6 7.49L12 18.6l-6.7 3.7 1.6-7.49-5.7-5.21 7.62-.85L12 1.7z" />
+    </svg>
+  );
 }
 
-function CardShell({ haloBg, haloIcon, children }: CardShellProps) {
+function FiveStars({ size = 16 }: { size?: number }) {
   return (
     <div
-      className="trust-card flex flex-col items-center text-center transition-all duration-300"
-      style={{
-        background: "#ffffff",
-        border: `1px solid ${PALETTE.sand}`,
-        borderRadius: "18px",
-        padding: "32px 24px",
-        boxShadow:
-          "0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 8px 24px rgba(28, 28, 28, 0.05), 0 2px 6px rgba(28, 28, 28, 0.03)",
-      }}
+      role="img"
+      aria-label="Five out of five stars"
+      style={{ display: "inline-flex", gap: size * 0.32 }}
     >
-      <div
-        className="flex items-center justify-center mb-5"
-        style={{
-          width: "64px",
-          height: "64px",
-          borderRadius: "50%",
-          background: haloBg,
-        }}
-      >
-        {haloIcon}
-      </div>
-      {children}
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Star key={i} size={size} />
+      ))}
     </div>
   );
 }
 
-const titleStyle: React.CSSProperties = {
-  ...display("clamp(18px, 2.2vw, 22px)"),
+// ── Hand-feel divider rule: thin gold with gradient fade at the ends so it
+//    looks letterpress-printed, not CSS border.
+function GoldRule({
+  orientation = "horizontal",
+  length,
+  className,
+}: {
+  orientation?: "horizontal" | "vertical";
+  length?: number | string;
+  className?: string;
+}) {
+  const horizontalGradient = `linear-gradient(90deg, transparent 0%, ${PALETTE.gold}66 18%, ${PALETTE.gold}88 50%, ${PALETTE.gold}66 82%, transparent 100%)`;
+  const verticalGradient = `linear-gradient(180deg, transparent 0%, ${PALETTE.gold}55 22%, ${PALETTE.gold}55 78%, transparent 100%)`;
+  return (
+    <div
+      aria-hidden
+      className={className}
+      style={{
+        background: orientation === "horizontal" ? horizontalGradient : verticalGradient,
+        height: orientation === "horizontal" ? 1 : (length ?? "100%"),
+        width: orientation === "horizontal" ? (length ?? "100%") : 1,
+      }}
+    />
+  );
+}
+
+// ── Wrapper for staggered entrance + restrained hover.
+interface ColumnProps {
+  index: number;
+  children: React.ReactNode;
+}
+function Column({ index, children }: ColumnProps) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.article
+      initial={reduce ? false : { opacity: 0, y: 16 }}
+      whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{
+        duration: 0.95,
+        delay: 0.12 + index * 0.16,
+        ease: EASE.out,
+      }}
+      className="trust-col flex flex-col items-center text-center"
+      style={{
+        // Equal vertical rhythm; horizontal padding lets the gold rules
+        // breathe between columns at md+.
+        padding: "8px 4px",
+      }}
+    >
+      {children}
+    </motion.article>
+  );
+}
+
+// ── Shared type recipes ─────────────────────────────────────────────────
+const titleAsap: React.CSSProperties = {
+  ...display("clamp(20px, 2vw, 23px)"),
   color: PALETTE.ink,
-  fontWeight: 600,
   margin: 0,
-  lineHeight: 1.25,
+  lineHeight: 1.18,
 };
 
-const captionStyle: React.CSSProperties = {
-  ...body("14px"),
-  color: PALETTE.earthMuted,
-  marginTop: "8px",
+const captionItalic: React.CSSProperties = {
+  ...cormorantItalic("clamp(15.5px, 1.55vw, 17.5px)"),
+  color: PALETTE.earth,
   maxWidth: "30ch",
-  lineHeight: 1.55,
+  margin: "0 auto",
+};
+
+// "Rated" / "from 47K+" — the small-cap voice surrounding the big numeral.
+const ratingFlankText: React.CSSProperties = {
+  fontFamily: "Asap, system-ui, sans-serif",
+  fontSize: "13px",
+  fontWeight: 600,
+  color: PALETTE.earthMuted,
+  letterSpacing: "0.22em",
+  textTransform: "uppercase",
+  display: "block",
+  lineHeight: 1,
 };
 
 export function TrustStrip() {
@@ -87,86 +150,256 @@ export function TrustStrip() {
     <section
       className="relative px-6 md:px-10"
       style={{
-        background: "rgba(255, 255, 255, 0.84)",
-        paddingTop: "56px",
-        paddingBottom: "56px",
-        borderBottom: `1px solid ${PALETTE.sand}`,
+        // Warm parchment-to-ivory wash gives the strip its own surface
+        // without competing with the page's white sections above and below.
+        background: "linear-gradient(180deg, #faf6ed 0%, #fdfaf3 55%, #ffffff 100%)",
+        paddingTop: "clamp(72px, 9vw, 108px)",
+        paddingBottom: "clamp(72px, 9vw, 108px)",
+        overflow: "hidden",
       }}
-      aria-label="What pet parents trust us with"
+      aria-label="Trust signals"
     >
+      {/* Paper grain — tasteful, ~6% black noise, multiply-blended. */}
       <div
-        className="mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6"
-        style={{ maxWidth: "1080px" }}
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          backgroundImage: `url("${PAPER_GRAIN_DATA_URI}")`,
+          backgroundSize: "240px 240px",
+          opacity: 0.55,
+          mixBlendMode: "multiply",
+        }}
+      />
+
+      {/* Top + bottom horizontal gold hairlines, with gradient fade at edges. */}
+      <div
+        aria-hidden
+        className="absolute left-0 right-0"
+        style={{ top: 0, height: 1 }}
       >
-        {/* ── Card 1 — Rating (lead with the number) ─────────────────── */}
-        <CardShell
-          haloBg="rgba(196, 162, 101, 0.12)"
-          haloIcon={<Stars size={18} />}
-        >
-          <div className="flex items-baseline justify-center gap-1.5">
-            <span
-              style={{
-                ...display("clamp(34px, 4.2vw, 44px)"),
-                color: PALETTE.ink,
-                fontWeight: 700,
-                lineHeight: 1,
-                fontVariantNumeric: "tabular-nums",
-              }}
-            >
-              {RATING.score}
-            </span>
-            <span
-              style={{
-                ...body("13px"),
-                color: PALETTE.earthMuted,
-                fontWeight: 500,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
-              }}
-            >
-              / 5
-            </span>
-          </div>
-          <p style={{ ...captionStyle, marginTop: 6 }}>
-            from <strong style={{ color: PALETTE.earth, fontWeight: 600 }}>{RATING.count}</strong> happy pet parent reviews
-          </p>
-        </CardShell>
-
-        {/* ── Card 2 — Shipping ──────────────────────────────────────── */}
-        <CardShell
-          haloBg="rgba(28, 28, 28, 0.05)"
-          haloIcon={<Globe size={28} strokeWidth={1.5} color={PALETTE.ink} aria-hidden />}
-        >
-          <h3 style={titleStyle}>Worldwide shipping</h3>
-          <p style={captionStyle}>
-            Printed with care, framed beautifully, delivered to your door.
-          </p>
-        </CardShell>
-
-        {/* ── Card 3 — Guarantee (warm rose halo for emotional weight) ─ */}
-        <CardShell
-          haloBg={PALETTE.roseSoft}
-          haloIcon={<ShieldCheck size={28} strokeWidth={1.6} color={PALETTE.rose} aria-hidden />}
-        >
-          <h3 style={titleStyle}>100% Love-It Guarantee</h3>
-          <p style={captionStyle}>
-            Don't love it? We'll re-do it or refund. No stress, ever.
-          </p>
-        </CardShell>
+        <GoldRule orientation="horizontal" />
+      </div>
+      <div
+        aria-hidden
+        className="absolute left-0 right-0"
+        style={{ bottom: 0, height: 1 }}
+      >
+        <GoldRule orientation="horizontal" />
       </div>
 
-      {/* Hover lift only where hover is real (desktop) — keeps mobile crisp. */}
+      <div
+        className="relative mx-auto"
+        style={{ maxWidth: 1120 }}
+      >
+        <div
+          // CSS Grid with explicit 1px gutter columns so the gold rules sit
+          // between, not as borders. Stacks to single column on mobile and
+          // we render horizontal rules in the gutters instead.
+          className="grid"
+          style={{
+            gridTemplateColumns: "1fr",
+            rowGap: 0,
+          }}
+        >
+          {/* ── Desktop: 3 cols + 2 vertical rules. Mobile: 3 stacked rows.  */}
+          <div
+            className="grid gap-y-12 md:gap-y-0"
+            style={{
+              gridTemplateColumns: "1fr",
+            }}
+          >
+            <div
+              className="grid items-center"
+              style={{
+                gridTemplateColumns: "1fr",
+                gap: "44px 0",
+              }}
+            >
+              <div className="md:hidden">
+                <RatingColumn />
+              </div>
+              <div className="hidden md:block">
+                <DesktopRow />
+              </div>
+
+              {/* Mobile dividers between stacked columns (md:hidden). */}
+              <MobileDivider className="md:hidden" />
+              <div className="md:hidden">
+                <ShippingColumn />
+              </div>
+              <MobileDivider className="md:hidden" />
+              <div className="md:hidden">
+                <GuaranteeColumn />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Restrained hover: subtle gold rule grows under each column's heading.
+          Only on devices that actually have hover (not touch). */}
       <style>{`
-        @media (hover: hover) {
-          .trust-card:hover {
-            transform: translateY(-3px);
-            box-shadow:
-              0 1px 0 rgba(255, 255, 255, 0.9) inset,
-              0 14px 32px rgba(28, 28, 28, 0.07),
-              0 4px 10px rgba(28, 28, 28, 0.04);
+        @media (hover: hover) and (pointer: fine) {
+          .trust-col [data-hover-rule] {
+            transform: scaleX(0.4);
+            transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms;
+            opacity: 0.55;
+          }
+          .trust-col:hover [data-hover-rule] {
+            transform: scaleX(1);
+            opacity: 1;
           }
         }
       `}</style>
     </section>
+  );
+}
+
+// ── Desktop row: three columns with vertical gold rules in between ──────
+function DesktopRow() {
+  return (
+    <div
+      className="grid items-stretch"
+      style={{
+        // 1fr  1px  1fr  1px  1fr — gold rules occupy the gutter columns.
+        gridTemplateColumns: "1fr 1px 1fr 1px 1fr",
+        gap: 0,
+      }}
+    >
+      <div className="px-6 lg:px-12">
+        <RatingColumn />
+      </div>
+      <GoldRule orientation="vertical" />
+      <div className="px-6 lg:px-12">
+        <ShippingColumn />
+      </div>
+      <GoldRule orientation="vertical" />
+      <div className="px-6 lg:px-12">
+        <GuaranteeColumn />
+      </div>
+    </div>
+  );
+}
+
+function MobileDivider({ className }: { className?: string }) {
+  return (
+    <div className={className} style={{ display: "flex", justifyContent: "center" }}>
+      <GoldRule orientation="horizontal" length={120} />
+    </div>
+  );
+}
+
+// ── Column I — Rating. The 4.9 is the typographic anchor. ──────────────
+function RatingColumn() {
+  return (
+    <Column index={0}>
+      <FiveStars size={15} />
+
+      {/* Title held verbatim — typeset across three lines so the 4.9
+          dominates as a printed-page numeral. */}
+      <h3
+        style={{ margin: "26px 0 0", display: "block", lineHeight: 1 }}
+        aria-label="Rated 4.9 from 47K+"
+      >
+        <span style={ratingFlankText}>Rated</span>
+        <span
+          aria-hidden
+          style={{
+            ...cormorantItalic("clamp(76px, 9.4vw, 108px)"),
+            color: PALETTE.ink,
+            fontWeight: 500,
+            display: "block",
+            lineHeight: 0.92,
+            margin: "10px 0 12px",
+            // Crisp letterpress contrast — italic Cormorant 500 holds
+            // the high stroke contrast that gives didone numerals their
+            // editorial feel.
+            fontFeatureSettings: "'lnum' 1",
+          }}
+        >
+          4.9
+        </span>
+        <span style={ratingFlankText}>from 47K+</span>
+      </h3>
+
+      {/* Hover rule + ornament + caption */}
+      <div
+        data-hover-rule
+        aria-hidden
+        style={{
+          width: 36,
+          height: 1,
+          background: PALETTE.gold,
+          opacity: 0.55,
+          margin: "22px auto 0",
+          transformOrigin: "center",
+        }}
+      />
+      <p style={{ ...captionItalic, marginTop: 14 }}>happy pet parent reviews</p>
+    </Column>
+  );
+}
+
+// ── Column II — Shipping ────────────────────────────────────────────────
+function ShippingColumn() {
+  return (
+    <Column index={1}>
+      <Globe
+        size={42}
+        strokeWidth={1.15}
+        color={PALETTE.ink}
+        aria-hidden
+        style={{ display: "block" }}
+      />
+      <h3 style={{ ...titleAsap, marginTop: 26 }}>Worldwide Shipping</h3>
+      <div
+        data-hover-rule
+        aria-hidden
+        style={{
+          width: 36,
+          height: 1,
+          background: PALETTE.gold,
+          opacity: 0.55,
+          margin: "12px auto 0",
+          transformOrigin: "center",
+        }}
+      />
+      <p style={{ ...captionItalic, marginTop: 12 }}>
+        printed with care · framed beautifully · delivered to your door
+      </p>
+    </Column>
+  );
+}
+
+// ── Column III — Guarantee. Rose accent on the icon for emotional weight. ─
+function GuaranteeColumn() {
+  return (
+    <Column index={2}>
+      <ShieldCheck
+        size={42}
+        strokeWidth={1.25}
+        color={PALETTE.rose}
+        aria-hidden
+        style={{ display: "block" }}
+      />
+      <h3 style={{ ...titleAsap, marginTop: 26 }}>100% Love-It Guarantee</h3>
+      <div
+        data-hover-rule
+        aria-hidden
+        style={{
+          width: 36,
+          height: 1,
+          background: PALETTE.gold,
+          opacity: 0.55,
+          margin: "12px auto 0",
+          transformOrigin: "center",
+        }}
+      />
+      <p style={{ ...captionItalic, marginTop: 12 }}>
+        we'll make it right · re-do or refund · no stress
+      </p>
+    </Column>
   );
 }
