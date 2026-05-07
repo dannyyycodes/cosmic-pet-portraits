@@ -43,6 +43,7 @@ import {
 } from "@/components/portraits/gelatoFramedCanvas";
 import { buildCartItem, type CartItem } from "@/components/portraits/cart";
 import { supabase } from "@/integrations/supabase/client";
+import { useTurnstile } from "@/lib/turnstile";
 import { isDisposableEmail } from "@/lib/auth/disposableEmailDomains";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { PALETTE, EASE, MOTION, display, eyebrow } from "@/components/portraits/tokens";
@@ -124,6 +125,7 @@ function SignInDialog({
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<"email" | "code">("email");
+  const turnstile = useTurnstile({ action: 'studio-signup' });
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -134,19 +136,66 @@ function SignInDialog({
     }
     setBusy(true);
     try {
-      const visitorId = await getVisitorId();
+      // Run Turnstile silently — invisible to real users, blocks bots.
+      let turnstileToken = "";
+      try {
+        turnstileToken = await turnstile.execute();
+      } catch {
+        toast.error("Could not verify you are human — please refresh and try again.");
+        return;
+      }
+
+      // Try instant-signup first. New emails: account created + signed in
+      // immediately, no email click. Existing emails: server already sent the
+      // OTP, we switch to code-entry to verify ownership.
+      const r = await fetch('/api/portraits?action=instant-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), turnstileToken }),
+      });
+      const data = await r.json() as { status?: string; otp?: string; email?: string; error?: string };
+
+      if (!r.ok) {
+        if (data.error === 'turnstile_failed') {
+          toast.error('Verification failed — please refresh and try again.');
+        } else {
+          toast.error(data.error || `Sign-in failed (${r.status})`);
+        }
+        turnstile.reset();
+        return;
+      }
+
+      if (data.status === 'created' && data.otp && data.email) {
+        // New account — verify the server-issued OTP locally to establish session.
+        const { error: vErr } = await supabase.auth.verifyOtp({
+          email: data.email,
+          token: data.otp,
+          type: 'magiclink',
+        });
+        if (vErr) {
+          toast.error(vErr.message || 'Sign-in failed');
+          return;
+        }
+        onOpenChange(false);
+        toast.success('Welcome — 3 free pawtraits ready to generate.');
+        return;
+      }
+
+      if (data.status === 'exists') {
+        // Returning user — server already sent the OTP. Just collect the code.
+        setStep('code');
+        setCode('');
+        return;
+      }
+
+      // Unknown shape — fall back to plain OTP path.
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: {
-          // Magic link in email also works (clickable fallback) — but the
-          // template includes the 6-digit code so customers never leave site.
-          emailRedirectTo: `${window.location.origin}/pawtraits#studio`,
-          data: visitorId ? { visitor_id: visitorId } : undefined,
-        },
+        options: { emailRedirectTo: `${window.location.origin}/pawtraits#studio` },
       });
       if (error) throw error;
-      setStep("code");
-      setCode("");
+      setStep('code');
+      setCode('');
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -206,6 +255,9 @@ function SignInDialog({
           Sign in with a 6-digit code emailed to you. No password, no leaving the site.
         </DialogDescription>
 
+        {/* Invisible Turnstile mount — bots blocked, real users never see it. */}
+        <div ref={turnstile.mountRef} style={{ position: 'absolute', left: '-9999px' }} aria-hidden />
+
         {/* Header */}
         <div className="px-7 pt-9 pb-6 text-center relative">
           {/* Gilt hairline at top */}
@@ -241,9 +293,9 @@ function SignInDialog({
             }}
           >
             {step === "email" ? (
-              <>Get a 6-digit code in your inbox. Type it below — you stay right here.</>
+              <>Just your email. No password, no waiting — you're in instantly.</>
             ) : (
-              <>We just emailed a 6-digit code to <strong style={{ color: PALETTE.ink }}>{email}</strong></>
+              <>This email already has an account. We sent a 6-digit code to <strong style={{ color: PALETTE.ink }}>{email}</strong></>
             )}
           </p>
         </div>
@@ -286,7 +338,7 @@ function SignInDialog({
                   boxShadow: "0 10px 26px rgba(191, 82, 74, 0.32)",
                 }}
               >
-                {busy ? "Sending…" : "Send me a code"}
+                {busy ? "Signing you in…" : "Continue →"}
               </button>
               <p
                 className="text-center pt-1"

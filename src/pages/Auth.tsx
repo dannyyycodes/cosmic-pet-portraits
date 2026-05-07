@@ -19,6 +19,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useTurnstile } from '@/lib/turnstile';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -42,6 +43,7 @@ export default function Auth() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const turnstile = useTurnstile({ action: 'auth' });
 
   // Same-origin relative path only — prevents open-redirect abuse.
   const redirectParam = searchParams.get('redirect');
@@ -93,6 +95,56 @@ export default function Auth() {
     setErrors({});
     setLoading(true);
     try {
+      // Try instant-signup first. New emails: account created + signed in
+      // immediately, no email click needed. Existing emails: server sends an
+      // OTP and tells us to switch to code-entry to verify ownership.
+      let turnstileToken = '';
+      try {
+        turnstileToken = await turnstile.execute();
+      } catch (err) {
+        toast.error('Could not verify you are human — please refresh and try again.');
+        return;
+      }
+
+      const r = await fetch('/api/portraits?action=instant-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), turnstileToken }),
+      });
+      const data = await r.json() as { status?: string; otp?: string; email?: string; error?: string };
+
+      if (!r.ok) {
+        if (data.error === 'turnstile_failed') {
+          toast.error('Verification failed — please refresh and try again.');
+        } else {
+          toast.error(data.error || `Sign-in failed (${r.status})`);
+        }
+        turnstile.reset();
+        return;
+      }
+
+      if (data.status === 'created' && data.otp && data.email) {
+        // New account — verify the server-issued OTP locally to establish session.
+        const { error: vErr } = await verifyOtp(data.email, data.otp);
+        if (vErr) {
+          toast.error(vErr.message || 'Sign-in failed');
+        } else {
+          toast.success('Welcome to Little Souls.');
+          // Navigate fires from the user-effect once SIGNED_IN emits.
+        }
+        return;
+      }
+
+      if (data.status === 'exists') {
+        // Returning user. Server already sent the OTP — just collect the code.
+        setStep('code');
+        setResendIn(RESEND_COOLDOWN_S);
+        setCode('');
+        toast.success("Welcome back. We've sent a 6-digit code to your email.");
+        return;
+      }
+
+      // Unknown response shape — fall back to plain OTP send so user isn't stuck.
       const { error } = await sendOtp(email.trim().toLowerCase());
       if (error) {
         toast.error(error.message);
@@ -185,6 +237,8 @@ export default function Auth() {
 
   return (
     <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="relative overflow-hidden">
+      {/* Invisible Turnstile mount — Cloudflare auto-renders into this. */}
+      <div ref={turnstile.mountRef} style={{ position: 'absolute', left: '-9999px' }} aria-hidden />
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

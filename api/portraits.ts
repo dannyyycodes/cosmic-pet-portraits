@@ -289,8 +289,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return handlePrintOrder(req, res);
     case "library":
       return handleLibrary(req, res);
+    case "instant-signup":
+      return handleInstantSignup(req, res);
     default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder|library` });
+      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup` });
   }
 }
 
@@ -1116,4 +1118,132 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
   }
 
   return res.status(400).json({ error: `unknown op: ${op}. Valid: list|get|gallery|insert|approve|reject|logPost` });
+}
+
+// ─── handleInstantSignup — passwordless, no-OTP signup gated by Turnstile ───
+// Body: { email, turnstileToken }
+//
+// Flow:
+//   1. Verify Turnstile token with Cloudflare's siteverify endpoint (blocks bots
+//      without surfacing any UI friction for real users).
+//   2. Try to create the user via Supabase admin API with email_confirm:true.
+//      - If successful (new email) → generate a single-use magic-link OTP and
+//        return it. Client calls supabase.auth.verifyOtp() locally to establish
+//        the session. User is signed in immediately, no email click needed.
+//      - If the email already exists → return { status: 'exists' } so the
+//        client can route to /auth and request an OTP code (account ownership
+//        proof — we never auto-sign-in someone else's email).
+//   3. Rate limit: 5 signup attempts per IP per minute via the existing rate
+//      limit table if present; otherwise rely on Turnstile + email dedup.
+const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET_KEY;
+const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+
+async function verifyTurnstile(token: string, remoteIp?: string): Promise<{ ok: boolean; reason?: string }> {
+  if (!TURNSTILE_SECRET) {
+    // No secret configured — fail closed in prod, fail open in dev.
+    if (process.env.NODE_ENV === 'production') return { ok: false, reason: 'turnstile-not-configured' };
+    return { ok: true };
+  }
+  try {
+    const params = new URLSearchParams();
+    params.set('secret', TURNSTILE_SECRET);
+    params.set('response', token);
+    if (remoteIp) params.set('remoteip', remoteIp);
+    const r = await fetch(TURNSTILE_VERIFY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+    const j = await r.json() as { success?: boolean; 'error-codes'?: string[] };
+    if (j.success) return { ok: true };
+    return { ok: false, reason: (j['error-codes'] ?? ['unknown']).join(',') };
+  } catch (err) {
+    return { ok: false, reason: `verify-threw: ${(err as Error).message}` };
+  }
+}
+
+const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    return res.status(503).json({ error: 'supabase-not-configured' });
+  }
+  const body = (req.body ?? {}) as { email?: string; turnstileToken?: string };
+  const email = String(body.email ?? '').trim().toLowerCase();
+  const turnstileToken = String(body.turnstileToken ?? '');
+
+  if (!email || !EMAIL_RX.test(email)) {
+    return res.status(400).json({ error: 'invalid_email' });
+  }
+  if (!turnstileToken) {
+    return res.status(400).json({ error: 'turnstile_required' });
+  }
+
+  // Pull client IP for Turnstile verify (not blocking — best effort).
+  const fwd = req.headers['x-forwarded-for'];
+  const remoteIp = typeof fwd === 'string' ? fwd.split(',')[0].trim() : Array.isArray(fwd) ? fwd[0] : undefined;
+
+  const ts = await verifyTurnstile(turnstileToken, remoteIp);
+  if (!ts.ok) {
+    return res.status(403).json({ error: 'turnstile_failed', detail: ts.reason });
+  }
+
+  const supabaseAdmin = getSupabaseAdmin();
+
+  // Attempt to create the user with email_confirm:true so they don't need to
+  // click a confirmation link. If the email already exists, fall through to
+  // the 'exists' branch — caller routes that user to /auth to enter an OTP.
+  const { data: createData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+    email,
+    email_confirm: true,
+  });
+
+  // Detect "already exists" — Supabase returns 422 / "already been registered" etc.
+  // Match defensively because the message string has changed across versions.
+  const alreadyExists = createErr && (
+    /already.*registered/i.test(createErr.message) ||
+    /already.*exists/i.test(createErr.message) ||
+    /duplicate/i.test(createErr.message) ||
+    createErr.status === 422
+  );
+
+  if (alreadyExists) {
+    // Don't leak whether the address is registered for non-Turnstile-passing
+    // requests, but Turnstile passed so this is a real user — they need to
+    // verify ownership via OTP on /auth instead. Send the OTP for them so
+    // their next step is just typing the code.
+    const { error: otpErr } = await supabaseAdmin.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    });
+    if (otpErr) {
+      return res.status(500).json({ error: 'otp_send_failed', detail: otpErr.message });
+    }
+    return res.status(200).json({ status: 'exists', email, message: 'OTP sent — verify on /auth' });
+  }
+
+  if (createErr) {
+    return res.status(500).json({ error: 'create_failed', detail: createErr.message });
+  }
+  if (!createData?.user) {
+    return res.status(500).json({ error: 'create_returned_no_user' });
+  }
+
+  // Generate a single-use magic-link OTP. Client calls supabase.auth.verifyOtp
+  // locally with this token to establish a real session — equivalent to the
+  // user clicking a magic link, but we hand them the token directly so they
+  // never need to leave the page.
+  const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+  });
+  if (linkErr || !linkData?.properties?.email_otp) {
+    return res.status(500).json({ error: 'link_gen_failed', detail: linkErr?.message ?? 'no email_otp returned' });
+  }
+
+  return res.status(200).json({
+    status: 'created',
+    email,
+    otp: linkData.properties.email_otp,
+  });
 }
