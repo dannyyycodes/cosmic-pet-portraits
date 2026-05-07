@@ -635,22 +635,41 @@ async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
 
 interface VariantResult { url?: string; balanceExhausted?: boolean }
 
-// gpt-image (1 or 2) via fal.ai — same FAL_KEY, no new env var, no base64
-// upload dance. fal marks up ~20-30% vs native OpenAI; rounding error at our
-// scale, the operational simplification is worth it.
+// gpt-image-2 via fal.ai — image-to-image edit endpoint.
+// Same FAL_KEY, no new env var, no base64 upload dance.
 //
-// Output: fal returns a CDN URL. 2:3 portrait — best fit for canvas SKUs
-// (24x36 hero exact; 8x10/16x20/20x24 crop centre cleanly).
+// Confirmed fal API shape (https://fal.ai/models/openai/gpt-image-2):
+//   POST https://fal.run/fal-ai/openai/gpt-image-2/image-to-image
+//   body:
+//     prompt:      string
+//     image_urls:  string[]                    (image-to-image source)
+//     image_size:  preset | {width,height}     (custom must be multiples of 16, max 3840)
+//     quality:     'low' | 'medium' | 'high'   (default 'high')
+//     num_images:  int
+//     output_format: 'png' | 'jpeg' | 'webp'   (default 'png')
+//   response: { images: [{ url, width, height, content_type, file_name }] }
 //
-// Knobs:
-//   GPT_IMAGE_FAL_MODEL  — fal model slug, default 'gpt-image-2-image-to-image'.
+// Text rendering: gpt-image-2 renders text from the prompt natively — no
+// separate parameter needed. The pet-name directive ('Render the name "Rosie"
+// in serif typography along the lower margin…') goes through the same prompt
+// channel and gpt-image-2 handles it ~95% reliably.
+//
+// Output size: custom 1024×1280 = exact 4:5, the brand canvas default.
+// Matches 16×20 hero perfectly; 24×36 (2:3) crops at print time via the
+// Phase 9 print pipeline.
+//
+// Knobs (Vercel env, optional):
+//   GPT_IMAGE_FAL_MODEL  — model slug. Default 'openai/gpt-image-2/image-to-image'.
 //                          Falls back to 'gpt-image-1/edit-image' on 404 so a
-//                          model-name mismatch doesn't break customer flow.
-//   GPT_IMAGE_QUALITY    — low | medium | high | auto (default medium)
-const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'gpt-image-2-image-to-image';
+//                          slug mismatch never burns a customer's credit.
+//   GPT_IMAGE_QUALITY    — 'low' | 'medium' | 'high' (default 'medium')
+//   GPT_IMAGE_WIDTH      — int, default 1024
+//   GPT_IMAGE_HEIGHT     — int, default 1280  (4:5)
+const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'openai/gpt-image-2/image-to-image';
 const GPT_IMAGE_FALLBACK_MODEL = 'gpt-image-1/edit-image';
-const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high' | 'auto';
-const GPT_IMAGE_ASPECT = '2:3';
+const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high';
+const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
+const GPT_IMAGE_HEIGHT = Number(process.env.GPT_IMAGE_HEIGHT ?? 1280);
 
 async function callGptImage(model: string, body: Record<string, unknown>): Promise<{ res: Response; bodyText: string | null }> {
   const r = await fetch(`https://fal.run/fal-ai/${model}`, {
@@ -672,9 +691,10 @@ async function generateVariant(args: { imageUrl: string; prompt: string; negativ
   const requestBody = {
     prompt: fullPrompt,
     image_urls: [args.imageUrl],
-    image_size: GPT_IMAGE_ASPECT,
+    image_size: { width: GPT_IMAGE_WIDTH, height: GPT_IMAGE_HEIGHT },
     quality: GPT_IMAGE_QUALITY,
     num_images: 1,
+    output_format: 'png',
   };
 
   // Try the primary model first. If fal returns 404 (model not found / slug
