@@ -207,7 +207,7 @@ export function TopUpPlans({
               <div
                 className="topup-hero-bg absolute inset-0"
                 style={{
-                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp?v=3)`,
+                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp?v=4)`,
                   backgroundPosition: "center",
                 }}
               />
@@ -262,28 +262,12 @@ export function TopUpPlans({
               {plan.label}
             </h3>
 
-            {/* Ornamented gold rule */}
-            <div className="flex items-center gap-1.5 mt-1 mb-3">
+            {/* Single gold rule — restrained */}
+            <div className="mt-1 mb-3">
               <span
-                className="topup-rule-line"
+                className="topup-rule-line block"
                 style={{
-                  background: `linear-gradient(90deg, ${PALETTE.goldDeep}, ${PALETTE.gold})`,
-                }}
-              />
-              <span
-                aria-hidden
-                style={{
-                  width: 5,
-                  height: 5,
-                  background: PALETTE.gold,
-                  transform: "rotate(45deg)",
-                  boxShadow: "0 0 0 1px rgba(196,162,101,0.3)",
-                }}
-              />
-              <span
-                className="topup-rule-line"
-                style={{
-                  background: `linear-gradient(90deg, ${PALETTE.gold}, ${PALETTE.goldDeep})`,
+                  background: `linear-gradient(90deg, ${PALETTE.goldDeep}, ${PALETTE.gold}, ${PALETTE.goldDeep})`,
                 }}
               />
             </div>
@@ -362,7 +346,7 @@ export function TopUpPlans({
                 aria-hidden
                 className="topup-cta-bg absolute inset-0"
                 style={{
-                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp?v=3)`,
+                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp?v=4)`,
                   backgroundPosition: "center",
                 }}
               />
