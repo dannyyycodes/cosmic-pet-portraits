@@ -635,86 +635,37 @@ async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
 
 interface VariantResult { url?: string; balanceExhausted?: boolean }
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_IMAGE_EDIT_ENDPOINT = "https://api.openai.com/v1/images/edits";
-const OPENAI_IMAGE_QUALITY = (process.env.OPENAI_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high' | 'auto';
-
-// gpt-image-1 native sizes: 1024x1024 (1:1), 1024x1536 (2:3 vertical),
-// 1536x1024 (3:2 horiz). 2:3 vertical is best for portrait canvases —
-// 24x36 hero fits exactly, smaller 8x10/16x20/20x24 crop center cleanly.
-const OPENAI_IMAGE_SIZE = '1024x1536';
-
-async function generateVariantViaOpenAI(args: { imageUrl: string; prompt: string }): Promise<VariantResult> {
-  if (!OPENAI_API_KEY) return {};
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return {};
-
-  // 1. Fetch the source pet photo as bytes — gpt-image-1 image edits requires
-  //    multipart upload, not a URL.
-  const photoRes = await fetch(args.imageUrl);
-  if (!photoRes.ok) return {};
-  const photoBuf = Buffer.from(await photoRes.arrayBuffer());
-  const photoMime = photoRes.headers.get('content-type') ?? 'image/png';
-
-  // 2. Multipart POST to OpenAI image edits.
-  const form = new FormData();
-  form.append('model', 'gpt-image-1');
-  form.append('image', new Blob([new Uint8Array(photoBuf)], { type: photoMime }), 'pet.png');
-  form.append('prompt', args.prompt);
-  form.append('size', OPENAI_IMAGE_SIZE);
-  form.append('quality', OPENAI_IMAGE_QUALITY);
-  form.append('n', '1');
-
-  const r = await fetch(OPENAI_IMAGE_EDIT_ENDPOINT, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
-    body: form,
-  });
-  if (!r.ok) {
-    const txt = await r.text();
-    // OpenAI returns 429 / billing exhausted etc — surface as balanceExhausted
-    // so the upstream handler refunds the credit + returns 503.
-    if (r.status === 402 || /quota|billing|insufficient/i.test(txt)) {
-      return { balanceExhausted: true };
-    }
-    return {};
-  }
-  const j = await r.json() as { data?: Array<{ b64_json?: string }> };
-  const b64 = j.data?.[0]?.b64_json;
-  if (!b64) return {};
-
-  // 3. Decode + upload to the public pet-photos bucket so the customer can
-  //    download / share / proceed to checkout. Path: generations/<uuid>.png
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  const bytes = Buffer.from(b64, 'base64');
-  const path = `generations/${crypto.randomUUID()}.png`;
-  const { error: upErr } = await supabase.storage.from('pet-photos').upload(path, bytes, {
-    contentType: 'image/png',
-    cacheControl: '31536000',
-    upsert: false,
-  });
-  if (upErr) return {};
-  const { data } = supabase.storage.from('pet-photos').getPublicUrl(path);
-  return { url: data.publicUrl };
-}
+// gpt-image-1 via fal.ai — same FAL_KEY, no new env var, no base64+upload
+// dance. fal marks up ~20-30% vs native OpenAI (~$0.05/gen vs $0.042) which
+// is rounding error at our scale; the operational simplification is worth it.
+//
+// Output: fal returns a CDN URL (no base64 wrangling). 2:3 portrait by
+// default — best fit for canvas SKUs (24x36 hero exact, 8x10/16x20/20x24
+// crop center cleanly).
+//
+// Flag GPT_IMAGE_QUALITY env to bump from 'medium' → 'high' if name-on-canvas
+// text legibility ever needs reinforcement (costs ~+£0.10/gen).
+const GPT_IMAGE_EDIT_ENDPOINT = "https://fal.run/fal-ai/gpt-image-1/edit-image";
+const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high' | 'auto';
+const GPT_IMAGE_ASPECT = '2:3'; // matches canvas SKUs
 
 async function generateVariant(args: { imageUrl: string; prompt: string; negative?: string }): Promise<VariantResult> {
-  // Prefer gpt-image-1 when configured — better text rendering, brand-consistent
-  // with social content (which also uses gpt-image-1 via Codex CLI). Falls back
-  // to fal Kontext if OPENAI_API_KEY is missing or the call fails non-fatally.
-  if (OPENAI_API_KEY) {
-    const result = await generateVariantViaOpenAI({ imageUrl: args.imageUrl, prompt: args.prompt });
-    if (result.url || result.balanceExhausted) return result;
-    // Soft fallback to fal on transient OpenAI failures so a flaky moment
-    // doesn't burn the customer's credit.
-  }
+  // Negatives go inline in the prompt — gpt-image-1 has no separate
+  // negative_prompt slot. The styleTheme builder already includes the
+  // negative reinforcement when petName is set, so this is fine.
+  const fullPrompt = args.negative
+    ? `${args.prompt}\n\nAvoid: ${args.negative}.`
+    : args.prompt;
 
-  const r = await fetch(KONTEXT_ENDPOINT, {
+  const r = await fetch(GPT_IMAGE_EDIT_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Key ${FAL_KEY}` },
     body: JSON.stringify({
-      prompt: args.prompt, image_url: args.imageUrl, guidance_scale: 3.5,
-      num_inference_steps: 28, aspect_ratio: "4:5",
-      ...(args.negative ? { negative_prompt: args.negative } : {}),
+      prompt: fullPrompt,
+      image_urls: [args.imageUrl],
+      image_size: GPT_IMAGE_ASPECT,
+      quality: GPT_IMAGE_QUALITY,
+      num_images: 1,
     }),
   });
   if (!r.ok) {
