@@ -697,8 +697,8 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 // gpt-image-2 via fal.ai — image-to-image edit endpoint.
 // Same FAL_KEY, no new env var, no base64 upload dance.
 //
-// Confirmed fal API shape (https://fal.ai/models/openai/gpt-image-2):
-//   POST https://fal.run/fal-ai/openai/gpt-image-2/image-to-image
+// Confirmed fal API shape (https://fal.ai/models/openai/gpt-image-2/edit/api):
+//   POST https://fal.run/openai/gpt-image-2/edit
 //   body:
 //     prompt:      string
 //     image_urls:  string[]                    (image-to-image source)
@@ -718,9 +718,9 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 // Phase 9 print pipeline.
 //
 // Knobs (Vercel env, optional):
-//   GPT_IMAGE_FAL_MODEL  — model slug. Default 'openai/gpt-image-2/image-to-image'.
-//                          Falls back to 'gpt-image-1/edit-image' on 404 so a
-//                          slug mismatch never burns a customer's credit.
+//   GPT_IMAGE_FAL_MODEL  — model slug. Default 'openai/gpt-image-2/edit'.
+//                          Falls back only on hard model-missing errors so a
+//                          bad slug does not burn a customer's credit.
 //   GPT_IMAGE_QUALITY    — 'low' | 'medium' | 'high' (default 'medium')
 //   GPT_IMAGE_WIDTH      — int, default 1024
 //   GPT_IMAGE_HEIGHT     — int, default 1280  (4:5)
@@ -740,7 +740,7 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 // prompt with breed slotted in literally, separate handling for low-signal sources.
 // Brand consistency: same model used for marketing content (Codex) → customer
 // canvases. fal.ai is just the rails — the model is gpt-image-2.
-const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'openai/gpt-image-2';
+const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'openai/gpt-image-2/edit';
 const GPT_IMAGE_FALLBACK_MODEL = 'fal-ai/flux-pro/kontext'; // soft fallback only on hard 404 / model-missing
 const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high';
 const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
@@ -796,8 +796,8 @@ async function generateVariant(args: {
   };
 
   // Try the primary model first. If fal returns 404 (model not found / slug
-  // wrong) OR 400 with an unknown-model signal, soft-fallback to gpt-image-1
-  // so a slug mismatch never burns the customer's credit.
+  // wrong) OR 400 with an unknown-model signal, soft-fallback so a bad slug
+  // does not burn the customer's credit.
   let { res: r, bodyText } = await callGptImage(GPT_IMAGE_PRIMARY_MODEL, requestBody);
 
   if (!r.ok) {
@@ -852,6 +852,7 @@ function buildPetKeepLine(args: {
       : '';
     return [
       `Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.`,
+      `The source image is the ground truth: if any listed descriptor conflicts with the visible pet, follow the source image.`,
       keepLine,
     ].filter(Boolean).join('\n');
   }
@@ -902,7 +903,7 @@ function buildMultiPetCustomPrompt(args: {
   }
 
   const togetherLine = N > 1
-    ? `Use the exact pets shown across the source images. Create a single canvas portrait featuring all ${N} pets together in one cohesive composition. Preserve each pet's breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in their respective source photo. Do not swap features between pets. Do not invent new features. Do not redesign any pet.`
+    ? `Use the exact pets shown across the source images. Create a single canvas portrait featuring all ${N} pets together in one cohesive composition. Preserve each pet's breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in their respective source photo. The source images are the ground truth: if any listed descriptor conflicts with the visible pet, follow the source image. Do not swap features between pets. Do not invent new features. Do not redesign any pet.`
     : '';  // single-pet path uses the keep block's preamble instead
 
   const aspect = aspectInstruction
@@ -913,6 +914,8 @@ function buildMultiPetCustomPrompt(args: {
     ...keepBlocks,
     ``,
     `Apply this artistic transformation: ${customPrompt}.`,
+    ``,
+    `For transformations that include headwear (hat, helmet, hood, crown, costume covering the head), render the headwear naturally OVER the head — ears should be tucked under or hidden by the headwear if it covers that area. Do NOT draw ears poking through fabric, helmet metal, or costume material.`,
     ``,
     nameLine,
     ``,
@@ -1768,9 +1771,12 @@ async function handleTestAspects(req: VercelRequest, res: VercelResponse) {
 
   const fullPromptParts = [
     `Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.`,
+    `The source image is the ground truth: if any listed descriptor conflicts with the visible pet, follow the source image.`,
     keepLine,
     ``,
     `Apply this artistic transformation: ${body.prompt}.`,
+    ``,
+    `For transformations that include headwear (hat, helmet, hood, crown, costume covering the head), render the headwear naturally OVER the head — ears should be tucked under or hidden by the headwear if it covers that area. Do NOT draw ears poking through fabric, helmet metal, or costume material.`,
     ``,
     petName
       ? `Render the name "${petName}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`

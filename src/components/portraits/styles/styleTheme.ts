@@ -223,10 +223,13 @@ export function buildPrompt(input: BuildPromptInput): { prompt: string; negative
 
   const promptParts: string[] = [
     `Pet: ${subject}${input.distinguishing ? `, ${input.distinguishing}` : ''}.`,
+    `Source image is the ground truth: if any listed descriptor conflicts with the visible pet, follow the source image.`,
     ``,
     `KEEP (do not change): ${keepBlock}. Do NOT change the breed. Do NOT redesign the ${input.species}.`,
     ``,
     `ADD (the artistic transformation): ${addBlock}.${composition ? ` ${composition}` : ''}`,
+    ``,
+    `HEADWEAR RULE: If the transformation includes a hat, helmet, hood, crown, or costume that covers the head, render the headwear naturally OVER the pet's head — ears should be tucked under or hidden by the headwear if it covers that area. Do NOT draw ears poking through fabric, helmet metal, or costume material.`,
     ``,
     input.petName
       ? `TEXT: render the name "${input.petName.trim().slice(0, 40)}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
