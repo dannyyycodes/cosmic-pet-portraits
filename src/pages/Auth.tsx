@@ -1,10 +1,14 @@
 /**
  * /auth — Passwordless email OTP flow.
  *
- *   Step 1: type email → "Continue" → Supabase sends a 6-digit code
- *   Step 2: 6-box code input → "Verify" → signed in
+ *   Step 1: type email → "Continue" → server tries instant-signup; falls back to OTP email
+ *   Step 2: code input (6/7/8 digits — Supabase config decides) → auto-verify on full input
  *
- * The 6-digit input has autoComplete="one-time-code" + inputMode="numeric"
+ * Code length is read from the live Supabase response (whatever digit count
+ * Supabase mails out), so changing the dashboard "Email OTP Length" setting
+ * never breaks the UI again.
+ *
+ * The hidden input has autoComplete="one-time-code" + inputMode="numeric"
  * so iOS Mail / Android Gmail surface the code as a one-tap suggestion when
  * the email arrives. Same pattern as Vercel / Linear / Substack.
  *
@@ -29,11 +33,17 @@ const passwordSchema = z.string().min(6, 'Password must be at least 6 characters
 type Step = 'email' | 'code' | 'password';
 
 const RESEND_COOLDOWN_S = 30;
+// Supabase Email OTP Length is dashboard-configurable (6/7/8). We support all
+// three so a config change in the Supabase project never breaks this UI again.
+const ALLOWED_OTP_LENGTHS = [6, 7, 8] as const;
+const DEFAULT_OTP_LENGTH = 6;
+const MAX_OTP_LENGTH = 8;
 
 export default function Auth() {
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
+  const [codeLength, setCodeLength] = useState<number>(DEFAULT_OTP_LENGTH);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(0);
@@ -47,7 +57,8 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
 
   // Same-origin relative path only — prevents open-redirect abuse.
-  const redirectParam = searchParams.get('redirect');
+  // Accept both ?redirect= (legacy) and ?next= (Pawtraits Studio + TopUpPlans).
+  const redirectParam = searchParams.get('redirect') ?? searchParams.get('next');
   const safeRedirect = (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//'))
     ? redirectParam
     : '/my-reports';
@@ -114,7 +125,7 @@ export default function Auth() {
           honeypot: hpField,
         }),
       });
-      const data = await r.json() as { status?: string; otp?: string; email?: string; error?: string; message?: string };
+      const data = await r.json() as { status?: string; otp?: string; email?: string; otpLength?: number; error?: string; message?: string };
 
       if (!r.ok) {
         if (r.status === 429) {
@@ -139,10 +150,14 @@ export default function Auth() {
 
       if (data.status === 'exists') {
         // Returning user. Server already sent the OTP — just collect the code.
+        const len = (ALLOWED_OTP_LENGTHS as readonly number[]).includes(data.otpLength ?? -1)
+          ? (data.otpLength as number)
+          : DEFAULT_OTP_LENGTH;
+        setCodeLength(len);
         setStep('code');
         setResendIn(RESEND_COOLDOWN_S);
         setCode('');
-        toast.success("Welcome back. We've sent a 6-digit code to your email.");
+        toast.success(`Welcome back. We've sent a ${len}-digit code to your email.`);
         return;
       }
 
@@ -154,7 +169,7 @@ export default function Auth() {
         setStep('code');
         setResendIn(RESEND_COOLDOWN_S);
         setCode('');
-        toast.success('Check your email for a 6-digit code');
+        toast.success(`Check your email for a ${codeLength}-digit code`);
       }
     } finally {
       setLoading(false);
@@ -163,8 +178,8 @@ export default function Auth() {
 
   const handleVerifyCode = async (overrideCode?: string) => {
     const finalCode = (overrideCode ?? code).trim();
-    if (finalCode.length !== 6) {
-      setErrors({ code: 'Enter the 6-digit code from your email' });
+    if (finalCode.length !== codeLength) {
+      setErrors({ code: `Enter the ${codeLength}-digit code from your email` });
       return;
     }
     setErrors({});
@@ -214,26 +229,26 @@ export default function Auth() {
     }
   };
 
-  // Ultra-compact 6-box code input with iOS / Android auto-fill support.
-  // The wide hidden input owns autoComplete="one-time-code". The 6 visible
-  // boxes are styling — they read from the same `code` state.
+  // Ultra-compact code input with iOS / Android auto-fill support.
+  // The wide hidden input owns autoComplete="one-time-code". The visible
+  // boxes (6/7/8 wide depending on Supabase config) read from the same `code` state.
   const handleCodeChange = (v: string) => {
-    const cleaned = v.replace(/\D/g, '').slice(0, 6);
+    const cleaned = v.replace(/\D/g, '').slice(0, codeLength);
     setCode(cleaned);
-    if (cleaned.length === 6) {
-      // Auto-submit when 6 digits land (typed manually OR pasted from auto-fill)
+    if (cleaned.length === codeLength) {
+      // Auto-submit when the full code lands (typed manually OR pasted from auto-fill)
       handleVerifyCode(cleaned);
     }
   };
 
   const titles: Record<Step, string> = {
     email: 'Sign in or create your account',
-    code: 'Enter your code',
+    code: 'Welcome back — verify it’s you',
     password: 'Use your password',
   };
   const descriptions: Record<Step, string> = {
-    email: "We'll email you a 6-digit code. No password needed.",
-    code: `Sent to ${email}. Check your inbox — the code expires in 60 minutes.`,
+    email: "New here? Instant sign-up — no email click needed.",
+    code: `Looks like you’ve signed in before with ${email}. We just emailed a ${codeLength}-digit code — it expires in 60 minutes.`,
     password: 'For accounts created before passwordless sign-in.',
   };
 
@@ -371,6 +386,7 @@ export default function Auth() {
                 >
                   <CodeInput
                     code={code}
+                    length={codeLength}
                     onChange={handleCodeChange}
                     firstBoxRef={firstCodeBoxRef}
                     error={errors.code}
@@ -381,7 +397,7 @@ export default function Auth() {
                     onClick={() => handleVerifyCode()}
                     className="w-full py-3 px-6 font-medium text-lg transition-opacity hover:opacity-90 disabled:opacity-50"
                     style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)', color: 'white', border: 'none', borderRadius: '10px' }}
-                    disabled={loading || code.length !== 6}
+                    disabled={loading || code.length !== codeLength}
                   >
                     {loading ? (
                       <span className="flex items-center gap-2 justify-center">
@@ -500,25 +516,29 @@ export default function Auth() {
   );
 }
 
-// ── 6-digit code input ────────────────────────────────────────────────────────
+// ── Variable-length code input ───────────────────────────────────────────────
 // Single hidden text input owns autoComplete="one-time-code" + inputMode="numeric"
 // — that's what tells iOS Mail / Android Gmail to surface the code as a one-tap
-// suggestion above the keyboard. Six visible boxes are styling on top.
+// suggestion above the keyboard. Visible boxes (6/7/8) are styling on top.
 function CodeInput({
   code,
+  length,
   onChange,
   firstBoxRef,
   error,
 }: {
   code: string;
+  length: number;
   onChange: (v: string) => void;
   firstBoxRef: React.RefObject<HTMLInputElement | null>;
   error?: string;
 }) {
+  // Tailwind doesn't tree-shake arbitrary grid-cols-N classes, so map explicitly.
+  const gridColsClass = length === 8 ? 'grid-cols-8' : length === 7 ? 'grid-cols-7' : 'grid-cols-6';
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium" style={{ color: '#5a4a42' }}>
-        6-digit code
+        {length}-digit code
       </label>
       <div
         className="relative cursor-text"
@@ -531,16 +551,16 @@ function CodeInput({
           inputMode="numeric"
           pattern="[0-9]*"
           autoComplete="one-time-code"
-          maxLength={6}
+          maxLength={MAX_OTP_LENGTH}
           value={code}
           onChange={(e) => onChange(e.target.value)}
-          aria-label="Enter the 6-digit code from your email"
+          aria-label={`Enter the ${length}-digit code from your email`}
           className="absolute inset-0 w-full h-full opacity-0"
           style={{ caretColor: 'transparent' }}
         />
-        {/* The 6 visible boxes */}
-        <div className="grid grid-cols-6 gap-2">
-          {Array.from({ length: 6 }).map((_, i) => {
+        {/* Visible boxes */}
+        <div className={`grid ${gridColsClass} gap-2`}>
+          {Array.from({ length }).map((_, i) => {
             const ch = code[i] ?? '';
             const isCurrent = code.length === i;
             return (
