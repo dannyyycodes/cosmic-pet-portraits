@@ -1353,17 +1353,26 @@ async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
   // returns isBot:true only on confirmed bot signatures (challenge missing /
   // tampered / known automation patterns). Real users — including those on
   // VPN, iCloud Private Relay, Brave, Tor, ad-blockers — pass without ever
-  // seeing a challenge. In local/preview the package returns isBot:false, so
-  // dev never breaks. If the call itself errors (network glitch, BotID
-  // outage), we fail open and let the other layers do their job.
+  // seeing a challenge.
+  //
+  // LOG-ONLY (not a hard gate): in production we observed checkBotId()
+  // returning isBot:true for real customers (Gmail, Proton). Most likely
+  // cause is the silent challenge hasn't completed before form submit —
+  // fast typers, slow networks, privacy extensions, or users who arrive
+  // directly at the modal before the BotID script finished initialising
+  // all fail the integrity check even though they're human.
+  //
+  // We still capture the signal for log analysis. The real moat is the
+  // other layers: honeypot, email-alias + device-fingerprint dedup in the
+  // DB trigger, and the lenient IP rate-limit backstop. May tighten back
+  // to a hard gate once we have real-world false-positive data.
   try {
     const verification = await checkBotId();
     if (verification.isBot) {
-      return res.status(403).json({ error: 'bot_detected' });
+      console.warn('[instant-signup] BotID flagged isBot=true (logging only, not blocking)');
     }
   } catch (err) {
     console.error('[instant-signup] checkBotId failed:', (err as Error).message);
-    // fail open
   }
 
   const body = (req.body ?? {}) as {

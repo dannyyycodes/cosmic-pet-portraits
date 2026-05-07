@@ -119,8 +119,6 @@ export default function Auth() {
       if (!r.ok) {
         if (r.status === 429) {
           toast.error(data.message || 'Try again in a few minutes.');
-        } else if (r.status === 403 && data.error === 'bot_detected') {
-          toast.error('Something went wrong — please refresh and try again.');
         } else {
           toast.error(data.error || `Sign-in failed (${r.status})`);
         }

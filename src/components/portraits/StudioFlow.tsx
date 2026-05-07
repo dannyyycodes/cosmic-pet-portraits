@@ -145,11 +145,6 @@ function SignInDialog({
       if (!r.ok) {
         if (r.status === 429) {
           toast.error(data.message || "Try again in a few minutes.");
-        } else if (r.status === 403 && data.error === 'bot_detected') {
-          // Extremely rare — Vercel BotID confirmed a bot signature.
-          // Real users effectively never see this; we keep the message
-          // generic so the rare false-positive can refresh and retry.
-          toast.error("Something went wrong — please refresh and try again.");
         } else {
           toast.error(data.error || `Sign-in failed (${r.status})`);
         }
@@ -230,15 +225,15 @@ function SignInDialog({
     >
       <DialogContent
         className="
-          max-w-[420px] p-0 overflow-hidden border-0
-          max-h-[92vh] overflow-y-auto
-          top-[max(6vh,env(safe-area-inset-top))] !translate-y-0
+          w-[calc(100vw-1.5rem)] max-w-[400px] p-0 overflow-hidden border-0
+          max-h-[90vh] overflow-y-auto
+          top-[max(5vh,env(safe-area-inset-top))] !translate-y-0
           sm:top-[50%] sm:!translate-y-[-50%]
-          rounded-3xl
+          rounded-2xl sm:rounded-3xl
         "
         style={{
-          background: `linear-gradient(180deg, ${PALETTE.cream} 0%, ${PALETTE.cream2} 100%)`,
-          boxShadow: "0 32px 80px rgba(20, 18, 16, 0.18), 0 8px 24px rgba(20, 18, 16, 0.08)",
+          background: PALETTE.cream,
+          boxShadow: "0 24px 64px rgba(20, 18, 16, 0.20), 0 4px 16px rgba(20, 18, 16, 0.06)",
         }}
       >
         <DialogTitle className="sr-only">Sign in to generate</DialogTitle>
@@ -246,9 +241,8 @@ function SignInDialog({
           Sign in with a 6-digit code emailed to you. No password, no leaving the site.
         </DialogDescription>
 
-        {/* Honeypot — invisible to humans (off-screen, no autofocus, no
-            autocomplete, hidden from screen readers + tab order). Bots that
-            indiscriminately fill every <input> land here and get rejected. */}
+        {/* Honeypot — invisible to humans (off-screen, no tab/focus, no
+            autocomplete). Bots that fill every input land here. */}
         <input
           type="text"
           name="company"
@@ -267,52 +261,47 @@ function SignInDialog({
           }}
         />
 
-        {/* Header */}
-        <div className="px-7 pt-9 pb-6 text-center relative">
-          {/* Gilt hairline at top */}
-          <div
-            aria-hidden
-            style={{
-              position: "absolute", top: 0, left: "50%",
-              transform: "translateX(-50%)",
-              width: 56, height: 1.5,
-              background: `linear-gradient(90deg, transparent 0%, ${PALETTE.gold} 50%, transparent 100%)`,
-            }}
-          />
-          <div
-            className="mx-auto w-14 h-14 rounded-full flex items-center justify-center mb-4"
-            style={{
-              background: PALETTE.roseSoft,
-              boxShadow: "0 6px 18px rgba(191, 82, 74, 0.18)",
-            }}
-          >
-            <Sparkles className="w-6 h-6" style={{ color: PALETTE.rose }} />
+        <div className="px-6 pt-8 pb-7 sm:px-8 sm:pt-9 sm:pb-8">
+          {/* Header — single rose icon, confident heading, one-line subhead */}
+          <div className="text-center mb-6">
+            <div
+              className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4"
+              style={{
+                background: PALETTE.roseSoft,
+              }}
+            >
+              <Sparkles className="w-5 h-5" style={{ color: PALETTE.rose }} />
+            </div>
+            <h2
+              style={{
+                ...display("24px"),
+                color: PALETTE.ink,
+                lineHeight: 1.2,
+              }}
+            >
+              {step === "email" ? "3 free pawtraits" : "Check your email"}
+            </h2>
+            <p
+              className="mx-auto mt-2"
+              style={{
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                fontSize: 14,
+                color: PALETTE.earthMuted,
+                lineHeight: 1.5,
+                maxWidth: 300,
+              }}
+            >
+              {step === "email" ? (
+                <>Enter your email — no password, signed in instantly.</>
+              ) : (
+                <>We sent a 6-digit code to <span style={{ color: PALETTE.ink, fontWeight: 600 }}>{email}</span></>
+              )}
+            </p>
           </div>
-          <h2 style={{ ...display("26px"), color: PALETTE.ink }}>
-            {step === "email" ? "3 free pawtraits" : "Enter your code"}
-          </h2>
-          <p
-            className="mx-auto mt-2"
-            style={{
-              fontFamily: 'Assistant, system-ui, sans-serif',
-              fontSize: 14,
-              color: PALETTE.earthMuted,
-              maxWidth: 320,
-              lineHeight: 1.5,
-            }}
-          >
-            {step === "email" ? (
-              <>Just your email. No password, no waiting — you're in instantly.</>
-            ) : (
-              <>This email already has an account. We sent a 6-digit code to <strong style={{ color: PALETTE.ink }}>{email}</strong></>
-            )}
-          </p>
-        </div>
 
-        {/* Body */}
-        <div className="px-7 pb-8">
+          {/* Form */}
           {step === "email" ? (
-            <form onSubmit={handleSendCode} className="space-y-2.5">
+            <form onSubmit={handleSendCode} className="space-y-3">
               <input
                 type="email"
                 required
@@ -321,14 +310,16 @@ function SignInDialog({
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@example.com"
-                className="w-full rounded-xl px-4 py-3.5 outline-none transition-all focus:ring-2"
+                placeholder="you@example.com"
+                className="w-full rounded-xl px-4 outline-none transition-all focus:ring-2"
                 style={{
                   background: "#fff",
                   border: `1px solid ${PALETTE.sandDeep}`,
                   color: PALETTE.ink,
                   fontFamily: 'Assistant, system-ui, sans-serif',
+                  // 16px prevents iOS Safari from auto-zooming on focus.
                   fontSize: 16,
+                  height: 52,
                   // @ts-expect-error css var
                   "--tw-ring-color": "rgba(191, 82, 74, 0.18)",
                 }}
@@ -336,33 +327,23 @@ function SignInDialog({
               <button
                 type="submit"
                 disabled={busy}
-                className="w-full rounded-xl py-3.5 transition-all disabled:opacity-50"
+                className="w-full rounded-xl transition-all disabled:opacity-60 active:scale-[0.99]"
                 style={{
                   background: PALETTE.rose,
                   color: PALETTE.cream,
                   fontFamily: 'Asap, system-ui, sans-serif',
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: 600,
-                  letterSpacing: "0.02em",
-                  boxShadow: "0 10px 26px rgba(191, 82, 74, 0.32)",
+                  letterSpacing: "0.01em",
+                  height: 52,
+                  boxShadow: "0 8px 22px rgba(191, 82, 74, 0.28)",
                 }}
               >
-                {busy ? "Signing you in…" : "Continue →"}
+                {busy ? "Signing you in…" : "Continue"}
               </button>
-              <p
-                className="text-center pt-1"
-                style={{
-                  fontSize: 12,
-                  color: PALETTE.earthMuted,
-                  fontFamily: 'Assistant, system-ui, sans-serif',
-                  lineHeight: 1.5,
-                }}
-              >
-                No password to remember. We'll never share your email.
-              </p>
             </form>
           ) : (
-            <form onSubmit={handleVerifyCode} className="space-y-2.5">
+            <form onSubmit={handleVerifyCode} className="space-y-3">
               <input
                 type="text"
                 required
@@ -374,36 +355,40 @@ function SignInDialog({
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="000000"
-                className="w-full rounded-xl px-4 py-4 outline-none transition-all text-center"
+                className="w-full rounded-xl px-4 outline-none transition-all text-center focus:ring-2"
                 style={{
                   background: "#fff",
                   border: `1px solid ${PALETTE.sandDeep}`,
                   color: PALETTE.ink,
                   fontFamily: 'Asap, system-ui, sans-serif',
-                  fontSize: 28,
+                  fontSize: 26,
                   fontWeight: 700,
-                  letterSpacing: "0.4em",
+                  letterSpacing: "0.35em",
                   fontVariantNumeric: "tabular-nums",
+                  height: 60,
+                  // @ts-expect-error css var
+                  "--tw-ring-color": "rgba(191, 82, 74, 0.18)",
                 }}
               />
               <button
                 type="submit"
                 disabled={busy || code.length < 6}
-                className="w-full rounded-xl py-3.5 transition-all disabled:opacity-50"
+                className="w-full rounded-xl transition-all disabled:opacity-60 active:scale-[0.99]"
                 style={{
                   background: PALETTE.rose,
                   color: PALETTE.cream,
                   fontFamily: 'Asap, system-ui, sans-serif',
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: 600,
-                  letterSpacing: "0.02em",
-                  boxShadow: code.length === 6 ? "0 10px 26px rgba(191, 82, 74, 0.32)" : "none",
+                  letterSpacing: "0.01em",
+                  height: 52,
+                  boxShadow: code.length === 6 ? "0 8px 22px rgba(191, 82, 74, 0.28)" : "none",
                 }}
               >
                 {busy ? "Verifying…" : "Verify & continue"}
               </button>
               <div
-                className="flex items-center justify-between pt-1 text-[12.5px]"
+                className="flex items-center justify-between pt-2 text-[13px]"
                 style={{
                   color: PALETTE.earthMuted,
                   fontFamily: 'Assistant, system-ui, sans-serif',
