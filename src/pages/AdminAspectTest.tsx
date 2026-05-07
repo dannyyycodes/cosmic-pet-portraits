@@ -9,9 +9,10 @@
  * server's ADMIN_TEST_SECRET env). Stored in sessionStorage so we don't
  * have to retype on every test. Don't link this page anywhere public.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles, Upload } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 type AspectResult = {
   key: string;
@@ -27,14 +28,15 @@ const ADMIN_KEY_STORAGE = 'pawtraits.adminTestKey';
 
 export default function AdminAspectTest() {
   const [adminKey, setAdminKey] = useState('');
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [petName, setPetName] = useState('');
   const [mode, setMode] = useState<'preview' | 'print'>('preview');
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<AspectResult[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const stored = sessionStorage.getItem(ADMIN_KEY_STORAGE);
@@ -46,14 +48,26 @@ export default function AdminAspectTest() {
     sessionStorage.setItem(ADMIN_KEY_STORAGE, k);
   }
 
-  async function uploadPhoto(file: File): Promise<string> {
-    // Quick + dirty: upload to a free image host (no auth needed) — postimages?
-    // Actually safer: use the existing supabase pet-photos bucket.
-    // Even simpler for admin testing: convert to data URL since fal accepts URLs.
-    // gpt-image-2 needs a real URL it can fetch — data URLs may not work.
-    // So upload to a temp endpoint... but that's complex. For admin testing,
-    // require the user to host the image themselves OR paste a URL.
-    return URL.createObjectURL(file);  // local blob URL — only works if fal can fetch it (it can't)
+  async function handleFileUpload(file: File) {
+    setError(null);
+    setUploading(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+      const path = `admin-test/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('pet-photos')
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) {
+        setError(`Upload failed: ${upErr.message}`);
+        return;
+      }
+      const { data } = supabase.storage.from('pet-photos').getPublicUrl(path);
+      setPhotoUrl(data.publicUrl);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleGenerate() {
@@ -128,14 +142,33 @@ export default function AdminAspectTest() {
             </div>
             <div>
               <label className="block text-xs uppercase tracking-widest mb-1" style={{ color: '#9a8578' }}>
-                Photo URL (publicly fetchable — paste a Supabase / Imgur / direct URL)
+                Photo (drop file OR paste URL)
               </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full mb-2 py-3 rounded border-2 border-dashed border-neutral-700 hover:border-neutral-500 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {uploading ? (
+                  <><Sparkles className="w-4 h-4 animate-spin" /> Uploading…</>
+                ) : (
+                  <><Upload className="w-4 h-4" /> Upload pet photo</>
+                )}
+              </button>
               <input
                 type="text"
                 value={photoUrl}
                 onChange={(e) => setPhotoUrl(e.target.value)}
-                className="w-full px-3 py-2 rounded bg-neutral-900 border border-neutral-800 text-white"
-                placeholder="https://..."
+                className="w-full px-3 py-2 rounded bg-neutral-900 border border-neutral-800 text-white text-xs"
+                placeholder="…or paste a public URL"
               />
             </div>
             <div>
