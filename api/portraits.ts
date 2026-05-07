@@ -294,8 +294,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return handleInstantSignup(req, res);
     case "test-aspects":
       return handleTestAspects(req, res);
+    case "printMaster":
+      return handlePrintMaster(req, res);
     default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects` });
+      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects|printMaster` });
   }
 }
 
@@ -636,17 +638,21 @@ async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
 
 Return shape (every field required, use null only if you genuinely cannot tell):
 {
-  "species": "dog" | "cat" | "rabbit" | "bird" | "horse" | "other",
-  "breed": "<specific breed name — be precise, e.g. 'German Shepherd', 'Cream French Bulldog', 'Maine Coon'. Use 'mixed breed (looks like X with Y)' if a clear cross. NEVER return null unless the image truly does not show a pet.>",
+  "species": "dog" | "cat" | "rabbit" | "bird" | "horse" | "other" | "none",
+  "breed": "<specific breed name — be precise, e.g. 'German Shepherd', 'Cream French Bulldog', 'Maine Coon'. Use 'mixed breed (looks like X with Y)' if a clear cross. Set to null ONLY if species is 'none'.>",
   "furColor": "<specific descriptor: 'black saddle with tan markings', 'cream with apricot ears', 'tortoiseshell calico', 'white with grey tabby patches'. NOT just 'brown' — include patterns and markings.>",
   "eyeColor": "<'amber', 'dark brown', 'green', 'blue', 'heterochromia (one blue one green)', etc>",
   "earShape": "<'erect triangular', 'drop pendulous', 'semi-erect', 'cropped', 'folded', 'tufted', 'rose'>",
   "distinguishing": "<one short phrase capturing what makes THIS individual recognisable: 'white sock on left front paw', 'pink nose with black freckle', 'long bushy tail with white tip', 'one ear flopped'. If nothing stands out, the most prominent breed feature.>"
 }
 
+CRITICAL — bad-photo gate:
+If the image does NOT show a pet (e.g. landscape, person, object, sunset, food, screenshot, blank canvas, blurred unidentifiable mass), set species: "none" and ALL other fields to null. Do NOT hallucinate a pet that isn't there. This protects the customer from being charged for a portrait of nothing.
+
 Rules:
-- Be confident. "best guess" is acceptable; null is failure.
+- Be confident on real pets. "best guess" is acceptable for breed/markings.
 - Specific beats vague. "Black saddle with tan markings" not "black and tan".
+- A human in the photo with no pet → species: "none". A pet held by a human → identify the pet.
 - Output JSON only — no prose, no markdown fences, no commentary.`;
 
   try {
@@ -751,16 +757,39 @@ async function callGptImage(model: string, body: Record<string, unknown>): Promi
   return { res: r, bodyText: text };
 }
 
-async function generateVariant(args: { imageUrl: string; prompt: string; negative?: string }): Promise<VariantResult> {
+// generateVariant now accepts EITHER a single imageUrl (legacy single-pet
+// path) OR an array of imageUrls (multi-pet path — gpt-image-2 blends across
+// up to 16 reference images per call). Callers pass exactly one of the two.
+// The optional `imageSize` override lets the printMaster endpoint hand in
+// print-grade dims (e.g. 2048×2560) without polluting the customer-facing
+// preview default of 1024×1280.
+async function generateVariant(args: {
+  imageUrl?: string;
+  imageUrls?: string[];
+  prompt: string;
+  negative?: string;
+  imageSize?: { width: number; height: number };
+}): Promise<VariantResult> {
   // Negatives fold into the prompt — gpt-image has no separate negative slot.
   const fullPrompt = args.negative
     ? `${args.prompt}\n\nAvoid: ${args.negative}.`
     : args.prompt;
 
+  const photos = args.imageUrls && args.imageUrls.length > 0
+    ? args.imageUrls
+    : args.imageUrl
+      ? [args.imageUrl]
+      : [];
+  if (photos.length === 0) {
+    return {};
+  }
+
+  const size = args.imageSize ?? { width: GPT_IMAGE_WIDTH, height: GPT_IMAGE_HEIGHT };
+
   const requestBody = {
     prompt: fullPrompt,
-    image_urls: [args.imageUrl],
-    image_size: { width: GPT_IMAGE_WIDTH, height: GPT_IMAGE_HEIGHT },
+    image_urls: photos,
+    image_size: size,
     quality: GPT_IMAGE_QUALITY,
     num_images: 1,
     output_format: 'png',
@@ -790,23 +819,172 @@ async function generateVariant(args: { imageUrl: string; prompt: string; negativ
   return { url: d.images?.[0]?.url };
 }
 
+// Sanitise a single pet name → on-canvas typography. Letters / numbers / space
+// / hyphen / apostrophe only (covers "O'Connor", "Mary Jane"; drops "Mr.").
+// Cap at 24 chars — anything longer doesn't render legibly along a canvas margin.
+function sanitisePetName(raw: string): string {
+  return raw.replace(/[^\p{L}\p{N} '-]/gu, "").trim().slice(0, 24);
+}
+
+// Build the per-pet KEEP block — the line that gets slotted into the prompt
+// for one specific pet. Same shape used by single-pet, multi-pet, and the
+// printMaster endpoint, so we extract it here to keep them in lock-step.
+function buildPetKeepLine(args: {
+  index: number;       // 0-based; only used for "Pet N" prefix when totalPets > 1
+  totalPets: number;   // 1 = single-pet path, omits the "Pet N" prefix
+  name?: string;       // sanitised pet name, optional
+  subject: SubjectInfo;
+}): string {
+  const { index, totalPets, name, subject } = args;
+
+  if (totalPets === 1) {
+    // Single-pet path keeps the LEGACY phrasing exactly — empirically tuned,
+    // verified against the German Shepherd test on 2026-05-07. Do NOT change
+    // the wording without re-running the breed-retention smoke test.
+    const keeps: string[] = [];
+    if (subject.breed) keeps.push(`the ${subject.breed} silhouette and breed characteristics`);
+    if (subject.furColor) keeps.push(`${subject.furColor} fur pattern`);
+    if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
+    if (subject.earShape) keeps.push(`${subject.earShape} ear shape`);
+    if (subject.distinguishing) keeps.push(subject.distinguishing);
+    const keepLine = keeps.length > 0
+      ? `Specifically preserve: ${keeps.join(', ')}.`
+      : '';
+    return [
+      `Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.`,
+      keepLine,
+    ].filter(Boolean).join('\n');
+  }
+
+  // Multi-pet — one labelled block per pet so the model can map text → image.
+  // The "Pet N" prefix is the bridge: it tells gpt-image-2 which source image
+  // each KEEP block describes (image_urls[0] = Pet 1, image_urls[1] = Pet 2, …).
+  const keeps: string[] = [];
+  if (subject.breed) keeps.push(`a ${subject.breed}`);
+  if (subject.furColor) keeps.push(`${subject.furColor} fur`);
+  if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
+  if (subject.earShape) keeps.push(`${subject.earShape} ears`);
+  if (subject.distinguishing) keeps.push(subject.distinguishing);
+  const preserve = keeps.length > 0
+    ? `Specifically preserve: ${keeps.join(', ')}.`
+    : '';
+  const breedClause = subject.breed ? `a ${subject.breed}` : 'this pet';
+  const namedClause = name ? ` (named "${name}")` : '';
+  return `Pet ${index + 1}${namedClause}: ${breedClause}. ${preserve}`.trim();
+}
+
+// Build the full multi-pet prompt — one KEEP block per pet, shared by both
+// handleGenerate(multi) and handlePrintMaster.
+function buildMultiPetCustomPrompt(args: {
+  subjects: SubjectInfo[];
+  names: string[];
+  customPrompt: string;
+  aspectInstruction?: string;  // override the "vertical 4:5" line for non-4:5 print masters
+}): string {
+  const { subjects, names, customPrompt, aspectInstruction } = args;
+  const N = subjects.length;
+  const keepBlocks = subjects.map((subject, i) =>
+    buildPetKeepLine({ index: i, totalPets: N, name: names[i], subject })
+  );
+
+  // Name typography line — only render names that were actually supplied.
+  const namedNames = names.map((n, i) => ({ name: n, index: i })).filter(x => x.name.length > 0);
+  let nameLine = '';
+  if (namedNames.length === N && N > 1) {
+    const joined = namedNames.map(x => `"${x.name}"`).join(' and ');
+    nameLine = `Render the names ${joined} in elegant clean serif typography along the lower margin of the canvas, each name beneath its respective pet, readable, no spelling errors, no other text on the canvas.`;
+  } else if (namedNames.length === 1 && N === 1) {
+    nameLine = `Render the name "${namedNames[0].name}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`;
+  } else if (namedNames.length > 0 && N > 1) {
+    // Partial naming — render only the supplied names against their pets.
+    const joined = namedNames.map(x => `"${x.name}" beneath Pet ${x.index + 1}`).join(', ');
+    nameLine = `Render ${joined} in elegant clean serif typography along the lower margin of the canvas, readable, no spelling errors, no other text on the canvas.`;
+  }
+
+  const togetherLine = N > 1
+    ? `Use the exact pets shown across the source images. Create a single canvas portrait featuring all ${N} pets together in one cohesive composition. Preserve each pet's breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in their respective source photo. Do not swap features between pets. Do not invent new features. Do not redesign any pet.`
+    : '';  // single-pet path uses the keep block's preamble instead
+
+  const aspect = aspectInstruction
+    ?? `Output: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.`;
+
+  const parts = [
+    togetherLine,
+    ...keepBlocks,
+    ``,
+    `Apply this artistic transformation: ${customPrompt}.`,
+    ``,
+    nameLine,
+    ``,
+    aspect,
+  ];
+  return parts.filter(p => p !== '').join('\n');
+}
+
+// A photo's vision result counts as "no pet detected" if either the model
+// flagged species: 'none' OR fell back to the bare {species:'pet'} default
+// (i.e. the call failed / got no signal). We treat both as "do not charge."
+// LIMITATION: the default fallback also fires when OPENROUTER_KEY is absent
+// or the call hit a transient error. That's fine — we'd rather refuse than
+// burn a credit on a blind generation.
+function isNoPetDetected(subject: SubjectInfo): boolean {
+  if (subject.species === 'none') return true;
+  // species === 'pet' with no breed = the fallback shape; vision didn't
+  // confidently identify anything pet-shaped. Don't proceed without a breed
+  // anchor — gpt-image-2 drifts to "generic dog matching style training data".
+  if (subject.species === 'pet' && !subject.breed) return true;
+  return false;
+}
+
 async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
-  const body = (req.body ?? {}) as { imageUrl?: string; styleId?: string; themeId?: string; addDetails?: string; customPrompt?: string; petName?: string };
-  const { imageUrl, styleId, themeId } = body;
+  // Body now accepts EITHER:
+  //   - legacy single-pet shape: { imageUrl, petName?, ... }
+  //   - new multi-pet shape:     { imageUrls[], petNames?[], ... }
+  // We normalise to internal photos[] / names[] arrays. Single-pet path stays
+  // 100% back-compat — existing customers calling with imageUrl + petName get
+  // identical behaviour and identical response shape.
+  const body = (req.body ?? {}) as {
+    imageUrl?: string;
+    imageUrls?: string[];
+    styleId?: string;
+    themeId?: string;
+    addDetails?: string;
+    customPrompt?: string;
+    petName?: string;
+    petNames?: string[];
+  };
+  const { styleId, themeId } = body;
   const addDetails = sanitiseAddDetails(body.addDetails ?? "");
   const customPrompt = sanitiseAddDetails(body.customPrompt ?? "").slice(0, 400);
-  // Pet name → on-canvas typography. Sanitise to letters / numbers / space / hyphen / apostrophe
-  // (covers "O'Connor", "Mary Jane", "Mr. Bean" — drops the dot but keeps recognisable shape).
-  // Cap at 24 chars — anything longer doesn't render legibly along a canvas margin anyway.
-  const petName = (body.petName ?? "")
-    .replace(/[^\p{L}\p{N} '-]/gu, "")
-    .trim()
-    .slice(0, 24);
-  if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
+
+  // ── Normalise to photos[] / names[] ─────────────────────────────────────
+  // Multi-pet path activates if imageUrls is a non-empty array. Otherwise we
+  // fall back to legacy imageUrl. We never mix the two — caller picks one.
+  const isMultiPet = Array.isArray(body.imageUrls) && body.imageUrls.length > 0;
+  const photos: string[] = isMultiPet
+    ? body.imageUrls!.filter((u): u is string => typeof u === 'string' && u.length > 0)
+    : (body.imageUrl ? [body.imageUrl] : []);
+  if (photos.length === 0) {
+    return res.status(400).json({ error: "imageUrl or imageUrls required" });
+  }
+  if (photos.length > 4) {
+    return res.status(400).json({ error: "max_pets_exceeded", message: "Pawtraits supports up to 4 pets per portrait. Please remove some photos." });
+  }
+  // Names array — same length as photos[]; missing entries become empty string.
+  const rawNames: string[] = isMultiPet
+    ? (Array.isArray(body.petNames) ? body.petNames.map(n => typeof n === 'string' ? n : '') : [])
+    : (body.petName ? [body.petName] : []);
+  const names: string[] = photos.map((_, i) => sanitisePetName(rawNames[i] ?? ''));
+
   // Either freeform customPrompt OR (styleId + themeId) is required.
+  // NOTE: multi-pet path REQUIRES customPrompt — the Style×Theme builder is
+  // single-pet only. That's fine for now; multi-pet is the freeform path only.
   const usingCustomPrompt = customPrompt.length > 0;
   if (!usingCustomPrompt) {
+    if (isMultiPet) {
+      return res.status(400).json({ error: "customPrompt required for multi-pet portraits" });
+    }
     if (!styleId) return res.status(400).json({ error: "styleId required (or send customPrompt)" });
     if (!themeId) return res.status(400).json({ error: "themeId required (or send customPrompt)" });
   }
@@ -821,6 +999,38 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
   const userId = userRes.user.id;
 
+  // ── Vision pre-pass — BEFORE consuming credits ──────────────────────────
+  // Empirical proof (2026-05-07):
+  //   With Vision    → 5/5 correct breed on German Shepherd test
+  //   Without Vision → 0/4 correct breed on same German Shepherd
+  // gpt-image-2 via fal.ai needs the breed named explicitly in text — the
+  // ChatGPT app does this with an invisible Vision pre-pass; we replicate it.
+  // We now ALSO run vision before the credit consume so that a non-pet upload
+  // (landscape, sunset, blank canvas) NEVER gets charged. See task B in
+  // research-2026-05-07-identity-preservation.md.
+  // Env knob USE_SUBJECT_VISION=false disables for A/B — NOT recommended.
+  const useVision = process.env.USE_SUBJECT_VISION !== 'false';
+  const subjects: SubjectInfo[] = useVision
+    ? await Promise.all(photos.map((url) => extractSubject(url)))
+    : photos.map(() => ({ species: 'pet' } as SubjectInfo));
+
+  // Bad-photo gate — if ANY photo isn't a pet, refuse before charging.
+  for (let i = 0; i < subjects.length; i++) {
+    if (isNoPetDetected(subjects[i])) {
+      return res.status(400).json({
+        error: 'no_pet_detected',
+        petIndex: i,
+        message: photos.length === 1
+          ? `That photo doesn't appear to show a pet — please re-upload a clear shot of your pet's face.`
+          : `Photo ${i + 1} doesn't appear to show a pet — please re-upload that one.`,
+      });
+    }
+  }
+
+  // ── Credit consume — only after vision passes ──────────────────────────
+  // Multi-pet portraits cost the same as single-pet (1 credit). We're charging
+  // for the FINISHED PORTRAIT, not the per-pet identification work. If we ever
+  // want per-pet pricing it'd live as TOKENS_PER_PET * photos.length here.
   const { data: ok, error: rpcErr } = await supabase.rpc("consume_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION });
   if (rpcErr) return res.status(500).json({ error: "Credit check failed", detail: rpcErr.message });
   if (!ok) {
@@ -833,56 +1043,28 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Vision pre-pass — ON by default. EMPIRICAL PROOF (2026-05-07):
-  //   With Vision    → 5/5 correct breed on German Shepherd test
-  //   Without Vision → 0/4 correct breed on same German Shepherd
-  // gpt-image-2 via fal.ai needs the breed named explicitly in text. The
-  // ChatGPT app handles this with an INVISIBLE Vision pre-pass behind the
-  // scenes — same model, but the chat client orchestrates a vision-then-edit
-  // chain. fal.ai's endpoint is the raw model with no orchestration, so we
-  // do the Vision step ourselves. Photo provides identity; text reinforces it.
-  // Env knob USE_SUBJECT_VISION=false to disable for A/B (not recommended).
-  const useVision = process.env.USE_SUBJECT_VISION !== 'false';
-  const subject = useVision
-    ? await extractSubject(imageUrl)
-    : { species: 'pet' } as SubjectInfo;
-
   const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
-  const negativeWithName = petName
-    ? `${baseNegative}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names`
-    : `${baseNegative}, text overlay`;
+  const anyName = names.some(n => n.length > 0);
+  const negativeWithName = anyName
+    ? `${baseNegative}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names${photos.length > 1 ? ', merged pets, blended pets, hybrid pet, fused features' : ''}`
+    : `${baseNegative}, text overlay${photos.length > 1 ? ', merged pets, blended pets, hybrid pet, fused features' : ''}`;
 
   let promptDef: { prompt: string; negative: string; compositionId: string };
 
   if (usingCustomPrompt) {
-    // Photo-anchored AND text-reinforced. The photo is ground truth; Vision-
-    // extracted descriptors get slotted in as a Keep-list to give the model
-    // explicit text anchors that match what's in the image.
-    const keeps: string[] = [];
-    if (subject.breed) keeps.push(`the ${subject.breed} silhouette and breed characteristics`);
-    if (subject.furColor) keeps.push(`${subject.furColor} fur pattern`);
-    if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
-    if (subject.earShape) keeps.push(`${subject.earShape} ear shape`);
-    if (subject.distinguishing) keeps.push(subject.distinguishing);
-    const keepLine = keeps.length > 0
-      ? `Specifically preserve: ${keeps.join(', ')}.`
-      : '';
-
-    const promptParts = [
-      `Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.`,
-      keepLine,
-      ``,
-      `Apply this artistic transformation: ${customPrompt}.`,
-      ``,
-      petName
-        ? `Render the name "${petName}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
-        : '',
-      ``,
-      `Output: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.`,
-    ];
-    const prompt = promptParts.filter(p => p !== '').join('\n');
+    // Photo-anchored AND text-reinforced. The photo(s) are ground truth;
+    // Vision-extracted descriptors slot into a Keep-list to give the model
+    // explicit text anchors that match what's in each image.
+    const prompt = buildMultiPetCustomPrompt({
+      subjects,
+      names,
+      customPrompt,
+    });
     promptDef = { prompt, negative: negativeWithName, compositionId: COMPOSITIONS[0].id };
   } else {
+    // Style×Theme path — single-pet only (guarded above). subjects[0] is the
+    // only pet and its descriptors fold into the canonical buildPrompt.
+    const subject = subjects[0];
     const built = buildPrompt({
       species: subject.species,
       breed: subject.breed,
@@ -890,14 +1072,21 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       eyeColor: subject.eyeColor,
       earShape: subject.earShape,
       distinguishing: subject.distinguishing,
-      styleId: styleId!, themeId: themeId!, addDetails, petName, compositionIdx: 0,
+      styleId: styleId!, themeId: themeId!, addDetails, petName: names[0] ?? '', compositionIdx: 0,
     } satisfies BuildPromptInput);
     if (!built) return res.status(400).json({ error: "Unknown styleId or themeId" });
     promptDef = { ...built, compositionId: COMPOSITIONS[0].id };
   }
 
   try {
-    const result = await generateVariant({ imageUrl, prompt: promptDef.prompt, negative: promptDef.negative });
+    // Send ALL photos to gpt-image-2 in a single call. Multi-image input is
+    // a documented gpt-image-2 capability (image_urls accepts up to 16);
+    // verified for our use case in research-2026-05-07-identity-preservation.md.
+    const result = await generateVariant({
+      imageUrls: photos,
+      prompt: promptDef.prompt,
+      negative: promptDef.negative,
+    });
 
     if (result.balanceExhausted) {
       await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "fal-balance-exhausted" } });
@@ -910,7 +1099,17 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     }
 
     const variants = [{ url: result.url, composition: promptDef.compositionId }];
-    return res.status(200).json({ variants, subject, prompts: [promptDef.prompt] });
+    // Response shape:
+    //   variants:  [{ url, composition }]            — same as before
+    //   subject:   first pet's SubjectInfo            — back-compat with single-pet UI
+    //   subjects:  [SubjectInfo, ...]                 — NEW: full per-pet array
+    //   prompts:   [fullPrompt]                       — same as before
+    return res.status(200).json({
+      variants,
+      subject: subjects[0],
+      subjects,
+      prompts: [promptDef.prompt],
+    });
   } catch (err) {
     await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "exception", error: (err as Error).message } });
     return res.status(500).json({ error: "Generation failed (credit refunded)", detail: (err as Error).message });
@@ -1617,4 +1816,167 @@ async function handleTestAspects(req: VercelRequest, res: VercelResponse) {
   }));
 
   return res.status(200).json({ mode, subject, prompt: fullPrompt, aspects: results });
+}
+
+// ─── handlePrintMaster — server-side print-grade regen at order-fulfillment ──
+// Called from the orders/paid webhook (Phase 9 print pipeline) once the
+// customer has chosen a sizeKey + frame + shipping. Re-runs the same multi-pet
+// gpt-image-2 generation as handleGenerate but at PRINT dimensions
+// (2048×N for the chosen aspect) so the resulting file can feed AuraSR + Gelato
+// directly without an upscale-from-preview step.
+//
+// Body:
+//   {
+//     imageUrls:    string[],   // 1–4 source pet photos (same as handleGenerate multi)
+//     petNames?:    string[],   // optional, one per imageUrls index
+//     customPrompt: string,     // freeform prompt — same shape customer used at preview time
+//     sizeKey:      string,     // e.g. '16x20', '24x36'; must be in SKU_TO_ASPECT
+//   }
+// Headers:
+//   Authorization: Bearer <supabase-jwt>
+//
+// Returns:
+//   { printMasterUrl, width, height, aspect, costEstimate, subjects, prompt }
+//
+// IMPORTANT — does NOT consume customer credits. The print-master regen is
+// paid out of canvas margin at fulfillment time, NOT from the customer's
+// portrait token balance. Auth is still required (Bearer JWT) so only
+// authenticated users — i.e. people who actually placed an order — can call
+// this. The order-paid webhook is the expected caller.
+async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
+  if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
+
+  const body = (req.body ?? {}) as {
+    imageUrls?: string[];
+    petNames?: string[];
+    customPrompt?: string;
+    sizeKey?: string;
+  };
+
+  // ── Validate required fields ────────────────────────────────────────────
+  const customPrompt = sanitiseAddDetails(body.customPrompt ?? "").slice(0, 400);
+  if (!customPrompt) {
+    return res.status(400).json({ error: "customPrompt required" });
+  }
+  const sizeKey = typeof body.sizeKey === 'string' ? body.sizeKey : '';
+  if (!sizeKey) {
+    return res.status(400).json({ error: "sizeKey required" });
+  }
+  const aspectKey = SKU_TO_ASPECT[sizeKey];
+  if (!aspectKey) {
+    return res.status(400).json({
+      error: "unknown_size_key",
+      message: `sizeKey '${sizeKey}' not recognised. Valid: ${Object.keys(SKU_TO_ASPECT).join(', ')}`,
+    });
+  }
+  const aspect = ASPECTS.find((a) => a.key === aspectKey);
+  if (!aspect) {
+    // Defensive — SKU_TO_ASPECT and ASPECTS should always agree, but bail
+    // cleanly if a future edit drifts the two out of sync.
+    return res.status(500).json({ error: "aspect_lookup_failed", aspectKey });
+  }
+
+  const photos: string[] = Array.isArray(body.imageUrls)
+    ? body.imageUrls.filter((u): u is string => typeof u === 'string' && u.length > 0)
+    : [];
+  if (photos.length === 0) {
+    return res.status(400).json({ error: "imageUrls required (1–4 source pet photos)" });
+  }
+  if (photos.length > 4) {
+    return res.status(400).json({ error: "max_pets_exceeded", message: "printMaster supports up to 4 pets per portrait." });
+  }
+  const rawNames: string[] = Array.isArray(body.petNames)
+    ? body.petNames.map((n) => typeof n === 'string' ? n : '')
+    : [];
+  const names: string[] = photos.map((_, i) => sanitisePetName(rawNames[i] ?? ''));
+
+  // ── Auth — Bearer JWT required even though we don't consume credits ─────
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Sign in to generate print master" });
+  }
+  const token = auth.slice("Bearer ".length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
+
+  // ── Vision pre-pass — same bad-photo gate as handleGenerate ─────────────
+  // Vision is REQUIRED here too (see feedback_pawtraits_vision_required_for_
+  // fal_gpt_image_2.md). USE_SUBJECT_VISION env knob honoured for parity with
+  // handleGenerate, but disabling is not recommended — print masters are even
+  // more sensitive to identity drift than previews.
+  const useVision = process.env.USE_SUBJECT_VISION !== 'false';
+  const subjects: SubjectInfo[] = useVision
+    ? await Promise.all(photos.map((url) => extractSubject(url)))
+    : photos.map(() => ({ species: 'pet' } as SubjectInfo));
+
+  for (let i = 0; i < subjects.length; i++) {
+    if (isNoPetDetected(subjects[i])) {
+      return res.status(400).json({
+        error: 'no_pet_detected',
+        petIndex: i,
+        message: `Photo ${i + 1} does not appear to show a pet — print master cannot proceed.`,
+      });
+    }
+  }
+
+  // ── Build the same multi-pet prompt as handleGenerate, but with a
+  // print-grade aspect line tuned to the chosen canvas SKU ────────────────
+  const aspectLabel = aspect.label;
+  const aspectInstruction = `Output: ${aspectLabel} canvas composition at print resolution, painterly cinematic finish, premium polish for framed wall art, edge-to-edge composition with no visible margins, no whitespace borders.`;
+
+  const fullPrompt = buildMultiPetCustomPrompt({
+    subjects,
+    names,
+    customPrompt,
+    aspectInstruction,
+  });
+
+  // ── Fire gpt-image-2 at PRINT dimensions ────────────────────────────────
+  // Print dims live on aspect.print — typically 2048×N. AuraSR upscales 4×
+  // downstream in the print pipeline (runPrintPipeline) for the final 8K
+  // Gelato submission.
+  const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
+  const anyName = names.some(n => n.length > 0);
+  const negative = anyName
+    ? `${baseNegative}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names${photos.length > 1 ? ', merged pets, blended pets, hybrid pet, fused features' : ''}`
+    : `${baseNegative}, text overlay${photos.length > 1 ? ', merged pets, blended pets, hybrid pet, fused features' : ''}`;
+
+  try {
+    const result = await generateVariant({
+      imageUrls: photos,
+      prompt: fullPrompt,
+      negative,
+      imageSize: aspect.print,
+    });
+
+    if (result.balanceExhausted) {
+      return balancePausedResponse(res);
+    }
+    if (!result.url) {
+      return res.status(502).json({ error: "print_master_generation_failed" });
+    }
+
+    // Cost estimate — gpt-image-2 high quality at 2048×N is roughly $0.10–
+    // $0.20 per image depending on aspect (per fal pricing 2026-05-07).
+    // This is a rough number for the order log, not the actual fal bill.
+    const QUALITY_COST: Record<'low' | 'medium' | 'high', number> = { low: 0.04, medium: 0.08, high: 0.16 };
+    const costEstimate = QUALITY_COST[GPT_IMAGE_QUALITY] ?? 0.10;
+
+    return res.status(200).json({
+      printMasterUrl: result.url,
+      width: aspect.print.width,
+      height: aspect.print.height,
+      aspect: aspect.key,
+      sizeKey,
+      costEstimate,
+      subjects,
+      prompt: fullPrompt,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: "print_master_exception",
+      detail: (err as Error).message,
+    });
+  }
 }
