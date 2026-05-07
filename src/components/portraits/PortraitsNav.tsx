@@ -9,6 +9,7 @@
  */
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Brush } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sheet,
@@ -21,10 +22,11 @@ import { PALETTE } from "./tokens";
 interface NavItem {
   label: string;
   href: string;
+  icon?: typeof Brush;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Studio",           href: "/pawtraits#studio" },
+  { label: "Studio",           href: "/pawtraits#studio", icon: Brush },
   { label: "How It Works",     href: "/pawtraits#how" },
 ];
 
@@ -88,24 +90,33 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
 
         {/* ── Desktop nav links ── */}
         <nav className="hidden lg:flex items-center gap-7" aria-label="Primary">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="transition-colors"
-              style={{
-                fontFamily: "Assistant, system-ui, sans-serif",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: PALETTE.earth,
-                letterSpacing: "0.01em",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = PALETTE.rose)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = PALETTE.earth)}
-            >
-              {item.label}
-            </a>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                className="inline-flex items-center gap-1.5 transition-colors"
+                style={{
+                  fontFamily: "Assistant, system-ui, sans-serif",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: PALETTE.earth,
+                  letterSpacing: "0.01em",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = PALETTE.rose)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = PALETTE.earth)}
+              >
+                {Icon && (
+                  <Icon
+                    className="w-3.5 h-3.5"
+                    style={{ color: PALETTE.rose, strokeWidth: 2.2 }}
+                  />
+                )}
+                {item.label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* ── Right action group ── */}
@@ -219,25 +230,34 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[360px]" style={{ background: PALETTE.cream, borderColor: PALETTE.sand }}>
               <nav className="mt-10 flex flex-col gap-2" aria-label="Mobile primary">
-                {NAV_ITEMS.map((item) => (
-                  <SheetClose asChild key={item.href}>
-                    <a
-                      href={item.href}
-                      className="rounded-sm px-4 py-3 transition-colors"
-                      style={{
-                        fontFamily: "Asap, system-ui, sans-serif",
-                        fontSize: "17px",
-                        fontWeight: 600,
-                        color: PALETTE.ink,
-                        background: "transparent",
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = PALETTE.cream2)}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                    >
-                      {item.label}
-                    </a>
-                  </SheetClose>
-                ))}
+                {NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <SheetClose asChild key={item.href}>
+                      <a
+                        href={item.href}
+                        className="inline-flex items-center gap-2 rounded-sm px-4 py-3 transition-colors"
+                        style={{
+                          fontFamily: "Asap, system-ui, sans-serif",
+                          fontSize: "17px",
+                          fontWeight: 600,
+                          color: PALETTE.ink,
+                          background: "transparent",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = PALETTE.cream2)}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        {Icon && (
+                          <Icon
+                            className="w-4 h-4"
+                            style={{ color: PALETTE.rose, strokeWidth: 2.2 }}
+                          />
+                        )}
+                        {item.label}
+                      </a>
+                    </SheetClose>
+                  );
+                })}
 
                 <div className="mt-6 border-t pt-6 flex flex-col gap-2" style={{ borderColor: PALETTE.sand }}>
                   <SheetClose asChild>

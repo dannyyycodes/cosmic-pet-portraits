@@ -23,7 +23,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowUp, HelpCircle, Sparkles, X, Check } from "lucide-react";
+import { ArrowUp, HelpCircle, Sparkles, X, Check, Brush } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { PetPhotoUpload } from "@/components/portraits/PetPhotoUpload";
 import { VariantGallery, type Variant } from "@/components/portraits/styles/VariantGallery";
@@ -583,7 +583,14 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             }}
           />
           <p style={{ ...eyebrow(PALETTE.goldDeep), letterSpacing: "0.22em" }}>
-            The Studio
+            <span className="inline-flex items-center gap-2">
+              <Brush
+                className="w-4 h-4"
+                style={{ color: PALETTE.rose, strokeWidth: 2.2 }}
+                aria-hidden
+              />
+              The Studio
+            </span>
           </p>
           <h2
             id="studio-heading"
