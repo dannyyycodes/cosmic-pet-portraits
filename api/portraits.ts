@@ -667,7 +667,11 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 //   GPT_IMAGE_QUALITY    — 'low' | 'medium' | 'high' (default 'medium')
 //   GPT_IMAGE_WIDTH      — int, default 1024
 //   GPT_IMAGE_HEIGHT     — int, default 1280  (4:5)
-const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'openai/gpt-image-2/image-to-image';
+// fal API model_id (NOT the marketplace URL path). Verified against the fal
+// docs page: marketplace URL is /models/openai/gpt-image-2, but the API
+// model_id is 'fal-ai/gpt-image-2/image-to-image' — the URL builder prepends
+// 'fal-ai/' so we store it without that prefix here.
+const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'gpt-image-2/image-to-image';
 const GPT_IMAGE_FALLBACK_MODEL = 'gpt-image-1/edit-image';
 const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high';
 const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
