@@ -225,21 +225,6 @@ export function TrustStrip() {
         </div>
       </div>
 
-      {/* Restrained hover: subtle gold rule grows under each column's heading.
-          Only on devices that actually have hover (not touch). */}
-      <style>{`
-        @media (hover: hover) and (pointer: fine) {
-          .trust-col [data-hover-rule] {
-            transform: scaleX(0.4);
-            transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms;
-            opacity: 0.55;
-          }
-          .trust-col:hover [data-hover-rule] {
-            transform: scaleX(1);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </section>
   );
 }
@@ -311,20 +296,7 @@ function RatingColumn() {
         <span style={ratingFlankText}>from 47K+</span>
       </h3>
 
-      {/* Hover rule + ornament + caption */}
-      <div
-        data-hover-rule
-        aria-hidden
-        style={{
-          width: 36,
-          height: 1,
-          background: PALETTE.gold,
-          opacity: 0.55,
-          margin: "22px auto 0",
-          transformOrigin: "center",
-        }}
-      />
-      <p style={{ ...captionItalic, marginTop: 14 }}>happy pet parent reviews</p>
+      <p style={{ ...captionItalic, marginTop: 22 }}>happy pet parent reviews</p>
     </Column>
   );
 }
@@ -341,18 +313,6 @@ function ShippingColumn() {
         style={{ display: "block" }}
       />
       <h3 style={{ ...titleAsap, marginTop: 26 }}>Worldwide Shipping</h3>
-      <div
-        data-hover-rule
-        aria-hidden
-        style={{
-          width: 36,
-          height: 1,
-          background: PALETTE.gold,
-          opacity: 0.55,
-          margin: "12px auto 0",
-          transformOrigin: "center",
-        }}
-      />
       <p style={{ ...captionItalic, marginTop: 12 }}>
         printed with care · framed beautifully · delivered to your door
       </p>
@@ -372,18 +332,6 @@ function GuaranteeColumn() {
         style={{ display: "block" }}
       />
       <h3 style={{ ...titleAsap, marginTop: 26 }}>100% Love-It Guarantee</h3>
-      <div
-        data-hover-rule
-        aria-hidden
-        style={{
-          width: 36,
-          height: 1,
-          background: PALETTE.gold,
-          opacity: 0.55,
-          margin: "12px auto 0",
-          transformOrigin: "center",
-        }}
-      />
       <p style={{ ...captionItalic, marginTop: 12 }}>
         we'll make it right · re-do or refund · no stress
       </p>
