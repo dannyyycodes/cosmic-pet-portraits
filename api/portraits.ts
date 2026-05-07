@@ -667,18 +667,19 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 //   GPT_IMAGE_QUALITY    — 'low' | 'medium' | 'high' (default 'medium')
 //   GPT_IMAGE_WIDTH      — int, default 1024
 //   GPT_IMAGE_HEIGHT     — int, default 1280  (4:5)
-// fal API model_id (NOT the marketplace URL path). Verified against the fal
-// docs page: marketplace URL is /models/openai/gpt-image-2, but the API
-// model_id is 'fal-ai/gpt-image-2/image-to-image' — the URL builder prepends
-// 'fal-ai/' so we store it without that prefix here.
-const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'gpt-image-2/image-to-image';
-const GPT_IMAGE_FALLBACK_MODEL = 'gpt-image-1/edit-image';
+// fal API model_id, in full. Verified against the API tab page —
+// /models/openai/gpt-image-2/api shows fal.subscribe("openai/gpt-image-2", …).
+// Image editing happens on this same endpoint when image_urls is provided.
+// URL builder uses the model_id literally — no prefix games. Pass the full
+// slug including any vendor prefix (openai/, fal-ai/, comfy/, etc).
+const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'openai/gpt-image-2';
+const GPT_IMAGE_FALLBACK_MODEL = 'fal-ai/gpt-image-1/edit-image';
 const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high';
 const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
 const GPT_IMAGE_HEIGHT = Number(process.env.GPT_IMAGE_HEIGHT ?? 1280);
 
 async function callGptImage(model: string, body: Record<string, unknown>): Promise<{ res: Response; bodyText: string | null }> {
-  const r = await fetch(`https://fal.run/fal-ai/${model}`, {
+  const r = await fetch(`https://fal.run/${model}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Key ${FAL_KEY}` },
     body: JSON.stringify(body),
@@ -1194,82 +1195,105 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
   return res.status(400).json({ error: `unknown op: ${op}. Valid: list|get|gallery|insert|approve|reject|logPost` });
 }
 
-// ─── handleInstantSignup — passwordless, no-OTP signup gated by Turnstile ───
-// Body: { email, turnstileToken }
+// ─── handleInstantSignup — passwordless, no-OTP signup ──────────────────────
+// Body: { email, visitorId?, honeypot? }
+//
+// Defense stack — all silent, none ever block a real human:
+//   1. Honeypot field. Real browsers don't fill hidden inputs; bots do.
+//   2. Per-IP rate limit (10 new signups / hour). Stops scripted farming
+//      without ever tripping a normal home/cafe/mobile network.
+//   3. Server-side email format check + (client-side) disposable-domain check.
+//   4. Existing DB triggers handle email-alias dedup (Gmail dot/plus, etc.)
+//      and device-fingerprint dedup via the visitor_id we forward to
+//      raw_user_meta_data — same browser can't farm unlimited free trials.
 //
 // Flow:
-//   1. Verify Turnstile token with Cloudflare's siteverify endpoint (blocks bots
-//      without surfacing any UI friction for real users).
-//   2. Try to create the user via Supabase admin API with email_confirm:true.
-//      - If successful (new email) → generate a single-use magic-link OTP and
-//        return it. Client calls supabase.auth.verifyOtp() locally to establish
-//        the session. User is signed in immediately, no email click needed.
-//      - If the email already exists → return { status: 'exists' } so the
-//        client can route to /auth and request an OTP code (account ownership
-//        proof — we never auto-sign-in someone else's email).
-//   3. Rate limit: 5 signup attempts per IP per minute via the existing rate
-//      limit table if present; otherwise rely on Turnstile + email dedup.
-const TURNSTILE_SECRET = process.env.TURNSTILE_SECRET_KEY;
-const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+//   - New email → admin createUser with email_confirm:true + visitor_id, then
+//     issue a single-use magic-link OTP and return it. Client calls
+//     supabase.auth.verifyOtp() locally to establish the session. User is
+//     signed in immediately, no email click.
+//   - Existing email → return { status: 'exists' } so the client routes to
+//     /auth and requests an OTP code (proves account ownership; we never
+//     auto-sign-in someone else's email).
+const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SIGNUP_RATE_LIMIT_PER_HOUR = 10;
 
-async function verifyTurnstile(token: string, remoteIp?: string): Promise<{ ok: boolean; reason?: string }> {
-  if (!TURNSTILE_SECRET) {
-    // No secret configured — fail closed in prod, fail open in dev.
-    if (process.env.NODE_ENV === 'production') return { ok: false, reason: 'turnstile-not-configured' };
+async function checkSignupRateLimit(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  identifier: string,
+): Promise<{ ok: boolean }> {
+  // Window: last hour. Fail-open on infra errors so a flaky DB doesn't
+  // block real users — the other defense layers still apply.
+  const windowStart = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  try {
+    const { count, error } = await supabaseAdmin
+      .from('rate_limits')
+      .select('id', { count: 'exact', head: true })
+      .eq('endpoint', 'instant-signup')
+      .eq('identifier', identifier)
+      .gte('created_at', windowStart);
+    if (error) {
+      console.error('[instant-signup] rate-limit lookup failed:', error.message);
+      return { ok: true };
+    }
+    if ((count ?? 0) >= SIGNUP_RATE_LIMIT_PER_HOUR) return { ok: false };
+    await supabaseAdmin
+      .from('rate_limits')
+      .insert({ endpoint: 'instant-signup', identifier });
+    return { ok: true };
+  } catch (err) {
+    console.error('[instant-signup] rate-limit threw:', (err as Error).message);
     return { ok: true };
   }
-  try {
-    const params = new URLSearchParams();
-    params.set('secret', TURNSTILE_SECRET);
-    params.set('response', token);
-    if (remoteIp) params.set('remoteip', remoteIp);
-    const r = await fetch(TURNSTILE_VERIFY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString(),
-    });
-    const j = await r.json() as { success?: boolean; 'error-codes'?: string[] };
-    if (j.success) return { ok: true };
-    return { ok: false, reason: (j['error-codes'] ?? ['unknown']).join(',') };
-  } catch (err) {
-    return { ok: false, reason: `verify-threw: ${(err as Error).message}` };
-  }
 }
-
-const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return res.status(503).json({ error: 'supabase-not-configured' });
   }
-  const body = (req.body ?? {}) as { email?: string; turnstileToken?: string };
+  const body = (req.body ?? {}) as {
+    email?: string;
+    visitorId?: string;
+    honeypot?: string;
+  };
   const email = String(body.email ?? '').trim().toLowerCase();
-  const turnstileToken = String(body.turnstileToken ?? '');
+  const visitorId = String(body.visitorId ?? '').trim().slice(0, 128) || null;
+  const honeypot = String(body.honeypot ?? '');
+
+  // Honeypot: bots auto-fill hidden inputs; humans never see them.
+  // Generic error so a bot can't tell it was caught.
+  if (honeypot.length > 0) {
+    return res.status(400).json({ error: 'invalid_request' });
+  }
 
   if (!email || !EMAIL_RX.test(email)) {
     return res.status(400).json({ error: 'invalid_email' });
   }
-  if (!turnstileToken) {
-    return res.status(400).json({ error: 'turnstile_required' });
-  }
-
-  // Pull client IP for Turnstile verify (not blocking — best effort).
-  const fwd = req.headers['x-forwarded-for'];
-  const remoteIp = typeof fwd === 'string' ? fwd.split(',')[0].trim() : Array.isArray(fwd) ? fwd[0] : undefined;
-
-  const ts = await verifyTurnstile(turnstileToken, remoteIp);
-  if (!ts.ok) {
-    return res.status(403).json({ error: 'turnstile_failed', detail: ts.reason });
-  }
 
   const supabaseAdmin = getSupabaseAdmin();
 
+  // Per-IP rate limit. Vercel forwards the real client IP in x-forwarded-for.
+  const fwd = req.headers['x-forwarded-for'];
+  const remoteIp = typeof fwd === 'string'
+    ? fwd.split(',')[0].trim()
+    : Array.isArray(fwd) ? fwd[0] : 'unknown';
+  const rl = await checkSignupRateLimit(supabaseAdmin, remoteIp);
+  if (!rl.ok) {
+    return res.status(429).json({
+      error: 'rate_limited',
+      message: 'A lot of signups from your network — try again in a few minutes.',
+    });
+  }
+
   // Attempt to create the user with email_confirm:true so they don't need to
-  // click a confirmation link. If the email already exists, fall through to
-  // the 'exists' branch — caller routes that user to /auth to enter an OTP.
+  // click a confirmation link. visitor_id is forwarded to the DB trigger which
+  // uses it (alongside email) to decide whether to grant free signup credits.
+  // If the email already exists, fall through to the 'exists' branch — caller
+  // routes that user to /auth to enter an OTP.
   const { data: createData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
     email,
     email_confirm: true,
+    user_metadata: visitorId ? { visitor_id: visitorId } : undefined,
   });
 
   // Detect "already exists" — Supabase returns 422 / "already been registered" etc.
