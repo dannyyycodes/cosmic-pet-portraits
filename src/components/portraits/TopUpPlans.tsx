@@ -65,11 +65,11 @@ const PLANS: Plan[] = [
   },
   {
     sku: "elite",
-    label: "Business Runner",
+    label: "Enthusiast",
     price: "£17.99",
     cadence: "per month",
     generations: "75 pawtraits/mo",
-    tagline: "Built for creators and resellers.",
+    tagline: "For the seriously obsessed.",
     features: [
       "75 full-size pawtraits per month",
       "Priority generation queue",
@@ -77,7 +77,7 @@ const PLANS: Plan[] = [
       "Re-download anytime",
       "Cancel any time",
     ],
-    cta: "Start Business",
+    cta: "Start Enthusiast",
     icon: Crown,
   },
 ];
