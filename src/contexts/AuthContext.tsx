@@ -7,6 +7,11 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  /** Passwordless: sends a 6-digit code to the email. Auto-creates account if new. */
+  sendOtp: (email: string) => Promise<{ error: Error | null }>;
+  /** Verify the 6-digit code. Signs the user in / completes signup. */
+  verifyOtp: (email: string, token: string) => Promise<{ error: Error | null }>;
+  /** Legacy password path — kept for accounts that pre-date OTP rollout. */
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -61,6 +66,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const sendOtp = async (email: string) => {
+    // shouldCreateUser:true is the default — same flow handles new + returning users.
+    // emailRedirectTo is unused for the code path but the link fallback respects it.
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    });
+    return { error };
+  };
+
+  const verifyOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+    return { error };
+  };
+
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
@@ -86,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, sendOtp, verifyOtp, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
