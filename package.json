@@ -61,6 +61,7 @@
     "dompurify": "^3.3.3",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.26",
+    "heic2any": "^0.0.4",
     "html2canvas": "^1.4.1",
     "i18next": "^25.7.3",
     "input-otp": "^1.4.2",
