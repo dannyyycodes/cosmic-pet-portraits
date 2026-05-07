@@ -23,6 +23,9 @@ import { CartDrawer } from "@/components/portraits/CartDrawer";
 import { StyleThemePicker } from "@/components/portraits/styles/StyleThemePicker";
 import { VariantGallery, type Variant } from "@/components/portraits/styles/VariantGallery";
 import { getStyle, getTheme } from "@/components/portraits/styles/styleTheme";
+import { StudioAtmosphere } from "@/components/portraits/studio/StudioAtmosphere";
+import { GenerationCanvas } from "@/components/portraits/studio/GenerationCanvas";
+import { StudioPlaceholder } from "@/components/portraits/studio/StudioPlaceholder";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/components/portraits/useCredits";
 import { savePetPhoto, loadPetPhoto, clearPetPhoto } from "@/components/portraits/photoSharing";
@@ -164,25 +167,57 @@ export default function PortraitsStudio() {
   }
 
   return (
-    <div style={{ background: PALETTE.cream, minHeight: "100vh" }}>
+    <div style={{ background: PALETTE.cream, minHeight: "100vh", position: "relative", overflow: "hidden" }}>
+      <StudioAtmosphere active={generating} />
+      <div style={{ position: "relative", zIndex: 1 }}>
       <PortraitsNav cartCount={cart.length} onCartOpen={() => setCartOpen(true)} />
 
       <main className="pt-[88px] pb-24">
         <section className="px-5 md:px-8" style={{ maxWidth: 1240, margin: "0 auto" }}>
           {/* Hero */}
-          <div className="text-center mt-8 mb-12">
-            <p
-              className="uppercase mb-4"
-              style={{ color: PALETTE.muted, letterSpacing: "0.16em", fontSize: 12, fontWeight: 600 }}
+          <motion.div
+            className="text-center mt-8 mb-12"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full"
+              style={{ background: "rgba(255,255,255,0.7)", border: `1px solid ${PALETTE.sand}`, backdropFilter: "blur(8px)" }}
             >
-              AI Studio · 64 styles · full-size pawtrait per generation
-            </p>
+              <motion.span
+                aria-hidden
+                animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                style={{ width: 6, height: 6, borderRadius: "50%", background: PALETTE.rose, display: "inline-block" }}
+              />
+              <p
+                className="uppercase"
+                style={{ color: PALETTE.muted, letterSpacing: "0.18em", fontSize: 11, fontWeight: 700 }}
+              >
+                AI Studio · 64 styles · full-size pawtrait per generation
+              </p>
+            </div>
             <h1
               className="font-serif"
               style={{ fontSize: "clamp(36px, 5vw, 56px)", color: PALETTE.ink, lineHeight: 1.05, letterSpacing: "-0.02em" }}
             >
-              Your pet, <span style={{ color: PALETTE.rose }}>reimagined.</span>
+              Your pet,{" "}
+              <span style={{ position: "relative", display: "inline-block" }}>
+                <span
+                  style={{
+                    background: `linear-gradient(90deg, ${PALETTE.rose} 0%, ${PALETTE.gold} 50%, ${PALETTE.rose} 100%)`,
+                    backgroundSize: "200% 100%",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    animation: "studio-gradient-pan 6s ease-in-out infinite",
+                  }}
+                >
+                  reimagined.
+                </span>
+              </span>
             </h1>
+            <style>{`@keyframes studio-gradient-pan{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}`}</style>
             <p
               className="mt-4 mx-auto font-cormorant italic"
               style={{ fontSize: 20, color: PALETTE.warm, maxWidth: 560 }}
@@ -220,7 +255,7 @@ export default function PortraitsStudio() {
                 </>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Step 1: Upload */}
           <div className="mb-10">
@@ -247,19 +282,44 @@ export default function PortraitsStudio() {
                   onThemeChange={setThemeId}
                   onAddDetailsChange={setAddDetails}
                 />
-                <button
+                <motion.button
                   onClick={handleGenerate}
                   disabled={!canGenerate}
-                  className="mt-6 w-full px-6 py-3 rounded-full text-base font-medium transition-opacity disabled:opacity-50"
+                  whileHover={canGenerate ? { scale: 1.015 } : undefined}
+                  whileTap={canGenerate ? { scale: 0.985 } : undefined}
+                  className="relative mt-6 w-full px-6 py-3.5 rounded-full text-base font-medium transition-opacity disabled:opacity-50 overflow-hidden"
                   style={{
-                    background: PALETTE.rose,
+                    background: `linear-gradient(110deg, ${PALETTE.rose} 0%, ${PALETTE.roseDeep} 50%, ${PALETTE.rose} 100%)`,
+                    backgroundSize: "200% 100%",
                     color: "#fff",
                     letterSpacing: "0.04em",
-                    boxShadow: "0 6px 18px rgba(191, 82, 74, 0.3)",
+                    boxShadow: canGenerate
+                      ? `0 12px 32px -8px ${PALETTE.rose}80, 0 0 0 1px ${PALETTE.rose}30`
+                      : "0 4px 14px rgba(191, 82, 74, 0.18)",
+                    animation: canGenerate ? "studio-btn-pan 4s ease-in-out infinite" : undefined,
                   }}
                 >
-                  {generating ? "Generating your pawtrait…" : "Generate pawtrait →"}
-                </button>
+                  {/* Ripple shimmer when enabled */}
+                  {canGenerate && !generating && (
+                    <motion.span
+                      aria-hidden
+                      initial={{ x: "-120%" }}
+                      animate={{ x: "120%" }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.6 }}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        bottom: 0,
+                        width: "40%",
+                        background: "linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)",
+                      }}
+                    />
+                  )}
+                  <span style={{ position: "relative", zIndex: 1 }}>
+                    {generating ? "Generating your pawtrait…" : "Generate pawtrait →"}
+                  </span>
+                </motion.button>
+                <style>{`@keyframes studio-btn-pan{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}`}</style>
               </div>
 
               {/* Variant gallery + cart panel */}
@@ -289,27 +349,7 @@ export default function PortraitsStudio() {
                       </Link>
                     </motion.div>
                   ) : generating ? (
-                    <motion.div
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="rounded-lg p-12 text-center"
-                      style={{ background: "#fff", border: `1px solid ${PALETTE.sand}` }}
-                    >
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-8 h-8 mx-auto rounded-full border-2"
-                        style={{ borderColor: PALETTE.rose, borderTopColor: "transparent" }}
-                      />
-                      <p className="mt-4 font-cormorant italic" style={{ fontSize: 18, color: PALETTE.warm }}>
-                        Painting their portrait in 4 ways…
-                      </p>
-                      <p className="mt-1 text-xs" style={{ color: PALETTE.muted }}>
-                        ~10 seconds
-                      </p>
-                    </motion.div>
+                    <GenerationCanvas key="loading" />
                   ) : variants.length > 0 ? (
                     <motion.div
                       key="variants"
@@ -398,15 +438,7 @@ export default function PortraitsStudio() {
                       </button>
                     </motion.div>
                   ) : (
-                    <motion.div
-                      key="placeholder"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="rounded-lg p-12 text-center"
-                      style={{ background: "#fff", border: `1px dashed ${PALETTE.sand}`, color: PALETTE.muted }}
-                    >
-                      Pick a Style + Theme, then hit generate.
-                    </motion.div>
+                    <StudioPlaceholder hasStyle={!!styleId} hasTheme={!!themeId} />
                   )}
                 </AnimatePresence>
               </div>
@@ -426,6 +458,7 @@ export default function PortraitsStudio() {
         checkoutBusy={checkoutBusy}
         checkoutError={checkoutError}
       />
+      </div>
     </div>
   );
 }
