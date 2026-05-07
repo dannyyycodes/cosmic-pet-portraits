@@ -141,38 +141,52 @@ export function TopUpPlans({
   const cards = (
     <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-stretch">
       <style>{`
-        @keyframes topupBandDrift {
-          0%   { background-position: 30% 35%; }
-          100% { background-position: 70% 65%; }
+        @keyframes topupIconSpin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
         }
-        @keyframes topupCtaDrift {
-          0%   { background-position: 25% 50%; }
-          100% { background-position: 75% 50%; }
+        .topup-icon-disc {
+          width: 56px;
+          height: 56px;
+          border-radius: 999px;
+          position: relative;
+          overflow: hidden;
+          margin-bottom: 22px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow:
+            0 0 0 1px rgba(196,162,101,0.4),
+            0 0 0 4px rgba(255,255,255,0.96),
+            0 0 0 5px rgba(196,162,101,0.22),
+            0 6px 14px rgba(20,18,16,0.12);
+          transition: box-shadow 0.6s ease;
         }
-        .topup-hero-bg {
-          animation: topupBandDrift 28s ease-in-out infinite alternate;
-          transition: filter 0.6s ease, transform 0.7s cubic-bezier(.2,.7,.2,1);
-          background-size: 130% auto;
-        }
-        .topup-cta-bg {
-          animation: topupCtaDrift 20s ease-in-out infinite alternate;
-          transition: filter 0.5s ease;
-          background-size: 180% auto;
-        }
-        .topup-cta-shine {
-          background-position: -120% 0;
-          transition: background-position 1.2s cubic-bezier(.4,.1,.4,1);
+        .topup-icon-bg {
+          position: absolute;
+          inset: 0;
+          background-size: 220% auto;
+          background-position: center;
+          animation: topupIconSpin 32s linear infinite;
+          transition: animation-duration 0.5s ease, filter 0.5s ease;
         }
         .topup-rule-line {
-          flex: 0 0 28px;
+          width: 32px;
           height: 1px;
-          transition: flex-basis 0.6s cubic-bezier(.2,.7,.2,1);
+          transition: width 0.6s cubic-bezier(.2,.7,.2,1);
         }
-        .topup-card:hover .topup-hero-bg { filter: saturate(1.15); transform: scale(1.04); }
-        .topup-card:hover .topup-rule-line { flex-basis: 56px; }
-        .topup-cta-marble:hover .topup-cta-bg { filter: saturate(1.4) brightness(1.05); transform: scale(1.06); }
-        .topup-cta-marble:hover .topup-cta-shine { background-position: 220% 0; }
-        .topup-cta-bg { transform-origin: center; }
+        .topup-card:hover .topup-icon-bg {
+          animation-duration: 7s;
+          filter: saturate(1.2);
+        }
+        .topup-card:hover .topup-icon-disc {
+          box-shadow:
+            0 0 0 1px rgba(196,162,101,0.6),
+            0 0 0 4px rgba(255,255,255,0.96),
+            0 0 0 5px rgba(196,162,101,0.36),
+            0 10px 20px rgba(20,18,16,0.16);
+        }
+        .topup-card:hover .topup-rule-line { width: 56px; }
       `}</style>
       {PLANS.map((plan, i) => {
         const Icon = plan.icon;
@@ -194,32 +208,6 @@ export function TopUpPlans({
                 : `0 16px 38px rgba(20, 18, 16, 0.06), 0 2px 6px rgba(20, 18, 16, 0.03)`,
             }}
           >
-            {/* Marble hero band — fills top of card, fades to white above the price */}
-            <div
-              aria-hidden
-              className="absolute inset-x-0 top-0 pointer-events-none overflow-hidden"
-              style={{
-                height: 220,
-                borderTopLeftRadius: 16,
-                borderTopRightRadius: 16,
-              }}
-            >
-              <div
-                className="topup-hero-bg absolute inset-0"
-                style={{
-                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp?v=4)`,
-                  backgroundPosition: "center",
-                }}
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.55) 75%, rgba(255,255,255,0.95) 92%, rgba(255,255,255,1) 100%)",
-                }}
-              />
-            </div>
-
             {plan.recommended && (
               <span
                 className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full"
@@ -239,17 +227,26 @@ export function TopUpPlans({
               </span>
             )}
 
-            <div className="relative z-10 flex flex-col flex-1">
-
-            <div
-              className="w-11 h-11 rounded-full flex items-center justify-center mb-4"
-              style={{
-                background: PALETTE.cream2,
-                border: `1px solid ${PALETTE.sand}`,
-                boxShadow: "0 2px 8px rgba(20,18,16,0.06)",
-              }}
-            >
-              <Icon className="w-5 h-5" style={{ color: PALETTE.earth }} />
+            {/* Marble icon disc — animated, the only marble on the card */}
+            <div className="topup-icon-disc">
+              <div
+                aria-hidden
+                className="topup-icon-bg"
+                style={{
+                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp?v=4)`,
+                }}
+              />
+              <Icon
+                className="relative"
+                style={{
+                  width: 22,
+                  height: 22,
+                  color: PALETTE.ink,
+                  strokeWidth: 2.4,
+                  zIndex: 2,
+                  filter: "drop-shadow(0 1px 0 rgba(255,255,255,0.85))",
+                }}
+              />
             </div>
 
             <h3
@@ -334,55 +331,19 @@ export function TopUpPlans({
             <button
               onClick={() => handleStart(plan.sku)}
               disabled={busySku === plan.sku}
-              className="topup-cta-marble relative overflow-hidden mt-7 w-full rounded-xl py-3.5 transition-all disabled:opacity-50"
+              className="mt-7 w-full rounded-xl py-3.5 transition-all hover:translate-y-[-1px] disabled:opacity-50"
               style={{
-                boxShadow: plan.recommended
-                  ? "0 10px 26px rgba(191, 82, 74, 0.32)"
-                  : "0 8px 20px rgba(20, 18, 16, 0.18)",
-                isolation: "isolate",
+                background: PALETTE.ink,
+                color: PALETTE.cream,
+                fontFamily: 'Asap, system-ui, sans-serif',
+                fontSize: 14.5,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                boxShadow: "0 8px 20px rgba(20, 18, 16, 0.18)",
               }}
             >
-              <div
-                aria-hidden
-                className="topup-cta-bg absolute inset-0"
-                style={{
-                  backgroundImage: `url(/pawtraits/topup-${plan.sku}-text.webp?v=4)`,
-                  backgroundPosition: "center",
-                }}
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(180deg, rgba(20,18,16,0) 0%, rgba(20,18,16,0.10) 35%, rgba(20,18,16,0.55) 100%)",
-                }}
-              />
-              <div
-                aria-hidden
-                className="topup-cta-shine absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    "linear-gradient(110deg, transparent 30%, rgba(255,250,235,0.55) 50%, transparent 70%)",
-                  backgroundSize: "220% 100%",
-                  mixBlendMode: "screen",
-                }}
-              />
-              <span
-                className="relative z-10"
-                style={{
-                  color: PALETTE.cream,
-                  fontFamily: 'Asap, system-ui, sans-serif',
-                  fontSize: 14.5,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  textShadow: "0 1px 3px rgba(20,18,16,0.9), 0 0 6px rgba(20,18,16,0.7), 0 2px 6px rgba(20,18,16,0.5)",
-                }}
-              >
-                {busySku === plan.sku ? "Redirecting…" : plan.cta}
-              </span>
+              {busySku === plan.sku ? "Redirecting…" : plan.cta}
             </button>
-            </div>
           </motion.div>
         );
       })}
