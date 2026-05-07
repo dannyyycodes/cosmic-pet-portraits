@@ -291,8 +291,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return handleLibrary(req, res);
     case "instant-signup":
       return handleInstantSignup(req, res);
+    case "test-aspects":
+      return handleTestAspects(req, res);
     default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup` });
+      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects` });
   }
 }
 
@@ -1314,4 +1316,127 @@ async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
     email,
     otp: linkData.properties.email_otp,
   });
+}
+
+// ─── SKU → aspect map ────────────────────────────────────────────────────────
+// Maps every Gelato canvas SKU to a gpt-image-2 image_size that fits without
+// cropping. Used by both the test-aspects admin tool and (next commit) the
+// printMaster checkout-time regen.
+//
+// Sizes are { width, height } in px. Multiples of 16, max edge ≤3840 (fal limit).
+// "Preview" sizes are small/cheap for browsing/testing; "Print" sizes are
+// large enough to skip AuraSR for most SKUs.
+type AspectKey = '4:5' | '3:4' | '5:7' | '2:3' | '1:1';
+
+interface AspectSpec {
+  key: AspectKey;
+  label: string;
+  preview: { width: number; height: number };
+  print: { width: number; height: number };
+  skuExamples: string[];
+}
+
+const ASPECTS: AspectSpec[] = [
+  { key: '4:5', label: '4:5 — 8×10 / 16×20',
+    preview: { width: 1024, height: 1280 },
+    print:   { width: 2048, height: 2560 },
+    skuExamples: ['8x10', '16x20'] },
+  { key: '3:4', label: '3:4 — 12×16 / 18×24 / 24×32',
+    preview: { width: 1024, height: 1360 },
+    print:   { width: 2048, height: 2720 },
+    skuExamples: ['12x16', '18x24', '24x32'] },
+  { key: '5:7', label: '5:7 — 20×28',
+    preview: { width: 1024, height: 1424 },
+    print:   { width: 2048, height: 2864 },
+    skuExamples: ['20x28'] },
+  { key: '2:3', label: '2:3 — 12×18 / 16×24 / 20×30 / 24×36',
+    preview: { width: 1024, height: 1536 },
+    print:   { width: 2048, height: 3072 },
+    skuExamples: ['12x18', '16x24', '20x30', '24x36'] },
+  { key: '1:1', label: '1:1 — 24×24',
+    preview: { width: 1024, height: 1024 },
+    print:   { width: 2048, height: 2048 },
+    skuExamples: ['24x24'] },
+];
+
+const SKU_TO_ASPECT: Record<string, AspectKey> = {
+  '8x10': '4:5',  '16x20': '4:5',
+  '12x16': '3:4', '18x24': '3:4', '24x32': '3:4',
+  '20x28': '5:7',
+  '12x18': '2:3', '16x24': '2:3', '20x30': '2:3', '24x36': '2:3',
+  '24x24': '1:1',
+};
+
+// ─── handleTestAspects — admin smoke test for all 5 canvas aspects ──────────
+// Body: { imageUrl, prompt, petName?, mode? = 'preview' | 'print' }
+// Header: x-admin-test-secret = ADMIN_TEST_SECRET (set on Vercel)
+//
+// Generates one image per aspect group in parallel (5 fal calls, ~10s total).
+// Returns { aspects: [{ key, label, width, height, url, costEstimate }] }.
+//
+// Bypasses customer credit checks — admin only. Cost lands on FAL_KEY balance.
+const ADMIN_TEST_SECRET = process.env.ADMIN_TEST_SECRET;
+
+async function handleTestAspects(req: VercelRequest, res: VercelResponse) {
+  const got = req.headers['x-admin-test-secret'];
+  if (!ADMIN_TEST_SECRET || got !== ADMIN_TEST_SECRET) {
+    return res.status(401).json({ error: 'unauthorised' });
+  }
+  const body = (req.body ?? {}) as { imageUrl?: string; prompt?: string; petName?: string; mode?: 'preview' | 'print' };
+  if (!body.imageUrl || !body.prompt) {
+    return res.status(400).json({ error: 'imageUrl + prompt required' });
+  }
+  const mode = body.mode === 'print' ? 'print' : 'preview';
+
+  // Identity-lock + name directive — same recipe handleGenerate uses.
+  const subject = await extractSubject(body.imageUrl);
+  const subj = [subject.breed, subject.species].filter(Boolean).join(' ') || subject.species;
+  const fur = subject.furColor ? `, with ${subject.furColor} fur` : '';
+  const petName = (body.petName ?? '').replace(/[^\p{L}\p{N} '-]/gu, '').trim().slice(0, 24);
+  const nameDirective = petName
+    ? ` Render the name "${petName}" in elegant clean serif typography along the lower margin of the artwork, centered, readable, no spelling errors.`
+    : '';
+  const fullPrompt = [
+    `Transform this ${subj}${fur} into: ${body.prompt}.`,
+    `Preserve the exact facial features, fur colour and pattern, eye colour, ear shape and breed characteristics of the original ${subject.species}.`,
+    `Painterly cinematic lighting, premium polish.`,
+    nameDirective,
+  ].filter(Boolean).join(' ');
+
+  // Run all 5 aspects in parallel.
+  const results = await Promise.all(ASPECTS.map(async (aspect) => {
+    const dims = mode === 'print' ? aspect.print : aspect.preview;
+    const requestBody = {
+      prompt: fullPrompt,
+      image_urls: [body.imageUrl],
+      image_size: { width: dims.width, height: dims.height },
+      quality: GPT_IMAGE_QUALITY,
+      num_images: 1,
+      output_format: 'png',
+    };
+    const { res: r, bodyText } = await callGptImage(GPT_IMAGE_PRIMARY_MODEL, requestBody);
+    if (!r.ok) {
+      return {
+        key: aspect.key,
+        label: aspect.label,
+        width: dims.width,
+        height: dims.height,
+        skuExamples: aspect.skuExamples,
+        url: null,
+        error: `${r.status}: ${(bodyText ?? '').slice(0, 200)}`,
+      };
+    }
+    const d = (await r.json()) as KontextResponse;
+    return {
+      key: aspect.key,
+      label: aspect.label,
+      width: dims.width,
+      height: dims.height,
+      skuExamples: aspect.skuExamples,
+      url: d.images?.[0]?.url ?? null,
+      error: d.images?.[0]?.url ? null : 'no image returned',
+    };
+  }));
+
+  return res.status(200).json({ mode, prompt: fullPrompt, aspects: results });
 }

@@ -72,6 +72,7 @@ const Reading = lazy(() => import("./pages/Reading"));
 const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
 const PawtraitsGallery = lazy(() => import("./pages/PawtraitsGallery"));
+const AdminAspectTest = lazy(() => import("./pages/AdminAspectTest"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
 // Redirect /checkout to the homepage InlineCheckout section.
@@ -219,6 +220,7 @@ const App = () => (
                   <Route path="/pawtraits" element={<Portraits />} />
                   <Route path="/pawtraits/templates" element={<PortraitsTemplates />} />
                   <Route path="/pawtraits/gallery" element={<PawtraitsGallery />} />
+                  <Route path="/admin/aspect-test" element={<AdminAspectTest />} />
                   <Route path="/pawtraits/studio" element={<Navigate to="/pawtraits#studio" replace />} />
                   <Route path="/portraits" element={<Navigate to="/pawtraits" replace />} />
                   <Route path="/portraits/templates" element={<Navigate to="/pawtraits/templates" replace />} />
