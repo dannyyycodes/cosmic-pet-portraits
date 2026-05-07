@@ -43,29 +43,12 @@ import {
 } from "@/components/portraits/gelatoFramedCanvas";
 import { buildCartItem, type CartItem } from "@/components/portraits/cart";
 import { supabase } from "@/integrations/supabase/client";
-import { useTurnstile } from "@/lib/turnstile";
 import { isDisposableEmail } from "@/lib/auth/disposableEmailDomains";
-import FingerprintJS from "@fingerprintjs/fingerprintjs";
+import { getVisitorId } from "@/lib/auth/visitorId";
 import { PALETTE, EASE, MOTION, display, eyebrow } from "@/components/portraits/tokens";
 import { SplitWords } from "@/components/portraits/SplitWords";
 import { StudioBackdrop } from "@/components/portraits/StudioBackdrop";
 import { GenerationCanvas } from "@/components/portraits/studio/GenerationCanvas";
-
-// Lazy-load + cache FingerprintJS visitor ID. Stable across cache clears,
-// incognito, and minor browser updates. Used by the Supabase signup trigger
-// to enforce one-free-trial-per-device.
-let cachedVisitorId: string | null = null;
-async function getVisitorId(): Promise<string | null> {
-  if (cachedVisitorId) return cachedVisitorId;
-  try {
-    const fp = await FingerprintJS.load();
-    const result = await fp.get();
-    cachedVisitorId = result.visitorId;
-    return cachedVisitorId;
-  } catch {
-    return null;
-  }
-}
 
 interface StudioFlowProps {
   onCartAdd: (item: CartItem) => void;
@@ -126,7 +109,9 @@ function SignInDialog({
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState<"email" | "code">("email");
-  const turnstile = useTurnstile({ action: 'studio-signup' });
+  // Honeypot: real users never see or fill this. Bots that auto-fill every
+  // input land in it and get rejected silently server-side.
+  const [hpField, setHpField] = useState("");
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -137,14 +122,11 @@ function SignInDialog({
     }
     setBusy(true);
     try {
-      // Run Turnstile silently — invisible to real users, blocks bots.
-      let turnstileToken = "";
-      try {
-        turnstileToken = await turnstile.execute();
-      } catch {
-        toast.error("Could not verify you are human — please refresh and try again.");
-        return;
-      }
+      // Visitor ID: stable browser fingerprint. The signup trigger uses it
+      // (alongside email-alias dedup) to stop one device farming free credits.
+      // Fail-soft: if FingerprintJS doesn't load (privacy extension, etc.)
+      // we just skip it and let email-only dedup do its job.
+      const visitorId = await getVisitorId();
 
       // Try instant-signup first. New emails: account created + signed in
       // immediately, no email click. Existing emails: server already sent the
@@ -152,17 +134,25 @@ function SignInDialog({
       const r = await fetch('/api/portraits?action=instant-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), turnstileToken }),
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          visitorId: visitorId ?? undefined,
+          honeypot: hpField,
+        }),
       });
-      const data = await r.json() as { status?: string; otp?: string; email?: string; error?: string };
+      const data = await r.json() as { status?: string; otp?: string; email?: string; error?: string; message?: string };
 
       if (!r.ok) {
-        if (data.error === 'turnstile_failed') {
-          toast.error('Verification failed — please refresh and try again.');
+        if (r.status === 429) {
+          toast.error(data.message || "Try again in a few minutes.");
+        } else if (r.status === 403 && data.error === 'bot_detected') {
+          // Extremely rare — Vercel BotID confirmed a bot signature.
+          // Real users effectively never see this; we keep the message
+          // generic so the rare false-positive can refresh and retry.
+          toast.error("Something went wrong — please refresh and try again.");
         } else {
           toast.error(data.error || `Sign-in failed (${r.status})`);
         }
-        turnstile.reset();
         return;
       }
 
@@ -256,8 +246,26 @@ function SignInDialog({
           Sign in with a 6-digit code emailed to you. No password, no leaving the site.
         </DialogDescription>
 
-        {/* Invisible Turnstile mount — bots blocked, real users never see it. */}
-        <div ref={turnstile.mountRef} style={{ position: 'absolute', left: '-9999px' }} aria-hidden />
+        {/* Honeypot — invisible to humans (off-screen, no autofocus, no
+            autocomplete, hidden from screen readers + tab order). Bots that
+            indiscriminately fill every <input> land here and get rejected. */}
+        <input
+          type="text"
+          name="company"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden
+          value={hpField}
+          onChange={(e) => setHpField(e.target.value)}
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            width: 1,
+            height: 1,
+            opacity: 0,
+            pointerEvents: 'none',
+          }}
+        />
 
         {/* Header */}
         <div className="px-7 pt-9 pb-6 text-center relative">

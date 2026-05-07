@@ -48,7 +48,7 @@ export const DISPOSABLE_EMAIL_DOMAINS: ReadonlySet<string> = new Set([
   // Other common throwaways
   "deadaddress.com", "discard.email", "discardmail.com", "dropmail.me",
   "dudmail.com", "easytrashmail.com", "fakemail.fr", "fakemail.net",
-  "fakemailgenerator.com", "fakeinbox.net", "fastmail.fm",
+  "fakemailgenerator.com", "fakeinbox.net",
   "filzmail.com", "freemail.tweakly.net", "gawab.com",
   "harakirimail.com", "headstrong.de", "hidemail.de", "hostlaba.com",
   "imails.info", "incognitomail.com", "incognitomail.net",

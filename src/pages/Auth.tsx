@@ -19,7 +19,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useTurnstile } from '@/lib/turnstile';
+import { getVisitorId } from '@/lib/auth/visitorId';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -38,12 +38,13 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const [errors, setErrors] = useState<{ email?: string; code?: string; password?: string }>({});
+  // Honeypot: bots that auto-fill every input land here and get rejected.
+  const [hpField, setHpField] = useState('');
 
   const { sendOtp, verifyOtp, signIn, user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const turnstile = useTurnstile({ action: 'auth' });
 
   // Same-origin relative path only — prevents open-redirect abuse.
   const redirectParam = searchParams.get('redirect');
@@ -95,31 +96,34 @@ export default function Auth() {
     setErrors({});
     setLoading(true);
     try {
+      // Visitor ID: stable browser fingerprint. The signup trigger uses it
+      // to stop one device farming free credits via email aliases. Fail-soft
+      // — privacy extensions / ITP can block FingerprintJS, in which case
+      // email-only dedup still applies.
+      const visitorId = await getVisitorId();
+
       // Try instant-signup first. New emails: account created + signed in
       // immediately, no email click needed. Existing emails: server sends an
       // OTP and tells us to switch to code-entry to verify ownership.
-      let turnstileToken = '';
-      try {
-        turnstileToken = await turnstile.execute();
-      } catch (err) {
-        toast.error('Could not verify you are human — please refresh and try again.');
-        return;
-      }
-
       const r = await fetch('/api/portraits?action=instant-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), turnstileToken }),
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          visitorId: visitorId ?? undefined,
+          honeypot: hpField,
+        }),
       });
-      const data = await r.json() as { status?: string; otp?: string; email?: string; error?: string };
+      const data = await r.json() as { status?: string; otp?: string; email?: string; error?: string; message?: string };
 
       if (!r.ok) {
-        if (data.error === 'turnstile_failed') {
-          toast.error('Verification failed — please refresh and try again.');
+        if (r.status === 429) {
+          toast.error(data.message || 'Try again in a few minutes.');
+        } else if (r.status === 403 && data.error === 'bot_detected') {
+          toast.error('Something went wrong — please refresh and try again.');
         } else {
           toast.error(data.error || `Sign-in failed (${r.status})`);
         }
-        turnstile.reset();
         return;
       }
 
@@ -237,8 +241,24 @@ export default function Auth() {
 
   return (
     <div style={{ background: '#FFFDF5', minHeight: '100vh' }} className="relative overflow-hidden">
-      {/* Invisible Turnstile mount — Cloudflare auto-renders into this. */}
-      <div ref={turnstile.mountRef} style={{ position: 'absolute', left: '-9999px' }} aria-hidden />
+      {/* Honeypot — invisible to humans, irresistible to indiscriminate bots. */}
+      <input
+        type="text"
+        name="company"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden
+        value={hpField}
+        onChange={(e) => setHpField(e.target.value)}
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          width: 1,
+          height: 1,
+          opacity: 0,
+          pointerEvents: 'none',
+        }}
+      />
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

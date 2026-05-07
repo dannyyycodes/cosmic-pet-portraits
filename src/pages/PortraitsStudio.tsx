@@ -8,7 +8,7 @@
  *   4. Download or pick product surface + size
  *   5. Add to cart → existing Shopify checkout
  *
- * Phase 1B = anonymous free, no auth gate yet (Phase 2 adds Turnstile + sign-up wall).
+ * Phase 1B = anonymous free, no auth gate yet (Phase 2 adds the sign-up wall).
  *
  * Distinct from /portraits (legacy 6-pack flow) and /pawtraits/templates (Tier 0).
  */
