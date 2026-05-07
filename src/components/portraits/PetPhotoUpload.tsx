@@ -1,13 +1,21 @@
 /**
  * PetPhotoUpload — drag/drop photo capture for /portraits Upload Studio.
  *
- * Flow: drag/drop → compress → Supabase Storage → return public URL
- * to parent for the live cinematic preview step.
+ * Flow: drag/drop → validate format/size → HEIC→JPEG (if needed) →
+ *       check min-resolution → compress → Supabase Storage → return public URL
+ *       to parent for the live cinematic preview step.
  *
  * Uses react-dropzone per locked build plan (2026-05-02).
  * Uses existing `pet-photos` bucket for Phase 1; production target per
  * architecture is `pet-portraits/raw/{orderId}/...` — migrate when order
  * tracking lands in Phase 2.
+ *
+ * Validation spec (2026-05-07, see src/lib/imageValidation.ts):
+ *  - JPEG / PNG / WebP / HEIC / HEIF only (with iPhone MIME fallback)
+ *  - Max 25 MB
+ *  - Min 600 px on the long edge
+ *  - HEIC/HEIF converted client-side to JPEG (q=0.92) before upload because
+ *    fal.ai / OpenAI image endpoints can't fetch+decode HEIC.
  */
 import { useCallback, useState } from "react";
 import { useDropzone, type FileRejection } from "react-dropzone";
@@ -15,6 +23,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import imageCompression from "browser-image-compression";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  validateFileBasics,
+  isHeic,
+  convertHeicToJpeg,
+  readImageDimensions,
+  validateDimensions,
+} from "@/lib/imageValidation";
 
 interface PetPhotoUploadProps {
   /** Called with the public Supabase URL once the photo lands. */
@@ -25,8 +40,6 @@ interface PetPhotoUploadProps {
   onReset: () => void;
 }
 
-const MAX_BYTES = 50 * 1024 * 1024; // 50MB hard cap (compression handles the rest)
-
 export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<string>("");
@@ -34,22 +47,50 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
   const onDrop = useCallback(
     async (accepted: File[], rejected: FileRejection[]) => {
       if (rejected.length) {
-        toast.error("Please drop a single image (JPG, PNG, HEIC, WebP).");
+        // react-dropzone's own filter caught it — message points at our locked spec.
+        toast.error("Please drop a single photo (JPG, PNG, HEIC, or WebP, under 25 MB).");
         return;
       }
-      const file = accepted[0];
-      if (!file) return;
+      const original = accepted[0];
+      if (!original) return;
 
-      if (file.size > MAX_BYTES) {
-        toast.error("Image is too large. Please use one under 50MB.");
+      // ── 1. Surface validation (format + size) ──────────────────────────
+      // Runs sync before any IO so iPhone HEICs reported as
+      // application/octet-stream still pass the extension fallback.
+      const basicErr = validateFileBasics(original);
+      if (basicErr) {
+        toast.error(basicErr);
         return;
       }
 
       setIsUploading(true);
-      setProgress("Optimising photo…");
 
       try {
-        const compressed = await imageCompression(file, {
+        // ── 2. HEIC → JPEG (client-side) ─────────────────────────────────
+        // fal.ai + OpenAI image endpoints fetch the public URL and decode it
+        // server-side; HEIC fails there. Convert before upload.
+        let workingFile = original;
+        if (isHeic(original)) {
+          setProgress("Converting HEIC photo…");
+          workingFile = await convertHeicToJpeg(original);
+        }
+
+        // ── 3. Min-resolution gate ───────────────────────────────────────
+        // gpt-image-2 needs >=600 px on the long edge to anchor identity.
+        // Probe dimensions client-side; reject before burning a Supabase upload.
+        setProgress("Checking photo…");
+        const dims = await readImageDimensions(workingFile);
+        const dimErr = validateDimensions(dims.width, dims.height);
+        if (dimErr) {
+          toast.error(dimErr);
+          setIsUploading(false);
+          setProgress("");
+          return;
+        }
+
+        // ── 4. Compress + upload ─────────────────────────────────────────
+        setProgress("Optimising photo…");
+        const compressed = await imageCompression(workingFile, {
           maxSizeMB: 0.8,
           maxWidthOrHeight: 1600, // higher than report flow — kontext needs the detail
           useWebWorker: true,
@@ -75,7 +116,10 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
         toast.success("Photo ready — pick a character world.");
       } catch (err) {
         console.error("[PortraitsUpload]", err);
-        toast.error("Upload failed. Please try a different photo.");
+        // convertHeicToJpeg / readImageDimensions throw friendly Error messages
+        // we can surface verbatim. Anything else gets a generic fallback.
+        const msg = err instanceof Error && err.message ? err.message : "Upload failed. Please try a different photo.";
+        toast.error(msg);
       } finally {
         setIsUploading(false);
         setProgress("");
@@ -86,8 +130,10 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    // react-dropzone format gate — note we keep .heic/.heif here so the OS
+    // file picker on iPhone shows them. Real validation runs in onDrop.
     accept: {
-      "image/*": [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif", ".avif"],
+      "image/*": [".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"],
     },
     multiple: false,
     disabled: isUploading || !!photoUrl,
@@ -167,7 +213,7 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
                   {isDragActive ? "Drop their photo here" : "Drag in their photo"}
                 </p>
                 <p className="mt-3 font-cormorant italic" style={{ fontSize: "17px", color: "#5a4a42" }}>
-                  or click to choose · JPG, PNG, HEIC, WebP — up to 50MB
+                  or click to choose · JPG, PNG, HEIC, WebP — up to 25 MB
                 </p>
               </>
             )}
