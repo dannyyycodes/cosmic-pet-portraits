@@ -833,49 +833,35 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  const subject = await extractSubject(imageUrl);
+  // Photo-anchored prompt: treat the source image as ground truth, tell the
+  // model to USE the pet shown in it. Vision is OFF by default (env knob to
+  // enable for A/B). Reasoning: gpt-image-2 IS image-to-image; the photo
+  // shows the breed/markings more reliably than any text we could pre-extract.
+  // Vision misidentification (~5% on common breeds) actively hurts when it
+  // happens — telling the model "Labrador" on a Golden makes it produce a Lab.
+  // Trust the photo.
+  const useVision = process.env.USE_SUBJECT_VISION === 'true';
+  const subject = useVision
+    ? await extractSubject(imageUrl)
+    : { species: 'pet' } as SubjectInfo;
 
-  // Build the locked Keep/Add/Don't-redesign prompt — gpt-image-2 + fal docs
-  // both say this 3-block structure is what holds identity on edit endpoints.
-  // Free-form one-line prompts collapse to "generic dog matching style training
-  // data" because the model has no anchor to weight image tokens against.
-  //
-  // The customer's freeform input becomes the ADD block — their imagination is
-  // the artistic twist on top of an identity-locked base. Name (if entered)
-  // becomes its own TEXT block. Identity is everything Vision extracted.
-
-  const subj = [subject.breed, subject.species].filter(Boolean).join(" ") || subject.species;
   const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
   const negativeWithName = petName
     ? `${baseNegative}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names`
     : `${baseNegative}, text overlay`;
 
-  /** Builds the KEEP block — the literal physical descriptors that pin identity. */
-  function buildKeepBlock(): string {
-    const keeps: string[] = [];
-    if (subject.breed) keeps.push(`the ${subject.breed} silhouette and breed characteristics`);
-    keeps.push(`exact facial features and head shape`);
-    if (subject.furColor) keeps.push(`${subject.furColor} fur pattern`);
-    if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
-    if (subject.earShape) keeps.push(`${subject.earShape} ear shape`);
-    if (subject.distinguishing) keeps.push(subject.distinguishing);
-    return keeps.join(", ");
-  }
-
   let promptDef: { prompt: string; negative: string; compositionId: string };
 
   if (usingCustomPrompt) {
-    // Customer's freeform input becomes the ADD block.
-    const keepBlock = buildKeepBlock();
+    // Photo-anchored prompt — image is ground truth, customer's imagination
+    // is the artistic transformation, name has its own line.
     const promptParts = [
-      `Pet: ${subj}${subject.distinguishing ? `, ${subject.distinguishing}` : ''}.`,
+      `Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.`,
       ``,
-      `KEEP (do not change): ${keepBlock}. Do NOT change the breed. Do NOT redesign the ${subject.species}.`,
-      ``,
-      `ADD (the artistic transformation): ${customPrompt}.`,
+      `Apply this artistic transformation: ${customPrompt}.`,
       ``,
       petName
-        ? `TEXT: render the name "${petName}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
+        ? `Render the name "${petName}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
         : '',
       ``,
       `Output: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.`,
@@ -1534,36 +1520,27 @@ async function handleTestAspects(req: VercelRequest, res: VercelResponse) {
   if (!ADMIN_TEST_SECRET || got !== ADMIN_TEST_SECRET) {
     return res.status(401).json({ error: 'unauthorised' });
   }
-  const body = (req.body ?? {}) as { imageUrl?: string; prompt?: string; petName?: string; mode?: 'preview' | 'print' };
+  const body = (req.body ?? {}) as { imageUrl?: string; prompt?: string; petName?: string; mode?: 'preview' | 'print'; useVision?: boolean };
   if (!body.imageUrl || !body.prompt) {
     return res.status(400).json({ error: 'imageUrl + prompt required' });
   }
   const mode = body.mode === 'print' ? 'print' : 'preview';
 
-  // Use the SAME Keep/Add/Don't-redesign 3-block prompt structure as the live
-  // customer-facing handleGenerate so the test mirrors production exactly.
-  const subject = await extractSubject(body.imageUrl);
-  const subj = [subject.breed, subject.species].filter(Boolean).join(' ') || subject.species;
+  // Same photo-anchored prompt as live handleGenerate. Vision optional via env
+  // knob — default off, photo is ground truth.
+  const useVision = process.env.USE_SUBJECT_VISION === 'true' || body.useVision === true;
+  const subject = useVision
+    ? await extractSubject(body.imageUrl)
+    : { species: 'pet' } as SubjectInfo;
   const petName = (body.petName ?? '').replace(/[^\p{L}\p{N} '-]/gu, '').trim().slice(0, 24);
 
-  const keeps: string[] = [];
-  if (subject.breed) keeps.push(`the ${subject.breed} silhouette and breed characteristics`);
-  keeps.push(`exact facial features and head shape`);
-  if (subject.furColor) keeps.push(`${subject.furColor} fur pattern`);
-  if (subject.eyeColor) keeps.push(`${subject.eyeColor} eyes`);
-  if (subject.earShape) keeps.push(`${subject.earShape} ear shape`);
-  if (subject.distinguishing) keeps.push(subject.distinguishing);
-  const keepBlock = keeps.join(', ');
-
   const fullPromptParts = [
-    `Pet: ${subj}${subject.distinguishing ? `, ${subject.distinguishing}` : ''}.`,
+    `Use the exact pet shown in the source image. Preserve their breed, markings, fur pattern, eye colour, ear shape, and all unique features exactly as they appear in the photo. Do not change the breed. Do not invent new features. Do not redesign the pet.`,
     ``,
-    `KEEP (do not change): ${keepBlock}. Do NOT change the breed. Do NOT redesign the ${subject.species}.`,
-    ``,
-    `ADD (the artistic transformation): ${body.prompt}.`,
+    `Apply this artistic transformation: ${body.prompt}.`,
     ``,
     petName
-      ? `TEXT: render the name "${petName}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
+      ? `Render the name "${petName}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
       : '',
     ``,
     `Output: canvas composition, painterly cinematic finish, premium polish for framed wall art.`,
