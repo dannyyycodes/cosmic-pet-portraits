@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, ArrowRight, X, MessageCircle, LayoutDashboard, LifeBuoy } from "lucide-react";
+import { Menu, Sparkles, User, LogOut, Gift, HelpCircle, ArrowRight, X, MessageCircle, LayoutDashboard, LifeBuoy, Brush } from "lucide-react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -68,6 +68,13 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
           {/* Ticker / Nav bar */}
           <div className="flex items-center justify-end px-4 py-2 bg-[#FFFDF5]/92 backdrop-blur-md border-b border-black/[0.06]" style={{ minHeight: 36 }}>
             <div className="flex items-center gap-3">
+              <Link
+                to="/pawtraits"
+                className="hidden sm:inline-flex items-center gap-1.5 text-[0.76rem] font-medium text-[#6e6259] hover:text-[#bf524a] transition-colors"
+              >
+                <Brush className="w-3.5 h-3.5" style={{ color: "#bf524a" }} />
+                <span>Pawtraits</span>
+              </Link>
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -144,6 +151,16 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                         ))}
 
                         <div className="h-px bg-[#e8ddd0] my-3" />
+
+                        <SheetClose asChild>
+                          <Link
+                            to="/pawtraits"
+                            className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#141210] hover:bg-[#f3eadb] transition-colors"
+                          >
+                            <Brush className="w-4 h-4 text-[#bf524a]" />
+                            <span className="text-sm font-medium">Pawtraits</span>
+                          </Link>
+                        </SheetClose>
 
                         <SheetClose asChild>
                           <Link
@@ -240,6 +257,10 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
+            <Link to="/pawtraits" className={`inline-flex items-center gap-1.5 text-sm text-muted-foreground ${hoverClass} transition-colors`}>
+              <Brush className="w-3.5 h-3.5" />
+              Pawtraits
+            </Link>
             <Link to="/blog" className={`text-sm text-muted-foreground ${hoverClass} transition-colors`}>
               Blog
             </Link>
@@ -340,6 +361,16 @@ export function Navbar({ hideGiftBanner = false }: { hideGiftBanner?: boolean })
                       ))}
 
                       <div className="h-px bg-border/50 my-3" />
+
+                      <SheetClose asChild>
+                        <Link
+                          to="/pawtraits"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted/50 transition-colors"
+                        >
+                          <Brush className="w-5 h-5 text-primary" />
+                          <span className="font-medium">Pawtraits</span>
+                        </Link>
+                      </SheetClose>
 
                       <SheetClose asChild>
                         <Link
