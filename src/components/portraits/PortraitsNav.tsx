@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Brush } from "lucide-react";
+import { Brush, Images } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sheet,
@@ -27,6 +27,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Studio",           href: "/pawtraits#studio", icon: Brush },
+  { label: "Library",          href: "/pawtraits/gallery", icon: Images },
   { label: "How It Works",     href: "/pawtraits#how" },
 ];
 
