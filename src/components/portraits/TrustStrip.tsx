@@ -150,9 +150,12 @@ export function TrustStrip() {
     <section
       className="relative px-6 md:px-10"
       style={{
-        // Warm parchment-to-ivory wash gives the strip its own surface
-        // without competing with the page's white sections above and below.
-        background: "linear-gradient(180deg, #faf6ed 0%, #fdfaf3 55%, #ffffff 100%)",
+        // Bleed the gradient into the neighbouring sections at top + bottom
+        // so the cream surface doesn't draw a visible colour-step "line"
+        // where it meets ReviewWall (#ffffff above) or HowItWorks (#f5f5f5
+        // below). Cream warmth lives in the middle 60% of the section.
+        background:
+          "linear-gradient(180deg, #ffffff 0%, #faf6ed 18%, #faf6ed 82%, #f5f5f5 100%)",
         paddingTop: "clamp(72px, 9vw, 108px)",
         paddingBottom: "clamp(72px, 9vw, 108px)",
         overflow: "hidden",
