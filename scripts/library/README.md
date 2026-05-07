@@ -41,15 +41,26 @@ OPENROUTER_API_KEY=<paste from openrouter.ai dashboard>
 
 ## Image-style routing (decides who posts each image)
 
-- `image_style: "portrait"` → goes to **Library gallery + Pinterest** (full-frame
-  artistic; clicking in the gallery reveals the prompt)
-- `image_style: "scene"` → goes to **Facebook + Instagram + TikTok** (customer-style
-  phone photo with the canvas in the room; Sonnet writes a review-style narrative
-  caption)
+**Updated 2026-05-07** — Type A (portrait) now goes to all socials too, not just
+Pinterest. See `vault/03-resources/memory/feedback/feedback_pawtraits_content_production_rules.md`.
 
-The same image is never on every platform — Sonnet only writes captions for the
-platforms the image_style is suited to. The Library gallery API (`op:gallery`) is
-hard-filtered to portraits only.
+| Surface | Type A `portrait` | Type B `scene` |
+|---|---|---|
+| `/pawtraits/gallery` (library page) | ✅ | ❌ |
+| Pinterest | ✅ | ❌ |
+| Instagram | ✅ | ✅ |
+| TikTok | ✅ | ✅ |
+| Facebook | ✅ | ✅ |
+
+- **Library gallery API** (`op:gallery`) is hard-filtered to portraits only.
+- **Pinterest poster** must pass `image_style: portrait` to `op:list`.
+- **Instagram / TikTok / Facebook posters** pass NO `image_style` filter (both types
+  flow through), or run twice for an even mix.
+
+Sonnet writes captions per type:
+- Type A: title + description + hashtags + destination_url for **pinterest, instagram,
+  tiktok, facebook**.
+- Type B: review-style narrative caption + hashtags for **instagram, tiktok, facebook** only.
 
 ## What captions look like
 
