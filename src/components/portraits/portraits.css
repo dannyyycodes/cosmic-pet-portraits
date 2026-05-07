@@ -324,17 +324,27 @@
   top: 6%; left: -12%;
   width: 56vmax; height: 56vmax;
   background: radial-gradient(circle at center,
-    rgba(191, 82, 74, 0.16) 0%,
-    rgba(191, 82, 74, 0.08) 32%,
+    rgba(191, 82, 74, 0.30) 0%,
+    rgba(191, 82, 74, 0.14) 32%,
     transparent 64%);
+  animation: lsBloomDriftRose 22s ease-in-out infinite alternate;
 }
 .ls-studio-bloom--gold {
   bottom: -10%; right: -16%;
   width: 64vmax; height: 64vmax;
   background: radial-gradient(circle at center,
-    rgba(196, 162, 101, 0.18) 0%,
-    rgba(196, 162, 101, 0.06) 36%,
+    rgba(196, 162, 101, 0.32) 0%,
+    rgba(196, 162, 101, 0.12) 36%,
     transparent 66%);
+  animation: lsBloomDriftGold 28s ease-in-out infinite alternate;
+}
+@keyframes lsBloomDriftRose {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(6vmax, -3vmax, 0) scale(1.08); }
+}
+@keyframes lsBloomDriftGold {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-5vmax, -4vmax, 0) scale(1.10); }
 }
 .ls-studio-stars {
   position: absolute;
@@ -351,18 +361,8 @@
     radial-gradient(1px 1px at 92% 38%, rgba(196, 162, 101, 0.34), transparent);
 }
 
-/* Scroll-driven parallax for studio backdrop layers — modern CSS only. */
+/* Scroll-driven parallax (stars only — blooms now use always-on drift). */
 @supports (animation-timeline: scroll()) {
-  .ls-studio-bloom--rose {
-    animation: lsStudioDriftA linear both;
-    animation-timeline: scroll(root block);
-    animation-range: entry 0% exit 100%;
-  }
-  .ls-studio-bloom--gold {
-    animation: lsStudioDriftB linear both;
-    animation-timeline: scroll(root block);
-    animation-range: entry 0% exit 100%;
-  }
   .ls-studio-stars {
     animation: lsStudioStars linear both;
     animation-timeline: scroll(root block);
@@ -370,19 +370,19 @@
     will-change: transform;
   }
 }
-@keyframes lsStudioDriftA {
-  to { transform: translate3d(0, -8%, 0) scale(1.04); }
-}
-@keyframes lsStudioDriftB {
-  to { transform: translate3d(0, -14%, 0) scale(1.06); }
-}
 @keyframes lsStudioStars {
   to { transform: translate3d(0, -22%, 0); }
 }
 @media (max-width: 768px) {
-  @keyframes lsStudioDriftA { to { transform: translate3d(0, -4%, 0) scale(1.02); } }
-  @keyframes lsStudioDriftB { to { transform: translate3d(0, -7%, 0) scale(1.03); } }
   @keyframes lsStudioStars  { to { transform: translate3d(0, -11%, 0); } }
+  @keyframes lsBloomDriftRose {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(3vmax, -2vmax, 0) scale(1.04); }
+  }
+  @keyframes lsBloomDriftGold {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(-3vmax, -2vmax, 0) scale(1.05); }
+  }
   .ls-studio-bloom { filter: blur(40px); }
 }
 
@@ -454,6 +454,79 @@
   18%  { opacity: 0.9; }
   55%  { transform: translateX(360%); opacity: 0; }
   100% { transform: translateX(360%); opacity: 0; }
+}
+
+/* Hero word shine — rose -> gold -> rose gradient pan, used on
+   "anywhere." in the studio H2 to read like a kinetic AI workspace. */
+.ls-hero-shine {
+  background: linear-gradient(90deg, #bf524a 0%, #c4a265 50%, #bf524a 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: lsHeroShine 6.4s ease-in-out infinite;
+}
+@keyframes lsHeroShine {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* Always-on rose+gold gradient ring breathing behind the prompt box —
+   makes the textarea read as a live AI surface even at idle. Sits behind
+   the existing border so focus state still wins. */
+.ls-prompt-ring::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 22px;
+  padding: 1.5px;
+  background: linear-gradient(120deg,
+    rgba(191, 82, 74, 0.55) 0%,
+    rgba(196, 162, 101, 0.45) 35%,
+    rgba(191, 82, 74, 0.0) 55%,
+    rgba(196, 162, 101, 0.45) 80%,
+    rgba(191, 82, 74, 0.55) 100%);
+  background-size: 220% 100%;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.55;
+  animation: lsPromptRing 7.2s ease-in-out infinite;
+  z-index: 0;
+}
+@keyframes lsPromptRing {
+  0%, 100% { background-position: 0% 50%; opacity: 0.45; }
+  50%      { background-position: 100% 50%; opacity: 0.7; }
+}
+
+/* Slow diagonal shimmer sweeping across the photo upload zone —
+   says "drop something here" without a label change. */
+.ls-upload-zone::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -30%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(110deg,
+    transparent 35%,
+    rgba(196, 162, 101, 0.18) 48%,
+    rgba(191, 82, 74, 0.12) 52%,
+    transparent 65%);
+  transform: translateX(-20%);
+  animation: lsUploadShimmer 6s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+@keyframes lsUploadShimmer {
+  0%   { transform: translateX(-20%); opacity: 0; }
+  20%  { opacity: 1; }
+  60%  { transform: translateX(380%); opacity: 0; }
+  100% { transform: translateX(380%); opacity: 0; }
 }
 
 /* Studio "active" mode — kicks in while a generation is running.
@@ -543,17 +616,27 @@
   .ls-studio-accent,
   .ls-studio-pulse,
   .ls-prompt-halo,
+  .ls-prompt-ring::before,
   .ls-magnet,
   .ls-glint::after,
+  .ls-hero-shine,
+  .ls-upload-zone::after,
   .ls-send-btn--ready::before,
   .ls-send-btn--ready::after {
     animation: none !important;
     transform: none !important;
     transition: none !important;
   }
+  .ls-hero-shine {
+    -webkit-text-fill-color: #bf524a !important;
+    background: none !important;
+    color: #bf524a !important;
+  }
   .ls-prompt-halo { opacity: 0 !important; }
+  .ls-prompt-ring::before { opacity: 0.35 !important; }
   .ls-studio-pulse { opacity: 0 !important; }
   .ls-glint::after { display: none; }
+  .ls-upload-zone::after { display: none; }
   .ls-send-btn--ready::before { opacity: 0.4 !important; }
   .ls-send-btn--ready::after { display: none; }
 }

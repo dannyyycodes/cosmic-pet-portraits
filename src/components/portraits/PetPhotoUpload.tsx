@@ -135,7 +135,7 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
         <div
           key="dropzone"
           {...getRootProps()}
-          className="cursor-pointer rounded-lg p-12 md:p-16 transition-all"
+          className="ls-upload-zone cursor-pointer rounded-lg p-12 md:p-16 transition-all relative overflow-hidden"
           style={{
             background: isDragActive ? "#faf6ef" : "#FFFDF5",
             border: isDragActive ? "1px dashed #bf524a" : "1px dashed #c4a265",

@@ -600,7 +600,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             <SplitWords
               text="anywhere."
               delay={0.28}
-              style={{ color: PALETTE.rose }}
+              className="ls-hero-shine"
             />
           </h2>
           <p
@@ -856,7 +856,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                 <div className="ls-prompt-halo" aria-hidden />
               )}
               <div
-                className="relative"
+                className="relative ls-prompt-ring"
                 style={{
                   background: focused
                     ? `linear-gradient(180deg, #ffffff 0%, ${PALETTE.cream} 100%)`
@@ -908,11 +908,12 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                       height: 40,
                       background: canGenerate
                         ? `linear-gradient(135deg, ${PALETTE.rose} 0%, ${PALETTE.roseDeep} 100%)`
-                        : PALETTE.sandDeep,
-                      color: PALETTE.cream,
+                        : "#ffffff",
+                      color: canGenerate ? PALETTE.cream : PALETTE.rose,
+                      border: canGenerate ? "none" : `1.5px solid ${PALETTE.sand}`,
                       boxShadow: canGenerate
                         ? `0 8px 22px ${PALETTE.rose}66, 0 0 0 4px ${PALETTE.rose}1a`
-                        : "none",
+                        : `0 4px 14px rgba(191, 82, 74, 0.10)`,
                     }}
                     onMouseMove={(e) => {
                       if (!canGenerate) return;
