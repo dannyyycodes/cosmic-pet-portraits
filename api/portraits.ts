@@ -13,6 +13,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import sharp from "sharp";
 import { createClient } from "@supabase/supabase-js";
+import { checkBotId } from "botid/server";
 import {
   buildPrompt,
   sanitiseAddDetails,
@@ -667,12 +668,17 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 //   GPT_IMAGE_QUALITY    — 'low' | 'medium' | 'high' (default 'medium')
 //   GPT_IMAGE_WIDTH      — int, default 1024
 //   GPT_IMAGE_HEIGHT     — int, default 1280  (4:5)
-// fal API model_id, in full. Verified against the API tab page —
-// /models/openai/gpt-image-2/api shows fal.subscribe("openai/gpt-image-2", …).
-// Image editing happens on this same endpoint when image_urls is provided.
-// URL builder uses the model_id literally — no prefix games. Pass the full
-// slug including any vendor prefix (openai/, fal-ai/, comfy/, etc).
-const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'openai/gpt-image-2';
+// fal API model_id, in full. URL builder uses the model_id literally — no
+// prefix games. Pass the full slug including any vendor prefix.
+//
+// CUSTOMER PIPELINE ROLLED BACK 2026-05-07: gpt-image-2 produced wrong breeds
+// in test (60% miss rate on a German Shepherd source — 2 wrong breeds + 1
+// French Bulldog out of 5 generations). Default reverted to FLUX Kontext —
+// the original identity-preservation-trained model — until the
+// research-2026-05-07-* notes inform a proper architecture rebuild.
+// Test tool (?action=test-aspects) can still hit gpt-image-2 explicitly via
+// the GPT_IMAGE_FAL_MODEL env override during evaluation.
+const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'fal-ai/flux-pro/kontext';
 const GPT_IMAGE_FALLBACK_MODEL = 'fal-ai/gpt-image-1/edit-image';
 const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high';
 const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
@@ -1199,11 +1205,14 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
 // Body: { email, visitorId?, honeypot? }
 //
 // Defense stack — all silent, none ever block a real human:
-//   1. Honeypot field. Real browsers don't fill hidden inputs; bots do.
-//   2. Per-IP rate limit (10 new signups / hour). Stops scripted farming
-//      without ever tripping a normal home/cafe/mobile network.
-//   3. Server-side email format check + (client-side) disposable-domain check.
-//   4. Existing DB triggers handle email-alias dedup (Gmail dot/plus, etc.)
+//   1. Vercel BotID (Kasada-powered). Invisible client challenge, no CAPTCHA,
+//      no IP-reputation heuristics — so VPN / iCloud Private Relay / Brave /
+//      mobile CGNAT users are NOT punished. Recommended by OWASP OAT-019.
+//   2. Honeypot field. Real browsers don't fill hidden inputs; bots do.
+//   3. Per-IP rate limit (paranoid backstop only — set high enough that no
+//      legitimate shared-network spike could trip it).
+//   4. Server-side email format check + client-side disposable-domain check.
+//   5. Existing DB triggers handle email-alias dedup (Gmail dot/plus, etc.)
 //      and device-fingerprint dedup via the visitor_id we forward to
 //      raw_user_meta_data — same browser can't farm unlimited free trials.
 //
@@ -1216,7 +1225,11 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
 //     /auth and requests an OTP code (proves account ownership; we never
 //     auto-sign-in someone else's email).
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const SIGNUP_RATE_LIMIT_PER_HOUR = 10;
+// Generous backstop. iCloud Private Relay / NordVPN / mobile CGNAT can put
+// 50+ unrelated real users on one egress IP. BotID is the primary defense;
+// this just stops a single IP from making 1000 accounts in an hour if BotID
+// has a lapse. Per-hour, not per-minute, on purpose.
+const SIGNUP_RATE_LIMIT_PER_HOUR = 60;
 
 async function checkSignupRateLimit(
   supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
@@ -1251,6 +1264,24 @@ async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return res.status(503).json({ error: 'supabase-not-configured' });
   }
+
+  // Vercel BotID — invisible Kasada-powered bot detection. Free Basic tier
+  // returns isBot:true only on confirmed bot signatures (challenge missing /
+  // tampered / known automation patterns). Real users — including those on
+  // VPN, iCloud Private Relay, Brave, Tor, ad-blockers — pass without ever
+  // seeing a challenge. In local/preview the package returns isBot:false, so
+  // dev never breaks. If the call itself errors (network glitch, BotID
+  // outage), we fail open and let the other layers do their job.
+  try {
+    const verification = await checkBotId();
+    if (verification.isBot) {
+      return res.status(403).json({ error: 'bot_detected' });
+    }
+  } catch (err) {
+    console.error('[instant-signup] checkBotId failed:', (err as Error).message);
+    // fail open
+  }
+
   const body = (req.body ?? {}) as {
     email?: string;
     visitorId?: string;
