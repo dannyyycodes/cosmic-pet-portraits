@@ -87,6 +87,41 @@
       ],
       "destination": "/api/blog-ssr?slug=:slug"
     },
+    {
+      "source": "/pawtraits/breed/:slug",
+      "has": [
+        { "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|slurp|yandex|baiduspider|anthropic|claudebot|claude-web|gptbot|chatgpt-user|oai-searchbot|perplexity|applebot|amazonbot|meta-external|google-extended|ccbot|duckassistbot|pinterest|pinterestbot|twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|whatsapp|telegrambot|discordbot|mj12bot|ahrefsbot|semrushbot|bytespider).*" }
+      ],
+      "destination": "/api/pawtraits-ssr?path=breed&slug=:slug"
+    },
+    {
+      "source": "/pawtraits/style/:slug",
+      "has": [
+        { "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|slurp|yandex|baiduspider|anthropic|claudebot|claude-web|gptbot|chatgpt-user|oai-searchbot|perplexity|applebot|amazonbot|meta-external|google-extended|ccbot|duckassistbot|pinterest|pinterestbot|twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|whatsapp|telegrambot|discordbot|mj12bot|ahrefsbot|semrushbot|bytespider).*" }
+      ],
+      "destination": "/api/pawtraits-ssr?path=style&slug=:slug"
+    },
+    {
+      "source": "/pawtraits/gallery",
+      "has": [
+        { "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|slurp|yandex|baiduspider|anthropic|claudebot|claude-web|gptbot|chatgpt-user|oai-searchbot|perplexity|applebot|amazonbot|meta-external|google-extended|ccbot|duckassistbot|pinterest|pinterestbot|twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|whatsapp|telegrambot|discordbot|mj12bot|ahrefsbot|semrushbot|bytespider).*" }
+      ],
+      "destination": "/api/pawtraits-ssr?path=gallery"
+    },
+    {
+      "source": "/pawtraits/studio",
+      "has": [
+        { "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|slurp|yandex|baiduspider|anthropic|claudebot|claude-web|gptbot|chatgpt-user|oai-searchbot|perplexity|applebot|amazonbot|meta-external|google-extended|ccbot|duckassistbot|pinterest|pinterestbot|twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|whatsapp|telegrambot|discordbot|mj12bot|ahrefsbot|semrushbot|bytespider).*" }
+      ],
+      "destination": "/api/pawtraits-ssr?path=studio"
+    },
+    {
+      "source": "/pawtraits",
+      "has": [
+        { "type": "header", "key": "user-agent", "value": "(?i).*(bot|crawl|spider|slurp|yandex|baiduspider|anthropic|claudebot|claude-web|gptbot|chatgpt-user|oai-searchbot|perplexity|applebot|amazonbot|meta-external|google-extended|ccbot|duckassistbot|pinterest|pinterestbot|twitterbot|facebookexternalhit|facebot|linkedinbot|slackbot|whatsapp|telegrambot|discordbot|mj12bot|ahrefsbot|semrushbot|bytespider).*" }
+      ],
+      "destination": "/api/pawtraits-ssr?path=home"
+    },
     { "source": "/soul-chat", "destination": "/soul-chat.html" },
     { "source": "/gift-v2", "destination": "/gift-v2.html" },
     { "source": "/report-full-v2", "destination": "/report-full-v2.html" },

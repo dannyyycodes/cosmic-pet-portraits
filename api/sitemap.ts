@@ -17,6 +17,8 @@ interface SitemapEntry {
 const STATIC_ENTRIES: SitemapEntry[] = [
   { loc: `${SITE}/`, changefreq: "weekly", priority: 1.0 },
   { loc: `${SITE}/intake`, changefreq: "weekly", priority: 0.9 },
+  { loc: `${SITE}/pawtraits`, changefreq: "weekly", priority: 0.9 },
+  { loc: `${SITE}/pawtraits/gallery`, changefreq: "daily", priority: 0.8 },
   { loc: `${SITE}/blog`, changefreq: "daily", priority: 0.8 },
   { loc: `${SITE}/gift`, changefreq: "weekly", priority: 0.8 },
   { loc: `${SITE}/become-affiliate`, changefreq: "monthly", priority: 0.6 },
@@ -24,6 +26,30 @@ const STATIC_ENTRIES: SitemapEntry[] = [
   { loc: `${SITE}/privacy`, changefreq: "yearly", priority: 0.3 },
   { loc: `${SITE}/terms`, changefreq: "yearly", priority: 0.3 },
 ];
+
+// Programmatic SEO landing pages — Pinterest deep-link targets.
+// Mirrors the slug list in src/pages/PawtraitsSEOLanding.tsx. Kept inline
+// (rather than imported) because this is a Vercel serverless function and
+// the SEO page imports React/Helmet/etc. that would bloat the cold start.
+const PAWTRAIT_BREED_SLUGS = [
+  "golden-retriever", "french-bulldog", "labrador", "dachshund", "goldendoodle",
+  "labradoodle", "bernedoodle", "border-collie", "pug", "german-shepherd",
+  "beagle", "husky", "poodle", "shih-tzu", "yorkie", "boxer", "rottweiler",
+  "australian-shepherd", "cavalier-king-charles", "cocker-spaniel",
+  "tabby-cat", "tuxedo-cat", "black-cat", "maine-coon", "ragdoll",
+  "persian-cat", "siamese-cat", "british-shorthair", "bengal-cat", "scottish-fold",
+];
+const PAWTRAIT_STYLE_SLUGS = [
+  "watercolor", "oil-painting", "renaissance", "royal", "modern-minimalist",
+  "cosmic-astrology", "vintage-victorian", "pop-art", "anime", "cartoon",
+  "pencil-sketch", "charcoal", "impressionist", "art-nouveau", "geometric", "line-art",
+];
+for (const s of PAWTRAIT_BREED_SLUGS) {
+  STATIC_ENTRIES.push({ loc: `${SITE}/pawtraits/breed/${s}`, changefreq: "weekly", priority: 0.7 });
+}
+for (const s of PAWTRAIT_STYLE_SLUGS) {
+  STATIC_ENTRIES.push({ loc: `${SITE}/pawtraits/style/${s}`, changefreq: "weekly", priority: 0.7 });
+}
 
 function escapeXml(s: string): string {
   return s.replace(/[<>&'"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c] as string));
