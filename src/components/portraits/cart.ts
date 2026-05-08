@@ -9,9 +9,31 @@
  * Soul Edition is NOT a separate cart item. It's a flag on a framed-canvas
  * cart item that adds £40 + a separate Shopify line item at checkout time
  * (because Soul Edition has no Gelato SKU — fulfilled by us).
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * TODO (codex hot-zone — left for follow-up after the design pass settles):
+ * These items live in files currently being edited by codex; cannot touch
+ * them in this branch. Pick up after merge.
+ *
+ *   1. Portraits.tsx — debounce `handleAddToCart` and `handleCheckoutAll`
+ *      (search for those handler names; double-click protection so a
+ *      jittery click doesn't add the same item twice or kick off two
+ *      Stripe checkouts).
+ *
+ *   2. Portraits.tsx — debounce the mockup `useEffect` (the one that
+ *      regenerates the previewUrl/mockup on size or frameColor change).
+ *      Currently fires on every keystroke / slider tick — coalesce with a
+ *      ~250ms debounce so we don't hammer the mockup endpoint.
+ *
+ *   3. StudioFlow.tsx — add a max-retries-per-session counter for the
+ *      printMaster regeneration path. After N (suggest 3) failures in one
+ *      session, surface a hard-fail toast + disable retry button instead
+ *      of letting it loop forever and burn credits.
+ * ─────────────────────────────────────────────────────────────────────────
  */
 import type { ProductTypeKey, AnySizeKey, VariantDef } from "./productLineup";
 import { PRODUCTS } from "./productLineup";
+import { toast } from "sonner";
 
 export type StyleOption = "photographic" | "illustrated";
 export type CartItemKind = "ai" | "template";
@@ -111,26 +133,97 @@ export function buildCartItem(input: {
   };
 }
 
-/** localStorage persistence so the cart survives accidental refreshes. */
+/** localStorage persistence so the cart survives accidental refreshes.
+ *
+ * If localStorage is unavailable (Safari Private Mode, quota exceeded,
+ * sandboxed iframe), we fall back to a module-level in-memory store so the
+ * cart still works for the lifetime of the tab. A single one-shot toast
+ * lets the user know their cart won't persist across sessions. */
 const STORAGE_KEY = "ls.portraits.cart.v1";
+const TOAST_FLAG_KEY = "ls.portraits.cart.fallback-toast.v1";
+
+/** Module-level fallback when localStorage writes fail. Lives for the
+ *  lifetime of the JS context (i.e. until tab/page reload). */
+let memoryCart: CartItem[] | null = null;
+
+function isQuotaError(e: unknown): boolean {
+  if (typeof DOMException !== "undefined" && e instanceof DOMException) {
+    // Code 22 = QUOTA_EXCEEDED_ERR (Chromium / Firefox)
+    // Code 1014 = NS_ERROR_DOM_QUOTA_REACHED (legacy Firefox)
+    return (
+      e.code === 22 ||
+      e.code === 1014 ||
+      e.name === "QuotaExceededError" ||
+      e.name === "NS_ERROR_DOM_QUOTA_REACHED"
+    );
+  }
+  return false;
+}
+
+function notifyFallbackOnce(): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (window.sessionStorage.getItem(TOAST_FLAG_KEY)) return;
+    window.sessionStorage.setItem(TOAST_FLAG_KEY, "1");
+  } catch {
+    // sessionStorage also blocked — best-effort; just don't spam the toast.
+    return;
+  }
+  // Sacred-copy compliant: no "AI", no "report", no "we'll email you".
+  toast("Saved in this tab only — clear browser space to keep across sessions");
+}
+
+/** Dedupe cart items by id (memory takes precedence; falls back to storage). */
+function mergeCartSources(memory: CartItem[] | null, storage: CartItem[]): CartItem[] {
+  if (!memory || memory.length === 0) return storage;
+  const seen = new Set<string>();
+  const out: CartItem[] = [];
+  for (const it of memory) {
+    if (it && typeof it.id === "string" && !seen.has(it.id)) {
+      seen.add(it.id);
+      out.push(it);
+    }
+  }
+  for (const it of storage) {
+    if (it && typeof it.id === "string" && !seen.has(it.id)) {
+      seen.add(it.id);
+      out.push(it);
+    }
+  }
+  return out;
+}
 
 export function loadCart(): CartItem[] {
   if (typeof window === "undefined") return [];
+  let stored: CartItem[] = [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) stored = parsed as CartItem[];
+    }
   } catch {
-    return [];
+    // Read failed (private mode, corrupt JSON) — fall through with stored=[].
   }
+  return mergeCartSources(memoryCart, stored);
 }
 
 export function saveCart(items: CartItem[]): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  } catch {
-    /* quota / private mode — silent */
+    // Successful write — clear any stale memory fallback so we don't
+    // double-count items on next read.
+    memoryCart = null;
+  } catch (e) {
+    // Quota exceeded or private-mode: keep cart alive in-memory for the tab.
+    memoryCart = items.slice();
+    if (isQuotaError(e)) {
+      notifyFallbackOnce();
+    } else {
+      // Unknown error — still surface the same fallback notice so the user
+      // knows their cart isn't persisted.
+      notifyFallbackOnce();
+    }
   }
 }
