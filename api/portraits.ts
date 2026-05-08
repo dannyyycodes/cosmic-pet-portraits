@@ -924,6 +924,49 @@ function buildMultiPetCustomPrompt(args: {
   return parts.filter(p => p !== '').join('\n');
 }
 
+// Wraps a grant_credits refund call. The customer paid for a generation that
+// failed; if the refund itself drops on the floor (RPC error, transient DB
+// hiccup) we log to credit_refund_failures so a sweeper can retry. Never
+// throws — the caller already has a customer-facing failure to return.
+async function safeRefund(args: {
+  supabase: ReturnType<typeof getSupabaseAdmin>;
+  accountId: string;
+  tokens: number;
+  reason: string;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  const { supabase, accountId, tokens, reason, metadata } = args;
+  try {
+    const { error } = await supabase.rpc("grant_credits", {
+      p_account_id: accountId,
+      p_tokens: tokens,
+      p_reason: "refund",
+      p_metadata: { detail: reason, ...(metadata ?? {}) },
+    });
+    if (error) {
+      console.error('[REFUND_FAILED]', { accountId, tokens, reason, error: error.message });
+      const { error: logErr } = await supabase
+        .from('credit_refund_failures')
+        .insert({ account_id: accountId, tokens, reason, error_detail: error.message });
+      if (logErr) {
+        // Last-ditch: even the audit insert failed. Surface in logs so a human
+        // can manually reconcile from request logs.
+        console.error('[REFUND_LOG_FAILED]', { accountId, tokens, reason, originalError: error.message, logError: logErr.message });
+      }
+    }
+  } catch (err) {
+    const msg = (err as Error).message;
+    console.error('[REFUND_THREW]', { accountId, tokens, reason, error: msg });
+    try {
+      await supabase
+        .from('credit_refund_failures')
+        .insert({ account_id: accountId, tokens, reason, error_detail: `threw: ${msg}` });
+    } catch (logErr) {
+      console.error('[REFUND_LOG_THREW]', { accountId, tokens, reason, error: (logErr as Error).message });
+    }
+  }
+}
+
 // A photo's vision result counts as "no pet detected" if either the model
 // flagged species: 'none' OR fell back to the bare {species:'pet'} default
 // (i.e. the call failed / got no signal). We treat both as "do not charge."
@@ -1092,12 +1135,12 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     });
 
     if (result.balanceExhausted) {
-      await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "fal-balance-exhausted" } });
+      await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "fal-balance-exhausted" });
       return balancePausedResponse(res);
     }
 
     if (!result.url) {
-      await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "generation-failed" } });
+      await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "generation-failed" });
       return res.status(502).json({ error: "Generation failed (credit refunded)" });
     }
 
@@ -1114,7 +1157,13 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       prompts: [promptDef.prompt],
     });
   } catch (err) {
-    await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "exception", error: (err as Error).message } });
+    await safeRefund({
+      supabase,
+      accountId: userId,
+      tokens: TOKENS_PER_GENERATION,
+      reason: "exception",
+      metadata: { error: (err as Error).message },
+    });
     return res.status(500).json({ error: "Generation failed (credit refunded)", detail: (err as Error).message });
   }
 }
