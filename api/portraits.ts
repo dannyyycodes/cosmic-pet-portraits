@@ -2098,16 +2098,17 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
   // the body of this `if` with a real lookup.
   const shopifyOrderId = typeof body.shopifyOrderId === 'string' ? body.shopifyOrderId : '';
   if (shopifyOrderId) {
-    // TODO(post-A-merge): SELECT user_id FROM print_orders WHERE shopify_order_id = $1
-    // const { data: orderRow, error: orderErr } = await supabase
-    //   .from('print_orders')
-    //   .select('user_id')
-    //   .eq('shopify_order_id', shopifyOrderId)
-    //   .maybeSingle();
-    // if (orderErr) return res.status(500).json({ error: 'order_lookup_failed', detail: orderErr.message });
-    // if (!orderRow) return res.status(404).json({ error: 'order_not_found' });
-    // if (orderRow.user_id !== userId) return res.status(403).json({ error: 'order_ownership_mismatch' });
-    void userId;  // kept reachable so the post-merge wiring drops in cleanly
+    const { data: orderRow, error: orderErr } = await supabase
+      .from('print_orders')
+      .select('user_id')
+      .eq('shopify_order_id', shopifyOrderId)
+      .maybeSingle();
+    if (orderErr) return res.status(500).json({ error: 'order_lookup_failed', detail: orderErr.message });
+    // If row missing, treat as legacy webhook caller (no print_orders record yet) — allow.
+    // If row present and user_id is set, must match the JWT user.
+    if (orderRow && orderRow.user_id && orderRow.user_id !== userId) {
+      return res.status(403).json({ error: 'order_ownership_mismatch' });
+    }
   }
 
   // ── Vision pre-pass — same bad-photo gate as handleGenerate ─────────────
