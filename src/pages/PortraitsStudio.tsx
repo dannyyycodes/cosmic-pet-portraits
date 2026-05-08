@@ -15,6 +15,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";
 import { PortraitsNav } from "@/components/portraits/PortraitsNav";
 import { PortraitsFooter } from "@/components/portraits/PortraitsFooter";
@@ -167,6 +168,24 @@ export default function PortraitsStudio() {
   }
 
   return (
+    <>
+    <Helmet>
+      <title>Pawtraits Studio — Create Your Custom Pet Portrait in Minutes | Little Souls</title>
+      <meta name="description" content="Upload your pet's photo and watch them come to life as a custom AI portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
+      <meta property="og:type" content="article" />
+      <meta property="og:title" content="Pawtraits Studio — Create Your Custom Pet Portrait in Minutes | Little Souls" />
+      <meta property="og:description" content="Upload your pet's photo and watch them come to life as a custom AI portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
+      <meta property="og:image" content="https://www.littlesouls.app/og/pawtraits-studio.jpg" />
+      <meta property="og:url" content="https://littlesouls.app/pawtraits/studio" />
+      <meta property="og:site_name" content="Little Souls" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Pawtraits Studio — Create Your Custom Pet Portrait in Minutes | Little Souls" />
+      <meta name="twitter:description" content="Upload your pet's photo and watch them come to life as a custom AI portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
+      <meta name="twitter:image" content="https://www.littlesouls.app/og/pawtraits-studio.jpg" />
+      <meta property="article:author" content="Little Souls" />
+      <meta property="article:section" content="Custom Pet Portraits" />
+      <link rel="canonical" href="https://littlesouls.app/pawtraits/studio" />
+    </Helmet>
     <div style={{ background: PALETTE.cream, minHeight: "100vh", position: "relative", overflow: "hidden" }}>
       <StudioAtmosphere active={generating} />
       <div style={{ position: "relative", zIndex: 1 }}>
@@ -460,5 +479,6 @@ export default function PortraitsStudio() {
       />
       </div>
     </div>
+    </>
   );
 }

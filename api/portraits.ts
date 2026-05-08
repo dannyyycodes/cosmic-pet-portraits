@@ -529,12 +529,12 @@ const IDENTITY_LOCK =
 const STYLE_TREATMENT: Record<Style, { suffix: string; negative: string }> = {
   photographic: {
     suffix:
-      "Render in a cinematic painterly photo-portrait finish — feels like a real photograph styled by a master cinematographer. Soft natural lighting, rich shadows, premium oil-painting polish over photoreal foundation. 4:5 vertical composition for framed wall art.",
+      "Render in a cinematic painterly photo-portrait finish — feels like a real photograph styled by a master cinematographer. Soft natural lighting, rich shadows, premium oil-painting polish over photoreal foundation. 2:3 vertical composition for framed wall art.",
     negative: "cartoon, anime, vector art, flat illustration, plastic look, neon, 3d-render",
   },
   illustrated: {
     suffix:
-      "Render as a premium hand-drawn illustrated portrait — polished modern character illustration in the spirit of high-end children's-book cover art crossed with editorial portraiture. Confident inked linework, painterly digital colour, soft volumetric shading, NOT a flat cartoon. The pet still reads as themselves but stylised. 4:5 vertical composition for framed wall art.",
+      "Render as a premium hand-drawn illustrated portrait — polished modern character illustration in the spirit of high-end children's-book cover art crossed with editorial portraiture. Confident inked linework, painterly digital colour, soft volumetric shading, NOT a flat cartoon. The pet still reads as themselves but stylised. 2:3 vertical composition for framed wall art.",
     negative: "photorealistic, harsh photo finish, snapshot, low-effort cartoon, plastic 3d, anime cliche",
   },
 };
@@ -584,7 +584,7 @@ async function handlePreview(req: VercelRequest, res: VercelResponse) {
       headers: { "Content-Type": "application/json", Authorization: `Key ${FAL_KEY}` },
       body: JSON.stringify({
         prompt, image_url: imageUrl, guidance_scale: 3.5, num_inference_steps: 28,
-        aspect_ratio: "4:5", ...(negative ? { negative_prompt: negative } : {}),
+        aspect_ratio: "2:3", ...(negative ? { negative_prompt: negative } : {}),
       }),
     });
     if (!falRes.ok) {
@@ -713,9 +713,9 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 // in serif typography along the lower margin…') goes through the same prompt
 // channel and gpt-image-2 handles it ~95% reliably.
 //
-// Output size: custom 1024×1280 = exact 4:5, the brand canvas default.
-// Matches 16×20 hero perfectly; 24×36 (2:3) crops at print time via the
-// Phase 9 print pipeline.
+// Output size: custom 1024×1536 = exact 2:3, the brand canvas default.
+// Matches 12×18 / 16×24 / 20×30 / 24×36 hero perfectly; 16×20 (4:5) crops
+// at print time via the Phase 9 print pipeline.
 //
 // Knobs (Vercel env, optional):
 //   GPT_IMAGE_FAL_MODEL  — model slug. Default 'openai/gpt-image-2/edit'.
@@ -723,7 +723,7 @@ interface VariantResult { url?: string; balanceExhausted?: boolean }
 //                          bad slug does not burn a customer's credit.
 //   GPT_IMAGE_QUALITY    — 'low' | 'medium' | 'high' (default 'medium')
 //   GPT_IMAGE_WIDTH      — int, default 1024
-//   GPT_IMAGE_HEIGHT     — int, default 1280  (4:5)
+//   GPT_IMAGE_HEIGHT     — int, default 1536  (2:3)
 // fal API model_id, in full. URL builder uses the model_id literally — no
 // prefix games. Pass the full slug including any vendor prefix.
 //
@@ -744,7 +744,7 @@ const GPT_IMAGE_PRIMARY_MODEL = process.env.GPT_IMAGE_FAL_MODEL ?? 'openai/gpt-i
 const GPT_IMAGE_FALLBACK_MODEL = 'fal-ai/flux-pro/kontext'; // soft fallback only on hard 404 / model-missing
 const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' | 'medium' | 'high';
 const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
-const GPT_IMAGE_HEIGHT = Number(process.env.GPT_IMAGE_HEIGHT ?? 1280);
+const GPT_IMAGE_HEIGHT = Number(process.env.GPT_IMAGE_HEIGHT ?? 1536);
 
 async function callGptImage(model: string, body: Record<string, unknown>): Promise<{ res: Response; bodyText: string | null }> {
   const r = await fetch(`https://fal.run/${model}`, {
@@ -762,7 +762,7 @@ async function callGptImage(model: string, body: Record<string, unknown>): Promi
 // up to 16 reference images per call). Callers pass exactly one of the two.
 // The optional `imageSize` override lets the printMaster endpoint hand in
 // print-grade dims (e.g. 2048×2560) without polluting the customer-facing
-// preview default of 1024×1280.
+// preview default of 1024×1536.
 async function generateVariant(args: {
   imageUrl?: string;
   imageUrls?: string[];
@@ -880,7 +880,7 @@ function buildMultiPetCustomPrompt(args: {
   subjects: SubjectInfo[];
   names: string[];
   customPrompt: string;
-  aspectInstruction?: string;  // override the "vertical 4:5" line for non-4:5 print masters
+  aspectInstruction?: string;  // override the "vertical 2:3" line for non-2:3 print masters
 }): string {
   const { subjects, names, customPrompt, aspectInstruction } = args;
   const N = subjects.length;
@@ -907,7 +907,7 @@ function buildMultiPetCustomPrompt(args: {
     : '';  // single-pet path uses the keep block's preamble instead
 
   const aspect = aspectInstruction
-    ?? `Output: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.`;
+    ?? `Output: vertical 2:3 canvas composition, painterly cinematic finish, premium polish for framed wall art.`;
 
   const parts = [
     togetherLine,

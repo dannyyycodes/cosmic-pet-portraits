@@ -95,7 +95,7 @@ export function CharacterPacks({ onPickPack }: CharacterPacksProps) {
                 border: `1px solid ${PALETTE.sand}`,
               }}
             >
-              <MasterPortraitPlaceholder packId={pack.id} className="aspect-[4/5] w-full" />
+              <MasterPortraitPlaceholder packId={pack.id} className="aspect-[2/3] w-full" />
 
               <div className="p-6">
                 <h3

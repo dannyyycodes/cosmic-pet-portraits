@@ -36,13 +36,26 @@ create table if not exists public.pawtrait_library (
   backstory text,                        -- short pet narrative
   story_long text,                       -- longer Pinterest/blog version
 
-  -- per-platform captions, jsonb so we can ship platforms incrementally
-  -- shape:
-  --   { pinterest: { title, description, board, destination_url, hashtags },
+  -- per-platform captions, jsonb so we can ship platforms incrementally.
+  -- Shape (current as of 2026-05-08 — Pinterest SEO playbook):
+  --   { pinterest: {
+  --       board,                     -- one slug from the locked 24-board list
+  --       variations: [              -- 3 fresh-pin variations (same image, different title/desc/url)
+  --         { title, description, destination_url, alt_text },
+  --         { title, description, destination_url, alt_text },
+  --         { title, description, destination_url, alt_text }
+  --       ],
+  --       -- mirrored from variations[0] for backwards compat with older posters:
+  --       title, description, destination_url, alt_text
+  --     },
   --     instagram: { caption, hashtags },
   --     tiktok:    { caption, hashtags },
   --     facebook:  { caption },
   --     youtube:   { title, description, hashtags } }
+  -- No CHECK constraint — JSONB is intentionally schemaless so we can evolve
+  -- caption shapes without migrations. Older rows pre-2026-05-08 may have a
+  -- flat pinterest shape with `hashtags` and no `variations` — readers should
+  -- handle both.
   captions jsonb not null default '{}'::jsonb,
 
   -- storage (bucket: pawtrait-library)

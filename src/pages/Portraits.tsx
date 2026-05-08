@@ -13,6 +13,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import Lenis from "lenis";
 import { usePageAnalytics } from "@/hooks/usePageAnalytics";
 import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
@@ -887,6 +888,24 @@ const Portraits = () => {
   };
 
   return (
+    <>
+    <Helmet>
+      <title>Custom AI Pet Portraits — Watercolor, Renaissance & More | Little Souls</title>
+      <meta name="description" content="Turn your pet's photo into a custom AI portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
+      <meta property="og:type" content="article" />
+      <meta property="og:title" content="Custom AI Pet Portraits — Watercolor, Renaissance & More | Little Souls" />
+      <meta property="og:description" content="Turn your pet's photo into a custom AI portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
+      <meta property="og:image" content="https://www.littlesouls.app/og/pawtraits-default.jpg" />
+      <meta property="og:url" content="https://littlesouls.app/pawtraits" />
+      <meta property="og:site_name" content="Little Souls" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Custom AI Pet Portraits — Watercolor, Renaissance & More | Little Souls" />
+      <meta name="twitter:description" content="Turn your pet's photo into a custom AI portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
+      <meta name="twitter:image" content="https://www.littlesouls.app/og/pawtraits-default.jpg" />
+      <meta property="article:author" content="Little Souls" />
+      <meta property="article:section" content="Custom Pet Portraits" />
+      <link rel="canonical" href="https://littlesouls.app/pawtraits" />
+    </Helmet>
     <main
       data-portraits-page
       className="min-h-screen relative"
@@ -923,6 +942,7 @@ const Portraits = () => {
       <TopUpPlans variant="inline" authRedirect="/pawtraits#topup" />
       </div>
     </main>
+    </>
   );
 };
 

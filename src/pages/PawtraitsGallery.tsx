@@ -8,6 +8,7 @@
  */
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 type GalleryRow = {
   id: string;
@@ -248,6 +249,24 @@ export default function PawtraitsGallery() {
   const skeleton = useMemo(() => Array.from({ length: 12 }, (_, i) => i), []);
 
   return (
+    <>
+    <Helmet>
+      <title>Pet Portrait Gallery — Browse 100+ Custom AI Pet Art Designs | Little Souls</title>
+      <meta name="description" content="Explore custom AI pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
+      <meta property="og:type" content="article" />
+      <meta property="og:title" content="Pet Portrait Gallery — Browse 100+ Custom AI Pet Art Designs | Little Souls" />
+      <meta property="og:description" content="Explore custom AI pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
+      <meta property="og:image" content="https://www.littlesouls.app/og/pawtraits-gallery.jpg" />
+      <meta property="og:url" content="https://littlesouls.app/pawtraits/gallery" />
+      <meta property="og:site_name" content="Little Souls" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Pet Portrait Gallery — Browse 100+ Custom AI Pet Art Designs | Little Souls" />
+      <meta name="twitter:description" content="Explore custom AI pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
+      <meta name="twitter:image" content="https://www.littlesouls.app/og/pawtraits-gallery.jpg" />
+      <meta property="article:author" content="Little Souls" />
+      <meta property="article:section" content="Custom Pet Portraits" />
+      <link rel="canonical" href="https://littlesouls.app/pawtraits/gallery" />
+    </Helmet>
     <div style={{ background: '#0a0a0a', minHeight: '100vh' }}>
       {/* Back button — fixed, minimal, top-left */}
       <Link
@@ -290,7 +309,7 @@ export default function PawtraitsGallery() {
             <PawtraitTile key={r.id} row={r} onOpen={setOpen} />
           ))}
           {loading && rows.length === 0 && skeleton.map(i => (
-            <div key={i} className="animate-pulse bg-neutral-800" style={{ aspectRatio: '4/5' }} />
+            <div key={i} className="animate-pulse bg-neutral-800" style={{ aspectRatio: '2/3' }} />
           ))}
         </div>
       )}
@@ -309,5 +328,6 @@ export default function PawtraitsGallery() {
 
       {open && <PawtraitModal row={open} onClose={() => setOpen(null)} />}
     </div>
+    </>
   );
 }

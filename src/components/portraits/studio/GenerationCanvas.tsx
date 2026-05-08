@@ -1,7 +1,7 @@
 /**
  * GenerationCanvas — cinematic in-progress state for /pawtraits/studio.
  *
- * Replaces the plain spinner with a 4:5 placeholder canvas that:
+ * Replaces the plain spinner with a 2:3 placeholder canvas that:
  *   • shows a soft animated rose→gold gradient breathing inside the frame
  *   • runs a diagonal shimmer scan across (Krea / Suno style)
  *   • cycles short status copy through 4 stages in sync with ~10s gen time
@@ -44,10 +44,10 @@ export function GenerationCanvas() {
         boxShadow: "0 24px 60px -28px rgba(191, 82, 74, 0.25)",
       }}
     >
-      {/* 4:5 placeholder frame */}
+      {/* 2:3 placeholder frame */}
       <div
         className="relative w-full"
-        style={{ aspectRatio: "4 / 5", background: PALETTE.cream2 }}
+        style={{ aspectRatio: "2 / 3", background: PALETTE.cream2 }}
       >
         {/* Breathing gradient base */}
         <motion.div
