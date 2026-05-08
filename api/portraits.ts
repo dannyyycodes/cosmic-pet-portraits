@@ -630,6 +630,14 @@ interface SubjectInfo {
 // Flash if Sonnet is too expensive at scale — ~$0.003/image vs ~$0.001).
 const SUBJECT_VISION_MODEL = process.env.SUBJECT_VISION_MODEL ?? 'anthropic/claude-sonnet-4.5';
 
+// Hard ceiling on the OpenRouter Vision pre-pass. The pre-pass blocks the
+// generate request — every second the model takes is a second the customer
+// stares at a spinner. 5s is generous for a small JSON identification call;
+// anything past that we bail to the same {species:'pet'} fallback the catch
+// block returns. The bad-photo gate (isNoPetDetected) then rejects with a
+// 400 BEFORE we charge a credit, so a Vision timeout is safe-by-default.
+const VISION_TIMEOUT_MS = 5000;
+
 async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
   const fallback: SubjectInfo = { species: "pet" };
   if (!OPENROUTER_KEY) return fallback;
@@ -655,10 +663,13 @@ Rules:
 - A human in the photo with no pet → species: "none". A pet held by a human → identify the pet.
 - Output JSON only — no prose, no markdown fences, no commentary.`;
 
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), VISION_TIMEOUT_MS);
   try {
     const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENROUTER_KEY}` },
+      signal: ctrl.signal,
       body: JSON.stringify({
         model: SUBJECT_VISION_MODEL,
         messages: [
@@ -689,7 +700,14 @@ Rules:
       earShape: stringOrUndef(p.earShape),
       distinguishing: stringOrUndef(p.distinguishing),
     };
-  } catch { return fallback; }
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      console.warn('[VISION_TIMEOUT]', { imageUrl: imageUrl.slice(0, 80), timeoutMs: VISION_TIMEOUT_MS });
+    }
+    return fallback;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 interface VariantResult { url?: string; balanceExhausted?: boolean }
@@ -746,10 +764,18 @@ const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' |
 const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
 const GPT_IMAGE_HEIGHT = Number(process.env.GPT_IMAGE_HEIGHT ?? 1280);
 
-async function callGptImage(model: string, body: Record<string, unknown>): Promise<{ res: Response; bodyText: string | null }> {
+// 90s ceiling on the fal.run gpt-image-2 call. fal usually returns a 1024×1280
+// image in 8–25s; a hung request past 90s means the upstream worker died and
+// our credit will burn while the customer sees a spinner forever. On abort we
+// surface a non-OK Response-like via a thrown sentinel so generateVariant
+// can map it to {} → handleGenerate refunds via the standard path.
+const FAL_TIMEOUT_MS = 90_000;
+
+async function callGptImage(model: string, body: Record<string, unknown>, signal?: AbortSignal): Promise<{ res: Response; bodyText: string | null }> {
   const r = await fetch(`https://fal.run/${model}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Key ${FAL_KEY}` },
+    signal,
     body: JSON.stringify(body),
   });
   if (r.ok) return { res: r, bodyText: null };
@@ -799,28 +825,44 @@ async function generateVariant(args: {
     output_format: 'png',
   };
 
-  // Try the primary model first. If fal returns 404 (model not found / slug
-  // wrong) OR 400 with an unknown-model signal, soft-fallback so a bad slug
-  // does not burn the customer's credit.
-  let { res: r, bodyText } = await callGptImage(GPT_IMAGE_PRIMARY_MODEL, requestBody);
+  // 90s AbortController — see FAL_TIMEOUT_MS. On timeout we return {} so
+  // handleGenerate's existing failure path refunds the credit (now wrapped in
+  // safeRefund from #8.1, so a refund-RPC failure also gets logged).
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FAL_TIMEOUT_MS);
+  try {
+    // Try the primary model first. If fal returns 404 (model not found / slug
+    // wrong) OR 400 with an unknown-model signal, soft-fallback so a bad slug
+    // does not burn the customer's credit.
+    let { res: r, bodyText } = await callGptImage(GPT_IMAGE_PRIMARY_MODEL, requestBody, ctrl.signal);
 
-  if (!r.ok) {
-    const looksLikeModelMissing = r.status === 404 ||
-      (r.status === 400 && /model|not.*found|unknown/i.test(bodyText ?? ''));
-    if (looksLikeModelMissing && GPT_IMAGE_PRIMARY_MODEL !== GPT_IMAGE_FALLBACK_MODEL) {
-      console.warn(`[generate] primary model ${GPT_IMAGE_PRIMARY_MODEL} unavailable (${r.status}), falling back to ${GPT_IMAGE_FALLBACK_MODEL}`);
-      ({ res: r, bodyText } = await callGptImage(GPT_IMAGE_FALLBACK_MODEL, requestBody));
+    if (!r.ok) {
+      const looksLikeModelMissing = r.status === 404 ||
+        (r.status === 400 && /model|not.*found|unknown/i.test(bodyText ?? ''));
+      if (looksLikeModelMissing && GPT_IMAGE_PRIMARY_MODEL !== GPT_IMAGE_FALLBACK_MODEL) {
+        console.warn(`[generate] primary model ${GPT_IMAGE_PRIMARY_MODEL} unavailable (${r.status}), falling back to ${GPT_IMAGE_FALLBACK_MODEL}`);
+        ({ res: r, bodyText } = await callGptImage(GPT_IMAGE_FALLBACK_MODEL, requestBody, ctrl.signal));
+      }
     }
-  }
 
-  if (!r.ok) {
-    // bodyText was already consumed inside callGptImage on non-OK; reuse it.
-    const text = bodyText ?? '';
-    if (isFalBalanceExhausted(text)) return { balanceExhausted: true };
+    if (!r.ok) {
+      // bodyText was already consumed inside callGptImage on non-OK; reuse it.
+      const text = bodyText ?? '';
+      if (isFalBalanceExhausted(text)) return { balanceExhausted: true };
+      return {};
+    }
+    const d = (await r.json()) as KontextResponse;
+    return { url: d.images?.[0]?.url };
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      console.warn('[FAL_TIMEOUT]', { timeoutMs: FAL_TIMEOUT_MS, model: GPT_IMAGE_PRIMARY_MODEL });
+    } else {
+      console.error('[generateVariant] threw:', (err as Error).message);
+    }
     return {};
+  } finally {
+    clearTimeout(timer);
   }
-  const d = (await r.json()) as KontextResponse;
-  return { url: d.images?.[0]?.url };
 }
 
 // Sanitise a single pet name → on-canvas typography. Letters / numbers / space
@@ -928,6 +970,83 @@ function buildMultiPetCustomPrompt(args: {
   return parts.filter(p => p !== '').join('\n');
 }
 
+// Validate every imageUrl against a tight host whitelist. Without this,
+// handleGenerate forwards arbitrary URLs to fal.run (which fetches them
+// server-side) and to extractSubject (OpenRouter Vision, which also fetches
+// them server-side). That's a textbook SSRF surface — a caller could supply
+// http://169.254.169.254/, file://, or any internal endpoint and have our
+// infrastructure dereference it. We allow only:
+//   - The project Supabase storage host (parsed from VITE_SUPABASE_URL)
+//   - images.pexels.com (gallery uploader / showcase photos)
+//   - any *.fal.media subdomain (gpt-image-2 returns its own outputs there
+//     when the customer iterates on a previous generation)
+// Returns null on success, or a string error reason on failure.
+function validateImageUrlOrigin(raw: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return 'invalid_url';
+  }
+  if (parsed.protocol !== 'https:') {
+    return `invalid_protocol: ${parsed.protocol.replace(':', '')}`;
+  }
+  const host = parsed.hostname.toLowerCase();
+  // Project Supabase storage — derive the host from VITE_SUPABASE_URL so a
+  // future Supabase project rotation doesn't strand this whitelist.
+  let supabaseHost: string | null = null;
+  if (SUPABASE_URL) {
+    try { supabaseHost = new URL(SUPABASE_URL).hostname.toLowerCase(); } catch { /* ignore */ }
+  }
+  if (supabaseHost && host === supabaseHost) return null;
+  if (host === 'images.pexels.com') return null;
+  if (host.endsWith('.fal.media')) return null;
+  return `host_not_allowed: ${host}`;
+}
+
+// Wraps a grant_credits refund call. The customer paid for a generation that
+// failed; if the refund itself drops on the floor (RPC error, transient DB
+// hiccup) we log to credit_refund_failures so a sweeper can retry. Never
+// throws — the caller already has a customer-facing failure to return.
+async function safeRefund(args: {
+  supabase: ReturnType<typeof getSupabaseAdmin>;
+  accountId: string;
+  tokens: number;
+  reason: string;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  const { supabase, accountId, tokens, reason, metadata } = args;
+  try {
+    const { error } = await supabase.rpc("grant_credits", {
+      p_account_id: accountId,
+      p_tokens: tokens,
+      p_reason: "refund",
+      p_metadata: { detail: reason, ...(metadata ?? {}) },
+    });
+    if (error) {
+      console.error('[REFUND_FAILED]', { accountId, tokens, reason, error: error.message });
+      const { error: logErr } = await supabase
+        .from('credit_refund_failures')
+        .insert({ account_id: accountId, tokens, reason, error_detail: error.message });
+      if (logErr) {
+        // Last-ditch: even the audit insert failed. Surface in logs so a human
+        // can manually reconcile from request logs.
+        console.error('[REFUND_LOG_FAILED]', { accountId, tokens, reason, originalError: error.message, logError: logErr.message });
+      }
+    }
+  } catch (err) {
+    const msg = (err as Error).message;
+    console.error('[REFUND_THREW]', { accountId, tokens, reason, error: msg });
+    try {
+      await supabase
+        .from('credit_refund_failures')
+        .insert({ account_id: accountId, tokens, reason, error_detail: `threw: ${msg}` });
+    } catch (logErr) {
+      console.error('[REFUND_LOG_THREW]', { accountId, tokens, reason, error: (logErr as Error).message });
+    }
+  }
+}
+
 // A photo's vision result counts as "no pet detected" if either the model
 // flagged species: 'none' OR fell back to the bare {species:'pet'} default
 // (i.e. the call failed / got no signal). We treat both as "do not charge."
@@ -963,7 +1082,9 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   };
   const { styleId, themeId } = body;
   const addDetails = sanitiseAddDetails(body.addDetails ?? "");
-  const customPrompt = sanitiseAddDetails(body.customPrompt ?? "").slice(0, 400);
+  // sanitiseAddDetails already caps at 200 chars — the legacy .slice(0, 400)
+  // here was dead code (200 < 400). Removed 2026-05-08.
+  const customPrompt = sanitiseAddDetails(body.customPrompt ?? "");
 
   // ── Normalise to photos[] / names[] ─────────────────────────────────────
   // Multi-pet path activates if imageUrls is a non-empty array. Otherwise we
@@ -977,6 +1098,19 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   }
   if (photos.length > 4) {
     return res.status(400).json({ error: "max_pets_exceeded", message: "Pawtraits supports up to 4 pets per portrait. Please remove some photos." });
+  }
+  // SSRF defence — every photo URL must be HTTPS and from an allowed host.
+  // Reject before we hand the URL to fal.run (which dereferences it server
+  // side) or to OpenRouter Vision. See validateImageUrlOrigin for the list.
+  for (let i = 0; i < photos.length; i++) {
+    const reason = validateImageUrlOrigin(photos[i]);
+    if (reason) {
+      return res.status(400).json({
+        error: 'invalid_image_url',
+        photoIndex: i,
+        message: `Image URL at index ${i} rejected (${reason}). Allowed sources: project Supabase storage, images.pexels.com, *.fal.media.`,
+      });
+    }
   }
   // Names array — same length as photos[]; missing entries become empty string.
   const rawNames: string[] = isMultiPet
@@ -1096,12 +1230,12 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     });
 
     if (result.balanceExhausted) {
-      await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "fal-balance-exhausted" } });
+      await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "fal-balance-exhausted" });
       return balancePausedResponse(res);
     }
 
     if (!result.url) {
-      await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "generation-failed" } });
+      await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "generation-failed" });
       return res.status(502).json({ error: "Generation failed (credit refunded)" });
     }
 
@@ -1118,7 +1252,13 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       prompts: [promptDef.prompt],
     });
   } catch (err) {
-    await supabase.rpc("grant_credits", { p_account_id: userId, p_tokens: TOKENS_PER_GENERATION, p_reason: "refund", p_metadata: { detail: "exception", error: (err as Error).message } });
+    await safeRefund({
+      supabase,
+      accountId: userId,
+      tokens: TOKENS_PER_GENERATION,
+      reason: "exception",
+      metadata: { error: (err as Error).message },
+    });
     return res.status(500).json({ error: "Generation failed (credit refunded)", detail: (err as Error).message });
   }
 }
@@ -1173,6 +1313,20 @@ async function tryHfRmbg(imageUrl: string): Promise<Buffer | null> {
 
 async function handleCutout(req: VercelRequest, res: VercelResponse) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return res.status(500).json({ error: "Supabase service env not configured" });
+
+  // ── Auth — Bearer JWT required ──────────────────────────────────────────
+  // Photoroom + HuggingFace cutouts cost real money on every call (Photoroom
+  // ~$0.02, HF inference quota burn). The endpoint was previously open, which
+  // meant anyone could grind it from a script. Match handleGenerate's pattern:
+  // require a Supabase JWT, validate via the admin client, reject 401 otherwise.
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Sign in to cut out a portrait" });
+  }
+  const token = auth.slice("Bearer ".length);
+  const adminClient = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await adminClient.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
 
   const { imageUrl } = (req.body ?? {}) as { imageUrl?: string };
   if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
@@ -1322,6 +1476,29 @@ function libraryAuthOk(req: VercelRequest): boolean {
   return typeof got === 'string' && got === LIBRARY_API_SECRET;
 }
 
+// Explicit column lists for the unauthenticated read ops (list / get / gallery).
+// .select('*') leaks every column added to pawtrait_library in the future
+// (including, today, generation_cost_usd which is internal audit data).
+// Posters need the prompt + media fields; the public gallery only needs the
+// trimmed gallery view. Anything beyond these has to be added consciously.
+const LIBRARY_LIST_COLUMNS = [
+  'id',
+  'pet_kind', 'breed', 'pet_name',
+  'image_style', 'art_style',
+  'home_setting', 'pet_action', 'canvas_format',
+  'aspect_ratio',
+  'prompt', 'negative_prompt',
+  'backstory', 'story_long',
+  'captions',
+  'image_path', 'image_url',
+  'thumbnail_path', 'thumbnail_url',
+  'width', 'height',
+  'quality_score', 'quality_notes',
+  'approved', 'approved_at',
+  'generated_by', 'generation_model',
+  'created_at', 'updated_at',
+].join(',');
+
 async function handleLibrary(req: VercelRequest, res: VercelResponse) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return res.status(503).json({ error: 'supabase-not-configured' });
@@ -1358,7 +1535,7 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
 
     let q = supabase
       .from('pawtrait_library')
-      .select('*')
+      .select(LIBRARY_LIST_COLUMNS)
       .eq('approved', true)
       .order('created_at', { ascending: false })
       .limit(limit + postedIds.size + 10);
@@ -1375,7 +1552,7 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
     if (!id) return res.status(400).json({ error: 'id required' });
     const { data, error } = await supabase
       .from('pawtrait_library')
-      .select('*')
+      .select(LIBRARY_LIST_COLUMNS)
       .eq('id', id)
       .maybeSingle();
     if (error) return res.status(500).json({ error: 'get_failed', detail: error.message });
@@ -1900,6 +2077,7 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
     petNames?: string[];
     customPrompt?: string;
     sizeKey?: string;
+    shopifyOrderId?: string;
   };
 
   // ── Validate required fields ────────────────────────────────────────────
@@ -1962,6 +2140,32 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
   const supabase = getSupabaseAdmin();
   const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
+  const userId = userRes.user.id;
+
+  // ── Order ownership check ───────────────────────────────────────────────
+  // The print-master regen costs ~$0.10–$0.20 per call out of canvas margin.
+  // Without an ownership check, an authenticated user could trigger arbitrary
+  // print-master regenerations against any shopifyOrderId — including orders
+  // that belong to other customers. We require the caller's user_id to match
+  // the user_id recorded against the shopify order at checkout time.
+  //
+  // The print_orders table is being created by Agent A. Until that lands the
+  // check is a stub that no-ops if shopifyOrderId is absent (legacy webhook
+  // callers) and TODO-blocks the real query. Once the table merges, replace
+  // the body of this `if` with a real lookup.
+  const shopifyOrderId = typeof body.shopifyOrderId === 'string' ? body.shopifyOrderId : '';
+  if (shopifyOrderId) {
+    // TODO(post-A-merge): SELECT user_id FROM print_orders WHERE shopify_order_id = $1
+    // const { data: orderRow, error: orderErr } = await supabase
+    //   .from('print_orders')
+    //   .select('user_id')
+    //   .eq('shopify_order_id', shopifyOrderId)
+    //   .maybeSingle();
+    // if (orderErr) return res.status(500).json({ error: 'order_lookup_failed', detail: orderErr.message });
+    // if (!orderRow) return res.status(404).json({ error: 'order_not_found' });
+    // if (orderRow.user_id !== userId) return res.status(403).json({ error: 'order_ownership_mismatch' });
+    void userId;  // kept reachable so the post-merge wiring drops in cleanly
+  }
 
   // ── Vision pre-pass — same bad-photo gate as handleGenerate ─────────────
   // Vision is REQUIRED here too (see feedback_pawtraits_vision_required_for_
