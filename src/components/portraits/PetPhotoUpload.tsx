@@ -38,11 +38,14 @@ interface PetPhotoUploadProps {
   photoUrl: string | null;
   /** Reset handler for "use a different photo". */
   onReset: () => void;
+  /** Compact studio-card treatment. Defaults to the original large dropzone. */
+  variant?: "default" | "compact";
 }
 
-export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUploadProps) {
+export function PetPhotoUpload({ onUploaded, photoUrl, onReset, variant = "default" }: PetPhotoUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<string>("");
+  const compact = variant === "compact";
 
   const onDrop = useCallback(
     async (accepted: File[], rejected: FileRejection[]) => {
@@ -151,7 +154,8 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="relative rounded-lg overflow-hidden mx-auto"
           style={{
-            maxWidth: "320px",
+            maxWidth: compact ? "128px" : "320px",
+            width: compact ? "128px" : undefined,
             border: "1px solid rgba(196, 162, 101, 0.55)",
             background: "#FFFDF5",
           }}
@@ -164,7 +168,7 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
           <button
             type="button"
             onClick={onReset}
-            className="absolute top-3 right-3 text-[12px] uppercase rounded-full px-3 py-1 transition-opacity hover:opacity-90"
+            className={`absolute uppercase rounded-full transition-opacity hover:opacity-90 ${compact ? "top-2 right-2 text-[10px] px-2 py-0.5" : "top-3 right-3 text-[12px] px-3 py-1"}`}
             style={{
               background: "rgba(13, 10, 20, 0.72)",
               color: "#f5efe6",
@@ -172,7 +176,7 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
               backdropFilter: "blur(4px)",
             }}
           >
-            Use a different photo
+            {compact ? "Change" : "Use a different photo"}
           </button>
         </motion.div>
       ) : (
@@ -181,12 +185,17 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
         <div
           key="dropzone"
           {...getRootProps()}
-          className="ls-upload-zone cursor-pointer rounded-lg p-12 md:p-16 transition-all relative overflow-hidden"
+          className={`ls-upload-zone cursor-pointer rounded-lg transition-all relative overflow-hidden ${compact ? "p-4 mx-auto" : "p-12 md:p-16"}`}
           style={{
             background: isDragActive ? "#faf6ef" : "#FFFDF5",
             border: isDragActive ? "1px dashed #bf524a" : "1px dashed #c4a265",
             color: "#5a4a42",
             transform: isDragActive ? "scale(1.01)" : "scale(1)",
+            width: compact ? 128 : undefined,
+            minHeight: compact ? 128 : undefined,
+            display: compact ? "flex" : undefined,
+            alignItems: compact ? "center" : undefined,
+            justifyContent: compact ? "center" : undefined,
           }}
           aria-label="Drop your pet photo here, or click to browse"
         >
@@ -200,7 +209,10 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
                   className="w-7 h-7 mx-auto rounded-full border-2"
                   style={{ borderColor: "#c4a265", borderTopColor: "transparent" }}
                 />
-                <p className="mt-4 font-cormorant italic" style={{ fontSize: "18px", color: "#5a4a42" }}>
+                <p
+                  className={`${compact ? "mt-3" : "mt-4"} font-cormorant italic`}
+                  style={{ fontSize: compact ? "13px" : "18px", color: "#5a4a42" }}
+                >
                   {progress || "Uploading…"}
                 </p>
               </>
@@ -208,13 +220,25 @@ export function PetPhotoUpload({ onUploaded, photoUrl, onReset }: PetPhotoUpload
               <>
                 <p
                   className="font-serif"
-                  style={{ fontSize: "22px", fontWeight: 400, color: "#3d2f2a", letterSpacing: "-0.005em" }}
+                  style={{ fontSize: compact ? "15px" : "22px", fontWeight: 400, color: "#3d2f2a", letterSpacing: "-0.005em" }}
                 >
-                  {isDragActive ? "Drop their photo here" : "Drag in their photo"}
+                  {compact
+                    ? isDragActive
+                      ? "Drop photo"
+                      : "Add photo"
+                    : isDragActive
+                      ? "Drop their photo here"
+                      : "Drag in their photo"}
                 </p>
-                <p className="mt-3 font-cormorant italic" style={{ fontSize: "17px", color: "#5a4a42" }}>
-                  or click to choose · JPG, PNG, HEIC, WebP — up to 25 MB
-                </p>
+                {compact ? (
+                  <p className="mt-1" style={{ fontFamily: "Assistant, system-ui, sans-serif", fontSize: "11px", color: "#8b7a6a" }}>
+                    click or drop
+                  </p>
+                ) : (
+                  <p className="mt-3 font-cormorant italic" style={{ fontSize: "17px", color: "#5a4a42" }}>
+                    or click to choose · JPG, PNG, HEIC, WebP — up to 25 MB
+                  </p>
+                )}
               </>
             )}
           </div>
