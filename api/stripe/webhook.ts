@@ -169,24 +169,152 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  // Only handle one-off packs here (mode='payment'). Subscriptions are handled
-  // by customer.subscription.* events.
+  // Only handle one-off packs / canvas SKUs here (mode='payment').
+  // Subscriptions are handled by customer.subscription.* events.
   if (session.mode !== "payment") return;
 
   const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
-  if (!customerId) return;
 
+  // Two paths can fire on a checkout.session.completed payment:
+  //   1. Credit-pack purchase     → grant tokens (existing behaviour)
+  //   2. Canvas/print-on-demand   → schedule pawtrait lifecycle emails
+  // They are NOT mutually exclusive in metadata terms, so we evaluate
+  // canvas SKU detection independently of the credit-pack path. A pack
+  // checkout also gets the welcome touchpoints suppressed because there's
+  // no canvas to ship.
+
+  const isCanvasOrder = await detectCanvasSku(session);
+  if (isCanvasOrder) {
+    await schedulePawtraitTouchpoints(session);
+  }
+
+  if (!customerId) return;
   const accountId =
     session.client_reference_id ?? (await resolveAccountId(customerId));
   if (!accountId) return;
 
+  // Only grant credits for non-canvas one-off-pack checkouts. Canvas orders
+  // are physical product — no token grant.
+  if (!isCanvasOrder) {
+    const supabase = getSupabaseAdmin();
+    await supabase.rpc("grant_credits", {
+      p_account_id: accountId,
+      p_tokens: PACK_TOKENS,
+      p_reason: "one-off-pack",
+      p_metadata: { session_id: session.id },
+    });
+  }
+}
+
+// ─── Canvas SKU detection + pawtrait touchpoint scheduling ────────────────
+//
+// Canvas (and other physical print-on-demand) line items are detected by
+// scanning the session's line items for a matching product title. We
+// expand the line items (Stripe doesn't return them by default on a
+// session) and look for any item whose product description / name
+// contains a canvas keyword. This is the cheap, no-extra-config path —
+// when we move to dedicated Stripe Price metadata flags it'll plug in
+// here.
+
+const CANVAS_KEYWORDS = ["canvas", "framed", "pawtrait", "portrait print", "wall art"];
+
+async function detectCanvasSku(session: Stripe.Checkout.Session): Promise<boolean> {
+  // Fast path: explicit metadata flag set at checkout-create time.
+  if (session.metadata?.product_line === "portrait" || session.metadata?.is_canvas === "true") {
+    return true;
+  }
+
+  try {
+    const items = await getStripe().checkout.sessions.listLineItems(session.id, {
+      limit: 50,
+      expand: ["data.price.product"],
+    });
+    for (const li of items.data) {
+      const product = (li.price?.product ?? null) as Stripe.Product | null;
+      const name = (product?.name ?? li.description ?? "").toLowerCase();
+      if (CANVAS_KEYWORDS.some((kw) => name.includes(kw))) {
+        return true;
+      }
+    }
+  } catch (e) {
+    console.warn("[stripe/webhook] canvas SKU detect failed:", (e as Error).message);
+  }
+  return false;
+}
+
+async function schedulePawtraitTouchpoints(session: Stripe.Checkout.Session) {
+  // Best-effort extraction of customer email + first pet name. Either is
+  // optional — the touchpoint table only requires email.
+  const email =
+    session.customer_details?.email?.trim().toLowerCase() ??
+    session.customer_email?.trim().toLowerCase() ??
+    "";
+  if (!email) {
+    console.warn("[stripe/webhook] canvas order without customer email — skipping touchpoints", session.id);
+    return;
+  }
+
+  const petName =
+    session.metadata?.pet_name ??
+    session.metadata?.first_pet_name ??
+    null;
+
+  const portraitImageUrl =
+    session.metadata?.portrait_image_url ??
+    session.metadata?.preview_url ??
+    null;
+
+  const accountId =
+    session.client_reference_id ??
+    (typeof session.customer === "object" && session.customer !== null && !("deleted" in session.customer)
+      ? session.customer.metadata?.account_id ?? null
+      : null) ??
+    null;
+
+  const baseMeta = {
+    source: "stripe_webhook_checkout_completed",
+    session_id: session.id,
+    order_id: session.metadata?.order_reference_id ?? session.id,
+    pet_name: petName,
+    portrait_image_url: portraitImageUrl,
+    product_title: session.metadata?.product_title ?? "Pawtrait canvas",
+  };
+
+  // Schedule the post-purchase cadence:
+  //   purchase_confirm now
+  //   ugc_reorder      +14 days
+  //   winback_30       +30 days
+  //   winback_60       +60 days
+  //   winback_90       +90 days
+  // Shipping/delivered touchpoints come from the Gelato webhook, not here.
+  const now = Date.now();
+  const days = (n: number) => new Date(now + n * 24 * 60 * 60 * 1000).toISOString();
+
+  const rows = [
+    { touchpoint_type: "pawtrait_purchase_confirm", scheduled_for: new Date(now).toISOString() },
+    { touchpoint_type: "pawtrait_ugc_reorder", scheduled_for: days(14) },
+    { touchpoint_type: "pawtrait_winback_30", scheduled_for: days(30) },
+    { touchpoint_type: "pawtrait_winback_60", scheduled_for: days(60) },
+    { touchpoint_type: "pawtrait_winback_90", scheduled_for: days(90) },
+  ].map((r) => ({
+    ...r,
+    email,
+    pet_name: petName,
+    account_id: accountId,
+    status: "pending",
+    metadata: baseMeta,
+  }));
+
   const supabase = getSupabaseAdmin();
-  await supabase.rpc("grant_credits", {
-    p_account_id: accountId,
-    p_tokens: PACK_TOKENS,
-    p_reason: "one-off-pack",
-    p_metadata: { session_id: session.id },
-  });
+  const { error } = await supabase.from("pawtrait_touchpoints").insert(rows);
+  if (error) {
+    console.error("[stripe/webhook] pawtrait touchpoint insert failed:", error.message);
+    // Don't throw — the order is real and the credit/event log captured it.
+    return;
+  }
+  console.log(
+    `[stripe/webhook] scheduled ${rows.length} pawtrait touchpoints for ${email} session=${session.id}`,
+  );
 }
 
 async function resolveAccountId(customerId: string): Promise<string | null> {
