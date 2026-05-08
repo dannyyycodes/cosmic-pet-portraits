@@ -9,11 +9,13 @@
  *
  * Reference: https://dashboard.gelato.com/docs/webhooks/
  *
- * Signature verification:
- *   Gelato signs the raw body with HMAC-SHA256 using the per-store webhook
- *   secret. The signature lands in the `gelato-signature` header. We verify
- *   BEFORE JSON.parse — same pattern as the Shopify HMAC verifier. If
- *   GELATO_WEBHOOK_SECRET is unset we 500 (configuration error) so Gelato
+ * Auth verification:
+ *   Gelato's webhook UI does NOT do HMAC signing — instead it lets each
+ *   store configure a custom HTTP header sent on every webhook call. We
+ *   configured Header Name `x-gelato-secret` with a Gelato-generated key,
+ *   stored as GELATO_WEBHOOK_SECRET env. Constant-time string compare.
+ *   (`Authorization: Bearer <token>` also accepted for forward compat.)
+ *   If GELATO_WEBHOOK_SECRET is unset we 500 (config error) so Gelato
  *   retries until ops fixes the env.
  *
  * Idempotency:
@@ -33,7 +35,7 @@
  *   500 — config or DB error (Gelato retries)
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { timingSafeEqual } from "node:crypto";
 import {
   recordGelatoWebhookEvent,
   getPrintOrderByGelatoId,
@@ -49,7 +51,7 @@ export const config = {
   api: { bodyParser: false },
 };
 
-const SIGNATURE_HEADERS = ["gelato-signature", "x-gelato-signature"] as const;
+const AUTH_HEADER_NAMES = ["x-gelato-secret", "authorization"] as const;
 
 // Gelato event names we handle. The exact set differs slightly per docs
 // version — keep this list narrow and let everything else fall through to
@@ -109,7 +111,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  // 1. Read raw body for HMAC verification.
+  // 1. Verify header token. Gelato's webhook UI lets us configure a custom
+  // HTTP header (we use `x-gelato-secret`) sent on every webhook call.
+  // Constant-time compare against GELATO_WEBHOOK_SECRET. (Note: the original
+  // implementation expected HMAC-SHA256 of the body, but Gelato's actual
+  // mechanism is a static header — see commit message for context.)
+  const headerToken = readHeaderToken(req.headers);
+  if (!headerToken) {
+    console.warn("[gelato] missing_auth_header");
+    res.status(401).end();
+    return;
+  }
+  if (!constantTimeEqualString(headerToken, secret)) {
+    console.warn(
+      "[gelato] auth_token_mismatch",
+      JSON.stringify({ tokenLen: headerToken.length }),
+    );
+    res.status(401).end();
+    return;
+  }
+
+  // 2. Read raw body (still need raw → JSON.parse, body parser is disabled).
   let rawBody: Buffer;
   try {
     rawBody = await readRawBody(req);
@@ -119,22 +141,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
       JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
     );
     res.status(500).json({ error: "raw body read failed" });
-    return;
-  }
-
-  // 2. Verify signature.
-  const sigHeader = readSignatureHeader(req.headers);
-  if (!sigHeader) {
-    console.warn("[gelato] missing_signature_header");
-    res.status(401).end();
-    return;
-  }
-  if (!verifyGelatoSignature(rawBody, sigHeader, secret)) {
-    console.warn(
-      "[gelato] hmac_invalid",
-      JSON.stringify({ bodyLen: rawBody.length, sigLen: sigHeader.length }),
-    );
-    res.status(401).end();
     return;
   }
 
@@ -339,30 +345,25 @@ async function processGelatoEvent(args: {
   }
 }
 
-// ─── HMAC verification ─────────────────────────────────────────────────────
+// ─── Header-token auth ─────────────────────────────────────────────────────
+//
+// Gelato's webhook UI lets each store configure a custom HTTP header sent on
+// every webhook call. We use `x-gelato-secret`. Also accept `Authorization:
+// Bearer <token>` for forward compat in case the UI changes later.
 
-function readSignatureHeader(headers: VercelRequest["headers"]): string | null {
-  for (const h of SIGNATURE_HEADERS) {
-    const v = headers[h];
-    if (typeof v === "string" && v.length > 0) return v;
-    if (Array.isArray(v) && v.length > 0 && typeof v[0] === "string") return v[0];
+function readHeaderToken(headers: VercelRequest["headers"]): string | null {
+  for (const h of AUTH_HEADER_NAMES) {
+    const raw = headers[h];
+    const v = typeof raw === "string" ? raw : Array.isArray(raw) && raw.length > 0 ? raw[0] : null;
+    if (typeof v !== "string" || v.length === 0) continue;
+    // Strip optional "Bearer " prefix.
+    const trimmed = v.replace(/^Bearer\s+/i, "").trim();
+    if (trimmed.length > 0) return trimmed;
   }
   return null;
 }
 
-/**
- * Gelato signs as hex(HMAC-SHA256(rawBody, secret)). Some accounts also send
- * a base64 form. Accept either to be tolerant.
- */
-function verifyGelatoSignature(rawBody: Buffer, sigHeader: string, secret: string): boolean {
-  const expectedHex = createHmac("sha256", secret).update(rawBody).digest("hex");
-  const expectedB64 = createHmac("sha256", secret).update(rawBody).digest("base64");
-  // Strip optional "sha256=" prefix
-  const sig = sigHeader.startsWith("sha256=") ? sigHeader.slice("sha256=".length) : sigHeader;
-  return safeEqualStr(sig, expectedHex) || safeEqualStr(sig, expectedB64);
-}
-
-function safeEqualStr(a: string, b: string): boolean {
+function constantTimeEqualString(a: string, b: string): boolean {
   const ba = Buffer.from(a, "utf8");
   const bb = Buffer.from(b, "utf8");
   if (ba.length !== bb.length) return false;
