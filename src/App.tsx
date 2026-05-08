@@ -73,6 +73,8 @@ const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
 const PawtraitsGallery = lazy(() => import("./pages/PawtraitsGallery"));
 const PawtraitsSEOLanding = lazy(() => import("./pages/PawtraitsSEOLanding"));
+const SharePet = lazy(() => import("./pages/SharePet"));
+const ShareThanks = lazy(() => import("./pages/ShareThanks"));
 const AdminAspectTest = lazy(() => import("./pages/AdminAspectTest"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
@@ -232,6 +234,8 @@ const App = () => (
                   <Route path="/portraits/studio" element={<Navigate to="/pawtraits#studio" replace />} />
                   {/* /unlimited removed 2026-05-05 — TopUpPlans now lives inline at /pawtraits#topup */}
                   <Route path="/unlimited" element={<Navigate to="/pawtraits#topup" replace />} />
+                  <Route path="/share/thanks" element={<ShareThanks />} />
+                  <Route path="/share/:reportId" element={<SharePet />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
