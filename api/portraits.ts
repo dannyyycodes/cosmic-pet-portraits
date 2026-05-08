@@ -1044,7 +1044,9 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   };
   const { styleId, themeId } = body;
   const addDetails = sanitiseAddDetails(body.addDetails ?? "");
-  const customPrompt = sanitiseAddDetails(body.customPrompt ?? "").slice(0, 400);
+  // sanitiseAddDetails already caps at 200 chars — the legacy .slice(0, 400)
+  // here was dead code (200 < 400). Removed 2026-05-08.
+  const customPrompt = sanitiseAddDetails(body.customPrompt ?? "");
 
   // ── Normalise to photos[] / names[] ─────────────────────────────────────
   // Multi-pet path activates if imageUrls is a non-empty array. Otherwise we
