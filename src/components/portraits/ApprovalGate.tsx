@@ -53,7 +53,7 @@ export function ApprovalGate({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.45, ease: EASE.out }}
-      className="rounded-2xl p-5 md:p-7"
+      className="rounded-2xl p-4 md:p-5"
       style={{
         background: PALETTE.cream,
         border: `1px solid ${PALETTE.sand}`,
@@ -62,10 +62,10 @@ export function ApprovalGate({
       }}
       aria-live="polite"
     >
-      <div className="text-center mb-5">
+      <div className="text-center mb-4">
         <h3
           style={{
-            ...display("clamp(22px, 3vw, 30px)"),
+            ...display("clamp(20px, 2.4vw, 26px)"),
             color: PALETTE.ink,
           }}
         >
@@ -75,10 +75,10 @@ export function ApprovalGate({
           className="mx-auto mt-2"
           style={{
             fontFamily: "Assistant, system-ui, sans-serif",
-            fontSize: 14,
+            fontSize: 13,
             color: PALETTE.earthMuted,
-            lineHeight: 1.5,
-            maxWidth: 460,
+            lineHeight: 1.4,
+            maxWidth: 380,
           }}
         >
           Take your time. If it's right, lock it in below.
@@ -90,7 +90,7 @@ export function ApprovalGate({
       <div
         className="mx-auto rounded-xl overflow-hidden relative"
         style={{
-          maxWidth: 520,
+          maxWidth: 360,
           aspectRatio: "1 / 1",
           background: PALETTE.cosmos,
           border: `1px solid ${PALETTE.sandDeep}`,
@@ -107,12 +107,12 @@ export function ApprovalGate({
       </div>
 
       {/* Action stack — primary first, regen + tweak as secondary affordances */}
-      <div className="mt-6 flex flex-col gap-2.5">
+      <div className="mt-4 flex flex-col gap-2">
         <button
           type="button"
           onClick={onApprove}
           disabled={busy}
-          className="w-full rounded-xl py-4 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center justify-center gap-2"
+          className="w-full rounded-xl py-3.5 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center justify-center gap-2"
           style={{
             background: PALETTE.rose,
             color: PALETTE.cream,
@@ -127,12 +127,12 @@ export function ApprovalGate({
           <ArrowRight className="w-[18px] h-[18px]" strokeWidth={2.4} />
         </button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <button
             type="button"
             onClick={onTryAgain}
             disabled={!canTryAgain}
-            className="rounded-xl py-3.5 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center justify-center gap-2"
+            className="rounded-xl py-3 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center justify-center gap-2"
             style={{
               background: PALETTE.cream2,
               color: PALETTE.ink,
@@ -158,7 +158,7 @@ export function ApprovalGate({
             type="button"
             onClick={onTweak}
             disabled={busy}
-            className="rounded-xl py-3.5 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center justify-center gap-2"
+            className="rounded-xl py-3 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center justify-center gap-2"
             style={{
               background: "transparent",
               color: PALETTE.earth,

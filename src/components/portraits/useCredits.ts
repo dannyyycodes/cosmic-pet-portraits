@@ -15,12 +15,17 @@ export interface CreditsState {
 
 export function useCredits(): CreditsState {
   const { user } = useAuth();
+  // Keying on `user?.id` (a primitive) rather than the `user` object means
+  // `refresh` only re-creates when the actual signed-in identity changes —
+  // not on every Supabase auth event that hands back a new object reference.
+  const userId = user?.id ?? null;
+
   const [balance, setBalance] = useState<number | null>(null);
   const [tier, setTier] = useState<"pass" | "elite" | null>(null);
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setBalance(null);
       setTier(null);
       return;
@@ -28,11 +33,11 @@ export function useCredits(): CreditsState {
     setLoading(true);
     try {
       const [creditsRes, subRes] = await Promise.all([
-        supabase.from("portraits_credits").select("tokens").eq("account_id", user.id).maybeSingle(),
+        supabase.from("portraits_credits").select("tokens").eq("account_id", userId).maybeSingle(),
         supabase
           .from("portraits_subscriptions")
           .select("tier, status")
-          .eq("account_id", user.id)
+          .eq("account_id", userId)
           .eq("status", "active")
           .maybeSingle(),
       ]);
@@ -44,7 +49,7 @@ export function useCredits(): CreditsState {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userId]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
