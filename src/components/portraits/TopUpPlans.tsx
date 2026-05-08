@@ -7,6 +7,20 @@
  *
  * Anonymous users get redirected to /auth?next=... before Stripe checkout.
  * Authed users hit Stripe Checkout directly.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * TODO (codex hot-zone — Portraits.tsx is being edited by codex right now):
+ * When merging this branch, `Portraits.tsx` needs a `useEffect` that:
+ *   1. Reads `searchParams.get("topupSku")` on mount.
+ *   2. If present, scrolls to `#topup` (the section anchor on this page).
+ *   3. Pre-selects the matching pack card (sets the busy/highlighted state
+ *      for the pack matching the sku, or auto-triggers `handleStart`).
+ *   4. Strips `topupSku` from the URL after handling so a refresh doesn't
+ *      re-trigger.
+ * The query-param shape comes from this file's `buildAuthRedirect()`
+ * helper below — we now route `topupSku=<sku>` as a search param (NOT in
+ * the fragment, where it was getting lost).
+ * ─────────────────────────────────────────────────────────────────────────
  */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -82,6 +96,27 @@ const PLANS: Plan[] = [
   },
 ];
 
+/**
+ * Take a relative path that may contain a `?search` and/or `#fragment`,
+ * inject `topupSku=<sku>` into the search params, and return the
+ * reassembled string. The receiving page reads `topupSku` from
+ * `URLSearchParams` (NOT from `window.location.hash`).
+ */
+function buildAuthRedirect(rawRedirect: string, sku: string): string {
+  const hashIdx = rawRedirect.indexOf("#");
+  const beforeHash = hashIdx === -1 ? rawRedirect : rawRedirect.slice(0, hashIdx);
+  const hash = hashIdx === -1 ? "" : rawRedirect.slice(hashIdx); // includes leading '#'
+
+  const queryIdx = beforeHash.indexOf("?");
+  const path = queryIdx === -1 ? beforeHash : beforeHash.slice(0, queryIdx);
+  const existingQuery = queryIdx === -1 ? "" : beforeHash.slice(queryIdx + 1);
+
+  const params = new URLSearchParams(existingQuery);
+  params.set("topupSku", sku);
+
+  return `${path}?${params.toString()}${hash}`;
+}
+
 interface TopUpPlansProps {
   variant?: "section" | "inline";
   showHeader?: boolean;
@@ -104,7 +139,11 @@ export function TopUpPlans({
 
   async function handleStart(sku: Plan["sku"]) {
     if (!user) {
-      navigate(`/auth?next=${encodeURIComponent(authRedirect + "?sku=" + sku)}`);
+      // Build the post-auth redirect WITHOUT shoving the sku into the
+      // fragment — `/pawtraits#topup?sku=pack` is invalid (fragment swallows
+      // everything after `#`, so `?sku=` is lost). We split path, search and
+      // hash, inject `topupSku` into the search portion, then reassemble.
+      navigate(`/auth?next=${encodeURIComponent(buildAuthRedirect(authRedirect, sku))}`);
       return;
     }
     setBusySku(sku);
