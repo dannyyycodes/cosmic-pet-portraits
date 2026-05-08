@@ -966,6 +966,40 @@ function buildMultiPetCustomPrompt(args: {
   return parts.filter(p => p !== '').join('\n');
 }
 
+// Validate every imageUrl against a tight host whitelist. Without this,
+// handleGenerate forwards arbitrary URLs to fal.run (which fetches them
+// server-side) and to extractSubject (OpenRouter Vision, which also fetches
+// them server-side). That's a textbook SSRF surface — a caller could supply
+// http://169.254.169.254/, file://, or any internal endpoint and have our
+// infrastructure dereference it. We allow only:
+//   - The project Supabase storage host (parsed from VITE_SUPABASE_URL)
+//   - images.pexels.com (gallery uploader / showcase photos)
+//   - any *.fal.media subdomain (gpt-image-2 returns its own outputs there
+//     when the customer iterates on a previous generation)
+// Returns null on success, or a string error reason on failure.
+function validateImageUrlOrigin(raw: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return 'invalid_url';
+  }
+  if (parsed.protocol !== 'https:') {
+    return `invalid_protocol: ${parsed.protocol.replace(':', '')}`;
+  }
+  const host = parsed.hostname.toLowerCase();
+  // Project Supabase storage — derive the host from VITE_SUPABASE_URL so a
+  // future Supabase project rotation doesn't strand this whitelist.
+  let supabaseHost: string | null = null;
+  if (SUPABASE_URL) {
+    try { supabaseHost = new URL(SUPABASE_URL).hostname.toLowerCase(); } catch { /* ignore */ }
+  }
+  if (supabaseHost && host === supabaseHost) return null;
+  if (host === 'images.pexels.com') return null;
+  if (host.endsWith('.fal.media')) return null;
+  return `host_not_allowed: ${host}`;
+}
+
 // Wraps a grant_credits refund call. The customer paid for a generation that
 // failed; if the refund itself drops on the floor (RPC error, transient DB
 // hiccup) we log to credit_refund_failures so a sweeper can retry. Never
@@ -1060,6 +1094,19 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   }
   if (photos.length > 4) {
     return res.status(400).json({ error: "max_pets_exceeded", message: "Pawtraits supports up to 4 pets per portrait. Please remove some photos." });
+  }
+  // SSRF defence — every photo URL must be HTTPS and from an allowed host.
+  // Reject before we hand the URL to fal.run (which dereferences it server
+  // side) or to OpenRouter Vision. See validateImageUrlOrigin for the list.
+  for (let i = 0; i < photos.length; i++) {
+    const reason = validateImageUrlOrigin(photos[i]);
+    if (reason) {
+      return res.status(400).json({
+        error: 'invalid_image_url',
+        photoIndex: i,
+        message: `Image URL at index ${i} rejected (${reason}). Allowed sources: project Supabase storage, images.pexels.com, *.fal.media.`,
+      });
+    }
   }
   // Names array — same length as photos[]; missing entries become empty string.
   const rawNames: string[] = isMultiPet
