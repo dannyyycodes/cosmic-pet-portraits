@@ -38,7 +38,7 @@ export function StudioPlaceholder({ hasStyle, hasTheme }: StudioPlaceholderProps
     >
       <div
         className="relative w-full"
-        style={{ aspectRatio: "4 / 5", background: PALETTE.cream2 }}
+        style={{ aspectRatio: "2 / 3", background: PALETTE.cream2 }}
       >
         {/* Soft tint base */}
         <div

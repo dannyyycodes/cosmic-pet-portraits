@@ -70,15 +70,39 @@ For a `portrait` ingest, Sonnet returns:
   "backstory": "Rosie has the patience of a saint and the schedule of a CEO…",
   "captions": {
     "pinterest": {
-      "title": "Watercolour Floral Pet Portrait",
-      "description": "…ends with: Made with Pawtraits at littlesouls.app",
-      "destination_url": "https://www.littlesouls.app/pawtraits/studio",
-      "hashtags": ["#PetPortraits", "#CustomPetArt", "#GoldenRetrieverArt"]
+      "board": "golden-retriever-portraits",
+      "variations": [
+        {
+          "title": "Golden retriever watercolor portrait — custom AI pet art on canvas",
+          "description": "Soft watercolor pet portrait of a golden retriever, hand-finished and ready to print on canvas. Perfect for dog lovers who want something one-of-a-kind. Make yours at littlesouls.app.",
+          "destination_url": "https://www.littlesouls.app/pawtraits/breed/golden-retriever?utm_source=pinterest&utm_medium=organic&utm_campaign=library&utm_content=<library_id>-v1",
+          "alt_text": "Smiling golden retriever with floppy ears, painted in soft watercolor with warm cream background, custom pet portrait."
+        },
+        { "title": "...", "description": "...", "destination_url": "...-v2", "alt_text": "..." },
+        { "title": "...", "description": "...", "destination_url": "...-v3", "alt_text": "..." }
+      ],
+
+      // Backwards-compat (mirrored from variations[0] by the ingest script).
+      // Existing posters reading captions.pinterest.title etc keep working.
+      "title": "Golden retriever watercolor portrait — custom AI pet art on canvas",
+      "description": "Soft watercolor pet portrait...",
+      "destination_url": "https://www.littlesouls.app/pawtraits/breed/golden-retriever?...&utm_content=<library_id>-v1",
+      "alt_text": "Smiling golden retriever with floppy ears..."
     },
     "youtube": { "title": "…", "description": "…", "hashtags": [...] }
   }
 }
 ```
+
+### Pinterest schema (2026-05-08, post-SEO playbook)
+
+- **board**: One slug from the locked 24-board list (`pinterest-playbook-2026-05-02.md`). Posters look this up to get the real Pinterest board ID.
+- **variations**: Exactly 3 fresh-pin variations. Pinterest treats `same image + new title + new description + new URL` as new content, so the rotating poster (n8n `zSxvYwR8aAKTp8JN`) cycles through V1 → V2 → V3 across separate posts.
+- **Variation angles**: V1 breed-led, V2 gift/occasion-led (or style-led if no occasion fits), V3 emotional/benefit-led.
+- **Title**: 80–95 chars, sentence case, primary keyword in the first 40 chars.
+- **Description**: 220–250 chars, no hashtags in the body, keyword + value prop in the first 50 chars, subtle CTA at the end.
+- **Alt text**: 100–125 chars, specific (breed, coat, pose, expression, art style, mood).
+- **destination_url**: `/pawtraits/breed/<breed-slug>?utm_source=pinterest&utm_medium=organic&utm_campaign=library&utm_content=<library_id>-v{1,2,3}`. Ingest script substitutes the real UUID into the `__LIBRARY_ID__` placeholder Sonnet returns.
 
 For a `scene` ingest, Sonnet returns:
 ```json

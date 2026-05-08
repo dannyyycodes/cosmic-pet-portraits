@@ -36,7 +36,7 @@ interface PortraitPreviewProps {
 export function PortraitPreview({ status, previewUrl, errorMsg, errorCta }: PortraitPreviewProps) {
   return (
     <div
-      className="relative rounded-sm overflow-hidden mx-auto aspect-[4/5]"
+      className="relative rounded-sm overflow-hidden mx-auto aspect-[2/3]"
       style={{
         maxWidth: "320px",
         background: `radial-gradient(ellipse at center, ${PALETTE.cosmosMid} 0%, ${PALETTE.cosmos} 72%)`,

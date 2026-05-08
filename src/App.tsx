@@ -72,6 +72,7 @@ const Reading = lazy(() => import("./pages/Reading"));
 const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
 const PawtraitsGallery = lazy(() => import("./pages/PawtraitsGallery"));
+const PawtraitsSEOLanding = lazy(() => import("./pages/PawtraitsSEOLanding"));
 const AdminAspectTest = lazy(() => import("./pages/AdminAspectTest"));
 // LandingV2 is now eagerly loaded (it's the homepage)
 
@@ -220,6 +221,10 @@ const App = () => (
                   <Route path="/pawtraits" element={<Portraits />} />
                   <Route path="/pawtraits/templates" element={<PortraitsTemplates />} />
                   <Route path="/pawtraits/gallery" element={<PawtraitsGallery />} />
+                  {/* Programmatic SEO landing pages — Pinterest deep-link targets.
+                      Unknown slugs render gracefully (no 404). */}
+                  <Route path="/pawtraits/breed/:breed" element={<PawtraitsSEOLanding kind="breed" />} />
+                  <Route path="/pawtraits/style/:style" element={<PawtraitsSEOLanding kind="style" />} />
                   <Route path="/admin/aspect-test" element={<AdminAspectTest />} />
                   <Route path="/pawtraits/studio" element={<Navigate to="/pawtraits#studio" replace />} />
                   <Route path="/portraits" element={<Navigate to="/pawtraits" replace />} />

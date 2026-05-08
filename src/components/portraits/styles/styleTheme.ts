@@ -235,7 +235,7 @@ export function buildPrompt(input: BuildPromptInput): { prompt: string; negative
       ? `TEXT: render the name "${input.petName.trim().slice(0, 40)}" in elegant clean serif typography along the lower margin of the canvas, centered, readable, no spelling errors, no other text on the canvas.`
       : '',
     ``,
-    `Output: vertical 4:5 canvas composition, painterly cinematic finish, premium polish for framed wall art.`,
+    `Output: vertical 2:3 canvas composition, painterly cinematic finish, premium polish for framed wall art.`,
   ];
   const prompt = promptParts.filter(p => p !== '').join('\n');
 

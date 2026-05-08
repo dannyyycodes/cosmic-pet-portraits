@@ -44,7 +44,7 @@ export function VariantGallery({ variants, selectedUrl, onSelect, compact = fals
                   ? "0 6px 18px rgba(191, 82, 74, 0.22)"
                   : "0 8px 28px rgba(191, 82, 74, 0.3)"
                 : "0 4px 14px rgba(60, 36, 18, 0.08)",
-              aspectRatio: compact ? "1 / 1" : "4/5",
+              aspectRatio: compact ? "1 / 1" : "2/3",
             }}
           >
             <img

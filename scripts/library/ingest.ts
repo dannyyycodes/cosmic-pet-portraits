@@ -98,8 +98,30 @@ interface Manifest {
   items: ItemDef[];
 }
 
+interface PinterestVariation {
+  title: string;
+  description: string;
+  destination_url: string;
+  alt_text: string;
+}
+
+interface PinterestCaption {
+  // Board slug from the locked 24-board playbook list.
+  board: string;
+  // Three "fresh-pin" variations: same image, different title+description+URL.
+  // Pinterest's algo treats each as new content.
+  variations: PinterestVariation[];
+  // Backwards-compat fallback fields (mirror variations[0]). Older posters that
+  // read captions.pinterest.title/description still work without changes.
+  title?: string;
+  description?: string;
+  destination_url?: string;
+  alt_text?: string;
+  hashtags?: string[];
+}
+
 interface Captions {
-  pinterest?: { title: string; description: string; destination_url: string; hashtags: string[] };
+  pinterest?: PinterestCaption;
   facebook?:  { caption: string };  // review-style narrative
   instagram?: { caption: string; hashtags: string[] };
   tiktok?:    { caption: string; hashtags: string[] };
@@ -153,6 +175,39 @@ async function processImage(srcPath: string): Promise<{
   };
 }
 
+// Locked board slug list from the 24-board Pinterest playbook.
+// See: vault/01-projects/little-souls/pet-portraits/pinterest-playbook-2026-05-02.md
+const PINTEREST_BOARDS = [
+  'golden-retriever-portraits',
+  'french-bulldog-portraits',
+  'labrador-portraits',
+  'dachshund-portraits',
+  'doodle-portraits',
+  'border-collie-portraits',
+  'pug-portraits',
+  'german-shepherd-portraits',
+  'cat-portraits-tabby-tuxedo',
+  'cat-portraits-black-maine-coon',
+  'memorial-pet-portraits',
+  'christmas-pet-gifts',
+  'mothers-day-pet-gifts',
+  'adoption-pet-portraits',
+  'new-pet-celebration',
+  'pet-birthday-art',
+  'wedding-pet-portraits',
+  'renaissance-pet-portraits',
+  'royal-pet-portraits',
+  'modern-minimalist-pet-art',
+  'watercolor-pet-portraits',
+  'cosmic-astrology-pet-art',
+  'vintage-victorian-pet-art',
+  'pop-art-pet-portraits',
+] as const;
+
+function breedSlug(breed: string): string {
+  return breed.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 async function generateCaptions(item: ItemDef): Promise<CaptionsBundle> {
   const isScene = item.image_style === 'scene';
   const platforms = isScene
@@ -160,6 +215,7 @@ async function generateCaptions(item: ItemDef): Promise<CaptionsBundle> {
     : ['pinterest', 'youtube'];                                  // portrait-mode = catalog/discovery
   const petLabel = item.pet_name ? `${item.pet_name} the ${item.breed}` : `a ${item.breed}`;
   const styleLabel = (item.art_style ?? '').replace(/-/g, ' ');
+  const breedKw = breedSlug(item.breed);
 
   const system = `You write per-platform marketing copy for the "Pawtraits" brand by Little Souls — custom AI-generated pet portraits printed on canvas.
 
@@ -171,7 +227,47 @@ You will receive ONE pet's details. Return STRICT JSON with:
 
 Per-platform caption rules:
 
-${platforms.includes('pinterest') ? `- pinterest: { "title": "<60 chars catchy", "description": "<200 chars, search-ready, ends with 'Made with Pawtraits at littlesouls.app'", "destination_url": "${PUBLIC_SITE_URL}/pawtraits/studio", "hashtags": ["#PetPortraits","#CustomPetArt","#${item.breed.replace(/ /g,'')}Art"] }` : ''}
+${platforms.includes('pinterest') ? `- pinterest: SEO-optimised for the 2026 Pinterest algo. Return THIS exact shape:
+  {
+    "board": "<one slug from the locked list>",
+    "variations": [ {V1}, {V2}, {V3} ]   // exactly 3 fresh-pin variations
+  }
+
+  BOARD selection — pick ONE slug from this list (do NOT invent new ones):
+  ${PINTEREST_BOARDS.join(', ')}
+  Pick by breed first, then style, then occasion. If the pet's backstory implies memorial / anniversary / birthday / adoption / Christmas / Mother's Day / wedding, prefer the matching occasion board over the breed/style board.
+
+  EACH VARIATION is an object: { "title", "description", "destination_url", "alt_text" }
+
+  TITLE rules (per variation):
+  - 80–95 characters. Sentence case (NOT Title Case).
+  - Front-load the primary keyword in the first 40 chars: breed + art style + intent.
+  - No emojis. No ALL CAPS. No clickbait punctuation.
+  - Examples Pinterest rewards: "Golden retriever watercolor portrait — custom AI pet art on canvas" / "Memorial cat portrait in Renaissance oil painting style — keepsake gift".
+
+  DESCRIPTION rules (per variation):
+  - 220–250 characters. NOT 500. NO HASHTAGS in the body.
+  - First 50 chars MUST contain the keyword + value prop (that's all that shows in the feed).
+  - Natural, conversational, search-ready prose. End with a subtle CTA (e.g. "Make yours at littlesouls.app").
+  - No "Made with Pawtraits at littlesouls.app" boilerplate — vary the closing line per variation.
+
+  ALT_TEXT rules (per variation):
+  - 100–125 characters. Specific and descriptive. Used by Pinterest Lens + accessibility.
+  - Include: breed, coat colour/markings, pose, expression, art style, mood/background.
+  - Example: "Smiling golden retriever with floppy ears, painted in soft watercolor with warm cream background, custom pet portrait."
+
+  DESTINATION_URL — use exactly:
+  V1: ${PUBLIC_SITE_URL}/pawtraits/breed/${breedKw}?utm_source=pinterest&utm_medium=organic&utm_campaign=library&utm_content=__LIBRARY_ID__-v1
+  V2: ${PUBLIC_SITE_URL}/pawtraits/breed/${breedKw}?utm_source=pinterest&utm_medium=organic&utm_campaign=library&utm_content=__LIBRARY_ID__-v2
+  V3: ${PUBLIC_SITE_URL}/pawtraits/breed/${breedKw}?utm_source=pinterest&utm_medium=organic&utm_campaign=library&utm_content=__LIBRARY_ID__-v3
+  (The literal string __LIBRARY_ID__ stays as-is; the ingest script substitutes the real UUID after parsing.)
+
+  VARIATION ANGLES (each variation MUST take a distinct angle):
+  - V1 — Breed-led: lead with breed + art style. e.g. "Golden retriever watercolor portrait..."
+  - V2 — Gift / occasion-led if the backstory supports one (memorial, birthday, adoption, Christmas, wedding, Mother's Day); otherwise style-led. e.g. "Memorial pet portrait gift — capture their soul in custom watercolor art" / "Watercolor pet art for dog lovers — handcrafted from your photo".
+  - V3 — Emotional / benefit-led: lead with the transformation, not the product. e.g. "Capture their soul in custom hand-painted pet art" / "Turn your favourite photo of them into a forever piece".
+
+  Pinterest is a search engine — write like search queries people actually type. No fluff, no AI references, no "report".` : ''}
 ${platforms.includes('facebook') ? `- facebook: { "caption": "<400-700 chars REVIEW-STYLE first-person narrative — pretend a real customer ordered this pawtrait and is sharing why they love it; mention their pet's name + a tiny detail (a habit, a moment); end with a soft 'we made it with Pawtraits — littlesouls.app' nod, no exclamation overkill" }` : ''}
 ${platforms.includes('instagram') ? `- instagram: { "caption": "<280 chars, warm, ends with a single soft CTA line about the canvas", "hashtags": ["#petportrait","#custompetart","#${item.breed.replace(/ /g,'').toLowerCase()}", "#dogsofinstagram or #catsofinstagram", "#littlesouls"] (max 5) }` : ''}
 ${platforms.includes('tiktok') ? `- tiktok: { "caption": "<180 chars, hook-first, scroll-stopper", "hashtags": ["#petportrait","#fyp","#${item.breed.replace(/ /g,'').toLowerCase()}"] (max 5) }` : ''}
@@ -180,14 +276,16 @@ ${platforms.includes('youtube') ? `- youtube: { "title": "<70 chars", "descripti
 Hard rules:
 - No AI / model / prompt mentions
 - No "report" — say pawtrait or canvas
-- No fake reviews stars or numbers
-- No emojis in pinterest title or yt title
-- Hashtags are arrays of strings starting with #
+- No fake review stars or numbers
+- No emojis in pinterest titles, alt text, or yt title
+- Hashtags are arrays of strings starting with # (Pinterest description body must NOT contain hashtags)
 
 Return ONLY the JSON object — no prose, no markdown fences.`;
 
   const user = JSON.stringify({
     pet: petLabel,
+    breed: item.breed,
+    breed_slug: breedKw,
     art_style: styleLabel,
     image_style: item.image_style,
     home_setting: item.home_setting,
@@ -210,7 +308,7 @@ Return ONLY the JSON object — no prose, no markdown fences.`;
         { role: 'user', content: user },
       ],
       response_format: { type: 'json_object' },
-      max_tokens: 1100,
+      max_tokens: 1800,
       temperature: 0.7,
     }),
   });
@@ -227,6 +325,44 @@ Return ONLY the JSON object — no prose, no markdown fences.`;
   if (!parsed.backstory) throw new Error('caption response missing backstory');
   if (!parsed.captions || typeof parsed.captions !== 'object') throw new Error('caption response missing captions');
   return parsed;
+}
+
+/**
+ * Finalise the Pinterest caption block:
+ *  - Substitute __LIBRARY_ID__ in destination URLs with the real row UUID
+ *  - Validate board slug against the locked playbook list (fall back to a sensible default)
+ *  - Populate flat backwards-compat fields (title/description/destination_url/alt_text)
+ *    from variations[0] so existing posters reading the old shape keep working.
+ */
+function finalisePinterest(captions: Captions, libraryId: string, fallbackBreed: string): void {
+  const p = captions.pinterest;
+  if (!p) return;
+
+  // Validate / coerce board
+  const validBoards = new Set<string>(PINTEREST_BOARDS as readonly string[]);
+  if (!p.board || !validBoards.has(p.board)) {
+    // Soft fallback: pick the breed-portraits board if we have one, else watercolor as a generic.
+    const breedBoard = `${breedSlug(fallbackBreed)}-portraits`;
+    p.board = validBoards.has(breedBoard) ? breedBoard : 'watercolor-pet-portraits';
+  }
+
+  // Substitute the placeholder in every variation
+  if (Array.isArray(p.variations)) {
+    for (const v of p.variations) {
+      if (typeof v.destination_url === 'string') {
+        v.destination_url = v.destination_url.replace(/__LIBRARY_ID__/g, libraryId);
+      }
+    }
+  }
+
+  // Backwards-compat: mirror variations[0] into the flat fields.
+  const v0 = p.variations?.[0];
+  if (v0) {
+    p.title = v0.title;
+    p.description = v0.description;
+    p.destination_url = v0.destination_url;
+    p.alt_text = v0.alt_text;
+  }
 }
 
 async function uploadToBucket(path: string, buf: Buffer, contentType: string): Promise<string> {
@@ -263,6 +399,11 @@ async function ingestItem(folder: string, item: ItemDef, defaults: Partial<ItemD
     // 3. Upload to bucket — keys are deterministic by row id, so generate id first.
     //    We use crypto.randomUUID() for the ID; the row INSERT will use the same id.
     const id = crypto.randomUUID();
+
+    // 3a. Substitute the library-id placeholder into Pinterest destination URLs and
+    //     populate the backwards-compat flat fields from variations[0].
+    finalisePinterest(bundle.captions, id, merged.breed);
+
     const stem = `${yearMonth()}/${merged.pet_kind}/${slugify(merged.art_style!)}/${id}`;
     const fullPath = `${stem}.webp`;
     const thumbPath = `${stem}-thumb.webp`;
