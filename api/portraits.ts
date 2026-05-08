@@ -1263,6 +1263,20 @@ async function tryHfRmbg(imageUrl: string): Promise<Buffer | null> {
 async function handleCutout(req: VercelRequest, res: VercelResponse) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return res.status(500).json({ error: "Supabase service env not configured" });
 
+  // ── Auth — Bearer JWT required ──────────────────────────────────────────
+  // Photoroom + HuggingFace cutouts cost real money on every call (Photoroom
+  // ~$0.02, HF inference quota burn). The endpoint was previously open, which
+  // meant anyone could grind it from a script. Match handleGenerate's pattern:
+  // require a Supabase JWT, validate via the admin client, reject 401 otherwise.
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Sign in to cut out a portrait" });
+  }
+  const token = auth.slice("Bearer ".length);
+  const adminClient = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await adminClient.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
+
   const { imageUrl } = (req.body ?? {}) as { imageUrl?: string };
   if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
 
@@ -1950,6 +1964,7 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
     petNames?: string[];
     customPrompt?: string;
     sizeKey?: string;
+    shopifyOrderId?: string;
   };
 
   // ── Validate required fields ────────────────────────────────────────────
@@ -1998,6 +2013,32 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
   const supabase = getSupabaseAdmin();
   const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
+  const userId = userRes.user.id;
+
+  // ── Order ownership check ───────────────────────────────────────────────
+  // The print-master regen costs ~$0.10–$0.20 per call out of canvas margin.
+  // Without an ownership check, an authenticated user could trigger arbitrary
+  // print-master regenerations against any shopifyOrderId — including orders
+  // that belong to other customers. We require the caller's user_id to match
+  // the user_id recorded against the shopify order at checkout time.
+  //
+  // The print_orders table is being created by Agent A. Until that lands the
+  // check is a stub that no-ops if shopifyOrderId is absent (legacy webhook
+  // callers) and TODO-blocks the real query. Once the table merges, replace
+  // the body of this `if` with a real lookup.
+  const shopifyOrderId = typeof body.shopifyOrderId === 'string' ? body.shopifyOrderId : '';
+  if (shopifyOrderId) {
+    // TODO(post-A-merge): SELECT user_id FROM print_orders WHERE shopify_order_id = $1
+    // const { data: orderRow, error: orderErr } = await supabase
+    //   .from('print_orders')
+    //   .select('user_id')
+    //   .eq('shopify_order_id', shopifyOrderId)
+    //   .maybeSingle();
+    // if (orderErr) return res.status(500).json({ error: 'order_lookup_failed', detail: orderErr.message });
+    // if (!orderRow) return res.status(404).json({ error: 'order_not_found' });
+    // if (orderRow.user_id !== userId) return res.status(403).json({ error: 'order_ownership_mismatch' });
+    void userId;  // kept reachable so the post-merge wiring drops in cleanly
+  }
 
   // ── Vision pre-pass — same bad-photo gate as handleGenerate ─────────────
   // Vision is REQUIRED here too (see feedback_pawtraits_vision_required_for_
