@@ -1472,6 +1472,29 @@ function libraryAuthOk(req: VercelRequest): boolean {
   return typeof got === 'string' && got === LIBRARY_API_SECRET;
 }
 
+// Explicit column lists for the unauthenticated read ops (list / get / gallery).
+// .select('*') leaks every column added to pawtrait_library in the future
+// (including, today, generation_cost_usd which is internal audit data).
+// Posters need the prompt + media fields; the public gallery only needs the
+// trimmed gallery view. Anything beyond these has to be added consciously.
+const LIBRARY_LIST_COLUMNS = [
+  'id',
+  'pet_kind', 'breed', 'pet_name',
+  'image_style', 'art_style',
+  'home_setting', 'pet_action', 'canvas_format',
+  'aspect_ratio',
+  'prompt', 'negative_prompt',
+  'backstory', 'story_long',
+  'captions',
+  'image_path', 'image_url',
+  'thumbnail_path', 'thumbnail_url',
+  'width', 'height',
+  'quality_score', 'quality_notes',
+  'approved', 'approved_at',
+  'generated_by', 'generation_model',
+  'created_at', 'updated_at',
+].join(',');
+
 async function handleLibrary(req: VercelRequest, res: VercelResponse) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return res.status(503).json({ error: 'supabase-not-configured' });
@@ -1508,7 +1531,7 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
 
     let q = supabase
       .from('pawtrait_library')
-      .select('*')
+      .select(LIBRARY_LIST_COLUMNS)
       .eq('approved', true)
       .order('created_at', { ascending: false })
       .limit(limit + postedIds.size + 10);
@@ -1525,7 +1548,7 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
     if (!id) return res.status(400).json({ error: 'id required' });
     const { data, error } = await supabase
       .from('pawtrait_library')
-      .select('*')
+      .select(LIBRARY_LIST_COLUMNS)
       .eq('id', id)
       .maybeSingle();
     if (error) return res.status(500).json({ error: 'get_failed', detail: error.message });
