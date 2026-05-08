@@ -112,6 +112,148 @@ const purchaserSequence: EmailSequence = {
 
 const sequences = [freebieSequence, abandonedSequence, purchaserSequence];
 
+// ─── Pawtrait (canvas) lifecycle — 12 touchpoints ───────────────────────────
+// Data-only mirror of the campaigns wired up in
+// supabase/functions/process-email-nurture/index.ts (CAMPAIGNS const, the
+// pawtrait_* keys). Same EmailSequence shape, same admin display.
+
+const pawtraitWelcomeSequence: EmailSequence = {
+  id: "pawtrait-welcome",
+  name: "Pawtrait Welcome",
+  icon: <Sparkles className="w-5 h-5" />,
+  description: "First impression for canvas leads — uploaded a photo, haven't bought yet",
+  trigger: "Triggered: After pawtraits intake / portrait preview",
+  color: "from-amber-50 to-orange-50",
+  steps: [
+    {
+      id: "pawtrait_welcome_1",
+      name: "We Made Them Something",
+      subject: "We made {petName} something",
+      timing: "Immediately after upload",
+      description: "Warm intro framing the portrait as a real, painted thing — not a generated novelty. CTA to view + size up.",
+    },
+    {
+      id: "pawtrait_welcome_2",
+      name: "Hanging On The Wall",
+      subject: "Hanging {petName} on the wall",
+      timing: "+24 hours",
+      description: "Emotional reframe — a portrait says they belong in the home. Above the sofa, by the door, in the hallway.",
+    },
+    {
+      id: "pawtrait_welcome_3",
+      name: "Last Gentle Nudge",
+      subject: "One last thing about {petName}",
+      timing: "+72 hours",
+      description: "Soft close — free shipping, frames included, ~1 week to arrive. No more nudging after this.",
+    },
+  ],
+};
+
+const pawtraitAbandonedSequence: EmailSequence = {
+  id: "pawtrait-abandoned",
+  name: "Pawtrait Abandoned Cart",
+  icon: <ShoppingCart className="w-5 h-5" />,
+  description: "Cart contents saved — gentle reminder, no urgency",
+  trigger: "Triggered: 3+ hours after canvas cart abandonment",
+  color: "from-pink-50 to-rose-50",
+  steps: [
+    {
+      id: "pawtrait_abandoned_cart",
+      name: "Still In Your Cart",
+      subject: "{petName}'s portrait is still in your cart",
+      timing: "+3 hours",
+      description: "Reassures size + frame are saved. Each canvas is print-on-demand so no rush. CTA back to checkout.",
+    },
+  ],
+};
+
+const pawtraitFulfilmentSequence: EmailSequence = {
+  id: "pawtrait-fulfilment",
+  name: "Pawtrait Fulfilment",
+  icon: <Heart className="w-5 h-5" />,
+  description: "Post-purchase: print, ship, deliver",
+  trigger: "Triggered: Stripe checkout.session.completed (canvas SKU) + Gelato shipping events",
+  color: "from-green-50 to-emerald-50",
+  steps: [
+    {
+      id: "pawtrait_purchase_confirm",
+      name: "Being Made",
+      subject: "{petName} is being made",
+      timing: "Immediately on purchase",
+      description: "Order confirmation framed as craft — canvas printing, frame fitting. Sets ~7-10 day expectation. Includes order reference.",
+    },
+    {
+      id: "pawtrait_shipped",
+      name: "On Its Way",
+      subject: "{petName}'s portrait is on its way",
+      timing: "Triggered by Gelato shipped event",
+      description: "Inline portrait image + tracking link. Frames + foam protection mentioned so the box arrival isn't a surprise.",
+    },
+    {
+      id: "pawtrait_delivered",
+      name: "On The Wall Now?",
+      subject: "{petName}'s on the wall now?",
+      timing: "Triggered by Gelato delivered event",
+      description: "Light, curious tone. Reply-to-fix offer for any print/frame/delivery issues. UGC ask.",
+    },
+  ],
+};
+
+const pawtraitLoopSequence: EmailSequence = {
+  id: "pawtrait-loop",
+  name: "Pawtrait Reorder & Win-back",
+  icon: <RefreshCw className="w-5 h-5" />,
+  description: "Post-delivery loops: UGC, second canvas, gift code, sub-save",
+  trigger: "Triggered: scheduled at purchase, +14d / +30d / +60d / +90d",
+  color: "from-indigo-50 to-violet-50",
+  steps: [
+    {
+      id: "pawtrait_ugc_reorder",
+      name: "Show Us Where They Ended Up",
+      subject: "Show us where {petName} ended up",
+      timing: "+14 days post-purchase",
+      description: "UGC ask + gentle reorder nudge. Artwork stays on file so the next print is one click.",
+    },
+    {
+      id: "pawtrait_winback_30",
+      name: "Another Corner",
+      subject: "Another corner for {petName}?",
+      timing: "+30 days post-purchase",
+      description: "Second canvas pitch — different size, different room, gift idea. Library link.",
+    },
+    {
+      id: "pawtrait_winback_60",
+      name: "Smaller Size Pitch",
+      subject: "{petName} would suit the bedroom too",
+      timing: "+60 days post-purchase",
+      description: "Smaller canvas for bedside / desk / quieter room. Set framing (one big + one small).",
+    },
+    {
+      id: "pawtrait_winback_90",
+      name: "Gift Code",
+      subject: "A little gift, on us",
+      timing: "+90 days post-purchase",
+      description: "20% off code (PAWTRAIT20) for next canvas — for self or as a gift.",
+      discount: "PAWTRAIT20 - 20% off",
+    },
+    {
+      id: "pawtrait_sub_save",
+      name: "Sub-Save (Cancel Intent)",
+      subject: "Before you go — one thought about {petName}",
+      timing: "Triggered by cancel-intent click",
+      description: "Lets them know artwork stays in account either way. 25% retention discount (STAYWITHUS) if they decide to stay.",
+      discount: "STAYWITHUS - 25% off",
+    },
+  ],
+};
+
+const pawtraitSequences = [
+  pawtraitWelcomeSequence,
+  pawtraitAbandonedSequence,
+  pawtraitFulfilmentSequence,
+  pawtraitLoopSequence,
+];
+
 const EmailStepCard = ({ step, index, isLast }: { step: EmailStep; index: number; isLast: boolean }) => (
   <div className="relative">
     <motion.div
@@ -306,6 +448,13 @@ const AdminEmailSequences = () => {
         {/* Sequence Details */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {sequences.map((sequence) => (
+            <SequenceCard key={sequence.id} sequence={sequence} />
+          ))}
+        </div>
+
+        {/* Pawtrait Sequence Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
+          {pawtraitSequences.map((sequence) => (
             <SequenceCard key={sequence.id} sequence={sequence} />
           ))}
         </div>
