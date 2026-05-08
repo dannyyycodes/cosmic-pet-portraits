@@ -1,3 +1,13 @@
+// DEPRECATED 2026-05-08 — process-email-nurture handles abandoned_cart.
+// Will remove after 30d dual-write verification.
+//
+// Both this function and process-email-nurture currently send the
+// abandoned_cart email; the cron entries in
+// supabase/migrations/20260313100000_email_nurture_cron.sql still fire
+// this function every 6 hours alongside the 30-minute nurture run. Once
+// the nurture function has 30 days of clean dual-write logs we delete
+// this file and drop the abandoned-cart-emails cron schedule.
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
