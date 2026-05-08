@@ -630,6 +630,14 @@ interface SubjectInfo {
 // Flash if Sonnet is too expensive at scale — ~$0.003/image vs ~$0.001).
 const SUBJECT_VISION_MODEL = process.env.SUBJECT_VISION_MODEL ?? 'anthropic/claude-sonnet-4.5';
 
+// Hard ceiling on the OpenRouter Vision pre-pass. The pre-pass blocks the
+// generate request — every second the model takes is a second the customer
+// stares at a spinner. 5s is generous for a small JSON identification call;
+// anything past that we bail to the same {species:'pet'} fallback the catch
+// block returns. The bad-photo gate (isNoPetDetected) then rejects with a
+// 400 BEFORE we charge a credit, so a Vision timeout is safe-by-default.
+const VISION_TIMEOUT_MS = 5000;
+
 async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
   const fallback: SubjectInfo = { species: "pet" };
   if (!OPENROUTER_KEY) return fallback;
@@ -655,10 +663,13 @@ Rules:
 - A human in the photo with no pet → species: "none". A pet held by a human → identify the pet.
 - Output JSON only — no prose, no markdown fences, no commentary.`;
 
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), VISION_TIMEOUT_MS);
   try {
     const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENROUTER_KEY}` },
+      signal: ctrl.signal,
       body: JSON.stringify({
         model: SUBJECT_VISION_MODEL,
         messages: [
@@ -689,7 +700,14 @@ Rules:
       earShape: stringOrUndef(p.earShape),
       distinguishing: stringOrUndef(p.distinguishing),
     };
-  } catch { return fallback; }
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      console.warn('[VISION_TIMEOUT]', { imageUrl: imageUrl.slice(0, 80), timeoutMs: VISION_TIMEOUT_MS });
+    }
+    return fallback;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 interface VariantResult { url?: string; balanceExhausted?: boolean }
@@ -746,10 +764,18 @@ const GPT_IMAGE_QUALITY = (process.env.GPT_IMAGE_QUALITY ?? 'medium') as 'low' |
 const GPT_IMAGE_WIDTH = Number(process.env.GPT_IMAGE_WIDTH ?? 1024);
 const GPT_IMAGE_HEIGHT = Number(process.env.GPT_IMAGE_HEIGHT ?? 1280);
 
-async function callGptImage(model: string, body: Record<string, unknown>): Promise<{ res: Response; bodyText: string | null }> {
+// 90s ceiling on the fal.run gpt-image-2 call. fal usually returns a 1024×1280
+// image in 8–25s; a hung request past 90s means the upstream worker died and
+// our credit will burn while the customer sees a spinner forever. On abort we
+// surface a non-OK Response-like via a thrown sentinel so generateVariant
+// can map it to {} → handleGenerate refunds via the standard path.
+const FAL_TIMEOUT_MS = 90_000;
+
+async function callGptImage(model: string, body: Record<string, unknown>, signal?: AbortSignal): Promise<{ res: Response; bodyText: string | null }> {
   const r = await fetch(`https://fal.run/${model}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Key ${FAL_KEY}` },
+    signal,
     body: JSON.stringify(body),
   });
   if (r.ok) return { res: r, bodyText: null };
@@ -795,28 +821,44 @@ async function generateVariant(args: {
     output_format: 'png',
   };
 
-  // Try the primary model first. If fal returns 404 (model not found / slug
-  // wrong) OR 400 with an unknown-model signal, soft-fallback so a bad slug
-  // does not burn the customer's credit.
-  let { res: r, bodyText } = await callGptImage(GPT_IMAGE_PRIMARY_MODEL, requestBody);
+  // 90s AbortController — see FAL_TIMEOUT_MS. On timeout we return {} so
+  // handleGenerate's existing failure path refunds the credit (now wrapped in
+  // safeRefund from #8.1, so a refund-RPC failure also gets logged).
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FAL_TIMEOUT_MS);
+  try {
+    // Try the primary model first. If fal returns 404 (model not found / slug
+    // wrong) OR 400 with an unknown-model signal, soft-fallback so a bad slug
+    // does not burn the customer's credit.
+    let { res: r, bodyText } = await callGptImage(GPT_IMAGE_PRIMARY_MODEL, requestBody, ctrl.signal);
 
-  if (!r.ok) {
-    const looksLikeModelMissing = r.status === 404 ||
-      (r.status === 400 && /model|not.*found|unknown/i.test(bodyText ?? ''));
-    if (looksLikeModelMissing && GPT_IMAGE_PRIMARY_MODEL !== GPT_IMAGE_FALLBACK_MODEL) {
-      console.warn(`[generate] primary model ${GPT_IMAGE_PRIMARY_MODEL} unavailable (${r.status}), falling back to ${GPT_IMAGE_FALLBACK_MODEL}`);
-      ({ res: r, bodyText } = await callGptImage(GPT_IMAGE_FALLBACK_MODEL, requestBody));
+    if (!r.ok) {
+      const looksLikeModelMissing = r.status === 404 ||
+        (r.status === 400 && /model|not.*found|unknown/i.test(bodyText ?? ''));
+      if (looksLikeModelMissing && GPT_IMAGE_PRIMARY_MODEL !== GPT_IMAGE_FALLBACK_MODEL) {
+        console.warn(`[generate] primary model ${GPT_IMAGE_PRIMARY_MODEL} unavailable (${r.status}), falling back to ${GPT_IMAGE_FALLBACK_MODEL}`);
+        ({ res: r, bodyText } = await callGptImage(GPT_IMAGE_FALLBACK_MODEL, requestBody, ctrl.signal));
+      }
     }
-  }
 
-  if (!r.ok) {
-    // bodyText was already consumed inside callGptImage on non-OK; reuse it.
-    const text = bodyText ?? '';
-    if (isFalBalanceExhausted(text)) return { balanceExhausted: true };
+    if (!r.ok) {
+      // bodyText was already consumed inside callGptImage on non-OK; reuse it.
+      const text = bodyText ?? '';
+      if (isFalBalanceExhausted(text)) return { balanceExhausted: true };
+      return {};
+    }
+    const d = (await r.json()) as KontextResponse;
+    return { url: d.images?.[0]?.url };
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      console.warn('[FAL_TIMEOUT]', { timeoutMs: FAL_TIMEOUT_MS, model: GPT_IMAGE_PRIMARY_MODEL });
+    } else {
+      console.error('[generateVariant] threw:', (err as Error).message);
+    }
     return {};
+  } finally {
+    clearTimeout(timer);
   }
-  const d = (await r.json()) as KontextResponse;
-  return { url: d.images?.[0]?.url };
 }
 
 // Sanitise a single pet name → on-canvas typography. Letters / numbers / space
