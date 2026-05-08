@@ -107,6 +107,10 @@ const PROMPT_CHIPS = [
   { label: "Cosmic chart", prompt: PROMPT_EXAMPLES[4] },
 ];
 
+function canvasPetName(pet: Pet): string {
+  return pet.noName ? "" : pet.name.trim().slice(0, 40);
+}
+
 // Typewriter placeholder — types one example, holds, deletes, types next.
 function useTypewriterPlaceholder(examples: string[], paused: boolean): string {
   const [text, setText] = useState("");
@@ -498,6 +502,9 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       const first = updated[0];
       if (first?.photoUrl) savePetPhoto(first.photoUrl);
       else if (first && !first.photoUrl) clearPetPhoto();
+      if (first?.noName && typeof window !== "undefined") {
+        try { window.sessionStorage.removeItem("portraits.lastPet"); } catch {}
+      }
       return updated;
     });
     setPetErrors((prev) => {
@@ -598,7 +605,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         },
         body: JSON.stringify({
           imageUrls: orderedPets.map((p) => p.photoUrl as string),
-          petNames: orderedPets.map((p) => p.name.trim().slice(0, 40)),
+          petNames: orderedPets.map(canvasPetName),
           customPrompt: prompt.trim(),
         }),
         signal: ctrl.signal,
@@ -683,7 +690,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     }
 
     // Persist the first pet's name for the Soul Reading upsell pre-fill.
-    const trimmedNames = pets.map((p) => p.name.trim().slice(0, 40));
+    const trimmedNames = pets.map(canvasPetName);
     const firstName = trimmedNames[0];
     if (firstName && typeof window !== "undefined") {
       try { window.sessionStorage.setItem("portraits.lastPet", firstName); } catch {}
@@ -697,7 +704,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     let printMasterUrl: string | null = null;
     try {
       const orderedPhotos = uploadedPets.map((p) => p.photoUrl as string);
-      const orderedNames = uploadedPets.map((p) => p.name.trim().slice(0, 40));
+      const orderedNames = uploadedPets.map(canvasPetName);
       // 30s timeout is generous — print-grade gens average 10-20s.
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 30000);
@@ -944,7 +951,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             single-pet preview, just rendered per pet. Uses the first
             generated variant as the chip background once available. */}
         <AnimatePresence initial={false}>
-          {pets.some((p) => p.name.trim().length > 0) && (
+          {pets.some((p) => canvasPetName(p).length > 0) && (
             <motion.div
               key="petname-previews"
               initial={{ opacity: 0, y: 8 }}
@@ -955,7 +962,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               aria-live="polite"
             >
               {pets
-                .filter((p) => p.name.trim().length > 0)
+                .filter((p) => canvasPetName(p).length > 0)
                 .map((p) => (
                   <div key={p.id} className="flex items-center gap-2.5">
                     <div
@@ -1021,7 +1028,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                         }}
                       >
                         <span style={{ color: PALETTE.goldSoft, marginRight: 3 }}>·</span>
-                        {p.name.trim()}
+                        {canvasPetName(p)}
                         <span style={{ color: PALETTE.goldSoft, marginLeft: 3 }}>·</span>
                       </div>
                     </div>
