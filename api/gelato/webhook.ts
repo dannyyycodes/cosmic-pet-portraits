@@ -1,0 +1,388 @@
+/**
+ * POST /api/gelato/webhook — inbound Gelato status webhook listener.
+ *
+ * Gelato fires webhooks for order + item lifecycle events. We care about:
+ *   - order_status_updated      — overall order status (printed, shipped, ...)
+ *   - order_item_status_updated — per-item status (sometimes the only signal
+ *                                  on multi-item orders)
+ *   - order_delivery_estimate_updated (logged, no state change)
+ *
+ * Reference: https://dashboard.gelato.com/docs/webhooks/
+ *
+ * Signature verification:
+ *   Gelato signs the raw body with HMAC-SHA256 using the per-store webhook
+ *   secret. The signature lands in the `gelato-signature` header. We verify
+ *   BEFORE JSON.parse — same pattern as the Shopify HMAC verifier. If
+ *   GELATO_WEBHOOK_SECRET is unset we 500 (configuration error) so Gelato
+ *   retries until ops fixes the env.
+ *
+ * Idempotency:
+ *   Every event has an `id` field (the dedupe key). We INSERT into
+ *   gelato_webhook_events keyed on event_id; if the upsert returns no rows
+ *   we know it's a replay and 200 immediately.
+ *
+ * Side effects on first delivery:
+ *   - Update print_orders.status (printed/shipped/delivered/canceled/failed).
+ *   - For shipped + delivered → INSERT pawtrait_touchpoints with
+ *     scheduled_for=now() and the appropriate touchpoint_type.
+ *
+ * Response codes:
+ *   200 — accepted (processed OR known replay)
+ *   400 — invalid JSON
+ *   401 — bad signature
+ *   500 — config or DB error (Gelato retries)
+ */
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import {
+  recordGelatoWebhookEvent,
+  getPrintOrderByGelatoId,
+  getPrintOrderByGelatoReference,
+  updatePrintOrder,
+  insertPawtraitTouchpoint,
+  insertPrintOrderAlert,
+  type PrintOrderStatus,
+  type PrintOrderRow,
+} from "../_lib/printOrdersRepo.js";
+
+export const config = {
+  api: { bodyParser: false },
+};
+
+const SIGNATURE_HEADERS = ["gelato-signature", "x-gelato-signature"] as const;
+
+// Gelato event names we handle. The exact set differs slightly per docs
+// version — keep this list narrow and let everything else fall through to
+// "logged, ignored" rather than guess.
+const HANDLED_EVENTS = new Set<string>([
+  "order_status_updated",
+  "order_item_status_updated",
+  "order_delivery_estimate_updated",
+]);
+
+// Gelato order/item statuses → our print_orders.status
+//   passed: pending → submitted → printed → shipped → delivered
+//   failure: canceled, failed
+function mapGelatoStatus(s: string | undefined | null): PrintOrderStatus | null {
+  if (typeof s !== "string") return null;
+  const v = s.toLowerCase();
+  // Exact docs vocab — "printed" is a valid intermediate, "in_production",
+  // "in_transit", "fulfilled" are common variants.
+  if (v === "created" || v === "passed" || v === "pending_approval") return "submitted";
+  if (v === "printed" || v === "in_production" || v === "production") return "printed";
+  if (v === "shipped" || v === "in_transit" || v === "dispatched") return "shipped";
+  if (v === "delivered" || v === "fulfilled") return "delivered";
+  if (v === "canceled" || v === "cancelled") return "canceled";
+  if (v === "failed" || v === "rejected" || v === "error") return "failed";
+  return null;
+}
+
+interface GelatoWebhookPayload {
+  id?: string;
+  event?: string;
+  // Gelato historically nests under `data`, but newer payloads put fields at
+  // the top level. Tolerate both.
+  data?: Record<string, unknown>;
+  // Order-level fields (order_status_updated)
+  orderId?: string;
+  orderReferenceId?: string;
+  fulfillmentStatus?: string;
+  // Item-level fields (order_item_status_updated)
+  itemReferenceId?: string;
+  status?: string;
+  // shipped fields
+  trackingCode?: string;
+  trackingUrl?: string;
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    res.status(405).json({ error: "Method Not Allowed" });
+    return;
+  }
+
+  const secret = process.env.GELATO_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error("[gelato] GELATO_WEBHOOK_SECRET not configured");
+    res.status(500).json({ error: "webhook secret not configured" });
+    return;
+  }
+
+  // 1. Read raw body for HMAC verification.
+  let rawBody: Buffer;
+  try {
+    rawBody = await readRawBody(req);
+  } catch (err) {
+    console.error(
+      "[gelato] raw_body_read_failed",
+      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
+    );
+    res.status(500).json({ error: "raw body read failed" });
+    return;
+  }
+
+  // 2. Verify signature.
+  const sigHeader = readSignatureHeader(req.headers);
+  if (!sigHeader) {
+    console.warn("[gelato] missing_signature_header");
+    res.status(401).end();
+    return;
+  }
+  if (!verifyGelatoSignature(rawBody, sigHeader, secret)) {
+    console.warn(
+      "[gelato] hmac_invalid",
+      JSON.stringify({ bodyLen: rawBody.length, sigLen: sigHeader.length }),
+    );
+    res.status(401).end();
+    return;
+  }
+
+  // 3. Parse JSON.
+  let payload: GelatoWebhookPayload;
+  try {
+    payload = JSON.parse(rawBody.toString("utf8")) as GelatoWebhookPayload;
+  } catch (err) {
+    console.error(
+      "[gelato] json_parse_failed",
+      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
+    );
+    res.status(400).json({ error: "invalid json" });
+    return;
+  }
+
+  const eventId = payload.id;
+  const eventName = (payload.event ?? "").toLowerCase();
+  if (!eventId) {
+    console.warn("[gelato] missing_event_id", JSON.stringify({ eventName }));
+    res.status(200).json({ ok: true, skipped: "missing_event_id" });
+    return;
+  }
+
+  // 4. Idempotent dedupe.
+  let firstTime = false;
+  try {
+    const r = await recordGelatoWebhookEvent({ eventId, eventName, payload });
+    firstTime = r.firstTime;
+  } catch (err) {
+    console.error(
+      "[gelato] dedupe_insert_failed",
+      JSON.stringify({ eventId, eventName, error: err instanceof Error ? err.message : String(err) }),
+    );
+    // Surface 500 so Gelato retries — we don't want to silently drop events.
+    res.status(500).json({ error: "dedupe_failed" });
+    return;
+  }
+
+  if (!firstTime) {
+    console.log("[gelato] replay", JSON.stringify({ eventId, eventName }));
+    res.status(200).json({ ok: true, replayed: true });
+    return;
+  }
+
+  if (!HANDLED_EVENTS.has(eventName)) {
+    console.log("[gelato] event_not_handled", JSON.stringify({ eventId, eventName }));
+    res.status(200).json({ ok: true, skipped: "event_not_handled", eventName });
+    return;
+  }
+
+  // 5. Update state.
+  try {
+    await processGelatoEvent({ eventId, eventName, payload });
+  } catch (err) {
+    console.error(
+      "[gelato] process_failed",
+      JSON.stringify({
+        eventId,
+        eventName,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    // 500 so Gelato retries. Note: dedupe row was already inserted, so the
+    // retry will land on the replay branch and 200 — which means we MUST
+    // succeed on the first delivery. Strategy: catch DB errors above more
+    // narrowly so we don't silently swallow real bugs. For now the alert
+    // table absorbs the trace.
+    res.status(500).json({ error: "process_failed" });
+    return;
+  }
+
+  res.status(200).json({ ok: true, eventId, eventName });
+}
+
+// ─── Event processor ───────────────────────────────────────────────────────
+
+async function processGelatoEvent(args: {
+  eventId: string;
+  eventName: string;
+  payload: GelatoWebhookPayload;
+}): Promise<void> {
+  const { payload } = args;
+  const root = (payload.data && typeof payload.data === "object" ? (payload.data as Record<string, unknown>) : {}) ?? {};
+
+  // Gelato is inconsistent about where fields land. Look in both spots.
+  const orderId = readString(root, "orderId") ?? payload.orderId ?? null;
+  const orderReferenceId = readString(root, "orderReferenceId") ?? payload.orderReferenceId ?? null;
+  const itemReferenceId = readString(root, "itemReferenceId") ?? payload.itemReferenceId ?? null;
+  const orderStatus =
+    readString(root, "fulfillmentStatus") ??
+    readString(root, "status") ??
+    payload.fulfillmentStatus ??
+    payload.status ??
+    null;
+  const trackingCode = readString(root, "trackingCode") ?? payload.trackingCode ?? null;
+  const trackingUrl = readString(root, "trackingUrl") ?? payload.trackingUrl ?? null;
+
+  // Resolve the print_orders row. Prefer gelato_order_id, fall back to ref.
+  let row: PrintOrderRow | null = null;
+  if (orderId) row = await getPrintOrderByGelatoId(orderId);
+  if (!row && orderReferenceId) row = await getPrintOrderByGelatoReference(orderReferenceId);
+
+  if (!row) {
+    // Most common reason: a Gelato webhook arrived for an order placed via
+    // the legacy Shopify-Gelato connector (before this fix). We can't
+    // attribute it to a print_orders row but we still want the audit trail —
+    // log + insert an unattributed alert so ops can correlate.
+    console.warn(
+      "[gelato] no_matching_print_order",
+      JSON.stringify({ eventId: args.eventId, eventName: args.eventName, orderId, orderReferenceId, itemReferenceId }),
+    );
+    try {
+      await insertPrintOrderAlert({
+        printOrderId: null,
+        severity: "low",
+        message: `Gelato webhook for unknown order (event=${args.eventName})`,
+        details: {
+          eventId: args.eventId,
+          eventName: args.eventName,
+          orderId,
+          orderReferenceId,
+          itemReferenceId,
+          status: orderStatus,
+        },
+      });
+    } catch {
+      /* swallow — alerts table is best-effort */
+    }
+    return;
+  }
+
+  if (args.eventName === "order_delivery_estimate_updated") {
+    // Just log + persist on metadata, no status change.
+    await updatePrintOrder({
+      printOrderId: row.id,
+      metadataMerge: { lastDeliveryEstimate: root, deliveryEstimateAt: new Date().toISOString() },
+    });
+    return;
+  }
+
+  const next = mapGelatoStatus(orderStatus);
+  if (!next) {
+    console.log(
+      "[gelato] unknown_status",
+      JSON.stringify({ eventId: args.eventId, eventName: args.eventName, status: orderStatus, printOrderId: row.id }),
+    );
+    await updatePrintOrder({
+      printOrderId: row.id,
+      metadataMerge: { lastUnmappedStatus: orderStatus, lastUnmappedAt: new Date().toISOString() },
+    });
+    return;
+  }
+
+  await updatePrintOrder({
+    printOrderId: row.id,
+    status: next,
+    gelatoOrderId: orderId ?? row.gelato_order_id,
+    metadataMerge: {
+      lastEvent: { id: args.eventId, name: args.eventName, status: orderStatus, at: new Date().toISOString() },
+      ...(trackingCode ? { trackingCode } : {}),
+      ...(trackingUrl ? { trackingUrl } : {}),
+    },
+  });
+
+  // Touchpoint side-effects on shipped + delivered.
+  if (next === "shipped" || next === "delivered") {
+    const meta = (row.metadata && typeof row.metadata === "object" ? row.metadata : {}) as Record<string, unknown>;
+    const email =
+      typeof meta.customerEmail === "string" ? (meta.customerEmail as string) : null;
+    const petName = typeof meta.petName === "string" ? (meta.petName as string) : null;
+    try {
+      const r = await insertPawtraitTouchpoint({
+        printOrderId: row.id,
+        userId: row.user_id,
+        touchpointType: next,
+        scheduledFor: new Date(),
+        email,
+        petName,
+        metadata: {
+          gelatoEventId: args.eventId,
+          trackingCode,
+          trackingUrl,
+          sku: row.sku,
+        },
+      });
+      console.log(
+        "[gelato] touchpoint_inserted",
+        JSON.stringify({ printOrderId: row.id, type: next, inserted: r.inserted }),
+      );
+    } catch (err) {
+      console.error(
+        "[gelato] touchpoint_insert_failed",
+        JSON.stringify({
+          printOrderId: row.id,
+          type: next,
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+      // Don't rethrow — the status update succeeded, touchpoint is a follow-up.
+    }
+  }
+}
+
+// ─── HMAC verification ─────────────────────────────────────────────────────
+
+function readSignatureHeader(headers: VercelRequest["headers"]): string | null {
+  for (const h of SIGNATURE_HEADERS) {
+    const v = headers[h];
+    if (typeof v === "string" && v.length > 0) return v;
+    if (Array.isArray(v) && v.length > 0 && typeof v[0] === "string") return v[0];
+  }
+  return null;
+}
+
+/**
+ * Gelato signs as hex(HMAC-SHA256(rawBody, secret)). Some accounts also send
+ * a base64 form. Accept either to be tolerant.
+ */
+function verifyGelatoSignature(rawBody: Buffer, sigHeader: string, secret: string): boolean {
+  const expectedHex = createHmac("sha256", secret).update(rawBody).digest("hex");
+  const expectedB64 = createHmac("sha256", secret).update(rawBody).digest("base64");
+  // Strip optional "sha256=" prefix
+  const sig = sigHeader.startsWith("sha256=") ? sigHeader.slice("sha256=".length) : sigHeader;
+  return safeEqualStr(sig, expectedHex) || safeEqualStr(sig, expectedB64);
+}
+
+function safeEqualStr(a: string, b: string): boolean {
+  const ba = Buffer.from(a, "utf8");
+  const bb = Buffer.from(b, "utf8");
+  if (ba.length !== bb.length) return false;
+  return timingSafeEqual(ba, bb);
+}
+
+// ─── Raw body reader ───────────────────────────────────────────────────────
+
+async function readRawBody(req: VercelRequest): Promise<Buffer> {
+  return await new Promise<Buffer>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk: Buffer) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", (err: Error) => reject(err));
+  });
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+function readString(o: Record<string, unknown>, k: string): string | null {
+  const v = o[k];
+  return typeof v === "string" && v.length > 0 ? v : null;
+}

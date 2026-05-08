@@ -99,6 +99,14 @@ const PROMPT_EXAMPLES = [
   "a galaxy smuggler in a worn leather flight jacket",
 ];
 
+const PROMPT_CHIPS = [
+  { label: "Renaissance king", prompt: PROMPT_EXAMPLES[0] },
+  { label: "Astronaut", prompt: PROMPT_EXAMPLES[1] },
+  { label: "Wizard library", prompt: PROMPT_EXAMPLES[2] },
+  { label: "1920s boss", prompt: PROMPT_EXAMPLES[3] },
+  { label: "Cosmic chart", prompt: PROMPT_EXAMPLES[4] },
+];
+
 // Typewriter placeholder — types one example, holds, deletes, types next.
 function useTypewriterPlaceholder(examples: string[], paused: boolean): string {
   const [text, setText] = useState("");
@@ -773,17 +781,17 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
       className="relative px-4 md:px-8 overflow-hidden"
       style={{
         background: `radial-gradient(ellipse 90% 50% at top, ${PALETTE.cream} 0%, ${PALETTE.cream2} 50%, ${PALETTE.paper} 100%)`,
-        paddingTop: "clamp(56px, 7vh, 96px)",
-        paddingBottom: "clamp(72px, 9vh, 120px)",
+        paddingTop: "clamp(36px, 5vh, 64px)",
+        paddingBottom: "clamp(48px, 6vh, 84px)",
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
     >
       <StudioBackdrop active={generating} />
 
-      <div className="mx-auto relative" style={{ maxWidth: 720, zIndex: 1 }}>
+      <div className="mx-auto relative" style={{ maxWidth: 880, zIndex: 1 }}>
 
         {/* ── Studio anchor heading ─────────────────────────────────── */}
-        <div className="text-center mb-9 md:mb-12">
+        <div className="text-center mb-5 md:mb-7">
           {/* Gilt rule above eyebrow — cinematic anchor */}
           <span
             aria-hidden
@@ -791,7 +799,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               display: "block",
               width: 44,
               height: 1,
-              margin: "0 auto 16px",
+              margin: "0 auto 10px",
               background: `linear-gradient(90deg, transparent 0%, ${PALETTE.gold} 50%, transparent 100%)`,
               opacity: 0.7,
             }}
@@ -811,7 +819,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             style={{
               ...display("clamp(30px, 4.6vw, 52px)"),
               color: PALETTE.ink,
-              marginTop: 14,
+              marginTop: 10,
               maxWidth: 620,
               marginLeft: "auto",
               marginRight: "auto",
@@ -828,18 +836,18 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             className="mx-auto mt-4"
             style={{
               fontFamily: 'Assistant, system-ui, sans-serif',
-              fontSize: 15,
+              fontSize: 13,
               color: PALETTE.earthMuted,
-              maxWidth: 540,
-              lineHeight: 1.55,
+              maxWidth: 440,
+              lineHeight: 1.45,
             }}
           >
-            Upload one photo. Describe the world. Pick the version that feels like them — then choose your size and frame.
+            Photo, prompt, generate, frame.
           </p>
         </div>
 
         {/* ── Credits / status pill ─────────────────────────────────── */}
-        <div className="flex justify-center mb-7">
+        <div className="flex justify-center mb-4">
           {user ? (
             <Link
               to="/pawtraits#topup"
@@ -914,20 +922,20 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                 ? `Up to ${MAX_PETS} pets per portrait — beyond that, recognition drops.`
                 : "Add another pet to this portrait"
             }
-            className="w-full rounded-2xl py-3.5 transition-all disabled:opacity-50 active:scale-[0.99] inline-flex items-center justify-center gap-2"
+            className="w-fit ml-auto rounded-full px-3.5 py-2 transition-all disabled:opacity-50 active:scale-[0.99] flex items-center justify-center gap-2"
             style={{
               background: "transparent",
-              border: `1.5px dashed ${PALETTE.sandDeep}`,
+              border: `1px solid ${PALETTE.sandDeep}`,
               color: PALETTE.earth,
               fontFamily: "Asap, system-ui, sans-serif",
-              fontSize: 14,
+              fontSize: 12.5,
               fontWeight: 600,
             }}
           >
             <Plus className="w-[16px] h-[16px]" strokeWidth={2.4} />
             {pets.length >= MAX_PETS
-              ? `${MAX_PETS}-pet maximum reached`
-              : `Add another pet (${pets.length}/${MAX_PETS})`}
+              ? `${MAX_PETS}-pet max`
+              : `Add pet (${pets.length}/${MAX_PETS})`}
           </button>
         </motion.div>
 
@@ -1047,7 +1055,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={sectionTransition}
-              className="mt-7"
+              className="mt-5"
             >
             <div style={{ position: "relative" }}>
               {/* Breathing gilt halo — only renders when focused or actively typing */}
@@ -1061,7 +1069,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     ? `linear-gradient(180deg, #ffffff 0%, ${PALETTE.cream} 100%)`
                     : `linear-gradient(180deg, #ffffff 0%, ${PALETTE.cream2} 100%)`,
                   border: `1.5px solid ${focused ? PALETTE.rose : PALETTE.sandDeep}`,
-                  borderRadius: 20,
+                  borderRadius: 18,
                   boxShadow: focused
                     ? "0 0 0 4px rgba(191, 82, 74, 0.08), 0 24px 48px rgba(20, 18, 16, 0.10), 0 4px 12px rgba(20, 18, 16, 0.04)"
                     : "0 18px 38px rgba(20, 18, 16, 0.06), 0 2px 6px rgba(20, 18, 16, 0.03)",
@@ -1075,18 +1083,18 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                   onFocus={() => setFocused(true)}
                   onBlur={() => setFocused(false)}
                   placeholder={placeholder + (prompt.length === 0 && !focused ? "▎" : "")}
-                  rows={3}
-                  className="w-full resize-none bg-transparent outline-none px-6 pt-6 pb-2"
+                  rows={2}
+                  className="w-full resize-none bg-transparent outline-none px-5 pt-5 pb-1.5"
                   style={{
                     fontFamily: 'Assistant, system-ui, sans-serif',
-                    fontSize: 17,
+                    fontSize: 16,
                     color: PALETTE.ink,
                     lineHeight: 1.55,
                     letterSpacing: "-0.005em",
                   }}
                 />
 
-                <div className="flex items-center justify-between px-3.5 pb-3.5 pt-1">
+                <div className="flex items-center justify-between px-3 pb-3 pt-1">
                   <button
                     type="button"
                     onClick={() => setHelpOpen((v) => !v)}
@@ -1174,19 +1182,19 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                     className="overflow-hidden mt-2.5"
                   >
                     <div
-                      className="rounded-2xl p-5"
+                      className="rounded-2xl p-3"
                       style={{
                         background: PALETTE.cream,
                         border: `1px solid ${PALETTE.sand}`,
                       }}
                     >
-                      <div className="flex items-start justify-between gap-4 mb-3">
+                      <div className="flex items-start justify-between gap-3 mb-2">
                         <div>
                           <p style={{ fontFamily: 'Asap, system-ui, sans-serif', fontSize: 14, fontWeight: 600, color: PALETTE.ink }}>
-                            How to write a good prompt
+                            Prompt ideas
                           </p>
-                          <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 13, color: PALETTE.earthMuted, marginTop: 4, lineHeight: 1.5 }}>
-                            Describe how you want your pet shown. Costume, scene, mood — keep it simple, like talking to a friend.
+                          <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 12, color: PALETTE.earthMuted, marginTop: 2, lineHeight: 1.35 }}>
+                            Pick a starting point, then make it yours.
                           </p>
                         </div>
                         <button onClick={() => setHelpOpen(false)} className="-mr-1 -mt-1 p-1 rounded-md hover:bg-black/5" aria-label="Close">
@@ -1196,22 +1204,22 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                       <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 11, color: PALETTE.earthMuted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>
                         Tap any to use:
                       </p>
-                      <div className="flex flex-col gap-1.5">
-                        {PROMPT_EXAMPLES.slice(0, 5).map((ex) => (
+                      <div className="flex flex-wrap gap-1.5">
+                        {PROMPT_CHIPS.map((chip) => (
                           <button
-                            key={ex}
+                            key={chip.label}
                             type="button"
-                            onClick={() => { setPrompt(ex); setHelpOpen(false); }}
-                            className="text-left rounded-lg px-3.5 py-2.5 transition-colors hover:bg-black/[0.03]"
+                            onClick={() => { setPrompt(chip.prompt); setHelpOpen(false); }}
+                            className="text-left rounded-full px-3 py-1.5 transition-colors hover:bg-black/[0.03]"
                             style={{
                               background: PALETTE.cream2,
                               border: `1px solid ${PALETTE.sand}`,
                               color: PALETTE.ink,
                               fontFamily: 'Assistant, system-ui, sans-serif',
-                              fontSize: 13.5,
+                              fontSize: 12.5,
                             }}
                           >
-                            {ex}
+                            {chip.label}
                           </button>
                         ))}
                       </div>
@@ -1237,7 +1245,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={sectionTransition}
-              className="mt-10"
+              className="mt-6"
             >
               <ApprovalGate
                 previewUrl={selectedVariantUrl}
@@ -1272,7 +1280,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             >
               {/* Variant gallery + size + cart wrapped in a premium card */}
               <div
-                className="rounded-2xl p-5 md:p-7"
+                className="rounded-2xl p-4 md:p-5"
                 style={{
                   background: PALETTE.cream,
                   border: `1px solid ${PALETTE.sand}`,
@@ -1283,28 +1291,29 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                   variants={variants}
                   selectedUrl={selectedVariantUrl}
                   onSelect={setSelectedVariantUrl}
+                  compact
                 />
 
                 <div
-                  className="my-6"
+                  className="my-4"
                   style={{ height: 1, background: PALETTE.sand }}
                 />
 
                 <p
-                  className="text-center mb-4"
+                  className="text-center mb-3"
                   style={{
                     fontFamily: 'Asap, system-ui, sans-serif',
                     fontSize: 11,
                     fontWeight: 700,
                     color: PALETTE.earthMuted,
-                    letterSpacing: "0.18em",
+                    letterSpacing: "0.14em",
                     textTransform: "uppercase",
                   }}
                 >
                   Choose your canvas size
                 </p>
 
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
                   {CANVAS_SIZES.map((s) => {
                     const active = sizeKey === s.uid;
                     const isHero = !!s.hero;
@@ -1313,7 +1322,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                         key={s.uid}
                         onClick={() => setSizeKey(s.uid)}
                         aria-pressed={active}
-                        className="rounded-xl p-3 text-center transition-all relative"
+                        className="rounded-xl px-2 py-2.5 text-center transition-all relative"
                         style={{
                           background: active ? PALETTE.rose : PALETTE.cream,
                           color: active ? PALETTE.cream : PALETTE.ink,
@@ -1362,11 +1371,11 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                             Most loved
                           </span>
                         )}
-                        <div style={{ fontSize: 13.5, fontWeight: 600 }}>{s.label}</div>
+                        <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
                         <div
                           className="tabular-nums mt-0.5"
                           style={{
-                            fontSize: 12,
+                            fontSize: 11.5,
                             color: active ? "rgba(255,253,245,0.85)" : PALETTE.earthMuted,
                           }}
                         >
@@ -1379,19 +1388,19 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
 
                 {/* Frame color picker */}
                 <p
-                  className="text-center mt-6 mb-3"
+                  className="text-center mt-4 mb-2.5"
                   style={{
                     fontFamily: 'Asap, system-ui, sans-serif',
                     fontSize: 11,
                     fontWeight: 700,
                     color: PALETTE.earthMuted,
-                    letterSpacing: "0.18em",
+                    letterSpacing: "0.14em",
                     textTransform: "uppercase",
                   }}
                 >
                   Choose frame colour
                 </p>
-                <div className="flex justify-center gap-5">
+                <div className="flex justify-center gap-3">
                   {FRAME_COLORS.map((c) => {
                     const active = frameColor === c.uid;
                     return (
@@ -1407,9 +1416,9 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                         <span
                           className="rounded-full flex items-center justify-center transition-all"
                           style={{
-                            width: 60,
-                            height: 60,
-                            padding: 4,
+                            width: 46,
+                            height: 46,
+                            padding: 3,
                             background: active ? PALETTE.roseSoft : "transparent",
                             border: active ? `2px solid ${PALETTE.rose}` : "2px solid transparent",
                             boxShadow: active ? "0 6px 14px rgba(191, 82, 74, 0.18)" : "none",
@@ -1418,22 +1427,22 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                           <span
                             className={`rounded-full flex items-center justify-center ${active ? "ls-glint" : ""}`}
                             style={{
-                              width: 44,
-                              height: 44,
+                              width: 34,
+                              height: 34,
                               background: c.swatchHex,
                               border: `1.5px solid ${PALETTE.sandDeep}`,
                               boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.4)",
                             }}
                           >
                             {active && (
-                              <Check className="w-5 h-5" strokeWidth={3} style={{ color: PALETTE.cream, position: "relative", zIndex: 1 }} />
+                              <Check className="w-4 h-4" strokeWidth={3} style={{ color: PALETTE.cream, position: "relative", zIndex: 1 }} />
                             )}
                           </span>
                         </span>
                         <span
                           style={{
                             fontFamily: 'Assistant, system-ui, sans-serif',
-                            fontSize: 12,
+                            fontSize: 11.5,
                             fontWeight: active ? 700 : 500,
                             color: active ? PALETTE.rose : PALETTE.earth,
                             letterSpacing: "0.02em",
@@ -1449,7 +1458,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
                 <button
                   onClick={handleAdd}
                   disabled={!canAdd}
-                  className="mt-6 w-full rounded-xl py-4 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
+                  className="mt-4 w-full rounded-xl py-3.5 transition-all disabled:opacity-40 inline-flex items-center justify-center gap-2"
                   style={{
                     background: PALETTE.ink,
                     color: PALETTE.cream,

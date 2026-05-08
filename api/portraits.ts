@@ -795,6 +795,9 @@ async function generateVariant(args: {
   prompt: string;
   negative?: string;
   imageSize?: { width: number; height: number };
+  /** Per-call quality override. Customer previews still use the env-configured
+   *  default ('medium'); printMaster forces 'high' regardless of env. */
+  quality?: 'low' | 'medium' | 'high';
 }): Promise<VariantResult> {
   // Negatives fold into the prompt — gpt-image has no separate negative slot.
   const fullPrompt = args.negative
@@ -811,12 +814,13 @@ async function generateVariant(args: {
   }
 
   const size = args.imageSize ?? { width: GPT_IMAGE_WIDTH, height: GPT_IMAGE_HEIGHT };
+  const quality = args.quality ?? GPT_IMAGE_QUALITY;
 
   const requestBody = {
     prompt: fullPrompt,
     image_urls: photos,
     image_size: size,
-    quality: GPT_IMAGE_QUALITY,
+    quality,
     num_images: 1,
     output_format: 'png',
   };
@@ -1905,6 +1909,45 @@ const SKU_TO_ASPECT: Record<string, AspectKey> = {
   '24x24': '1:1',
 };
 
+// ─── Large-format SKU gate ─────────────────────────────────────────────────
+// gpt-image-2 caps at 2048 on the long edge, which means a 24×36" SKU at
+// 2048×3072 prints at ~85 DPI vs Gelato's 150 floor. Until we have a
+// production-verified upscaling path that holds identity at 4× on real
+// AuraSR outputs (currently 4× upscale x 2048 = 8192 — borderline for 24×36
+// but unverified at 24×32 / 24×36 visual quality), we block large SKUs
+// behind a feature flag.
+//
+// To unblock:
+//   1. Run scripts/test-print-pipeline.ts against 5+ orders at each blocked
+//      size, eyeball + blur-detect on the upscaled output.
+//   2. Once visually approved, set LARGE_FORMAT_ENABLED=true in Vercel.
+//   3. Roll out to one SKU at a time by tightening LARGE_FORMAT_LONG_EDGE
+//      (override env) rather than removing this gate entirely.
+const LARGE_FORMAT_ENABLED = (process.env.LARGE_FORMAT_ENABLED ?? 'false').toLowerCase() === 'true';
+// Long edge in inches above which we block. Override via env if you want to
+// unblock 24x24 (long edge 24) but keep 24x32/24x36 blocked.
+const LARGE_FORMAT_LONG_EDGE_IN = Number(process.env.LARGE_FORMAT_LONG_EDGE_IN ?? 16);
+
+interface SkuSizeInfo {
+  sizeKey: string;
+  /** Long edge in inches. */
+  longEdgeIn: number;
+  blocked: boolean;
+}
+
+function sizeForSku(sku: string): SkuSizeInfo | null {
+  // sku is the raw size key e.g. '16x20', '24x36'. Parse W and H, derive long
+  // edge. Returns null on unknown SKU so callers can 400 cleanly.
+  const m = /^(\d+)x(\d+)$/.exec(sku);
+  if (!m) return null;
+  const w = Number(m[1]);
+  const h = Number(m[2]);
+  if (!Number.isFinite(w) || !Number.isFinite(h)) return null;
+  const longEdgeIn = Math.max(w, h);
+  const blocked = !LARGE_FORMAT_ENABLED && longEdgeIn > LARGE_FORMAT_LONG_EDGE_IN;
+  return { sizeKey: sku, longEdgeIn, blocked };
+}
+
 // ─── handleTestAspects — admin smoke test for all 5 canvas aspects ──────────
 // Body: { imageUrl, prompt, petName?, mode? = 'preview' | 'print' }
 // Header: x-admin-test-secret = ADMIN_TEST_SECRET (set on Vercel)
@@ -2060,6 +2103,20 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "aspect_lookup_failed", aspectKey });
   }
 
+  // ── Large-format gate (LARGE_FORMAT_ENABLED feature flag) ───────────────
+  // 24×36" at 2048×3072 = 85 DPI — well below Gelato's 150 floor. Block
+  // until upscaling has been verified against real production samples. See
+  // sizeForSku comment block for the unblock checklist.
+  const sizeInfo = sizeForSku(sizeKey);
+  if (sizeInfo?.blocked) {
+    return res.status(503).json({
+      error: "size_temporarily_unavailable",
+      message: "This size is temporarily unavailable",
+      sizeKey,
+      longEdgeIn: sizeInfo.longEdgeIn,
+    });
+  }
+
   const photos: string[] = Array.isArray(body.imageUrls)
     ? body.imageUrls.filter((u): u is string => typeof u === 'string' && u.length > 0)
     : [];
@@ -2154,11 +2211,15 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
     : `${baseNegative}, text overlay${photos.length > 1 ? ', merged pets, blended pets, hybrid pet, fused features' : ''}`;
 
   try {
+    // PrintMaster forces quality:'high' regardless of GPT_IMAGE_QUALITY env.
+    // The env default ('medium') is right for customer previews — this is the
+    // paid-for canvas, customer expects framed-wall-art polish.
     const result = await generateVariant({
       imageUrls: photos,
       prompt: fullPrompt,
       negative,
       imageSize: aspect.print,
+      quality: 'high',
     });
 
     if (result.balanceExhausted) {
@@ -2170,9 +2231,8 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
 
     // Cost estimate — gpt-image-2 high quality at 2048×N is roughly $0.10–
     // $0.20 per image depending on aspect (per fal pricing 2026-05-07).
-    // This is a rough number for the order log, not the actual fal bill.
-    const QUALITY_COST: Record<'low' | 'medium' | 'high', number> = { low: 0.04, medium: 0.08, high: 0.16 };
-    const costEstimate = QUALITY_COST[GPT_IMAGE_QUALITY] ?? 0.10;
+    // PrintMaster always uses high; cost is fixed.
+    const costEstimate = 0.16;
 
     return res.status(200).json({
       printMasterUrl: result.url,

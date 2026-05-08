@@ -59,7 +59,7 @@ export function PetUploadCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.32, ease: EASE.out }}
-      className="rounded-2xl p-4 sm:p-5 relative"
+      className="rounded-2xl p-3 sm:p-3.5 relative"
       style={{
         background: hasError ? "#fff5f4" : PALETTE.cream,
         // Rose border when API flagged "no pet detected" on this slot.
@@ -67,20 +67,20 @@ export function PetUploadCard({
           ? `1.5px solid ${PALETTE.rose}`
           : `1px solid ${PALETTE.sandDeep}`,
         boxShadow: hasError
-          ? `0 0 0 4px rgba(191, 82, 74, 0.08), 0 12px 28px rgba(20, 18, 16, 0.05)`
-          : "0 8px 22px rgba(20, 18, 16, 0.04), 0 1px 3px rgba(20, 18, 16, 0.02)",
+          ? `0 0 0 3px rgba(191, 82, 74, 0.08), 0 10px 24px rgba(20, 18, 16, 0.05)`
+          : "0 6px 18px rgba(20, 18, 16, 0.035), 0 1px 3px rgba(20, 18, 16, 0.02)",
         transition: "box-shadow 220ms, border-color 220ms, background 220ms",
       }}
     >
       {/* Header row — pet number chip + delete affordance */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2.5">
         <span
           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
           style={{
             background: PALETTE.cream2,
             border: `1px solid ${PALETTE.sand}`,
             fontFamily: "Asap, system-ui, sans-serif",
-            fontSize: 11,
+            fontSize: 10.5,
             fontWeight: 700,
             color: PALETTE.earth,
             letterSpacing: "0.12em",
@@ -98,8 +98,8 @@ export function PetUploadCard({
             aria-label={`Remove pet ${index}`}
             className="flex items-center justify-center rounded-full transition-colors hover:bg-black/5"
             style={{
-              width: 28,
-              height: 28,
+              width: 26,
+              height: 26,
               color: PALETTE.earthMuted,
             }}
           >
@@ -113,6 +113,7 @@ export function PetUploadCard({
         photoUrl={pet.photoUrl}
         onUploaded={(url) => onChange({ ...pet, photoUrl: url })}
         onReset={() => onChange({ ...pet, photoUrl: null })}
+        variant="compact"
       />
 
       {/* Per-pet error inline — only shown when the API rejected this slot.
@@ -142,7 +143,7 @@ export function PetUploadCard({
       </AnimatePresence>
 
       {/* Name input — same microcopy as the original single-pet flow. */}
-      <div className="mt-4">
+      <div className="mt-3">
         <div className="flex items-baseline justify-between gap-3 px-1 mb-1.5">
           <label
             htmlFor={`petname-${pet.id}`}
@@ -176,10 +177,10 @@ export function PetUploadCard({
           placeholder={`e.g. ${["Luna", "Bella", "Rex", "Milo"][(index - 1) % 4]}`}
           maxLength={40}
           aria-label={`Name to print for pet ${index}`}
-          className="w-full bg-transparent outline-none px-4 py-3"
+          className="w-full bg-transparent outline-none px-3.5 py-2.5"
           style={{
             fontFamily: "Assistant, system-ui, sans-serif",
-            fontSize: 16,
+            fontSize: 15,
             color: PALETTE.ink,
             background: "#ffffff",
             border: `1.5px solid ${PALETTE.sandDeep}`,
