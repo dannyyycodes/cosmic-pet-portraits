@@ -28,6 +28,8 @@ export interface Pet {
   photoUrl: string | null;
   /** Optional pet name — printed on the canvas typography. */
   name: string;
+  /** When true, hide the name field and request no canvas typography. */
+  noName?: boolean;
 }
 
 interface PetUploadCardProps {
@@ -144,9 +146,9 @@ export function PetUploadCard({
 
       {/* Name input — same microcopy as the original single-pet flow. */}
       <div className="mt-3">
-        <div className="flex items-baseline justify-between gap-3 px-1 mb-1.5">
+        <div className="flex items-center justify-between gap-3 px-1 mb-1.5">
           <label
-            htmlFor={`petname-${pet.id}`}
+            htmlFor={pet.noName ? undefined : `petname-${pet.id}`}
             className="block text-xs"
             style={{
               fontFamily: "Assistant, system-ui, sans-serif",
@@ -155,48 +157,71 @@ export function PetUploadCard({
               textTransform: "uppercase",
             }}
           >
-            Name on canvas
+            {pet.noName ? "No name on canvas" : "Name on canvas"}
           </label>
-          <span
+          <button
+            type="button"
+            onClick={() =>
+              onChange(
+                pet.noName
+                  ? { ...pet, noName: false }
+                  : { ...pet, name: "", noName: true },
+              )
+            }
+            aria-pressed={!!pet.noName}
+            className="rounded-full px-2.5 py-1 transition-colors"
             style={{
               fontFamily: "Assistant, system-ui, sans-serif",
-              fontSize: 11,
-              color: PALETTE.earthSubtle,
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: pet.noName ? PALETTE.cream : PALETTE.earthMuted,
+              background: pet.noName ? PALETTE.rose : PALETTE.cream2,
+              border: `1px solid ${pet.noName ? PALETTE.rose : PALETTE.sand}`,
               letterSpacing: "0.04em",
               textTransform: "uppercase",
             }}
           >
-            Optional
-          </span>
+            {pet.noName ? "Add name" : "No name"}
+          </button>
         </div>
-        <input
-          id={`petname-${pet.id}`}
-          type="text"
-          value={pet.name}
-          onChange={(e) => onChange({ ...pet, name: e.target.value.slice(0, 40) })}
-          placeholder={`e.g. ${["Luna", "Bella", "Rex", "Milo"][(index - 1) % 4]}`}
-          maxLength={40}
-          aria-label={`Name to print for pet ${index}`}
-          className="w-full bg-transparent outline-none px-3.5 py-2.5"
-          style={{
-            fontFamily: "Assistant, system-ui, sans-serif",
-            fontSize: 15,
-            color: PALETTE.ink,
-            background: "#ffffff",
-            border: `1.5px solid ${PALETTE.sandDeep}`,
-            borderRadius: 12,
-            transition: "box-shadow 220ms, border-color 220ms",
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = PALETTE.rose;
-            e.currentTarget.style.boxShadow =
-              "0 0 0 4px rgba(191,82,74,.08), 0 8px 18px rgba(20,18,16,.05)";
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = PALETTE.sandDeep;
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        />
+        <AnimatePresence initial={false}>
+          {!pet.noName && (
+            <motion.input
+              key="name-input"
+              id={`petname-${pet.id}`}
+              type="text"
+              value={pet.name}
+              onChange={(e) => onChange({ ...pet, name: e.target.value.slice(0, 40), noName: false })}
+              placeholder={`e.g. ${["Luna", "Bella", "Rex", "Milo"][(index - 1) % 4]}`}
+              maxLength={40}
+              aria-label={`Name to print for pet ${index}`}
+              className="w-full bg-transparent outline-none px-3.5 py-2.5"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: EASE.out }}
+              style={{
+                fontFamily: "Assistant, system-ui, sans-serif",
+                fontSize: 15,
+                color: PALETTE.ink,
+                background: "#ffffff",
+                border: `1.5px solid ${PALETTE.sandDeep}`,
+                borderRadius: 12,
+                transition: "box-shadow 220ms, border-color 220ms",
+                overflow: "hidden",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = PALETTE.rose;
+                e.currentTarget.style.boxShadow =
+                  "0 0 0 4px rgba(191,82,74,.08), 0 8px 18px rgba(20,18,16,.05)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = PALETTE.sandDeep;
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
