@@ -13,6 +13,10 @@
       "schedule": "15 12 * * *"
     },
     {
+      "path": "/api/cron/email-nurture",
+      "schedule": "*/15 * * * *"
+    },
+    {
       "path": "/api/soul-reading?action=reconcile",
       "schedule": "30 12 * * *"
     }
