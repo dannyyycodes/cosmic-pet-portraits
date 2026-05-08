@@ -32,6 +32,19 @@ import {
   type SoulReadingJobRow,
 } from "./shopify/_lib/jobsRepo.js";
 import { triggerN8nForJob } from "./shopify/_lib/triggerN8n.js";
+import {
+  extractCanvasFulfillmentLines,
+  shopifyAddressToGelato,
+  type ShopifyOrderWithShipping,
+} from "./shopify/_lib/extractCanvas.js";
+import {
+  upsertPrintOrder,
+  updatePrintOrder,
+  recordHighSeverityFailure,
+  insertPrintOrderAlert,
+  type PrintOrderRow,
+} from "./_lib/printOrdersRepo.js";
+import { runPrintPipeline } from "./_lib/printPipeline.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -140,12 +153,125 @@ async function handleOrderPaid(
     }),
   );
 
-  if (canvasCount > 0) {
-    console.log(
-      "[orders/paid] canvas_lines_skipped",
-      JSON.stringify({ eventId, orderId, count: canvasCount, note: "Gelato Shopify connector handles" }),
-    );
+  // ── Canvas line-item fulfillment ────────────────────────────────────────
+  // Phase 9 reliability fix (2026-05-08): we EXPLICITLY persist + submit every
+  // canvas line ourselves rather than relying on Shopify's Gelato app. The
+  // app silently fails on TikTok-Shop orders + offers no audit trail, which
+  // means a customer can be charged today and have nothing print.
+  //
+  // For each canvas line:
+  //   1. Insert/upsert a print_orders row (idempotent on order+line).
+  //   2. If we have a print master URL + a complete shipping address, kick
+  //      off runPrintPipeline asynchronously (subject to the 4.5s deadline).
+  //   3. On any failure → row stays 'pending'/'failed', high-severity alert
+  //      + Telegram via recordHighSeverityFailure.
+  //
+  // Lines awaiting post-purchase customisation (TikTok Shop Flow B) are still
+  // persisted as 'pending' but NOT submitted — Phase 7's email captures the
+  // photo, then a follow-up handler re-submits.
+  const orderForCanvas = order as ShopifyOrderWithShipping;
+  const canvasLines = extractCanvasFulfillmentLines(orderForCanvas);
+  const canvasJobs: Array<{ row: PrintOrderRow; readyToSubmit: boolean }> = [];
+
+  for (const c of canvasLines) {
+    let row: PrintOrderRow;
+    try {
+      const upsert = await upsertPrintOrder({
+        shopifyOrderId: String(orderId),
+        shopifyLineItemId: String(c.lineItemId),
+        sku: c.sku,
+        sizeKey: c.sizeKey,
+        frameColor: c.frameColor,
+        sourceImageUrl: c.sourceImageUrl,
+        printMasterUrl: c.printMasterUrl,
+        metadata: {
+          shopifyEventId: eventId,
+          shopifyVariantId: c.variantId,
+          sizeLabel: c.sizeLabel,
+          petName: c.petName,
+          previewUrl: c.previewUrl,
+          sourcePhotoUrl: c.sourcePhotoUrl,
+          dryRun,
+          needsCustomisation: c.needsCustomisation,
+        },
+      });
+      row = upsert.row;
+      console.log(
+        "[orders/paid] canvas_persisted",
+        JSON.stringify({
+          eventId,
+          orderId,
+          lineItemId: c.lineItemId,
+          printOrderId: row.id,
+          inserted: upsert.inserted,
+          status: row.status,
+          needsCustomisation: c.needsCustomisation,
+        }),
+      );
+    } catch (err) {
+      // DB write failure is severe — return 500 so Shopify retries the
+      // webhook (and we get another shot at persisting + alerting).
+      console.error(
+        "[orders/paid] canvas_persist_failed",
+        JSON.stringify({
+          eventId,
+          orderId,
+          lineItemId: c.lineItemId,
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+      return res.status(500).json({ error: "print_orders_persist_failed" });
+    }
+
+    // Don't submit if:
+    //   - this is a TikTok Shop Flow B line awaiting photo upload
+    //   - the row is already past pending (idempotent replay of a webhook
+    //     where we already submitted to Gelato)
+    //   - we have no source image URL to feed AuraSR
+    //   - it's a dry-run order
+    if (c.needsCustomisation) {
+      canvasJobs.push({ row, readyToSubmit: false });
+      continue;
+    }
+    if (dryRun) {
+      canvasJobs.push({ row, readyToSubmit: false });
+      continue;
+    }
+    if (row.status !== "pending" && row.status !== "failed") {
+      canvasJobs.push({ row, readyToSubmit: false });
+      continue;
+    }
+    if (!c.sourceImageUrl) {
+      // High-severity: we have no image to print. Don't submit, alert ops.
+      try {
+        await updatePrintOrder({
+          printOrderId: row.id,
+          status: "manual_review",
+          lastError: "no_source_image_url_on_line_item",
+        });
+      } catch (err) {
+        console.error(
+          "[orders/paid] update_no_image_failed",
+          JSON.stringify({ printOrderId: row.id, error: err instanceof Error ? err.message : String(err) }),
+        );
+      }
+      await recordHighSeverityFailure({
+        printOrderId: row.id,
+        shopifyOrderId: String(orderId),
+        shopifyLineItemId: String(c.lineItemId),
+        sku: c.sku,
+        stage: "intake",
+        message:
+          "Canvas line item has no source image URL — the cart did not attach 'Source photo' or 'Print master (Gelato)'. Manual review required.",
+        details: { variantId: c.variantId },
+      });
+      canvasJobs.push({ row, readyToSubmit: false });
+      continue;
+    }
+
+    canvasJobs.push({ row, readyToSubmit: true });
   }
+  void canvasJobs;
 
   if (customisationPending.length > 0) {
     console.log(
@@ -228,17 +354,54 @@ async function handleOrderPaid(
     }),
   );
 
-  if (triggerableRows.length > 0) {
-    const triggerWork = Promise.allSettled(triggerableRows.map((r) => triggerN8nForJob(r)));
+  // ── Submit ready canvas lines to Gelato (subject to deadline) ──────────
+  const canvasReady = canvasJobs.filter((j) => j.readyToSubmit);
+  const canvasSubmitWork: Array<Promise<unknown>> = [];
+  if (canvasReady.length > 0) {
+    const canvasByLine = new Map<number, (typeof canvasLines)[number]>();
+    for (const c of canvasLines) canvasByLine.set(c.lineItemId, c);
+    for (const job of canvasReady) {
+      const lineId = Number(job.row.shopify_line_item_id);
+      const canvas = Number.isFinite(lineId) ? canvasByLine.get(lineId) : undefined;
+      if (!canvas || !canvas.sourceImageUrl) continue;
+      canvasSubmitWork.push(
+        runCanvasFulfillment({
+          row: job.row,
+          orderId,
+          eventId,
+          shippingAddress: orderForCanvas.shipping_address ?? null,
+          customerEmail,
+          sourceImageUrl: canvas.sourceImageUrl,
+          sizeKey: canvas.sizeKey,
+          frameColor: canvas.frameColor,
+          sku: canvas.sku,
+          petName: canvas.petName,
+        }),
+      );
+    }
+  }
+
+  const allBackgroundWork: Promise<unknown> = Promise.allSettled([
+    ...(triggerableRows.length > 0 ? [Promise.allSettled(triggerableRows.map((r) => triggerN8nForJob(r)))] : []),
+    ...canvasSubmitWork,
+  ]);
+  if (triggerableRows.length > 0 || canvasSubmitWork.length > 0) {
     const deadline = new Promise<"deadline">((resolve) =>
       setTimeout(() => resolve("deadline"), ASYNC_TRIGGER_DEADLINE_MS),
     );
-    await Promise.race([triggerWork, deadline]);
+    await Promise.race([allBackgroundWork, deadline]);
   }
 
   console.log(
     "[orders/paid] done",
-    JSON.stringify({ eventId, orderId, accepted: freshRows.length, duplicates }),
+    JSON.stringify({
+      eventId,
+      orderId,
+      accepted: freshRows.length,
+      duplicates,
+      canvasFulfilled: canvasReady.length,
+      canvasPending: canvasJobs.length - canvasReady.length,
+    }),
   );
 
   return res.status(200).json({
@@ -247,8 +410,176 @@ async function handleOrderPaid(
     duplicates,
     dryRun,
     canvas: canvasCount,
+    canvasFulfilled: canvasReady.length,
     customisationPending: customisationPending.length,
   });
+}
+
+// ─── Canvas fulfillment helper ─────────────────────────────────────────────
+
+interface RunCanvasFulfillmentArgs {
+  row: PrintOrderRow;
+  orderId: number;
+  eventId: string;
+  shippingAddress: import("./shopify/_lib/extractCanvas.js").ShopifyShippingAddress | null;
+  customerEmail: string;
+  sourceImageUrl: string;
+  sizeKey: string;
+  frameColor: "black" | "natural-wood" | "dark-wood";
+  sku: string;
+  petName: string | null;
+}
+
+async function runCanvasFulfillment(args: RunCanvasFulfillmentArgs): Promise<void> {
+  const { row, orderId, shippingAddress, customerEmail, sourceImageUrl, sizeKey, frameColor, sku, petName } = args;
+  const lineItemIdStr = row.shopify_line_item_id ?? String(orderId);
+  const lineItemNum = Number(lineItemIdStr);
+
+  const addr = shopifyAddressToGelato({ address: shippingAddress, email: customerEmail });
+  if ("ok" in addr && addr.ok === false) {
+    try {
+      await updatePrintOrder({
+        printOrderId: row.id,
+        status: "manual_review",
+        lastError: `incomplete_shipping_address: ${addr.missing.join(",")}`,
+        bumpAttempts: true,
+      });
+    } catch (err) {
+      console.error(
+        "[orders/paid] canvas_addr_update_failed",
+        JSON.stringify({ printOrderId: row.id, error: err instanceof Error ? err.message : String(err) }),
+      );
+    }
+    await recordHighSeverityFailure({
+      printOrderId: row.id,
+      shopifyOrderId: String(orderId),
+      shopifyLineItemId: lineItemIdStr,
+      sku,
+      stage: "intake",
+      message: `Cannot submit canvas to Gelato — shipping address missing fields: ${addr.missing.join(", ")}`,
+      details: { missing: addr.missing },
+    });
+    return;
+  }
+
+  // Run the pipeline. Don't await indefinitely — the webhook deadline race
+  // outside this fn caps total time. Pipeline itself has internal timeouts.
+  let result: Awaited<ReturnType<typeof runPrintPipeline>> | null = null;
+  try {
+    result = await runPrintPipeline({
+      sourceImageUrl,
+      sizeKey,
+      frameColor,
+      shippingAddress: addr as Exclude<typeof addr, { ok: false }>,
+      customerEmail,
+      shopifyOrderId: orderId,
+      shopifyLineItemId: Number.isFinite(lineItemNum) ? lineItemNum : 0,
+      petName: petName ?? undefined,
+    });
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    console.error(
+      "[orders/paid] canvas_pipeline_threw",
+      JSON.stringify({ printOrderId: row.id, error: reason }),
+    );
+    try {
+      await updatePrintOrder({
+        printOrderId: row.id,
+        status: "failed",
+        lastError: `pipeline_exception: ${reason}`,
+        bumpAttempts: true,
+      });
+    } catch {
+      /* swallow — alert is more important */
+    }
+    await recordHighSeverityFailure({
+      printOrderId: row.id,
+      shopifyOrderId: String(orderId),
+      shopifyLineItemId: lineItemIdStr,
+      sku,
+      stage: "pipeline_exception",
+      message: `runPrintPipeline threw: ${reason}`,
+    });
+    return;
+  }
+
+  if (result.ok === true && "gelatoOrderId" in result) {
+    try {
+      await updatePrintOrder({
+        printOrderId: row.id,
+        status: "submitted",
+        gelatoOrderId: result.gelatoOrderId,
+        gelatoOrderReference: result.gelatoOrderRef,
+        printMasterUrl: result.upscaledImageUrl,
+        bumpAttempts: true,
+        metadataMerge: { preflight: result.preflightMetrics },
+      });
+    } catch (err) {
+      console.error(
+        "[orders/paid] canvas_submitted_update_failed",
+        JSON.stringify({ printOrderId: row.id, error: err instanceof Error ? err.message : String(err) }),
+      );
+      // Even if the row update failed, the Gelato submission succeeded — log
+      // a low-severity alert so ops knows to reconcile manually.
+      try {
+        await insertPrintOrderAlert({
+          printOrderId: row.id,
+          severity: "medium",
+          message: "Gelato submission succeeded but DB update failed — reconcile manually",
+          details: {
+            gelatoOrderId: result.gelatoOrderId,
+            gelatoOrderRef: result.gelatoOrderRef,
+            error: err instanceof Error ? err.message : String(err),
+          },
+        });
+      } catch {
+        /* swallow */
+      }
+    }
+    return;
+  }
+
+  // Failure path: pipeline returned ok:false (or dry-run). Map stage → status.
+  if (result.ok === true) {
+    // Dry-run shouldn't happen here (we don't pass dryRun:true), but defend.
+    return;
+  }
+  const stage = result.stage;
+  const reason = result.reason;
+  const nextStatus: "manual_review" | "failed" =
+    stage === "manual_review" ? "manual_review" : "failed";
+  try {
+    await updatePrintOrder({
+      printOrderId: row.id,
+      status: nextStatus,
+      lastError: `${stage}: ${reason}`,
+      bumpAttempts: true,
+      printMasterUrl: result.upscaledImageUrl ?? undefined,
+      metadataMerge: result.preflightMetrics ? { preflight: result.preflightMetrics } : undefined,
+    });
+  } catch (err) {
+    console.error(
+      "[orders/paid] canvas_failure_update_failed",
+      JSON.stringify({ printOrderId: row.id, error: err instanceof Error ? err.message : String(err) }),
+    );
+  }
+  await recordHighSeverityFailure({
+    printOrderId: row.id,
+    shopifyOrderId: String(orderId),
+    shopifyLineItemId: lineItemIdStr,
+    sku,
+    stage,
+    message: reason,
+    details: result.details ? { details: safeStringify(result.details) } : undefined,
+  });
+}
+
+function safeStringify(v: unknown): string {
+  try {
+    return JSON.stringify(v).slice(0, 1500);
+  } catch {
+    return String(v).slice(0, 1500);
+  }
 }
 
 // ─── refunds/create branch ─────────────────────────────────────────────────
