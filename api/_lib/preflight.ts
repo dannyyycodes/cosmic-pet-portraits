@@ -8,7 +8,7 @@
  *
  * Spec: research-2026-05-05-gelato-print-quality.md §4 + §6.
  *   - Long edge >= 4000px (Gelato 150 DPI floor at every SKU we ship)
- *   - Laplacian variance > 100 (sharpness — PyImageSearch convention)
+ *   - Laplacian variance > 15 (sharpness — empirically calibrated 2026-05-08)
  *   - <5% pixels clipped at 0 or 255 in luminance (no blown highlights/blacks)
  *   - LAB B-channel std-dev > 20 (catches solid-colour FLUX failure outputs)
  *
@@ -45,20 +45,21 @@ export type PreflightResult =
 
 // ─── Tunables (research §4) ─────────────────────────────────────────────────
 //
-// ⚠ CALIBRATION NOTE 2026-05-05: research §4.2 cites a Laplacian variance
-// threshold of 100 ("AuraSR-upscaled outputs typically score 150-300"). On
-// real fal Kontext → AuraSR 4× outputs (verified end-to-end with the dry-run
-// test), shipping-grade visually-sharp images measure ~15-25 — not 150-300.
-// The implementation here matches the OpenCV reference (signed Laplacian,
-// population variance over the grayscale buffer), so the gap is a calibration
-// issue with the research note, not an implementation bug. We keep the spec'd
-// threshold of 100 as a placeholder and intentionally fail safe — better to
-// route to manual_review than auto-ship — until we collect 50+ real production
-// samples and tune empirically. See test-print-pipeline.ts for reproducible
-// measurements.
+// ⚠ EMPIRICAL CALIBRATION 2026-05-08: lowered from 100 → 15 after observing
+// every real fal Kontext → AuraSR 4× output measure 15–25 (PyImageSearch
+// reference convention; OpenCV-style signed Laplacian over grayscale,
+// population variance). The original "100 placeholder" routed every
+// production print to manual_review and starved the pipeline. Painterly
+// canvas outputs naturally score lower than crisp natural photos because the
+// edge content is smoother — the variance gate still catches the FLUX
+// solid-colour failure mode (which scores ~1–3) and outright JPEG artifacts.
+//
+// This threshold is observed-not-spec'd. If we regress on print sharpness,
+// raise it incrementally (15 → 18 → 22) and re-run scripts/test-print-pipeline.ts
+// against a fresh batch of 20+ orders.
 
 export const MIN_LONG_EDGE_PX = 4000;
-export const MIN_LAPLACIAN_VARIANCE = 100;
+export const MIN_LAPLACIAN_VARIANCE = 15;
 export const MAX_CLIPPED_RATIO = 0.05;
 export const MIN_LAB_B_STDDEV = 20;
 
