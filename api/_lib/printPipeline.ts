@@ -23,6 +23,7 @@
 
 import { gelatoProductUid, type FrameColor } from "../../src/components/portraits/gelatoFramedCanvas.js";
 import { preflightImage, type PreflightMetrics, type PreflightResult } from "./preflight.js";
+import { getSupabaseAdmin } from "./supabaseAdmin.js";
 
 // ─── Public types ───────────────────────────────────────────────────────────
 
@@ -49,6 +50,17 @@ export type PrintPipelineInput = {
   shopifyOrderId: number;
   shopifyLineItemId: number;
   petName?: string;
+  /**
+   * Settlement currency to send to Gelato. Defaults to 'GBP' (Shopify shop's
+   * home currency). Must match Gelato's price-list currency for the SKU or
+   * the order is 4xx-rejected.
+   */
+  currency?: string;
+  /**
+   * Gelato shipping method (e.g. 'normal', 'express'). Defaults to 'normal'.
+   * Without this set, Gelato may reject the order or default to express.
+   */
+  shipmentMethodUid?: string;
   /**
    * If true, skip the actual Gelato POST. Returns the assembled body so a
    * caller can inspect it. Used by scripts/test-print-pipeline.ts.
@@ -213,11 +225,35 @@ export async function runPrintPipeline(
     );
   }
 
-  // 3. Build Gelato request body
+  // 2.5 Rehost the upscaled buffer to durable storage so Gelato can fetch it
+  // even if the fal.media URL has expired by the time their pull runs.
+  // Re-download here (preflight already discarded the buffer) — small cost
+  // for a guarantee that print never fails on expired-URL.
+  const orderRef = `ls-${input.shopifyOrderId}-${input.shopifyLineItemId}`;
+  let durableImageUrl = upscaledImageUrl;
+  if (!input.dryRun) {
+    const dlForUpload = await downloadBuffer(upscaledImageUrl);
+    if (dlForUpload.ok === true) {
+      const rehost = await rehostPrintMaster({ buffer: dlForUpload.buffer, orderRef });
+      if (rehost.ok === true) {
+        durableImageUrl = rehost.url;
+        log("rehost_done", { orderRef, durableImageUrl });
+      } else {
+        // Non-fatal — fall back to fal URL if rehost fails. Most prints will
+        // still go through; we just lose the expiry guarantee. Surface the
+        // miss in logs so ops can investigate.
+        logError("rehost_failed", { orderRef, error: rehost.error });
+      }
+    } else {
+      logError("rehost_download_failed", { orderRef, error: dlForUpload.error });
+    }
+  }
+
+  // 3. Build Gelato request body using the durable URL.
   const gelatoBody = buildGelatoOrderBody({
     input,
     productUid,
-    upscaledImageUrl,
+    upscaledImageUrl: durableImageUrl,
   });
 
   // Dry-run mode: return the assembled body without POST.
@@ -415,6 +451,7 @@ export type GelatoOrderRequest = {
   orderReferenceId: string;
   customerReferenceId: string;
   currency: string;
+  shipmentMethodUid: string;
   items: Array<{
     itemReferenceId: string;
     productUid: string;
@@ -448,7 +485,8 @@ function buildGelatoOrderBody(args: {
     orderType: "order",
     orderReferenceId: orderRef,
     customerReferenceId: input.customerEmail,
-    currency: "GBP",
+    currency: input.currency ?? "GBP",
+    shipmentMethodUid: input.shipmentMethodUid ?? "normal",
     items: [
       {
         itemReferenceId: `${orderRef}-canvas`,
@@ -478,6 +516,39 @@ function buildGelatoOrderBody(args: {
       { key: "frameColor", value: input.frameColor },
     ],
   };
+}
+
+// ─── Rehost upscaled PNG to public Supabase storage ────────────────────────
+// fal.media URLs returned by AuraSR expire (~24h-7d). If Gelato fetches the
+// asset asynchronously after expiry the print fails and we have nothing to
+// re-submit. Upload the buffer to pet-photos/print-masters/<orderRef>.png
+// (a public bucket per migration 20251219130013_e88a6886) and hand Gelato
+// the durable URL instead.
+async function rehostPrintMaster(args: {
+  buffer: Buffer;
+  orderRef: string;
+}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  try {
+    const supabase = getSupabaseAdmin();
+    const path = `print-masters/${args.orderRef}.png`;
+    const { error: upErr } = await supabase.storage
+      .from("pet-photos")
+      .upload(path, args.buffer, {
+        contentType: "image/png",
+        cacheControl: "31536000",
+        upsert: true, // safe — orderRef is unique per (shopifyOrderId, lineItemId)
+      });
+    if (upErr) {
+      return { ok: false, error: `supabase upload failed: ${upErr.message}` };
+    }
+    const { data } = supabase.storage.from("pet-photos").getPublicUrl(path);
+    if (!data?.publicUrl) {
+      return { ok: false, error: "supabase getPublicUrl returned no URL" };
+    }
+    return { ok: true, url: data.publicUrl };
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
 }
 
 type GelatoSubmitResult =
