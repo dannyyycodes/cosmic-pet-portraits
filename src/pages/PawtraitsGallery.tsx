@@ -257,7 +257,7 @@ function PawtraitModal({ row, onClose, onFilterStyle }: { row: GalleryRow; onClo
             {/* Primary action — what 95% of visitors should click. */}
             <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-3">
               <Link
-                to={`/pawtraits/studio?style=${encodeURIComponent(row.art_style)}`}
+                to={`/pawtraits?style=${encodeURIComponent(row.art_style)}#studio`}
                 className="inline-flex items-center justify-center rounded-full font-semibold transition active:scale-95"
                 style={{
                   background: '#bf524a',
@@ -519,7 +519,7 @@ export default function PawtraitsGallery() {
                 : "No portraits yet."}
             </p>
             <Link
-              to="/pawtraits/studio"
+              to="/pawtraits#studio"
               className="inline-flex items-center justify-center rounded-full font-semibold"
               style={{
                 background: '#bf524a',
