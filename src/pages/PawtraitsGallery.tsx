@@ -39,6 +39,30 @@ function prettyArtStyle(s: string): string {
   return s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
+/**
+ * Clean the internal generation prompt into a customer-facing creative description.
+ * The raw prompt contains "Type A Pawtraits", "Pet-only", "print-safe margins, sRGB",
+ * and a long negative-prompt suffix — all internal noise that shouldn't appear in the
+ * gallery. We strip those and leave the pet description + art-style description, which
+ * reads like a curator's placard.
+ */
+function cleanPromptForCustomer(raw: string): string {
+  if (!raw) return '';
+  return raw
+    // "Vertical 2:3 Type A Pawtraits portrait of" → "Portrait of"
+    .replace(/^Vertical \d+:\d+\s*Type [AB]\s*Pawtraits\s*(portrait|customer-style room scene)\b/i, 'Portrait')
+    // "Pet-only" is internal phrasing
+    .replace(/\bPet-only\s+/gi, '')
+    // Drop technical print specs
+    .replace(/,?\s*print-safe margins,?\s*sRGB\.?/gi, '.')
+    // Drop the negative-prompt suffix (always at the end)
+    .replace(/\s*No room,?\s*no wall,?\s*no canvas,?\s*no human,?\s*no second animal,?\s*no text,?\s*no logo,?\s*no watermark\.?\s*$/i, '')
+    // Tidy
+    .replace(/\.\s*\./g, '.')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function PawtraitTile({ row, onOpen }: { row: GalleryRow; onOpen: (row: GalleryRow) => void }) {
   const aspect = row.width && row.height ? row.width / row.height : 1;
   return (
@@ -55,6 +79,22 @@ function PawtraitTile({ row, onOpen }: { row: GalleryRow; onOpen: (row: GalleryR
         loading="lazy"
         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
       />
+      {/* Caption overlay: hidden by default on hover-capable devices (mouse), revealed on
+          hover. On touch devices (no hover), caption is always visible so the user can
+          read it before tapping into the modal. */}
+      <figcaption
+        className="pointer-events-none absolute inset-x-0 bottom-0 p-3 sm:p-4 text-left text-white transition-opacity duration-300 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+        style={{
+          background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0) 100%)',
+        }}
+      >
+        <p className="font-serif leading-tight" style={{ fontSize: 16 }}>
+          {row.pet_name ? `${row.pet_name} the ` : ''}{row.breed}
+        </p>
+        <p className="mt-1 uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#c4a265' }}>
+          {prettyArtStyle(row.art_style)}
+        </p>
+      </figcaption>
     </button>
   );
 }
@@ -63,6 +103,7 @@ function PawtraitModal({ row, onClose }: { row: GalleryRow; onClose: () => void 
   const [full, setFull] = useState<FullRow | null>(null);
   const [loadingFull, setLoadingFull] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -132,67 +173,94 @@ function PawtraitModal({ row, onClose }: { row: GalleryRow; onClose: () => void 
       {showDetails && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className="fixed inset-x-0 bottom-0 z-10 max-h-[60vh] overflow-y-auto p-6 sm:p-8"
+          className="fixed inset-x-0 bottom-0 z-10 max-h-[72vh] overflow-y-auto p-6 sm:p-10"
           style={{
-            background: 'rgba(0,0,0,0.78)',
+            background: 'rgba(0,0,0,0.82)',
             color: '#fff',
-            backdropFilter: 'blur(14px)',
+            backdropFilter: 'blur(16px)',
             borderTop: '1px solid rgba(255,255,255,0.12)',
           }}
         >
           <div className="mx-auto max-w-3xl">
-            <p className="uppercase mb-2" style={{ letterSpacing: '0.16em', fontSize: 11, opacity: 0.6 }}>
-              {row.image_style} · {row.aspect_ratio}
+            <p className="uppercase mb-3" style={{ letterSpacing: '0.18em', fontSize: 11, opacity: 0.55, color: '#c4a265' }}>
+              Inspiration · {prettyArtStyle(row.art_style)}
             </p>
-            <h2 className="font-serif" style={{ fontSize: 28, lineHeight: 1.1 }}>
+            <h2 className="font-serif" style={{ fontSize: 32, lineHeight: 1.1, letterSpacing: '-0.01em' }}>
               {row.pet_name ? `${row.pet_name} the ` : ''}{row.breed}
             </h2>
-            <p className="mt-1 text-sm" style={{ opacity: 0.7 }}>{prettyArtStyle(row.art_style)}</p>
 
             {row.backstory && (
-              <p className="mt-4 font-cormorant italic" style={{ fontSize: 17, lineHeight: 1.45, opacity: 0.86 }}>
+              <p className="mt-5 font-cormorant italic" style={{ fontSize: 19, lineHeight: 1.5, opacity: 0.88 }}>
                 {row.backstory}
               </p>
             )}
 
             <div
-              className="mt-5 rounded-xl p-4"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="mt-7 rounded-xl p-5"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
             >
-              <div className="mb-2 flex items-center justify-between">
-                <p className="uppercase" style={{ letterSpacing: '0.16em', fontSize: 11, opacity: 0.5 }}>Prompt</p>
+              <div className="mb-3 flex items-center justify-between">
+                <p className="uppercase" style={{ letterSpacing: '0.18em', fontSize: 11, opacity: 0.55 }}>
+                  Creative direction
+                </p>
                 {full?.prompt && (
                   <button
                     type="button"
-                    onClick={() => navigator.clipboard?.writeText(full.prompt)}
-                    className="text-[11px] underline"
-                    style={{ color: '#bf524a' }}
-                  >Copy</button>
+                    onClick={async () => {
+                      const text = cleanPromptForCustomer(full.prompt);
+                      try {
+                        await navigator.clipboard.writeText(text);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 1500);
+                      } catch {
+                        // Fallback for older browsers / insecure context
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try { document.execCommand('copy'); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
+                        document.body.removeChild(ta);
+                      }
+                    }}
+                    className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase transition"
+                    style={{
+                      letterSpacing: '0.12em',
+                      background: copied ? '#c4a265' : 'rgba(191, 82, 74, 0.85)',
+                      color: '#fff',
+                    }}
+                  >
+                    {copied ? '✓ Copied' : 'Copy'}
+                  </button>
                 )}
               </div>
               {loadingFull ? (
-                <p className="text-[13px]" style={{ opacity: 0.5 }}>Loading…</p>
+                <p className="text-[14px]" style={{ opacity: 0.5 }}>Loading…</p>
               ) : full?.prompt ? (
-                <p className="text-[13px] leading-relaxed" style={{ whiteSpace: 'pre-wrap', opacity: 0.85 }}>
-                  {full.prompt}
+                <p className="text-[14px] leading-relaxed" style={{ opacity: 0.88, fontFamily: 'Georgia, serif' }}>
+                  {cleanPromptForCustomer(full.prompt)}
                 </p>
               ) : (
-                <p className="text-[13px]" style={{ opacity: 0.5 }}>Prompt unavailable.</p>
+                <p className="text-[14px]" style={{ opacity: 0.5 }}>Description unavailable.</p>
               )}
             </div>
 
-            <Link
-              to="/pawtraits/studio"
-              className="mt-5 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold"
-              style={{
-                background: '#bf524a',
-                color: '#fff',
-                letterSpacing: '0.04em',
-                boxShadow: '0 6px 18px rgba(191, 82, 74, 0.3)',
-              }}
-            >
-              Make yours →
-            </Link>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link
+                to="/pawtraits/studio"
+                className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold"
+                style={{
+                  background: '#bf524a',
+                  color: '#fff',
+                  letterSpacing: '0.04em',
+                  boxShadow: '0 6px 22px rgba(191, 82, 74, 0.4)',
+                }}
+              >
+                Make your pet's portrait →
+              </Link>
+              <span className="text-[12px]" style={{ opacity: 0.55 }}>
+                Upload a photo · pick a style · printed on canvas
+              </span>
+            </div>
           </div>
         </div>
       )}
