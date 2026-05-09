@@ -46,6 +46,22 @@ const PRINT_SIZE = 3000;
 // alternatives they spend another token.
 const TOKENS_PER_GENERATION = 1;
 
+// ─── Drift detection + cost accounting (used by handleGenerate) ─────────────
+// DRIFT_THRESHOLD: any drift_score above this triggers an auto-regen attempt
+// (or, on the second pass, a hard-fail refund). 0.3 chosen empirically — a
+// breed mismatch alone scores 0.5 (already over), so the threshold catches
+// breed swaps cleanly while letting smaller per-feature drifts through.
+// MAX_REGEN_ATTEMPTS: only one regen per generation. After that, refund and
+// tell the customer the photo angle wasn't lockable.
+// GPT_IMAGE_COST_USD: per-call fal.ai cost for gpt-image-2 at 'medium' quality
+// (1024×1536). Updated when fal pricing shifts; only used for cost_usd in the
+// audit log, never customer-facing.
+// VISION_COST_USD: per-call OpenRouter Vision cost (Sonnet 4.5 at ~300 tokens).
+const DRIFT_THRESHOLD = 0.3;
+const MAX_REGEN_ATTEMPTS = 1;
+const GPT_IMAGE_COST_USD = 0.04;
+const VISION_COST_USD = 0.005;
+
 type ProductType = "framed-canvas" | "mug" | "tote" | "tee" | "hoodie";
 
 // Mockup endpoint removed 2026-05-04 — we display the clean cutout + product
@@ -1062,6 +1078,172 @@ function isNoPetDetected(subject: SubjectInfo): boolean {
   return false;
 }
 
+// ─── Generation audit-log helpers (pawtrait_generation_log) ────────────────
+// Every customer generation gets one row in pawtrait_generation_log. These
+// helpers wrap the row's lifecycle: insert at start, patch at each stage
+// (vision-pre / generated / vision-post / drift / success|failed). All writes
+// are best-effort — a logging failure must NEVER block the customer's
+// generation. We swallow errors and log them to console instead.
+//
+// computeDriftScore quantifies how far the post-gen Vision identification
+// drifts from the pre-gen one. Weighted feature compare; substring fuzzy
+// match for breed (so "german shepherd" vs "german shepherd mix" doesn't
+// trip a false-positive). For multi-pet, average the per-pet scores.
+//
+// runPostGenVision is just a re-use of extractSubject — we call it on the
+// fal output URL, which is on *.fal.media (already in the SSRF whitelist).
+
+type GenerationLogPatch = {
+  status?: string;
+  source_vision?: SubjectInfo[] | null;
+  prompt_sent?: string | null;
+  negative_prompt?: string | null;
+  output_image_url?: string | null;
+  output_vision?: SubjectInfo[] | null;
+  drift_score?: number | null;
+  drift_flags?: Record<string, unknown> | null;
+  regen_count?: number;
+  error_text?: string | null;
+  cost_usd?: number | null;
+  duration_ms?: number | null;
+  metadata?: Record<string, unknown>;
+};
+
+async function insertGenerationLog(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  row: {
+    user_id: string;
+    source_image_urls: string[];
+    pet_count: number;
+    style_id?: string | null;
+    theme_id?: string | null;
+    custom_prompt?: string | null;
+    status: string;
+  },
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('pawtrait_generation_log')
+      .insert({
+        user_id: row.user_id,
+        source_image_urls: row.source_image_urls,
+        pet_count: row.pet_count,
+        style_id: row.style_id ?? null,
+        theme_id: row.theme_id ?? null,
+        custom_prompt: row.custom_prompt ?? null,
+        status: row.status,
+      })
+      .select('id')
+      .single();
+    if (error) {
+      console.error('[GEN_LOG_INSERT_FAILED]', { error: error.message });
+      return null;
+    }
+    return data?.id ?? null;
+  } catch (err) {
+    console.error('[GEN_LOG_INSERT_THREW]', { error: (err as Error).message });
+    return null;
+  }
+}
+
+async function updateGenerationLog(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  id: string | null,
+  patch: GenerationLogPatch,
+): Promise<void> {
+  if (!id) return;
+  try {
+    const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    for (const [k, v] of Object.entries(patch)) {
+      if (v !== undefined) row[k] = v;
+    }
+    const { error } = await supabase
+      .from('pawtrait_generation_log')
+      .update(row)
+      .eq('id', id);
+    if (error) console.error('[GEN_LOG_UPDATE_FAILED]', { id, error: error.message });
+  } catch (err) {
+    console.error('[GEN_LOG_UPDATE_THREW]', { id, error: (err as Error).message });
+  }
+}
+
+// Substring fuzzy-match for breed strings: lowercased + trimmed; either side
+// containing the other counts as a match. Catches "german shepherd" vs
+// "german shepherd mix" / "tabby" vs "grey tabby".
+function fuzzyMatch(a: string | undefined, b: string | undefined): boolean {
+  if (!a || !b) return !a && !b;  // both empty = match; one empty = mismatch
+  const la = a.toLowerCase().trim();
+  const lb = b.toLowerCase().trim();
+  if (!la || !lb) return !la && !lb;
+  if (la === lb) return true;
+  return la.includes(lb) || lb.includes(la);
+}
+
+// Per-pet drift score. Weighted sum:
+//   breed mismatch    = 0.5
+//   fur color         = 0.2
+//   eye color         = 0.15
+//   ear shape         = 0.15
+// Each weight only applies if BOTH source and output had a value (we don't
+// penalise the model for a missing pre-pass field).
+function computePetDrift(source: SubjectInfo, output: SubjectInfo): { score: number; flags: Record<string, boolean> } {
+  const flags: Record<string, boolean> = {
+    breed_changed: false,
+    fur_diverged: false,
+    eye_diverged: false,
+    ear_diverged: false,
+  };
+  let score = 0;
+
+  if (source.breed && output.breed && !fuzzyMatch(source.breed, output.breed)) {
+    flags.breed_changed = true;
+    score += 0.5;
+  }
+  if (source.furColor && output.furColor && !fuzzyMatch(source.furColor, output.furColor)) {
+    flags.fur_diverged = true;
+    score += 0.2;
+  }
+  if (source.eyeColor && output.eyeColor && !fuzzyMatch(source.eyeColor, output.eyeColor)) {
+    flags.eye_diverged = true;
+    score += 0.15;
+  }
+  if (source.earShape && output.earShape && !fuzzyMatch(source.earShape, output.earShape)) {
+    flags.ear_diverged = true;
+    score += 0.15;
+  }
+  return { score, flags };
+}
+
+// Aggregate drift across N pets. Multi-pet → average per-pet score; flags
+// list is keyed by index. If output_vision has fewer entries than source we
+// pad with empty SubjectInfos (treated as "missing fields, no penalty").
+function computeDriftScore(
+  source: SubjectInfo[],
+  output: SubjectInfo[],
+): { score: number; flags: Record<string, unknown> } {
+  if (source.length === 0) return { score: 0, flags: {} };
+  const flags: Record<string, unknown> = {};
+  let total = 0;
+  for (let i = 0; i < source.length; i++) {
+    const out = output[i] ?? ({ species: 'pet' } as SubjectInfo);
+    const { score, flags: petFlags } = computePetDrift(source[i], out);
+    total += score;
+    if (source.length === 1) {
+      Object.assign(flags, petFlags);
+    } else {
+      flags[`pet_${i + 1}`] = petFlags;
+    }
+  }
+  return { score: total / source.length, flags };
+}
+
+// Post-gen Vision pre-pass. Same contract as extractSubject; just a thin
+// wrapper for clarity at the call-site (and so future changes to the
+// post-gen check — different model, looser rules — have one place to live).
+async function runPostGenVision(imageUrl: string): Promise<SubjectInfo> {
+  return extractSubject(imageUrl);
+}
+
 async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
   // Body now accepts EITHER:
@@ -1668,8 +1850,24 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
   return res.status(400).json({ error: `unknown op: ${op}. Valid: list|get|gallery|insert|approve|reject|logPost` });
 }
 
-// ─── handleInstantSignup — passwordless, no-OTP signup ──────────────────────
+// ─── handleInstantSignup — passwordless OTP signup ──────────────────────────
 // Body: { email, visitorId?, honeypot? }
+//
+// Flow (uniform for new + existing emails — no enumeration oracle):
+//   - signInWithOtp({ shouldCreateUser: true }) emails a 6-digit OTP. New
+//     emails: account is created when the user verifies the OTP; visitor_id
+//     flows through `options.data` into raw_user_meta_data so the trigger
+//     can do email-alias + device-fingerprint dedup.
+//   - Server response is identical regardless of whether the email was
+//     already registered. Client always routes to OTP-entry.
+//
+// SECURITY HISTORY: previously this endpoint created the user via admin
+// createUser and returned the magic-link OTP in the response so the client
+// could call verifyOtp() locally and skip the email roundtrip. That meant
+// anyone could POST any email and receive a working OTP, then use it to
+// authenticate as that account — full account takeover for the entire
+// customer base. Removed 2026-05-09. Do not re-introduce a path that
+// returns OTP material in the HTTP response.
 //
 // Defense stack — all silent, none ever block a real human:
 //   1. Vercel BotID (Kasada-powered). Invisible client challenge, no CAPTCHA,
@@ -1682,15 +1880,6 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
 //   5. Existing DB triggers handle email-alias dedup (Gmail dot/plus, etc.)
 //      and device-fingerprint dedup via the visitor_id we forward to
 //      raw_user_meta_data — same browser can't farm unlimited free trials.
-//
-// Flow:
-//   - New email → admin createUser with email_confirm:true + visitor_id, then
-//     issue a single-use magic-link OTP and return it. Client calls
-//     supabase.auth.verifyOtp() locally to establish the session. User is
-//     signed in immediately, no email click.
-//   - Existing email → return { status: 'exists' } so the client routes to
-//     /auth and requests an OTP code (proves account ownership; we never
-//     auto-sign-in someone else's email).
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Generous backstop. iCloud Private Relay / NordVPN / mobile CGNAT can put
 // 50+ unrelated real users on one egress IP. BotID is the primary defense;
@@ -1792,71 +1981,34 @@ async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Attempt to create the user with email_confirm:true so they don't need to
-  // click a confirmation link. visitor_id is forwarded to the DB trigger which
-  // uses it (alongside email) to decide whether to grant free signup credits.
-  // If the email already exists, fall through to the 'exists' branch — caller
-  // routes that user to /auth to enter an OTP.
-  const { data: createData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+  // Send OTP via email. shouldCreateUser:true means a new auth.users row is
+  // inserted only when the recipient verifies the OTP — the trigger fires at
+  // that point with raw_user_meta_data populated from options.data, so the
+  // email-alias + visitor_id dedup logic still runs.
+  //
+  // For existing emails this just sends a sign-in OTP. The response is the
+  // same either way, so the caller cannot distinguish "new" from "existing"
+  // (no user-enumeration oracle).
+  const { error: otpErr } = await supabaseAdmin.auth.signInWithOtp({
     email,
-    email_confirm: true,
-    user_metadata: visitorId ? { visitor_id: visitorId } : undefined,
+    options: {
+      shouldCreateUser: true,
+      data: visitorId ? { visitor_id: visitorId } : undefined,
+    },
   });
-
-  // Detect "already exists" — Supabase returns 422 / "already been registered" etc.
-  // Match defensively because the message string has changed across versions.
-  const alreadyExists = createErr && (
-    /already.*registered/i.test(createErr.message) ||
-    /already.*exists/i.test(createErr.message) ||
-    /duplicate/i.test(createErr.message) ||
-    createErr.status === 422
-  );
-
-  if (alreadyExists) {
-    console.log('[instant-signup] existing user — falling back to OTP:', { email, supabaseStatus: createErr?.status, supabaseMessage: createErr?.message });
-    // Don't leak whether the address is registered for non-Turnstile-passing
-    // requests, but Turnstile passed so this is a real user — they need to
-    // verify ownership via OTP on /auth instead. Send the OTP for them so
-    // their next step is just typing the code.
-    const { error: otpErr } = await supabaseAdmin.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false },
-    });
-    if (otpErr) {
-      return res.status(500).json({ error: 'otp_send_failed', detail: otpErr.message });
-    }
-    // otpLength is read from env (mirrors Supabase dashboard "Email OTP Length").
-    // Default 6 — bump if you change the dashboard value to 7 or 8.
-    const otpLength = Number(process.env.SUPABASE_EMAIL_OTP_LENGTH ?? '6') || 6;
-    return res.status(200).json({ status: 'exists', email, otpLength, message: 'OTP sent — verify on /auth' });
+  if (otpErr) {
+    console.error('[instant-signup] signInWithOtp failed:', { email, status: otpErr.status, message: otpErr.message });
+    return res.status(500).json({ error: 'otp_send_failed' });
   }
 
-  if (createErr) {
-    console.error('[instant-signup] createUser failed (not the exists branch):', { email, status: createErr.status, message: createErr.message });
-    return res.status(500).json({ error: 'create_failed', detail: createErr.message });
-  }
-  if (!createData?.user) {
-    console.error('[instant-signup] createUser returned no user:', { email });
-    return res.status(500).json({ error: 'create_returned_no_user' });
-  }
-  console.log('[instant-signup] new user created:', { email, userId: createData.user.id });
-
-  // Generate a single-use magic-link OTP. Client calls supabase.auth.verifyOtp
-  // locally with this token to establish a real session — equivalent to the
-  // user clicking a magic link, but we hand them the token directly so they
-  // never need to leave the page.
-  const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
-  });
-  if (linkErr || !linkData?.properties?.email_otp) {
-    return res.status(500).json({ error: 'link_gen_failed', detail: linkErr?.message ?? 'no email_otp returned' });
-  }
-
+  // otpLength is read from env (mirrors Supabase dashboard "Email OTP Length").
+  // Default 6 — bump if you change the dashboard value to 7 or 8.
+  const otpLength = Number(process.env.SUPABASE_EMAIL_OTP_LENGTH ?? '6') || 6;
   return res.status(200).json({
-    status: 'created',
+    status: 'otp_sent',
     email,
-    otp: linkData.properties.email_otp,
+    otpLength,
+    message: 'Check your email for a sign-in code.',
   });
 }
 

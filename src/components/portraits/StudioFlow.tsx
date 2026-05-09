@@ -174,9 +174,9 @@ function SignInDialog({
       // we just skip it and let email-only dedup do its job.
       const visitorId = await getVisitorId();
 
-      // Try instant-signup first. New emails: account created + signed in
-      // immediately, no email click. Existing emails: server already sent the
-      // OTP, we switch to code-entry to verify ownership.
+      // Server emails an OTP for both new and existing accounts. We always
+      // collect the code — no client-side auto-verify (would require trusting
+      // the server to hand us a token for an email we haven't proven we own).
       const r = await fetch('/api/portraits?action=instant-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -186,7 +186,7 @@ function SignInDialog({
           honeypot: hpField,
         }),
       });
-      const data = await r.json() as { status?: string; otp?: string; email?: string; error?: string; message?: string };
+      const data = await r.json() as { status?: string; email?: string; error?: string; message?: string };
 
       if (!r.ok) {
         if (r.status === 429) {
@@ -197,24 +197,7 @@ function SignInDialog({
         return;
       }
 
-      if (data.status === 'created' && data.otp && data.email) {
-        // New account — verify the server-issued OTP locally to establish session.
-        const { error: vErr } = await supabase.auth.verifyOtp({
-          email: data.email,
-          token: data.otp,
-          type: 'magiclink',
-        });
-        if (vErr) {
-          toast.error(vErr.message || 'Sign-in failed');
-          return;
-        }
-        onOpenChange(false);
-        toast.success('Welcome — 3 free pawtraits ready to generate.');
-        return;
-      }
-
-      if (data.status === 'exists') {
-        // Returning user — server already sent the OTP. Just collect the code.
+      if (data.status === 'otp_sent') {
         setStep('code');
         setCode('');
         return;

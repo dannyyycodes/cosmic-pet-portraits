@@ -113,9 +113,8 @@ export default function Auth() {
       // email-only dedup still applies.
       const visitorId = await getVisitorId();
 
-      // Try instant-signup first. New emails: account created + signed in
-      // immediately, no email click needed. Existing emails: server sends an
-      // OTP and tells us to switch to code-entry to verify ownership.
+      // Server emails an OTP for both new and existing accounts. The response
+      // is uniform (no user-enumeration oracle); we always go to code entry.
       const r = await fetch('/api/portraits?action=instant-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -125,7 +124,7 @@ export default function Auth() {
           honeypot: hpField,
         }),
       });
-      const data = await r.json() as { status?: string; otp?: string; email?: string; otpLength?: number; error?: string; message?: string };
+      const data = await r.json() as { status?: string; email?: string; otpLength?: number; error?: string; message?: string };
 
       if (!r.ok) {
         if (r.status === 429) {
@@ -136,20 +135,7 @@ export default function Auth() {
         return;
       }
 
-      if (data.status === 'created' && data.otp && data.email) {
-        // New account — verify the server-issued OTP locally to establish session.
-        const { error: vErr } = await verifyOtp(data.email, data.otp);
-        if (vErr) {
-          toast.error(vErr.message || 'Sign-in failed');
-        } else {
-          toast.success('Welcome to Little Souls.');
-          // Navigate fires from the user-effect once SIGNED_IN emits.
-        }
-        return;
-      }
-
-      if (data.status === 'exists') {
-        // Returning user. Server already sent the OTP — just collect the code.
+      if (data.status === 'otp_sent') {
         const len = (ALLOWED_OTP_LENGTHS as readonly number[]).includes(data.otpLength ?? -1)
           ? (data.otpLength as number)
           : DEFAULT_OTP_LENGTH;
@@ -157,7 +143,7 @@ export default function Auth() {
         setStep('code');
         setResendIn(RESEND_COOLDOWN_S);
         setCode('');
-        toast.success(`Welcome back. We've sent a ${len}-digit code to your email.`);
+        toast.success(`Check your email for a ${len}-digit code.`);
         return;
       }
 
