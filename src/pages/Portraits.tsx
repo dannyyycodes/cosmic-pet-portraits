@@ -942,17 +942,23 @@ const Portraits = () => {
       <div style={{ position: "relative", zIndex: 1 }}>
       {/* Non-studio sections dim during generating/reveal so the customer's
           eye stays locked on the canvas. The dim is applied via inline style
-          (opacity + filter + pointer-events) rather than a class so we don't
-          have to thread Tailwind config through; transition lives on the
-          wrapping div so all four sections fade in unison. */}
+          (opacity + pointer-events) rather than a class so we don't have to
+          thread Tailwind config through. Opacity alone kills colour vibrancy
+          enough — we previously had filter:saturate too, but `filter` creates
+          a new stacking context and clips fixed-positioned descendants
+          (toasts, modals, scroll-pinned elements). Belt+braces accessibility:
+          `aria-hidden` for AT, `inert` (HTML5) so keyboard tab order skips
+          the dimmed sections in browsers that don't follow aria-hidden's
+          focus-blocking. */}
       <div
         style={{
           opacity: studioFocused ? 0.18 : 1,
-          filter: studioFocused ? "saturate(0.6)" : "none",
           pointerEvents: studioFocused ? "none" : "auto",
-          transition: "opacity 320ms ease, filter 320ms ease",
+          transition: "opacity 320ms ease",
         }}
         aria-hidden={studioFocused}
+        // @ts-expect-error inert is a valid HTML attribute; React 18 types haven't caught up
+        inert={studioFocused ? "" : undefined}
       >
         <PortraitsHero onBegin={scrollToUpload} />
         <ReviewWall />
@@ -972,11 +978,12 @@ const Portraits = () => {
       <div
         style={{
           opacity: studioFocused ? 0.18 : 1,
-          filter: studioFocused ? "saturate(0.6)" : "none",
           pointerEvents: studioFocused ? "none" : "auto",
-          transition: "opacity 320ms ease, filter 320ms ease",
+          transition: "opacity 320ms ease",
         }}
         aria-hidden={studioFocused}
+        // @ts-expect-error inert is a valid HTML attribute; React 18 types haven't caught up
+        inert={studioFocused ? "" : undefined}
       >
         <TopUpPlans variant="inline" authRedirect="/pawtraits#topup" />
       </div>

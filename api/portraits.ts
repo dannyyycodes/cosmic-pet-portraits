@@ -9,7 +9,19 @@
  *
  * Single Serverless Function on Vercel — Hobby plan caps at 12. We previously
  * had 4 separate files; consolidated 2026-05-04.
+ *
+ * Function config: maxDuration explicitly set so the worst-case generate
+ * path (Vision pre-pass up to 24s after 2026-05-09 retry change + fal.run
+ * gpt-image-2 8–25s + post-gen Vision ~6–12s + drift compute) doesn't get
+ * killed by Vercel's default function timeout (Hobby = 10s without config).
+ * 60s is the Hobby ceiling and matches FAL_TIMEOUT_MS (90s in code, but the
+ * function will return before that). Without this explicit config we'd
+ * silently 504 on slow Vision calls and the customer would see a blank
+ * "took too long" toast instead of the new graceful fallback.
  */
+export const config = {
+  maxDuration: 60,
+};
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import sharp from "sharp";
 import { createClient } from "@supabase/supabase-js";

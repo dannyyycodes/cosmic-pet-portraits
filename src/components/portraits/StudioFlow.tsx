@@ -646,6 +646,22 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   const promptRef = useRef<HTMLTextAreaElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
 
+  // When handleTweak transitions us back to compose, the textarea is being
+  // re-mounted — promptRef won't be live for ~1 frame. The ref couldn't be
+  // focused via requestAnimationFrame inside handleTweak (the ref hadn't
+  // attached yet). Instead we set this flag in handleTweak, and a useEffect
+  // below picks it up once the compose subtree has actually rendered and
+  // the ref is live, then focuses + scrolls. Same idea as a "do this on
+  // next mount" guard.
+  const tweakFocusPendingRef = useRef(false);
+  useEffect(() => {
+    if (studioPhase !== 'compose' || !tweakFocusPendingRef.current) return;
+    if (!promptRef.current) return;
+    tweakFocusPendingRef.current = false;
+    promptRef.current.focus();
+    promptRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [studioPhase]);
+
   async function handleGenerate() {
     if (uploadedPets.length < 1 || prompt.trim().length < 4) return;
     if (!user || !session?.access_token) {
@@ -751,15 +767,16 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     handleGenerate();
   }
 
-  /** Approval-gate tweak: collapse gate, scroll back to prompt editor. */
+  /** Approval-gate tweak: collapse gate, scroll back to prompt editor. The
+   *  compose subtree is unmounted in reveal phase, so promptRef won't be
+   *  live for ~1 frame after we clear variants. We can't focus/scroll
+   *  synchronously here — instead we set tweakFocusPendingRef and let the
+   *  useEffect above pick it up once compose has re-mounted. */
   function handleTweak() {
+    tweakFocusPendingRef.current = true;
     setVariants([]);
     setSelectedVariantUrl(null);
     setApproved(false);
-    requestAnimationFrame(() => {
-      promptRef.current?.focus();
-      promptRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    });
   }
 
   /** Approval-gate continue: flip approved=true → reveals size/frame picker. */
@@ -898,8 +915,14 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
 
         {/* Scroll target for handleGenerate — lands the focal area in the
             customer's eyeline as the compose UI fades to make room for the
-            GenerationCanvas / ApprovalGate. */}
-        <div ref={stageRef} aria-hidden style={{ position: "absolute", top: 0 }} />
+            GenerationCanvas / ApprovalGate. scrollMarginTop keeps the heading
+            clear of the 62px fixed PortraitsNav (without it, smooth scroll
+            buries the eyebrow + first line of the heading under the nav). */}
+        <div
+          ref={stageRef}
+          aria-hidden
+          style={{ position: "absolute", top: 0, scrollMarginTop: "80px" }}
+        />
 
         {/* ── Studio anchor heading ─────────────────────────────────── */}
         <div className="text-center mb-5 md:mb-7">
@@ -1004,8 +1027,15 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
             / ApprovalGate / cart UI take its place — that's the "single
             focal area" experience Danny asked for. State (pets, prompt) is
             preserved across the unmount because it lives in StudioFlow's own
-            useState hooks, so a Tweak click brings it back intact. */}
-        <AnimatePresence mode="wait">
+            useState hooks, so a Tweak click brings it back intact.
+
+            NOTE: no mode="wait" — we DON'T want to delay the new compose
+            subtree's mount behind the old subtree's exit anim, because that
+            keeps promptRef null while handleTweak's focus useEffect is
+            looking for it. Without mode="wait", old subtree exits and new
+            subtree mounts in parallel (crossfade). The focus useEffect can
+            then see the live promptRef as soon as compose enters. */}
+        <AnimatePresence>
         {studioPhase === 'compose' && (
         <motion.div
           key="compose"
@@ -1385,7 +1415,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
             the size/frame picker + cart UI become visible. This matches the
             Crown & Paw "preview & approve before print" pattern (research
             doc §8 Screen 5). Resets to false on any pet/prompt change. */}
-        <div ref={approvalRef} />
+        <div ref={approvalRef} style={{ scrollMarginTop: "80px" }} />
         <AnimatePresence>
           {!generating && variants.length > 0 && !approved && selectedVariantUrl && (
             <motion.div
@@ -1410,7 +1440,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         </AnimatePresence>
 
         {/* ── Variants + size + cart (post-approval) ─────────────────── */}
-        <div ref={variantsRef} />
+        <div ref={variantsRef} style={{ scrollMarginTop: "80px" }} />
         <AnimatePresence>
           {!generating && variants.length > 0 && approved && (
             <motion.div
