@@ -22,7 +22,7 @@
  * the fragment, where it was getting lost).
  * ─────────────────────────────────────────────────────────────────────────
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -30,11 +30,17 @@ import { Sparkles, Check, Star, Crown, Gift } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/components/portraits/useCredits";
 import { PALETTE, display, cormorantItalic, eyebrow, tabularPrice, EASE } from "@/components/portraits/tokens";
+import {
+  detectCurrency,
+  formatPrice,
+  setManualCurrencyOverride,
+  SKU_DISPLAY_PRICE,
+  type Currency,
+} from "@/lib/currency";
 
 interface Plan {
   sku: "pass" | "elite" | "pack";
   label: string;
-  price: string;
   cadence: string;
   generations: string;
   tagline: string;
@@ -44,11 +50,12 @@ interface Plan {
   icon: typeof Sparkles;
 }
 
+// Plans are currency-agnostic now — display price comes from
+// SKU_DISPLAY_PRICE[sku][currency] resolved at render time.
 const PLANS: Plan[] = [
   {
     sku: "pack",
     label: "Pack of 5",
-    price: "£4.99",
     cadence: "one-off",
     generations: "5 pawtraits",
     tagline: "Top up without committing.",
@@ -63,7 +70,6 @@ const PLANS: Plan[] = [
   {
     sku: "pass",
     label: "Pass",
-    price: "£8.99",
     cadence: "per month",
     generations: "25 pawtraits/mo",
     tagline: "Worth it after one print.",
@@ -80,7 +86,6 @@ const PLANS: Plan[] = [
   {
     sku: "elite",
     label: "Enthusiast",
-    price: "£17.99",
     cadence: "per month",
     generations: "75 pawtraits/mo",
     tagline: "For the seriously obsessed.",
@@ -136,6 +141,24 @@ export function TopUpPlans({
   const { user, session } = useAuth();
   const { balance, tier } = useCredits();
   const [busySku, setBusySku] = useState<string | null>(null);
+  // Currency: detected from Vercel geo on mount, overrideable by manual
+  // toggle. Display + checkout body both honour this. Default GBP keeps
+  // the legacy behaviour stable until detection completes.
+  const [currency, setCurrency] = useState<Currency>("GBP");
+  const [currencySource, setCurrencySource] = useState<"manual" | "geo" | "fallback">("fallback");
+
+  useEffect(() => {
+    let cancelled = false;
+    detectCurrency().then((r) => { if (!cancelled) { setCurrency(r.currency); setCurrencySource(r.source); } });
+    return () => { cancelled = true; };
+  }, []);
+
+  function toggleCurrency() {
+    const next: Currency = currency === "GBP" ? "USD" : "GBP";
+    setManualCurrencyOverride(next);
+    setCurrency(next);
+    setCurrencySource("manual");
+  }
 
   async function handleStart(sku: Plan["sku"]) {
     if (!user) {
@@ -156,7 +179,7 @@ export function TopUpPlans({
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ sku }),
+        body: JSON.stringify({ sku, currency }),
       });
       // Read text first so non-JSON responses (HTML error pages, gateway 500s)
       // surface a useful message instead of "JSON.parse: unexpected character".
@@ -310,7 +333,7 @@ export function TopUpPlans({
 
             <div className="mt-3 flex items-baseline gap-1.5">
               <span style={{ ...tabularPrice("38px"), color: PALETTE.ink, fontWeight: 700 }}>
-                {plan.price}
+                {formatPrice(SKU_DISPLAY_PRICE[plan.sku][currency], currency)}
               </span>
               <span
                 style={{
@@ -429,6 +452,30 @@ export function TopUpPlans({
                       · {tier === "elite" ? "Elite" : "Pass"} subscriber
                     </span>
                   )}
+                </div>
+              )}
+              {/* Currency toggle — auto-detected from country header on
+                  mount; click to override. Manual choice persists in a
+                  365-day cookie. Hidden until detection completes. */}
+              {currencySource !== "fallback" && (
+                <div
+                  className="mt-3 text-xs"
+                  style={{
+                    fontFamily: 'Assistant, system-ui, sans-serif',
+                    color: PALETTE.earthMuted,
+                  }}
+                >
+                  Pricing in {currency}
+                  {currencySource === "geo" && " (auto)"}
+                  <button
+                    type="button"
+                    onClick={toggleCurrency}
+                    className="ml-2 underline hover:no-underline"
+                    style={{ color: PALETTE.rose, background: "none", border: "none", cursor: "pointer", fontSize: "inherit" }}
+                    aria-label={`Switch pricing to ${currency === "GBP" ? "USD" : "GBP"}`}
+                  >
+                    Switch to {currency === "GBP" ? "USD" : "GBP"}
+                  </button>
                 </div>
               )}
             </div>
