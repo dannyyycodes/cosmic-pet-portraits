@@ -556,6 +556,23 @@ function isFalBalanceExhausted(text: string): boolean {
   return lower.includes("exhausted balance") || lower.includes("user is locked") || lower.includes("top up your balance");
 }
 
+// fal returns a 422 with a content_policy_violation marker when the moderator
+// trips on a prompt — typically a pet name that resembles an unsafe word
+// (vault note 2026-05-08: Sphynx "Naked" was the canonical case). Detecting
+// this lets handleGenerate refund the credit AND surface a specific error
+// code so the UI shows "try a different name" instead of a generic 502.
+function isFalContentPolicyViolation(status: number, text: string): boolean {
+  if (status !== 422) return false;
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("content_policy_violation") ||
+    lower.includes("content policy") ||
+    lower.includes("moderation") ||
+    lower.includes("safety") ||
+    lower.includes("policy violation")
+  );
+}
+
 function balancePausedResponse(res: VercelResponse) {
   return res.status(503).json({
     error: "ai-service-paused",
@@ -710,7 +727,14 @@ Rules:
   }
 }
 
-interface VariantResult { url?: string; balanceExhausted?: boolean }
+interface VariantResult {
+  url?: string;
+  balanceExhausted?: boolean;
+  /** True when fal returned 422 + a content_policy_violation marker — the
+   *  caller should refund the credit AND surface a specific error code so
+   *  the UI can show "try a different name" instead of a generic failure. */
+  contentPolicyViolation?: boolean;
+}
 
 // gpt-image-2 via fal.ai — image-to-image edit endpoint.
 // Same FAL_KEY, no new env var, no base64 upload dance.
@@ -849,6 +873,10 @@ async function generateVariant(args: {
       // bodyText was already consumed inside callGptImage on non-OK; reuse it.
       const text = bodyText ?? '';
       if (isFalBalanceExhausted(text)) return { balanceExhausted: true };
+      if (isFalContentPolicyViolation(r.status, text)) {
+        console.warn('[generateVariant] content_policy_violation', { status: r.status, snippet: text.slice(0, 200) });
+        return { contentPolicyViolation: true };
+      }
       return {};
     }
     const d = (await r.json()) as KontextResponse;
@@ -1234,12 +1262,59 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       return balancePausedResponse(res);
     }
 
+    if (result.contentPolicyViolation) {
+      // The fal moderator tripped — usually a pet name resembling an unsafe
+      // word (Sphynx "Naked" was the canonical case). Refund the credit and
+      // give the UI a specific code so it can show "try a different name"
+      // inline rather than a generic failure toast that has the customer
+      // retrying the same input.
+      await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "content-policy-violation" });
+      return res.status(422).json({
+        error: "content_policy_violation",
+        message: "Our AI moderator flagged this generation. The most common cause is a pet name that resembles an unsafe word — try a different spelling or a nickname.",
+        suggestion: "rename_or_remove_pet_name",
+        creditRefunded: true,
+      });
+    }
+
     if (!result.url) {
       await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "generation-failed" });
       return res.status(502).json({ error: "Generation failed (credit refunded)" });
     }
 
-    const variants = [{ url: result.url, composition: promptDef.compositionId }];
+    // Rehost the fal.media URL into our own public Supabase bucket. fal
+    // outputs expire (~1h synchronous endpoint, ~24h queue), but the
+    // customer's cart persists in localStorage indefinitely — pay-next-day
+    // would otherwise dereference a dead URL at print-master regen and
+    // either fail to print or burn another generation. Non-fatal — falls
+    // back to the fal URL with a logged warning if rehost fails.
+    let durableUrl = result.url;
+    try {
+      const dl = await fetch(result.url, { signal: AbortSignal.timeout(30_000) });
+      if (dl.ok) {
+        const buffer = Buffer.from(await dl.arrayBuffer());
+        const path = `generations/${crypto.randomUUID()}.png`;
+        const { error: upErr } = await supabase.storage
+          .from("pet-photos")
+          .upload(path, buffer, { contentType: "image/png", cacheControl: "31536000", upsert: false });
+        if (!upErr) {
+          const { data } = supabase.storage.from("pet-photos").getPublicUrl(path);
+          if (data?.publicUrl) {
+            durableUrl = data.publicUrl;
+          } else {
+            console.warn("[generate] rehost: getPublicUrl returned no URL — using fal URL");
+          }
+        } else {
+          console.warn("[generate] rehost upload failed:", upErr.message);
+        }
+      } else {
+        console.warn("[generate] rehost download failed:", dl.status);
+      }
+    } catch (e) {
+      console.warn("[generate] rehost threw:", (e as Error).message);
+    }
+
+    const variants = [{ url: durableUrl, composition: promptDef.compositionId }];
     // Response shape:
     //   variants:  [{ url, composition }]            — same as before
     //   subject:   first pet's SubjectInfo            — back-compat with single-pet UI
