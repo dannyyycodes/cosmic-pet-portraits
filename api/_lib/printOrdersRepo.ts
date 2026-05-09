@@ -378,6 +378,11 @@ export interface InsertPawtraitTouchpointInput {
 /**
  * Idempotent on (print_order_id, touchpoint_type). Returns whether a new row
  * was inserted (so the Gelato webhook handler can log accurately).
+ *
+ * Note: writes to `account_id` (the column name from the lifecycle migration
+ * — the union schema we settled on after touchpoints-unify migration
+ * 20260509000000). The repo's input field is named `userId` for callsite
+ * symmetry with print_orders.user_id; we map it across.
  */
 export async function insertPawtraitTouchpoint(
   input: InsertPawtraitTouchpointInput,
@@ -388,7 +393,7 @@ export async function insertPawtraitTouchpoint(
     .upsert(
       {
         print_order_id: input.printOrderId,
-        user_id: input.userId ?? null,
+        account_id: input.userId ?? null,
         touchpoint_type: input.touchpointType,
         scheduled_for: input.scheduledFor.toISOString(),
         email: input.email ?? null,
