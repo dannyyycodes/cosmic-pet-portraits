@@ -804,6 +804,12 @@ const Portraits = () => {
     canvasPersonalisedAt: string | null;
     readingImmediateAt: string | null;
   } | null) => {
+    // Debounce against double-click. The button is disabled via the
+    // checkoutBusy prop, but a fast double-tap can fire both clicks before
+    // React re-renders the disabled state. Without this guard we'd open two
+    // Shopify draft orders for the same cart and the customer would see two
+    // confirmations / two charges.
+    if (checkoutBusy) return;
     if (cart.length === 0) return;
     setCheckoutBusy(true);
     setCheckoutError(null);
@@ -890,17 +896,17 @@ const Portraits = () => {
   return (
     <>
     <Helmet>
-      <title>Custom AI Pet Portraits — Watercolor, Renaissance & More | Little Souls</title>
-      <meta name="description" content="Turn your pet's photo into a custom AI portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
+      <title>Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls</title>
+      <meta name="description" content="Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalised for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
       <meta property="og:type" content="article" />
-      <meta property="og:title" content="Custom AI Pet Portraits — Watercolor, Renaissance & More | Little Souls" />
-      <meta property="og:description" content="Turn your pet's photo into a custom AI portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
+      <meta property="og:title" content="Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls" />
+      <meta property="og:description" content="Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalised for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
       <meta property="og:image" content="https://www.littlesouls.app/og/pawtraits-default.jpg" />
       <meta property="og:url" content="https://littlesouls.app/pawtraits" />
       <meta property="og:site_name" content="Little Souls" />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Custom AI Pet Portraits — Watercolor, Renaissance & More | Little Souls" />
-      <meta name="twitter:description" content="Turn your pet's photo into a custom AI portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
+      <meta name="twitter:title" content="Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls" />
+      <meta name="twitter:description" content="Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalised for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
       <meta name="twitter:image" content="https://www.littlesouls.app/og/pawtraits-default.jpg" />
       <meta property="article:author" content="Little Souls" />
       <meta property="article:section" content="Custom Pet Portraits" />

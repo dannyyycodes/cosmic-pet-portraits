@@ -280,7 +280,7 @@ function ErrorState({ errorMsg, cta }: { errorMsg?: string | null; cta?: { label
         style={{ ...cormorantItalic("17px"), color: "#e8c8b0", textWrap: "pretty" }}
       >
         {cta
-          ? "AI portrait service is paused for a moment."
+          ? "Our portrait studio is paused for a moment."
           : "Preview didn't take. Try a different photo or character?"}
       </p>
       {errorMsg && !cta && (

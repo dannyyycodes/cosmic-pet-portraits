@@ -196,7 +196,7 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
 
           {/* Begin CTA — visible on all sizes, primary action */}
           <a
-            href="#upload"
+            href="#studio"
             className="hidden sm:inline-flex items-center gap-1.5 rounded-full transition-all hover:scale-[1.02]"
             style={{
               background: PALETTE.rose,
@@ -277,7 +277,7 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
                   </SheetClose>
                   <SheetClose asChild>
                     <a
-                      href="#upload"
+                      href="#studio"
                       className="rounded-full text-center mx-4 mt-3"
                       style={{
                         background: PALETTE.rose,
