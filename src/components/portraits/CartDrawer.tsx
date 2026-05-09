@@ -275,7 +275,7 @@ function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) =
               fontWeight: 700,
             }}
           >
-            {item.kind === "template" ? "Real photo" : "AI pawtrait"}
+            {item.kind === "template" ? "Real photo" : "Painted pawtrait"}
           </span>
         </div>
         <p

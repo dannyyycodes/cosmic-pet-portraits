@@ -633,7 +633,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         return;
       }
       if (res.status === 503 && data.error === "ai-service-paused") {
-        toast.error(data.message ?? "AI is briefly paused — try again.");
+        toast.error(data.message ?? "Our portrait studio is briefly paused — try again.");
         refreshCredits();
         return;
       }
@@ -682,6 +682,11 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   }
 
   async function handleAdd() {
+    // Debounce against double-click. The button is disabled via canAdd while
+    // preparingPrintMaster, but a fast double-tap can fire both clicks before
+    // React re-renders the disabled prop. Without this guard the second
+    // click kicks off a parallel print-master fetch and a second cart insert.
+    if (preparingPrintMaster) return;
     if (!selectedVariantUrl || !variant) return;
     if (uploadedPets.length === 0) return;
     if (!session?.access_token) {

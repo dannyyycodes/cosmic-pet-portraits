@@ -71,7 +71,7 @@ const QAS: QA[] = [
     ),
   },
   {
-    q: "Is this AI? Do you really paint these?",
+    q: "How are these made? Do you really paint them?",
     a: (
       <>
         We use a hand-tuned cinematic image pipeline — not stock filters, not a one-click
