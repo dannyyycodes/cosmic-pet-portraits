@@ -2,7 +2,7 @@
 //
 // The function processes both the soul-reading journey-stage state machine
 // AND the pawtrait_touchpoints scheduling table on each tick — so canvas
-// shipping/delivered events ingested by handle-gelato-webhook flow out to
+// shipping/delivered events ingested by api/gelato/webhook.ts flow out to
 // customers within at most 15 minutes.
 //
 // A Postgres cron schedule (migration 20260313100000_email_nurture_cron.sql)
