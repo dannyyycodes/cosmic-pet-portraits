@@ -10,7 +10,7 @@
  * Consolidated 2026-05-04 from api/stripe/{checkout,portal}.ts.
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getStripe, PRICES } from "./_lib/stripe.js";
+import { getStripe, priceIdForSku } from "./_lib/stripe.js";
 import { getSupabaseAdmin } from "./_lib/supabaseAdmin.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -63,15 +63,21 @@ async function handleCheckout(req: VercelRequest, res: VercelResponse) {
   if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
   const user = userRes.user;
 
-  const { sku } = (req.body ?? {}) as { sku?: string };
+  const { sku, currency } = (req.body ?? {}) as { sku?: string; currency?: string };
   if (!sku) return res.status(400).json({ error: "sku required" });
+  if (sku !== "pass" && sku !== "elite" && sku !== "pack") {
+    return res.status(400).json({ error: `Unknown sku: ${sku}` });
+  }
 
-  let priceId: string; let mode: "subscription" | "payment";
-  if (sku === "pass")  { priceId = PRICES.passMonthly;  mode = "subscription"; }
-  else if (sku === "elite") { priceId = PRICES.eliteMonthly; mode = "subscription"; }
-  else if (sku === "pack")  { priceId = PRICES.pack20;       mode = "payment"; }
-  else return res.status(400).json({ error: `Unknown sku: ${sku}` });
-  if (!priceId) return res.status(500).json({ error: `Price id not configured for sku ${sku}` });
+  // Currency: default to GBP. USD requires the matching STRIPE_PRICE_*_USD
+  // env vars to be configured in Vercel — otherwise priceIdForSku returns ""
+  // and we 500 with a recognisable message.
+  const cur: "GBP" | "USD" = currency === "USD" ? "USD" : "GBP";
+  const priceId = priceIdForSku(sku, cur);
+  const mode: "subscription" | "payment" = sku === "pack" ? "payment" : "subscription";
+  if (!priceId) {
+    return res.status(500).json({ error: `Price id not configured for sku=${sku} currency=${cur}` });
+  }
 
   const stripe = getStripe();
   let customerId: string | null = null;

@@ -10,12 +10,13 @@
  *  4. Return 200 fast (return 500 only on signature failure or programmer error)
  *
  * Events handled:
- *   customer.subscription.created
- *   customer.subscription.updated
- *   customer.subscription.deleted
+ *   customer.subscription.created/updated/deleted -> upsert portraits_subscriptions
  *   invoice.paid                    -> grant period's credits (renewal top-up)
- *   invoice.payment_failed          -> flag sub
- *   checkout.session.completed      -> mode='payment' = one-off pack: grant 20
+ *   invoice.payment_failed          -> flip portraits_subscriptions.status='past_due'
+ *   payment_intent.payment_failed   -> log (one-off pack pre-checkout failure)
+ *   charge.refunded                 -> log (manual credit-clawback by ops)
+ *   charge.dispute.created          -> error-log (page ops; respond w/in 7d)
+ *   checkout.session.completed      -> credit pack OR pawtrait touchpoint schedule
  *
  * Required Vercel env: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, plus the
  * Price IDs in api/_lib/stripe.ts.
@@ -89,6 +90,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await handleInvoicePaid(event.data.object as Stripe.Invoice);
         break;
 
+      case "invoice.payment_failed":
+        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
+        break;
+
+      case "payment_intent.payment_failed":
+        await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
+        break;
+
+      case "charge.refunded":
+        await handleChargeRefunded(event.data.object as Stripe.Charge);
+        break;
+
+      case "charge.dispute.created":
+        await handleChargeDisputeCreated(event.data.object as Stripe.Dispute);
+        break;
+
       case "checkout.session.completed":
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
         break;
@@ -99,10 +116,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     return res.status(200).json({ received: true });
   } catch (err) {
-    console.error("[stripe/webhook] handler error", err);
-    // Don't throw — return 200 so Stripe doesn't endlessly retry on programmer error.
-    // The event row stays in portraits_stripe_events for manual inspection.
-    return res.status(200).json({ received: true, error: (err as Error).message });
+    // Return 500 so Stripe retries (up to ~72h via exponential backoff). The
+    // previous "return 200 to prevent endless retries on programmer error"
+    // was the wrong trade-off: it meant a transient DB blip during a
+    // subscription credit grant was lost forever — customer paid, no credits.
+    // Programmer errors will surface as repeated 500s in the Stripe dashboard
+    // event log instead of silent data loss.
+    console.error("[stripe/webhook] handler error — returning 500 so Stripe retries:", {
+      eventId: event.id,
+      eventType: event.type,
+      error: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack?.split("\n").slice(0, 5) : undefined,
+    });
+    // Roll back the dedup row so the retry actually re-runs the handler.
+    // (Otherwise the dedup catch above would 200 the next attempt.)
+    try {
+      await supabase.from("portraits_stripe_events").delete().eq("id", event.id);
+    } catch {
+      /* swallow — better to leave the dedup row than fail the response */
+    }
+    return res.status(500).json({
+      error: "handler_failed",
+      detail: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 
@@ -314,6 +350,109 @@ async function schedulePawtraitTouchpoints(session: Stripe.Checkout.Session) {
   }
   console.log(
     `[stripe/webhook] scheduled ${rows.length} pawtrait touchpoints for ${email} session=${session.id}`,
+  );
+}
+
+// ─── Failure / refund / dispute handlers (added 2026-05-09) ────────────────
+//
+// These four handlers were missing — the webhook silently no-op'd on
+// payment failures, refunds, and chargebacks. Customer paid, card later
+// declined, and we kept granting credits / printing canvas / shipping with
+// no alert. Now we flip subscription status, log loud, and (for disputes)
+// emit a high-severity console.error so Vercel log alerts catch it.
+
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  const subId =
+    typeof invoice.subscription === "string"
+      ? invoice.subscription
+      : invoice.subscription?.id;
+  if (!subId) {
+    console.warn("[stripe/webhook] invoice.payment_failed without subscription id", invoice.id);
+    return;
+  }
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("portraits_subscriptions")
+    .update({
+      status: "past_due",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", subId);
+  if (error) {
+    // Bubble up — caller's catch returns 500 so Stripe retries.
+    throw new Error(`portraits_subscriptions past_due update failed: ${error.message}`);
+  }
+  console.warn(
+    "[stripe/webhook] invoice.payment_failed → past_due",
+    JSON.stringify({
+      invoiceId: invoice.id,
+      subscriptionId: subId,
+      attempt: invoice.attempt_count ?? 1,
+      nextAttempt: invoice.next_payment_attempt
+        ? new Date(invoice.next_payment_attempt * 1000).toISOString()
+        : null,
+    }),
+  );
+}
+
+async function handlePaymentIntentFailed(pi: Stripe.PaymentIntent) {
+  // One-off pack purchases use mode='payment'. A failed PI here means a
+  // pack-buy attempt failed before checkout completed. No state to roll
+  // back (no row was written for an incomplete checkout) — just log loud.
+  console.warn(
+    "[stripe/webhook] payment_intent.payment_failed",
+    JSON.stringify({
+      paymentIntentId: pi.id,
+      amount: pi.amount,
+      currency: pi.currency,
+      lastError: pi.last_payment_error?.message ?? null,
+      lastErrorCode: pi.last_payment_error?.code ?? null,
+      customer: typeof pi.customer === "string" ? pi.customer : pi.customer?.id ?? null,
+    }),
+  );
+}
+
+async function handleChargeRefunded(charge: Stripe.Charge) {
+  // Refund triage: log so ops can spot it. We do NOT auto-claw-back credits
+  // because (a) tokens may already be spent on generated portraits, (b) for
+  // canvas refunds the tokens path is decoupled. Manual intervention from
+  // ops via Supabase admin if a refund warrants a credit clawback.
+  const customerId = typeof charge.customer === "string" ? charge.customer : charge.customer?.id ?? null;
+  console.warn(
+    "[stripe/webhook] charge.refunded — manual review required",
+    JSON.stringify({
+      chargeId: charge.id,
+      paymentIntentId: charge.payment_intent,
+      amount: charge.amount_refunded,
+      currency: charge.currency,
+      customer: customerId,
+      reason: charge.refunds?.data[0]?.reason ?? null,
+    }),
+  );
+}
+
+async function handleChargeDisputeCreated(dispute: Stripe.Dispute) {
+  // Chargebacks are EXPENSIVE ($15+ fee even if we win) and time-bounded
+  // (typically 7 days to respond). Log loud so Vercel log alerts page ops.
+  // No auto-action — disputes need human evidence-gathering response.
+  const customerId =
+    typeof dispute.charge === "string"
+      ? null
+      : (dispute.charge as Stripe.Charge | null)?.customer ?? null;
+  console.error(
+    "[stripe/webhook] CHARGE.DISPUTE.CREATED — respond within 7 days",
+    JSON.stringify({
+      disputeId: dispute.id,
+      chargeId: typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id,
+      amount: dispute.amount,
+      currency: dispute.currency,
+      reason: dispute.reason,
+      status: dispute.status,
+      customer: typeof customerId === "string" ? customerId : customerId?.id ?? null,
+      evidenceDueBy: dispute.evidence_details?.due_by
+        ? new Date(dispute.evidence_details.due_by * 1000).toISOString()
+        : null,
+    }),
   );
 }
 
