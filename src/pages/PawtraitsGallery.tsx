@@ -251,17 +251,17 @@ export default function PawtraitsGallery() {
   return (
     <>
     <Helmet>
-      <title>Pet Portrait Gallery — Browse 100+ Custom AI Pet Art Designs | Little Souls</title>
-      <meta name="description" content="Explore custom AI pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
+      <title>Pet Portrait Gallery — Browse 100+ Custom Painted Pet Art Designs | Little Souls</title>
+      <meta name="description" content="Explore custom painted pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
       <meta property="og:type" content="article" />
-      <meta property="og:title" content="Pet Portrait Gallery — Browse 100+ Custom AI Pet Art Designs | Little Souls" />
-      <meta property="og:description" content="Explore custom AI pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
+      <meta property="og:title" content="Pet Portrait Gallery — Browse 100+ Custom Painted Pet Art Designs | Little Souls" />
+      <meta property="og:description" content="Explore custom painted pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
       <meta property="og:image" content="https://www.littlesouls.app/og/pawtraits-gallery.jpg" />
       <meta property="og:url" content="https://littlesouls.app/pawtraits/gallery" />
       <meta property="og:site_name" content="Little Souls" />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Pet Portrait Gallery — Browse 100+ Custom AI Pet Art Designs | Little Souls" />
-      <meta name="twitter:description" content="Explore custom AI pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
+      <meta name="twitter:title" content="Pet Portrait Gallery — Browse 100+ Custom Painted Pet Art Designs | Little Souls" />
+      <meta name="twitter:description" content="Explore custom painted pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own." />
       <meta name="twitter:image" content="https://www.littlesouls.app/og/pawtraits-gallery.jpg" />
       <meta property="article:author" content="Little Souls" />
       <meta property="article:section" content="Custom Pet Portraits" />

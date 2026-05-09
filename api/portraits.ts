@@ -592,7 +592,7 @@ function isFalContentPolicyViolation(status: number, text: string): boolean {
 function balancePausedResponse(res: VercelResponse) {
   return res.status(503).json({
     error: "ai-service-paused",
-    message: "Our AI portrait service is paused (account top-up needed). Try the Templates flow — your pet's actual face on a beautifully framed product, no AI required.",
+    message: "Our portrait studio is paused (account top-up needed). Try the Templates flow — your pet's actual face on a beautifully framed product.",
     cta: { label: "Try Templates instead", href: "/pawtraits/templates" },
   });
 }

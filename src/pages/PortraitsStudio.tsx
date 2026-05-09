@@ -79,7 +79,7 @@ export default function PortraitsStudio() {
   async function handleGenerate() {
     if (!photoUrl || !styleId || !themeId) return;
     if (!user || !session?.access_token) {
-      toast("Sign in to generate your AI portrait — 3 free attempts on us.", { duration: 2200 });
+      toast("Sign in to generate your portrait — 3 free attempts on us.", { duration: 2200 });
       setTimeout(() => navigate(`/auth?next=${encodeURIComponent("/pawtraits/studio")}`), 800);
       return;
     }
@@ -107,7 +107,7 @@ export default function PortraitsStudio() {
       }
       if (res.status === 503 && data.error === "ai-service-paused") {
         setAiPaused(true);
-        toast.error(data.message ?? "AI service paused. Try Templates instead.");
+        toast.error(data.message ?? "Portrait studio paused. Try Templates instead.");
         refreshCredits();
         return;
       }
@@ -171,16 +171,16 @@ export default function PortraitsStudio() {
     <>
     <Helmet>
       <title>Pawtraits Studio — Create Your Custom Pet Portrait in Minutes | Little Souls</title>
-      <meta name="description" content="Upload your pet's photo and watch them come to life as a custom AI portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
+      <meta name="description" content="Upload your pet's photo and watch them come to life as a custom painted portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
       <meta property="og:type" content="article" />
       <meta property="og:title" content="Pawtraits Studio — Create Your Custom Pet Portrait in Minutes | Little Souls" />
-      <meta property="og:description" content="Upload your pet's photo and watch them come to life as a custom AI portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
+      <meta property="og:description" content="Upload your pet's photo and watch them come to life as a custom painted portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
       <meta property="og:image" content="https://www.littlesouls.app/og/pawtraits-studio.jpg" />
       <meta property="og:url" content="https://littlesouls.app/pawtraits/studio" />
       <meta property="og:site_name" content="Little Souls" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content="Pawtraits Studio — Create Your Custom Pet Portrait in Minutes | Little Souls" />
-      <meta name="twitter:description" content="Upload your pet's photo and watch them come to life as a custom AI portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
+      <meta name="twitter:description" content="Upload your pet's photo and watch them come to life as a custom painted portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized." />
       <meta name="twitter:image" content="https://www.littlesouls.app/og/pawtraits-studio.jpg" />
       <meta property="article:author" content="Little Souls" />
       <meta property="article:section" content="Custom Pet Portraits" />
@@ -354,10 +354,10 @@ export default function PortraitsStudio() {
                       style={{ background: "#fff", border: `1px solid ${PALETTE.sand}` }}
                     >
                       <p className="font-serif" style={{ fontSize: 22, color: PALETTE.ink }}>
-                        AI service is paused
+                        Portrait studio is paused
                       </p>
                       <p className="mt-2 font-cormorant italic" style={{ fontSize: 16, color: PALETTE.warm, lineHeight: 1.45 }}>
-                        Our AI is briefly out of credit. Your generation credits weren't charged. Try the Templates flow — your pet's actual face on a beautifully framed product, no AI required.
+                        Our studio is briefly out of credit. Your generation credits weren't charged. Try the Templates flow — your pet's actual face on a beautifully framed product.
                       </p>
                       <Link
                         to="/pawtraits/templates"

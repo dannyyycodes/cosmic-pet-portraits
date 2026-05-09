@@ -26,7 +26,7 @@ const tiers = [
     badge: "Most Popular",
     features: [
       "Everything in Personality Reading",
-      "+ Custom AI pet portrait",
+      "+ Custom painted pet portrait",
       "+ Owner compatibility insights",
       "+ Shareable social card",
       "+ Priority delivery",
