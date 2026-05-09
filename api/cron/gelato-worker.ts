@@ -25,7 +25,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { runCanvasFulfillmentForRow } from "../_lib/canvasFulfillment.js";
 import { getSupabaseAdmin } from "../_lib/supabaseAdmin.js";
-import type { PrintOrderRow } from "../_lib/printOrdersRepo.js";
+import {
+  recordHighSeverityFailure,
+  type PrintOrderRow,
+} from "../_lib/printOrdersRepo.js";
 
 const CRON_SECRET = process.env.CRON_SECRET || "";
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -38,6 +41,13 @@ const MAX_ATTEMPTS = 3;
 // invocation finishes inside Vercel's per-function timeout. The cron fires
 // every minute so 5 rows / minute = 300 rows / hour throughput.
 const BATCH_SIZE = 5;
+
+// A row that's been touched (attempts > 0) but its updated_at hasn't moved
+// in this many minutes is presumed stuck — most likely the Vercel function
+// got SIGKILLed mid-pipeline (timeout, OOM, redeploy) so the JS catch path
+// never ran and last_error is still null. Sweeper at the start of each
+// tick flips these to manual_review with an explanation + Telegram alert.
+const STUCK_ROW_MINUTES = 5;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Auth: pg_cron sends Bearer CRON_SECRET. Support service-role bearer too
@@ -52,13 +62,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const sb = getSupabaseAdmin();
 
-  // Pick a small batch of pending rows that haven't exceeded the retry cap.
+  // ── Stuck-row sweeper ────────────────────────────────────────────────
+  // A row that's been touched (attempts > 0) but updated_at hasn't moved
+  // for STUCK_ROW_MINUTES is presumed dead (Vercel function killed
+  // mid-pipeline, no JS catch, no last_error). Flip to manual_review.
+  let sweptStuck = 0;
+  try {
+    const stuckCutoff = new Date(Date.now() - STUCK_ROW_MINUTES * 60_000).toISOString();
+    const { data: stuckRows } = await sb
+      .from("print_orders")
+      .select("id, shopify_order_id, shopify_line_item_id, sku, attempts")
+      .eq("status", "pending")
+      .gt("attempts", 0)
+      .lt("updated_at", stuckCutoff)
+      .limit(20);
+
+    for (const stuck of (stuckRows ?? []) as Array<Pick<PrintOrderRow, "id" | "shopify_order_id" | "shopify_line_item_id" | "sku" | "attempts">>) {
+      await sb
+        .from("print_orders")
+        .update({
+          status: "manual_review",
+          last_error: `gelato-worker: stuck pending after ${STUCK_ROW_MINUTES}m with attempts=${stuck.attempts} — likely killed mid-pipeline`,
+        })
+        .eq("id", stuck.id)
+        .eq("status", "pending");
+      await recordHighSeverityFailure({
+        printOrderId: stuck.id,
+        shopifyOrderId: stuck.shopify_order_id,
+        shopifyLineItemId: stuck.shopify_line_item_id,
+        sku: stuck.sku,
+        stage: "stuck_sweep",
+        message: `Row stuck pending for ${STUCK_ROW_MINUTES}+ min with no updated_at change — Vercel function probably killed mid-pipeline. Flipped to manual_review.`,
+      });
+      sweptStuck++;
+    }
+  } catch (err) {
+    console.error(
+      "[gelato-worker] sweep_failed",
+      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
+    );
+  }
+
+  // ── Pick a small batch of pending rows that haven't exceeded the cap ──
   // ORDER BY created_at = oldest-first (don't punish customers who waited).
+  // Skip TikTok-Shop "needs customisation" rows — those have no source
+  // image yet (Phase 7 captures it later via email) and would burn 3
+  // attempts hitting upscale-with-no-source then silently flip to
+  // manual_review with no useful error. Phase 7 should re-submit them
+  // when the customer responds.
   const { data: candidates, error: pickErr } = await sb
     .from("print_orders")
     .select("*")
     .eq("status", "pending")
     .lt("attempts", MAX_ATTEMPTS)
+    .not("metadata->>needsCustomisation", "eq", "true")
     .order("created_at", { ascending: true })
     .limit(BATCH_SIZE);
 
@@ -139,6 +196,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     claimed,
     succeeded,
     failed,
+    sweptStuck,
     errors: errors.slice(0, 10),
     timestamp: new Date().toISOString(),
   });

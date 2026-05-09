@@ -303,6 +303,35 @@ export async function recordHighSeverityFailure(args: {
   message: string;
   details?: Record<string, unknown>;
 }): Promise<void> {
+  // Dedup: if we've already alerted on this (print_order_id, stage)
+  // combination, skip the alert + Telegram. Without this the cron worker
+  // re-fires the same alert every minute as long as the row stays pending,
+  // which floods the ops Telegram channel and trains them to mute it.
+  const sb = getSupabaseAdmin();
+  try {
+    const { data: existing } = await sb
+      .from("print_order_alerts")
+      .select("id")
+      .eq("print_order_id", args.printOrderId)
+      .eq("severity", "high")
+      .eq("details->>stage", args.stage)
+      .limit(1);
+    if (existing && existing.length > 0) {
+      console.log(
+        "[print_orders] alert_deduped",
+        JSON.stringify({ printOrderId: args.printOrderId, stage: args.stage }),
+      );
+      return;
+    }
+  } catch (err) {
+    // Fall through to insert if the lookup fails — over-alerting is
+    // strictly safer than missing a real failure.
+    console.warn(
+      "[print_orders] alert_dedup_lookup_failed",
+      JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
+    );
+  }
+
   try {
     await insertPrintOrderAlert({
       printOrderId: args.printOrderId,
