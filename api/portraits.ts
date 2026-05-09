@@ -2424,10 +2424,9 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
   // that belong to other customers. We require the caller's user_id to match
   // the user_id recorded against the shopify order at checkout time.
   //
-  // The print_orders table is being created by Agent A. Until that lands the
-  // check is a stub that no-ops if shopifyOrderId is absent (legacy webhook
-  // callers) and TODO-blocks the real query. Once the table merges, replace
-  // the body of this `if` with a real lookup.
+  // print_orders.user_id ownership check (table shipped 2026-05-08 per
+  // migration 20260508_120000_print_orders_and_pawtrait_touchpoints.sql).
+  // No-ops if shopifyOrderId is absent (legacy webhook callers).
   const shopifyOrderId = typeof body.shopifyOrderId === 'string' ? body.shopifyOrderId : '';
   if (shopifyOrderId) {
     const { data: orderRow, error: orderErr } = await supabase

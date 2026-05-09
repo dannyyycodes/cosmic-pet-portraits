@@ -77,6 +77,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .lt("updated_at", stuckCutoff)
       .limit(20);
 
+    // Telegram alert burst cap: if the queue has 20 stuck rows after a
+    // long outage, we still flip ALL of them to manual_review (correctness)
+    // but only fire Telegram on the first 3 (UX). Ops gets a clear
+    // indication "lots of rows stuck" without 20 messages spamming.
+    const ALERT_BURST_CAP = 3;
+    let alertsSent = 0;
     for (const stuck of (stuckRows ?? []) as Array<Pick<PrintOrderRow, "id" | "shopify_order_id" | "shopify_line_item_id" | "sku" | "attempts">>) {
       await sb
         .from("print_orders")
@@ -86,15 +92,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         })
         .eq("id", stuck.id)
         .eq("status", "pending");
-      await recordHighSeverityFailure({
-        printOrderId: stuck.id,
-        shopifyOrderId: stuck.shopify_order_id,
-        shopifyLineItemId: stuck.shopify_line_item_id,
-        sku: stuck.sku,
-        stage: "stuck_sweep",
-        message: `Row stuck pending for ${STUCK_ROW_MINUTES}+ min with no updated_at change — Vercel function probably killed mid-pipeline. Flipped to manual_review.`,
-      });
       sweptStuck++;
+      if (alertsSent < ALERT_BURST_CAP) {
+        await recordHighSeverityFailure({
+          printOrderId: stuck.id,
+          shopifyOrderId: stuck.shopify_order_id,
+          shopifyLineItemId: stuck.shopify_line_item_id,
+          sku: stuck.sku,
+          stage: "stuck_sweep",
+          message: `Row stuck pending for ${STUCK_ROW_MINUTES}+ min with no updated_at change — Vercel function probably killed mid-pipeline. Flipped to manual_review.`,
+        });
+        alertsSent++;
+      }
+    }
+    if (sweptStuck > ALERT_BURST_CAP) {
+      console.warn(`[gelato-worker] swept ${sweptStuck} stuck rows; only first ${ALERT_BURST_CAP} sent to Telegram`);
     }
   } catch (err) {
     console.error(
