@@ -663,24 +663,30 @@ interface SubjectInfo {
 // Flash if Sonnet is too expensive at scale — ~$0.003/image vs ~$0.001).
 const SUBJECT_VISION_MODEL = process.env.SUBJECT_VISION_MODEL ?? 'anthropic/claude-sonnet-4.5';
 
-// Hard ceiling on the OpenRouter Vision pre-pass. The pre-pass blocks the
-// generate request — every second the model takes is a second the customer
-// stares at a spinner. 5s is generous for a small JSON identification call;
-// anything past that we bail to the same {species:'pet'} fallback the catch
-// block returns. The bad-photo gate (isNoPetDetected) then rejects with a
-// 400 BEFORE we charge a credit, so a Vision timeout is safe-by-default.
-const VISION_TIMEOUT_MS = 5000;
+// Per-attempt ceiling on the OpenRouter Vision pre-pass. Sonnet 4.5 vision
+// regularly takes 3–8s on real customer photos; the previous 5s ceiling was
+// catching too many real pets in the AbortError path and surfacing them as
+// "doesn't appear to show a pet" — a misleading message for what was actually
+// a timeout. Bumped to 12s + 1 retry. Total worst case before the gate
+// decides: ~24s. The fallback no longer rejects the customer — it proceeds
+// with a generic-identity prompt — so a slow Vision call no longer blocks a
+// real pet, it just slightly weakens the breed anchoring on that one call.
+const VISION_TIMEOUT_MS = 12_000;
+const VISION_MAX_ATTEMPTS = 2;
 
 async function extractSubject(imageUrl: string): Promise<SubjectInfo> {
   const fallback: SubjectInfo = { species: "pet" };
-  if (!OPENROUTER_KEY) return fallback;
+  if (!OPENROUTER_KEY) {
+    console.warn('[VISION_FALLBACK]', { reason: 'no_openrouter_key', imageUrl: imageUrl.slice(0, 80) });
+    return fallback;
+  }
 
   const systemPrompt = `You are a pet-breed identification specialist. Examine the photo and return STRICT JSON describing the pet's identifiable physical features.
 
 Return shape (every field required, use null only if you genuinely cannot tell):
 {
   "species": "dog" | "cat" | "rabbit" | "bird" | "horse" | "other" | "none",
-  "breed": "<specific breed name — be precise, e.g. 'German Shepherd', 'Cream French Bulldog', 'Maine Coon'. Use 'mixed breed (looks like X with Y)' if a clear cross. Set to null ONLY if species is 'none'.>",
+  "breed": "<specific breed name — be precise. Examples: 'German Shepherd', 'Cream French Bulldog', 'Maine Coon'. Designer crossbreeds and doodles ARE valid breeds — return them by name: 'Cockapoo', 'Labradoodle', 'Cavapoo', 'Goldendoodle', 'Maltipoo', 'Sheepadoodle', 'Pomsky', 'Puggle', etc. For non-designer mixes use 'mixed breed (looks like X with Y)'. Set to null ONLY if species is 'none'.>",
   "furColor": "<specific descriptor: 'black saddle with tan markings', 'cream with apricot ears', 'tortoiseshell calico', 'white with grey tabby patches'. NOT just 'brown' — include patterns and markings.>",
   "eyeColor": "<'amber', 'dark brown', 'green', 'blue', 'heterochromia (one blue one green)', etc>",
   "earShape": "<'erect triangular', 'drop pendulous', 'semi-erect', 'cropped', 'folded', 'tufted', 'rose'>",
@@ -688,7 +694,7 @@ Return shape (every field required, use null only if you genuinely cannot tell):
 }
 
 CRITICAL — bad-photo gate:
-If the image does NOT show a pet (e.g. landscape, person, object, sunset, food, screenshot, blank canvas, blurred unidentifiable mass), set species: "none" and ALL other fields to null. Do NOT hallucinate a pet that isn't there. This protects the customer from being charged for a portrait of nothing.
+Set species: "none" ONLY when the image clearly contains no pet at all (e.g. pure landscape, person alone, inanimate object, sunset, food, screenshot, blank canvas). If you can see a recognisable pet — even partially, even at a slight angle, even if breed is uncertain — return its species and your best-guess breed. NEVER return species: "none" just because you're unsure of the breed. Unsure of breed → species is still "dog"/"cat"/etc. and breed is your best guess (e.g. 'mixed breed terrier-type').
 
 Rules:
 - Be confident on real pets. "best guess" is acceptable for breed/markings.
@@ -696,51 +702,68 @@ Rules:
 - A human in the photo with no pet → species: "none". A pet held by a human → identify the pet.
 - Output JSON only — no prose, no markdown fences, no commentary.`;
 
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), VISION_TIMEOUT_MS);
-  try {
-    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENROUTER_KEY}` },
-      signal: ctrl.signal,
-      body: JSON.stringify({
-        model: SUBJECT_VISION_MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: [
-            { type: "text", text: "Identify this pet. Return the JSON shape exactly." },
-            { type: "image_url", image_url: { url: imageUrl } },
-          ] },
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 300,
-        temperature: 0.1,  // low temp = more consistent identification
-      }),
-    });
-    if (!r.ok) return fallback;
-    const d = await r.json() as { choices?: Array<{ message?: { content?: string } }> };
-    const c = d.choices?.[0]?.message?.content;
-    if (!c) return fallback;
-    const cleaned = c.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
-    const p = JSON.parse(cleaned) as Partial<SubjectInfo>;
-    const stringOrUndef = (v: unknown): string | undefined =>
-      (typeof v === 'string' && v.trim() && v.trim().toLowerCase() !== 'null') ? v.trim() : undefined;
-    return {
-      species: stringOrUndef(p.species) ?? "pet",
-      breed: stringOrUndef(p.breed),
-      furColor: stringOrUndef(p.furColor),
-      eyeColor: stringOrUndef(p.eyeColor),
-      earShape: stringOrUndef(p.earShape),
-      distinguishing: stringOrUndef(p.distinguishing),
-    };
-  } catch (err) {
-    if ((err as Error).name === 'AbortError') {
-      console.warn('[VISION_TIMEOUT]', { imageUrl: imageUrl.slice(0, 80), timeoutMs: VISION_TIMEOUT_MS });
+  for (let attempt = 1; attempt <= VISION_MAX_ATTEMPTS; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), VISION_TIMEOUT_MS);
+    try {
+      const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${OPENROUTER_KEY}` },
+        signal: ctrl.signal,
+        body: JSON.stringify({
+          model: SUBJECT_VISION_MODEL,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: [
+              { type: "text", text: "Identify this pet. Return the JSON shape exactly." },
+              { type: "image_url", image_url: { url: imageUrl } },
+            ] },
+          ],
+          response_format: { type: "json_object" },
+          max_tokens: 300,
+          temperature: 0.1,  // low temp = more consistent identification
+        }),
+      });
+      if (!r.ok) {
+        console.warn('[VISION_FALLBACK]', { reason: 'http_not_ok', status: r.status, attempt, imageUrl: imageUrl.slice(0, 80) });
+        if (attempt < VISION_MAX_ATTEMPTS && (r.status === 429 || r.status >= 500)) continue;
+        return fallback;
+      }
+      const d = await r.json() as { choices?: Array<{ message?: { content?: string } }> };
+      const c = d.choices?.[0]?.message?.content;
+      if (!c) {
+        console.warn('[VISION_FALLBACK]', { reason: 'empty_content', attempt, imageUrl: imageUrl.slice(0, 80) });
+        return fallback;
+      }
+      const cleaned = c.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
+      const p = JSON.parse(cleaned) as Partial<SubjectInfo>;
+      const stringOrUndef = (v: unknown): string | undefined =>
+        (typeof v === 'string' && v.trim() && v.trim().toLowerCase() !== 'null') ? v.trim() : undefined;
+      return {
+        species: stringOrUndef(p.species) ?? "pet",
+        breed: stringOrUndef(p.breed),
+        furColor: stringOrUndef(p.furColor),
+        eyeColor: stringOrUndef(p.eyeColor),
+        earShape: stringOrUndef(p.earShape),
+        distinguishing: stringOrUndef(p.distinguishing),
+      };
+    } catch (err) {
+      const name = (err as Error).name;
+      const isAbort = name === 'AbortError';
+      console.warn('[VISION_FALLBACK]', {
+        reason: isAbort ? 'timeout' : 'exception',
+        errName: name,
+        attempt,
+        timeoutMs: VISION_TIMEOUT_MS,
+        imageUrl: imageUrl.slice(0, 80),
+      });
+      if (attempt < VISION_MAX_ATTEMPTS && isAbort) continue;
+      return fallback;
+    } finally {
+      clearTimeout(timer);
     }
-    return fallback;
-  } finally {
-    clearTimeout(timer);
   }
+  return fallback;
 }
 
 interface VariantResult {
@@ -1091,19 +1114,17 @@ async function safeRefund(args: {
   }
 }
 
-// A photo's vision result counts as "no pet detected" if either the model
-// flagged species: 'none' OR fell back to the bare {species:'pet'} default
-// (i.e. the call failed / got no signal). We treat both as "do not charge."
-// LIMITATION: the default fallback also fires when OPENROUTER_KEY is absent
-// or the call hit a transient error. That's fine — we'd rather refuse than
-// burn a credit on a blind generation.
+// A photo's vision result counts as "no pet detected" ONLY when the model
+// explicitly flagged species: 'none'. The bare {species:'pet'} fallback
+// shape (Vision call timed out, errored, or hit no OPENROUTER_KEY) is no
+// longer treated as "not a pet" — that misled customers like Danny's
+// cockapoo upload, where the call just timed out at 5s and the message
+// said the photo wasn't a pet. We now proceed with a generic-identity
+// prompt on Vision failure: slightly weaker breed anchoring on that one
+// generation, but the customer never sees a false rejection. Vision-fallback
+// frequency is tracked via [VISION_FALLBACK] structured logs in extractSubject.
 function isNoPetDetected(subject: SubjectInfo): boolean {
-  if (subject.species === 'none') return true;
-  // species === 'pet' with no breed = the fallback shape; vision didn't
-  // confidently identify anything pet-shaped. Don't proceed without a breed
-  // anchor — gpt-image-2 drifts to "generic dog matching style training data".
-  if (subject.species === 'pet' && !subject.breed) return true;
-  return false;
+  return subject.species === 'none';
 }
 
 // ─── Generation audit-log helpers (pawtrait_generation_log) ────────────────

@@ -85,8 +85,22 @@ function newPetId(): string {
   return `pet_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
+/**
+ * Studio phase — what the customer is currently doing inside the studio.
+ *
+ *  compose    : picking pets / typing a prompt (default).
+ *  generating : portrait is being painted (the cinematic in-progress state).
+ *  reveal     : portrait is back, awaiting Approve / Try again / Tweak.
+ *  approved   : customer approved → size/frame/cart UI is the focus.
+ *
+ * Emitted to the parent so the surrounding page can dim / fade non-studio
+ * sections during the high-attention phases (generating + reveal).
+ */
+export type StudioPhase = 'compose' | 'generating' | 'reveal' | 'approved';
+
 interface StudioFlowProps {
   onCartAdd: (item: CartItem) => void;
+  onPhaseChange?: (phase: StudioPhase) => void;
 }
 
 const PROMPT_EXAMPLES = [
@@ -451,7 +465,7 @@ function SignInDialog({
 }
 
 // ── Studio ─────────────────────────────────────────────────────────────────
-export function StudioFlow({ onCartAdd }: StudioFlowProps) {
+export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   const navigate = useNavigate();
   const { user, session } = useAuth();
   const { balance, refresh: refreshCredits } = useCredits();
@@ -581,6 +595,22 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   const canAdd =
     approved && !!selectedVariantUrl && !!variant && uploadedPets.length >= 1 && !preparingPrintMaster;
 
+  // ── Phase machine ───────────────────────────────────────────────────
+  // Single source of truth for what the studio is currently doing. Drives
+  // the "only one section visible at a time" layout and is emitted to the
+  // parent so the surrounding page can dim during high-attention phases.
+  const studioPhase: StudioPhase = generating
+    ? 'generating'
+    : variants.length > 0 && approved
+      ? 'approved'
+      : variants.length > 0
+        ? 'reveal'
+        : 'compose';
+
+  useEffect(() => {
+    onPhaseChange?.(studioPhase);
+  }, [studioPhase, onPhaseChange]);
+
   // Reset approval whenever the prompt changes (any prompt edit invalidates
   // the prior generation's approval state — same gen no longer represents
   // what the customer wants).
@@ -591,6 +621,7 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   const variantsRef = useRef<HTMLDivElement>(null);
   const approvalRef = useRef<HTMLDivElement>(null);
   const promptRef = useRef<HTMLTextAreaElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   async function handleGenerate() {
     if (uploadedPets.length < 1 || prompt.trim().length < 4) return;
@@ -602,6 +633,14 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     setVariants([]);
     setSelectedVariantUrl(null);
     setApproved(false);
+    // Scroll the studio's focal area to the top of the viewport so the
+    // GenerationCanvas (which is about to replace the compose UI) lands in
+    // the customer's eyeline. Without this, customers on long mobile pages
+    // could trigger Generate while the prompt is mid-screen and never
+    // see the cinematic loading state.
+    requestAnimationFrame(() =>
+      stageRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
     setPetErrors({});
 
     const ctrl = new AbortController();
@@ -830,9 +869,14 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
     >
-      <StudioBackdrop active={generating} />
+      <StudioBackdrop active={studioPhase === 'generating' || studioPhase === 'reveal'} />
 
       <div className="mx-auto relative" style={{ maxWidth: 880, zIndex: 1 }}>
+
+        {/* Scroll target for handleGenerate — lands the focal area in the
+            customer's eyeline as the compose UI fades to make room for the
+            GenerationCanvas / ApprovalGate. */}
+        <div ref={stageRef} aria-hidden style={{ position: "absolute", top: 0 }} />
 
         {/* ── Studio anchor heading ─────────────────────────────────── */}
         <div className="text-center mb-5 md:mb-7">
@@ -931,11 +975,25 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
           )}
         </div>
 
+        {/* ── Compose phase: upload stack + name previews + prompt ────
+            Only rendered when studioPhase === 'compose'. Once the customer
+            hits Generate, this whole block fades out and the GenerationCanvas
+            / ApprovalGate / cart UI take its place — that's the "single
+            focal area" experience Danny asked for. State (pets, prompt) is
+            preserved across the unmount because it lives in StudioFlow's own
+            useState hooks, so a Tweak click brings it back intact. */}
+        <AnimatePresence mode="wait">
+        {studioPhase === 'compose' && (
+        <motion.div
+          key="compose"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8, transition: { duration: 0.32, ease: EASE.out } }}
+          transition={sectionTransition}
+        >
         {/* ── Multi-pet upload stack ──────────────────────────────────
             One PetUploadCard per pet (photo + name input). Cap at MAX_PETS.
-            "+ Add another pet" button below; per-card "×" delete affordance.
-            Each pet's photo + name are isolated so multi-pet flows work
-            without ballooning the JSX inline. */}
+            "+ Add another pet" button below; per-card "×" delete affordance. */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1274,6 +1332,30 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
             </motion.div>
           )}
         </AnimatePresence>
+        </motion.div>
+        )}
+        </AnimatePresence>
+
+        {/* ── Generating phase: cinematic in-progress canvas ─────────
+            Takes the place of the compose UI (which has just exited).
+            Larger, centered, the only thing on screen besides the
+            heading + credits pill. The dim-sections-during-generate
+            behaviour in Portraits.tsx isolates focus further. */}
+        <AnimatePresence>
+          {studioPhase === 'generating' && (
+            <motion.div
+              key="generating"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.36, ease: EASE.out }}
+              className="mt-6 mx-auto"
+              style={{ maxWidth: 540 }}
+            >
+              <GenerationCanvas />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Approval gate (Reveal step) ─────────────────────────────
             After variants return, customer must explicitly approve before
@@ -1307,12 +1389,6 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         {/* ── Variants + size + cart (post-approval) ─────────────────── */}
         <div ref={variantsRef} />
         <AnimatePresence>
-          {generating && (
-            <div className="mt-10 mx-auto" style={{ maxWidth: 460 }}>
-              <GenerationCanvas />
-            </div>
-          )}
-
           {!generating && variants.length > 0 && approved && (
             <motion.div
               key="variants"
