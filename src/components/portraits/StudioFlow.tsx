@@ -620,6 +620,19 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
         refreshCredits();
         return;
       }
+      // 422 — content policy violation. Usually a pet name resembling an
+      // unsafe word (Sphynx "Naked" was the canonical case). Show the
+      // backend's message + a clear suggestion. Credit was already refunded
+      // server-side, so refreshCredits() picks it up.
+      if (res.status === 422 && data?.error === "content_policy_violation") {
+        toast.error(
+          data.message ??
+            "Our moderator flagged this generation — try a different name.",
+          { duration: 8000 },
+        );
+        refreshCredits();
+        return;
+      }
       if (!res.ok) throw new Error(data.error || "Generation failed");
 
       setVariants(data.variants);
