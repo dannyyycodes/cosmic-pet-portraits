@@ -40,7 +40,7 @@
  *     → triggered on cart-add to produce the print-grade asset
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { ArrowUp, HelpCircle, Sparkles, X, Check, Brush, Plus, Loader2 } from "lucide-react";
@@ -537,6 +537,29 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
 
   const [prompt, setPrompt] = useState(restoredState?.prompt ?? "");
   const [generating, setGenerating] = useState(false);
+
+  // Pre-fill the prompt from a ?style=<slug> URL param when the visitor arrives
+  // from the gallery's "Make my pet in this style" CTA. We only inject when the
+  // prompt is empty so we never overwrite real typed input. Slug → human form:
+  // "renaissance-chalk-pastel" → "Renaissance chalk pastel".
+  const [studioSearchParams, setStudioSearchParams] = useSearchParams();
+  useEffect(() => {
+    const styleSlug = studioSearchParams.get('style');
+    if (!styleSlug) return;
+    const friendly = styleSlug.replace(/-/g, ' ').trim();
+    if (!friendly) return;
+    setPrompt((current) => {
+      if (current.trim().length > 0) return current;
+      return `${friendly} style`;
+    });
+    // Clear the param from the URL so a refresh doesn't re-inject and a manual
+    // edit isn't fought by the effect on every state update.
+    const next = new URLSearchParams(studioSearchParams);
+    next.delete('style');
+    setStudioSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [variants, setVariants] = useState<Variant[]>(restoredState?.variants ?? []);
   const [selectedVariantUrl, setSelectedVariantUrl] = useState<string | null>(restoredState?.selectedVariantUrl ?? null);
   // Approval gate — the Reveal step. Customer must explicitly approve
