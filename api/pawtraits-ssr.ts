@@ -165,43 +165,43 @@ interface PageMeta {
 
 function homeMeta(): PageMeta {
   return {
-    title: "Custom AI Pet Portraits — Watercolor, Renaissance & More | Little Souls",
-    description: "Turn your pet's photo into a custom AI portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls.",
+    title: "Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls",
+    description: "Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls.",
     canonical: "https://littlesouls.app/pawtraits",
     ogImage: "https://www.littlesouls.app/og/pawtraits-default.jpg",
     ogType: "website",
-    h1: "Custom AI Pet Portraits — Watercolor, Renaissance & More",
-    intro: "Turn your pet's photo into a custom AI portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Printed and framed in the UK.",
+    h1: "Custom Painted Pet Portraits — Watercolor, Renaissance & More",
+    intro: "Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Printed and framed in the UK.",
     galleryHeading: "Latest pawtraits",
   };
 }
 function galleryMeta(): PageMeta {
   return {
-    title: "Pet Portrait Gallery — Browse 100+ Custom AI Pet Art Designs | Little Souls",
-    description: "Explore custom AI pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own.",
+    title: "Pet Portrait Gallery — Browse 100+ Custom Painted Pet Art Designs | Little Souls",
+    description: "Explore custom painted pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own.",
     canonical: "https://littlesouls.app/pawtraits/gallery",
     ogImage: "https://www.littlesouls.app/og/pawtraits-gallery.jpg",
     ogType: "website",
-    h1: "Pet Portrait Gallery — Browse Custom AI Pet Art",
-    intro: "Explore custom AI pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own.",
+    h1: "Pet Portrait Gallery — Browse Custom Painted Pet Art",
+    intro: "Explore custom painted pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own.",
     galleryHeading: "Browse the gallery",
   };
 }
 function studioMeta(): PageMeta {
   return {
     title: "Pawtraits Studio — Create Your Custom Pet Portrait in Minutes | Little Souls",
-    description: "Upload your pet's photo and watch them come to life as a custom AI portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized.",
+    description: "Upload your pet's photo and watch them come to life as a custom painted portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized.",
     canonical: "https://littlesouls.app/pawtraits/studio",
     ogImage: "https://www.littlesouls.app/og/pawtraits-studio.jpg",
     ogType: "website",
     h1: "Pawtraits Studio — Create Your Custom Pet Portrait",
-    intro: "Upload your pet's photo and watch them come to life as a custom AI portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized.",
+    intro: "Upload your pet's photo and watch them come to life as a custom painted portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized.",
     galleryHeading: "Latest pawtraits",
   };
 }
 
 function breedMeta(b: BreedDef, heroImage: string): PageMeta {
-  const ogTitle = `Custom ${b.name} Portraits — AI Pet Art in Every Style`;
+  const ogTitle = `Custom ${b.name} Portraits — Painted Pet Art in Every Style`;
   const ogDescription = `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — printed and framed in the UK from £${BASE_PRICE_GBP}.`;
   return {
     title: ogTitle + " | Little Souls",
@@ -217,7 +217,7 @@ function breedMeta(b: BreedDef, heroImage: string): PageMeta {
   };
 }
 function styleMeta(s: StyleDef, heroImage: string): PageMeta {
-  const ogTitle = `${s.name} Pet Portraits — Custom AI Art in ${s.name} Style`;
+  const ogTitle = `${s.name} Pet Portraits — Custom Painted Art in ${s.name} Style`;
   const ogDescription = `Custom ${s.name.toLowerCase()} pet portraits made from your photo. Printed and framed in the UK from £${BASE_PRICE_GBP}.`;
   return {
     title: ogTitle + " | Little Souls",
@@ -235,7 +235,7 @@ function styleMeta(s: StyleDef, heroImage: string): PageMeta {
 function unknownLandingMeta(kind: "breed" | "style", slug: string): PageMeta {
   const title = kind === "breed" ? "Custom Pet Portraits" : "Pet Portrait Styles";
   const ogTitle = `${title} — Pawtraits by Little Souls`;
-  const ogDescription = `Custom AI pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — printed and framed in the UK from £${BASE_PRICE_GBP}.`;
+  const ogDescription = `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — printed and framed in the UK from £${BASE_PRICE_GBP}.`;
   return {
     title: ogTitle,
     description: ogDescription,
@@ -376,7 +376,7 @@ ${head}
     ${internalLinks}
   </main>
   <footer class="ls-footer">
-    <div>© Little Souls — custom AI pet portraits, printed and framed in the UK</div>
+    <div>© Little Souls — custom painted pet portraits, printed and framed in the UK</div>
     <div style="margin-top:8px">
       <a href="/pawtraits">Studio</a>
       <a href="/pawtraits/gallery">Gallery</a>
