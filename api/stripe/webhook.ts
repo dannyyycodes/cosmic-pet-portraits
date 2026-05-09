@@ -188,6 +188,31 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   if (!accountId) return;
 
   const supabase = getSupabaseAdmin();
+
+  // ── Per-invoice idempotency belt-and-braces ────────────────────────
+  // Event-id dedupe (portraits_stripe_events) is the first line of
+  // defense, but we DELETE that dedupe row on uncaught handler failure
+  // so Stripe will retry. If grant_credits succeeded but a later step
+  // in the same handler failed, the retry would double-grant. Check
+  // portraits_credit_transactions (append-only audit) for an existing
+  // grant carrying this exact invoice_id in its metadata.
+  if (invoice.id) {
+    const { data: priorGrant } = await supabase
+      .from("portraits_credit_transactions")
+      .select("id")
+      .eq("account_id", accountId)
+      .eq("reason", "invoice-paid")
+      .eq("metadata->>invoice_id", invoice.id)
+      .limit(1);
+    if (priorGrant && priorGrant.length > 0) {
+      console.log(
+        "[stripe/webhook] invoice.paid — already granted for this invoice, skipping",
+        JSON.stringify({ invoiceId: invoice.id, accountId }),
+      );
+      return;
+    }
+  }
+
   const { data: sub } = await supabase
     .from("portraits_subscriptions")
     .select("monthly_token_grant, tier")
