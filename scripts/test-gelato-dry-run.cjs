@@ -91,11 +91,29 @@ const req = https.request(
       console.log(`HTTP ${res.statusCode}`);
       try {
         const json = JSON.parse(text);
-        console.log(JSON.stringify(json, null, 2));
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          console.log(`\n✓ Gelato accepted the draft. Schema is valid.`);
-          if (json.id) console.log(`  Draft order id: ${json.id} (delete from Gelato dashboard if you want)`);
+          console.log(`✓ Gelato accepted the draft. Schema is valid.`);
+          if (json.id) {
+            // Auto-delete the draft so the Gelato dashboard doesn't fill
+            // up with one row per dry-run. Best-effort — if delete fails
+            // it's not the test's job to clean up forever.
+            const del = https.request(
+              { method: "DELETE", host: "order.gelatoapis.com", path: `/v4/orders/${json.id}`, headers: { "X-API-KEY": KEY } },
+              (dr) => {
+                if (dr.statusCode === 200 || dr.statusCode === 204) {
+                  console.log(`✓ Draft ${json.id} deleted`);
+                } else {
+                  const dc = [];
+                  dr.on("data", (x) => dc.push(x));
+                  dr.on("end", () => console.log(`· Draft ${json.id} delete returned HTTP ${dr.statusCode} ${Buffer.concat(dc).toString("utf8").slice(0, 200)}`));
+                }
+              },
+            );
+            del.on("error", () => console.log(`· Draft ${json.id} delete request errored — clean up manually if needed`));
+            del.end();
+          }
         } else {
+          console.log(JSON.stringify(json, null, 2));
           console.log(`\n✗ Gelato rejected the draft. Schema drift — update buildGelatoOrderBody.`);
           process.exit(1);
         }
