@@ -1,10 +1,11 @@
 {
   "_comment": "Copy this file to ~/pet-portraits/incoming/<batch-name>/manifest.json next to your Codex outputs, fill in items, then run: bun scripts/library/ingest.ts ~/pet-portraits/incoming/<batch-name>",
+  "_inline_captions": "If each item includes `backstory` + `captions`, ingest skips the OpenRouter call ($0 marginal cost). See scripts/library/CODEX_PROMPT.md for the exact SEO schema. Without inline captions, set OPENROUTER_API_KEY in .env.local and ingest will fall back to Sonnet 4.5.",
   "defaults": {
     "image_style": "portrait",
     "pet_kind": "dog",
     "art_style": "watercolour-floral",
-    "aspect_ratio": "1:1",
+    "aspect_ratio": "2:3",
     "approved": true
   },
   "items": [
@@ -12,17 +13,53 @@
       "file": "img_001.png",
       "breed": "golden retriever",
       "pet_name": "Rosie",
-      "prompt": "Watercolour-floral pet portrait of a golden retriever, soft pastel hues, botanical wreath frame, museum-grade detail, suitable for canvas print, sRGB, square aspect 1:1."
+      "prompt": "Watercolour-floral pet portrait of a golden retriever, soft pastel hues, botanical wreath frame, museum-grade detail, suitable for canvas print, sRGB, 2:3 aspect.",
+      "backstory": "Rosie waits by the window every 4pm — patient, sun-warmed, the calmest member of the house.",
+      "captions": {
+        "pinterest": {
+          "board": "golden-retriever-portraits",
+          "variations": [
+            {
+              "title": "Golden retriever watercolor portrait — custom pet wall art on canvas",
+              "description": "Custom golden retriever pet portrait, hand-finished in soft watercolor and printed on canvas. A keepsake made from your favourite photo of them. Make yours at littlesouls.app.",
+              "destination_url": "https://www.littlesouls.app/pawtraits/breed/golden-retriever?utm_source=pinterest&utm_medium=organic&utm_campaign=library&utm_content=__LIBRARY_ID__-v1",
+              "alt_text": "Golden retriever with soft floppy ears, painted in pastel watercolor with botanical wreath, sun-warm cream background, custom pet portrait."
+            },
+            {
+              "title": "Watercolor pet portrait gift for dog lovers — handcrafted from your photo",
+              "description": "A soft watercolor pet portrait, hand-finished and ready to frame — the kind of gift that lives on the wall, not in the drawer. Order yours — littlesouls.app.",
+              "destination_url": "https://www.littlesouls.app/pawtraits/breed/golden-retriever?utm_source=pinterest&utm_medium=organic&utm_campaign=library&utm_content=__LIBRARY_ID__-v2",
+              "alt_text": "Calm golden retriever portrait in pastel watercolor with botanical wreath frame, museum-grade detail, ready for canvas print."
+            },
+            {
+              "title": "Capture their soul in custom hand-painted pet art on canvas",
+              "description": "The way they wait by the window. The light on their fur. We turn your favourite photo into a watercolor portrait worth framing. Designed for canvas — littlesouls.app/pawtraits.",
+              "destination_url": "https://www.littlesouls.app/pawtraits/breed/golden-retriever?utm_source=pinterest&utm_medium=organic&utm_campaign=library&utm_content=__LIBRARY_ID__-v3",
+              "alt_text": "Sun-warmed golden retriever in soft watercolor portrait, calm three-quarter pose, botanical wreath frame, warm cream mood."
+            }
+          ]
+        },
+        "instagram": {
+          "caption": "Rosie, by the window again at 4pm sharp. Her watercolor canvas is on the way — finally something on the wall that captures the look. Make yours at littlesouls.app.",
+          "hashtags": ["#petportrait", "#custompetart", "#goldenretriever", "#dogsofinstagram", "#littlesouls"]
+        },
+        "tiktok": {
+          "caption": "She waits at 4pm sharp. We turned that look into a watercolor canvas. Pawtraits — littlesouls.app",
+          "hashtags": ["#petportrait", "#fyp", "#goldenretriever"]
+        },
+        "facebook": {
+          "caption": "We finally ordered Rosie's pawtrait. Anyone who's met her knows the 4pm window thing — she's been doing it since she was a puppy, sat there sun-warmed and patient like she's running a meeting. The canvas arrived two weeks later in soft watercolor with a botanical wreath, and honestly, it captured the look better than any photo we've ever taken. It's hanging in the hallway now, and every visitor stops at it on the way in. We made it with Pawtraits — littlesouls.app."
+        },
+        "youtube": {
+          "title": "Golden retriever watercolor pet portrait — custom canvas",
+          "description": "Soft watercolor pet portrait, hand-finished from your favourite photo. A keepsake made for canvas. littlesouls.app/pawtraits",
+          "hashtags": ["#shorts", "#petportrait", "#goldenretriever"]
+        }
+      }
     },
     {
-      "file": "img_002.png",
-      "breed": "miniature dachshund",
-      "pet_name": "Milo",
-      "art_style": "cowboy-poster",
-      "prompt": "Vintage western cowboy wanted-poster of a miniature dachshund named Milo, faded sepia tones, hand-stamped serif typography, distressed paper texture, museum-grade detail, sRGB, square aspect 1:1."
-    },
-    {
-      "file": "img_003.png",
+      "_comment": "Type B (scene) example — review-led, IG/TT/FB only, no Pinterest, no YouTube. The `review` field is the canonical anchor; FB caption IS the review verbatim, IG/TT hooks quote from it.",
+      "file": "img_024.png",
       "breed": "french bulldog",
       "pet_name": "Biscuit",
       "image_style": "scene",
@@ -30,7 +67,22 @@
       "pet_action": "being held up with paws dangling",
       "canvas_format": "small square canvas on wall",
       "aspect_ratio": "9:16",
-      "prompt": "Casual Android phone photo, vertical 9:16, taken by a real customer in a lived-in home. A cream French bulldog puppy named Biscuit is being held up beside a small square canvas on the wall. The canvas shows the same puppy as a soft hand-painted watercolour portrait with the name 'Biscuit' at the bottom. Cozy hallway background with normal home details: shoes near the door, textured wall, soft daylight from a nearby window. Slight imperfect framing, mild phone-camera noise. Make it look like a genuine customer photo."
+      "prompt": "Casual Android phone photo, vertical 9:16, taken by a real customer in a lived-in home. A cream French bulldog puppy named Biscuit is being held up beside a small square canvas on the wall. The canvas shows the same puppy as a soft hand-painted watercolour portrait with the name 'Biscuit' at the bottom. Cozy hallway background with normal home details. Slight imperfect framing, mild phone-camera noise.",
+      "backstory": "Biscuit has zero impulse control around postmen — and a small square canvas on the entryway wall to prove it.",
+      "review": "We finally got round to ordering Biscuit's pawtrait. He's been the family menace since day one — a fact our postman knows well, and one his small square canvas now captures perfectly. The piece arrived two weeks later in soft watercolour, framed unfussy in dark wood, and somehow it caught the exact face he pulls when he hears the letterbox go. It's hanging in the entryway now. Every visitor stops at it on the way in. We made it with Pawtraits — littlesouls.app.",
+      "captions": {
+        "instagram": {
+          "caption": "He licked the canvas. Of his own face. Hung Biscuit's pawtrait in the entryway last week — every visitor stops at it now. Made ours at littlesouls.app.",
+          "hashtags": ["#petportrait", "#frenchie", "#dogsofinstagram", "#custompetart", "#littlesouls"]
+        },
+        "tiktok": {
+          "caption": "He licked the canvas. Of his own face. Pawtraits — littlesouls.app",
+          "hashtags": ["#petportrait", "#fyp", "#frenchie"]
+        },
+        "facebook": {
+          "caption": "We finally got round to ordering Biscuit's pawtrait. He's been the family menace since day one — a fact our postman knows well, and one his small square canvas now captures perfectly. The piece arrived two weeks later in soft watercolour, framed unfussy in dark wood, and somehow it caught the exact face he pulls when he hears the letterbox go. It's hanging in the entryway now. Every visitor stops at it on the way in. We made it with Pawtraits — littlesouls.app."
+        }
+      }
     }
   ]
 }

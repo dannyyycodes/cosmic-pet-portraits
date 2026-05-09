@@ -69,10 +69,8 @@ if (!SUPABASE_URL || !SERVICE_KEY) {
   console.error('Add them to .env.local in cosmic-pet-portraits or export in shell.');
   process.exit(1);
 }
-if (!OPENROUTER_KEY) {
-  console.error('ERROR: OPENROUTER_API_KEY required for caption generation.');
-  process.exit(1);
-}
+// OPENROUTER_API_KEY is optional now: only required for items that don't ship
+// with pre-baked captions in the manifest. We check at use-site, not startup.
 
 type ImageStyle = 'portrait' | 'scene';
 type PetKind = 'dog' | 'cat' | 'small-pet' | 'other';
@@ -91,6 +89,16 @@ interface ItemDef {
   pet_action?: string;
   canvas_format?: string;
   approved?: boolean;
+  // Optional pre-baked captions written by the Maker (Codex) at generation time.
+  // If both `backstory` and `captions` are present, ingest skips the OpenRouter call.
+  // See scripts/library/CODEX_PROMPT.md for the exact SEO-optimised schema Codex must follow.
+  backstory?: string;
+  story_long?: string;
+  captions?: Captions;
+  // Type B (scene) only: first-person customer-review narrative (300-700 chars) that
+  // anchors all social copy for this image. IG/TT hooks quote from it, FB caption IS it.
+  // Stashed inside captions._review by ingest so no SQL migration is needed.
+  review?: string;
 }
 
 interface Manifest {
@@ -126,6 +134,10 @@ interface Captions {
   instagram?: { caption: string; hashtags: string[] };
   tiktok?:    { caption: string; hashtags: string[] };
   youtube?:   { title: string; description: string; hashtags: string[] };
+  // Type B (scene) only — canonical first-person customer review that anchors all
+  // social copy for the image. IG/TT hooks quote from it, FB caption IS it.
+  // Underscore-prefixed so it never gets mistaken for a platform key.
+  _review?: string;
 }
 
 interface CaptionsBundle {
@@ -208,7 +220,69 @@ function breedSlug(breed: string): string {
   return breed.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+// Validate Maker-supplied captions against the SEO playbook. Warns but does not throw —
+// the ingest still proceeds. Use this to spot-check Codex output drift after a batch.
+function validateInlineCaptions(captions: Captions, imageStyle: ImageStyle, file: string): void {
+  const warn = (msg: string) => console.log(`    ⚠ ${file}: ${msg}`);
+  const isPortrait = imageStyle === 'portrait';
+
+  if (isPortrait) {
+    const p = captions.pinterest;
+    if (!p) { warn('portrait missing pinterest captions'); return; }
+    if (!Array.isArray(p.variations) || p.variations.length !== 3) {
+      warn(`pinterest.variations should be exactly 3, got ${p.variations?.length ?? 0}`);
+    }
+    if (p.board && !(PINTEREST_BOARDS as readonly string[]).includes(p.board)) {
+      warn(`pinterest.board "${p.board}" not in locked list — will be coerced`);
+    }
+    (p.variations ?? []).forEach((v, i) => {
+      const tag = `pinterest.variations[${i}]`;
+      const tlen = (v.title ?? '').length;
+      if (tlen < 80 || tlen > 95) warn(`${tag}.title is ${tlen} chars (target 80–95)`);
+      const dlen = (v.description ?? '').length;
+      if (dlen < 220 || dlen > 250) warn(`${tag}.description is ${dlen} chars (target 220–250)`);
+      if ((v.description ?? '').includes('#')) warn(`${tag}.description contains '#' (no hashtags in body)`);
+      const alen = (v.alt_text ?? '').length;
+      if (alen < 100 || alen > 125) warn(`${tag}.alt_text is ${alen} chars (target 100–125)`);
+      if (!v.destination_url || !/utm_source=pinterest/.test(v.destination_url)) {
+        warn(`${tag}.destination_url missing utm_source=pinterest`);
+      }
+    });
+    if (captions.youtube) {
+      const y = captions.youtube;
+      if ((y.title ?? '').length > 70) warn(`youtube.title > 70 chars`);
+      if ((y.description ?? '').length > 300) warn(`youtube.description > 300 chars`);
+    }
+  }
+
+  // Type B (scene) — review is the canonical anchor for IG/TT/FB. Validate length.
+  if (!isPortrait) {
+    const r = (captions._review ?? '').length;
+    if (r === 0) warn('scene missing review (Type B should ship a first-person review)');
+    else if (r < 300 || r > 700) warn(`review is ${r} chars (target 300–700)`);
+  }
+
+  // Both portrait and scene flow through IG/TT/FB. (Portrait may also have them in 2026-05-07+ rule.)
+  if (captions.instagram) {
+    const c = (captions.instagram.caption ?? '').length;
+    if (c > 280) warn(`instagram.caption is ${c} chars (>280)`);
+    if ((captions.instagram.hashtags ?? []).length > 5) warn(`instagram.hashtags > 5 (Blotato HTTP 422)`);
+  }
+  if (captions.tiktok) {
+    const c = (captions.tiktok.caption ?? '').length;
+    if (c > 180) warn(`tiktok.caption is ${c} chars (>180)`);
+    if ((captions.tiktok.hashtags ?? []).length > 5) warn(`tiktok.hashtags > 5`);
+  }
+  if (captions.facebook) {
+    const c = (captions.facebook.caption ?? '').length;
+    if (c < 400 || c > 700) warn(`facebook.caption is ${c} chars (target 400–700 review-style)`);
+  }
+}
+
 async function generateCaptions(item: ItemDef): Promise<CaptionsBundle> {
+  if (!OPENROUTER_KEY) {
+    throw new Error('OPENROUTER_API_KEY not set and item has no pre-baked captions in manifest. Either add captions to the manifest (see CODEX_PROMPT.md) or set OPENROUTER_API_KEY.');
+  }
   const isScene = item.image_style === 'scene';
   const platforms = isScene
     ? ['facebook', 'instagram', 'tiktok']                       // scene-mode = social/review angle
@@ -392,9 +466,29 @@ async function ingestItem(folder: string, item: ItemDef, defaults: Partial<ItemD
     console.log(`  · processing ${merged.file} (${merged.breed} / ${merged.art_style})`);
     const { fullBuf, thumbBuf, width, height } = await processImage(srcPath);
 
-    // 2. Generate captions
-    console.log(`  · captions via ${OPENROUTER_MODEL}…`);
-    const bundle = await generateCaptions(merged);
+    // 2. Captions — prefer pre-baked from manifest (Codex inline-caption mode, $0
+    //    marginal cost). Fall back to OpenRouter Sonnet 4.5 only if the item lacks them.
+    let bundle: CaptionsBundle;
+    let captionSource: 'inline' | 'openrouter';
+    if (merged.backstory && merged.captions) {
+      console.log(`  · using pre-baked captions from manifest`);
+      // Fold top-level `review` into captions._review so it lives in the JSONB blob.
+      // Top-level on the manifest is just for Codex clarity; storage is unified.
+      const captions: Captions = merged.review
+        ? { ...merged.captions, _review: merged.review }
+        : merged.captions;
+      validateInlineCaptions(captions, merged.image_style!, merged.file);
+      bundle = {
+        backstory: merged.backstory,
+        story_long: merged.story_long,
+        captions,
+      };
+      captionSource = 'inline';
+    } else {
+      console.log(`  · captions via ${OPENROUTER_MODEL}…`);
+      bundle = await generateCaptions(merged);
+      captionSource = 'openrouter';
+    }
 
     // 3. Upload to bucket — keys are deterministic by row id, so generate id first.
     //    We use crypto.randomUUID() for the ID; the row INSERT will use the same id.
@@ -436,7 +530,7 @@ async function ingestItem(folder: string, item: ItemDef, defaults: Partial<ItemD
       height,
       approved,
       approved_at: approved ? new Date().toISOString() : null,
-      generated_by: 'codex-cli-manual',
+      generated_by: captionSource === 'inline' ? 'codex-cli-inline-captions' : 'codex-cli-manual',
       generation_model: 'gpt-image-1',
       generation_cost_usd: 0,  // flat-rate via Plus subscription
     };

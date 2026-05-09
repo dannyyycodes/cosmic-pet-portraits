@@ -5,9 +5,23 @@ happens after you've generated a batch of images. The ingest script:
 
 1. converts to webp + thumbnail (sharp)
 2. uploads both to the public `pawtrait-library` Supabase bucket
-3. asks Claude Sonnet 4.5 (via OpenRouter) for a backstory + per-platform captions
+3. either:
+   - reads pre-baked `backstory` + `captions` from the manifest (Codex inline mode — **$0 marginal cost**, default), OR
+   - asks Claude Sonnet 4.5 via OpenRouter as a fallback (~$0.02/portrait)
 4. inserts a `pawtrait_library` row, marked approved
 5. moves the source file to `processed/` so re-running is safe
+
+## Caption modes
+
+**Inline mode (default, free):** Codex writes the full `backstory` + `captions` block
+into each manifest item as it generates the image. Ingest validates against the SEO
+playbook (warns on drift), substitutes the real library UUID into Pinterest URLs,
+and inserts. **Zero marginal API cost** — uses your ChatGPT Plus subscription.
+See `CODEX_PROMPT.md` for the exact schema Codex must follow.
+
+**OpenRouter fallback (paid):** If an item has no `backstory` + `captions`, ingest
+falls back to Sonnet 4.5 via OpenRouter (~$0.02/item). Useful for retroactively
+ingesting older batches or one-off items.
 
 ## One-time setup
 
@@ -15,29 +29,26 @@ Add to `cosmic-pet-portraits/.env.local` (these never get committed):
 
 ```
 SUPABASE_SERVICE_ROLE_KEY=<paste from Supabase Settings → API>
-OPENROUTER_API_KEY=<paste from openrouter.ai dashboard>
+OPENROUTER_API_KEY=<only needed if you want the Sonnet fallback>
 ```
 
 (`VITE_SUPABASE_URL` is already in `.env`.)
 
-## Per-batch workflow
+## Per-batch workflow (inline mode — recommended)
 
-1. **Generate in Codex CLI.** Save outputs into a fresh folder, e.g.
-   `~/pet-portraits/incoming/2026-05-06-watercolour-goldens/`. Filenames don't
-   matter — the manifest names them.
+1. **Generate in Codex CLI** — paste the brief from `CODEX_PROMPT.md` so Codex
+   knows the inline-caption schema. Save outputs into a fresh folder, e.g.
+   `~/pet-portraits/incoming/2026-05-06-watercolour-goldens/`. Codex writes
+   `manifest.json` directly, with `backstory` + `captions` filled in per item.
 
-2. **Drop a `manifest.json`** in that folder. Use `manifest.example.json` here
-   as a template. Set `defaults` to the attributes shared by the whole batch
-   (image_style, pet_kind, art_style, aspect_ratio); list one `items` entry
-   per file, overriding any field per-item.
-
-3. **Run ingest:**
+2. **Run ingest:**
    ```bash
    bun scripts/library/ingest.ts ~/pet-portraits/incoming/2026-05-06-watercolour-goldens
    ```
 
-   You'll see one line per file as it processes (~5-10s per item — most of that
-   is the Sonnet caption call). Done message at the end with success count.
+   You'll see one line per file as it processes (~1-2s per item with inline
+   captions, ~5-10s per item if Sonnet fallback kicks in). Validation warnings
+   print inline so you can spot caption drift after a batch.
 
 ## Image-style routing (decides who posts each image)
 
