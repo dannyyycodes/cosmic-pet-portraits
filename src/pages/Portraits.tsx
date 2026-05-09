@@ -48,7 +48,7 @@ import {
 } from "@/components/portraits/cart";
 import { isSoulReadingItem } from "@/components/portraits/soulReading";
 import { HowItWorks } from "@/components/portraits/HowItWorks";
-import { StudioFlow } from "@/components/portraits/StudioFlow";
+import { StudioFlow, type StudioPhase } from "@/components/portraits/StudioFlow";
 import { TopUpPlans } from "@/components/portraits/TopUpPlans";
 import { FrameSizes, PRICING, SIZE_KEYS } from "@/components/portraits/FrameSizes";
 import type { Currency, SizeKey } from "@/components/portraits/FrameSizes";
@@ -760,6 +760,13 @@ const Portraits = () => {
   const [presetSoulEdition, setPresetSoulEdition] = useState<boolean>(false);
   const uploadRef = useRef<HTMLDivElement>(null);
 
+  // Studio phase — emitted up from <StudioFlow/> so the surrounding sections
+  // (Hero, ReviewWall, TrustStrip, HowItWorks, FrameSizes, TopUpPlans) can
+  // dim during the high-attention phases (generating + reveal). This is the
+  // "single focal area" experience: the customer's eye stays on the canvas.
+  const [studioPhase, setStudioPhase] = useState<StudioPhase>("compose");
+  const studioFocused = studioPhase === "generating" || studioPhase === "reveal";
+
   // ─── Cart state — accumulates configured portraits across surfaces ──
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
@@ -933,19 +940,46 @@ const Portraits = () => {
       {/* nav is fixed-position 62px tall — push hero below */}
       <div style={{ height: "62px" }} aria-hidden />
       <div style={{ position: "relative", zIndex: 1 }}>
-      <PortraitsHero onBegin={scrollToUpload} />
-      <ReviewWall />
-      <TrustStrip />
-      <HowItWorks />
-      <FrameSizes currency={currency} onPickSize={handlePickSize} />
-
-      {/* Studio — full configurator inline on the landing page. */}
-      <div ref={uploadRef}>
-        <StudioFlow onCartAdd={handleAddToCart} />
+      {/* Non-studio sections dim during generating/reveal so the customer's
+          eye stays locked on the canvas. The dim is applied via inline style
+          (opacity + filter + pointer-events) rather than a class so we don't
+          have to thread Tailwind config through; transition lives on the
+          wrapping div so all four sections fade in unison. */}
+      <div
+        style={{
+          opacity: studioFocused ? 0.18 : 1,
+          filter: studioFocused ? "saturate(0.6)" : "none",
+          pointerEvents: studioFocused ? "none" : "auto",
+          transition: "opacity 320ms ease, filter 320ms ease",
+        }}
+        aria-hidden={studioFocused}
+      >
+        <PortraitsHero onBegin={scrollToUpload} />
+        <ReviewWall />
+        <TrustStrip />
+        <HowItWorks />
+        <FrameSizes currency={currency} onPickSize={handlePickSize} />
       </div>
 
-      {/* Top-up plans — inline below the studio so customers never leave the page. */}
-      <TopUpPlans variant="inline" authRedirect="/pawtraits#topup" />
+      {/* Studio — full configurator inline on the landing page. Stays at full
+          opacity during generating/reveal — it's the focal area. */}
+      <div ref={uploadRef}>
+        <StudioFlow onCartAdd={handleAddToCart} onPhaseChange={setStudioPhase} />
+      </div>
+
+      {/* Top-up plans — inline below the studio so customers never leave the
+          page. Also dims so the canvas remains the only focal area. */}
+      <div
+        style={{
+          opacity: studioFocused ? 0.18 : 1,
+          filter: studioFocused ? "saturate(0.6)" : "none",
+          pointerEvents: studioFocused ? "none" : "auto",
+          transition: "opacity 320ms ease, filter 320ms ease",
+        }}
+        aria-hidden={studioFocused}
+      >
+        <TopUpPlans variant="inline" authRedirect="/pawtraits#topup" />
+      </div>
       </div>
     </main>
     </>
