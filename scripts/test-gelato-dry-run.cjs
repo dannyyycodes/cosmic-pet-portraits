@@ -31,10 +31,11 @@ for (const line of fs.readFileSync(__dirname + "/../.env.production", "utf8").sp
 const KEY = ENV.GELATO_API_KEY;
 if (!KEY) { console.error("GELATO_API_KEY not in .env.production"); process.exit(1); }
 
-const PRODUCT_UID = "canvas_240gsm-canvas_wood-fsc-slim_30x40-cm_horizontal_4-0_ver";
-// 12x16 black canvas (per src/components/portraits/gelatoFramedCanvas.ts).
+// 12x16 black canvas — built from CANVAS_SIZES + FRAME_COLORS in
+// src/components/portraits/gelatoFramedCanvas.ts via gelatoProductUid().
 // If this UID changes (Gelato catalog update), the test will fail with a
 // clear error pointing at the productUid mapping — exactly what we want.
+const PRODUCT_UID = "framed_canvas_geo_simplified_300x400-mm-12x16-inch_black_352x452-mm-14x18-inch_wood-fsc-slim_ver_wood_w14xt42-mm_canvas_4-0";
 
 const orderRef = `ls-dryrun-${Date.now()}`;
 const body = {
