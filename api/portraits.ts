@@ -1394,6 +1394,21 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     });
   }
 
+  // ── Audit log — every credit-consumed generation gets a row in
+  //    pawtrait_generation_log so support can answer "where's my portrait?"
+  //    without grepping Vercel logs. The helpers swallow their own errors,
+  //    so logging never blocks the customer's generation.
+  const t0 = Date.now();
+  const generationLogId = await insertGenerationLog(supabase, {
+    user_id: userId,
+    source_image_urls: photos,
+    pet_count: photos.length,
+    style_id: styleId ?? null,
+    theme_id: themeId ?? null,
+    custom_prompt: customPrompt || null,
+    status: 'started',
+  });
+
   const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
   const anyName = names.some(n => n.length > 0);
   const negativeWithName = anyName
@@ -1441,6 +1456,11 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
 
     if (result.balanceExhausted) {
       await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "fal-balance-exhausted" });
+      await updateGenerationLog(supabase, generationLogId, {
+        status: 'failed',
+        error_text: 'fal-balance-exhausted',
+        duration_ms: Date.now() - t0,
+      });
       return balancePausedResponse(res);
     }
 
@@ -1451,9 +1471,14 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       // inline rather than a generic failure toast that has the customer
       // retrying the same input.
       await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "content-policy-violation" });
+      await updateGenerationLog(supabase, generationLogId, {
+        status: 'content_policy',
+        error_text: 'fal returned 422 content_policy_violation',
+        duration_ms: Date.now() - t0,
+      });
       return res.status(422).json({
         error: "content_policy_violation",
-        message: "Our AI moderator flagged this generation. The most common cause is a pet name that resembles an unsafe word — try a different spelling or a nickname.",
+        message: "Our moderator flagged this generation. The most common cause is a pet name that resembles an unsafe word — try a different spelling or a nickname.",
         suggestion: "rename_or_remove_pet_name",
         creditRefunded: true,
       });
@@ -1461,6 +1486,11 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
 
     if (!result.url) {
       await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "generation-failed" });
+      await updateGenerationLog(supabase, generationLogId, {
+        status: 'failed',
+        error_text: 'fal returned no URL',
+        duration_ms: Date.now() - t0,
+      });
       return res.status(502).json({ error: "Generation failed (credit refunded)" });
     }
 
@@ -1497,6 +1527,19 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     }
 
     const variants = [{ url: durableUrl, composition: promptDef.compositionId }];
+
+    // Final audit-log update — success path. Records the prompt actually
+    // sent, the durable output URL (the rehosted Supabase one, not the
+    // ephemeral fal one), and timing.
+    await updateGenerationLog(supabase, generationLogId, {
+      status: 'succeeded',
+      prompt_sent: promptDef.prompt,
+      negative_prompt: promptDef.negative,
+      output_image_url: durableUrl,
+      cost_usd: GPT_IMAGE_COST_USD + (useVision ? VISION_COST_USD * photos.length : 0),
+      duration_ms: Date.now() - t0,
+    });
+
     // Response shape:
     //   variants:  [{ url, composition }]            — same as before
     //   subject:   first pet's SubjectInfo            — back-compat with single-pet UI
@@ -1515,6 +1558,11 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       tokens: TOKENS_PER_GENERATION,
       reason: "exception",
       metadata: { error: (err as Error).message },
+    });
+    await updateGenerationLog(supabase, generationLogId, {
+      status: 'failed',
+      error_text: `exception: ${(err as Error).message}`,
+      duration_ms: Date.now() - t0,
     });
     return res.status(500).json({ error: "Generation failed (credit refunded)", detail: (err as Error).message });
   }

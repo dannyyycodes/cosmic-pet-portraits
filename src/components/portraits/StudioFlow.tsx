@@ -51,6 +51,7 @@ import { VariantGallery, type Variant } from "@/components/portraits/styles/Vari
 import { useAuth } from "@/contexts/AuthContext";
 import { useCredits } from "@/components/portraits/useCredits";
 import { savePetPhoto, loadPetPhoto, clearPetPhoto } from "@/components/portraits/photoSharing";
+import { saveStudioState, loadStudioState, clearStudioState } from "@/components/portraits/studioStatePersistence";
 import {
   PRODUCTS,
   formatPrice,
@@ -461,7 +462,24 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
   // (Multi-pet is NOT persisted across sessions for now — overscope.)
   // Session-stored pet-name pre-fill from the prior single-pet flow goes
   // onto the first card so returning customers don't lose their typed name.
+  // Restore the full studio state if a recent session left a snapshot
+  // (within the 4h TTL). Survives accidental tab close mid-generation —
+  // pets, prompt, generated variants, approval all come back. If no
+  // snapshot, fall back to the legacy single-photo seed.
+  const restoredState = (() => {
+    if (typeof window === "undefined") return null;
+    return loadStudioState();
+  })();
+
   const [pets, setPets] = useState<Pet[]>(() => {
+    if (restoredState && restoredState.pets.length > 0) {
+      return restoredState.pets.map((p) => ({
+        id: p.id || newPetId(),
+        name: p.name || "",
+        photoUrl: p.photoUrl ?? null,
+        noName: p.noName ?? false,
+      }));
+    }
     const seedPhoto = loadPetPhoto();
     let seedName = "";
     if (typeof window !== "undefined") {
@@ -517,14 +535,28 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     setApproved(false);
   }
 
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(restoredState?.prompt ?? "");
   const [generating, setGenerating] = useState(false);
-  const [variants, setVariants] = useState<Variant[]>([]);
-  const [selectedVariantUrl, setSelectedVariantUrl] = useState<string | null>(null);
+  const [variants, setVariants] = useState<Variant[]>(restoredState?.variants ?? []);
+  const [selectedVariantUrl, setSelectedVariantUrl] = useState<string | null>(restoredState?.selectedVariantUrl ?? null);
   // Approval gate — the Reveal step. Customer must explicitly approve
   // before size/frame picker + cart UI become visible.
-  const [approved, setApproved] = useState(false);
+  const [approved, setApproved] = useState(restoredState?.approved ?? false);
   const [generationCount, setGenerationCount] = useState(0);
+
+  // Persist state on every meaningful change so a tab close mid-generation
+  // doesn't lose work + the credit it burned. Cleared on cart-add success
+  // (handleAdd below) so a returning customer doesn't see a stale sale-attempt.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    saveStudioState({
+      pets: pets.map((p) => ({ id: p.id, name: p.name, noName: p.noName ?? false, photoUrl: p.photoUrl })),
+      prompt,
+      variants,
+      selectedVariantUrl,
+      approved,
+    });
+  }, [pets, prompt, variants, selectedVariantUrl, approved]);
   // Print-master regen state — busy spinner over the cart-add button while
   // the print-grade asset is being prepared (~10-20s).
   const [preparingPrintMaster, setPreparingPrintMaster] = useState(false);
@@ -772,6 +804,10 @@ export function StudioFlow({ onCartAdd }: StudioFlowProps) {
     });
     onCartAdd(item);
     setCartAddCount((n) => n + 1);
+    // Cart-add is the natural "session ended" boundary — clear the
+    // mid-generation snapshot so a returning customer doesn't see a
+    // half-built attempt from the order they just completed.
+    clearStudioState();
     toast.success(
       cartAddCount === 0
         ? "Added to cart — pick a different size or frame to add another"
