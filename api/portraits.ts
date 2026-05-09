@@ -1406,7 +1406,7 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     style_id: styleId ?? null,
     theme_id: themeId ?? null,
     custom_prompt: customPrompt || null,
-    status: 'started',
+    status: 'pending', // matches CHECK in 20260508_000000_pawtrait_generation_log.sql
   });
 
   const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
@@ -1472,8 +1472,8 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       // retrying the same input.
       await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "content-policy-violation" });
       await updateGenerationLog(supabase, generationLogId, {
-        status: 'content_policy',
-        error_text: 'fal returned 422 content_policy_violation',
+        status: 'failed',
+        error_text: 'content_policy_violation: fal returned 422 (moderator flagged)',
         duration_ms: Date.now() - t0,
       });
       return res.status(422).json({
@@ -1532,7 +1532,7 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     // sent, the durable output URL (the rehosted Supabase one, not the
     // ephemeral fal one), and timing.
     await updateGenerationLog(supabase, generationLogId, {
-      status: 'succeeded',
+      status: 'success', // matches CHECK in migration
       prompt_sent: promptDef.prompt,
       negative_prompt: promptDef.negative,
       output_image_url: durableUrl,
