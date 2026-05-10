@@ -11,7 +11,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ABTestProvider } from "@/contexts/ABTestContext";
-import { CookieConsent } from "@/components/CookieConsent";
 import { Analytics } from "@vercel/analytics/react";
 
 // Eagerly loaded pages (core user journey)
@@ -157,7 +156,6 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <CookieConsent />
             <BrowserRouter>
               <ReferralCapture>
               <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.href = '/'}>
