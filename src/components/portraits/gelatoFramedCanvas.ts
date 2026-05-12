@@ -334,10 +334,10 @@ export function resolveDigitalVariant(): { variantId: number; priceMajor: number
  * scripts/shopify-launch/created_gift_card_product.json after running.
  */
 export const GIFT_CARD_VARIANTS: Record<number, { variantId: number; priceMajor: number }> = {
-  19:  { variantId: 0, priceMajor: 19 },
-  39:  { variantId: 0, priceMajor: 39 },
-  79:  { variantId: 0, priceMajor: 79 },
-  129: { variantId: 0, priceMajor: 129 },
+  19:  { variantId: 64670403428701, priceMajor: 19 },
+  39:  { variantId: 64670403461469, priceMajor: 39 },
+  79:  { variantId: 64670403494237, priceMajor: 79 },
+  129: { variantId: 64670403527005, priceMajor: 129 },
 };
 
 export const GIFT_CARD_DENOMINATIONS_GBP: readonly number[] = [19, 39, 79, 129] as const;

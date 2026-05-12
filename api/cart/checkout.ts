@@ -32,11 +32,12 @@ import { createDraftOrder, shopifyConfigured, type DraftOrderLineItem } from "..
 type ProductTypeKey = "digital" | "canvas" | "framed-canvas" | "gift-card" | "mug" | "tote" | "tee" | "hoodie";
 
 // Gift card variant IDs (mirrors GIFT_CARD_VARIANTS in gelatoFramedCanvas.ts).
-// Populated by scripts/shopify-launch/create_gift_card_product.py — until that
-// runs, all entries are 0 (the gift card flow guards against this on the frontend).
+// Created live 2026-05-12 — Shopify product id 16190208770397.
 const GIFT_CARD_VARIANT_IDS = new Set<number>([
-  // £19 / £39 / £79 / £129 — paste real IDs after running the migration script
-  // and updating gelatoFramedCanvas.ts GIFT_CARD_VARIANTS.
+  64670403428701, // £19 — covers 1 digital download
+  64670403461469, // £39 — covers 8x10 unframed canvas
+  64670403494237, // £79 — covers 18x24 unframed canvas
+  64670403527005, // £129 — covers framed canvas
 ]);
 
 // ─── Soul Reading constants (mirrors src/components/portraits/soulReading.ts) ──

@@ -1,0 +1,30 @@
+{
+  "product_id": 16190208770397,
+  "product_handle": "cosmic-pet-portrait-gift-card",
+  "variants": {
+    "19": {
+      "amount": 19,
+      "variant_id": 64670403428701,
+      "sku": "LS-GC-19",
+      "price": "19.00"
+    },
+    "39": {
+      "amount": 39,
+      "variant_id": 64670403461469,
+      "sku": "LS-GC-39",
+      "price": "39.00"
+    },
+    "79": {
+      "amount": 79,
+      "variant_id": 64670403494237,
+      "sku": "LS-GC-79",
+      "price": "79.00"
+    },
+    "129": {
+      "amount": 129,
+      "variant_id": 64670403527005,
+      "sku": "LS-GC-129",
+      "price": "129.00"
+    }
+  }
+}
