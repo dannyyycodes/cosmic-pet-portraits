@@ -127,11 +127,20 @@ export function CartDrawer({
       <SheetContent
         side="right"
         className="w-full sm:max-w-md flex flex-col p-0"
-        style={{ background: PALETTE.cream, borderColor: PALETTE.sand }}
+        style={{
+          background: PALETTE.cream,
+          borderColor: PALETTE.sand,
+          // Start the drawer below the fixed PortraitsNav (62px) so both
+          // the title and the absolute-positioned close button clear it.
+          top: 62,
+          height: "calc(100vh - 62px)",
+        }}
       >
         <SheetHeader
           className="px-6 pt-6 pb-4 text-left"
-          style={{ borderBottom: `1px solid ${PALETTE.sand}` }}
+          style={{
+            borderBottom: `1px solid ${PALETTE.sand}`,
+          }}
         >
           <SheetTitle
             style={{
