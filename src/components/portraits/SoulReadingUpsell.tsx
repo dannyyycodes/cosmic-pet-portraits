@@ -115,6 +115,11 @@ function locationError(value: string): string | null {
 }
 
 export function SoulReadingUpsell({ cart, onAdd }: SoulReadingUpsellProps) {
+  // ⚠ RULES OF HOOKS: every hook below MUST run on every render. Early-
+  // returns based on `hasCanvas` / `hasSoulReading` happen AFTER all hooks
+  // are called — moving them above the hooks causes React error #300
+  // (hook count mismatch when the upsell disappears after Soul Reading is
+  // added). Bug repro: 2026-05-12.
   const reduce = !!useReducedMotion();
 
   // Derived flags from cart contents.
@@ -134,10 +139,6 @@ export function SoulReadingUpsell({ cart, onAdd }: SoulReadingUpsellProps) {
     () => cart.some(isSoulReadingItem),
     [cart],
   );
-
-  // Hidden states.
-  if (!hasCanvas) return null;
-  if (hasSoulReading) return null;
 
   // Pre-fill name from cart on first mount (or whenever cart changes the
   // prefill source — cheap recompute).
@@ -196,6 +197,11 @@ export function SoulReadingUpsell({ cart, onAdd }: SoulReadingUpsellProps) {
     }
     return `ref-${Math.random().toString(36).slice(2, 10)}`;
   }, [cart]);
+
+  // Hidden states — MUST be after all hooks above. React error #300 fires
+  // if hooks are skipped on a re-render where the early-return now hits.
+  if (!hasCanvas) return null;
+  if (hasSoulReading) return null;
 
   function handleSubmit() {
     setTouched({ name: true, dob: true, loc: true });
