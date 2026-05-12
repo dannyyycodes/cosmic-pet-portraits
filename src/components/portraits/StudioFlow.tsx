@@ -555,6 +555,14 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
 
   const [prompt, setPrompt] = useState(restoredState?.prompt ?? "");
   const [generating, setGenerating] = useState(false);
+  // Parent-held start timestamp for GenerationCanvas — survives remounts so
+  // the stage timer doesn't reset (which would loop the same opening lines
+  // back at the customer). Set once when generation begins, cleared on done.
+  const [genStartedAt, setGenStartedAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (generating && !genStartedAt) setGenStartedAt(Date.now());
+    if (!generating && genStartedAt) setGenStartedAt(null);
+  }, [generating, genStartedAt]);
 
   // Pre-fill the prompt from a ?style=<slug> URL param when the visitor arrives
   // from the gallery's "Make my pet in this style" CTA. We only inject when the
@@ -725,14 +733,14 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     "20x28", "20x30", "24x32", "24x36",
   ]);
   useEffect(() => {
-    // Skip Printful mockup for digital (no physical) and for unframed (Printful's
-    // mockup catalog is framed-only). UNFRAMED still gets a CSS wall preview
-    // rendered below using selectedVariantUrl — never blank.
-    if (!selectedVariantUrl || !sizeKey || deliveryType === "digital" || frameColor === null) {
-      setRoomMockupUrl(null);
-      setRoomMockupLoading(false);
-      return;
-    }
+    // 2026-05-12: preview-on-wall block removed (Printful endpoint was hanging
+    // forever, killed customer trust). The fetch effect is short-circuited so
+    // it never fires. Keeping the state variables intact in case we re-add a
+    // working preview later.
+    setRoomMockupUrl(null);
+    setRoomMockupLoading(false);
+    return;
+    // Unreachable below — preserved for future re-enable. eslint-disable-next-line no-unreachable
     const requestKey = `${selectedVariantUrl}|${sizeKey}|${frameColor}`;
     if (roomMockupRequestedForRef.current === requestKey) return;
     roomMockupRequestedForRef.current = requestKey;
@@ -1182,6 +1190,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         signal: AbortSignal.timeout(30_000),
       });
       const submitData = await submitRes.json().catch(() => ({}));
+      console.log("[StudioFlow] printMaster_submit response", { status: submitRes.status, body: submitData });
       if (!submitRes.ok || submitData?.status !== 'submitted' || !submitData?.fal_status_url) {
         const reason = submitData?.error ?? submitData?.message ?? submitData?.reason ?? `HTTP ${submitRes.status}`;
         console.error("[StudioFlow] printMaster_submit non-OK", { status: submitRes.status, body: submitData });
@@ -1208,12 +1217,17 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         }).catch(() => null);
         if (!statusRes) continue; // network glitch — retry
         const statusData = await statusRes.json().catch(() => ({}));
+        if (attempts === 1 || attempts % 5 === 0) {
+          console.log("[StudioFlow] printMaster_status poll", { attempt: attempts, status: statusData?.status, hasPath: !!statusData?.printMasterPath });
+        }
         if (statusData?.status === 'completed' && (statusData?.printMasterPath || statusData?.printMasterUrl)) {
           printMasterPath = (statusData.printMasterPath as string | undefined) ?? null;
           printMasterUrl = (statusData.printMasterUrl as string | undefined) ?? null;
+          console.log("[StudioFlow] printMaster_status completed", { path: printMasterPath, url: printMasterUrl?.slice(0, 80) });
           break;
         }
         if (statusData?.status === 'failed') {
+          console.error("[StudioFlow] printMaster_status failed", statusData);
           if (statusData?.contentPolicyViolation) {
             throw new Error('content_policy_violation');
           }
@@ -1841,7 +1855,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               className="mt-6 mx-auto"
               style={{ maxWidth: 540 }}
             >
-              <GenerationCanvas />
+              <GenerationCanvas startedAt={genStartedAt ?? undefined} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -1903,202 +1917,12 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                   compact
                 />
 
-                {/* CSS wall preview for UNFRAMED canvas + digital (the default).
-                    Printful's mockup is framed-only; for unframed we composite
-                    the variant onto a stylized wall background using CSS so the
-                    customer ALWAYS sees a "preview on your wall" — never blank. */}
-                {selectedVariantUrl && (frameColor === null || deliveryType === "digital") && (
-                  <div className="mt-4">
-                    <p
-                      className="text-center mb-2"
-                      style={{
-                        fontFamily: 'Asap, system-ui, sans-serif',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: PALETTE.earthMuted,
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {deliveryType === "digital" ? "Preview" : "Preview on your wall"}
-                    </p>
-                    <div
-                      className="rounded-xl overflow-hidden relative"
-                      style={{
-                        aspectRatio: "4 / 3",
-                        background:
-                          "linear-gradient(180deg, #f7efe2 0%, #ede2cf 55%, #d9c8ad 100%)",
-                        border: `1px solid ${PALETTE.sand}`,
-                      }}
-                    >
-                      {/* Soft wall shadow + floor line */}
-                      <div
-                        aria-hidden
-                        style={{
-                          position: "absolute",
-                          left: 0,
-                          right: 0,
-                          bottom: "30%",
-                          height: 1,
-                          background: "rgba(120, 95, 65, 0.18)",
-                        }}
-                      />
-                      {/* The canvas itself — slim shadow, no frame for unframed */}
-                      <div
-                        className="absolute"
-                        style={{
-                          top: "12%",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          width: "44%",
-                          aspectRatio: "4 / 5",
-                          background: "#fff",
-                          boxShadow:
-                            "0 18px 32px -8px rgba(60, 40, 20, 0.32), 0 4px 10px rgba(60, 40, 20, 0.15)",
-                          overflow: "hidden",
-                          borderRadius: 2,
-                        }}
-                      >
-                        <img
-                          src={selectedVariantUrl}
-                          alt="Your portrait on a wall preview"
-                          loading="lazy"
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            display: "block",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* In-room canvas preview — Printful mockup of the customer's
-                    portrait inside a framed canvas hanging in a real room.
-                    Closes the screen-to-canvas imagination gap before
-                    purchase. Loads ~20-30s after the variant lands; non-
-                    blocking — customer can interact with size/frame/cart
-                    while it appears. Falls back to no-mockup if Printful
-                    fails. */}
-                {(roomMockupLoading || roomMockupUrl) && (
-                  <div className="mt-4">
-                    <p
-                      className="text-center mb-2"
-                      style={{
-                        fontFamily: 'Asap, system-ui, sans-serif',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: PALETTE.earthMuted,
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Preview on your wall
-                    </p>
-                    <div
-                      className="rounded-xl overflow-hidden relative"
-                      style={{
-                        background: PALETTE.cream2,
-                        border: `1px solid ${PALETTE.sand}`,
-                        aspectRatio: "4 / 3",
-                      }}
-                    >
-                      {roomMockupUrl ? (
-                        <motion.img
-                          key={roomMockupUrl}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.6 }}
-                          src={roomMockupUrl}
-                          alt="Your portrait on a framed canvas in a room"
-                          className="absolute inset-0 w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <motion.div
-                            animate={{ opacity: [0.3, 0.6, 0.3] }}
-                            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-                            className="flex flex-col items-center gap-2"
-                          >
-                            <div
-                              className="rounded-md"
-                              style={{
-                                width: 140,
-                                height: 90,
-                                background: PALETTE.sand,
-                              }}
-                            />
-                            <span
-                              style={{
-                                fontFamily: 'Cormorant Garamond, Georgia, serif',
-                                fontSize: 13,
-                                fontStyle: 'italic',
-                                color: PALETTE.earthMuted,
-                              }}
-                            >
-                              Hanging it on a wall…
-                            </span>
-                          </motion.div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Caption for sizes outside Printful's mockup catalog
-                    (16×24, 24×30). The variant is still buyable — Gelato
-                    fulfils — we just can't render an in-room preview. Show
-                    a small explainer instead of nothing so the customer
-                    isn't confused by the missing preview block other sizes
-                    have. */}
-                {!roomMockupLoading && !roomMockupUrl && !PRINTFUL_MOCKUP_SUPPORTED_SIZES.has(sizeKey) && (
-                  <div className="mt-4">
-                    <p
-                      className="text-center mb-2"
-                      style={{
-                        fontFamily: 'Asap, system-ui, sans-serif',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: PALETTE.earthMuted,
-                        letterSpacing: "0.14em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Preview on your wall
-                    </p>
-                    <div
-                      className="rounded-xl px-4 py-5 text-center"
-                      style={{
-                        background: PALETTE.cream2,
-                        border: `1px dashed ${PALETTE.sandDeep}`,
-                      }}
-                    >
-                      <p
-                        style={{
-                          fontFamily: 'Cormorant Garamond, Georgia, serif',
-                          fontSize: 14,
-                          fontStyle: 'italic',
-                          color: PALETTE.earthMuted,
-                          marginBottom: 4,
-                        }}
-                      >
-                        In-room preview not available for this size
-                      </p>
-                      <p
-                        style={{
-                          fontFamily: 'Assistant, system-ui, sans-serif',
-                          fontSize: 11.5,
-                          color: PALETTE.earthSubtle,
-                        }}
-                      >
-                        Your final canvas will be {activeSizeMeta.label} — printed and shipped exactly as your portrait above.
-                      </p>
-                    </div>
-                  </div>
-                )}
+                {/* Preview-on-wall mockups removed 2026-05-12 per Danny —
+                    Printful endpoint was hanging on "Hanging it on a wall…"
+                    for the default frame color, and the CSS fallback added
+                    visual noise without value. The variant gallery above
+                    already shows the portrait at full clarity; the cart
+                    drawer's lightbox handles full-size inspection. */}
 
                 <div
                   className="my-4"
@@ -2543,35 +2367,67 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                 </button>
                 {preparingPrintMaster && (
                   <div
-                    className="text-center mt-2"
+                    className="rounded-xl mt-3 px-4 py-4"
                     aria-live="polite"
+                    style={{
+                      background: PALETTE.cream2,
+                      border: `1px solid ${PALETTE.sand}`,
+                    }}
                   >
-                    <p
-                      style={{
-                        fontFamily: 'Cormorant Garamond, Georgia, serif',
-                        fontSize: 14,
-                        fontStyle: 'italic',
-                        color: PALETTE.ink,
-                        lineHeight: 1.4,
-                        margin: 0,
-                      }}
-                    >
-                      {printMasterStageText}…
-                    </p>
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" strokeWidth={2.4} style={{ color: PALETTE.rose }} />
+                      <p
+                        style={{
+                          fontFamily: 'Cormorant Garamond, Georgia, serif',
+                          fontSize: 16,
+                          fontStyle: 'italic',
+                          color: PALETTE.ink,
+                          lineHeight: 1.3,
+                          margin: 0,
+                        }}
+                      >
+                        {printMasterStageText}…
+                      </p>
+                    </div>
                     <p
                       className="tabular-nums"
                       style={{
                         fontFamily: 'Assistant, system-ui, sans-serif',
-                        fontSize: 11,
+                        fontSize: 12,
                         color: PALETTE.earthMuted,
-                        marginTop: 4,
-                        marginBottom: 0,
+                        margin: "0 0 0 28px",
                       }}
                     >
                       {printMasterElapsedSec < 60
-                        ? `${printMasterElapsedSec}s elapsed · usually 30–60s`
-                        : `${Math.floor(printMasterElapsedSec / 60)}m ${printMasterElapsedSec % 60}s elapsed`}
+                        ? `${printMasterElapsedSec}s elapsed · this usually takes 30–60s`
+                        : printMasterElapsedSec < 180
+                          ? `${Math.floor(printMasterElapsedSec / 60)}m ${printMasterElapsedSec % 60}s · running long — fal.ai is busy, hang tight`
+                          : `${Math.floor(printMasterElapsedSec / 60)}m ${printMasterElapsedSec % 60}s · stuck? hit cancel below and try again`}
                     </p>
+                    {printMasterElapsedSec >= 90 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          console.warn("[StudioFlow] customer cancelled print master prep at", printMasterElapsedSec, "s");
+                          setPreparingPrintMaster(false);
+                          toast("Cancelled. Try Add to cart again when you're ready.", { duration: 4000 });
+                        }}
+                        className="mt-2 ml-7"
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          padding: "4px 0",
+                          fontFamily: "Assistant, system-ui, sans-serif",
+                          fontSize: 12,
+                          color: PALETTE.rose,
+                          textDecoration: "underline",
+                          textUnderlineOffset: 2,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Cancel and retry →
+                      </button>
+                    )}
                   </div>
                 )}
                 {cartAddCount > 0 && (
