@@ -8,7 +8,7 @@
  *
  * Empty state nudges them back to the studio.
  */
-import { useCallback, useState } from "react";
+import { Component, type ErrorInfo, type ReactNode, useCallback, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -24,6 +24,53 @@ import { SoulReadingUpsell } from "./SoulReadingUpsell";
 import { CartGiftUpsell } from "./CartGiftUpsell";
 import { CartConsents, type ConsentSnapshot } from "./CartConsents";
 import { Sparkles } from "lucide-react";
+
+/**
+ * Local error boundary scoped to a SINGLE cart line. When an item render
+ * throws (e.g. malformed cart entry, missing PRODUCTS lookup, etc.) we catch
+ * it here so the whole page doesn't end up at the global "cosmic hiccup".
+ * The actual error gets logged + shown inline so we can diagnose it.
+ */
+class CartLineErrorBoundary extends Component<
+  { children: ReactNode; itemSummary: string },
+  { hasError: boolean; message: string }
+> {
+  constructor(props: { children: ReactNode; itemSummary: string }) {
+    super(props);
+    this.state = { hasError: false, message: "" };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, message: error.message ?? "Unknown render error" };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[CartLineErrorBoundary] crash rendering item:", this.props.itemSummary, error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          role="alert"
+          style={{
+            background: "rgba(191, 82, 74, 0.06)",
+            border: `1px dashed ${PALETTE.rose}`,
+            borderRadius: 8,
+            padding: "12px 14px",
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 12.5,
+            color: PALETTE.earth,
+          }}
+        >
+          <strong style={{ color: PALETTE.rose }}>Couldn't render this line:</strong>{" "}
+          {this.props.itemSummary}
+          <div style={{ fontFamily: "Menlo, monospace", fontSize: 11, marginTop: 6, color: PALETTE.earthMuted }}>
+            {this.state.message}
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 interface CartDrawerProps {
   open: boolean;
@@ -129,11 +176,15 @@ export function CartDrawer({
                       transition={{ duration: 0.32, ease: EASE.out }}
                       className="overflow-hidden"
                     >
-                      {isSoulReadingItem(item) ? (
-                        <SoulReadingLine item={item} onRemove={onRemove} />
-                      ) : (
-                        <CartLine item={item} onRemove={onRemove} />
-                      )}
+                      <CartLineErrorBoundary
+                        itemSummary={`${item.productLabel ?? item.productType ?? "Cart item"} (${item.id})`}
+                      >
+                        {isSoulReadingItem(item) ? (
+                          <SoulReadingLine item={item} onRemove={onRemove} />
+                        ) : (
+                          <CartLine item={item} onRemove={onRemove} />
+                        )}
+                      </CartLineErrorBoundary>
                     </motion.li>
                   ))}
                 </AnimatePresence>
@@ -141,9 +192,13 @@ export function CartDrawer({
 
               {/* Soul Reading upsell card — sits between line items and
                   footer. Hides itself when there are no canvas items or
-                  when a Soul Reading is already in cart. */}
+                  when a Soul Reading is already in cart. Wrapped in
+                  CartLineErrorBoundary so a render crash here doesn't
+                  cascade to the global "cosmic hiccup" page. */}
               {onAddItem && (
-                <SoulReadingUpsell cart={items} onAdd={onAddItem} />
+                <CartLineErrorBoundary itemSummary="Soul Reading upsell card">
+                  <SoulReadingUpsell cart={items} onAdd={onAddItem} />
+                </CartLineErrorBoundary>
               )}
 
               {/* Gift card upsell — "Send a portrait to a friend".
@@ -151,7 +206,9 @@ export function CartDrawer({
                   Shopify auto-generates the code + emails the recipient on
                   payment. Native redemption at checkout. */}
               {onAddItem && (
-                <CartGiftUpsell onAdd={onAddItem} />
+                <CartLineErrorBoundary itemSummary="Gift card upsell card">
+                  <CartGiftUpsell onAdd={onAddItem} />
+                </CartLineErrorBoundary>
               )}
             </>
           )}
