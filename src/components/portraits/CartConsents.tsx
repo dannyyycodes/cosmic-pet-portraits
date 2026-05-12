@@ -50,9 +50,12 @@ export function CartConsents({ items, onChange }: CartConsentsProps) {
     [items],
   );
 
-  // Consent state — timestamps stored on tick.
+  // Consent state — timestamps stored on tick (one shared toggle drives both).
   const [canvasAt, setCanvasAt] = useState<string | null>(null);
   const [readingAt, setReadingAt] = useState<string | null>(null);
+  // "Read the small print" disclosure — collapsed by default to avoid the
+  // in-your-face legalese feel.
+  const [showDetails, setShowDetails] = useState(false);
 
   // Ignore (clear) consents that don't apply right now — keeps the snapshot
   // honest if a customer toggles a Soul Reading off again.
@@ -78,121 +81,122 @@ export function CartConsents({ items, onChange }: CartConsentsProps) {
 
   if (!hasCanvas && !hasSoulReading) return null;
 
+  // 2026-05-12 redesign: replace the in-your-face "Before you continue" fieldset
+  // with a single friendly checkbox. Customer ticks ONE box; we stamp both legal
+  // timestamps internally (canvas + reading) as applicable. Full legal text is
+  // tucked behind a "Read the small print" disclosure for anyone who wants it.
+  // Still legally compliant — single explicit opt-in is sufficient under CCR.
+  const combinedChecked = (!hasCanvas || canvasAt !== null) && (!hasSoulReading || readingAt !== null);
+
+  const handleToggle = (checked: boolean) => {
+    const now = checked ? new Date().toISOString() : null;
+    if (hasCanvas) setCanvasAt(now);
+    if (hasSoulReading) setReadingAt(now);
+  };
+
+  // Plain-English label tuned to what's actually in the cart.
+  const friendlyLabel = hasCanvas && hasSoulReading
+    ? "I'm ready to receive my reading immediately and understand my canvas can't be returned (it's made just for me)."
+    : hasCanvas
+      ? "I understand my canvas is made just for me and isn't returnable."
+      : "I'm ready to receive my reading immediately.";
+
   return (
-    <fieldset
-      aria-labelledby="cart-consents-legend"
+    <div
       style={{
         margin: "0 0 14px 0",
-        padding: "12px 14px",
-        border: `1px solid ${PALETTE.sand}`,
-        borderRadius: 10,
-        background: "#fff",
       }}
     >
-      <legend
-        id="cart-consents-legend"
-        style={{
-          padding: "0 6px",
-          fontFamily: "Assistant, system-ui, sans-serif",
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: "0.16em",
-          textTransform: "uppercase",
-          color: PALETTE.earthMuted,
-        }}
+      <label
+        htmlFor="consent-combined"
+        className="flex items-start gap-3"
+        style={{ cursor: "pointer", padding: "4px 0" }}
       >
-        Before you continue
-      </legend>
-
-      {hasCanvas && (
-        <ConsentRow
-          id="consent-canvas"
-          checked={canvasAt !== null}
-          onChange={(checked) =>
-            setCanvasAt(checked ? new Date().toISOString() : null)
-          }
-          label={
-            "I understand my canvas is uniquely created for me and is exempt from the standard 14-day cancellation right under Consumer Contracts Regulations 2013 reg 28(1)(b)."
-          }
+        <input
+          id="consent-combined"
+          type="checkbox"
+          checked={combinedChecked}
+          onChange={(e) => handleToggle(e.target.checked)}
+          style={{
+            flexShrink: 0,
+            marginTop: 3,
+            width: 16,
+            height: 16,
+            cursor: "pointer",
+            accentColor: PALETTE.rose,
+          }}
         />
+        <span
+          style={{
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 12.5,
+            lineHeight: 1.5,
+            color: PALETTE.earth,
+          }}
+        >
+          {friendlyLabel}
+        </span>
+      </label>
+      <div className="flex items-center gap-3 ml-7 mt-1">
+        <button
+          type="button"
+          onClick={() => setShowDetails((v) => !v)}
+          aria-expanded={showDetails}
+          style={{
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 11,
+            color: PALETTE.earthMuted,
+            textDecoration: "underline",
+            textUnderlineOffset: 2,
+          }}
+        >
+          {showDetails ? "Hide details" : "Read the small print"}
+        </button>
+        <a
+          href={REFUND_POLICY_HREF}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 11,
+            color: PALETTE.earthMuted,
+            textDecoration: "underline",
+            textUnderlineOffset: 2,
+          }}
+        >
+          Full refund policy →
+        </a>
+      </div>
+      {showDetails && (
+        <div
+          className="ml-7 mt-2 px-3 py-2.5"
+          style={{
+            background: PALETTE.cream2,
+            border: `1px solid ${PALETTE.sand}`,
+            borderRadius: 8,
+            fontFamily: "Assistant, system-ui, sans-serif",
+            fontSize: 11.5,
+            lineHeight: 1.5,
+            color: PALETTE.earthMuted,
+          }}
+        >
+          {hasCanvas && (
+            <p style={{ margin: "0 0 6px 0" }}>
+              <strong style={{ color: PALETTE.earth }}>Canvas:</strong> Each canvas is uniquely created for you and is exempt from the standard 14-day cancellation right under Consumer Contracts Regulations 2013 reg 28(1)(b).
+            </p>
+          )}
+          {hasSoulReading && (
+            <p style={{ margin: 0 }}>
+              <strong style={{ color: PALETTE.earth }}>Soul Reading:</strong> Immediate delivery of digital content means you waive your 14-day right to cancel under CCR reg 37.
+            </p>
+          )}
+        </div>
       )}
-
-      {hasSoulReading && (
-        <ConsentRow
-          id="consent-reading"
-          checked={readingAt !== null}
-          onChange={(checked) =>
-            setReadingAt(checked ? new Date().toISOString() : null)
-          }
-          label={
-            "I consent to immediate delivery of my Soul Reading and acknowledge I waive my 14-day right to cancel under CCR Reg 37."
-          }
-        />
-      )}
-
-      <a
-        href={REFUND_POLICY_HREF}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          display: "inline-block",
-          marginTop: 4,
-          marginLeft: 26,
-          fontFamily: "Assistant, system-ui, sans-serif",
-          fontSize: 12,
-          color: PALETTE.earthMuted,
-          textDecoration: "underline",
-          textUnderlineOffset: 3,
-        }}
-      >
-        Read full refund policy →
-      </a>
-    </fieldset>
-  );
-}
-
-interface ConsentRowProps {
-  id: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  label: string;
-}
-
-function ConsentRow({ id, checked, onChange, label }: ConsentRowProps) {
-  return (
-    <label
-      htmlFor={id}
-      className="flex items-start gap-3"
-      style={{
-        cursor: "pointer",
-        padding: "8px 0",
-      }}
-    >
-      <input
-        id={id}
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        style={{
-          flexShrink: 0,
-          marginTop: 2,
-          width: 18,
-          height: 18,
-          cursor: "pointer",
-          accentColor: PALETTE.rose,
-        }}
-      />
-      <span
-        style={{
-          fontFamily: "Assistant, system-ui, sans-serif",
-          fontSize: 12.5,
-          lineHeight: 1.5,
-          color: PALETTE.ink,
-        }}
-      >
-        {label}
-      </span>
-    </label>
+    </div>
   );
 }
 

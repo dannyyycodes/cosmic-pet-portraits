@@ -45,8 +45,11 @@ const HINT_PER_AMOUNT: Record<number, string> = {
 export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState<number>(GIFT_CARD_DENOMINATIONS_GBP[0]);
+  // 2026-05-12 update per Danny: code is emailed to the BUYER, who shares it
+  // themselves (more personal, lets them text/whatsapp the friend directly).
+  // recipientName is OPTIONAL — only used for the message wording on the buyer's
+  // receipt ("Gift for Sarah"). No recipientEmail field anymore.
   const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -54,9 +57,6 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
 
   function handleSubmit() {
     setError(null);
-    if (!recipientName.trim()) return setError("Add the recipient's name");
-    if (!recipientEmail.trim()) return setError("Add the recipient's email");
-    if (!/^\S+@\S+\.\S+$/.test(recipientEmail)) return setError("Email doesn't look right");
     if (!denomination || denomination.variantId === 0) {
       return setError("Gift cards aren't available yet — coming soon");
     }
@@ -81,19 +81,19 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
       productShortLabel: "Gift card",
       sizeLabel: `£${amount}`,
       priceMajor: amount,
-      // Properties live without underscore prefix so Shopify's native gift-card
-      // flow picks them up and auto-emails the recipient on payment.
+      // Properties: NO recipient_email — Shopify sends gift code to the BUYER
+      // who shares it manually with the friend. recipient_name + message are
+      // kept (with underscore-prefix to hide from customer order page) as
+      // memo-only data for analytics and the buyer's records.
       properties: {
-        recipient_name: recipientName.trim(),
-        recipient_email: recipientEmail.trim(),
-        ...(message.trim() ? { message: message.trim() } : {}),
+        ...(recipientName.trim() ? { _gift_for: recipientName.trim() } : {}),
+        ...(message.trim() ? { _gift_message: message.trim() } : {}),
       },
     };
     onAdd(item);
 
     // Reset + collapse
     setRecipientName("");
-    setRecipientEmail("");
     setMessage("");
     setAmount(GIFT_CARD_DENOMINATIONS_GBP[0]);
     setOpen(false);
@@ -156,8 +156,8 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                   marginBottom: 12,
                 }}
               >
-                We email them a unique code — they pick the pet, the style, and the size.
-                The code never expires.
+                We'll email you a unique code to share — text it, post it, slip it in a card.
+                Your friend picks the pet, the style, and the size. The code never expires.
               </p>
 
               {/* Amount picker */}
@@ -210,7 +210,7 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                 {HINT_PER_AMOUNT[amount]}
               </p>
 
-              {/* Recipient name */}
+              {/* Recipient name (optional — just for the buyer's records) */}
               <label
                 htmlFor="gift-recipient-name"
                 style={{
@@ -224,7 +224,7 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                   marginBottom: 6,
                 }}
               >
-                Their name
+                Who's it for? <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500, color: PALETTE.earthSubtle }}>(optional)</span>
               </label>
               <input
                 id="gift-recipient-name"
@@ -243,40 +243,7 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                 }}
               />
 
-              {/* Recipient email */}
-              <label
-                htmlFor="gift-recipient-email"
-                style={{
-                  fontFamily: "Asap, system-ui, sans-serif",
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  color: PALETTE.earthMuted,
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
-                Their email
-              </label>
-              <input
-                id="gift-recipient-email"
-                type="email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                maxLength={120}
-                placeholder="sarah@example.com"
-                className="w-full px-3 py-2 rounded-lg mb-3"
-                style={{
-                  background: PALETTE.cream2,
-                  border: `1px solid ${PALETTE.sand}`,
-                  fontFamily: "Assistant, system-ui, sans-serif",
-                  fontSize: 13.5,
-                  color: PALETTE.ink,
-                }}
-              />
-
-              {/* Optional message */}
+              {/* Optional message — for the buyer's records, also kept on the order */}
               <label
                 htmlFor="gift-message"
                 style={{

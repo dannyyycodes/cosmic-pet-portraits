@@ -48,11 +48,29 @@ export interface SoulReadingFormValues {
   canvasOrderRef: string;
 }
 
+/** Build a "Quick add" CartItem — Soul Reading purchase without intake.
+ *  Customer gets a magic-link email after payment to fill in pet details at
+ *  /reading/intake/<token>. Variant + price are the same as the full-intake
+ *  version. The webhook detects empty intake fields, inserts the job with
+ *  status='intake_pending' and fires the intake-request email. */
+export function buildSoulReadingCartItemQuickAdd(canvasOrderRef: string): CartItem {
+  return buildSoulReadingCartItem({
+    petName: "",
+    petDob: "",
+    petBirthLocation: "",
+    canvasOrderRef,
+  }, /* intakePending */ true);
+}
+
 /** Build a CartItem for the Soul Reading line. We piggyback on the
  *  existing CartItem shape so the cart drawer + cart helpers don't need
  *  to know about a second item type. The order-paid webhook + checkout
- *  API read these properties out of the line. */
-export function buildSoulReadingCartItem(values: SoulReadingFormValues): CartItem {
+ *  API read these properties out of the line.
+ *
+ *  When `intakePending` is true (Quick-add path) pet inputs are empty and
+ *  `_intake_pending` is set so checkout.ts skips validation and the webhook
+ *  sends the intake-request email instead of the reading-ready email. */
+export function buildSoulReadingCartItem(values: SoulReadingFormValues, intakePending = false): CartItem {
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
@@ -88,6 +106,7 @@ export function buildSoulReadingCartItem(values: SoulReadingFormValues): CartIte
       _pet_birth_location: values.petBirthLocation,
       _canvas_order_ref: values.canvasOrderRef,
       _line_kind: "soul-reading",
+      ...(intakePending ? { _intake_pending: "true" } : {}),
     },
   };
 

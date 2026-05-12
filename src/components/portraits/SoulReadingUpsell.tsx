@@ -36,6 +36,7 @@ import {
   SOUL_READING_TITLE,
   isSoulReadingItem,
   buildSoulReadingCartItem,
+  buildSoulReadingCartItemQuickAdd,
 } from "./soulReading";
 
 interface SoulReadingUpsellProps {
@@ -354,9 +355,15 @@ export function SoulReadingUpsell({ cart, onAdd }: SoulReadingUpsellProps) {
             transition={reduce ? { duration: 0 } : { duration: 0.16 }}
             style={{ marginTop: 14 }}
           >
+            {/* Primary: Quick add — no intake at checkout, magic link after payment.
+                Customer can also expand the form to fill it in now. Crown & Paw
+                style — get them through checkout fast, capture details async. */}
             <button
               type="button"
-              onClick={() => setOpen(true)}
+              onClick={() => {
+                onAdd(buildSoulReadingCartItemQuickAdd(canvasRef));
+                setConfirmation(true);
+              }}
               className="w-full transition-transform hover:scale-[1.005] active:scale-[0.997]"
               style={{
                 background: PALETTE.rose,
@@ -367,13 +374,42 @@ export function SoulReadingUpsell({ cart, onAdd }: SoulReadingUpsellProps) {
                 letterSpacing: "0.01em",
                 border: "none",
                 borderRadius: 9999,
-                padding: "10px 18px",
+                padding: "11px 18px",
                 cursor: "pointer",
                 boxShadow: "0 8px 22px rgba(191, 82, 74, 0.22)",
               }}
             >
-              Add to order →
+              Add to order — £{SOUL_READING_PRICE_MAJOR}
             </button>
+            <p
+              className="text-center"
+              style={{
+                marginTop: 8,
+                fontFamily: "Assistant, system-ui, sans-serif",
+                fontSize: 11.5,
+                color: PALETTE.earthMuted,
+                lineHeight: 1.4,
+              }}
+            >
+              We'll email you a quick form for your pet's details after checkout.{" "}
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                  color: PALETTE.rose,
+                  fontFamily: "inherit",
+                  fontSize: "inherit",
+                  textDecoration: "underline",
+                  textUnderlineOffset: 2,
+                }}
+              >
+                Or fill in now →
+              </button>
+            </p>
           </motion.div>
         ) : (
           <motion.form

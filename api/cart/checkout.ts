@@ -246,12 +246,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const petName = (props._pet_name ?? "").toString().trim();
       const petDob = (props._pet_dob ?? "").toString().trim();
       const petLoc = (props._pet_birth_location ?? "").toString().trim();
-      if (!petName)
-        return res.status(400).json({ error: `items[${i}]: _pet_name required for Soul Reading` });
-      if (!petDob)
-        return res.status(400).json({ error: `items[${i}]: _pet_dob required for Soul Reading` });
-      if (!petLoc)
-        return res.status(400).json({ error: `items[${i}]: _pet_birth_location required for Soul Reading` });
+      // 2026-05-12: when customer chose "Quick add (fill in later)", the
+      // intake form is skipped at cart and we collect details post-payment
+      // via the /reading/intake/<token> magic link instead. Skip the pre-
+      // checkout validators when this flag is set — the webhook handler
+      // detects empty inputs and fires the intake-request email.
+      const intakePending = (props._intake_pending ?? "").toString().trim() === "true";
+      if (!intakePending) {
+        if (!petName)
+          return res.status(400).json({ error: `items[${i}]: _pet_name required for Soul Reading` });
+        if (!petDob)
+          return res.status(400).json({ error: `items[${i}]: _pet_dob required for Soul Reading` });
+        if (!petLoc)
+          return res.status(400).json({ error: `items[${i}]: _pet_birth_location required for Soul Reading` });
+      }
 
       lineItems.push({
         variantId: SOUL_READING_VARIANT_ID,
@@ -262,9 +270,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           { name: "Pet Birth Location", value: petLoc },
           { name: "_canvas_order_ref", value: (props._canvas_order_ref ?? "").toString() },
           { name: "_line_kind", value: "soul-reading" },
+          ...(intakePending ? [{ name: "_intake_pending", value: "true" }] : []),
         ],
       });
-      noteSummary.push(`${SOUL_READING_TITLE} · ${petName}`);
+      noteSummary.push(`${SOUL_READING_TITLE} · ${petName || "(intake pending)"}`);
       soulReadingCount++;
       continue;
     }

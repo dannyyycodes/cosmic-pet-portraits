@@ -72,6 +72,7 @@ const Reading = lazy(() => import("./pages/Reading"));
 const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
 const PawtraitsThanks = lazy(() => import("./pages/PawtraitsThanks"));
+const SoulReadingIntake = lazy(() => import("./pages/SoulReadingIntake"));
 const PawtraitsGallery = lazy(() => import("./pages/PawtraitsGallery"));
 const PawtraitsSEOLanding = lazy(() => import("./pages/PawtraitsSEOLanding"));
 const SharePet = lazy(() => import("./pages/SharePet"));
@@ -217,6 +218,10 @@ const App = () => (
                   {/* Studio is now inline at /portraits#studio. Old /portraits/studio
                       redirects there so any cached/bookmarked link still lands correctly. */}
                   {/* Soul Reading viewer (Shopify-fulfilled flow). Token-gated, noindex. */}
+                  {/* Magic-link intake: customer arrives here after the "Quick add"
+                      Soul Reading purchase. /intake/<token> must come BEFORE
+                      /reading/:token so the more-specific path matches first. */}
+                  <Route path="/reading/intake/:token" element={<SoulReadingIntake />} />
                   <Route path="/reading/:token" element={<Reading />} />
                   {/* Canonical /pawtraits route (rebranded 2026-05-06).
                       vercel.json 308's /portraits → /pawtraits at the edge for direct hits;

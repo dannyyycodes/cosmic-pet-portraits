@@ -40,6 +40,12 @@ export interface InsertJobInput {
   petDob: string;
   petBirthLocation: string;
   dryRun: boolean;
+  /** When true, customer used the "Quick add" path — petName/dob/location are
+   *  placeholders and the row is inserted with status='intake_pending'. The
+   *  intake-request email goes out post-insert; when the customer submits the
+   *  intake form, the API endpoint updates this row + flips status to 'pending'
+   *  + fires n8n to generate the reading. */
+  intakePending?: boolean;
 }
 
 export interface InsertJobResult {
@@ -56,7 +62,11 @@ export interface InsertJobResult {
  */
 export async function insertJob(input: InsertJobInput): Promise<InsertJobResult> {
   const sb = getSupabaseAdmin();
-  const initialStatus = input.dryRun ? "dry_run" : "pending";
+  const initialStatus = input.dryRun
+    ? "dry_run"
+    : input.intakePending
+      ? "intake_pending"
+      : "pending";
 
   const payload = {
     shopify_event_id: input.shopifyEventId,

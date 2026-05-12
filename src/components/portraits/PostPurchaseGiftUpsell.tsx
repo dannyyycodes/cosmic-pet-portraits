@@ -38,8 +38,10 @@ const HINT_PER_AMOUNT: Record<number, string> = {
 export function PostPurchaseGiftUpsell() {
   const [stage, setStage] = useState<"pitch" | "form" | "submitting" | "done" | "skipped">("pitch");
   const [amount, setAmount] = useState<number>(GIFT_CARD_DENOMINATIONS_GBP[1] ?? 39);
+  // 2026-05-12 update per Danny: gift code is emailed to BUYER, who shares
+  // with the friend personally. recipientName is optional and only used for
+  // the order memo. No recipientEmail anymore.
   const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -49,9 +51,6 @@ export function PostPurchaseGiftUpsell() {
 
   async function handleSend() {
     setError(null);
-    if (!recipientName.trim()) return setError("Add the recipient's name");
-    if (!recipientEmail.trim()) return setError("Add the recipient's email");
-    if (!/^\S+@\S+\.\S+$/.test(recipientEmail)) return setError("Email doesn't look right");
     if (!denomination || denomination.variantId === 0) {
       return setError("Gift cards aren't available yet — coming soon");
     }
@@ -74,11 +73,11 @@ export function PostPurchaseGiftUpsell() {
               // generation runs. The discount is applied per-line via
               // applied_discount (Shopify draft order feature) — keeps the
               // native flow intact AND applies the percentage off cleanly.
+              // Code goes to BUYER's email; no recipient_email property.
               appliedDiscountPct: DISCOUNT_PCT,
               properties: {
-                recipient_name: recipientName.trim(),
-                recipient_email: recipientEmail.trim(),
-                ...(message.trim() ? { message: message.trim() } : {}),
+                ...(recipientName.trim() ? { _gift_for: recipientName.trim() } : {}),
+                ...(message.trim() ? { _gift_message: message.trim() } : {}),
               },
             },
           ],
@@ -304,12 +303,12 @@ export function PostPurchaseGiftUpsell() {
             {HINT_PER_AMOUNT[amount]} · You pay <strong style={{ color: PALETTE.ink }}>£{discountedPrice}</strong> (save £{savedAmount})
           </p>
 
-          {/* Inputs */}
+          {/* Inputs — name optional, no email (buyer receives the code) */}
           <input
             type="text"
             value={recipientName}
             onChange={(e) => setRecipientName(e.target.value)}
-            placeholder="Their name"
+            placeholder="Who's it for? (optional)"
             maxLength={80}
             className="w-full px-3 py-2.5 rounded-lg mb-2"
             style={{
@@ -320,21 +319,17 @@ export function PostPurchaseGiftUpsell() {
               color: PALETTE.ink,
             }}
           />
-          <input
-            type="email"
-            value={recipientEmail}
-            onChange={(e) => setRecipientEmail(e.target.value)}
-            placeholder="Their email"
-            maxLength={120}
-            className="w-full px-3 py-2.5 rounded-lg mb-2"
+          <p
             style={{
-              background: PALETTE.cream2,
-              border: `1px solid ${PALETTE.sand}`,
               fontFamily: "Assistant, system-ui, sans-serif",
-              fontSize: 14,
-              color: PALETTE.ink,
+              fontSize: 11.5,
+              color: PALETTE.earthMuted,
+              margin: "0 0 10px 2px",
+              lineHeight: 1.4,
             }}
-          />
+          >
+            We'll email the code to you — text it, post it, or tuck it in a card.
+          </p>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}

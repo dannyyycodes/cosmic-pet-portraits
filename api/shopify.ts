@@ -37,6 +37,7 @@ import {
   type ShopifyOrderWithShipping,
 } from "./shopify/_lib/extractCanvas.js";
 import { extractDigitalFulfillmentLines } from "./shopify/_lib/extractDigital.js";
+import { renderIntakeRequestEmail } from "./_lib/email/intakeRequestEmail.js";
 import {
   upsertPrintOrder,
   updatePrintOrder,
@@ -391,18 +392,62 @@ async function handleOrderPaid(
 
   for (const sr of soulReadings) {
     if (sr.hasIncompleteInputs) {
-      console.warn(
-        "[orders/paid] soul_reading_incomplete_inputs",
+      // 2026-05-12: previously SKIPPED — customer paid but got no reading.
+      // Now: insert the job with status='intake_pending', send a magic-link
+      // email to collect pet details at /reading/intake/<token>. When customer
+      // submits the intake form, the API endpoint updates the row + fires the
+      // n8n worker to generate the reading. Same eventual reading-ready email
+      // as the in-cart-intake path.
+      console.log(
+        "[orders/paid] soul_reading_intake_pending — sending magic-link email",
         JSON.stringify({
           eventId,
           orderId,
           lineItemId: sr.lineItemId,
-          hasName: Boolean(sr.petName),
-          hasDob: Boolean(sr.petDob),
-          hasLocation: Boolean(sr.petBirthLocation),
         }),
       );
-      incompleteSkipped++;
+      try {
+        const result = await insertJob({
+          shopifyEventId: eventId,
+          shopifyOrderId: orderId,
+          shopifyLineItemId: sr.lineItemId,
+          customerEmail,
+          // Placeholder values — overwritten when customer submits the intake.
+          petName: "",
+          petDob: "",
+          petBirthLocation: "",
+          dryRun,
+          intakePending: true,
+        });
+        if (result.duplicate) {
+          duplicates++;
+          continue;
+        }
+        if (result.row) {
+          await sendIntakeRequestEmail({
+            to: customerEmail,
+            orderId: String(orderId),
+            token: result.row.viewer_token ?? "",
+          }).catch((err) =>
+            console.error(
+              "[orders/paid] intake_email_failed",
+              JSON.stringify({ orderId, error: (err as Error).message }),
+            ),
+          );
+          freshRows.push(result.row);
+        }
+      } catch (err) {
+        console.error(
+          "[orders/paid] intake_pending_insert_failed",
+          JSON.stringify({
+            eventId,
+            orderId,
+            lineItemId: sr.lineItemId,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+        return res.status(500).json({ error: "db_insert_failed" });
+      }
       continue;
     }
 
@@ -673,4 +718,56 @@ function toNum(v: number | string | undefined): number | null {
     return Number.isFinite(n) ? n : null;
   }
   return null;
+}
+
+/**
+ * Send the intake-request email for a Soul Reading bought via the "Quick add"
+ * flow. Resends-via-fetch pattern same as canvasFulfillment's address-confirm
+ * + digitalFulfillment's reading-ready emails — RESEND_API_KEY env required.
+ */
+async function sendIntakeRequestEmail(args: {
+  to: string;
+  orderId: string;
+  token: string;
+}): Promise<void> {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    console.warn("[orders/paid] RESEND_API_KEY missing — cannot send intake-request email");
+    return;
+  }
+  if (!args.token) {
+    console.warn("[orders/paid] intake email missing token — cannot build magic link");
+    return;
+  }
+  const siteBase = process.env.PUBLIC_SITE_URL ?? "https://www.littlesouls.app";
+  const intakeUrl = `${siteBase.replace(/\/$/, "")}/reading/intake/${encodeURIComponent(args.token)}`;
+  const email = renderIntakeRequestEmail({
+    intakeUrl,
+    orderRef: args.orderId.slice(-6),
+    siteBaseUrl: siteBase,
+  });
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify({
+        from: email.from,
+        to: args.to,
+        reply_to: email.replyTo,
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      console.error("[orders/paid] intake_email_non_2xx", { status: r.status, snippet: t.slice(0, 200) });
+    }
+  } catch (err) {
+    console.error("[orders/paid] intake_email_threw", (err as Error).message);
+  }
 }
