@@ -170,12 +170,12 @@ interface PageMeta {
 function homeMeta(): PageMeta {
   return {
     title: "Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls",
-    description: `Turn your pet's photo into a custom painted portrait. 20+ art styles. Digital download £${DIGITAL_PRICE_GBP}, canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}). Printed in the UK. Created with Pawtraits at Little Souls.`,
+    description: `Turn your pet's photo into a custom painted portrait. 20+ art styles. Digital download £${DIGITAL_PRICE_GBP}, canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}). Printed locally (UK · EU · USA). Created with Pawtraits at Little Souls.`,
     canonical: "https://littlesouls.app/pawtraits",
     ogImage: "https://www.littlesouls.app/og/pawtraits-default.jpg",
     ogType: "website",
     h1: "Custom Painted Pet Portraits — Watercolor, Renaissance & More",
-    intro: `Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Printed in the UK on gallery-stretched canvas — real wood frame upgrade available at checkout.`,
+    intro: `Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Printed locally (UK · EU · USA) on gallery-stretched canvas — real wood frame upgrade available at checkout.`,
     galleryHeading: "Latest pawtraits",
   };
 }
@@ -206,7 +206,7 @@ function studioMeta(): PageMeta {
 
 function breedMeta(b: BreedDef, heroImage: string): PageMeta {
   const ogTitle = `Custom ${b.name} Portraits — Painted Pet Art in Every Style`;
-  const ogDescription = `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed in the UK.`;
+  const ogDescription = `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed locally (UK · EU · USA).`;
   return {
     title: ogTitle + " | Little Souls",
     description: ogDescription,
@@ -214,7 +214,7 @@ function breedMeta(b: BreedDef, heroImage: string): PageMeta {
     ogImage: heroImage,
     ogType: "product",
     h1: ogTitle,
-    intro: `Turn your ${b.name} into framed wall art — watercolour, renaissance, royal, cosmic. Each portrait is generated from your photo, printed on cotton-canvas in the UK, and ready to hang.`,
+    intro: `Turn your ${b.name} into framed wall art — watercolour, renaissance, royal, cosmic. Each portrait is generated from your photo, printed locally on cotton canvas, and ready to hang.`,
     galleryHeading: `${b.name} portraits`,
     product: { name: ogTitle, description: ogDescription },
     itemListName: `${b.name} pet portraits`,
@@ -222,7 +222,7 @@ function breedMeta(b: BreedDef, heroImage: string): PageMeta {
 }
 function styleMeta(s: StyleDef, heroImage: string): PageMeta {
   const ogTitle = `${s.name} Pet Portraits — Custom Painted Art in ${s.name} Style`;
-  const ogDescription = `Custom ${s.name.toLowerCase()} pet portraits made from your photo. Printed and framed in the UK from £${BASE_PRICE_GBP}.`;
+  const ogDescription = `Custom ${s.name.toLowerCase()} pet portraits made from your photo. Printed locally (UK · EU · USA) from £${BASE_PRICE_GBP}.`;
   return {
     title: ogTitle + " | Little Souls",
     description: ogDescription,
@@ -230,7 +230,7 @@ function styleMeta(s: StyleDef, heroImage: string): PageMeta {
     ogImage: heroImage,
     ogType: "product",
     h1: ogTitle,
-    intro: `${s.description} Upload your dog or cat's photo and we'll render them in the ${s.name.toLowerCase()} tradition — printed on cotton-canvas, framed, and shipped from the UK.`,
+    intro: `${s.description} Upload your dog or cat's photo and we'll render them in the ${s.name.toLowerCase()} tradition — printed locally on cotton canvas and shipped to your door.`,
     galleryHeading: `${s.name} portraits`,
     product: { name: ogTitle, description: ogDescription },
     itemListName: `${s.name} pet portraits`,
@@ -239,7 +239,7 @@ function styleMeta(s: StyleDef, heroImage: string): PageMeta {
 function unknownLandingMeta(kind: "breed" | "style", slug: string): PageMeta {
   const title = kind === "breed" ? "Custom Pet Portraits" : "Pet Portrait Styles";
   const ogTitle = `${title} — Pawtraits by Little Souls`;
-  const ogDescription = `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed in the UK.`;
+  const ogDescription = `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed locally (UK · EU · USA).`;
   return {
     title: ogTitle,
     description: ogDescription,
@@ -374,7 +374,7 @@ ${head}
       <a href="${escAttr(opts.ctaHref)}" class="primary">Create your own →</a>
       <a href="/pawtraits/gallery" class="secondary">Browse the gallery</a>
     </div>
-    <p class="ls-meta">£${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · Printed in the UK · Ships worldwide</p>
+    <p class="ls-meta">£${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · Printed locally (UK · EU · USA) · Ships worldwide</p>
     <h2>${esc(meta.galleryHeading)}</h2>
     ${grid}
     ${internalLinks}

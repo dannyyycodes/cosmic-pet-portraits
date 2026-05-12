@@ -41,8 +41,14 @@ const REFUND_POLICY_HREF = "/refund";
 
 export function CartConsents({ items, onChange }: CartConsentsProps) {
   // Which consents are applicable for this cart?
+  // Personalised-goods consent applies to ANY physical product (canvas,
+  // framed canvas, digital deliverable). Pre-2026-05-12 this was framed-only.
   const hasCanvas = useMemo(
-    () => items.some((it) => it.productType === "framed-canvas"),
+    () => items.some((it) =>
+      it.productType === "framed-canvas" ||
+      it.productType === "canvas" ||
+      (it.productType as string) === "digital"
+    ),
     [items],
   );
   const hasSoulReading = useMemo(

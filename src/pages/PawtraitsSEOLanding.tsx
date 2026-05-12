@@ -277,10 +277,10 @@ interface PageMeta {
 function buildBreedMeta(b: BreedDef): PageMeta {
   return {
     h1: `Custom ${b.name} Portraits — Painted Pet Art in Every Style`,
-    intro: `Turn your ${b.name} into gallery-ready wall art — watercolour, renaissance, royal, cosmic. Each portrait is generated from your photo, printed on cotton-canvas in the UK, and ready to hang. Real wood frame upgrade available at checkout.`,
+    intro: `Turn your ${b.name} into gallery-ready wall art — watercolour, renaissance, royal, cosmic. Each portrait is generated from your photo, printed locally on cotton canvas, and ready to hang. Real wood frame upgrade available at checkout.`,
     canonical: `${SITE}/pawtraits/breed/${b.slug}`,
     ogTitle: `Custom ${b.name} Portraits — Painted Pet Art in Every Style`,
-    ogDescription: `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed in the UK.`,
+    ogDescription: `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed locally (UK · EU · USA).`,
     ctaHref: (search) => `/pawtraits/studio${preserveUtm(search, { breed: b.slug })}`,
     itemListName: `${b.name} pet portraits`,
   };
@@ -289,7 +289,7 @@ function buildBreedMeta(b: BreedDef): PageMeta {
 function buildStyleMeta(s: StyleDef): PageMeta {
   return {
     h1: `${s.name} Pet Portraits — Custom Painted Art in ${s.name} Style`,
-    intro: `${s.description} Upload your dog or cat's photo and we'll render them in the ${s.name.toLowerCase()} tradition — printed on cotton-canvas in the UK, ready to hang. Real wood frame upgrade optional at checkout.`,
+    intro: `${s.description} Upload your dog or cat's photo and we'll render them in the ${s.name.toLowerCase()} tradition — printed locally on cotton canvas, ready to hang. Real wood frame upgrade optional at checkout.`,
     canonical: `${SITE}/pawtraits/style/${s.slug}`,
     ogTitle: `${s.name} Pet Portraits — Custom Painted Art in ${s.name} Style`,
     ogDescription: `Custom ${s.name.toLowerCase()} pet portraits made from your photo. Printed in the UK from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}).`,
@@ -305,7 +305,7 @@ function buildUnknownMeta(kind: 'breed' | 'style', slug: string): PageMeta {
     intro: `That ${kind} isn't in our gallery yet, but every breed and style is available in the studio. Pick one of the ${kind === 'breed' ? 'breeds' : 'styles'} below, or jump straight to the gallery to see what's been made.`,
     canonical: `${SITE}/pawtraits/${kind}/${slug}`,
     ogTitle: `${title} — Pawtraits by Little Souls`,
-    ogDescription: `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed in the UK.`,
+    ogDescription: `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed locally (UK · EU · USA).`,
     ctaHref: (search) => `/pawtraits/studio${preserveUtm(search, {})}`,
     itemListName: 'Pet portraits',
   };
@@ -458,7 +458,7 @@ export default function PawtraitsSEOLanding({ kind }: SEOPageProps) {
             </Link>
           </div>
           <p className="mt-4 text-xs text-neutral-500">
-            £{DIGITAL_PRICE_GBP} digital · canvas from £{BASE_PRICE_GBP} (frame +£{FRAME_UPGRADE_FROM_GBP}) · Printed in the UK · Ships worldwide
+            £{DIGITAL_PRICE_GBP} digital · canvas from £{BASE_PRICE_GBP} (frame +£{FRAME_UPGRADE_FROM_GBP}) · Printed locally (UK · EU · USA)
           </p>
         </section>
 
@@ -511,7 +511,7 @@ export default function PawtraitsSEOLanding({ kind }: SEOPageProps) {
       {/* Footer */}
       <footer className="mt-16 border-t border-neutral-200 bg-[#faf4e8]">
         <div className="mx-auto max-w-6xl px-6 py-10 text-center text-xs text-neutral-500">
-          <p>© Little Souls · Custom painted pet portraits, printed and framed in the UK</p>
+          <p>© Little Souls · Custom painted pet portraits, printed locally across UK, EU, USA</p>
           <div className="mt-3 flex flex-wrap justify-center gap-4">
             <Link to="/pawtraits" className="hover:text-neutral-700">Studio</Link>
             <Link to="/pawtraits/gallery" className="hover:text-neutral-700">Gallery</Link>

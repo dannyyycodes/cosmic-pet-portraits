@@ -106,7 +106,7 @@ export function CartDrawer({
             <SheetDescription
               style={{ fontSize: "13px", color: PALETTE.earthMuted, marginTop: "2px" }}
             >
-              Each pawtrait ships in 3–5 days · printed in the UK
+              Each pawtrait ships in 3–5 days · printed locally (UK · EU · USA)
             </SheetDescription>
           )}
         </SheetHeader>
