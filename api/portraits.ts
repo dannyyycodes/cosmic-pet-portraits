@@ -10,17 +10,15 @@
  * Single Serverless Function on Vercel — Hobby plan caps at 12. We previously
  * had 4 separate files; consolidated 2026-05-04.
  *
- * Function config: maxDuration explicitly set so the worst-case generate
- * path (Vision pre-pass up to 24s after 2026-05-09 retry change + fal.run
- * gpt-image-2 8–25s + post-gen Vision ~6–12s + drift compute) doesn't get
- * killed by Vercel's default function timeout (Hobby = 10s without config).
- * 60s is the Hobby ceiling and matches FAL_TIMEOUT_MS (90s in code, but the
- * function will return before that). Without this explicit config we'd
- * silently 504 on slow Vision calls and the customer would see a blank
- * "took too long" toast instead of the new graceful fallback.
+ * Function config: maxDuration set to 300s (Pro plan ceiling). The
+ * generate path's worst case is Vision pre-pass (~12s) + fal.run
+ * gpt-image-2 medium (8-55s observed in May-8 retest) + synchronous
+ * rehost (5-30s) ≈ 25-97s. The previous 60s setting (Hobby ceiling)
+ * was killing the function before slow fal calls could complete and
+ * return — customer saw timeout, credit silently consumed.
  */
 export const config = {
-  maxDuration: 60,
+  maxDuration: 300,
 };
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import sharp from "sharp";
@@ -38,6 +36,7 @@ import {
   type PetTransform,
 } from "../src/components/portraits/templates/data.js";
 import { getSupabaseAdmin } from "./_lib/supabaseAdmin.js";
+import { runDigitalFulfillment } from "./_lib/digitalFulfillment.js";
 import {
   runPrintPipeline,
   type PrintPipelineInput,
@@ -53,6 +52,40 @@ const PHOTOROOM_ENDPOINT = "https://image-api.photoroom.com/v2/edit";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PRINT_SIZE = 3000;
+
+// ─── Printful Mockup Generator (in-room canvas previews) ────────────────────
+// Free per-customer dynamic mockups. Used at the studio reveal step to show
+// the customer's portrait inside a realistic framed canvas hanging on a
+// wall — closes the screen-to-canvas imagination gap before purchase.
+// Gelato stays the actual fulfilment vendor; Printful is mockup imagery only.
+// See vault/03-resources/credentials-index/printful.md for credential notes.
+// Note: PRINTFUL_TOKEN + PRINTFUL_STORE_ID are declared further down in this
+// file (used by the existing handlePrintfulMockup action). We reuse them
+// rather than re-declaring (duplicate const = SyntaxError at module load).
+const PRINTFUL_API_BASE = "https://api.printful.com/v2";
+// catalog_product_id 614 = "Framed Canvas (in)" — exact-match for our SKU.
+const PRINTFUL_FRAMED_CANVAS_PRODUCT_ID = 614;
+// Printful only stocks Black + Brown frames; our Gelato has Black + natural-wood
+// + dark-wood. For mockup imagery only (not fulfilment) we map both wood
+// variants → Brown — visually close enough for the imagination-gap purpose.
+// Maps (sizeKey, frameColor) → { variantId, lifestyleStyleId }. The lifestyle
+// style id is the "canvas hanging in a room" view in PORTRAIT orientation
+// (height > width — matches our 2:3 pet portraits). Discovered via
+// /v2/catalog-products/614/mockup-styles on 2026-05-11.
+// Sizes 16×24 and 24×30 are absent because Printful doesn't stock those
+// framed-canvas variants — Gelato still fulfils them, but no mockup preview
+// will appear at the studio reveal for those sizes (graceful no-op).
+const PRINTFUL_VARIANT_MAP: Record<string, { black: number; wood: number; lifestyleStyleId: number }> = {
+  "8x10":  { black: 17627, wood: 17634, lifestyleStyleId: 3865 }, // 11×13 portrait
+  "12x16": { black: 16035, wood: 16041, lifestyleStyleId: 3796 }, // 15×19 portrait
+  "12x18": { black: 17630, wood: 17637, lifestyleStyleId: 3880 }, // 15×21 portrait
+  "16x20": { black: 16037, wood: 16043, lifestyleStyleId: 3799 }, // 19×23 portrait
+  "18x24": { black: 16038, wood: 16044, lifestyleStyleId: 3801 }, // 21×27 portrait
+  "20x28": { black: 17631, wood: 17638, lifestyleStyleId: 3922 }, // 23×31 portrait
+  "20x30": { black: 17633, wood: 17640, lifestyleStyleId: 3950 }, // 23×33 portrait
+  "24x32": { black: 17632, wood: 17639, lifestyleStyleId: 3936 }, // 27×35 portrait
+  "24x36": { black: 16039, wood: 16045, lifestyleStyleId: 3803 }, // 27×39 portrait
+};
 // 1 token = 1 generation = 1 full-size portrait. Locked 2026-05-06 — replaces
 // the 4-variant pack model. Customers download the single result; if they want
 // alternatives they spend another token.
@@ -295,17 +328,33 @@ type Style = "photographic" | "illustrated";
 
 // ─── Router ─────────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
+  const action = req.query.action;
+
+  // generation_status is a poll endpoint — GET semantically. Everything
+  // else mutates state and stays POST-only.
+  if (action === "generation_status") {
+    if (req.method !== "GET" && req.method !== "POST") {
+      res.setHeader("Allow", "GET, POST");
+      return res.status(405).json({ error: "Method Not Allowed" });
+    }
+  } else if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  const action = req.query.action;
   switch (action) {
     case "preview":
       return handlePreview(req, res);
     case "generate":
       return handleGenerate(req, res);
+    case "generation_status":
+      return handleGenerationStatus(req, res);
+    case "room_mockup":
+      return handleRoomMockup(req, res);
+    case "printMaster_submit":
+      return handlePrintMasterSubmit(req, res);
+    case "printMaster_status":
+      return handlePrintMasterStatus(req, res);
     case "cutout":
       return handleCutout(req, res);
     case "composite":
@@ -324,8 +373,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return handleTestAspects(req, res);
     case "printMaster":
       return handlePrintMaster(req, res);
+    case "redeem_download_credit":
+      return handleRedeemDownloadCredit(req, res);
     default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects|printMaster` });
+      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|generation_status|room_mockup|printMaster|printMaster_submit|printMaster_status|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects|redeem_download_credit` });
   }
 }
 
@@ -944,6 +995,429 @@ async function generateVariant(args: {
   }
 }
 
+// ─── Async queue helpers (B2: queue.fal.run + client polling) ──────────────
+// Why these exist: the synchronous /fal.run endpoint blocks the Vercel
+// function for the entire fal generation (8–55s observed for gpt-image-2
+// medium quality). With Vision pre-pass + rehost, total can hit ~97s.
+// Even on Pro plan's 300s ceiling that's a poor customer UX (long blank
+// wait). The queue endpoint returns a request_id immediately; the client
+// polls /api/portraits?action=generation_status until COMPLETED. The
+// rehost happens in the status handler, off the submit path.
+//
+// Verified live fal API contract (https://fal.ai/docs/model-endpoints/queue):
+//   submit:  POST  https://queue.fal.run/{model}        → {request_id, status_url, response_url}
+//   status:  GET   https://queue.fal.run/{model}/requests/{request_id}/status → {status: IN_QUEUE|IN_PROGRESS|COMPLETED, queue_position?, ...}
+//   result:  GET   https://queue.fal.run/{model}/requests/{request_id}        → same shape as sync (e.g. {images: [...]})
+//
+// We deliberately do NOT use fal_webhook for this iteration — polling is
+// simpler (no signature verify, no DB notify path, no Realtime
+// subscription). Customer-perceived latency from polling at 2.5s is
+// negligible vs the underlying fal time.
+
+interface FalQueueSubmitResult {
+  requestId?: string;
+  model?: string;
+  /** Authoritative URLs returned by fal. Use these directly for polling
+   *  rather than reconstructing from {model}/requests/{id} — fal's
+   *  status/response paths drop action suffixes (e.g. submit goes to
+   *  openai/gpt-image-2/edit but status lives under openai/gpt-image-2). */
+  statusUrl?: string;
+  responseUrl?: string;
+  balanceExhausted?: boolean;
+  contentPolicyViolation?: boolean;
+  /** Network / non-recoverable error during submit. Caller should refund. */
+  submitError?: string;
+}
+
+/** Submit a generation to fal's async queue. Returns a request_id immediately
+ *  (typically <2s) — the actual generation happens in fal's queue and is
+ *  polled separately via getFalQueueStatus + fetchFalQueueResult.
+ *  Mirrors the body shape of generateVariant (gpt-image-2 edit endpoint). */
+async function submitGenerationToFalQueue(args: {
+  imageUrl?: string;
+  imageUrls?: string[];
+  prompt: string;
+  negative?: string;
+  imageSize?: { width: number; height: number };
+  quality?: 'low' | 'medium' | 'high';
+}): Promise<FalQueueSubmitResult> {
+  const fullPrompt = args.negative
+    ? `${args.prompt}\n\nAvoid: ${args.negative}.`
+    : args.prompt;
+
+  const photos = args.imageUrls && args.imageUrls.length > 0
+    ? args.imageUrls
+    : args.imageUrl
+      ? [args.imageUrl]
+      : [];
+  if (photos.length === 0) {
+    return { submitError: 'no_photos' };
+  }
+
+  const size = args.imageSize ?? { width: GPT_IMAGE_WIDTH, height: GPT_IMAGE_HEIGHT };
+  const quality = args.quality ?? GPT_IMAGE_QUALITY;
+
+  const requestBody = {
+    prompt: fullPrompt,
+    image_urls: photos,
+    image_size: size,
+    quality,
+    num_images: 1,
+    output_format: 'png',
+  };
+
+  // 15s ceiling on the SUBMIT call only — the queue endpoint normally
+  // responds in <2s with the request_id. Anything longer means fal's
+  // gateway is wedged; better to fail fast and refund than hold the
+  // function open.
+  const SUBMIT_TIMEOUT_MS = 15_000;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), SUBMIT_TIMEOUT_MS);
+  try {
+    const r = await fetch(`https://queue.fal.run/${GPT_IMAGE_PRIMARY_MODEL}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Key ${FAL_KEY}` },
+      signal: ctrl.signal,
+      body: JSON.stringify(requestBody),
+    });
+    if (!r.ok) {
+      const text = await r.text();
+      if (isFalBalanceExhausted(text)) return { balanceExhausted: true };
+      if (isFalContentPolicyViolation(r.status, text)) {
+        console.warn('[fal-queue/submit] content_policy_violation', { status: r.status, snippet: text.slice(0, 200) });
+        return { contentPolicyViolation: true };
+      }
+      console.error('[fal-queue/submit] non-OK', { status: r.status, snippet: text.slice(0, 300) });
+      return { submitError: `fal_${r.status}` };
+    }
+    const d = (await r.json()) as { request_id?: string; status_url?: string; response_url?: string };
+    if (!d.request_id || !d.status_url || !d.response_url) {
+      console.error('[fal-queue/submit] missing fields in response', { hasReqId: !!d.request_id, hasStatusUrl: !!d.status_url, hasResponseUrl: !!d.response_url });
+      return { submitError: 'missing_request_id' };
+    }
+    return {
+      requestId: d.request_id,
+      model: GPT_IMAGE_PRIMARY_MODEL,
+      statusUrl: d.status_url,
+      responseUrl: d.response_url,
+    };
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      console.warn('[fal-queue/submit] timeout', { timeoutMs: SUBMIT_TIMEOUT_MS });
+      return { submitError: 'submit_timeout' };
+    }
+    console.error('[fal-queue/submit] threw:', (err as Error).message);
+    return { submitError: `threw: ${(err as Error).message}` };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+interface FalQueueStatusResult {
+  /** Normalised: 'pending' | 'completed' | 'failed' */
+  status: 'pending' | 'completed' | 'failed';
+  /** When pending, may include queue_position from fal */
+  queuePosition?: number;
+  /** When completed, the raw image URL on *.fal.media — caller rehosts */
+  imageUrl?: string;
+  /** When failed, a short reason (for log + refund metadata) */
+  error?: string;
+  /** When failed due to content policy, signal upstream so UI can show specific copy */
+  contentPolicyViolation?: boolean;
+}
+
+/** Poll a fal queue job. Single GET — caller controls polling cadence.
+ *  Returns a normalised status. On COMPLETED, also fetches the result
+ *  payload and extracts imageUrl.
+ *  Pass the authoritative URLs returned by fal at submit time (status_url +
+ *  response_url) — do NOT reconstruct from {model}/requests/{id}, fal's
+ *  status path drops action suffixes (e.g. submit goes to .../edit but
+ *  status lives under the base model). */
+async function pollFalQueueStatus(statusUrl: string, responseUrl: string): Promise<FalQueueStatusResult> {
+  const STATUS_TIMEOUT_MS = 10_000;
+  const statusCtrl = new AbortController();
+  const statusTimer = setTimeout(() => statusCtrl.abort(), STATUS_TIMEOUT_MS);
+  try {
+    const sr = await fetch(statusUrl, {
+      headers: { Authorization: `Key ${FAL_KEY}` },
+      signal: statusCtrl.signal,
+    });
+    if (!sr.ok) {
+      const text = await sr.text();
+      // 404 usually means the request_id has been garbage-collected (>24h old).
+      if (sr.status === 404) return { status: 'failed', error: 'request_id_not_found' };
+      console.error('[fal-queue/status] non-OK', { status: sr.status, snippet: text.slice(0, 200) });
+      return { status: 'failed', error: `status_${sr.status}` };
+    }
+    const sd = (await sr.json()) as { status?: string; queue_position?: number };
+    if (sd.status === 'IN_QUEUE') return { status: 'pending', queuePosition: sd.queue_position };
+    if (sd.status === 'IN_PROGRESS') return { status: 'pending' };
+    if (sd.status !== 'COMPLETED') {
+      // Unknown status — treat as still pending; next poll will resolve.
+      return { status: 'pending' };
+    }
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      // Status check itself timed out — not the same as the job failing.
+      // Caller should retry on the next poll tick.
+      return { status: 'pending' };
+    }
+    console.error('[fal-queue/status] threw:', (err as Error).message);
+    return { status: 'pending' };
+  } finally {
+    clearTimeout(statusTimer);
+  }
+
+  // status was COMPLETED — fetch the result payload.
+  const RESULT_TIMEOUT_MS = 15_000;
+  const resCtrl = new AbortController();
+  const resTimer = setTimeout(() => resCtrl.abort(), RESULT_TIMEOUT_MS);
+  try {
+    const rr = await fetch(responseUrl, {
+      headers: { Authorization: `Key ${FAL_KEY}` },
+      signal: resCtrl.signal,
+    });
+    if (!rr.ok) {
+      const text = await rr.text();
+      if (isFalBalanceExhausted(text)) return { status: 'failed', error: 'fal-balance-exhausted' };
+      if (isFalContentPolicyViolation(rr.status, text)) {
+        return { status: 'failed', contentPolicyViolation: true, error: 'content_policy_violation' };
+      }
+      console.error('[fal-queue/result] non-OK', { status: rr.status, snippet: text.slice(0, 200) });
+      return { status: 'failed', error: `result_${rr.status}` };
+    }
+    const rd = (await rr.json()) as KontextResponse;
+    const url = rd.images?.[0]?.url;
+    if (!url) return { status: 'failed', error: 'no_image_in_result' };
+    return { status: 'completed', imageUrl: url };
+  } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      return { status: 'pending' }; // try again
+    }
+    console.error('[fal-queue/result] threw:', (err as Error).message);
+    return { status: 'failed', error: `result_threw: ${(err as Error).message}` };
+  } finally {
+    clearTimeout(resTimer);
+  }
+}
+
+/** Download a fal.media image and rehost it in our PUBLIC Supabase bucket.
+ *  Used for PREVIEW VARIANTS (1024px web-quality) shown in the studio.
+ *  fal URLs expire (~1h sync, ~24h queue), but customer carts persist in
+ *  localStorage indefinitely — the print-master regen needs a durable URL.
+ *  Non-fatal: returns the original fal URL with a logged warning if rehost fails. */
+async function rehostFalImage(supabase: ReturnType<typeof getSupabaseAdmin>, falUrl: string): Promise<string> {
+  try {
+    const dl = await fetch(falUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!dl.ok) {
+      console.warn('[rehost] download failed', { status: dl.status, url: falUrl });
+      return falUrl;
+    }
+    const buffer = Buffer.from(await dl.arrayBuffer());
+    const path = `generations/${crypto.randomUUID()}.png`;
+    const { error: upErr } = await supabase.storage
+      .from('pet-photos')
+      .upload(path, buffer, { contentType: 'image/png', cacheControl: '31536000', upsert: false });
+    if (upErr) {
+      console.warn('[rehost] upload failed:', upErr.message);
+      return falUrl;
+    }
+    const { data } = supabase.storage.from('pet-photos').getPublicUrl(path);
+    if (!data?.publicUrl) {
+      console.warn('[rehost] getPublicUrl returned no URL — using fal URL');
+      return falUrl;
+    }
+    return data.publicUrl;
+  } catch (e) {
+    console.warn('[rehost] threw:', (e as Error).message);
+    return falUrl;
+  }
+}
+
+/** Download a fal.media image and rehost it in our PRIVATE Supabase bucket.
+ *  Used for HIGH-RES PRINT MASTERS (3000x3000) — the paid product.
+ *
+ *  Returns a storage PATH (relative to the bucket), NOT a URL. The browser
+ *  never gets a working URL to the print master — only the orders/paid
+ *  fulfilment pipeline (which uses the admin client) can fetch the file.
+ *  This closes the pre-2026-05-12 hole where a customer could DevTools-snipe
+ *  the public URL and download the 3000x3000 PNG without paying.
+ *
+ *  Non-fatal: returns null with a logged warning if rehost fails. */
+async function rehostFalImagePrivate(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  falUrl: string,
+): Promise<string | null> {
+  try {
+    const dl = await fetch(falUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!dl.ok) {
+      console.warn('[rehost-private] download failed', { status: dl.status, url: falUrl });
+      return null;
+    }
+    const buffer = Buffer.from(await dl.arrayBuffer());
+    const path = `print-masters/${crypto.randomUUID()}.png`;
+    const { error: upErr } = await supabase.storage
+      .from('pet-photos-private')
+      .upload(path, buffer, { contentType: 'image/png', cacheControl: '31536000', upsert: false });
+    if (upErr) {
+      console.warn('[rehost-private] upload failed:', upErr.message);
+      return null;
+    }
+    return path;
+  } catch (e) {
+    console.warn('[rehost-private] threw:', (e as Error).message);
+    return null;
+  }
+}
+
+// ─── Printful Mockup helpers ────────────────────────────────────────────────
+// Submits a mockup task to Printful for the given variant URL + size + frame,
+// polls until completion (max ~60s), returns the public mockup URL or null.
+// Used by handleRoomMockup — server-side combined submit-and-poll. Why not
+// async like B2: render time is reliably 15-25s and the customer is already
+// looking at their variant; a single 30-60s wait is acceptable and avoids
+// the complexity of a separate status endpoint + frontend polling for what
+// is fundamentally a "nice to have" preview enhancement.
+async function generatePrintfulRoomMockup(args: {
+  variantImageUrl: string;
+  sizeKey: string;
+  frameColor: string;
+}): Promise<{ mockupUrl?: string; error?: string }> {
+  if (!PRINTFUL_TOKEN) return { error: 'printful_token_missing' };
+  if (!PRINTFUL_STORE_ID) return { error: 'printful_store_id_missing' };
+
+  const sizeMap = PRINTFUL_VARIANT_MAP[args.sizeKey];
+  if (!sizeMap) return { error: `no_mockup_for_size_${args.sizeKey}` };
+
+  // Frame color mapping: black → Printful Black; everything else → Printful
+  // Brown (visually close enough for an in-room preview).
+  const printfulVariantId = args.frameColor === 'black' ? sizeMap.black : sizeMap.wood;
+  const lifestyleStyleId = sizeMap.lifestyleStyleId;
+
+  // Submit
+  let taskId: number | null = null;
+  try {
+    const submitRes = await fetch(`${PRINTFUL_API_BASE}/mockup-tasks`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${PRINTFUL_TOKEN}`,
+        'X-PF-Store-Id': PRINTFUL_STORE_ID,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        format: 'jpg',
+        products: [{
+          source: 'catalog',
+          catalog_product_id: PRINTFUL_FRAMED_CANVAS_PRODUCT_ID,
+          catalog_variant_ids: [printfulVariantId],
+          mockup_style_ids: [lifestyleStyleId],
+          placements: [{
+            placement: 'default',
+            technique: 'digital',
+            layers: [{ type: 'file', url: args.variantImageUrl }],
+          }],
+        }],
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!submitRes.ok) {
+      const text = await submitRes.text();
+      console.error('[printful/submit] non-OK', { status: submitRes.status, snippet: text.slice(0, 300) });
+      return { error: `submit_${submitRes.status}` };
+    }
+    const submitData = (await submitRes.json()) as { data?: Array<{ id?: number }> };
+    taskId = submitData.data?.[0]?.id ?? null;
+    if (!taskId) return { error: 'no_task_id' };
+  } catch (e) {
+    console.error('[printful/submit] threw', (e as Error).message);
+    return { error: `submit_threw: ${(e as Error).message}` };
+  }
+
+  // Poll — max 12 attempts × 5s = 60s
+  const POLL_INTERVAL_MS = 5_000;
+  const MAX_POLLS = 12;
+  for (let attempt = 0; attempt < MAX_POLLS; attempt++) {
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+    try {
+      const statusRes = await fetch(`${PRINTFUL_API_BASE}/mockup-tasks?id=${taskId}`, {
+        headers: {
+          'Authorization': `Bearer ${PRINTFUL_TOKEN}`,
+          'X-PF-Store-Id': PRINTFUL_STORE_ID,
+        },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!statusRes.ok) continue;
+      const statusData = (await statusRes.json()) as {
+        data?: Array<{
+          status?: string;
+          catalog_variant_mockups?: Array<{ mockups?: Array<{ mockup_url?: string }> }>;
+          failure_reasons?: string[];
+        }>;
+      };
+      const task = statusData.data?.[0];
+      if (!task) continue;
+      if (task.status === 'failed') {
+        return { error: `printful_failed: ${task.failure_reasons?.join(',') ?? 'unknown'}` };
+      }
+      if (task.status === 'completed') {
+        const url = task.catalog_variant_mockups?.[0]?.mockups?.[0]?.mockup_url;
+        if (!url) return { error: 'no_mockup_url_in_response' };
+        return { mockupUrl: url };
+      }
+      // status === 'pending' → keep polling
+    } catch {
+      // network glitch — keep trying
+    }
+  }
+  return { error: 'mockup_timeout' };
+}
+
+// ─── Room mockup handler — POST /api/portraits?action=room_mockup ──────────
+// Body: { variantImageUrl, sizeKey, frameColor }
+// Auth: Bearer JWT required (prevents anonymous abuse of the free Printful API).
+// Returns: { mockupUrl } on success, or { error } if the mockup couldn't be
+// generated. Intentionally non-fatal — the calling UI should fall back to
+// just showing the raw variant if the mockup fails.
+async function handleRoomMockup(req: VercelRequest, res: VercelResponse) {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Sign in required' });
+  }
+  const token = auth.slice('Bearer '.length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: 'Invalid token' });
+
+  const body = (req.body ?? {}) as {
+    variantImageUrl?: string;
+    sizeKey?: string;
+    frameColor?: string;
+  };
+  if (!body.variantImageUrl || typeof body.variantImageUrl !== 'string') {
+    return res.status(400).json({ error: 'variantImageUrl required' });
+  }
+  // SSRF check — only allow our own Supabase storage + fal.media URLs through
+  // to Printful (matches the existing imageUrl whitelist used by handleGenerate).
+  const reason = validateImageUrlOrigin(body.variantImageUrl);
+  if (reason) {
+    return res.status(400).json({ error: 'invalid_variant_url', reason });
+  }
+  const sizeKey = typeof body.sizeKey === 'string' ? body.sizeKey : '12x16';
+  const frameColor = typeof body.frameColor === 'string' ? body.frameColor : 'black';
+
+  const result = await generatePrintfulRoomMockup({
+    variantImageUrl: body.variantImageUrl,
+    sizeKey,
+    frameColor,
+  });
+
+  if (result.error) {
+    // Non-fatal — return 200 with error so the UI can swallow it gracefully.
+    return res.status(200).json({ mockupUrl: null, error: result.error });
+  }
+  return res.status(200).json({ mockupUrl: result.mockupUrl });
+}
+
 // Sanitise a single pet name → on-canvas typography. Letters / numbers / space
 // / hyphen / apostrophe only (covers "O'Connor", "Mary Jane"; drops "Mr.").
 // Cap at 24 chars — anything longer doesn't render legibly along a canvas margin.
@@ -1168,6 +1642,8 @@ type GenerationLogPatch = {
   cost_usd?: number | null;
   duration_ms?: number | null;
   metadata?: Record<string, unknown>;
+  fal_request_id?: string | null;
+  fal_model?: string | null;
 };
 
 async function insertGenerationLog(
@@ -1203,6 +1679,48 @@ async function insertGenerationLog(
     return data?.id ?? null;
   } catch (err) {
     console.error('[GEN_LOG_INSERT_THREW]', { error: (err as Error).message });
+    return null;
+  }
+}
+
+/** Look up a cached source_vision array from a recent successful generation
+ *  with the EXACT same photos[] for this user. Returns null if no match
+ *  (or on any error — Vision will just re-run, no harm). */
+async function lookupCachedVision(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+  photos: string[],
+): Promise<SubjectInfo[] | null> {
+  if (photos.length === 0) return null;
+  try {
+    // contains() returns rows whose source_image_urls is a SUPERSET of
+    // photos. Combined with a length check below, that gives us exact
+    // match (PostgREST has no direct "array equals" filter).
+    const { data, error } = await supabase
+      .from('pawtrait_generation_log')
+      .select('source_image_urls, source_vision')
+      .eq('user_id', userId)
+      .not('source_vision', 'is', null)
+      .contains('source_image_urls', photos)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    if (error || !data) return null;
+    for (const row of data) {
+      const urls = row.source_image_urls as string[] | null;
+      const sv = row.source_vision as SubjectInfo[] | null;
+      if (!Array.isArray(urls) || !Array.isArray(sv)) continue;
+      if (urls.length !== photos.length) continue;
+      // Exact same order as photos[]? (Most cases yes; if order differs
+      // we'd need to reindex — for now just bail on order mismatch.)
+      let ok = true;
+      for (let i = 0; i < photos.length; i++) {
+        if (urls[i] !== photos[i]) { ok = false; break; }
+      }
+      if (!ok) continue;
+      return sv;
+    }
+    return null;
+  } catch {
     return null;
   }
 }
@@ -1393,10 +1911,21 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
   // (landscape, sunset, blank canvas) NEVER gets charged. See task B in
   // research-2026-05-07-identity-preservation.md.
   // Env knob USE_SUBJECT_VISION=false disables for A/B — NOT recommended.
+  //
+  // Cache lookup (added 2026-05-10): if the same user has previously
+  // generated with the EXACT same photos array, reuse the stored
+  // source_vision from that run. Saves 12s on repeat-with-tweaked-prompt
+  // and on the tweak/try-again loop. Per-photo cache (instead of whole-
+  // array match) would catch more cases but the exact-match heuristic
+  // covers the common path with zero risk of stale-vision leaking
+  // across pets.
   const useVision = process.env.USE_SUBJECT_VISION !== 'false';
-  const subjects: SubjectInfo[] = useVision
-    ? await Promise.all(photos.map((url) => extractSubject(url)))
-    : photos.map(() => ({ species: 'pet' } as SubjectInfo));
+  const cached = useVision ? await lookupCachedVision(supabase, userId, photos) : null;
+  const subjects: SubjectInfo[] = cached
+    ? cached
+    : useVision
+      ? await Promise.all(photos.map((url) => extractSubject(url)))
+      : photos.map(() => ({ species: 'pet' } as SubjectInfo));
 
   // Bad-photo gate — if ANY photo isn't a pet, refuse before charging.
   for (let i = 0; i < subjects.length; i++) {
@@ -1477,17 +2006,29 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
     promptDef = { ...built, compositionId: COMPOSITIONS[0].id };
   }
 
+  // Async path: submit to fal queue, return job_id immediately, frontend polls
+  // ?action=generation_status. The actual generation (8-55s for gpt-image-2)
+  // and the rehost (5-30s) happen in the status handler. This keeps the submit
+  // call <15s even if fal is busy, and customer sees progressive UI faster.
+  // Refactor done 2026-05-10 — see [[01-projects/little-souls/pet-portraits]] B2.
+
+  // Without a generation log row id we can't return a job_id the customer
+  // can poll later. If the log insert failed, refund and surface 500 — the
+  // alternative (proceed without a log row) leaves the customer stuck on a
+  // spinner with no way to recover.
+  if (!generationLogId) {
+    await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "log-insert-failed" });
+    return res.status(500).json({ error: "Failed to create generation log (credit refunded)" });
+  }
+
   try {
-    // Send ALL photos to gpt-image-2 in a single call. Multi-image input is
-    // a documented gpt-image-2 capability (image_urls accepts up to 16);
-    // verified for our use case in research-2026-05-07-identity-preservation.md.
-    const result = await generateVariant({
+    const submit = await submitGenerationToFalQueue({
       imageUrls: photos,
       prompt: promptDef.prompt,
       negative: promptDef.negative,
     });
 
-    if (result.balanceExhausted) {
+    if (submit.balanceExhausted) {
       await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "fal-balance-exhausted" });
       await updateGenerationLog(supabase, generationLogId, {
         status: 'failed',
@@ -1497,16 +2038,11 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       return balancePausedResponse(res);
     }
 
-    if (result.contentPolicyViolation) {
-      // The fal moderator tripped — usually a pet name resembling an unsafe
-      // word (Sphynx "Naked" was the canonical case). Refund the credit and
-      // give the UI a specific code so it can show "try a different name"
-      // inline rather than a generic failure toast that has the customer
-      // retrying the same input.
+    if (submit.contentPolicyViolation) {
       await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "content-policy-violation" });
       await updateGenerationLog(supabase, generationLogId, {
         status: 'failed',
-        error_text: 'content_policy_violation: fal returned 422 (moderator flagged)',
+        error_text: 'content_policy_violation: fal returned 422 at submit',
         duration_ms: Date.now() - t0,
       });
       return res.status(422).json({
@@ -1517,69 +2053,46 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    if (!result.url) {
-      await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "generation-failed" });
+    if (!submit.requestId) {
+      await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "submit-failed", metadata: { submitError: submit.submitError } });
       await updateGenerationLog(supabase, generationLogId, {
         status: 'failed',
-        error_text: 'fal returned no URL',
+        error_text: `submit_failed: ${submit.submitError ?? 'unknown'}`,
         duration_ms: Date.now() - t0,
       });
-      return res.status(502).json({ error: "Generation failed (credit refunded)" });
+      return res.status(502).json({ error: "Generation submit failed (credit refunded)", detail: submit.submitError ?? null });
     }
 
-    // Rehost the fal.media URL into our own public Supabase bucket. fal
-    // outputs expire (~1h synchronous endpoint, ~24h queue), but the
-    // customer's cart persists in localStorage indefinitely — pay-next-day
-    // would otherwise dereference a dead URL at print-master regen and
-    // either fail to print or burn another generation. Non-fatal — falls
-    // back to the fal URL with a logged warning if rehost fails.
-    let durableUrl = result.url;
-    try {
-      const dl = await fetch(result.url, { signal: AbortSignal.timeout(30_000) });
-      if (dl.ok) {
-        const buffer = Buffer.from(await dl.arrayBuffer());
-        const path = `generations/${crypto.randomUUID()}.png`;
-        const { error: upErr } = await supabase.storage
-          .from("pet-photos")
-          .upload(path, buffer, { contentType: "image/png", cacheControl: "31536000", upsert: false });
-        if (!upErr) {
-          const { data } = supabase.storage.from("pet-photos").getPublicUrl(path);
-          if (data?.publicUrl) {
-            durableUrl = data.publicUrl;
-          } else {
-            console.warn("[generate] rehost: getPublicUrl returned no URL — using fal URL");
-          }
-        } else {
-          console.warn("[generate] rehost upload failed:", upErr.message);
-        }
-      } else {
-        console.warn("[generate] rehost download failed:", dl.status);
-      }
-    } catch (e) {
-      console.warn("[generate] rehost threw:", (e as Error).message);
-    }
-
-    const variants = [{ url: durableUrl, composition: promptDef.compositionId }];
-
-    // Final audit-log update — success path. Records the prompt actually
-    // sent, the durable output URL (the rehosted Supabase one, not the
-    // ephemeral fal one), and timing.
+    // Persist the fal request_id + model + Vision pre-pass + prompt so the
+    // status handler can resume from a fresh function invocation (or after
+    // a customer page refresh) without re-running anything expensive.
+    // status_url + response_url are stored in metadata because fal's status
+    // path differs from the submit path for action-suffixed models (e.g.
+    // submit goes to openai/gpt-image-2/edit but status is at the base
+    // openai/gpt-image-2 path). We use fal's authoritative URLs verbatim
+    // instead of reconstructing.
     await updateGenerationLog(supabase, generationLogId, {
-      status: 'success', // matches CHECK in migration
+      status: 'pending', // job in fal queue or running
+      fal_request_id: submit.requestId,
+      fal_model: submit.model ?? GPT_IMAGE_PRIMARY_MODEL,
+      source_vision: subjects,
       prompt_sent: promptDef.prompt,
       negative_prompt: promptDef.negative,
-      output_image_url: durableUrl,
-      cost_usd: GPT_IMAGE_COST_USD + (useVision ? VISION_COST_USD * photos.length : 0),
-      duration_ms: Date.now() - t0,
+      metadata: {
+        submitted_at_ms: Date.now() - t0,
+        composition_id: promptDef.compositionId,
+        fal_status_url: submit.statusUrl,
+        fal_response_url: submit.responseUrl,
+      },
     });
 
-    // Response shape:
-    //   variants:  [{ url, composition }]            — same as before
-    //   subject:   first pet's SubjectInfo            — back-compat with single-pet UI
-    //   subjects:  [SubjectInfo, ...]                 — NEW: full per-pet array
-    //   prompts:   [fullPrompt]                       — same as before
-    return res.status(200).json({
-      variants,
+    // 202 Accepted — Vision pre-pass results are returned now so the UI
+    // can show "We see your German Shepherd, generating now..." while the
+    // image generates. Frontend polls /api/portraits?action=generation_status
+    // &job_id={generationLogId} every 2.5s until status === 'completed'.
+    return res.status(202).json({
+      status: 'submitted',
+      job_id: generationLogId,
       subject: subjects[0],
       subjects,
       prompts: [promptDef.prompt],
@@ -1597,8 +2110,168 @@ async function handleGenerate(req: VercelRequest, res: VercelResponse) {
       error_text: `exception: ${(err as Error).message}`,
       duration_ms: Date.now() - t0,
     });
-    return res.status(500).json({ error: "Generation failed (credit refunded)", detail: (err as Error).message });
+    return res.status(500).json({ error: "Generation submit failed (credit refunded)", detail: (err as Error).message });
   }
+}
+
+// ─── handleGenerationStatus — poll a fal queue job ───────────────────────────
+// GET /api/portraits?action=generation_status&job_id={pawtrait_generation_log.id}
+// Authenticated. Looks up the log row, verifies ownership, then:
+//   - status='success'  → returns cached variants (idempotent re-poll, no fal call)
+//   - status='failed'   → returns cached failure (idempotent re-poll, no refund)
+//   - status='pending'  → polls fal queue. On COMPLETED: rehosts, marks success, returns variants.
+//                         On in-progress: returns {status:'pending', queue_position?}.
+//                         On failure: refunds (once), marks failed, returns failure.
+//
+// Idempotency: every terminal state is recorded on the log row before we
+// return it. Re-polls after success or failure are pure DB reads — no
+// fal hit, no refund. Two concurrent polls hitting COMPLETED at the same
+// time can both run rehost (rehost writes to a UUID-named bucket path so
+// no overwrite collision) but only the first updates the log to success;
+// the second sees status='success' on its next poll and returns the
+// already-stored URL. Customer never sees double charge or double image.
+async function handleGenerationStatus(req: VercelRequest, res: VercelResponse) {
+  if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
+
+  const jobId = (req.query.job_id ?? req.query.jobId ?? '') as string;
+  if (!jobId || typeof jobId !== 'string' || !/^[0-9a-f-]{30,40}$/i.test(jobId)) {
+    return res.status(400).json({ error: "job_id required (uuid)" });
+  }
+
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Sign in required" });
+  }
+  const token = auth.slice("Bearer ".length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
+  const userId = userRes.user.id;
+
+  // Look up the log row + verify ownership in one query.
+  const { data: log, error: logErr } = await supabase
+    .from('pawtrait_generation_log')
+    .select('id, user_id, status, fal_request_id, fal_model, output_image_url, source_vision, prompt_sent, error_text, pet_count, source_image_urls, metadata')
+    .eq('id', jobId)
+    .single();
+  if (logErr || !log) {
+    return res.status(404).json({ error: "Job not found" });
+  }
+  if (log.user_id !== userId) {
+    // Don't leak whether the job exists for someone else.
+    return res.status(404).json({ error: "Job not found" });
+  }
+
+  const subjects: SubjectInfo[] = Array.isArray(log.source_vision)
+    ? log.source_vision as SubjectInfo[]
+    : Array.from({ length: log.pet_count ?? 1 }, () => ({ species: 'pet' } as SubjectInfo));
+
+  // Terminal states — return cached without touching fal.
+  if (log.status === 'success' && log.output_image_url) {
+    return res.status(200).json({
+      status: 'completed',
+      job_id: log.id,
+      variants: [{ url: log.output_image_url, composition: 'portrait' }],
+      subject: subjects[0],
+      subjects,
+      prompts: log.prompt_sent ? [log.prompt_sent] : [],
+    });
+  }
+  if (log.status === 'failed' || log.status === 'refunded') {
+    return res.status(200).json({
+      status: 'failed',
+      job_id: log.id,
+      error: log.error_text ?? 'generation_failed',
+      creditRefunded: true,
+    });
+  }
+
+  // Still pending. Need the fal status_url + response_url stored in metadata
+  // at submit time. If missing, the submit never persisted them — refund
+  // (defensive; submit normally writes them before returning 202).
+  const meta = (log.metadata ?? {}) as Record<string, unknown>;
+  const statusUrl = typeof meta.fal_status_url === 'string' ? meta.fal_status_url : null;
+  const responseUrl = typeof meta.fal_response_url === 'string' ? meta.fal_response_url : null;
+  if (!log.fal_request_id || !statusUrl || !responseUrl) {
+    await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "missing_fal_urls" });
+    await updateGenerationLog(supabase, log.id, {
+      status: 'failed',
+      error_text: 'missing fal status/response url at status check',
+    });
+    return res.status(200).json({
+      status: 'failed',
+      job_id: log.id,
+      error: 'job_state_lost',
+      creditRefunded: true,
+    });
+  }
+
+  const poll = await pollFalQueueStatus(statusUrl, responseUrl);
+
+  if (poll.status === 'pending') {
+    return res.status(200).json({
+      status: 'pending',
+      job_id: log.id,
+      queue_position: poll.queuePosition ?? null,
+    });
+  }
+
+  if (poll.status === 'failed') {
+    await safeRefund({
+      supabase,
+      accountId: userId,
+      tokens: TOKENS_PER_GENERATION,
+      reason: poll.contentPolicyViolation ? "content-policy-violation" : "fal-job-failed",
+      metadata: { fal_request_id: log.fal_request_id, fal_error: poll.error },
+    });
+    await updateGenerationLog(supabase, log.id, {
+      status: 'failed',
+      error_text: poll.error ?? 'fal_job_failed',
+    });
+    if (poll.contentPolicyViolation) {
+      return res.status(200).json({
+        status: 'failed',
+        job_id: log.id,
+        error: 'content_policy_violation',
+        message: "Our moderator flagged this generation. The most common cause is a pet name that resembles an unsafe word — try a different spelling or a nickname.",
+        suggestion: 'rename_or_remove_pet_name',
+        creditRefunded: true,
+      });
+    }
+    return res.status(200).json({
+      status: 'failed',
+      job_id: log.id,
+      error: poll.error ?? 'generation_failed',
+      creditRefunded: true,
+    });
+  }
+
+  // poll.status === 'completed' — rehost + persist + return.
+  if (!poll.imageUrl) {
+    // Defensive: should never happen (status returns imageUrl on completed).
+    await safeRefund({ supabase, accountId: userId, tokens: TOKENS_PER_GENERATION, reason: "completed_but_no_url" });
+    await updateGenerationLog(supabase, log.id, { status: 'failed', error_text: 'completed_but_no_url' });
+    return res.status(502).json({ status: 'failed', job_id: log.id, error: 'completed_but_no_url', creditRefunded: true });
+  }
+
+  const durableUrl = await rehostFalImage(supabase, poll.imageUrl);
+
+  await updateGenerationLog(supabase, log.id, {
+    status: 'success',
+    output_image_url: durableUrl,
+    cost_usd: GPT_IMAGE_COST_USD + VISION_COST_USD * (log.pet_count ?? 1),
+    // duration_ms is intentionally not bumped here — it's the submit-to-now
+    // total since insert, which is more useful than the queue wait time.
+  });
+
+  return res.status(200).json({
+    status: 'completed',
+    job_id: log.id,
+    variants: [{ url: durableUrl, composition: 'portrait' }],
+    subject: subjects[0],
+    subjects,
+    prompts: log.prompt_sent ? [log.prompt_sent] : [],
+  });
 }
 
 // ─── handleCutout — Photoroom primary, HuggingFace BRIA RMBG fallback ──────
@@ -1755,11 +2428,13 @@ async function handleComposite(req: VercelRequest, res: VercelResponse) {
     const svg = buildSvg(template, tf, cB64);
     const pngBuf = await sharp(Buffer.from(svg), { density: 150 }).png({ compressionLevel: 9, quality: 95 }).toBuffer();
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    // SECURITY: template print masters go to the PRIVATE bucket. Browser gets
+    // a storage path, not a URL. Fulfilment fetches via admin client. Closes
+    // the same DevTools-snipe hole that the AI flow had pre-2026-05-12.
     const path = `print-masters/${crypto.randomUUID()}.png`;
-    const { error: upErr } = await supabase.storage.from("pet-photos").upload(path, pngBuf, { contentType: "image/png", cacheControl: "31536000", upsert: false });
+    const { error: upErr } = await supabase.storage.from("pet-photos-private").upload(path, pngBuf, { contentType: "image/png", cacheControl: "31536000", upsert: false });
     if (upErr) return res.status(500).json({ error: "Print master upload failed", detail: upErr.message });
-    const { data } = supabase.storage.from("pet-photos").getPublicUrl(path);
-    return res.status(200).json({ printMasterUrl: data.publicUrl, sizePx: PRINT_SIZE });
+    return res.status(200).json({ printMasterPath: path, printMasterBucket: "pet-photos-private", sizePx: PRINT_SIZE });
   } catch (err) {
     return res.status(500).json({ error: "Composite failed", detail: (err as Error).message });
   }
@@ -2536,13 +3211,23 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
       return res.status(502).json({ error: "print_master_generation_failed" });
     }
 
+    // SECURITY: rehost the fal.media URL to our PRIVATE bucket and return
+    // only the storage path. Customer never sees a working URL — fulfilment
+    // pipelines fetch via admin client. (Was: returned fal.media URL directly
+    // to the browser, which was harvestable via DevTools for free 3000px PNG.)
+    const privatePath = await rehostFalImagePrivate(supabase, result.url);
+    if (!privatePath) {
+      return res.status(502).json({ error: "print_master_rehost_failed" });
+    }
+
     // Cost estimate — gpt-image-2 high quality at 2048×N is roughly $0.10–
     // $0.20 per image depending on aspect (per fal pricing 2026-05-07).
     // PrintMaster always uses high; cost is fixed.
     const costEstimate = 0.16;
 
     return res.status(200).json({
-      printMasterUrl: result.url,
+      printMasterPath: privatePath,
+      printMasterBucket: "pet-photos-private",
       width: aspect.print.width,
       height: aspect.print.height,
       aspect: aspect.key,
@@ -2557,4 +3242,314 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
       detail: (err as Error).message,
     });
   }
+}
+
+// ─── handlePrintMasterSubmit — async print master via fal queue ────────────
+// New 2026-05-11 endpoint. Mirrors handlePrintMaster's validation and prompt
+// build, but submits to queue.fal.run instead of sync fal.run. Returns the
+// fal status_url + response_url to the client; client polls
+// printMaster_status until completion. Decouples the customer's cart-add
+// experience from Vercel function lifetime — even a slow 3-min fal day
+// doesn't show "couldn't prepare print master" toast.
+async function handlePrintMasterSubmit(req: VercelRequest, res: VercelResponse) {
+  if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
+
+  const body = (req.body ?? {}) as {
+    imageUrls?: string[];
+    petNames?: string[];
+    customPrompt?: string;
+    sizeKey?: string;
+  };
+  const customPrompt = sanitiseAddDetails(body.customPrompt ?? "").slice(0, 400);
+  if (!customPrompt) return res.status(400).json({ error: "customPrompt required" });
+  const sizeKey = typeof body.sizeKey === 'string' ? body.sizeKey : '';
+  if (!sizeKey) return res.status(400).json({ error: "sizeKey required" });
+  const aspectKey = SKU_TO_ASPECT[sizeKey];
+  if (!aspectKey) {
+    return res.status(400).json({
+      error: "unknown_size_key",
+      message: `sizeKey '${sizeKey}' not recognised. Valid: ${Object.keys(SKU_TO_ASPECT).join(', ')}`,
+    });
+  }
+  const aspect = ASPECTS.find((a) => a.key === aspectKey);
+  if (!aspect) return res.status(500).json({ error: "aspect_lookup_failed", aspectKey });
+
+  const sizeInfo = sizeForSku(sizeKey);
+  if (sizeInfo?.blocked) {
+    return res.status(503).json({
+      error: "size_temporarily_unavailable",
+      message: "This size is temporarily unavailable",
+      sizeKey,
+      longEdgeIn: sizeInfo.longEdgeIn,
+    });
+  }
+
+  const photos: string[] = Array.isArray(body.imageUrls)
+    ? body.imageUrls.filter((u): u is string => typeof u === 'string' && u.length > 0)
+    : [];
+  if (photos.length === 0) return res.status(400).json({ error: "imageUrls required (1–4 source pet photos)" });
+  if (photos.length > 4) return res.status(400).json({ error: "max_pets_exceeded", message: "printMaster supports up to 4 pets per portrait." });
+  // SSRF check on every source URL
+  for (let i = 0; i < photos.length; i++) {
+    const reason = validateImageUrlOrigin(photos[i]);
+    if (reason) {
+      return res.status(400).json({ error: 'invalid_image_url', photoIndex: i, message: `Image URL at index ${i} rejected (${reason}).` });
+    }
+  }
+  const rawNames: string[] = Array.isArray(body.petNames)
+    ? body.petNames.map((n) => typeof n === 'string' ? n : '')
+    : [];
+  const names: string[] = photos.map((_, i) => sanitisePetName(rawNames[i] ?? ''));
+
+  // Auth — Bearer JWT required
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer ")) return res.status(401).json({ error: "Sign in to generate print master" });
+  const token = auth.slice("Bearer ".length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
+  const userId = userRes.user.id;
+
+  // Vision pre-pass (with cache from generation if same photos)
+  const useVision = process.env.USE_SUBJECT_VISION !== 'false';
+  const cached = useVision ? await lookupCachedVision(supabase, userId, photos) : null;
+  const subjects: SubjectInfo[] = cached
+    ? cached
+    : useVision
+      ? await Promise.all(photos.map((url) => extractSubject(url)))
+      : photos.map(() => ({ species: 'pet' } as SubjectInfo));
+
+  for (let i = 0; i < subjects.length; i++) {
+    if (isNoPetDetected(subjects[i])) {
+      return res.status(400).json({
+        error: 'no_pet_detected',
+        petIndex: i,
+        message: `Photo ${i + 1} does not appear to show a pet — print master cannot proceed.`,
+      });
+    }
+  }
+
+  const aspectLabel = aspect.label;
+  const aspectInstruction = `Output: ${aspectLabel} canvas composition at print resolution, painterly cinematic finish, premium polish for framed wall art, edge-to-edge composition with no visible margins, no whitespace borders.`;
+  const fullPrompt = buildMultiPetCustomPrompt({ subjects, names, customPrompt, aspectInstruction });
+  const baseNegative = "low quality, distorted, deformed, plastic, cartoon glitches, blurry, weird anatomy, watermark";
+  const anyName = names.some(n => n.length > 0);
+  const negative = anyName
+    ? `${baseNegative}, misspelled text, garbled letters, illegible typography, gibberish text, multiple names${photos.length > 1 ? ', merged pets, blended pets, hybrid pet, fused features' : ''}`
+    : `${baseNegative}, text overlay${photos.length > 1 ? ', merged pets, blended pets, hybrid pet, fused features' : ''}`;
+
+  // Submit to fal queue at print quality + dimensions
+  const submit = await submitGenerationToFalQueue({
+    imageUrls: photos,
+    prompt: fullPrompt,
+    negative,
+    imageSize: aspect.print,
+    quality: 'high',
+  });
+
+  if (submit.balanceExhausted) return balancePausedResponse(res);
+  if (submit.contentPolicyViolation) {
+    return res.status(422).json({
+      error: "content_policy_violation",
+      message: "Our moderator flagged this print master.",
+      creditRefunded: false, // No credit consumed for printMaster
+    });
+  }
+  if (!submit.requestId || !submit.statusUrl || !submit.responseUrl) {
+    return res.status(502).json({ error: "print_master_submit_failed", detail: submit.submitError });
+  }
+
+  return res.status(202).json({
+    status: 'submitted',
+    request_id: submit.requestId,
+    fal_status_url: submit.statusUrl,
+    fal_response_url: submit.responseUrl,
+    aspect: aspect.key,
+    sizeKey,
+    width: aspect.print.width,
+    height: aspect.print.height,
+    subjects,
+    prompt: fullPrompt,
+  });
+}
+
+// Helper: validate that a URL is a fal queue URL (and matches the expected
+// /requests/<uuid>/status or /requests/<uuid> path). Defends printMaster_status
+// from being tricked into proxying arbitrary URLs (SSRF / API-token leakage
+// via Authorization header). Pattern matches what fal returns at submit:
+//   https://queue.fal.run/{model}/requests/{request_id}/status
+//   https://queue.fal.run/{model}/requests/{request_id}
+function isValidFalQueueUrl(u: string): boolean {
+  if (typeof u !== 'string' || u.length > 500) return false;
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'https:') return false;
+    if (url.hostname !== 'queue.fal.run') return false;
+    // Path must contain /requests/<uuid-ish>
+    return /\/requests\/[0-9a-f-]{20,}(?:\/[a-z]+)?$/i.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
+// ─── handlePrintMasterStatus — poll fal queue for in-flight print master ──
+// Body: { fal_status_url, fal_response_url } from the submit response.
+// Returns: { status: 'pending' | 'completed' | 'failed', printMasterUrl?, error? }
+// On completion: rehosts the fal output to durable Supabase storage (the
+// print master URL travels through Shopify line-item-properties and gets
+// fetched by Gelato hours/days later — fal.media URLs expire ~24h).
+async function handlePrintMasterStatus(req: VercelRequest, res: VercelResponse) {
+  if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
+
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer ")) return res.status(401).json({ error: "Sign in required" });
+  const token = auth.slice("Bearer ".length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
+
+  const body = (req.body ?? {}) as { fal_status_url?: string; fal_response_url?: string };
+  const statusUrl = body.fal_status_url ?? '';
+  const responseUrl = body.fal_response_url ?? '';
+  if (!isValidFalQueueUrl(statusUrl) || !isValidFalQueueUrl(responseUrl)) {
+    return res.status(400).json({ error: "invalid_fal_urls" });
+  }
+
+  const poll = await pollFalQueueStatus(statusUrl, responseUrl);
+
+  if (poll.status === 'pending') {
+    return res.status(200).json({ status: 'pending', queue_position: poll.queuePosition ?? null });
+  }
+  if (poll.status === 'failed') {
+    return res.status(200).json({
+      status: 'failed',
+      error: poll.error ?? 'print_master_failed',
+      contentPolicyViolation: poll.contentPolicyViolation ?? false,
+    });
+  }
+  // Completed — rehost to PRIVATE bucket and return path (NOT URL).
+  // SECURITY: see rehostFalImagePrivate doc — closes the print-master URL
+  // exposure where customer could grab the public URL via DevTools.
+  if (!poll.imageUrl) {
+    return res.status(200).json({ status: 'failed', error: 'completed_but_no_url' });
+  }
+  const privatePath = await rehostFalImagePrivate(supabase, poll.imageUrl);
+  if (!privatePath) {
+    return res.status(200).json({ status: 'failed', error: 'rehost_failed' });
+  }
+  return res.status(200).json({
+    status: 'completed',
+    printMasterPath: privatePath,
+    printMasterBucket: 'pet-photos-private',
+    costEstimate: 0.16,
+  });
+}
+
+// ─── handleRedeemDownloadCredit — subscriber redeems a digital download credit ──
+//
+// Pass + Elite subscribers get a monthly allowance of digital downloads (3 and
+// 999 respectively). Instead of going through Stripe checkout for £19, they
+// hit this endpoint with a cart item to:
+//   1. Verify auth (must be logged in)
+//   2. Atomically deduct one download credit via consume_download_credit()
+//   3. Fire runDigitalFulfillment directly (rehost + email signed link)
+//
+// Bypasses Shopify entirely — no order record, no Stripe charge. The audit
+// trail lives in portraits_credit_transactions (credit_type='download').
+//
+// Body: {
+//   printMasterPath?: string   // preferred (private bucket)
+//   printMasterUrl?: string    // legacy fallback for in-flight carts
+//   previewUrl?: string
+//   petName?: string
+// }
+// Returns: { ok: true, downloadUrl, balance } on success.
+// Returns: { ok: false, reason: "no_credits" | "auth" | "fulfilment_failed" } on failure.
+async function handleRedeemDownloadCredit(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ ok: false, reason: "method_not_allowed" });
+  }
+  const authHeader = String(req.headers.authorization ?? "");
+  const accessToken = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!accessToken) return res.status(401).json({ ok: false, reason: "auth" });
+
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(accessToken);
+  if (userErr || !userRes.user) return res.status(401).json({ ok: false, reason: "auth" });
+  const userId = userRes.user.id;
+  const userEmail = userRes.user.email ?? null;
+  if (!userEmail) return res.status(400).json({ ok: false, reason: "no_email_on_account" });
+
+  const body = (req.body ?? {}) as {
+    printMasterPath?: string;
+    printMasterUrl?: string;
+    previewUrl?: string;
+    petName?: string;
+  };
+  if (!body.printMasterPath && !body.printMasterUrl) {
+    return res.status(400).json({ ok: false, reason: "missing_print_master" });
+  }
+
+  // 1. Atomic credit deduction. Returns false if balance is 0.
+  const { data: consumed, error: consumeErr } = await supabase.rpc("consume_download_credit", {
+    p_account_id: userId,
+  });
+  if (consumeErr) {
+    console.error("[redeem-download] consume_failed", JSON.stringify({ userId, error: consumeErr.message }));
+    return res.status(500).json({ ok: false, reason: "credit_check_failed" });
+  }
+  if (consumed !== true) {
+    return res.status(402).json({ ok: false, reason: "no_credits" });
+  }
+
+  // 2. Generate a unique pseudo-order ref so the fulfilment pipeline writes a
+  //    distinct storage path. Real Shopify order id is null here — this is a
+  //    credit-redemption, not a paid order.
+  const redemptionRef = `cred-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+  // Encode into the shopifyOrderId/lineItemId surfaces expected by runDigitalFulfillment
+  // (which keys storage path off ls-{orderId}-{lineItemId}). Use a synthetic
+  // 13-digit prefix so it's distinguishable from real Shopify ids (which are 12+).
+  const fakeOrderId = Math.floor(Date.now());
+  const fakeLineItemId = Math.floor(Math.random() * 1e9);
+
+  const result = await runDigitalFulfillment({
+    shopifyOrderId: fakeOrderId,
+    shopifyLineItemId: fakeLineItemId,
+    customerEmail: userEmail,
+    printMasterPath: body.printMasterPath ?? null,
+    printMasterUrl: body.printMasterUrl ?? null,
+    petName: body.petName ?? null,
+    previewUrl: body.previewUrl ?? null,
+  });
+
+  if (result.ok === false) {
+    const stage = result.stage;
+    const reason = result.reason;
+    // Refund the credit — fulfilment failed for reasons outside the customer's control.
+    await supabase.rpc("grant_download_credits", {
+      p_account_id: userId,
+      p_amount: 1,
+      p_reason: "fulfilment_failed_refund",
+      p_metadata: { redemption_ref: redemptionRef, stage, reason },
+    });
+    console.error("[redeem-download] fulfilment_failed", JSON.stringify({
+      userId, redemptionRef, stage, reason,
+    }));
+    return res.status(500).json({ ok: false, reason: "fulfilment_failed", stage });
+  }
+
+  // 3. Read back the new balance for the UI.
+  const { data: creditsRow } = await supabase
+    .from("portraits_credits")
+    .select("download_credits")
+    .eq("account_id", userId)
+    .single();
+
+  return res.status(200).json({
+    ok: true,
+    downloadUrl: result.downloadUrl,
+    balance: creditsRow?.download_credits ?? 0,
+    redemptionRef,
+  });
 }

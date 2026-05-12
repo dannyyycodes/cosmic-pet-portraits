@@ -21,7 +21,7 @@
  *     manual_review — never auto-submit a soft print to Gelato
  */
 
-import { gelatoProductUid, type FrameColor } from "../../src/components/portraits/gelatoFramedCanvas.js";
+import { gelatoProductUid, gelatoUnframedProductUid, type FrameColor } from "../../src/components/portraits/gelatoFramedCanvas.js";
 import { preflightImage, type PreflightMetrics, type PreflightResult } from "./preflight.js";
 import { getSupabaseAdmin } from "./supabaseAdmin.js";
 
@@ -44,7 +44,8 @@ export type GelatoAddress = {
 export type PrintPipelineInput = {
   sourceImageUrl: string;
   sizeKey: string;
-  frameColor: FrameColor;
+  /** null = unframed slim canvas; one of the 3 wood tones = framed canvas. */
+  frameColor: FrameColor | null;
   shippingAddress: GelatoAddress;
   customerEmail: string;
   shopifyOrderId: number;
@@ -141,8 +142,10 @@ export async function runPrintPipeline(
     return errResult("gelato_submit", "GELATO_API_KEY env var is not configured");
   }
 
-  // 1. Resolve productUid from catalog
-  const productUid = gelatoProductUid(input.sizeKey, input.frameColor);
+  // 1. Resolve productUid from catalog. null frameColor = unframed slim canvas.
+  const productUid = input.frameColor === null
+    ? gelatoUnframedProductUid(input.sizeKey)
+    : gelatoProductUid(input.sizeKey, input.frameColor);
   if (!productUid) {
     return errResult(
       "gelato_submit",

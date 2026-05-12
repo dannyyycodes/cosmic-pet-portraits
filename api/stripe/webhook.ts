@@ -26,8 +26,9 @@
  */
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import type Stripe from "stripe";
-import { getStripe, priceIdToTier, TOKENS_PER_PERIOD, PACK_TOKENS } from "../_lib/stripe.js";
+import { getStripe, priceIdToTier, TOKENS_PER_PERIOD, DOWNLOAD_CREDITS_PER_PERIOD, PACK_TOKENS } from "../_lib/stripe.js";
 import { getSupabaseAdmin } from "../_lib/supabaseAdmin.js";
+import { capiPurchase } from "../_lib/metaCapi.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -106,9 +107,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await handleChargeDisputeCreated(event.data.object as Stripe.Dispute);
         break;
 
-      case "checkout.session.completed":
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        await handleCheckoutCompleted(session);
+        // Fire Meta CAPI Purchase (no-op if META_PIXEL_ID/META_CAPI_TOKEN unset).
+        // Wrapped in try/catch so a CAPI failure never causes Stripe to retry the webhook.
+        try {
+          const amount = session.amount_total ?? 0;
+          if (amount > 0) {
+            const result = await capiPurchase({
+              eventId: session.id,
+              eventTimeUnix: typeof session.created === "number" ? session.created : undefined,
+              eventSourceUrl: (session.metadata?.event_source_url as string | undefined) ?? "https://www.littlesouls.app/pawtraits",
+              value: amount / 100,
+              currency: (session.currency ?? "gbp").toUpperCase(),
+              user: {
+                email: session.customer_details?.email ?? session.customer_email ?? undefined,
+                phone: session.customer_details?.phone ?? undefined,
+                firstName: session.customer_details?.name?.split(" ")[0],
+                lastName: session.customer_details?.name?.split(" ").slice(1).join(" "),
+                city: session.customer_details?.address?.city ?? undefined,
+                country: session.customer_details?.address?.country ?? undefined,
+                clientIpAddress: (session.metadata?.client_ip_address as string | undefined) ?? undefined,
+                clientUserAgent: (session.metadata?.client_user_agent as string | undefined) ?? undefined,
+                fbp: (session.metadata?.fbp as string | undefined) ?? undefined,
+                fbc: (session.metadata?.fbc as string | undefined) ?? undefined,
+              },
+            });
+            if (!result.ok) {
+              console.warn("[stripe/webhook] CAPI purchase did not send:", result.error);
+            }
+          }
+        } catch (capiErr) {
+          console.warn("[stripe/webhook] CAPI purchase threw (non-fatal):", capiErr);
+        }
         break;
+      }
 
       default:
         // Ignore other events.
@@ -169,6 +203,7 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
     price_id: priceId,
     tier,
     monthly_token_grant: TOKENS_PER_PERIOD[tier],
+    monthly_download_credit_grant: DOWNLOAD_CREDITS_PER_PERIOD[tier],
     current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
     current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
     cancel_at_period_end: sub.cancel_at_period_end,
@@ -215,18 +250,32 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 
   const { data: sub } = await supabase
     .from("portraits_subscriptions")
-    .select("monthly_token_grant, tier")
+    .select("monthly_token_grant, monthly_download_credit_grant, tier")
     .eq("id", subId)
     .single();
 
   if (!sub) return;
 
+  // Generation tokens — existing behaviour.
   await supabase.rpc("grant_credits", {
     p_account_id: accountId,
     p_tokens: sub.monthly_token_grant,
     p_reason: "invoice-paid",
     p_metadata: { invoice_id: invoice.id, subscription_id: subId, tier: sub.tier },
   });
+
+  // Download credits — new 2026-05-12 benefit. Pass=3/mo, Elite=999/mo. Separate
+  // function call so the audit log distinguishes generation tokens from downloads.
+  // Skipped if grant is 0 (defensive — old rows / future tier configurations).
+  const dlGrant = (sub as { monthly_download_credit_grant?: number }).monthly_download_credit_grant ?? 0;
+  if (dlGrant > 0) {
+    await supabase.rpc("grant_download_credits", {
+      p_account_id: accountId,
+      p_amount: dlGrant,
+      p_reason: "invoice-paid",
+      p_metadata: { invoice_id: invoice.id, subscription_id: subId, tier: sub.tier },
+    });
+  }
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {

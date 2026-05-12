@@ -16,6 +16,7 @@ import {
   CANVAS_SIZES,
   FRAME_COLORS,
   FRAMED_CANVAS_V2_VARIANTS,
+  UNFRAMED_CANVAS_VARIANTS,
   type FrameColor,
 } from "../../../src/components/portraits/gelatoFramedCanvas.js";
 import type { GelatoAddress } from "../../_lib/printPipeline.js";
@@ -52,13 +53,15 @@ export interface ShopifyOrderWithShipping {
 
 interface VariantToCanvas {
   sizeKey: string;
-  frameColor: FrameColor;
+  /** null = unframed slim canvas. */
+  frameColor: FrameColor | null;
   sku: string;
   sizeLabel: string;
 }
 
 const VARIANT_ID_TO_CANVAS: Map<string, VariantToCanvas> = (() => {
   const m = new Map<string, VariantToCanvas>();
+  // Framed v2 (33 variants — 11 sizes × 3 frame colors).
   for (const [key, v] of Object.entries(FRAMED_CANVAS_V2_VARIANTS)) {
     const [sizeKey, frameColor] = key.split("__");
     if (!sizeKey || !frameColor) continue;
@@ -69,6 +72,18 @@ const VARIANT_ID_TO_CANVAS: Map<string, VariantToCanvas> = (() => {
       sizeKey,
       frameColor: frameColor as FrameColor,
       sku: `${sizeKey}__${frameColor}`,
+      sizeLabel: size.label,
+    });
+  }
+  // Unframed (11 variants — one per size, frameColor=null).
+  for (const [sizeKey, v] of Object.entries(UNFRAMED_CANVAS_VARIANTS)) {
+    if (v.variantId === 0) continue; // placeholder; migration not yet run
+    const size = CANVAS_SIZES.find((s) => s.uid === sizeKey);
+    if (!size) continue;
+    m.set(String(v.variantId), {
+      sizeKey,
+      frameColor: null,
+      sku: `${sizeKey}__unframed`,
       sizeLabel: size.label,
     });
   }
@@ -95,12 +110,17 @@ export interface CanvasFulfillmentInputs {
   lineItemId: number;
   variantId: number | null;
   sizeKey: string;
-  frameColor: FrameColor;
+  /** null = unframed slim canvas. */
+  frameColor: FrameColor | null;
   sku: string;
   sizeLabel: string;
   /** Best image URL for the print master. Prefers the explicit print master,
    *  falls back to the source photo, then preview. */
   sourceImageUrl: string | null;
+  /** PRIVATE storage path (post-2026-05-12). Format "<folder>/<uuid>.png" in
+   *  the pet-photos-private bucket. When present, fulfilment must fetch via
+   *  admin client (no public URL). Takes precedence over printMasterUrl. */
+  printMasterPath: string | null;
   printMasterUrl: string | null;
   previewUrl: string | null;
   sourcePhotoUrl: string | null;
@@ -194,14 +214,34 @@ export function extractCanvasFulfillmentLines(
       (typeof photoVal === "string" && photoVal.trim().length === 0);
     const needsCustomisation = photoMissing && hasPropertyKey(li.properties, CUSTOMISATION_PROPERTY_KEY);
 
-    const printMasterUrl = readProp(li.properties, ["Print master (Gelato)", "_print_master_url"]);
+    const printMasterPath = readProp(li.properties, ["_print_master_path"]);
+    const printMasterUrl = readProp(li.properties, ["_print_master_url_legacy", "Print master (Gelato)", "_print_master_url"]);
     const sourcePhotoUrl = readProp(li.properties, ["Source photo", "_source_photo_url"]);
     const previewUrl = readProp(li.properties, ["Preview portrait", "_preview_url"]);
     const petName = readProp(li.properties, ["Pet Name", "_pet_name"]);
 
     // Prefer explicit print master, then source photo, then preview. The
     // pipeline will run AuraSR 4× regardless — its job is to upscale.
+    // sourceImageUrl is the URL form (legacy carts); printMasterPath is the
+    // new private-bucket path. Fulfilment uses path first, URL fallback.
     const sourceImageUrl = printMasterUrl ?? sourcePhotoUrl ?? previewUrl ?? null;
+
+    // If we ended up at the previewUrl fallback, the upstream pipeline
+    // dropped the print master somewhere and we'll be upscaling a
+    // 1024px source. Surface this loudly — the customer paid for a
+    // canvas that's about to be muddy. Should be impossible after the
+    // 2026-05-11 cart/checkout.ts validation but log defensively in
+    // case a future code path bypasses it.
+    if (!printMasterUrl && !sourcePhotoUrl && previewUrl) {
+      console.warn("[extractCanvas] PRINT_MASTER_FALLBACK_TO_PREVIEW", {
+        lineItemId,
+        variantId,
+        sku: canvas.sku,
+        sizeKey: canvas.sizeKey,
+        frameColor: canvas.frameColor,
+        previewUrl: previewUrl.slice(0, 120),
+      });
+    }
 
     out.push({
       lineItemId,
@@ -211,6 +251,7 @@ export function extractCanvasFulfillmentLines(
       sku: canvas.sku,
       sizeLabel: canvas.sizeLabel,
       sourceImageUrl,
+      printMasterPath,
       printMasterUrl,
       previewUrl,
       sourcePhotoUrl,

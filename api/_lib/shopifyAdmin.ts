@@ -86,6 +86,16 @@ export interface DraftOrderLineItem {
   price?: string; // string per Shopify REST contract (e.g. "99.00")
   quantity: number;
   properties?: DraftOrderLineProperty[];
+  /** Per-line-item discount (Shopify draft order applied_discount). Used for
+   *  gift-card upsells where we want to keep the variant ID (so native gift
+   *  card auto-code generation runs) AND apply a percentage discount. */
+  appliedDiscount?: {
+    description: string;
+    /** "percentage" | "fixed_amount" */
+    valueType: "percentage" | "fixed_amount";
+    /** percent ("20.00") or fixed amount in major units ("3.80") */
+    value: string;
+  };
 }
 
 export interface DraftOrderMetafield {
@@ -111,6 +121,8 @@ export interface DraftOrderInput {
   noteAttributes?: { name: string; value: string }[];
   /** Persistent metafields on the draft order (read by webhook handlers). */
   metafields?: DraftOrderMetafield[];
+  /** URL Shopify redirects the customer to after successful payment. */
+  returnUrl?: string;
 }
 
 export interface DraftOrderResult {
@@ -126,13 +138,23 @@ export async function createDraftOrder(input: DraftOrderInput): Promise<DraftOrd
   const body = {
     draft_order: {
       line_items: input.lineItems.map((li) => {
+        const appliedDiscount = li.appliedDiscount
+          ? {
+              applied_discount: {
+                description: li.appliedDiscount.description,
+                value_type: li.appliedDiscount.valueType,
+                value: li.appliedDiscount.value,
+              },
+            }
+          : {};
         if (li.variantId) {
           // Variant-keyed: Shopify resolves title/price/SKU from catalog. This
-          // is what the Gelato app needs to recognise the line for fulfillment.
+          // is what the Gelato app + native gift-card auto-code generation need.
           return {
             variant_id: li.variantId,
             quantity: li.quantity,
             properties: li.properties ?? [],
+            ...appliedDiscount,
           };
         }
         // Custom-priced fallback (Soul Edition add-on, etc.)
@@ -141,6 +163,7 @@ export async function createDraftOrder(input: DraftOrderInput): Promise<DraftOrd
           price: li.price,
           quantity: li.quantity,
           properties: li.properties ?? [],
+          ...appliedDiscount,
         };
       }),
       ...(input.currency ? { presentment_currency: input.currency } : {}),
@@ -159,6 +182,9 @@ export async function createDraftOrder(input: DraftOrderInput): Promise<DraftOrd
             })),
           }
         : {}),
+      // Post-payment redirect target. Shopify takes the customer here after
+      // successful checkout (instead of the default Shopify thank-you page).
+      ...(input.returnUrl ? { return_url: input.returnUrl } : {}),
       // use_customer_default_address omitted — guest checkout flow
     },
   };

@@ -132,7 +132,11 @@ export default function PortraitsTemplates() {
         }),
       });
       if (!compRes.ok) throw new Error((await compRes.json()).error || "Composite failed");
-      const { printMasterUrl } = (await compRes.json()) as { printMasterUrl: string };
+      // 2026-05-12: composite now returns printMasterPath (private bucket) instead of
+      // printMasterUrl (public). Accept both shapes during legacy transition.
+      const compData = (await compRes.json()) as { printMasterPath?: string; printMasterUrl?: string };
+      const { printMasterPath, printMasterUrl } = compData;
+      if (!printMasterPath && !printMasterUrl) throw new Error("Composite returned no print master");
 
       const item = buildCartItem({
         kind: "template",
@@ -142,7 +146,9 @@ export default function PortraitsTemplates() {
         packName: selectedTemplate.label,
         style: "photographic",
         sourcePhotoUrl: photoUrl,
-        previewUrl: printMasterUrl,
+        // Cart thumbnail — use the cutout (public, web-res) not the private print master path.
+        previewUrl: cutoutUrl,
+        printMasterPath,
         printMasterUrl,
         soulEdition: false,
         soulEditionPriceMajor: 0,

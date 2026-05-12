@@ -16,15 +16,21 @@
  */
 
 export type ProductTypeKey =
-  | "framed-canvas"
+  | "digital"         // digital download only (no physical, no shipping)
+  | "canvas"          // unframed slim stretched canvas (physical entry)
+  | "framed-canvas"   // canvas + slim wood frame (physical upgrade)
+  | "gift-card"       // Shopify-native gift card (no print master, recipient details as line-item props)
   | "mug"
   | "tote"
   | "tee"
   | "hoodie";
 
-export type FramedSizeKey = "8x10" | "12x16" | "16x20" | "20x30";
+export type CanvasSizeKey =
+  | "8x10" | "12x16" | "12x18" | "16x20" | "16x24" | "18x24"
+  | "20x28" | "20x30" | "24x24" | "24x32" | "24x36";
+export type FramedSizeKey = CanvasSizeKey;  // same 11 sizes as unframed
 export type ApparelSizeKey = "XS" | "S" | "M" | "L" | "XL" | "2XL";
-export type AnySizeKey = FramedSizeKey | ApparelSizeKey | "default";
+export type AnySizeKey = CanvasSizeKey | ApparelSizeKey | "default";
 
 export interface VariantDef {
   variantId: number;
@@ -46,22 +52,82 @@ export interface ProductDef {
 }
 
 export const PRODUCTS: Record<ProductTypeKey, ProductDef> = {
-  "framed-canvas": {
-    key: "framed-canvas",
-    label: "Framed Canvas",
+  // Digital download — instant delivery via email + Supabase signed URL.
+  // No physical, no shipping. Highest margin SKU (~97% net after fal.ai + email).
+  // Created 2026-05-12. Shopify product id 16190069670237.
+  "digital": {
+    key: "digital",
+    label: "Digital Download",
+    shortLabel: "Digital",
+    hasSize: false,
+    defaultSizeKey: "default",
+    variants: {
+      default: { variantId: 64669378511197, priceMajor: 19, sizeLabel: "Digital download" },
+    },
+  },
+  // Gift card — Shopify-native; auto-generates code + emails recipient on payment.
+  // Multi-variant single product, 4 denominations. Variant IDs filled in by
+  // scripts/shopify-launch/create_gift_card_product.py. The "default" entry here
+  // is just to satisfy the ProductDef shape — checkout uses the real variant ID
+  // from the cart item directly (per-denomination).
+  "gift-card": {
+    key: "gift-card",
+    label: "Gift Card",
+    shortLabel: "Gift card",
+    hasSize: false,
+    defaultSizeKey: "default",
+    variants: {
+      default: { variantId: 0, priceMajor: 19, sizeLabel: "Gift card" },
+    },
+  },
+  // Entry physical product — unframed slim stretched canvas. "From £39 (frame +£X)".
+  // Pricing locked 2026-05-12 against live Gelato wholesale audit
+  // (~50% margin per size including UK ship + Stripe + 3% returns).
+  "canvas": {
+    key: "canvas",
+    label: "Canvas",
     shortLabel: "Canvas",
     hasSize: true,
     defaultSizeKey: "16x20",
-    // Hero moved to 16×20 — matches Crown & Paw / PawFav competitive positioning.
     heroSizeKey: "16x20",
-    // Competitive launch pricing (locked 2026-05-04). Targets 50-55% margin
-    // pre-Gelato+ Gold; jumps to ~70% organically once Gelato+ Gold subscription
-    // is enabled (worth it ≥15 mid-size orders/mo).
     variants: {
-      "8x10":  { variantId: 64592196600157, priceMajor: 39, sizeLabel: "8×10″" },
-      "12x16": { variantId: 64592196632925, priceMajor: 49, sizeLabel: "12×16″" },
-      "16x20": { variantId: 64592196665693, priceMajor: 65, sizeLabel: "16×20″" },
-      "20x30": { variantId: 64592196698461, priceMajor: 99, sizeLabel: "20×30″" },
+      "8x10":  { variantId: 64669306454365, priceMajor: 39, sizeLabel: "8×10″" },
+      "12x16": { variantId: 64669306487133, priceMajor: 49, sizeLabel: "12×16″" },
+      "12x18": { variantId: 64669306519901, priceMajor: 55, sizeLabel: "12×18″" },
+      "16x20": { variantId: 64669306552669, priceMajor: 65, sizeLabel: "16×20″" },
+      "16x24": { variantId: 64669306585437, priceMajor: 75, sizeLabel: "16×24″" },
+      "18x24": { variantId: 64669306618205, priceMajor: 79, sizeLabel: "18×24″" },
+      "20x28": { variantId: 64669306650973, priceMajor: 89, sizeLabel: "20×28″" },
+      "20x30": { variantId: 64669306683741, priceMajor: 95, sizeLabel: "20×30″" },
+      "24x24": { variantId: 64669306716509, priceMajor: 95, sizeLabel: "24×24″" },
+      "24x32": { variantId: 64669306749277, priceMajor: 109, sizeLabel: "24×32″" },
+      "24x36": { variantId: 64669306782045, priceMajor: 119, sizeLabel: "24×36″" },
+    },
+  },
+  // Frame upgrade — same canvas + slim wood frame. Total = unframed + frame upgrade.
+  // Reprice 2026-05-12: tiered frame upgrade (≥25% margin on the frame cost).
+  // Variant IDs are the existing v2 product (handle: cosmic-pet-portrait-framed-canvas-v2).
+  // Re-mapped here to the 11 lead sizes; framedCanvas.ts holds the full 33-variant map.
+  "framed-canvas": {
+    key: "framed-canvas",
+    label: "Framed Canvas",
+    shortLabel: "Framed Canvas",
+    hasSize: true,
+    defaultSizeKey: "16x20",
+    heroSizeKey: "16x20",
+    // Default to the natural-wood variant per size — UI lets the customer pick a different frame color.
+    variants: {
+      "8x10":  { variantId: 64599875289437, priceMajor: 84,  sizeLabel: "8×10″" },
+      "12x16": { variantId: 64599875387741, priceMajor: 114, sizeLabel: "12×16″" },
+      "12x18": { variantId: 64599875486045, priceMajor: 120, sizeLabel: "12×18″" },
+      "16x20": { variantId: 64599875584349, priceMajor: 130, sizeLabel: "16×20″" },
+      "16x24": { variantId: 64599875682653, priceMajor: 155, sizeLabel: "16×24″" },
+      "18x24": { variantId: 64599875780957, priceMajor: 159, sizeLabel: "18×24″" },
+      "20x28": { variantId: 64599875879261, priceMajor: 174, sizeLabel: "20×28″" },
+      "20x30": { variantId: 64599875977565, priceMajor: 180, sizeLabel: "20×30″" },
+      "24x24": { variantId: 64599876075869, priceMajor: 180, sizeLabel: "24×24″" },
+      "24x32": { variantId: 64599876174173, priceMajor: 209, sizeLabel: "24×32″" },
+      "24x36": { variantId: 64599876272477, priceMajor: 229, sizeLabel: "24×36″" },
     },
   },
   mug: {

@@ -21,6 +21,7 @@ import { PALETTE, cormorantItalic, EASE } from "./tokens";
 import { type CartItem, cartSubtotalMajor, itemTotalMajor } from "./cart";
 import { isSoulReadingItem } from "./soulReading";
 import { SoulReadingUpsell } from "./SoulReadingUpsell";
+import { CartGiftUpsell } from "./CartGiftUpsell";
 import { CartConsents, type ConsentSnapshot } from "./CartConsents";
 import { Sparkles } from "lucide-react";
 
@@ -143,6 +144,14 @@ export function CartDrawer({
                   when a Soul Reading is already in cart. */}
               {onAddItem && (
                 <SoulReadingUpsell cart={items} onAdd={onAddItem} />
+              )}
+
+              {/* Gift card upsell — "Send a portrait to a friend".
+                  Recipient details ride as Shopify line-item properties;
+                  Shopify auto-generates the code + emails the recipient on
+                  payment. Native redemption at checkout. */}
+              {onAddItem && (
+                <CartGiftUpsell onAdd={onAddItem} />
               )}
             </>
           )}

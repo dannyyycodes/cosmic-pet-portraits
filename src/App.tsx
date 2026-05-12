@@ -8,6 +8,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { MetaPixelRouteTracker } from "@/lib/metaPixel";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ABTestProvider } from "@/contexts/ABTestContext";
@@ -70,6 +71,7 @@ const Portraits = lazy(() => import("./pages/Portraits"));
 const Reading = lazy(() => import("./pages/Reading"));
 const PortraitsTemplates = lazy(() => import("./pages/PortraitsTemplates"));
 const PortraitsStudio = lazy(() => import("./pages/PortraitsStudio"));
+const PawtraitsThanks = lazy(() => import("./pages/PawtraitsThanks"));
 const PawtraitsGallery = lazy(() => import("./pages/PawtraitsGallery"));
 const PawtraitsSEOLanding = lazy(() => import("./pages/PawtraitsSEOLanding"));
 const SharePet = lazy(() => import("./pages/SharePet"));
@@ -158,6 +160,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <ReferralCapture>
+              <MetaPixelRouteTracker />
               <ErrorBoundary FallbackComponent={ErrorFallback} onReset={() => window.location.href = '/'}>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -220,6 +223,7 @@ const App = () => (
                       the SPA Navigate routes below cover client-side nav that bypasses Vercel. */}
                   <Route path="/pawtraits" element={<Portraits />} />
                   <Route path="/pawtraits/templates" element={<PortraitsTemplates />} />
+                  <Route path="/pawtraits/thanks" element={<PawtraitsThanks />} />
                   <Route path="/pawtraits/gallery" element={<PawtraitsGallery />} />
                   {/* Programmatic SEO landing pages — Pinterest deep-link targets.
                       Unknown slugs render gracefully (no 404). */}

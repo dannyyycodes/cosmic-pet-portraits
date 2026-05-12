@@ -36,6 +36,7 @@ import {
   extractCanvasFulfillmentLines,
   type ShopifyOrderWithShipping,
 } from "./shopify/_lib/extractCanvas.js";
+import { extractDigitalFulfillmentLines } from "./shopify/_lib/extractDigital.js";
 import {
   upsertPrintOrder,
   updatePrintOrder,
@@ -202,6 +203,10 @@ async function handleOrderPaid(
           petName: c.petName,
           previewUrl: c.previewUrl,
           sourcePhotoUrl: c.sourcePhotoUrl,
+          // SECURITY: post-2026-05-12 the print master lives in the private bucket.
+          // Path is stashed in metadata so canvasFulfillment can fetch via admin client
+          // and sign a short-TTL URL for AuraSR. Legacy carts have only sourceImageUrl.
+          printMasterPath: c.printMasterPath,
           dryRun,
           needsCustomisation: c.needsCustomisation,
           // ── Cron worker reads from here ───────────────────────────────
@@ -289,6 +294,83 @@ async function handleOrderPaid(
     canvasJobs.push({ row, readyToSubmit: true });
   }
   void canvasJobs;
+
+  // ── Digital download line-item fulfillment ─────────────────────────────
+  // Same persist-then-cron pattern as canvas. Digital lines have sku='digital'
+  // and size_key='digital' (sentinels) so the cron worker can branch into
+  // runDigitalFulfillment instead of the canvas pipeline (see
+  // api/_lib/canvasFulfillment.ts runCanvasFulfillmentForRow).
+  const digitalLines = extractDigitalFulfillmentLines(orderForCanvas);
+  for (const d of digitalLines) {
+    try {
+      const { row, inserted } = await upsertPrintOrder({
+        shopifyOrderId: String(orderId),
+        shopifyLineItemId: String(d.lineItemId),
+        sku: "digital",
+        sizeKey: "digital",
+        frameColor: null,
+        sourceImageUrl: d.printMasterUrl,
+        printMasterUrl: d.printMasterUrl,
+        metadata: {
+          shopifyEventId: eventId,
+          shopifyVariantId: d.variantId,
+          sizeLabel: "Digital download",
+          petName: d.petName,
+          previewUrl: d.previewUrl,
+          sourcePhotoUrl: d.sourcePhotoUrl,
+          // SECURITY: post-2026-05-12 the print master lives in the private bucket.
+          // Path is stashed in metadata so the cron worker can fetch via admin client.
+          // Legacy carts have only printMasterUrl — both fields read by digitalFulfillment.
+          printMasterPath: d.printMasterPath,
+          dryRun,
+          // Cron worker reads these out of metadata to reconstruct fulfillment args.
+          // Digital has no shipping address requirement — pass null explicitly.
+          cron: {
+            customerEmail: cronArgsForOrder.customerEmail,
+            shippingAddress: null,
+            currency: cronArgsForOrder.presentmentCurrency,
+          },
+        },
+      });
+      console.log(
+        "[orders/paid] digital_persisted",
+        JSON.stringify({
+          eventId,
+          orderId,
+          lineItemId: d.lineItemId,
+          printOrderId: row.id,
+          inserted,
+          status: row.status,
+        }),
+      );
+      if (!d.printMasterUrl) {
+        // Defensive — checkout.ts already rejects digital lines without printMasterUrl,
+        // but if a stale cart somehow slipped through, surface it loudly.
+        await recordHighSeverityFailure({
+          printOrderId: row.id,
+          shopifyOrderId: String(orderId),
+          shopifyLineItemId: String(d.lineItemId),
+          sku: "digital",
+          stage: "intake",
+          message:
+            "Digital line item has no print master URL — checkout validation slipped. Manual fetch from order or refund required.",
+          details: { variantId: d.variantId },
+        });
+      }
+    } catch (err) {
+      console.error(
+        "[orders/paid] digital_persist_failed",
+        JSON.stringify({
+          eventId,
+          orderId,
+          lineItemId: d.lineItemId,
+          error: err instanceof Error ? err.message : String(err),
+        }),
+      );
+      // Return 500 so Shopify retries — digital orders are paid, must not be lost.
+      return res.status(500).json({ error: "db_insert_failed" });
+    }
+  }
 
   if (customisationPending.length > 0) {
     console.log(

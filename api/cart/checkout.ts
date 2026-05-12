@@ -29,7 +29,15 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createDraftOrder, shopifyConfigured, type DraftOrderLineItem } from "../_lib/shopifyAdmin.js";
 
 // ─── Locked variant map (mirrors productLineup.ts) ─────────────────────
-type ProductTypeKey = "framed-canvas" | "mug" | "tote" | "tee" | "hoodie";
+type ProductTypeKey = "digital" | "canvas" | "framed-canvas" | "gift-card" | "mug" | "tote" | "tee" | "hoodie";
+
+// Gift card variant IDs (mirrors GIFT_CARD_VARIANTS in gelatoFramedCanvas.ts).
+// Populated by scripts/shopify-launch/create_gift_card_product.py — until that
+// runs, all entries are 0 (the gift card flow guards against this on the frontend).
+const GIFT_CARD_VARIANT_IDS = new Set<number>([
+  // £19 / £39 / £79 / £129 — paste real IDs after running the migration script
+  // and updating gelatoFramedCanvas.ts GIFT_CARD_VARIANTS.
+]);
 
 // ─── Soul Reading constants (mirrors src/components/portraits/soulReading.ts) ──
 const SOUL_READING_VARIANT_ID = 64601427640669;
@@ -43,45 +51,77 @@ interface VariantDef {
 }
 
 const PRODUCT_VARIANTS: Record<ProductTypeKey, Record<string, VariantDef>> = {
+  // ── Digital download (handle: cosmic-pet-portrait-digital) — 1 SKU ──
+  // Instant email + signed URL delivery. No physical, no shipping. Created 2026-05-12.
+  // ~97% margin (£0.10 fal.ai + Resend + Supabase ≈ £0.50 total cost on £19 retail).
+  "digital": {
+    default: { variantId: 64669378511197, priceMajor: 19, sizeLabel: "Digital download" },
+  },
+  // ── Gift card (handle: cosmic-pet-portrait-gift-card) — N denominations ──
+  // Variants resolved by EXACT variantId from the cart item (each denom = its own variant).
+  // Stub map below keeps the typescript shape consistent — real validation
+  // happens in the gift-card branch below which doesn't dispatch via PRODUCT_VARIANTS.
+  "gift-card": {
+    default: { variantId: 0, priceMajor: 0, sizeLabel: "Gift card" },
+  },
+  // ── Unframed canvas (handle: cosmic-pet-portrait-canvas) — 11 SKUs ──
+  // Entry physical product. One variant per size, no frame option. Created 2026-05-12.
+  // Pricing locked against live Gelato wholesale (~50% margin including ship).
+  "canvas": {
+    "8x10":  { variantId: 64669306454365, priceMajor: 39,  sizeLabel: "8×10″" },
+    "12x16": { variantId: 64669306487133, priceMajor: 49,  sizeLabel: "12×16″" },
+    "12x18": { variantId: 64669306519901, priceMajor: 55,  sizeLabel: "12×18″" },
+    "16x20": { variantId: 64669306552669, priceMajor: 65,  sizeLabel: "16×20″" },
+    "16x24": { variantId: 64669306585437, priceMajor: 75,  sizeLabel: "16×24″" },
+    "18x24": { variantId: 64669306618205, priceMajor: 79,  sizeLabel: "18×24″" },
+    "20x28": { variantId: 64669306650973, priceMajor: 89,  sizeLabel: "20×28″" },
+    "20x30": { variantId: 64669306683741, priceMajor: 95,  sizeLabel: "20×30″" },
+    "24x24": { variantId: 64669306716509, priceMajor: 95,  sizeLabel: "24×24″" },
+    "24x32": { variantId: 64669306749277, priceMajor: 109, sizeLabel: "24×32″" },
+    "24x36": { variantId: 64669306782045, priceMajor: 119, sizeLabel: "24×36″" },
+  },
+  // ── Framed canvas v2 (handle: cosmic-pet-portrait-framed-canvas-v2) — 33 SKUs ──
+  // 11 sizes × 3 frame colors. Composite key: `${size}__${color}`. Frame upgrade
+  // tiered per size to keep ≥25% margin on the frame addition (price = unframed
+  // + frame upgrade). Repriced 2026-05-12 from launch loss-leader prices.
   "framed-canvas": {
-    // ── v2 product (handle: cosmic-pet-portrait-framed-canvas-v2) — 33 SKUs ──
-    // 11 sizes × 3 frame colors. Composite key: `${size}__${color}`. Modern
-    // Gelato productUid format set on each variant's metafield.
-    "8x10__black":         { variantId: 64599875256669, priceMajor: 39,  sizeLabel: "8×10″ Black" },
-    "8x10__natural-wood":  { variantId: 64599875289437, priceMajor: 39,  sizeLabel: "8×10″ Natural" },
-    "8x10__dark-wood":     { variantId: 64599875322205, priceMajor: 39,  sizeLabel: "8×10″ Dark Brown" },
-    "12x16__black":        { variantId: 64599875354973, priceMajor: 49,  sizeLabel: "12×16″ Black" },
-    "12x16__natural-wood": { variantId: 64599875387741, priceMajor: 49,  sizeLabel: "12×16″ Natural" },
-    "12x16__dark-wood":    { variantId: 64599875420509, priceMajor: 49,  sizeLabel: "12×16″ Dark Brown" },
-    "12x18__black":        { variantId: 64599875453277, priceMajor: 55,  sizeLabel: "12×18″ Black" },
-    "12x18__natural-wood": { variantId: 64599875486045, priceMajor: 55,  sizeLabel: "12×18″ Natural" },
-    "12x18__dark-wood":    { variantId: 64599875518813, priceMajor: 55,  sizeLabel: "12×18″ Dark Brown" },
-    "16x20__black":        { variantId: 64599875551581, priceMajor: 65,  sizeLabel: "16×20″ Black" },
-    "16x20__natural-wood": { variantId: 64599875584349, priceMajor: 65,  sizeLabel: "16×20″ Natural" },
-    "16x20__dark-wood":    { variantId: 64599875617117, priceMajor: 65,  sizeLabel: "16×20″ Dark Brown" },
-    "16x24__black":        { variantId: 64599875649885, priceMajor: 75,  sizeLabel: "16×24″ Black" },
-    "16x24__natural-wood": { variantId: 64599875682653, priceMajor: 75,  sizeLabel: "16×24″ Natural" },
-    "16x24__dark-wood":    { variantId: 64599875715421, priceMajor: 75,  sizeLabel: "16×24″ Dark Brown" },
-    "18x24__black":        { variantId: 64599875748189, priceMajor: 79,  sizeLabel: "18×24″ Black" },
-    "18x24__natural-wood": { variantId: 64599875780957, priceMajor: 79,  sizeLabel: "18×24″ Natural" },
-    "18x24__dark-wood":    { variantId: 64599875813725, priceMajor: 79,  sizeLabel: "18×24″ Dark Brown" },
-    "20x28__black":        { variantId: 64599875846493, priceMajor: 89,  sizeLabel: "20×28″ Black" },
-    "20x28__natural-wood": { variantId: 64599875879261, priceMajor: 89,  sizeLabel: "20×28″ Natural" },
-    "20x28__dark-wood":    { variantId: 64599875912029, priceMajor: 89,  sizeLabel: "20×28″ Dark Brown" },
-    "20x30__black":        { variantId: 64599875944797, priceMajor: 95,  sizeLabel: "20×30″ Black" },
-    "20x30__natural-wood": { variantId: 64599875977565, priceMajor: 95,  sizeLabel: "20×30″ Natural" },
-    "20x30__dark-wood":    { variantId: 64599876010333, priceMajor: 95,  sizeLabel: "20×30″ Dark Brown" },
-    "24x24__black":        { variantId: 64599876043101, priceMajor: 95,  sizeLabel: "24×24″ Black" },
-    "24x24__natural-wood": { variantId: 64599876075869, priceMajor: 95,  sizeLabel: "24×24″ Natural" },
-    "24x24__dark-wood":    { variantId: 64599876108637, priceMajor: 95,  sizeLabel: "24×24″ Dark Brown" },
-    "24x32__black":        { variantId: 64599876141405, priceMajor: 109, sizeLabel: "24×32″ Black" },
-    "24x32__natural-wood": { variantId: 64599876174173, priceMajor: 109, sizeLabel: "24×32″ Natural" },
-    "24x32__dark-wood":    { variantId: 64599876206941, priceMajor: 109, sizeLabel: "24×32″ Dark Brown" },
-    "24x36__black":        { variantId: 64599876239709, priceMajor: 119, sizeLabel: "24×36″ Black" },
-    "24x36__natural-wood": { variantId: 64599876272477, priceMajor: 119, sizeLabel: "24×36″ Natural" },
-    "24x36__dark-wood":    { variantId: 64599876305245, priceMajor: 119, sizeLabel: "24×36″ Dark Brown" },
-    // ── Legacy 4 variants on the old product (handle: cosmic-pet-portrait-framed-canvas) ──
+    "8x10__black":         { variantId: 64599875256669, priceMajor: 84,  sizeLabel: "8×10″ Black" },
+    "8x10__natural-wood":  { variantId: 64599875289437, priceMajor: 84,  sizeLabel: "8×10″ Natural" },
+    "8x10__dark-wood":     { variantId: 64599875322205, priceMajor: 84,  sizeLabel: "8×10″ Dark Brown" },
+    "12x16__black":        { variantId: 64599875354973, priceMajor: 114, sizeLabel: "12×16″ Black" },
+    "12x16__natural-wood": { variantId: 64599875387741, priceMajor: 114, sizeLabel: "12×16″ Natural" },
+    "12x16__dark-wood":    { variantId: 64599875420509, priceMajor: 114, sizeLabel: "12×16″ Dark Brown" },
+    "12x18__black":        { variantId: 64599875453277, priceMajor: 120, sizeLabel: "12×18″ Black" },
+    "12x18__natural-wood": { variantId: 64599875486045, priceMajor: 120, sizeLabel: "12×18″ Natural" },
+    "12x18__dark-wood":    { variantId: 64599875518813, priceMajor: 120, sizeLabel: "12×18″ Dark Brown" },
+    "16x20__black":        { variantId: 64599875551581, priceMajor: 130, sizeLabel: "16×20″ Black" },
+    "16x20__natural-wood": { variantId: 64599875584349, priceMajor: 130, sizeLabel: "16×20″ Natural" },
+    "16x20__dark-wood":    { variantId: 64599875617117, priceMajor: 130, sizeLabel: "16×20″ Dark Brown" },
+    "16x24__black":        { variantId: 64599875649885, priceMajor: 155, sizeLabel: "16×24″ Black" },
+    "16x24__natural-wood": { variantId: 64599875682653, priceMajor: 155, sizeLabel: "16×24″ Natural" },
+    "16x24__dark-wood":    { variantId: 64599875715421, priceMajor: 155, sizeLabel: "16×24″ Dark Brown" },
+    "18x24__black":        { variantId: 64599875748189, priceMajor: 159, sizeLabel: "18×24″ Black" },
+    "18x24__natural-wood": { variantId: 64599875780957, priceMajor: 159, sizeLabel: "18×24″ Natural" },
+    "18x24__dark-wood":    { variantId: 64599875813725, priceMajor: 159, sizeLabel: "18×24″ Dark Brown" },
+    "20x28__black":        { variantId: 64599875846493, priceMajor: 174, sizeLabel: "20×28″ Black" },
+    "20x28__natural-wood": { variantId: 64599875879261, priceMajor: 174, sizeLabel: "20×28″ Natural" },
+    "20x28__dark-wood":    { variantId: 64599875912029, priceMajor: 174, sizeLabel: "20×28″ Dark Brown" },
+    "20x30__black":        { variantId: 64599875944797, priceMajor: 180, sizeLabel: "20×30″ Black" },
+    "20x30__natural-wood": { variantId: 64599875977565, priceMajor: 180, sizeLabel: "20×30″ Natural" },
+    "20x30__dark-wood":    { variantId: 64599876010333, priceMajor: 180, sizeLabel: "20×30″ Dark Brown" },
+    "24x24__black":        { variantId: 64599876043101, priceMajor: 180, sizeLabel: "24×24″ Black" },
+    "24x24__natural-wood": { variantId: 64599876075869, priceMajor: 180, sizeLabel: "24×24″ Natural" },
+    "24x24__dark-wood":    { variantId: 64599876108637, priceMajor: 180, sizeLabel: "24×24″ Dark Brown" },
+    "24x32__black":        { variantId: 64599876141405, priceMajor: 209, sizeLabel: "24×32″ Black" },
+    "24x32__natural-wood": { variantId: 64599876174173, priceMajor: 209, sizeLabel: "24×32″ Natural" },
+    "24x32__dark-wood":    { variantId: 64599876206941, priceMajor: 209, sizeLabel: "24×32″ Dark Brown" },
+    "24x36__black":        { variantId: 64599876239709, priceMajor: 229, sizeLabel: "24×36″ Black" },
+    "24x36__natural-wood": { variantId: 64599876272477, priceMajor: 229, sizeLabel: "24×36″ Natural" },
+    "24x36__dark-wood":    { variantId: 64599876305245, priceMajor: 229, sizeLabel: "24×36″ Dark Brown" },
+    // ── Legacy 4 variants on the old framed product (handle: cosmic-pet-portrait-framed-canvas) ──
     // Kept so any in-flight cart from before the v2 migration still resolves.
+    // Prices NOT updated — these were never officially relaunched after the
+    // 2026-05-04 v2 cutover; included only for old cart resolution.
     "8x10":  { variantId: 64592196600157, priceMajor: 39, sizeLabel: "8×10″" },
     "12x16": { variantId: 64592196632925, priceMajor: 49, sizeLabel: "12×16″" },
     "16x20": { variantId: 64592196665693, priceMajor: 65, sizeLabel: "16×20″" },
@@ -112,7 +152,10 @@ const PRODUCT_VARIANTS: Record<ProductTypeKey, Record<string, VariantDef>> = {
 };
 
 const PRODUCT_LABELS: Record<ProductTypeKey, string> = {
+  "digital":       "Cosmic Pet Portrait — Digital Download",
+  "canvas":        "Cosmic Pet Portrait — Canvas",
   "framed-canvas": "Cosmic Pet Portrait — Framed Canvas",
+  "gift-card":     "Cosmic Pet Portrait — Gift Card",
   mug:             "Cosmic Pet Portrait — Ceramic Mug",
   tote:            "Cosmic Pet Portrait — Tote Bag",
   tee:             "Cosmic Pet Portrait — Unisex Tee",
@@ -131,13 +174,22 @@ interface CartItemBody {
   style?: "photographic" | "illustrated";
   sourcePhotoUrl: string;
   previewUrl: string;
-  /** Template-only: 3000×3000 print master URL for Gelato. */
+  /** @deprecated 2026-05-12 — printMasterPath is the new secure field. URL kept
+   *  for legacy carts that loaded the old SPA bundle before the security fix. */
   printMasterUrl?: string;
+  /** PRIVATE storage path for the print master. Format "<folder>/<uuid>.png" in
+   *  the pet-photos-private bucket. Customer cannot fetch — fulfilment uses
+   *  admin client. Replaces printMasterUrl post-2026-05-12. */
+  printMasterPath?: string;
   soulEdition?: boolean;
   soulEditionPriceMajor?: number;
   /** Soul Reading line: variantId pre-set, properties carry pet inputs. */
   variantId?: number;
   properties?: Record<string, string>;
+  /** Gift card only — percentage discount applied via Shopify draft order
+   *  applied_discount (e.g. 20 = 20% off). Variant ID + recipient props are
+   *  preserved so Shopify's native gift-card auto-code generation still fires. */
+  appliedDiscountPct?: number;
 }
 
 interface ConsentBody {
@@ -216,6 +268,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       continue;
     }
 
+    // ── Gift card line — Shopify-native gift card. No print master, no preview,
+    //    no source photo. Just variant_id + recipient details as line-item
+    //    properties (Shopify auto-emails recipient + auto-generates the code).
+    //    Optional appliedDiscountPct → per-line percentage discount via Shopify
+    //    draft-order applied_discount (preserves variant ID for native gift-card flow).
+    //    Branched early so the canvas/POD validators don't reject the empty fields.
+    if (it.productType === "gift-card" || (typeof it.variantId === "number" && GIFT_CARD_VARIANT_IDS.has(it.variantId))) {
+      if (!it.variantId || typeof it.variantId !== "number") {
+        return res.status(400).json({ error: `items[${i}]: gift-card requires variantId` });
+      }
+      const props = it.properties ?? {};
+      const recipientName = (props.recipient_name ?? "").toString().trim();
+      const recipientEmail = (props.recipient_email ?? "").toString().trim();
+      const giftMessage = (props.message ?? "").toString().trim();
+      if (!recipientName) {
+        return res.status(400).json({ error: `items[${i}]: gift-card requires properties.recipient_name` });
+      }
+      if (!recipientEmail || !/^\S+@\S+\.\S+$/.test(recipientEmail)) {
+        return res.status(400).json({ error: `items[${i}]: gift-card requires a valid properties.recipient_email` });
+      }
+
+      // Build per-line applied_discount when appliedDiscountPct present.
+      // Variant ID stays set so Shopify's native gift-card auto-code generation runs.
+      const giftLine: DraftOrderLineItem = {
+        variantId: it.variantId,
+        quantity: 1,
+        properties: [
+          { name: "recipient_name", value: recipientName },
+          { name: "recipient_email", value: recipientEmail },
+          ...(giftMessage ? [{ name: "message", value: giftMessage }] : []),
+          // Hidden audit trail — useful for analytics on which gift channel converts.
+          { name: "_line_kind", value: "gift-card" },
+          ...(typeof it.appliedDiscountPct === "number" && it.appliedDiscountPct > 0
+            ? [{ name: "_discount_pct", value: String(it.appliedDiscountPct) }]
+            : []),
+        ],
+      };
+      if (typeof it.appliedDiscountPct === "number" && it.appliedDiscountPct > 0 && it.appliedDiscountPct <= 100) {
+        giftLine.appliedDiscount = {
+          description: `${it.appliedDiscountPct}% off — Little Souls upsell`,
+          valueType: "percentage",
+          value: it.appliedDiscountPct.toFixed(2),
+        };
+      }
+      lineItems.push(giftLine);
+      noteSummary.push(`Gift card · ${recipientName} <${recipientEmail}>${
+        it.appliedDiscountPct ? ` (${it.appliedDiscountPct}% off)` : ""
+      }`);
+      continue;
+    }
+
     // Per-item validation
     if (!it.productType || !PRODUCT_VARIANTS[it.productType as ProductTypeKey])
       return res.status(400).json({ error: `items[${i}].productType invalid` });
@@ -232,11 +335,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Framed canvas: when frameColor is provided, look up by composite key
     // `${sizeKey}__${frameColor}` (v2 product). Falls back to plain sizeKey
     // for legacy carts created before v2 migration.
+    // Unframed canvas: always plain sizeKey (no frame option).
     const baseSizeKey = it.sizeKey ?? "default";
     const lookupKey =
       productKey === "framed-canvas" && it.frameColor
         ? `${baseSizeKey}__${it.frameColor}`
         : baseSizeKey;
+    // Defensive: stale cart with frameColor on an unframed canvas item — silently drop frame.
+    if (productKey === "canvas" && it.frameColor) {
+      console.warn(`[checkout] dropping frameColor='${it.frameColor}' on unframed canvas item (stale cart)`);
+    }
     const variant = PRODUCT_VARIANTS[productKey][lookupKey]
       ?? PRODUCT_VARIANTS[productKey][baseSizeKey];
     if (!variant) {
@@ -249,6 +357,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const styleLabel = it.style === "illustrated" ? "Illustrated" : "Photographic";
     const isTemplate = it.kind === "template";
 
+    // Template canvas/framed-canvas items REQUIRE a print master (path or URL).
+    // Without it, Shopify webhook → extractCanvas falls back to previewUrl (1024px),
+    // AuraSR upscales the low-res source, and the customer gets a muddy canvas.
+    // Reject at checkout-create time so the customer never gets charged for a
+    // degraded print. (AI items have their own guard via the printMaster regen
+    // step in StudioFlow.handleAdd, which hard-stops cart-add on failure.)
+    const hasPrintMaster = !!(it.printMasterPath || it.printMasterUrl);
+    if (isTemplate && (productKey === "canvas" || productKey === "framed-canvas") && !hasPrintMaster) {
+      return res.status(400).json({
+        error: `items[${i}]: ${productKey} template missing print master. Cannot create order — would degrade print quality. Re-run print-master prep in cart.`,
+      });
+    }
+    // Digital download: ALWAYS requires print master (AI or template) — the
+    // print master IS the deliverable. No fallback path; reject at checkout.
+    if (productKey === "digital" && !hasPrintMaster) {
+      return res.status(400).json({
+        error: `items[${i}]: digital download missing print master. The print master is the product — cannot create order without it. Re-run print-master prep in cart.`,
+      });
+    }
+
     const properties = [
       { name: "Product", value: PRODUCT_LABELS[productKey] },
       { name: isTemplate ? "Template" : "Character pack", value: it.packName },
@@ -256,8 +384,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { name: isTemplate ? "Template id" : "Pack id", value: it.packId },
       { name: "Source photo", value: it.sourcePhotoUrl },
       { name: "Preview portrait", value: it.previewUrl },
-      ...(isTemplate && it.printMasterUrl
-        ? [{ name: "Print master (Gelato)", value: it.printMasterUrl }]
+      // Print master — UNDERSCORE-prefixed property is HIDDEN from the customer
+      // order page (Shopify convention). New secure path goes here; URL kept as
+      // legacy fallback for in-flight carts. Both never visible to customer.
+      ...(it.printMasterPath
+        ? [{ name: "_print_master_path", value: it.printMasterPath }]
+        : []),
+      ...(it.printMasterUrl
+        ? [{ name: "_print_master_url_legacy", value: it.printMasterUrl }]
         : []),
     ];
 
@@ -336,10 +470,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     }
 
+    // Post-payment redirect — Shopify lands the customer back on our thank-you
+    // page (which renders the post-purchase gift upsell). Falls back to Shopify's
+    // default order-status page if return_url isn't set on this draft.
+    const origin = (req.headers.origin as string | undefined)
+      ?? (req.headers.host ? `https://${req.headers.host}` : "https://www.littlesouls.app");
+    const returnUrl = `${origin.replace(/\/$/, "")}/pawtraits/thanks`;
+
     const draft = await createDraftOrder({
       lineItems,
       currency: b.currency,
       note: noteParts.filter(Boolean).join(" • "),
+      returnUrl,
       ...(metafields.length > 0 ? { metafields } : {}),
       ...(noteAttributes.length > 0 ? { noteAttributes } : {}),
     });

@@ -30,6 +30,8 @@ import {
   shopifyAddressToGelato,
   type ShopifyShippingAddress,
 } from "../shopify/_lib/extractCanvas.js";
+import { runDigitalFulfillment } from "./digitalFulfillment.js";
+import { getSupabaseAdmin } from "./supabaseAdmin.js";
 
 export interface RunCanvasFulfillmentArgs {
   row: PrintOrderRow;
@@ -39,7 +41,8 @@ export interface RunCanvasFulfillmentArgs {
   customerEmail: string;
   sourceImageUrl: string;
   sizeKey: string;
-  frameColor: "black" | "natural-wood" | "dark-wood";
+  /** null = unframed slim canvas. */
+  frameColor: "black" | "natural-wood" | "dark-wood" | null;
   sku: string;
   petName: string | null;
   /** Settlement currency to send to Gelato. Defaults to GBP. */
@@ -86,6 +89,21 @@ export async function runCanvasFulfillment(args: RunCanvasFulfillmentArgs): Prom
       message: `Cannot submit canvas to Gelato — shipping address missing fields: ${addr.missing.join(", ")}`,
       details: { missing: addr.missing },
     });
+    // Email the customer too — the previous behaviour was Telegram-to-ops
+    // only, which meant the customer had no idea why their canvas wasn't
+    // shipping. Best-effort; failure to send is logged but doesn't block.
+    if (customerEmail) {
+      await sendAddressConfirmationEmail({
+        to: customerEmail,
+        orderId: String(orderId),
+        missingFields: addr.missing,
+      }).catch((err) =>
+        console.error(
+          "[canvas-fulfill] addr_email_failed",
+          JSON.stringify({ printOrderId: row.id, error: err instanceof Error ? err.message : String(err) }),
+        ),
+      );
+    }
     return;
   }
 
@@ -234,15 +252,97 @@ export async function runCanvasFulfillmentForRow(row: PrintOrderRow): Promise<vo
   }
 
   const orderId = Number(row.shopify_order_id);
+
+  // ── Digital download branch — skip canvas pipeline entirely ───────────
+  // Rows with sku='digital' have no shipping, no Gelato submit, no AuraSR.
+  // Just rehost the print master + email the customer via Resend.
+  if (row.sku === "digital" || row.size_key === "digital") {
+    const lineItemNum = Number(row.shopify_line_item_id ?? "0");
+    const meta2 = (row.metadata ?? {}) as {
+      previewUrl?: string | null;
+      printMasterPath?: string | null;
+    };
+    const result = await runDigitalFulfillment({
+      shopifyOrderId: Number.isFinite(orderId) ? orderId : 0,
+      shopifyLineItemId: Number.isFinite(lineItemNum) ? lineItemNum : 0,
+      customerEmail: cron.customerEmail,
+      // Prefer secure private path (post-2026-05-12). Fall back to URL for legacy.
+      printMasterPath: meta2.printMasterPath ?? null,
+      printMasterUrl: row.source_image_url ?? null,
+      petName: (meta.petName ?? null) as string | null,
+      previewUrl: meta2.previewUrl ?? null,
+    });
+    if (result.ok === false) {
+      const stage = result.stage;
+      const reason = result.reason;
+      await updatePrintOrder({
+        printOrderId: row.id,
+        status: "failed",
+        lastError: `digital_${stage}: ${reason}`,
+        bumpAttempts: true,
+      });
+      await recordHighSeverityFailure({
+        printOrderId: row.id,
+        shopifyOrderId: row.shopify_order_id,
+        shopifyLineItemId: row.shopify_line_item_id ?? "",
+        sku: row.sku ?? "digital",
+        stage: `digital_${stage}`,
+        message: `Digital fulfilment failed at ${stage}: ${reason}`,
+      });
+      return;
+    }
+    // success path — narrowed: result.ok === true → has downloadUrl + emailMessageId
+    await updatePrintOrder({
+      printOrderId: row.id,
+      status: "submitted",
+      printMasterUrl: row.source_image_url ?? null,
+      bumpAttempts: true,
+      metadataMerge: { digital: { downloadUrl: result.downloadUrl, emailMessageId: result.emailMessageId } },
+    });
+    return;
+  }
+
+  // SECURITY: if the print master lives in the private bucket (post-2026-05-12),
+  // sign a short-TTL URL so AuraSR (fal.ai) can fetch it once. The signed URL
+  // expires before any practical scraping is feasible (10 min). Legacy carts
+  // come through as plain public URLs — pass through unchanged.
+  let sourceImageUrl = row.source_image_url ?? "";
+  const metaWithPath = (row.metadata ?? {}) as { printMasterPath?: string | null };
+  if (metaWithPath.printMasterPath) {
+    const supabase = getSupabaseAdmin();
+    const { data: signed, error: signErr } = await supabase.storage
+      .from("pet-photos-private")
+      .createSignedUrl(metaWithPath.printMasterPath, 60 * 10); // 10 minutes
+    if (signErr || !signed?.signedUrl) {
+      await updatePrintOrder({
+        printOrderId: row.id,
+        status: "failed",
+        lastError: `private_signurl_failed: ${signErr?.message ?? "no_signed_url"}`,
+        bumpAttempts: true,
+      });
+      await recordHighSeverityFailure({
+        printOrderId: row.id,
+        shopifyOrderId: row.shopify_order_id,
+        shopifyLineItemId: row.shopify_line_item_id ?? "",
+        sku: row.sku ?? "",
+        stage: "intake",
+        message: `Cannot sign private print master URL: ${signErr?.message ?? "no_signed_url"}`,
+      });
+      return;
+    }
+    sourceImageUrl = signed.signedUrl;
+  }
+
   await runCanvasFulfillment({
     row,
     orderId: Number.isFinite(orderId) ? orderId : 0,
     eventId: "cron",
     shippingAddress: cron.shippingAddress ?? null,
     customerEmail: cron.customerEmail,
-    sourceImageUrl: row.source_image_url ?? "",
+    sourceImageUrl,
     sizeKey: row.size_key ?? "",
-    frameColor: (row.frame_color ?? "black") as "black" | "natural-wood" | "dark-wood",
+    // null in the DB = unframed slim canvas. Anything else is one of the 3 wood tones.
+    frameColor: (row.frame_color ?? null) as "black" | "natural-wood" | "dark-wood" | null,
     sku: row.sku ?? "",
     petName: (meta.petName ?? null) as string | null,
     currency: cron.currency,
@@ -254,5 +354,79 @@ function safeStringify(v: unknown): string {
     return JSON.stringify(v).slice(0, 1500);
   } catch {
     return String(v).slice(0, 1500);
+  }
+}
+
+// Email the customer when their order is held due to a missing shipping
+// address field. Resend via direct fetch — same pattern as
+// api/soul-reading.ts:275. Best-effort: any failure is logged but doesn't
+// block the manual-review flow (Telegram alert still fires).
+async function sendAddressConfirmationEmail(args: {
+  to: string;
+  orderId: string;
+  missingFields: string[];
+}): Promise<void> {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
+    console.warn("[canvas-fulfill] RESEND_API_KEY missing — cannot email customer about address");
+    return;
+  }
+  // Friendly labels for the technical field names from
+  // shopifyAddressToGelato. If a field isn't here we just show it raw.
+  const FRIENDLY: Record<string, string> = {
+    address1: "street address (line 1)",
+    address2: "apartment / unit (line 2)",
+    city: "city",
+    province: "state / county / region",
+    province_code: "state / county / region",
+    zip: "postcode / ZIP",
+    country: "country",
+    country_code: "country",
+    name: "recipient name",
+    first_name: "recipient first name",
+    last_name: "recipient last name",
+    phone: "phone number",
+  };
+  const missingHuman = args.missingFields.map((f) => FRIENDLY[f] ?? f).join(", ");
+  const subject = `One detail missing for your Little Souls order #${args.orderId.slice(-6)}`;
+  const html = `<!DOCTYPE html><html><body style="font-family:Georgia,serif;color:#141210;background:#FFFDF5;padding:40px 24px;margin:0;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e8ddd0;border-radius:12px;padding:32px;">
+    <p style="font-size:14px;letter-spacing:0.14em;color:#958779;text-transform:uppercase;margin:0 0 18px;">Little Souls</p>
+    <h1 style="font-family:Georgia,serif;font-size:24px;font-weight:400;color:#141210;margin:0 0 16px;line-height:1.3;">We need one more thing to ship your canvas</h1>
+    <p style="font-size:15px;line-height:1.6;color:#5a4a42;margin:0 0 16px;">Thank you for your order. Your portrait is ready to print, but the shipping address you gave us is missing the following:</p>
+    <p style="font-size:15px;line-height:1.6;color:#bf524a;font-weight:600;margin:0 0 16px;">${missingHuman}</p>
+    <p style="font-size:15px;line-height:1.6;color:#5a4a42;margin:0 0 16px;">Could you reply to this email with the missing detail(s)? We'll update your order and ship it within 24 hours of receiving your reply.</p>
+    <p style="font-size:15px;line-height:1.6;color:#5a4a42;margin:0 0 24px;">If anything else looks off about your address on file, mention that too — easier to fix it now than after it ships.</p>
+    <p style="font-size:13px;color:#958779;margin:0;">Order reference: <code style="font-family:Menlo,monospace;background:#faf4e8;padding:2px 6px;border-radius:4px;">${args.orderId}</code></p>
+    <p style="font-size:13px;color:#958779;margin:18px 0 0;">— The Little Souls team</p>
+  </div>
+</body></html>`;
+  const text = `Little Souls\n\nWe need one more thing to ship your canvas\n\nThank you for your order. Your portrait is ready to print, but the shipping address you gave us is missing the following:\n\n  ${missingHuman}\n\nCould you reply to this email with the missing detail(s)? We'll update your order and ship it within 24 hours of receiving your reply.\n\nOrder reference: ${args.orderId}\n\n— The Little Souls team`;
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify({
+        from: "Little Souls <hello@littlesouls.app>",
+        to: args.to,
+        reply_to: "hello@littlesouls.app",
+        subject,
+        html,
+        text,
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      console.error("[canvas-fulfill] address_email_non_2xx", {
+        status: r.status,
+        snippet: t.slice(0, 200),
+      });
+    }
+  } catch (err) {
+    console.error("[canvas-fulfill] address_email_threw", (err as Error).message);
   }
 }

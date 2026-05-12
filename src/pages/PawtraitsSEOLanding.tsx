@@ -30,9 +30,15 @@ import { Link, useParams, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
 const SITE = "https://www.littlesouls.app";
-// Base price — sourced from src/components/portraits/gelatoFramedCanvas.ts (8×10″ tier).
-// TODO: confirm this is the price we want to advertise on Pinterest (tier-base £39).
+// Base price — sourced from src/components/portraits/gelatoFramedCanvas.ts (8×10″ unframed tier).
+// 2026-05-12: product line restructured.
+//   • Digital download — £19 (entry SKU, no shipping, ~97% margin)
+//   • Unframed canvas  — From £39 (physical entry, ships worldwide)
+//   • Frame upgrade    — +£45 to +£110 depending on size
+// BASE_PRICE_GBP is canvas entry (the headline number Pinterest etc. care about).
+const DIGITAL_PRICE_GBP = 19;
 const BASE_PRICE_GBP = 39;
+const FRAME_UPGRADE_FROM_GBP = 45;
 const PAGE_SIZE = 12;
 
 // ── breed slug → display name + DB filter value ────────────────────────────
@@ -271,10 +277,10 @@ interface PageMeta {
 function buildBreedMeta(b: BreedDef): PageMeta {
   return {
     h1: `Custom ${b.name} Portraits — Painted Pet Art in Every Style`,
-    intro: `Turn your ${b.name} into framed wall art — watercolour, renaissance, royal, cosmic. Each portrait is generated from your photo, printed on cotton-canvas in the UK, and ready to hang.`,
+    intro: `Turn your ${b.name} into gallery-ready wall art — watercolour, renaissance, royal, cosmic. Each portrait is generated from your photo, printed on cotton-canvas in the UK, and ready to hang. Real wood frame upgrade available at checkout.`,
     canonical: `${SITE}/pawtraits/breed/${b.slug}`,
     ogTitle: `Custom ${b.name} Portraits — Painted Pet Art in Every Style`,
-    ogDescription: `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — printed and framed in the UK from £${BASE_PRICE_GBP}.`,
+    ogDescription: `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed in the UK.`,
     ctaHref: (search) => `/pawtraits/studio${preserveUtm(search, { breed: b.slug })}`,
     itemListName: `${b.name} pet portraits`,
   };
@@ -283,10 +289,10 @@ function buildBreedMeta(b: BreedDef): PageMeta {
 function buildStyleMeta(s: StyleDef): PageMeta {
   return {
     h1: `${s.name} Pet Portraits — Custom Painted Art in ${s.name} Style`,
-    intro: `${s.description} Upload your dog or cat's photo and we'll render them in the ${s.name.toLowerCase()} tradition — printed on cotton-canvas, framed, and shipped from the UK.`,
+    intro: `${s.description} Upload your dog or cat's photo and we'll render them in the ${s.name.toLowerCase()} tradition — printed on cotton-canvas in the UK, ready to hang. Real wood frame upgrade optional at checkout.`,
     canonical: `${SITE}/pawtraits/style/${s.slug}`,
     ogTitle: `${s.name} Pet Portraits — Custom Painted Art in ${s.name} Style`,
-    ogDescription: `Custom ${s.name.toLowerCase()} pet portraits made from your photo. Printed and framed in the UK from £${BASE_PRICE_GBP}.`,
+    ogDescription: `Custom ${s.name.toLowerCase()} pet portraits made from your photo. Printed in the UK from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}).`,
     ctaHref: (search) => `/pawtraits/studio${preserveUtm(search, { style: s.slug })}`,
     itemListName: `${s.name} pet portraits`,
   };
@@ -299,7 +305,7 @@ function buildUnknownMeta(kind: 'breed' | 'style', slug: string): PageMeta {
     intro: `That ${kind} isn't in our gallery yet, but every breed and style is available in the studio. Pick one of the ${kind === 'breed' ? 'breeds' : 'styles'} below, or jump straight to the gallery to see what's been made.`,
     canonical: `${SITE}/pawtraits/${kind}/${slug}`,
     ogTitle: `${title} — Pawtraits by Little Souls`,
-    ogDescription: `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — printed and framed in the UK from £${BASE_PRICE_GBP}.`,
+    ogDescription: `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed in the UK.`,
     ctaHref: (search) => `/pawtraits/studio${preserveUtm(search, {})}`,
     itemListName: 'Pet portraits',
   };
@@ -452,7 +458,7 @@ export default function PawtraitsSEOLanding({ kind }: SEOPageProps) {
             </Link>
           </div>
           <p className="mt-4 text-xs text-neutral-500">
-            From £{BASE_PRICE_GBP} · Printed and framed in the UK · Ships worldwide
+            £{DIGITAL_PRICE_GBP} digital · canvas from £{BASE_PRICE_GBP} (frame +£{FRAME_UPGRADE_FROM_GBP}) · Printed in the UK · Ships worldwide
           </p>
         </section>
 

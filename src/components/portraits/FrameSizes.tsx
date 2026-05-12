@@ -5,13 +5,16 @@
  * by default. The remaining 7 sizes are tucked behind a "See all 11 sizes"
  * expander so first-time visitors aren't paralysed by 11 options at once.
  *
+ * Prices shown = entry / unframed canvas. Frame is a separate +£X upgrade
+ * picked in the studio (Crown & Paw style).
+ *
  * NOT interactive — actual size + frame selection happens in the studio below.
  *
  * Pricing locked: src/components/portraits/gelatoFramedCanvas.ts (CANVAS_SIZES).
  */
 import { useState } from "react";
 import { Check } from "lucide-react";
-import { CANVAS_SIZES, FRAME_COLORS } from "./gelatoFramedCanvas";
+import { CANVAS_SIZES, FRAME_COLORS, FRAME_UPGRADE_GBP } from "./gelatoFramedCanvas";
 import { PALETTE, tabularPrice } from "./tokens";
 
 // Re-exports for backward compat with any other imports.
@@ -53,8 +56,9 @@ const TIER_NAME: Record<string, string> = {
 };
 
 const TRUST_BADGES = [
+  "Digital download from £19 (instant)",
   "Premium canvas that lasts",
-  "Real wood frame, sustainably sourced",
+  "Real wood frame upgrade available",
   "Inks that won't fade for decades",
   "Arrives in 3–5 days",
   "Ships to UK, Europe, USA",
@@ -223,7 +227,7 @@ export function FrameSizes({ currency }: FrameSizesProps) {
           </div>
         )}
 
-        {/* Frame swatches — bigger, visual-led */}
+        {/* Frame swatches — Unframed default + 3 wood tones (upgrade) */}
         <div className="flex flex-col items-center mt-12">
           <p
             style={{
@@ -235,9 +239,34 @@ export function FrameSizes({ currency }: FrameSizesProps) {
               marginBottom: 16,
             }}
           >
-            Frame
+            Frame · Unframed included, real wood frame +£{FRAME_UPGRADE_GBP["8x10"] ?? 45} upgrade
           </p>
-          <div className="flex items-start justify-center gap-8 sm:gap-12">
+          <div className="flex items-start justify-center gap-8 sm:gap-12 flex-wrap">
+            <div key="unframed" className="flex flex-col items-center gap-2">
+              <div
+                className="rounded-full flex items-center justify-center"
+                style={{
+                  width: 44,
+                  height: 44,
+                  background: "transparent",
+                  border: `2px dashed ${PALETTE.sandDeep}`,
+                  color: PALETTE.earthMuted,
+                  fontSize: 18,
+                  lineHeight: 1,
+                }}
+                aria-hidden="true"
+              >∅</div>
+              <span
+                style={{
+                  fontFamily: 'Asap, system-ui, sans-serif',
+                  fontSize: 14,
+                  color: PALETTE.earth,
+                  fontWeight: 500,
+                }}
+              >
+                Unframed
+              </span>
+            </div>
             {FRAME_COLORS.map((c) => (
               <div key={c.uid} className="flex flex-col items-center gap-2">
                 <div

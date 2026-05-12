@@ -55,8 +55,14 @@ export interface CartItem {
   style: StyleOption;              // ai only — templates default "photographic"
   sourcePhotoUrl: string;
   previewUrl: string;              // small thumb for cart drawer
-  /** Template-only: 3000×3000 print master URL for Gelato fulfilment. */
+  /** Template-only: 3000×3000 print master URL for Gelato fulfilment.
+   *  @deprecated 2026-05-12 — printMasterPath is the new secure field. URL kept
+   *  for in-flight cart compat (legacy carts created before the security fix). */
   printMasterUrl?: string;
+  /** PRIVATE storage path for the 3000×3000 print master. Replaces printMasterUrl
+   *  as of 2026-05-12 — customers no longer get a working URL in their browser.
+   *  Format: "print-masters/<uuid>.png" or "generations/<uuid>.png" (in pet-photos-private bucket). */
+  printMasterPath?: string;
   // Add-on:
   soulEdition: boolean;            // canvas-only
   soulEditionPriceMajor?: number;  // 40 (GBP) when active
@@ -102,8 +108,10 @@ export function buildCartItem(input: {
   id: string;
   /** Optional — defaults to "ai". */
   kind?: CartItemKind;
-  /** Required when kind="template". */
+  /** @deprecated — use printMasterPath. Kept for legacy callers. */
   printMasterUrl?: string;
+  /** Required when kind="template" (and now also for AI items post-2026-05-12). Private storage path. */
+  printMasterPath?: string;
   /** Optional — framed canvas frame wood-tone. */
   frameColor?: "black" | "natural-wood" | "dark-wood";
   /** Optional — Shopify line-item properties (e.g. `_pet_name`). */
@@ -123,6 +131,7 @@ export function buildCartItem(input: {
     sourcePhotoUrl: input.sourcePhotoUrl,
     previewUrl: input.previewUrl,
     printMasterUrl: input.printMasterUrl,
+    printMasterPath: input.printMasterPath,
     soulEdition: input.productType === "framed-canvas" && input.soulEdition,
     soulEditionPriceMajor: input.soulEdition ? input.soulEditionPriceMajor : undefined,
     productLabel: `Cosmic Pet Portrait — ${product.label}`,

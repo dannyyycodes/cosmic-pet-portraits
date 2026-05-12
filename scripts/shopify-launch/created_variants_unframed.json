@@ -1,0 +1,83 @@
+{
+  "product_id": 16190044897629,
+  "product_handle": "cosmic-pet-portrait-canvas",
+  "variants": {
+    "8x10": {
+      "size_uid": "8x10",
+      "variant_id": 64669306454365,
+      "sku": "LS-UC-8X10",
+      "price": "39.00",
+      "gelato_uid": "canvas_8x10-inch-200x250-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "12x16": {
+      "size_uid": "12x16",
+      "variant_id": 64669306487133,
+      "sku": "LS-UC-12X16",
+      "price": "49.00",
+      "gelato_uid": "canvas_12x16-inch-300x400-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "12x18": {
+      "size_uid": "12x18",
+      "variant_id": 64669306519901,
+      "sku": "LS-UC-12X18",
+      "price": "55.00",
+      "gelato_uid": "canvas_12x18-inch-300x450-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "16x20": {
+      "size_uid": "16x20",
+      "variant_id": 64669306552669,
+      "sku": "LS-UC-16X20",
+      "price": "65.00",
+      "gelato_uid": "canvas_16x20-inch-400x500-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "16x24": {
+      "size_uid": "16x24",
+      "variant_id": 64669306585437,
+      "sku": "LS-UC-16X24",
+      "price": "75.00",
+      "gelato_uid": "canvas_16x24-inch-400x600-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "18x24": {
+      "size_uid": "18x24",
+      "variant_id": 64669306618205,
+      "sku": "LS-UC-18X24",
+      "price": "79.00",
+      "gelato_uid": "canvas_18x24-inch-450x600-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "20x28": {
+      "size_uid": "20x28",
+      "variant_id": 64669306650973,
+      "sku": "LS-UC-20X28",
+      "price": "89.00",
+      "gelato_uid": "canvas_20x28-inch-500x700-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "20x30": {
+      "size_uid": "20x30",
+      "variant_id": 64669306683741,
+      "sku": "LS-UC-20X30",
+      "price": "95.00",
+      "gelato_uid": "canvas_20x30-inch-500x750-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "24x24": {
+      "size_uid": "24x24",
+      "variant_id": 64669306716509,
+      "sku": "LS-UC-24X24",
+      "price": "95.00",
+      "gelato_uid": "canvas_24x24-inch-600x600-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "24x32": {
+      "size_uid": "24x32",
+      "variant_id": 64669306749277,
+      "sku": "LS-UC-24X32",
+      "price": "109.00",
+      "gelato_uid": "canvas_24x32-inch-600x800-mm_canvas_wood-fsc-slim_4-0_ver"
+    },
+    "24x36": {
+      "size_uid": "24x36",
+      "variant_id": 64669306782045,
+      "sku": "LS-UC-24X36",
+      "price": "119.00",
+      "gelato_uid": "canvas_24x36-inch-600x900-mm_canvas_wood-fsc-slim_4-0_ver"
+    }
+  }
+}

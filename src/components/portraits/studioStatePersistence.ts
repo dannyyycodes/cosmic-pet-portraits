@@ -50,6 +50,22 @@ export interface StudioState {
   variants: PersistedVariant[];
   selectedVariantUrl: string | null;
   approved: boolean;
+  /** When set, a generation is in flight on the server (fal queue). The
+   *  studio should resume polling /api/portraits?action=generation_status
+   *  with this id on mount so a tab close mid-generation isn't lost. */
+  pendingJobId?: string | null;
+  /** Customer hasn't committed to a frame yet — the upfront picker is in
+   *  its "I don't know yet" state. sizeKey/frameColor still hold sensible
+   *  defaults (16x20 black) so cart-add works at any moment, but the UI
+   *  shows the picker as deferred until they explicitly pick. */
+  frameDeferred?: boolean;
+  /** Persisted size + frame so the upfront picker survives a refresh.
+   *  null frameColor = unframed slim canvas (entry / default).
+   *  string = wood-tone frame upgrade ("black" | "natural-wood" | "dark-wood"). */
+  sizeKey?: string;
+  frameColor?: string | null;
+  /** Delivery method — "physical" (canvas) or "digital" (download only). */
+  deliveryType?: "physical" | "digital";
 }
 
 interface StoredEnvelope {

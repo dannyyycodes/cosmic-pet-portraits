@@ -60,6 +60,10 @@ import {
 import {
   CANVAS_SIZES,
   FRAME_COLORS,
+  FRAME_UPGRADE_GBP,
+  resolveUnframedCanvasVariant,
+  resolveDigitalVariant,
+  DIGITAL_VARIANT,
   resolveFramedCanvasVariant,
   type FrameColor,
 } from "@/components/portraits/gelatoFramedCanvas";
@@ -467,8 +471,8 @@ function SignInDialog({
 // ── Studio ─────────────────────────────────────────────────────────────────
 export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   const navigate = useNavigate();
-  const { user, session } = useAuth();
-  const { balance, refresh: refreshCredits } = useCredits();
+  const { user, session, loading: authLoading } = useAuth();
+  const { balance, loading: creditsLoading, refresh: refreshCredits } = useCredits();
 
   // ── Multi-pet state ──────────────────────────────────────────────────
   // The first pet seeds from the photoSharing helper so a customer who
@@ -580,6 +584,181 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   // before size/frame picker + cart UI become visible.
   const [approved, setApproved] = useState(restoredState?.approved ?? false);
   const [generationCount, setGenerationCount] = useState(0);
+  // In-flight async generation (fal queue). When set, the polling effect
+  // below polls /api/portraits?action=generation_status every 2.5s until
+  // the job completes or fails. Restored from localStorage so a tab close
+  // or refresh mid-generation resumes polling instead of losing the credit.
+  const [pendingJobId, setPendingJobId] = useState<string | null>(restoredState?.pendingJobId ?? null);
+  // If we restored a pendingJobId on mount, also restore the generating UI.
+  // Without this, the studio would show "compose" while polling silently
+  // — the cinematic generating overlay needs to come back too.
+  useEffect(() => {
+    if (restoredState?.pendingJobId) {
+      setGenerating(true);
+    }
+    // Run once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Print-master regen state — busy spinner over the cart-add button while
+  // the print-grade asset is being prepared (~10-20s).
+  const [preparingPrintMaster, setPreparingPrintMaster] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
+  // Room mockup state — Printful-rendered "canvas in a room" preview that
+  // appears alongside the variant once generation completes. Closes the
+  // screen-to-canvas imagination gap. Loads in background; non-blocking.
+  // Tracking-key uses a ref (not state) so updating it doesn't re-fire the
+  // useEffect → cancel the in-flight fetch. This was a real bug shipped
+  // 2026-05-11: the effect kept aborting itself before Printful returned.
+  const [roomMockupUrl, setRoomMockupUrl] = useState<string | null>(null);
+  const [roomMockupLoading, setRoomMockupLoading] = useState(false);
+  const roomMockupRequestedForRef = useRef<string | null>(null);
+
+  // 11 sizes × (Unframed | 3 frame colors). Default 16×20 unframed — entry price
+  // (£65) hits the "From £39, frame +£X" Crown & Paw style lead.
+  // 2026-05-11: gate raised to 36" long edge — all sizes available without
+  // physical sample verification. Customer accepts quality risk; refund
+  // policy + first-print guarantee cover the rare bad delivery.
+  // Declared BEFORE the saveStudioState useEffect because that effect's
+  // dep array references them — TDZ otherwise.
+  const SAFE_LONG_EDGE_IN = 36;
+  const [sizeKey, setSizeKeyRaw] = useState<string>(() => {
+    const restored = restoredState?.sizeKey;
+    if (restored) {
+      const meta = CANVAS_SIZES.find((s) => s.uid === restored);
+      if (meta && Math.max(meta.inches.w, meta.inches.h) <= SAFE_LONG_EDGE_IN) return restored;
+    }
+    return "16x20";
+  });
+  // null = unframed slim canvas (entry, default). Else = wood-tone frame upgrade.
+  const [frameColor, setFrameColorRaw] = useState<FrameColor | null>(() => {
+    const restored = restoredState?.frameColor;
+    if (restored === null || restored === undefined) return null;
+    if (FRAME_COLORS.find((c) => c.uid === restored)) return restored as FrameColor;
+    return null;
+  });
+  // Delivery type — physical canvas (default) or digital download only.
+  // Digital bypasses size+frame entirely; customer receives the print master via email.
+  const [deliveryType, setDeliveryType] = useState<"physical" | "digital">(() => {
+    return restoredState?.deliveryType === "digital" ? "digital" : "physical";
+  });
+  // Derive productType from delivery + frame selection:
+  //   digital → "digital"
+  //   physical + frameColor=null → "canvas" (unframed)
+  //   physical + frameColor=set  → "framed-canvas"
+  const productType: "digital" | "canvas" | "framed-canvas" =
+    deliveryType === "digital"
+      ? "digital"
+      : frameColor === null
+        ? "canvas"
+        : "framed-canvas";
+  const product = PRODUCTS[productType];
+  const [cartAddCount, setCartAddCount] = useState(0);
+  // Upfront frame picker (locked 2026-05-10): customer either picks a
+  // specific size+frame UP FRONT, or chooses "I don't know yet" and we
+  // silently use the default (16x20 black). frameDeferred tracks the
+  // latter state — when true, the cart still gets a valid line item
+  // (no friction at checkout) but the UI shows the picker as a deferred
+  // chip. Any explicit size/colour pick clears the deferred flag.
+  // frameDeferred kept in persisted shape for back-compat with older
+  // localStorage entries — no longer rendered. The post-approval picker
+  // shows a one-line summary by default; pickerExpanded toggles the full
+  // grid in/out on demand.
+  const [frameDeferred, setFrameDeferred] = useState<boolean>(restoredState?.frameDeferred ?? true);
+  const [pickerExpanded, setPickerExpanded] = useState<boolean>(false);
+  const setSizeKey = (next: string) => {
+    setSizeKeyRaw(next);
+    setFrameDeferred(false);
+  };
+  // null = unframed (no frame upgrade). FrameColor = wood-tone upgrade.
+  const setFrameColor = (next: FrameColor | null) => {
+    setFrameColorRaw(next);
+    setFrameDeferred(false);
+  };
+  // Room mockup fetch — fires once per (variant, size, frame) combo.
+  // Tracking key lives in a ref so we don't trigger our own re-render +
+  // self-cancel. Auth token read inside the body but not in deps for the
+  // same reason (token refreshes shouldn't kill an in-flight fetch).
+  // Sizes Printful's Framed Canvas catalog (id 614) actually stocks — must
+  // mirror the keys in PRINTFUL_VARIANT_MAP on the backend. Sizes outside
+  // this set are fulfilment-only via Gelato; no mockup will appear for them
+  // (we skip the fetch entirely so the customer doesn't see a hanging
+  // skeleton). Keep this list in sync with the backend map.
+  const PRINTFUL_MOCKUP_SUPPORTED_SIZES = new Set([
+    "8x10", "12x16", "12x18", "16x20", "18x24",
+    "20x28", "20x30", "24x32", "24x36",
+  ]);
+  useEffect(() => {
+    // Skip mockup for digital + unframed canvas — Printful's mockup endpoint is framed-only.
+    // Customer sees the variant preview without the in-room frame mockup.
+    if (!selectedVariantUrl || !sizeKey || frameColor === null || deliveryType === "digital") {
+      setRoomMockupUrl(null);
+      setRoomMockupLoading(false);
+      return;
+    }
+    const requestKey = `${selectedVariantUrl}|${sizeKey}|${frameColor}`;
+    if (roomMockupRequestedForRef.current === requestKey) return;
+    roomMockupRequestedForRef.current = requestKey;
+    setRoomMockupUrl(null);
+    // If this size isn't in Printful's catalog, skip the fetch entirely so
+    // the loading skeleton doesn't appear. Gelato still fulfils the order
+    // — the customer just doesn't get an in-room preview for these sizes.
+    if (!PRINTFUL_MOCKUP_SUPPORTED_SIZES.has(sizeKey)) {
+      setRoomMockupLoading(false);
+      return;
+    }
+    setRoomMockupLoading(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        const accessToken = session?.access_token;
+        if (!accessToken) {
+          setRoomMockupLoading(false);
+          return;
+        }
+        const r = await fetch('/api/portraits?action=room_mockup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            variantImageUrl: selectedVariantUrl,
+            sizeKey,
+            frameColor,
+          }),
+        });
+        const data = await r.json().catch(() => null);
+        if (cancelled) return;
+        if (data?.mockupUrl) setRoomMockupUrl(data.mockupUrl);
+      } catch {
+        // Silent — mockup is bonus; the variant is already shown.
+      } finally {
+        if (!cancelled) setRoomMockupLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+    // session.access_token intentionally omitted — see comment above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedVariantUrl, sizeKey, frameColor, deliveryType]);
+
+  // Lookup the active frame swatch hex for the summary dot. null frameColor = unframed (no swatch).
+  const activeFrameMeta = frameColor === null
+    ? null
+    : (FRAME_COLORS.find((c) => c.uid === frameColor) ?? FRAME_COLORS[0]);
+  const activeSizeMeta = CANVAS_SIZES.find((s) => s.uid === sizeKey) ?? CANVAS_SIZES[3]; // 16x20 hero fallback
+  // Sizes the backend will actually print. MUST mirror the
+  // LARGE_FORMAT_LONG_EDGE_IN env var on Vercel (currently 16). Locked
+  // down to 12×16 max until physical Gelato samples verify the
+  // upscaler doesn't introduce visible artifacts at larger sizes.
+  // To unlock more sizes: bump both this constant AND the env var
+  // together, in lock-step, after each new size has passed physical QC.
+  const MAX_LONG_EDGE_IN = SAFE_LONG_EDGE_IN; // 16
+  const PURCHASABLE_SIZES = CANVAS_SIZES.filter(
+    (s) => Math.max(s.inches.w, s.inches.h) <= MAX_LONG_EDGE_IN,
+  );
 
   // Persist state on every meaningful change so a tab close mid-generation
   // doesn't lose work + the credit it burned. Cleared on cart-add success
@@ -592,23 +771,23 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       variants,
       selectedVariantUrl,
       approved,
+      pendingJobId,
+      frameDeferred,
+      sizeKey,
+      frameColor,
+      deliveryType,
     });
-  }, [pets, prompt, variants, selectedVariantUrl, approved]);
-  // Print-master regen state — busy spinner over the cart-add button while
-  // the print-grade asset is being prepared (~10-20s).
-  const [preparingPrintMaster, setPreparingPrintMaster] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [signInOpen, setSignInOpen] = useState(false);
-  const [focused, setFocused] = useState(false);
+  }, [pets, prompt, variants, selectedVariantUrl, approved, pendingJobId, frameDeferred, sizeKey, frameColor, deliveryType]);
 
-  const productType = "framed-canvas" as const;
-  const product = PRODUCTS[productType];
-  // 11 sizes × 3 frame colors. 16x20 is the default hero size.
-  const [sizeKey, setSizeKey] = useState<string>("16x20");
-  const [frameColor, setFrameColor] = useState<FrameColor>("black");
-  const [cartAddCount, setCartAddCount] = useState(0);
-
-  const variant = resolveFramedCanvasVariant(sizeKey, frameColor);
+  // Variant resolution — three paths:
+  //   • digital  → DIGITAL_VARIANT (single SKU, no size/frame)
+  //   • physical + unframed → resolveUnframedCanvasVariant(sizeKey)
+  //   • physical + framed   → resolveFramedCanvasVariant(sizeKey, frameColor)
+  const variant = deliveryType === "digital"
+    ? { ...resolveDigitalVariant(), gelatoUid: null }
+    : frameColor === null
+      ? resolveUnframedCanvasVariant(sizeKey)
+      : resolveFramedCanvasVariant(sizeKey, frameColor);
   const placeholder = useTypewriterPlaceholder(PROMPT_EXAMPLES, prompt.length > 0 || focused);
 
   // Derived: at least one pet has a photo + prompt is long enough.
@@ -682,8 +861,11 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     );
     setPetErrors({});
 
+    // Submit timeout — short, since the queue endpoint normally responds
+    // in <2s with a request_id. The actual generation runs server-side
+    // off the request lifetime; we poll it via generation_status.
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 60000);
+    const timer = setTimeout(() => ctrl.abort(), 30000);
     try {
       // Build the request body per the API contract Agent 1 implemented:
       //   imageUrls is the array of uploaded pet photos (filter out empty
@@ -717,23 +899,23 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
         } else {
           toast.error(message);
         }
+        setGenerating(false);
         return;
       }
 
       if (res.status === 402) {
         toast.error("Out of credits. Top up below to keep going.");
         document.getElementById("topup")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        setGenerating(false);
         return;
       }
       if (res.status === 503 && data.error === "ai-service-paused") {
         toast.error(data.message ?? "Our portrait studio is briefly paused — try again.");
         refreshCredits();
+        setGenerating(false);
         return;
       }
-      // 422 — content policy violation. Usually a pet name resembling an
-      // unsafe word (Sphynx "Naked" was the canonical case). Show the
-      // backend's message + a clear suggestion. Credit was already refunded
-      // server-side, so refreshCredits() picks it up.
+      // 422 — content policy violation. Server already refunded the credit.
       if (res.status === 422 && data?.error === "content_policy_violation") {
         toast.error(
           data.message ??
@@ -741,26 +923,151 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           { duration: 8000 },
         );
         refreshCredits();
+        setGenerating(false);
         return;
       }
+      // 202 Accepted — submit succeeded, fal queue job in flight. The
+      // polling effect below picks up pendingJobId and drives the rest of
+      // the lifecycle (in_progress UI → reveal on completed → toast on
+      // failed). Keep `generating=true` so the cinematic overlay stays up.
+      if (res.status === 202 && data?.job_id) {
+        setPendingJobId(data.job_id);
+        // Don't clear `generating` here — the polling effect does it on
+        // terminal status.
+        return;
+      }
+      // Unexpected response — refund-safe failure on server, but flag here.
       if (!res.ok) throw new Error(data.error || "Generation failed");
-
-      setVariants(data.variants);
-      if (data.variants[0]) setSelectedVariantUrl(data.variants[0].url);
-      setGenerationCount((n) => n + 1);
-      refreshCredits();
-      // Scroll to the Approval gate (replaces the old "scroll to variants").
-      requestAnimationFrame(() =>
-        approvalRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
-      );
+      // Defensive: legacy synchronous response shape (variants in the
+      // submit response). Should not happen post-B2 deploy but kept for
+      // graceful fallback during the deploy window.
+      if (data.variants) {
+        setVariants(data.variants);
+        if (data.variants[0]) setSelectedVariantUrl(data.variants[0].url);
+        setGenerationCount((n) => n + 1);
+        setApproved(true);
+        refreshCredits();
+        requestAnimationFrame(() =>
+          variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        );
+        setGenerating(false);
+      }
     } catch (e) {
       const err = e as Error;
-      toast.error(err.name === "AbortError" ? "Took too long — please try again." : err.message);
+      toast.error(err.name === "AbortError" ? "Took too long to submit — please try again." : err.message);
+      setGenerating(false);
     } finally {
       clearTimeout(timer);
-      setGenerating(false);
+      // Note: do NOT setGenerating(false) here unconditionally any more.
+      // Async path: stays true until the polling effect resolves.
+      // Sync/error paths: each call site above already setGenerating(false).
     }
   }
+
+  // ── Polling effect: drives pendingJobId → terminal state ─────────────
+  // Polls /api/portraits?action=generation_status every 2.5s while
+  // pendingJobId is set. On completed: hydrates variants, scrolls to
+  // approval, refreshes credits. On failed: toasts, refreshes credits.
+  // Cleans up timer + abort controller on unmount.
+  //
+  // Resilience properties:
+  //   - Tab refresh mid-generation: pendingJobId restored from
+  //     localStorage → effect re-runs → polling resumes from current
+  //     fal queue state.
+  //   - Network drop: each poll uses its own fetch + abort controller;
+  //     a network error is silently swallowed and the next 2.5s tick
+  //     retries.
+  //   - Stuck job: bail out after MAX_POLLS (5 min) with a toast so the
+  //     customer isn't left forever spinning. Server still owns refund
+  //     responsibility — we just stop polling.
+  useEffect(() => {
+    if (!pendingJobId || !session?.access_token) return;
+    let attempts = 0;
+    const MAX_POLLS = 120; // 5 min @ 2.5s
+    const POLL_INTERVAL_MS = 2500;
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    let pollCtrl: AbortController | null = null;
+    let cancelled = false;
+
+    async function tick() {
+      if (cancelled) return;
+      attempts += 1;
+      pollCtrl = new AbortController();
+      try {
+        const r = await fetch(
+          `/api/portraits?action=generation_status&job_id=${encodeURIComponent(pendingJobId!)}`,
+          {
+            headers: { Authorization: `Bearer ${session!.access_token}` },
+            signal: pollCtrl.signal,
+          },
+        );
+        const data = await r.json();
+        if (cancelled) return;
+
+        if (data.status === 'completed' && Array.isArray(data.variants)) {
+          setVariants(data.variants);
+          if (data.variants[0]) setSelectedVariantUrl(data.variants[0].url);
+          setGenerationCount((n) => n + 1);
+          // Auto-approve — the explicit approval gate was a click that
+          // earned its keep on the older Crown & Paw flow but adds
+          // friction for our customer who already chose pet, prompt,
+          // and frame upfront. Skip straight to the cart UI; Tweak/
+          // Try again are still available via the prompt editor above.
+          setApproved(true);
+          refreshCredits();
+          requestAnimationFrame(() =>
+            variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+          );
+          setPendingJobId(null);
+          setGenerating(false);
+          return;
+        }
+        if (data.status === 'failed') {
+          if (data.error === 'content_policy_violation') {
+            toast.error(
+              data.message ?? "Our moderator flagged this generation — try a different name.",
+              { duration: 8000 },
+            );
+          } else {
+            toast.error("Generation failed — your credit was refunded. Please try again.");
+          }
+          refreshCredits();
+          setPendingJobId(null);
+          setGenerating(false);
+          return;
+        }
+        // status === 'pending' — schedule next poll
+        if (attempts >= MAX_POLLS) {
+          toast.error("Generation is taking longer than expected. We'll keep your credit safe — please refresh and try again.");
+          setPendingJobId(null);
+          setGenerating(false);
+          return;
+        }
+        timeoutHandle = setTimeout(tick, POLL_INTERVAL_MS);
+      } catch (err) {
+        if (cancelled) return;
+        if ((err as Error).name === 'AbortError') return;
+        // Network glitch — swallow and retry on next tick.
+        if (attempts >= MAX_POLLS) {
+          toast.error("Lost connection to the studio. Please refresh and try again.");
+          setPendingJobId(null);
+          setGenerating(false);
+          return;
+        }
+        timeoutHandle = setTimeout(tick, POLL_INTERVAL_MS);
+      }
+    }
+
+    // First tick fires after a short delay so the server has at least a
+    // second to write fal_request_id before the first status check.
+    timeoutHandle = setTimeout(tick, 1500);
+
+    return () => {
+      cancelled = true;
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (pollCtrl) pollCtrl.abort();
+    };
+  }, [pendingJobId, session?.access_token, refreshCredits]);
 
   /** Approval-gate retry: regenerate with same photos + prompt. */
   function handleTryAgain() {
@@ -808,44 +1115,87 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       try { window.sessionStorage.setItem("portraits.lastPet", firstName); } catch {}
     }
 
-    // ── Print-master regen ──────────────────────────────────────────────
-    // The selectedVariantUrl is preview-grade. For physical canvas we POST
-    // back to /api/portraits?action=printMaster to get the print-grade
-    // asset at the correct aspect for the chosen size. ~10-20s typical.
+    // ── Print-master regen (async via fal queue, P1.G 2026-05-11) ──────
+    // The selectedVariantUrl is preview-grade. For physical canvas we
+    // submit a print-grade gen to fal queue, then poll status until
+    // completion. Quality 'high' at 2048×N takes 30-90s typical, and
+    // historically (sync fal.run) was timing out the customer's cart-add
+    // with "couldn't prepare print master" toasts. Async path means even
+    // a 5-minute fal day works — frontend just shows the spinner longer.
     setPreparingPrintMaster(true);
+    // SECURITY: post-2026-05-12 the API returns a private storage path (no URL).
+    // The path is opaque — customer cannot fetch from it without admin client.
+    // Legacy fallback to URL kept for one release cycle in case any client gets a stale response shape.
+    let printMasterPath: string | null = null;
     let printMasterUrl: string | null = null;
     try {
       const orderedPhotos = uploadedPets.map((p) => p.photoUrl as string);
       const orderedNames = uploadedPets.map(canvasPetName);
-      // 30s timeout is generous — print-grade gens average 10-20s.
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 30000);
-      try {
-        const res = await fetch("/api/portraits?action=printMaster", {
+      // Step 1: submit
+      const submitRes = await fetch("/api/portraits?action=printMaster_submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          imageUrls: orderedPhotos,
+          petNames: orderedNames,
+          customPrompt: prompt.trim(),
+          sizeKey,
+        }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      const submitData = await submitRes.json().catch(() => ({}));
+      if (!submitRes.ok || submitData?.status !== 'submitted' || !submitData?.fal_status_url) {
+        throw new Error(submitData?.error || `printMaster_submit failed (${submitRes.status})`);
+      }
+      const falStatusUrl = submitData.fal_status_url as string;
+      const falResponseUrl = submitData.fal_response_url as string;
+
+      // Step 2: poll status every 3s up to 5 min
+      const POLL_INTERVAL_MS = 3_000;
+      const MAX_POLLS = 100; // 5 min
+      let attempts = 0;
+      while (attempts < MAX_POLLS) {
+        attempts++;
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+        const statusRes = await fetch("/api/portraits?action=printMaster_status", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({
-            imageUrls: orderedPhotos,
-            petNames: orderedNames,
-            customPrompt: prompt.trim(),
-            sizeKey,
-          }),
-          signal: ctrl.signal,
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data?.printMasterUrl) {
-          throw new Error(data?.error || `printMaster failed (${res.status})`);
+          body: JSON.stringify({ fal_status_url: falStatusUrl, fal_response_url: falResponseUrl }),
+          signal: AbortSignal.timeout(15_000),
+        }).catch(() => null);
+        if (!statusRes) continue; // network glitch — retry
+        const statusData = await statusRes.json().catch(() => ({}));
+        if (statusData?.status === 'completed' && (statusData?.printMasterPath || statusData?.printMasterUrl)) {
+          printMasterPath = (statusData.printMasterPath as string | undefined) ?? null;
+          printMasterUrl = (statusData.printMasterUrl as string | undefined) ?? null;
+          break;
         }
-        printMasterUrl = data.printMasterUrl as string;
-      } finally {
-        clearTimeout(timer);
+        if (statusData?.status === 'failed') {
+          if (statusData?.contentPolicyViolation) {
+            throw new Error('content_policy_violation');
+          }
+          throw new Error(statusData?.error || 'print_master_failed');
+        }
+        // status === 'pending' — keep polling
+      }
+      if (!printMasterPath && !printMasterUrl) {
+        throw new Error('print_master_polling_timeout');
       }
     } catch (e) {
-      console.error("[StudioFlow] printMaster failed", e);
-      toast.error("Couldn't prepare print master — please try again.");
+      const err = e as Error;
+      console.error("[StudioFlow] printMaster failed", err);
+      const userMsg = err.message === 'content_policy_violation'
+        ? "Our moderator flagged this print — try a different pet name or remove the name."
+        : err.message === 'print_master_polling_timeout'
+          ? "Print master is taking unusually long. Please try Add to cart again — it usually works on a retry."
+          : "Couldn't prepare print master — please try again.";
+      toast.error(userMsg, { duration: 6000 });
       setPreparingPrintMaster(false);
       return; // Hard stop — do NOT add to cart with a bad master.
     }
@@ -864,8 +1214,11 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     const item = buildCartItem({
       kind: "ai",
       productType,
-      sizeKey: sizeKey as AnySizeKey,
-      frameColor,
+      // Digital: use "default" sentinel sizeKey (matches productLineup variant key).
+      // Physical canvas: pass the actual sizeKey (8x10, 12x16, etc.).
+      sizeKey: (deliveryType === "digital" ? "default" : sizeKey) as AnySizeKey,
+      // Digital + unframed canvas: omit frameColor entirely so cart resolves to the right variant.
+      frameColor: deliveryType === "digital" ? undefined : (frameColor ?? undefined),
       packId: "custom-prompt",
       packName: prompt.trim().slice(0, 60),
       style: "photographic",
@@ -873,8 +1226,11 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       // "anchor" photo of record. The print master carries the actual
       // composited art for fulfilment.
       sourcePhotoUrl: uploadedPets[0].photoUrl as string,
-      previewUrl: printMasterUrl,
-      printMasterUrl,
+      // previewUrl is the cart-thumbnail src — use the public 1024px variant the customer
+      // picked, not the (now-private) print master path which can't be rendered as <img>.
+      previewUrl: selectedVariantUrl ?? "",
+      printMasterPath: printMasterPath ?? undefined,
+      printMasterUrl: printMasterUrl ?? undefined,
       soulEdition: false,
       soulEditionPriceMajor: 40,
       variant: { variantId: variant.variantId, priceMajor: variant.priceMajor, sizeLabel: variant.sizeLabel },
@@ -887,12 +1243,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     // mid-generation snapshot so a returning customer doesn't see a
     // half-built attempt from the order they just completed.
     clearStudioState();
-    toast.success(
-      cartAddCount === 0
-        ? "Added to cart — pick a different size or frame to add another"
-        : `Added — ${cartAddCount + 1} in cart`,
-      { duration: 3500 },
-    );
+    // No toast — the parent (Portraits.tsx) opens the cart drawer for
+    // ~1.8s on add, which IS the visual confirmation. Two pieces of
+    // feedback for one action is noise (per Danny 2026-05-10).
   }
 
   const sectionTransition = { duration: MOTION.base / 1000, ease: EASE.out };
@@ -980,9 +1333,30 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           </p>
         </div>
 
-        {/* ── Credits / status pill ─────────────────────────────────── */}
+        {/* ── Credits / status pill ───────────────────────────────────
+            Auth resolution is async (~100-500ms after mount), and credits
+            fetch is a second async hop after that. Render a neutral
+            skeleton while EITHER is loading so a returning signed-in
+            customer doesn't see "Sign in" flash, AND so the balance
+            doesn't flash "…" before the real number lands. */}
         <div className="flex justify-center mb-4">
-          {user ? (
+          {(authLoading || (user && creditsLoading && balance == null)) ? (
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+              style={{
+                background: PALETTE.cream,
+                border: `1px solid ${PALETTE.sand}`,
+                fontFamily: 'Assistant, system-ui, sans-serif',
+                fontSize: 13,
+                color: PALETTE.earthMuted,
+                minWidth: 220,
+                justifyContent: 'center',
+              }}
+              aria-hidden
+            >
+              <span style={{ opacity: 0.4 }}>…</span>
+            </div>
+          ) : user ? (
             <Link
               to="/pawtraits#topup"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full transition-colors"
@@ -1093,6 +1467,16 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               : `Add pet (${pets.length}/${MAX_PETS})`}
           </button>
         </motion.div>
+
+        {/* Upfront frame picker REMOVED (2026-05-10) — frame choice is
+            post-image only. The post-approval picker further down is the
+            single source of truth. Reasoning: (1) frame depends on the
+            actual portrait's colour/mood — guessing upfront forces poor
+            decisions, (2) Hick's Law — fewer visible options reduces
+            cognitive load during compose, (3) peak-end rule — don't
+            break the wow moment with a configuration grid. Defaults
+            (16×20, black) carry through silently if they don't change
+            anything. */}
 
         {/* ── On-canvas typography preview ──────────────────────────────
             One chip per named pet, side-by-side. Same look as the prior
@@ -1467,166 +1851,543 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                   compact
                 />
 
+                {/* In-room canvas preview — Printful mockup of the customer's
+                    portrait inside a framed canvas hanging in a real room.
+                    Closes the screen-to-canvas imagination gap before
+                    purchase. Loads ~20-30s after the variant lands; non-
+                    blocking — customer can interact with size/frame/cart
+                    while it appears. Falls back to no-mockup if Printful
+                    fails. */}
+                {(roomMockupLoading || roomMockupUrl) && (
+                  <div className="mt-4">
+                    <p
+                      className="text-center mb-2"
+                      style={{
+                        fontFamily: 'Asap, system-ui, sans-serif',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: PALETTE.earthMuted,
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Preview on your wall
+                    </p>
+                    <div
+                      className="rounded-xl overflow-hidden relative"
+                      style={{
+                        background: PALETTE.cream2,
+                        border: `1px solid ${PALETTE.sand}`,
+                        aspectRatio: "4 / 3",
+                      }}
+                    >
+                      {roomMockupUrl ? (
+                        <motion.img
+                          key={roomMockupUrl}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.6 }}
+                          src={roomMockupUrl}
+                          alt="Your portrait on a framed canvas in a room"
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <motion.div
+                            animate={{ opacity: [0.3, 0.6, 0.3] }}
+                            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                            className="flex flex-col items-center gap-2"
+                          >
+                            <div
+                              className="rounded-md"
+                              style={{
+                                width: 140,
+                                height: 90,
+                                background: PALETTE.sand,
+                              }}
+                            />
+                            <span
+                              style={{
+                                fontFamily: 'Cormorant Garamond, Georgia, serif',
+                                fontSize: 13,
+                                fontStyle: 'italic',
+                                color: PALETTE.earthMuted,
+                              }}
+                            >
+                              Hanging it on a wall…
+                            </span>
+                          </motion.div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Caption for sizes outside Printful's mockup catalog
+                    (16×24, 24×30). The variant is still buyable — Gelato
+                    fulfils — we just can't render an in-room preview. Show
+                    a small explainer instead of nothing so the customer
+                    isn't confused by the missing preview block other sizes
+                    have. */}
+                {!roomMockupLoading && !roomMockupUrl && !PRINTFUL_MOCKUP_SUPPORTED_SIZES.has(sizeKey) && (
+                  <div className="mt-4">
+                    <p
+                      className="text-center mb-2"
+                      style={{
+                        fontFamily: 'Asap, system-ui, sans-serif',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: PALETTE.earthMuted,
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Preview on your wall
+                    </p>
+                    <div
+                      className="rounded-xl px-4 py-5 text-center"
+                      style={{
+                        background: PALETTE.cream2,
+                        border: `1px dashed ${PALETTE.sandDeep}`,
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontFamily: 'Cormorant Garamond, Georgia, serif',
+                          fontSize: 14,
+                          fontStyle: 'italic',
+                          color: PALETTE.earthMuted,
+                          marginBottom: 4,
+                        }}
+                      >
+                        In-room preview not available for this size
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: 'Assistant, system-ui, sans-serif',
+                          fontSize: 11.5,
+                          color: PALETTE.earthSubtle,
+                        }}
+                      >
+                        Your final canvas will be {activeSizeMeta.label} — printed and shipped exactly as your portrait above.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div
                   className="my-4"
                   style={{ height: 1, background: PALETTE.sand }}
                 />
 
-                <p
-                  className="text-center mb-3"
+                {/* Collapsed summary line — single source of truth for the
+                    customer's current frame selection. Tapping anywhere on
+                    the row expands the full picker. Mobile-first: 56px tall,
+                    full-width tap target, no horizontal scroll. */}
+                <button
+                  type="button"
+                  onClick={() => setPickerExpanded((v) => !v)}
+                  aria-expanded={pickerExpanded}
+                  aria-controls="frame-picker-expanded"
+                  className="w-full rounded-xl px-3.5 py-3 transition-all flex items-center justify-between gap-3"
                   style={{
-                    fontFamily: 'Asap, system-ui, sans-serif',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: PALETTE.earthMuted,
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
+                    background: PALETTE.cream2,
+                    border: `1px solid ${PALETTE.sand}`,
+                    minHeight: 56,
                   }}
                 >
-                  Choose your canvas size
-                </p>
-
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
-                  {CANVAS_SIZES.map((s) => {
-                    const active = sizeKey === s.uid;
-                    const isHero = !!s.hero;
-                    return (
-                      <button
-                        key={s.uid}
-                        onClick={() => setSizeKey(s.uid)}
-                        aria-pressed={active}
-                        className="rounded-xl px-2 py-2.5 text-center transition-all relative"
+                  <span className="flex items-center gap-2.5">
+                    {activeFrameMeta ? (
+                      <span
+                        className="rounded-full"
                         style={{
-                          background: active ? PALETTE.rose : PALETTE.cream,
-                          color: active ? PALETTE.cream : PALETTE.ink,
-                          border: active
-                            ? `2px solid ${PALETTE.rose}`
-                            : isHero
-                              ? `1.5px solid ${PALETTE.gold}`
-                              : `1px solid ${PALETTE.sandDeep}`,
-                          fontFamily: 'Asap, system-ui, sans-serif',
-                          boxShadow: active
-                            ? "0 10px 24px rgba(191, 82, 74, 0.32), 0 2px 6px rgba(191, 82, 74, 0.14)"
-                            : isHero
-                              ? "0 6px 14px rgba(196, 162, 101, 0.18)"
-                              : "0 2px 4px rgba(20, 18, 16, 0.02)",
-                          transform: active ? "translateY(-1px)" : "translateY(0)",
+                          width: 18,
+                          height: 18,
+                          background: activeFrameMeta.swatchHex,
+                          border: `1px solid ${PALETTE.sandDeep}`,
+                          boxShadow: "inset 0 0 0 1.5px rgba(255,255,255,0.35)",
+                          flexShrink: 0,
                         }}
-                      >
-                        {/* Active checkmark badge */}
-                        {active && (
-                          <span
-                            className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full"
-                            style={{
-                              width: 18,
-                              height: 18,
-                              background: PALETTE.cream,
-                              boxShadow: "0 2px 6px rgba(20,18,16,0.16)",
-                            }}
-                          >
-                            <Check className="w-3 h-3" strokeWidth={3} style={{ color: PALETTE.rose }} />
-                          </span>
-                        )}
-                        {isHero && !active && (
-                          <span
-                            className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5"
-                            style={{
-                              fontSize: 8.5,
-                              fontWeight: 700,
-                              color: PALETTE.goldDeep,
-                              background: PALETTE.cream,
-                              letterSpacing: "0.14em",
-                              textTransform: "uppercase",
-                              fontFamily: 'Asap, system-ui, sans-serif',
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            Most loved
-                          </span>
-                        )}
-                        <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
-                        <div
-                          className="tabular-nums mt-0.5"
-                          style={{
-                            fontSize: 11.5,
-                            color: active ? "rgba(255,253,245,0.85)" : PALETTE.earthMuted,
-                          }}
-                        >
-                          £{s.priceGBP}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                        aria-hidden
+                      />
+                    ) : (
+                      <span
+                        className="rounded-full flex items-center justify-center"
+                        style={{
+                          width: 18,
+                          height: 18,
+                          background: "transparent",
+                          border: `1px dashed ${PALETTE.sandDeep}`,
+                          color: PALETTE.earthMuted,
+                          fontSize: 10,
+                          lineHeight: 1,
+                          flexShrink: 0,
+                        }}
+                        aria-hidden
+                      >∅</span>
+                    )}
+                    <span
+                      className="text-left"
+                      style={{
+                        fontFamily: 'Asap, system-ui, sans-serif',
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: PALETTE.ink,
+                      }}
+                    >
+                      {deliveryType === "digital"
+                        ? "Digital download · instant email"
+                        : `${activeSizeMeta.label} · ${activeFrameMeta?.label ?? "Unframed"}`}
+                    </span>
+                    <span
+                      className="tabular-nums"
+                      style={{
+                        fontFamily: 'Asap, system-ui, sans-serif',
+                        fontSize: 14,
+                        color: PALETTE.earth,
+                      }}
+                    >
+                      · £{variant?.priceMajor ?? activeSizeMeta.priceGBP}
+                    </span>
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'Asap, system-ui, sans-serif',
+                      fontSize: 12.5,
+                      fontWeight: 600,
+                      color: PALETTE.rose,
+                      whiteSpace: "nowrap",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    {pickerExpanded ? "Done ▴" : "Change ▾"}
+                  </span>
+                </button>
 
-                {/* Frame color picker */}
-                <p
-                  className="text-center mt-4 mb-2.5"
-                  style={{
-                    fontFamily: 'Asap, system-ui, sans-serif',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: PALETTE.earthMuted,
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Choose frame colour
-                </p>
-                <div className="flex justify-center gap-3">
-                  {FRAME_COLORS.map((c) => {
-                    const active = frameColor === c.uid;
-                    return (
-                      <button
-                        key={c.uid}
-                        onClick={() => setFrameColor(c.uid)}
-                        className="flex flex-col items-center gap-2 transition-all"
-                        title={c.label}
-                        aria-label={`Frame: ${c.label}`}
-                        aria-pressed={active}
-                      >
-                        {/* Outer ring grows when active to make selection unambiguous */}
-                        <span
-                          className="rounded-full flex items-center justify-center transition-all"
+                <AnimatePresence initial={false}>
+                  {pickerExpanded && (
+                    <motion.div
+                      id="frame-picker-expanded"
+                      key="frame-picker-expanded"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.28, ease: EASE.out }}
+                      style={{ overflow: "hidden" }}
+                    >
+                      {/* Delivery type toggle — Physical (canvas) vs Digital (download). */}
+                      <div className="mt-3">
+                        <p
+                          className="mb-2"
                           style={{
-                            width: 46,
-                            height: 46,
-                            padding: 3,
-                            background: active ? PALETTE.roseSoft : "transparent",
-                            border: active ? `2px solid ${PALETTE.rose}` : "2px solid transparent",
-                            boxShadow: active ? "0 6px 14px rgba(191, 82, 74, 0.18)" : "none",
+                            fontFamily: 'Asap, system-ui, sans-serif',
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            color: PALETTE.earthMuted,
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
                           }}
                         >
-                          <span
-                            className={`rounded-full flex items-center justify-center ${active ? "ls-glint" : ""}`}
+                          How do you want it?
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {([
+                            { uid: "physical", label: "Canvas", sub: `From £${CANVAS_SIZES[0].priceGBP}`, hint: "Printed + ready to hang. Frame upgrade optional." },
+                            { uid: "digital", label: "Digital only", sub: `£${DIGITAL_VARIANT.priceMajor}`, hint: "Instant download — print or share anywhere." },
+                          ] as const).map((d) => {
+                            const active = deliveryType === d.uid;
+                            return (
+                              <button
+                                key={d.uid}
+                                type="button"
+                                onClick={() => setDeliveryType(d.uid)}
+                                aria-pressed={active}
+                                className="rounded-xl px-3 py-3 text-left transition-all"
+                                style={{
+                                  background: active ? PALETTE.roseSoft : PALETTE.cream,
+                                  border: active ? `2px solid ${PALETTE.rose}` : `1px solid ${PALETTE.sand}`,
+                                  minHeight: 64,
+                                }}
+                              >
+                                <div className="flex items-center justify-between mb-0.5">
+                                  <span
+                                    style={{
+                                      fontFamily: 'Asap, system-ui, sans-serif',
+                                      fontSize: 13,
+                                      fontWeight: active ? 700 : 600,
+                                      color: active ? PALETTE.rose : PALETTE.ink,
+                                    }}
+                                  >
+                                    {d.label}
+                                  </span>
+                                  <span
+                                    className="tabular-nums"
+                                    style={{
+                                      fontFamily: 'Asap, system-ui, sans-serif',
+                                      fontSize: 13,
+                                      fontWeight: 700,
+                                      color: active ? PALETTE.rose : PALETTE.earth,
+                                    }}
+                                  >
+                                    {d.sub}
+                                  </span>
+                                </div>
+                                <p
+                                  style={{
+                                    fontFamily: 'Assistant, system-ui, sans-serif',
+                                    fontSize: 11,
+                                    color: PALETTE.earthMuted,
+                                    margin: 0,
+                                    lineHeight: 1.35,
+                                  }}
+                                >
+                                  {d.hint}
+                                </p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Size + Frame pickers — only shown for physical canvas deliveries. */}
+                      {deliveryType === "physical" && (
+                      <div className="mt-3">
+                        <p
+                          className="mb-2"
+                          style={{
+                            fontFamily: 'Asap, system-ui, sans-serif',
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            color: PALETTE.earthMuted,
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Size
+                        </p>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
+                          {PURCHASABLE_SIZES.map((s) => {
+                            const active = sizeKey === s.uid;
+                            const isHero = !!s.hero;
+                            return (
+                              <button
+                                key={s.uid}
+                                onClick={() => setSizeKey(s.uid)}
+                                aria-pressed={active}
+                                className="rounded-xl px-2 py-2.5 text-center transition-all relative"
+                                style={{
+                                  background: active ? PALETTE.rose : PALETTE.cream,
+                                  color: active ? PALETTE.cream : PALETTE.ink,
+                                  border: active
+                                    ? `2px solid ${PALETTE.rose}`
+                                    : isHero
+                                      ? `1.5px solid ${PALETTE.gold}`
+                                      : `1px solid ${PALETTE.sandDeep}`,
+                                  fontFamily: 'Asap, system-ui, sans-serif',
+                                  minHeight: 56,
+                                  boxShadow: active
+                                    ? "0 10px 24px rgba(191, 82, 74, 0.32), 0 2px 6px rgba(191, 82, 74, 0.14)"
+                                    : isHero
+                                      ? "0 6px 14px rgba(196, 162, 101, 0.18)"
+                                      : "0 2px 4px rgba(20, 18, 16, 0.02)",
+                                  transform: active ? "translateY(-1px)" : "translateY(0)",
+                                }}
+                              >
+                                {active && (
+                                  <span
+                                    className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full"
+                                    style={{
+                                      width: 18,
+                                      height: 18,
+                                      background: PALETTE.cream,
+                                      boxShadow: "0 2px 6px rgba(20,18,16,0.16)",
+                                    }}
+                                  >
+                                    <Check className="w-3 h-3" strokeWidth={3} style={{ color: PALETTE.rose }} />
+                                  </span>
+                                )}
+                                {isHero && !active && (
+                                  <span
+                                    className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5"
+                                    style={{
+                                      fontSize: 8.5,
+                                      fontWeight: 700,
+                                      color: PALETTE.goldDeep,
+                                      background: PALETTE.cream,
+                                      letterSpacing: "0.14em",
+                                      textTransform: "uppercase",
+                                      fontFamily: 'Asap, system-ui, sans-serif',
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    Most loved
+                                  </span>
+                                )}
+                                <div style={{ fontSize: 12.5, fontWeight: 600 }}>{s.label}</div>
+                                <div
+                                  className="tabular-nums mt-0.5"
+                                  style={{
+                                    fontSize: 11.5,
+                                    color: active ? "rgba(255,253,245,0.85)" : PALETTE.earthMuted,
+                                  }}
+                                >
+                                  £{s.priceGBP}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <p
+                          className="mt-4 mb-2"
+                          style={{
+                            fontFamily: 'Asap, system-ui, sans-serif',
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            color: PALETTE.earthMuted,
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Frame
+                        </p>
+                        <div className="flex flex-wrap gap-2.5">
+                          {/* Unframed = first option, default. Slim stretched canvas, no frame upcharge. */}
+                          {(() => {
+                            const active = frameColor === null;
+                            return (
+                              <button
+                                key="unframed"
+                                onClick={() => setFrameColor(null)}
+                                className="flex items-center gap-2 rounded-full px-3 py-2 transition-all"
+                                title="Unframed slim canvas (no frame)"
+                                aria-label="Frame: Unframed"
+                                aria-pressed={active}
+                                style={{
+                                  background: active ? PALETTE.roseSoft : PALETTE.cream,
+                                  border: active ? `2px solid ${PALETTE.rose}` : `1px solid ${PALETTE.sand}`,
+                                  minHeight: 44,
+                                }}
+                              >
+                                <span
+                                  className="rounded-full flex items-center justify-center"
+                                  style={{
+                                    width: 22,
+                                    height: 22,
+                                    background: "transparent",
+                                    border: `1.5px dashed ${PALETTE.sandDeep}`,
+                                    color: PALETTE.earthMuted,
+                                    fontSize: 11,
+                                    lineHeight: 1,
+                                  }}
+                                  aria-hidden="true"
+                                >∅</span>
+                                <span
+                                  style={{
+                                    fontFamily: 'Assistant, system-ui, sans-serif',
+                                    fontSize: 13,
+                                    fontWeight: active ? 700 : 500,
+                                    color: active ? PALETTE.rose : PALETTE.earth,
+                                  }}
+                                >
+                                  Unframed
+                                </span>
+                              </button>
+                            );
+                          })()}
+                          {FRAME_COLORS.map((c) => {
+                            const active = frameColor === c.uid;
+                            const upgrade = FRAME_UPGRADE_GBP[sizeKey] ?? 0;
+                            return (
+                              <button
+                                key={c.uid}
+                                onClick={() => setFrameColor(c.uid)}
+                                className="flex items-center gap-2 rounded-full px-3 py-2 transition-all"
+                                title={`${c.label} frame (+£${upgrade})`}
+                                aria-label={`Frame: ${c.label} +£${upgrade}`}
+                                aria-pressed={active}
+                                style={{
+                                  background: active ? PALETTE.roseSoft : PALETTE.cream,
+                                  border: active ? `2px solid ${PALETTE.rose}` : `1px solid ${PALETTE.sand}`,
+                                  minHeight: 44,
+                                }}
+                              >
+                                <span
+                                  className="rounded-full"
+                                  style={{
+                                    width: 22,
+                                    height: 22,
+                                    background: c.swatchHex,
+                                    border: `1.5px solid ${PALETTE.sandDeep}`,
+                                    boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.4)",
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    fontFamily: 'Assistant, system-ui, sans-serif',
+                                    fontSize: 13,
+                                    fontWeight: active ? 700 : 500,
+                                    color: active ? PALETTE.rose : PALETTE.earth,
+                                  }}
+                                >
+                                  {c.label}
+                                </span>
+                                <span
+                                  className="tabular-nums"
+                                  style={{
+                                    fontFamily: 'Assistant, system-ui, sans-serif',
+                                    fontSize: 11.5,
+                                    fontWeight: 600,
+                                    color: active ? PALETTE.rose : PALETTE.earthMuted,
+                                  }}
+                                >
+                                  +£{upgrade}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      )}
+
+                      {/* Digital-only summary card */}
+                      {deliveryType === "digital" && (
+                        <div
+                          className="mt-3 rounded-xl px-4 py-3"
+                          style={{
+                            background: PALETTE.cream2,
+                            border: `1px solid ${PALETTE.sand}`,
+                          }}
+                        >
+                          <p
                             style={{
-                              width: 34,
-                              height: 34,
-                              background: c.swatchHex,
-                              border: `1.5px solid ${PALETTE.sandDeep}`,
-                              boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.4)",
+                              fontFamily: 'Asap, system-ui, sans-serif',
+                              fontSize: 13,
+                              fontWeight: 600,
+                              color: PALETTE.ink,
+                              margin: 0,
+                              marginBottom: 4,
                             }}
                           >
-                            {active && (
-                              <Check className="w-4 h-4" strokeWidth={3} style={{ color: PALETTE.cream, position: "relative", zIndex: 1 }} />
-                            )}
-                          </span>
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: 'Assistant, system-ui, sans-serif',
-                            fontSize: 11.5,
-                            fontWeight: active ? 700 : 500,
-                            color: active ? PALETTE.rose : PALETTE.earth,
-                            letterSpacing: "0.02em",
-                          }}
-                        >
-                          {c.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                            Digital download · £{DIGITAL_VARIANT.priceMajor}
+                          </p>
+                          <p
+                            style={{
+                              fontFamily: 'Assistant, system-ui, sans-serif',
+                              fontSize: 12.5,
+                              color: PALETTE.earthMuted,
+                              margin: 0,
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            High-resolution 3000×3000 PNG, sent to your email within minutes of checkout. No shipping. Print at any size at home, or keep digital — your choice.
+                          </p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <button
                   onClick={handleAdd}

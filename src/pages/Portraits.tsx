@@ -96,8 +96,15 @@ function UploadStudio({
   const product = PRODUCTS[productType];
 
   // Map each product type to its default template (clean-masked design).
+  // Unframed canvas + digital share the framed canvas template (same artwork
+  // composition; digital just delivers the print master without the physical step).
   const productToTemplateId: Record<ProductTypeKey, string> = {
+    "digital": "vignette-canvas",
+    "canvas": "vignette-canvas",
     "framed-canvas": "vignette-canvas",
+    // Gift cards don't use templates — added for type completeness only;
+    // the cart UI for gift cards is the CartGiftUpsell component, not this picker.
+    "gift-card": "vignette-canvas",
     "mug": "circle-mug",
     "tote": "hex-tote",
     "tee": "badge-tee",
@@ -224,8 +231,14 @@ function UploadStudio({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cutoutUrl, templateId: template.id }),
       });
-      const data = await compRes.json();
-      if (!compRes.ok || !data.printMasterUrl) throw new Error(data.error || "Composite failed");
+      const data = await compRes.json() as { printMasterPath?: string; printMasterUrl?: string; error?: string };
+      // 2026-05-12: composite now returns printMasterPath (private bucket) instead of
+      // printMasterUrl (public). Accept both shapes during legacy transition.
+      const printMasterPath = data.printMasterPath;
+      const printMasterUrl = data.printMasterUrl;
+      if (!compRes.ok || (!printMasterPath && !printMasterUrl)) {
+        throw new Error(data.error || "Composite failed");
+      }
 
       const item = buildCartItem({
         kind: "template",
@@ -235,8 +248,11 @@ function UploadStudio({
         packName: `${template.label} · ${product.label}`,
         style: "photographic",
         sourcePhotoUrl: photoUrl,
-        previewUrl: data.printMasterUrl,
-        printMasterUrl: data.printMasterUrl,
+        // Cart thumbnail src — use the cutout (public, 1024px) since the print master
+        // now lives in a private bucket and can't be rendered as <img> directly.
+        previewUrl: cutoutUrl,
+        printMasterPath,
+        printMasterUrl,
         soulEdition: effectiveSoulEdition,
         soulEditionPriceMajor: soul.retail,
         variant,

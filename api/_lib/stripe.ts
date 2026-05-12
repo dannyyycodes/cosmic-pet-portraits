@@ -71,6 +71,15 @@ export const TOKENS_PER_PERIOD: Record<SubTier, number> = {
 };
 export const PACK_TOKENS = 5;
 
+// Download credits = right to download high-res print master without paying £19.
+// Granted per billing period via invoice.paid webhook. Locked 2026-05-12.
+//   pass  £8.99/mo : 3 download credits/mo (worth £57 at retail)
+//   elite £17.99/mo: 999 download credits/mo (effectively unlimited)
+export const DOWNLOAD_CREDITS_PER_PERIOD: Record<SubTier, number> = {
+  pass: 3,
+  elite: 999,
+};
+
 /**
  * Resolve the Stripe price ID for a (sku, currency) pair. Currency falls
  * back to GBP if not provided. Returns "" if the env var isn't set so the

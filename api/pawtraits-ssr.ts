@@ -15,8 +15,12 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const SITE = "https://www.littlesouls.app";
 // Base price — sourced from src/components/portraits/gelatoFramedCanvas.ts
-// (8×10″ tier). Must match BASE_PRICE_GBP in PawtraitsSEOLanding.tsx.
+// (8×10″ unframed tier). Must match BASE_PRICE_GBP in PawtraitsSEOLanding.tsx.
+// 2026-05-12 product line:
+//   • Digital £19 · Canvas from £39 · Frame upgrade +£45 to +£110
+const DIGITAL_PRICE_GBP = 19;
 const BASE_PRICE_GBP = 39;
+const FRAME_UPGRADE_FROM_GBP = 45;
 const PAGE_SIZE = 12;
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://aduibsyrnenzobuyetmn.supabase.co";
@@ -166,12 +170,12 @@ interface PageMeta {
 function homeMeta(): PageMeta {
   return {
     title: "Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls",
-    description: "Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Created with Pawtraits at Little Souls.",
+    description: `Turn your pet's photo into a custom painted portrait. 20+ art styles. Digital download £${DIGITAL_PRICE_GBP}, canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}). Printed in the UK. Created with Pawtraits at Little Souls.`,
     canonical: "https://littlesouls.app/pawtraits",
     ogImage: "https://www.littlesouls.app/og/pawtraits-default.jpg",
     ogType: "website",
     h1: "Custom Painted Pet Portraits — Watercolor, Renaissance & More",
-    intro: "Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Printed and framed in the UK.",
+    intro: `Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalized for dogs, cats, and small pets. Printed in the UK on gallery-stretched canvas — real wood frame upgrade available at checkout.`,
     galleryHeading: "Latest pawtraits",
   };
 }
@@ -202,7 +206,7 @@ function studioMeta(): PageMeta {
 
 function breedMeta(b: BreedDef, heroImage: string): PageMeta {
   const ogTitle = `Custom ${b.name} Portraits — Painted Pet Art in Every Style`;
-  const ogDescription = `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — printed and framed in the UK from £${BASE_PRICE_GBP}.`;
+  const ogDescription = `Custom ${b.name} portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed in the UK.`;
   return {
     title: ogTitle + " | Little Souls",
     description: ogDescription,
@@ -235,7 +239,7 @@ function styleMeta(s: StyleDef, heroImage: string): PageMeta {
 function unknownLandingMeta(kind: "breed" | "style", slug: string): PageMeta {
   const title = kind === "breed" ? "Custom Pet Portraits" : "Pet Portrait Styles";
   const ogTitle = `${title} — Pawtraits by Little Souls`;
-  const ogDescription = `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — printed and framed in the UK from £${BASE_PRICE_GBP}.`;
+  const ogDescription = `Custom painted pet portraits made from your photo. Watercolour, renaissance, cosmic, modern — £${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · printed in the UK.`;
   return {
     title: ogTitle,
     description: ogDescription,
@@ -370,7 +374,7 @@ ${head}
       <a href="${escAttr(opts.ctaHref)}" class="primary">Create your own →</a>
       <a href="/pawtraits/gallery" class="secondary">Browse the gallery</a>
     </div>
-    <p class="ls-meta">From £${BASE_PRICE_GBP} · Printed and framed in the UK · Ships worldwide</p>
+    <p class="ls-meta">£${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · Printed in the UK · Ships worldwide</p>
     <h2>${esc(meta.galleryHeading)}</h2>
     ${grid}
     ${internalLinks}
