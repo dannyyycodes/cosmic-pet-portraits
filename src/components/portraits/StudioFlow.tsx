@@ -603,6 +603,40 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   // Print-master regen state — busy spinner over the cart-add button while
   // the print-grade asset is being prepared (~10-20s).
   const [preparingPrintMaster, setPreparingPrintMaster] = useState(false);
+  // Live elapsed seconds + progressive stage text shown during the print master
+  // prep phase. Without this the customer sees "Preparing print master..." for
+  // up to 90s of dead screen and assumes it's broken. Mirrors the GenerationCanvas
+  // monotonic-stage pattern — never loops, last stage is the floor.
+  const [printMasterElapsedSec, setPrintMasterElapsedSec] = useState(0);
+  const PRINT_MASTER_STAGES = useMemo<{ fromSec: number; text: string }[]>(() => [
+    { fromSec: 0,  text: "Locking the chosen look in" },
+    { fromSec: 4,  text: "Resizing for print quality" },
+    { fromSec: 10, text: "Sharpening the fine detail" },
+    { fromSec: 18, text: "Painting in the textures" },
+    { fromSec: 28, text: "Final polish on the highlights" },
+    { fromSec: 42, text: "Saving the print master" },
+    { fromSec: 58, text: "Almost ready" },
+    { fromSec: 80, text: "Final checks" },
+  ], []);
+  useEffect(() => {
+    if (!preparingPrintMaster) {
+      setPrintMasterElapsedSec(0);
+      return;
+    }
+    const t0 = Date.now();
+    const id = setInterval(() => {
+      setPrintMasterElapsedSec(Math.floor((Date.now() - t0) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [preparingPrintMaster]);
+  const printMasterStageText = useMemo(() => {
+    let idx = 0;
+    for (let i = 0; i < PRINT_MASTER_STAGES.length; i++) {
+      if (PRINT_MASTER_STAGES[i].fromSec <= printMasterElapsedSec) idx = i;
+      else break;
+    }
+    return PRINT_MASTER_STAGES[idx].text;
+  }, [printMasterElapsedSec, PRINT_MASTER_STAGES]);
   const [helpOpen, setHelpOpen] = useState(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -691,9 +725,10 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     "20x28", "20x30", "24x32", "24x36",
   ]);
   useEffect(() => {
-    // Skip mockup for digital + unframed canvas — Printful's mockup endpoint is framed-only.
-    // Customer sees the variant preview without the in-room frame mockup.
-    if (!selectedVariantUrl || !sizeKey || frameColor === null || deliveryType === "digital") {
+    // Skip Printful mockup for digital (no physical) and for unframed (Printful's
+    // mockup catalog is framed-only). UNFRAMED still gets a CSS wall preview
+    // rendered below using selectedVariantUrl — never blank.
+    if (!selectedVariantUrl || !sizeKey || deliveryType === "digital" || frameColor === null) {
       setRoomMockupUrl(null);
       setRoomMockupLoading(false);
       return;
@@ -1148,7 +1183,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       });
       const submitData = await submitRes.json().catch(() => ({}));
       if (!submitRes.ok || submitData?.status !== 'submitted' || !submitData?.fal_status_url) {
-        throw new Error(submitData?.error || `printMaster_submit failed (${submitRes.status})`);
+        const reason = submitData?.error ?? submitData?.message ?? submitData?.reason ?? `HTTP ${submitRes.status}`;
+        console.error("[StudioFlow] printMaster_submit non-OK", { status: submitRes.status, body: submitData });
+        throw new Error(`printMaster_submit failed: ${reason}`);
       }
       const falStatusUrl = submitData.fal_status_url as string;
       const falResponseUrl = submitData.fal_response_url as string;
@@ -1190,12 +1227,27 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     } catch (e) {
       const err = e as Error;
       console.error("[StudioFlow] printMaster failed", err);
-      const userMsg = err.message === 'content_policy_violation'
-        ? "Our moderator flagged this print — try a different pet name or remove the name."
-        : err.message === 'print_master_polling_timeout'
-          ? "Print master is taking unusually long. Please try Add to cart again — it usually works on a retry."
-          : "Couldn't prepare print master — please try again.";
-      toast.error(userMsg, { duration: 6000 });
+      // Surface the ACTUAL error so the customer knows what to do. Generic
+      // "try again" toasts hide useful info (auth expiry, balance exhausted,
+      // content policy etc) and waste retries.
+      let userMsg: string;
+      const m = err.message ?? "";
+      if (m === "content_policy_violation") {
+        userMsg = "Our moderator flagged this print — try a different pet name or remove the name.";
+      } else if (m === "print_master_polling_timeout") {
+        userMsg = "Print master took longer than 5 minutes. Try Add to cart again — fal.ai usually catches up on a retry.";
+      } else if (m.includes("402") || m.toLowerCase().includes("balance") || m.toLowerCase().includes("credits")) {
+        userMsg = "Out of generation credits. Top up or subscribe to keep going.";
+      } else if (m.includes("401") || m.toLowerCase().includes("unauth")) {
+        userMsg = "Your sign-in expired — please refresh and sign in again.";
+      } else if (m.includes("printMaster_submit failed")) {
+        userMsg = `Print master couldn't start: ${m.replace("printMaster_submit failed", "").trim() || "server error"}. Try again.`;
+      } else if (m === "print_master_failed" || m === "rehost_failed") {
+        userMsg = "Print master failed mid-render. Try Add to cart again — usually works on retry.";
+      } else {
+        userMsg = `Couldn't prepare print master: ${m.slice(0, 120) || "unknown error"}. Try again.`;
+      }
+      toast.error(userMsg, { duration: 8000 });
       setPreparingPrintMaster(false);
       return; // Hard stop — do NOT add to cart with a bad master.
     }
@@ -1851,6 +1903,78 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                   compact
                 />
 
+                {/* CSS wall preview for UNFRAMED canvas + digital (the default).
+                    Printful's mockup is framed-only; for unframed we composite
+                    the variant onto a stylized wall background using CSS so the
+                    customer ALWAYS sees a "preview on your wall" — never blank. */}
+                {selectedVariantUrl && (frameColor === null || deliveryType === "digital") && (
+                  <div className="mt-4">
+                    <p
+                      className="text-center mb-2"
+                      style={{
+                        fontFamily: 'Asap, system-ui, sans-serif',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: PALETTE.earthMuted,
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {deliveryType === "digital" ? "Preview" : "Preview on your wall"}
+                    </p>
+                    <div
+                      className="rounded-xl overflow-hidden relative"
+                      style={{
+                        aspectRatio: "4 / 3",
+                        background:
+                          "linear-gradient(180deg, #f7efe2 0%, #ede2cf 55%, #d9c8ad 100%)",
+                        border: `1px solid ${PALETTE.sand}`,
+                      }}
+                    >
+                      {/* Soft wall shadow + floor line */}
+                      <div
+                        aria-hidden
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          right: 0,
+                          bottom: "30%",
+                          height: 1,
+                          background: "rgba(120, 95, 65, 0.18)",
+                        }}
+                      />
+                      {/* The canvas itself — slim shadow, no frame for unframed */}
+                      <div
+                        className="absolute"
+                        style={{
+                          top: "12%",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          width: "44%",
+                          aspectRatio: "4 / 5",
+                          background: "#fff",
+                          boxShadow:
+                            "0 18px 32px -8px rgba(60, 40, 20, 0.32), 0 4px 10px rgba(60, 40, 20, 0.15)",
+                          overflow: "hidden",
+                          borderRadius: 2,
+                        }}
+                      >
+                        <img
+                          src={selectedVariantUrl}
+                          alt="Your portrait on a wall preview"
+                          loading="lazy"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* In-room canvas preview — Printful mockup of the customer's
                     portrait inside a framed canvas hanging in a real room.
                     Closes the screen-to-canvas imagination gap before
@@ -2418,18 +2542,37 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                   )}
                 </button>
                 {preparingPrintMaster && (
-                  <p
+                  <div
                     className="text-center mt-2"
-                    style={{
-                      fontFamily: 'Assistant, system-ui, sans-serif',
-                      fontSize: 12,
-                      color: PALETTE.earthMuted,
-                      lineHeight: 1.4,
-                    }}
                     aria-live="polite"
                   >
-                    Generating a print-grade version at {variant?.sizeLabel ?? "your size"} — usually 10–20 seconds.
-                  </p>
+                    <p
+                      style={{
+                        fontFamily: 'Cormorant Garamond, Georgia, serif',
+                        fontSize: 14,
+                        fontStyle: 'italic',
+                        color: PALETTE.ink,
+                        lineHeight: 1.4,
+                        margin: 0,
+                      }}
+                    >
+                      {printMasterStageText}…
+                    </p>
+                    <p
+                      className="tabular-nums"
+                      style={{
+                        fontFamily: 'Assistant, system-ui, sans-serif',
+                        fontSize: 11,
+                        color: PALETTE.earthMuted,
+                        marginTop: 4,
+                        marginBottom: 0,
+                      }}
+                    >
+                      {printMasterElapsedSec < 60
+                        ? `${printMasterElapsedSec}s elapsed · usually 30–60s`
+                        : `${Math.floor(printMasterElapsedSec / 60)}m ${printMasterElapsedSec % 60}s elapsed`}
+                    </p>
+                  </div>
                 )}
                 {cartAddCount > 0 && (
                   <p
