@@ -799,10 +799,38 @@ const Portraits = () => {
   }, [cart]);
 
   const handleAddToCart = (item: CartItem) => {
-    setCart((prev) => [...prev, item]);
+    // Heavy diagnostic logging — Danny is hitting "cosmic hiccup" on Soul
+    // Reading add and the global error boundary swallows the actual error.
+    // These logs run BEFORE any state mutation so we can see what the
+    // incoming item shape was even if the render-time crash happens later.
+    console.log("[Portraits] handleAddToCart called", {
+      id: item?.id,
+      productType: item?.productType,
+      productLabel: item?.productLabel,
+      productShortLabel: item?.productShortLabel,
+      sizeLabel: item?.sizeLabel,
+      priceMajor: item?.priceMajor,
+      variantId: item?.variantId,
+      soulReading: isSoulReadingItem(item),
+      hasProperties: !!(item as { properties?: unknown }).properties,
+    });
+    try {
+      setCart((prev) => {
+        const next = [...prev, item];
+        console.log("[Portraits] setCart -> length", next.length);
+        return next;
+      });
+    } catch (err) {
+      console.error("[Portraits] setCart threw", err);
+      throw err;
+    }
     // Notify the floating cart pill (a11y live-region announcement + animations).
     if (isSoulReadingItem(item)) {
-      emitCartChanged("Added Soul Reading");
+      try {
+        emitCartChanged("Added Soul Reading");
+      } catch (err) {
+        console.error("[Portraits] emitCartChanged (soul reading) threw", err);
+      }
       // Drawer is already open when this fires (upsell lives inside the
       // drawer) — don't trigger the "auto-close after 1.8s" branch.
       return;
@@ -810,9 +838,13 @@ const Portraits = () => {
     const frame = item.frameColor
       ? ` ${item.frameColor.replace("-", " ")} frame`
       : "";
-    emitCartChanged(
-      `Added ${item.sizeLabel}${frame} ${item.productShortLabel.toLowerCase()} pawtrait`,
-    );
+    try {
+      emitCartChanged(
+        `Added ${item.sizeLabel}${frame} ${(item.productShortLabel ?? "item").toLowerCase()} pawtrait`,
+      );
+    } catch (err) {
+      console.error("[Portraits] emitCartChanged threw", err);
+    }
     // Briefly open the cart so the customer sees the item land
     setCartOpen(true);
     window.setTimeout(() => setCartOpen(false), 1800);
