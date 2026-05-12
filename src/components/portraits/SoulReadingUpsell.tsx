@@ -57,7 +57,11 @@ function getPrefillPetName(cart: CartItem[]): string {
   //    carry it (StudioFlow doesn't yet — but the field is here so it'll
   //    Just Work the moment it does).
   for (const it of cart) {
-    if (it.productType !== "framed-canvas") continue;
+    if (
+      it.productType !== "framed-canvas" &&
+      it.productType !== "canvas" &&
+      (it.productType as string) !== "digital"
+    ) continue;
     const props = (it as unknown as { properties?: Record<string, string> }).properties;
     if (props && typeof props._pet_name === "string" && props._pet_name.trim()) {
       return props._pet_name.trim();
@@ -114,8 +118,16 @@ export function SoulReadingUpsell({ cart, onAdd }: SoulReadingUpsellProps) {
   const reduce = !!useReducedMotion();
 
   // Derived flags from cart contents.
+  // Upsell renders when ANY portrait product is in the cart — unframed canvas,
+  // framed canvas, OR digital download. Pre-2026-05-12 this was framed-only,
+  // which meant customers buying the new default (unframed canvas) never saw
+  // the upsell. Same logic for the canvasRef fallback below.
   const hasCanvas = useMemo(
-    () => cart.some((it) => it.productType === "framed-canvas"),
+    () => cart.some((it) =>
+      it.productType === "framed-canvas" ||
+      it.productType === "canvas" ||
+      (it.productType as string) === "digital"
+    ),
     [cart],
   );
   const hasSoulReading = useMemo(
@@ -173,7 +185,11 @@ export function SoulReadingUpsell({ cart, onAdd }: SoulReadingUpsellProps) {
   // Build canvas ref UUID. Prefer linking to the FIRST canvas item's id so
   // the order-paid webhook can correlate. Fallback to fresh UUID.
   const canvasRef = useMemo(() => {
-    const firstCanvas = cart.find((it) => it.productType === "framed-canvas");
+    const firstCanvas = cart.find((it) =>
+      it.productType === "framed-canvas" ||
+      it.productType === "canvas" ||
+      (it.productType as string) === "digital"
+    );
     if (firstCanvas) return firstCanvas.id;
     if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
       return crypto.randomUUID();

@@ -106,7 +106,7 @@ export function CartDrawer({
             <SheetDescription
               style={{ fontSize: "13px", color: PALETTE.earthMuted, marginTop: "2px" }}
             >
-              Each pawtrait ships in 3–5 days · refund if it doesn't feel like them
+              Each pawtrait ships in 3–5 days · printed in the UK
             </SheetDescription>
           )}
         </SheetHeader>
@@ -238,28 +238,124 @@ export function CartDrawer({
 /* ─── Item row ────────────────────────────────────────────────────── */
 function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) => void }) {
   const total = itemTotalMajor(item);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const hasPreview = !!item.previewUrl && item.previewUrl.length > 0;
   return (
     <article
       className="flex gap-4 p-3 rounded-sm"
       style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}
     >
-      {/* Thumbnail = the generated preview */}
-      <div
-        className="flex-shrink-0 overflow-hidden rounded-sm"
+      {/* Thumbnail = the generated preview. Click to inspect full-size — opens
+          a lightbox overlay so customer can verify the portrait before paying. */}
+      <button
+        type="button"
+        onClick={() => hasPreview && setZoomOpen(true)}
+        disabled={!hasPreview}
+        aria-label={hasPreview ? `View ${item.packName} portrait full size` : "No preview available"}
+        className="flex-shrink-0 overflow-hidden rounded-sm relative transition-opacity hover:opacity-90 disabled:cursor-default disabled:hover:opacity-100"
         style={{
           width: "72px",
           height: "90px",
           background: PALETTE.cosmos,
           border: `1px solid ${PALETTE.sand}`,
+          padding: 0,
+          cursor: hasPreview ? "zoom-in" : "default",
         }}
       >
-        <img
-          src={item.previewUrl}
-          alt={`${item.packName} preview`}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-      </div>
+        {hasPreview ? (
+          <>
+            <img
+              src={item.previewUrl}
+              alt={`${item.packName} preview`}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            <span
+              aria-hidden
+              className="absolute bottom-1 right-1 text-[10px] px-1.5 py-0.5 rounded-sm"
+              style={{
+                background: "rgba(255, 253, 245, 0.92)",
+                color: PALETTE.ink,
+                fontFamily: "Asap, system-ui, sans-serif",
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+                lineHeight: 1.2,
+              }}
+            >
+              View
+            </span>
+          </>
+        ) : (
+          <span
+            className="w-full h-full flex items-center justify-center text-[10px]"
+            style={{ color: PALETTE.cream, fontFamily: "Asap, system-ui, sans-serif", letterSpacing: "0.06em" }}
+          >
+            —
+          </span>
+        )}
+      </button>
+
+      {/* Lightbox overlay — click backdrop or button to close. */}
+      {zoomOpen && hasPreview && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${item.packName} portrait`}
+          onClick={() => setZoomOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(20, 18, 16, 0.85)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            cursor: "zoom-out",
+          }}
+        >
+          <img
+            src={item.previewUrl}
+            alt={item.packName}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: "min(900px, 92vw)",
+              maxHeight: "92vh",
+              width: "auto",
+              height: "auto",
+              objectFit: "contain",
+              borderRadius: 6,
+              boxShadow: "0 24px 60px rgba(0, 0, 0, 0.5)",
+              cursor: "default",
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => setZoomOpen(false)}
+            aria-label="Close portrait preview"
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              background: "rgba(255, 253, 245, 0.95)",
+              color: PALETTE.ink,
+              border: "none",
+              borderRadius: 999,
+              width: 40,
+              height: 40,
+              fontSize: 22,
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.25)",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Body */}
       <div className="flex-1 min-w-0">

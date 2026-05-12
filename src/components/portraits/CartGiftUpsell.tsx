@@ -45,11 +45,10 @@ const HINT_PER_AMOUNT: Record<number, string> = {
 export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState<number>(GIFT_CARD_DENOMINATIONS_GBP[0]);
-  // 2026-05-12 update per Danny: code is emailed to the BUYER, who shares it
-  // themselves (more personal, lets them text/whatsapp the friend directly).
-  // recipientName is OPTIONAL — only used for the message wording on the buyer's
-  // receipt ("Gift for Sarah"). No recipientEmail field anymore.
-  const [recipientName, setRecipientName] = useState("");
+  // 2026-05-12 update per Danny: code is emailed to the BUYER who shares it
+  // themselves (more personal — text, WhatsApp, card slip). No recipient name
+  // or email — buyer already knows who they're sending to. Just the amount +
+  // an optional message-to-self memo on the order.
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -81,19 +80,15 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
       productShortLabel: "Gift card",
       sizeLabel: `£${amount}`,
       priceMajor: amount,
-      // Properties: NO recipient_email — Shopify sends gift code to the BUYER
-      // who shares it manually with the friend. recipient_name + message are
-      // kept (with underscore-prefix to hide from customer order page) as
-      // memo-only data for analytics and the buyer's records.
+      // Properties: NO recipient name OR email — buyer receives the code from
+      // Shopify and shares it manually. Just an optional message-to-self memo.
       properties: {
-        ...(recipientName.trim() ? { _gift_for: recipientName.trim() } : {}),
         ...(message.trim() ? { _gift_message: message.trim() } : {}),
       },
     };
     onAdd(item);
 
     // Reset + collapse
-    setRecipientName("");
     setMessage("");
     setAmount(GIFT_CARD_DENOMINATIONS_GBP[0]);
     setOpen(false);
@@ -156,7 +151,7 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                   marginBottom: 12,
                 }}
               >
-                We'll email you a unique code to share — text it, post it, slip it in a card.
+                We'll email you a unique code. Share it your way — text, WhatsApp, slip it in a card.
                 Your friend picks the pet, the style, and the size. The code never expires.
               </p>
 
@@ -210,40 +205,13 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                 {HINT_PER_AMOUNT[amount]}
               </p>
 
-              {/* Recipient name (optional — just for the buyer's records) */}
-              <label
-                htmlFor="gift-recipient-name"
-                style={{
-                  fontFamily: "Asap, system-ui, sans-serif",
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  color: PALETTE.earthMuted,
-                  letterSpacing: "0.14em",
-                  textTransform: "uppercase",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
-                Who's it for? <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500, color: PALETTE.earthSubtle }}>(optional)</span>
-              </label>
-              <input
-                id="gift-recipient-name"
-                type="text"
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                maxLength={80}
-                placeholder="e.g. Sarah"
-                className="w-full px-3 py-2 rounded-lg mb-3"
-                style={{
-                  background: PALETTE.cream2,
-                  border: `1px solid ${PALETTE.sand}`,
-                  fontFamily: "Assistant, system-ui, sans-serif",
-                  fontSize: 13.5,
-                  color: PALETTE.ink,
-                }}
-              />
+              {/* Recipient name removed 2026-05-12 — buyer is delivering the code
+                  themselves; no need to ask for the recipient's name. Optional
+                  personal message kept so the buyer can save a note to themselves
+                  alongside the gift code on their order. */}
 
-              {/* Optional message — for the buyer's records, also kept on the order */}
+              {/* Optional note-to-self — only visible on the buyer's order, helps
+                  remember who the gift was for. Not sent anywhere. */}
               <label
                 htmlFor="gift-message"
                 style={{
@@ -257,7 +225,7 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                   marginBottom: 6,
                 }}
               >
-                Message (optional)
+                Note to self <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>(optional)</span>
               </label>
               <textarea
                 id="gift-message"
@@ -265,7 +233,7 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={240}
                 rows={2}
-                placeholder="Thinking of you and Bella ✦"
+                placeholder="For Sarah & Bella ✦"
                 className="w-full px-3 py-2 rounded-lg mb-3 resize-none"
                 style={{
                   background: PALETTE.cream2,

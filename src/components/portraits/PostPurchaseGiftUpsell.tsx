@@ -38,10 +38,8 @@ const HINT_PER_AMOUNT: Record<number, string> = {
 export function PostPurchaseGiftUpsell() {
   const [stage, setStage] = useState<"pitch" | "form" | "submitting" | "done" | "skipped">("pitch");
   const [amount, setAmount] = useState<number>(GIFT_CARD_DENOMINATIONS_GBP[1] ?? 39);
-  // 2026-05-12 update per Danny: gift code is emailed to BUYER, who shares
-  // with the friend personally. recipientName is optional and only used for
-  // the order memo. No recipientEmail anymore.
-  const [recipientName, setRecipientName] = useState("");
+  // 2026-05-12: gift code is emailed to BUYER who shares with the friend
+  // personally. No recipient name OR email — just amount + optional memo.
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -76,7 +74,6 @@ export function PostPurchaseGiftUpsell() {
               // Code goes to BUYER's email; no recipient_email property.
               appliedDiscountPct: DISCOUNT_PCT,
               properties: {
-                ...(recipientName.trim() ? { _gift_for: recipientName.trim() } : {}),
                 ...(message.trim() ? { _gift_message: message.trim() } : {}),
               },
             },
@@ -303,37 +300,22 @@ export function PostPurchaseGiftUpsell() {
             {HINT_PER_AMOUNT[amount]} · You pay <strong style={{ color: PALETTE.ink }}>£{discountedPrice}</strong> (save £{savedAmount})
           </p>
 
-          {/* Inputs — name optional, no email (buyer receives the code) */}
-          <input
-            type="text"
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-            placeholder="Who's it for? (optional)"
-            maxLength={80}
-            className="w-full px-3 py-2.5 rounded-lg mb-2"
-            style={{
-              background: PALETTE.cream2,
-              border: `1px solid ${PALETTE.sand}`,
-              fontFamily: "Assistant, system-ui, sans-serif",
-              fontSize: 14,
-              color: PALETTE.ink,
-            }}
-          />
+          {/* Inputs — just an optional memo. Code goes to your email; you share it. */}
           <p
             style={{
               fontFamily: "Assistant, system-ui, sans-serif",
-              fontSize: 11.5,
+              fontSize: 13,
               color: PALETTE.earthMuted,
               margin: "0 0 10px 2px",
-              lineHeight: 1.4,
+              lineHeight: 1.45,
             }}
           >
-            We'll email the code to you — text it, post it, or tuck it in a card.
+            We'll email the code to you — text it, post it, slip it in a card.
           </p>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Personal message (optional)"
+            placeholder="Note to self (optional)"
             maxLength={240}
             rows={2}
             className="w-full px-3 py-2.5 rounded-lg mb-3 resize-none"
@@ -401,7 +383,7 @@ export function PostPurchaseGiftUpsell() {
                 margin: 0,
               }}
             >
-              On its way to {recipientName.trim()} ✦
+              Your gift code is on its way ✦
             </p>
           </motion.div>
         )}
