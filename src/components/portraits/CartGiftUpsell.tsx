@@ -23,7 +23,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Check, X, ChevronDown } from "lucide-react";
-import { WrappedGiftThumb } from "./CartThumbnails";
+import { GiftCardThumb } from "./CartThumbnails";
 import { PALETTE } from "./tokens";
 import type { CartItem } from "./cart";
 import {
@@ -155,7 +155,7 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
                 }}
               >
                 <div className="flex-shrink-0">
-                  <WrappedGiftThumb width={56} height={70} />
+                  <GiftCardThumb width={56} height={70} />
                 </div>
                 <p
                   style={{

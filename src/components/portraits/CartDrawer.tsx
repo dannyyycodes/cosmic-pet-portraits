@@ -23,7 +23,7 @@ import { isSoulReadingItem } from "./soulReading";
 import { SoulReadingUpsell } from "./SoulReadingUpsell";
 import { CartGiftUpsell } from "./CartGiftUpsell";
 import { CartConsents, type ConsentSnapshot } from "./CartConsents";
-import { NatalChartThumb } from "./CartThumbnails";
+import { SoulReadingThumb } from "./CartThumbnails";
 
 /**
  * Local error boundary scoped to a SINGLE cart line. When an item render
@@ -513,12 +513,8 @@ function SoulReadingLine({ item, onRemove }: { item: CartItem; onRemove: (id: st
         border: `1px dashed rgba(191, 82, 74, 0.45)`,
       }}
     >
-      <div
-        className="flex-shrink-0 overflow-hidden rounded-sm"
-        style={{ width: 72, height: 90 }}
-        aria-hidden
-      >
-        <NatalChartThumb width={72} height={90} />
+      <div className="flex-shrink-0" aria-hidden>
+        <SoulReadingThumb width={72} height={90} />
       </div>
 
       <div className="flex-1 min-w-0">
