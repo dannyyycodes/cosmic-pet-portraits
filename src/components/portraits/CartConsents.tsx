@@ -100,8 +100,14 @@ export function CartConsents({ items, onChange }: CartConsentsProps) {
     if (hasSoulReading) setReadingAt(now);
   };
 
-  // Plain-English label tuned to what's actually in the cart.
-  const friendlyLabel = hasCanvas && hasSoulReading
+  // Bare-minimum default label. The full plain-English sentence
+  // ("I'm ready to receive my reading immediately and understand my canvas
+  // can't be returned…") only appears when the customer opens "Read the small
+  // print" — keeps the cart visually quiet for the 95% who don't want legalese.
+  const friendlyLabel = "I agree to the terms";
+
+  // Longer plain-English statement, shown inside the disclosure panel.
+  const fullStatement = hasCanvas && hasSoulReading
     ? "I'm ready to receive my reading immediately and understand my canvas can't be returned (it's made just for me)."
     : hasCanvas
       ? "I understand my canvas is made just for me and isn't returnable."
@@ -190,6 +196,9 @@ export function CartConsents({ items, onChange }: CartConsentsProps) {
             color: PALETTE.earthMuted,
           }}
         >
+          <p style={{ margin: "0 0 8px 0", color: PALETTE.earth, fontWeight: 600 }}>
+            {fullStatement}
+          </p>
           {hasCanvas && (
             <p style={{ margin: "0 0 6px 0" }}>
               <strong style={{ color: PALETTE.earth }}>Canvas:</strong> Each canvas is uniquely created for you and is exempt from the standard 14-day cancellation right under Consumer Contracts Regulations 2013 reg 28(1)(b).
