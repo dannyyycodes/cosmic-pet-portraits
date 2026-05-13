@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cart thumbnail previews — Cosmic Pet Portraits</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://images.unsplash.com" />
+  <style>
+    :root {
+      --cream: #ffffff;
+      --cream2: #fafafa;
+      --paper: #f5f5f5;
+      --sand: #ededed;
+      --sandDeep: #cccccc;
+      --ink: #1c1c1c;
+      --earth: #3a3a3a;
+      --earthMuted: #7a7a7a;
+      --rose: #bf524a;
+      --roseDeep: #9c3d36;
+      --roseSoft: #fbeae8;
+      --gold: #c4a265;
+      --goldDeep: #8b6f3a;
+      --cosmos: #1a1814;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "Assistant", system-ui, sans-serif;
+      background: var(--cream2);
+      color: var(--ink);
+      padding: 32px 24px 80px;
+      line-height: 1.45;
+    }
+    header {
+      max-width: 1200px;
+      margin: 0 auto 32px;
+    }
+    h1 {
+      font-family: "Asap", system-ui, sans-serif;
+      font-size: 32px;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    .lede {
+      color: var(--earthMuted);
+      max-width: 760px;
+      font-size: 14.5px;
+    }
+    .lede strong { color: var(--ink); }
+    h2 {
+      font-family: "Asap", system-ui, sans-serif;
+      font-size: 22px;
+      margin: 0 0 4px;
+      letter-spacing: -0.01em;
+    }
+    h2 .pill {
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 11px;
+      padding: 3px 8px;
+      background: var(--rose);
+      color: #fff;
+      border-radius: 9999px;
+      margin-left: 10px;
+      font-family: "Assistant", system-ui, sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    section { max-width: 1200px; margin: 0 auto 48px; }
+    .sub {
+      color: var(--earthMuted);
+      font-size: 13px;
+      margin: 0 0 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .opt {
+      background: #fff;
+      border: 1px solid var(--sand);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .opt:hover { border-color: var(--sandDeep); }
+    .opt h3 {
+      font-family: "Asap", system-ui, sans-serif;
+      font-size: 13.5px;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.005em;
+    }
+    .opt .src {
+      font-size: 11px;
+      color: var(--earthMuted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      word-break: break-all;
+    }
+
+    /* ── Cart-line context mocks (what the user will actually see) ───── */
+    .ctx {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .ctx .mock {
+      flex-shrink: 0;
+      width: 72px;
+      height: 90px;
+      border-radius: 2px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--cream);
+    }
+    .ctx .mock.soul {
+      background: #FFFAF3;
+      border: 1.5px dashed rgba(191, 82, 74, 0.45);
+    }
+    .ctx .mock.gift {
+      background: var(--cream2);
+      border: 1px solid var(--sand);
+    }
+    .ctx .mock img,
+    .ctx .mock span.native {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      display: block;
+    }
+    .ctx .mock span.native {
+      font-size: 46px;
+      line-height: 1;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ctx .meta {
+      flex: 1;
+      min-width: 0;
+      font-size: 12px;
+      color: var(--earthMuted);
+    }
+    .ctx .meta strong { color: var(--ink); display: block; font-size: 13px; }
+    .ctx .meta .tag {
+      display: inline-block;
+      font-size: 9.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 2px;
+      background: rgba(196, 162, 101, 0.18);
+      color: var(--goldDeep);
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    /* ── Big detail preview (2x) ────────────────────────────────────── */
+    .big {
+      width: 100%;
+      aspect-ratio: 72 / 90;
+      background: var(--paper);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .big img,
+    .big span.native {
+      max-width: 80%;
+      max-height: 80%;
+      object-fit: contain;
+    }
+    .big span.native {
+      font-size: 96px;
+      line-height: 1;
+    }
+
+    /* ── Failed-asset fallback ──────────────────────────────────────── */
+    .opt img { background: transparent; }
+    .note {
+      font-size: 11px;
+      color: var(--earthMuted);
+      font-style: italic;
+    }
+
+    .legend {
+      max-width: 1200px;
+      margin: 0 auto 24px;
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid var(--sand);
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--earth);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .legend .item { display: flex; align-items: center; gap: 8px; }
+    .legend .swatch {
+      width: 14px; height: 14px; border-radius: 3px;
+      display: inline-block;
+    }
+    .legend .ms { background: linear-gradient(135deg, #00bcf2, #0078d4); }
+    .legend .om { background: linear-gradient(135deg, #f9c000, #f97316); }
+    .legend .tw { background: linear-gradient(135deg, #1d9bf0, #0c63b0); }
+    .legend .nv { background: linear-gradient(135deg, #d4a373, #a07855); }
+    .legend .un { background: linear-gradient(135deg, #111, #444); }
+    .legend .br { background: linear-gradient(135deg, #bf524a, #9c3d36); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cart thumbnail previews</h1>
+    <p class="lede">
+      Real, hot-linkable assets at the <strong>actual 72×90 cart-line size</strong>
+      so you can see how each one will look in the drawer. The bigger preview
+      above each card is 2× detail. Pick a winner for each row and I'll wire it in.
+    </p>
+  </header>
+
+  <div class="legend">
+    <span class="item"><span class="swatch ms"></span> Microsoft Fluent 3D (premium feel)</span>
+    <span class="item"><span class="swatch om"></span> OpenMoji (vector flat)</span>
+    <span class="item"><span class="swatch tw"></span> Twemoji (Twitter style)</span>
+    <span class="item"><span class="swatch nv"></span> Native OS emoji (no asset)</span>
+    <span class="item"><span class="swatch un"></span> Unsplash photo</span>
+    <span class="item"><span class="swatch br"></span> Existing brand SVG</span>
+  </div>
+
+  <!-- ╔══════════════════════════════════════════════════════════════════╗ -->
+  <!-- ║  SOUL READING THUMBNAILS                                          ║ -->
+  <!-- ╚══════════════════════════════════════════════════════════════════╝ -->
+  <section>
+    <h2>Soul Reading <span class="pill">Add-on</span></h2>
+    <p class="sub">Sits as a dashed-rose-bordered line item under the canvas in cart.</p>
+    <div class="grid" id="grid-soul"></div>
+  </section>
+
+  <!-- ╔══════════════════════════════════════════════════════════════════╗ -->
+  <!-- ║  GIFT CARD THUMBNAILS                                             ║ -->
+  <!-- ╚══════════════════════════════════════════════════════════════════╝ -->
+  <section>
+    <h2>Gift card — "Send a portrait to a friend"</h2>
+    <p class="sub">Sits inside the expanded gift-upsell card next to the explainer text.</p>
+    <div class="grid" id="grid-gift"></div>
+  </section>
+
+  <script>
+    // ── CDN bases ───────────────────────────────────────────────────────
+    const FLUENT = (folder, file) =>
+      `https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@main/assets/${encodeURIComponent(folder)}/3D/${file}_3d.png`;
+    const OPENMOJI = (cp) =>
+      `https://cdn.jsdelivr.net/gh/hfg-gmuend/openmoji@latest/color/svg/${cp}.svg`;
+    const TWEMOJI = (cp) =>
+      `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/${cp}.png`;
+
+    // ── Soul Reading candidates ─────────────────────────────────────────
+    const SOUL = [
+      // Microsoft Fluent 3D (premium feel)
+      { name: "Crystal ball — 3D", src: "MS Fluent 3D", url: FLUENT("Crystal ball", "crystal_ball") },
+      { name: "Sparkles — 3D", src: "MS Fluent 3D", url: FLUENT("Sparkles", "sparkles") },
+      { name: "Glowing star — 3D", src: "MS Fluent 3D", url: FLUENT("Glowing star", "glowing_star") },
+      { name: "Star — 3D", src: "MS Fluent 3D", url: FLUENT("Star", "star") },
+      { name: "Magic wand — 3D", src: "MS Fluent 3D", url: FLUENT("Magic wand", "magic_wand") },
+      { name: "Crescent moon — 3D", src: "MS Fluent 3D", url: FLUENT("Crescent moon", "crescent_moon") },
+      { name: "Shooting star — 3D", src: "MS Fluent 3D", url: FLUENT("Shooting star", "shooting_star") },
+      { name: "Joker (tarot vibe) — 3D", src: "MS Fluent 3D", url: FLUENT("Joker", "joker") },
+      { name: "Flower playing cards — 3D", src: "MS Fluent 3D", url: FLUENT("Flower playing cards", "flower_playing_cards") },
+      { name: "Sun with face — 3D", src: "MS Fluent 3D", url: FLUENT("Sun with face", "sun_with_face") },
+      { name: "Sun — 3D", src: "MS Fluent 3D", url: FLUENT("Sun", "sun") },
+      { name: "Full moon — 3D", src: "MS Fluent 3D", url: FLUENT("Full moon", "full_moon") },
+      // OpenMoji
+      { name: "Crystal ball — OpenMoji", src: "OpenMoji", url: OPENMOJI("1F52E") },
+      { name: "Sparkles — OpenMoji", src: "OpenMoji", url: OPENMOJI("2728") },
+      { name: "Magic wand — OpenMoji", src: "OpenMoji", url: OPENMOJI("1FA84") },
+      // Twemoji
+      { name: "Crystal ball — Twemoji", src: "Twemoji", url: TWEMOJI("1f52e") },
+      { name: "Sparkles — Twemoji", src: "Twemoji", url: TWEMOJI("2728") },
+      // Native
+      { name: "🔮 native emoji", src: "Native OS", native: "🔮" },
+      { name: "✨ native emoji", src: "Native OS", native: "✨" },
+      { name: "🌟 native emoji", src: "Native OS", native: "🌟" },
+      // Unsplash photos (small versions via Unsplash image API)
+      { name: "Natal chart photo", src: "Unsplash", url: "https://images.unsplash.com/photo-1532968961962-8a0cb3a2d4f5?w=240&h=300&fit=crop&auto=format&q=70" },
+      { name: "Tarot deck photo", src: "Unsplash", url: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=240&h=300&fit=crop&auto=format&q=70" },
+      { name: "Starry night photo", src: "Unsplash", url: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=240&h=300&fit=crop&auto=format&q=70" },
+      { name: "Crystal ball photo", src: "Unsplash", url: "https://images.unsplash.com/photo-1551582045-6ec9c11d8697?w=240&h=300&fit=crop&auto=format&q=70" },
+      // Existing brand asset
+      { name: "Existing brand SVG", src: "/portraits/soul-reading-thumb.svg", url: "/portraits/soul-reading-thumb.svg" },
+    ];
+
+    // ── Gift Card candidates ────────────────────────────────────────────
+    const GIFT = [
+      // Microsoft Fluent 3D
+      { name: "Wrapped gift — 3D", src: "MS Fluent 3D", url: FLUENT("Wrapped gift", "wrapped_gift") },
+      { name: "Heart with ribbon — 3D", src: "MS Fluent 3D", url: FLUENT("Heart with ribbon", "heart_with_ribbon") },
+      { name: "Ribbon — 3D", src: "MS Fluent 3D", url: FLUENT("Ribbon", "ribbon") },
+      { name: "Love letter — 3D", src: "MS Fluent 3D", url: FLUENT("Love letter", "love_letter") },
+      { name: "Envelope — 3D", src: "MS Fluent 3D", url: FLUENT("Envelope", "envelope") },
+      { name: "Envelope with heart — 3D", src: "MS Fluent 3D", url: FLUENT("Envelope with arrow", "envelope_with_arrow") },
+      { name: "Label — 3D", src: "MS Fluent 3D", url: FLUENT("Label", "label") },
+      { name: "Two hearts — 3D", src: "MS Fluent 3D", url: FLUENT("Two hearts", "two_hearts") },
+      { name: "Sparkling heart — 3D", src: "MS Fluent 3D", url: FLUENT("Sparkling heart", "sparkling_heart") },
+      { name: "Money with wings — 3D", src: "MS Fluent 3D", url: FLUENT("Money with wings", "money_with_wings") },
+      { name: "Shopping bags — 3D", src: "MS Fluent 3D", url: FLUENT("Shopping bags", "shopping_bags") },
+      { name: "Framed picture — 3D", src: "MS Fluent 3D", url: FLUENT("Framed picture", "framed_picture") },
+      // OpenMoji
+      { name: "Wrapped gift — OpenMoji", src: "OpenMoji", url: OPENMOJI("1F381") },
+      { name: "Heart with ribbon — OpenMoji", src: "OpenMoji", url: OPENMOJI("1F49D") },
+      { name: "Ribbon — OpenMoji", src: "OpenMoji", url: OPENMOJI("1F380") },
+      // Twemoji
+      { name: "Wrapped gift — Twemoji", src: "Twemoji", url: TWEMOJI("1f381") },
+      { name: "Heart with ribbon — Twemoji", src: "Twemoji", url: TWEMOJI("1f49d") },
+      // Native
+      { name: "🎁 native emoji", src: "Native OS", native: "🎁" },
+      { name: "💝 native emoji", src: "Native OS", native: "💝" },
+      { name: "🎀 native emoji", src: "Native OS", native: "🎀" },
+      // Unsplash
+      { name: "Wrapped gift photo (cream)", src: "Unsplash", url: "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=240&h=300&fit=crop&auto=format&q=70" },
+      { name: "Gift with ribbon photo", src: "Unsplash", url: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=240&h=300&fit=crop&auto=format&q=70" },
+      { name: "Rose gift photo", src: "Unsplash", url: "https://images.unsplash.com/photo-1577998474517-7eeeed4e448a?w=240&h=300&fit=crop&auto=format&q=70" },
+      { name: "Stacked gifts photo", src: "Unsplash", url: "https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=240&h=300&fit=crop&auto=format&q=70" },
+    ];
+
+    function renderInto(list, mountId, mockClass) {
+      const root = document.getElementById(mountId);
+      const html = list.map((o) => {
+        const visual = o.native
+          ? `<span class="native">${o.native}</span>`
+          : `<img src="${o.url}" alt="${o.name}" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\'note\\'>failed to load</div>';" />`;
+        return `
+          <div class="opt">
+            <div class="big">${visual}</div>
+            <div class="ctx">
+              <div class="mock ${mockClass}">${visual.replace('class="native"', 'class="native"').replace('loading="lazy"', 'loading="lazy" style="width:64px;height:64px;object-fit:contain;"')}</div>
+              <div class="meta">
+                <strong>${o.name}</strong>
+                ${mockClass === "soul"
+                  ? `Soul Reading · Digital <span class="tag" style="background:rgba(196,162,101,0.18);color:#8b6f3a;">Add-on</span><br/>For Your pet`
+                  : `Send a portrait to a friend<br/>£39 gift card`}
+              </div>
+            </div>
+            <div class="src">${o.src}</div>
+          </div>
+        `;
+      }).join("");
+      root.innerHTML = html;
+    }
+
+    renderInto(SOUL, "grid-soul", "soul");
+    renderInto(GIFT, "grid-gift", "gift");
+  </script>
+</body>
+</html>
