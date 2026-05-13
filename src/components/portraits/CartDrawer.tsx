@@ -23,7 +23,7 @@ import { isSoulReadingItem } from "./soulReading";
 import { SoulReadingUpsell } from "./SoulReadingUpsell";
 import { CartGiftUpsell } from "./CartGiftUpsell";
 import { CartConsents, type ConsentSnapshot } from "./CartConsents";
-import { SoulReadingThumb } from "./CartThumbnails";
+import { SoulReadingThumb, GiftCardThumb } from "./CartThumbnails";
 
 /**
  * Local error boundary scoped to a SINGLE cart line. When an item render
@@ -306,6 +306,97 @@ function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) =
   const total = itemTotalMajor(item);
   const [zoomOpen, setZoomOpen] = useState(false);
   const hasPreview = !!item.previewUrl && item.previewUrl.length > 0;
+  const isGiftCard = item.productType === "gift-card";
+
+  // Gift cards have no preview URL — render the 3D heart-with-ribbon thumbnail
+  // in place of the empty cosmos placeholder, and a slimmer body without the
+  // template/illustrated/soul-edition meta that doesn't apply.
+  if (isGiftCard) {
+    const props = (item as unknown as { properties?: Record<string, string> }).properties ?? {};
+    const memo = props._gift_message?.trim();
+    return (
+      <article
+        className="flex gap-4 p-3 rounded-sm"
+        style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}
+      >
+        <div className="flex-shrink-0" aria-hidden>
+          <GiftCardThumb width={72} height={90} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p
+            style={{
+              fontFamily: 'Asap, system-ui, sans-serif',
+              fontSize: "14px",
+              fontWeight: 700,
+              color: PALETTE.ink,
+              letterSpacing: "-0.005em",
+            }}
+          >
+            Gift card · £{total}
+          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <span
+              className="inline-block px-1.5 py-0.5 rounded-sm text-[10px] uppercase"
+              style={{
+                background: "rgba(196, 162, 101, 0.18)",
+                color: PALETTE.goldDeep,
+                letterSpacing: "0.1em",
+                fontWeight: 700,
+              }}
+            >
+              Gift
+            </span>
+          </div>
+          <p
+            className="truncate"
+            style={{ fontSize: "12.5px", color: PALETTE.earth, marginTop: "4px" }}
+          >
+            Code emailed to you to share
+          </p>
+          {memo && (
+            <p
+              className="truncate"
+              style={{
+                fontSize: "11.5px",
+                color: PALETTE.earthMuted,
+                marginTop: "2px",
+                fontStyle: "italic",
+              }}
+            >
+              "{memo}"
+            </p>
+          )}
+          <div className="flex items-baseline justify-between mt-2">
+            <button
+              type="button"
+              onClick={() => onRemove(item.id)}
+              className="transition-colors hover:underline"
+              style={{
+                fontSize: "12px",
+                color: PALETTE.earthMuted,
+                letterSpacing: "0.02em",
+              }}
+              aria-label="Remove gift card from cart"
+            >
+              Remove
+            </button>
+            <span
+              style={{
+                fontFamily: 'Asap, system-ui, sans-serif',
+                fontSize: "16px",
+                fontWeight: 700,
+                color: PALETTE.ink,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              £{total}
+            </span>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article
       className="flex gap-4 p-3 rounded-sm"
