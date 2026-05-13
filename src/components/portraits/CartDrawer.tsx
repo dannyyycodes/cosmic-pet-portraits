@@ -306,7 +306,24 @@ function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) =
   const total = itemTotalMajor(item);
   const [zoomOpen, setZoomOpen] = useState(false);
   const hasPreview = !!item.previewUrl && item.previewUrl.length > 0;
-  const isGiftCard = item.productType === "gift-card";
+  // Detect gift cards defensively — productType OR packId OR shortLabel.
+  // Older persisted carts may have lost the productType discriminator on
+  // round-trip through localStorage / older code, so any of three signals
+  // counts. Diagnostic log so we can see the actual item shape in DevTools.
+  const isGiftCard =
+    (item.productType as string) === "gift-card" ||
+    (item as { packId?: string }).packId === "gift-card" ||
+    item.productShortLabel === "Gift card";
+  if (typeof window !== "undefined" && (item.productShortLabel ?? "").toLowerCase().includes("gift")) {
+    // Only log for items that smell like gifts so we don't spam the console.
+    console.log("[CartLine] gift-suspected item:", {
+      id: item.id,
+      productType: item.productType,
+      packId: (item as { packId?: string }).packId,
+      productShortLabel: item.productShortLabel,
+      isGiftCardDetected: isGiftCard,
+    });
+  }
 
   // Gift cards have no preview URL — render the 3D heart-with-ribbon thumbnail
   // in place of the empty cosmos placeholder, and a slimmer body without the
