@@ -23,6 +23,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Check, X, ChevronDown } from "lucide-react";
+import { WrappedGiftThumb } from "./CartThumbnails";
 import { PALETTE } from "./tokens";
 import type { CartItem } from "./cart";
 import {
@@ -142,18 +143,34 @@ export function CartGiftUpsell({ onAdd }: CartGiftUpsellProps) {
             style={{ overflow: "hidden" }}
           >
             <div className="px-4 pb-4 pt-1">
-              <p
+              {/* Hero visual — wrapped canvas with ribbon. Signals
+                  "a portrait, gifted" at a glance. */}
+              <div
+                className="flex items-center gap-3 mb-3"
                 style={{
-                  fontFamily: "Assistant, system-ui, sans-serif",
-                  fontSize: 12.5,
-                  lineHeight: 1.55,
-                  color: PALETTE.earthMuted,
-                  marginBottom: 12,
+                  background: PALETTE.cream2,
+                  border: `1px solid ${PALETTE.sand}`,
+                  borderRadius: 6,
+                  padding: 10,
                 }}
               >
-                We'll email you a unique code. Share it your way — text, WhatsApp, slip it in a card.
-                Your friend picks the pet, the style, and the size. The code never expires.
-              </p>
+                <div className="flex-shrink-0">
+                  <WrappedGiftThumb width={56} height={70} />
+                </div>
+                <p
+                  style={{
+                    fontFamily: "Assistant, system-ui, sans-serif",
+                    fontSize: 12.5,
+                    lineHeight: 1.5,
+                    color: PALETTE.earth,
+                    margin: 0,
+                  }}
+                >
+                  We'll email you a unique code. Share it your way — text, WhatsApp,
+                  slip it in a card. Your friend picks the pet, the style, and the
+                  size. The code never expires.
+                </p>
+              </div>
 
               {/* Amount picker */}
               <p

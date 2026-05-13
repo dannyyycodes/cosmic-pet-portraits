@@ -23,7 +23,7 @@ import { isSoulReadingItem } from "./soulReading";
 import { SoulReadingUpsell } from "./SoulReadingUpsell";
 import { CartGiftUpsell } from "./CartGiftUpsell";
 import { CartConsents, type ConsentSnapshot } from "./CartConsents";
-import { Sparkles } from "lucide-react";
+import { NatalChartThumb } from "./CartThumbnails";
 
 /**
  * Local error boundary scoped to a SINGLE cart line. When an item render
@@ -515,19 +515,10 @@ function SoulReadingLine({ item, onRemove }: { item: CartItem; onRemove: (id: st
     >
       <div
         className="flex-shrink-0 overflow-hidden rounded-sm"
-        style={{
-          width: 72,
-          height: 90,
-          background: PALETTE.cosmos,
-          border: `1px solid ${PALETTE.sand}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: PALETTE.cream,
-        }}
+        style={{ width: 72, height: 90 }}
         aria-hidden
       >
-        <Sparkles size={28} strokeWidth={1.6} style={{ color: PALETTE.rose }} />
+        <NatalChartThumb width={72} height={90} />
       </div>
 
       <div className="flex-1 min-w-0">
