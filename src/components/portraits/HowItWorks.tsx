@@ -25,18 +25,18 @@ interface Step {
 const STEPS: Step[] = [
   {
     index: "01",
-    title: "Pick a style. Upload a photo.",
-    body: "Takes about a minute. No design skills needed.",
+    title: "Add a photo",
+    body: "Tell us the moment you picture.",
   },
   {
     index: "02",
-    title: "See your pet's portrait on screen.",
-    body: "Try different styles until it's right.",
+    title: "See them painted on screen",
+    body: "Adjust until it feels like them.",
   },
   {
     index: "03",
-    title: "Order it framed and ready to hang.",
-    body: "Arrives in 3–5 days. 100% happiness guaranteed.",
+    title: "Bring them home",
+    body: "Hand-finished canvas, 3–5 days.",
   },
 ];
 
@@ -59,7 +59,7 @@ export function HowItWorks() {
             id="how-it-works-heading"
             style={{ ...display("clamp(34px, 5vw, 58px)"), color: PALETTE.ink, marginTop: "18px" }}
           >
-            Pick a style. <span style={{ color: PALETTE.rose, fontStyle: "italic" }}>Preview.</span> Order.
+            Describe it. <span style={{ color: PALETTE.rose, fontStyle: "italic" }}>See it.</span> Keep it.
           </h2>
         </div>
 
@@ -76,7 +76,7 @@ export function HowItWorks() {
             sizes="(max-width: 1280px) calc(100vw - 48px), 1192px"
             width={1672}
             height={941}
-            alt="From your phone to a framed canvas — pick a style, see your pet's portrait on screen, then order it ready to hang."
+            alt="From a photo to a hand-finished canvas — describe the scene, see them painted on screen, then bring them home."
             style={{
               width: "100%",
               height: "auto",

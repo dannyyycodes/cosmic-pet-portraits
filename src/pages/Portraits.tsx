@@ -1009,20 +1009,17 @@ const Portraits = () => {
         inert={studioFocused ? "" : undefined}
       >
         <PortraitsHero onBegin={scrollToUpload} />
-        <ReviewWall />
-        <TrustStrip />
-        <HowItWorks />
-        <FrameSizes currency={currency} onPickSize={handlePickSize} />
       </div>
 
-      {/* Studio — full configurator inline on the landing page. Stays at full
-          opacity during generating/reveal — it's the focal area. */}
+      {/* Studio — moved directly under the hero so visitors get straight into
+          creating. The supporting/reassurance sections (reviews, trust,
+          how-it-works, sizes) now sit BELOW the studio for those who scroll. */}
       <div ref={uploadRef}>
         <StudioFlow onCartAdd={handleAddToCart} onPhaseChange={setStudioPhase} />
       </div>
 
-      {/* Top-up plans — inline below the studio so customers never leave the
-          page. Also dims so the canvas remains the only focal area. */}
+      {/* Reassurance + sizing + top-up — below the create box. Dims so the
+          canvas remains the only focal area during generating/reveal. */}
       <div
         style={{
           opacity: studioFocused ? 0.18 : 1,
@@ -1033,6 +1030,10 @@ const Portraits = () => {
         // @ts-expect-error inert is a valid HTML attribute; React 18 types haven't caught up
         inert={studioFocused ? "" : undefined}
       >
+        <ReviewWall />
+        <TrustStrip />
+        <HowItWorks />
+        <FrameSizes currency={currency} onPickSize={handlePickSize} />
         <TopUpPlans variant="inline" authRedirect="/pawtraits#topup" />
       </div>
       </div>

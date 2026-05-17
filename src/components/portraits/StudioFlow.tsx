@@ -1378,7 +1378,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               marginRight: "auto",
             }}
           >
-            <SplitWords text="Imagine your pet," />{" "}
+            <SplitWords text="Picture them," />{" "}
             <SplitWords
               text="anywhere."
               delay={0.28}
@@ -1395,7 +1395,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               lineHeight: 1.45,
             }}
           >
-            Photo, prompt, generate, frame.
+            Describe the scene you want painted.
           </p>
         </div>
 

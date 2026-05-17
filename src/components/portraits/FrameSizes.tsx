@@ -1,21 +1,27 @@
 /**
- * FrameSizes — informational pricing strip shown above the studio.
+ * FrameSizes — premium "Pick a size" gallery band shown below the studio.
  *
- * Shows 4 featured tier cards (Small / Medium most-popular / Large / Statement)
- * by default. The remaining 7 sizes are tucked behind a "See all 11 sizes"
- * expander so first-time visitors aren't paralysed by 11 options at once.
+ * Left: a hero framed-canvas-on-wall photo so the visitor SEES the physical
+ * product (Crown & Paw / West & Willow standard). Right: heading + lede +
+ * true-proportion size tiles (each tile shows a scaled rectangle at the real
+ * aspect ratio so Statement visibly dwarfs Small).
  *
- * Prices shown = entry / unframed canvas. Frame is a separate +£X upgrade
- * picked in the studio (Crown & Paw style).
+ * Below: photoreal wood-frame swatches (Unframed / Natural / Black / Dark) as
+ * real corner-crop photos — not flat colour dots. Selecting one is purely a
+ * delight interaction (the real frame pick happens in the studio above).
  *
- * NOT interactive — actual size + frame selection happens in the studio below.
- *
+ * Prices = entry / unframed canvas. Frame is a separate +£X upgrade.
  * Pricing locked: src/components/portraits/gelatoFramedCanvas.ts (CANVAS_SIZES).
  */
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { CANVAS_SIZES, FRAME_COLORS, FRAME_UPGRADE_GBP } from "./gelatoFramedCanvas";
 import { PALETTE, tabularPrice } from "./tokens";
+import frameHero from "@/assets/frames/frame-hero.webp";
+import frameUnframed from "@/assets/frames/frame-unframed.webp";
+import frameBlack from "@/assets/frames/frame-black.webp";
+import frameNatural from "@/assets/frames/frame-natural.webp";
+import frameDark from "@/assets/frames/frame-dark.webp";
 
 // Re-exports for backward compat with any other imports.
 export type Currency = "GBP" | "USD";
@@ -55,15 +61,47 @@ const TIER_NAME: Record<string, string> = {
   "20x30": "Statement",
 };
 
+// Photoreal swatch art per frame uid. Unframed is prepended; the rest follow
+// FRAME_COLORS' canonical order/labels.
+const FRAME_IMG: Record<string, string> = {
+  unframed: frameUnframed,
+  "black": frameBlack,
+  "natural-wood": frameNatural,
+  "dark-wood": frameDark,
+};
+
+const FRAME_UPGRADE = FRAME_UPGRADE_GBP["8x10"] ?? 45;
+
 const TRUST_BADGES = [
-  "Digital download from £19 (instant)",
-  "Premium canvas that lasts",
-  "Real wood frame upgrade available",
-  "Inks that won't fade for decades",
+  "Canvas from £39 · digital from £19",
+  "Real wood frame, optional (+£45)",
+  "Approve it before you pay",
   "Arrives in 3–5 days",
-  "Ships to UK, Europe, USA",
-  "100% happiness guaranteed",
+  "Ships UK, Europe & USA",
+  "Not right? We'll make it right.",
 ];
+
+// Largest longest-side across ALL sizes — anchors the true-proportion scale so
+// every silhouette is drawn relative to the biggest canvas we sell.
+const MAX_LONG = Math.max(
+  ...CANVAS_SIZES.map((s) => {
+    const [w, h] = s.uid.split("x").map(Number);
+    return Math.max(w || 0, h || 0);
+  }),
+);
+
+/** Pixel dimensions for a size's proportion silhouette, scaled to `cap` px on
+ *  its longest side relative to the biggest canvas. */
+function silhouette(uid: string, cap: number) {
+  const [w, h] = uid.split("x").map(Number);
+  if (!w || !h) return { width: cap, height: cap };
+  const long = Math.max(w, h);
+  const scale = (long / MAX_LONG) * cap;
+  return {
+    width: Math.round((w / long) * scale),
+    height: Math.round((h / long) * scale),
+  };
+}
 
 interface FrameSizesProps {
   currency: Currency;
@@ -77,9 +115,15 @@ export function FrameSizes({ currency }: FrameSizesProps) {
     currency === "GBP" ? `${symbol}${gbp}` : `${symbol}${Math.round(gbp * usdMul)}`;
 
   const [showAll, setShowAll] = useState(false);
+  const [activeFrame, setActiveFrame] = useState<string>("natural-wood");
 
   const featured = FEATURED_UIDS.map((uid) => CANVAS_SIZES.find((s) => s.uid === uid)).filter(Boolean) as typeof CANVAS_SIZES;
   const rest = CANVAS_SIZES.filter((s) => !FEATURED_UIDS.includes(s.uid as typeof FEATURED_UIDS[number]));
+
+  const frameOpts = [
+    { uid: "unframed", label: "Unframed", note: "Included" },
+    ...FRAME_COLORS.map((c) => ({ uid: c.uid, label: c.label, note: `+${symbol}${FRAME_UPGRADE}` })),
+  ];
 
   return (
     <section
@@ -87,227 +131,355 @@ export function FrameSizes({ currency }: FrameSizesProps) {
       className="relative px-5 md:px-10"
       style={{
         background: PALETTE.cream,
-        paddingTop: "clamp(72px, 9vh, 110px)",
-        paddingBottom: "clamp(72px, 9vh, 110px)",
+        paddingTop: "clamp(72px, 9vh, 116px)",
+        paddingBottom: "clamp(72px, 9vh, 116px)",
         borderTop: `1px solid ${PALETTE.sand}`,
       }}
       aria-labelledby="frame-sizes-heading"
     >
-      <div className="mx-auto" style={{ maxWidth: 980 }}>
-        <h2
-          id="frame-sizes-heading"
-          className="text-center"
-          style={{
-            fontFamily: 'Cormorant Garamond, Georgia, serif',
-            fontSize: 'clamp(28px, 4vw, 40px)',
-            fontWeight: 500,
-            color: PALETTE.ink,
-            marginBottom: 36,
-            letterSpacing: '-0.01em',
-          }}
-        >
-          Pick a size
-        </h2>
-
-        {/* 4 featured tiers — the default browsing experience */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          {featured.map((s) => {
-            const isPopular = s.uid === POPULAR_UID;
-            return (
-              <div
-                key={s.uid}
-                className="rounded-xl px-4 py-5 text-center relative"
-                style={{
-                  background: PALETTE.cream2,
-                  border: `1px solid ${isPopular ? PALETTE.gold : PALETTE.sand}`,
-                  boxShadow: isPopular
-                    ? "0 4px 14px rgba(196, 162, 101, 0.18)"
-                    : "0 1px 3px rgba(20,18,16,0.04)",
-                  transform: isPopular ? "translateY(-2px)" : undefined,
-                }}
-              >
-                {isPopular && (
-                  <div
-                    className="absolute left-1/2 -translate-x-1/2"
-                    style={{
-                      top: -12,
-                      background: PALETTE.gold,
-                      color: PALETTE.ink,
-                      fontFamily: 'Asap, system-ui, sans-serif',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      padding: '4px 12px',
-                      borderRadius: 999,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    ★ Most popular
-                  </div>
-                )}
-                <div
-                  style={{
-                    fontFamily: 'Asap, system-ui, sans-serif',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: PALETTE.earthMuted,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                  }}
-                >
-                  {TIER_NAME[s.uid]}
-                </div>
-                <div
-                  style={{
-                    fontFamily: 'Cormorant Garamond, Georgia, serif',
-                    fontSize: 22,
-                    fontWeight: 500,
-                    color: PALETTE.ink,
-                    marginTop: 8,
-                  }}
-                >
-                  {s.label}
-                </div>
-                <div style={{ ...tabularPrice("24px"), marginTop: 6, color: PALETTE.ink }}>
-                  {formatPrice(s.priceGBP)}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Expander for the remaining 7 sizes — power users only */}
-        <div className="text-center mt-6">
-          <button
-            type="button"
-            onClick={() => setShowAll((v) => !v)}
-            style={{
-              fontFamily: 'Asap, system-ui, sans-serif',
-              fontSize: 14,
-              color: PALETTE.rose,
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '8px 12px',
-              fontWeight: 600,
-            }}
-            aria-expanded={showAll}
-          >
-            {showAll ? "Hide other sizes ▴" : `See all ${CANVAS_SIZES.length} sizes ▾`}
-          </button>
-        </div>
-
-        {showAll && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5 mt-4">
-            {rest.map((s) => (
-              <div
-                key={s.uid}
-                className="rounded-lg px-3 py-3 text-center"
-                style={{
-                  background: PALETTE.cream2,
-                  border: `1px solid ${PALETTE.sand}`,
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: 'Asap, system-ui, sans-serif',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: PALETTE.ink,
-                  }}
-                >
-                  {s.label}
-                </div>
-                <div style={{ ...tabularPrice("16px"), marginTop: 2, color: PALETTE.earth }}>
-                  {formatPrice(s.priceGBP)}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Frame swatches — Unframed default + 3 wood tones (upgrade) */}
-        <div className="flex flex-col items-center mt-12">
-          <p
-            style={{
-              fontFamily: 'Asap, system-ui, sans-serif',
-              fontSize: 12,
-              color: PALETTE.earthMuted,
-              textTransform: 'uppercase',
-              letterSpacing: '0.14em',
-              marginBottom: 16,
-            }}
-          >
-            Frame · Unframed included, real wood frame +£{FRAME_UPGRADE_GBP["8x10"] ?? 45} upgrade
-          </p>
-          <div className="flex items-start justify-center gap-8 sm:gap-12 flex-wrap">
-            <div key="unframed" className="flex flex-col items-center gap-2">
-              <div
-                className="rounded-full flex items-center justify-center"
-                style={{
-                  width: 44,
-                  height: 44,
-                  background: "transparent",
-                  border: `2px dashed ${PALETTE.sandDeep}`,
-                  color: PALETTE.earthMuted,
-                  fontSize: 18,
-                  lineHeight: 1,
-                }}
-                aria-hidden="true"
-              >∅</div>
-              <span
-                style={{
-                  fontFamily: 'Asap, system-ui, sans-serif',
-                  fontSize: 14,
-                  color: PALETTE.earth,
-                  fontWeight: 500,
-                }}
-              >
-                Unframed
-              </span>
-            </div>
-            {FRAME_COLORS.map((c) => (
-              <div key={c.uid} className="flex flex-col items-center gap-2">
-                <div
-                  className="rounded-full"
-                  style={{
-                    width: 44,
-                    height: 44,
-                    background: c.swatchHex,
-                    border: `2px solid ${PALETTE.sandDeep}`,
-                    boxShadow: "0 2px 6px rgba(20,18,16,0.12)",
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: 'Asap, system-ui, sans-serif',
-                    fontSize: 14,
-                    color: PALETTE.earth,
-                    fontWeight: 500,
-                  }}
-                >
-                  {c.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Trust badges — plain English, larger type */}
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-12 text-center">
-          {TRUST_BADGES.map((line) => (
-            <span
-              key={line}
-              className="inline-flex items-center gap-2"
+      <div className="mx-auto" style={{ maxWidth: 1120 }}>
+        {/* ── Hero band: framed canvas photo | sizing ────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.04fr_1fr] gap-10 lg:gap-16 items-center">
+          {/* Framed-canvas-on-wall hero */}
+          <figure className="relative m-0">
+            <div
+              aria-hidden
+              className="absolute inset-x-6 -bottom-3 h-10 rounded-full"
+              style={{ background: "rgba(20,18,16,0.10)", filter: "blur(22px)" }}
+            />
+            <img
+              src={frameHero}
+              width={1280}
+              height={1600}
+              alt="A hand-finished pet portrait canvas in a real wood frame, hung on a warm wall."
+              loading="lazy"
+              decoding="async"
+              className="relative block w-full"
               style={{
-                fontFamily: 'Assistant, system-ui, sans-serif',
-                fontSize: 14,
-                color: PALETTE.earth,
+                borderRadius: 16,
+                boxShadow:
+                  "0 1px 2px rgba(20,18,16,0.05), 0 24px 60px -18px rgba(20,18,16,0.30)",
+                aspectRatio: "4 / 5",
+                objectFit: "cover",
+              }}
+            />
+            <figcaption
+              className="text-center mt-5"
+              style={{
+                fontFamily: "Cormorant Garamond, Georgia, serif",
+                fontStyle: "italic",
+                fontSize: 15,
+                color: PALETTE.earthMuted,
               }}
             >
-              <Check className="w-4 h-4 shrink-0" style={{ color: PALETTE.rose }} />
-              {line}
+              Hand-finished canvas — made to live on a wall, not in a drawer.
+            </figcaption>
+          </figure>
+
+          {/* Sizing column */}
+          <div>
+            <p
+              style={{
+                fontFamily: "Asap, system-ui, sans-serif",
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: PALETTE.goldDeep,
+                margin: 0,
+              }}
+            >
+              The gallery
+            </p>
+            <h2
+              id="frame-sizes-heading"
+              style={{
+                fontFamily: "Cormorant Garamond, Georgia, serif",
+                fontSize: "clamp(30px, 4vw, 44px)",
+                fontWeight: 500,
+                color: PALETTE.ink,
+                letterSpacing: "-0.01em",
+                margin: "10px 0 0",
+              }}
+            >
+              Pick a size
+            </h2>
+            <p
+              style={{
+                fontFamily: "Assistant, system-ui, sans-serif",
+                fontSize: 15,
+                lineHeight: 1.6,
+                color: PALETTE.earth,
+                margin: "12px 0 26px",
+                maxWidth: 420,
+              }}
+            >
+              Every size is the same hand-finished canvas. Shapes shown to scale.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {featured.map((s) => {
+                const isPopular = s.uid === POPULAR_UID;
+                const dim = silhouette(s.uid, 60);
+                return (
+                  <div
+                    key={s.uid}
+                    className="rounded-xl px-4 py-5 relative"
+                    style={{
+                      background: PALETTE.cream2,
+                      border: `1px solid ${isPopular ? PALETTE.gold : PALETTE.sand}`,
+                      boxShadow: isPopular
+                        ? "0 6px 20px -6px rgba(196,162,101,0.30)"
+                        : "0 1px 3px rgba(20,18,16,0.04)",
+                      transform: isPopular ? "translateY(-2px)" : undefined,
+                    }}
+                  >
+                    {isPopular && (
+                      <div
+                        className="absolute left-1/2 -translate-x-1/2"
+                        style={{
+                          top: -12,
+                          background: PALETTE.gold,
+                          color: "#fff",
+                          fontFamily: "Asap, system-ui, sans-serif",
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          letterSpacing: "0.09em",
+                          textTransform: "uppercase",
+                          padding: "4px 12px",
+                          borderRadius: 999,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ★ Most loved
+                      </div>
+                    )}
+
+                    {/* True-proportion silhouette */}
+                    <div
+                      className="flex items-end justify-center"
+                      style={{ height: 64, marginBottom: 10 }}
+                      aria-hidden
+                    >
+                      <div
+                        style={{
+                          width: dim.width,
+                          height: dim.height,
+                          background: "#fff",
+                          border: `1px solid ${PALETTE.sandDeep}`,
+                          boxShadow: "0 2px 5px rgba(20,18,16,0.10)",
+                          borderRadius: 2,
+                        }}
+                      />
+                    </div>
+
+                    <div
+                      className="text-center"
+                      style={{
+                        fontFamily: "Asap, system-ui, sans-serif",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: PALETTE.earthMuted,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      {TIER_NAME[s.uid]}
+                    </div>
+                    <div
+                      className="text-center"
+                      style={{
+                        fontFamily: "Cormorant Garamond, Georgia, serif",
+                        fontSize: 21,
+                        fontWeight: 500,
+                        color: PALETTE.ink,
+                        marginTop: 4,
+                      }}
+                    >
+                      {s.label}
+                    </div>
+                    <div
+                      className="text-center"
+                      style={{ ...tabularPrice("22px"), marginTop: 4, color: PALETTE.ink }}
+                    >
+                      {formatPrice(s.priceGBP)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={() => setShowAll((v) => !v)}
+                style={{
+                  fontFamily: "Asap, system-ui, sans-serif",
+                  fontSize: 14,
+                  color: PALETTE.rose,
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "6px 0",
+                  fontWeight: 600,
+                }}
+                aria-expanded={showAll}
+              >
+                {showAll ? "Hide other sizes ▴" : `See all ${CANVAS_SIZES.length} sizes ▾`}
+              </button>
+            </div>
+
+            {showAll && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 mt-3">
+                {rest.map((s) => {
+                  const dim = silhouette(s.uid, 38);
+                  return (
+                    <div
+                      key={s.uid}
+                      className="rounded-lg px-3 py-3 flex flex-col items-center"
+                      style={{
+                        background: PALETTE.cream2,
+                        border: `1px solid ${PALETTE.sand}`,
+                      }}
+                    >
+                      <div
+                        className="flex items-end justify-center"
+                        style={{ height: 40, marginBottom: 6 }}
+                        aria-hidden
+                      >
+                        <div
+                          style={{
+                            width: dim.width,
+                            height: dim.height,
+                            background: "#fff",
+                            border: `1px solid ${PALETTE.sandDeep}`,
+                            borderRadius: 1.5,
+                          }}
+                        />
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "Asap, system-ui, sans-serif",
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          color: PALETTE.ink,
+                        }}
+                      >
+                        {s.label}
+                      </div>
+                      <div style={{ ...tabularPrice("14px"), marginTop: 2, color: PALETTE.earth }}>
+                        {formatPrice(s.priceGBP)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Frame swatches — photoreal corner crops ────────────────── */}
+        <div className="mt-16 lg:mt-20">
+          <p
+            className="text-center"
+            style={{
+              fontFamily: "Asap, system-ui, sans-serif",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: PALETTE.earthMuted,
+              marginBottom: 20,
+            }}
+          >
+            Choose a frame — unframed included, real wood from +{symbol}{FRAME_UPGRADE}
+          </p>
+          <div className="flex items-start justify-center gap-5 sm:gap-8 flex-wrap">
+            {frameOpts.map((f) => {
+              const selected = activeFrame === f.uid;
+              return (
+                <button
+                  key={f.uid}
+                  type="button"
+                  onClick={() => setActiveFrame(f.uid)}
+                  className="flex flex-col items-center gap-2.5 bg-transparent border-0 cursor-pointer p-0"
+                  aria-pressed={selected}
+                  style={{ width: 92 }}
+                >
+                  <span
+                    className="block overflow-hidden"
+                    style={{
+                      width: 84,
+                      height: 84,
+                      borderRadius: 14,
+                      boxShadow: selected
+                        ? `0 0 0 2px ${PALETTE.cream}, 0 0 0 4px ${PALETTE.gold}, 0 10px 22px -8px rgba(20,18,16,0.35)`
+                        : "0 2px 8px rgba(20,18,16,0.12)",
+                      transition: "box-shadow 200ms ease, transform 200ms ease",
+                      transform: selected ? "translateY(-2px)" : undefined,
+                    }}
+                  >
+                    <img
+                      src={FRAME_IMG[f.uid]}
+                      alt={`${f.label} frame`}
+                      width={168}
+                      height={168}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full"
+                      style={{ objectFit: "cover", display: "block" }}
+                    />
+                  </span>
+                  <span
+                    className="inline-flex items-center gap-1.5"
+                    style={{
+                      fontFamily: "Asap, system-ui, sans-serif",
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      color: selected ? PALETTE.rose : PALETTE.earth,
+                    }}
+                  >
+                    {selected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                    {f.label}
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "Assistant, system-ui, sans-serif",
+                      fontSize: 12,
+                      color: PALETTE.earthMuted,
+                      marginTop: -4,
+                    }}
+                  >
+                    {f.note}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Trust badges — hairline-separated, refined ─────────────── */}
+        <div className="flex flex-wrap items-center justify-center mt-16 text-center" style={{ gap: "10px 0" }}>
+          {TRUST_BADGES.map((line, i) => (
+            <span key={line} className="inline-flex items-center">
+              {i > 0 && (
+                <span
+                  aria-hidden
+                  className="hidden sm:inline-block"
+                  style={{ width: 1, height: 13, background: PALETTE.sandDeep, margin: "0 18px" }}
+                />
+              )}
+              <span
+                className="inline-flex items-center gap-2 px-3 sm:px-0"
+                style={{
+                  fontFamily: "Assistant, system-ui, sans-serif",
+                  fontSize: 14,
+                  color: PALETTE.earth,
+                }}
+              >
+                <Check className="w-4 h-4 shrink-0" style={{ color: PALETTE.rose }} />
+                {line}
+              </span>
             </span>
           ))}
         </div>
