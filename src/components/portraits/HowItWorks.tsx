@@ -25,19 +25,19 @@ const STEPS: Step[] = [
   {
     index: "01",
     img: step1,
-    title: "Add a photo",
-    body: "Tell us the moment you picture.",
+    title: "Upload a photo",
+    body: "Any clear photo of them.",
   },
   {
     index: "02",
     img: step2,
-    title: "See them painted on screen",
-    body: "Adjust until it feels like them.",
+    title: "Describe how you want them",
+    body: "The style and scene — in your words.",
   },
   {
     index: "03",
     img: step3,
-    title: "Bring them home",
+    title: "Choose a frame, we deliver",
     body: "Hand-finished canvas, 3–5 days.",
   },
 ];
