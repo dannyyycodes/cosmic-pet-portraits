@@ -111,7 +111,7 @@ export function TemplatePreview({ template, cutoutUrl, transform, onChange, size
 
   // Render mask shape twice: once as clipFunc for the pet group, once as
   // visible stroke on the frame layer.
-  function applyClip(ctx: CanvasRenderingContext2D) {
+  function applyClip(ctx: Konva.Context) {
     ctx.beginPath();
     if (template.maskShape === "circle") {
       ctx.arc(cx, cy, r, 0, Math.PI * 2);

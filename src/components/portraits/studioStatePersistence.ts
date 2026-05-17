@@ -27,10 +27,10 @@
  */
 
 const STORAGE_KEY = "ls.portraits.studio.state.v1";
-// 24h TTL — long enough to cover "I bookmarked the studio mid-session and
-// came back the next morning"; short enough that month-old state from a
-// dev test session doesn't surprise a returning user.
-const TTL_MS = 1000 * 60 * 60 * 24;
+// 4h TTL — long enough that "I closed the tab while the generation was
+// running" is recoverable; short enough that stale state from a previous
+// session doesn't surprise the user.
+const TTL_MS = 1000 * 60 * 60 * 4;
 
 export interface PersistedPet {
   id: string;

@@ -18,7 +18,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getSupabaseAdmin } from "./_lib/supabaseAdmin.js";
 import { isWellFormedToken } from "./_lib/readingToken.js";
 import { renderReadingReadyEmail } from "./_lib/email/readingReadyEmail.js";
-import { listPendingForReconcile, markPendingFailure } from "./shopify/_lib/jobsRepo.js";
+import { listPendingForReconcile, markPendingFailure, type SoulReadingJobRow } from "./shopify/_lib/jobsRepo.js";
 import { triggerN8nForJob } from "./shopify/_lib/triggerN8n.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

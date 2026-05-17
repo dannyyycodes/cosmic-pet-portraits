@@ -114,8 +114,9 @@ export interface CanvasFulfillmentInputs {
   frameColor: FrameColor | null;
   sku: string;
   sizeLabel: string;
-  /** Best image URL for the print master. Prefers the explicit print master,
-   *  falls back to the source photo, then preview. */
+  /** Legacy URL form of the print master, if present. Private printMasterPath
+   *  takes precedence downstream. No source-photo/preview fallback is allowed
+   *  for paid canvas fulfilment. */
   sourceImageUrl: string | null;
   /** PRIVATE storage path (post-2026-05-12). Format "<folder>/<uuid>.png" in
    *  the pet-photos-private bucket. When present, fulfilment must fetch via
@@ -220,26 +221,22 @@ export function extractCanvasFulfillmentLines(
     const previewUrl = readProp(li.properties, ["Preview portrait", "_preview_url"]);
     const petName = readProp(li.properties, ["Pet Name", "_pet_name"]);
 
-    // Prefer explicit print master, then source photo, then preview. The
-    // pipeline will run AuraSR 4× regardless — its job is to upscale.
-    // sourceImageUrl is the URL form (legacy carts); printMasterPath is the
-    // new private-bucket path. Fulfilment uses path first, URL fallback.
-    const sourceImageUrl = printMasterUrl ?? sourcePhotoUrl ?? previewUrl ?? null;
+    // Only explicit print masters are acceptable for paid canvas fulfilment.
+    // sourceImageUrl is the legacy URL form; printMasterPath is the private
+    // bucket path and takes precedence downstream.
+    const sourceImageUrl = printMasterUrl ?? null;
 
-    // If we ended up at the previewUrl fallback, the upstream pipeline
-    // dropped the print master somewhere and we'll be upscaling a
-    // 1024px source. Surface this loudly — the customer paid for a
-    // canvas that's about to be muddy. Should be impossible after the
-    // 2026-05-11 cart/checkout.ts validation but log defensively in
-    // case a future code path bypasses it.
-    if (!printMasterUrl && !sourcePhotoUrl && previewUrl) {
-      console.warn("[extractCanvas] PRINT_MASTER_FALLBACK_TO_PREVIEW", {
+    // Missing print master should route to manual review upstream instead of
+    // falling back to the source photo or preview.
+    if (!needsCustomisation && !printMasterPath && !printMasterUrl) {
+      console.warn("[extractCanvas] MISSING_PRINT_MASTER_MANUAL_REVIEW", {
         lineItemId,
         variantId,
         sku: canvas.sku,
         sizeKey: canvas.sizeKey,
         frameColor: canvas.frameColor,
-        previewUrl: previewUrl.slice(0, 120),
+        hasSourcePhotoUrl: !!sourcePhotoUrl,
+        hasPreviewUrl: !!previewUrl,
       });
     }
 

@@ -1,4 +1,8 @@
 {
+  "functions": {
+    "api/cron/*.ts": { "maxDuration": 300 },
+    "api/portraits.ts": { "maxDuration": 300 }
+  },
   "crons": [
     {
       "path": "/api/cron/weekly-horoscopes",
@@ -15,6 +19,14 @@
     {
       "path": "/api/soul-reading?action=reconcile",
       "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/generation-recovery",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/gelato-worker",
+      "schedule": "*/5 * * * *"
     }
   ],
   "headers": [

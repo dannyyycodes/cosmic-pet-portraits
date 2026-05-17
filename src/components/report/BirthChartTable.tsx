@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { ChartPlacement } from './types';
 
@@ -32,14 +32,14 @@ function formatDegree(degree: number): string {
   return `${deg}° ${String(min).padStart(2, '0')}'`;
 }
 
-const rowVariants = {
+const rowVariants: Variants = {
   hidden: { opacity: 0, x: -20 },
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
     transition: {
       duration: 0.45,
-      ease: [0.16, 1, 0.3, 1],
+      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
       delay: i * 0.05,
     },
   }),

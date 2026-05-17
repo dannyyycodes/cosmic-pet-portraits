@@ -43,6 +43,17 @@ const GIFT_CARD_VARIANT_IDS = new Set<number>([
 // ─── Soul Reading constants (mirrors src/components/portraits/soulReading.ts) ──
 const SOUL_READING_VARIANT_ID = 64601427640669;
 const SOUL_READING_PRODUCT_TYPE = "soul-reading";
+const SOUL_EDITION_PRICE_GBP = 40;
+// Gift-card post-purchase upsell promo. The client may signal it wants the
+// upsell discount, but the percentage is SERVER-controlled and clamped to
+// this ceiling — a client can never choose its own (the C1 exploit was an
+// arbitrary/100% client value). Mirrors PostPurchaseGiftUpsell DISCOUNT_PCT.
+const GIFT_UPSELL_MAX_DISCOUNT_PCT = 20;
+const CANONICAL_RETURN_ORIGIN = "https://www.littlesouls.app";
+const ALLOWED_RETURN_ORIGINS = new Set([
+  CANONICAL_RETURN_ORIGIN,
+  "https://littlesouls.app",
+]);
 const SOUL_READING_TITLE = "Soul Reading — Personalised Pet Astrology";
 
 interface VariantDef {
@@ -183,14 +194,9 @@ interface CartItemBody {
    *  admin client. Replaces printMasterUrl post-2026-05-12. */
   printMasterPath?: string;
   soulEdition?: boolean;
-  soulEditionPriceMajor?: number;
   /** Soul Reading line: variantId pre-set, properties carry pet inputs. */
   variantId?: number;
   properties?: Record<string, string>;
-  /** Gift card only — percentage discount applied via Shopify draft order
-   *  applied_discount (e.g. 20 = 20% off). Variant ID + recipient props are
-   *  preserved so Shopify's native gift-card auto-code generation still fires. */
-  appliedDiscountPct?: number;
 }
 
 interface ConsentBody {
@@ -206,6 +212,30 @@ interface CheckoutBody {
 }
 
 const VALID_CURRENCIES = new Set(["GBP", "USD"]);
+
+// NOTE (C1): we do NOT 400 a checkout merely because the body carries
+// `appliedDiscountPct` / `soulEditionPriceMajor`. The legit frontend ALWAYS
+// includes `soulEditionPriceMajor` (even as `undefined`) via buildCartItem,
+// and the post-purchase gift upsell legitimately sends `appliedDiscountPct`.
+// Hard-rejecting on presence broke every real checkout. Instead the server
+// simply IGNORES those client values: Soul Edition is priced from
+// SOUL_EDITION_PRICE_GBP, and the gift discount is server-clamped to
+// GIFT_UPSELL_MAX_DISCOUNT_PCT. The exploit (arbitrary/100% off, free £40
+// add-on) is closed at the build step, not by rejecting the request.
+
+function isPresentConsentTimestamp(value: string | null | undefined): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function configuredReturnOrigin(): string {
+  const raw = process.env.CHECKOUT_RETURN_ORIGIN ?? process.env.PUBLIC_SITE_URL ?? CANONICAL_RETURN_ORIGIN;
+  try {
+    const origin = new URL(raw).origin;
+    return ALLOWED_RETURN_ORIGINS.has(origin) ? origin : CANONICAL_RETURN_ORIGIN;
+  } catch {
+    return CANONICAL_RETURN_ORIGIN;
+  }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -225,6 +255,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "items[] required (at least 1)" });
   if (b.items.length > 20)
     return res.status(400).json({ error: "max 20 items per order" });
+
+  let requiresCanvasConsent = false;
+  let requiresReadingConsent = false;
+  for (let i = 0; i < b.items.length; i++) {
+    const it = b.items[i];
+    // C1: client-supplied price/discount fields are intentionally ignored
+    // (not rejected) — see the NOTE above. Pricing is enforced at build.
+    if (it.productType === "canvas" || it.productType === "framed-canvas") {
+      requiresCanvasConsent = true;
+    }
+    if (
+      it.productType === SOUL_READING_PRODUCT_TYPE ||
+      (typeof it.variantId === "number" && it.variantId === SOUL_READING_VARIANT_ID)
+    ) {
+      requiresReadingConsent = true;
+    }
+  }
+  if (requiresCanvasConsent && !isPresentConsentTimestamp(b.consent?.canvasPersonalisedAt)) {
+    return res.status(400).json({ error: "consent.canvasPersonalisedAt required for personalised canvas items" });
+  }
+  if (requiresReadingConsent && !isPresentConsentTimestamp(b.consent?.readingImmediateAt)) {
+    return res.status(400).json({ error: "consent.readingImmediateAt required for immediate Soul Reading delivery" });
+  }
 
   // ─── Build line items ──────────────────────────────────────────────────
   const lineItems: DraftOrderLineItem[] = [];
@@ -281,8 +334,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── Gift card line — Shopify-native gift card. No print master, no preview,
     //    no source photo. Just variant_id + recipient details as line-item
     //    properties (Shopify auto-emails recipient + auto-generates the code).
-    //    Optional appliedDiscountPct → per-line percentage discount via Shopify
-    //    draft-order applied_discount (preserves variant ID for native gift-card flow).
     //    Branched early so the canvas/POD validators don't reject the empty fields.
     if (it.productType === "gift-card" || (typeof it.variantId === "number" && GIFT_CARD_VARIANT_IDS.has(it.variantId))) {
       if (!it.variantId || typeof it.variantId !== "number") {
@@ -299,8 +350,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: `items[${i}]: gift-card requires a valid properties.recipient_email` });
       }
 
-      // Build per-line applied_discount when appliedDiscountPct present.
-      // Variant ID stays set so Shopify's native gift-card auto-code generation runs.
       const giftLine: DraftOrderLineItem = {
         variantId: it.variantId,
         quantity: 1,
@@ -310,22 +359,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ...(giftMessage ? [{ name: "message", value: giftMessage }] : []),
           // Hidden audit trail — useful for analytics on which gift channel converts.
           { name: "_line_kind", value: "gift-card" },
-          ...(typeof it.appliedDiscountPct === "number" && it.appliedDiscountPct > 0
-            ? [{ name: "_discount_pct", value: String(it.appliedDiscountPct) }]
-            : []),
         ],
       };
-      if (typeof it.appliedDiscountPct === "number" && it.appliedDiscountPct > 0 && it.appliedDiscountPct <= 100) {
+      // Server-controlled gift upsell discount. We read the client's
+      // `appliedDiscountPct` only as a HINT that the upsell flow ran, then
+      // clamp hard to GIFT_UPSELL_MAX_DISCOUNT_PCT server-side. A client can
+      // never get more than the real promo (closes the arbitrary/100%-off
+      // C1 exploit) while the legit 20%-off post-purchase upsell still works.
+      const reqPctRaw = Number((it as unknown as Record<string, unknown>).appliedDiscountPct);
+      const giftDiscountPct =
+        Number.isFinite(reqPctRaw) && reqPctRaw > 0
+          ? Math.min(reqPctRaw, GIFT_UPSELL_MAX_DISCOUNT_PCT)
+          : 0;
+      if (giftDiscountPct > 0) {
         giftLine.appliedDiscount = {
-          description: `${it.appliedDiscountPct}% off — Little Souls upsell`,
+          description: `${giftDiscountPct}% off — Little Souls upsell`,
           valueType: "percentage",
-          value: it.appliedDiscountPct.toFixed(2),
+          value: giftDiscountPct.toFixed(2),
         };
+        giftLine.properties.push({ name: "_discount_pct", value: String(giftDiscountPct) });
       }
       lineItems.push(giftLine);
-      noteSummary.push(`Gift card · ${recipientName} <${recipientEmail}>${
-        it.appliedDiscountPct ? ` (${it.appliedDiscountPct}% off)` : ""
-      }`);
+      noteSummary.push(`Gift card · ${recipientName} <${recipientEmail}>`);
       continue;
     }
 
@@ -374,9 +429,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // degraded print. (AI items have their own guard via the printMaster regen
     // step in StudioFlow.handleAdd, which hard-stops cart-add on failure.)
     const hasPrintMaster = !!(it.printMasterPath || it.printMasterUrl);
-    if (isTemplate && (productKey === "canvas" || productKey === "framed-canvas") && !hasPrintMaster) {
+    if ((productKey === "canvas" || productKey === "framed-canvas") && !hasPrintMaster) {
       return res.status(400).json({
-        error: `items[${i}]: ${productKey} template missing print master. Cannot create order — would degrade print quality. Re-run print-master prep in cart.`,
+        error: `items[${i}]: ${productKey} missing print master. Cannot create order without print-ready artwork. Re-run print-master prep in cart.`,
       });
     }
     // Digital download: ALWAYS requires print master (AI or template) — the
@@ -416,14 +471,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Soul Edition add-on — only valid on framed-canvas items
     if (
       productKey === "framed-canvas" &&
-      it.soulEdition &&
-      typeof it.soulEditionPriceMajor === "number" &&
-      it.soulEditionPriceMajor > 0
+      it.soulEdition
     ) {
       soulEditionCount++;
       lineItems.push({
         title: `Soul Edition — natal chart reading + bound book — for ${it.packName} portrait`,
-        price: it.soulEditionPriceMajor.toFixed(2),
+        price: SOUL_EDITION_PRICE_GBP.toFixed(2),
         quantity: 1,
         properties: [
           { name: "Linked portrait pack", value: it.packName },
@@ -483,9 +536,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Post-payment redirect — Shopify lands the customer back on our thank-you
     // page (which renders the post-purchase gift upsell). Falls back to Shopify's
     // default order-status page if return_url isn't set on this draft.
-    const origin = (req.headers.origin as string | undefined)
-      ?? (req.headers.host ? `https://${req.headers.host}` : "https://www.littlesouls.app");
-    const returnUrl = `${origin.replace(/\/$/, "")}/pawtraits/thanks`;
+    const returnUrl = `${configuredReturnOrigin()}/pawtraits/thanks`;
 
     const draft = await createDraftOrder({
       lineItems,

@@ -112,7 +112,7 @@ const BlogPost = () => {
       return;
     }
 
-    setPost(data as BlogPost);
+    setPost(data as unknown as BlogPost);
     trackView(data.id, data.views ?? 0);
 
     const { data: related } = await supabase

@@ -29,6 +29,8 @@ export const PALETTE = {
   earth: "#3a3a3a",         // body text
   earthMuted: "#7a7a7a",    // captions / metadata
   earthSubtle: "#979797",   // disabled / secondary
+  muted: "#7a7a7a",         // legacy alias used by older portrait screens
+  warm: "#3a3a3a",          // legacy alias used by older portrait screens
 
   // ── Brand accent — LOCKED ───────────────────────────────────────────
   rose: "#bf524a",          // primary CTA + emotional accent

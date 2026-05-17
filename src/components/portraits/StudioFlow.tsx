@@ -835,8 +835,12 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
 
   // Derived: at least one pet has a photo + prompt is long enough.
   const uploadedPets = useMemo(() => pets.filter((p) => p.photoUrl), [pets]);
+  // balance === 0 means no credits — block generation immediately so the
+  // customer doesn't wait a full round-trip only to get a 402 error.
+  // balance null/undefined means still loading — don't block (optimistic).
+  const hasCredits = balance === null || balance === undefined || balance > 0;
   const canGenerate =
-    uploadedPets.length >= 1 && prompt.trim().length >= 4 && !generating;
+    uploadedPets.length >= 1 && prompt.trim().length >= 4 && !generating && hasCredits;
   const canAdd =
     approved && !!selectedVariantUrl && !!variant && uploadedPets.length >= 1 && !preparingPrintMaster;
 
@@ -1711,6 +1715,34 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                     <HelpCircle className="w-[18px] h-[18px]" />
                   </button>
 
+                  {user && balance === 0 ? (
+                    /* Zero-credit guard: don't let the customer trigger a
+                       full round-trip only to hit a 402. Show a topup CTA
+                       instead of the icon send button. */
+                    <button
+                      type="button"
+                      onClick={() =>
+                        document.getElementById("topup")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                      }
+                      aria-label="Top up to generate"
+                      className="ls-magnet ls-send-btn flex items-center justify-center rounded-full overflow-hidden relative transition-[background,box-shadow]"
+                      style={{
+                        height: 40,
+                        paddingLeft: 16,
+                        paddingRight: 16,
+                        background: `linear-gradient(135deg, ${PALETTE.rose} 0%, ${PALETTE.roseDeep} 100%)`,
+                        color: PALETTE.cream,
+                        border: "none",
+                        boxShadow: `0 8px 22px ${PALETTE.rose}66, 0 0 0 4px ${PALETTE.rose}1a`,
+                        fontFamily: 'Assistant, system-ui, sans-serif',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Top up to generate →
+                    </button>
+                  ) : (
                   <button
                     onClick={handleGenerate}
                     disabled={!canGenerate}
@@ -1755,6 +1787,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                       <ArrowUp className="w-[18px] h-[18px]" strokeWidth={2.5} />
                     )}
                   </button>
+                  )}
                 </div>
               </div>
             </div>{/* /halo wrapper */}

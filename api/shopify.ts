@@ -42,6 +42,9 @@ import {
   upsertPrintOrder,
   updatePrintOrder,
   recordHighSeverityFailure,
+  insertPrintOrderAlert,
+  getPrintOrderByShopifyLine,
+  cancelGelatoOrder,
   type PrintOrderRow,
 } from "./_lib/printOrdersRepo.js";
 
@@ -630,7 +633,87 @@ async function handleRefundsCreate(
     }
 
     if (!row) {
-      nonReadingSkipped++;
+      // Not a soul-reading line. C2 fix: it may be a CANVAS line. Previously
+      // this just skipped, so a refunded canvas kept printing & shipping
+      // (customer keeps money AND gets the product). Look up print_orders and
+      // stop fulfilment.
+      try {
+        const po = await getPrintOrderByShopifyLine(String(orderId), String(lineItemId));
+        if (!po) {
+          nonReadingSkipped++;
+          continue;
+        }
+        if (po.status === "pending" || po.status === "manual_review" || po.status === "failed") {
+          // Not yet sent to Gelato — just cancel it so the cron skips it.
+          await updatePrintOrder({
+            printOrderId: po.id,
+            status: "canceled",
+            lastError: `Refund webhook ${eventId} (refund ${refundId ?? "n/a"})`,
+            metadataMerge: { canceledByRefund: { eventId, refundId, at: new Date().toISOString() } },
+          });
+          cancelled++;
+          console.log(
+            "[refunds/create] canvas_canceled_pre_submit",
+            JSON.stringify({ eventId, orderId, lineItemId, printOrderId: po.id, prevStatus: po.status }),
+          );
+        } else if (po.status === "submitted" || po.status === "printed") {
+          // Already at Gelato — attempt a live cancel + page ops.
+          const gid = po.gelato_order_id;
+          const cx = gid ? await cancelGelatoOrder(gid) : { ok: false, detail: "no gelato_order_id" };
+          await updatePrintOrder({
+            printOrderId: po.id,
+            status: cx.ok ? "canceled" : po.status,
+            metadataMerge: {
+              refundCancelAttempt: { eventId, refundId, gelatoOrderId: gid, result: cx, at: new Date().toISOString() },
+            },
+          });
+          await recordHighSeverityFailure({
+            printOrderId: po.id,
+            shopifyOrderId: String(orderId),
+            shopifyLineItemId: String(lineItemId),
+            sku: po.sku,
+            stage: "refund_cancel",
+            message: cx.ok
+              ? `Refunded canvas — Gelato cancel ACCEPTED (was ${po.status}). Verify it didn't already ship.`
+              : `Refunded canvas at Gelato (${po.status}) — cancel FAILED: ${cx.detail ?? "unknown"}. Manual Gelato recall needed.`,
+            details: { eventId, refundId, gelatoOrderId: gid, cancelResult: cx },
+          });
+          cancelled++;
+        } else {
+          // shipped / delivered / canceled — can't unship; audit + alert.
+          await recordHighSeverityFailure({
+            printOrderId: po.id,
+            shopifyOrderId: String(orderId),
+            shopifyLineItemId: String(lineItemId),
+            sku: po.sku,
+            stage: "refund_after_ship",
+            message: `Refund issued but canvas already ${po.status} — customer keeps refund AND product. Ops decision needed.`,
+            details: { eventId, refundId, status: po.status },
+          });
+          alreadyTerminal++;
+        }
+      } catch (err) {
+        // Do NOT 500 the whole webhook — that aborts every other line item
+        // in a multi-item refund and makes Shopify replay the entire event.
+        // Record + alert and continue; Shopify's retry (or ops) will catch
+        // this one line. getPrintOrderByShopifyLine re-reads fresh each time
+        // and cancel-of-already-canceled is harmless, so retry is safe.
+        const emsg = err instanceof Error ? err.message : String(err);
+        console.error(
+          "[refunds/create] canvas_cancel_failed",
+          JSON.stringify({ eventId, orderId, lineItemId, error: emsg }),
+        );
+        try {
+          await insertPrintOrderAlert({
+            printOrderId: null,
+            severity: "high",
+            message: `Refund webhook could not cancel canvas line (order ${orderId}, line ${lineItemId}) — refunded canvas may still ship: ${emsg}`,
+            details: { eventId, refundId, orderId, lineItemId },
+          });
+        } catch {
+          /* alert is best-effort */
+        }
+      }
       continue;
     }
 

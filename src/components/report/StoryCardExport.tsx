@@ -40,6 +40,13 @@ const occasionThemes: Record<OccasionMode, {
     bottomText: 'Discover your pet\'s cosmic soul',
     bgGradient: 'linear-gradient(180deg, #0f0a1f 0%, #1a0a2e 30%, #0d1117 100%)',
   },
+  new: {
+    gradient: { from: '#8b5cf6', to: '#ec4899' },
+    badge: 'COSMIC REVEAL',
+    topEmoji: '*',
+    bottomText: 'Discover your pet\'s cosmic soul',
+    bgGradient: 'linear-gradient(180deg, #0f0a1f 0%, #1a0a2e 30%, #0d1117 100%)',
+  },
   birthday: {
     gradient: { from: '#f59e0b', to: '#ef4444' },
     badge: '🎂 BIRTHDAY LEGEND 🎂',

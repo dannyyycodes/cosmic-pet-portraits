@@ -16,6 +16,18 @@ export interface CreditsState {
   refresh: () => void;
 }
 
+type CreditsRow = { tokens?: number; download_credits?: number };
+type SubscriptionRow = { tier?: "pass" | "elite" | null; status?: string };
+type QueryResult<T> = Promise<{ data: T | null; error?: unknown }>;
+interface MinimalSupabaseQuery<T> {
+  select(columns: string): MinimalSupabaseQuery<T>;
+  eq(column: string, value: string): MinimalSupabaseQuery<T>;
+  maybeSingle(): QueryResult<T>;
+}
+interface MinimalSupabaseClient {
+  from<T>(table: string): MinimalSupabaseQuery<T>;
+}
+
 export function useCredits(): CreditsState {
   const { user } = useAuth();
   // Keying on `user?.id` (a primitive) rather than the `user` object means
@@ -38,21 +50,21 @@ export function useCredits(): CreditsState {
     setLoading(true);
     try {
       const [creditsRes, subRes] = await Promise.all([
-        supabase
-          .from("portraits_credits")
+        (supabase as unknown as MinimalSupabaseClient)
+          .from<CreditsRow>("portraits_credits")
           .select("tokens, download_credits")
           .eq("account_id", userId)
           .maybeSingle(),
-        supabase
-          .from("portraits_subscriptions")
+        (supabase as unknown as MinimalSupabaseClient)
+          .from<SubscriptionRow>("portraits_subscriptions")
           .select("tier, status")
           .eq("account_id", userId)
           .eq("status", "active")
           .maybeSingle(),
       ]);
       setBalance(creditsRes.data?.tokens ?? 0);
-      setDownloadCredits((creditsRes.data as { download_credits?: number } | null)?.download_credits ?? 0);
-      setTier((subRes.data?.tier as "pass" | "elite" | null) ?? null);
+      setDownloadCredits(creditsRes.data?.download_credits ?? 0);
+      setTier(subRes.data?.tier ?? null);
     } catch {
       setBalance(null);
       setDownloadCredits(null);

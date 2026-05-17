@@ -43,8 +43,8 @@ import { PALETTE } from "@/components/portraits/tokens";
 
 export default function PortraitsStudio() {
   const navigate = useNavigate();
-  const { user, session } = useAuth();
-  const { balance, tier, refresh: refreshCredits } = useCredits();
+  const { user, session, loading: authLoading } = useAuth();
+  const { balance, tier, loading: creditsLoading, refresh: refreshCredits } = useCredits();
   const [photoUrl, setPhotoUrlState] = useState<string | null>(() => loadPetPhoto());
   const setPhotoUrl = (url: string | null) => {
     setPhotoUrlState(url);
@@ -57,6 +57,8 @@ export default function PortraitsStudio() {
   const [variants, setVariants] = useState<Variant[]>([]);
   const [selectedVariantUrl, setSelectedVariantUrl] = useState<string | null>(null);
   const [aiPaused, setAiPaused] = useState(false);
+  // In-flight async generation (fal queue). Drives the polling effect below.
+  const [pendingJobId, setPendingJobId] = useState<string | null>(null);
 
   const [productType, setProductType] = useState<ProductTypeKey>("framed-canvas");
   const [sizeKey, setSizeKey] = useState<AnySizeKey>(PRODUCTS["framed-canvas"].defaultSizeKey);
@@ -87,8 +89,9 @@ export default function PortraitsStudio() {
     setVariants([]);
     setSelectedVariantUrl(null);
     setAiPaused(false);
+    // Submit-only timeout — short, since queue submit is normally <2s.
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 60000);
+    const timer = setTimeout(() => ctrl.abort(), 30000);
     try {
       const res = await fetch("/api/portraits?action=generate", {
         method: "POST",
@@ -103,26 +106,118 @@ export default function PortraitsStudio() {
       if (res.status === 402) {
         toast.error("Out of credits. Subscribe or buy a pack to continue.");
         navigate("/pawtraits#topup");
+        setGenerating(false);
         return;
       }
       if (res.status === 503 && data.error === "ai-service-paused") {
         setAiPaused(true);
         toast.error(data.message ?? "Portrait studio paused. Try Templates instead.");
         refreshCredits();
+        setGenerating(false);
         return;
       }
+      if (res.status === 422 && data?.error === "content_policy_violation") {
+        toast.error(data.message ?? "Our moderator flagged this generation — try again.", { duration: 8000 });
+        refreshCredits();
+        setGenerating(false);
+        return;
+      }
+      // 202 — async submit accepted. Polling effect below drives the rest.
+      if (res.status === 202 && data?.job_id) {
+        setPendingJobId(data.job_id);
+        return; // keep generating=true; polling effect clears it
+      }
+      // Defensive: legacy synchronous response shape.
       if (!res.ok) throw new Error(data.error || "Generation failed");
-      setVariants(data.variants);
-      if (data.variants[0]) setSelectedVariantUrl(data.variants[0].url);
-      refreshCredits();
+      if (data.variants) {
+        setVariants(data.variants);
+        if (data.variants[0]) setSelectedVariantUrl(data.variants[0].url);
+        refreshCredits();
+        setGenerating(false);
+      }
     } catch (e) {
       const err = e as Error;
-      toast.error(err.name === "AbortError" ? "Generation timed out after 60s. Try again." : err.message);
+      toast.error(err.name === "AbortError" ? "Took too long to submit — please try again." : err.message);
+      setGenerating(false);
     } finally {
       clearTimeout(timer);
-      setGenerating(false);
     }
   }
+
+  // Polling effect — same shape as StudioFlow's. Polls every 2.5s while
+  // pendingJobId is set; on completed/failed clears generating + jobId.
+  // Cleans up on unmount or when pendingJobId changes.
+  useEffect(() => {
+    if (!pendingJobId || !session?.access_token) return;
+    let attempts = 0;
+    const MAX_POLLS = 120;
+    const POLL_INTERVAL_MS = 2500;
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+    let pollCtrl: AbortController | null = null;
+    let cancelled = false;
+
+    async function tick() {
+      if (cancelled) return;
+      attempts += 1;
+      pollCtrl = new AbortController();
+      try {
+        const r = await fetch(
+          `/api/portraits?action=generation_status&job_id=${encodeURIComponent(pendingJobId!)}`,
+          {
+            headers: { Authorization: `Bearer ${session!.access_token}` },
+            signal: pollCtrl.signal,
+          },
+        );
+        const data = await r.json();
+        if (cancelled) return;
+
+        if (data.status === 'completed' && Array.isArray(data.variants)) {
+          setVariants(data.variants);
+          if (data.variants[0]) setSelectedVariantUrl(data.variants[0].url);
+          refreshCredits();
+          setPendingJobId(null);
+          setGenerating(false);
+          return;
+        }
+        if (data.status === 'failed') {
+          if (data.error === 'content_policy_violation') {
+            toast.error(data.message ?? "Our moderator flagged this generation — try a different name.", { duration: 8000 });
+          } else {
+            toast.error("Generation failed — your credit was refunded. Please try again.");
+          }
+          refreshCredits();
+          setPendingJobId(null);
+          setGenerating(false);
+          return;
+        }
+        if (attempts >= MAX_POLLS) {
+          toast.error("Generation is taking longer than expected. Please refresh and try again.");
+          setPendingJobId(null);
+          setGenerating(false);
+          return;
+        }
+        timeoutHandle = setTimeout(tick, POLL_INTERVAL_MS);
+      } catch (err) {
+        if (cancelled) return;
+        if ((err as Error).name === 'AbortError') return;
+        if (attempts >= MAX_POLLS) {
+          toast.error("Lost connection to the studio. Please refresh and try again.");
+          setPendingJobId(null);
+          setGenerating(false);
+          return;
+        }
+        timeoutHandle = setTimeout(tick, POLL_INTERVAL_MS);
+      }
+    }
+
+    timeoutHandle = setTimeout(tick, 1500);
+
+    return () => {
+      cancelled = true;
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      if (pollCtrl) pollCtrl.abort();
+    };
+  }, [pendingJobId, session?.access_token, refreshCredits, navigate]);
 
   function handleAdd() {
     if (!selectedVariantUrl || !variant || !photoUrl || !styleId || !themeId) return;
@@ -144,7 +239,8 @@ export default function PortraitsStudio() {
       id: crypto.randomUUID(),
     });
     setCart((c) => [...c, item]);
-    toast.success(`${style.label} × ${theme.label} added`);
+    // No toast — opening the cart drawer with the new line item IS the
+    // visual confirmation. Toast was redundant noise.
     setCartOpen(true);
   }
 
@@ -253,13 +349,18 @@ export default function PortraitsStudio() {
               </Link>
             </p>
 
-            {/* Credit balance / signup prompt */}
+            {/* Credit balance / signup prompt — neutral skeleton while
+                auth resolves, so a returning signed-in customer doesn't
+                see "3 free portraits — Sign in" flash before re-rendering
+                to their balance. */}
             <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full"
-              style={{ background: "#fff", border: `1px solid ${PALETTE.sand}`, color: PALETTE.earth, fontSize: 13 }}
+              style={{ background: "#fff", border: `1px solid ${PALETTE.sand}`, color: PALETTE.earth, fontSize: 13, minWidth: 220, justifyContent: 'center' }}
             >
-              {user ? (
+              {(authLoading || (user && creditsLoading && balance == null)) ? (
+                <span style={{ color: PALETTE.muted, opacity: 0.4 }} aria-hidden>…</span>
+              ) : user ? (
                 <>
-                  <span><strong style={{ color: PALETTE.ink }}>{balance ?? "…"}</strong> credits</span>
+                  <span><strong style={{ color: PALETTE.ink }}>{balance ?? 0}</strong> credits</span>
                   {tier && <span style={{ color: PALETTE.muted }}>· {tier === "elite" ? "Elite" : "Pass"}</span>}
                   <Link to="/pawtraits#topup" className="ml-2" style={{ color: PALETTE.rose, fontWeight: 600 }}>
                     Top up →

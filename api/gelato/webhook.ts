@@ -38,6 +38,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { timingSafeEqual } from "node:crypto";
 import {
   recordGelatoWebhookEvent,
+  deleteGelatoWebhookEvent,
   getPrintOrderByGelatoId,
   getPrintOrderByGelatoReference,
   updatePrintOrder,
@@ -204,11 +205,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
         error: err instanceof Error ? err.message : String(err),
       }),
     );
-    // 500 so Gelato retries. Note: dedupe row was already inserted, so the
-    // retry will land on the replay branch and 200 — which means we MUST
-    // succeed on the first delivery. Strategy: catch DB errors above more
-    // narrowly so we don't silently swallow real bugs. For now the alert
-    // table absorbs the trace.
+    // C4 fix: the dedupe row was inserted in step 4 BEFORE processing. If we
+    // 500 now without removing it, Gelato's retry hits the replay branch and
+    // 200s — the status update / shipped-delivered touchpoint is lost
+    // forever. So delete the dedupe row (best-effort) so the retry is treated
+    // as a fresh first delivery and actually reprocesses. (Mirrors the Stripe
+    // webhook's delete-on-failure behaviour.)
+    try {
+      await deleteGelatoWebhookEvent(eventId);
+    } catch (delErr) {
+      console.error(
+        "[gelato] dedupe_rollback_failed",
+        JSON.stringify({
+          eventId,
+          eventName,
+          error: delErr instanceof Error ? delErr.message : String(delErr),
+        }),
+      );
+      // Last-resort audit so ops can see a permanently-stuck event.
+      try {
+        await insertPrintOrderAlert({
+          printOrderId: null,
+          severity: "high",
+          message: `Gelato webhook process failed AND dedupe rollback failed — event may be permanently lost (event=${eventName})`,
+          details: { eventId, eventName },
+        });
+      } catch {
+        /* alerts table is best-effort */
+      }
+    }
+    // 500 so Gelato retries; the retry will now reprocess from scratch.
     res.status(500).json({ error: "process_failed" });
     return;
   }
@@ -309,9 +335,27 @@ async function processGelatoEvent(args: {
   // Touchpoint side-effects on shipped + delivered.
   if (next === "shipped" || next === "delivered") {
     const meta = (row.metadata && typeof row.metadata === "object" ? row.metadata : {}) as Record<string, unknown>;
-    const email =
-      typeof meta.customerEmail === "string" ? (meta.customerEmail as string) : null;
-    const petName = typeof meta.petName === "string" ? (meta.petName as string) : null;
+    // H2 fix: the customer email + pet name are written by the Shopify
+    // orders/paid handler under metadata.cron.* — NOT at the top level. The
+    // old code read meta.customerEmail (always undefined) so every
+    // shipped/delivered touchpoint was created with email=null and the
+    // customer never got their "shipped"/"arrived" email. Read from
+    // metadata.cron first, fall back to top-level for any legacy rows.
+    const cronMeta = (meta.cron && typeof meta.cron === "object" ? (meta.cron as Record<string, unknown>) : {}) as Record<string, unknown>;
+    const pickStr = (k: string): string | null => {
+      const a = cronMeta[k];
+      if (typeof a === "string" && a.length > 0) return a;
+      const b = meta[k];
+      return typeof b === "string" && b.length > 0 ? b : null;
+    };
+    const email = pickStr("customerEmail");
+    const petName = pickStr("petName");
+    if (!email) {
+      console.warn(
+        "[gelato] touchpoint_missing_email",
+        JSON.stringify({ printOrderId: row.id, type: next }),
+      );
+    }
     try {
       const r = await insertPawtraitTouchpoint({
         printOrderId: row.id,

@@ -957,7 +957,7 @@ const Portraits = () => {
       <meta property="og:title" content="Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls" />
       <meta property="og:description" content="Turn your pet's photo into a custom painted portrait. Choose from watercolor, oil, renaissance, royal, and 20+ art styles. Personalised for dogs, cats, and small pets. Created with Pawtraits at Little Souls." />
       <meta property="og:image" content="https://www.littlesouls.app/og/pawtraits-default.jpg" />
-      <meta property="og:url" content="https://littlesouls.app/pawtraits" />
+      <meta property="og:url" content="https://www.littlesouls.app/pawtraits" />
       <meta property="og:site_name" content="Little Souls" />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content="Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls" />
@@ -965,7 +965,7 @@ const Portraits = () => {
       <meta name="twitter:image" content="https://www.littlesouls.app/og/pawtraits-default.jpg" />
       <meta property="article:author" content="Little Souls" />
       <meta property="article:section" content="Custom Pet Portraits" />
-      <link rel="canonical" href="https://littlesouls.app/pawtraits" />
+      <link rel="canonical" href="https://www.littlesouls.app/pawtraits" />
     </Helmet>
     <main
       data-portraits-page

@@ -8,7 +8,7 @@
  *
  * Empty state nudges them back to the studio.
  */
-import { Component, type ErrorInfo, type ReactNode, useCallback, useState } from "react";
+import { Component, type ErrorInfo, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -306,6 +306,19 @@ function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) =
   const total = itemTotalMajor(item);
   const [zoomOpen, setZoomOpen] = useState(false);
   const hasPreview = !!item.previewUrl && item.previewUrl.length > 0;
+  const lightboxCloseRef = useRef<HTMLButtonElement>(null);
+
+  // Keyboard trap fix: close lightbox on Escape, focus close button on open.
+  useEffect(() => {
+    if (!zoomOpen) return;
+    // Focus the close button so keyboard users can immediately dismiss.
+    lightboxCloseRef.current?.focus();
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setZoomOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [zoomOpen]);
   // Detect gift cards defensively — productType OR packId OR shortLabel.
   // Older persisted carts may have lost the productType discriminator on
   // round-trip through localStorage / older code, so any of three signals
@@ -504,6 +517,7 @@ function CartLine({ item, onRemove }: { item: CartItem; onRemove: (id: string) =
             }}
           />
           <button
+            ref={lightboxCloseRef}
             type="button"
             onClick={() => setZoomOpen(false)}
             aria-label="Close portrait preview"

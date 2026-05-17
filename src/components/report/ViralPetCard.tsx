@@ -55,6 +55,20 @@ const occasionThemes: Record<OccasionMode, {
     ],
     border: 'from-violet-500 via-fuchsia-500 to-pink-500',
   },
+  new: {
+    gradient: { from: '#8b5cf6', to: '#ec4899', glow: 'rgba(139, 92, 246, 0.5)' },
+    badge: 'COSMIC REVEAL',
+    tagline: (name) => `${name}'s True Cosmic Identity`,
+    viralCta: 'Who has the highest cosmic power?',
+    hashtags: ['#CosmicPets', '#PetAstrology', '#FurBaby'],
+    viralPhrases: [
+      'Main character energy: ACTIVATED',
+      'This pet understood the assignment',
+      'Tell me this isn\'t the most iconic pet',
+      'POV: Your pet is spiritually superior',
+    ],
+    border: 'from-violet-500 via-fuchsia-500 to-pink-500',
+  },
   birthday: {
     gradient: { from: '#f59e0b', to: '#ef4444', glow: 'rgba(245, 158, 11, 0.6)' },
     badge: '🎂 BIRTHDAY LEGEND 🎂',

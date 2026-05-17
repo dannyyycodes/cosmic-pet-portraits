@@ -14,7 +14,7 @@ export function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY env not configured");
   _stripe = new Stripe(key, {
-    apiVersion: "2024-11-20.acacia" as Stripe.LatestApiVersion,
+    apiVersion: "2026-04-22.dahlia",
     typescript: true,
     // Vercel cold-starts can stretch the first network round-trip; bumping
     // the per-call timeout + adding a couple of automatic retries makes the

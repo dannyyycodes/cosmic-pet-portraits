@@ -41,6 +41,7 @@ import {
   runPrintPipeline,
   type PrintPipelineInput,
 } from "./_lib/printPipeline.js";
+import { isDisposableEmail } from "../src/lib/auth/disposableEmailDomains.js";
 
 // ─── Shared config ──────────────────────────────────────────────────────────
 const FAL_KEY = process.env.FAL_KEY;
@@ -52,6 +53,34 @@ const PHOTOROOM_ENDPOINT = "https://image-api.photoroom.com/v2/edit";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PRINT_SIZE = 3000;
+const MAX_USER_IMAGE_BYTES = 12 * 1024 * 1024;
+const PRINT_MASTER_SUBMIT_RATE_LIMIT_PER_HOUR = 12;
+
+function stableGalleryScore(id: unknown, seed: string): number {
+  const input = `${seed}:${String(id ?? '')}`;
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+async function requireBearerUser(req: VercelRequest, res: VercelResponse, message: string): Promise<{ userId: string } | null> {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith("Bearer ")) {
+    res.status(401).json({ error: message });
+    return null;
+  }
+  const token = auth.slice("Bearer ".length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) {
+    res.status(401).json({ error: "Invalid token" });
+    return null;
+  }
+  return { userId: userRes.user.id };
+}
 
 // ─── Printful Mockup Generator (in-room canvas previews) ────────────────────
 // Free per-customer dynamic mockups. Used at the studio reveal step to show
@@ -555,6 +584,9 @@ const MOCKUP_COORDS: Record<ProductType, { cx: number; cy: number; w: number; h:
 };
 
 async function handleMockup(req: VercelRequest, res: VercelResponse) {
+  const authUser = await requireBearerUser(req, res, "Sign in to generate mockups");
+  if (!authUser) return;
+
   const { designUrl, productType } = (req.body ?? {}) as {
     designUrl?: string;
     productType?: ProductType;
@@ -565,14 +597,18 @@ async function handleMockup(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const proto = (req.headers["x-forwarded-proto"] as string) || "https";
-    const host = req.headers.host || "littlesouls.app";
-    const baseUrl = `${proto}://${host}/portraits/products/${productType}.webp`;
+    const baseUrl = `https://www.littlesouls.app/portraits/products/${productType}.webp`;
 
-    const [baseBuf, designBuf] = await Promise.all([
-      fetch(baseUrl).then((r) => r.arrayBuffer()).then(Buffer.from),
-      fetch(designUrl).then((r) => r.arrayBuffer()).then(Buffer.from),
+    const [baseBuf, design] = await Promise.all([
+      fetch(baseUrl).then(async (r) => {
+        if (!r.ok) throw new Error(`base_fetch_failed:${r.status}`);
+        const contentType = (r.headers.get("content-type") ?? "").toLowerCase();
+        if (!contentType.startsWith("image/")) throw new Error("base_not_image");
+        return responseToLimitedBuffer(r, MAX_USER_IMAGE_BYTES);
+      }),
+      fetchUserImageBuffer(designUrl),
     ]);
+    const designBuf = design.buffer;
 
     const baseMeta = await sharp(baseBuf).metadata();
     const W = baseMeta.width ?? 1200;
@@ -662,12 +698,19 @@ function balancePausedResponse(res: VercelResponse) {
 
 async function handlePreview(req: VercelRequest, res: VercelResponse) {
   if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
+  const authUser = await requireBearerUser(req, res, "Sign in to preview portraits");
+  if (!authUser) return;
+
   const body = (req.body ?? {}) as { imageUrl?: string; packId?: string; style?: string };
   const { imageUrl, packId } = body;
   const style: Style = body.style === "illustrated" ? "illustrated" : "photographic";
 
   if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
   if (!packId || !SCENES[packId]) return res.status(400).json({ error: `Unknown pack: ${packId}` });
+  const reason = validateImageUrlOrigin(imageUrl);
+  if (reason) {
+    return res.status(400).json({ error: "invalid_image_url", message: `imageUrl rejected (${reason}).` });
+  }
 
   const sceneDef = SCENES[packId];
   const styleDef = STYLE_TREATMENT[style];
@@ -1557,6 +1600,43 @@ function validateImageUrlOrigin(raw: string): string | null {
   return `host_not_allowed: ${host}`;
 }
 
+async function responseToLimitedBuffer(r: Response, maxBytes: number): Promise<Buffer> {
+  const contentLength = r.headers.get("content-length");
+  if (contentLength && Number(contentLength) > maxBytes) {
+    throw new Error("image_too_large");
+  }
+  if (!r.body) {
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (buf.length > maxBytes) throw new Error("image_too_large");
+    return buf;
+  }
+
+  const reader = r.body.getReader();
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      try { await reader.cancel(); } catch { /* ignore */ }
+      throw new Error("image_too_large");
+    }
+    chunks.push(Buffer.from(value));
+  }
+  return Buffer.concat(chunks, total);
+}
+
+async function fetchUserImageBuffer(rawUrl: string, maxBytes = MAX_USER_IMAGE_BYTES): Promise<{ buffer: Buffer; contentType: string }> {
+  const reason = validateImageUrlOrigin(rawUrl);
+  if (reason) throw new Error(`invalid_image_url:${reason}`);
+  const r = await fetch(rawUrl);
+  if (!r.ok) throw new Error(`image_fetch_failed:${r.status}`);
+  const contentType = (r.headers.get("content-type") ?? "").toLowerCase();
+  if (!contentType.startsWith("image/")) throw new Error(`invalid_content_type:${contentType || "missing"}`);
+  return { buffer: await responseToLimitedBuffer(r, maxBytes), contentType };
+}
+
 // Wraps a grant_credits refund call. The customer paid for a generation that
 // failed; if the refund itself drops on the floor (RPC error, transient DB
 // hiccup) we log to credit_refund_failures so a sweeper can retry. Never
@@ -2298,9 +2378,7 @@ async function tryPhotoroom(imageUrl: string): Promise<Buffer | null> {
 async function tryHfRmbg(imageUrl: string): Promise<Buffer | null> {
   try {
     // Fetch the source image bytes
-    const imgRes = await fetch(imageUrl);
-    if (!imgRes.ok) return null;
-    const imgBuf = Buffer.from(await imgRes.arrayBuffer());
+    const { buffer: imgBuf } = await fetchUserImageBuffer(imageUrl);
 
     // POST raw bytes to HF Inference API. Free anonymous tier works at low volume;
     // adding HUGGINGFACE_API_KEY gives generous limits.
@@ -2341,6 +2419,10 @@ async function handleCutout(req: VercelRequest, res: VercelResponse) {
 
   const { imageUrl } = (req.body ?? {}) as { imageUrl?: string };
   if (!imageUrl) return res.status(400).json({ error: "imageUrl required" });
+  const reason = validateImageUrlOrigin(imageUrl);
+  if (reason) {
+    return res.status(400).json({ error: "invalid_image_url", message: `imageUrl rejected (${reason}).` });
+  }
 
   try {
     // Try Photoroom first (highest quality), then HuggingFace BRIA RMBG (free).
@@ -2414,6 +2496,9 @@ function buildSvg(template: TemplateDef, transform: PetTransform, cutoutB64: str
 
 async function handleComposite(req: VercelRequest, res: VercelResponse) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return res.status(500).json({ error: "Supabase service env not configured" });
+  const authUser = await requireBearerUser(req, res, "Sign in to composite print masters");
+  if (!authUser) return;
+
   const { cutoutUrl, templateId, transform } = (req.body ?? {}) as { cutoutUrl?: string; templateId?: string; transform?: PetTransform };
   if (!cutoutUrl) return res.status(400).json({ error: "cutoutUrl required" });
   const template = TEMPLATES.find((t) => t.id === templateId);
@@ -2421,9 +2506,7 @@ async function handleComposite(req: VercelRequest, res: VercelResponse) {
   const tf: PetTransform = transform ?? { cx: 0.5, cy: 0.5, scale: 1, rotation: 0 };
 
   try {
-    const cRes = await fetch(cutoutUrl);
-    if (!cRes.ok) return res.status(502).json({ error: "Cutout fetch failed", detail: cRes.statusText });
-    const cBuf = Buffer.from(await cRes.arrayBuffer());
+    const { buffer: cBuf } = await fetchUserImageBuffer(cutoutUrl);
     const cB64 = cBuf.toString("base64");
     const svg = buildSvg(template, tf, cB64);
     const pngBuf = await sharp(Buffer.from(svg), { density: 150 }).png({ compressionLevel: 9, quality: 95 }).toBuffer();
@@ -2556,7 +2639,7 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
 
     const { data: rows, error } = await q;
     if (error) return res.status(500).json({ error: 'list_failed', detail: error.message });
-    const filtered = (rows ?? []).filter((r: { id: string }) => !postedIds.has(r.id)).slice(0, limit);
+    const filtered = ((rows ?? []) as unknown as LibraryRow[]).filter((r) => !postedIds.has(r.id ?? "")).slice(0, limit);
     return res.status(200).json({ rows: filtered, count: filtered.length });
   }
 
@@ -2578,19 +2661,25 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
     // Optional filters: image_style ('portrait' / 'scene'), pet_kind, breed, art_style.
     const limit = Math.min(Number(body.limit ?? 24) || 24, 60);
     const offset = Math.max(Number(body.offset ?? 0) || 0, 0);
+    const poolLimit = Math.min(Math.max(offset + limit + 120, limit), 300);
     let q = supabase
       .from('pawtrait_library')
       .select('id,pet_kind,breed,pet_name,image_style,art_style,aspect_ratio,backstory,image_url,thumbnail_url,width,height,created_at')
       .eq('approved', true)
       .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .limit(poolLimit);
     for (const k of ['image_style', 'pet_kind', 'breed', 'art_style'] as const) {
       const v = body[k];
       if (typeof v === 'string' && v) q = q.eq(k, v);
     }
     const { data, error } = await q;
     if (error) return res.status(500).json({ error: 'gallery_failed', detail: error.message });
-    return res.status(200).json({ rows: data ?? [] });
+    const seed = new Date().toISOString().slice(0, 10);
+    const rows = (data ?? [])
+      .slice()
+      .sort((a, b) => stableGalleryScore(a.id, seed) - stableGalleryScore(b.id, seed))
+      .slice(offset, offset + limit);
+    return res.status(200).json({ rows });
   }
 
   // ── writes (auth required) ──
@@ -2747,6 +2836,39 @@ async function checkSignupRateLimit(
   }
 }
 
+async function checkUserRateLimit(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  endpoint: string,
+  identifier: string,
+  limit: number,
+  windowMs: number,
+): Promise<{ ok: boolean }> {
+  const windowStart = new Date(Date.now() - windowMs).toISOString();
+  try {
+    const { count, error } = await supabaseAdmin
+      .from('rate_limits')
+      .select('id', { count: 'exact', head: true })
+      .eq('endpoint', endpoint)
+      .eq('identifier', identifier)
+      .gte('created_at', windowStart);
+    if (error) {
+      console.error(`[${endpoint}] rate-limit lookup failed:`, error.message);
+      return { ok: true };
+    }
+    if ((count ?? 0) >= limit) return { ok: false };
+    const { error: insertErr } = await supabaseAdmin
+      .from('rate_limits')
+      .insert({ endpoint, identifier });
+    if (insertErr) {
+      console.error(`[${endpoint}] rate-limit insert failed:`, insertErr.message);
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error(`[${endpoint}] rate-limit threw:`, (err as Error).message);
+    return { ok: true };
+  }
+}
+
 async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return res.status(503).json({ error: 'supabase-not-configured' });
@@ -2795,6 +2917,9 @@ async function handleInstantSignup(req: VercelRequest, res: VercelResponse) {
 
   if (!email || !EMAIL_RX.test(email)) {
     return res.status(400).json({ error: 'invalid_email' });
+  }
+  if (isDisposableEmail(email)) {
+    return res.status(400).json({ error: 'disposable_email_blocked' });
   }
 
   const supabaseAdmin = getSupabaseAdmin();
@@ -3251,6 +3376,54 @@ async function handlePrintMaster(req: VercelRequest, res: VercelResponse) {
 // printMaster_status until completion. Decouples the customer's cart-add
 // experience from Vercel function lifetime — even a slow 3-min fal day
 // doesn't show "couldn't prepare print master" toast.
+function sameStringArray(a: unknown, b: string[]): boolean {
+  return Array.isArray(a)
+    && a.length === b.length
+    && a.every((value, index) => typeof value === "string" && value === b[index]);
+}
+
+async function hasOwnedSuccessfulGeneration(args: {
+  supabase: ReturnType<typeof getSupabaseAdmin>;
+  userId: string;
+  photos: string[];
+  customPrompt: string;
+  generationId?: string;
+}): Promise<{ ok: boolean; reason?: string; generationId?: string }> {
+  const { supabase, userId, photos, customPrompt, generationId } = args;
+
+  if (generationId) {
+    const { data, error } = await supabase
+      .from("pawtrait_generation_log")
+      .select("id, source_image_urls, custom_prompt, status")
+      .eq("id", generationId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) return { ok: false, reason: "generation_lookup_failed" };
+    if (!data || data.status !== "success") return { ok: false, reason: "generation_not_successful" };
+    if (!sameStringArray(data.source_image_urls, photos)) return { ok: false, reason: "generation_photo_mismatch" };
+    const generatedPrompt = typeof data.custom_prompt === "string" ? data.custom_prompt : "";
+    if (generatedPrompt !== customPrompt) return { ok: false, reason: "generation_prompt_mismatch" };
+    return { ok: true, generationId: data.id as string };
+  }
+
+  const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("pawtrait_generation_log")
+    .select("id, source_image_urls, custom_prompt, status")
+    .eq("user_id", userId)
+    .eq("status", "success")
+    .gte("created_at", windowStart)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) return { ok: false, reason: "generation_lookup_failed" };
+  const match = (data ?? []).find((row) => {
+    const generatedPrompt = typeof row.custom_prompt === "string" ? row.custom_prompt : "";
+    return generatedPrompt === customPrompt && sameStringArray(row.source_image_urls, photos);
+  });
+  if (!match) return { ok: false, reason: "matching_generation_required" };
+  return { ok: true, generationId: match.id as string };
+}
+
 async function handlePrintMasterSubmit(req: VercelRequest, res: VercelResponse) {
   if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured" });
 
@@ -3259,6 +3432,7 @@ async function handlePrintMasterSubmit(req: VercelRequest, res: VercelResponse) 
     petNames?: string[];
     customPrompt?: string;
     sizeKey?: string;
+    generationId?: string;
   };
   const customPrompt = sanitiseAddDetails(body.customPrompt ?? "").slice(0, 400);
   if (!customPrompt) return res.status(400).json({ error: "customPrompt required" });
@@ -3309,6 +3483,35 @@ async function handlePrintMasterSubmit(req: VercelRequest, res: VercelResponse) 
   const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
   if (userErr || !userRes.user) return res.status(401).json({ error: "Invalid token" });
   const userId = userRes.user.id;
+
+  const rl = await checkUserRateLimit(
+    supabase,
+    "printMaster_submit",
+    userId,
+    PRINT_MASTER_SUBMIT_RATE_LIMIT_PER_HOUR,
+    60 * 60 * 1000,
+  );
+  if (!rl.ok) {
+    return res.status(429).json({
+      error: "rate_limited",
+      message: "Too many print-master attempts. Try again later.",
+    });
+  }
+
+  const generationId = typeof body.generationId === "string" ? body.generationId : undefined;
+  const generationOk = await hasOwnedSuccessfulGeneration({
+    supabase,
+    userId,
+    photos,
+    customPrompt,
+    generationId,
+  });
+  if (!generationOk.ok) {
+    return res.status(403).json({
+      error: "approved_generation_required",
+      reason: generationOk.reason,
+    });
+  }
 
   // Vision pre-pass (with cache from generation if same photos)
   const useVision = process.env.USE_SUBJECT_VISION !== 'false';

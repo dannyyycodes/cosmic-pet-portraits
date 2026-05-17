@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 interface ReadingTransitionProps {
@@ -8,7 +8,7 @@ interface ReadingTransitionProps {
 export function ReadingTransition({ petName }: ReadingTransitionProps) {
   const s = useScrollReveal();
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: {},
     visible: {
       transition: {
@@ -18,14 +18,14 @@ export function ReadingTransition({ petName }: ReadingTransitionProps) {
     },
   };
 
-  const fadeUp = {
+  const fadeUp: Variants = {
     hidden: { opacity: 0, y: 16 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
   };
 
-  const dividerVariants = {
+  const dividerVariants: Variants = {
     hidden: { opacity: 0, scaleX: 0.6 },
-    visible: { opacity: 1, scaleX: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
+    visible: { opacity: 1, scaleX: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] } },
   };
 
   return (

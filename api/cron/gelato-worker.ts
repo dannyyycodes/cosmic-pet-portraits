@@ -170,7 +170,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     claimed++;
 
     try {
-      await runCanvasFulfillmentForRow(claimedRow);
+      // Per-row deadline. AuraSR has its own 3-min timeout per attempt and
+      // can retry twice → worst case ~6 min for one row, which would
+      // monopolise the cron function (Vercel Pro: 300s default; this cron
+      // could run longer if scheduled, but the BATCH_SIZE=5 batch starves).
+      // 60s ceiling per row means even worst-case 5 rows fits in 5min.
+      // Slow row gets aborted and stays pending — the next cron tick or
+      // the stuck-row sweeper picks it up.
+      const ROW_DEADLINE_MS = 60_000;
+      await Promise.race([
+        runCanvasFulfillmentForRow(claimedRow),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error(`row_deadline_exceeded_${ROW_DEADLINE_MS}ms`)),
+            ROW_DEADLINE_MS,
+          ),
+        ),
+      ]);
       // Status update happened inside runCanvasFulfillmentForRow → either
       // 'submitted' (success), 'failed', or 'manual_review'. We just count.
       succeeded++;

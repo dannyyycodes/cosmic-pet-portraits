@@ -65,6 +65,46 @@ export async function runCanvasFulfillment(args: RunCanvasFulfillmentArgs): Prom
   const lineItemIdStr = row.shopify_line_item_id ?? String(orderId);
   const lineItemNum = Number(lineItemIdStr);
 
+  // C7 idempotency guard: a row-deadline timeout in the cron does NOT abort an
+  // in-flight pipeline, so a later tick can re-enter here for a row whose
+  // Gelato order was already (or is being) created. Re-read the row; if it
+  // already has a gelato_order_id or is already at/after 'submitted', do NOT
+  // submit again — just make sure the status reflects reality and return.
+  // This is what prevents a customer receiving two physical canvases.
+  try {
+    const sb0 = getSupabaseAdmin();
+    const { data: fresh } = await sb0
+      .from("print_orders")
+      .select("status,gelato_order_id")
+      .eq("id", row.id)
+      .maybeSingle();
+    const freshStatus = (fresh?.status ?? null) as string | null;
+    const freshGelatoId = (fresh?.gelato_order_id ?? null) as string | null;
+    const ALREADY = new Set(["submitted", "printed", "shipped", "delivered", "canceled"]);
+    if (freshGelatoId || (freshStatus && ALREADY.has(freshStatus))) {
+      console.warn(
+        "[canvas-fulfill] skip_duplicate_submit",
+        JSON.stringify({ printOrderId: row.id, freshStatus, hasGelatoId: !!freshGelatoId }),
+      );
+      // Reconcile: if a Gelato order exists but status is still pre-submit,
+      // advance it so the queue stops re-picking the row.
+      if (freshGelatoId && freshStatus && !ALREADY.has(freshStatus)) {
+        try {
+          await updatePrintOrder({ printOrderId: row.id, status: "submitted", gelatoOrderId: freshGelatoId });
+        } catch { /* best-effort */ }
+      }
+      return;
+    }
+  } catch (err) {
+    // If the guard read fails, fall through — the downstream pipeline /
+    // Gelato reference-id dedupe is the backstop. Don't block fulfilment on
+    // a transient read error.
+    console.warn(
+      "[canvas-fulfill] idempotency_check_failed",
+      JSON.stringify({ printOrderId: row.id, error: err instanceof Error ? err.message : String(err) }),
+    );
+  }
+
   const addr = shopifyAddressToGelato({ address: shippingAddress, email: customerEmail });
   if ("ok" in addr && addr.ok === false) {
     try {
@@ -275,20 +315,35 @@ export async function runCanvasFulfillmentForRow(row: PrintOrderRow): Promise<vo
     if (result.ok === false) {
       const stage = result.stage;
       const reason = result.reason;
+      // H5 fix: digital failures used to be set terminal 'failed'. The cron
+      // only drains 'pending', so a transient Resend/network blip after
+      // payment meant the customer NEVER got their download and it was never
+      // retried. Keep it retryable: stay 'pending' (+bump attempts) until the
+      // attempt cap, THEN escalate to manual_review with an ops page.
+      const DIGITAL_MAX_ATTEMPTS = 3;
+      const nextAttempt = (row.attempts ?? 0) + 1;
+      const exhausted = nextAttempt >= DIGITAL_MAX_ATTEMPTS;
       await updatePrintOrder({
         printOrderId: row.id,
-        status: "failed",
-        lastError: `digital_${stage}: ${reason}`,
+        status: exhausted ? "manual_review" : "pending",
+        lastError: `digital_${stage}: ${reason} (attempt ${nextAttempt}/${DIGITAL_MAX_ATTEMPTS})`,
         bumpAttempts: true,
       });
-      await recordHighSeverityFailure({
-        printOrderId: row.id,
-        shopifyOrderId: row.shopify_order_id,
-        shopifyLineItemId: row.shopify_line_item_id ?? "",
-        sku: row.sku ?? "digital",
-        stage: `digital_${stage}`,
-        message: `Digital fulfilment failed at ${stage}: ${reason}`,
-      });
+      if (exhausted) {
+        await recordHighSeverityFailure({
+          printOrderId: row.id,
+          shopifyOrderId: row.shopify_order_id,
+          shopifyLineItemId: row.shopify_line_item_id ?? "",
+          sku: row.sku ?? "digital",
+          stage: `digital_${stage}`,
+          message: `Digital fulfilment failed ${DIGITAL_MAX_ATTEMPTS}× at ${stage}: ${reason} — customer paid, no download delivered. Manual send needed.`,
+        });
+      } else {
+        console.warn(
+          "[canvas-fulfill] digital_retry",
+          JSON.stringify({ printOrderId: row.id, stage, attempt: nextAttempt, reason: reason.slice(0, 200) }),
+        );
+      }
       return;
     }
     // success path — narrowed: result.ok === true → has downloadUrl + emailMessageId

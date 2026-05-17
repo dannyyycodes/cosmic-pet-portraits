@@ -195,6 +195,10 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
     return;
   }
 
+  const period = sub as Stripe.Subscription & {
+    current_period_start?: number;
+    current_period_end?: number;
+  };
   await supabase.from("portraits_subscriptions").upsert({
     id: sub.id,
     account_id: accountId,
@@ -204,16 +208,21 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
     tier,
     monthly_token_grant: TOKENS_PER_PERIOD[tier],
     monthly_download_credit_grant: DOWNLOAD_CREDITS_PER_PERIOD[tier],
-    current_period_start: new Date(sub.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+    current_period_start: new Date((period.current_period_start ?? Math.floor(Date.now() / 1000)) * 1000).toISOString(),
+    current_period_end: new Date((period.current_period_end ?? Math.floor(Date.now() / 1000)) * 1000).toISOString(),
     cancel_at_period_end: sub.cancel_at_period_end,
     updated_at: new Date().toISOString(),
   });
 }
 
+function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const sub = (invoice as Stripe.Invoice & { subscription?: string | { id?: string } | null }).subscription;
+  return typeof sub === "string" ? sub : sub?.id ?? null;
+}
+
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
   // Renewal credit grant: lookup sub → grant tier's monthly tokens.
-  const subId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  const subId = invoiceSubscriptionId(invoice);
   if (!subId) return; // not a subscription invoice
 
   const customerId = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
@@ -436,10 +445,7 @@ async function schedulePawtraitTouchpoints(session: Stripe.Checkout.Session) {
 // emit a high-severity console.error so Vercel log alerts catch it.
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  const subId =
-    typeof invoice.subscription === "string"
-      ? invoice.subscription
-      : invoice.subscription?.id;
+  const subId = invoiceSubscriptionId(invoice);
   if (!subId) {
     console.warn("[stripe/webhook] invoice.payment_failed without subscription id", invoice.id);
     return;

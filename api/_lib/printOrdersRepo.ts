@@ -129,22 +129,67 @@ export interface UpdatePrintOrderInput {
 export async function updatePrintOrder(input: UpdatePrintOrderInput): Promise<PrintOrderRow> {
   const sb = getSupabaseAdmin();
 
-  // Read-modify-write for attempts + metadata merge. Same approach as
-  // jobsRepo.markTriggered — only the webhook + cron touch any single row.
+  // Read-modify-write for attempts + metadata merge. The webhook AND the cron
+  // can both touch a single row (e.g. a Gelato shipped webhook racing a cron
+  // tick that marks the row failed) — so we also read the current status to
+  // guard against regressing a more-advanced status (M9 fix).
   const { data: cur, error: readErr } = await sb
     .from("print_orders")
-    .select("attempts,metadata")
+    .select("attempts,metadata,status")
     .eq("id", input.printOrderId)
     .maybeSingle();
   if (readErr) {
     throw new Error(`print_orders read failed: ${readErr.message}`);
   }
   const currentAttempts = (cur?.attempts ?? 0) as number;
+  const currentStatus = (cur?.status ?? null) as PrintOrderStatus | null;
   const currentMetadata =
     (cur?.metadata && typeof cur.metadata === "object" ? (cur.metadata as Record<string, unknown>) : {}) ?? {};
 
+  // M9: stop a delayed cron write from regressing a real Gelato fulfilment
+  // status under the webhook⇄cron race — WITHOUT ever blocking a legitimate
+  // escalation. Rules:
+  //   - delivered / canceled are fully terminal → block ANY status change.
+  //   - manual_review / failed / canceled are escalations/ops states → ALWAYS
+  //     allowed as a target (a stuck `submitted` row must still be able to
+  //     escalate to manual_review).
+  //   - otherwise only block a backwards move along the fulfilment ladder
+  //     pending < submitted < printed < shipped < delivered.
+  const PROGRESS_RANK: Record<string, number> = {
+    pending: 0,
+    submitted: 1,
+    printed: 2,
+    shipped: 3,
+    delivered: 4,
+  };
+  const ESCALATION_TARGETS = new Set<PrintOrderStatus>(["manual_review", "failed", "canceled"]);
+  let blockedStatusWrite: { from: PrintOrderStatus; to: PrintOrderStatus } | null = null;
+  if (
+    input.status !== undefined &&
+    currentStatus &&
+    input.status !== currentStatus
+  ) {
+    if (currentStatus === "delivered" || currentStatus === "canceled") {
+      blockedStatusWrite = { from: currentStatus, to: input.status }; // truly terminal
+    } else if (ESCALATION_TARGETS.has(input.status)) {
+      blockedStatusWrite = null; // escalations always allowed
+    } else if (
+      currentStatus in PROGRESS_RANK &&
+      input.status in PROGRESS_RANK &&
+      PROGRESS_RANK[input.status] < PROGRESS_RANK[currentStatus]
+    ) {
+      blockedStatusWrite = { from: currentStatus, to: input.status }; // backwards on the ladder
+    }
+  }
+
   const update: Record<string, unknown> = {};
-  if (input.status !== undefined) update.status = input.status;
+  if (input.status !== undefined && !blockedStatusWrite) update.status = input.status;
+  if (blockedStatusWrite) {
+    console.warn(
+      "[print_orders] status_regression_blocked",
+      JSON.stringify({ printOrderId: input.printOrderId, ...blockedStatusWrite }),
+    );
+  }
   if (input.gelatoOrderId !== undefined) update.gelato_order_id = input.gelatoOrderId;
   if (input.gelatoOrderReference !== undefined) update.gelato_order_reference = input.gelatoOrderReference;
   if (input.printMasterUrl !== undefined) update.print_master_url = input.printMasterUrl;
@@ -383,6 +428,73 @@ export async function recordGelatoWebhookEvent(args: {
     throw new Error(`gelato_webhook_events upsert failed: ${error.message}`);
   }
   return { firstTime: Array.isArray(data) && data.length > 0 };
+}
+
+/**
+ * Delete a dedupe row so a failed-first-delivery event is reprocessed on
+ * Gelato's retry instead of being skipped as a replay (C4 fix). Called only
+ * from the webhook's process-failure path.
+ */
+export async function deleteGelatoWebhookEvent(eventId: string): Promise<void> {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb
+    .from("gelato_webhook_events")
+    .delete()
+    .eq("event_id", eventId);
+  if (error) {
+    throw new Error(`gelato_webhook_events delete failed: ${error.message}`);
+  }
+}
+
+// ─── Gelato order cancel (C2) ──────────────────────────────────────────────
+
+const GELATO_ORDER_ENDPOINT = "https://order.gelatoapis.com/v4/orders";
+
+/**
+ * Best-effort cancel of a live Gelato order (C2: a refunded canvas must not
+ * keep printing/shipping). Never throws — returns a result the caller logs
+ * and alerts on. If the order is already too far along Gelato returns a 4xx,
+ * which we surface so ops can chase a physical recall.
+ */
+export async function cancelGelatoOrder(
+  gelatoOrderId: string,
+): Promise<{ ok: boolean; status?: number; detail?: string }> {
+  const key = process.env.GELATO_API_KEY;
+  if (!key) {
+    return { ok: false, detail: "GELATO_API_KEY not configured" };
+  }
+  try {
+    const r = await fetch(`${GELATO_ORDER_ENDPOINT}/${encodeURIComponent(gelatoOrderId)}:cancel`, {
+      method: "POST",
+      headers: { "X-API-KEY": key, "Content-Type": "application/json" },
+      body: "{}",
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!r.ok) {
+      const body = await r.text().catch(() => "");
+      return { ok: false, status: r.status, detail: body.slice(0, 400) };
+    }
+    return { ok: true, status: r.status };
+  } catch (err) {
+    return { ok: false, detail: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Look up a print_orders row by Shopify (order, line item) for refund cancel. */
+export async function getPrintOrderByShopifyLine(
+  shopifyOrderId: string,
+  shopifyLineItemId: string | null,
+): Promise<PrintOrderRow | null> {
+  const sb = getSupabaseAdmin();
+  let q = sb.from("print_orders").select("*").eq("shopify_order_id", shopifyOrderId);
+  q = shopifyLineItemId
+    ? q.eq("shopify_line_item_id", shopifyLineItemId)
+    : q.is("shopify_line_item_id", null);
+  const { data, error } = await q.maybeSingle();
+  if (error) {
+    throw new Error(`getPrintOrderByShopifyLine failed: ${error.message}`);
+  }
+  return (data ?? null) as PrintOrderRow | null;
 }
 
 // ─── pawtrait_touchpoints ──────────────────────────────────────────────────
