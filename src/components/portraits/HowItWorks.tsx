@@ -1,23 +1,22 @@
 /**
- * HowItWorks — three-step ribbon with hero illustration above.
+ * HowItWorks — 3 transparent step illustrations laid directly on the section
+ * background (no card, no white box, no panel) so it reads seamless with the
+ * page. Each step image is its own asset (src/assets/howitworks/stepN.webp,
+ * alpha) so any single one can be re-iterated without touching the others.
  *
- * Top: 3-panel illustration (phone → preview → framed wall art) carrying the
- * visual story.
- * Below: numbered text cards with stagger reveal on scroll-into-view.
- *
- * Copy reflects the real flow (verified 2026-05-09): customer generates +
- * approves the portrait on screen BEFORE paying. There is no email-the-proof
- * step. Free-trial cap (3 generations) is intentionally not surfaced here —
- * it's discovered naturally inside the studio.
+ * Copy reflects the real flow (verified 2026-05-09): the customer creates +
+ * approves the portrait on screen BEFORE paying. No email-the-proof step.
+ * Free-trial cap (3 generations) is intentionally not surfaced here.
  */
 import { motion } from "framer-motion";
 import { PALETTE, display, eyebrow, EASE } from "./tokens";
-import howItWorks640 from "@/assets/how-it-works-640w.webp";
-import howItWorks1080 from "@/assets/how-it-works-1080w.webp";
-import howItWorks1600 from "@/assets/how-it-works-1600w.webp";
+import step1 from "@/assets/howitworks/step1.webp";
+import step2 from "@/assets/howitworks/step2.webp";
+import step3 from "@/assets/howitworks/step3.webp";
 
 interface Step {
   index: string;
+  img: string;
   title: string;
   body: string;
 }
@@ -25,16 +24,19 @@ interface Step {
 const STEPS: Step[] = [
   {
     index: "01",
+    img: step1,
     title: "Add a photo",
     body: "Tell us the moment you picture.",
   },
   {
     index: "02",
+    img: step2,
     title: "See them painted on screen",
     body: "Adjust until it feels like them.",
   },
   {
     index: "03",
+    img: step3,
     title: "Bring them home",
     body: "Hand-finished canvas, 3–5 days.",
   },
@@ -46,13 +48,14 @@ export function HowItWorks() {
       id="how"
       className="relative px-6 md:px-10"
       style={{
-        background: "rgba(245, 245, 245, 0.84)",
+        background: PALETTE.cream,
         paddingTop: "clamp(56px, 7vh, 88px)",
         paddingBottom: "clamp(56px, 7vh, 88px)",
+        borderTop: `1px solid ${PALETTE.sand}`,
       }}
       aria-labelledby="how-it-works-heading"
     >
-      <div className="mx-auto text-center" style={{ maxWidth: "960px" }}>
+      <div className="mx-auto text-center" style={{ maxWidth: "1040px" }}>
         <p style={eyebrow(PALETTE.goldDeep)}>How it works</p>
         <h2
           id="how-it-works-heading"
@@ -61,82 +64,68 @@ export function HowItWorks() {
           Describe it. <span style={{ color: PALETTE.rose, fontStyle: "italic" }}>See it.</span> Keep it.
         </h2>
 
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.7, ease: EASE.out }}
-          className="mt-8 mx-auto"
-          style={{ maxWidth: "880px" }}
-        >
-          <img
-            src={howItWorks1080}
-            srcSet={`${howItWorks640} 640w, ${howItWorks1080} 1080w, ${howItWorks1600} 1600w`}
-            sizes="(max-width: 920px) calc(100vw - 48px), 880px"
-            width={1672}
-            height={941}
-            alt="From a photo to a hand-finished canvas — describe the scene, see them painted on screen, then bring them home."
-            style={{
-              width: "100%",
-              height: "auto",
-              display: "block",
-              borderRadius: "12px",
-            }}
-            loading="lazy"
-            decoding="async"
-          />
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mt-9 text-left">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 lg:gap-10 mt-10 md:mt-12">
           {STEPS.map((s, idx) => (
             <motion.div
               key={s.index}
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 22 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.65, delay: idx * 0.12, ease: EASE.out }}
-              className="relative"
+              transition={{ duration: 0.6, delay: idx * 0.12, ease: EASE.out }}
+              className="flex flex-col items-center"
             >
-              {/* Index numeral — display-large, gold ghost. The big number
-                  is the step indicator; we don't repeat "Step 0X" as text. */}
+              {/* Transparent illustration — no box/radius/bg, floats on the
+                  section so it stays seamless with the page. */}
+              <img
+                src={s.img}
+                width={1024}
+                height={1024}
+                alt={s.title}
+                loading="lazy"
+                decoding="async"
+                style={{
+                  width: "100%",
+                  maxWidth: 260,
+                  height: "auto",
+                  display: "block",
+                }}
+              />
+
               <span
                 aria-hidden
                 style={{
-                  ...display("56px"),
+                  fontFamily: "Asap, system-ui, sans-serif",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: "0.22em",
                   color: PALETTE.gold,
-                  opacity: 0.22,
-                  position: "absolute",
-                  top: "-20px",
-                  right: "-4px",
-                  pointerEvents: "none",
-                  lineHeight: 1,
+                  marginTop: 8,
                 }}
               >
                 {s.index}
               </span>
 
-              <div className="relative" style={{ paddingTop: 10 }}>
-                <h3
-                  style={{
-                    ...display("clamp(18px, 2vw, 21px)"),
-                    color: PALETTE.ink,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {s.title}
-                </h3>
-
-                <p
-                  style={{
-                    marginTop: "8px",
-                    color: PALETTE.earth,
-                    fontSize: "15px",
-                    lineHeight: 1.55,
-                  }}
-                >
-                  {s.body}
-                </p>
-              </div>
+              <h3
+                style={{
+                  ...display("clamp(18px, 2vw, 21px)"),
+                  color: PALETTE.ink,
+                  lineHeight: 1.2,
+                  marginTop: 6,
+                }}
+              >
+                {s.title}
+              </h3>
+              <p
+                style={{
+                  marginTop: "6px",
+                  color: PALETTE.earth,
+                  fontSize: "15px",
+                  lineHeight: 1.55,
+                  maxWidth: 240,
+                }}
+              >
+                {s.body}
+              </p>
             </motion.div>
           ))}
         </div>
