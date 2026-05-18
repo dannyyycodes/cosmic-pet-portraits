@@ -2674,11 +2674,23 @@ async function handleLibrary(req: VercelRequest, res: VercelResponse) {
     }
     const { data, error } = await q;
     if (error) return res.status(500).json({ error: 'gallery_failed', detail: error.message });
+    // Pin the most recent day's batch at the very top (newest first) so the
+    // daily drop is visibly NEW at the top of the gallery. Everything older
+    // stays in the stable daily-seed shuffle so the rest still feels varied.
+    // `pool` is already created_at-desc from the query above.
+    const pool = (data ?? []).slice();
+    type GRow = (typeof pool)[number];
+    const latestDay = String(pool[0]?.created_at ?? '').slice(0, 10);
+    const isFresh = (r: GRow) =>
+      latestDay !== '' && String(r.created_at ?? '').slice(0, 10) === latestDay;
+    const fresh = pool
+      .filter(isFresh)
+      .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')));
     const seed = new Date().toISOString().slice(0, 10);
-    const rows = (data ?? [])
-      .slice()
-      .sort((a, b) => stableGalleryScore(a.id, seed) - stableGalleryScore(b.id, seed))
-      .slice(offset, offset + limit);
+    const rest = pool
+      .filter((r) => !isFresh(r))
+      .sort((a, b) => stableGalleryScore(a.id, seed) - stableGalleryScore(b.id, seed));
+    const rows = [...fresh, ...rest].slice(offset, offset + limit);
     return res.status(200).json({ rows });
   }
 
