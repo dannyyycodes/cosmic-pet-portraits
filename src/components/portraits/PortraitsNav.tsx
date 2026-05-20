@@ -169,9 +169,10 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
             style={{
               width: "40px",
               height: "40px",
-              background: cartCount > 0 ? PALETTE.ink : PALETTE.cream,
-              border: `1px solid ${cartCount > 0 ? PALETTE.ink : PALETTE.sand}`,
-              color: cartCount > 0 ? PALETTE.cream : PALETTE.earth,
+              background: cartCount > 0 ? PALETTE.ink : "#fff",
+              border: `1px solid ${cartCount > 0 ? PALETTE.ink : PALETTE.sandDeep}`,
+              color: cartCount > 0 ? PALETTE.cream : PALETTE.ink,
+              boxShadow: cartCount > 0 ? "none" : "0 1px 3px rgba(20, 18, 16, 0.08)",
             }}
           >
             <CartIcon />
