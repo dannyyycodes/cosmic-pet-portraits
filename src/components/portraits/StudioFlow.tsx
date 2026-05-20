@@ -325,68 +325,40 @@ function SignInDialog({
         />
 
         <div className="px-6 pt-8 pb-7 sm:px-8 sm:pt-9 sm:pb-8">
-          {/* Header — rose icon, value-forward heading, one-line subhead */}
-          <div className="text-center mb-5">
-            <div
-              className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4"
-              style={{
-                background: PALETTE.roseSoft,
-              }}
-            >
-              <Sparkles className="w-5 h-5" style={{ color: PALETTE.rose }} />
-            </div>
+          {/* Header — value-forward serif headline */}
+          <div className="text-center mb-6">
             <h2
               style={{
-                ...display("25px"),
-                color: PALETTE.ink,
-                lineHeight: 1.15,
+                fontFamily: "'DM Serif Display', Georgia, serif",
+                fontWeight: 400,
+                fontSize: step === "email" ? 34 : 26,
+                color: step === "email" ? PALETTE.rose : PALETTE.ink,
+                lineHeight: 1.1,
+                letterSpacing: "0.005em",
               }}
             >
-              {step === "email" ? (
-                <>Get <span style={{ color: PALETTE.rose }}>3 free</span> pawtraits</>
-              ) : (
-                "Check your email"
-              )}
+              {step === "email" ? "3 free pawtraits" : "Check your email"}
             </h2>
-            <p
-              className="mx-auto mt-2"
-              style={{
-                fontFamily: 'Assistant, system-ui, sans-serif',
-                fontSize: 14,
-                color: PALETTE.earthMuted,
-                lineHeight: 1.5,
-                maxWidth: 300,
-              }}
-            >
-              {step === "email" ? (
-                <>Sign in to start generating — takes seconds.</>
-              ) : (
-                <>We sent a 6-digit code to <span style={{ color: PALETTE.ink, fontWeight: 600 }}>{email}</span></>
-              )}
-            </p>
-            {step === "email" && (
-              <div
-                className="flex items-center justify-center gap-3 mt-3 flex-wrap"
+            {step === "code" && (
+              <p
+                className="mx-auto mt-2"
                 style={{
                   fontFamily: 'Assistant, system-ui, sans-serif',
-                  fontSize: 12.5,
-                  color: PALETTE.earth,
+                  fontSize: 14,
+                  color: PALETTE.earthMuted,
+                  lineHeight: 1.5,
+                  maxWidth: 300,
                 }}
               >
-                {["No card needed", "Instant access", "Yours to keep"].map((b) => (
-                  <span key={b} className="inline-flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" style={{ color: PALETTE.rose }} strokeWidth={3} />
-                    {b}
-                  </span>
-                ))}
-              </div>
+                We sent a 6-digit code to <span style={{ color: PALETTE.ink, fontWeight: 600 }}>{email}</span>
+              </p>
             )}
           </div>
 
           {/* Form */}
           {step === "email" ? (
             <div className="space-y-3">
-              {/* ── One-tap Google (primary, lowest-friction path) ──── */}
+              {/* ── Google (official Sign in with Google styling) ──── */}
               <button
                 type="button"
                 onClick={handleGoogle}
@@ -394,8 +366,8 @@ function SignInDialog({
                 className="w-full rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-60 active:scale-[0.99] hover:shadow-md"
                 style={{
                   background: "#fff",
-                  border: `1px solid ${PALETTE.sandDeep}`,
-                  color: PALETTE.ink,
+                  border: "1px solid #dadce0",
+                  color: "#1f1f1f",
                   fontFamily: 'Asap, system-ui, sans-serif',
                   fontSize: 15.5,
                   fontWeight: 600,
@@ -413,14 +385,14 @@ function SignInDialog({
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38Z"/>
                   </svg>
                 )}
-                {googleBusy ? "Opening Google…" : "Continue with Google"}
+                {googleBusy ? "Opening Google…" : "Sign in with Google"}
               </button>
 
               {/* Divider */}
               <div className="flex items-center gap-3 py-1" aria-hidden>
                 <div style={{ flex: 1, height: 1, background: PALETTE.sand }} />
                 <span style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 12, color: PALETTE.earthMuted }}>
-                  or use email
+                  or
                 </span>
                 <div style={{ flex: 1, height: 1, background: PALETTE.sand }} />
               </div>
@@ -466,6 +438,31 @@ function SignInDialog({
                 {busy ? "Sending code…" : "Continue with email"}
               </button>
             </form>
+
+              {/* ── Compact trust assurances ──────────────────────── */}
+              <div
+                className="flex items-center justify-center gap-4 flex-wrap pt-1"
+                style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 11.5, fontWeight: 600, color: PALETTE.earthMuted }}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a8f6b" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
+                  Encrypted
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a8f6b" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                  No spam
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a8f6b" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M5 5l14 14"/></svg>
+                  Never shared
+                </span>
+              </div>
+              <p
+                className="text-center"
+                style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 10.5, color: PALETTE.earthSubtle }}
+              >
+                We only receive your name and email · <Link to="/privacy" style={{ color: PALETTE.rose, textDecoration: "none" }}>Privacy</Link>
+              </p>
             </div>
           ) : (
             <form onSubmit={handleVerifyCode} className="space-y-3">

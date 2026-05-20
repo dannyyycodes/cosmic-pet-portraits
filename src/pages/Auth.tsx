@@ -352,12 +352,12 @@ export default function Auth() {
                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38Z"/>
                       </svg>
                     )}
-                    {googleLoading ? 'Opening Google…' : 'Continue with Google'}
+                    {googleLoading ? 'Opening Google…' : 'Sign in with Google'}
                   </button>
 
                   <div className="flex items-center gap-3" aria-hidden>
                     <div style={{ flex: 1, height: 1, background: '#e8ddd0' }} />
-                    <span className="text-xs" style={{ color: '#9a8578' }}>or use email</span>
+                    <span className="text-xs" style={{ color: '#9a8578' }}>or</span>
                     <div style={{ flex: 1, height: 1, background: '#e8ddd0' }} />
                   </div>
 
@@ -396,10 +396,25 @@ export default function Auth() {
                     ) : 'Continue →'}
                   </button>
 
-                  <p className="text-center text-xs" style={{ color: '#9a8578' }}>
+                  {/* Compact trust assurances */}
+                  <div className="flex items-center justify-center gap-4 flex-wrap pt-1 text-xs font-semibold" style={{ color: '#9a8578' }}>
+                    <span className="inline-flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a8f6b" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
+                      Encrypted
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a8f6b" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                      No spam
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5a8f6b" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M5 5l14 14"/></svg>
+                      Never shared
+                    </span>
+                  </div>
+                  <p className="text-center text-[11px]" style={{ color: '#b3a293' }}>
                     By continuing you agree to our{' '}
                     <a href="/terms" className="underline" style={{ color: '#c4a265' }}>terms</a>{' '}and{' '}
-                    <a href="/privacy" className="underline" style={{ color: '#c4a265' }}>privacy policy</a>.
+                    <a href="/privacy" className="underline" style={{ color: '#c4a265' }}>privacy</a>.
                   </p>
                 </motion.form>
               )}
