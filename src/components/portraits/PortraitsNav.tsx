@@ -142,15 +142,17 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
           ) : (
             <Link
               to="/auth"
-              className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1.5 transition-colors"
+              className="hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 transition-all active:scale-[0.98]"
               style={{
                 fontFamily: "Assistant, system-ui, sans-serif",
                 fontSize: "13px",
-                fontWeight: 600,
-                color: PALETTE.earth,
+                fontWeight: 700,
+                color: "#fff",
+                background: PALETTE.rose,
+                boxShadow: "0 6px 16px rgba(191, 82, 74, 0.28)",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = PALETTE.rose)}
-              onMouseLeave={(e) => (e.currentTarget.style.color = PALETTE.earth)}
+              onMouseEnter={(e) => { e.currentTarget.style.background = PALETTE.roseDeep; e.currentTarget.style.boxShadow = "0 8px 22px rgba(191, 82, 74, 0.36)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = PALETTE.rose; e.currentTarget.style.boxShadow = "0 6px 16px rgba(191, 82, 74, 0.28)"; }}
               aria-label="Sign in"
             >
               <UserIcon /> Sign in
@@ -264,12 +266,14 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
                   <SheetClose asChild>
                     <Link
                       to={user ? "/account" : "/auth"}
-                      className="rounded-sm px-4 py-3"
+                      className="rounded-full px-4 py-3 text-center inline-flex items-center justify-center gap-2"
                       style={{
                         fontFamily: "Asap, system-ui, sans-serif",
                         fontSize: "16px",
-                        fontWeight: 500,
-                        color: PALETTE.earth,
+                        fontWeight: 700,
+                        color: user ? PALETTE.earth : "#fff",
+                        background: user ? "transparent" : PALETTE.rose,
+                        boxShadow: user ? "none" : "0 6px 16px rgba(191, 82, 74, 0.28)",
                       }}
                     >
                       {user ? "My account" : "Sign in"}

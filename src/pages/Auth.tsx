@@ -303,7 +303,7 @@ export default function Auth() {
               ) : step === 'password' ? (
                 <Lock className="w-8 h-8 text-white" />
               ) : (
-                <Star className="w-8 h-8 text-white fill-white" />
+                <Sparkles className="w-8 h-8 text-white" />
               )}
             </motion.div>
             <h1 className="text-3xl font-display font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>
