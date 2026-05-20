@@ -170,13 +170,28 @@ function SignInDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [step, setStep] = useState<"email" | "code">("email");
   // Honeypot: real users never see or fill this. Bots that auto-fill every
   // input land in it and get rejected silently server-side.
   const [hpField, setHpField] = useState("");
+
+  async function handleGoogle() {
+    setGoogleBusy(true);
+    try {
+      // Returns the customer to the studio gate after the OAuth round-trip.
+      const { error } = await signInWithGoogle("/pawtraits#studio");
+      if (error) throw error;
+      // No success toast — the page redirects to Google immediately.
+    } catch (e) {
+      toast.error((e as Error).message || "Couldn't open Google sign-in. Try email instead.");
+      setGoogleBusy(false);
+    }
+  }
 
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
@@ -310,8 +325,8 @@ function SignInDialog({
         />
 
         <div className="px-6 pt-8 pb-7 sm:px-8 sm:pt-9 sm:pb-8">
-          {/* Header — single rose icon, confident heading, one-line subhead */}
-          <div className="text-center mb-6">
+          {/* Header — rose icon, value-forward heading, one-line subhead */}
+          <div className="text-center mb-5">
             <div
               className="mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-4"
               style={{
@@ -322,12 +337,16 @@ function SignInDialog({
             </div>
             <h2
               style={{
-                ...display("24px"),
+                ...display("25px"),
                 color: PALETTE.ink,
-                lineHeight: 1.2,
+                lineHeight: 1.15,
               }}
             >
-              {step === "email" ? "3 free pawtraits" : "Check your email"}
+              {step === "email" ? (
+                <>Get <span style={{ color: PALETTE.rose }}>3 free</span> pawtraits</>
+              ) : (
+                "Check your email"
+              )}
             </h2>
             <p
               className="mx-auto mt-2"
@@ -340,15 +359,72 @@ function SignInDialog({
               }}
             >
               {step === "email" ? (
-                <>Enter your email — no password, signed in instantly.</>
+                <>Sign in to start generating — takes seconds.</>
               ) : (
                 <>We sent a 6-digit code to <span style={{ color: PALETTE.ink, fontWeight: 600 }}>{email}</span></>
               )}
             </p>
+            {step === "email" && (
+              <div
+                className="flex items-center justify-center gap-3 mt-3 flex-wrap"
+                style={{
+                  fontFamily: 'Assistant, system-ui, sans-serif',
+                  fontSize: 12.5,
+                  color: PALETTE.earth,
+                }}
+              >
+                {["No card needed", "Instant access", "Yours to keep"].map((b) => (
+                  <span key={b} className="inline-flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" style={{ color: PALETTE.rose }} strokeWidth={3} />
+                    {b}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Form */}
           {step === "email" ? (
+            <div className="space-y-3">
+              {/* ── One-tap Google (primary, lowest-friction path) ──── */}
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={googleBusy || busy}
+                className="w-full rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-60 active:scale-[0.99] hover:shadow-md"
+                style={{
+                  background: "#fff",
+                  border: `1px solid ${PALETTE.sandDeep}`,
+                  color: PALETTE.ink,
+                  fontFamily: 'Asap, system-ui, sans-serif',
+                  fontSize: 15.5,
+                  fontWeight: 600,
+                  height: 52,
+                  boxShadow: "0 1px 2px rgba(20,18,16,0.06)",
+                }}
+              >
+                {googleBusy ? (
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ color: PALETTE.earthMuted }} />
+                ) : (
+                  <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden>
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z"/>
+                    <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84Z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38Z"/>
+                  </svg>
+                )}
+                {googleBusy ? "Opening Google…" : "Continue with Google"}
+              </button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3 py-1" aria-hidden>
+                <div style={{ flex: 1, height: 1, background: PALETTE.sand }} />
+                <span style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 12, color: PALETTE.earthMuted }}>
+                  or use email
+                </span>
+                <div style={{ flex: 1, height: 1, background: PALETTE.sand }} />
+              </div>
+
             <form onSubmit={handleSendCode} className="space-y-3">
               <input
                 type="email"
@@ -387,9 +463,10 @@ function SignInDialog({
                   boxShadow: "0 8px 22px rgba(191, 82, 74, 0.28)",
                 }}
               >
-                {busy ? "Signing you in…" : "Continue"}
+                {busy ? "Sending code…" : "Continue with email"}
               </button>
             </form>
+            </div>
           ) : (
             <form onSubmit={handleVerifyCode} className="space-y-3">
               <input
@@ -1449,18 +1526,23 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           ) : (
             <button
               onClick={() => setSignInOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full transition-colors"
+              className="inline-flex items-center gap-2 rounded-full transition-all active:scale-[0.99] hover:shadow-lg"
               style={{
-                background: PALETTE.cream,
-                border: `1px solid ${PALETTE.sand}`,
-                fontFamily: 'Assistant, system-ui, sans-serif',
-                fontSize: 13,
-                color: PALETTE.earth,
+                background: PALETTE.rose,
+                color: PALETTE.cream,
+                border: "none",
+                fontFamily: 'Asap, system-ui, sans-serif',
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: "0.01em",
+                paddingLeft: 22,
+                paddingRight: 22,
+                height: 48,
+                boxShadow: "0 8px 22px rgba(191, 82, 74, 0.30)",
               }}
             >
-              <Sparkles className="w-3.5 h-3.5" style={{ color: PALETTE.rose }} />
-              <strong style={{ color: PALETTE.ink }}>3 free pawtraits</strong>
-              <span style={{ color: PALETTE.earthMuted, marginLeft: 4 }}>· Sign in</span>
+              <Sparkles className="w-4 h-4" style={{ color: PALETTE.cream }} />
+              Sign in — get 3 free pawtraits
             </button>
           )}
         </div>

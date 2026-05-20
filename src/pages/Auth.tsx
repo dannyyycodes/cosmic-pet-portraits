@@ -51,7 +51,8 @@ export default function Auth() {
   // Honeypot: bots that auto-fill every input land here and get rejected.
   const [hpField, setHpField] = useState('');
 
-  const { sendOtp, verifyOtp, signIn, user } = useAuth();
+  const { sendOtp, verifyOtp, signInWithGoogle, signIn, user } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -94,6 +95,19 @@ export default function Auth() {
       }
     } catch (error) {
       console.error('Error linking reports:', error);
+    }
+  };
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    try {
+      // Return to wherever they were headed (?next=/?redirect=), default /my-reports.
+      const { error } = await signInWithGoogle(safeRedirect);
+      if (error) throw error;
+      // Page redirects to Google immediately on success.
+    } catch (err) {
+      toast.error((err as Error).message || "Couldn't open Google sign-in. Try email instead.");
+      setGoogleLoading(false);
     }
   };
 
@@ -318,6 +332,35 @@ export default function Auth() {
                   onSubmit={handleSendCode}
                   className="space-y-5"
                 >
+                  {/* One-tap Google — lowest-friction path, same provider as Pawtraits */}
+                  <button
+                    type="button"
+                    onClick={handleGoogle}
+                    disabled={googleLoading || loading}
+                    className="w-full py-3 px-6 font-medium flex items-center justify-center gap-3 transition-all hover:shadow-md disabled:opacity-50"
+                    style={{ background: 'white', border: '1px solid #e8ddd0', color: '#3d2f2a', borderRadius: '10px' }}
+                  >
+                    {googleLoading ? (
+                      <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                        <Sparkles className="w-4 h-4" style={{ color: '#9a8578' }} />
+                      </motion.span>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z"/>
+                        <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84Z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38Z"/>
+                      </svg>
+                    )}
+                    {googleLoading ? 'Opening Google…' : 'Continue with Google'}
+                  </button>
+
+                  <div className="flex items-center gap-3" aria-hidden>
+                    <div style={{ flex: 1, height: 1, background: '#e8ddd0' }} />
+                    <span className="text-xs" style={{ color: '#9a8578' }}>or use email</span>
+                    <div style={{ flex: 1, height: 1, background: '#e8ddd0' }} />
+                  </div>
+
                   <div className="space-y-2">
                     <label htmlFor="email" className="block text-sm font-medium" style={{ color: '#5a4a42' }}>Email</label>
                     <div className="relative">

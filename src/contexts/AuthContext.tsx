@@ -11,6 +11,8 @@ interface AuthContextType {
   sendOtp: (email: string) => Promise<{ error: Error | null }>;
   /** Verify the 6-digit code. Signs the user in / completes signup. */
   verifyOtp: (email: string, token: string) => Promise<{ error: Error | null }>;
+  /** One-tap Google OAuth. Redirects out to Google, lands back on returnTo. */
+  signInWithGoogle: (returnTo?: string) => Promise<{ error: Error | null }>;
   /** Legacy password path — kept for accounts that pre-date OTP rollout. */
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -88,6 +90,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
+  const signInWithGoogle = async (returnTo?: string) => {
+    // Land the customer back where they started (default: the studio gate)
+    // so the OAuth round-trip is invisible. The `link-user-reports` hook in
+    // onAuthStateChange attaches any guest purchases on return.
+    const redirectTo = `${window.location.origin}${returnTo ?? '/pawtraits#studio'}`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        queryParams: { prompt: 'select_account' },
+      },
+    });
+    return { error };
+  };
+
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
@@ -113,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, sendOtp, verifyOtp, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, sendOtp, verifyOtp, signInWithGoogle, signUp, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
