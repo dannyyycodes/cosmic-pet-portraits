@@ -147,12 +147,13 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
                 fontFamily: "Assistant, system-ui, sans-serif",
                 fontSize: "13px",
                 fontWeight: 700,
-                color: "#fff",
-                background: PALETTE.rose,
-                boxShadow: "0 6px 16px rgba(191, 82, 74, 0.28)",
+                color: PALETTE.ink,
+                background: "#fff",
+                border: `1px solid ${PALETTE.sandDeep}`,
+                boxShadow: "0 1px 3px rgba(20, 18, 16, 0.08)",
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = PALETTE.roseDeep; e.currentTarget.style.boxShadow = "0 8px 22px rgba(191, 82, 74, 0.36)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = PALETTE.rose; e.currentTarget.style.boxShadow = "0 6px 16px rgba(191, 82, 74, 0.28)"; }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 6px 16px rgba(20, 18, 16, 0.12)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 1px 3px rgba(20, 18, 16, 0.08)"; }}
               aria-label="Sign in"
             >
               <UserIcon /> Sign in
@@ -271,9 +272,10 @@ export function PortraitsNav({ cartCount = 0, onCartOpen }: PortraitsNavProps) {
                         fontFamily: "Asap, system-ui, sans-serif",
                         fontSize: "16px",
                         fontWeight: 700,
-                        color: user ? PALETTE.earth : "#fff",
-                        background: user ? "transparent" : PALETTE.rose,
-                        boxShadow: user ? "none" : "0 6px 16px rgba(191, 82, 74, 0.28)",
+                        color: PALETTE.ink,
+                        background: "#fff",
+                        border: `1px solid ${PALETTE.sandDeep}`,
+                        boxShadow: "0 1px 3px rgba(20, 18, 16, 0.08)",
                       }}
                     >
                       {user ? "My account" : "Sign in"}

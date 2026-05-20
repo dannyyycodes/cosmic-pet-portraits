@@ -291,21 +291,6 @@ export default function Auth() {
           </button>
 
           <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.1, type: 'spring' }}
-              className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #c4a265, #b8973e)' }}
-            >
-              {step === 'code' ? (
-                <Mail className="w-8 h-8 text-white" />
-              ) : step === 'password' ? (
-                <Lock className="w-8 h-8 text-white" />
-              ) : (
-                <Sparkles className="w-8 h-8 text-white" />
-              )}
-            </motion.div>
             <h1 className="text-3xl font-display font-bold" style={{ fontFamily: "'DM Serif Display', Georgia, serif", color: '#3d2f2a' }}>
               {titles[step]}
             </h1>
