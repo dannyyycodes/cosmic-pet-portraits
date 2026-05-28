@@ -384,6 +384,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return handlePrintMasterSubmit(req, res);
     case "printMaster_status":
       return handlePrintMasterStatus(req, res);
+    case "printMaster_asis":
+      return handlePrintMasterAsis(req, res);
+    case "asis_preview":
+      return handleAsisPreview(req, res);
     case "cutout":
       return handleCutout(req, res);
     case "composite":
@@ -405,7 +409,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     case "redeem_download_credit":
       return handleRedeemDownloadCredit(req, res);
     default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|generation_status|room_mockup|printMaster|printMaster_submit|printMaster_status|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects|redeem_download_credit` });
+      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|generation_status|room_mockup|printMaster|printMaster_submit|printMaster_status|printMaster_asis|asis_preview|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects|redeem_download_credit` });
   }
 }
 
@@ -3005,11 +3009,14 @@ const ASPECTS: AspectSpec[] = [
     skuExamples: ['8x10', '16x20'] },
   { key: '3:4', label: '3:4 — 12×16 / 18×24 / 24×32',
     preview: { width: 1024, height: 1360 },
-    print:   { width: 2048, height: 2720 },
+    // EXACT 3:4 (2016/2688 = 0.75), multiple of 16. Was 2048×2720 (0.7529,
+    // +0.39% off) which caused a tiny Gelato crop/border (Codex 2026-05-28).
+    print:   { width: 2016, height: 2688 },
     skuExamples: ['12x16', '18x24', '24x32'] },
   { key: '5:7', label: '5:7 — 20×28',
     preview: { width: 1024, height: 1424 },
-    print:   { width: 2048, height: 2864 },
+    // EXACT 5:7 (2000/2800 = 0.714286), multiple of 16. Was 2048×2864 (+0.11% off).
+    print:   { width: 2000, height: 2800 },
     skuExamples: ['20x28'] },
   { key: '2:3', label: '2:3 — 12×18 / 16×24 / 20×30 / 24×36',
     preview: { width: 1024, height: 1536 },
@@ -3657,6 +3664,314 @@ async function handlePrintMasterStatus(req: VercelRequest, res: VercelResponse) 
     printMasterPath: privatePath,
     printMasterBucket: 'pet-photos-private',
     costEstimate: 0.16,
+  });
+}
+
+// ─── handlePrintMasterAsis — "use my photo as-is" (NO AI) print master ──────
+// New 2026-05-28 endpoint. The customer chose to print their UPLOADED photo
+// exactly, with no AI transform. We crop it to the chosen canvas aspect with a
+// robust, customer-safe pipeline and ship the result straight to the same
+// private print-master bucket the AI path uses — so the cart/checkout/Gelato
+// path downstream is identical.
+//
+// Pipeline (all sharp, no fal, no Vision, no credits):
+//   1. Download the source photo (SSRF-checked, size-limited).
+//   2. Read true source resolution. Compute the real-detail PPI this photo
+//      yields at the chosen canvas size and HARD-GATE on it — below the floor
+//      the print would look soft/pixelated on a wall, so we refuse and tell the
+//      client which sizes the photo CAN do well. This is the "always look good
+//      for customers" guarantee.
+//   3. Cover-crop to the exact print dimensions with saliency (position:
+//      attention keeps the pet's face), lanczos3 resampling, and a gentle
+//      sharpen when upscaling to recover crispness.
+//   4. Upload to pet-photos-private and return the path (same shape as the AI
+//      printMaster_status completion response).
+//
+// PPI policy (strict — Codex review 2026-05-28: a truthful "your photo" print
+// must be genuinely crisp, not just disclosed-as-upscaled).
+//   ≥ ASIS_PPI_CLEAN   → sharp, no warning
+//   ASIS_PPI_HIDE..CLEAN → allowed, qualityWarning:true ("Good" — fine on the wall)
+//   < ASIS_PPI_HIDE    → refused (422 source_too_low_res) / hidden in the picker
+// Both numbers are single constants — keep in lock-step with StudioFlow.tsx.
+const ASIS_PPI_CLEAN = 150;
+const ASIS_PPI_HIDE = 100;
+// Cap the master long edge so the print pipeline's AuraSR 4× lands at a sane
+// size (~8192). We crop at native res then downscale ONLY if above this — never
+// upscale here (AuraSR does any upscaling, once, downstream).
+const ASIS_MASTER_LONG_EDGE_CAP = 2048;
+const ASIS_MAX_SOURCE_BYTES = 25 * 1024 * 1024;
+
+// inches per SKU — mirrors CANVAS_SIZES in gelatoFramedCanvas.ts. Kept local so
+// this API file has no import cycle with the React component module.
+const SKU_INCHES: Record<string, { w: number; h: number }> = {
+  '8x10': { w: 8, h: 10 }, '12x16': { w: 12, h: 16 }, '12x18': { w: 12, h: 18 },
+  '16x20': { w: 16, h: 20 }, '16x24': { w: 16, h: 24 }, '18x24': { w: 18, h: 24 },
+  '20x28': { w: 20, h: 28 }, '20x30': { w: 20, h: 30 }, '24x24': { w: 24, h: 24 },
+  '24x32': { w: 24, h: 32 }, '24x36': { w: 24, h: 36 },
+};
+
+// True-detail PPI a (sourceW×sourceH) photo yields when cover-cropped to a
+// (printW×printH) target at (inW×inH) inches. Cover upscales the source by
+// max(printW/sourceW, printH/sourceH); the real source pixels backing each
+// printed inch = printEdge / scale / inches. The limiting (smaller) value is
+// the honest detail PPI.
+function asisDetailPpi(
+  sourceW: number, sourceH: number,
+  printW: number, printH: number,
+  inW: number, inH: number,
+): number {
+  const scale = Math.max(printW / sourceW, printH / sourceH);
+  const ppiW = (printW / scale) / inW;
+  const ppiH = (printH / scale) / inH;
+  return Math.floor(Math.min(ppiW, ppiH));
+}
+
+function gcdInt(a: number, b: number): number {
+  return b === 0 ? a : gcdInt(b, a % b);
+}
+
+// Largest SKU (by area) this source resolution can print at ≥ ASIS_PPI_HIDE —
+// used to advise the customer in the refusal payload.
+function asisLargestUsableSize(sourceW: number, sourceH: number): string | null {
+  let best: string | null = null;
+  let bestArea = -1;
+  for (const [sku, aspKey] of Object.entries(SKU_TO_ASPECT)) {
+    const asp = ASPECTS.find((a) => a.key === aspKey);
+    const inch = SKU_INCHES[sku];
+    if (!asp || !inch) continue;
+    const ppi = asisDetailPpi(sourceW, sourceH, asp.print.width, asp.print.height, inch.w, inch.h);
+    if (ppi >= ASIS_PPI_HIDE) {
+      const area = inch.w * inch.h;
+      if (area > bestArea) { bestArea = area; best = sku; }
+    }
+  }
+  return best;
+}
+
+async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
+  const body = (req.body ?? {}) as { imageUrl?: string; sizeKey?: string };
+
+  const sizeKey = typeof body.sizeKey === 'string' ? body.sizeKey : '';
+  if (!sizeKey) return res.status(400).json({ error: 'sizeKey required' });
+  const aspectKey = SKU_TO_ASPECT[sizeKey];
+  if (!aspectKey) {
+    return res.status(400).json({
+      error: 'unknown_size_key',
+      message: `sizeKey '${sizeKey}' not recognised. Valid: ${Object.keys(SKU_TO_ASPECT).join(', ')}`,
+    });
+  }
+  const aspect = ASPECTS.find((a) => a.key === aspectKey);
+  if (!aspect) return res.status(500).json({ error: 'aspect_lookup_failed', aspectKey });
+  const inch = SKU_INCHES[sizeKey];
+  if (!inch) return res.status(500).json({ error: 'inch_lookup_failed', sizeKey });
+
+  // Same large-format gate as the AI path (Gelato availability).
+  const sizeInfo = sizeForSku(sizeKey);
+  if (sizeInfo?.blocked) {
+    return res.status(503).json({
+      error: 'size_temporarily_unavailable',
+      message: 'This size is temporarily unavailable',
+      sizeKey,
+      longEdgeIn: sizeInfo.longEdgeIn,
+    });
+  }
+
+  const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl : '';
+  if (!imageUrl) return res.status(400).json({ error: 'imageUrl required' });
+  const ssrf = validateImageUrlOrigin(imageUrl);
+  if (ssrf) return res.status(400).json({ error: 'invalid_image_url', message: `Image URL rejected (${ssrf}).` });
+
+  // Auth — Bearer JWT required (cart item belongs to a signed-in user)
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Sign in to prepare your photo' });
+  const token = auth.slice('Bearer '.length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: 'Invalid token' });
+  const userId = userRes.user.id;
+
+  const rl = await checkUserRateLimit(
+    supabase,
+    'printMaster_asis',
+    userId,
+    PRINT_MASTER_SUBMIT_RATE_LIMIT_PER_HOUR,
+    60 * 60 * 1000,
+  );
+  if (!rl.ok) {
+    return res.status(429).json({ error: 'rate_limited', message: 'Too many attempts. Try again later.' });
+  }
+
+  // Download source
+  let srcBuf: Buffer;
+  try {
+    const dl = await fetch(imageUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!dl.ok) return res.status(502).json({ error: 'source_download_failed', status: dl.status });
+    srcBuf = await responseToLimitedBuffer(dl, ASIS_MAX_SOURCE_BYTES);
+  } catch (e) {
+    const msg = (e as Error).message;
+    if (msg === 'image_too_large') return res.status(413).json({ error: 'source_too_large' });
+    return res.status(502).json({ error: 'source_download_threw', detail: msg });
+  }
+
+  // EXIF FIRST: bake orientation, THEN measure. Phone portraits carry rotation
+  // in EXIF — measuring before .rotate() gates on swapped dims (Codex 2026-05-28).
+  let baked: Buffer;
+  let sw = 0;
+  let sh = 0;
+  try {
+    baked = await sharp(srcBuf, { failOn: 'none' }).rotate().toBuffer();
+    const bm = await sharp(baked).metadata();
+    sw = bm.width ?? 0;
+    sh = bm.height ?? 0;
+  } catch {
+    return res.status(400).json({ error: 'unreadable_image' });
+  }
+  if (sw < 1 || sh < 1) return res.status(400).json({ error: 'unreadable_image' });
+
+  // Honest source-detail PPI. asisDetailPpi is scale-invariant (depends only on
+  // the aspect ratio), so feeding exact-ratio dims is correct.
+  const ppi = asisDetailPpi(sw, sh, Math.round(inch.w * 1000), Math.round(inch.h * 1000), inch.w, inch.h);
+  if (ppi < ASIS_PPI_HIDE) {
+    return res.status(422).json({
+      error: 'source_too_low_res',
+      message: 'This photo is too low-resolution to print sharply at this size.',
+      ppi,
+      minPpi: ASIS_PPI_HIDE,
+      sourceWidth: sw,
+      sourceHeight: sh,
+      largestUsableSize: asisLargestUsableSize(sw, sh),
+    });
+  }
+
+  // PIXEL-EXACT aspect: output dims = integer multiple of the REDUCED inch
+  // ratio (e.g. 2:3), the largest that (a) fits the long-edge cap and (b) needs
+  // NO upscale from the source. Guarantees a perfectly exact ratio (Codex
+  // 2026-05-28: rounding `sh*ratio` left a ~0.05% error) → Gelato edge-to-edge.
+  // AuraSR does the single 4× upscale downstream.
+  const g = gcdInt(inch.w, inch.h);
+  const rw = inch.w / g;
+  const rh = inch.h / g;
+  const n = Math.max(1, Math.min(
+    Math.floor(sw / rw),
+    Math.floor(sh / rh),
+    Math.floor(ASIS_MASTER_LONG_EDGE_CAP / Math.max(rw, rh)),
+  ));
+  const outW = rw * n;
+  const outH = rh * n;
+  // outW≤sw and outH≤sh by construction → cover never upscales (only crops +
+  // mild downscale); a gentle sharpen recovers crispness.
+  const pipeline = sharp(baked, { failOn: 'none' })
+    .resize(outW, outH, { fit: 'cover', position: sharp.strategy.attention, kernel: 'lanczos3' })
+    .sharpen({ sigma: 0.5 });
+  let outBuf: Buffer;
+  try {
+    outBuf = await pipeline.png().toBuffer();
+  } catch (e) {
+    return res.status(500).json({ error: 'render_failed', detail: (e as Error).message });
+  }
+
+  // Upload to private bucket (same shape/location as AI print masters)
+  const storagePath = `print-masters/${crypto.randomUUID()}.png`;
+  const { error: upErr } = await supabase.storage
+    .from('pet-photos-private')
+    .upload(storagePath, outBuf, { contentType: 'image/png', cacheControl: '31536000', upsert: false });
+  if (upErr) {
+    return res.status(500).json({ error: 'upload_failed', detail: upErr.message });
+  }
+
+  return res.status(200).json({
+    status: 'completed',
+    printMasterPath: storagePath,
+    printMasterBucket: 'pet-photos-private',
+    sizeKey,
+    width: outW,
+    height: outH,
+    ppi,
+    qualityWarning: ppi < ASIS_PPI_CLEAN,
+  });
+}
+
+// ─── handleAsisPreview — live "what will print" crop for the as-is studio ──
+// Returns a small JPEG (base64 data URL) of the EXACT cover+saliency crop for
+// the chosen size, so the customer SEES the real crop before adding to cart
+// (Codex review 2026-05-28 — previously they approved the uncropped photo).
+// No storage, no AI, fast (sharp only). Same crop math as printMaster_asis.
+const ASIS_PREVIEW_RATE_LIMIT_PER_HOUR = 240;
+const ASIS_PREVIEW_LONG_EDGE = 720;
+
+async function handleAsisPreview(req: VercelRequest, res: VercelResponse) {
+  const body = (req.body ?? {}) as { imageUrl?: string; sizeKey?: string };
+  const sizeKey = typeof body.sizeKey === 'string' ? body.sizeKey : '';
+  const aspectKey = SKU_TO_ASPECT[sizeKey];
+  const inch = SKU_INCHES[sizeKey];
+  if (!sizeKey || !aspectKey || !inch) {
+    return res.status(400).json({ error: 'unknown_size_key', sizeKey });
+  }
+  const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl : '';
+  if (!imageUrl) return res.status(400).json({ error: 'imageUrl required' });
+  const ssrf = validateImageUrlOrigin(imageUrl);
+  if (ssrf) return res.status(400).json({ error: 'invalid_image_url', message: `Image URL rejected (${ssrf}).` });
+
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Sign in required' });
+  const token = auth.slice('Bearer '.length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: 'Invalid token' });
+
+  const rl = await checkUserRateLimit(supabase, 'asis_preview', userRes.user.id, ASIS_PREVIEW_RATE_LIMIT_PER_HOUR, 60 * 60 * 1000);
+  if (!rl.ok) return res.status(429).json({ error: 'rate_limited' });
+
+  let srcBuf: Buffer;
+  try {
+    const dl = await fetch(imageUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!dl.ok) return res.status(502).json({ error: 'source_download_failed', status: dl.status });
+    srcBuf = await responseToLimitedBuffer(dl, ASIS_MAX_SOURCE_BYTES);
+  } catch (e) {
+    const msg = (e as Error).message;
+    if (msg === 'image_too_large') return res.status(413).json({ error: 'source_too_large' });
+    return res.status(502).json({ error: 'source_download_threw', detail: msg });
+  }
+
+  let baked: Buffer;
+  let sw = 0;
+  let sh = 0;
+  try {
+    baked = await sharp(srcBuf, { failOn: 'none' }).rotate().toBuffer();
+    const bm = await sharp(baked).metadata();
+    sw = bm.width ?? 0;
+    sh = bm.height ?? 0;
+  } catch {
+    return res.status(400).json({ error: 'unreadable_image' });
+  }
+  if (sw < 1 || sh < 1) return res.status(400).json({ error: 'unreadable_image' });
+
+  const ratio = inch.w / inch.h;
+  const ppi = asisDetailPpi(sw, sh, Math.round(inch.w * 1000), Math.round(inch.h * 1000), inch.w, inch.h);
+
+  let pw: number;
+  let ph: number;
+  if (ratio >= 1) { pw = ASIS_PREVIEW_LONG_EDGE; ph = Math.round(ASIS_PREVIEW_LONG_EDGE / ratio); }
+  else { ph = ASIS_PREVIEW_LONG_EDGE; pw = Math.round(ASIS_PREVIEW_LONG_EDGE * ratio); }
+
+  let jpeg: Buffer;
+  try {
+    jpeg = await sharp(baked, { failOn: 'none' })
+      .resize(pw, ph, { fit: 'cover', position: sharp.strategy.attention, kernel: 'lanczos3' })
+      .jpeg({ quality: 82 })
+      .toBuffer();
+  } catch (e) {
+    return res.status(500).json({ error: 'render_failed', detail: (e as Error).message });
+  }
+
+  return res.status(200).json({
+    sizeKey,
+    ppi,
+    qualityWarning: ppi < ASIS_PPI_CLEAN,
+    blocked: ppi < ASIS_PPI_HIDE,
+    width: pw,
+    height: ph,
+    dataUrl: `data:image/jpeg;base64,${jpeg.toString('base64')}`,
   });
 }
 

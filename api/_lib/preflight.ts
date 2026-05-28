@@ -61,7 +61,12 @@ export type PreflightResult =
 export const MIN_LONG_EDGE_PX = 4000;
 export const MIN_LAPLACIAN_VARIANCE = 15;
 export const MAX_CLIPPED_RATIO = 0.05;
-export const MIN_LAB_B_STDDEV = 20;
+// Lowered 20 → 10 (Codex 2026-05-28): real photographic inputs (as-is path) —
+// B&W pets, snow/white-wall backgrounds, near-monochrome shots — can sit in the
+// 10–20 band and were false-failing to manual_review. The FLUX solid-colour
+// failure mode this gate exists to catch scores ~1–3, so 10 still blocks it
+// with margin while passing legitimate low-chroma photos.
+export const MIN_LAB_B_STDDEV = 10;
 
 // Subsampling: LAB conversion + clip count over a 4096×4096 buffer = 16M pixels;
 // dominated by Math overhead, not memory. Subsample to ~1M pixels (every 4th

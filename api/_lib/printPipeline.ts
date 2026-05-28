@@ -21,7 +21,7 @@
  *     manual_review — never auto-submit a soft print to Gelato
  */
 
-import { gelatoProductUid, gelatoUnframedProductUid, type FrameColor } from "../../src/components/portraits/gelatoFramedCanvas.js";
+import { gelatoProductUid, gelatoUnframedProductUid, CANVAS_SIZES, type FrameColor } from "../../src/components/portraits/gelatoFramedCanvas.js";
 import { preflightImage, type PreflightMetrics, type PreflightResult } from "./preflight.js";
 import { getSupabaseAdmin } from "./supabaseAdmin.js";
 
@@ -226,6 +226,31 @@ export async function runPrintPipeline(
       "preflight",
       `unexpected: pre-flight loop exited without success (lastUpscaleError=${lastUpscaleError ?? "none"})`,
     );
+  }
+
+  // Aspect assertion (Codex 2026-05-28): the final image MUST match the SKU's
+  // physical aspect or Gelato silently crops/borders. preflight already measured
+  // the upscaled dims — compare to the canvas inch ratio. 2% epsilon is generous
+  // (exact masters pass; only genuinely off-ratio files route to manual review,
+  // never auto-submitted wrong).
+  {
+    const sizeMeta = CANVAS_SIZES.find((s) => s.uid === input.sizeKey);
+    if (sizeMeta) {
+      const expected = sizeMeta.inches.w / sizeMeta.inches.h;
+      const m = preflightResult.metrics;
+      const actual = m.height > 0 ? m.width / m.height : 0;
+      const offByRatio = expected > 0 ? Math.abs(actual / expected - 1) : 1;
+      if (offByRatio > 0.02) {
+        logError("aspect_mismatch", { sizeKey: input.sizeKey, expected, actual, offByRatio, width: m.width, height: m.height });
+        return {
+          ok: false,
+          stage: "manual_review",
+          reason: `aspect mismatch for ${input.sizeKey}: expected ${expected.toFixed(4)}, got ${actual.toFixed(4)} (${(offByRatio * 100).toFixed(2)}%)`,
+          preflightMetrics: m,
+          upscaledImageUrl,
+        };
+      }
+    }
   }
 
   // 2.5 Rehost the upscaled buffer to durable storage so Gelato can fetch it

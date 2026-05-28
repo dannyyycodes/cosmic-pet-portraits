@@ -66,6 +66,9 @@ export interface StudioState {
   frameColor?: string | null;
   /** Delivery method — "physical" (canvas) or "digital" (download only). */
   deliveryType?: "physical" | "digital";
+  /** Studio mode — "ai" (transform with AI, default) or "asis" (print the
+   *  uploaded photo exactly, no AI). */
+  mode?: "ai" | "asis";
 }
 
 interface StoredEnvelope {
