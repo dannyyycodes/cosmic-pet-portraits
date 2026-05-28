@@ -3682,13 +3682,18 @@ async function handlePrintMasterStatus(req: VercelRequest, res: VercelResponse) 
 //   4. Upload to pet-photos-private and return the path (same shape as the AI
 //      printMaster_status completion response).
 //
-// PPI policy (canvas viewed at distance + textured surface is forgiving):
-//   ≥ ASIS_PPI_CLEAN   → clean, no warning
-//   ASIS_PPI_HIDE..CLEAN → allowed, qualityWarning:true (client shows a soft note)
-//   < ASIS_PPI_HIDE    → refused (422 source_too_low_res)
-// Both numbers are single constants — tune freely after eyeballing real orders.
-const ASIS_PPI_CLEAN = 100;
-const ASIS_PPI_HIDE = 75;
+// PPI policy (strict — Codex review 2026-05-28: a truthful "your photo" print
+// must be genuinely crisp, not just disclosed-as-upscaled).
+//   ≥ ASIS_PPI_CLEAN   → sharp, no warning
+//   ASIS_PPI_HIDE..CLEAN → allowed, qualityWarning:true ("Good" — fine on the wall)
+//   < ASIS_PPI_HIDE    → refused (422 source_too_low_res) / hidden in the picker
+// Both numbers are single constants — keep in lock-step with StudioFlow.tsx.
+const ASIS_PPI_CLEAN = 150;
+const ASIS_PPI_HIDE = 100;
+// Cap the master long edge so the print pipeline's AuraSR 4× lands at a sane
+// size (~8192). We crop at native res then downscale ONLY if above this — never
+// upscale here (AuraSR does any upscaling, once, downstream).
+const ASIS_MASTER_LONG_EDGE_CAP = 2048;
 const ASIS_MAX_SOURCE_BYTES = 25 * 1024 * 1024;
 
 // inches per SKU — mirrors CANVAS_SIZES in gelatoFramedCanvas.ts. Kept local so
@@ -3799,18 +3804,30 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
     return res.status(502).json({ error: 'source_download_threw', detail: msg });
   }
 
-  // Read true resolution + gate on detail PPI
-  let meta: sharp.Metadata;
+  // EXIF FIRST: bake orientation, THEN measure. Phone portraits carry rotation
+  // in EXIF — measuring before .rotate() gates on swapped dims (Codex 2026-05-28).
+  let baked: Buffer;
+  let sw = 0;
+  let sh = 0;
   try {
-    meta = await sharp(srcBuf).metadata();
+    baked = await sharp(srcBuf, { failOn: 'none' }).rotate().toBuffer();
+    const bm = await sharp(baked).metadata();
+    sw = bm.width ?? 0;
+    sh = bm.height ?? 0;
   } catch {
     return res.status(400).json({ error: 'unreadable_image' });
   }
-  const sw = meta.width ?? 0;
-  const sh = meta.height ?? 0;
   if (sw < 1 || sh < 1) return res.status(400).json({ error: 'unreadable_image' });
 
-  const ppi = asisDetailPpi(sw, sh, aspect.print.width, aspect.print.height, inch.w, inch.h);
+  // EXACT canvas aspect (W/H) from the SKU's physical inches. The ASPECTS.print
+  // table is rounded to ×16 and is ~0.4% off for 3:4 and 5:7 — using it would
+  // make the master non-size-perfect (tiny crop/border at Gelato). True ratio
+  // → edge-to-edge.
+  const ratio = inch.w / inch.h;
+
+  // Honest source-detail PPI. asisDetailPpi is scale-invariant (depends only on
+  // the aspect ratio), so feeding exact-ratio dims is correct.
+  const ppi = asisDetailPpi(sw, sh, Math.round(inch.w * 1000), Math.round(inch.h * 1000), inch.w, inch.h);
   if (ppi < ASIS_PPI_HIDE) {
     return res.status(422).json({
       error: 'source_too_low_res',
@@ -3823,16 +3840,25 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Robust cover crop → exact print dims. Gentle sharpen only when upscaling.
-  const scale = Math.max(aspect.print.width / sw, aspect.print.height / sh);
-  let pipeline = sharp(srcBuf, { failOn: 'none' })
-    .rotate() // honour EXIF orientation
-    .resize(aspect.print.width, aspect.print.height, {
-      fit: 'cover',
-      position: sharp.strategy.attention,
-      kernel: 'lanczos3',
-    });
-  if (scale > 1.05) pipeline = pipeline.sharpen({ sigma: 0.8 });
+  // Cover-crop to the EXACT aspect at the source's NATIVE resolution (max real
+  // pixels, never upscaled here). Downscale ONLY if the native crop exceeds the
+  // cap — AuraSR does the single upscale downstream. This kills the prior
+  // downsize-to-2048-then-AuraSR-re-upscale double loss (Codex blocker #4).
+  let cw: number;
+  let ch: number;
+  if (sw / sh > ratio) { ch = sh; cw = Math.round(sh * ratio); }
+  else { cw = sw; ch = Math.round(sw / ratio); }
+  const longEdge = Math.max(cw, ch);
+  let outW = cw;
+  let outH = ch;
+  if (longEdge > ASIS_MASTER_LONG_EDGE_CAP) {
+    const k = ASIS_MASTER_LONG_EDGE_CAP / longEdge;
+    outW = Math.round(cw * k);
+    outH = Math.round(ch * k);
+  }
+  let pipeline = sharp(baked, { failOn: 'none' })
+    .resize(outW, outH, { fit: 'cover', position: sharp.strategy.attention, kernel: 'lanczos3' });
+  if (longEdge > ASIS_MASTER_LONG_EDGE_CAP) pipeline = pipeline.sharpen({ sigma: 0.6 }); // mild, post-downscale only
   let outBuf: Buffer;
   try {
     outBuf = await pipeline.png().toBuffer();
@@ -3854,8 +3880,8 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
     printMasterPath: storagePath,
     printMasterBucket: 'pet-photos-private',
     sizeKey,
-    width: aspect.print.width,
-    height: aspect.print.height,
+    width: outW,
+    height: outH,
     ppi,
     qualityWarning: ppi < ASIS_PPI_CLEAN,
   });

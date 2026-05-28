@@ -888,9 +888,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   // by the UPLOAD's pixel count (not gpt-image-2). We compute the true-detail
   // PPI each size yields from the upload and only offer sizes >= the floor,
   // mirroring the server gate in api/portraits.ts (handlePrintMasterAsis).
-  // Keep these two numbers in lock-step with the server constants.
-  const ASIS_PPI_CLEAN = 100;
-  const ASIS_PPI_HIDE = 75;
+  // Keep these two numbers in lock-step with the server constants (api/portraits.ts).
+  const ASIS_PPI_CLEAN = 150;
+  const ASIS_PPI_HIDE = 100;
   const ASIS_ASPECT_PRINT: Record<string, { w: number; h: number }> = {
     "4:5": { w: 2048, h: 2560 }, "3:4": { w: 2048, h: 2720 }, "5:7": { w: 2048, h: 2864 },
     "2:3": { w: 2048, h: 3072 }, "1:1": { w: 2048, h: 2048 },
@@ -1912,8 +1912,8 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
               aria-label="Portrait mode"
             >
               {([
-                { key: "ai" as const, label: "Transform with AI", icon: "✨" },
-                { key: "asis" as const, label: "Use my photo as-is", icon: "📷" },
+                { key: "ai" as const, label: "Transform into art", icon: "✨" },
+                { key: "asis" as const, label: "Use my photo", icon: "📷" },
               ]).map((opt) => {
                 const active = mode === opt.key;
                 return (
@@ -2002,7 +2002,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                       margin: 0,
                     }}
                   >
-                    We'll print your photo <strong>exactly as you uploaded it</strong> — no AI changes.
+                    Your photo, printed <strong>exactly as you uploaded it</strong>.
                   </p>
                   <p
                     style={{
@@ -2013,7 +2013,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                       marginTop: 6,
                     }}
                   >
-                    Your photo is cropped to fit the canvas size you pick next. We only offer sizes your photo can print sharply.
+                    We crop it to fit the canvas size you pick next, and only offer sizes that will look sharp in print.
                   </p>
                 </div>
                 )}
