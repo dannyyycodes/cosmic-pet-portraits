@@ -628,6 +628,12 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   }
 
   const [prompt, setPrompt] = useState(restoredState?.prompt ?? "");
+  // Studio mode — "ai" = transform with AI (default), "asis" = print the
+  // uploaded photo exactly with no AI. The as-is path skips generation +
+  // credits entirely and crops the upload to canvas server-side.
+  const [mode, setMode] = useState<"ai" | "asis">(restoredState?.mode === "asis" ? "asis" : "ai");
+  // Natural pixel dims of the first uploaded photo — drives as-is size gating.
+  const [asisSrcDims, setAsisSrcDims] = useState<{ w: number; h: number } | null>(null);
   const [generating, setGenerating] = useState(false);
   // Parent-held start timestamp for GenerationCanvas — survives remounts so
   // the stage timer doesn't reset (which would loop the same opening lines
@@ -877,6 +883,43 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     (s) => Math.max(s.inches.w, s.inches.h) <= MAX_LONG_EDGE_IN,
   );
 
+  // ── As-is ("use my photo") source-resolution gating ─────────────────────
+  // When the customer prints their photo unchanged, print sharpness is capped
+  // by the UPLOAD's pixel count (not gpt-image-2). We compute the true-detail
+  // PPI each size yields from the upload and only offer sizes >= the floor,
+  // mirroring the server gate in api/portraits.ts (handlePrintMasterAsis).
+  // Keep these two numbers in lock-step with the server constants.
+  const ASIS_PPI_CLEAN = 100;
+  const ASIS_PPI_HIDE = 75;
+  const ASIS_ASPECT_PRINT: Record<string, { w: number; h: number }> = {
+    "4:5": { w: 2048, h: 2560 }, "3:4": { w: 2048, h: 2720 }, "5:7": { w: 2048, h: 2864 },
+    "2:3": { w: 2048, h: 3072 }, "1:1": { w: 2048, h: 2048 },
+  };
+  const ASIS_SKU_ASPECT: Record<string, string> = {
+    "8x10": "4:5", "16x20": "4:5", "12x16": "3:4", "18x24": "3:4", "24x32": "3:4",
+    "20x28": "5:7", "12x18": "2:3", "16x24": "2:3", "20x30": "2:3", "24x36": "2:3", "24x24": "1:1",
+  };
+  /** True-detail PPI the current upload yields at a given canvas size, or null
+   *  if dims unknown. Cover-crop upscales the source by max(pw/sw, ph/sh); the
+   *  honest detail PPI is the smaller of the two per-edge values. */
+  const asisSizePpi = (s: typeof CANVAS_SIZES[number]): number | null => {
+    if (!asisSrcDims) return null;
+    const print = ASIS_ASPECT_PRINT[ASIS_SKU_ASPECT[s.uid]];
+    if (!print) return null;
+    const scale = Math.max(print.w / asisSrcDims.w, print.h / asisSrcDims.h);
+    const ppiW = (print.w / scale) / s.inches.w;
+    const ppiH = (print.h / scale) / s.inches.h;
+    return Math.floor(Math.min(ppiW, ppiH));
+  };
+  // Sizes shown in the picker. AI path = all purchasable. As-is with a known
+  // upload = only sizes the photo can render at >= ASIS_PPI_HIDE.
+  const sizesForPicker = (mode === "asis" && asisSrcDims)
+    ? PURCHASABLE_SIZES.filter((s) => {
+        const ppi = asisSizePpi(s);
+        return ppi === null || ppi >= ASIS_PPI_HIDE;
+      })
+    : PURCHASABLE_SIZES;
+
   // Persist state on every meaningful change so a tab close mid-generation
   // doesn't lose work + the credit it burned. Cleared on cart-add success
   // (handleAdd below) so a returning customer doesn't see a stale sale-attempt.
@@ -893,8 +936,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
       sizeKey,
       frameColor,
       deliveryType,
+      mode,
     });
-  }, [pets, prompt, variants, selectedVariantUrl, approved, pendingJobId, frameDeferred, sizeKey, frameColor, deliveryType]);
+  }, [pets, prompt, variants, selectedVariantUrl, approved, pendingJobId, frameDeferred, sizeKey, frameColor, deliveryType, mode]);
 
   // Variant resolution — three paths:
   //   • digital  → DIGITAL_VARIANT (single SKU, no size/frame)
@@ -913,10 +957,41 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   // customer doesn't wait a full round-trip only to get a 402 error.
   // balance null/undefined means still loading — don't block (optimistic).
   const hasCredits = balance === null || balance === undefined || balance > 0;
-  const canGenerate =
-    uploadedPets.length >= 1 && prompt.trim().length >= 4 && !generating && hasCredits;
+  const canGenerate = mode === "asis"
+    ? uploadedPets.length >= 1 && !generating
+    : uploadedPets.length >= 1 && prompt.trim().length >= 4 && !generating && hasCredits;
   const canAdd =
     approved && !!selectedVariantUrl && !!variant && uploadedPets.length >= 1 && !preparingPrintMaster;
+
+  // As-is: read the natural pixel dims of the first uploaded photo so we can
+  // gate canvas sizes by real resolution. Re-runs when the photo or mode
+  // changes; clears dims when there's no photo.
+  const firstPhotoUrl = uploadedPets[0]?.photoUrl ?? null;
+  useEffect(() => {
+    if (mode !== "asis" || !firstPhotoUrl || typeof window === "undefined") {
+      setAsisSrcDims(null);
+      return;
+    }
+    let cancelled = false;
+    const img = new Image();
+    img.onload = () => { if (!cancelled) setAsisSrcDims({ w: img.naturalWidth, h: img.naturalHeight }); };
+    img.onerror = () => { if (!cancelled) setAsisSrcDims(null); };
+    img.src = firstPhotoUrl;
+    return () => { cancelled = true; };
+  }, [mode, firstPhotoUrl]);
+
+  // As-is: if the currently-selected size got filtered out by the resolution
+  // gate, snap to the largest still-available size (best value that still
+  // prints sharply). Runs whenever the available set changes.
+  useEffect(() => {
+    if (mode !== "asis" || !asisSrcDims) return;
+    if (sizesForPicker.some((s) => s.uid === sizeKey)) return;
+    const largest = [...sizesForPicker].sort(
+      (a, b) => b.inches.w * b.inches.h - a.inches.w * a.inches.h,
+    )[0];
+    if (largest) setSizeKeyRaw(largest.uid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, asisSrcDims, sizesForPicker.length, sizeKey]);
 
   // ── Phase machine ───────────────────────────────────────────────────
   // Single source of truth for what the studio is currently doing. Drives
@@ -963,6 +1038,21 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   }, [studioPhase]);
 
   async function handleGenerate() {
+    // As-is mode: no AI, no credits. Treat the uploaded photo as the chosen
+    // "variant" and jump straight to the size/frame picker. The real crop to
+    // canvas happens server-side at cart-add (printMaster_asis).
+    if (mode === "asis") {
+      if (uploadedPets.length < 1) return;
+      const photo = uploadedPets[0].photoUrl as string;
+      setVariants([{ url: photo, composition: "asis" }]);
+      setSelectedVariantUrl(photo);
+      setApproved(true);
+      setCartAddCount(0);
+      requestAnimationFrame(() =>
+        variantsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+      return;
+    }
     if (uploadedPets.length < 1 || prompt.trim().length < 4) return;
     if (!user || !session?.access_token) {
       setSignInOpen(true);
@@ -1216,6 +1306,17 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     );
   }
 
+  /** Toggle AI ↔ as-is. Resets any generated/approved state so the customer
+   *  re-confirms in the new mode (an AI variant is meaningless in as-is and
+   *  vice-versa). */
+  function switchMode(next: "ai" | "asis") {
+    if (next === mode) return;
+    setMode(next);
+    setVariants([]);
+    setSelectedVariantUrl(null);
+    setApproved(false);
+  }
+
   async function handleAdd() {
     // Debounce against double-click. The button is disabled via canAdd while
     // preparingPrintMaster, but a fast double-tap can fire both clicks before
@@ -1244,6 +1345,73 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     // with "couldn't prepare print master" toasts. Async path means even
     // a 5-minute fal day works — frontend just shows the spinner longer.
     setPreparingPrintMaster(true);
+
+    // ── As-is path: crop the uploaded photo to canvas server-side (no AI) ──
+    // One synchronous call to printMaster_asis (sharp is fast, no fal queue).
+    // 422 source_too_low_res = the photo can't print sharply at this size; we
+    // tell the customer the largest size it CAN do instead of shipping a soft
+    // canvas.
+    if (mode === "asis") {
+      let asisPath: string | null = null;
+      try {
+        const res = await fetch("/api/portraits?action=printMaster_asis", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ imageUrl: uploadedPets[0].photoUrl, sizeKey }),
+          signal: AbortSignal.timeout(60_000),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 422 && data?.error === "source_too_low_res") {
+          toast.error(
+            `This photo isn't high-resolution enough for ${activeSizeMeta.label}. ${data.largestUsableSize ? `Try ${data.largestUsableSize}″ or smaller` : "Upload a sharper photo"} for a crisp canvas.`,
+            { duration: 9000 },
+          );
+          setPreparingPrintMaster(false);
+          return;
+        }
+        if (!res.ok || data?.status !== "completed" || !data?.printMasterPath) {
+          throw new Error(data?.error || data?.message || `HTTP ${res.status}`);
+        }
+        asisPath = data.printMasterPath as string;
+      } catch (e) {
+        const m = (e as Error).message ?? "";
+        toast.error(`Couldn't prepare your photo: ${m.slice(0, 120) || "unknown error"}. Try again.`, { duration: 8000 });
+        setPreparingPrintMaster(false);
+        return;
+      }
+      setPreparingPrintMaster(false);
+
+      const asisNames = trimmedNames.filter((n) => n.length > 0);
+      const asisProps: Record<string, string> = { _print_mode: "photo-as-is" };
+      if (asisNames.length === 1) asisProps._pet_name = asisNames[0];
+      else if (asisNames.length > 1) asisProps._pet_names = asisNames.join(", ");
+
+      const asisItem = buildCartItem({
+        kind: "ai",
+        productType,
+        sizeKey: (deliveryType === "digital" ? "default" : sizeKey) as AnySizeKey,
+        frameColor: deliveryType === "digital" ? undefined : (frameColor ?? undefined),
+        packId: "photo-as-is",
+        packName: "Your photo",
+        style: "photographic",
+        sourcePhotoUrl: uploadedPets[0].photoUrl as string,
+        previewUrl: uploadedPets[0].photoUrl as string,
+        printMasterPath: asisPath,
+        soulEdition: false,
+        soulEditionPriceMajor: 40,
+        variant: { variantId: variant.variantId, priceMajor: variant.priceMajor, sizeLabel: variant.sizeLabel },
+        id: newPetId(),
+        properties: asisProps,
+      });
+      onCartAdd(asisItem);
+      setCartAddCount((n) => n + 1);
+      clearStudioState();
+      return;
+    }
+
     // SECURITY: post-2026-05-12 the API returns a private storage path (no URL).
     // The path is opaque — customer cannot fetch from it without admin client.
     // Legacy fallback to URL kept for one release cycle in case any client gets a stale response shape.
@@ -1734,6 +1902,47 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
           )}
         </AnimatePresence>
 
+        {/* ── Mode toggle: Transform with AI ↔ Use my photo as-is ─────────── */}
+        {studioPhase === 'compose' && (
+          <div className="mt-5">
+            <div
+              className="grid grid-cols-2 gap-1 p-1 rounded-2xl"
+              style={{ background: PALETTE.cream2, border: `1px solid ${PALETTE.sand}` }}
+              role="tablist"
+              aria-label="Portrait mode"
+            >
+              {([
+                { key: "ai" as const, label: "Transform with AI", icon: "✨" },
+                { key: "asis" as const, label: "Use my photo as-is", icon: "📷" },
+              ]).map((opt) => {
+                const active = mode === opt.key;
+                return (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => switchMode(opt.key)}
+                    className="rounded-xl px-3 py-2.5 transition-all flex items-center justify-center gap-2"
+                    style={{
+                      background: active ? PALETTE.cream : "transparent",
+                      border: active ? `1.5px solid ${PALETTE.rose}` : "1.5px solid transparent",
+                      boxShadow: active ? "0 4px 12px rgba(191,82,74,0.12)" : "none",
+                      color: active ? PALETTE.rose : PALETTE.earthMuted,
+                      fontFamily: "Asap, system-ui, sans-serif",
+                      fontSize: 13.5,
+                      fontWeight: active ? 700 : 600,
+                    }}
+                  >
+                    <span aria-hidden style={{ fontSize: 15 }}>{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* ── Premium prompt box — always visible (Generate gated by !!photoUrl) ─ */}
         <AnimatePresence>
           {true && (
@@ -1764,6 +1973,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                   transition: "box-shadow 240ms, border-color 240ms, background 240ms",
                 }}
               >
+                {mode === "ai" ? (
                 <textarea
                   ref={promptRef}
                   value={prompt}
@@ -1781,8 +1991,35 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                     letterSpacing: "-0.005em",
                   }}
                 />
+                ) : (
+                <div className="px-5 pt-5 pb-1.5">
+                  <p
+                    style={{
+                      fontFamily: 'Assistant, system-ui, sans-serif',
+                      fontSize: 15,
+                      color: PALETTE.ink,
+                      lineHeight: 1.5,
+                      margin: 0,
+                    }}
+                  >
+                    We'll print your photo <strong>exactly as you uploaded it</strong> — no AI changes.
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: 'Assistant, system-ui, sans-serif',
+                      fontSize: 13,
+                      color: PALETTE.earthMuted,
+                      lineHeight: 1.45,
+                      marginTop: 6,
+                    }}
+                  >
+                    Your photo is cropped to fit the canvas size you pick next. We only offer sizes your photo can print sharply.
+                  </p>
+                </div>
+                )}
 
                 <div className="flex items-center justify-between px-3 pb-3 pt-1">
+                  {mode === "ai" ? (
                   <button
                     type="button"
                     onClick={() => setHelpOpen((v) => !v)}
@@ -1793,8 +2030,37 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                   >
                     <HelpCircle className="w-[18px] h-[18px]" />
                   </button>
+                  ) : (
+                    <span aria-hidden className="w-9 h-9" />
+                  )}
 
-                  {user && balance === 0 ? (
+                  {mode === "asis" ? (
+                    <button
+                      onClick={handleGenerate}
+                      disabled={!canGenerate}
+                      aria-label="Use this photo"
+                      className="ls-magnet flex items-center justify-center rounded-full overflow-hidden relative transition-[background,box-shadow] disabled:cursor-not-allowed disabled:opacity-60"
+                      style={{
+                        height: 40,
+                        paddingLeft: 18,
+                        paddingRight: 18,
+                        background: canGenerate
+                          ? `linear-gradient(135deg, ${PALETTE.rose} 0%, ${PALETTE.roseDeep} 100%)`
+                          : "#ffffff",
+                        color: canGenerate ? PALETTE.cream : PALETTE.rose,
+                        border: canGenerate ? "none" : `1.5px solid ${PALETTE.sand}`,
+                        boxShadow: canGenerate
+                          ? `0 8px 22px ${PALETTE.rose}66, 0 0 0 4px ${PALETTE.rose}1a`
+                          : `0 4px 14px rgba(191, 82, 74, 0.10)`,
+                        fontFamily: 'Assistant, system-ui, sans-serif',
+                        fontSize: 14,
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Use this photo →
+                    </button>
+                  ) : mode === "ai" && user && balance === 0 ? (
                     /* Zero-credit guard: don't let the customer trigger a
                        full round-trip only to hit a 402. Show a topup CTA
                        instead of the icon send button. */
@@ -1883,7 +2149,7 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                     lineHeight: 1.5,
                   }}
                 >
-                  Upload {pets.length > 1 ? "at least one pet's photo above" : "your pet's photo above"} to generate. Pick your canvas size &amp; frame after.
+                  Upload {pets.length > 1 ? "at least one pet's photo above" : "your pet's photo above"} to {mode === "asis" ? "continue" : "generate"}. Pick your canvas size &amp; frame after.
                 </p>
               )}
 
@@ -2227,9 +2493,11 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                           Size
                         </p>
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
-                          {PURCHASABLE_SIZES.map((s) => {
+                          {sizesForPicker.map((s) => {
                             const active = sizeKey === s.uid;
                             const isHero = !!s.hero;
+                            const asisPpi = mode === "asis" ? asisSizePpi(s) : null;
+                            const asisSoft = asisPpi !== null && asisPpi < ASIS_PPI_CLEAN;
                             return (
                               <button
                                 key={s.uid}
@@ -2294,10 +2562,42 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                                 >
                                   £{s.priceGBP}
                                 </div>
+                                {asisPpi !== null && (
+                                  <div
+                                    style={{
+                                      fontSize: 8.5,
+                                      fontWeight: 700,
+                                      marginTop: 2,
+                                      letterSpacing: "0.06em",
+                                      textTransform: "uppercase",
+                                      color: active
+                                        ? "rgba(255,253,245,0.9)"
+                                        : asisSoft ? PALETTE.goldDeep : "#1f7a3d",
+                                    }}
+                                  >
+                                    {asisSoft ? "Good" : "Sharp"}
+                                  </div>
+                                )}
                               </button>
                             );
                           })}
                         </div>
+
+                        {mode === "asis" && asisSrcDims && (
+                          <p
+                            className="mt-2"
+                            style={{
+                              fontFamily: 'Assistant, system-ui, sans-serif',
+                              fontSize: 11.5,
+                              color: PALETTE.earthMuted,
+                              lineHeight: 1.45,
+                            }}
+                          >
+                            Sizes are filtered to what your photo can print crisply.{" "}
+                            <strong style={{ color: '#1f7a3d' }}>Sharp</strong> = crisp up close,{" "}
+                            <strong style={{ color: PALETTE.goldDeep }}>Good</strong> = great on the wall. Want bigger? Upload a higher-resolution photo.
+                          </p>
+                        )}
 
                         <p
                           className="mt-4 mb-2"

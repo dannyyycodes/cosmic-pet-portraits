@@ -40,3 +40,6 @@ credentials.json
 # Local-only Vercel link state and Supabase CLI temp (do not commit)
 .vercel/
 supabase/.temp/
+
+# Local-only scratch (crop mockups, test images)
+.pawtrait-staging/
