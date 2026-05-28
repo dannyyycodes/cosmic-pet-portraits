@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import Lenis from "lenis";
 import { usePageAnalytics } from "@/hooks/usePageAnalytics";
-import { checkAndStoreReferralFromURL } from "@/lib/referralTracking";
+import { checkAndStoreReferralFromURL, getReferralCode } from "@/lib/referralTracking";
 
 import "@/components/portraits/portraits.css";
 import { PortraitsNav } from "@/components/portraits/PortraitsNav";
@@ -876,6 +876,7 @@ const Portraits = () => {
           currency,
           items: cart,
           consent: consent ?? undefined,
+          referralCode: getReferralCode() ?? undefined,
         }),
       });
       const data = await res.json();

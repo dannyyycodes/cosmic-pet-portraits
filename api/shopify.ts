@@ -47,6 +47,10 @@ import {
   cancelGelatoOrder,
   type PrintOrderRow,
 } from "./_lib/printOrdersRepo.js";
+import {
+  attributeShopifyOrder,
+  type ShopifyOrderForAttribution,
+} from "./_lib/affiliateAttribution.js";
 
 export const config = {
   api: { bodyParser: false },
@@ -519,6 +523,20 @@ async function handleOrderPaid(
       setTimeout(() => resolve("deadline"), ASYNC_TRIGGER_DEADLINE_MS),
     );
     await Promise.race([n8nWork, deadline]);
+  }
+
+  // ── Affiliate attribution (Shopify path) ───────────────────────────────
+  // Per-line commission (15% physical / affiliate rate on digital). Reads the
+  // `_affiliate_ref` note attribute set at checkout. Best-effort — a tracking
+  // failure must never 500 a paid order.
+  try {
+    const attr = await attributeShopifyOrder(order as unknown as ShopifyOrderForAttribution);
+    console.log("[orders/paid] affiliate_attribution", JSON.stringify({ eventId, orderId, ...attr }));
+  } catch (err) {
+    console.error(
+      "[orders/paid] affiliate_attribution_threw",
+      JSON.stringify({ eventId, orderId, error: err instanceof Error ? err.message : String(err) }),
+    );
   }
 
   console.log(

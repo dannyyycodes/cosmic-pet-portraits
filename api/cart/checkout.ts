@@ -209,9 +209,14 @@ interface CheckoutBody {
   items?: CartItemBody[];
   /** Optional CCR consent timestamps captured from CartConsents. */
   consent?: ConsentBody;
+  /** Affiliate referral code (cosmic_ref cookie). Persisted as the
+   *  `_affiliate_ref` note attribute so api/shopify.ts can attribute the
+   *  paid order to the affiliate. Validated server-side. */
+  referralCode?: string;
 }
 
 const VALID_CURRENCIES = new Set(["GBP", "USD"]);
+const REFERRAL_CODE_RE = /^[a-zA-Z0-9_-]{3,50}$/;
 
 // NOTE (C1): we do NOT 400 a checkout merely because the body carries
 // `appliedDiscountPct` / `soulEditionPriceMajor`. The legit frontend ALWAYS
@@ -517,6 +522,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       name: "Consent — Soul Reading immediate delivery (CCR Reg 37)",
       value: b.consent.readingImmediateAt,
     });
+  }
+
+  // Affiliate referral — hidden note attribute, read by api/shopify.ts
+  // orders/paid → attributeShopifyOrder. Validate format; drop silently if bad.
+  if (typeof b.referralCode === "string" && REFERRAL_CODE_RE.test(b.referralCode.trim())) {
+    noteAttributes.push({ name: "_affiliate_ref", value: b.referralCode.trim() });
   }
 
   // ─── Create draft order ────────────────────────────────────────────────
