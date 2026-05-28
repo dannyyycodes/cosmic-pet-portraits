@@ -634,6 +634,9 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   const [mode, setMode] = useState<"ai" | "asis">(restoredState?.mode === "asis" ? "asis" : "ai");
   // Natural pixel dims of the first uploaded photo — drives as-is size gating.
   const [asisSrcDims, setAsisSrcDims] = useState<{ w: number; h: number } | null>(null);
+  // Live "what will print" crop preview for the selected size (as-is mode).
+  const [asisPreview, setAsisPreview] = useState<{ url: string; ppi: number; sizeKey: string } | null>(null);
+  const [asisPreviewLoading, setAsisPreviewLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   // Parent-held start timestamp for GenerationCanvas — survives remounts so
   // the stage timer doesn't reset (which would loop the same opening lines
@@ -992,6 +995,37 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
     if (largest) setSizeKeyRaw(largest.uid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, asisSrcDims, sizesForPicker.length, sizeKey]);
+
+  // As-is: fetch the REAL crop the customer will get for the selected size, so
+  // they see it before adding to cart. Debounced; re-fetches on size change.
+  useEffect(() => {
+    if (mode !== "asis" || !approved || !firstPhotoUrl || !sizeKey || !session?.access_token) {
+      setAsisPreview(null);
+      setAsisPreviewLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setAsisPreviewLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch("/api/portraits?action=asis_preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ imageUrl: firstPhotoUrl, sizeKey }),
+          signal: AbortSignal.timeout(30_000),
+        });
+        const d = await r.json().catch(() => null);
+        if (cancelled) return;
+        if (r.ok && d?.dataUrl) setAsisPreview({ url: d.dataUrl, ppi: d.ppi ?? 0, sizeKey });
+        else setAsisPreview(null);
+      } catch {
+        if (!cancelled) setAsisPreview(null);
+      } finally {
+        if (!cancelled) setAsisPreviewLoading(false);
+      }
+    }, 250);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [mode, approved, firstPhotoUrl, sizeKey, session?.access_token]);
 
   // ── Phase machine ───────────────────────────────────────────────────
   // Single source of truth for what the studio is currently doing. Drives
@@ -2475,6 +2509,50 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
                           })}
                         </div>
                       </div>
+
+                      {/* As-is: live "what will print" crop preview for the selected size. */}
+                      {mode === "asis" && deliveryType === "physical" && (
+                        <div className="mt-3 mb-4">
+                          <p
+                            className="mb-2"
+                            style={{
+                              fontFamily: 'Asap, system-ui, sans-serif',
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                              color: PALETTE.earthMuted,
+                              letterSpacing: "0.14em",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            Your print — {activeSizeMeta.label}
+                          </p>
+                          <div
+                            style={{
+                              position: "relative",
+                              borderRadius: 12,
+                              overflow: "hidden",
+                              border: `1px solid ${PALETTE.sandDeep}`,
+                              background: PALETTE.cream2,
+                              boxShadow: "0 8px 22px rgba(20,18,16,0.08)",
+                            }}
+                          >
+                            {asisPreview?.url ? (
+                              <img
+                                src={asisPreview.url}
+                                alt={`Your photo cropped for the ${activeSizeMeta.label} canvas`}
+                                style={{ display: "block", width: "100%", height: "auto" }}
+                              />
+                            ) : (
+                              <div style={{ padding: 44, textAlign: "center", color: PALETTE.earthMuted, fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 13 }}>
+                                {asisPreviewLoading ? "Preparing your crop…" : "Pick a size to preview your crop"}
+                              </div>
+                            )}
+                          </div>
+                          <p style={{ fontFamily: 'Assistant, system-ui, sans-serif', fontSize: 12, color: PALETTE.earthMuted, marginTop: 6, lineHeight: 1.45 }}>
+                            This is exactly what prints on your {activeSizeMeta.label} canvas — change the size below to re-crop.
+                          </p>
+                        </div>
+                      )}
 
                       {/* Size + Frame pickers — only shown for physical canvas deliveries. */}
                       {deliveryType === "physical" && (

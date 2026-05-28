@@ -386,6 +386,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return handlePrintMasterStatus(req, res);
     case "printMaster_asis":
       return handlePrintMasterAsis(req, res);
+    case "asis_preview":
+      return handleAsisPreview(req, res);
     case "cutout":
       return handleCutout(req, res);
     case "composite":
@@ -407,7 +409,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     case "redeem_download_credit":
       return handleRedeemDownloadCredit(req, res);
     default:
-      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|generation_status|room_mockup|printMaster|printMaster_submit|printMaster_status|printMaster_asis|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects|redeem_download_credit` });
+      return res.status(400).json({ error: `Unknown action: ${action}. Valid: preview|generate|generation_status|room_mockup|printMaster|printMaster_submit|printMaster_status|printMaster_asis|asis_preview|cutout|composite|mockup|printful-mockup|printOrder|library|instant-signup|test-aspects|redeem_download_credit` });
   }
 }
 
@@ -3007,11 +3009,14 @@ const ASPECTS: AspectSpec[] = [
     skuExamples: ['8x10', '16x20'] },
   { key: '3:4', label: '3:4 — 12×16 / 18×24 / 24×32',
     preview: { width: 1024, height: 1360 },
-    print:   { width: 2048, height: 2720 },
+    // EXACT 3:4 (2016/2688 = 0.75), multiple of 16. Was 2048×2720 (0.7529,
+    // +0.39% off) which caused a tiny Gelato crop/border (Codex 2026-05-28).
+    print:   { width: 2016, height: 2688 },
     skuExamples: ['12x16', '18x24', '24x32'] },
   { key: '5:7', label: '5:7 — 20×28',
     preview: { width: 1024, height: 1424 },
-    print:   { width: 2048, height: 2864 },
+    // EXACT 5:7 (2000/2800 = 0.714286), multiple of 16. Was 2048×2864 (+0.11% off).
+    print:   { width: 2000, height: 2800 },
     skuExamples: ['20x28'] },
   { key: '2:3', label: '2:3 — 12×18 / 16×24 / 20×30 / 24×36',
     preview: { width: 1024, height: 1536 },
@@ -3884,6 +3889,90 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
     height: outH,
     ppi,
     qualityWarning: ppi < ASIS_PPI_CLEAN,
+  });
+}
+
+// ─── handleAsisPreview — live "what will print" crop for the as-is studio ──
+// Returns a small JPEG (base64 data URL) of the EXACT cover+saliency crop for
+// the chosen size, so the customer SEES the real crop before adding to cart
+// (Codex review 2026-05-28 — previously they approved the uncropped photo).
+// No storage, no AI, fast (sharp only). Same crop math as printMaster_asis.
+const ASIS_PREVIEW_RATE_LIMIT_PER_HOUR = 240;
+const ASIS_PREVIEW_LONG_EDGE = 720;
+
+async function handleAsisPreview(req: VercelRequest, res: VercelResponse) {
+  const body = (req.body ?? {}) as { imageUrl?: string; sizeKey?: string };
+  const sizeKey = typeof body.sizeKey === 'string' ? body.sizeKey : '';
+  const aspectKey = SKU_TO_ASPECT[sizeKey];
+  const inch = SKU_INCHES[sizeKey];
+  if (!sizeKey || !aspectKey || !inch) {
+    return res.status(400).json({ error: 'unknown_size_key', sizeKey });
+  }
+  const imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl : '';
+  if (!imageUrl) return res.status(400).json({ error: 'imageUrl required' });
+  const ssrf = validateImageUrlOrigin(imageUrl);
+  if (ssrf) return res.status(400).json({ error: 'invalid_image_url', message: `Image URL rejected (${ssrf}).` });
+
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Sign in required' });
+  const token = auth.slice('Bearer '.length);
+  const supabase = getSupabaseAdmin();
+  const { data: userRes, error: userErr } = await supabase.auth.getUser(token);
+  if (userErr || !userRes.user) return res.status(401).json({ error: 'Invalid token' });
+
+  const rl = await checkUserRateLimit(supabase, 'asis_preview', userRes.user.id, ASIS_PREVIEW_RATE_LIMIT_PER_HOUR, 60 * 60 * 1000);
+  if (!rl.ok) return res.status(429).json({ error: 'rate_limited' });
+
+  let srcBuf: Buffer;
+  try {
+    const dl = await fetch(imageUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!dl.ok) return res.status(502).json({ error: 'source_download_failed', status: dl.status });
+    srcBuf = await responseToLimitedBuffer(dl, ASIS_MAX_SOURCE_BYTES);
+  } catch (e) {
+    const msg = (e as Error).message;
+    if (msg === 'image_too_large') return res.status(413).json({ error: 'source_too_large' });
+    return res.status(502).json({ error: 'source_download_threw', detail: msg });
+  }
+
+  let baked: Buffer;
+  let sw = 0;
+  let sh = 0;
+  try {
+    baked = await sharp(srcBuf, { failOn: 'none' }).rotate().toBuffer();
+    const bm = await sharp(baked).metadata();
+    sw = bm.width ?? 0;
+    sh = bm.height ?? 0;
+  } catch {
+    return res.status(400).json({ error: 'unreadable_image' });
+  }
+  if (sw < 1 || sh < 1) return res.status(400).json({ error: 'unreadable_image' });
+
+  const ratio = inch.w / inch.h;
+  const ppi = asisDetailPpi(sw, sh, Math.round(inch.w * 1000), Math.round(inch.h * 1000), inch.w, inch.h);
+
+  let pw: number;
+  let ph: number;
+  if (ratio >= 1) { pw = ASIS_PREVIEW_LONG_EDGE; ph = Math.round(ASIS_PREVIEW_LONG_EDGE / ratio); }
+  else { ph = ASIS_PREVIEW_LONG_EDGE; pw = Math.round(ASIS_PREVIEW_LONG_EDGE * ratio); }
+
+  let jpeg: Buffer;
+  try {
+    jpeg = await sharp(baked, { failOn: 'none' })
+      .resize(pw, ph, { fit: 'cover', position: sharp.strategy.attention, kernel: 'lanczos3' })
+      .jpeg({ quality: 82 })
+      .toBuffer();
+  } catch (e) {
+    return res.status(500).json({ error: 'render_failed', detail: (e as Error).message });
+  }
+
+  return res.status(200).json({
+    sizeKey,
+    ppi,
+    qualityWarning: ppi < ASIS_PPI_CLEAN,
+    blocked: ppi < ASIS_PPI_HIDE,
+    width: pw,
+    height: ph,
+    dataUrl: `data:image/jpeg;base64,${jpeg.toString('base64')}`,
   });
 }
 
