@@ -3726,6 +3726,10 @@ function asisDetailPpi(
   return Math.floor(Math.min(ppiW, ppiH));
 }
 
+function gcdInt(a: number, b: number): number {
+  return b === 0 ? a : gcdInt(b, a % b);
+}
+
 // Largest SKU (by area) this source resolution can print at ≥ ASIS_PPI_HIDE —
 // used to advise the customer in the refusal payload.
 function asisLargestUsableSize(sourceW: number, sourceH: number): string | null {
@@ -3824,12 +3828,6 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
   }
   if (sw < 1 || sh < 1) return res.status(400).json({ error: 'unreadable_image' });
 
-  // EXACT canvas aspect (W/H) from the SKU's physical inches. The ASPECTS.print
-  // table is rounded to ×16 and is ~0.4% off for 3:4 and 5:7 — using it would
-  // make the master non-size-perfect (tiny crop/border at Gelato). True ratio
-  // → edge-to-edge.
-  const ratio = inch.w / inch.h;
-
   // Honest source-detail PPI. asisDetailPpi is scale-invariant (depends only on
   // the aspect ratio), so feeding exact-ratio dims is correct.
   const ppi = asisDetailPpi(sw, sh, Math.round(inch.w * 1000), Math.round(inch.h * 1000), inch.w, inch.h);
@@ -3845,25 +3843,26 @@ async function handlePrintMasterAsis(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Cover-crop to the EXACT aspect at the source's NATIVE resolution (max real
-  // pixels, never upscaled here). Downscale ONLY if the native crop exceeds the
-  // cap — AuraSR does the single upscale downstream. This kills the prior
-  // downsize-to-2048-then-AuraSR-re-upscale double loss (Codex blocker #4).
-  let cw: number;
-  let ch: number;
-  if (sw / sh > ratio) { ch = sh; cw = Math.round(sh * ratio); }
-  else { cw = sw; ch = Math.round(sw / ratio); }
-  const longEdge = Math.max(cw, ch);
-  let outW = cw;
-  let outH = ch;
-  if (longEdge > ASIS_MASTER_LONG_EDGE_CAP) {
-    const k = ASIS_MASTER_LONG_EDGE_CAP / longEdge;
-    outW = Math.round(cw * k);
-    outH = Math.round(ch * k);
-  }
-  let pipeline = sharp(baked, { failOn: 'none' })
-    .resize(outW, outH, { fit: 'cover', position: sharp.strategy.attention, kernel: 'lanczos3' });
-  if (longEdge > ASIS_MASTER_LONG_EDGE_CAP) pipeline = pipeline.sharpen({ sigma: 0.6 }); // mild, post-downscale only
+  // PIXEL-EXACT aspect: output dims = integer multiple of the REDUCED inch
+  // ratio (e.g. 2:3), the largest that (a) fits the long-edge cap and (b) needs
+  // NO upscale from the source. Guarantees a perfectly exact ratio (Codex
+  // 2026-05-28: rounding `sh*ratio` left a ~0.05% error) → Gelato edge-to-edge.
+  // AuraSR does the single 4× upscale downstream.
+  const g = gcdInt(inch.w, inch.h);
+  const rw = inch.w / g;
+  const rh = inch.h / g;
+  const n = Math.max(1, Math.min(
+    Math.floor(sw / rw),
+    Math.floor(sh / rh),
+    Math.floor(ASIS_MASTER_LONG_EDGE_CAP / Math.max(rw, rh)),
+  ));
+  const outW = rw * n;
+  const outH = rh * n;
+  // outW≤sw and outH≤sh by construction → cover never upscales (only crops +
+  // mild downscale); a gentle sharpen recovers crispness.
+  const pipeline = sharp(baked, { failOn: 'none' })
+    .resize(outW, outH, { fit: 'cover', position: sharp.strategy.attention, kernel: 'lanczos3' })
+    .sharpen({ sigma: 0.5 });
   let outBuf: Buffer;
   try {
     outBuf = await pipeline.png().toBuffer();

@@ -894,25 +894,15 @@ export function StudioFlow({ onCartAdd, onPhaseChange }: StudioFlowProps) {
   // Keep these two numbers in lock-step with the server constants (api/portraits.ts).
   const ASIS_PPI_CLEAN = 150;
   const ASIS_PPI_HIDE = 100;
-  const ASIS_ASPECT_PRINT: Record<string, { w: number; h: number }> = {
-    "4:5": { w: 2048, h: 2560 }, "3:4": { w: 2048, h: 2720 }, "5:7": { w: 2048, h: 2864 },
-    "2:3": { w: 2048, h: 3072 }, "1:1": { w: 2048, h: 2048 },
-  };
-  const ASIS_SKU_ASPECT: Record<string, string> = {
-    "8x10": "4:5", "16x20": "4:5", "12x16": "3:4", "18x24": "3:4", "24x32": "3:4",
-    "20x28": "5:7", "12x18": "2:3", "16x24": "2:3", "20x30": "2:3", "24x36": "2:3", "24x24": "1:1",
-  };
   /** True-detail PPI the current upload yields at a given canvas size, or null
-   *  if dims unknown. Cover-crop upscales the source by max(pw/sw, ph/sh); the
-   *  honest detail PPI is the smaller of the two per-edge values. */
+   *  if dims unknown. Computed from the EXACT inch ratio (×1000) so it matches
+   *  the server (api/portraits.ts asisDetailPpi) — no rounded print table. */
   const asisSizePpi = (s: typeof CANVAS_SIZES[number]): number | null => {
     if (!asisSrcDims) return null;
-    const print = ASIS_ASPECT_PRINT[ASIS_SKU_ASPECT[s.uid]];
-    if (!print) return null;
-    const scale = Math.max(print.w / asisSrcDims.w, print.h / asisSrcDims.h);
-    const ppiW = (print.w / scale) / s.inches.w;
-    const ppiH = (print.h / scale) / s.inches.h;
-    return Math.floor(Math.min(ppiW, ppiH));
+    const pw = s.inches.w * 1000;
+    const ph = s.inches.h * 1000;
+    const scale = Math.max(pw / asisSrcDims.w, ph / asisSrcDims.h);
+    return Math.floor(Math.min((pw / scale) / s.inches.w, (ph / scale) / s.inches.h));
   };
   // Sizes shown in the picker. AI path = all purchasable. As-is with a known
   // upload = only sizes the photo can render at >= ASIS_PPI_HIDE.
