@@ -169,6 +169,9 @@ function buildSchema(post: Post): unknown {
     {
       "@type": "Organization", "@id": `${SITE}/#organization`, name: "Little Souls", url: SITE,
       logo: `${SITE}/og-image.jpg`,
+      foundingDate: "2024", areaServed: "Worldwide",
+      knowsAbout: ["pet astrology", "cosmic pet portraits", "custom pet portraits", "memorial pet portraits", "pet birth chart readings", "animal soul readings", "watercolour pet portraits", "renaissance pet portraits"],
+      sameAs: ["https://twitter.com/LittleSoulsCo", "https://www.pinterest.com/littlesoulsapp"],
       aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "71", bestRating: "5", worstRating: "1" },
     },
     { "@type": "WebSite", "@id": `${SITE}/#website`, url: SITE, name: "Little Souls", publisher: { "@id": `${SITE}/#organization` } },

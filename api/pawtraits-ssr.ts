@@ -432,6 +432,28 @@ function productSchema(meta: PageMeta, heroImage: string, sku: string): unknown 
       price: BASE_PRICE_GBP.toFixed(2),
       availability: "https://schema.org/InStock",
       priceValidUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "GBP" },
+        shippingDestination: [
+          { "@type": "DefinedRegion", addressCountry: "GB" },
+          { "@type": "DefinedRegion", addressCountry: "US" },
+          { "@type": "DefinedRegion", addressCountry: "DE" },
+        ],
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: { "@type": "QuantitativeValue", minValue: 3, maxValue: 5, unitCode: "DAY" },
+          transitTime: { "@type": "QuantitativeValue", minValue: 2, maxValue: 7, unitCode: "DAY" },
+        },
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: ["GB", "US"],
+        returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 7,
+        returnMethod: "https://schema.org/ReturnByMail",
+        returnFees: "https://schema.org/FreeReturn",
+      },
     },
   };
 }
@@ -442,6 +464,9 @@ function orgWebsiteSchemas(): unknown[] {
     {
       "@context": "https://schema.org", "@type": "Organization", "@id": `${SITE}/#organization`,
       name: "Little Souls", url: SITE, logo: `${SITE}/og-image.jpg`, aggregateRating: AGGREGATE_RATING,
+      foundingDate: "2024", areaServed: "Worldwide",
+      knowsAbout: ["pet astrology", "cosmic pet portraits", "custom pet portraits", "memorial pet portraits", "pet birth chart readings", "animal soul readings", "watercolour pet portraits", "renaissance pet portraits"],
+      sameAs: ["https://twitter.com/LittleSoulsCo", "https://www.pinterest.com/littlesoulsapp"],
     },
     {
       "@context": "https://schema.org", "@type": "WebSite", "@id": `${SITE}/#website`,

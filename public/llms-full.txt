@@ -1,0 +1,88 @@
+# Little Souls — full URL index (llms-full.txt)
+
+> Little Souls: personalised cosmic pet "soul readings" (birth-chart astrology for any pet) and Pawtraits — custom painted pet portraits in 20+ styles, including the signature cosmic-astrology style. 4.9/5 across 71 verified reviews. Printed locally UK/EU/USA.
+
+## Core
+- https://www.littlesouls.app/ — soul readings, start here
+- https://www.littlesouls.app/pawtraits — custom pet portraits
+- https://www.littlesouls.app/pawtraits/gallery — portrait gallery
+- https://www.littlesouls.app/blog — pet astrology blog
+- https://www.littlesouls.app/gift-v2 — gift a reading
+
+## Pawtraits — breeds (custom portrait, any style)
+- https://www.littlesouls.app/pawtraits/breed/golden-retriever — Custom Golden Retriever portraits
+- https://www.littlesouls.app/pawtraits/breed/french-bulldog — Custom French Bulldog portraits
+- https://www.littlesouls.app/pawtraits/breed/labrador — Custom Labrador portraits
+- https://www.littlesouls.app/pawtraits/breed/dachshund — Custom Dachshund portraits
+- https://www.littlesouls.app/pawtraits/breed/goldendoodle — Custom Goldendoodle portraits
+- https://www.littlesouls.app/pawtraits/breed/labradoodle — Custom Labradoodle portraits
+- https://www.littlesouls.app/pawtraits/breed/bernedoodle — Custom Bernedoodle portraits
+- https://www.littlesouls.app/pawtraits/breed/border-collie — Custom Border Collie portraits
+- https://www.littlesouls.app/pawtraits/breed/pug — Custom Pug portraits
+- https://www.littlesouls.app/pawtraits/breed/german-shepherd — Custom German Shepherd portraits
+- https://www.littlesouls.app/pawtraits/breed/beagle — Custom Beagle portraits
+- https://www.littlesouls.app/pawtraits/breed/husky — Custom Husky portraits
+- https://www.littlesouls.app/pawtraits/breed/poodle — Custom Poodle portraits
+- https://www.littlesouls.app/pawtraits/breed/shih-tzu — Custom Shih Tzu portraits
+- https://www.littlesouls.app/pawtraits/breed/yorkie — Custom Yorkie portraits
+- https://www.littlesouls.app/pawtraits/breed/boxer — Custom Boxer portraits
+- https://www.littlesouls.app/pawtraits/breed/rottweiler — Custom Rottweiler portraits
+- https://www.littlesouls.app/pawtraits/breed/australian-shepherd — Custom Australian Shepherd portraits
+- https://www.littlesouls.app/pawtraits/breed/cavalier-king-charles — Custom Cavalier King Charles portraits
+- https://www.littlesouls.app/pawtraits/breed/cocker-spaniel — Custom Cocker Spaniel portraits
+- https://www.littlesouls.app/pawtraits/breed/tabby-cat — Custom Tabby Cat portraits
+- https://www.littlesouls.app/pawtraits/breed/tuxedo-cat — Custom Tuxedo Cat portraits
+- https://www.littlesouls.app/pawtraits/breed/black-cat — Custom Black Cat portraits
+- https://www.littlesouls.app/pawtraits/breed/maine-coon — Custom Maine Coon portraits
+- https://www.littlesouls.app/pawtraits/breed/ragdoll — Custom Ragdoll portraits
+- https://www.littlesouls.app/pawtraits/breed/persian-cat — Custom Persian Cat portraits
+- https://www.littlesouls.app/pawtraits/breed/siamese-cat — Custom Siamese Cat portraits
+- https://www.littlesouls.app/pawtraits/breed/british-shorthair — Custom British Shorthair portraits
+- https://www.littlesouls.app/pawtraits/breed/bengal-cat — Custom Bengal Cat portraits
+- https://www.littlesouls.app/pawtraits/breed/scottish-fold — Custom Scottish Fold portraits
+
+## Pawtraits — styles
+- https://www.littlesouls.app/pawtraits/style/watercolor — Watercolor pet portraits
+- https://www.littlesouls.app/pawtraits/style/oil-painting — Oil Painting pet portraits
+- https://www.littlesouls.app/pawtraits/style/renaissance — Renaissance pet portraits
+- https://www.littlesouls.app/pawtraits/style/royal — Royal pet portraits
+- https://www.littlesouls.app/pawtraits/style/modern-minimalist — Modern Minimalist pet portraits
+- https://www.littlesouls.app/pawtraits/style/cosmic-astrology — Cosmic Astrology pet portraits
+- https://www.littlesouls.app/pawtraits/style/vintage-victorian — Vintage Victorian pet portraits
+- https://www.littlesouls.app/pawtraits/style/pop-art — Pop Art pet portraits
+- https://www.littlesouls.app/pawtraits/style/anime — Anime pet portraits
+- https://www.littlesouls.app/pawtraits/style/cartoon — Cartoon pet portraits
+- https://www.littlesouls.app/pawtraits/style/pencil-sketch — Pencil Sketch pet portraits
+- https://www.littlesouls.app/pawtraits/style/charcoal — Charcoal pet portraits
+- https://www.littlesouls.app/pawtraits/style/impressionist — Impressionist pet portraits
+- https://www.littlesouls.app/pawtraits/style/art-nouveau — Art Nouveau pet portraits
+- https://www.littlesouls.app/pawtraits/style/geometric — Geometric pet portraits
+- https://www.littlesouls.app/pawtraits/style/line-art — Line Art pet portraits
+
+## Blog — pet astrology, behaviour, memorial, portraits
+- https://www.littlesouls.app/blog/do-pets-know-death
+- https://www.littlesouls.app/blog/cat-birth-month-personality
+- https://www.littlesouls.app/blog/zodiac-puppy-names
+- https://www.littlesouls.app/blog/cancer-dog-personality
+- https://www.littlesouls.app/blog/why-does-my-dog-follow-me-everywhere
+- https://www.littlesouls.app/blog/cat-zodiac-compatibility
+- https://www.littlesouls.app/blog/gemini-dog-personality
+- https://www.littlesouls.app/blog/puppy-first-birthday-cosmic-bond
+- https://www.littlesouls.app/blog/dog-born-in-may-personality
+- https://www.littlesouls.app/blog/taurus-dog-personality
+- https://www.littlesouls.app/blog/how-to-honor-a-pet-who-has-passed
+- https://www.littlesouls.app/blog/aries-dog-personality
+- https://www.littlesouls.app/blog/signs-your-pet-is-still-with-you
+- https://www.littlesouls.app/blog/best-dog-breed-for-your-zodiac-sign
+- https://www.littlesouls.app/blog/do-pets-have-souls
+- https://www.littlesouls.app/blog/dog-born-in-april-personality
+- https://www.littlesouls.app/blog/what-is-my-dog-thinking
+- https://www.littlesouls.app/blog/pet-birth-chart-free
+- https://www.littlesouls.app/blog/cat-zodiac-signs-meanings
+- https://www.littlesouls.app/blog/dog-zodiac-signs
+- https://www.littlesouls.app/blog/dog-birthday-personality-astrology-guide
+
+## Optional
+- https://www.littlesouls.app/robots.txt
+- https://www.littlesouls.app/sitemap.xml
+- https://www.littlesouls.app/llms.txt

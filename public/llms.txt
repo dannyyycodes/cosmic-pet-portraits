@@ -16,25 +16,42 @@ Little Souls was created for pet owners who have always felt their pet is trying
 - **Weekly Horoscopes** — Optional subscription with weekly cosmic guidance for any pet.
 - **Affiliate Program** — 50% commission on referred sales.
 
+## Pawtraits — custom pet portraits
+
+Little Souls also creates **Pawtraits**: custom painted pet portraits made from your pet's photo, in 20+ art styles — watercolour, oil, renaissance, royal, modern minimalist, pop art, anime, and the signature **cosmic-astrology** style that renders your pet inside their own birth sky. Little Souls is the only studio that pairs a hand-painted cosmic portrait with a real birth-chart soul reading.
+
+- **Digital painting — £19.** High-resolution download, ready to print or share.
+- **Canvas — from £39** (real-wood frame upgrade +£45 to +£110). Printed locally in the UK, EU, and USA and shipped worldwide.
+- **Memorial portraits** — a hand-painted keepsake to honour a pet who has crossed the rainbow bridge; written and rendered reverently.
+- Available for any breed of dog or cat. Dedicated landing pages exist for 30 breeds and 16 art styles.
+
+### Portrait pages
+
+- [Pawtraits — custom pet portraits](https://www.littlesouls.app/pawtraits): all styles, all breeds, start your own
+- [Cosmic Astrology portraits](https://www.littlesouls.app/pawtraits/style/cosmic-astrology): your pet rendered inside their birth sky — the Little Souls signature
+- [Renaissance pet portraits](https://www.littlesouls.app/pawtraits/style/renaissance) · [Watercolour](https://www.littlesouls.app/pawtraits/style/watercolor) · [Royal](https://www.littlesouls.app/pawtraits/style/royal)
+- [Portrait gallery](https://www.littlesouls.app/pawtraits/gallery): browse finished portraits across every breed and style
+- Top breeds: [Golden Retriever](https://www.littlesouls.app/pawtraits/breed/golden-retriever) · [French Bulldog](https://www.littlesouls.app/pawtraits/breed/french-bulldog) · [Labrador](https://www.littlesouls.app/pawtraits/breed/labrador) · [German Shepherd](https://www.littlesouls.app/pawtraits/breed/german-shepherd) · [Dachshund](https://www.littlesouls.app/pawtraits/breed/dachshund)
+
 ## Core pages
 
-- [Home](https://littlesouls.app): overview of Little Souls, testimonials, sample readings
-- [Start a Reading](https://littlesouls.app/): choose reading tier and begin the intake
-- [Gift a Reading](https://littlesouls.app/gift-v2): send a reading as a gift certificate
-- [Blog](https://littlesouls.app/blog): pet astrology, behaviour, memorial, and SoulSpeak articles written by named expert authors
-- [Redeem a Code](https://littlesouls.app/redeem): enter a redeem code or gift certificate
-- [Affiliates](https://littlesouls.app/become-affiliate): 50% commission partner program
-- [Contact](https://littlesouls.app/contact): support and custom enquiries
+- [Home](https://www.littlesouls.app): overview of Little Souls, testimonials, sample readings
+- [Start a Reading](https://www.littlesouls.app/): choose reading tier and begin the intake
+- [Gift a Reading](https://www.littlesouls.app/gift-v2): send a reading as a gift certificate
+- [Blog](https://www.littlesouls.app/blog): pet astrology, behaviour, memorial, and SoulSpeak articles written by named expert authors
+- [Redeem a Code](https://www.littlesouls.app/redeem): enter a redeem code or gift certificate
+- [Affiliates](https://www.littlesouls.app/become-affiliate): 50% commission partner program
+- [Contact](https://www.littlesouls.app/contact): support and custom enquiries
 
 ## Authors / contributors
 
 The Little Souls blog is written by a small team of named experts, each with their own voice and area. Every blog post carries a byline linking to the author's bio page.
 
-- [Dr. Elena Whitaker, DVM](https://littlesouls.app/author/elena-whitaker) — integrative veterinarian, 18 years clinical experience, writes on pet health, behaviour, and emotional wellbeing.
-- [Callum Hayes](https://littlesouls.app/author/callum-hayes) — working dog trainer, 22 years experience in search and rescue, service-dog training, and pet family work. Breed temperament and training lens.
-- [Maggie O'Shea](https://littlesouls.app/author/maggie-oshea) — feline behaviour consultant (IAABC), 15 years observation work, cat psychology and feline astrology.
-- [River Callahan](https://littlesouls.app/author/river-callahan) — pet astrologer, 12 years practice, 4,000+ animal chart readings. Elemental astrology, birth charts, soul connection.
-- [Rowan Sterling, MA](https://littlesouls.app/author/rowan-sterling) — pet loss counsellor, 8 years veterinary bereavement work. Grief, anticipatory loss, memorial rituals.
+- [Dr. Elena Whitaker, DVM](https://www.littlesouls.app/author/elena-whitaker) — integrative veterinarian, 18 years clinical experience, writes on pet health, behaviour, and emotional wellbeing.
+- [Callum Hayes](https://www.littlesouls.app/author/callum-hayes) — working dog trainer, 22 years experience in search and rescue, service-dog training, and pet family work. Breed temperament and training lens.
+- [Maggie O'Shea](https://www.littlesouls.app/author/maggie-oshea) — feline behaviour consultant (IAABC), 15 years observation work, cat psychology and feline astrology.
+- [River Callahan](https://www.littlesouls.app/author/river-callahan) — pet astrologer, 12 years practice, 4,000+ animal chart readings. Elemental astrology, birth charts, soul connection.
+- [Rowan Sterling, MA](https://www.littlesouls.app/author/rowan-sterling) — pet loss counsellor, 8 years veterinary bereavement work. Grief, anticipatory loss, memorial rituals.
 
 ## What customers say
 
@@ -60,7 +77,7 @@ Verified customer reviews, 4.9 / 5 average:
 
 > "Even for a young pup, the personality insights were incredibly accurate. The archetype section was fascinating." — Anna C. (Pepper, Australian Shepherd)
 
-Full review set available on the homepage at https://littlesouls.app/.
+Full review set available on the homepage at https://www.littlesouls.app/.
 
 ## Why customers choose Little Souls over alternatives
 
@@ -84,5 +101,5 @@ Full review set available on the homepage at https://littlesouls.app/.
 
 ## Optional
 
-- [Robots.txt](https://littlesouls.app/robots.txt)
-- [Sitemap](https://littlesouls.app/sitemap.xml)
+- [Robots.txt](https://www.littlesouls.app/robots.txt)
+- [Sitemap](https://www.littlesouls.app/sitemap.xml)
