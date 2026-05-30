@@ -50,7 +50,13 @@ const CLUSTER_LABEL: Record<string, string> = {
   E: "Gifts",
   F: "Breed & Zodiac",
   G: "SoulSpeak",
+  H: "Portraits",
 };
+
+// Pawtraits programmatic pages — the ONLY breed/style internal targets that exist.
+// Mirror of api/sitemap.ts + api/pawtraits-ssr.ts. Used to build the link menu.
+const PAWTRAIT_BREED_SLUGS = "golden-retriever, french-bulldog, labrador, dachshund, goldendoodle, labradoodle, bernedoodle, border-collie, pug, german-shepherd, beagle, husky, poodle, shih-tzu, yorkie, boxer, rottweiler, australian-shepherd, cavalier-king-charles, cocker-spaniel, tabby-cat, tuxedo-cat, black-cat, maine-coon, ragdoll, persian-cat, siamese-cat, british-shorthair, bengal-cat, scottish-fold";
+const PAWTRAIT_STYLE_SLUGS = "watercolor, oil-painting, renaissance, royal, modern-minimalist, cosmic-astrology, vintage-victorian, pop-art, anime, cartoon, pencil-sketch, charcoal, impressionist, art-nouveau, geometric, line-art";
 
 // CTA destinations — "/" is the new funnel homepage (emotional journey → pricing cards).
 // Never link to /checkout (that's the legacy checkout.html, being retired).
@@ -62,6 +68,7 @@ const CTA_BY_CLUSTER: Record<string, { middle: string; end: string }> = {
   E: { middle: "/gift-v2", end: "/gift-v2" },
   F: { middle: "/", end: "/" },
   G: { middle: "/soul-chat", end: "/soul-chat" },
+  H: { middle: "/pawtraits", end: "/pawtraits" },
 };
 
 // Cluster word-count norms (from phase2-post-template §6)
@@ -73,6 +80,7 @@ const WORDCOUNT_NORMS: Record<string, [number, number]> = {
   E: [1200, 2000],
   F: [800, 1200],
   G: [1500, 2500],
+  H: [1000, 1800],
 };
 
 const BANNED_PHRASES = [
@@ -133,6 +141,22 @@ serve(async (req) => {
 
     const results: unknown[] = [];
 
+    // Real internal-link menu — the model may ONLY link to URLs that exist.
+    // This is the fix for the historical "[anchor](/blog/guessed-slug)" 404 problem.
+    const { data: existingPosts } = await supabase
+      .from("blog_posts").select("slug,title").eq("is_published", true)
+      .order("published_at", { ascending: false }).limit(60);
+    const blogMenu = (existingPosts ?? [])
+      .map((p: { slug: string; title: string }) => `- /blog/${p.slug} — ${p.title}`).join("\n");
+    const internalLinkMenu = `Internal-link MENU — these are the ONLY internal URLs that exist. Linking to anything else 404s.
+Pawtraits (custom hand-painted portrait) pages:
+- /pawtraits  (main)
+- /pawtraits/gallery
+- /pawtraits/breed/<slug>  — breed slugs: ${PAWTRAIT_BREED_SLUGS}
+- /pawtraits/style/<slug>  — style slugs: ${PAWTRAIT_STYLE_SLUGS}
+Existing blog posts (use the exact path shown):
+${blogMenu}`;
+
     for (const topic of topics) {
       try {
         // Resolve author — topic.author_slug is authoritative; fallback by cluster
@@ -175,13 +199,15 @@ Writing rules for EVERY post:
 1. First 80 words directly answer the searcher's query. Not a setup — the answer.
 2. Use 4–6 H2 sections (## in markdown). No H1 (title is rendered separately).
 3. Include ONE inline citation — a markdown link to a real authoritative source (AVMA, AKC, ASPCA, VCA Hospitals, Cornell Feline Health Center, Almanac, a peer-reviewed paper, etc). Not a placeholder; use a real reputable URL.
-4. Sprinkle 3–5 short internal links using markdown — \`[anchor text](/blog/related-slug-guess)\`. Anchor text must be natural phrasing.
+4. Include 3–5 markdown internal links, but ONLY to URLs from the MENU at the end of this prompt. NEVER invent a /blog/<slug> — unknown slugs 404 and hurt us. If the post names a specific breed or art style, link it to the matching /pawtraits/breed/<slug> or /pawtraits/style/<slug>. Always include at least one link to a relevant /pawtraits page. Anchor text must be natural phrasing.
 5. Never use banned phrases: ${BANNED_PHRASES.join(", ")}.
 6. Never say "email delivery", "check your inbox", "PDF", or reference AI — Little Souls is a cinematic reveal experience.
 7. Memorial cluster (D): no exclamation points, no emojis, reverent register.
 8. Use your personal anecdotes and vocabulary — write as yourself, not generic.
 9. End each post with a ## Sources section listing your citation(s).
 10. NEVER link to /checkout or /checkout.html anywhere — the conversion funnel lives at /. If you want to send the reader to the reading, link to / (the homepage).
+
+${internalLinkMenu}
 
 Output STRICT JSON matching the schema below. No markdown code fences. No commentary. Just the JSON object.`;
 
@@ -406,7 +432,10 @@ Inline image rules:
         }
 
         // Insert middle + end CTA at end of body (middle gets inlined after 2nd H2)
-        const ctaEnd = `\n\n## Ready to read ${species === "cat" ? "their feline soul" : "your dog's soul"}?\n\n*Written by ${author.short_name}.* [Read your pet's cosmic chart →](${cta.end})\n`;
+        const isPortraits = cluster === "H";
+        const ctaEnd = isPortraits
+          ? `\n\n## See ${species === "cat" ? "your cat" : "your dog"} painted the way you see them\n\n*Written by ${author.short_name}.* [See their portrait →](${cta.end})\n`
+          : `\n\n## Ready to read ${species === "cat" ? "their feline soul" : "your dog's soul"}?\n\n*Written by ${author.short_name}.* [Read your pet's cosmic chart →](${cta.end})\n`;
         let finalContent: string = bodyWithImages;
         if (!finalContent.includes("](" + cta.end) && !finalContent.includes("](" + cta.middle)) {
           // Inject middle CTA after the 2nd H2 (approx 40% scroll)
@@ -416,11 +445,14 @@ Inline image rules:
           while ((m = re.exec(finalContent)) !== null) h2Positions.push(m.index);
           const injectAt = h2Positions[2] ?? h2Positions[1] ?? -1;
           if (injectAt > 0) {
-            const middleCta = `\n\n> **See the stars read aloud for the one you love most.**\n>\n> [Read their full chart →](${cta.middle})\n\n`;
+            const middleCta = isPortraits
+              ? `\n\n> **See them painted the way you see them — hand-painted, in a style that fits who they are.**\n>\n> [See the portrait →](${cta.middle})\n\n`
+              : `\n\n> **See the stars read aloud for the one you love most.**\n>\n> [Read their full chart →](${cta.middle})\n\n`;
             finalContent = finalContent.slice(0, injectAt) + middleCta + finalContent.slice(injectAt);
           }
         }
-        if (!finalContent.includes("Ready to read")) finalContent += ctaEnd;
+        const endMarker = isPortraits ? "See their portrait →" : "Ready to read";
+        if (!finalContent.includes(endMarker)) finalContent += ctaEnd;
 
         const nowIso = new Date().toISOString();
 

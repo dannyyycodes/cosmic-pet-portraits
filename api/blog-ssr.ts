@@ -6,7 +6,7 @@
 // executing JS. Schema + meta + body all in one static document.
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-const SITE = "https://littlesouls.app";
+const SITE = "https://www.littlesouls.app";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://aduibsyrnenzobuyetmn.supabase.co";
 // Public anon JWT — safe to ship; PostgREST enforces RLS. Fallback hardcoded so
 // the function works even if the Vercel env var isn't configured.
@@ -21,6 +21,7 @@ const CLUSTER_LABEL: Record<string, string> = {
   E: "Gifts",
   F: "Breed & Zodiac",
   G: "SoulSpeak",
+  H: "Portraits",
 };
 
 interface Author {
@@ -408,9 +409,9 @@ ${author ? `<meta property="article:author" content="${escAttr(author.name)}"/>`
   </article>
   ${faqBlock}
   <section class="ls-end-cta">
-    <h2>${cluster === "D" ? "Somewhere to put the love that has nowhere to go" : cluster === "E" ? "The gift that makes them cry at the coffee table" : cluster === "G" ? "Now hear what they would say back" : "A reading that sounds like a love letter"}</h2>
-    <p>${cluster === "D" ? "A cosmic reading becomes a keepsake — something to return to, on the hard days." : cluster === "E" ? "A cosmic reading of their pet, revealed the moment they click open." : cluster === "G" ? "SoulSpeak uses their chart to write in their voice. Start a conversation, free." : "Cinematic reveal. The stars read aloud for the one you love most."}</p>
-    <a href="/?utm_source=blog&amp;utm_medium=cta&amp;utm_campaign=${escAttr(post.slug)}&amp;utm_content=end" class="btn">${cluster === "D" ? "Honor their chart →" : cluster === "E" ? "Send a reading →" : cluster === "G" ? "Talk to them →" : "Read my pet's chart →"}</a>
+    <h2>${cluster === "H" ? "Give them a portrait that honours the bond" : cluster === "D" ? "Somewhere to put the love that has nowhere to go" : cluster === "E" ? "The gift that makes them cry at the coffee table" : cluster === "G" ? "Now hear what they would say back" : "A reading that sounds like a love letter"}</h2>
+    <p>${cluster === "H" ? "Hand-painted from your favourite photo — their face, their soul, on your wall." : cluster === "D" ? "A cosmic reading becomes a keepsake — something to return to, on the hard days." : cluster === "E" ? "A cosmic reading of their pet, revealed the moment they click open." : cluster === "G" ? "SoulSpeak uses their chart to write in their voice. Start a conversation, free." : "Cinematic reveal. The stars read aloud for the one you love most."}</p>
+    <a href="${cluster === "H" ? "/pawtraits" : "/"}?utm_source=blog&amp;utm_medium=cta&amp;utm_campaign=${escAttr(post.slug)}&amp;utm_content=end" class="btn">${cluster === "H" ? "See their portrait →" : cluster === "D" ? "Honor their chart →" : cluster === "E" ? "Send a reading →" : cluster === "G" ? "Talk to them →" : "Read my pet's chart →"}</a>
   </section>
   ${authorCard}
   ${sourcesBlock}

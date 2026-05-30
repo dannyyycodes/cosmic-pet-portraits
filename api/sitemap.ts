@@ -5,7 +5,7 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "https://aduibsyrnenzobuye
 // still renders the full post/author list if the Vercel env var is missing.
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY
   || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkdWlic3lybmVuem9idXlldG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MzAwMzgsImV4cCI6MjA4ODUwNjAzOH0.-axd-u-mY_73j2RPkySsLgG630WCUb05I8AbwYjIvkI";
-const SITE = "https://littlesouls.app";
+const SITE = "https://www.littlesouls.app";
 
 interface SitemapEntry {
   loc: string;
