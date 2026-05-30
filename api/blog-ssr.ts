@@ -166,7 +166,11 @@ function buildSchema(post: Post): unknown {
   const author = post.author;
 
   const graph: unknown[] = [
-    { "@type": "Organization", "@id": `${SITE}/#organization`, name: "Little Souls", url: SITE },
+    {
+      "@type": "Organization", "@id": `${SITE}/#organization`, name: "Little Souls", url: SITE,
+      logo: `${SITE}/og-image.jpg`,
+      aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "71", bestRating: "5", worstRating: "1" },
+    },
     { "@type": "WebSite", "@id": `${SITE}/#website`, url: SITE, name: "Little Souls", publisher: { "@id": `${SITE}/#organization` } },
     {
       "@type": "WebPage",
@@ -411,6 +415,7 @@ ${author ? `<meta property="article:author" content="${escAttr(author.name)}"/>`
   <section class="ls-end-cta">
     <h2>${cluster === "H" ? "Give them a portrait that honours the bond" : cluster === "D" ? "Somewhere to put the love that has nowhere to go" : cluster === "E" ? "The gift that makes them cry at the coffee table" : cluster === "G" ? "Now hear what they would say back" : "A reading that sounds like a love letter"}</h2>
     <p>${cluster === "H" ? "Hand-painted from your favourite photo — their face, their soul, on your wall." : cluster === "D" ? "A cosmic reading becomes a keepsake — something to return to, on the hard days." : cluster === "E" ? "A cosmic reading of their pet, revealed the moment they click open." : cluster === "G" ? "SoulSpeak uses their chart to write in their voice. Start a conversation, free." : "Cinematic reveal. The stars read aloud for the one you love most."}</p>
+    <p style="font-size:14px;opacity:0.85;margin:0 0 16px">★★★★★ Rated 4.9/5 by pet owners — loved across the UK, EU &amp; USA</p>
     <a href="${cluster === "H" ? "/pawtraits" : "/"}?utm_source=blog&amp;utm_medium=cta&amp;utm_campaign=${escAttr(post.slug)}&amp;utm_content=end" class="btn">${cluster === "H" ? "See their portrait →" : cluster === "D" ? "Honor their chart →" : cluster === "E" ? "Send a reading →" : cluster === "G" ? "Talk to them →" : "Read my pet's chart →"}</a>
   </section>
   ${authorCard}

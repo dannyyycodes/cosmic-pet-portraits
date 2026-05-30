@@ -342,6 +342,7 @@ h2{font-family:"DM Serif Display",Georgia,serif;font-size:clamp(20px,3.6vw,28px)
 .ls-pills a[aria-current="page"]{background:var(--rose);color:#fff;border-color:var(--rose)}
 .ls-footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:13px}
 .ls-footer a{color:var(--muted);margin:0 8px}
+.ls-trust{font-size:14px;color:var(--ink);margin:0 0 30px}
 .ls-depth{margin-top:48px}.ls-depth .ls-why{max-width:62ch;color:var(--body)}
 .ls-steps{max-width:62ch;color:var(--body);padding-left:20px}.ls-steps li{margin-bottom:6px}
 .ls-faq{margin-top:36px}
@@ -383,6 +384,7 @@ ${head}
       <a href="/pawtraits/gallery" class="secondary">Browse the gallery</a>
     </div>
     <p class="ls-meta">£${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · Printed locally (UK · EU · USA) · Ships worldwide</p>
+    <p class="ls-trust"><span style="color:#c4a265">★★★★★</span> <strong>4.9/5</strong> · loved by pet owners across the UK, EU &amp; USA</p>
     <h2>${esc(meta.galleryHeading)}</h2>
     ${grid}
     ${opts.extraBodyHtml ?? ""}
