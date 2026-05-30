@@ -57,6 +57,7 @@ serve(async (req) => {
     // SECURITY: Verify the Stripe session is actually paid and get verified amount
     let customerEmail: string | null = null;
     let verifiedAmount: number;
+    let verifiedCurrency = 'GBP';
     try {
       const session = await stripe.checkout.sessions.retrieve(input.sessionId);
 
@@ -73,6 +74,8 @@ serve(async (req) => {
 
       // SECURITY: Use Stripe-verified amount, never trust client-provided amount
       verifiedAmount = session.amount_total || 0;
+      // Capture the real sale currency so the dashboard shows GBP/USD per sale
+      verifiedCurrency = (session.currency || 'gbp').toUpperCase();
 
       // Get customer email for self-referral check
       customerEmail = session.customer_email || session.customer_details?.email || null;
@@ -153,6 +156,7 @@ serve(async (req) => {
         stripe_session_id: input.sessionId,
         amount_cents: verifiedAmount,
         commission_cents: commissionAmount,
+        currency: verifiedCurrency,
         status: 'pending',
       })
       .select()

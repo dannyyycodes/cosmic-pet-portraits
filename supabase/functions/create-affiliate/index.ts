@@ -104,7 +104,9 @@ serve(async (req) => {
       referralCode = `${sanitizedName}_${Math.random().toString(36).slice(2, 8)}`;
     }
 
-    // Store affiliate in database - PENDING until admin approval
+    // Store affiliate in database - INSTANT AUTO-APPROVE (active immediately).
+    // Research-backed: motivation peaks in the 24h after signup; instant approval
+    // + a live link is the #1 activation lift. Self-referral + payout guards still apply.
     const { data: affiliate, error: dbError } = await supabaseClient
       .from('affiliates')
       .insert({
@@ -113,7 +115,7 @@ serve(async (req) => {
         stripe_account_id: account.id,
         referral_code: referralCode,
         commission_rate: 0.50,
-        status: 'pending',
+        status: 'active',
       })
       .select()
       .single();
@@ -150,11 +152,11 @@ serve(async (req) => {
               <h1 style="color: #1a1a2e; margin-bottom: 20px;">Welcome aboard, ${input.name}! 🌟</h1>
               
               <p style="color: #333; font-size: 16px; line-height: 1.6;">
-                Thank you for applying to the Little Souls affiliate programme! Your application is <strong>under review</strong> and we'll notify you once approved.
+                You're in — your Little Souls partner account is <strong>active right now</strong>. Your link works the moment you finish payout setup below.
               </p>
 
               <div style="background: #faf6ef; border: 2px solid #c4a265; padding: 24px; border-radius: 12px; margin: 24px 0;">
-                <p style="color: #3d2f2a; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Your referral link (active after approval):</p>
+                <p style="color: #3d2f2a; margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Your referral link (live now):</p>
                 <p style="background: white; color: #c4a265; padding: 14px 20px; border-radius: 8px; font-weight: 600; font-size: 16px; text-align: center; margin: 0; word-break: break-all;">
                   ${referralLink}
                 </p>
@@ -162,9 +164,10 @@ serve(async (req) => {
 
               <h2 style="color: #1a1a2e; margin-top: 32px;">What happens next:</h2>
               <ul style="color: #333; font-size: 16px; line-height: 1.8;">
-                <li>We'll review your application (usually within 24 hours)</li>
-                <li>Once approved, earn <strong>50% commission</strong> on every sale</li>
-                <li>Track referrals in your dashboard &amp; get paid weekly (min $10)</li>
+                <li>Start sharing your link today — you're already approved</li>
+                <li>You earn <strong>50%</strong> on every soul reading, <strong>20% for life</strong> on horoscope memberships, and <strong>15%</strong> on hand-painted pawtraits — plus a <strong>£15</strong> bonus on your first sale</li>
+                <li>Reach more souls and your rate climbs: <strong>35% / 40% / 45%</strong> at 5, 10 and 25 sales</li>
+                <li>Track every referral in your dashboard &amp; get paid monthly (£10 minimum)</li>
               </ul>
               
               <div style="margin-top: 32px;">

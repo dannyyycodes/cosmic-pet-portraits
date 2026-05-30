@@ -219,6 +219,7 @@ serve(async (req) => {
             status: "active",
             stripe_subscription_id: session.subscription as string,
             stripe_customer_id: session.customer as string,
+            referral_code: session.metadata?.referral_code || null, // 20% lifetime affiliate commission
             next_send_at: new Date().toISOString(), // Send first one immediately
           });
         
@@ -847,6 +848,7 @@ serve(async (req) => {
                           next_send_at: nextSunday.toISOString(),
                           plan,
                           occasion_mode: petOccasionMode,
+                          referral_code: session.metadata?.referral_code || null, // 20% lifetime affiliate commission
                           ...(stripeSubId ? { stripe_subscription_id: stripeSubId } : {}),
                         });
 
@@ -1258,6 +1260,66 @@ serve(async (req) => {
             stripe_session_id: invoice.id,
             details: { subscription: subscriptionId, amount_paid: invoice.amount_paid },
           });
+        }
+
+        // ── Horoscope subscription recurring affiliate commission (20% lifetime) ──
+        // Fires on every paid cycle (incl. the first charge after the 30-day trial).
+        // Source of truth = referral_code stored on the horoscope_subscriptions row.
+        if ((invoice.amount_paid || 0) > 0) {
+          try {
+            const { data: horoSub } = await supabaseClient
+              .from("horoscope_subscriptions")
+              .select("referral_code, email")
+              .eq("stripe_subscription_id", subscriptionId)
+              .maybeSingle();
+
+            if (horoSub?.referral_code) {
+              const idemKey = `invsub_${invoice.id}`; // one commission row per invoice
+              const { data: alreadyTracked } = await supabaseClient
+                .from("affiliate_referrals")
+                .select("id")
+                .eq("stripe_session_id", idemKey)
+                .maybeSingle();
+
+              if (!alreadyTracked) {
+                const { data: aff } = await supabaseClient
+                  .from("affiliates")
+                  .select("id, email")
+                  .eq("referral_code", horoSub.referral_code)
+                  .eq("status", "active")
+                  .maybeSingle();
+
+                const buyerEmail = (invoice.customer_email || horoSub.email || "").toLowerCase().trim();
+                const isSelf = !!(aff?.email && buyerEmail && aff.email.toLowerCase() === buyerEmail);
+
+                if (aff && !isSelf) {
+                  const amountCents = invoice.amount_paid;
+                  const commissionCents = Math.round(amountCents * 0.20); // 20% recurring
+                  const { error: insErr } = await supabaseClient
+                    .from("affiliate_referrals")
+                    .insert({
+                      affiliate_id: aff.id,
+                      stripe_session_id: idemKey,
+                      amount_cents: amountCents,
+                      commission_cents: commissionCents,
+                      currency: (invoice.currency || "gbp").toUpperCase(),
+                      status: "pending",
+                    });
+                  if (!insErr) {
+                    await supabaseClient.rpc("increment_affiliate_stats", {
+                      p_affiliate_id: aff.id,
+                      p_commission_cents: commissionCents,
+                    });
+                    console.log("[STRIPE-WEBHOOK] Horoscope recurring commission 20% recorded:", { affiliate: aff.id, commissionCents, invoice: invoice.id });
+                  } else if ((insErr as { code?: string }).code !== "23505") {
+                    console.error("[STRIPE-WEBHOOK] Horoscope commission insert failed:", insErr.message);
+                  }
+                }
+              }
+            }
+          } catch (commErr) {
+            console.error("[STRIPE-WEBHOOK] Horoscope recurring commission error:", commErr);
+          }
         }
       }
     }

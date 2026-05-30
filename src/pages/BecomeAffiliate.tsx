@@ -168,16 +168,52 @@ export default function BecomeAffiliate() {
               style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}
             >
               <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#c4a265' }}>50%</p>
+                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#c4a265' }}>Up to 50%</p>
                 <p className="text-xs sm:text-sm" style={{ color: '#9a8578' }}>Commission</p>
               </div>
               <div className="text-center" style={{ borderLeft: '1px solid #e8ddd0', borderRight: '1px solid #e8ddd0' }}>
-                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#3d2f2a' }}>Lifetime</p>
+                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#3d2f2a' }}>60 days</p>
                 <p className="text-xs sm:text-sm" style={{ color: '#9a8578' }}>Cookie</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#3d2f2a' }}>Weekly</p>
+                <p className="text-2xl sm:text-3xl font-bold" style={{ color: '#3d2f2a' }}>Monthly</p>
                 <p className="text-xs sm:text-sm" style={{ color: '#9a8578' }}>Payouts</p>
+              </div>
+            </motion.div>
+
+            {/* What you earn — tiered commission */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+              className="rounded-2xl p-6 sm:p-8"
+              style={{ background: 'white', border: '1px solid #e8ddd0' }}
+            >
+              <h2 className="text-xl font-semibold mb-5 flex items-center gap-2" style={{ color: '#3d2f2a' }}>
+                <Percent className="w-5 h-5" style={{ color: '#c4a265' }} />
+                What you earn
+              </h2>
+              <div className="space-y-1">
+                {[
+                  { label: 'Soul readings', rate: '50%' },
+                  { label: 'Horoscope memberships', rate: '20% for life' },
+                  { label: 'Hand-painted pawtraits', rate: '15%' },
+                ].map((tier) => (
+                  <div
+                    key={tier.label}
+                    className="flex items-center justify-between py-3"
+                    style={{ borderBottom: '1px solid #f0e8dc' }}
+                  >
+                    <span className="text-sm sm:text-base" style={{ color: '#5a4a42' }}>{tier.label}</span>
+                    <span className="font-bold text-base sm:text-lg" style={{ color: '#c4a265' }}>{tier.rate}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 rounded-xl p-4" style={{ background: '#faf6ef', border: '1px solid #e8ddd0' }}>
+                <p className="text-sm" style={{ color: '#3d2f2a' }}>
+                  <strong>+£15 on your first sale.</strong> Reach more souls and your rate climbs —{' '}
+                  <strong>35% / 40% / 45%</strong> as you hit 5, 10 and 25 sales.
+                </p>
               </div>
             </motion.div>
 
@@ -389,10 +425,10 @@ export default function BecomeAffiliate() {
             </motion.div>
 
             <h2 className="text-2xl font-semibold mb-2" style={{ color: '#3d2f2a' }}>
-              Application Submitted!
+              You're in! 🎉
             </h2>
             <p className="mb-8" style={{ color: '#9a8578' }}>
-              We'll review your application and get back to you within 24 hours.
+              Your partner account is live. Finish payout setup below and your link's ready to share.
             </p>
 
             {/* Referral Link */}

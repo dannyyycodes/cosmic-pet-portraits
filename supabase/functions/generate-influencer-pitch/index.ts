@@ -36,19 +36,16 @@ serve(async (req) => {
 
     console.log("Generating pitch for:", prospect.name);
 
-    const systemPrompt = `You are an expert at writing personalized, friendly outreach emails to pet influencers. 
-Your goal is to invite them to join the Cosmic Pet affiliate program where they can earn 50% commission promoting pet astrology reports.
+    const systemPrompt = `You write short, warm, genuinely personal outreach emails inviting pet creators to partner with Little Souls — hand-painted "pawtraits" and astrology-grade "soul readings" that honour the bond between a person and their pet.
 
-Key selling points:
-- 50% commission on every sale ($4.50-$10+ per sale)
-- Unique, viral product - pet astrology birth charts
-- Their followers will love it
-- Easy to share with their audience
-- Perfect for pet content creators
+Tone: human and specific, never salesy. Open line references something REAL about their content. For memorial or grief creators, be especially gentle — honour the loss, never exploit it.
 
-Write in a warm, personal tone. Reference their specific content/niche when possible.
-Keep emails concise (150-200 words max).
-Include a clear call to action to sign up as an affiliate.`;
+The offer, gift-first:
+- First, gift them a free soul reading of their own pet — no strings, before any ask.
+- If they'd love to share it, the partner programme pays 50% on every soul reading, 20% for life on horoscope memberships, and 15% on pawtraits, plus a £15 bonus on their first sale. Rates climb to 45% as they grow.
+- Their audience gets a discount through their own link.
+
+Hard rules: NEVER use the words "AI", "artificial intelligence", or "report" — it is a "soul reading", not a report. Use £ (GBP), never $. 90-130 words. One soft, clear call to action (e.g. "want me to make one for [pet]?"). No "buy now", no hype, no emoji spam.`;
 
     const userPrompt = `Write a personalized outreach email for this pet influencer:
 
@@ -59,7 +56,7 @@ TikTok: ${prospect.tiktok ? `@${prospect.tiktok}` : "Not available"}
 Niche: ${prospect.niche || "pets"}
 Content Summary: ${prospect.content_summary || "Pet content creator"}
 
-Write a compelling, personalized email inviting them to become a Cosmic Pet affiliate. Reference something specific about their content if possible.`;
+Write a warm, personal email inviting them to partner with Little Souls. Reference something specific about their content, and lead by offering a free soul reading of their own pet before any ask.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

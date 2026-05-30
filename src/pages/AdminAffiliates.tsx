@@ -131,7 +131,7 @@ export default function AdminAffiliates() {
     }
   };
 
-  const formatCurrency = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
+  const formatCurrency = (cents: number) => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(cents / 100);
   const activeCount = affiliates.filter(a => a.status === 'active').length;
   const totalEarnings = affiliates.reduce((acc, a) => acc + a.total_earnings_cents, 0);
   const pendingPayouts = affiliates.reduce((acc, a) => acc + a.pending_balance_cents, 0);
@@ -158,7 +158,7 @@ export default function AdminAffiliates() {
           <StatCard title="Total Affiliates" value={affiliates.length} icon={Users} iconColor="text-cosmic-purple" iconBg="bg-cosmic-purple/20" />
           <StatCard title="Active" value={activeCount} icon={CheckCircle} iconColor="text-green-400" iconBg="bg-green-500/20" />
           <StatCard title="Total Paid Out" value={formatCurrency(totalEarnings)} icon={TrendingUp} iconColor="text-cosmic-gold" iconBg="bg-cosmic-gold/20" />
-          <StatCard title="Pending Payouts" value={formatCurrency(pendingPayouts)} subtitle="Min $10 to payout" icon={Clock} iconColor="text-orange-400" iconBg="bg-orange-500/20" />
+          <StatCard title="Pending Payouts" value={formatCurrency(pendingPayouts)} subtitle="Min £10 to payout" icon={Clock} iconColor="text-orange-400" iconBg="bg-orange-500/20" />
         </div>
 
         <div className="mb-6 p-4 bg-cosmic-purple/10 border border-cosmic-purple/30 rounded-xl">

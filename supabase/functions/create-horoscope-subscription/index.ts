@@ -27,13 +27,18 @@ serve(async (req) => {
   }
 
   try {
-    const { email, petReportId, petName, plan = "monthly", currency: rawCurrency } = await req.json();
+    const { email, petReportId, petName, plan = "monthly", currency: rawCurrency, referralCode: rawReferral } = await req.json();
 
     if (!email || !petReportId || !petName) {
       throw new Error("Missing required fields: email, petReportId, petName");
     }
 
     const currency = normalizeCurrency(rawCurrency);
+    // Affiliate referral: rides on the SUBSCRIPTION metadata so every recurring
+    // invoice can pay 20% lifetime commission back to the referring affiliate.
+    const referralCode = typeof rawReferral === "string" && /^[a-zA-Z0-9_-]{3,50}$/.test(rawReferral.trim())
+      ? rawReferral.trim()
+      : null;
     console.log("[HOROSCOPE-SUB] Creating subscription for:", { email, petName, petReportId, plan, currency });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
@@ -72,6 +77,7 @@ serve(async (req) => {
           petReportId,
           petName,
           email,
+          ...(referralCode ? { referral_code: referralCode } : {}),
         },
       },
       success_url: `${req.headers.get("origin")}/horoscope-success?session_id={CHECKOUT_SESSION_ID}&pet=${encodeURIComponent(petName)}`,
@@ -83,6 +89,7 @@ serve(async (req) => {
         type: "horoscope_subscription",
         plan,
         currency,
+        ...(referralCode ? { referral_code: referralCode } : {}),
       },
     });
 

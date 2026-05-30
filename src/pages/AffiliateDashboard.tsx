@@ -35,6 +35,7 @@ interface Referral {
   date: string;
   amount: number;
   commission: number;
+  currency: string;
   status: string;
   paidAt: string | null;
 }
@@ -192,10 +193,11 @@ export default function AffiliateDashboard() {
     toast.success('Referral link copied!');
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+  const formatCurrency = (amount: number, currency: string = 'GBP') => {
+    const locale = currency === 'USD' ? 'en-US' : currency === 'EUR' ? 'en-IE' : 'en-GB';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: 'USD',
+      currency,
     }).format(amount);
   };
 
@@ -517,8 +519,8 @@ export default function AffiliateDashboard() {
                       {referrals.map((referral) => (
                         <tr key={referral.id} style={{ borderBottom: '1px solid #e8ddd0' }} className="last:border-0">
                           <td className="py-3 px-3 text-sm" style={{ color: '#5a4a42' }}>{formatDate(referral.date)}</td>
-                          <td className="py-3 px-3 text-sm text-right" style={{ color: '#5a4a42' }}>{formatCurrency(referral.amount)}</td>
-                          <td className="py-3 px-3 text-sm font-medium text-right" style={{ color: '#c4a265' }}>+{formatCurrency(referral.commission)}</td>
+                          <td className="py-3 px-3 text-sm text-right" style={{ color: '#5a4a42' }}>{formatCurrency(referral.amount, referral.currency)}</td>
+                          <td className="py-3 px-3 text-sm font-medium text-right" style={{ color: '#c4a265' }}>+{formatCurrency(referral.commission, referral.currency)}</td>
                           <td className="py-3 px-3 text-center">
                             {referral.status === 'paid' ? (
                               <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full" style={{ background: 'rgba(107,143,94,0.12)', color: '#6b8f5e' }}>

@@ -55,6 +55,7 @@ interface ShopifyNoteAttribute {
 export interface ShopifyOrderForAttribution {
   id?: number | string;
   email?: string | null;
+  currency?: string | null;
   note_attributes?: ShopifyNoteAttribute[] | null;
   line_items?: ShopifyLineItemLike[] | null;
   test?: boolean;
@@ -159,6 +160,7 @@ export async function attributeShopifyOrder(
     stripe_session_id: sessionKey,
     amount_cents: amountCents,
     commission_cents: commissionCents,
+    currency: (order.currency || "GBP").toUpperCase(),
     status: "pending",
   });
   if (insErr) {

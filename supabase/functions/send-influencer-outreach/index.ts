@@ -44,7 +44,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: "Little Souls <hello@littlesouls.app>",
         to: [email],
-        subject: subject || "Partner with Little Souls - Earn 50% Commission 🐾✨",
+        subject: subject || "a free soul reading for your pet 🐾",
         html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">${htmlPitch}</div>`,
       }),
     });

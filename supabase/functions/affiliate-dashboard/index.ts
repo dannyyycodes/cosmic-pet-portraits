@@ -281,6 +281,7 @@ serve(async (req) => {
         date: r.created_at,
         amount: r.amount_cents / 100,
         commission: r.commission_cents / 100,
+        currency: r.currency || 'GBP',
         status: r.status,
         paidAt: r.paid_at,
       }));

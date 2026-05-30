@@ -1,8 +1,8 @@
 // Referral cookie tracking utility
-// 30-day cookie duration
+// 60-day cookie duration (last-click; pet purchases are considered/return-visit buys)
 
 const REFERRAL_COOKIE_KEY = 'cosmic_ref';
-const REFERRAL_COOKIE_DAYS = 30;
+const REFERRAL_COOKIE_DAYS = 60;
 
 export function setReferralCode(code: string): void {
   if (!code || typeof code !== 'string') return;

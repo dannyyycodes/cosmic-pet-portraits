@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { useLocalizedPrice } from '@/hooks/useLocalizedPrice';
+import { getReferralCode } from '@/lib/referralTracking';
 
 // Types
 import type { ReportContent, ReportData, ChartPlacement, SectionContent } from './types';
@@ -323,7 +324,7 @@ export function CosmicReportViewer({
     setIsSubscribing(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-horoscope-subscription', {
-        body: { email: '', petReportId: reportId, petName, currency },
+        body: { email: '', petReportId: reportId, petName, currency, referralCode: getReferralCode() || undefined },
       });
       if (error) throw error;
       if (data?.url) {

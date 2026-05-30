@@ -89,29 +89,34 @@ serve(async (req) => {
     interface AffiliatePayout {
       affiliate: { id: string; stripe_account_id: string; email: string };
       totalCommission: number;
+      currency: string;
       referralIds: string[];
     }
 
+    // Group by affiliate AND currency — never sum GBP + USD into one transfer.
     const affiliatePayouts = pendingReferrals.reduce((acc, ref) => {
-      const affId = ref.affiliate_id;
-      if (!acc[affId]) {
-        acc[affId] = {
+      const currency = (ref.currency || 'GBP').toUpperCase();
+      const key = `${ref.affiliate_id}__${currency}`;
+      if (!acc[key]) {
+        acc[key] = {
           affiliate: ref.affiliates,
           totalCommission: 0,
+          currency,
           referralIds: [],
         };
       }
-      acc[affId].totalCommission += ref.commission_cents;
-      acc[affId].referralIds.push(ref.id);
+      acc[key].totalCommission += ref.commission_cents;
+      acc[key].referralIds.push(ref.id);
       return acc;
     }, {} as Record<string, AffiliatePayout>);
 
     const payoutResults: Array<{ affiliateId: string; amount: number; transferId?: string; success: boolean; error?: string }> = [];
 
-    for (const affiliateId of Object.keys(affiliatePayouts)) {
-      const { affiliate, totalCommission, referralIds } = affiliatePayouts[affiliateId];
+    for (const payoutKey of Object.keys(affiliatePayouts)) {
+      const { affiliate, totalCommission, currency, referralIds } = affiliatePayouts[payoutKey];
+      const affiliateId = affiliate.id;
 
-      // Minimum payout threshold: $10
+      // Minimum payout threshold: 1000 minor units (£10 / $10) per currency
       if (totalCommission < 1000) {
         logStep("Skipping affiliate - below threshold", { affiliateId, amount: totalCommission });
         continue;
@@ -146,7 +151,7 @@ serve(async (req) => {
         const idempotencyKey = `payout_${affiliateId}_${referralIds.sort().join('_')}`.slice(0, 255);
         const transfer = await stripe.transfers.create({
           amount: totalCommission,
-          currency: 'usd',
+          currency: currency.toLowerCase(),
           destination: affiliate.stripe_account_id,
           metadata: {
             affiliate_id: affiliateId,
