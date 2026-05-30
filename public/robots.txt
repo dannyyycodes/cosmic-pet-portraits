@@ -68,7 +68,7 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://littlesouls.app/sitemap.xml
+Sitemap: https://www.littlesouls.app/sitemap.xml
 
 # Block admin, checkout internals, and transient per-customer URLs.
 Disallow: /admin

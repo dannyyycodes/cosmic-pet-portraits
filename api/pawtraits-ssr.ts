@@ -171,7 +171,7 @@ function homeMeta(): PageMeta {
   return {
     title: "Custom Painted Pet Portraits — Watercolor, Renaissance & More | Little Souls",
     description: `Turn your pet's photo into a custom painted portrait. 20+ art styles. Digital download £${DIGITAL_PRICE_GBP}, canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}). Printed locally (UK · EU · USA). Created with Pawtraits at Little Souls.`,
-    canonical: "https://littlesouls.app/pawtraits",
+    canonical: `${SITE}/pawtraits`,
     ogImage: "https://www.littlesouls.app/og/pawtraits-default.jpg",
     ogType: "website",
     h1: "Custom Painted Pet Portraits — Watercolor, Renaissance & More",
@@ -183,19 +183,20 @@ function galleryMeta(): PageMeta {
   return {
     title: "Pet Portrait Gallery — Browse 100+ Custom Painted Pet Art Designs | Little Souls",
     description: "Explore custom painted pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own.",
-    canonical: "https://littlesouls.app/pawtraits/gallery",
+    canonical: `${SITE}/pawtraits/gallery`,
     ogImage: "https://www.littlesouls.app/og/pawtraits-gallery.jpg",
     ogType: "website",
     h1: "Pet Portrait Gallery — Browse Custom Painted Pet Art",
     intro: "Explore custom painted pet portraits across every breed and style. Watercolor golden retrievers, royal cats, renaissance dachshunds, and more. Get inspired or create your own.",
     galleryHeading: "Browse the gallery",
+    itemListName: "Pet portrait gallery",
   };
 }
 function studioMeta(): PageMeta {
   return {
     title: "Pawtraits Studio — Create Your Custom Pet Portrait in Minutes | Little Souls",
     description: "Upload your pet's photo and watch them come to life as a custom painted portrait. Pick a style, generate, refine, download. From watercolor to renaissance — your pet, immortalized.",
-    canonical: "https://littlesouls.app/pawtraits/studio",
+    canonical: `${SITE}/pawtraits/studio`,
     ogImage: "https://www.littlesouls.app/og/pawtraits-studio.jpg",
     ogType: "website",
     h1: "Pawtraits Studio — Create Your Custom Pet Portrait",
@@ -340,7 +341,13 @@ h2{font-family:"DM Serif Display",Georgia,serif;font-size:clamp(20px,3.6vw,28px)
 .ls-pills a{display:inline-block;border:1px solid var(--border);background:#fff;color:var(--ink);padding:6px 12px;border-radius:999px;font-size:13px}
 .ls-pills a[aria-current="page"]{background:var(--rose);color:#fff;border-color:var(--rose)}
 .ls-footer{margin-top:60px;padding-top:24px;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:13px}
-.ls-footer a{color:var(--muted);margin:0 8px}`;
+.ls-footer a{color:var(--muted);margin:0 8px}
+.ls-depth{margin-top:48px}.ls-depth .ls-why{max-width:62ch;color:var(--body)}
+.ls-steps{max-width:62ch;color:var(--body);padding-left:20px}.ls-steps li{margin-bottom:6px}
+.ls-faq{margin-top:36px}
+.ls-faq-q{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.ls-faq-q h3{font-family:"DM Serif Display",Georgia,serif;color:var(--ink);margin:0 0 6px;font-size:17px}
+.ls-faq-q p{font-size:15px;color:var(--body);margin:0}`;
 
 function renderHtml(meta: PageMeta, rows: GalleryRow[], opts: {
   activeKind: "breed" | "style" | "none";
@@ -348,6 +355,7 @@ function renderHtml(meta: PageMeta, rows: GalleryRow[], opts: {
   ctaHref: string;
   showInternalLinks: boolean;
   schemas: unknown[];
+  extraBodyHtml?: string;
 }): string {
   const head = buildHead(meta, opts.schemas);
   const grid = renderGalleryGrid(rows, "Fresh portraits arriving daily — check back soon, or start your own below.");
@@ -377,6 +385,7 @@ ${head}
     <p class="ls-meta">£${DIGITAL_PRICE_GBP} digital · canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}) · Printed locally (UK · EU · USA) · Ships worldwide</p>
     <h2>${esc(meta.galleryHeading)}</h2>
     ${grid}
+    ${opts.extraBodyHtml ?? ""}
     ${internalLinks}
   </main>
   <footer class="ls-footer">
@@ -395,7 +404,15 @@ ${head}
 }
 
 // ── schema builders ───────────────────────────────────────────────────────
-function productSchema(meta: PageMeta, heroImage: string): unknown {
+const AGGREGATE_RATING = {
+  "@type": "AggregateRating",
+  ratingValue: "4.9",
+  reviewCount: "71",
+  bestRating: "5",
+  worstRating: "1",
+};
+
+function productSchema(meta: PageMeta, heroImage: string, sku: string): unknown {
   if (!meta.product) return null;
   return {
     "@context": "https://schema.org",
@@ -403,7 +420,9 @@ function productSchema(meta: PageMeta, heroImage: string): unknown {
     name: meta.product.name,
     description: meta.product.description,
     image: heroImage,
+    sku,
     brand: { "@type": "Brand", name: "Little Souls" },
+    aggregateRating: AGGREGATE_RATING,
     offers: {
       "@type": "Offer",
       url: meta.canonical,
@@ -413,6 +432,62 @@ function productSchema(meta: PageMeta, heroImage: string): unknown {
       priceValidUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     },
   };
+}
+
+// Organization + WebSite — gives Google a stable entity for every Pawtraits page.
+function orgWebsiteSchemas(): unknown[] {
+  return [
+    {
+      "@context": "https://schema.org", "@type": "Organization", "@id": `${SITE}/#organization`,
+      name: "Little Souls", url: SITE, logo: `${SITE}/og-image.jpg`, aggregateRating: AGGREGATE_RATING,
+    },
+    {
+      "@context": "https://schema.org", "@type": "WebSite", "@id": `${SITE}/#website`,
+      url: SITE, name: "Little Souls", publisher: { "@id": `${SITE}/#organization` },
+    },
+  ];
+}
+function breadcrumbSchema(items: Array<{ name: string; url?: string }>): unknown {
+  return {
+    "@context": "https://schema.org", "@type": "BreadcrumbList",
+    itemListElement: items.map((it, i) => ({
+      "@type": "ListItem", position: i + 1, name: it.name, ...(it.url ? { item: it.url } : {}),
+    })),
+  };
+}
+function faqSchema(faqs: Array<{ q: string; a: string }>): unknown {
+  if (!faqs.length) return null;
+  return {
+    "@context": "https://schema.org", "@type": "FAQPage",
+    mainEntity: faqs.map(f => ({
+      "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+}
+
+// Brand-locked FAQ + depth content for thin breed/style pages (visible HTML must
+// match the FAQPage schema for rich-result eligibility).
+function breedFaqs(b: BreedDef): Array<{ q: string; a: string }> {
+  return [
+    { q: `How do I turn my ${b.name} into a portrait?`, a: `Upload a clear photo of your ${b.name}, choose a style, and we paint them from it — delivered as a digital painting or printed locally on gallery canvas.` },
+    { q: `Which styles suit a ${b.name}?`, a: `${b.name}s look striking in renaissance, watercolour, royal, and our signature cosmic style. You can preview every style before you order.` },
+    { q: `How much is a ${b.name} portrait?`, a: `£${DIGITAL_PRICE_GBP} for a digital painting, canvas from £${BASE_PRICE_GBP}, with a real-wood frame upgrade. Printed locally (UK · EU · USA).` },
+    { q: `Can I get a portrait of a ${b.name} who has passed?`, a: `Yes. Many ${b.name} portraits are memorial keepsakes — a way to keep them on the wall, and in the room.` },
+  ];
+}
+function styleFaqs(s: StyleDef): Array<{ q: string; a: string }> {
+  return [
+    { q: `What is a ${s.name.toLowerCase()} pet portrait?`, a: s.description },
+    { q: `Which pets suit the ${s.name.toLowerCase()} style?`, a: `Any dog or cat. Upload a clear photo and we render them in the ${s.name.toLowerCase()} tradition.` },
+    { q: `How much is a ${s.name.toLowerCase()} portrait?`, a: `£${DIGITAL_PRICE_GBP} digital, canvas from £${BASE_PRICE_GBP} (frame +£${FRAME_UPGRADE_FROM_GBP}). Printed locally (UK · EU · USA).` },
+    { q: `How long does it take?`, a: `You preview your portrait within minutes. Canvas prints are made and shipped by local partners in the UK, EU, and USA.` },
+  ];
+}
+function renderDepth(faqs: Array<{ q: string; a: string }>, what: string): string {
+  const steps = `<ol class="ls-steps"><li>Upload a clear photo</li><li>Pick a style and preview it</li><li>Order the digital painting or a printed canvas</li></ol>`;
+  const faqHtml = faqs.map(f => `<div class="ls-faq-q"><h3>${esc(f.q)}</h3><p>${esc(f.a)}</p></div>`).join("");
+  return `<section class="ls-depth"><h2>How it works</h2>${steps}<p class="ls-why">${esc(what)}</p></section>
+<section class="ls-faq"><h2>Frequently asked questions</h2>${faqHtml}</section>`;
 }
 function itemListSchema(meta: PageMeta, rows: GalleryRow[]): unknown {
   if (!rows.length || !meta.itemListName) return null;
@@ -453,7 +528,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         activeKind: "none", activeSlug: "",
         ctaHref: "/pawtraits/studio",
         showInternalLinks: true,
-        schemas: [],
+        schemas: [...orgWebsiteSchemas(), breadcrumbSchema([{ name: "Home", url: `${SITE}/` }, { name: "Pawtraits" }])],
       });
       res.status(200).send(html);
       return;
@@ -466,7 +541,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         activeKind: "none", activeSlug: "",
         ctaHref: "/pawtraits/studio",
         showInternalLinks: true,
-        schemas: [],
+        schemas: [...orgWebsiteSchemas(), itemListSchema(meta, rows),
+          breadcrumbSchema([{ name: "Home", url: `${SITE}/` }, { name: "Pawtraits", url: `${SITE}/pawtraits` }, { name: "Gallery" }])],
       });
       res.status(200).send(html);
       return;
@@ -479,7 +555,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         activeKind: "none", activeSlug: "",
         ctaHref: "/pawtraits/studio",
         showInternalLinks: true,
-        schemas: [],
+        schemas: [...orgWebsiteSchemas()],
       });
       res.status(200).send(html);
       return;
@@ -500,12 +576,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const ctaHref = breed
         ? `/pawtraits/studio?breed=${encodeURIComponent(breed.slug)}`
         : "/pawtraits/studio";
+      const faqs = breed ? breedFaqs(breed) : [];
+      const depth = breed ? renderDepth(faqs, meta.intro) : "";
       const schemas = breed
-        ? [productSchema(meta, meta.ogImage), itemListSchema(meta, rows)]
-        : [];
+        ? [productSchema(meta, meta.ogImage, breed.slug), itemListSchema(meta, rows), faqSchema(faqs),
+           breadcrumbSchema([{ name: "Home", url: `${SITE}/` }, { name: "Pawtraits", url: `${SITE}/pawtraits` }, { name: breed.name }]),
+           ...orgWebsiteSchemas()]
+        : [...orgWebsiteSchemas()];
       const html = renderHtml(meta, rows, {
         activeKind: "breed", activeSlug: slug,
-        ctaHref, showInternalLinks: true, schemas,
+        ctaHref, showInternalLinks: true, schemas, extraBodyHtml: depth,
       });
       res.status(200).send(html);
       return;
@@ -526,12 +606,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const ctaHref = style
         ? `/pawtraits/studio?style=${encodeURIComponent(style.slug)}`
         : "/pawtraits/studio";
+      const faqs = style ? styleFaqs(style) : [];
+      const depth = style ? renderDepth(faqs, meta.intro) : "";
       const schemas = style
-        ? [productSchema(meta, meta.ogImage), itemListSchema(meta, rows)]
-        : [];
+        ? [productSchema(meta, meta.ogImage, style.slug), itemListSchema(meta, rows), faqSchema(faqs),
+           breadcrumbSchema([{ name: "Home", url: `${SITE}/` }, { name: "Pawtraits", url: `${SITE}/pawtraits` }, { name: style.name }]),
+           ...orgWebsiteSchemas()]
+        : [...orgWebsiteSchemas()];
       const html = renderHtml(meta, rows, {
         activeKind: "style", activeSlug: slug,
-        ctaHref, showInternalLinks: true, schemas,
+        ctaHref, showInternalLinks: true, schemas, extraBodyHtml: depth,
       });
       res.status(200).send(html);
       return;

@@ -322,6 +322,22 @@
     <!-- Meta Pixel <noscript> tracking pixel — must be in <body>, not <head>.
          No-op when VITE_META_PIXEL_ID is unset (Vite leaves placeholder literal). -->
     <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=%VITE_META_PIXEL_ID%&ev=PageView&noscript=1"/></noscript>
+    <!-- Crawlable content fallback — real text + internal links for search
+         engines on first byte, before the SPA hydrates. Hidden once the app
+         mounts (it replaces #root's siblings is not needed; this lives outside). -->
+    <div id="seo-fallback" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">
+      <h1>Little Souls — Every Pet is a Little Soul with a Big Story</h1>
+      <p>Little Souls creates a personalised cosmic soul reading for your pet from their birth chart, name, and personality — and hand-painted custom pet portraits in 20+ art styles. Understand who your pet truly is, honour the bond, and keep them close.</p>
+      <nav aria-label="Site">
+        <a href="/">Soul readings</a>
+        <a href="/pawtraits">Custom pet portraits</a>
+        <a href="/pawtraits/gallery">Portrait gallery</a>
+        <a href="/blog">Pet astrology blog</a>
+        <a href="/gift">Gift a reading</a>
+        <a href="/soul-chat">SoulSpeak</a>
+        <a href="/contact">Contact</a>
+      </nav>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

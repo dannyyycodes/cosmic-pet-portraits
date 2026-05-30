@@ -72,6 +72,7 @@
     }
   ],
   "redirects": [
+    { "source": "/:path*", "has": [{ "type": "host", "value": "littlesouls.app" }], "destination": "https://www.littlesouls.app/:path*", "permanent": true },
     { "source": "/portraits", "destination": "/pawtraits", "permanent": true },
     { "source": "/portraits/templates", "destination": "/pawtraits/templates", "permanent": true },
     { "source": "/portraits/studio", "destination": "/pawtraits#studio", "permanent": true },
