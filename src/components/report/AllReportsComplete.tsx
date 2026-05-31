@@ -31,9 +31,10 @@ interface AllReportsCompleteProps {
   giftedInfo?: GiftedInfo;
   horoscopeInfo?: HoroscopeInfo;
   purchaseEmail?: string;
+  isMemorial?: boolean;
 }
 
-export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedInfo, horoscopeInfo, purchaseEmail }: AllReportsCompleteProps) {
+export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedInfo, horoscopeInfo, purchaseEmail, isMemorial }: AllReportsCompleteProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -440,6 +441,39 @@ export function AllReportsComplete({ petNames, onViewReports, giftInfo, giftedIn
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Earn-from-sharing — warm advocate flywheel. Hidden for memorial
+              orders: we never pitch earning to someone in grief. */}
+          {!isMemorial && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.62 }}
+              className="mb-6 p-5 rounded-2xl text-left"
+              style={{
+                background: 'linear-gradient(135deg, rgba(191,82,74,0.10) 0%, rgba(196,162,101,0.10) 100%)',
+                border: '1.5px solid rgba(191,82,74,0.30)',
+              }}
+            >
+              <div className="inline-flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-3 text-white"
+                style={{ background: '#bf524a' }}>
+                <Share2 className="w-3 h-3" /> Earn from sharing
+              </div>
+              <h3 className="font-semibold text-foreground text-sm md:text-base mb-1">
+                Loved it? Earn when you share it
+              </h3>
+              <p className="text-xs md:text-sm text-muted-foreground mb-4">
+                Partners earn 50% on every soul reading, 20% for life on horoscope memberships, and 15% on pawtraits — plus a £15 bonus on your first sale. Your friends get a discount through your link. Free to join, no catch.
+              </p>
+              <Button
+                onClick={() => navigate(`/become-affiliate?for=customer${email ? `&email=${encodeURIComponent(email)}` : ''}`)}
+                className="w-full text-white font-semibold"
+                style={{ background: 'linear-gradient(135deg, #bf524a, #c4a265)' }}
+              >
+                <Share2 className="w-4 h-4 mr-2" /> Get your sharing link
+              </Button>
+            </motion.div>
+          )}
 
           {/* Extra upsells for gifted users */}
           {giftedInfo?.isGifted && (
