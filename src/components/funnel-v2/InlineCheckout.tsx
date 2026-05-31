@@ -1479,12 +1479,6 @@ export const InlineCheckout = forwardRef<HTMLDivElement, InlineCheckoutProps>(({
         <div className="cosmic-checkout-shell">
           <div className="cosmic-checkout-copy">
             <p className="cosmic-checkout-kicker">Choose the depth</p>
-            <h2 className="cosmic-checkout-title">A private reading for the soul you already know.</h2>
-            <p className="cosmic-checkout-body">
-              Start with their own birth sky, or add the bond layer to see how
-              your chart and theirs speak to each other. You can add more than
-              one pet without leaving this page.
-            </p>
             <div className="cosmic-tier-grid">
               {renderCosmicTier(TIERS.find((t) => t.id === "basic")!, "core")}
               {renderCosmicTier(TIERS.find((t) => t.id === "premium")!, "bond")}

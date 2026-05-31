@@ -154,7 +154,6 @@ export function ReadingsLanding() {
   const pageRef = useRef<HTMLElement>(null);
   const checkoutRef = useRef<HTMLDivElement>(null);
   const [selectedPrice, setSelectedPrice] = useState(0);
-  const [skyOpen, setSkyOpen] = useState(false);
   useCosmicParallax(pageRef);
 
   const scrollToCheckout = () => {
@@ -166,7 +165,6 @@ export function ReadingsLanding() {
       <CosmicStyles />
       <CosmicBackdrop />
       <HeroSection onBegin={scrollToCheckout} />
-      <SkyToolkit open={skyOpen} onToggle={() => setSkyOpen((v) => !v)} />
       <CheckoutSection
         checkoutRef={checkoutRef}
         selectedPrice={selectedPrice}
@@ -174,34 +172,9 @@ export function ReadingsLanding() {
       />
       <QuietMomentSection />
       <FaqSection />
+      <BirthChartPreviewSection />
+      <AuthoritySection />
     </main>
-  );
-}
-
-function SkyToolkit({ open, onToggle }: { open: boolean; onToggle: () => void }) {
-  return (
-    <section className="ls-parallax-band relative px-5 pt-8 pb-4 sm:pt-12">
-      <div className="mx-auto max-w-6xl">
-        <button
-          type="button"
-          className={`ls-disclosure ${open ? "is-open" : ""}`}
-          onClick={onToggle}
-          aria-expanded={open}
-        >
-          <span className="ls-disclosure-text">
-            <span style={eyebrowStyle(C.gold)}>Free birth-chart preview</span>
-            <span className="ls-disclosure-title">Peek at the sky behind their reading</span>
-          </span>
-          <span className="ls-disclosure-icon" aria-hidden="true">{open ? "−" : "+"}</span>
-        </button>
-        {open && (
-          <div className="ls-disclosure-body">
-            <BirthChartPreviewSection />
-            <AuthoritySection />
-          </div>
-        )}
-      </div>
-    </section>
   );
 }
 
@@ -251,7 +224,7 @@ function HeroSection({ onBegin }: { onBegin: () => void }) {
       <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.86fr_1.14fr]">
         <div className="max-w-2xl">
           <h1 className="mt-6 text-balance" style={heroTitleStyle}>
-            See the little soul behind the eyes.
+            Read the soul behind those eyes.
           </h1>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button onClick={onBegin} className="ls-gold-button">
@@ -360,9 +333,9 @@ function BirthChartPreviewSection() {
     <section className="ls-parallax-band relative px-5 py-18 sm:py-28">
       <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr]">
         <div>
-          <p style={eyebrowStyle(C.gold)}>Free birth-chart preview</p>
+          <p style={eyebrowStyle(C.gold)}>Free mini reading</p>
           <h2 className="mt-5 text-balance" style={sectionTitleStyle}>
-            Show them the sky they came in with.
+            Free mini reading calculations.
           </h2>
           <p className="mt-6 text-pretty" style={sectionBodyStyle}>
             Enter their birth or adoption date and watch their real planets light up —
@@ -1266,7 +1239,11 @@ function CosmicStyles() {
           padding: clamp(18px, 5vw, 28px);
         }
         .ls-lead-form { max-width: none; }
-        .ls-sky-grid { grid-template-columns: 1fr; }
+        .ls-sky-grid { grid-template-columns: 1fr; gap: 10px; }
+        .ls-planet-card { min-height: 0; padding: 11px; gap: 12px; }
+        .ls-planet-orb { width: 42px; height: 42px; }
+        .ls-planet-sign { font-size: 1.05rem; }
+        .ls-planet-card small { font-size: 0.74rem; }
         .ls-sky-gate { padding: 18px 14px; }
         .ls-sky-gate form { grid-template-columns: 1fr; }
         .ls-sky-gate .ls-gold-button { width: 100%; }
