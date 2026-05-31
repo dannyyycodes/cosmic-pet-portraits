@@ -60,7 +60,7 @@ for (const sp of ["dog", "cat"]) {
 STATIC_ENTRIES.push({ loc: `${SITE}/tools/pet-birth-chart`, changefreq: "monthly", priority: 0.9 });
 STATIC_ENTRIES.push({ loc: `${SITE}/methodology`, changefreq: "yearly", priority: 0.6 });
 
-const BREED_DOG_SLUGS = ["french-bulldog-libra", "french-bulldog-taurus", "german-shepherd-aquarius", "german-shepherd-capricorn", "golden-retriever-leo", "golden-retriever-scorpio", "labrador-retriever-aries", "labrador-retriever-cancer", "poodle-gemini", "poodle-virgo"];
+const BREED_DOG_SLUGS = ["french-bulldog-libra", "french-bulldog-taurus", "german-shepherd-aquarius", "german-shepherd-capricorn", "golden-retriever-leo", "golden-retriever-scorpio", "labrador-retriever-aries", "labrador-retriever-cancer", "labrador-retriever-gemini", "labrador-retriever-leo", "labrador-retriever-taurus", "poodle-gemini", "poodle-virgo"];
 for (const s of BREED_DOG_SLUGS) STATIC_ENTRIES.push({ loc: `${SITE}/breeds/dog/${s}`, changefreq: "monthly", priority: 0.6 });
 
 function escapeXml(s: string): string {
